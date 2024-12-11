@@ -2075,6 +2075,7 @@ dependencies = [
  "specta-typescript",
  "tauri",
  "tauri-build",
+ "tauri-plugin-core-audio",
  "tauri-plugin-fs",
  "tauri-plugin-keygen-rs2",
  "tauri-plugin-positioner",

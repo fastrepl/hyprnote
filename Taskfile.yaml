@@ -3,6 +3,7 @@ tasks:
   fmt:yaml: yamlfmt .github Taskfile.yaml
   fmt:toml: taplo fmt **/*.toml
   fmt:rs: cargo fmt
+  fmt:swift: swift-format format crates/**/*.swift -i
   fmt:
     silent: true
-    deps: ['fmt:yaml', 'fmt:toml', 'fmt:rs']
+    deps: ['fmt:yaml', 'fmt:toml', 'fmt:rs', 'fmt:swift']

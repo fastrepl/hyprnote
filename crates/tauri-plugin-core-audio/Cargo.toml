@@ -1,0 +1,17 @@
+[package]
+name = "tauri-plugin-core-audio"
+version = "0.1.0"
+authors = ["You"]
+description = ""
+edition = "2021"
+rust-version = "1.77.2"
+exclude = ["/examples", "/webview-dist", "/webview-src", "/node_modules"]
+links = "tauri-plugin-core-audio"
+
+[dependencies]
+tauri = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[build-dependencies]
+tauri-plugin = { version = "2.0.2", features = ["build"] }

@@ -1,0 +1,8 @@
+version: '3'
+tasks:
+  fmt:yaml: yamlfmt .github Taskfile.yaml
+  fmt:toml: taplo fmt **/*.toml
+  fmt:rs: cargo fmt
+  fmt:
+    silent: true
+    deps: ['fmt:yaml', 'fmt:toml', 'fmt:rs']

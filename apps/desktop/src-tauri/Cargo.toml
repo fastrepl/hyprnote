@@ -1,5 +1,5 @@
 [package]
-name = "Hypr"
+name = "desktop"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
@@ -18,7 +18,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["tray-icon"] }
+tauri = { workspace = true, features = ["tray-icon"] }
 tauri-plugin-shell = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-fs = "2"
@@ -32,9 +32,10 @@ specta = "=2.0.0-rc.20"
 specta-typescript = "0.0.7"
 tauri-specta = { version = "=2.0.0-rc.20", features = ["derive", "typescript"] }
 
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-anyhow = "1.0.94"
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 dotenvy_macro = "0.15.7"
 uuid = "1.11.0"
 

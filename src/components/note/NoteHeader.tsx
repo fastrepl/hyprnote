@@ -1,4 +1,4 @@
-import type { Note, CalendarEvent } from "../types";
+import type { Note, CalendarEvent } from "../../types";
 import NoteControl from "./NoteControl";
 
 interface NoteHeaderProps {
@@ -45,7 +45,7 @@ export default function NoteHeader({
   };
 
   return (
-    <div className="border-b bg-white p-4 px-6">
+    <div className="sticky top-0 z-10 border-b bg-white p-4 px-6">
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <input

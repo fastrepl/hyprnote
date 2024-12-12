@@ -76,22 +76,22 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50">
+    <div className="fixed inset-0 z-50 bg-black/50">
       <Command
         ref={modalRef}
-        className="fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-2xl mx-4"
+        className="fixed left-1/2 top-[20%] mx-4 w-full max-w-2xl -translate-x-1/2"
         shouldFilter={false}
       >
         <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-2xl">
           <Command.Input
             value={search}
             onValueChange={setSearch}
-            className="w-full px-4 h-12 text-gray-700 border-b outline-none"
+            className="h-12 w-full border-b px-4 text-gray-700 outline-none"
             placeholder="회의와 노트 검색하기..."
             autoFocus
           />
           <Command.List className="max-h-[60vh] overflow-y-auto p-2">
-            <Command.Empty className="text-center text-gray-500 py-8">
+            <Command.Empty className="py-8 text-center text-gray-500">
               검색 결과가 없습니다
             </Command.Empty>
 
@@ -103,9 +103,9 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   navigate(`/note/${result.id}`);
                   onClose();
                 }}
-                className="px-4 py-3 rounded-lg text-sm text-gray-900 flex items-center gap-3 cursor-pointer hover:bg-gray-100"
+                className="flex cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-sm text-gray-900 hover:bg-gray-100"
               >
-                <div className="w-4 h-4">
+                <div className="h-4 w-4">
                   {result.type === "meeting" ? (
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path

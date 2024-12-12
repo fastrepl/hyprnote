@@ -10,7 +10,7 @@ function App() {
   return (
     <BrowserRouter>
       <UIProvider>
-        <div className="h-screen flex flex-col">
+        <div className="flex h-screen flex-col">
           <NavBar />
           <main className="flex-1">
             <Routes>

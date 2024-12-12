@@ -59,8 +59,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 {/* Plan Section */}
                 <div>
                   <h4 className="font-medium text-gray-900">현재 플랜</h4>
-                  <div className="mt-2 p-4 bg-gray-50 rounded-lg">
-                    <div className="flex justify-between items-center">
+                  <div className="mt-2 rounded-lg bg-gray-50 p-4">
+                    <div className="flex items-center justify-between">
                       <div>
                         <div className="font-medium">무료 플랜</div>
                         <div className="text-sm text-gray-500">
@@ -78,13 +78,13 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 <div>
                   <h4 className="font-medium text-gray-900">계정</h4>
                   <div className="mt-2 space-y-2">
-                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">
+                    <button className="w-full rounded-lg px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">
                       프로필 설정
                     </button>
-                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">
+                    <button className="w-full rounded-lg px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">
                       알림 설정
                     </button>
-                    <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
+                    <button className="w-full rounded-lg px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50">
                       로그아웃
                     </button>
                   </div>

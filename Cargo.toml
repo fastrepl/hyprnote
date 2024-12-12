@@ -3,8 +3,20 @@ resolver = "2"
 members = ["apps/desktop/src-tauri", "crates/*"]
 
 [workspace.dependencies]
+tauri = "2.1.1"
+tokio = "1"
+
 anyhow = "1"
 thiserror = "2"
 serde = "1"
 serde_json = "1"
-tauri = "2.1.1"
+
+ndarray = "0.16.1"
+ort = "2.0.0-rc.9"
+tokenizers = "0.19.1"
+candle-examples = { git = "https://github.com/huggingface/candle", tag = "0.8.1" }
+candle-core = "0.8.1"
+candle-transformers = "0.8.1"
+candle-nn = "0.8.1"
+
+cap-media = { git = "https://github.com/CapSoftware/Cap", tag = "cap-v0.3.4" }

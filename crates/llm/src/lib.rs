@@ -129,8 +129,8 @@ mod tests {
         let manifest_dir = env!("CARGO_MANIFEST_DIR");
 
         let llm = LLM::new(
-            &format!("{}/models/tokenizer.json", manifest_dir),
-            &format!("{}/models/llm.gguf", manifest_dir),
+            &format!("{}/tmp/tokenizer.json", manifest_dir),
+            &format!("{}/tmp/model.gguf", manifest_dir),
         )
         .await
         .unwrap();

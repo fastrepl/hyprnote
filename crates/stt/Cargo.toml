@@ -1,0 +1,17 @@
+[package]
+name = "stt"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { workspace = true }
+tokio = { workspace = true }
+
+serde_json = { workspace = true }
+cap-media = { workspace = true }
+
+tokenizers = { workspace = true }
+candle-examples = { workspace = true }
+candle-core = { workspace = true, features = ["metal"] }
+candle-transformers = { workspace = true, features = ["metal"] }
+candle-nn = { workspace = true, features = ["metal"] }

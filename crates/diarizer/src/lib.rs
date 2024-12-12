@@ -22,7 +22,7 @@ pub struct SpeakerSegment {
     confidence: f32,
 }
 
-const MODEL_BYTES: &[u8] = include_bytes!("../models/diarizer.onnx");
+const MODEL_BYTES: &[u8] = include_bytes!("../data/model.onnx");
 
 impl Diarizer {
     pub fn new() -> Result<Self> {

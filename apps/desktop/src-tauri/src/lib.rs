@@ -5,12 +5,9 @@ use tokio::sync::RwLock;
 
 mod audio;
 mod db;
-mod diarizer;
 mod file;
-mod llm;
 mod permissions;
 mod session;
-mod stt;
 
 #[derive(specta::Type)]
 #[serde(rename_all = "camelCase")]

@@ -2052,27 +2052,23 @@ name = "desktop"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "candle-core 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "candle-examples",
- "candle-nn 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "candle-transformers 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "cap-media",
  "coreaudio-rs 0.12.1",
  "cpal 0.15.3 (git+https://github.com/RustAudio/cpal?rev=f43d36e55494993bbbde3299af0c53e5cdf4d4cf)",
+ "diarizer",
  "dotenvy_macro",
- "encoding_rs",
  "flume 0.11.1",
  "futures",
  "hound",
- "ndarray",
+ "llm",
  "objc",
- "ort",
  "reqwest 0.12.9",
  "rodio",
  "serde",
  "serde_json",
  "specta",
  "specta-typescript",
+ "stt",
  "swift",
  "tauri",
  "tauri-build",
@@ -2086,9 +2082,20 @@ dependencies = [
  "tauri-plugin-updater",
  "tauri-specta",
  "thiserror 2.0.6",
- "tokenizers",
  "tokio",
  "uuid",
+]
+
+[[package]]
+name = "diarizer"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "hound",
+ "ndarray",
+ "ort",
+ "reqwest 0.12.9",
+ "tokio",
 ]
 
 [[package]]
@@ -4523,6 +4530,18 @@ name = "litrs"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4ce301924b7887e9d637144fdade93f9dfff9b60981d4ac161db09720d39aa5"
+
+[[package]]
+name = "llm"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "candle-core 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "candle-examples",
+ "candle-transformers 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tokenizers",
+ "tokio",
+]
 
 [[package]]
 name = "lock_api"
@@ -7742,6 +7761,21 @@ name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
+
+[[package]]
+name = "stt"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "candle-core 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "candle-examples",
+ "candle-nn 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "candle-transformers 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cap-media",
+ "serde_json",
+ "tokenizers",
+ "tokio",
+]
 
 [[package]]
 name = "subtle"

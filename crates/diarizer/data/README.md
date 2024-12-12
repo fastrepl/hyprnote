@@ -1,0 +1,1 @@
+- `model.onnx`: https://huggingface.co/onnx-community/pyannote-segmentation-3.0/resolve/main/onnx/model.onnx

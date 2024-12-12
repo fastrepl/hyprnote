@@ -57,7 +57,6 @@ func createTap() -> AudioObjectID {
   description.uuid = UUID()
   description.isPrivate = true
   description.isMono = true
-  description.deviceUID = getOutputDeviceID()!
 
   var tapID = AudioObjectID(kAudioObjectUnknown)
   AudioHardwareCreateProcessTap(description, &tapID)
@@ -75,7 +74,7 @@ func createAggregateDevice() -> AudioObjectID {
   return aggregateID
 }
 
-func getOutputDeviceID() -> String? {
+func getOutputDeviceID() -> AudioObjectID? {
   var propertyAddress = AudioObjectPropertyAddress(
     mSelector: kAudioHardwarePropertyDefaultOutputDevice,
     mScope: kAudioObjectPropertyScopeGlobal,
@@ -98,5 +97,5 @@ func getOutputDeviceID() -> String? {
     return nil
   }
 
-  return deviceUID as String?
+  return deviceID
 }

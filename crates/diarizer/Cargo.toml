@@ -1,0 +1,14 @@
+[package]
+name = "diarizer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { workspace = true }
+tokio = { workspace = true, features = ["rt", "macros"] }
+ndarray = { workspace = true }
+ort = { workspace = true, features = ["coreml"] }
+
+[dev-dependencies]
+reqwest = "0.12"
+hound = "3.5.1"

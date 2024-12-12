@@ -1,1 +1,1 @@
-# @hyper/desktop
+# @hypr/desktop

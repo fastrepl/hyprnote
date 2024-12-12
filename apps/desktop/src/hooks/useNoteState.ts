@@ -8,7 +8,7 @@ interface NoteState {
   content: string;
   title: string;
   recordingTime: number;
-  showHypercharge: boolean;
+  showhyprcharge: boolean;
 }
 
 export function useNoteState(id: string | undefined) {
@@ -18,7 +18,7 @@ export function useNoteState(id: string | undefined) {
     content: "",
     title: "",
     recordingTime: 0,
-    showHypercharge: false,
+    showhyprcharge: false,
   });
 
   const updateState = (updates: Partial<NoteState>) => {
@@ -68,14 +68,14 @@ export function useNoteState(id: string | undefined) {
   ) => {
     if (isPaused) {
       await Promise.resolve(resumeRecording());
-      updateState({ showHypercharge: false });
+      updateState({ showhyprcharge: false });
     } else {
       await Promise.resolve(pauseRecording());
-      updateState({ showHypercharge: true });
+      updateState({ showhyprcharge: true });
     }
   };
 
-  const handleHypercharge = async () => {
+  const handlehyprcharge = async () => {
     const enhancedNote = await enhanceNoteWithAI(
       state.title,
       state.content,
@@ -96,6 +96,6 @@ export function useNoteState(id: string | undefined) {
     shouldStartRecording,
     updateRecordingTime,
     handlePauseResume,
-    handleHypercharge,
+    handlehyprcharge,
   };
 }

@@ -17,7 +17,7 @@ export default function NotePage() {
     shouldStartRecording,
     updateRecordingTime,
     handlePauseResume,
-    handleHypercharge,
+    handlehyprcharge,
   } = useNoteState(id);
 
   const {
@@ -74,12 +74,12 @@ export default function NotePage() {
                 note={state.note}
                 isNew={state.isNew}
                 noteTitle={state.title}
-                showHypercharge={state.showHypercharge}
+                showhyprcharge={state.showhyprcharge}
                 isRecording={isRecording}
                 isPaused={isPaused}
                 recordingTime={state.recordingTime}
                 onTitleChange={(title) => updateState({ title })}
-                onHypercharge={handleHypercharge}
+                onhyprcharge={handlehyprcharge}
                 onStartRecording={startRecording}
                 onPauseResume={handlePauseResumeClick}
               />

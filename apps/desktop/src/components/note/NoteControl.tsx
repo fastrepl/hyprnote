@@ -2,22 +2,22 @@ import type { Note } from "../../types";
 
 interface NoteControlProps {
   note: Note | null;
-  showHypercharge: boolean;
+  showhyprcharge: boolean;
   isRecording: boolean;
   isPaused: boolean;
   recordingTime: number;
-  onHypercharge: () => void;
+  onhyprcharge: () => void;
   onStart: () => void;
   onPauseResume: () => void;
 }
 
 export default function NoteControl({
   note,
-  showHypercharge,
+  showhyprcharge,
   isRecording,
   isPaused,
   recordingTime,
-  onHypercharge,
+  onhyprcharge,
   onStart,
   onPauseResume,
 }: NoteControlProps) {
@@ -44,9 +44,9 @@ export default function NoteControl({
             미팅 참여하기
           </button>
         )}
-        {showHypercharge && (
+        {showhyprcharge && (
           <button
-            onClick={onHypercharge}
+            onClick={onhyprcharge}
             className="rounded-full bg-purple-50 px-4 py-1.5 text-sm text-purple-600 hover:bg-purple-100"
           >
             하이퍼차지

@@ -1,12 +1,15 @@
 {
-  "name": "@hyper/ui",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "@hypr/ui",
+  "exports": {
+    ".": "./src/index.tsx"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "scripts": {
+    "format": "prettier --write ."
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  }
 }

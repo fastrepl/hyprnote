@@ -3653,7 +3653,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 
 [[package]]
-name = "hyper"
+name = "hypr"
 version = "0.14.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8c08302e8fa335b151b788c775ff56e7a03ae64ff85c548ee820fecb70356e85"
@@ -3677,7 +3677,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "hyper"
+name = "hypr"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97818827ef4f364230e16705d4706e2897df2bb60617d6ca15d598025a3c481f"
@@ -3697,15 +3697,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "hyper-rustls"
+name = "hypr-rustls"
 version = "0.27.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08afdbb5c31130e3034af566421053ab03787c640246a446327f550d11bcb333"
 dependencies = [
  "futures-util",
  "http 1.2.0",
- "hyper 1.5.1",
- "hyper-util",
+ "hypr 1.5.1",
+ "hypr-util",
  "rustls",
  "rustls-pki-types",
  "tokio",
@@ -3715,28 +3715,28 @@ dependencies = [
 ]
 
 [[package]]
-name = "hyper-tls"
+name = "hypr-tls"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6183ddfa99b85da61a140bea0efc93fdf56ceaa041b37d553518030827f9905"
 dependencies = [
  "bytes",
- "hyper 0.14.31",
+ "hypr 0.14.31",
  "native-tls",
  "tokio",
  "tokio-native-tls",
 ]
 
 [[package]]
-name = "hyper-tls"
+name = "hypr-tls"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "70206fc6890eaca9fde8a0bf71caa2ddfc9fe045ac9e5c70df101a7dbde866e0"
 dependencies = [
  "bytes",
  "http-body-util",
- "hyper 1.5.1",
- "hyper-util",
+ "hypr 1.5.1",
+ "hypr-util",
  "native-tls",
  "tokio",
  "tokio-native-tls",
@@ -3744,7 +3744,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "hyper-util"
+name = "hypr-util"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df2dcfbe0677734ab2f3ffa7fa7bfd4706bfdc1ef393f2ee30184aed67e631b4"
@@ -3754,7 +3754,7 @@ dependencies = [
  "futures-util",
  "http 1.2.0",
  "http-body 1.0.1",
- "hyper 1.5.1",
+ "hypr 1.5.1",
  "pin-project-lite",
  "socket2",
  "tokio",
@@ -6501,8 +6501,8 @@ dependencies = [
  "h2 0.3.26",
  "http 0.2.12",
  "http-body 0.4.6",
- "hyper 0.14.31",
- "hyper-tls 0.5.0",
+ "hypr 0.14.31",
+ "hypr-tls 0.5.0",
  "ipnet",
  "js-sys",
  "log",
@@ -6542,10 +6542,10 @@ dependencies = [
  "http 1.2.0",
  "http-body 1.0.1",
  "http-body-util",
- "hyper 1.5.1",
- "hyper-rustls",
- "hyper-tls 0.6.0",
- "hyper-util",
+ "hypr 1.5.1",
+ "hypr-rustls",
+ "hypr-tls 0.6.0",
+ "hypr-util",
  "ipnet",
  "js-sys",
  "log",

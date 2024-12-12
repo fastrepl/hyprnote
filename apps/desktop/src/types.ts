@@ -178,7 +178,7 @@ export interface Note {
   title: string;
   calendarEvent?: CalendarEvent;
   rawMemo: string;
-  hyperChargedMemo?: PMNode;
+  hyprChargedMemo?: PMNode;
   voiceRecording?: string;
   rawTranscript?: string;
   processedTranscript?: Transcript;

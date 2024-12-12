@@ -6,12 +6,12 @@ interface NoteHeaderProps {
   note: Note | null;
   isNew: boolean;
   noteTitle: string;
-  showHypercharge: boolean;
+  showhyprcharge: boolean;
   isRecording: boolean;
   isPaused: boolean;
   recordingTime: number;
   onTitleChange: (title: string) => void;
-  onHypercharge: () => void;
+  onhyprcharge: () => void;
   onStartRecording: () => void;
   onPauseResume: () => void;
 }
@@ -20,12 +20,12 @@ export default function NoteHeader({
   note,
   isNew,
   noteTitle,
-  showHypercharge,
+  showhyprcharge,
   isRecording,
   isPaused,
   recordingTime,
   onTitleChange,
-  onHypercharge,
+  onhyprcharge,
   onStartRecording,
   onPauseResume,
 }: NoteHeaderProps) {
@@ -66,11 +66,11 @@ export default function NoteHeader({
 
         <NoteControl
           note={note}
-          showHypercharge={showHypercharge}
+          showhyprcharge={showhyprcharge}
           isRecording={isRecording}
           isPaused={isPaused}
           recordingTime={recordingTime}
-          onHypercharge={onHypercharge}
+          onhyprcharge={onhyprcharge}
           onStart={onStartRecording}
           onPauseResume={onPauseResume}
         />

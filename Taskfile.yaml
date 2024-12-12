@@ -1,6 +1,6 @@
 version: '3'
 tasks:
-  fmt:yaml: yamlfmt .github *.yaml
+  fmt:yaml: yamlfmt .github pnpm-workspace.yaml
   fmt:toml: taplo fmt apps/**/Cargo.toml crates/**/Cargo.toml Cargo.toml
   fmt:rs: cargo fmt
   fmt:swift: swift-format format crates/swift/swift-lib/Package.swift crates/swift/swift-lib/src/lib.swift -i

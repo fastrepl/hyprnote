@@ -134,6 +134,16 @@ importers:
         specifier: ^5
         version: 5.7.2
 
+  packages/keygen:
+    dependencies:
+      ky:
+        specifier: ^1.7.3
+        version: 1.7.3
+    devDependencies:
+      prettier:
+        specifier: ^3.4.2
+        version: 3.4.2
+
   packages/ui: {}
 
 packages:
@@ -1506,6 +1516,10 @@ packages:
 
   jws@4.0.0:
     resolution: {integrity: sha512-KDncfTmOZoOMTFG4mBlG0qUIOlc03fmzH+ru6RgYVZhPkyiy/92Owlt/8UEN+a4TXR1FQetfIpJE8ApdvdVxTg==}
+
+  ky@1.7.3:
+    resolution: {integrity: sha512-Sz49ZWR/BjNOq+2UK1k9ONZUVq8eyuCj30Zgc8VrRNtFlTBZduzuvehUd5kjQF6/Fms3Ir3EYqzJryw9tRvsSw==}
+    engines: {node: '>=18'}
 
   lilconfig@3.1.3:
     resolution: {integrity: sha512-/vlFKAoH5Cgt3Ie+JLhRbwOsCQePABiU3tJ1egGvyQ+33R/vcwM2Zl2QR/LzjsBeItPt3oSVXapn+m4nQDvpzw==}
@@ -3464,6 +3478,8 @@ snapshots:
     dependencies:
       jwa: 2.0.0
       safe-buffer: 5.2.1
+
+  ky@1.7.3: {}
 
   lilconfig@3.1.3: {}
 

@@ -35,5 +35,15 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://api.keygen.sh/v1/accounts/demo/engines/tauri/app?platform={{target}}&arch={{arch}}&version={{current_version}}"
+      ],
+      "dialog": false,
+      "pubkey": "..."
+    }
   }
 }

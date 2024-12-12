@@ -2,9 +2,13 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'apps/web/**'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - 'apps/web/**'
 jobs:
   ci:
     strategy:
@@ -24,12 +28,11 @@ jobs:
           key: rust-${{ matrix.platform }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             rust-${{ matrix.platform }}-
-      - uses: oven-sh/setup-bun@v2
+      - uses: pnpm/action-setup@v4
         with:
-          bun-version: latest
+          version: 9.15.0
+      - run: pnpm install
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - run: bun install
-        working-directory: ./apps/desktop
       - uses: tauri-apps/tauri-action@v0
         with:
           args: ${{ matrix.args }}

@@ -1,0 +1,3 @@
+- `config.json`: https://huggingface.co/openai/whisper-tiny/resolve/main/config.json
+- `tokenizer.json`: https://huggingface.co/openai/whisper-tiny/resolve/main/tokenizer.json
+- `model.safetensors`: https://huggingface.co/openai/whisper-tiny/resolve/main/model.safetensors

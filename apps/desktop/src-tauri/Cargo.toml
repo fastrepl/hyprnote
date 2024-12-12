@@ -16,10 +16,9 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
-swift-rs = { version = "1.0.7", features = ["build"] }
 
 [dependencies]
-swift-rs = "1.0.7"
+hypr-swift = { path = "../../../crates/swift", package = "swift" }
 
 tauri = { workspace = true, features = ["tray-icon"] }
 tauri-plugin-shell = "2"

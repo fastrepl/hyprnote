@@ -1,9 +1,9 @@
 version: '3'
 tasks:
   fmt:yaml: yamlfmt .github Taskfile.yaml
-  fmt:toml: taplo fmt apps/**/Cargo.toml Cargo.toml
+  fmt:toml: taplo fmt apps/**/Cargo.toml crates/**/Cargo.toml Cargo.toml
   fmt:rs: cargo fmt
-  fmt:swift: swift-format format apps/desktop/src-tauri/swift-lib/Package.swift apps/desktop/src-tauri/swift-lib/src/lib.swift -i
+  fmt:swift: swift-format format crates/swift/swift-lib/Package.swift crates/swift/swift-lib/src/lib.swift -i
   fmt:
     silent: true
     deps: ['fmt:yaml', 'fmt:toml', 'fmt:rs', 'fmt:swift']

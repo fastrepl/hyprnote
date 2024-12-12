@@ -21,7 +21,8 @@ let package = Package(
       dependencies: [.product(name: "SwiftRs", package: "swift-rs")],
       path: "src",
       linkerSettings: [
-        .linkedFramework("CoreAudio")
+        .linkedFramework("CoreAudio"),
+        .linkedFramework("Foundation"),
       ]
     )
   ]

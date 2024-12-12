@@ -1,4 +1,5 @@
-import type { Note, CalendarEvent } from "../../types";
+import type { Note } from "../../types";
+import { formatMeetingTime } from "../../utils/time";
 import NoteControl from "./NoteControl";
 
 interface NoteHeaderProps {
@@ -28,24 +29,8 @@ export default function NoteHeader({
   onStartRecording,
   onPauseResume,
 }: NoteHeaderProps) {
-  const formatMeetingTime = (start: CalendarEvent["start"]) => {
-    const now = new Date();
-    const startTime = start.dateTime
-      ? new Date(start.dateTime)
-      : start.date
-        ? new Date(start.date)
-        : null;
-
-    if (!startTime) return "";
-
-    const diff = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-    const mins = Math.floor(diff / 60);
-    const secs = diff % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
   return (
-    <div className="sticky top-0 z-10 border-b bg-white p-4 px-6">
+    <div className="border-b bg-white p-4 px-6">
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <input
@@ -55,8 +40,8 @@ export default function NoteHeader({
             placeholder={isNew ? "제목 없음" : ""}
             className="w-full text-lg font-medium focus:outline-none"
           />
-          {note?.calendarEvent && (
-            <div className="mt-1 flex items-center text-sm">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+            {note?.calendarEvent && (
               <div className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-blue-600">
                 <span>{note.calendarEvent.summary}</span>
                 <div className="mx-2 h-4 w-px bg-blue-300" />
@@ -65,8 +50,18 @@ export default function NoteHeader({
                   {formatMeetingTime(note.calendarEvent.end)}
                 </span>
               </div>
-            </div>
-          )}
+            )}
+            {note?.tags &&
+              note.tags.length > 0 &&
+              note.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-gray-100 px-2.5 py-0.5 text-gray-600"
+                >
+                  {tag}
+                </span>
+              ))}
+          </div>
         </div>
 
         <NoteControl

@@ -11,8 +11,10 @@ export default function NavBar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -24,6 +26,10 @@ export default function NavBar() {
 
   useClickOutside(profileRef, () => {
     setIsProfileMenuOpen(false);
+  });
+
+  useClickOutside(exportRef, () => {
+    setIsExportMenuOpen(false);
   });
 
   const handleNewNote = () => {
@@ -87,7 +93,7 @@ export default function NavBar() {
                   {isProfileMenuOpen && (
                     <div className="absolute left-0 mt-2 w-64 rounded-lg border bg-white shadow-lg">
                       <div className="space-y-1 border-b p-4">
-                        <div className="font-medium">홍길동</div>
+                        <div className="font-medium">John Snow</div>
                         <div className="text-sm text-gray-500">
                           hong@example.com
                         </div>
@@ -163,16 +169,40 @@ export default function NavBar() {
                 </button>
               </div>
 
-              {/* Share Link Button - Only show on note page */}
+              {/* Share Link Button - Changed to Export dropdown */}
               {isNotePage && (
-                <button
-                  onClick={() => {
-                    /* 공유 링크 생성 로직 */
-                  }}
-                  className="rounded-md border px-2.5 py-2 text-xs text-gray-700 hover:bg-gray-100"
-                >
-                  링크 공유
-                </button>
+                <div className="relative" ref={exportRef}>
+                  <button
+                    onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+                    className="rounded-md border px-2.5 py-2 text-xs text-gray-700 hover:bg-gray-100"
+                  >
+                    Export
+                  </button>
+                  {isExportMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-lg border bg-white shadow-lg">
+                      <div className="py-1">
+                        <button
+                          onClick={() => {
+                            /* MD 다운로드 로직 */
+                            setIsExportMenuOpen(false);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Markdown으로 내보내기
+                        </button>
+                        <button
+                          onClick={() => {
+                            /* PDF 다운로드 로직 */
+                            setIsExportMenuOpen(false);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          PDF로 내보내기
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* New Note Button */}

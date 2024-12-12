@@ -46,27 +46,39 @@ export default function NoteEditor({ content, onChange }: NoteEditorProps) {
   }, [content, editor]);
 
   return (
-    <div
-      className="h-full w-full p-4 px-6"
-      onClick={(e) => {
-        if (!editor) return;
+    <div className="relative flex flex-1 flex-col overflow-hidden">
+      <div className="absolute inset-4 inset-x-6 overflow-y-scroll">
+        <EditorContent
+          editor={editor}
+          className="h-full w-full"
+          onClick={(e) => {
+            if (!editor) return;
 
-        // 클릭한 위치의 Y 좌표
-        const clickY = e.clientY;
-        // 에디터의 마지막 위치의 Y 좌표
-        const editorRect = editor.view.dom.getBoundingClientRect();
-        const lastLineY = editorRect.bottom;
+            // 클릭한 위치의 Y 좌표
+            const clickY = e.clientY;
+            // 에디터의 마지막 위치의 Y 좌표
+            const editorRect = editor.view.dom.getBoundingClientRect();
+            const lastLineY = editorRect.bottom;
 
-        // 클릭 위치가 마지막 줄보다 아래인 경우 새로운 줄 추가
-        if (clickY > lastLineY) {
-          editor.commands.setTextSelection(editor.state.doc.content.size);
-          editor.commands.enter();
-        }
+            // 클릭 위치가 마지막 줄보다 아래인 경우
+            if (clickY > lastLineY) {
+              // 마지막 위치로 커서 이동
+              editor.commands.setTextSelection(editor.state.doc.content.size);
 
-        editor.commands.focus();
-      }}
-    >
-      <EditorContent editor={editor} />
+              // 마지막 노드가 빈 텍스트 블록이 아닌 경우에만 새 줄 추가
+              const lastNode = editor.state.doc.lastChild;
+              if (
+                lastNode &&
+                (!lastNode.isTextblock || lastNode.content.size > 0)
+              ) {
+                editor.commands.enter();
+              }
+            }
+
+            editor.commands.focus();
+          }}
+        />
+      </div>
     </div>
   );
 }

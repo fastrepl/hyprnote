@@ -4,7 +4,6 @@ import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import SidePanel from "../components/note/SidePanel";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { useUI } from "../contexts/UIContext";
-import LiveCaptionDock from "../components/note/LiveCaptionDock";
 import NoteHeader from "../components/note/NoteHeader";
 import NoteEditor from "../components/note/NoteEditor";
 import { useNoteState } from "../hooks/useNoteState";
@@ -70,7 +69,7 @@ export default function NotePage() {
       <main className="flex-1">
         <PanelGroup direction="horizontal">
           <Panel defaultSize={100} minSize={50}>
-            <div className="flex h-full flex-col overflow-auto">
+            <div className="flex h-full flex-col overflow-hidden">
               <NoteHeader
                 note={state.note}
                 isNew={state.isNew}
@@ -85,13 +84,10 @@ export default function NotePage() {
                 onPauseResume={handlePauseResumeClick}
               />
 
-              <div className="relative flex flex-1 flex-col">
-                <NoteEditor
-                  content={state.content}
-                  onChange={(content) => updateState({ content })}
-                />
-                <LiveCaptionDock currentTranscript={currentTranscript} />
-              </div>
+              <NoteEditor
+                content={state.content}
+                onChange={(content) => updateState({ content })}
+              />
             </div>
           </Panel>
 

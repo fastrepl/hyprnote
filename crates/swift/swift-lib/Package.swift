@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
   name: "swift-lib",
-  platforms: [.macOS(.v14)],
+  platforms: [.macOS("14.2")],
   products: [
     .library(
       name: "swift-lib",

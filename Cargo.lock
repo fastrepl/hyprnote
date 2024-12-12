@@ -2073,9 +2073,9 @@ dependencies = [
  "serde_json",
  "specta",
  "specta-typescript",
+ "swift-rs",
  "tauri",
  "tauri-build",
- "tauri-plugin-core-audio",
  "tauri-plugin-fs",
  "tauri-plugin-keygen-rs2",
  "tauri-plugin-positioner",
@@ -8158,16 +8158,6 @@ dependencies = [
  "tauri-utils",
  "toml 0.8.2",
  "walkdir",
-]
-
-[[package]]
-name = "tauri-plugin-core-audio"
-version = "0.1.0"
-dependencies = [
- "serde",
- "tauri",
- "tauri-plugin",
- "thiserror 2.0.6",
 ]
 
 [[package]]

@@ -11,6 +11,7 @@ mod llm;
 mod permissions;
 mod session;
 mod stt;
+mod swift;
 
 #[derive(specta::Type)]
 #[serde(rename_all = "camelCase")]

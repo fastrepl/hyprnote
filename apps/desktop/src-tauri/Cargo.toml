@@ -16,8 +16,11 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
+swift-rs = { version = "1.0.7", features = ["build"] }
 
 [dependencies]
+swift-rs = "1.0.7"
+
 tauri = { workspace = true, features = ["tray-icon"] }
 tauri-plugin-shell = "2"
 tauri-plugin-updater = "2"
@@ -27,7 +30,6 @@ tauri-plugin-positioner = "2"
 tauri-plugin-single-instance = "2"
 tauri-plugin-keygen-rs2 = "0.2.3"
 tauri-plugin-sql = { version = "2", features = ["sqlite"] }
-tauri-plugin-core-audio = { path = "../../../crates/tauri-plugin-core-audio" }
 
 specta = "=2.0.0-rc.20"
 specta-typescript = "0.0.7"

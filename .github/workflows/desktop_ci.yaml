@@ -1,14 +1,19 @@
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
     paths-ignore:
+      - '.github/**'
       - 'apps/web/**'
+      - 'packages/**'
   pull_request:
     branches:
       - main
     paths-ignore:
+      - '.github/**'
       - 'apps/web/**'
+      - 'packages/**'
 jobs:
   ci:
     strategy:

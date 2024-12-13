@@ -25,7 +25,7 @@ pub fn migrations() -> Vec<Migration> {
 
 pub fn export_ts_types_to(path: impl AsRef<std::path::Path>) -> anyhow::Result<()> {
     let mut collection = specta_util::TypeCollection::default();
-    collection.register::<types::Test>();
+    types::register_all(&mut collection);
 
     let language = specta_typescript::Typescript::default()
         .header("// @ts-nocheck\n\n")

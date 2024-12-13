@@ -1958,6 +1958,8 @@ dependencies = [
  "specta-typescript",
  "specta-util",
  "sqlx",
+ "time",
+ "uuid",
 ]
 
 [[package]]
@@ -7372,6 +7374,8 @@ dependencies = [
  "paste",
  "specta-macros",
  "thiserror 1.0.69",
+ "time",
+ "uuid",
 ]
 
 [[package]]
@@ -7518,6 +7522,7 @@ dependencies = [
  "tokio-stream",
  "tracing",
  "url",
+ "uuid",
 ]
 
 [[package]]
@@ -7599,6 +7604,7 @@ dependencies = [
  "thiserror 1.0.69",
  "time",
  "tracing",
+ "uuid",
  "whoami",
 ]
 
@@ -7638,6 +7644,7 @@ dependencies = [
  "thiserror 1.0.69",
  "time",
  "tracing",
+ "uuid",
  "whoami",
 ]
 
@@ -7663,6 +7670,7 @@ dependencies = [
  "time",
  "tracing",
  "url",
+ "uuid",
 ]
 
 [[package]]

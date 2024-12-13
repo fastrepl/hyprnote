@@ -112,7 +112,9 @@ pub fn run() {
     #[cfg(debug_assertions)]
     specta_builder
         .export(
-            specta_typescript::Typescript::default(),
+            specta_typescript::Typescript::default()
+                .header("// @ts-nocheck\n\n")
+                .formatter(specta_typescript::formatter::prettier),
             "../src/utils/tauri.ts",
         )
         .expect("Failed to export typescript bindings");

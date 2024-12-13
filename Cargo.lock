@@ -235,6 +235,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "approx"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cab112f0a86d568ea0e627cc1d6be74a1e9cd55214684db5561995f6dad897c6"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "arbitrary"
 version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -464,6 +473,15 @@ dependencies = [
  "hermit-abi 0.1.19",
  "libc",
  "winapi",
+]
+
+[[package]]
+name = "audio"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cpal 0.15.3 (git+https://github.com/RustAudio/cpal?rev=f43d36e55494993bbbde3299af0c53e5cdf4d4cf)",
+ "hound",
 ]
 
 [[package]]
@@ -2206,6 +2224,7 @@ name = "diarizer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "approx",
  "hound",
  "ndarray",
  "ort",

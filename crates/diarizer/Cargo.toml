@@ -12,3 +12,4 @@ ort = { workspace = true, features = ["coreml"] }
 [dev-dependencies]
 reqwest = "0.12"
 hound = "3.5.1"
+approx = "0.5.1"

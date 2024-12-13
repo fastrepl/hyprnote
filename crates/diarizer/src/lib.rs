@@ -2,6 +2,8 @@ use anyhow::Result;
 use ndarray::Array3;
 use ort::{execution_providers::CoreMLExecutionProvider, session::Session, value::Value};
 
+mod math;
+
 pub struct Diarizer {
     session: Session,
     config: Config,
@@ -16,10 +18,11 @@ struct Config {
 // https://huggingface.co/onnx-community/pyannote-segmentation-3.0/blob/53cc64a214d9262cfaf6989b7c795414e2d54f58/README.md?code=true#L39-L40
 #[derive(Debug)]
 pub struct SpeakerSegment {
-    id: usize,
-    start: f32,
-    end: f32,
-    confidence: f32,
+    // 0 ~ 6
+    pub id: usize,
+    pub start: f32,
+    pub end: f32,
+    pub confidence: f32,
 }
 
 const MODEL_BYTES: &[u8] = include_bytes!("../data/model.onnx");
@@ -48,89 +51,69 @@ impl Diarizer {
         let input_tensor = Value::from_array(input_array.view())?;
         let inputs = vec![("input_values", input_tensor)];
 
-        let logits = self
-            .session
-            .run(inputs)?
-            .get("logits")
-            .unwrap()
-            .try_extract_tensor::<f32>()?
-            .as_slice()
-            .unwrap()
-            .to_vec();
+        let output = self.session.run(inputs)?;
+        let logits = output.get("logits").unwrap().try_extract_tensor::<f32>()?;
 
-        let result = self.post_process_speaker_diarization(logits);
+        let result = self.post_process_speaker_diarization(logits, samples.len());
         Ok(result)
     }
 
     // https://github.com/huggingface/transformers.js/blob/14bf689c983c68c7e870b970e1bcce79c791c3c9/src/models/pyannote/feature_extraction_pyannote.js#L34
-    fn samples_to_frames(&self, samples: usize) -> f32 {
-        (samples as f32 - self.config.offset as f32) / self.config.step as f32
+    fn samples_to_frames(&self, num_samples: usize) -> usize {
+        ((num_samples - self.config.offset) as f32 / self.config.step as f32).ceil() as usize
     }
 
     // https://github.com/huggingface/transformers.js/blob/14bf689c983c68c7e870b970e1bcce79c791c3c9/src/models/pyannote/feature_extraction_pyannote.js#L44
-    fn post_process_speaker_diarization(&self, logits: Vec<f32>) -> Vec<SpeakerSegment> {
-        let num_frames = logits.len() / 2; // Since we have 2 scores per frame
-        let num_samples = num_frames * self.config.step + self.config.offset;
-
-        let ratio = (num_samples as f32 / self.samples_to_frames(num_samples))
+    fn post_process_speaker_diarization(
+        &self,
+        logits: ndarray::ArrayViewD<f32>,
+        num_samples: usize,
+    ) -> Vec<SpeakerSegment> {
+        // Calculate the ratio for converting frames to time
+        let ratio = (num_samples as f32 / self.samples_to_frames(num_samples) as f32)
             / self.config.sampling_rate as f32;
 
+        let mut results = Vec::new();
+
+        let scores = logits.index_axis(ndarray::Axis(0), 0);
         let mut accumulated_segments = Vec::new();
-        let mut current_speaker = usize::MAX;
 
-        for i in 0..num_frames {
-            let scores = &logits[i * 2..(i + 1) * 2];
-            let probabilities = softmax(scores);
-            let (score, id) = max(&probabilities);
+        let mut current_speaker: i32 = -1;
 
-            let (start, end) = (i as f32, (i + 1) as f32);
+        for i in 0..scores.shape()[0] {
+            let frame_scores = scores.index_axis(ndarray::Axis(0), i);
+            let frame_scores_1d = frame_scores.into_dimensionality::<ndarray::Ix1>().unwrap();
+            let probabilities = math::softmax(frame_scores_1d);
+            let (score, id) = math::argmax(probabilities.view());
 
-            if id != current_speaker {
-                // Speaker has changed
-                current_speaker = id;
+            if id as i32 != current_speaker {
+                current_speaker = id as i32;
                 accumulated_segments.push(SpeakerSegment {
                     id,
-                    start: start * ratio,
-                    end: end * ratio,
+                    start: i as f32 * ratio,
+                    end: (i + 1) as f32 * ratio,
                     confidence: score,
                 });
-            } else {
-                // Continue the current segment
-                let last_segment = accumulated_segments.last_mut().unwrap();
-                last_segment.end = end * ratio;
+            } else if let Some(last_segment) = accumulated_segments.last_mut() {
+                last_segment.end = (i + 1) as f32 * ratio;
                 last_segment.confidence += score;
             }
         }
 
         for segment in &mut accumulated_segments {
-            let frames = (segment.end - segment.start) / ratio;
-            segment.confidence /= frames;
+            let frame_count = ((segment.end - segment.start) / ratio).round() as f32;
+            segment.confidence /= frame_count;
         }
 
-        accumulated_segments
+        results.extend(accumulated_segments);
+        results
     }
-}
-
-fn softmax(scores: &[f32]) -> Vec<f32> {
-    let max_score = scores.iter().fold(f32::NEG_INFINITY, |a, &b| a.max(b));
-    let exp_scores: Vec<f32> = scores.iter().map(|&x| (x - max_score).exp()).collect();
-    let sum: f32 = exp_scores.iter().sum();
-    exp_scores.iter().map(|&x| x / sum).collect()
-}
-
-fn max(probabilities: &[f32]) -> (f32, usize) {
-    probabilities
-        .iter()
-        .enumerate()
-        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
-        .map(|(idx, &val)| (val, idx))
-        .unwrap()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    use approx::assert_relative_eq;
     use hound;
     use reqwest;
 
@@ -139,14 +122,12 @@ mod tests {
         let bytes = reqwest::get(
             "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/mlk.wav",
         )
-        .await
-        .expect("Failed to download audio")
+        .await?
         .bytes()
-        .await
-        .expect("Failed to read audio bytes");
+        .await?;
 
         let cursor = std::io::Cursor::new(bytes);
-        let mut reader = hound::WavReader::new(cursor).expect("Failed to read WAV file");
+        let mut reader = hound::WavReader::new(cursor)?;
 
         let samples: Vec<f32> = match reader.spec().sample_format {
             hound::SampleFormat::Int => reader
@@ -167,6 +148,23 @@ mod tests {
 
         let diarizer = Diarizer::new().unwrap();
         let result = diarizer.run(&samples).unwrap();
-        assert!(result.len() > 1);
+        assert_eq!(result.len(), 11);
+
+        assert_eq!(result[0].id, 0);
+        assert_eq!(result[1].id, 2);
+        assert_eq!(result[2].id, 0);
+        assert_eq!(result[3].id, 2);
+        assert_eq!(result[4].id, 0);
+        assert_eq!(result[5].id, 3);
+        assert_eq!(result[6].id, 6);
+        assert_eq!(result[7].id, 2);
+        assert_eq!(result[8].id, 0);
+        assert_eq!(result[9].id, 2);
+        assert_eq!(result[10].id, 0);
+
+        assert_relative_eq!(result[0].start, 0.0, epsilon = 0.2);
+        assert_relative_eq!(result[0].end, 1.0, epsilon = 0.2);
+        assert_relative_eq!(result[10].start, 12.5, epsilon = 0.2);
+        assert_relative_eq!(result[10].end, 13.0, epsilon = 0.2);
     }
 }

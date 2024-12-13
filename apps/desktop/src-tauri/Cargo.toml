@@ -33,6 +33,7 @@ tauri-plugin-positioner = "2"
 tauri-plugin-single-instance = "2"
 tauri-plugin-keygen-rs2 = "0.2.3"
 tauri-plugin-sql = { version = "2", features = ["sqlite"] }
+tauri-plugin-log = "2.2.0"
 
 specta = { workspace = true }
 specta-typescript = { workspace = true }
@@ -44,6 +45,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 dotenvy_macro = "0.15.7"
 uuid = "1.11.0"
+log = "0.4.22"
 
 reqwest = { version = "0.12", features = ["stream"] }
 tokio = { workspace = true, features = ["rt", "macros"] }

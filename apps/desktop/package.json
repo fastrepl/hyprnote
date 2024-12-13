@@ -12,8 +12,10 @@
   },
   "dependencies": {
     "@googleapis/calendar": "^9.7.9",
+    "@hypr/ui": "workspace:*",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-fs": "^2.0.3",
+    "@tauri-apps/plugin-log": "^2.2.0",
     "@tauri-apps/plugin-shell": "^2",
     "@tauri-apps/plugin-stronghold": "^2.0.0",
     "@tauri-apps/plugin-updater": "^2.0.0",
@@ -29,8 +31,7 @@
     "react-dom": "^18.2.0",
     "react-resizable-panels": "^2.1.7",
     "react-router-dom": "^7.0.2",
-    "tauri-plugin-keygen-rs2-api": "^0.2.3",
-    "@hypr/ui": "workspace:*"
+    "tauri-plugin-keygen-rs2-api": "^0.2.3"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.15",

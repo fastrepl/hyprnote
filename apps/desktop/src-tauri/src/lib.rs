@@ -154,6 +154,17 @@ pub fn run() {
         );
     }
 
+    #[cfg(debug_assertions)]
+    {
+        builder = builder.plugin(
+            tauri_plugin_log::Builder::new()
+                .target(tauri_plugin_log::Target::new(
+                    tauri_plugin_log::TargetKind::Stdout,
+                ))
+                .build(),
+        );
+    }
+
     let (audio_input_tx, _audio_input_rx) = AudioInputFeed::create_channel();
 
     builder

@@ -36,32 +36,42 @@ pub fn export_ts_types_to(path: impl AsRef<std::path::Path>) -> anyhow::Result<(
     Ok(())
 }
 
+pub async fn create_session(pool: sqlx::sqlite::SqlitePool) -> anyhow::Result<()> {
+    let id = uuid::Uuid::new_v4();
+    let start = time::OffsetDateTime::now_utc();
+    let end: Option<time::OffsetDateTime> = None;
+    let tags = vec!["test".to_string()];
+    let raw_memo = "raw memo".to_string();
+    let processed_memo = "processed memo".to_string();
+    let raw_transcript = "raw transcript".to_string();
+
+    let _ = sqlx::query(
+        "INSERT INTO sessions (
+            id, start, end, tags, raw_memo, processed_memo, raw_transcript
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    )
+    .bind(id)
+    .bind(start)
+    .bind(end)
+    .bind(format!("[{}]", tags.join(",")))
+    .bind(raw_memo)
+    .bind(processed_memo)
+    .bind(raw_transcript)
+    .execute(&pool)
+    .await?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
+    use super::*;
     use sqlx::sqlite::SqlitePool;
 
     #[sqlx::test]
-    async fn test_basic(pool: SqlitePool) -> sqlx::Result<()> {
-        let result: (i64,) = sqlx::query_as("SELECT 1").fetch_one(&pool).await?;
-
-        assert_eq!(result.0, 1);
-        Ok(())
-    }
-
-    #[sqlx::test]
-    async fn test_users(pool: SqlitePool) -> sqlx::Result<()> {
-        sqlx::query("INSERT INTO users (name) VALUES (?)")
-            .bind("Alice")
-            .execute(&pool)
-            .await?;
-
-        let (id, name): (i64, String) = sqlx::query_as("SELECT id, name FROM users WHERE name = ?")
-            .bind("Alice")
-            .fetch_one(&pool)
-            .await?;
-
-        assert_eq!(name, "Alice");
-        assert_eq!(id, 1);
+    async fn test_sessions(pool: SqlitePool) -> sqlx::Result<()> {
+        let result = create_session(pool).await;
+        assert!(result.is_ok());
         Ok(())
     }
 }

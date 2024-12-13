@@ -5,13 +5,15 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
-time = "0.3.37"
-uuid = "1.11.0"
+serde = { workspace = true, features = ["derive"] }
+time = { version = "0.3.37", features = ["serde"] }
+uuid = { version = "1.11.0", features = ["v4"] }
 sqlx = { version = "0.8", features = [
   "sqlite",
   "migrate",
   "time",
   "uuid",
+  "json",
   "runtime-tokio",
 ] }
 

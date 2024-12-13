@@ -1,3 +1,9 @@
+CREATE TABLE config (
+    id UUID PRIMARY KEY,
+    language TEXT NOT NULL,
+    user_name TEXT NOT NULL
+);
+
 CREATE TABLE sessions (
     id UUID PRIMARY KEY,
     start TIMESTAMPTZ NOT NULL,

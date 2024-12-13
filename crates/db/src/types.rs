@@ -1,6 +1,4 @@
 use serde::{Deserialize, Serialize};
-use specta::Type;
-use sqlx::FromRow;
 use time::OffsetDateTime;
 use uuid::Uuid;
 
@@ -11,28 +9,32 @@ pub fn register_all(collection: &mut specta_util::TypeCollection) {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Type)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, specta::Type, sqlx::Type)]
 pub enum Language {
     English,
     Korean,
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Type, FromRow)]
+#[derive(Debug, specta::Type, sqlx::FromRow)]
 pub struct Config {
+    pub id: Uuid,
     pub language: Language,
+    pub user_name: String,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
+            id: Uuid::new_v4(),
             language: Language::English,
+            user_name: "You".to_string(),
         }
     }
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Type, FromRow)]
+#[derive(Debug, specta::Type, sqlx::FromRow)]
 pub struct Session {
     pub id: Uuid,
     pub start: OffsetDateTime,
@@ -59,7 +61,7 @@ impl Default for Session {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Type, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct TranscriptBlock {
     pub timestamp: OffsetDateTime,
     pub text: String,
@@ -67,7 +69,7 @@ pub struct TranscriptBlock {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Type, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct Transcript {
     pub speakers: Vec<String>,
     pub blocks: Vec<TranscriptBlock>,

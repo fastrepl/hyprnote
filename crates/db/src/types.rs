@@ -11,6 +11,27 @@ pub fn register_all(collection: &mut specta_util::TypeCollection) {
 }
 
 #[allow(dead_code)]
+#[derive(Debug, Type)]
+pub enum Language {
+    English,
+    Korean,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Type, FromRow)]
+pub struct Config {
+    pub language: Language,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            language: Language::English,
+        }
+    }
+}
+
+#[allow(dead_code)]
 #[derive(Debug, Type, FromRow)]
 pub struct Session {
     pub id: Uuid,
@@ -21,6 +42,20 @@ pub struct Session {
     pub raw_memo: String,
     pub processed_memo: String,
     pub raw_transcript: String,
+}
+
+impl Default for Session {
+    fn default() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            start: OffsetDateTime::now_utc(),
+            end: None,
+            tags: Vec::new(),
+            raw_memo: String::new(),
+            processed_memo: String::new(),
+            raw_transcript: String::new(),
+        }
+    }
 }
 
 #[allow(dead_code)]

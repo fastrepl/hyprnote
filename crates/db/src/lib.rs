@@ -1,3 +1,5 @@
+use anyhow::Result;
+
 mod types;
 
 #[derive(Debug)]
@@ -23,7 +25,7 @@ pub fn migrations() -> Vec<Migration> {
     }]
 }
 
-pub fn export_ts_types_to(path: impl AsRef<std::path::Path>) -> anyhow::Result<()> {
+pub fn export_ts_types_to(path: impl AsRef<std::path::Path>) -> Result<()> {
     let mut collection = specta_util::TypeCollection::default();
     types::register_all(&mut collection);
 
@@ -39,37 +41,58 @@ pub fn export_ts_types_to(path: impl AsRef<std::path::Path>) -> anyhow::Result<(
 pub trait SqliteExecutor<'c>: sqlx::Executor<'c, Database = sqlx::Sqlite> {}
 impl<'c, T: sqlx::Executor<'c, Database = sqlx::Sqlite>> SqliteExecutor<'c> for T {}
 
-pub async fn create_session<'c, E: SqliteExecutor<'c>>(executor: E) -> anyhow::Result<uuid::Uuid> 
-{
-    let id = uuid::Uuid::new_v4();
-    let start = time::OffsetDateTime::now_utc();
-    let end: Option<time::OffsetDateTime> = None;
-    let tags = vec!["test".to_string()];
-    let raw_memo = "raw memo".to_string();
-    let processed_memo = "processed memo".to_string();
-    let raw_transcript = "raw transcript".to_string();
+pub async fn create_session<'c, E: SqliteExecutor<'c>>(e: E) -> Result<types::Session> {
+    let session = types::Session::default();
 
-    let _ = sqlx::query(
+    let ret = sqlx::query_as(
         "INSERT INTO sessions (
             id, start, end, tags, raw_memo, processed_memo, raw_transcript
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        RETURNING *",
     )
-    .bind(id)
-    .bind(start)
-    .bind(end)
-    .bind(serde_json::to_string(&tags).unwrap_or_default())
-    .bind(raw_memo)
-    .bind(processed_memo)
-    .bind(raw_transcript)
-    .execute(executor)
+    .bind(session.id)
+    .bind(session.start)
+    .bind(session.end)
+    .bind(serde_json::to_string(&session.tags).unwrap_or("[]".to_string()))
+    .bind(session.raw_memo)
+    .bind(session.processed_memo)
+    .bind(session.raw_transcript)
+    .fetch_one(e)
     .await?;
 
-    Ok(id)
+    Ok(ret)
 }
 
-pub async fn list_sessions<'c, E: SqliteExecutor<'c>>(executor: E) -> anyhow::Result<Vec<types::Session>> {
+pub async fn update_session<'c, E: SqliteExecutor<'c>>(
+    e: E,
+    session: types::Session,
+) -> Result<types::Session> {
+    let ret = sqlx::query_as(
+        r#"
+        UPDATE sessions 
+        SET end = ?, 
+            tags = ?, 
+            raw_memo = ?, 
+            processed_memo = ?, 
+            raw_transcript = ? 
+        WHERE id = ?
+        RETURNING *
+        "#,
+    )
+    .bind(session.end)
+    .bind(serde_json::to_string(&session.tags).unwrap_or("[]".to_string()))
+    .bind(session.raw_memo)
+    .bind(session.processed_memo)
+    .bind(session.raw_transcript)
+    .bind(session.id)
+    .fetch_one(e)
+    .await?;
+
+    Ok(ret)
+}
+pub async fn list_sessions<'c, E: SqliteExecutor<'c>>(e: E) -> Result<Vec<types::Session>> {
     let result = sqlx::query_as("SELECT * FROM sessions")
-        .fetch_all(executor)
+        .fetch_all(e)
         .await?;
 
     Ok(result)
@@ -86,8 +109,18 @@ mod tests {
         assert_eq!(sessions.len(), 0);
 
         let _ = create_session(&pool).await.unwrap();
-        
+
         let sessions = list_sessions(&pool).await.unwrap();
         assert_eq!(sessions.len(), 1);
+    }
+
+    #[sqlx::test]
+    async fn test_update_session(pool: SqlitePool) {
+        let mut session = create_session(&pool).await.unwrap();
+        assert!(session.end.is_none());
+        session.end = Some(time::OffsetDateTime::now_utc());
+
+        let updated = update_session(&pool, session).await.unwrap();
+        assert!(updated.end.is_some());
     }
 }

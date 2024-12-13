@@ -5,6 +5,5 @@ CREATE TABLE sessions (
     tags TEXT[] NOT NULL,
     raw_memo TEXT NOT NULL,
     processed_memo TEXT NOT NULL,
-    raw_transcript TEXT NOT NULL,
-    processed_transcript JSON
+    raw_transcript TEXT NOT NULL
 );

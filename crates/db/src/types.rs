@@ -16,12 +16,11 @@ pub struct Session {
     pub id: Uuid,
     pub start: OffsetDateTime,
     pub end: Option<OffsetDateTime>,
+    #[sqlx(json)]
     pub tags: Vec<String>,
     pub raw_memo: String,
     pub processed_memo: String,
     pub raw_transcript: String,
-    #[sqlx(json)]
-    pub processed_transcript: Option<Transcript>,
 }
 
 #[allow(dead_code)]

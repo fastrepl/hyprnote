@@ -36,7 +36,11 @@ pub fn export_ts_types_to(path: impl AsRef<std::path::Path>) -> anyhow::Result<(
     Ok(())
 }
 
-pub async fn create_session(pool: sqlx::sqlite::SqlitePool) -> anyhow::Result<uuid::Uuid> {
+pub trait SqliteExecutor<'c>: sqlx::Executor<'c, Database = sqlx::Sqlite> {}
+impl<'c, T: sqlx::Executor<'c, Database = sqlx::Sqlite>> SqliteExecutor<'c> for T {}
+
+pub async fn create_session<'c, E: SqliteExecutor<'c>>(executor: E) -> anyhow::Result<uuid::Uuid> 
+{
     let id = uuid::Uuid::new_v4();
     let start = time::OffsetDateTime::now_utc();
     let end: Option<time::OffsetDateTime> = None;
@@ -44,29 +48,31 @@ pub async fn create_session(pool: sqlx::sqlite::SqlitePool) -> anyhow::Result<uu
     let raw_memo = "raw memo".to_string();
     let processed_memo = "processed memo".to_string();
     let raw_transcript = "raw transcript".to_string();
-    let processed_transcript: Option<types::Transcript> = None;
 
     let _ = sqlx::query(
         "INSERT INTO sessions (
-            id, start, end, tags, raw_memo, processed_memo, raw_transcript, processed_transcript
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            id, start, end, tags, raw_memo, processed_memo, raw_transcript
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(id)
     .bind(start)
     .bind(end)
-    .bind(format!("[{}]", tags.join(",")))
+    .bind(serde_json::to_string(&tags).unwrap_or_default())
     .bind(raw_memo)
     .bind(processed_memo)
     .bind(raw_transcript)
-    .bind(processed_transcript.map(|t| serde_json::to_string(&t).unwrap_or_default()))
-    .execute(&pool)
+    .execute(executor)
     .await?;
 
     Ok(id)
 }
 
-pub async fn list_sessions(pool: sqlx::sqlite::SqlitePool) -> anyhow::Result<Vec<types::Session>> {
-    Ok(vec![])
+pub async fn list_sessions<'c, E: SqliteExecutor<'c>>(executor: E) -> anyhow::Result<Vec<types::Session>> {
+    let result = sqlx::query_as("SELECT * FROM sessions")
+        .fetch_all(executor)
+        .await?;
+
+    Ok(result)
 }
 
 #[cfg(test)]
@@ -75,8 +81,13 @@ mod tests {
     use sqlx::sqlite::SqlitePool;
 
     #[sqlx::test]
-    async fn test_session(pool: SqlitePool) -> sqlx::Result<()> {
-        let id = create_session(pool).await.unwrap();
-        Ok(())
+    async fn test_create_session(pool: SqlitePool) {
+        let sessions = list_sessions(&pool).await.unwrap();
+        assert_eq!(sessions.len(), 0);
+
+        let _ = create_session(&pool).await.unwrap();
+        
+        let sessions = list_sessions(&pool).await.unwrap();
+        assert_eq!(sessions.len(), 1);
     }
 }

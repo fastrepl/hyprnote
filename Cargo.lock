@@ -7803,7 +7803,6 @@ dependencies = [
  "candle-examples",
  "candle-nn 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "candle-transformers 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "cap-media",
  "serde_json",
  "tokenizers",
  "tokio",

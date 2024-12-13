@@ -47,11 +47,11 @@ export default function NoteEditor({ content, onChange }: NoteEditorProps) {
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden">
-      <div className="absolute inset-4 inset-x-6 overflow-y-scroll">
+      <div className="absolute inset-4 inset-x-6 overflow-y-auto">
         <EditorContent
           editor={editor}
           className="h-full w-full"
-          onClick={(e) => {
+          onClick={(e: MouseEvent) => {
             if (!editor) return;
 
             // 클릭한 위치의 Y 좌표

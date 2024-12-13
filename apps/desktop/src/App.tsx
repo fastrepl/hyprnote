@@ -1,5 +1,3 @@
-import "./App.css";
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NavBar from "./components/NavBar";
 import Home from "./pages/Home";
@@ -12,7 +10,7 @@ function App() {
       <UIProvider>
         <div className="flex h-screen flex-col">
           <NavBar />
-          <main className="flex-1">
+          <main className="w-full flex-1 overflow-y-auto">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/note/:id" element={<NotePage />} />

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Send } from "lucide-react";
 
 interface SidePanelProps {
   noteContent: string;
@@ -105,7 +104,20 @@ export default function SidePanel({ noteContent }: SidePanelProps) {
           onClick={handleSubmit}
           className="flex h-[40px] w-[40px] items-center justify-center rounded-lg bg-blue-600 p-2 text-white hover:bg-blue-700"
         >
-          <Send size={20} />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="size-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+            />
+          </svg>
         </button>
       </div>
     </div>

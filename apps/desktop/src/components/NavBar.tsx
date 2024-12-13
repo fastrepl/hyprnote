@@ -1,10 +1,15 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useClickOutside } from "../hooks/useClickOutside";
 import SearchModal from "./SearchModal";
 import SettingsModal from "./SettingsModal";
 import { useUI } from "../contexts/UIContext";
-import { PanelRightOpen, PanelRightClose, Menu } from "lucide-react";
+import {
+  ChevronLeft,
+  Menu,
+  PanelRightClose,
+  PanelRightOpen,
+} from "lucide-react";
 
 export default function NavBar() {
   const { isPanelOpen, setIsPanelOpen } = useUI();
@@ -32,10 +37,26 @@ export default function NavBar() {
     setIsExportMenuOpen(false);
   });
 
-  const handleNewNote = () => {
+  const handleNewNote = useCallback(() => {
     const noteId = crypto.randomUUID();
     navigate(`/note/${noteId}`);
-  };
+  }, [navigate]);
+
+  const handleSettingsClick = useCallback(() => {
+    window.dispatchEvent(new Event("openSettings"));
+  }, []);
+
+  const toggleProfileMenu = useCallback(() => {
+    setIsProfileMenuOpen((prev) => !prev);
+  }, []);
+
+  const toggleExportMenu = useCallback(() => {
+    setIsExportMenuOpen((prev) => !prev);
+  }, []);
+
+  const togglePanel = useCallback(() => {
+    setIsPanelOpen(!isPanelOpen);
+  }, [setIsPanelOpen, isPanelOpen]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -45,13 +66,13 @@ export default function NavBar() {
       }
     };
 
-    window.addEventListener("keydown", handleKeyPress);
+    window.addEventListener("keydown", handleKeyPress, { passive: false });
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, []);
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b bg-white">
+      <header className="w-full border-b">
         <nav className="px-4">
           <div className="flex h-12 items-center justify-between">
             {/* Left Section - Profile */}
@@ -61,34 +82,20 @@ export default function NavBar() {
                   onClick={() => navigate(-1)}
                   className="rounded p-2 hover:bg-gray-100"
                 >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
+                  <ChevronLeft className="size-5" />
                 </button>
               ) : (
                 <div className="relative" ref={profileRef}>
                   <button
-                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                    onClick={toggleProfileMenu}
                     className="flex items-center justify-center overflow-hidden rounded p-2 hover:bg-gray-200"
+                    aria-label={
+                      isProfileMenuOpen
+                        ? "Close profile menu"
+                        : "Open profile menu"
+                    }
                   >
-                    <svg
-                      className="h-5 w-5 text-gray-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <Menu className="h-5 w-5 text-gray-600" />
-                    </svg>
+                    <Menu className="size-5" />
                   </button>
                   {isProfileMenuOpen && (
                     <div className="absolute left-0 mt-2 w-64 rounded-lg border bg-white shadow-lg">
@@ -108,28 +115,19 @@ export default function NavBar() {
                       </div>
                       <div className="py-1">
                         <button
-                          onClick={() => {
-                            setIsProfileMenuOpen(false);
-                            setIsSettingsOpen(true);
-                          }}
+                          onClick={handleSettingsClick}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                         >
                           초대 링크 복사
                         </button>
                         <button
-                          onClick={() => {
-                            setIsProfileMenuOpen(false);
-                            setIsSettingsOpen(true);
-                          }}
+                          onClick={handleSettingsClick}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                         >
                           설정
                         </button>
                         <button
-                          onClick={() => {
-                            setIsProfileMenuOpen(false);
-                            setIsSettingsOpen(true);
-                          }}
+                          onClick={handleSettingsClick}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                         >
                           피드백 보내기
@@ -147,10 +145,11 @@ export default function NavBar() {
               <div className="relative">
                 <button
                   onClick={() => setIsSearchOpen(true)}
-                  className="flex items-center gap-2 rounded-md bg-gray-100 py-2 pl-3 pr-2 text-sm text-xs text-gray-600"
+                  className="flex items-center gap-2 rounded-md sm:bg-gray-100 sm:py-2 sm:pl-3 sm:pr-2"
+                  aria-label="검색"
                 >
                   <svg
-                    className="h-4 w-4"
+                    className="h-4 w-4 text-gray-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -162,9 +161,11 @@ export default function NavBar() {
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
                   </svg>
-                  검색...
-                  <span className="ml-4 rounded bg-gray-300 px-2 py-0.5 text-xs">
-                    ⌘K
+                  <span className="hidden text-xs text-gray-600 sm:inline">
+                    검색...
+                    <span className="ml-4 rounded bg-gray-300 px-2 py-0.5 text-xs">
+                      ⌘K
+                    </span>
                   </span>
                 </button>
               </div>
@@ -173,8 +174,13 @@ export default function NavBar() {
               {isNotePage && (
                 <div className="relative" ref={exportRef}>
                   <button
-                    onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+                    onClick={toggleExportMenu}
                     className="rounded-md border px-2.5 py-2 text-xs text-gray-700 hover:bg-gray-100"
+                    aria-label={
+                      isExportMenuOpen
+                        ? "Close export menu"
+                        : "Open export menu"
+                    }
                   >
                     Export
                   </button>
@@ -208,19 +214,21 @@ export default function NavBar() {
               {/* New Note Button */}
               {isNotePage ? (
                 <button
-                  onClick={() => setIsPanelOpen(!isPanelOpen)}
+                  onClick={togglePanel}
                   className="rounded p-2 hover:bg-gray-100"
+                  aria-label={isPanelOpen ? "Close panel" : "Open panel"}
                 >
                   {isPanelOpen ? (
-                    <PanelRightClose className="h-5 w-5" />
+                    <PanelRightClose className="size-5" />
                   ) : (
-                    <PanelRightOpen className="h-5 w-5" />
+                    <PanelRightOpen className="size-5" />
                   )}
                 </button>
               ) : (
                 <button
                   onClick={handleNewNote}
-                  className="rounded-md px-2.5 py-1 text-sm text-gray-700 hover:bg-gray-100 md:bg-blue-500 md:text-white md:hover:bg-blue-600"
+                  className="rounded-md bg-blue-500 px-2.5 py-1 text-sm text-white hover:bg-blue-600"
+                  aria-label="새 노트 만들기"
                 >
                   새 노트
                 </button>
@@ -230,15 +238,9 @@ export default function NavBar() {
         </nav>
       </header>
 
-      <SearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-      />
+      <SearchModal />
 
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
+      <SettingsModal />
     </>
   );
 }

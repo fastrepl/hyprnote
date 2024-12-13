@@ -25,3 +25,8 @@ specta-typescript = "0.0.7"
 specta-util = "0.0.7"
 
 cap-media = { git = "https://github.com/CapSoftware/Cap", tag = "cap-v0.3.4" }
+cpal = "0.15.3"
+
+[patch.crates-io]
+# This includes a currently-unreleased fix that ensures the audio stream is actually stopped and released on drop on macOS.
+cpal = { git = "https://github.com/RustAudio/cpal", rev = "f43d36e55494993bbbde3299af0c53e5cdf4d4cf" }

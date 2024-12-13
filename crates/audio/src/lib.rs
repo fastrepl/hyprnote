@@ -14,18 +14,28 @@ impl Audio {
         Self { config }
     }
 
-    pub fn play() -> Result<()> {
+    pub fn to_speaker(bytes: &'static [u8]) {
+        use rodio::{Decoder, OutputStream, Sink};
+
+        std::thread::spawn(move || {
+            if let Ok((_, stream)) = OutputStream::try_default() {
+                let file = std::io::Cursor::new(bytes);
+                let source = Decoder::new(file).unwrap();
+                let sink = Sink::try_new(&stream).unwrap();
+                sink.append(source);
+                sink.sleep_until_end();
+            }
+        });
+    }
+    pub fn from_mic() -> Result<()> {
         let host = cpal::default_host();
-        let device = host.default_output_device().unwrap();
-        let _ = device.default_output_config()?;
+        let device = host.default_input_device().unwrap();
+        let config = device.default_input_config()?;
 
         Ok(())
     }
-    pub fn record() -> Result<()> {
-        let host = cpal::default_host();
-        let device = host.default_output_device().unwrap();
-        let _ = device.default_output_config()?;
 
+    pub fn from_speaker() -> Result<()> {
         Ok(())
     }
 }

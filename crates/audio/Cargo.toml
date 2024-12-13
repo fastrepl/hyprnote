@@ -5,5 +5,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
-cpal = { git = "https://github.com/RustAudio/cpal", rev = "f43d36e55494993bbbde3299af0c53e5cdf4d4cf" }
-hound = "3.5.1"
+hypr-swift = { path = "../../crates/swift", package = "swift" }
+rodio = { version = "0.20.1", features = ["wav", "hound", "vorbis"] }
+cpal = { workspace = true }

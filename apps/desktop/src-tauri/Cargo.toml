@@ -18,11 +18,11 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-hypr-swift = { path = "../../../crates/swift", package = "swift" }
 hypr-llm = { path = "../../../crates/llm", package = "llm" }
 hypr-stt = { path = "../../../crates/stt", package = "stt" }
 hypr-diarizer = { path = "../../../crates/diarizer", package = "diarizer" }
 hypr-db = { path = "../../../crates/db", package = "db" }
+hypr-audio = { path = "../../../crates/audio", package = "audio" }
 
 tauri = { workspace = true, features = ["tray-icon"] }
 tauri-plugin-shell = "2"
@@ -54,7 +54,3 @@ futures = "0.3.31"
 flume = "0.11.1"
 objc = "0.2.7"
 cap-media = { workspace = true }
-cpal = { git = "https://github.com/RustAudio/cpal", rev = "f43d36e55494993bbbde3299af0c53e5cdf4d4cf" }
-hound = "3.5.1"
-rodio = "0.20.1"
-coreaudio-rs = "0.12.1"

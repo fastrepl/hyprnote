@@ -21,3 +21,7 @@ pub fn migrations() -> Vec<TauriMigration> {
         })
         .collect()
 }
+
+pub fn export_ts_types_to(path: impl AsRef<std::path::Path>) -> anyhow::Result<()> {
+    hypr_db::export_ts_types_to(path)
+}

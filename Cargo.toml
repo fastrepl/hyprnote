@@ -19,4 +19,9 @@ candle-core = "0.8.1"
 candle-transformers = "0.8.1"
 candle-nn = "0.8.1"
 
+specta = "2.0.0-rc.20"
+tauri-specta = "2.0.0-rc.20"
+specta-typescript = "0.0.7"
+specta-util = "0.0.7"
+
 cap-media = { git = "https://github.com/CapSoftware/Cap", tag = "cap-v0.3.4" }

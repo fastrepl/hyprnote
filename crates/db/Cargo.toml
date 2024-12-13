@@ -6,3 +6,6 @@ edition = "2021"
 [dependencies]
 anyhow = { workspace = true }
 sqlx = { version = "0.8", features = ["sqlite", "migrate", "runtime-tokio"] }
+specta = { workspace = true, features = ["derive"] }
+specta-typescript = { workspace = true }
+specta-util = { workspace = true }

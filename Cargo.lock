@@ -1954,6 +1954,9 @@ name = "db"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "specta",
+ "specta-typescript",
+ "specta-util",
  "sqlx",
 ]
 
@@ -7402,6 +7405,16 @@ dependencies = [
  "specta",
  "specta-serde",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "specta-util"
+version = "0.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8113d65b58a6de3184b01d6df9e50b6d4bbe7f724251f576d84f23228824456"
+dependencies = [
+ "serde",
+ "specta",
 ]
 
 [[package]]

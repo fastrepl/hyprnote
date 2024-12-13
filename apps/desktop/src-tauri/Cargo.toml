@@ -34,9 +34,9 @@ tauri-plugin-single-instance = "2"
 tauri-plugin-keygen-rs2 = "0.2.3"
 tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 
-specta = "=2.0.0-rc.20"
-specta-typescript = "0.0.7"
-tauri-specta = { version = "=2.0.0-rc.20", features = ["derive", "typescript"] }
+specta = { workspace = true }
+specta-typescript = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 anyhow = { workspace = true }
 thiserror = { workspace = true }

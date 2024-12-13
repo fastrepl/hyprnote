@@ -1,3 +1,5 @@
+mod types;
+
 #[derive(Debug)]
 pub struct Migration {
     pub version: i64,
@@ -19,6 +21,19 @@ pub fn migrations() -> Vec<Migration> {
         sql: include_str!("../migrations/20241213001503_initial.up.sql"),
         kind: MigrationKind::Up,
     }]
+}
+
+pub fn export_ts_types_to(path: impl AsRef<std::path::Path>) -> anyhow::Result<()> {
+    let mut collection = specta_util::TypeCollection::default();
+    collection.register::<types::Test>();
+
+    let language = specta_typescript::Typescript::default()
+        .header("// @ts-nocheck\n\n")
+        .formatter(specta_typescript::formatter::prettier)
+        .bigint(specta_typescript::BigIntExportBehavior::Number);
+
+    collection.export_to(language, path)?;
+    Ok(())
 }
 
 #[cfg(test)]

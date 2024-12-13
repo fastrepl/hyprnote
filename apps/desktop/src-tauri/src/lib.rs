@@ -117,7 +117,10 @@ pub fn run() {
                 .formatter(specta_typescript::formatter::prettier),
             "../src/utils/tauri.ts",
         )
-        .expect("Failed to export typescript bindings");
+        .unwrap();
+
+    #[cfg(debug_assertions)]
+    db::export_ts_types_to("../src/utils/db.ts").unwrap();
 
     let mut builder = tauri::Builder::default()
         .plugin(

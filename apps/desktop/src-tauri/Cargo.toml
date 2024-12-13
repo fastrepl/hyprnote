@@ -22,6 +22,7 @@ hypr-swift = { path = "../../../crates/swift", package = "swift" }
 hypr-llm = { path = "../../../crates/llm", package = "llm" }
 hypr-stt = { path = "../../../crates/stt", package = "stt" }
 hypr-diarizer = { path = "../../../crates/diarizer", package = "diarizer" }
+hypr-db = { path = "../../../crates/db", package = "db" }
 
 tauri = { workspace = true, features = ["tray-icon"] }
 tauri-plugin-shell = "2"

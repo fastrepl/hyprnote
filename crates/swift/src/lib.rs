@@ -1,9 +1,7 @@
 use swift_rs::{swift, Int, SRArray, SRObject, SRString};
 
-swift!(fn _create_audio_capture());
-swift!(fn _read_audio_capture() -> SRObject<IntArray>);
-swift!(fn _write_audio_capture(data: SRObject<IntArray>));
-
+swift!(fn _prepare_audio_capture());
+swift!(fn _get_default_audio_input_device_uid() -> SRString);
 #[repr(C)]
 pub struct IntArray {
     data: SRArray<Int>,
@@ -15,19 +13,14 @@ impl IntArray {
     }
 }
 
-pub struct AudioCapture {}
+// pub struct AudioCapture {}
 
-impl AudioCapture {
-    pub fn new() -> Self {
-        unsafe { _create_audio_capture() };
-        Self {}
-    }
-
-    pub fn read(&self) -> SRObject<IntArray> {
-        let data = unsafe { _read_audio_capture() };
-        data
-    }
-}
+// impl AudioCapture {
+//     pub fn new() -> Self {
+//         unsafe { _prepare_audio_capture() };
+//         Self {}
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
@@ -35,6 +28,12 @@ mod tests {
 
     #[test]
     fn test_create_audio_capture() {
-        let _ = AudioCapture::new();
+        unsafe { _prepare_audio_capture() };
+    }
+
+    #[test]
+    fn test_get_default_audio_input_device_uid() {
+        let uid = unsafe { _get_default_audio_input_device_uid() };
+        println!("Device UID: {:?}", uid.to_string());
     }
 }

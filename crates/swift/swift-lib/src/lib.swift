@@ -1,3 +1,6 @@
+// https://github.com/insidegui/AudioCap
+// https://developer.apple.com/documentation/coreaudio/capturing-system-audio-with-core-audio-taps
+
 import AudioToolbox
 import CoreAudio
 import Foundation
@@ -11,87 +14,52 @@ public class IntArray: NSObject {
   }
 }
 
-@_cdecl("_create_audio_capture")
-public func _create_audio_capture() {
-  _ = AudioCaptureState.shared
+@_cdecl("_get_default_audio_input_device_uid")
+public func get_default_audio_input_device_uid() -> SRString {
+  do {
+    let uid = try getDefaultOutputDeviceUID()
+    return SRString(uid as String)
+  } catch {
+    return SRString("")
+  }
 }
 
-@_cdecl("_read_audio_capture")
-public func _read_audio_capture() {
+@_cdecl("_prepare_audio_capture")
+public func prepare_audio_capture() {
+  do {
+    try AudioCaptureState.shared.prepare()
+  } catch {
+    print("Failed to prepare audio capture: \(error)")
+  }
 }
 
-// https://github.com/insidegui/AudioCap
-// https://developer.apple.com/documentation/coreaudio/capturing-system-audio-with-core-audio-taps
 public class AudioCaptureState {
   public static let shared = AudioCaptureState()
 
-  private(set) var activated = false
-
-  private let queue = DispatchQueue(label: "hypr-audio-capture", qos: .userInitiated)
-  private var buffer: IntArray
-
-  private var deviceProcID: AudioDeviceIOProcID?
-  private var processTapID: AudioObjectID = .unknown
-  private var aggregateDeviceID = AudioObjectID.unknown
+  private var aggregateDeviceID: AudioObjectID = kAudioObjectUnknown
 
   private init() {
-    self.buffer = IntArray([])
   }
 
-  func activate() {
-    guard !activated else { return }
-    activated = true
-  }
-
-  func deactivate() {
-    guard activated else { return }
-    activated = false
-
-    if aggregateDeviceID.isValid {
-
-    }
-
-    if processTapID.isValid {
-
-    }
-  }
-
-  private func start(queue: DispatchQueue, callback: @escaping AudioDeviceIOBlock) throws {
-    var err = AudioDeviceCreateIOProcIDWithBlock(&deviceProcID, aggregateDeviceID, queue, callback)
-    guard err == noErr else { throw AudioError.deviceError }
-    err = AudioDeviceStart(aggregateDeviceID, deviceProcID)
-    guard err == noErr else { throw AudioError.deviceError }
-  }
-
-  func stop() {
-  }
-
-  func read() -> IntArray {
-    return buffer
-  }
-
-  private func prepare(deviceUID: String) throws {
+  public func prepare() throws {
     let tapDescription = CATapDescription()
-    tapDescription.deviceUID = deviceUID
+    tapDescription.deviceUID = try getDefaultOutputDeviceUID()
     tapDescription.uuid = UUID()
     tapDescription.muteBehavior = .unmuted
-    var tapID: AUAudioObjectID = .unknown
+    var tapID: AUAudioObjectID = kAudioObjectUnknown
     var err = AudioHardwareCreateProcessTap(tapDescription, &tapID)
-    guard err == noErr else {
-      throw AudioError.tapCreationError
-    }
+    // TODO: check err
 
-    let systemOutputID = try AudioDeviceID.readDefaultSystemOutputDevice()
-    let outputUID = try systemOutputID.readDeviceUID()
+    let systemOutputDeviceUID = try getDefaultSystemOutputDeviceUID()
 
     let aggregateDescription: [String: Any] = [
       kAudioAggregateDeviceNameKey: "hypr-audio-capture",
       kAudioAggregateDeviceUIDKey: UUID().uuidString,
-      kAudioAggregateDeviceMainSubDeviceKey: outputUID,
+      kAudioAggregateDeviceMainSubDeviceKey: systemOutputDeviceUID,
       kAudioAggregateDeviceIsPrivateKey: true,
       kAudioAggregateDeviceIsStackedKey: false,
       kAudioAggregateDeviceTapAutoStartKey: true,
-      kAudioAggregateDeviceSubDeviceListKey: [[kAudioSubDeviceUIDKey: outputUID]],
+      kAudioAggregateDeviceSubDeviceListKey: [[kAudioSubDeviceUIDKey: systemOutputDeviceUID]],
       kAudioAggregateDeviceTapListKey: [
         [
           kAudioSubTapDriftCompensationKey: true,
@@ -100,13 +68,11 @@ public class AudioCaptureState {
       ],
     ]
 
-    aggregateDeviceID = AudioObjectID.unknown
     err = AudioHardwareCreateAggregateDevice(
       aggregateDescription as CFDictionary, &aggregateDeviceID)
+
     guard err == noErr else {
-      throw AudioError.aggregateDeviceError
+      throw AudioError.deviceError
     }
   }
-
-  deinit { deactivate() }
 }

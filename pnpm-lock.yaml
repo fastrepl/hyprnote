@@ -3229,7 +3229,6 @@ snapshots:
   '@types/node@22.10.2':
     dependencies:
       undici-types: 6.20.0
-    optional: true
 
   '@types/prop-types@15.7.14': {}
 

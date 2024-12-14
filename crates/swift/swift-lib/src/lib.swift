@@ -15,12 +15,22 @@ public class IntArray: NSObject {
 }
 
 @_cdecl("_prepare_audio_capture")
-public func prepare_audio_capture() {
+public func prepare_audio_capture() -> Bool {
   do {
     try AudioCaptureState.shared.prepare()
+    return true
   } catch {
-    print("Failed to prepare audio capture: \(error)")
+    return false
   }
+}
+
+@_cdecl("_start_audio_capture")
+public func start_audio_capture() -> Bool {
+  return AudioCaptureState.shared.start()
+}
+
+@_cdecl("_stop_audio_capture")
+public func stop_audio_capture() {
 }
 
 @_cdecl("_read_audio_capture")
@@ -34,6 +44,7 @@ public class AudioCaptureState {
 
   private var deviceProcID: AudioDeviceIOProcID?
   private var aggregateDeviceID: AudioObjectID = kAudioObjectUnknown
+  private var audioQueue: AudioQueue<Int16> = AudioQueue()
 
   private init() {}
 
@@ -69,18 +80,40 @@ public class AudioCaptureState {
     guard err == noErr else { throw AudioError.deviceError }
   }
 
-  public func start() {
+  public func start() -> Bool {
+    do {
+      try start_with_callback(callback: { [self] buffer, size, time, inputData, outputData in
+        self.audioQueue.push([1, 2, 3, 4])
+      })
+      return true
+    } catch {
+      return false
+    }
   }
 
   public func stop() {
   }
 
   public func read() -> IntArray {
-    return IntArray([1, 2, 3, 4])
+    var samples: [Int16] = []
+
+    for _ in 0..<4 {
+      if let sample = audioQueue.pop() {
+        samples.append(sample)
+      } else {
+        break
+      }
+    }
+    return IntArray(samples)
   }
 
-  private func run(queue: DispatchQueue, callback: @escaping AudioDeviceIOBlock) throws {
-    var err = AudioDeviceCreateIOProcIDWithBlock(&deviceProcID, aggregateDeviceID, queue, callback)
+  private func start_with_callback(callback: @escaping AudioDeviceIOBlock) throws {
+    let dispatchQueue = DispatchQueue(label: "com.example.audioCaptureQueue")
+
+    var err = AudioDeviceCreateIOProcIDWithBlock(&deviceProcID, aggregateDeviceID, nil) {
+      buffer, size, time, inputData, outputData in
+      dispatchQueue.async { callback(buffer, size, time, inputData, outputData) }
+    }
     guard err == noErr else { throw AudioError.deviceError }
 
     err = AudioDeviceStart(aggregateDeviceID, deviceProcID)

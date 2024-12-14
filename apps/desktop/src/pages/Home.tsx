@@ -1,59 +1,65 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { mockNotes } from "../mocks/data";
+import { UpcomingEvents } from "../components/home/UpcomingEvents";
+import { PastNotes } from "../components/home/PastNotes";
+import { NewUserBanner } from "../components/home/NewUserBanner";
 
 export default function Home() {
   const [isNewUser] = useState(true);
   const navigate = useNavigate();
 
+  // 현재 시간을 기준으로 미래/과거 이벤트 필터링
+  const now = new Date();
+  const futureNotes = mockNotes
+    .filter(
+      (note) =>
+        note.calendarEvent?.start?.dateTime &&
+        new Date(note.calendarEvent.start.dateTime) > now,
+    )
+    .sort((a, b) => {
+      if (
+        !a.calendarEvent?.start?.dateTime ||
+        !b.calendarEvent?.start?.dateTime
+      )
+        return 0;
+      return (
+        new Date(a.calendarEvent.start.dateTime).getTime() -
+        new Date(b.calendarEvent.start.dateTime).getTime()
+      );
+    });
+
+  const pastNotes = mockNotes
+    .filter(
+      (note) =>
+        !note.calendarEvent?.start?.dateTime ||
+        new Date(note.calendarEvent.start.dateTime) <= now,
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    );
+
+  const handleNoteClick = (noteId: string) => {
+    navigate(`/note/${noteId}`);
+  };
+
+  const handleDemoClick = () => {
+    // TODO: 데모 페이지로 이동하는 로직 구현
+    console.log("Demo clicked");
+  };
+
   return (
-    <main className="mx-auto max-w-3xl p-6">
-      <div className="space-y-8">
-        {isNewUser && (
-          <section>
-            <h2 className="mb-4 text-xl font-semibold">다가오는 일정</h2>
-            <div className="flex cursor-pointer items-center rounded-lg bg-white p-4 shadow-sm hover:bg-gray-50">
-              <div className="mr-4 h-10 w-10 overflow-hidden rounded-full">
-                <img
-                  src="/avatar.png"
-                  alt="프로필 사진"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div>
-                <h3 className="font-medium">하이퍼 시작하기</h3>
-                <p className="text-sm text-emerald-600">
-                  데모 미팅 체험하기 (2분)
-                </p>
-              </div>
-            </div>
-          </section>
-        )}
-
-        <section>
-          <h2 className="mb-4 text-xl font-semibold">최근 노트</h2>
-
-          <div className="space-y-4">
-            {mockNotes.map((note) => (
-              <div
-                key={note.id}
-                onClick={() => navigate(`/note/${note.id}`)}
-                className="cursor-pointer rounded-lg bg-white p-4 shadow-sm hover:bg-gray-50"
-              >
-                <div className="mb-2 flex items-start justify-between">
-                  <h3 className="font-medium">{note.title}</h3>
-                  <span className="text-sm text-gray-500">
-                    {new Date(note.updatedAt).toLocaleTimeString()}
-                  </span>
-                </div>
-                <p className="mb-2 text-sm text-gray-600">{note.rawMemo}</p>
-                <p className="text-xs text-gray-400">
-                  {new Date(note.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
+    <main className="h-full bg-gray-50 p-6">
+      <div className="mx-auto max-w-4xl">
+        <div className="space-y-8">
+          {isNewUser && <NewUserBanner onDemoClick={handleDemoClick} />}
+          <UpcomingEvents
+            futureNotes={futureNotes}
+            onNoteClick={handleNoteClick}
+          />
+          <PastNotes notes={pastNotes} onNoteClick={handleNoteClick} />
+        </div>
       </div>
     </main>
   );

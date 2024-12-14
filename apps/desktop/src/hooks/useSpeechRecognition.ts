@@ -5,7 +5,6 @@ export const useSpeechRecognition = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [transcript, setTranscript] = useState("");
-  const [currentTranscript, setCurrentTranscript] = useState("");
 
   const startRecording = useCallback(() => {
     setIsRecording(true);
@@ -14,7 +13,6 @@ export const useSpeechRecognition = () => {
     let index = 0;
     const interval = setInterval(() => {
       if (index < mockPhrases.length) {
-        setCurrentTranscript(mockPhrases[index]);
         setTranscript((prev) => prev + "\n" + mockPhrases[index]);
         index++;
       } else {
@@ -37,14 +35,12 @@ export const useSpeechRecognition = () => {
   const stopRecording = useCallback(() => {
     setIsRecording(false);
     setIsPaused(false);
-    setCurrentTranscript("");
   }, []);
 
   return {
     isRecording,
     isPaused,
     transcript,
-    currentTranscript,
     startRecording,
     pauseRecording,
     resumeRecording,

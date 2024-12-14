@@ -1,0 +1,104 @@
+import { useState, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import SearchModal from "../modals/search/SearchModal";
+import SettingsModal from "../modals/settings/SettingsModal";
+import { useUI } from "../../contexts/UIContext";
+import { PanelRightClose, PanelRightOpen, Menu } from "lucide-react";
+import SearchBar from "./SearchBar";
+import ExportMenu from "./ExportMenu";
+import NavigationButtons from "./NavigationButtons";
+
+export default function NavBar() {
+  const { isPanelOpen, setIsPanelOpen } = useUI();
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isNotePage = location.pathname.startsWith("/note/");
+
+  const handleNewNote = useCallback(() => {
+    const noteId = crypto.randomUUID();
+    navigate(`/note/${noteId}`);
+  }, [navigate]);
+
+  const handleSettingsClick = useCallback(() => {
+    window.dispatchEvent(new Event("openSettings"));
+  }, []);
+
+  const handleSearchClick = useCallback(() => {
+    window.dispatchEvent(new Event("openSearch"));
+  }, []);
+
+  const toggleExportMenu = useCallback(() => {
+    setIsExportMenuOpen((prev) => !prev);
+  }, []);
+
+  const togglePanel = useCallback(() => {
+    setIsPanelOpen(!isPanelOpen);
+  }, [setIsPanelOpen, isPanelOpen]);
+
+  return (
+    <>
+      <header className="w-full border-b">
+        <nav className="px-4">
+          <div className="flex h-12 items-center justify-between">
+            {/* Left Section - Profile */}
+            <div className="flex items-center">
+              {isNotePage ? (
+                <NavigationButtons
+                  onHomeClick={() => navigate("/")}
+                  onBackClick={() => navigate(-1)}
+                />
+              ) : (
+                <button
+                  onClick={handleSettingsClick}
+                  className="flex items-center rounded p-2 hover:bg-gray-100"
+                >
+                  <Menu className="size-5" />
+                </button>
+              )}
+            </div>
+
+            {/* Right Section - Search and New Note */}
+            <div className="flex items-center gap-4">
+              <SearchBar onSearchClick={handleSearchClick} />
+
+              {isNotePage && (
+                <ExportMenu
+                  isOpen={isExportMenuOpen}
+                  onToggle={toggleExportMenu}
+                />
+              )}
+
+              {/* New Note Button */}
+              {isNotePage ? (
+                <button
+                  onClick={togglePanel}
+                  className="rounded p-2 hover:bg-gray-100"
+                  aria-label={isPanelOpen ? "Close panel" : "Open panel"}
+                >
+                  {isPanelOpen ? (
+                    <PanelRightClose className="size-5" />
+                  ) : (
+                    <PanelRightOpen className="size-5" />
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={handleNewNote}
+                  className="rounded-md bg-blue-500 px-2.5 py-1 text-sm text-white hover:bg-blue-600"
+                  aria-label="새 노트 만들기"
+                >
+                  새 노트
+                </button>
+              )}
+            </div>
+          </div>
+        </nav>
+      </header>
+
+      <SearchModal />
+      <SettingsModal />
+    </>
+  );
+}

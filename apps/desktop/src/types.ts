@@ -171,7 +171,6 @@ export interface CalendarEvent {
   // 이벤트 유형 (default: 기본, outOfOffice: 부재중, focusTime: 집중 시간, workingLocation: 근무 위치)
   eventType?: "default" | "outOfOffice" | "focusTime" | "workingLocation";
 }
-// End of Selection
 
 export interface Note {
   id: string;
@@ -179,11 +178,11 @@ export interface Note {
   calendarEvent?: CalendarEvent;
   rawMemo: string;
   hyprChargedMemo?: PMNode;
-  voiceRecording?: string;
+  voiceRecording?: string; // path
   rawTranscript?: string;
   processedTranscript?: Transcript;
   tags?: string[];
-  createdAt: string;
+  createdAt: string; // date
   updatedAt: string;
 }
 

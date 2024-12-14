@@ -8,7 +8,7 @@ import NoteHeader from "../components/note/NoteHeader";
 import NoteEditor from "../components/note/NoteEditor";
 import { useNoteState } from "../hooks/useNoteState";
 
-export default function NotePage() {
+export default function Note() {
   const { id } = useParams();
   const { isPanelOpen } = useUI();
   const {
@@ -19,12 +19,10 @@ export default function NotePage() {
     handlePauseResume,
     handlehyprcharge,
   } = useNoteState(id);
-
   const {
     isRecording,
     isPaused,
     transcript,
-    currentTranscript,
     startRecording,
     pauseRecording,
     resumeRecording,
@@ -65,14 +63,13 @@ export default function NotePage() {
   ]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-gray-50">
+    <div className="flex h-full flex-col overflow-hidden">
       <main className="flex-1">
         <PanelGroup direction="horizontal">
           <Panel defaultSize={100} minSize={50}>
             <div className="flex h-full flex-col overflow-hidden">
               <NoteHeader
                 note={state.note}
-                isNew={state.isNew}
                 noteTitle={state.title}
                 showhyprcharge={state.showhyprcharge}
                 isRecording={isRecording}
@@ -95,7 +92,7 @@ export default function NotePage() {
             <>
               <PanelResizeHandle />
               <Panel defaultSize={30} minSize={30} maxSize={50}>
-                <SidePanel noteContent={state.content} />
+                <SidePanel transcript={transcript} />
               </Panel>
             </>
           )}

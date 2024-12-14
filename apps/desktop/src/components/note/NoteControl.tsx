@@ -34,12 +34,12 @@ export default function NoteControl({
   };
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-2">
       <div className="flex gap-2">
         {isVirtualMeeting && meetingUrl && (
           <button
             onClick={() => window.open(meetingUrl)}
-            className="rounded-full bg-blue-50 px-4 py-1.5 text-sm text-blue-600 hover:bg-blue-100"
+            className="rounded-full bg-blue-600 px-4 py-1.5 text-sm text-white hover:bg-blue-800"
           >
             미팅 참여하기
           </button>
@@ -47,7 +47,7 @@ export default function NoteControl({
         {showhyprcharge && (
           <button
             onClick={onhyprcharge}
-            className="rounded-full bg-purple-50 px-4 py-1.5 text-sm text-purple-600 hover:bg-purple-100"
+            className="rounded-full bg-purple-600 px-4 py-1.5 text-sm text-white hover:bg-purple-800"
           >
             하이퍼차지
           </button>
@@ -60,21 +60,17 @@ export default function NoteControl({
             onClick={onPauseResume}
             className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm ${
               isPaused
-                ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                : "bg-red-100 text-red-700 hover:bg-red-200"
+                ? "bg-gray-600 text-white hover:bg-gray-800"
+                : "animate-pulse bg-red-600 text-white hover:bg-red-800"
             }`}
           >
-            <div
-              className={`h-2.5 w-2.5 rounded-full ${
-                isPaused ? "bg-gray-600" : "animate-pulse bg-red-600"
-              }`}
-            />
+            <div className="h-2.5 w-2.5 rounded-full bg-white" />
             {isPaused ? "일시정지 중" : formatTime(recordingTime)}
           </button>
         ) : (
           <button
             onClick={onStart}
-            className="rounded-full bg-emerald-100 px-4 py-1.5 text-sm text-emerald-700 hover:bg-emerald-200"
+            className="rounded-full bg-emerald-600 px-4 py-1.5 text-sm text-white hover:bg-emerald-800"
           >
             녹음 시작
           </button>

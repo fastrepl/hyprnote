@@ -23,6 +23,7 @@
     "@radix-ui/react-tabs": "^1.1.2",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-fs": "^2.0.3",
+    "@tauri-apps/plugin-log": "^2.2.0",
     "@tauri-apps/plugin-shell": "^2",
     "@tauri-apps/plugin-stronghold": "^2.0.0",
     "@tauri-apps/plugin-updater": "^2.0.0",

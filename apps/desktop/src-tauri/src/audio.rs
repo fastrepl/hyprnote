@@ -1,16 +1,4 @@
-fn play_audio(bytes: &'static [u8]) {
-    use rodio::{Decoder, OutputStream, Sink};
-
-    std::thread::spawn(move || {
-        if let Ok((_, stream)) = OutputStream::try_default() {
-            let file = std::io::Cursor::new(bytes);
-            let source = Decoder::new(file).unwrap();
-            let sink = Sink::try_new(&stream).unwrap();
-            sink.append(source);
-            sink.sleep_until_end();
-        }
-    });
-}
+use hypr_audio::Audio;
 
 pub enum AppSounds {
     StartRecording,
@@ -20,7 +8,7 @@ pub enum AppSounds {
 impl AppSounds {
     pub fn play(&self) {
         let bytes = self.get_sound_bytes();
-        play_audio(bytes);
+        Audio::to_speaker(bytes);
     }
 
     fn get_sound_bytes(&self) -> &'static [u8] {

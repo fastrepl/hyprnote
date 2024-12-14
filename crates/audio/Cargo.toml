@@ -1,0 +1,10 @@
+[package]
+name = "audio"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { workspace = true }
+hypr-swift = { path = "../../crates/swift", package = "swift" }
+rodio = { version = "0.20.1", features = ["wav", "hound", "vorbis"] }
+cpal = { workspace = true }

@@ -117,7 +117,10 @@ pub fn run() {
                 .formatter(specta_typescript::formatter::prettier),
             "../src/utils/tauri.ts",
         )
-        .expect("Failed to export typescript bindings");
+        .unwrap();
+
+    #[cfg(debug_assertions)]
+    db::export_ts_types_to("../src/utils/db.ts").unwrap();
 
     let mut builder = tauri::Builder::default()
         .plugin(
@@ -148,6 +151,17 @@ pub fn run() {
             )
             .api_url(dotenvy_macro::dotenv!("KEYGEN_API_URL"))
             .build(),
+        );
+    }
+
+    #[cfg(debug_assertions)]
+    {
+        builder = builder.plugin(
+            tauri_plugin_log::Builder::new()
+                .target(tauri_plugin_log::Target::new(
+                    tauri_plugin_log::TargetKind::Stdout,
+                ))
+                .build(),
         );
     }
 

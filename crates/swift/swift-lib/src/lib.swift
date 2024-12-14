@@ -1,101 +1,122 @@
+// https://github.com/insidegui/AudioCap
+// https://developer.apple.com/documentation/coreaudio/capturing-system-audio-with-core-audio-taps
+
 import AudioToolbox
 import CoreAudio
 import Foundation
 import SwiftRs
 
 public class IntArray: NSObject {
-  var data: SRArray<Int>
+  var data: SRArray<Int16>
 
-  init(_ data: [Int]) {
+  init(_ data: [Int16]) {
     self.data = SRArray(data)
   }
 }
 
-@_cdecl("_create_audio_capture")
-public func _create_audio_capture() {
-  _ = AudioCaptureState.shared
+@_cdecl("_prepare_audio_capture")
+public func prepare_audio_capture() -> Bool {
+  do {
+    try AudioCaptureState.shared.prepare()
+    return true
+  } catch {
+    return false
+  }
+}
+
+@_cdecl("_start_audio_capture")
+public func start_audio_capture() -> Bool {
+  return AudioCaptureState.shared.start()
+}
+
+@_cdecl("_stop_audio_capture")
+public func stop_audio_capture() {
 }
 
 @_cdecl("_read_audio_capture")
-public func _read_audio_capture() -> IntArray {
-  return AudioCaptureState.read()
+public func read_audio_capture() -> IntArray {
+  return AudioCaptureState.shared.read()
 }
 
-// https://github.com/insidegui/AudioCap
-// https://developer.apple.com/documentation/coreaudio/capturing-system-audio-with-core-audio-taps
-public class AudioCaptureState: NSObject {
+// https://github.com/insidegui/AudioCap/blob/93881a4201cba1ee1cee558744492660caeaa3f1/AudioCap/ProcessTap/ProcessTap.swift#L7
+public class AudioCaptureState {
   public static let shared = AudioCaptureState()
 
-  private var tapID: AudioObjectID
-  private var aggregateDeviceID: AudioObjectID
-  private var buffer: IntArray
+  private var deviceProcID: AudioDeviceIOProcID?
+  private var aggregateDeviceID: AudioObjectID = kAudioObjectUnknown
+  private var audioQueue: AudioQueue<Int16> = AudioQueue()
 
-  private let queue = DispatchQueue(label: "hypr-audio-capture", qos: .userInitiated)
+  private init() {}
 
-  private override init() {
-    self.tapID = AudioObjectID(kAudioObjectUnknown)
-    self.buffer = IntArray([])
+  public func prepare() throws {
+    let tapDescription = CATapDescription()
+    tapDescription.deviceUID = try getDefaultOutputDeviceUID()
+    tapDescription.uuid = UUID()
+    tapDescription.muteBehavior = .unmuted
+    var tapID: AUAudioObjectID = kAudioObjectUnknown
 
-    self.tapID = createTap()
-    self.aggregateDeviceID = createAggregateDevice()
+    var err = AudioHardwareCreateProcessTap(tapDescription, &tapID)
+    guard err == noErr else { throw AudioError.tapError }
 
-    super.init()
+    let systemOutputDeviceUID = try getDefaultSystemOutputDeviceUID()
+    let aggregateDescription: [String: Any] = [
+      kAudioAggregateDeviceNameKey: "hypr-audio-capture",
+      kAudioAggregateDeviceUIDKey: UUID().uuidString,
+      kAudioAggregateDeviceMainSubDeviceKey: systemOutputDeviceUID,
+      kAudioAggregateDeviceIsPrivateKey: true,
+      kAudioAggregateDeviceIsStackedKey: false,
+      kAudioAggregateDeviceTapAutoStartKey: true,
+      kAudioAggregateDeviceSubDeviceListKey: [[kAudioSubDeviceUIDKey: systemOutputDeviceUID]],
+      kAudioAggregateDeviceTapListKey: [
+        [
+          kAudioSubTapDriftCompensationKey: true,
+          kAudioSubTapUIDKey: tapDescription.uuid.uuidString,
+        ]
+      ],
+    ]
+
+    err = AudioHardwareCreateAggregateDevice(
+      aggregateDescription as CFDictionary, &aggregateDeviceID)
+    guard err == noErr else { throw AudioError.deviceError }
   }
 
-  static func read() -> IntArray {
-    return shared.buffer
+  public func start() -> Bool {
+    do {
+      try start_with_callback(callback: { [self] buffer, size, time, inputData, outputData in
+        self.audioQueue.push([1, 2, 3, 4])
+      })
+      return true
+    } catch {
+      return false
+    }
   }
 
-  // static func start(on queue: DispatchQueue) {
-  //   var err = AudioDeviceCreateIOProcIDWithBlock(&deviceProcID, aggregateDeviceID, queue, ioBlock)
-  //   err = AudioDeviceStart(aggregateDeviceID, deviceProcID)
-  // }
-}
-
-func createTap() -> AudioObjectID {
-  let description = CATapDescription()
-  description.uuid = UUID()
-  description.isPrivate = true
-  description.isMono = true
-
-  var tapID = AudioObjectID(kAudioObjectUnknown)
-  AudioHardwareCreateProcessTap(description, &tapID)
-  return tapID
-}
-
-func createAggregateDevice() -> AudioObjectID {
-  let description: [String: Any] = [
-    kAudioAggregateDeviceNameKey: "Sample Aggregate Audio Device",
-    kAudioAggregateDeviceIsPrivateKey: true,
-    kAudioAggregateDeviceUIDKey: UUID().uuidString,
-  ]
-  var aggregateID: AudioObjectID = 0
-  AudioHardwareCreateAggregateDevice(description as CFDictionary, &aggregateID)
-  return aggregateID
-}
-
-func getOutputDeviceID() -> AudioObjectID? {
-  var propertyAddress = AudioObjectPropertyAddress(
-    mSelector: kAudioHardwarePropertyDefaultOutputDevice,
-    mScope: kAudioObjectPropertyScopeGlobal,
-    mElement: kAudioObjectPropertyElementMain
-  )
-
-  var deviceID: AudioObjectID = kAudioObjectUnknown
-  var dataSize = UInt32(MemoryLayout.size(ofValue: deviceID))
-
-  let status = AudioObjectGetPropertyData(
-    AudioObjectID(kAudioObjectSystemObject),
-    &propertyAddress,
-    0,
-    nil,
-    &dataSize,
-    &deviceID
-  )
-
-  if status != noErr {
-    return nil
+  public func stop() {
   }
 
-  return deviceID
+  public func read() -> IntArray {
+    var samples: [Int16] = []
+
+    for _ in 0..<4 {
+      if let sample = audioQueue.pop() {
+        samples.append(sample)
+      } else {
+        break
+      }
+    }
+    return IntArray(samples)
+  }
+
+  private func start_with_callback(callback: @escaping AudioDeviceIOBlock) throws {
+    let dispatchQueue = DispatchQueue(label: "com.example.audioCaptureQueue")
+
+    var err = AudioDeviceCreateIOProcIDWithBlock(&deviceProcID, aggregateDeviceID, nil) {
+      buffer, size, time, inputData, outputData in
+      dispatchQueue.async { callback(buffer, size, time, inputData, outputData) }
+    }
+    guard err == noErr else { throw AudioError.deviceError }
+
+    err = AudioDeviceStart(aggregateDeviceID, deviceProcID)
+    guard err == noErr else { throw AudioError.deviceError }
+  }
 }

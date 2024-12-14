@@ -1,16 +1,17 @@
-use swift_rs::{swift, Int, SRArray, SRObject, SRString};
+use swift_rs::{swift, Bool, Int16, SRArray, SRObject};
 
-swift!(fn _create_audio_capture());
+swift!(fn _prepare_audio_capture() -> Bool);
+swift!(fn _start_audio_capture() -> Bool);
+swift!(fn _stop_audio_capture() -> Bool);
 swift!(fn _read_audio_capture() -> SRObject<IntArray>);
-swift!(fn _write_audio_capture(data: SRObject<IntArray>));
 
 #[repr(C)]
 pub struct IntArray {
-    data: SRArray<Int>,
+    data: SRArray<Int16>,
 }
 
 impl IntArray {
-    pub fn buffer(&self) -> Vec<Int> {
+    pub fn buffer(&self) -> Vec<Int16> {
         self.data.as_slice().to_vec()
     }
 }
@@ -19,13 +20,21 @@ pub struct AudioCapture {}
 
 impl AudioCapture {
     pub fn new() -> Self {
-        unsafe { _create_audio_capture() };
+        unsafe { _prepare_audio_capture() };
         Self {}
     }
 
-    pub fn read(&self) -> SRObject<IntArray> {
-        let data = unsafe { _read_audio_capture() };
-        data
+    pub fn start(&self) -> bool {
+        unsafe { _start_audio_capture() }
+    }
+
+    pub fn stop(&self) -> bool {
+        unsafe { _stop_audio_capture() }
+    }
+
+    pub fn read(&self) -> Vec<Int16> {
+        let result = unsafe { _read_audio_capture() };
+        result.buffer()
     }
 }
 
@@ -34,7 +43,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_create_audio_capture() {
-        let _ = AudioCapture::new();
+    fn test_create_and_start_audio_capture() {
+        let audio_capture = AudioCapture::new();
+        let numbers = audio_capture.read();
+        assert_eq!(numbers, vec![]);
+        assert!(audio_capture.start());
+        std::thread::sleep(std::time::Duration::from_secs(1));
+        let numbers = audio_capture.read();
+        assert_eq!(numbers, vec![1, 2, 3, 4]);
+        assert!(audio_capture.stop());
     }
 }

@@ -7,7 +7,7 @@ public class AudioQueue<T> {
 
   public init() {}
 
-  public func push(_ items: Collection<T>) {
+  public func push(_ items: any Collection<T>) {
     lock.lock()
     defer { lock.unlock() }
     queue.append(contentsOf: items)

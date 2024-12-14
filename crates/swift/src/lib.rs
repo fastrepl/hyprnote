@@ -1,26 +1,32 @@
-use swift_rs::{swift, Int, SRArray, SRObject, SRString};
+use swift_rs::{swift, Int16, SRArray, SRObject};
 
 swift!(fn _prepare_audio_capture());
-swift!(fn _get_default_audio_input_device_uid() -> SRString);
+swift!(fn _read_audio_capture() -> SRObject<IntArray>);
+
 #[repr(C)]
 pub struct IntArray {
-    data: SRArray<Int>,
+    data: SRArray<Int16>,
 }
 
 impl IntArray {
-    pub fn buffer(&self) -> Vec<Int> {
+    pub fn buffer(&self) -> Vec<Int16> {
         self.data.as_slice().to_vec()
     }
 }
 
-// pub struct AudioCapture {}
+pub struct AudioCapture {}
 
-// impl AudioCapture {
-//     pub fn new() -> Self {
-//         unsafe { _prepare_audio_capture() };
-//         Self {}
-//     }
-// }
+impl AudioCapture {
+    pub fn new() -> Self {
+        unsafe { _prepare_audio_capture() };
+        Self {}
+    }
+
+    pub fn read(&self) -> Vec<Int16> {
+        let result = unsafe { _read_audio_capture() };
+        result.buffer()
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -28,12 +34,13 @@ mod tests {
 
     #[test]
     fn test_create_audio_capture() {
-        unsafe { _prepare_audio_capture() };
+        AudioCapture::new();
     }
 
     #[test]
-    fn test_get_default_audio_input_device_uid() {
-        let uid = unsafe { _get_default_audio_input_device_uid() };
-        println!("Device UID: {:?}", uid.to_string());
+    fn test_read_audio_capture() {
+        let audio_capture = AudioCapture::new();
+        let numbers = audio_capture.read();
+        assert_eq!(numbers, vec![1, 2, 3, 4]);
     }
 }

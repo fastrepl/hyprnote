@@ -63,3 +63,16 @@ export const enhanceNoteWithAI = async (
       : "제품 개발 전략 회의 - 우선순위 및 일정 조정",
   };
 };
+
+export const sendChatMessage = async (
+  message: string,
+  transcript: string
+): Promise<{ text: string }> => {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // TODO: Replace with actual API call
+  return {
+    text: `AI 응답: "${message}"에 대한 답변입니다. 트랜스크립트 길이: ${transcript.length}자`,
+  };
+};

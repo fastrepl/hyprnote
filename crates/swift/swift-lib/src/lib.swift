@@ -17,85 +17,96 @@ public func _create_audio_capture() {
 }
 
 @_cdecl("_read_audio_capture")
-public func _read_audio_capture() -> IntArray {
-  return AudioCaptureState.read()
+public func _read_audio_capture() {
 }
 
 // https://github.com/insidegui/AudioCap
 // https://developer.apple.com/documentation/coreaudio/capturing-system-audio-with-core-audio-taps
-public class AudioCaptureState: NSObject {
+public class AudioCaptureState {
   public static let shared = AudioCaptureState()
 
-  private var tapID: AudioObjectID
-  private var aggregateDeviceID: AudioObjectID
-  private var buffer: IntArray
+  private(set) var activated = false
 
   private let queue = DispatchQueue(label: "hypr-audio-capture", qos: .userInitiated)
+  private var buffer: IntArray
 
-  private override init() {
-    self.tapID = AudioObjectID(kAudioObjectUnknown)
+  private var deviceProcID: AudioDeviceIOProcID?
+  private var processTapID: AudioObjectID = .unknown
+  private var aggregateDeviceID = AudioObjectID.unknown
+
+  private init() {
     self.buffer = IntArray([])
-
-    self.tapID = createTap()
-    self.aggregateDeviceID = createAggregateDevice()
-
-    super.init()
   }
 
-  static func read() -> IntArray {
-    return shared.buffer
+  func activate() {
+    guard !activated else { return }
+    activated = true
   }
 
-  // static func start(on queue: DispatchQueue) {
-  //   var err = AudioDeviceCreateIOProcIDWithBlock(&deviceProcID, aggregateDeviceID, queue, ioBlock)
-  //   err = AudioDeviceStart(aggregateDeviceID, deviceProcID)
-  // }
-}
+  func deactivate() {
+    guard activated else { return }
+    activated = false
 
-func createTap() -> AudioObjectID {
-  let description = CATapDescription()
-  description.uuid = UUID()
-  description.isPrivate = true
-  description.isMono = true
+    if aggregateDeviceID.isValid {
 
-  var tapID = AudioObjectID(kAudioObjectUnknown)
-  AudioHardwareCreateProcessTap(description, &tapID)
-  return tapID
-}
+    }
 
-func createAggregateDevice() -> AudioObjectID {
-  let description: [String: Any] = [
-    kAudioAggregateDeviceNameKey: "Sample Aggregate Audio Device",
-    kAudioAggregateDeviceIsPrivateKey: true,
-    kAudioAggregateDeviceUIDKey: UUID().uuidString,
-  ]
-  var aggregateID: AudioObjectID = 0
-  AudioHardwareCreateAggregateDevice(description as CFDictionary, &aggregateID)
-  return aggregateID
-}
+    if processTapID.isValid {
 
-func getOutputDeviceID() -> AudioObjectID? {
-  var propertyAddress = AudioObjectPropertyAddress(
-    mSelector: kAudioHardwarePropertyDefaultOutputDevice,
-    mScope: kAudioObjectPropertyScopeGlobal,
-    mElement: kAudioObjectPropertyElementMain
-  )
-
-  var deviceID: AudioObjectID = kAudioObjectUnknown
-  var dataSize = UInt32(MemoryLayout.size(ofValue: deviceID))
-
-  let status = AudioObjectGetPropertyData(
-    AudioObjectID(kAudioObjectSystemObject),
-    &propertyAddress,
-    0,
-    nil,
-    &dataSize,
-    &deviceID
-  )
-
-  if status != noErr {
-    return nil
+    }
   }
 
-  return deviceID
+  private func start(queue: DispatchQueue, callback: @escaping AudioDeviceIOBlock) throws {
+    var err = AudioDeviceCreateIOProcIDWithBlock(&deviceProcID, aggregateDeviceID, queue, callback)
+    guard err == noErr else { throw AudioError.deviceError }
+    err = AudioDeviceStart(aggregateDeviceID, deviceProcID)
+    guard err == noErr else { throw AudioError.deviceError }
+  }
+
+  func stop() {
+  }
+
+  func read() -> IntArray {
+    return buffer
+  }
+
+  private func prepare(deviceUID: String) throws {
+    let tapDescription = CATapDescription()
+    tapDescription.deviceUID = deviceUID
+    tapDescription.uuid = UUID()
+    tapDescription.muteBehavior = .unmuted
+    var tapID: AUAudioObjectID = .unknown
+    var err = AudioHardwareCreateProcessTap(tapDescription, &tapID)
+    guard err == noErr else {
+      throw AudioError.tapCreationError
+    }
+
+    let systemOutputID = try AudioDeviceID.readDefaultSystemOutputDevice()
+    let outputUID = try systemOutputID.readDeviceUID()
+
+    let aggregateDescription: [String: Any] = [
+      kAudioAggregateDeviceNameKey: "hypr-audio-capture",
+      kAudioAggregateDeviceUIDKey: UUID().uuidString,
+      kAudioAggregateDeviceMainSubDeviceKey: outputUID,
+      kAudioAggregateDeviceIsPrivateKey: true,
+      kAudioAggregateDeviceIsStackedKey: false,
+      kAudioAggregateDeviceTapAutoStartKey: true,
+      kAudioAggregateDeviceSubDeviceListKey: [[kAudioSubDeviceUIDKey: outputUID]],
+      kAudioAggregateDeviceTapListKey: [
+        [
+          kAudioSubTapDriftCompensationKey: true,
+          kAudioSubTapUIDKey: tapDescription.uuid.uuidString,
+        ]
+      ],
+    ]
+
+    aggregateDeviceID = AudioObjectID.unknown
+    err = AudioHardwareCreateAggregateDevice(
+      aggregateDescription as CFDictionary, &aggregateDeviceID)
+    guard err == noErr else {
+      throw AudioError.aggregateDeviceError
+    }
+  }
+
+  deinit { deactivate() }
 }

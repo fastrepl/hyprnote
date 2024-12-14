@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Note, CalendarEvent } from "../types";
-import { fetchNote, enhanceNoteWithAI } from "../api/noteApi";
+import { mockNotes } from "../mocks/data";
 
 interface NoteState {
   isNew: boolean;
@@ -27,14 +27,18 @@ export function useNoteState(id: string | undefined) {
 
   useEffect(() => {
     if (id && !state.isNew) {
-      const loadNote = async () => {
+      const loadNote = () => {
         try {
-          const noteData = await fetchNote(id);
-          updateState({
-            note: noteData,
-            title: noteData.title,
-            content: noteData.rawMemo,
-          });
+          const noteData = mockNotes.find((note) => note.id === id);
+          if (noteData) {
+            updateState({
+              note: noteData,
+              title: noteData.title,
+              content: noteData.rawMemo,
+            });
+          } else {
+            console.error("Note not found");
+          }
         } catch (error) {
           console.error("Failed to load note:", error);
         }
@@ -76,11 +80,10 @@ export function useNoteState(id: string | undefined) {
   };
 
   const handlehyprcharge = async () => {
-    const enhancedNote = await enhanceNoteWithAI(
-      state.title,
-      state.content,
-      [],
-    );
+    const enhancedNote = {
+      content: state.content,
+      suggestedTitle: state.title,
+    };
     updateState({
       content: enhancedNote.content,
       title:

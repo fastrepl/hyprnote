@@ -72,7 +72,6 @@ export default function NotePage() {
             <div className="flex h-full flex-col overflow-hidden">
               <NoteHeader
                 note={state.note}
-                isNew={state.isNew}
                 noteTitle={state.title}
                 showhyprcharge={state.showhyprcharge}
                 isRecording={isRecording}

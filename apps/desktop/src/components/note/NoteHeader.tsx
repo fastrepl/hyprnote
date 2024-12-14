@@ -1,10 +1,10 @@
+import { Calendar } from "lucide-react";
 import type { Note } from "../../types";
 import { formatMeetingTime } from "../../utils/time";
 import NoteControl from "./NoteControl";
 
 interface NoteHeaderProps {
   note: Note | null;
-  isNew: boolean;
   noteTitle: string;
   showhyprcharge: boolean;
   isRecording: boolean;
@@ -18,7 +18,6 @@ interface NoteHeaderProps {
 
 export default function NoteHeader({
   note,
-  isNew,
   noteTitle,
   showhyprcharge,
   isRecording,
@@ -37,19 +36,22 @@ export default function NoteHeader({
             type="text"
             value={noteTitle}
             onChange={(e) => onTitleChange(e.target.value)}
-            placeholder={isNew ? "제목 없음" : ""}
+            placeholder="Untitled"
             className="w-full text-lg font-medium focus:outline-none"
           />
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
             {note?.calendarEvent && (
-              <div className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-blue-600">
-                <span>{note.calendarEvent.summary}</span>
-                <div className="mx-2 h-4 w-px bg-blue-300" />
-                <span>
+              <div className="inline-flex items-center text-blue-600">
+                <Calendar className="mr-2 h-4 w-4" />
+                <span className="font-medium">
+                  {note.calendarEvent.summary}{" "}
                   {formatMeetingTime(note.calendarEvent.start)} ~{" "}
                   {formatMeetingTime(note.calendarEvent.end)}
                 </span>
               </div>
+            )}
+            {note?.calendarEvent && note?.tags && (
+              <div className="mx-2 h-3 w-px bg-blue-300" />
             )}
             {note?.tags &&
               note.tags.length > 0 &&

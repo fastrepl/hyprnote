@@ -56,3 +56,4 @@ cpal = { git = "https://github.com/RustAudio/cpal", rev = "f43d36e55494993bbbde3
 hound = "3.5.1"
 rodio = "0.20.1"
 coreaudio-rs = "0.12.1"
+tauri-plugin-log = "2"

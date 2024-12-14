@@ -1,18 +1,29 @@
-import type { Note } from "../types";
+import type { Note, CalendarEvent } from "../types";
+
+// Helper function to create dates relative to today
+const today = new Date('2024-12-14T00:00:00Z');
+const addDays = (date: Date, days: number) => {
+  const result = new Date(date);
+  result.setDate(date.getDate() + days);
+  return result;
+};
+
+const formatDate = (date: Date) => date.toISOString();
 
 export const mockNotes: Note[] = [
   {
     id: "1",
-    title: "주간 회의 - 제품 로드맵 논의",
-    rawMemo: "Q1 목표 달성을 위한 주요 기능 개발 계획 논의...",
+    title: "2024 연말 회고 준비",
+    rawMemo:
+      "1. 올해 주요 성과\n2. 내년 목표 설정\n3. 팀원 피드백 정리\n4. 개인 성장 포인트",
     calendarEvent: {
       kind: "calendar#event",
       id: "1",
       status: "confirmed",
       htmlLink: "https://calendar.google.com/event?id=1",
-      created: "2024-03-20T09:00:00Z",
-      updated: "2024-03-20T09:00:00Z",
-      summary: "주간 회의 - 제품 로드맵 논의",
+      created: formatDate(addDays(today, -4)), // 4일 전
+      updated: formatDate(addDays(today, -4)),
+      summary: "2024 연말 회고 준비",
       creator: {
         email: "user@example.com",
         displayName: "User Name",
@@ -22,29 +33,29 @@ export const mockNotes: Note[] = [
         displayName: "User Name",
       },
       start: {
-        dateTime: "2024-03-20T14:30:00Z",
+        dateTime: formatDate(addDays(today, 5)), // 5일 후
       },
       end: {
-        dateTime: "2024-03-20T15:30:00Z",
+        dateTime: formatDate(addDays(today, 5)),
       },
     },
-    voiceRecording: "recording1.mp3",
-    tags: ["회의", "제품", "개발"],
-    createdAt: "2024-03-20T09:00:00Z",
-    updatedAt: "2024-03-20T09:32:15Z",
+    tags: ["회고", "2024", "성과"],
+    createdAt: formatDate(addDays(today, -4)),
+    updatedAt: formatDate(addDays(today, -4)),
   },
   {
     id: "2",
-    title: "팀 스크럼 미팅",
-    rawMemo: "스프린트 3 진행상황 점검 및 블로커 이슈 논의...",
+    title: "크리스마스 파티 계획",
+    rawMemo:
+      "장소: 강남 파티룸\n예산: 인당 5만원\n필요한 것:\n- 케이크 주문\n- 선물 교환\n- 음식 케이터링",
     calendarEvent: {
       kind: "calendar#event",
       id: "2",
       status: "confirmed",
       htmlLink: "https://calendar.google.com/event?id=2",
-      created: "2024-03-19T09:00:00Z",
-      updated: "2024-03-19T09:00:00Z",
-      summary: "팀 스크럼 미팅",
+      created: formatDate(addDays(today, -3)), // 3일 전
+      updated: formatDate(addDays(today, -3)),
+      summary: "팀 크리스마스 파티",
       creator: {
         email: "user@example.com",
         displayName: "User Name",
@@ -54,220 +65,303 @@ export const mockNotes: Note[] = [
         displayName: "User Name",
       },
       start: {
-        dateTime: "2024-03-19T14:00:00Z",
+        dateTime: formatDate(addDays(today, 11)), // 11일 후 (크리스마스)
       },
       end: {
-        dateTime: "2024-03-19T14:30:00Z",
+        dateTime: formatDate(addDays(today, 11)),
       },
+      location: "강남 파티룸",
     },
-    voiceRecording: "recording2.mp3",
-    tags: ["회의", "스크럼", "개발"],
-    createdAt: "2024-03-19T09:00:00Z",
-    updatedAt: "2024-03-19T09:15:45Z",
+    tags: ["파티", "크리스마스", "팀빌딩"],
+    createdAt: formatDate(addDays(today, -3)),
+    updatedAt: formatDate(addDays(today, -3)),
   },
   {
     id: "3",
-    title: "사용자 인터뷰 - 김OO님",
-    rawMemo: "신규 기능에 대한 사용자 피드백 및 개선사항...",
-    calendarEvent: {
-      kind: "calendar#event",
-      id: "3",
-      status: "confirmed",
-      htmlLink: "https://calendar.google.com/event?id=3",
-      created: "2024-03-18T09:00:00Z",
-      updated: "2024-03-18T09:00:00Z",
-      summary: "사용자 인터뷰 - 김OO님",
-      creator: {
-        email: "user@example.com",
-        displayName: "User Name",
-      },
-      organizer: {
-        email: "user@example.com",
-        displayName: "User Name",
-      },
-      start: {
-        dateTime: "2024-03-18T15:00:00Z",
-      },
-      end: {
-        dateTime: "2024-03-18T16:00:00Z",
-      },
-    },
-    voiceRecording: "recording3.mp3",
-    tags: ["인터뷰", "사용자", "피드백"],
-    createdAt: "2024-03-18T09:00:00Z",
-    updatedAt: "2024-03-18T09:45:30Z",
+    title: "개인 독서 노트 - 애자일 조직",
+    rawMemo:
+      "주요 인사이트:\n1. 작은 실험의 중요성\n2. 피드백 루프 최소화\n3. 팀 자율성과 책임",
+    tags: ["독서", "애자일", "조직문화"],
+    createdAt: formatDate(addDays(today, -2)),
+    updatedAt: formatDate(addDays(today, -2)),
   },
   {
     id: "4",
-    title: "분기별 성과 리뷰 미팅",
-    rawMemo: "Q1 목표 달성도 평가 및 Q2 전략 수립...",
+    title: "2025 Q1 제품 전략 미팅",
+    rawMemo:
+      "핵심 논의사항:\n- AI 기능 고도화\n- 사용자 피드백 반영\n- 성능 개선 로드맵",
     calendarEvent: {
       kind: "calendar#event",
       id: "4",
       status: "confirmed",
       htmlLink: "https://calendar.google.com/event?id=4",
-      created: "2024-03-25T08:00:00Z",
-      updated: "2024-03-25T08:00:00Z",
-      summary: "분기별 성과 리뷰 미팅",
+      created: formatDate(addDays(today, -2)),
+      updated: formatDate(addDays(today, -2)),
+      summary: "2025 Q1 제품 전략 미팅",
       creator: {
-        email: "manager@example.com",
-        displayName: "Team Manager",
+        email: "user@example.com",
+        displayName: "User Name",
       },
       organizer: {
-        email: "manager@example.com",
-        displayName: "Team Manager",
+        email: "user@example.com",
+        displayName: "User Name",
       },
       start: {
-        dateTime: "2024-03-25T10:00:00Z",
+        dateTime: formatDate(addDays(today, 2)),
       },
       end: {
-        dateTime: "2024-03-25T12:00:00Z",
+        dateTime: formatDate(addDays(today, 2)),
       },
     },
-    voiceRecording: "recording4.mp3",
-    tags: ["회의", "성과", "전략"],
-    createdAt: "2024-03-25T08:00:00Z",
-    updatedAt: "2024-03-25T12:15:00Z",
+    tags: ["전략", "제품", "2025"],
+    createdAt: formatDate(addDays(today, -2)),
+    updatedAt: formatDate(addDays(today, -2)),
   },
   {
     id: "5",
-    title: "신규 프로젝트 킥오프 미팅",
-    rawMemo: "프로젝트 범위, 목표, 일정 및 팀 구성 논의...",
-    calendarEvent: {
-      kind: "calendar#event",
-      id: "5",
-      status: "confirmed",
-      htmlLink: "https://calendar.google.com/event?id=5",
-      created: "2024-03-26T09:30:00Z",
-      updated: "2024-03-26T09:30:00Z",
-      summary: "신규 프로젝트 킥오프 미팅",
-      creator: {
-        email: "pm@example.com",
-        displayName: "Project Manager",
-      },
-      organizer: {
-        email: "pm@example.com",
-        displayName: "Project Manager",
-      },
-      start: {
-        dateTime: "2024-03-26T13:00:00Z",
-      },
-      end: {
-        dateTime: "2024-03-26T15:00:00Z",
-      },
-    },
-    voiceRecording: "recording5.mp3",
-    tags: ["프로젝트", "킥오프", "계획"],
-    createdAt: "2024-03-26T09:30:00Z",
-    updatedAt: "2024-03-26T15:10:00Z",
+    title: "프로젝트 회고 - 모바일 앱 런칭",
+    rawMemo:
+      "성공 요인:\n1. 철저한 사용자 테스트\n2. 빠른 이터레이션\n\n개선 필요:\n1. 커뮤니케이션 프로세스\n2. 기술 부채 관리",
+    tags: ["회고", "프로젝트", "모바일"],
+    createdAt: formatDate(addDays(today, -1)),
+    updatedAt: formatDate(addDays(today, -1)),
   },
   {
     id: "6",
-    title: "고객 피드백 분석 세션",
-    rawMemo: "최근 수집된 고객 피드백 분석 및 개선 방안 도출...",
+    title: "신규 입사자 온보딩 계획",
+    rawMemo:
+      "1주차: 팀 소개 및 제품 교육\n2주차: 개발 환경 셋업\n3주차: 작은 과제로 시작\n4주차: 실제 프로젝트 참여",
     calendarEvent: {
       kind: "calendar#event",
       id: "6",
       status: "confirmed",
       htmlLink: "https://calendar.google.com/event?id=6",
-      created: "2024-03-27T10:00:00Z",
-      updated: "2024-03-27T10:00:00Z",
-      summary: "고객 피드백 분석 세션",
+      created: formatDate(addDays(today, -1)),
+      updated: formatDate(addDays(today, -1)),
+      summary: "신규 입사자 온보딩 미팅",
       creator: {
-        email: "product@example.com",
-        displayName: "Product Owner",
+        email: "user@example.com",
+        displayName: "User Name",
       },
       organizer: {
-        email: "product@example.com",
-        displayName: "Product Owner",
+        email: "user@example.com",
+        displayName: "User Name",
       },
       start: {
-        dateTime: "2024-03-27T14:00:00Z",
+        dateTime: formatDate(addDays(today, 4)),
       },
       end: {
-        dateTime: "2024-03-27T16:00:00Z",
+        dateTime: formatDate(addDays(today, 4)),
       },
     },
-    voiceRecording: "recording6.mp3",
-    tags: ["고객", "피드백", "분석"],
-    createdAt: "2024-03-27T10:00:00Z",
-    updatedAt: "2024-03-27T16:20:00Z",
+    tags: ["온보딩", "HR", "교육"],
+    createdAt: formatDate(addDays(today, -1)),
+    updatedAt: formatDate(addDays(today, -1)),
   },
   {
     id: "7",
-    title: "기술 스택 업그레이드 논의",
-    rawMemo: "현재 기술 스택 평가 및 새로운 기술 도입 가능성 검토...",
-    calendarEvent: {
-      kind: "calendar#event",
-      id: "7",
-      status: "confirmed",
-      htmlLink: "https://calendar.google.com/event?id=7",
-      created: "2024-03-28T08:30:00Z",
-      updated: "2024-03-28T08:30:00Z",
-      summary: "기술 스택 업그레이드 논의",
-      creator: {
-        email: "tech_lead@example.com",
-        displayName: "Tech Lead",
-      },
-      organizer: {
-        email: "tech_lead@example.com",
-        displayName: "Tech Lead",
-      },
-      start: {
-        dateTime: "2024-03-28T11:00:00Z",
-      },
-      end: {
-        dateTime: "2024-03-28T13:00:00Z",
-      },
+    title: "기술 부채 해결 계획",
+    rawMemo:
+      "우선순위:\n1. 테스트 커버리지 개선\n2. 레거시 코드 리팩토링\n3. 문서화 업데이트",
+    tags: ["개발", "기술부채", "계획"],
+    createdAt: formatDate(today),
+    updatedAt: formatDate(today),
+  },
+];
+
+export const mockEvents: CalendarEvent[] = [
+  {
+    kind: "calendar#event",
+    id: "1",
+    status: "confirmed",
+    htmlLink: "https://calendar.google.com/event?id=1",
+    created: formatDate(addDays(today, -4)),
+    updated: formatDate(addDays(today, -4)),
+    summary: "2024 연말 회고 준비",
+    creator: {
+      email: "user@example.com",
+      displayName: "User Name",
     },
-    voiceRecording: "recording7.mp3",
-    tags: ["기술", "업그레이드", "개발"],
-    createdAt: "2024-03-28T08:30:00Z",
-    updatedAt: "2024-03-28T13:15:00Z",
+    organizer: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    start: {
+      dateTime: formatDate(addDays(today, 5)),
+    },
+    end: {
+      dateTime: formatDate(addDays(today, 5)),
+    },
   },
   {
-    id: "8",
-    title: "팀 빌딩 워크샵",
-    rawMemo: "팀 협업 강화 및 의사소통 개선을 위한 활동 진행...",
-    calendarEvent: {
-      kind: "calendar#event",
-      id: "8",
-      status: "confirmed",
-      htmlLink: "https://calendar.google.com/event?id=8",
-      created: "2024-03-29T09:00:00Z",
-      updated: "2024-03-29T09:00:00Z",
-      summary: "팀 빌딩 워크샵",
-      creator: {
-        email: "hr@example.com",
-        displayName: "HR Manager",
-      },
-      organizer: {
-        email: "hr@example.com",
-        displayName: "HR Manager",
-      },
-      start: {
-        dateTime: "2024-03-29T13:00:00Z",
-      },
-      end: {
-        dateTime: "2024-03-29T17:00:00Z",
-      },
+    kind: "calendar#event",
+    id: "2",
+    status: "confirmed",
+    htmlLink: "https://calendar.google.com/event?id=2",
+    created: formatDate(addDays(today, -3)),
+    updated: formatDate(addDays(today, -3)),
+    summary: "팀 크리스마스 파티",
+    creator: {
+      email: "user@example.com",
+      displayName: "User Name",
     },
-    voiceRecording: "recording8.mp3",
-    tags: ["팀빌딩", "워크샵", "협업"],
-    createdAt: "2024-03-29T09:00:00Z",
-    updatedAt: "2024-03-29T17:30:00Z",
+    organizer: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    start: {
+      dateTime: formatDate(addDays(today, 11)),
+    },
+    end: {
+      dateTime: formatDate(addDays(today, 11)),
+    },
+    location: "강남 파티룸",
+  },
+  {
+    kind: "calendar#event",
+    id: "3",
+    status: "confirmed",
+    htmlLink: "https://calendar.google.com/event?id=3",
+    created: formatDate(addDays(today, -2)),
+    updated: formatDate(addDays(today, -2)),
+    summary: "주간 팀 미팅",
+    creator: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    organizer: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    start: {
+      dateTime: formatDate(today),
+    },
+    end: {
+      dateTime: formatDate(today),
+    },
+  },
+  {
+    kind: "calendar#event",
+    id: "4",
+    status: "confirmed",
+    htmlLink: "https://calendar.google.com/event?id=4",
+    created: formatDate(addDays(today, -2)),
+    updated: formatDate(addDays(today, -2)),
+    summary: "2025 Q1 제품 전략 미팅",
+    creator: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    organizer: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    start: {
+      dateTime: formatDate(addDays(today, 2)),
+    },
+    end: {
+      dateTime: formatDate(addDays(today, 2)),
+    },
+  },
+  {
+    kind: "calendar#event",
+    id: "5",
+    status: "tentative",
+    htmlLink: "https://calendar.google.com/event?id=5",
+    created: formatDate(addDays(today, -2)),
+    updated: formatDate(addDays(today, -2)),
+    summary: "외부 투자자 미팅",
+    creator: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    organizer: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    start: {
+      dateTime: formatDate(addDays(today, 1)),
+    },
+    end: {
+      dateTime: formatDate(addDays(today, 1)),
+    },
+    location: "강남 스타트업 허브",
+  },
+  {
+    kind: "calendar#event",
+    id: "6",
+    status: "confirmed",
+    htmlLink: "https://calendar.google.com/event?id=6",
+    created: formatDate(addDays(today, -1)),
+    updated: formatDate(addDays(today, -1)),
+    summary: "신규 입사자 온보딩 미팅",
+    creator: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    organizer: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    start: {
+      dateTime: formatDate(addDays(today, 4)),
+    },
+    end: {
+      dateTime: formatDate(addDays(today, 4)),
+    },
+  },
+  {
+    kind: "calendar#event",
+    id: "7",
+    status: "confirmed",
+    htmlLink: "https://calendar.google.com/event?id=7",
+    created: formatDate(today),
+    updated: formatDate(today),
+    summary: "연말 결산 보고",
+    creator: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    organizer: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    start: {
+      dateTime: formatDate(addDays(today, 6)),
+    },
+    end: {
+      dateTime: formatDate(addDays(today, 6)),
+    },
+  },
+  {
+    kind: "calendar#event",
+    id: "8",
+    status: "confirmed",
+    htmlLink: "https://calendar.google.com/event?id=8",
+    created: formatDate(addDays(today, -3)),
+    updated: formatDate(addDays(today, -3)),
+    summary: "프로젝트 데모 리허설",
+    creator: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    organizer: {
+      email: "user@example.com",
+      displayName: "User Name",
+    },
+    start: {
+      dateTime: formatDate(addDays(today, -1)),
+    },
+    end: {
+      dateTime: formatDate(addDays(today, -1)),
+    },
   },
 ];
 
 export const mockPhrases = [
   "안녕하세요, 오늘 회의를 시작하겠습니다.",
   "첫 번째 안건은 신규 기능 개발에 관한 것입니다.",
-  "두 번째로 일정 관리에 대해 논의하겠습니다.",
-  "마지막으로 다음 주 계획을 정리해보겠습니다.",
-  "개발팀에서 제안한 새로운 기술 스택에 대해 의견을 나눠봅시다.",
-  "사용자 피드백을 바탕으로 UI/UX 개선 방안을 논의하겠습니다.",
-  "프로젝트 진행 상황을 점검하고 필요한 조치를 결정하겠습니다.",
-  "팀원들의 업무 분담과 협업 방식에 대해 의견을 나눠주시기 바랍니다.",
-  "예산 사용 현황과 향후 계획에 대해 보고 부탁드립니다.",
-  "마지막으로 질문이나 추가 의견 있으신 분 말씀해 주세요.",
+  "다음 주제로 넘어가도록 하겠습니다.",
+  "이 부분에 대해 의견 있으신 분 말씀해 주세요.",
+  "회의 마무리하도록 하겠습니다.",
 ];

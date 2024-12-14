@@ -23,15 +23,13 @@ export default function NoteEditor({ content, onChange }: NoteEditorProps) {
         class: "focus:outline-none",
       },
       handleDOMEvents: {
-        keydown: (view, event) => {
-          // Tab 키 이벤트 방지
+        keydown: (_, event) => {
           if (event.key === "Tab") {
             return true;
           }
           return false;
         },
       },
-      // 자동 수정 비활성화
       transformPastedText: (text) => text,
       transformPastedHTML: (html) => html,
     },
@@ -47,11 +45,11 @@ export default function NoteEditor({ content, onChange }: NoteEditorProps) {
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden">
-      <div className="absolute inset-4 inset-x-6 overflow-y-auto">
+      <div className="absolute inset-y-4 left-6 right-0 overflow-y-auto">
         <EditorContent
           editor={editor}
           className="h-full w-full"
-          onClick={(e: MouseEvent) => {
+          onClick={(e: React.MouseEvent<HTMLDivElement>) => {
             if (!editor) return;
 
             // 클릭한 위치의 Y 좌표

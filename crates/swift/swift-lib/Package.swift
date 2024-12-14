@@ -13,12 +13,16 @@ let package = Package(
       targets: ["swift-lib"])
   ],
   dependencies: [
-    .package(url: "https://github.com/Brendonovich/swift-rs", from: "1.0.7")
+    .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.4"),
+    .package(url: "https://github.com/Brendonovich/swift-rs", from: "1.0.7"),
   ],
   targets: [
     .target(
       name: "swift-lib",
-      dependencies: [.product(name: "SwiftRs", package: "swift-rs")],
+      dependencies: [
+        .product(name: "SwiftRs", package: "swift-rs"),
+        .product(name: "Collections", package: "swift-collections"),
+      ],
       path: "src",
       linkerSettings: [
         .linkedFramework("CoreAudio"),

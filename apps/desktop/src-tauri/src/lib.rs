@@ -135,18 +135,7 @@ pub fn run() {
         }));
     }
 
-    #[cfg(not(debug_assertions))]
-    {
-        builder = builder.plugin(
-            tauri_plugin_keygen_rs2::Builder::new(
-                dotenvy_macro::dotenv!("KEYGEN_ACCOUNT"),
-                dotenvy_macro::dotenv!("KEYGEN_PRODUCT"),
-                dotenvy_macro::dotenv!("KEYGEN_PUBLIC_KEY"),
-            )
-            .api_url(dotenvy_macro::dotenv!("KEYGEN_API_URL"))
-            .build(),
-        );
-    }
+
 
     #[cfg(debug_assertions)]
     {

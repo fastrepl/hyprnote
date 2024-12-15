@@ -116,9 +116,6 @@ importers:
       tailwind-merge:
         specifier: ^2.1.0
         version: 2.5.5
-      tauri-plugin-keygen-rs2-api:
-        specifier: ^0.2.3
-        version: 0.2.3
     devDependencies:
       '@tailwindcss/typography':
         specifier: ^0.5.15
@@ -2123,9 +2120,6 @@ packages:
     resolution: {integrity: sha512-TI4Cyx7gDiZ6r44ewaJmt0o6BrMCT5aK5e0rmJ/G9Xq3w7CX/5VXl/zIPEJZFUK5VEqwByyhqNPycPlvcK4ZNw==}
     engines: {node: '>=14.0.0'}
     hasBin: true
-
-  tauri-plugin-keygen-rs2-api@0.2.3:
-    resolution: {integrity: sha512-xgqa2X1KbpLHMyxZK7UbCxoHCIB8hOBOZ3qY1X9Fgyf0jX+jTrCepvDoTBoQ2IgAaYVnBx7psgPC9cAznCtjSg==}
 
   thenify-all@1.6.0:
     resolution: {integrity: sha512-RNxQH/qI8/t3thXJDwcstUO4zeqo64+Uy/+sNVRBx4Xn2OX+OZ9oP+iJnNFqplFra2ZUVeKCSa2oVWi3T4uVmA==}
@@ -4207,10 +4201,6 @@ snapshots:
       sucrase: 3.35.0
     transitivePeerDependencies:
       - ts-node
-
-  tauri-plugin-keygen-rs2-api@0.2.3:
-    dependencies:
-      '@tauri-apps/api': 2.1.1
 
   thenify-all@1.6.0:
     dependencies:

@@ -21,3 +21,8 @@ public func stop_audio_capture() {
 public func read_audio_capture() -> IntArray {
   return AudioCaptureState.shared.read()
 }
+
+@_cdecl("_audio_format")
+public func audio_format() -> AudioFormat? {
+  return AudioCaptureState.shared.format()
+}

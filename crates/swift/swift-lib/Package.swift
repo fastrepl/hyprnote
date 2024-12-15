@@ -14,7 +14,9 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.4"),
-    .package(url: "https://github.com/Brendonovich/swift-rs", from: "1.0.7"),
+    .package(
+      url: "https://github.com/Brendonovich/swift-rs",
+      revision: "01980f981bc642a6da382cc0788f18fdd4cde6df"),
   ],
   targets: [
     .target(
@@ -23,11 +25,7 @@ let package = Package(
         .product(name: "SwiftRs", package: "swift-rs"),
         .product(name: "Collections", package: "swift-collections"),
       ],
-      path: "src",
-      linkerSettings: [
-        .linkedFramework("CoreAudio"),
-        .linkedFramework("Foundation"),
-      ]
+      path: "src"
     )
   ]
 )

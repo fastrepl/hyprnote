@@ -4,10 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [build-dependencies]
-swift-rs = { version = "1.0.7", features = ["build"] }
+swift-rs = { git = "https://github.com/guillemcordoba/swift-rs", rev = "01980f981bc642a6da382cc0788f18fdd4cde6df", features = [
+  "build",
+] }
 
 [dependencies]
-swift-rs = "1.0.7"
+swift-rs = { git = "https://github.com/guillemcordoba/swift-rs", rev = "01980f981bc642a6da382cc0788f18fdd4cde6df" }
 
 [dev-dependencies]
 rodio = { version = "0.20.1" }

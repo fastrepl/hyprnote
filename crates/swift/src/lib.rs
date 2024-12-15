@@ -1,9 +1,18 @@
-use swift_rs::{swift, Bool, Int16, SRArray, SRObject};
+use swift_rs::{swift, Bool, Int, Int16, SRArray, SRObject};
 
 swift!(fn _prepare_audio_capture() -> Bool);
 swift!(fn _start_audio_capture() -> Bool);
 swift!(fn _stop_audio_capture() -> Bool);
 swift!(fn _read_audio_capture() -> SRObject<IntArray>);
+swift!(fn _audio_format() -> Option<SRObject<AudioFormat>>);
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct AudioFormat {
+    channels: Int,
+    sample_rate: Int,
+    bits_per_sample: Int,
+}
 
 #[repr(C)]
 pub struct IntArray {
@@ -22,6 +31,18 @@ impl AudioCapture {
     pub fn new() -> Self {
         unsafe { _prepare_audio_capture() };
         Self {}
+    }
+
+    pub fn format(&self) -> Option<AudioFormat> {
+        let format = unsafe { _audio_format() };
+        match format {
+            None => None,
+            Some(format) => Some(AudioFormat {
+                channels: format.channels,
+                sample_rate: format.sample_rate,
+                bits_per_sample: format.bits_per_sample,
+            }),
+        }
     }
 
     pub fn start(&self) -> bool {
@@ -67,17 +88,23 @@ mod tests {
     }
 
     #[test]
+    fn test_audio_format() {
+        let audio_capture = AudioCapture::new();
+        let format = audio_capture.format().unwrap();
+        assert_eq!(format.channels, 1);
+        assert_eq!(format.sample_rate, 48000);
+        assert_eq!(format.bits_per_sample, 32);
+    }
+
+    #[test]
     fn test_create_and_start_audio_capture() {
-        // let play_thread = play_for_sec(2);
         let audio_capture = AudioCapture::new();
 
         let numbers = audio_capture.read();
         assert_eq!(numbers, vec![]);
+
         assert!(audio_capture.start());
-
-        // play_thread.join().unwrap();
-
-        sleep(Duration::from_secs(2));
+        sleep(Duration::from_secs(4));
 
         let numbers = audio_capture.read();
         assert_eq!(numbers, vec![2048, 2048, 2048, 2048]);

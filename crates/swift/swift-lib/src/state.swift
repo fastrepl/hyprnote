@@ -13,8 +13,13 @@ public class AudioCaptureState {
 
   private var deviceProcID: AudioDeviceIOProcID?
   private var aggregateDeviceID: AudioObjectID = kAudioObjectUnknown
+  private var audioFormat: AudioFormat? = nil
 
   private init() {}
+
+  public func format() -> AudioFormat? {
+    return audioFormat
+  }
 
   public func prepare() throws {
     let tapDescription = CATapDescription(monoGlobalTapButExcludeProcesses: [])
@@ -26,6 +31,8 @@ public class AudioCaptureState {
     var err = AudioHardwareCreateProcessTap(tapDescription, &tapID)
     guard err == noErr else { throw AudioError.tapError }
     guard tapID != kAudioObjectUnknown else { throw AudioError.tapError }
+
+    audioFormat = AudioFormat(from: try getAudioTapStreamBasicDescription(tapID: tapID))
 
     let systemOutputDeviceUID = try getDefaultSystemOutputDeviceUID()
     let aggregateDescription: [String: Any] = [

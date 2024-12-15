@@ -71,3 +71,29 @@ private func getAudioDeviceID(selector: AudioObjectPropertySelector) throws -> A
 
   return id
 }
+
+// https://github.com/insidegui/AudioCap/blob/93881a4201cba1ee1cee558744492660caeaa3f1/AudioCap/ProcessTap/CoreAudioUtils.swift#L89
+public func getAudioTapStreamBasicDescription(tapID: AudioObjectID) throws
+  -> AudioStreamBasicDescription
+{
+  var description = AudioStreamBasicDescription()
+  var address = AudioObjectPropertyAddress(
+    mSelector: kAudioTapPropertyFormat,
+    mScope: kAudioObjectPropertyScopeGlobal,
+    mElement: kAudioObjectPropertyElementMain)
+
+  var propertySize = UInt32(MemoryLayout.size(ofValue: description))
+
+  if AudioObjectGetPropertyData(
+    tapID,
+    &address,
+    0,
+    nil,
+    &propertySize,
+    &description) != kAudioHardwareNoError
+  {
+    throw AudioError.tapError
+  }
+
+  return description
+}

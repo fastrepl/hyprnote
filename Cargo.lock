@@ -8032,7 +8032,7 @@ name = "swift"
 version = "0.1.0"
 dependencies = [
  "rodio",
- "swift-rs",
+ "swift-rs 1.0.7 (git+https://github.com/guillemcordoba/swift-rs?rev=01980f981bc642a6da382cc0788f18fdd4cde6df)",
 ]
 
 [[package]]
@@ -8040,6 +8040,16 @@ name = "swift-rs"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4057c98e2e852d51fdcfca832aac7b571f6b351ad159f9eda5db1655f8d0c4d7"
+dependencies = [
+ "base64 0.21.7",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "swift-rs"
+version = "1.0.7"
+source = "git+https://github.com/guillemcordoba/swift-rs?rev=01980f981bc642a6da382cc0788f18fdd4cde6df#01980f981bc642a6da382cc0788f18fdd4cde6df"
 dependencies = [
  "base64 0.21.7",
  "serde",
@@ -8367,7 +8377,7 @@ dependencies = [
  "serde_repr",
  "serialize-to-javascript",
  "specta",
- "swift-rs",
+ "swift-rs 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "tauri-build",
  "tauri-macros",
  "tauri-runtime",
@@ -8522,7 +8532,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_repr",
- "swift-rs",
+ "swift-rs 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "tauri",
  "tauri-plugin",
  "thiserror 2.0.6",
@@ -8769,7 +8779,7 @@ dependencies = [
  "serde-untagged",
  "serde_json",
  "serde_with",
- "swift-rs",
+ "swift-rs 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror 2.0.6",
  "toml 0.8.2",
  "url",

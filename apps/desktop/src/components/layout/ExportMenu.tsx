@@ -1,46 +1,55 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useClickOutside } from "../../hooks/useClickOutside";
+import { Share, Copy, File, FileText } from "lucide-react";
 
-interface ExportMenuProps {
-  isOpen: boolean;
-  onToggle: () => void;
-}
-
-export default function ExportMenu({ isOpen, onToggle }: ExportMenuProps) {
+export default function ExportMenu() {
+  const [isOpen, setIsOpen] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(exportRef, () => {
-    if (isOpen) onToggle();
+    if (isOpen) setIsOpen(false);
   });
 
   return (
     <div className="relative" ref={exportRef}>
       <button
-        onClick={onToggle}
-        className="rounded-md border px-2.5 py-2 text-xs text-gray-700 hover:bg-gray-100"
+        onClick={() => setIsOpen(!isOpen)}
+        className="rounded-md p-2 text-gray-700 hover:bg-gray-100"
         aria-label={isOpen ? "Close export menu" : "Open export menu"}
       >
-        Export
+        <Share className="h-4 w-4" />
       </button>
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 rounded-lg border bg-white shadow-lg">
+        <div className="absolute right-0 mt-2 w-56 rounded-lg border bg-white shadow-lg">
           <div className="py-1">
             <button
               onClick={() => {
-                /* MD 다운로드 로직 */
-                onToggle();
+                /* 클립보드 복사 로직 */
+                setIsOpen(false);
               }}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
             >
+              <Copy className="h-4 w-4" />
+              클립보드에 복사
+            </button>
+            <button
+              onClick={() => {
+                /* MD 다운로드 로직 */
+                setIsOpen(false);
+              }}
+              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+            >
+              <File className="h-4 w-4" />
               Markdown으로 내보내기
             </button>
             <button
               onClick={() => {
                 /* PDF 다운로드 로직 */
-                onToggle();
+                setIsOpen(false);
               }}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
             >
+              <FileText className="h-4 w-4" />
               PDF로 내보내기
             </button>
           </div>

@@ -1,22 +1,21 @@
+import { useState } from "react";
 import * as Switch from "@radix-ui/react-switch";
 
-interface NotificationSettingsProps {
-  scheduledMeetings: boolean;
-  setScheduledMeetings: (value: boolean) => void;
-  autoDetectedMeetings: boolean;
-  setAutoDetectedMeetings: (value: boolean) => void;
-}
+export function Notifications() {
+  const [scheduledMeetings, setScheduledMeetings] = useState(true);
+  const [autoDetectedMeetings, setAutoDetectedMeetings] = useState(true);
 
-export function NotificationSettings({
-  scheduledMeetings,
-  setScheduledMeetings,
-  autoDetectedMeetings,
-  setAutoDetectedMeetings,
-}: NotificationSettingsProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700">예약된 미팅</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            예정된 미팅 알림
+          </label>
+          <p className="text-sm text-gray-500">
+            캘린더에 등록된 미팅 시작 전에 알림을 받습니다
+          </p>
+        </div>
         <Switch.Root
           checked={scheduledMeetings}
           onCheckedChange={setScheduledMeetings}
@@ -27,9 +26,14 @@ export function NotificationSettings({
       </div>
 
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700">
-          자동 감지된 미팅
-        </label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            자동 감지된 미팅 알림
+          </label>
+          <p className="text-sm text-gray-500">
+            시스템이 자동으로 감지한 미팅에 대한 알림을 받습니다
+          </p>
+        </div>
         <Switch.Root
           checked={autoDetectedMeetings}
           onCheckedChange={setAutoDetectedMeetings}

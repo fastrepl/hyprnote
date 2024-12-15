@@ -1,22 +1,20 @@
+import { useState } from "react";
 import * as Form from "@radix-ui/react-form";
 
-interface FeedbackSettingsProps {
-  feedbackType: "feedback" | "problem" | "question";
-  setFeedbackType: (value: "feedback" | "problem" | "question") => void;
-  feedbackText: string;
-  setFeedbackText: (value: string) => void;
-  onSubmit: (event: React.FormEvent) => void;
-}
+export function Feedback() {
+  const [feedbackType, setFeedbackType] = useState<
+    "feedback" | "problem" | "question"
+  >("feedback");
+  const [feedbackText, setFeedbackText] = useState("");
 
-export function FeedbackSettings({
-  feedbackType,
-  setFeedbackType,
-  feedbackText,
-  setFeedbackText,
-  onSubmit,
-}: FeedbackSettingsProps) {
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    // TODO: Implement feedback submission logic
+    console.log({ feedbackType, feedbackText });
+  };
+
   return (
-    <Form.Root className="space-y-4" onSubmit={onSubmit}>
+    <Form.Root className="space-y-4" onSubmit={handleSubmit}>
       <div>
         <label className="block text-sm font-medium text-gray-700">
           피드백 유형
@@ -60,18 +58,19 @@ export function FeedbackSettings({
           value={feedbackText}
           onChange={(e) => setFeedbackText(e.target.value)}
           rows={4}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          placeholder="피드백 내용을 입력하세요"
         />
       </div>
 
-      <div>
+      <Form.Submit asChild>
         <button
           type="submit"
-          className="inline-flex justify-center rounded-md border border-transparent bg-blue-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           제출하기
         </button>
-      </div>
+      </Form.Submit>
     </Form.Root>
   );
 }

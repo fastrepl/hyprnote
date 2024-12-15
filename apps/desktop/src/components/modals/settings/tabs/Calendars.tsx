@@ -1,24 +1,21 @@
+import { useState } from "react";
 import * as Switch from "@radix-ui/react-switch";
 
-interface CalendarSettingsProps {
-  googleCalendar: boolean;
-  setGoogleCalendar: (value: boolean) => void;
-  iCalCalendar: boolean;
-  setICalCalendar: (value: boolean) => void;
-}
+export function Calendars() {
+  const [googleCalendar, setGoogleCalendar] = useState(false);
+  const [iCalCalendar, setICalCalendar] = useState(false);
 
-export function CalendarSettings({
-  googleCalendar,
-  setGoogleCalendar,
-  iCalCalendar,
-  setICalCalendar,
-}: CalendarSettingsProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700">
-          Google 캘린더
-        </label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Google 캘린더
+          </label>
+          <p className="text-sm text-gray-500">
+            Google 캘린더와 연동하여 일정을 자동으로 가져옵니다
+          </p>
+        </div>
         <Switch.Root
           checked={googleCalendar}
           onCheckedChange={setGoogleCalendar}
@@ -29,7 +26,14 @@ export function CalendarSettings({
       </div>
 
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700">iCal 캘린더</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            iCal 캘린더
+          </label>
+          <p className="text-sm text-gray-500">
+            iCal 형식의 캘린더를 가져와서 일정을 동기화합니다
+          </p>
+        </div>
         <Switch.Root
           checked={iCalCalendar}
           onCheckedChange={setICalCalendar}

@@ -1,6 +1,6 @@
 import "../../../styles/cmdk.css";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Command } from "cmdk";
 import { useNavigate } from "react-router-dom";
 import { mockNotes } from "../../../mocks/data";
@@ -61,33 +61,32 @@ const SearchModal = () => {
         />
       )}
       {open && (
-        <Command
-          onKeyDown={handleKeyDown}
-          className="fixed left-[50%] top-[50%] z-[51] max-h-[85vh] w-[90vw] max-w-[450px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white shadow-lg dark:bg-gray-800"
-        >
-          <Command.Input
-            value={search}
-            onValueChange={setSearch}
-            placeholder="Search notes..."
-            className="w-full"
-            autoFocus
-          />
-          <Command.List>
-            <Command.Empty>No notes found.</Command.Empty>
-            <Command.Group>
-              {filteredNotes.map((note) => (
-                <Command.Item
-                  key={note.id}
-                  onSelect={() => {
-                    navigate(`/note/${note.id}`);
-                    setOpen(false);
-                  }}
-                >
-                  {note.title}
-                </Command.Item>
-              ))}
-            </Command.Group>
-          </Command.List>
+        <Command label="Search" onKeyDown={handleKeyDown}>
+          <Command className="fixed left-[50%] top-[50%] z-[51] max-h-[85vh] w-[90vw] max-w-[450px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white shadow-lg dark:bg-gray-800">
+            <Command.Input
+              value={search}
+              onValueChange={setSearch}
+              placeholder="Search notes..."
+              className="w-full"
+              autoFocus
+            />
+            <Command.List>
+              <Command.Empty>No notes found.</Command.Empty>
+              <Command.Group>
+                {filteredNotes.map((note) => (
+                  <Command.Item
+                    key={note.id}
+                    onSelect={() => {
+                      navigate(`/note/${note.id}`);
+                      setOpen(false);
+                    }}
+                  >
+                    {note.title}
+                  </Command.Item>
+                ))}
+              </Command.Group>
+            </Command.List>
+          </Command>
         </Command>
       )}
     </>

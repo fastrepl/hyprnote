@@ -8,3 +8,6 @@ swift-rs = { version = "1.0.7", features = ["build"] }
 
 [dependencies]
 swift-rs = "1.0.7"
+
+[dev-dependencies]
+rodio = { version = "0.20.1" }

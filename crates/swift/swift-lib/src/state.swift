@@ -17,14 +17,15 @@ public class AudioCaptureState {
   private init() {}
 
   public func prepare() throws {
-    let tapDescription = CATapDescription()
-    tapDescription.deviceUID = try getDefaultOutputDeviceUID()
+    let tapDescription = CATapDescription(monoGlobalTapButExcludeProcesses: [])
     tapDescription.uuid = UUID()
     tapDescription.muteBehavior = .unmuted
+
     var tapID: AUAudioObjectID = kAudioObjectUnknown
 
     var err = AudioHardwareCreateProcessTap(tapDescription, &tapID)
     guard err == noErr else { throw AudioError.tapError }
+    guard tapID != kAudioObjectUnknown else { throw AudioError.tapError }
 
     let systemOutputDeviceUID = try getDefaultSystemOutputDeviceUID()
     let aggregateDescription: [String: Any] = [
@@ -58,7 +59,8 @@ public class AudioCaptureState {
         in
         guard let self = self else { return }
         let size = inputBuffer.pointee.mNumberBuffers
-        self.audioQueue.push([Int16(size)])
+        let buffer: AudioBuffer = inputBuffer.pointee.mBuffers
+        self.audioQueue.push([Int16(buffer.mDataByteSize)])
       }
       return true
     } catch {

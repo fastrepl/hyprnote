@@ -41,16 +41,46 @@ impl AudioCapture {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rodio::{
+        cpal::SampleRate,
+        source::{Function::Sine, SignalGenerator, Source},
+        OutputStream,
+    };
+    use std::{
+        thread::{sleep, spawn, JoinHandle},
+        time::Duration,
+    };
+
+    fn play_for_sec(seconds: u64) -> JoinHandle<()> {
+        spawn(move || {
+            let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+            let source = SignalGenerator::new(SampleRate(44100), 440.0, Sine);
+
+            let source = source
+                .convert_samples()
+                .take_duration(Duration::from_secs(seconds))
+                .amplify(0.1);
+
+            stream_handle.play_raw(source).unwrap();
+            sleep(Duration::from_secs(seconds));
+        })
+    }
 
     #[test]
     fn test_create_and_start_audio_capture() {
+        // let play_thread = play_for_sec(2);
         let audio_capture = AudioCapture::new();
+
         let numbers = audio_capture.read();
         assert_eq!(numbers, vec![]);
         assert!(audio_capture.start());
-        std::thread::sleep(std::time::Duration::from_secs(1));
+
+        // play_thread.join().unwrap();
+
+        sleep(Duration::from_secs(2));
+
         let numbers = audio_capture.read();
-        assert_eq!(numbers, vec![0, 0, 0, 0]);
+        assert_eq!(numbers, vec![2048, 2048, 2048, 2048]);
         assert!(audio_capture.stop());
     }
 }

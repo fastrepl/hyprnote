@@ -4,52 +4,6 @@ use anyhow::Result;
 pub trait SqliteExecutor<'c>: sqlx::Executor<'c, Database = sqlx::Sqlite> {}
 impl<'c, T: sqlx::Executor<'c, Database = sqlx::Sqlite>> SqliteExecutor<'c> for T {}
 
-pub async fn get_config<'c, E: SqliteExecutor<'c>>(e: E) -> Result<types::Config> {
-    let ret = sqlx::query_as("SELECT * FROM config").fetch_one(e).await?;
-
-    Ok(ret)
-}
-
-pub async fn create_config<'c, E: SqliteExecutor<'c>>(e: E) -> Result<types::Config> {
-    let config = types::Config::default();
-
-    let ret = sqlx::query_as(
-        "INSERT INTO config (
-            id, language, user_name
-        ) VALUES (?, ?, ?)
-        RETURNING *",
-    )
-    .bind(config.id)
-    .bind(config.language)
-    .bind(config.user_name)
-    .fetch_one(e)
-    .await?;
-
-    Ok(ret)
-}
-
-pub async fn update_config<'c, E: SqliteExecutor<'c>>(
-    e: E,
-    config: types::Config,
-) -> Result<types::Config> {
-    let ret = sqlx::query_as(
-        r#"
-        UPDATE config
-        SET language = ?,
-            user_name = ?
-        WHERE id = ?
-        RETURNING *
-        "#,
-    )
-    .bind(config.language)
-    .bind(config.user_name)
-    .bind(config.id)
-    .fetch_one(e)
-    .await?;
-
-    Ok(ret)
-}
-
 pub async fn create_session<'c, E: SqliteExecutor<'c>>(e: E) -> Result<types::Session> {
     let session = types::Session::default();
 
@@ -112,17 +66,6 @@ pub async fn list_sessions<'c, E: SqliteExecutor<'c>>(e: E) -> Result<Vec<types:
 mod tests {
     use super::*;
     use sqlx::sqlite::SqlitePool;
-
-    #[sqlx::test]
-    async fn test_config(pool: SqlitePool) {
-        let _ = create_config(&pool).await.unwrap();
-        let mut config = get_config(&pool).await.unwrap();
-        assert_eq!(config.language, types::Language::English);
-
-        config.language = types::Language::Korean;
-        let config = update_config(&pool, config).await.unwrap();
-        assert_eq!(config.language, types::Language::Korean);
-    }
 
     #[sqlx::test]
     async fn test_create_session(pool: SqlitePool) {

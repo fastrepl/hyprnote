@@ -1,9 +1,11 @@
 use cap_media::feeds::{AudioInputFeed, AudioInputSamplesSender};
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
+use tauri_plugin_store::StoreExt;
 use tokio::sync::RwLock;
 
 mod audio;
+mod config;
 mod db;
 mod file;
 mod permissions;
@@ -78,6 +80,21 @@ fn list_recordings(app: AppHandle) -> Result<Vec<(String, PathBuf)>, String> {
     Ok(Vec::new())
 }
 
+#[tauri::command]
+#[specta::specta]
+fn set_config(app: AppHandle, config: config::Config) {
+    let store = app.store("store.json").unwrap();
+    store.set("config", serde_json::json!(config));
+}
+
+#[tauri::command]
+#[specta::specta]
+fn get_config(app: AppHandle) -> config::Config {
+    let store = app.store("store.json").unwrap();
+    let value = store.get("config").unwrap();
+    serde_json::from_value(value).unwrap()
+}
+
 fn recordings_path(app: &AppHandle) -> PathBuf {
     let path = app.path().app_data_dir().unwrap().join("recordings");
     std::fs::create_dir_all(&path).unwrap_or_default();
@@ -92,6 +109,8 @@ fn recording_path(app: &AppHandle, recording_id: &str) -> PathBuf {
 pub fn run() {
     let specta_builder = tauri_specta::Builder::new()
         .commands(tauri_specta::collect_commands![
+            set_config,
+            get_config,
             list_audio_devices,
             start_recording,
             stop_recording,
@@ -151,7 +170,6 @@ pub fn run() {
     builder
         // https://v2.tauri.app/plugin/deep-linking/#desktop
         .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_websocket::init())
         // TODO: https://v2.tauri.app/plugin/updater/#building
@@ -159,6 +177,21 @@ pub fn run() {
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
             move |invoke| handler(invoke)
+        })
+        .setup(|app| {
+            #[cfg(desktop)]
+            {
+                use tauri_plugin_autostart::ManagerExt;
+
+                let _ = app.handle().plugin(tauri_plugin_autostart::init(
+                    tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+                    Some(vec![]),
+                ));
+
+                let autostart_manager = app.autolaunch();
+                let _ = autostart_manager.enable();
+            }
+            Ok(())
         })
         .setup(move |app| {
             let app = app.handle().clone();

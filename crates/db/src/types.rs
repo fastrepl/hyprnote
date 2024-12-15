@@ -3,39 +3,12 @@ use time::OffsetDateTime;
 use uuid::Uuid;
 
 pub fn register_all(collection: &mut specta_util::TypeCollection) {
-    collection.register::<Language>();
-    collection.register::<Config>();
     collection.register::<Session>();
     collection.register::<Transcript>();
     collection.register::<TranscriptBlock>();
 }
 
 // All public struct must derive 'Debug, Serialize, Deserialize, specta::Type'.
-
-#[allow(dead_code)]
-#[derive(Debug, Serialize, Deserialize, specta::Type, PartialEq, sqlx::Type)]
-pub enum Language {
-    English,
-    Korean,
-}
-
-#[allow(dead_code)]
-#[derive(Debug, Serialize, Deserialize, specta::Type, sqlx::FromRow)]
-pub struct Config {
-    pub id: Uuid,
-    pub language: Language,
-    pub user_name: String,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            language: Language::English,
-            user_name: "You".to_string(),
-        }
-    }
-}
 
 #[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize, specta::Type, sqlx::FromRow)]

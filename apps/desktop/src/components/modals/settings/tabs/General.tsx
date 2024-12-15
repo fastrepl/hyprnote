@@ -10,13 +10,15 @@ export function General() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <h3 className="text-lg font-medium text-gray-900">일반</h3>
         <p className="mt-1 text-sm text-gray-500">
           기본적인 앱 설정을 관리하세요
         </p>
       </div>
+
+      <div className="h-px bg-gray-200" />
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">

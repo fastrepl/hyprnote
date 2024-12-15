@@ -7,6 +7,15 @@ export function Calendars() {
 
   return (
     <div className="space-y-4">
+      <div>
+        <h3 className="text-lg font-medium text-gray-900">캘린더</h3>
+        <p className="mt-1 text-sm text-gray-500">
+          캘린더 연동 설정을 관리하세요
+        </p>
+      </div>
+
+      <div className="h-px bg-gray-200" />
+
       <div className="flex items-center justify-between">
         <div>
           <label className="block text-sm font-medium text-gray-700">

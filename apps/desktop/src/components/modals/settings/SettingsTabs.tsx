@@ -5,8 +5,8 @@ import {
   CreditCard,
   Calendar,
   Bell,
-  MessagesSquare,
   UserCircle,
+  Cable,
 } from "lucide-react";
 
 interface TabItem {
@@ -23,7 +23,7 @@ export function SettingsTabs() {
     { value: "billing", label: "결제", icon: CreditCard },
     { value: "calendar", label: "캘린더", icon: Calendar },
     { value: "notification", label: "알림", icon: Bell },
-    { value: "integrations", label: "통합", icon: MessagesSquare },
+    { value: "integrations", label: "연동", icon: Cable },
   ];
 
   const TabButton = ({ tab }: { tab: TabItem }) => (

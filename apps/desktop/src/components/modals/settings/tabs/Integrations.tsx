@@ -64,6 +64,9 @@ export function Integrations() {
           외부 서비스와 연동하여 생산성을 높이세요
         </p>
       </div>
+
+      <div className="h-px bg-gray-200" />
+
       <div className="space-y-3">
         {integrations.map((integration, index) => (
           <IntegrationCard key={index} {...integration} />

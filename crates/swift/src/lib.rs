@@ -62,17 +62,19 @@ impl AudioCapture {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rodio::{
-        cpal::SampleRate,
-        source::{Function::Sine, SignalGenerator, Source},
-        OutputStream,
-    };
-    use std::{
-        thread::{sleep, spawn, JoinHandle},
-        time::Duration,
-    };
+    use serial_test::serial;
 
-    fn play_for_sec(seconds: u64) -> JoinHandle<()> {
+    fn play_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
+        use rodio::{
+            cpal::SampleRate,
+            source::{Function::Sine, SignalGenerator, Source},
+            OutputStream,
+        };
+        use std::{
+            thread::{sleep, spawn},
+            time::Duration,
+        };
+
         spawn(move || {
             let (_stream, stream_handle) = OutputStream::try_default().unwrap();
             let source = SignalGenerator::new(SampleRate(44100), 440.0, Sine);
@@ -80,7 +82,7 @@ mod tests {
             let source = source
                 .convert_samples()
                 .take_duration(Duration::from_secs(seconds))
-                .amplify(0.1);
+                .amplify(0.01);
 
             stream_handle.play_raw(source).unwrap();
             sleep(Duration::from_secs(seconds));
@@ -88,6 +90,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_audio_format() {
         let audio_capture = AudioCapture::new();
         let format = audio_capture.format().unwrap();
@@ -97,17 +100,25 @@ mod tests {
     }
 
     #[test]
-    fn test_create_and_start_audio_capture() {
+    #[serial]
+    fn test_start_and_stop() {
         let audio_capture = AudioCapture::new();
+        assert!(audio_capture.start());
+        assert!(audio_capture.stop());
+    }
 
+    #[test]
+    #[serial]
+    fn test_read() {
+        let audio_capture = AudioCapture::new();
         let numbers = audio_capture.read();
         assert_eq!(numbers, vec![]);
 
         assert!(audio_capture.start());
-        sleep(Duration::from_secs(4));
+        play_for_sec(1).join().unwrap();
+        assert!(audio_capture.stop());
 
         let numbers = audio_capture.read();
-        assert_eq!(numbers, vec![2048, 2048, 2048, 2048]);
-        assert!(audio_capture.stop());
+        assert_eq!(numbers, vec![512, 512, 512, 512]);
     }
 }

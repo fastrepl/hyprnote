@@ -135,8 +135,6 @@ pub fn run() {
         }));
     }
 
-
-
     #[cfg(debug_assertions)]
     {
         builder = builder.plugin(

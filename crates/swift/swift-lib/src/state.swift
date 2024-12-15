@@ -1,6 +1,7 @@
 // https://github.com/insidegui/AudioCap/tree/main/AudioCap/ProcessTap
 // https://developer.apple.com/documentation/coreaudio/capturing-system-audio-with-core-audio-taps
 
+import AVFoundation
 import AudioToolbox
 import CoreAudio
 
@@ -13,7 +14,8 @@ public class AudioCaptureState {
 
   private var deviceProcID: AudioDeviceIOProcID?
   private var aggregateDeviceID: AudioObjectID = kAudioObjectUnknown
-  private var audioFormat: AudioFormat? = nil
+  private var audioFormat: AudioFormat?
+  private var tapStreamDescription: AudioStreamBasicDescription?
 
   private init() {}
 
@@ -32,7 +34,8 @@ public class AudioCaptureState {
     guard err == noErr else { throw AudioError.tapError }
     guard tapID != kAudioObjectUnknown else { throw AudioError.tapError }
 
-    audioFormat = AudioFormat(from: try getAudioTapStreamBasicDescription(tapID: tapID))
+    tapStreamDescription = try getAudioTapStreamBasicDescription(tapID: tapID)
+    audioFormat = AudioFormat(from: tapStreamDescription!)
 
     let systemOutputDeviceUID = try getDefaultSystemOutputDeviceUID()
     let aggregateDescription: [String: Any] = [
@@ -58,16 +61,20 @@ public class AudioCaptureState {
   }
 
   public func start() -> Bool {
+    let format = AVAudioFormat(streamDescription: &tapStreamDescription!)
+    guard format != nil else { return false }
+
     do {
       // https://developer.apple.com/documentation/coreaudio/audiodeviceioblock
+      // https://forums.swift.org/t/audiobuffer-syntax/40400/2
       // https://github.com/insidegui/AudioCap/blob/93881a4201cba1ee1cee558744492660caeaa3f1/AudioCap/ProcessTap/ProcessTap.swift#L227C35-L227C39
       try run(on: dispatchQueue) {
         [weak self] inputTimestamp, inputBuffer, _outputTimestamp, _outputBuffer, _callbackTimestamp
         in
         guard let self = self else { return }
-        let size = inputBuffer.pointee.mNumberBuffers
-        let buffer: AudioBuffer = inputBuffer.pointee.mBuffers
-        self.audioQueue.push([Int16(buffer.mDataByteSize)])
+        let buffer = AVAudioPCMBuffer(
+          pcmFormat: format!, bufferListNoCopy: inputBuffer, deallocator: nil)
+        self.audioQueue.push([Int16(buffer!.frameLength)])
       }
       return true
     } catch {
@@ -75,7 +82,12 @@ public class AudioCaptureState {
     }
   }
 
-  public func stop() {
+  public func stop() -> Bool {
+    if let deviceProcID = deviceProcID {
+      let err = AudioDeviceStop(aggregateDeviceID, deviceProcID)
+      return err == noErr
+    }
+    return false
   }
 
   public func read() -> IntArray {

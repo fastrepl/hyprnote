@@ -12,4 +12,5 @@ swift-rs = { git = "https://github.com/guillemcordoba/swift-rs", rev = "01980f98
 swift-rs = { git = "https://github.com/guillemcordoba/swift-rs", rev = "01980f981bc642a6da382cc0788f18fdd4cde6df" }
 
 [dev-dependencies]
+serial_test = "*"
 rodio = { version = "0.20.1" }

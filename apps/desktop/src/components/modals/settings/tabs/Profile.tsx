@@ -19,7 +19,7 @@ export function Profile() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 focus:outline-none" tabIndex={-1}>
       <div>
         <h3 className="text-lg font-medium text-gray-900">프로필</h3>
         <p className="mt-1 text-sm text-gray-500">프로필 정보를 관리하세요</p>

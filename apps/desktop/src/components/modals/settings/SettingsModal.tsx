@@ -49,25 +49,25 @@ export default function SettingsModal() {
               <SettingsTabs />
             </div>
             <div className="flex-1 overflow-y-auto p-6">
-              <Tabs.Content value="profile">
+              <Tabs.Content value="profile" className="focus:outline-none">
                 <Profile />
               </Tabs.Content>
-              <Tabs.Content value="general">
+              <Tabs.Content value="general" className="focus:outline-none">
                 <General />
               </Tabs.Content>
-              <Tabs.Content value="feedback">
+              <Tabs.Content value="feedback" className="focus:outline-none">
                 <Feedback />
               </Tabs.Content>
-              <Tabs.Content value="billing">
+              <Tabs.Content value="billing" className="focus:outline-none">
                 <Billing />
               </Tabs.Content>
-              <Tabs.Content value="calendar">
+              <Tabs.Content value="calendar" className="focus:outline-none">
                 <Calendars />
               </Tabs.Content>
-              <Tabs.Content value="notification">
+              <Tabs.Content value="notification" className="focus:outline-none">
                 <Notifications />
               </Tabs.Content>
-              <Tabs.Content value="integrations">
+              <Tabs.Content value="integrations" className="focus:outline-none">
                 <Integrations />
               </Tabs.Content>
             </div>

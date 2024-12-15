@@ -30,7 +30,7 @@ export function SettingsTabs() {
     <Tabs.Trigger
       key={tab.value}
       value={tab.value}
-      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 data-[state=active]:bg-white data-[state=active]:text-blue-600"
+      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 focus:outline-none data-[state=active]:bg-white data-[state=active]:text-blue-600"
     >
       <tab.icon className="h-5 w-5" />
       {tab.label}

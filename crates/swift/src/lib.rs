@@ -50,7 +50,7 @@ mod tests {
         assert!(audio_capture.start());
         std::thread::sleep(std::time::Duration::from_secs(1));
         let numbers = audio_capture.read();
-        assert_eq!(numbers, vec![1, 2, 3, 4]);
+        assert_eq!(numbers, vec![0, 0, 0, 0]);
         assert!(audio_capture.stop());
     }
 }

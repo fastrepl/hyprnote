@@ -1,3 +1,4 @@
+pub use hypr_db::export_ts_types_to;
 pub use hypr_db::ops::*;
 pub use hypr_db::types::*;
 
@@ -23,8 +24,4 @@ pub fn migrations() -> Vec<TauriMigration> {
             },
         })
         .collect()
-}
-
-pub fn export_ts_types_to(path: impl AsRef<std::path::Path>) -> anyhow::Result<()> {
-    hypr_db::export_ts_types_to(path)
 }

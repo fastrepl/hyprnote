@@ -66,7 +66,7 @@ export const enhanceNoteWithAI = async (
 
 export const sendChatMessage = async (
   message: string,
-  transcript: string
+  transcript: string,
 ): Promise<{ text: string }> => {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 1000));

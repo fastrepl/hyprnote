@@ -16,9 +16,7 @@ export function NotificationSettings({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700">
-          예약된 미팅
-        </label>
+        <label className="text-sm font-medium text-gray-700">예약된 미팅</label>
         <Switch.Root
           checked={scheduledMeetings}
           onCheckedChange={setScheduledMeetings}

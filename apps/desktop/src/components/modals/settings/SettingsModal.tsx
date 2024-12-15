@@ -11,7 +11,13 @@ import { SettingsTabs } from "./tabs/SettingsTabs";
 
 interface SettingsModalProps {
   onTrigger?: () => void;
-  initialTab?: "general" | "feedback" | "license" | "calendar" | "notification" | "slack";
+  initialTab?:
+    | "general"
+    | "feedback"
+    | "license"
+    | "calendar"
+    | "notification"
+    | "slack";
   type?: "invite" | "settings" | "feedback";
   onClose?: () => void;
 }
@@ -24,7 +30,11 @@ interface LicenseInfo {
   buttonText: string;
 }
 
-export default function SettingsModal({ onTrigger, type = "settings", onClose }: SettingsModalProps) {
+export default function SettingsModal({
+  onTrigger,
+  type = "settings",
+  onClose,
+}: SettingsModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [showMeetingIndicator, setShowMeetingIndicator] = useState(true);
@@ -55,7 +65,7 @@ export default function SettingsModal({ onTrigger, type = "settings", onClose }:
   useEffect(() => {
     const handleSettingsTrigger = () => {
       setIsOpen(true);
-      setActiveTab("general");  
+      setActiveTab("general");
     };
 
     const handleKeyboardShortcut = (e: KeyboardEvent) => {
@@ -108,8 +118,8 @@ export default function SettingsModal({ onTrigger, type = "settings", onClose }:
   };
 
   return (
-    <Dialog.Root 
-      open={isOpen} 
+    <Dialog.Root
+      open={isOpen}
       onOpenChange={(open) => {
         setIsOpen(open);
         if (!open && onClose) {
@@ -122,7 +132,11 @@ export default function SettingsModal({ onTrigger, type = "settings", onClose }:
         <Dialog.Content className="data-[state=open]:animate-contentShow fixed left-[50%] top-[50%] h-[80vh] w-[80vw] max-w-[1200px] translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-[6px] bg-gray-50 shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none">
           <div className="flex h-full flex-col">
             <Dialog.Title className="m-0 border-b border-gray-200 p-6 text-[17px] font-medium">
-              {type === "feedback" ? "피드백 보내기" : type === "invite" ? "초대하기" : "설정"}
+              {type === "feedback"
+                ? "피드백 보내기"
+                : type === "invite"
+                  ? "초대하기"
+                  : "설정"}
             </Dialog.Title>
 
             <div className="flex-1 overflow-y-auto">

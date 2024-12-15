@@ -1,7 +1,7 @@
 import type { Note, CalendarEvent } from "../types";
 
 // Helper function to create dates relative to today
-const today = new Date('2024-12-14T00:00:00Z');
+const today = new Date("2024-12-14T00:00:00Z");
 const addDays = (date: Date, days: number) => {
   const result = new Date(date);
   result.setDate(date.getDate() + days);

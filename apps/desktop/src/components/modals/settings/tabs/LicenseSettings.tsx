@@ -25,7 +25,10 @@ export function LicenseSettings({ licenses }: LicenseSettingsProps) {
           <p className="mt-1 text-sm text-gray-500">{license.duration}</p>
           <ul className="mt-4 space-y-2">
             {license.features.map((feature, index) => (
-              <li key={index} className="flex items-center text-sm text-gray-600">
+              <li
+                key={index}
+                className="flex items-center text-sm text-gray-600"
+              >
                 <svg
                   className="mr-2 h-4 w-4 text-blue-500"
                   fill="none"

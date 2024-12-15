@@ -29,9 +29,7 @@ export function CalendarSettings({
       </div>
 
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700">
-          iCal 캘린더
-        </label>
+        <label className="text-sm font-medium text-gray-700">iCal 캘린더</label>
         <Switch.Root
           checked={iCalCalendar}
           onCheckedChange={setICalCalendar}

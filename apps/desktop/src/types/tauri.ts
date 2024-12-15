@@ -5,21 +5,11 @@
 /** user-defined commands **/
 
 export const commands = {
-  async listAudioDevices(): Promise<Result<string[], null>> {
-    try {
-      return { status: "ok", data: await TAURI_INVOKE("list_audio_devices") };
-    } catch (e) {
-      if (e instanceof Error) throw e;
-      else return { status: "error", error: e as any };
-    }
+  async listAudioDevices(): Promise<string[]> {
+    return await TAURI_INVOKE("list_audio_devices");
   },
-  async startRecording(): Promise<Result<null, string>> {
-    try {
-      return { status: "ok", data: await TAURI_INVOKE("start_recording") };
-    } catch (e) {
-      if (e instanceof Error) throw e;
-      else return { status: "error", error: e as any };
-    }
+  async startRecording(): Promise<null> {
+    return await TAURI_INVOKE("start_recording");
   },
   async stopRecording(): Promise<void> {
     await TAURI_INVOKE("stop_recording");
@@ -30,24 +20,11 @@ export const commands = {
   async stopPlayback(audioId: string): Promise<void> {
     await TAURI_INVOKE("stop_playback", { audioId });
   },
-  async ortSegmentation(): Promise<Result<null, string>> {
-    try {
-      return { status: "ok", data: await TAURI_INVOKE("ort_segmentation") };
-    } catch (e) {
-      if (e instanceof Error) throw e;
-      else return { status: "error", error: e as any };
-    }
-  },
   async openPermissionSettings(permission: OSPermission): Promise<void> {
     await TAURI_INVOKE("open_permission_settings", { permission });
   },
-  async openPath(path: string): Promise<Result<null, string>> {
-    try {
-      return { status: "ok", data: await TAURI_INVOKE("open_path", { path }) };
-    } catch (e) {
-      if (e instanceof Error) throw e;
-      else return { status: "error", error: e as any };
-    }
+  async openPath(path: string): Promise<null> {
+    return await TAURI_INVOKE("open_path", { path });
   },
 };
 

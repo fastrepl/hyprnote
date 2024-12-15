@@ -3,6 +3,8 @@ use time::OffsetDateTime;
 use uuid::Uuid;
 
 pub fn register_all(collection: &mut specta_util::TypeCollection) {
+    collection.register::<Language>();
+    collection.register::<Config>();
     collection.register::<Session>();
     collection.register::<Transcript>();
     collection.register::<TranscriptBlock>();

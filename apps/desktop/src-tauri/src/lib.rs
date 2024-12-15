@@ -100,7 +100,8 @@ pub fn run() {
             permissions::open_permission_settings,
             file::open_path,
         ])
-        .events(tauri_specta::collect_events![]);
+        .events(tauri_specta::collect_events![])
+        .error_handling(tauri_specta::ErrorHandlingMode::Throw);
 
     #[cfg(debug_assertions)]
     specta_builder
@@ -108,12 +109,12 @@ pub fn run() {
             specta_typescript::Typescript::default()
                 .header("// @ts-nocheck\n\n")
                 .formatter(specta_typescript::formatter::prettier),
-            "../src/utils/tauri.ts",
+            "../src/types/tauri.ts",
         )
         .unwrap();
 
     #[cfg(debug_assertions)]
-    db::export_ts_types_to("../src/utils/db.ts").unwrap();
+    db::export_ts_types_to("../src/types/db.ts").unwrap();
 
     let mut builder = tauri::Builder::default()
         .plugin(

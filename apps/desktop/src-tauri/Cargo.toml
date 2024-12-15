@@ -30,10 +30,11 @@ tauri-plugin-updater = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-stronghold = "2"
 tauri-plugin-positioner = "2"
-tauri-plugin-single-instance = "2"
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 tauri-plugin-keygen-rs2 = "0.2.3"
 tauri-plugin-sql = { version = "2", features = ["sqlite"] }
-tauri-plugin-log = "2.2.0"
+tauri-plugin-log = "2"
+tauri-plugin-deep-link = "2"
 
 specta = { workspace = true }
 specta-typescript = { workspace = true }

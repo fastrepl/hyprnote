@@ -1,3 +1,6 @@
+pub use hypr_db::ops::*;
+pub use hypr_db::types::*;
+
 use hypr_db::{
     migrations as hyprMigrations, Migration as HyprMigration, MigrationKind as HyprMigrationKind,
 };

@@ -8,15 +8,17 @@ pub fn register_all(collection: &mut specta_util::TypeCollection) {
     collection.register::<TranscriptBlock>();
 }
 
+// All public struct must derive 'Debug, Serialize, Deserialize, specta::Type'.
+
 #[allow(dead_code)]
-#[derive(Debug, PartialEq, Serialize, Deserialize, specta::Type, sqlx::Type)]
+#[derive(Debug, Serialize, Deserialize, specta::Type, PartialEq, sqlx::Type)]
 pub enum Language {
     English,
     Korean,
 }
 
 #[allow(dead_code)]
-#[derive(Debug, specta::Type, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, specta::Type, sqlx::FromRow)]
 pub struct Config {
     pub id: Uuid,
     pub language: Language,
@@ -34,7 +36,7 @@ impl Default for Config {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, specta::Type, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, specta::Type, sqlx::FromRow)]
 pub struct Session {
     pub id: Uuid,
     pub start: OffsetDateTime,

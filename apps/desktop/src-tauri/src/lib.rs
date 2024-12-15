@@ -165,6 +165,8 @@ pub fn run() {
         // https://v2.tauri.app/plugin/deep-linking/#desktop
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_websocket::init())
         // TODO: https://v2.tauri.app/plugin/updater/#building
         // .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler({

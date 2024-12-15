@@ -9,6 +9,11 @@
     "positioner:default",
     "fs:default",
     "sql:default",
-    "sql:allow-execute"
+    "sql:allow-execute",
+    "websocket:default",
+    {
+      "identifier": "http:default",
+      "allow": [{ "url": "https://*.tauri.app" }]
+    }
   ]
 }

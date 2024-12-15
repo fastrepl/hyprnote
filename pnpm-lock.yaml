@@ -44,6 +44,9 @@ importers:
       '@tauri-apps/plugin-fs':
         specifier: ^2.0.3
         version: 2.2.0
+      '@tauri-apps/plugin-http':
+        specifier: ^2.2.0
+        version: 2.2.0
       '@tauri-apps/plugin-log':
         specifier: ^2.2.0
         version: 2.2.0
@@ -56,6 +59,9 @@ importers:
       '@tauri-apps/plugin-updater':
         specifier: ^2.0.0
         version: 2.3.0
+      '@tauri-apps/plugin-websocket':
+        specifier: ^2.2.0
+        version: 2.2.0
       '@tiptap/extension-highlight':
         specifier: ^2.10.3
         version: 2.10.3(@tiptap/core@2.10.3(@tiptap/pm@2.10.3))
@@ -1004,6 +1010,9 @@ packages:
   '@tauri-apps/plugin-fs@2.2.0':
     resolution: {integrity: sha512-+08mApuONKI8/sCNEZ6AR8vf5vI9DXD4YfrQ9NQmhRxYKMLVhRW164vdW5BSLmMpuevftpQ2FVoL9EFkfG9Z+g==}
 
+  '@tauri-apps/plugin-http@2.2.0':
+    resolution: {integrity: sha512-ZY6sIHhgu8hcu6BkkegoiOEbvOsQFSVcK8J7l+g9RNHrkhl5uzpNIytR4R/H50fj7gyG80DJvrXDx/LBo7Easw==}
+
   '@tauri-apps/plugin-log@2.2.0':
     resolution: {integrity: sha512-g6CsQAR1lsm5ABSZZxpM/iCn86GrMDTTlhj7GPkZkYBRSm3+WczfOAl7SV7HDn77tOKCzhZffwI5uHfRoHutrw==}
 
@@ -1015,6 +1024,9 @@ packages:
 
   '@tauri-apps/plugin-updater@2.3.0':
     resolution: {integrity: sha512-qdzyZEUN69FZQ/nRx51fBub10tT6wffJl3DLVo9q922Gvw8Wk++rZhoD9eethPlZYbog/7RGgT8JkrfLh5BKAg==}
+
+  '@tauri-apps/plugin-websocket@2.2.0':
+    resolution: {integrity: sha512-OJ9rSkoDq1X6iKOUWJWbT3eIE09v+7q3YOB7YsCtYzR+u/5wADvjtp5eOEvn0YCmHbokYAZHyUO2QZHmTGPO5A==}
 
   '@tiptap/core@2.10.3':
     resolution: {integrity: sha512-wAG/0/UsLeZLmshWb6rtWNXKJftcmnned91/HLccHVQAuQZ1UWH+wXeQKu/mtodxEO7JcU2mVPR9mLGQkK0McQ==}
@@ -3014,6 +3026,10 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 2.1.1
 
+  '@tauri-apps/plugin-http@2.2.0':
+    dependencies:
+      '@tauri-apps/api': 2.1.1
+
   '@tauri-apps/plugin-log@2.2.0':
     dependencies:
       '@tauri-apps/api': 2.1.1
@@ -3027,6 +3043,10 @@ snapshots:
       '@tauri-apps/api': 2.1.1
 
   '@tauri-apps/plugin-updater@2.3.0':
+    dependencies:
+      '@tauri-apps/api': 2.1.1
+
+  '@tauri-apps/plugin-websocket@2.2.0':
     dependencies:
       '@tauri-apps/api': 2.1.1
 

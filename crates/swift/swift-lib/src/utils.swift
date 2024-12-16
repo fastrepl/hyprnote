@@ -97,3 +97,20 @@ public func getAudioTapStreamBasicDescription(tapID: AudioObjectID) throws
 
   return description
 }
+
+public func countTapsFromAggregateDevice(id: AudioDeviceID) -> Int {
+  var address = AudioObjectPropertyAddress(
+    mSelector: kAudioAggregateDevicePropertyTapList,
+    mScope: kAudioObjectPropertyScopeGlobal,
+    mElement: kAudioObjectPropertyElementMain
+  )
+
+  var propertySize: UInt32 = 0
+  AudioObjectGetPropertyDataSize(id, &address, 0, nil, &propertySize)
+  var list: CFArray? = nil
+  _ = withUnsafeMutablePointer(to: &list) { list in
+    AudioObjectGetPropertyData(id, &address, 0, nil, &propertySize, list)
+  }
+
+  return list.map(CFArrayGetCount) ?? 0
+}

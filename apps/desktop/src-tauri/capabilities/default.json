@@ -5,12 +5,12 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-    "shell:allow-open",
     "positioner:default",
     "fs:default",
     "sql:default",
     "sql:allow-execute",
     "websocket:default",
+    "store:default",
     {
       "identifier": "http:default",
       "allow": [{ "url": "https://*.tauri.app" }]

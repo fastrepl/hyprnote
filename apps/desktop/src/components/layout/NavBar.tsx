@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router";
 import SearchModal from "../modals/search/SearchModal";
 import SettingsModal from "../modals/settings/SettingsModal";
 import { useUI } from "../../contexts/UIContext";

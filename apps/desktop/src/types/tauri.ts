@@ -5,6 +5,12 @@
 /** user-defined commands **/
 
 export const commands = {
+  async setConfig(config: Config): Promise<void> {
+    await TAURI_INVOKE("set_config", { config });
+  },
+  async getConfig(): Promise<Config> {
+    return await TAURI_INVOKE("get_config");
+  },
   async listAudioDevices(): Promise<string[]> {
     return await TAURI_INVOKE("list_audio_devices");
   },
@@ -34,6 +40,13 @@ export const commands = {
 
 /** user-defined types **/
 
+export type Config = ConfigV0;
+export type ConfigV0 = {
+  version: number;
+  language: Language;
+  user_name: string;
+};
+export type Language = "English" | "Korean";
 export type OSPermission =
   | "screenRecording"
   | "camera"

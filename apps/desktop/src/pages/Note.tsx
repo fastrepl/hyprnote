@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import SidePanel from "../components/note/SidePanel";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";

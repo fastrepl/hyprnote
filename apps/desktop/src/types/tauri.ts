@@ -36,6 +36,12 @@ export const commands = {
 
 /** user-defined events **/
 
+export const events = __makeEvents__<{
+  transcript: Transcript;
+}>({
+  transcript: "transcript",
+});
+
 /** user-defined constants **/
 
 /** user-defined types **/
@@ -52,6 +58,7 @@ export type OSPermission =
   | "camera"
   | "microphone"
   | "accessibility";
+export type Transcript = Record<string, never>;
 
 /** tauri-specta globals **/
 

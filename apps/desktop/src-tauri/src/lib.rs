@@ -7,6 +7,7 @@ use tokio::sync::RwLock;
 mod audio;
 mod config;
 mod db;
+mod events;
 mod file;
 mod permissions;
 mod session;
@@ -119,7 +120,7 @@ pub fn run() {
             permissions::open_permission_settings,
             file::open_path,
         ])
-        .events(tauri_specta::collect_events![])
+        .events(tauri_specta::collect_events![events::Transcript])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw);
 
     #[cfg(debug_assertions)]
@@ -177,6 +178,10 @@ pub fn run() {
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
             move |invoke| handler(invoke)
+        })
+        .setup(move |app| {
+            specta_builder.mount_events(app);
+            Ok(())
         })
         .setup(|app| {
             #[cfg(desktop)]

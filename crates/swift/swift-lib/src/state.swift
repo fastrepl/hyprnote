@@ -128,7 +128,11 @@ public class AudioCaptureState {
     return false
   }
 
-  public func read() -> IntArray {
+  public func available_samples() -> Int {
+    return audioQueue.length
+  }
+
+  public func read_samples() -> IntArray {
     var samples: [Int16] = []
 
     for _ in 0..<4 {

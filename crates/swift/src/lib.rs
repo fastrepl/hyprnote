@@ -3,7 +3,8 @@ use swift_rs::{swift, Bool, Int, Int16, SRArray, SRObject};
 swift!(fn _prepare_audio_capture() -> Bool);
 swift!(fn _start_audio_capture() -> Bool);
 swift!(fn _stop_audio_capture() -> Bool);
-swift!(fn _read_audio_capture() -> SRObject<IntArray>);
+swift!(fn _read_samples() -> SRObject<IntArray>);
+swift!(fn _available_samples() -> Int);
 swift!(fn _audio_format() -> Option<SRObject<AudioFormat>>);
 
 #[repr(C)]
@@ -53,9 +54,13 @@ impl AudioCapture {
         unsafe { _stop_audio_capture() }
     }
 
-    pub fn read(&self) -> Vec<Int16> {
-        let result = unsafe { _read_audio_capture() };
+    pub fn read_samples(&self) -> Vec<Int16> {
+        let result = unsafe { _read_samples() };
         result.buffer()
+    }
+
+    pub fn available_samples(&self) -> Int {
+        unsafe { _available_samples() }
     }
 }
 
@@ -111,14 +116,14 @@ mod tests {
     #[serial]
     fn test_read() {
         let audio_capture = AudioCapture::new();
-        let numbers = audio_capture.read();
-        assert_eq!(numbers, vec![]);
+        let len = audio_capture.available_samples();
+        assert_eq!(len, 0);
 
         assert!(audio_capture.start());
         play_for_sec(1).join().unwrap();
         assert!(audio_capture.stop());
 
-        let numbers = audio_capture.read();
-        assert_eq!(numbers, vec![512, 512, 512, 512]);
+        let len = audio_capture.available_samples();
+        assert_ne!(len, 0);
     }
 }

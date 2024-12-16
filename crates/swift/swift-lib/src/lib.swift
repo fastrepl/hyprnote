@@ -17,9 +17,14 @@ public func start_audio_capture() -> Bool {
 public func stop_audio_capture() {
 }
 
-@_cdecl("_read_audio_capture")
-public func read_audio_capture() -> IntArray {
-  return AudioCaptureState.shared.read()
+@_cdecl("_read_samples")
+public func read_samples() -> IntArray {
+  return AudioCaptureState.shared.read_samples()
+}
+
+@_cdecl("_available_samples")
+public func available_samples() -> Int {
+  return AudioCaptureState.shared.available_samples()
 }
 
 @_cdecl("_audio_format")

@@ -6,7 +6,7 @@ defmodule HyprWeb.StripeWebhookHandler do
   @impl true
   def handle_event(%Stripe.Event{type: type, data: data})
       when type in ["customer.created", "customer.updated"] do
-    %{object: %Stripe.Customer{} = customer} = data
+    %{object: %Stripe.Customer{} = _customer} = data
 
     :ok
   end
@@ -18,7 +18,7 @@ defmodule HyprWeb.StripeWebhookHandler do
              "customer.subscription.updated",
              "customer.subscription.deleted"
            ] do
-    %{object: %Stripe.Subscription{customer: id} = subscription} = data
+    %{object: %Stripe.Subscription{customer: _id} = _subscription} = data
 
     :ok
   end

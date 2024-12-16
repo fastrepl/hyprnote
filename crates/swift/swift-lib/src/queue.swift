@@ -14,6 +14,13 @@ public class AudioQueue<T> {
     return count
   }
 
+  public func clear() {
+    lock.lock()
+    defer { lock.unlock() }
+    queue.removeAll()
+    count = 0
+  }
+
   public func push(_ items: any Collection<T>) {
     lock.lock()
     defer { lock.unlock() }

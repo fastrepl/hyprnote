@@ -13,7 +13,7 @@ kill_signal = 'SIGTERM'
   release_command = '/app/bin/migrate'
 
 [env]
-  PHX_HOST = 'hypr-server.fly.dev'
+  PHX_HOST = 'server.hyprnote.com'
   PORT = '8080'
 
 [http_service]

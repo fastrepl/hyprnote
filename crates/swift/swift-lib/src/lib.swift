@@ -31,3 +31,8 @@ public func available_samples() -> Int {
 public func audio_format() -> AudioFormat? {
   return AudioCaptureState.shared.format()
 }
+
+@_cdecl("_count_taps")
+public func count_taps() -> Int {
+  return AudioCaptureState.shared.count_taps()
+}

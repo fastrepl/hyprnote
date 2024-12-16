@@ -6,6 +6,7 @@ swift!(fn _stop_audio_capture() -> Bool);
 swift!(fn _read_samples() -> SRObject<IntArray>);
 swift!(fn _available_samples() -> Int);
 swift!(fn _audio_format() -> Option<SRObject<AudioFormat>>);
+swift!(fn _count_taps() -> Int);
 
 #[repr(C)]
 #[derive(Debug)]
@@ -62,6 +63,10 @@ impl AudioCapture {
     pub fn available_samples(&self) -> Int {
         unsafe { _available_samples() }
     }
+
+    pub fn count_taps(&self) -> Int {
+        unsafe { _count_taps() }
+    }
 }
 
 #[cfg(test)]
@@ -110,6 +115,7 @@ mod tests {
         let audio_capture = AudioCapture::new();
         assert!(audio_capture.start());
         assert!(audio_capture.stop());
+        assert_eq!(audio_capture.count_taps(), 1);
     }
 
     #[test]
@@ -123,7 +129,7 @@ mod tests {
         play_for_sec(1).join().unwrap();
         assert!(audio_capture.stop());
 
-        let len = audio_capture.available_samples();
-        assert_ne!(len, 0);
+        let samples = audio_capture.read_samples();
+        assert_eq!(samples, vec![0, 0, 0, 0]);
     }
 }

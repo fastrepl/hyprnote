@@ -29,9 +29,14 @@ public class AudioCaptureState {
     return audioFormat
   }
 
+  public func count_taps() -> Int {
+    return try! countTapsFromAggregateDevice(id: aggregateDeviceID)
+  }
+
   public func prepare() throws {
     let tapDescription = CATapDescription(monoGlobalTapButExcludeProcesses: [])
     tapDescription.uuid = UUID()
+    tapDescription.isPrivate = true
     tapDescription.muteBehavior = .unmuted
 
     var tapID: AUAudioObjectID = kAudioObjectUnknown
@@ -106,9 +111,12 @@ public class AudioCaptureState {
         }
 
         if let channelData = convertedBuffer?.int16ChannelData {
-          let len = Int(convertedBuffer!.frameLength)
-          var samples = [Int16](repeating: -2, count: len)
-          memcpy(&samples, channelData[0], len * MemoryLayout<Int16>.stride)
+          let channelDataValue = channelData.pointee
+          let samples = stride(
+            from: 0,
+            to: Int(convertedBuffer!.frameLength),
+            by: 1
+          ).map { channelDataValue[$0] }
           self.audioQueue.push(samples)
         } else {
           self.audioQueue.push([Int16(-3)])

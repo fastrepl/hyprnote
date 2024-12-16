@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import SearchModal from "../modals/search/SearchModal";
 import SettingsModal from "../modals/settings/SettingsModal";
@@ -10,7 +10,6 @@ import NavigationButtons from "./NavigationButtons";
 
 export default function NavBar() {
   const { isPanelOpen, setIsPanelOpen } = useUI();
-  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,10 +26,6 @@ export default function NavBar() {
 
   const handleSearchClick = useCallback(() => {
     window.dispatchEvent(new Event("openSearch"));
-  }, []);
-
-  const toggleExportMenu = useCallback(() => {
-    setIsExportMenuOpen((prev) => !prev);
   }, []);
 
   const togglePanel = useCallback(() => {
@@ -63,12 +58,7 @@ export default function NavBar() {
             <div className="flex items-center gap-4">
               <SearchBar onSearchClick={handleSearchClick} />
 
-              {isNotePage && (
-                <ExportMenu
-                  isOpen={isExportMenuOpen}
-                  onToggle={toggleExportMenu}
-                />
-              )}
+              {isNotePage && <ExportMenu />}
 
               {/* New Note Button */}
               {isNotePage ? (

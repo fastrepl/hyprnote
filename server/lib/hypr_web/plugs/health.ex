@@ -16,7 +16,7 @@ defmodule HyprWeb.Plugs.Health do
 
   defp db?() do
     try do
-      Ecto.Adapters.SQL.query(Nemo.Repo, "select 1", [])
+      Ecto.Adapters.SQL.query(Hypr.Repo, "select 1", [])
       :ok
     rescue
       DBConnection.ConnectionError -> :error

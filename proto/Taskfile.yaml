@@ -1,0 +1,10 @@
+version: "3"
+dotenv:
+  - .env
+tasks:
+  gen:
+    cmds:
+      - protoc ./v0.proto --elixir_out ../server/lib/proto
+  fmt:
+    cmds:
+      - buf format -w .

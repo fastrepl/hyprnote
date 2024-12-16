@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package hypr.v0;
+
+message ServerToClient {
+  bytes audio = 1;
+}
+
+message ClientToServer {
+  oneof payload {
+    bytes audio = 1;
+    Device device = 2;
+  }
+}
+
+message Device {
+  string id = 1;
+  string key = 2;
+}

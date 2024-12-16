@@ -1,0 +1,37 @@
+.pushable {
+  background: linear-gradient(135deg, #7c2d12, #312e81);
+  border: none;
+  border-radius: 12px;
+  padding: 0;
+  cursor: pointer;
+  outline-offset: 4px;
+}
+
+.pushable:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.front {
+  display: block;
+  padding: 12px 42px;
+  border-radius: 12px;
+  font-size: 1.25rem;
+  background: linear-gradient(135deg, #f97316, #6366f1);
+  color: white;
+  transform: translateY(-6px);
+  transition: transform 50ms;
+  position: relative;
+}
+
+.front::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+}
+
+.pushable:active .front {
+  transform: translateY(-2px);
+}

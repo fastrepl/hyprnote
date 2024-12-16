@@ -7,6 +7,7 @@ permissions:
   contents: write
 jobs:
   ci:
+    if: startsWith(github.event.release.tag_name, 'desktop_')
     strategy:
       fail-fast: false
       matrix:

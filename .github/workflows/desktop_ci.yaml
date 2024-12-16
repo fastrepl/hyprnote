@@ -7,6 +7,7 @@ on:
       - '.github/**'
       - 'apps/web/**'
       - 'packages/**'
+      - 'server/**'
   pull_request:
     branches:
       - main
@@ -14,6 +15,7 @@ on:
       - '.github/**'
       - 'apps/web/**'
       - 'packages/**'
+      - 'server/**'
 jobs:
   ci:
     strategy:

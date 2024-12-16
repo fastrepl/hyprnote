@@ -1,0 +1,68 @@
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - server/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - server/**
+env:
+  MIX_ENV: test
+permissions:
+  contents: read
+jobs:
+  ci:
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+    services:
+      db:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nemo_test
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          sparse-checkout: server
+      - uses: arduino/setup-task@v2
+      - uses: erlef/setup-beam@v1
+        with:
+          version-file: server/.tool-versions
+          version-type: strict
+      - uses: useblacksmith/cache@v5
+        env:
+          cache-name: cache-elixir-deps
+        with:
+          path: server/deps
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-
+      - uses: useblacksmith/cache@v5
+        env:
+          cache-name: cache-compiled-build
+        with:
+          path: server/_build
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-
+            ${{ runner.os }}-mix-
+      - if: github.run_attempt != '1'
+        run: |
+          mix deps.clean --all
+          mix clean
+        shell: sh
+      - run: mix deps.get
+        working-directory: server
+      - run: mix compile --warnings-as-errors
+        working-directory: server
+      - run: mix format --check-formatted
+        working-directory: server
+      - run: mix test
+        working-directory: server

@@ -7,6 +7,7 @@ on:
       - '.github/**'
       - 'apps/desktop/**'
       - 'crates/**'
+      - 'server/**'
   pull_request:
     branches:
       - main

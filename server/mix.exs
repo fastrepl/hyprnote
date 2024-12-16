@@ -53,7 +53,8 @@ defmodule Hypr.MixProject do
       {:ex2ms, "~> 1.7"},
       {:recon, "~> 2.5", override: true},
       {:recon_ex, github: "tatsuya6502/recon_ex", ref: "0ce4c5d"},
-      {:protobuf, "~> 0.13.0"}
+      {:protobuf, "~> 0.13.0"},
+      {:stripity_stripe, "~> 3.2"}
     ]
   end
 

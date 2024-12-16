@@ -6,6 +6,7 @@ import AudioToolbox
 import CoreAudio
 
 // https://github.com/insidegui/AudioCap/blob/93881a4201cba1ee1cee558744492660caeaa3f1/AudioCap/ProcessTap/ProcessTap.swift#L7
+// https://github.com/tensorflow/examples/blob/master/lite/examples/speech_commands/ios/SpeechCommands/AudioInputManager/AudioInputManager.swift
 public class AudioCaptureState {
   public static let shared = AudioCaptureState()
 
@@ -16,6 +17,11 @@ public class AudioCaptureState {
   private var aggregateDeviceID: AudioObjectID = kAudioObjectUnknown
   private var audioFormat: AudioFormat?
   private var tapStreamDescription: AudioStreamBasicDescription?
+  private var outputAudioFormat = AVAudioFormat(
+    commonFormat: .pcmFormatInt16,
+    sampleRate: 16000,
+    channels: 1,
+    interleaved: false)
 
   private init() {}
 
@@ -61,8 +67,9 @@ public class AudioCaptureState {
   }
 
   public func start() -> Bool {
-    let format = AVAudioFormat(streamDescription: &tapStreamDescription!)
-    guard format != nil else { return false }
+    let inputAudioFormat = AVAudioFormat(streamDescription: &tapStreamDescription!)
+    // we need to reuse single converter - https://stackoverflow.com/a/64572254
+    let converter = AVAudioConverter(from: inputAudioFormat!, to: outputAudioFormat!)
 
     do {
       // https://developer.apple.com/documentation/coreaudio/audiodeviceioblock
@@ -72,9 +79,40 @@ public class AudioCaptureState {
         [weak self] inputTimestamp, inputBuffer, _outputTimestamp, _outputBuffer, _callbackTimestamp
         in
         guard let self = self else { return }
-        let buffer = AVAudioPCMBuffer(
-          pcmFormat: format!, bufferListNoCopy: inputBuffer, deallocator: nil)
-        self.audioQueue.push([Int16(buffer!.frameLength)])
+
+        let rawBuffer = AVAudioPCMBuffer(
+          pcmFormat: inputAudioFormat!,
+          bufferListNoCopy: inputBuffer,
+          deallocator: nil)
+
+        let conversionRatio =
+          Float(outputAudioFormat!.sampleRate) / Float(inputAudioFormat!.sampleRate)
+        let newFrameCapacity = AVAudioFrameCount(Float(rawBuffer!.frameLength) * conversionRatio)
+
+        let convertedBuffer = AVAudioPCMBuffer(
+          pcmFormat: outputAudioFormat!,
+          frameCapacity: newFrameCapacity)
+
+        // convert(to:from:) can't convert sample rate - https://stackoverflow.com/a/60290534
+        var error: NSError?
+        converter!.convert(to: convertedBuffer!, error: &error) { inNumPackets, outStatus in
+          outStatus.pointee = .haveData
+          return rawBuffer
+        }
+
+        if let error = error {
+          self.audioQueue.push([Int16(-1)])
+          return
+        }
+
+        if let channelData = convertedBuffer?.int16ChannelData {
+          let len = Int(convertedBuffer!.frameLength)
+          var samples = [Int16](repeating: -2, count: len)
+          memcpy(&samples, channelData[0], len * MemoryLayout<Int16>.stride)
+          self.audioQueue.push(samples)
+        } else {
+          self.audioQueue.push([Int16(-3)])
+        }
       }
       return true
     } catch {

@@ -28,7 +28,7 @@ export default function Header() {
         <HeaderButton
           className={cn(
             "inline-flex items-center justify-center gap-2 px-4 py-2 border border-[#e5e7eb]",
-            isScrolled ? "bg-[#EEF3FF] hover:bg-[#E5EDFF]" : "hover:bg-gray-50"
+            isScrolled ? "bg-[#EEF3FF] hover:bg-[#E5EDFF]" : "hover:bg-gray-50",
           )}
         />
       </div>

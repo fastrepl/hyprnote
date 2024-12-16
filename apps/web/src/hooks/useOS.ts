@@ -9,7 +9,7 @@ export function useOS() {
 
   useEffect(() => {
     const userAgent = window.navigator.userAgent.toLowerCase();
-    
+
     if (userAgent.includes("win")) {
       setOS("Windows");
     } else if (userAgent.includes("mac")) {

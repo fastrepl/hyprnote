@@ -15,8 +15,9 @@ on:
       - '.github/**'
       - 'apps/desktop/**'
       - 'crates/**'
+      - 'server/**'
 jobs:
-  ci:
+  cicd:
     runs-on: blacksmith-4vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v4
@@ -29,3 +30,4 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install
       - run: pnpm --filter @hypr/web build
+      - run: pnpm dlx vercel ./apps/web deploy --token ${{ secrets.VERCEL_API_TOKEN }}

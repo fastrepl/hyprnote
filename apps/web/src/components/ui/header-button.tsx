@@ -46,9 +46,10 @@ export function HeaderButton({ className }: HeaderButtonProps) {
       className={cn(
         "inline-flex items-center justify-center gap-2 transition-all duration-200 rounded-xl",
         {
-          "bg-gradient-to-br from-[#f97316] to-[#6366f1] text-white border-transparent hover:from-[#f97316] hover:to-[#6366f1] hover:text-white": isScrolled,
+          "bg-gradient-to-br from-[#f97316] to-[#6366f1] text-white border-transparent hover:from-[#f97316] hover:to-[#6366f1] hover:text-white":
+            isScrolled,
         },
-        className
+        className,
       )}
     >
       {os === "Windows"

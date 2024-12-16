@@ -43,16 +43,20 @@ export function CtaButton({
   const iconSize = size === "xs" ? "w-3 h-3 mr-1" : "w-4 h-4 mr-2";
 
   const defaultText =
-    os === "Windows" 
-      ? (size === "xs" || size === "sm" ? defaultContent.windows.short : defaultContent.windows.full)
-      : (size === "xs" || size === "sm" ? defaultContent.mac.short : defaultContent.mac.full);
+    os === "Windows"
+      ? size === "xs" || size === "sm"
+        ? defaultContent.windows.short
+        : defaultContent.windows.full
+      : size === "xs" || size === "sm"
+        ? defaultContent.mac.short
+        : defaultContent.mac.full;
   const Icon = os === "Windows" ? RiWindowsFill : RiAppleFill;
 
   const buttonContent = (
     <div className="flex items-center justify-center">
       <Icon className={iconSize} />
       <span>
-        {os === "Windows" ? (windowsText || defaultText) : (macText || defaultText)}
+        {os === "Windows" ? windowsText || defaultText : macText || defaultText}
       </span>
     </div>
   );

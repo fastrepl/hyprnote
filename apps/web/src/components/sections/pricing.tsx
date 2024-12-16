@@ -18,10 +18,10 @@ interface BillingPlan {
 
 export default function Pricing() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
-    "monthly"
+    "monthly",
   );
   const [currentPlan, setCurrentPlan] = useState<"Free" | "Pro" | "Business">(
-    "Free"
+    "Free",
   );
   const [daysLeft, setDaysLeft] = useState(14); // 남은 무료 사용 기간 (일)
 
@@ -84,7 +84,7 @@ export default function Pricing() {
   const getButtonText = (
     planLevel: number,
     currentLevel: number,
-    planType: "Free" | "Pro" | "Business"
+    planType: "Free" | "Pro" | "Business",
   ) => {
     if (planType === "Free" && currentPlan === "Free") {
       if (daysLeft > 0) {
@@ -180,7 +180,7 @@ export default function Pricing() {
                 {getButtonText(
                   plan.level,
                   getPlanLevel(currentPlan),
-                  plan.type
+                  plan.type,
                 )}
               </Button>
 

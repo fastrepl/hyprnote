@@ -8,7 +8,7 @@ pub enum Config {
 }
 
 #[derive(Debug, Serialize, Deserialize, Type)]
-struct ConfigV0 {
+pub struct ConfigV0 {
     version: u8,
     language: Language,
     user_name: String,

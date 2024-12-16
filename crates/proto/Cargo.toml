@@ -1,0 +1,7 @@
+[package]
+name = "proto"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+protobuf = "3.7.1"

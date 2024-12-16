@@ -1,0 +1,17 @@
+{
+  "name": "@hypr/proto",
+  "main": "./index.ts",
+  "scripts": {
+    "generate": "pnpm generate:elixir && pnpm generate:typescript && pnpm generate:rust",
+    "generate:elixir": "protoc ./v0.proto --elixir_out ../../server/lib/proto",
+    "generate:typescript": "protoc ./v0.proto --es_out . --es_opt target=ts",
+    "generate:rust": "protoc ./v0.proto --rs_out ../../crates/proto",
+    "format": "buf format -w ."
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.2.3"
+  },
+  "devDependencies": {
+    "@bufbuild/protoc-gen-es": "^2.2.3"
+  }
+}

@@ -23,6 +23,7 @@ hypr-stt = { path = "../../../crates/stt", package = "stt" }
 hypr-diarizer = { path = "../../../crates/diarizer", package = "diarizer" }
 hypr-db = { path = "../../../crates/db", package = "db" }
 hypr-audio = { path = "../../../crates/audio", package = "audio" }
+hypr-proto = { path = "../../../crates/proto", package = "proto" }
 
 tauri = { workspace = true, features = ["tray-icon"] }
 tauri-plugin-updater = "2"

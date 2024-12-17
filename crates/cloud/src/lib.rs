@@ -1,11 +1,18 @@
 use anyhow::Result;
 use async_trait::async_trait;
+use tokio::sync::mpsc;
 use url::Url;
+
+use hypr_proto::v0 as proto;
+
+pub type TranscribeInputSender = mpsc::Sender<proto::TranscribeInputChunk>;
+pub type TranscribeOutputReceiver = mpsc::Receiver<proto::TranscribeOutputChunk>;
 
 struct WebsocketClient {}
 
 #[async_trait]
 impl ezsockets::ClientExt for WebsocketClient {
+    // https://docs.rs/ezsockets/latest/ezsockets/client/trait.ClientExt.html
     type Call = ();
 
     async fn on_text(&mut self, text: String) -> Result<(), ezsockets::Error> {

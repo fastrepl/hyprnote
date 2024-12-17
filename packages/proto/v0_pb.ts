@@ -10,12 +10,12 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file v0.proto.
  */
 export const file_v0: GenFile = /*@__PURE__*/
-  fileDesc("Cgh2MC5wcm90bxIHaHlwci52MCIfCg5TZXJ2ZXJUb0NsaWVudBINCgVhdWRpbxgBIAEoDCJPCg5DbGllbnRUb1NlcnZlchIPCgVhdWRpbxgBIAEoDEgAEiEKBmRldmljZRgCIAEoCzIPLmh5cHIudjAuRGV2aWNlSABCCQoHcGF5bG9hZCIhCgZEZXZpY2USCgoCaWQYASABKAkSCwoDa2V5GAIgASgJYgZwcm90bzM");
+  fileDesc("Cgh2MC5wcm90bxIHaHlwci52MCIlChRUcmFuc2NyaWJlSW5wdXRDaHVuaxINCgVhdWRpbxgBIAEoDCIlChVUcmFuc2NyaWJlT3V0cHV0Q2h1bmsSDAoEdGV4dBgBIAEoCWIGcHJvdG8z");
 
 /**
- * @generated from message hypr.v0.ServerToClient
+ * @generated from message hypr.v0.TranscribeInputChunk
  */
-export type ServerToClient = Message<"hypr.v0.ServerToClient"> & {
+export type TranscribeInputChunk = Message<"hypr.v0.TranscribeInputChunk"> & {
   /**
    * @generated from field: bytes audio = 1;
    */
@@ -23,60 +23,26 @@ export type ServerToClient = Message<"hypr.v0.ServerToClient"> & {
 };
 
 /**
- * Describes the message hypr.v0.ServerToClient.
- * Use `create(ServerToClientSchema)` to create a new message.
+ * Describes the message hypr.v0.TranscribeInputChunk.
+ * Use `create(TranscribeInputChunkSchema)` to create a new message.
  */
-export const ServerToClientSchema: GenMessage<ServerToClient> = /*@__PURE__*/
+export const TranscribeInputChunkSchema: GenMessage<TranscribeInputChunk> = /*@__PURE__*/
   messageDesc(file_v0, 0);
 
 /**
- * @generated from message hypr.v0.ClientToServer
+ * @generated from message hypr.v0.TranscribeOutputChunk
  */
-export type ClientToServer = Message<"hypr.v0.ClientToServer"> & {
+export type TranscribeOutputChunk = Message<"hypr.v0.TranscribeOutputChunk"> & {
   /**
-   * @generated from oneof hypr.v0.ClientToServer.payload
+   * @generated from field: string text = 1;
    */
-  payload: {
-    /**
-     * @generated from field: bytes audio = 1;
-     */
-    value: Uint8Array;
-    case: "audio";
-  } | {
-    /**
-     * @generated from field: hypr.v0.Device device = 2;
-     */
-    value: Device;
-    case: "device";
-  } | { case: undefined; value?: undefined };
+  text: string;
 };
 
 /**
- * Describes the message hypr.v0.ClientToServer.
- * Use `create(ClientToServerSchema)` to create a new message.
+ * Describes the message hypr.v0.TranscribeOutputChunk.
+ * Use `create(TranscribeOutputChunkSchema)` to create a new message.
  */
-export const ClientToServerSchema: GenMessage<ClientToServer> = /*@__PURE__*/
+export const TranscribeOutputChunkSchema: GenMessage<TranscribeOutputChunk> = /*@__PURE__*/
   messageDesc(file_v0, 1);
-
-/**
- * @generated from message hypr.v0.Device
- */
-export type Device = Message<"hypr.v0.Device"> & {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id: string;
-
-  /**
-   * @generated from field: string key = 2;
-   */
-  key: string;
-};
-
-/**
- * Describes the message hypr.v0.Device.
- * Use `create(DeviceSchema)` to create a new message.
- */
-export const DeviceSchema: GenMessage<Device> = /*@__PURE__*/
-  messageDesc(file_v0, 2);
 

@@ -24,25 +24,25 @@
 /// of protobuf runtime.
 const _PROTOBUF_VERSION_CHECK: () = ::protobuf::VERSION_3_7_1;
 
-// @@protoc_insertion_point(message:hypr.v0.ServerToClient)
+// @@protoc_insertion_point(message:hypr.v0.TranscribeInputChunk)
 #[derive(PartialEq,Clone,Default,Debug)]
-pub struct ServerToClient {
+pub struct TranscribeInputChunk {
     // message fields
-    // @@protoc_insertion_point(field:hypr.v0.ServerToClient.audio)
+    // @@protoc_insertion_point(field:hypr.v0.TranscribeInputChunk.audio)
     pub audio: ::std::vec::Vec<u8>,
     // special fields
-    // @@protoc_insertion_point(special_field:hypr.v0.ServerToClient.special_fields)
+    // @@protoc_insertion_point(special_field:hypr.v0.TranscribeInputChunk.special_fields)
     pub special_fields: ::protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a ServerToClient {
-    fn default() -> &'a ServerToClient {
-        <ServerToClient as ::protobuf::Message>::default_instance()
+impl<'a> ::std::default::Default for &'a TranscribeInputChunk {
+    fn default() -> &'a TranscribeInputChunk {
+        <TranscribeInputChunk as ::protobuf::Message>::default_instance()
     }
 }
 
-impl ServerToClient {
-    pub fn new() -> ServerToClient {
+impl TranscribeInputChunk {
+    pub fn new() -> TranscribeInputChunk {
         ::std::default::Default::default()
     }
 
@@ -51,19 +51,19 @@ impl ServerToClient {
         let mut oneofs = ::std::vec::Vec::with_capacity(0);
         fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
             "audio",
-            |m: &ServerToClient| { &m.audio },
-            |m: &mut ServerToClient| { &mut m.audio },
+            |m: &TranscribeInputChunk| { &m.audio },
+            |m: &mut TranscribeInputChunk| { &mut m.audio },
         ));
-        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<ServerToClient>(
-            "ServerToClient",
+        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<TranscribeInputChunk>(
+            "TranscribeInputChunk",
             fields,
             oneofs,
         )
     }
 }
 
-impl ::protobuf::Message for ServerToClient {
-    const NAME: &'static str = "ServerToClient";
+impl ::protobuf::Message for TranscribeInputChunk {
+    const NAME: &'static str = "TranscribeInputChunk";
 
     fn is_initialized(&self) -> bool {
         true
@@ -111,8 +111,8 @@ impl ::protobuf::Message for ServerToClient {
         &mut self.special_fields
     }
 
-    fn new() -> ServerToClient {
-        ServerToClient::new()
+    fn new() -> TranscribeInputChunk {
+        TranscribeInputChunk::new()
     }
 
     fn clear(&mut self) {
@@ -120,8 +120,8 @@ impl ::protobuf::Message for ServerToClient {
         self.special_fields.clear();
     }
 
-    fn default_instance() -> &'static ServerToClient {
-        static instance: ServerToClient = ServerToClient {
+    fn default_instance() -> &'static TranscribeInputChunk {
+        static instance: TranscribeInputChunk = TranscribeInputChunk {
             audio: ::std::vec::Vec::new(),
             special_fields: ::protobuf::SpecialFields::new(),
         };
@@ -129,347 +129,63 @@ impl ::protobuf::Message for ServerToClient {
     }
 }
 
-impl ::protobuf::MessageFull for ServerToClient {
+impl ::protobuf::MessageFull for TranscribeInputChunk {
     fn descriptor() -> ::protobuf::reflect::MessageDescriptor {
         static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::rt::Lazy::new();
-        descriptor.get(|| file_descriptor().message_by_package_relative_name("ServerToClient").unwrap()).clone()
+        descriptor.get(|| file_descriptor().message_by_package_relative_name("TranscribeInputChunk").unwrap()).clone()
     }
 }
 
-impl ::std::fmt::Display for ServerToClient {
+impl ::std::fmt::Display for TranscribeInputChunk {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-impl ::protobuf::reflect::ProtobufValue for ServerToClient {
+impl ::protobuf::reflect::ProtobufValue for TranscribeInputChunk {
     type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
 }
 
-// @@protoc_insertion_point(message:hypr.v0.ClientToServer)
+// @@protoc_insertion_point(message:hypr.v0.TranscribeOutputChunk)
 #[derive(PartialEq,Clone,Default,Debug)]
-pub struct ClientToServer {
-    // message oneof groups
-    pub payload: ::std::option::Option<client_to_server::Payload>,
-    // special fields
-    // @@protoc_insertion_point(special_field:hypr.v0.ClientToServer.special_fields)
-    pub special_fields: ::protobuf::SpecialFields,
-}
-
-impl<'a> ::std::default::Default for &'a ClientToServer {
-    fn default() -> &'a ClientToServer {
-        <ClientToServer as ::protobuf::Message>::default_instance()
-    }
-}
-
-impl ClientToServer {
-    pub fn new() -> ClientToServer {
-        ::std::default::Default::default()
-    }
-
-    // bytes audio = 1;
-
-    pub fn audio(&self) -> &[u8] {
-        match self.payload {
-            ::std::option::Option::Some(client_to_server::Payload::Audio(ref v)) => v,
-            _ => &[],
-        }
-    }
-
-    pub fn clear_audio(&mut self) {
-        self.payload = ::std::option::Option::None;
-    }
-
-    pub fn has_audio(&self) -> bool {
-        match self.payload {
-            ::std::option::Option::Some(client_to_server::Payload::Audio(..)) => true,
-            _ => false,
-        }
-    }
-
-    // Param is passed by value, moved
-    pub fn set_audio(&mut self, v: ::std::vec::Vec<u8>) {
-        self.payload = ::std::option::Option::Some(client_to_server::Payload::Audio(v))
-    }
-
-    // Mutable pointer to the field.
-    pub fn mut_audio(&mut self) -> &mut ::std::vec::Vec<u8> {
-        if let ::std::option::Option::Some(client_to_server::Payload::Audio(_)) = self.payload {
-        } else {
-            self.payload = ::std::option::Option::Some(client_to_server::Payload::Audio(::std::vec::Vec::new()));
-        }
-        match self.payload {
-            ::std::option::Option::Some(client_to_server::Payload::Audio(ref mut v)) => v,
-            _ => panic!(),
-        }
-    }
-
-    // Take field
-    pub fn take_audio(&mut self) -> ::std::vec::Vec<u8> {
-        if self.has_audio() {
-            match self.payload.take() {
-                ::std::option::Option::Some(client_to_server::Payload::Audio(v)) => v,
-                _ => panic!(),
-            }
-        } else {
-            ::std::vec::Vec::new()
-        }
-    }
-
-    // .hypr.v0.Device device = 2;
-
-    pub fn device(&self) -> &Device {
-        match self.payload {
-            ::std::option::Option::Some(client_to_server::Payload::Device(ref v)) => v,
-            _ => <Device as ::protobuf::Message>::default_instance(),
-        }
-    }
-
-    pub fn clear_device(&mut self) {
-        self.payload = ::std::option::Option::None;
-    }
-
-    pub fn has_device(&self) -> bool {
-        match self.payload {
-            ::std::option::Option::Some(client_to_server::Payload::Device(..)) => true,
-            _ => false,
-        }
-    }
-
-    // Param is passed by value, moved
-    pub fn set_device(&mut self, v: Device) {
-        self.payload = ::std::option::Option::Some(client_to_server::Payload::Device(v))
-    }
-
-    // Mutable pointer to the field.
-    pub fn mut_device(&mut self) -> &mut Device {
-        if let ::std::option::Option::Some(client_to_server::Payload::Device(_)) = self.payload {
-        } else {
-            self.payload = ::std::option::Option::Some(client_to_server::Payload::Device(Device::new()));
-        }
-        match self.payload {
-            ::std::option::Option::Some(client_to_server::Payload::Device(ref mut v)) => v,
-            _ => panic!(),
-        }
-    }
-
-    // Take field
-    pub fn take_device(&mut self) -> Device {
-        if self.has_device() {
-            match self.payload.take() {
-                ::std::option::Option::Some(client_to_server::Payload::Device(v)) => v,
-                _ => panic!(),
-            }
-        } else {
-            Device::new()
-        }
-    }
-
-    fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
-        let mut fields = ::std::vec::Vec::with_capacity(2);
-        let mut oneofs = ::std::vec::Vec::with_capacity(1);
-        fields.push(::protobuf::reflect::rt::v2::make_oneof_deref_has_get_set_simpler_accessor::<_, _>(
-            "audio",
-            ClientToServer::has_audio,
-            ClientToServer::audio,
-            ClientToServer::set_audio,
-        ));
-        fields.push(::protobuf::reflect::rt::v2::make_oneof_message_has_get_mut_set_accessor::<_, Device>(
-            "device",
-            ClientToServer::has_device,
-            ClientToServer::device,
-            ClientToServer::mut_device,
-            ClientToServer::set_device,
-        ));
-        oneofs.push(client_to_server::Payload::generated_oneof_descriptor_data());
-        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<ClientToServer>(
-            "ClientToServer",
-            fields,
-            oneofs,
-        )
-    }
-}
-
-impl ::protobuf::Message for ClientToServer {
-    const NAME: &'static str = "ClientToServer";
-
-    fn is_initialized(&self) -> bool {
-        true
-    }
-
-    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
-        while let Some(tag) = is.read_raw_tag_or_eof()? {
-            match tag {
-                10 => {
-                    self.payload = ::std::option::Option::Some(client_to_server::Payload::Audio(is.read_bytes()?));
-                },
-                18 => {
-                    self.payload = ::std::option::Option::Some(client_to_server::Payload::Device(is.read_message()?));
-                },
-                tag => {
-                    ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
-                },
-            };
-        }
-        ::std::result::Result::Ok(())
-    }
-
-    // Compute sizes of nested messages
-    #[allow(unused_variables)]
-    fn compute_size(&self) -> u64 {
-        let mut my_size = 0;
-        if let ::std::option::Option::Some(ref v) = self.payload {
-            match v {
-                &client_to_server::Payload::Audio(ref v) => {
-                    my_size += ::protobuf::rt::bytes_size(1, &v);
-                },
-                &client_to_server::Payload::Device(ref v) => {
-                    let len = v.compute_size();
-                    my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-                },
-            };
-        }
-        my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
-        self.special_fields.cached_size().set(my_size as u32);
-        my_size
-    }
-
-    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-        if let ::std::option::Option::Some(ref v) = self.payload {
-            match v {
-                &client_to_server::Payload::Audio(ref v) => {
-                    os.write_bytes(1, v)?;
-                },
-                &client_to_server::Payload::Device(ref v) => {
-                    ::protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
-                },
-            };
-        }
-        os.write_unknown_fields(self.special_fields.unknown_fields())?;
-        ::std::result::Result::Ok(())
-    }
-
-    fn special_fields(&self) -> &::protobuf::SpecialFields {
-        &self.special_fields
-    }
-
-    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
-        &mut self.special_fields
-    }
-
-    fn new() -> ClientToServer {
-        ClientToServer::new()
-    }
-
-    fn clear(&mut self) {
-        self.payload = ::std::option::Option::None;
-        self.payload = ::std::option::Option::None;
-        self.special_fields.clear();
-    }
-
-    fn default_instance() -> &'static ClientToServer {
-        static instance: ClientToServer = ClientToServer {
-            payload: ::std::option::Option::None,
-            special_fields: ::protobuf::SpecialFields::new(),
-        };
-        &instance
-    }
-}
-
-impl ::protobuf::MessageFull for ClientToServer {
-    fn descriptor() -> ::protobuf::reflect::MessageDescriptor {
-        static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::rt::Lazy::new();
-        descriptor.get(|| file_descriptor().message_by_package_relative_name("ClientToServer").unwrap()).clone()
-    }
-}
-
-impl ::std::fmt::Display for ClientToServer {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        ::protobuf::text_format::fmt(self, f)
-    }
-}
-
-impl ::protobuf::reflect::ProtobufValue for ClientToServer {
-    type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
-}
-
-/// Nested message and enums of message `ClientToServer`
-pub mod client_to_server {
-
-    #[derive(Clone,PartialEq,Debug)]
-    #[non_exhaustive]
-    // @@protoc_insertion_point(oneof:hypr.v0.ClientToServer.payload)
-    pub enum Payload {
-        // @@protoc_insertion_point(oneof_field:hypr.v0.ClientToServer.audio)
-        Audio(::std::vec::Vec<u8>),
-        // @@protoc_insertion_point(oneof_field:hypr.v0.ClientToServer.device)
-        Device(super::Device),
-    }
-
-    impl ::protobuf::Oneof for Payload {
-    }
-
-    impl ::protobuf::OneofFull for Payload {
-        fn descriptor() -> ::protobuf::reflect::OneofDescriptor {
-            static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::OneofDescriptor> = ::protobuf::rt::Lazy::new();
-            descriptor.get(|| <super::ClientToServer as ::protobuf::MessageFull>::descriptor().oneof_by_name("payload").unwrap()).clone()
-        }
-    }
-
-    impl Payload {
-        pub(in super) fn generated_oneof_descriptor_data() -> ::protobuf::reflect::GeneratedOneofDescriptorData {
-            ::protobuf::reflect::GeneratedOneofDescriptorData::new::<Payload>("payload")
-        }
-    }
-}
-
-// @@protoc_insertion_point(message:hypr.v0.Device)
-#[derive(PartialEq,Clone,Default,Debug)]
-pub struct Device {
+pub struct TranscribeOutputChunk {
     // message fields
-    // @@protoc_insertion_point(field:hypr.v0.Device.id)
-    pub id: ::std::string::String,
-    // @@protoc_insertion_point(field:hypr.v0.Device.key)
-    pub key: ::std::string::String,
+    // @@protoc_insertion_point(field:hypr.v0.TranscribeOutputChunk.text)
+    pub text: ::std::string::String,
     // special fields
-    // @@protoc_insertion_point(special_field:hypr.v0.Device.special_fields)
+    // @@protoc_insertion_point(special_field:hypr.v0.TranscribeOutputChunk.special_fields)
     pub special_fields: ::protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a Device {
-    fn default() -> &'a Device {
-        <Device as ::protobuf::Message>::default_instance()
+impl<'a> ::std::default::Default for &'a TranscribeOutputChunk {
+    fn default() -> &'a TranscribeOutputChunk {
+        <TranscribeOutputChunk as ::protobuf::Message>::default_instance()
     }
 }
 
-impl Device {
-    pub fn new() -> Device {
+impl TranscribeOutputChunk {
+    pub fn new() -> TranscribeOutputChunk {
         ::std::default::Default::default()
     }
 
     fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
-        let mut fields = ::std::vec::Vec::with_capacity(2);
+        let mut fields = ::std::vec::Vec::with_capacity(1);
         let mut oneofs = ::std::vec::Vec::with_capacity(0);
         fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "id",
-            |m: &Device| { &m.id },
-            |m: &mut Device| { &mut m.id },
+            "text",
+            |m: &TranscribeOutputChunk| { &m.text },
+            |m: &mut TranscribeOutputChunk| { &mut m.text },
         ));
-        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "key",
-            |m: &Device| { &m.key },
-            |m: &mut Device| { &mut m.key },
-        ));
-        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<Device>(
-            "Device",
+        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<TranscribeOutputChunk>(
+            "TranscribeOutputChunk",
             fields,
             oneofs,
         )
     }
 }
 
-impl ::protobuf::Message for Device {
-    const NAME: &'static str = "Device";
+impl ::protobuf::Message for TranscribeOutputChunk {
+    const NAME: &'static str = "TranscribeOutputChunk";
 
     fn is_initialized(&self) -> bool {
         true
@@ -479,10 +195,7 @@ impl ::protobuf::Message for Device {
         while let Some(tag) = is.read_raw_tag_or_eof()? {
             match tag {
                 10 => {
-                    self.id = is.read_string()?;
-                },
-                18 => {
-                    self.key = is.read_string()?;
+                    self.text = is.read_string()?;
                 },
                 tag => {
                     ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
@@ -496,11 +209,8 @@ impl ::protobuf::Message for Device {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u64 {
         let mut my_size = 0;
-        if !self.id.is_empty() {
-            my_size += ::protobuf::rt::string_size(1, &self.id);
-        }
-        if !self.key.is_empty() {
-            my_size += ::protobuf::rt::string_size(2, &self.key);
+        if !self.text.is_empty() {
+            my_size += ::protobuf::rt::string_size(1, &self.text);
         }
         my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
         self.special_fields.cached_size().set(my_size as u32);
@@ -508,11 +218,8 @@ impl ::protobuf::Message for Device {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-        if !self.id.is_empty() {
-            os.write_string(1, &self.id)?;
-        }
-        if !self.key.is_empty() {
-            os.write_string(2, &self.key)?;
+        if !self.text.is_empty() {
+            os.write_string(1, &self.text)?;
         }
         os.write_unknown_fields(self.special_fields.unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -526,70 +233,54 @@ impl ::protobuf::Message for Device {
         &mut self.special_fields
     }
 
-    fn new() -> Device {
-        Device::new()
+    fn new() -> TranscribeOutputChunk {
+        TranscribeOutputChunk::new()
     }
 
     fn clear(&mut self) {
-        self.id.clear();
-        self.key.clear();
+        self.text.clear();
         self.special_fields.clear();
     }
 
-    fn default_instance() -> &'static Device {
-        static instance: Device = Device {
-            id: ::std::string::String::new(),
-            key: ::std::string::String::new(),
+    fn default_instance() -> &'static TranscribeOutputChunk {
+        static instance: TranscribeOutputChunk = TranscribeOutputChunk {
+            text: ::std::string::String::new(),
             special_fields: ::protobuf::SpecialFields::new(),
         };
         &instance
     }
 }
 
-impl ::protobuf::MessageFull for Device {
+impl ::protobuf::MessageFull for TranscribeOutputChunk {
     fn descriptor() -> ::protobuf::reflect::MessageDescriptor {
         static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::rt::Lazy::new();
-        descriptor.get(|| file_descriptor().message_by_package_relative_name("Device").unwrap()).clone()
+        descriptor.get(|| file_descriptor().message_by_package_relative_name("TranscribeOutputChunk").unwrap()).clone()
     }
 }
 
-impl ::std::fmt::Display for Device {
+impl ::std::fmt::Display for TranscribeOutputChunk {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-impl ::protobuf::reflect::ProtobufValue for Device {
+impl ::protobuf::reflect::ProtobufValue for TranscribeOutputChunk {
     type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x08v0.proto\x12\x07hypr.v0\"&\n\x0eServerToClient\x12\x14\n\x05audio\
-    \x18\x01\x20\x01(\x0cR\x05audio\"^\n\x0eClientToServer\x12\x16\n\x05audi\
-    o\x18\x01\x20\x01(\x0cH\0R\x05audio\x12)\n\x06device\x18\x02\x20\x01(\
-    \x0b2\x0f.hypr.v0.DeviceH\0R\x06deviceB\t\n\x07payload\"*\n\x06Device\
-    \x12\x0e\n\x02id\x18\x01\x20\x01(\tR\x02id\x12\x10\n\x03key\x18\x02\x20\
-    \x01(\tR\x03keyJ\x93\x03\n\x06\x12\x04\0\0\x12\x01\n\x08\n\x01\x0c\x12\
-    \x03\0\0\x12\n\x08\n\x01\x02\x12\x03\x02\0\x10\n\n\n\x02\x04\0\x12\x04\
-    \x04\0\x06\x01\n\n\n\x03\x04\0\x01\x12\x03\x04\x08\x16\n\x0b\n\x04\x04\0\
-    \x02\0\x12\x03\x05\x02\x12\n\x0c\n\x05\x04\0\x02\0\x05\x12\x03\x05\x02\
-    \x07\n\x0c\n\x05\x04\0\x02\0\x01\x12\x03\x05\x08\r\n\x0c\n\x05\x04\0\x02\
-    \0\x03\x12\x03\x05\x10\x11\n\n\n\x02\x04\x01\x12\x04\x08\0\r\x01\n\n\n\
-    \x03\x04\x01\x01\x12\x03\x08\x08\x16\n\x0c\n\x04\x04\x01\x08\0\x12\x04\t\
-    \x02\x0c\x03\n\x0c\n\x05\x04\x01\x08\0\x01\x12\x03\t\x08\x0f\n\x0b\n\x04\
-    \x04\x01\x02\0\x12\x03\n\x04\x14\n\x0c\n\x05\x04\x01\x02\0\x05\x12\x03\n\
-    \x04\t\n\x0c\n\x05\x04\x01\x02\0\x01\x12\x03\n\n\x0f\n\x0c\n\x05\x04\x01\
-    \x02\0\x03\x12\x03\n\x12\x13\n\x0b\n\x04\x04\x01\x02\x01\x12\x03\x0b\x04\
-    \x16\n\x0c\n\x05\x04\x01\x02\x01\x06\x12\x03\x0b\x04\n\n\x0c\n\x05\x04\
-    \x01\x02\x01\x01\x12\x03\x0b\x0b\x11\n\x0c\n\x05\x04\x01\x02\x01\x03\x12\
-    \x03\x0b\x14\x15\n\n\n\x02\x04\x02\x12\x04\x0f\0\x12\x01\n\n\n\x03\x04\
-    \x02\x01\x12\x03\x0f\x08\x0e\n\x0b\n\x04\x04\x02\x02\0\x12\x03\x10\x02\
-    \x10\n\x0c\n\x05\x04\x02\x02\0\x05\x12\x03\x10\x02\x08\n\x0c\n\x05\x04\
-    \x02\x02\0\x01\x12\x03\x10\t\x0b\n\x0c\n\x05\x04\x02\x02\0\x03\x12\x03\
-    \x10\x0e\x0f\n\x0b\n\x04\x04\x02\x02\x01\x12\x03\x11\x02\x11\n\x0c\n\x05\
-    \x04\x02\x02\x01\x05\x12\x03\x11\x02\x08\n\x0c\n\x05\x04\x02\x02\x01\x01\
-    \x12\x03\x11\t\x0c\n\x0c\n\x05\x04\x02\x02\x01\x03\x12\x03\x11\x0f\x10b\
-    \x06proto3\
+    \n\x08v0.proto\x12\x07hypr.v0\",\n\x14TranscribeInputChunk\x12\x14\n\x05\
+    audio\x18\x01\x20\x01(\x0cR\x05audio\"+\n\x15TranscribeOutputChunk\x12\
+    \x12\n\x04text\x18\x01\x20\x01(\tR\x04textJ\xba\x01\n\x06\x12\x04\0\0\n\
+    \x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\x08\n\x01\x02\x12\x03\x02\0\x10\n\
+    \n\n\x02\x04\0\x12\x04\x04\0\x06\x01\n\n\n\x03\x04\0\x01\x12\x03\x04\x08\
+    \x1c\n\x0b\n\x04\x04\0\x02\0\x12\x03\x05\x02\x12\n\x0c\n\x05\x04\0\x02\0\
+    \x05\x12\x03\x05\x02\x07\n\x0c\n\x05\x04\0\x02\0\x01\x12\x03\x05\x08\r\n\
+    \x0c\n\x05\x04\0\x02\0\x03\x12\x03\x05\x10\x11\n\n\n\x02\x04\x01\x12\x04\
+    \x08\0\n\x01\n\n\n\x03\x04\x01\x01\x12\x03\x08\x08\x1d\n\x0b\n\x04\x04\
+    \x01\x02\0\x12\x03\t\x02\x12\n\x0c\n\x05\x04\x01\x02\0\x05\x12\x03\t\x02\
+    \x08\n\x0c\n\x05\x04\x01\x02\0\x01\x12\x03\t\t\r\n\x0c\n\x05\x04\x01\x02\
+    \0\x03\x12\x03\t\x10\x11b\x06proto3\
 ";
 
 /// `FileDescriptorProto` object which was a source for this generated file
@@ -607,10 +298,9 @@ pub fn file_descriptor() -> &'static ::protobuf::reflect::FileDescriptor {
     file_descriptor.get(|| {
         let generated_file_descriptor = generated_file_descriptor_lazy.get(|| {
             let mut deps = ::std::vec::Vec::with_capacity(0);
-            let mut messages = ::std::vec::Vec::with_capacity(3);
-            messages.push(ServerToClient::generated_message_descriptor_data());
-            messages.push(ClientToServer::generated_message_descriptor_data());
-            messages.push(Device::generated_message_descriptor_data());
+            let mut messages = ::std::vec::Vec::with_capacity(2);
+            messages.push(TranscribeInputChunk::generated_message_descriptor_data());
+            messages.push(TranscribeOutputChunk::generated_message_descriptor_data());
             let mut enums = ::std::vec::Vec::with_capacity(0);
             ::protobuf::reflect::GeneratedFileDescriptor::new_generated(
                 file_descriptor_proto(),

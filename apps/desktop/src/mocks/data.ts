@@ -170,11 +170,31 @@ export const mockNotes: Note[] = [
 ];
 
 export const mockTranscripts: TranscriptBlock[] = [
-  { timestamp: "09:30:00", text: "안녕하세요, 오늘 회의를 시작하겠습니다.", speaker: "김철수" },
-  { timestamp: "09:31:15", text: "지난 회의에서 논의된 사항들을 먼저 리뷰해보겠습니다.", speaker: "김철수" },
-  { timestamp: "09:33:20", text: "첫 번째 안건은 신규 프로젝트 일정 조정입니다.", speaker: "이영희" },
-  { timestamp: "09:35:45", text: "두 번째로 리소스 할당에 대해 이야기해보겠습니다.", speaker: "박지원" },
-  { timestamp: "09:38:10", text: "마지막으로 다음 주 마일스톤 설정에 대해 논의하겠습니다.", speaker: "김철수" }
+  {
+    timestamp: "09:30:00",
+    text: "안녕하세요, 오늘 회의를 시작하겠습니다.",
+    speaker: "김철수",
+  },
+  {
+    timestamp: "09:31:15",
+    text: "지난 회의에서 논의된 사항들을 먼저 리뷰해보겠습니다.",
+    speaker: "김철수",
+  },
+  {
+    timestamp: "09:33:20",
+    text: "첫 번째 안건은 신규 프로젝트 일정 조정입니다.",
+    speaker: "이영희",
+  },
+  {
+    timestamp: "09:35:45",
+    text: "두 번째로 리소스 할당에 대해 이야기해보겠습니다.",
+    speaker: "박지원",
+  },
+  {
+    timestamp: "09:38:10",
+    text: "마지막으로 다음 주 마일스톤 설정에 대해 논의하겠습니다.",
+    speaker: "김철수",
+  },
 ];
 
 export const mockEvents: CalendarEvent[] = [

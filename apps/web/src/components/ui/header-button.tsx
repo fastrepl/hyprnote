@@ -49,7 +49,7 @@ export function HeaderButton({ className }: HeaderButtonProps) {
           "bg-gradient-to-br from-[#f97316] to-[#6366f1] text-white border-transparent hover:from-[#f97316] border border-gray-300 hover:border-gray-400 hover:to-[#6366f1] hover:text-white":
             isScrolled,
         },
-        className
+        className,
       )}
     >
       {os === "Windows"

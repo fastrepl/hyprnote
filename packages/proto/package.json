@@ -5,7 +5,7 @@
     "generate": "pnpm generate:elixir && pnpm generate:typescript && pnpm generate:rust",
     "generate:elixir": "protoc ./v0.proto --elixir_out ../../server/lib/proto",
     "generate:typescript": "protoc ./v0.proto --es_out . --es_opt target=ts",
-    "generate:rust": "protoc ./v0.proto --rs_out ../../crates/proto",
+    "generate:rust": "protoc ./v0.proto --rs_out ../../crates/proto/src/generated",
     "format": "buf format -w ."
   },
   "dependencies": {

@@ -1,8 +1,9 @@
 import "../../../styles/cmdk.css";
 
 import { useState, useEffect } from "react";
-import { Command } from "cmdk";
 import { useNavigate } from "react-router";
+import { Command } from "cmdk";
+
 import { mockNotes } from "../../../mocks/data";
 
 const SearchModal = () => {

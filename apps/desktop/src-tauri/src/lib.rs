@@ -1,6 +1,7 @@
 use cap_media::feeds::{AudioInputFeed, AudioInputSamplesSender};
 use tauri::{AppHandle, Manager};
 use tokio::sync::RwLock;
+use tauri_plugin_deep_link::DeepLinkExt;
 
 mod audio;
 mod commands;
@@ -85,13 +86,23 @@ pub fn run() {
     builder
         // https://v2.tauri.app/plugin/deep-linking/#desktop
         .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_http::init())
-        .plugin(tauri_plugin_websocket::init())
         // TODO: https://v2.tauri.app/plugin/updater/#building
         // .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
             move |invoke| handler(invoke)
+        })
+        .setup(|app| {
+            app.deep_link().on_open_url(|event| {
+                let _ = event.urls().first().unwrap();
+            });
+            Ok(())
+        })
+        .setup(|app| {
+            let salt_path = app.path().app_local_data_dir()?.join("salt.txt");
+            app.handle()
+                .plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
+            Ok(())
         })
         .setup(move |app| {
             specta_builder.mount_events(app);

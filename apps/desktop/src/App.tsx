@@ -1,9 +1,11 @@
-import { BrowserRouter, Routes, Route } from "react-router";
 import { useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router";
+
+import { UIProvider } from "./contexts/UIContext";
+
 import NavBar from "./components/layout/NavBar";
 import Home from "./pages/Home";
 import Note from "./pages/Note";
-import { UIProvider } from "./contexts/UIContext";
 
 function App() {
   useEffect(() => {

@@ -29,9 +29,6 @@ export const commands = {
   async openPermissionSettings(permission: OSPermission): Promise<void> {
     await TAURI_INVOKE("open_permission_settings", { permission });
   },
-  async openPath(path: string): Promise<null> {
-    return await TAURI_INVOKE("open_path", { path });
-  },
 };
 
 /** user-defined events **/

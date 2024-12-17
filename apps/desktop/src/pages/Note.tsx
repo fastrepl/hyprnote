@@ -1,12 +1,15 @@
 import { useEffect } from "react";
 import { useParams } from "react-router";
-import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
-import SidePanel from "../components/note/SidePanel";
+
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { useUI } from "../contexts/UIContext";
+
+import SidePanel from "../components/note/SidePanel";
 import NoteHeader from "../components/note/NoteHeader";
 import NoteEditor from "../components/note/NoteEditor";
+
+import { useUI } from "../contexts/UIContext";
 import { useNoteState } from "../hooks/useNoteState";
+import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 
 export default function Note() {
   const { id } = useParams();

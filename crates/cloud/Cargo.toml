@@ -1,0 +1,12 @@
+[package]
+name = "cloud"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hypr-proto = { path = "../proto", package = "proto" }
+
+anyhow = { workspace = true }
+reqwest = "0.12.9"
+ezsockets = "0.6.4"
+async-trait = "0.1.83"

@@ -1,10 +1,11 @@
 import "../../styles/editor.css";
 
+import { useEffect } from "react";
+
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
-import { useEffect } from "react";
 
 interface NoteEditorProps {
   content: string;

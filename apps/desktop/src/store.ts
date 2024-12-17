@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create, createStore } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface EditorStore {

@@ -23,7 +23,7 @@ hypr-stt = { path = "../../../crates/stt", package = "stt" }
 hypr-diarizer = { path = "../../../crates/diarizer", package = "diarizer" }
 hypr-db = { path = "../../../crates/db", package = "db" }
 hypr-audio = { path = "../../../crates/audio", package = "audio" }
-hypr-proto = { path = "../../../crates/proto", package = "proto" }
+hypr-cloud = { path = "../../../crates/cloud", package = "cloud" }
 
 tauri = { workspace = true, features = ["tray-icon"] }
 tauri-plugin-updater = "2"
@@ -33,8 +33,6 @@ tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 tauri-plugin-log = "2"
 tauri-plugin-deep-link = "2"
-tauri-plugin-websocket = "2"
-tauri-plugin-http = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-store = "2"
@@ -60,3 +58,4 @@ futures = "0.3.31"
 flume = "0.11.1"
 objc = "0.2.7"
 cap-media = { workspace = true }
+tauri-plugin-stronghold = "2.2.0"

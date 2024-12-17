@@ -1,12 +1,14 @@
 import { useCallback } from "react";
 import { useNavigate, useLocation } from "react-router";
+import { PanelRightClose, PanelRightOpen, Menu } from "lucide-react";
+
 import SearchModal from "../modals/search/SearchModal";
 import SettingsModal from "../modals/settings/SettingsModal";
-import { useUI } from "../../contexts/UIContext";
-import { PanelRightClose, PanelRightOpen, Menu } from "lucide-react";
 import SearchBar from "./SearchBar";
 import ExportMenu from "./ExportMenu";
 import NavigationButtons from "./NavigationButtons";
+
+import { useUI } from "../../contexts/UIContext";
 
 export default function NavBar() {
   const { isPanelOpen, setIsPanelOpen } = useUI();

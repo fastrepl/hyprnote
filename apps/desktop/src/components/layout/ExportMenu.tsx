@@ -1,13 +1,16 @@
 import { useRef, useState } from "react";
-import { useClickOutside } from "../../hooks/useClickOutside";
 import { Share, Copy, File, FileText } from "lucide-react";
+
+import { useClickOutside } from "../../hooks/useClickOutside";
 
 export default function ExportMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(exportRef, () => {
-    if (isOpen) setIsOpen(false);
+    if (isOpen) {
+      setIsOpen(false);
+    }
   });
 
   return (

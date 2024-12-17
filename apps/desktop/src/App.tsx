@@ -27,7 +27,7 @@ function App() {
       <UIProvider>
         <div className="flex h-screen flex-col">
           <NavBar />
-          <main className="w-full flex-1 overflow-auto">
+          <main className="w-full flex-1 overflow-auto bg-gray-50">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/note/:id" element={<Note />} />

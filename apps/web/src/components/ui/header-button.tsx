@@ -52,7 +52,7 @@ export function HeaderButton({ className }: HeaderButtonProps) {
         },
         "hover:bg-gradient-to-br hover:from-[#f97316] hover:to-[#6366f1] hover:text-white hover:border-transparent hover:before:opacity-100",
         "before:content-[''] before:absolute before:inset-[1px] before:rounded-[10px] before:border before:border-white/30 before:transition-opacity before:duration-200",
-        className
+        className,
       )}
     >
       {os === "Windows"

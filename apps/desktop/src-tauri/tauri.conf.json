@@ -37,6 +37,11 @@
     ]
   },
   "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["hypr"]
+      }
+    },
     "updater": {
       "active": true,
       "endpoints": ["https://api.todo.com"],

@@ -1,6 +1,5 @@
 use cap_media::feeds::{AudioInputFeed, AudioInputSamplesSender};
 use tauri::{AppHandle, Manager};
-use tauri_plugin_deep_link::DeepLinkExt;
 use tokio::sync::RwLock;
 
 mod audio;
@@ -81,22 +80,29 @@ pub fn run() {
         );
     }
 
+    builder = builder.plugin(tauri_plugin_deep_link::init());
+
+    // https://v2.tauri.app/plugin/deep-linking/#registering-desktop-deep-links-at-runtime
+    #[cfg(any(windows, target_os = "linux"))]
+    {
+        builder = builder.setup(|app| {
+            {
+                use tauri_plugin_deep_link::DeepLinkExt;
+                app.deep_link().register_all()?;
+            }
+
+            Ok(())
+        });
+    }
+
     let (audio_input_tx, _audio_input_rx) = AudioInputFeed::create_channel();
 
     builder
-        // https://v2.tauri.app/plugin/deep-linking/#desktop
-        .plugin(tauri_plugin_deep_link::init())
         // TODO: https://v2.tauri.app/plugin/updater/#building
         // .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
             move |invoke| handler(invoke)
-        })
-        .setup(|app| {
-            app.deep_link().on_open_url(|event| {
-                let _ = event.urls().first().unwrap();
-            });
-            Ok(())
         })
         .setup(|app| {
             let salt_path = app.path().app_local_data_dir()?.join("salt.txt");

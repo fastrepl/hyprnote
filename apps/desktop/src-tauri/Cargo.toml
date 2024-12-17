@@ -18,14 +18,11 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-hypr-llm = { path = "../../../crates/llm", package = "llm" }
-hypr-stt = { path = "../../../crates/stt", package = "stt" }
-hypr-diarizer = { path = "../../../crates/diarizer", package = "diarizer" }
 hypr-db = { path = "../../../crates/db", package = "db" }
 hypr-audio = { path = "../../../crates/audio", package = "audio" }
 hypr-cloud = { path = "../../../crates/cloud", package = "cloud" }
 
-tauri = { workspace = true, features = ["tray-icon"] }
+tauri = { workspace = true, features = ["tray-icon", "devtools"] }
 tauri-plugin-updater = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-positioner = "2"

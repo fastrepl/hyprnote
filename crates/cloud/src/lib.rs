@@ -3,6 +3,7 @@ use async_trait::async_trait;
 use tokio::sync::mpsc;
 use url::Url;
 
+use hypr_proto::protobuf::Message;
 use hypr_proto::v0 as proto;
 
 pub type TranscribeInputSender = mpsc::Sender<proto::TranscribeInputChunk>;
@@ -11,12 +12,25 @@ pub type TranscribeOutputSender = mpsc::Sender<proto::TranscribeOutputChunk>;
 pub type TranscribeOutputReceiver = mpsc::Receiver<proto::TranscribeOutputChunk>;
 
 pub struct TranscribeHandler {
-    pub input_tx: TranscribeInputSender,
-    pub output_rx: TranscribeOutputReceiver,
+    input_sender: TranscribeInputSender,
+    output_receiver: TranscribeOutputReceiver,
+}
+
+impl TranscribeHandler {
+    pub async fn tx(&self, value: proto::TranscribeInputChunk) -> Result<()> {
+        self.input_sender
+            .send(value)
+            .await
+            .map_err(|e| anyhow::anyhow!(e))
+    }
+
+    pub async fn rx(&mut self) -> Result<proto::TranscribeOutputChunk> {
+        self.output_receiver.recv().await.ok_or(anyhow::anyhow!(""))
+    }
 }
 
 struct WebsocketClient {
-    output_tx: TranscribeOutputSender,
+    output_sender: TranscribeOutputSender,
 }
 
 #[async_trait]
@@ -29,14 +43,12 @@ impl ezsockets::ClientExt for WebsocketClient {
     }
 
     async fn on_binary(&mut self, bytes: Vec<u8>) -> Result<(), ezsockets::Error> {
-        let mut data = proto::TranscribeOutputChunk::new();
-        data.text = String::from_utf8(bytes).unwrap(); // TODO
-
-        let _ = self.output_tx.send(data).await;
+        let data = proto::TranscribeOutputChunk::parse_from_bytes(&bytes).unwrap();
+        let _ = self.output_sender.send(data).await;
         Ok(())
     }
 
-    async fn on_call(&mut self, call: Self::Call) -> Result<(), ezsockets::Error> {
+    async fn on_call(&mut self, _call: Self::Call) -> Result<(), ezsockets::Error> {
         Ok(())
     }
 }
@@ -81,24 +93,24 @@ impl Client {
     }
 
     pub async fn ws_connect(&mut self) -> Result<TranscribeHandler> {
-        let (input_tx, mut input_rx) = mpsc::channel::<proto::TranscribeInputChunk>(10);
-        let (output_tx, output_rx) = mpsc::channel::<proto::TranscribeOutputChunk>(10);
+        let (input_sender, mut input_receiver) = mpsc::channel::<proto::TranscribeInputChunk>(100);
+        let (output_sender, output_receiver) = mpsc::channel::<proto::TranscribeOutputChunk>(100);
 
         let config = ezsockets::ClientConfig::new(self.ws_url().as_str());
 
         let (handle, future) =
-            ezsockets::connect(|_client| WebsocketClient { output_tx }, config).await;
+            ezsockets::connect(|_client| WebsocketClient { output_sender }, config).await;
 
         tokio::spawn(async move {
-            while let Some(input) = input_rx.recv().await {
+            while let Some(input) = input_receiver.recv().await {
                 let _ = handle.binary(input.audio);
             }
             future.await.unwrap();
         });
 
         Ok(TranscribeHandler {
-            input_tx,
-            output_rx,
+            input_sender,
+            output_receiver,
         })
     }
 
@@ -116,5 +128,17 @@ impl Client {
             .await?;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_simple() {
+        let _ = Client::new(ClientConfig {
+            base_url: Url::parse("http://localhost:8080").unwrap(),
+        });
     }
 }

@@ -11,6 +11,6 @@ anyhow = { workspace = true }
 tokio = { workspace = true }
 
 url = "2.5.4"
-reqwest = "0.12.9"
+reqwest = { version = "0.12.9", features = ["json"] }
 ezsockets = { version = "0.6.4", features = ["native_client"] }
 async-trait = "0.1.83"

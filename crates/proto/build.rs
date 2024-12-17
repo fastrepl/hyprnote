@@ -6,11 +6,11 @@ struct BytesConverter;
 
 impl CustomizeCallback for BytesConverter {
     fn field(&self, field: &FieldDescriptor) -> Customize {
-        if field.proto().type_() == Type::TYPE_BYTES {
-            Customize::default().tokio_bytes(true)
-        } else {
-            Customize::default()
+        if field.proto().type_() != Type::TYPE_BYTES {
+            return Customize::default();
         }
+
+        Customize::default().tokio_bytes(true)
     }
 }
 

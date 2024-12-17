@@ -1,5 +1,5 @@
 .pushable {
-  background: linear-gradient(135deg, #7c2d12, #312e81);
+  background: linear-gradient(135deg, #f59e0b, #1e3a8a);
   border: none;
   border-radius: 12px;
   padding: 0;
@@ -16,7 +16,7 @@
   padding: 12px 42px;
   border-radius: 12px;
   font-size: 1.25rem;
-  background: linear-gradient(135deg, #f97316, #6366f1);
+  background: linear-gradient(135deg, #fbbf24, #2563eb);
   color: white;
   transform: translateY(-6px);
   transition: transform 50ms;
@@ -28,7 +28,7 @@
   position: absolute;
   inset: 1px;
   border-radius: 11px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   pointer-events: none;
 }
 

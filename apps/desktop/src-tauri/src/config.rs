@@ -9,9 +9,9 @@ pub enum Config {
 
 #[derive(Debug, Serialize, Deserialize, Type)]
 pub struct ConfigV0 {
-    version: u8,
-    language: Language,
-    user_name: String,
+    pub version: u8,
+    pub language: Language,
+    pub user_name: String,
 }
 
 impl Default for Config {
@@ -31,7 +31,7 @@ impl Default for ConfigV0 {
 }
 
 #[derive(Debug, Serialize, Deserialize, Type)]
-enum Language {
+pub enum Language {
     English,
     Korean,
 }

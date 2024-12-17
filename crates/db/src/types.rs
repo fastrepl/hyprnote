@@ -16,6 +16,7 @@ pub struct Session {
     pub id: Uuid,
     pub start: OffsetDateTime,
     pub end: Option<OffsetDateTime>,
+    pub recording_path: Option<String>,
     #[sqlx(json)]
     pub tags: Vec<String>,
     pub raw_memo: String,
@@ -29,6 +30,7 @@ impl Default for Session {
             id: Uuid::new_v4(),
             start: OffsetDateTime::now_utc(),
             end: None,
+            recording_path: None,
             tags: Vec::new(),
             raw_memo: String::new(),
             processed_memo: String::new(),

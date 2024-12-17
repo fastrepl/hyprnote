@@ -1,0 +1,10 @@
+[package]
+name = "calendar"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+google-calendar = "0.7.0"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+apple-calendar = { path = "../apple-calendar", package = "apple-calendar" }

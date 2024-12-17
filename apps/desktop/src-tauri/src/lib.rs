@@ -116,6 +116,14 @@ pub fn run() {
         })
         .setup(|app| {
             #[cfg(desktop)]
+            let _ = app
+                .handle()
+                .plugin(tauri_plugin_global_shortcut::Builder::new().build());
+
+            Ok(())
+        })
+        .setup(|app| {
+            #[cfg(desktop)]
             {
                 use tauri_plugin_autostart::ManagerExt;
 

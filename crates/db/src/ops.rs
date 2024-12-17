@@ -9,13 +9,14 @@ pub async fn create_session<'c, E: SqliteExecutor<'c>>(e: E) -> Result<types::Se
 
     let ret = sqlx::query_as(
         "INSERT INTO sessions (
-            id, start, end, tags, raw_memo, processed_memo, raw_transcript
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            id, start, end, recording_path, tags, raw_memo, processed_memo, raw_transcript
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING *",
     )
     .bind(session.id)
     .bind(session.start)
     .bind(session.end)
+    .bind(session.recording_path)
     .bind(serde_json::to_string(&session.tags).unwrap_or("[]".to_string()))
     .bind(session.raw_memo)
     .bind(session.processed_memo)
@@ -35,6 +36,7 @@ pub async fn update_session<'c, E: SqliteExecutor<'c>>(
         UPDATE sessions 
         SET end = ?, 
             tags = ?, 
+            recording_path = ?,
             raw_memo = ?, 
             processed_memo = ?, 
             raw_transcript = ? 
@@ -44,6 +46,7 @@ pub async fn update_session<'c, E: SqliteExecutor<'c>>(
     )
     .bind(session.end)
     .bind(serde_json::to_string(&session.tags).unwrap_or("[]".to_string()))
+    .bind(session.recording_path)
     .bind(session.raw_memo)
     .bind(session.processed_memo)
     .bind(session.raw_transcript)

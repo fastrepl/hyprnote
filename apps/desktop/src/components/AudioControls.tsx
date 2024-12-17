@@ -15,6 +15,13 @@ export const AudioControls = () => {
         title: "Hypr Background Music",
         artist: "Hypr",
         album: "Hypr App",
+        artwork: [
+          {
+            src: "/favicon.ico",
+            sizes: "96x96",
+            type: "image/png",
+          },
+        ],
       });
 
       navigator.mediaSession.setActionHandler("play", () => {
@@ -55,7 +62,7 @@ export const AudioControls = () => {
   }, [isPlaying, audio]);
 
   return (
-    <div className="fixed right-5 top-5 z-10">
+    <div className="fixed right-5 top-5 z-10 text-white">
       <button
         onClick={() => setIsPlaying(!isPlaying)}
         className="rounded-full bg-black p-2 transition-colors duration-200 hover:bg-black/70"

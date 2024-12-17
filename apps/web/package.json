@@ -18,7 +18,6 @@
     "@remixicon/react": "^4.5.0",
     "@types/mdx": "^2.0.13",
     "class-variance-authority": "^0.7.1",
-    "classnames": "^2.5.1",
     "clsx": "^2.0.0",
     "framer-motion": "^11.15.0",
     "next": "15.1.0",

@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { RiAppleFill, RiWindowsFill } from "@remixicon/react";
 import { useOS } from "@/hooks/useOS";
-import cn from "classnames";
+import cn from "clsx";
 import { useEffect, useState } from "react";
 
 interface HeaderButtonProps {
@@ -44,12 +44,15 @@ export function HeaderButton({ className }: HeaderButtonProps) {
       variant="outline"
       size="default"
       className={cn(
-        "inline-flex items-center justify-center gap-2 transition-all duration-200 rounded-xl border border-gray-300 hover:border-gray-400",
+        "inline-flex items-center justify-center gap-2 transition-all duration-200 rounded-xl relative",
         {
-          "bg-gradient-to-br from-[#f97316] to-[#6366f1] text-white border-transparent hover:from-[#f97316] border border-gray-300 hover:border-gray-400 hover:to-[#6366f1] hover:text-white":
+          "bg-gradient-to-br from-[#f97316] to-[#6366f1] text-white border-transparent before:opacity-100":
             isScrolled,
+          "border border-gray-300 before:opacity-0": !isScrolled,
         },
-        className,
+        "hover:bg-gradient-to-br hover:from-[#f97316] hover:to-[#6366f1] hover:text-white hover:border-transparent hover:before:opacity-100",
+        "before:content-[''] before:absolute before:inset-[1px] before:rounded-[10px] before:border before:border-white/30 before:transition-opacity before:duration-200",
+        className
       )}
     >
       {os === "Windows"

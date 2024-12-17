@@ -6,16 +6,16 @@ interface PushableButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
 }
 
-export const PushableButton: React.FC<PushableButtonProps> = ({
+export function PushableButton({
   children,
   className,
   ...props
-}) => {
+}: PushableButtonProps) {
   return (
     <button className={`pushable ${className || ""}`} {...props}>
       <span className="front">{children}</span>
     </button>
   );
-};
+}
 
 export default PushableButton;

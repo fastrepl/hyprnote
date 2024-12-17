@@ -2,7 +2,7 @@
 
 import { RiAppleFill, RiWindowsFill } from "@remixicon/react";
 import { useOS } from "@/hooks/useOS";
-import cn from "classnames";
+import cn from "clsx";
 import { PushableButton } from "./pushable-button";
 
 interface CtaButtonProps {

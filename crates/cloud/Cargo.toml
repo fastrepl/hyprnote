@@ -4,9 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+hypr-db = { path = "../db", package = "db" }
 hypr-proto = { path = "../proto", package = "proto" }
 
 anyhow = { workspace = true }
+tokio = { workspace = true }
+
+url = "2.5.4"
 reqwest = "0.12.9"
-ezsockets = "0.6.4"
+ezsockets = { version = "0.6.4", features = ["native_client"] }
 async-trait = "0.1.83"

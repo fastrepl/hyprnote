@@ -1,7 +1,7 @@
 use cap_media::feeds::{AudioInputFeed, AudioInputSamplesSender};
 use tauri::{AppHandle, Manager};
-use tokio::sync::RwLock;
 use tauri_plugin_deep_link::DeepLinkExt;
+use tokio::sync::RwLock;
 
 mod audio;
 mod commands;

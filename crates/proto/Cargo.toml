@@ -3,5 +3,10 @@ name = "proto"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
+[build-dependencies]
+protobuf-codegen = "3.7.1"
 protobuf = "3.7.1"
+
+[dependencies]
+protobuf = { version = "3.7.1", features = ["bytes"] }
+bytes = "1.9.0"

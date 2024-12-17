@@ -6,25 +6,37 @@ use url::Url;
 use hypr_proto::v0 as proto;
 
 pub type TranscribeInputSender = mpsc::Sender<proto::TranscribeInputChunk>;
+pub type TranscribeInputReceiver = mpsc::Receiver<proto::TranscribeInputChunk>;
+pub type TranscribeOutputSender = mpsc::Sender<proto::TranscribeOutputChunk>;
 pub type TranscribeOutputReceiver = mpsc::Receiver<proto::TranscribeOutputChunk>;
 
-struct WebsocketClient {}
+pub struct TranscribeHandler {
+    pub input_tx: TranscribeInputSender,
+    pub output_rx: TranscribeOutputReceiver,
+}
+
+struct WebsocketClient {
+    output_tx: TranscribeOutputSender,
+}
 
 #[async_trait]
 impl ezsockets::ClientExt for WebsocketClient {
     // https://docs.rs/ezsockets/latest/ezsockets/client/trait.ClientExt.html
     type Call = ();
 
-    async fn on_text(&mut self, text: String) -> Result<(), ezsockets::Error> {
+    async fn on_text(&mut self, _text: String) -> Result<(), ezsockets::Error> {
         Ok(())
     }
 
     async fn on_binary(&mut self, bytes: Vec<u8>) -> Result<(), ezsockets::Error> {
+        let mut data = proto::TranscribeOutputChunk::new();
+        data.text = String::from_utf8(bytes).unwrap(); // TODO
+
+        let _ = self.output_tx.send(data).await;
         Ok(())
     }
 
     async fn on_call(&mut self, call: Self::Call) -> Result<(), ezsockets::Error> {
-        let () = call;
         Ok(())
     }
 }
@@ -68,25 +80,30 @@ impl Client {
         url
     }
 
-    pub async fn ws_connect(&mut self) -> Result<()> {
+    pub async fn ws_connect(&mut self) -> Result<TranscribeHandler> {
+        let (input_tx, mut input_rx) = mpsc::channel::<proto::TranscribeInputChunk>(10);
+        let (output_tx, output_rx) = mpsc::channel::<proto::TranscribeOutputChunk>(10);
+
         let config = ezsockets::ClientConfig::new(self.ws_url().as_str());
 
-        let (handle, future) = ezsockets::connect(|_client| WebsocketClient {}, config).await;
+        let (handle, future) =
+            ezsockets::connect(|_client| WebsocketClient { output_tx }, config).await;
+
         tokio::spawn(async move {
+            while let Some(input) = input_rx.recv().await {
+                let _ = handle.binary(input.audio);
+            }
             future.await.unwrap();
         });
-        self.ws_client = Some(handle);
 
-        Ok(())
+        Ok(TranscribeHandler {
+            input_tx,
+            output_rx,
+        })
     }
 
     pub fn ws_disconnect(&mut self) -> Result<()> {
         self.ws_client.take().unwrap().close(None)?;
-        Ok(())
-    }
-
-    pub fn ws_send(&mut self, bytes: &[u8]) -> Result<()> {
-        self.ws_client.take().unwrap().binary(bytes)?;
         Ok(())
     }
 

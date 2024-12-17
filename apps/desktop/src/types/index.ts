@@ -2,6 +2,7 @@ import type { Node as PMNode } from "@tiptap/pm/model";
 
 export * from "./db";
 export * from "./tauri";
+export * from "@hypr/proto";
 
 // Google Calendar Event Type
 export interface CalendarEvent {

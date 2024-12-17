@@ -23,7 +23,7 @@ export default function Pricing() {
   const [currentPlan, setCurrentPlan] = useState<"Free" | "Pro" | "Business">(
     "Free",
   );
-  const [daysLeft, setDaysLeft] = useState(14); // 남은 무료 사용 기간 (일)
+  const [daysLeft, setDaysLeft] = useState(14); // Remaining free trial days
 
   const billingPlans: BillingPlan[] = [
     {
@@ -34,11 +34,11 @@ export default function Pricing() {
         yearly: 0,
       },
       features: [
-        // 1. 기본 기능
-        "노트 작성 및 편집",
-        "영어 음성 인식",
-        "기본 AI 기능",
-        "2주 무료 체험",
+        // 1. Basic features
+        "Note creation and editing",
+        "English speech recognition",
+        "Basic AI features",
+        "2-week free trial",
       ],
     },
     {
@@ -49,14 +49,14 @@ export default function Pricing() {
         yearly: 8,
       },
       features: [
-        // 2. 고급 기능
-        "무제한 음성 인식",
-        "다국어 지원",
-        "오프라인 모드 (영어)",
-        "고급 AI 기능",
-        // 3. 협업 기능
-        "노트 공유 링크",
-        "앱 연동 (노션, 슬랙 등)",
+        // 2. Advanced features
+        "Unlimited speech recognition",
+        "Multi-language support",
+        "Offline mode (English)",
+        "Advanced AI features",
+        // 3. Collaboration features
+        "Note sharing links",
+        "App integrations (Notion, Slack, etc.)",
       ],
     },
     {
@@ -67,15 +67,15 @@ export default function Pricing() {
         yearly: 12,
       },
       features: [
-        // 1. Pro 기능 포함
-        "Pro 플랜의 모든 기능",
-        // 2. 팀 기능
-        "팀 워크스페이스",
-        "상세 접근 권한 설정",
-        "공유 노트 수정 권한",
-        // 3. 관리 기능
-        "팀 단위 결제",
-        "사용 현황 대시보드",
+        // 1. Including Pro features
+        "All Pro plan features",
+        // 2. Team features
+        "Team workspace",
+        "Detailed access control",
+        "Shared note editing permissions",
+        // 3. Management features
+        "Team billing",
+        "Usage dashboard",
       ],
       isComingSoon: true,
     },
@@ -88,12 +88,12 @@ export default function Pricing() {
   ) => {
     if (planType === "Free" && currentPlan === "Free") {
       if (daysLeft > 0) {
-        return `${daysLeft}일 남음`;
+        return `${daysLeft} days left`;
       }
-      return "기간 만료";
+      return "Trial expired";
     }
-    if (planLevel === currentLevel) return "사용중";
-    return planLevel > currentLevel ? "업그레이드" : "다운그레이드";
+    if (planLevel === currentLevel) return "Current plan";
+    return planLevel > currentLevel ? "Upgrade" : "Downgrade";
   };
 
   const getPlanLevel = (planType: "Free" | "Pro" | "Business") => {
@@ -152,7 +152,7 @@ export default function Pricing() {
               )}
               {currentPlan === plan.type && !plan.isComingSoon && (
                 <span className="inline-block bg-primary/10 text-primary text-sm font-medium px-3 py-1 rounded-full mb-4">
-                  현재 플랜
+                  Current Plan
                 </span>
               )}
 
@@ -166,7 +166,7 @@ export default function Pricing() {
                     ]
                   }
                 </span>
-                <span className="text-muted-foreground">/월</span>
+                <span className="text-muted-foreground">/month</span>
               </div>
 
               <Button

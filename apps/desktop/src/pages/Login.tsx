@@ -1,30 +1,11 @@
-import { useState, useEffect } from "react";
-import {
-  RiGoogleFill,
-  RiAppleFill,
-  RiVolumeMuteFill,
-  RiVolumeUpFill,
-} from "@remixicon/react";
+import { RiGoogleFill, RiAppleFill } from "@remixicon/react";
 import { RetroGrid } from "../components/ui/retro-grid.tsx";
+import { AudioControls } from "../components/AudioControls";
+import BlurFade from "../components/ui/blur-fade.tsx";
+import SparklesText from "../components/ui/sparkles-text.tsx";
+import ShimmerButton from "../components/ui/shimmer-button.tsx";
 
 const Login = () => {
-  const [isMuted, setIsMuted] = useState(false);
-  const [audio] = useState(new Audio("/bgm.mp3"));
-
-  useEffect(() => {
-    audio.loop = true;
-    audio.play().catch((error) => console.log("Audio autoplay failed:", error));
-
-    return () => {
-      audio.pause();
-      audio.currentTime = 0;
-    };
-  }, [audio]);
-
-  useEffect(() => {
-    audio.muted = isMuted;
-  }, [isMuted, audio]);
-
   const handleGoogleSignIn = () => {
     // Implement Google Sign In
     console.log("Google Sign In clicked");
@@ -36,38 +17,42 @@ const Login = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden text-white">
-      <RetroGrid />
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden text-black">
+      <RetroGrid angle={30} />
 
-      <button
-        onClick={() => setIsMuted(!isMuted)}
-        className="fixed right-5 top-5 z-10 rounded-full bg-black p-2 transition-colors duration-200 hover:bg-black/70"
-      >
-        {isMuted ? (
-          <RiVolumeMuteFill size={24} />
-        ) : (
-          <RiVolumeUpFill size={24} />
-        )}
-      </button>
+      <AudioControls />
 
-      <div className="relative z-10 w-full max-w-md rounded-2xl bg-black/40 p-8 shadow-2xl backdrop-blur-xl">
-        <h1 className="mb-8 text-center text-4xl font-bold">Welcome to Hypr</h1>
+      <div className="relative z-10 flex w-full max-w-xl flex-col items-center rounded-2xl p-8">
+        <BlurFade delay={0.25} inView>
+          <h1
+            className="mb-8 text-center text-4xl font-bold"
+            style={{ fontFamily: "'Racing Sans One', cursive" }}
+          >
+            Welcome to{" "}
+            <SparklesText
+              text="HYPERNOTE"
+              colors={{ first: "#FFD700", second: "#8A2BE2" }}
+            />
+          </h1>
+        </BlurFade>
 
-        <button
-          onClick={handleGoogleSignIn}
-          className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-gray-800 transition-transform duration-200 hover:scale-[1.02] hover:bg-gray-100"
-        >
-          <RiGoogleFill size={20} />
-          <span>Continue with Google</span>
-        </button>
+        <div className="flex w-full flex-col gap-4 sm:flex-row">
+          <ShimmerButton
+            onClick={handleGoogleSignIn}
+            className="flex flex-1 items-center justify-center gap-2"
+          >
+            <RiGoogleFill size={20} />
+            <span>Continue with Google</span>
+          </ShimmerButton>
 
-        <button
-          onClick={handleAppleSignIn}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-black px-4 py-3 text-white transition-transform duration-200 hover:scale-[1.02] hover:bg-gray-900"
-        >
-          <RiAppleFill size={20} />
-          <span>Continue with Apple</span>
-        </button>
+          <ShimmerButton
+            onClick={handleAppleSignIn}
+            className="flex flex-1 items-center justify-center gap-2"
+          >
+            <RiAppleFill size={20} />
+            <span>Continue with Apple</span>
+          </ShimmerButton>
+        </div>
       </div>
     </div>
   );

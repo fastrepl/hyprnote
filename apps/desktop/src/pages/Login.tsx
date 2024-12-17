@@ -1,29 +1,10 @@
-import { useState, useEffect } from "react";
-import {
-  RiGoogleFill,
-  RiAppleFill,
-  RiVolumeMuteFill,
-  RiVolumeUpFill,
-} from "@remixicon/react";
+import { RiGoogleFill, RiAppleFill } from "@remixicon/react";
 import { RetroGrid } from "../components/ui/retro-grid.tsx";
+import { AudioControls } from "../components/AudioControls";
+import { useState } from "react";
 
 const Login = () => {
-  const [isMuted, setIsMuted] = useState(false);
-  const [audio] = useState(new Audio("/bgm.mp3"));
-
-  useEffect(() => {
-    audio.loop = true;
-    audio.play().catch((error) => console.log("Audio autoplay failed:", error));
-
-    return () => {
-      audio.pause();
-      audio.currentTime = 0;
-    };
-  }, [audio]);
-
-  useEffect(() => {
-    audio.muted = isMuted;
-  }, [isMuted, audio]);
+  const [isPlaying, setIsPlaying] = useState(true);
 
   const handleGoogleSignIn = () => {
     // Implement Google Sign In
@@ -38,17 +19,7 @@ const Login = () => {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden text-white">
       <RetroGrid />
-
-      <button
-        onClick={() => setIsMuted(!isMuted)}
-        className="fixed right-5 top-5 z-10 rounded-full bg-black p-2 transition-colors duration-200 hover:bg-black/70"
-      >
-        {isMuted ? (
-          <RiVolumeMuteFill size={24} />
-        ) : (
-          <RiVolumeUpFill size={24} />
-        )}
-      </button>
+      <AudioControls />
 
       <div className="relative z-10 w-full max-w-md rounded-2xl bg-black/40 p-8 shadow-2xl backdrop-blur-xl">
         <h1 className="mb-8 text-center text-4xl font-bold">Welcome to Hypr</h1>

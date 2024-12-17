@@ -1,4 +1,4 @@
-import type { TranscriptBlock } from "@/types";
+import type { TranscriptBlock } from "../../types";
 
 interface TranscriptPanelProps {
   transcript: string;

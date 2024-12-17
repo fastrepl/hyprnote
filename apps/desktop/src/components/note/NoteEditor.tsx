@@ -1,11 +1,11 @@
 import "../../styles/editor.css";
 
 import { useEffect } from "react";
-
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
+import Placeholder from "@tiptap/extension-placeholder";
 
 interface NoteEditorProps {
   content: string;
@@ -14,7 +14,14 @@ interface NoteEditorProps {
 
 export default function NoteEditor({ content, onChange }: NoteEditorProps) {
   const editor = useEditor({
-    extensions: [StarterKit, Highlight, Typography],
+    extensions: [
+      StarterKit,
+      Highlight,
+      Typography,
+      Placeholder.configure({
+        placeholder: "Write something...",
+      }),
+    ],
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());

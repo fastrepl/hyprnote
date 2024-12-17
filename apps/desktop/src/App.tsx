@@ -1,11 +1,20 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router";
-
+import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { UIProvider } from "./contexts/UIContext";
-
 import NavBar from "./components/layout/NavBar";
 import Home from "./pages/Home";
 import Note from "./pages/Note";
+import Login from "./pages/Login";
+
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
+
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+  // Replace this with your actual authentication check
+  const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+};
 
 function App() {
   useEffect(() => {
@@ -28,13 +37,35 @@ function App() {
     <BrowserRouter>
       <UIProvider>
         <div className="flex h-screen flex-col">
-          <NavBar />
-          <main className="w-full flex-1">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/note/:id" element={<Note />} />
-            </Routes>
-          </main>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <>
+                    <NavBar />
+                    <main className="w-full flex-1 overflow-auto bg-gray-50">
+                      <Home />
+                    </main>
+                  </>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/note/:id"
+              element={
+                <ProtectedRoute>
+                  <>
+                    <NavBar />
+                    <main className="w-full flex-1 overflow-auto bg-gray-50">
+                      <Note />
+                    </main>
+                  </>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
         </div>
       </UIProvider>
     </BrowserRouter>

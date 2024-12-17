@@ -1,6 +1,8 @@
-import SlackIcon from "../../../../constants/icons/SlackIcon";
-import NotionIcon from "../../../../constants/icons/NotionIcon";
-import { ExternalLink } from "lucide-react";
+import {
+  RiSlackFill,
+  RiNotionFill,
+  RiExternalLinkLine,
+} from "@remixicon/react";
 
 interface IntegrationCardProps {
   title: string;
@@ -28,7 +30,7 @@ function IntegrationCard({
         onClick={onClick}
         className="inline-flex items-center gap-2 rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       >
-        <ExternalLink className="h-4 w-4" />
+        <RiExternalLinkLine className="h-4 w-4" />
         연결하기
       </button>
     </div>
@@ -40,7 +42,7 @@ export function Integrations() {
     {
       title: "Slack 연동하기",
       description: "Slack에서 미팅 알림을 받고 상태를 자동으로 업데이트하세요",
-      icon: <SlackIcon />,
+      icon: <RiSlackFill className="h-8 w-8 text-[#E01E5A]" />,
       onClick: () => {
         /* TODO: Implement Slack connection */
       },
@@ -48,8 +50,7 @@ export function Integrations() {
     {
       title: "Notion 연동하기",
       description: "미팅 노트를 Notion에 자동으로 동기화하세요",
-      icon: <NotionIcon />,
-
+      icon: <RiNotionFill className="h-8 w-8 text-black" />,
       onClick: () => {
         /* TODO: Implement Notion connection */
       },

@@ -47,7 +47,7 @@ export default function NoteControl({
         {showhyprcharge && (
           <button
             onClick={onhyprcharge}
-            className="rounded-full bg-purple-600 px-4 py-1.5 text-sm text-white hover:bg-purple-800"
+            className="rounded-full border-2 border-purple-600 bg-purple-600 px-4 py-1.5 text-sm text-white hover:bg-purple-700"
           >
             하이퍼차지
           </button>
@@ -60,17 +60,17 @@ export default function NoteControl({
             onClick={onPauseResume}
             className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm ${
               isPaused
-                ? "bg-gray-600 text-white hover:bg-gray-800"
-                : "animate-pulse bg-red-600 text-white hover:bg-red-800"
+                ? "border-2 border-gray-600 bg-gray-600 text-white hover:bg-gray-700"
+                : "border-2 border-red-600 bg-white text-red-600"
             }`}
           >
-            <div className="h-2.5 w-2.5 rounded-full bg-white" />
+            <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-600" />
             {isPaused ? "일시정지 중" : formatTime(recordingTime)}
           </button>
         ) : (
           <button
             onClick={onStart}
-            className="rounded-full bg-emerald-600 px-4 py-1.5 text-sm text-white hover:bg-emerald-800"
+            className="rounded-full border-2 border-red-600 bg-red-600 px-4 py-1.5 text-sm text-white hover:bg-red-700"
           >
             녹음 시작
           </button>

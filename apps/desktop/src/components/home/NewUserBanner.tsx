@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { RiArrowRightLine } from "@remixicon/react";
 
 interface NewUserBannerProps {
   onDemoClick: () => void;
@@ -14,7 +14,7 @@ export const NewUserBanner = ({ onDemoClick }: NewUserBannerProps) => {
           className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-blue-600 transition-colors hover:bg-blue-50"
         >
           <span>데모 체험</span>
-          <ArrowRight className="h-4 w-4" />
+          <RiArrowRightLine className="h-4 w-4" />
         </button>
       </div>
     </div>

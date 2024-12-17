@@ -1,15 +1,13 @@
 import { useEffect } from "react";
 import { useParams } from "react-router";
-
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-
 import SidePanel from "../components/note/SidePanel";
 import NoteHeader from "../components/note/NoteHeader";
 import NoteEditor from "../components/note/NoteEditor";
-
 import { useUI } from "../contexts/UIContext";
 import { useNoteState } from "../hooks/useNoteState";
 import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
+import { mockTranscripts } from "../mocks/data";
 
 export default function Note() {
   const { id } = useParams();
@@ -95,7 +93,10 @@ export default function Note() {
             <>
               <PanelResizeHandle />
               <Panel defaultSize={30} minSize={30} maxSize={50}>
-                <SidePanel transcript={transcript} />
+                <SidePanel
+                  transcript={transcript}
+                  timestamps={mockTranscripts}
+                />
               </Panel>
             </>
           )}

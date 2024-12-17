@@ -1,4 +1,4 @@
-import { Calendar } from "lucide-react";
+import { RiCalendarLine } from "@remixicon/react";
 import type { Note } from "../../types";
 import { formatMeetingTime } from "../../utils/time";
 import NoteControl from "./NoteControl";
@@ -42,7 +42,7 @@ export default function NoteHeader({
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
             {note?.calendarEvent && (
               <div className="inline-flex items-center text-blue-600">
-                <Calendar className="mr-2 h-4 w-4" />
+                <RiCalendarLine className="mr-2 h-4 w-4" />
                 <span className="font-medium">
                   {note.calendarEvent.summary}{" "}
                   {formatMeetingTime(note.calendarEvent.start)} ~{" "}

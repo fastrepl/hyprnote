@@ -1,5 +1,10 @@
 import { useRef, useState } from "react";
-import { Share, Copy, File, FileText } from "lucide-react";
+import {
+  RiShareLine,
+  RiFileCopyLine,
+  RiFileTextLine,
+  RiFileTextFill,
+} from "@remixicon/react";
 
 import { useClickOutside } from "../../hooks/useClickOutside";
 
@@ -20,7 +25,7 @@ export default function ExportMenu() {
         className="rounded-md p-2 text-gray-700 hover:bg-gray-100"
         aria-label={isOpen ? "Close export menu" : "Open export menu"}
       >
-        <Share className="h-4 w-4" />
+        <RiShareLine className="h-4 w-4" />
       </button>
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 rounded-lg border bg-white shadow-lg">
@@ -32,7 +37,7 @@ export default function ExportMenu() {
               }}
               className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
             >
-              <Copy className="h-4 w-4" />
+              <RiFileCopyLine className="h-4 w-4" />
               클립보드에 복사
             </button>
             <button
@@ -42,7 +47,7 @@ export default function ExportMenu() {
               }}
               className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
             >
-              <File className="h-4 w-4" />
+              <RiFileTextLine className="h-4 w-4" />
               Markdown으로 내보내기
             </button>
             <button
@@ -52,7 +57,7 @@ export default function ExportMenu() {
               }}
               className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
             >
-              <FileText className="h-4 w-4" />
+              <RiFileTextFill className="h-4 w-4" />
               PDF로 내보내기
             </button>
           </div>

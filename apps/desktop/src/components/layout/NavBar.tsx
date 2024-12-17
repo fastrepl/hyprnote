@@ -1,6 +1,10 @@
 import { useCallback } from "react";
 import { useNavigate, useLocation } from "react-router";
-import { PanelRightClose, PanelRightOpen, Menu } from "lucide-react";
+import {
+  RiMenuLine,
+  RiSidebarUnfoldLine,
+  RiSidebarFoldLine,
+} from "@remixicon/react";
 
 import SearchModal from "../modals/search/SearchModal";
 import SettingsModal from "../modals/settings/SettingsModal";
@@ -51,7 +55,7 @@ export default function NavBar() {
                   onClick={handleSettingsClick}
                   className="flex items-center rounded p-2 hover:bg-gray-100"
                 >
-                  <Menu className="size-5" />
+                  <RiMenuLine className="size-5" />
                 </button>
               )}
             </div>
@@ -70,9 +74,9 @@ export default function NavBar() {
                   aria-label={isPanelOpen ? "Close panel" : "Open panel"}
                 >
                   {isPanelOpen ? (
-                    <PanelRightClose className="size-5" />
+                    <RiSidebarUnfoldLine className="size-5" />
                   ) : (
-                    <PanelRightOpen className="size-5" />
+                    <RiSidebarFoldLine className="size-5" />
                   )}
                 </button>
               ) : (

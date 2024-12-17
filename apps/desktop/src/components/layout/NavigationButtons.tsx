@@ -1,4 +1,4 @@
-import { Home, ChevronLeft } from "lucide-react";
+import { RiHome2Line, RiArrowLeftSLine } from "@remixicon/react";
 
 interface NavigationButtonsProps {
   onHomeClick: () => void;
@@ -12,10 +12,10 @@ export default function NavigationButtons({
   return (
     <>
       <button onClick={onHomeClick} className="rounded p-2 hover:bg-gray-100">
-        <Home className="size-5" />
+        <RiHome2Line className="size-5" />
       </button>
       <button onClick={onBackClick} className="rounded p-2 hover:bg-gray-100">
-        <ChevronLeft className="size-5" />
+        <RiArrowLeftSLine className="size-5" />
       </button>
     </>
   );

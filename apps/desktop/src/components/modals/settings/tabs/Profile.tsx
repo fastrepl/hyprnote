@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { UserCircle } from "lucide-react";
+import { RiUser3Line } from "@remixicon/react";
 
 export function Profile() {
   const [fullName, setFullName] = useState("");
@@ -46,7 +46,7 @@ export function Profile() {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <UserCircle className="h-full w-full text-gray-400" />
+              <RiUser3Line className="h-full w-full text-gray-400" />
             )}
             <button
               type="button"

@@ -1,7 +1,7 @@
 import useEmblaCarousel from "embla-carousel-react";
 import { Note } from "../../types";
 import { EventCard } from "./EventCard";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
 import { useCallback } from "react";
 
 interface UpcomingEventsProps {
@@ -50,13 +50,13 @@ export const UpcomingEvents = ({
               onClick={scrollPrev}
               className="absolute -left-4 top-1/2 -translate-y-1/2 rounded-full bg-white p-2 shadow-lg hover:bg-gray-50"
             >
-              <ChevronLeft className="size-5" />
+              <RiArrowLeftSLine className="size-5" />
             </button>
             <button
               onClick={scrollNext}
               className="absolute -right-4 top-1/2 -translate-y-1/2 rounded-full bg-white p-2 shadow-lg hover:bg-gray-50"
             >
-              <ChevronRight className="size-5" />
+              <RiArrowRightSLine className="size-5" />
             </button>
           </>
         )}

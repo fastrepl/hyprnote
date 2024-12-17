@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-
 import { mockNotes } from "../mocks/data";
 import { UpcomingEvents } from "../components/home/UpcomingEvents";
 import { PastNotes } from "../components/home/PastNotes";
@@ -52,15 +51,13 @@ export default function Home() {
 
   return (
     <main className="h-full bg-gray-50 p-6">
-      <div className="mx-auto max-w-4xl">
-        <div className="space-y-8">
-          {isNewUser && <NewUserBanner onDemoClick={handleDemoClick} />}
-          <UpcomingEvents
-            futureNotes={futureNotes}
-            onNoteClick={handleNoteClick}
-          />
-          <PastNotes notes={pastNotes} onNoteClick={handleNoteClick} />
-        </div>
+      <div className="mx-auto max-w-4xl space-y-8">
+        {isNewUser && <NewUserBanner onDemoClick={handleDemoClick} />}
+        <UpcomingEvents
+          futureNotes={futureNotes}
+          onNoteClick={handleNoteClick}
+        />
+        <PastNotes notes={pastNotes} onNoteClick={handleNoteClick} />
       </div>
     </main>
   );

@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { sendChatMessage } from "../../api/noteApi";
+import type { TranscriptBlock } from "../../types";
 
 interface SidePanelProps {
   transcript: string;
+  timestamps?: TranscriptBlock[];
 }
 
-export default function SidePanel({ transcript }: SidePanelProps) {
+export default function SidePanel({
+  transcript,
+  timestamps = [],
+}: SidePanelProps) {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<
     Array<{ text: string; isUser: boolean }>
@@ -56,8 +61,23 @@ export default function SidePanel({ transcript }: SidePanelProps) {
           className="border-b border-gray-200"
         >
           <div className="h-full overflow-y-auto p-4">
-            <h3 className="mb-2 font-medium">실시간 트랜스크립트</h3>
-            <div className="whitespace-pre-wrap">{transcript}</div>
+            {timestamps.length > 0 ? (
+              <div className="space-y-2">
+                {timestamps.map((block, index) => (
+                  <div key={index} className="space-y-1">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-gray-500">{block.timestamp}</span>
+                      <span className="font-medium text-blue-600">
+                        {block.speaker}
+                      </span>
+                    </div>
+                    <div className="whitespace-pre-wrap pl-4">{block.text}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="whitespace-pre-wrap">{transcript}</div>
+            )}
           </div>
         </Panel>
 

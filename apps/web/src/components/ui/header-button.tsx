@@ -44,12 +44,12 @@ export function HeaderButton({ className }: HeaderButtonProps) {
       variant="outline"
       size="default"
       className={cn(
-        "inline-flex items-center justify-center gap-2 transition-all duration-200 rounded-xl",
+        "inline-flex items-center justify-center gap-2 transition-all duration-200 rounded-xl border border-gray-300 hover:border-gray-400",
         {
-          "bg-gradient-to-br from-[#f97316] to-[#6366f1] text-white border-transparent hover:from-[#f97316] hover:to-[#6366f1] hover:text-white":
+          "bg-gradient-to-br from-[#f97316] to-[#6366f1] text-white border-transparent hover:from-[#f97316] border border-gray-300 hover:border-gray-400 hover:to-[#6366f1] hover:text-white":
             isScrolled,
         },
-        className,
+        className
       )}
     >
       {os === "Windows"

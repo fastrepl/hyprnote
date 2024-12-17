@@ -28,6 +28,7 @@
     "@tauri-apps/plugin-log": "^2.2.0",
     "@tauri-apps/plugin-updater": "^2.0.0",
     "@tiptap/extension-highlight": "^2.10.3",
+    "@tiptap/extension-placeholder": "^2.10.3",
     "@tiptap/extension-typography": "^2.10.3",
     "@tiptap/pm": "^2.10.3",
     "@tiptap/react": "^2.10.3",

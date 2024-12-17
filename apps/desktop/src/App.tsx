@@ -1,8 +1,6 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router";
-
 import { UIProvider } from "./contexts/UIContext";
-
 import NavBar from "./components/layout/NavBar";
 import Home from "./pages/Home";
 import Note from "./pages/Note";
@@ -29,7 +27,7 @@ function App() {
       <UIProvider>
         <div className="flex h-screen flex-col">
           <NavBar />
-          <main className="w-full flex-1">
+          <main className="w-full flex-1 overflow-auto">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/note/:id" element={<Note />} />

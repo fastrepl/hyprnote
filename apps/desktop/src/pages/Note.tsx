@@ -10,6 +10,7 @@ import NoteEditor from "../components/note/NoteEditor";
 import { useUI } from "../contexts/UIContext";
 import { useNoteState } from "../hooks/useNoteState";
 import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
+import { mockTranscripts } from "../mocks/data";
 
 export default function Note() {
   const { id } = useParams();
@@ -31,6 +32,15 @@ export default function Note() {
     resumeRecording,
     stopRecording,
   } = useSpeechRecognition();
+
+  // 시뮬레이션을 위한 샘플 데이터
+  const sampleTimestamps = [
+    { time: "09:30", text: "안녕하세요, 오늘 회의를 시작하겠습니다." },
+    { time: "09:31", text: "지난 회의에서 논의된 사항들을 먼저 리뷰해보겠습니다." },
+    { time: "09:33", text: "첫 번째 안건은 신규 프로젝트 일정 조정입니다." },
+    { time: "09:35", text: "두 번째로 리소스 할당에 대해 이야기해보겠습니다." },
+    { time: "09:38", text: "마지막으로 다음 주 마일스톤 설정에 대해 논의하겠습니다." }
+  ];
 
   const handlePauseResumeClick = () => {
     handlePauseResume(isPaused, resumeRecording, pauseRecording);
@@ -93,9 +103,9 @@ export default function Note() {
 
           {isPanelOpen && (
             <>
-              <PanelResizeHandle />
-              <Panel defaultSize={30} minSize={30} maxSize={50}>
-                <SidePanel transcript={transcript} />
+              <PanelResizeHandle className="w-2 bg-gray-100 hover:bg-gray-200" />
+              <Panel defaultSize={20} minSize={15} maxSize={40}>
+                <SidePanel transcript={transcript} timestamps={mockTranscripts} />
               </Panel>
             </>
           )}

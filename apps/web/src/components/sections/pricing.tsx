@@ -4,6 +4,7 @@ import { useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Button } from "@/components/ui/button";
 import { RiCheckFill } from "@remixicon/react";
+import { cn } from "@/lib/utils";
 
 interface BillingPlan {
   type: "Free" | "Pro" | "Business";
@@ -18,29 +19,10 @@ interface BillingPlan {
 
 export default function Pricing() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
-    "monthly",
+    "monthly"
   );
-  const [currentPlan, setCurrentPlan] = useState<"Free" | "Pro" | "Business">(
-    "Free",
-  );
-  const [daysLeft, setDaysLeft] = useState(14); // Remaining free trial days
 
   const billingPlans: BillingPlan[] = [
-    {
-      type: "Free",
-      level: 0,
-      price: {
-        monthly: 0,
-        yearly: 0,
-      },
-      features: [
-        // 1. Basic features
-        "Note creation and editing",
-        "English speech recognition",
-        "Basic AI features",
-        "2-week free trial",
-      ],
-    },
     {
       type: "Pro",
       level: 1,
@@ -49,12 +31,11 @@ export default function Pricing() {
         yearly: 8,
       },
       features: [
-        // 2. Advanced features
+        "Note creation and editing",
         "Unlimited speech recognition",
         "Multi-language support",
         "Offline mode (English)",
         "Advanced AI features",
-        // 3. Collaboration features
         "Note sharing links",
         "App integrations (Notion, Slack, etc.)",
       ],
@@ -67,42 +48,19 @@ export default function Pricing() {
         yearly: 12,
       },
       features: [
-        // 1. Including Pro features
         "All Pro plan features",
-        // 2. Team features
         "Team workspace",
         "Detailed access control",
         "Shared note editing permissions",
-        // 3. Management features
         "Team billing",
         "Usage dashboard",
       ],
-      isComingSoon: true,
     },
   ];
 
-  const getButtonText = (
-    planLevel: number,
-    currentLevel: number,
-    planType: "Free" | "Pro" | "Business",
-  ) => {
-    if (planType === "Free" && currentPlan === "Free") {
-      if (daysLeft > 0) {
-        return `${daysLeft} days left`;
-      }
-      return "Trial expired";
-    }
-    if (planLevel === currentLevel) return "Current plan";
-    return planLevel > currentLevel ? "Upgrade" : "Downgrade";
-  };
-
-  const getPlanLevel = (planType: "Free" | "Pro" | "Business") => {
-    return billingPlans.find((plan) => plan.type === planType)?.level || 0;
-  };
-
   return (
     <section className="py-24">
-      <div className="container mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold mb-4">
             Simple, transparent pricing
@@ -119,7 +77,7 @@ export default function Pricing() {
           }
           className="mb-8"
         >
-          <Tabs.List className="mx-auto flex w-fit space-x-1 rounded-lg bg-muted p-1">
+          <Tabs.List className="mx-auto flex w-fit space-x-1 rounded-lg bg-muted p-1 border border-gray-100">
             <Tabs.Trigger
               value="monthly"
               className="rounded-md px-4 py-2 text-sm data-[state=active]:bg-background data-[state=inactive]:text-muted-foreground data-[state=active]:shadow-sm data-[state=inactive]:hover:text-foreground"
@@ -130,33 +88,28 @@ export default function Pricing() {
               value="yearly"
               className="rounded-md px-4 py-2 text-sm data-[state=active]:bg-background data-[state=inactive]:text-muted-foreground data-[state=active]:shadow-sm data-[state=inactive]:hover:text-foreground"
             >
-              Yearly (20% off)
+              Yearly{" "}
+              <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-0.5 text-xs font-medium text-black border border-gray-300">
+                Save 20%
+              </span>
             </Tabs.Trigger>
           </Tabs.List>
         </Tabs.Root>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
           {billingPlans.map((plan) => (
             <div
               key={plan.type}
-              className={`p-8 rounded-xl ${
-                currentPlan === plan.type
-                  ? "border-2 border-primary shadow-lg"
-                  : "border border-border"
-              }`}
+              className="p-8 rounded-xl relative border border-border"
             >
-              {plan.isComingSoon && (
-                <span className="inline-block bg-primary/10 text-primary text-sm font-medium px-3 py-1 rounded-full mb-4">
-                  Coming Soon
-                </span>
-              )}
-              {currentPlan === plan.type && !plan.isComingSoon && (
-                <span className="inline-block bg-primary/10 text-primary text-sm font-medium px-3 py-1 rounded-full mb-4">
-                  Current Plan
-                </span>
-              )}
-
-              <h3 className="text-2xl font-bold">{plan.type}</h3>
+              <h3 className="text-2xl font-bold flex items-center gap-2">
+                {plan.type}
+                {plan.type === "Pro" && (
+                  <span className="bg-primary text-primary-foreground text-xs font-medium px-2 py-0.5 rounded">
+                    Popular
+                  </span>
+                )}
+              </h3>
               <div className="mt-4 mb-6">
                 <span className="text-4xl font-bold">
                   $
@@ -170,18 +123,13 @@ export default function Pricing() {
               </div>
 
               <Button
-                className="w-full mb-8"
-                variant={currentPlan === plan.type ? "outline" : "default"}
-                disabled={
-                  currentPlan === plan.type &&
-                  (plan.type !== "Free" || daysLeft > 0)
-                }
+                className={cn("w-full mb-8", {
+                  "cursor-not-allowed": plan.type === "Business",
+                })}
+                variant="default"
+                disabled={plan.type === "Business"}
               >
-                {getButtonText(
-                  plan.level,
-                  getPlanLevel(currentPlan),
-                  plan.type,
-                )}
+                {plan.type === "Pro" ? "14-days free trial" : "Coming Soon"}
               </Button>
 
               <ul className="space-y-4">

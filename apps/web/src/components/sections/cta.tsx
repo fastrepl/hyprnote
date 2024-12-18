@@ -3,7 +3,7 @@ import { CtaButton } from "@/components/ui/cta-button";
 export default function CtaSection() {
   return (
     <section className="py-24 bg-primary text-center">
-      <div className="container mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4">
         <h2 className="text-4xl font-bold text-primary-foreground mb-4">
           Start Typing Now
         </h2>

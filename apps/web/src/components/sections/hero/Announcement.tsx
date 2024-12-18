@@ -1,4 +1,4 @@
-import AnimatedGradientText from "../ui/animated-gradient-text";
+import AnimatedGradientText from "@/components/ui/animated-gradient-text";
 
 export default function Announcement() {
   return (

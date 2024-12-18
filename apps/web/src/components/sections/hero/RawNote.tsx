@@ -4,11 +4,8 @@ interface RawNoteProps {
 
 export function RawNote({ content }: RawNoteProps) {
   return (
-    <div className="p-6 relative bg-white h-[400px]">
-      <div className="text-sm whitespace-pre-wrap text-left h-full overflow-y-auto">
-        {content}
-        <span className="inline-block w-0.5 h-5 bg-black animate-[blink_1s_steps(1)_infinite] ml-0.5" />
-      </div>
+    <div className="p-6 relative bg-white h-[400px] overflow-y-auto max-w-none text-left text-sm">
+      <div className="whitespace-pre-wrap">{content}</div>
 
       {/* Recording Indicator */}
       <div className="absolute top-4 right-4 flex items-center gap-2">

@@ -1,12 +1,12 @@
 import { CtaButton } from "@/components/ui/cta-button";
-import Announcement from "../hero/Announcement";
-import Demo from "../hero/Demo";
+import Announcement from "./hero/Announcement";
+import Demo from "./hero/Demo";
 import SparklesText from "../ui/sparkles-text";
 
 export default function Hero() {
   return (
     <section className="pt-32 pb-16 text-center">
-      <div className="container mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4">
         <Announcement />
 
         <h1 className="text-5xl font-bold mb-6">Hypercharge Notetaking</h1>

@@ -5,10 +5,10 @@ import {
   RiArrowRightSLine,
   RiFlashlightFill,
 } from "@remixicon/react";
-import { NoteWindow } from "./demo/NoteWindow";
-import { NoteHeader } from "./demo/NoteHeader";
-import { RawNote } from "./demo/RawNote";
-import { EnhancedNote } from "./demo/EnhancedNote";
+import { NoteWindow } from "./NoteWindow";
+import { NoteHeader } from "./NoteHeader";
+import { RawNote } from "./RawNote";
+import { EnhancedNote } from "./EnhancedNote";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 

@@ -3,7 +3,10 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use objc2::{rc::Retained, runtime::Bool};
-use objc2_event_kit::{EKCalendar, EKEventStore, EKEventStoreRequestAccessCompletionHandler};
+use objc2_event_kit::{
+    EKAuthorizationStatus, EKCalendar, EKEntityType, EKEventStore,
+    EKEventStoreRequestAccessCompletionHandler,
+};
 use objc2_foundation::{NSArray, NSDate, NSError, NSPredicate};
 
 pub struct Handle {
@@ -38,6 +41,14 @@ impl Handle {
         unsafe { store.requestFullAccessToEventsWithCompletion(completion_ptr) };
 
         Self { store }
+    }
+
+    pub fn authorization_status(&self) -> bool {
+        let status = unsafe { EKEventStore::authorizationStatusForEntityType(EKEntityType::Event) };
+        match status {
+            EKAuthorizationStatus::FullAccess => true,
+            _ => false,
+        }
     }
 
     pub fn list_calendars(&self) -> Vec<Calendar> {

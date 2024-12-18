@@ -1,8 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Hypr",
   "version": "0.1.0",
-  "identifier": "com.hyprnote.app",
+  "productName": "Hypr",
+  "mainBinaryName": "Hypr",
+  "identifier": "com.hyprnote.desktop",
   "build": {
     "beforeDevCommand": "pnpm run dev",
     "devUrl": "http://localhost:1420",
@@ -26,7 +27,8 @@
     "active": true,
     "targets": "all",
     "macOS": {
-      "minimumSystemVersion": "14.2"
+      "minimumSystemVersion": "14.2",
+      "entitlements": "./Entitlements.plist"
     },
     "icon": [
       "icons/32.png",

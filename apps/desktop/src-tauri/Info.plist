@@ -6,5 +6,9 @@
   <string>This app requires access to your microphone to record your voice during online meetings.</string>
   <key>NSAudioCaptureUsageDescription</key>
   <string>This app requires access to the microphone to capture audio from other participants in the online meeting.</string>
+  <key>NSCalendarsUsageDescription</key>
+  <string>This app requires access to your calendar to read events.</string>
+  <key>NSCalendarsFullAccessUsageDescription</key>
+  <string>This app requires access to your calendar to read events.</string>
 </dict>
 </plist>

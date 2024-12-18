@@ -26,6 +26,12 @@ export const commands = {
   async stopPlayback(audioId: string): Promise<void> {
     await TAURI_INVOKE("stop_playback", { audioId });
   },
+  async listAppleCalendars(): Promise<Calendar[] | null> {
+    return await TAURI_INVOKE("list_apple_calendars");
+  },
+  async listAppleEvents(filter: EventFilter): Promise<Event[] | null> {
+    return await TAURI_INVOKE("list_apple_events", { filter });
+  },
   async openPermissionSettings(permission: OSPermission): Promise<void> {
     await TAURI_INVOKE("open_permission_settings", { permission });
   },
@@ -43,11 +49,17 @@ export const events = __makeEvents__<{
 
 /** user-defined types **/
 
+export type Calendar = { title: string };
 export type Config = ConfigV0;
 export type ConfigV0 = {
   version: number;
   language: Language;
   user_name: string;
+};
+export type Event = { title: string; start_date: string; end_date: string };
+export type EventFilter = {
+  last_n_days: number | null;
+  calendar_titles: string[];
 };
 export type Language = "English" | "Korean";
 export type OSPermission =

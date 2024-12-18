@@ -6,6 +6,7 @@ export type Session = {
   id: string;
   start: string;
   end: string | null;
+  recording_path: string | null;
   tags: string[];
   raw_memo: string;
   processed_memo: string;

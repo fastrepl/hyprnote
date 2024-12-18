@@ -3,10 +3,22 @@ name = "apple-calendar"
 version = "0.1.0"
 edition = "2021"
 
-[build-dependencies]
-swift-rs = { git = "https://github.com/guillemcordoba/swift-rs", rev = "01980f981bc642a6da382cc0788f18fdd4cde6df", features = [
-  "build",
-] }
-
 [dependencies]
-swift-rs = { git = "https://github.com/guillemcordoba/swift-rs", rev = "01980f981bc642a6da382cc0788f18fdd4cde6df" }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+specta = { workspace = true }
+time = { workspace = true, features = ["formatting"] }
+block2 = "0.5.1"
+itertools = "0.13.0"
+
+objc2 = "0.5.2"
+objc2-event-kit = { version = "0.2.2", features = [
+  "EKEventStore",
+  "EKCalendarItem",
+  "EKCalendar",
+  "EKObject",
+  "EKEvent",
+  "EKTypes",
+  "block2",
+] }
+objc2-foundation = { version = "0.2.2", features = ["NSEnumerator"] }

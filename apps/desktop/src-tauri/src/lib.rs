@@ -32,9 +32,13 @@ pub fn run() {
             commands::stop_recording,
             commands::start_playback,
             commands::stop_playback,
+            commands::list_apple_calendars,
+            commands::list_apple_events,
             permissions::open_permission_settings,
         ])
         .events(tauri_specta::collect_events![events::Transcript])
+        .typ::<hypr_calendar::apple::Calendar>()
+        .typ::<hypr_calendar::apple::Event>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw);
 
     #[cfg(debug_assertions)]

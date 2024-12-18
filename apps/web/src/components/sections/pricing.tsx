@@ -66,7 +66,7 @@ export default function Pricing() {
             Simple, transparent pricing
           </h2>
           <p className="text-muted-foreground">
-            Choose the plan that's right for you
+            Choose the plan that&apos;s right for you
           </p>
         </div>
 

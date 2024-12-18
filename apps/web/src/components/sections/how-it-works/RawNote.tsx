@@ -15,17 +15,15 @@ export function RawNote({
   className,
 }: RawNoteProps) {
   const [typedText, setTypedText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     if (!typingContent || !isRecording) {
       setTypedText("");
-      setCurrentIndex(0);
+
       return;
     }
 
     setTypedText("");
-    setCurrentIndex(0);
 
     let index = 0;
     const interval = setInterval(() => {

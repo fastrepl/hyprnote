@@ -4,7 +4,7 @@ tasks:
   fmt:yaml: yamlfmt .github pnpm-workspace.yaml
   fmt:toml: taplo fmt apps/**/Cargo.toml crates/**/Cargo.toml Cargo.toml
   fmt:rs: cargo fmt
-  fmt:swift: find crates/swift -type f \( -name "*.swift" \) -not -path "*/\.build/*" | xargs swift-format format -i
+  fmt:swift: find crates -type f \( -name "*.swift" \) -not -path "*/\.build/*" | xargs swift-format format -i
   fmt:
     silent: true
     deps: ['fmt:yaml', 'fmt:toml', 'fmt:rs', 'fmt:swift', 'fmt:js']

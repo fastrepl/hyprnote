@@ -203,7 +203,15 @@ dependencies = [
 name = "apple-calendar"
 version = "0.1.0"
 dependencies = [
- "swift-rs 1.0.7 (git+https://github.com/guillemcordoba/swift-rs?rev=01980f981bc642a6da382cc0788f18fdd4cde6df)",
+ "block2",
+ "itertools 0.13.0",
+ "objc2",
+ "objc2-event-kit",
+ "objc2-foundation",
+ "serde",
+ "serde_json",
+ "specta",
+ "time",
 ]
 
 [[package]]
@@ -2162,6 +2170,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "audio",
+ "calendar",
  "cap-media",
  "cloud",
  "db",
@@ -5567,6 +5576,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7891e71393cd1f227313c9379a26a584ff3d7e6e7159e988851f0934c993f0f8"
 
 [[package]]
+name = "objc2-event-kit"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b856880adb20bae9c1de8726b7218503268538775d22462eb839ed8959f05413"
+dependencies = [
+ "bitflags 2.6.0",
+ "block2",
+ "objc2",
+ "objc2-app-kit",
+ "objc2-core-location",
+ "objc2-foundation",
+ "objc2-map-kit",
+]
+
+[[package]]
 name = "objc2-foundation"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5588,6 +5612,21 @@ dependencies = [
  "block2",
  "objc2",
  "objc2-app-kit",
+ "objc2-foundation",
+]
+
+[[package]]
+name = "objc2-map-kit"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca30f6a66e39947b495622ae162d121c4e727e98c379bbed5c1b255904506368"
+dependencies = [
+ "bitflags 2.6.0",
+ "block2",
+ "objc2",
+ "objc2-app-kit",
+ "objc2-contacts",
+ "objc2-core-location",
  "objc2-foundation",
 ]
 

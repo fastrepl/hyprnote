@@ -15,6 +15,8 @@ impl CustomizeCallback for BytesConverter {
 }
 
 fn main() {
+    println!("cargo:rerun-if-changed=../../packages/proto/v0.proto");
+
     Codegen::new()
         .out_dir("src/generated")
         .include("../../packages/proto")

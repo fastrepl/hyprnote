@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { motion, useInView, useAnimation } from "framer-motion";
 import { NoteWindow } from "./how-it-works/NoteWindow";
 import { RawNote } from "./how-it-works/RawNote";
@@ -8,6 +8,38 @@ import { EnhancedNote } from "./how-it-works/EnhancedNote";
 import { RecordingNoteHeader } from "./hero/RecordingNoteHeader";
 import { RiFlashlightFill } from "@remixicon/react";
 import { cn } from "@/lib/utils";
+
+// Static content moved outside component
+const ANIMATION_TIMINGS = {
+  RECORDING: 1000,
+  FIRST_BAR: 3000,
+  SECOND_BAR_START: 4000,
+  SECOND_BAR_COMPLETE: 6000,
+  RESET: 9000,
+} as const;
+
+const rawNote = "Meeting with Design Team\n\nDiscussed new feature implementation\nNeed to follow up with John re: UI specs\n\nDeadline set for next Friday\n\n";
+const typingContent = "Action items:\n- Create wireframes\n- Schedule follow-up";
+
+const enhancedContent = {
+  description:
+    "Discussed new feature implementation for the upcoming product release. The team expressed enthusiasm about the innovative approach. Need to follow up with John regarding UI specifications and design system integration.",
+  deadline: {
+    date: "Next Friday",
+    note: "Team agreed to prioritize this feature for Q1 roadmap",
+  },
+  keyPoints: [
+    "Design system consistency",
+    "accessibility requirements",
+    "mobile-first approach",
+  ],
+  actionItems: [
+    "Create wireframes with focus on responsive layouts",
+    "Schedule follow-up meeting with design system team",
+    "Review accessibility guidelines",
+    "Prepare prototype for stakeholder review",
+  ],
+};
 
 const steps = [
   {
@@ -29,65 +61,45 @@ export default function HowItWorks() {
     amount: 0.5,
   });
   const [demoStep, setDemoStep] = useState(0);
-  const [startTime, setStartTime] = useState(0);
+
+  const startAnimation = useCallback(() => {
+    let timeouts: NodeJS.Timeout[] = [];
+
+    timeouts = [
+      setTimeout(() => setDemoStep(1), ANIMATION_TIMINGS.RECORDING),
+      setTimeout(() => setDemoStep(2), ANIMATION_TIMINGS.FIRST_BAR),
+      setTimeout(() => setDemoStep(3), ANIMATION_TIMINGS.SECOND_BAR_START),
+      setTimeout(() => setDemoStep(4), ANIMATION_TIMINGS.SECOND_BAR_COMPLETE),
+      setTimeout(() => {
+        setDemoStep(0);
+        startAnimation();
+      }, ANIMATION_TIMINGS.RESET),
+    ];
+
+    return timeouts;
+  }, []);
 
   useEffect(() => {
-    if (isInView) {
-      controls.start("visible");
+    if (!isInView) return;
 
-      const startAnimation = () => {
-        const currentTime = Date.now();
-        setStartTime(currentTime);
+    controls.start("visible");
+    const timeouts = startAnimation();
 
-        // Start demo animation sequence
-        const step1 = setTimeout(() => setDemoStep(1), 1000); // Recording in progress
-        const step2 = setTimeout(() => setDemoStep(2), 3000); // First bar complete
-        const step3 = setTimeout(() => setDemoStep(3), 4000); // Start second bar
-        const step4 = setTimeout(() => setDemoStep(4), 6000); // Second bar complete
+    return () => {
+      timeouts.forEach(clearTimeout);
+    };
+  }, [controls, isInView, startAnimation]);
 
-        // Reset and restart animation
-        const reset = setTimeout(() => {
-          setDemoStep(0);
-          startAnimation();
-        }, 9000);
-
-        return [step1, step2, step3, step4, reset];
-      };
-
-      // Start the first animation cycle
-      const timeouts = startAnimation();
-
-      // Cleanup function
-      return () => {
-        timeouts.forEach(clearTimeout);
-      };
-    }
-  }, [controls, isInView]);
-
-  const rawNote =
-    "Meeting with Design Team\n\nDiscussed new feature implementation\nNeed to follow up with John re: UI specs\n\nDeadline set for next Friday\n\n";
-  const typingContent =
-    "Action items:\n- Create wireframes\n- Schedule follow-up";
-
-  const enhancedContent = {
-    description:
-      "Discussed new feature implementation for the upcoming product release. The team expressed enthusiasm about the innovative approach. Need to follow up with John regarding UI specifications and design system integration.",
-    deadline: {
-      date: "Next Friday",
-      note: "Team agreed to prioritize this feature for Q1 roadmap",
-    },
-    keyPoints: [
-      "Design system consistency",
-      "accessibility requirements",
-      "mobile-first approach",
-    ],
-    actionItems: [
-      "Create wireframes with focus on responsive layouts",
-      "Schedule follow-up meeting with design system team",
-      "Review accessibility guidelines",
-      "Prepare prototype for stakeholder review",
-    ],
-  };
+  const animationVariants = useMemo(() => {
+    return {
+      hidden: { opacity: 0, y: 20 },
+      visible: {
+        opacity: 1,
+        y: 0,
+        transition: { delay: 0.2 },
+      },
+    };
+  }, []);
 
   return (
     <section className="py-24 bg-gradient-to-b from-white to-muted/20">
@@ -155,14 +167,7 @@ export default function HowItWorks() {
               key={index}
               initial="hidden"
               animate={controls}
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: { delay: index * 0.2 },
-                },
-              }}
+              variants={animationVariants}
               className="text-center relative"
             >
               <div className="mb-4">

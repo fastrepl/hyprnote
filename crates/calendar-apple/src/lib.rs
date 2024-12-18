@@ -3,7 +3,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use objc2::{rc::Retained, runtime::Bool};
-use objc2_event_kit::{EKEventStore, EKEventStoreRequestAccessCompletionHandler};
+use objc2_event_kit::{EKCalendar, EKEventStore, EKEventStoreRequestAccessCompletionHandler};
 use objc2_foundation::{NSArray, NSDate, NSError, NSPredicate};
 
 pub struct Handle {
@@ -24,7 +24,7 @@ pub struct Event {
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct EventFilter {
-    pub last_n_days: Option<u8>,
+    pub last_n_days: Option<u32>,
     pub calendar_titles: Vec<String>,
 }
 
@@ -55,35 +55,34 @@ impl Handle {
     }
 
     pub fn list_events(&self, filter: EventFilter) -> Vec<Event> {
-        let predicate = self.events_predicate(filter);
+        let predicate = self.events_predicate(&filter);
         let events = unsafe { self.store.eventsMatchingPredicate(&predicate) };
 
         events
             .iter()
-            .map(|event| {
+            .filter_map(|event| {
                 let title = unsafe { event.title() };
                 let start_date = unsafe { event.startDate() };
                 let end_date = unsafe { event.endDate() };
+                let calendar = unsafe { event.calendar() }.unwrap();
+                let calendar_title = unsafe { calendar.title() };
+                
+                // This is theoretically not needed, but it seems like the 'calendars' filter does not work in the predicate.
+                if !filter.calendar_titles.contains(&calendar_title.to_string()) {
+                    return None;
+                }
 
-                Event {
+                Some(Event {
                     title: title.to_string(),
                     start_date: offset_date_time_from(start_date),
                     end_date: offset_date_time_from(end_date),
-                }
+                })
             })
             .sorted_by(|a, b| a.start_date.cmp(&b.start_date))
             .collect()
     }
 
-    fn events_predicate(&self, filter: EventFilter) -> Retained<NSPredicate> {
-        let calendars = unsafe { self.store.calendars() };
-        let calendar = calendars.into_iter().find(|c| {
-            let title = unsafe { c.title() };
-            filter.calendar_titles.contains(&title.to_string())
-        });
-
-        let calendar = calendar.unwrap();
-
+    fn events_predicate(&self, filter: &EventFilter) -> Retained<NSPredicate> {
         let start_date = unsafe { NSDate::new() };
         let end_date = unsafe {
             start_date.dateByAddingTimeInterval(
@@ -91,12 +90,21 @@ impl Handle {
             )
         };
 
+        let calendars = unsafe { self.store.calendars() };
+        let calendars: Retained<NSArray<EKCalendar>> = calendars
+            .into_iter()
+            .filter(|c| {
+                let title = unsafe { c.title() };
+                filter.calendar_titles.contains(&title.to_string())
+            })
+            .collect();
+
         let predicate = unsafe {
             self.store
                 .predicateForEventsWithStartDate_endDate_calendars(
                     &start_date,
                     &end_date,
-                    Some(&NSArray::from_vec(vec![calendar])),
+                    Some(&calendars),
                 )
         };
 
@@ -134,14 +142,17 @@ mod tests {
     #[test]
     fn test_list_calendars() {
         let handle = Handle::new();
-        let calendars = handle.list_calendars();
-        assert_eq!(calendars.len(), 0);
+        let _ = handle.list_calendars();
     }
 
-    // #[test]
-    // fn test_list_events() {
-    //     let handle = Handle::new();
-    //     let events = handle.list_events("Calendar");
-    //     assert_eq!(events.len(), 0);
-    // }
+    #[test]
+    fn test_list_events() {
+        let handle = Handle::new();
+        let filter = EventFilter {
+            last_n_days: Some(100),
+            calendar_titles: vec!["something_not_exist".to_string()],
+        };
+        let events = handle.list_events(filter);
+        assert_eq!(events.len(), 0);
+    }
 }

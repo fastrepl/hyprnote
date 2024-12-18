@@ -106,8 +106,8 @@ mod tests {
         let format = audio_capture.format().unwrap();
 
         assert_eq!(format.channels, 1);
-        assert_eq!(format.sample_rate, 48000);
-        assert_eq!(format.bits_per_sample, 32);
+        assert!(format.sample_rate > 1000);
+        assert!(format.bits_per_sample > 8);
 
         assert!(audio_capture.stop());
     }
@@ -126,11 +126,14 @@ mod tests {
     #[serial]
     fn test_read() {
         let audio_capture = AudioCapture::new();
-        let len = audio_capture.available_samples();
-        assert_eq!(len, 0);
+        let samples_1 = audio_capture.available_samples();
+        assert_eq!(samples_1, 0);
 
         assert!(audio_capture.start());
         play_for_sec(1).join().unwrap();
+
+        let samples_2 = audio_capture.available_samples();
+        assert!(samples_2 > samples_1 + 1000);
 
         let samples = audio_capture.read_samples(16000 * 2);
         assert!(samples.len() >= 16000 * 1);

@@ -10,3 +10,6 @@ cpal = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 hypr-audio-macos = { path = "../../crates/audio-macos", package = "audio-macos" }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+hypr-audio-windows = { path = "../../crates/audio-windows", package = "audio-windows" }

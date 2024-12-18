@@ -479,6 +479,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "audio-macos",
+ "audio-windows",
  "cpal",
  "rodio",
 ]
@@ -490,6 +491,13 @@ dependencies = [
  "rodio",
  "serial_test",
  "swift-rs 1.0.7 (git+https://github.com/guillemcordoba/swift-rs?rev=01980f981bc642a6da382cc0788f18fdd4cde6df)",
+]
+
+[[package]]
+name = "audio-windows"
+version = "0.1.0"
+dependencies = [
+ "windows 0.58.0",
 ]
 
 [[package]]

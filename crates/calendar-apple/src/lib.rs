@@ -66,7 +66,7 @@ impl Handle {
                 let end_date = unsafe { event.endDate() };
                 let calendar = unsafe { event.calendar() }.unwrap();
                 let calendar_title = unsafe { calendar.title() };
-                
+
                 // This is theoretically not needed, but it seems like the 'calendars' filter does not work in the predicate.
                 if !filter.calendar_titles.contains(&calendar_title.to_string()) {
                     return None;

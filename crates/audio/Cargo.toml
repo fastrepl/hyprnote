@@ -5,6 +5,8 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
-hypr-swift = { path = "../../crates/swift", package = "swift" }
 rodio = { version = "0.20.1", features = ["wav", "hound", "vorbis"] }
 cpal = { workspace = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+hypr-audio-macos = { path = "../../crates/audio-macos", package = "audio-macos" }

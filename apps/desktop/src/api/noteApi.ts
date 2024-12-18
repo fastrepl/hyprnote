@@ -43,7 +43,7 @@ export const fetchNote = async (id: string): Promise<Note> => {
 export const enhanceNoteWithAI = async (
   title: string,
   rawMemo: string,
-  processedTranscript: Array<any>,
+  _processedTranscript: Array<any>,
 ): Promise<{ content: string; suggestedTitle: string | null }> => {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 

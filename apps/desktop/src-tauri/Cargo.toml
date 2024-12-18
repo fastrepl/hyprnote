@@ -21,6 +21,7 @@ tauri-build = { version = "2", features = [] }
 hypr-db = { path = "../../../crates/db", package = "db" }
 hypr-audio = { path = "../../../crates/audio", package = "audio" }
 hypr-cloud = { path = "../../../crates/cloud", package = "cloud" }
+hypr-calendar = { path = "../../../crates/calendar", package = "calendar" }
 
 tauri = { workspace = true, features = ["tray-icon", "devtools"] }
 tauri-plugin-updater = "2"

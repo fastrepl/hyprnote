@@ -200,21 +200,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "apple-calendar"
-version = "0.1.0"
-dependencies = [
- "block2",
- "itertools 0.13.0",
- "objc2",
- "objc2-event-kit",
- "objc2-foundation",
- "serde",
- "serde_json",
- "specta",
- "time",
-]
-
-[[package]]
 name = "approx"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -493,9 +478,18 @@ name = "audio"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "audio-macos",
  "cpal",
  "rodio",
- "swift",
+]
+
+[[package]]
+name = "audio-macos"
+version = "0.1.0"
+dependencies = [
+ "rodio",
+ "serial_test",
+ "swift-rs 1.0.7 (git+https://github.com/guillemcordoba/swift-rs?rev=01980f981bc642a6da382cc0788f18fdd4cde6df)",
 ]
 
 [[package]]
@@ -908,8 +902,23 @@ dependencies = [
 name = "calendar"
 version = "0.1.0"
 dependencies = [
- "apple-calendar",
+ "calendar-apple",
  "google-calendar",
+]
+
+[[package]]
+name = "calendar-apple"
+version = "0.1.0"
+dependencies = [
+ "block2",
+ "itertools 0.13.0",
+ "objc2",
+ "objc2-event-kit",
+ "objc2-foundation",
+ "serde",
+ "serde_json",
+ "specta",
+ "time",
 ]
 
 [[package]]
@@ -8428,15 +8437,6 @@ name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
-
-[[package]]
-name = "swift"
-version = "0.1.0"
-dependencies = [
- "rodio",
- "serial_test",
- "swift-rs 1.0.7 (git+https://github.com/guillemcordoba/swift-rs?rev=01980f981bc642a6da382cc0788f18fdd4cde6df)",
-]
 
 [[package]]
 name = "swift-rs"

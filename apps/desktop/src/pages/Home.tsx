@@ -4,6 +4,7 @@ import { mockNotes } from "../mocks/data";
 import { UpcomingEvents } from "../components/home/UpcomingEvents";
 import { PastNotes } from "../components/home/PastNotes";
 import { NewUserBanner } from "../components/home/NewUserBanner";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function Home() {
   const [isNewUser] = useState(true);
@@ -51,6 +52,15 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-4xl space-y-8 p-6">
+      <button
+        onClick={() => {
+          invoke("list_calendars").then((calendars) => {
+            console.log(calendars);
+          });
+        }}
+      >
+        List Calendars
+      </button>
       {isNewUser && <NewUserBanner onDemoClick={handleDemoClick} />}
       <UpcomingEvents futureNotes={futureNotes} onNoteClick={handleNoteClick} />
       <PastNotes notes={pastNotes} onNoteClick={handleNoteClick} />

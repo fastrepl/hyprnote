@@ -16,10 +16,10 @@ export function Billing() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
     "monthly",
   );
-  const [currentPlan, setCurrentPlan] = useState<"Free" | "Pro" | "Business">(
+  const [currentPlan, _setCurrentPlan] = useState<"Free" | "Pro" | "Business">(
     "Free",
   );
-  const [daysLeft, setDaysLeft] = useState(14); // 남은 무료 사용 기간 (일)
+  const [daysLeft, _setDaysLeft] = useState(14); // 남은 무료 사용 기간 (일)
 
   const billingPlans: BillingPlan[] = [
     {

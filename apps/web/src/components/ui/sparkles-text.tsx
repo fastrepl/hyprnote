@@ -94,7 +94,7 @@ const SparklesText: React.FC<SparklesTextProps> = ({
           } else {
             return { ...star, lifespan: star.lifespan - 0.1 };
           }
-        }),
+        })
       );
     };
 
@@ -105,7 +105,7 @@ const SparklesText: React.FC<SparklesTextProps> = ({
   }, [colors.first, colors.second]);
 
   return (
-    <div
+    <span
       className={cn("text-6xl font-bold", className)}
       {...props}
       style={
@@ -121,7 +121,7 @@ const SparklesText: React.FC<SparklesTextProps> = ({
         ))}
         <strong>{text}</strong>
       </span>
-    </div>
+    </span>
   );
 };
 

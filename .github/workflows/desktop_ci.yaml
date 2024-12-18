@@ -36,6 +36,7 @@ jobs:
           restore-keys: |
             rust-${{ matrix.platform }}-
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: AnimMouse/setup-ffmpeg@v1
       - run: cargo build
       - uses: pnpm/action-setup@v4
         with:

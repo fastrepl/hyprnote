@@ -13,6 +13,10 @@ defmodule HyprWeb.Endpoint do
 
   plug HyprWeb.HealthPlug
 
+  socket "/v0/session", HyprWeb.Session,
+    websocket: [path: "/", connect_info: [:uri, :x_headers]],
+    longpoll: false
+
   socket "/live", Phoenix.LiveView.Socket,
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]

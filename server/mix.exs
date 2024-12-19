@@ -57,7 +57,10 @@ defmodule Hypr.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      #
+      {:stytch, "~> 0.4.4"},
+      {:req, "~> 0.5.8"}
     ]
   end
 

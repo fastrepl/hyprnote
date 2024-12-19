@@ -10,24 +10,34 @@ defmodule HyprWeb.Router do
     plug :put_secure_browser_headers
   end
 
+  pipeline :browser_unauthenticated do
+    plug :browser
+  end
+
+  pipeline :browser_authenticated do
+    plug :browser
+    plug HyprWeb.AuthPlug
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
   end
 
   scope "/", HyprWeb do
-    pipe_through :browser
+    pipe_through :browser_authenticated
 
     get "/", PageController, :home
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", HyprWeb do
-  #   pipe_through :api
-  # end
+  scope "/", HyprWeb do
+    pipe_through :browser_unauthenticated
 
-  # Enable Swoosh mailbox preview in development
+    get "/auth/google/login", AuthController, :login_google
+    get "/auth/logout", AuthController, :logout
+    get "/auth/callback", AuthController, :callback
+  end
+
   if Application.compile_env(:hypr, :dev_routes) do
-
     scope "/dev" do
       pipe_through :browser
 

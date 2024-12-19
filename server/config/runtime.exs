@@ -115,3 +115,7 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+config :stytch,
+  project_id: "project-test-045f680c-d466-4a1c-92d8-14dca2d061e3",
+  secret: "secret-test-LMar2VbT0spmQYivIG3Y5sgugiO3J79YcZI="

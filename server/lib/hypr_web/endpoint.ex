@@ -11,6 +11,8 @@ defmodule HyprWeb.Endpoint do
     same_site: "Lax"
   ]
 
+  plug HyprWeb.HealthPlug
+
   socket "/live", Phoenix.LiveView.Socket,
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]

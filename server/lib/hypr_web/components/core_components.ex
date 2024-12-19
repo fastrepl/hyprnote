@@ -17,7 +17,7 @@ defmodule HyprWeb.CoreComponents do
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
-  import HyprWeb.Gettext
+  use Gettext, backend: HyprWeb.Gettext
 
   @doc """
   Renders a modal.

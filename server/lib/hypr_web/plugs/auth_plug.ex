@@ -2,6 +2,8 @@ defmodule HyprWeb.AuthPlug do
   import Plug.Conn
   import Phoenix.Controller, only: [redirect: 2]
 
+  use Phoenix.VerifiedRoutes, endpoint: HyprWeb.Endpoint, router: HyprWeb.Router
+
   def init(opts), do: opts
 
   def call(conn, _opts) do
@@ -20,7 +22,7 @@ defmodule HyprWeb.AuthPlug do
   defp redirect_to_login(conn) do
     conn
     |> delete_session(:stytch_session_token)
-    |> redirect(to: "/auth/google/login")
+    |> redirect(to: ~p"/auth/web/login/google")
     |> halt()
   end
 end

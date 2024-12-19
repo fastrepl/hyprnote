@@ -117,5 +117,6 @@ if config_env() == :prod do
 end
 
 config :stytch,
+  public_token: "public-token-test-55c89e10-a4c2-4cb7-8bf2-fa1c667e49cd",
   project_id: "project-test-045f680c-d466-4a1c-92d8-14dca2d061e3",
   secret: "secret-test-LMar2VbT0spmQYivIG3Y5sgugiO3J79YcZI="

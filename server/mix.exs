@@ -38,8 +38,7 @@ defmodule Hypr.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      # TODO bump on release to {:phoenix_live_view, "~> 1.0.0"},
-      {:phoenix_live_view, "~> 1.0.0-rc.1", override: true},
+      {:phoenix_live_view, "~> 1.0.0"},
       {:floki, ">= 0.30.0", only: :test},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
@@ -59,8 +58,20 @@ defmodule Hypr.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       #
+      {:ash, "~> 3.4"},
+      {:ash_postgres, "~> 2.4"},
+      #
       {:stytch, "~> 0.4.4"},
-      {:req, "~> 0.5.8"}
+      {:req, "~> 0.5.0"},
+      {:retry, "~> 0.18"},
+      {:sentry, "~> 10.8"},
+      {:hackney, "~> 1.8"},
+      {:ex2ms, "~> 1.7"},
+      {:recon, "~> 2.5", override: true},
+      {:recon_ex, github: "tatsuya6502/recon_ex", ref: "0ce4c5d"},
+      {:protobuf, "~> 0.13.0"},
+      {:stripity_stripe, "~> 3.2"},
+      {:websockex, "~> 0.4.3"}
     ]
   end
 

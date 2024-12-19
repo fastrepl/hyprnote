@@ -29,12 +29,13 @@ defmodule HyprWeb.Router do
     get "/", PageController, :home
   end
 
-  scope "/", HyprWeb do
+  scope "/auth", HyprWeb do
     pipe_through :browser_unauthenticated
 
-    get "/auth/google/login", AuthController, :login_google
-    get "/auth/logout", AuthController, :logout
-    get "/auth/callback", AuthController, :callback
+    get "/desktop/login/google", AuthController, :desktop_login_google
+    get "/web/login/google", AuthController, :web_login_google
+    get "/web/logout", AuthController, :web_logout
+    get "/web/callback", AuthController, :web_callback
   end
 
   if Application.compile_env(:hypr, :dev_routes) do

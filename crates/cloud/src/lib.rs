@@ -1,6 +1,6 @@
 use anyhow::Result;
-use async_trait::async_trait;
 use tokio::sync::mpsc;
+use tokio_tungstenite::tungstenite;
 use url::Url;
 
 use hypr_proto::protobuf::Message;
@@ -33,34 +33,14 @@ struct WebsocketClient {
     output_sender: TranscribeOutputSender,
 }
 
-#[async_trait]
-impl ezsockets::ClientExt for WebsocketClient {
-    // https://docs.rs/ezsockets/latest/ezsockets/client/trait.ClientExt.html
-    type Call = ();
-
-    async fn on_text(&mut self, _text: String) -> Result<(), ezsockets::Error> {
-        Ok(())
-    }
-
-    async fn on_binary(&mut self, bytes: Vec<u8>) -> Result<(), ezsockets::Error> {
-        let data = proto::TranscribeOutputChunk::parse_from_bytes(&bytes).unwrap();
-        let _ = self.output_sender.send(data).await;
-        Ok(())
-    }
-
-    async fn on_call(&mut self, _call: Self::Call) -> Result<(), ezsockets::Error> {
-        Ok(())
-    }
-}
-
 pub struct Client {
     config: ClientConfig,
     reqwest_client: reqwest::Client,
-    ws_client: Option<ezsockets::Client<WebsocketClient>>,
 }
 
 pub struct ClientConfig {
     base_url: Url,
+    auth_token: String,
 }
 
 impl Client {
@@ -70,7 +50,6 @@ impl Client {
         Self {
             config,
             reqwest_client: client,
-            ws_client: None,
         }
     }
 
@@ -96,17 +75,11 @@ impl Client {
         let (input_sender, mut input_receiver) = mpsc::channel::<proto::TranscribeInputChunk>(100);
         let (output_sender, output_receiver) = mpsc::channel::<proto::TranscribeOutputChunk>(100);
 
-        let config = ezsockets::ClientConfig::new(self.ws_url().as_str());
+        let request =
+            tungstenite::ClientRequestBuilder::new(self.ws_url().to_string().parse().unwrap())
+                .with_header("x-hypr-token", &self.config.auth_token);
 
-        let (handle, future) =
-            ezsockets::connect(|_client| WebsocketClient { output_sender }, config).await;
-
-        tokio::spawn(async move {
-            while let Some(input) = input_receiver.recv().await {
-                let _ = handle.binary(input.audio);
-            }
-            future.await.unwrap();
-        });
+        let (stream, response) = tokio_tungstenite::connect_async(request).await?;
 
         Ok(TranscribeHandler {
             input_sender,
@@ -115,7 +88,6 @@ impl Client {
     }
 
     pub fn ws_disconnect(&mut self) -> Result<()> {
-        self.ws_client.take().unwrap().close(None)?;
         Ok(())
     }
 
@@ -139,6 +111,7 @@ mod tests {
     async fn test_simple() {
         let _ = Client::new(ClientConfig {
             base_url: Url::parse("http://localhost:8080").unwrap(),
+            auth_token: "".to_string(),
         });
     }
 }

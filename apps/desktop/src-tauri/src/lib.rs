@@ -1,8 +1,11 @@
 use cap_media::feeds::{AudioInputFeed, AudioInputSamplesSender};
-use tauri::{AppHandle, Manager};
 use tokio::sync::RwLock;
 
+use tauri::{AppHandle, Emitter, Manager};
+use tauri_plugin_deep_link::DeepLinkExt;
+
 mod audio;
+mod auth;
 mod commands;
 mod config;
 mod db;
@@ -84,14 +87,36 @@ pub fn run() {
         );
     }
 
-    builder = builder.plugin(tauri_plugin_deep_link::init());
+    builder = builder.plugin(tauri_plugin_deep_link::init()).setup(|app| {
+        let app_handle = app.handle().clone();
+
+        app.deep_link().on_open_url(move |event| {
+            let urls = event.urls();
+            let url = urls.first().unwrap();
+
+            if url.path() == "/auth" {
+                let query_pairs: std::collections::HashMap<String, String> = url
+                    .query_pairs()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect();
+
+                let local_data_dir = app_handle.path().app_local_data_dir().unwrap();
+                let file_path = local_data_dir.join("api_key.txt");
+                let key = query_pairs.get("key").unwrap().clone();
+
+                std::fs::write(&file_path, key).unwrap();
+                let _ = app_handle.emit("auth", true);
+            }
+        });
+
+        Ok(())
+    });
 
     // https://v2.tauri.app/plugin/deep-linking/#registering-desktop-deep-links-at-runtime
     #[cfg(any(windows, target_os = "linux"))]
     {
         builder = builder.setup(|app| {
             {
-                use tauri_plugin_deep_link::DeepLinkExt;
                 app.deep_link().register_all()?;
             }
 
@@ -143,6 +168,8 @@ pub fn run() {
         })
         .setup(move |app| {
             let app = app.handle().clone();
+
+            if let Ok(Some(_auth)) = auth::AuthStore::load(&app) {}
 
             app.manage(RwLock::new(App {
                 handle: app.clone(),

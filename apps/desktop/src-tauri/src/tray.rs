@@ -1,3 +1,5 @@
+// https://github.com/CapSoftware/Cap/blob/8671050aaff780f658507579e7d1d75e7ee25d59/apps/desktop/src-tauri/src/tray.rs
+
 // use crate::events::{RecordingStarted, RecordingStopped};
 use tauri::{
     image::Image,
@@ -36,9 +38,9 @@ pub fn create_tray(app: &AppHandle) -> Result<()> {
     let menu = Menu::with_items(
         app,
         &[
-            &MenuItem::with_id(app, TrayItem::Open, "Open Cap", true, None::<&str>)?,
+            &MenuItem::with_id(app, TrayItem::Open, "Open", true, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, TrayItem::Quit, "Quit Cap", true, None::<&str>)?,
+            &MenuItem::with_id(app, TrayItem::Quit, "Quit", true, None::<&str>)?,
         ],
     )?;
 
@@ -46,14 +48,12 @@ pub fn create_tray(app: &AppHandle) -> Result<()> {
 
     TrayIconBuilder::with_id("hypr-tray")
         .icon(Image::from_bytes(include_bytes!(
-            // "../icons/tray-icon-active.png"
-            "../icons/tray_recording.png" // "../icons/tray-icon-default.png"
+            "../icons/tray_default.png"
         ))?)
         .icon_as_template(true)
         .menu(&menu)
         .menu_on_left_click(true)
         .on_menu_event({
-            let app_handle = app.clone();
             move |app: &AppHandle, event| match TrayItem::from(event.id) {
                 TrayItem::Open => {
                     if let Some(window) = app.get_webview_window("main") {

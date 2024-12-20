@@ -23,7 +23,7 @@ hypr-audio = { path = "../../../crates/audio", package = "audio" }
 hypr-cloud = { path = "../../../crates/cloud", package = "cloud" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar" }
 
-tauri = { workspace = true, features = ["tray-icon", "devtools"] }
+tauri = { workspace = true, features = ["tray-icon", "image-png", "devtools"] }
 tauri-plugin-updater = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-positioner = "2"
@@ -36,6 +36,7 @@ tauri-plugin-global-shortcut = "2"
 tauri-plugin-store = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-autostart = "2"
+tauri-plugin-shell = "2"
 
 specta = { workspace = true }
 specta-typescript = { workspace = true }
@@ -56,5 +57,3 @@ futures = "0.3.31"
 flume = "0.11.1"
 objc = "0.2.7"
 cap-media = { workspace = true }
-tauri-plugin-stronghold = "2.2.0"
-tauri-plugin-shell = "2.2.0"

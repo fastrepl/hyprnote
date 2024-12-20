@@ -136,6 +136,10 @@ pub fn run() {
             move |invoke| handler(invoke)
         })
         .setup(move |app| {
+            specta_builder.mount_events(app);
+            Ok(())
+        })
+        .setup(move |app| {
             let app = app.handle().clone();
 
             let mut cloud_config = hypr_cloud::ClientConfig {
@@ -151,25 +155,16 @@ pub fn run() {
                 cloud_config.auth_token = Some(auth.token);
             }
 
-            app.manage(RwLock::new(App {
-                handle: app.clone(),
-                audio_input_tx,
-                audio_input_feed: None,
-                cloud_config,
-            }));
+            // These MUST be called before anything else!
+            {
+                app.manage(RwLock::new(App {
+                    handle: app.clone(),
+                    audio_input_tx,
+                    audio_input_feed: None,
+                    cloud_config,
+                }));
+            }
 
-            tray::create_tray(&app).unwrap();
-
-            Ok(())
-        })
-        .setup(|app| {
-            let salt_path = app.path().app_local_data_dir()?.join("salt.txt");
-            app.handle()
-                .plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
-            Ok(())
-        })
-        .setup(move |app| {
-            specta_builder.mount_events(app);
             Ok(())
         })
         .setup(|app| {
@@ -193,6 +188,11 @@ pub fn run() {
                 let autostart_manager = app.autolaunch();
                 let _ = autostart_manager.enable();
             }
+            Ok(())
+        })
+        .setup(|app| {
+            let app = app.handle().clone();
+            tray::create_tray(&app).unwrap();
             Ok(())
         })
         .run(tauri::generate_context!())

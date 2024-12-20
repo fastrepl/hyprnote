@@ -13,6 +13,7 @@ mod db;
 mod events;
 mod permissions;
 mod session;
+mod tray;
 
 pub struct App {
     handle: AppHandle,
@@ -156,6 +157,8 @@ pub fn run() {
                 audio_input_feed: None,
                 cloud_config,
             }));
+
+            tray::create_tray(&app).unwrap();
 
             Ok(())
         })

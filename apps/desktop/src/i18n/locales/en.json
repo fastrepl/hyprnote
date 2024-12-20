@@ -1,0 +1,221 @@
+{
+  "common": {
+    "login": "Login",
+    "home": "Home",
+    "notes": "Notes",
+    "untitled": "Untitled",
+    "demo": "Demo",
+    "welcome": "Welcome to",
+    "search": "Search",
+    "settings": "Settings"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "continueWith": "Continue with {{provider}}"
+  },
+  "home": {
+    "newUser": {
+      "question": "Curious about Hyprnote?",
+      "tryDemo": "Try Demo"
+    },
+    "upcomingEvents": "Upcoming Events",
+    "recentNotes": "Recent Notes",
+    "updated": "Updated at {{time}}"
+  },
+  "note": {
+    "new": {
+      "label": "Create new note",
+      "button": "New Note"
+    },
+    "panel": {
+      "open": "Open panel",
+      "close": "Close panel"
+    },
+    "title": {
+      "placeholder": "Untitled"
+    },
+    "calendar": {
+      "time": "{{start}} ~ {{end}}"
+    },
+    "controls": {
+      "start": "Start Recording",
+      "pause": "Pause",
+      "resume": "Resume",
+      "hypercharge": "Hypercharge",
+      "recording": "Recording",
+      "recordingTime": "{{minutes}}:{{seconds}}",
+      "joinMeeting": "Join Meeting",
+      "startRecording": "Start Recording",
+      "paused": "Paused"
+    },
+    "tags": {
+      "title": "Tags"
+    },
+    "sidePanel": {
+      "transcript": "Transcript",
+      "chat": "Chat"
+    },
+    "chat": {
+      "placeholder": "Ask AI Assistant...",
+      "description": "I can help analyze and organize your meeting content",
+      "error": "Sorry, an error occurred",
+      "quickActions": {
+        "summarizeQA": "Summarize Q&A",
+        "listActions": "List Action Items",
+        "summarizeMeeting": "Summarize Meeting",
+        "writeEmail": "Draft Follow-up Email",
+        "suggestAgenda": "Suggest Next Agenda"
+      },
+      "send": "Send"
+    }
+  },
+  "search": {
+    "label": "Search",
+    "placeholder": "Search...",
+    "noResults": "No results found",
+    "results": "Results",
+    "shortcut": "⌘K"
+  },
+  "settings": {
+    "shortcut": "⌘,",
+    "tabs": {
+      "profile": "Profile",
+      "general": "General",
+      "feedback": "Feedback",
+      "billing": "Billing",
+      "calendar": "Calendar",
+      "notifications": "Notifications",
+      "integrations": "Integrations"
+    },
+    "general": {
+      "description": "Manage basic app settings",
+      "language": "Language",
+      "languageDescription": "Choose your preferred language",
+      "autoStart": "Auto Start",
+      "autoStartDescription": "Launch app automatically when your computer starts",
+      "autoUpdate": "Auto Update",
+      "autoUpdateDescription": "Automatically update when new version is available",
+      "crashReports": "Send Crash Reports",
+      "crashReportsDescription": "Send crash reports to help improve the app",
+      "usageData": "Send Usage Data",
+      "usageDataDescription": "Send anonymous usage data to help improve the app",
+      "theme": "Theme",
+      "themeDescription": "Choose your preferred appearance",
+      "themes": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      }
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Manage your profile information",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Enter your full name",
+      "email": "Email",
+      "avatar": {
+        "change": "Change Photo"
+      },
+      "save": "Save Changes",
+      "cancel": "Cancel"
+    },
+    "feedback": {
+      "title": "Feedback",
+      "description": "Share your thoughts or report issues",
+      "type": {
+        "label": "Feedback Type",
+        "general": "General Feedback",
+        "problem": "Report a Problem",
+        "question": "Ask a Question"
+      },
+      "content": {
+        "label": "Your Message",
+        "placeholder": "Tell us what's on your mind..."
+      },
+      "submit": "Submit Feedback"
+    },
+    "calendar": {
+      "title": "Calendar",
+      "description": "Manage your calendar integrations",
+      "google": {
+        "title": "Google Calendar",
+        "description": "Sync with your Google Calendar"
+      },
+      "ical": {
+        "title": "iCal Calendar",
+        "description": "Import events from iCal feeds"
+      }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Manage your notification preferences",
+      "scheduledMeetings": {
+        "title": "Scheduled Meetings",
+        "description": "Get notified about upcoming scheduled meetings"
+      },
+      "autoIdentified": {
+        "title": "Auto-identified Meetings",
+        "description": "Get notified when meetings are automatically identified"
+      }
+    },
+    "integrations": {
+      "title": "Integrations",
+      "description": "Connect with your favorite apps",
+      "connect": "Connect",
+      "slack": {
+        "title": "Slack",
+        "description": "Share meeting notes directly to Slack channels"
+      },
+      "notion": {
+        "title": "Notion",
+        "description": "Export notes to your Notion workspace"
+      }
+    },
+    "billing": {
+      "title": "Billing",
+      "description": "Manage your subscription and billing settings",
+      "billingCycle": {
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      },
+      "plans": {
+        "pro": {
+          "title": "Pro",
+          "features": {
+            "noteCreation": "Note creation and editing",
+            "speechRecognition": "Unlimited speech recognition",
+            "multiLanguage": "Multi-language support",
+            "offlineMode": "Offline mode (English)",
+            "aiFeatures": "Advanced AI features",
+            "sharing": "Note sharing links",
+            "integrations": "App integrations (Notion, Slack, etc.)"
+          }
+        },
+        "business": {
+          "title": "Business",
+          "features": {
+            "allPro": "All Pro plan features",
+            "workspace": "Team workspace",
+            "accessControl": "Detailed access control",
+            "sharedEditing": "Shared note editing permissions",
+            "teamBilling": "Team billing",
+            "dashboard": "Usage dashboard"
+          }
+        }
+      },
+      "status": {
+        "current": "Current Plan",
+        "comingSoon": "Coming Soon",
+        "daysLeft": "{{days}} days left",
+        "upgrade": "Upgrade",
+        "downgrade": "Downgrade"
+      },
+      "pricing": {
+        "perMonth": "/month"
+      }
+    }
+  }
+}

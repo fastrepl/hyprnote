@@ -1,0 +1,233 @@
+{
+  "common": {
+    "cancel": "रद्द करें",
+    "save": "सहेजें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि हो गई है",
+    "login": "लॉग इन करें",
+    "home": "होम",
+    "notes": "नोट्स",
+    "untitled": "शीर्षकहीन",
+    "demo": "डेमो",
+    "welcome": "में आपका स्वागत है",
+    "search": "खोजें",
+    "settings": "सेटिंग्स"
+  },
+  "auth": {
+    "signIn": "साइन इन करें",
+    "signOut": "साइन आउट करें",
+    "signUp": "साइन अप करें",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "resetPassword": "पासवर्ड रीसेट करें",
+    "createAccount": "खाता बनाएं",
+    "login": "लॉग इन करें",
+    "logout": "लॉग आउट करें",
+    "continueWith": "{{provider}} के साथ जारी रखें"
+  },
+  "home": {
+    "newUser": {
+      "question": "Hyprnote के बारे में जानना चाहते हैं?",
+      "tryDemo": "डेमो आज़माएं"
+    },
+    "upcomingEvents": "आगामी कार्यक्रम",
+    "recentNotes": "हाल के नोट्स",
+    "updated": "{{time}} को अपडेट किया गया"
+  },
+  "note": {
+    "new": {
+      "label": "नया नोट बनाएं",
+      "button": "नया नोट"
+    },
+    "panel": {
+      "open": "पैनल खोलें",
+      "close": "पैनल बंद करें"
+    },
+    "title": {
+      "placeholder": "शीर्षकहीन"
+    },
+    "calendar": {
+      "time": "{{start}} ~ {{end}}"
+    },
+    "controls": {
+      "joinMeeting": "मीटिंग में शामिल हों",
+      "hypercharge": "हाइपरचार्ज",
+      "startRecording": "रिकॉर्डिंग शुरू करें",
+      "paused": "रुका हुआ",
+      "recording": "रिकॉर्डिंग",
+      "recordingTime": "{{minutes}}:{{seconds}}",
+      "start": "रिकॉर्डिंग शुरू करें",
+      "pause": "रोकें",
+      "resume": "जारी रखें"
+    },
+    "tags": {
+      "title": "टैग"
+    },
+    "sidePanel": {
+      "transcript": "प्रतिलेख",
+      "chat": "चैट"
+    },
+    "chat": {
+      "placeholder": "AI सहायक से पूछें...",
+      "description": "मैं आपकी मीटिंग सामग्री को विश्लेषण और व्यवस्थित करने में मदद कर सकता हूं",
+      "error": "क्षमा करें, एक त्रुटि हुई",
+      "quickActions": {
+        "summarizeQA": "प्रश्नोत्तर सारांश",
+        "listActions": "कार्य सूची",
+        "summarizeMeeting": "मीटिंग सारांश",
+        "writeEmail": "फॉलो-अप ईमेल लिखें",
+        "suggestAgenda": "अगली एजेंडा सुझाएं"
+      },
+      "send": "भेजें"
+    }
+  },
+  "search": {
+    "placeholder": "खोजें...",
+    "noResults": "कोई परिणाम नहीं मिला",
+    "results": "परिणाम",
+    "label": "खोजें",
+    "shortcut": "⌘K"
+  },
+  "settings": {
+    "shortcut": "⌘,",
+    "tabs": {
+      "general": "सामान्य",
+      "profile": "प्रोफ़ाइल",
+      "feedback": "प्रतिक्रिया",
+      "billing": "बिलिंग",
+      "calendar": "कैलेंडर",
+      "notifications": "सूचनाएं",
+      "integrations": "एकीकरण"
+    },
+    "general": {
+      "description": "बुनियादी ऐप सेटिंग्स प्रबंधित करें",
+      "language": "भाषा",
+      "languageDescription": "अपनी पसंदीदा भाषा चुनें",
+      "autoStart": "स्वतः प्रारंभ",
+      "autoStartDescription": "कंप्यूटर शुरू होने पर ऐप स्वचालित रूप से लॉन्च करें",
+      "autoUpdate": "स्वतः अपडेट",
+      "autoUpdateDescription": "नया वर्जन उपलब्ध होने पर स्वचालित रूप से अपडेट करें",
+      "crashReports": "क्रैश रिपोर्ट भेजें",
+      "crashReportsDescription": "ऐप को बेहतर बनाने में मदद करने के लिए क्रैश रिपोर्ट भेजें",
+      "usageData": "उपयोग डेटा भेजें",
+      "usageDataDescription": "ऐप को बेहतर बनाने में मदद करने के लिए अनाम उपयोग डेटा भेजें",
+      "theme": "थीम",
+      "themeDescription": "अपनी पसंदीदा दिखावट चुनें",
+      "themes": {
+        "light": "लाइट",
+        "dark": "डार्क",
+        "system": "सिस्टम"
+      }
+    },
+    "profile": {
+      "title": "प्रोफ़ाइल",
+      "description": "अपनी प्रोफ़ाइल जानकारी प्रबंधित करें",
+      "fullName": "पूरा नाम",
+      "fullNamePlaceholder": "अपना पूरा नाम दर्ज करें",
+      "email": "ईमेल",
+      "avatar": {
+        "change": "फोटो बदलें"
+      },
+      "save": "परिवर्तन सहेजें",
+      "cancel": "रद्द करें"
+    },
+    "feedback": {
+      "title": "प्रतिक्रिया",
+      "description": "अपने विचार साझा करें या समस्या की रिपोर्ट करें",
+      "type": {
+        "label": "प्रतिक्रिया प्रकार",
+        "general": "सामान्य प्रतिक्रिया",
+        "problem": "समस्या रिपोर्ट करें",
+        "question": "प्रश्न पूछें"
+      },
+      "content": {
+        "label": "आपका संदेश",
+        "placeholder": "अपने विचार साझा करें..."
+      },
+      "submit": "प्रतिक्रिया भेजें"
+    },
+    "calendar": {
+      "title": "कैलेंडर",
+      "description": "अपने कैलेंडर एकीकरण प्रबंधित करें",
+      "google": {
+        "title": "Google कैलेंडर",
+        "description": "Google कैलेंडर के साथ सिंक करें"
+      },
+      "ical": {
+        "title": "iCal कैलेंडर",
+        "description": "iCal फ़ीड से इवेंट आयात करें"
+      }
+    },
+    "notifications": {
+      "title": "सूचनाएं",
+      "description": "अपनी सूचना प्राथमिकताएं प्रबंधित करें",
+      "scheduledMeetings": {
+        "title": "निर्धारित मीटिंग",
+        "description": "आगामी निर्धारित मीटिंग के बारे में सूचित करें"
+      },
+      "autoIdentified": {
+        "title": "स्वतः-पहचानी गई मीटिंग",
+        "description": "जब मीटिंग स्वचालित रूप से पहचानी जाएं तो सूचित करें"
+      }
+    },
+    "integrations": {
+      "title": "एकीकरण",
+      "description": "अपने पसंदीदा ऐप्स से कनेक्ट करें",
+      "connect": "कनेक्ट करें",
+      "slack": {
+        "title": "Slack",
+        "description": "मीटिंग नोट्स सीधे Slack चैनल में साझा करें"
+      },
+      "notion": {
+        "title": "Notion",
+        "description": "नोट्स को अपने Notion वर्कस्पेस में निर्यात करें"
+      }
+    },
+    "billing": {
+      "title": "बिलिंग",
+      "description": "अपनी सदस्यता और बिलिंग सेटिंग्स प्रबंधित करें",
+      "billingCycle": {
+        "monthly": "मासिक",
+        "yearly": "वार्षिक"
+      },
+      "plans": {
+        "pro": {
+          "title": "प्रो",
+          "features": {
+            "noteCreation": "नोट्स बनाना और संपादित करना",
+            "speechRecognition": "असीमित स्पीच रिकग्निशन",
+            "multiLanguage": "बहुभाषी समर्थन",
+            "offlineMode": "ऑफ़लाइन मोड (अंग्रेजी)",
+            "aiFeatures": "उन्नत AI सुविधाएं",
+            "sharing": "नोट्स शेयरिंग लिंक",
+            "integrations": "ऐप एकीकरण (Notion, Slack, आदि)"
+          }
+        },
+        "business": {
+          "title": "बिज़नेस",
+          "features": {
+            "allPro": "सभी प्रो प्लान सुविधाएं",
+            "workspace": "टीम वर्कस्पेस",
+            "accessControl": "विस्तृत एक्सेस कंट्रोल",
+            "sharedEditing": "साझा संपादन अनुमतियां",
+            "teamBilling": "टीम बिलिंग",
+            "dashboard": "उपयोग डैशबोर्ड"
+          }
+        }
+      },
+      "status": {
+        "current": "वर्तमान प्लान",
+        "comingSoon": "जल्द आ रहा है",
+        "daysLeft": "{{days}} दिन शेष",
+        "upgrade": "अपग्रेड करें",
+        "downgrade": "डाउनग्रेड करें"
+      },
+      "pricing": {
+        "perMonth": "/माह"
+      }
+    }
+  }
+}

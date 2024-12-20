@@ -1,0 +1,221 @@
+{
+  "common": {
+    "login": "Se connecter",
+    "home": "Accueil",
+    "notes": "Notes",
+    "untitled": "Sans titre",
+    "demo": "Démo",
+    "welcome": "Bienvenue sur",
+    "search": "Rechercher",
+    "settings": "Paramètres"
+  },
+  "auth": {
+    "login": "Se connecter",
+    "logout": "Se déconnecter",
+    "email": "Email",
+    "password": "Mot de passe",
+    "continueWith": "Continuer avec {{provider}}"
+  },
+  "home": {
+    "newUser": {
+      "question": "Curieux d'essayer Hyprnote ?",
+      "tryDemo": "Essayer la démo"
+    },
+    "upcomingEvents": "Événements à venir",
+    "recentNotes": "Notes récentes",
+    "updated": "Mis à jour à {{time}}"
+  },
+  "note": {
+    "new": {
+      "label": "Créer une nouvelle note",
+      "button": "Nouvelle note"
+    },
+    "panel": {
+      "open": "Ouvrir le panneau",
+      "close": "Fermer le panneau"
+    },
+    "title": {
+      "placeholder": "Sans titre"
+    },
+    "calendar": {
+      "time": "{{start}} ~ {{end}}"
+    },
+    "controls": {
+      "joinMeeting": "Rejoindre la réunion",
+      "hypercharge": "Hypercharge",
+      "startRecording": "Démarrer l'enregistrement",
+      "paused": "En pause",
+      "recording": "Enregistrement",
+      "recordingTime": "{{minutes}}:{{seconds}}",
+      "resume": "Reprendre",
+      "start": "Démarrer l'enregistrement",
+      "pause": "Pause"
+    },
+    "tags": {
+      "title": "Tags"
+    },
+    "sidePanel": {
+      "transcript": "Transcription",
+      "chat": "Chat"
+    },
+    "chat": {
+      "placeholder": "Demandez à l'assistant IA...",
+      "description": "Je peux vous aider à analyser et organiser le contenu de votre réunion",
+      "error": "Désolé, une erreur s'est produite",
+      "quickActions": {
+        "summarizeQA": "Résumer les Q&R",
+        "listActions": "Lister les actions",
+        "summarizeMeeting": "Résumer la réunion",
+        "writeEmail": "Rédiger un email de suivi",
+        "suggestAgenda": "Suggérer le prochain ordre du jour"
+      },
+      "send": "Envoyer"
+    }
+  },
+  "search": {
+    "label": "Rechercher",
+    "placeholder": "Rechercher...",
+    "noResults": "Aucun résultat trouvé",
+    "results": "Résultats",
+    "shortcut": "⌘K"
+  },
+  "settings": {
+    "shortcut": "⌘,",
+    "tabs": {
+      "profile": "Profil",
+      "general": "Général",
+      "feedback": "Retour",
+      "billing": "Facturation",
+      "calendar": "Calendrier",
+      "notifications": "Notifications",
+      "integrations": "Intégrations"
+    },
+    "general": {
+      "description": "Gérer les paramètres de base de l'application",
+      "language": "Langue",
+      "languageDescription": "Choisissez votre langue préférée",
+      "autoStart": "Démarrage automatique",
+      "autoStartDescription": "Lancer l'application automatiquement au démarrage de l'ordinateur",
+      "autoUpdate": "Mise à jour automatique",
+      "autoUpdateDescription": "Mettre à jour automatiquement lorsqu'une nouvelle version est disponible",
+      "crashReports": "Envoyer les rapports d'erreur",
+      "crashReportsDescription": "Envoyer les rapports d'erreur pour améliorer l'application",
+      "usageData": "Envoyer les données d'utilisation",
+      "usageDataDescription": "Envoyer des données d'utilisation anonymes pour améliorer l'application",
+      "theme": "Thème",
+      "themeDescription": "Choisissez votre apparence préférée",
+      "themes": {
+        "light": "Clair",
+        "dark": "Sombre",
+        "system": "Système"
+      }
+    },
+    "profile": {
+      "title": "Profil",
+      "description": "Gérer vos informations de profil",
+      "avatar": {
+        "change": "Changer la photo"
+      },
+      "fullName": "Nom complet",
+      "fullNamePlaceholder": "Entrez votre nom complet",
+      "email": "Email",
+      "save": "Enregistrer les modifications",
+      "cancel": "Annuler"
+    },
+    "feedback": {
+      "title": "Retour",
+      "description": "Partagez vos commentaires ou signalez des problèmes",
+      "type": {
+        "label": "Type de retour",
+        "general": "Retour général",
+        "problem": "Signaler un problème",
+        "question": "Poser une question"
+      },
+      "content": {
+        "label": "Votre message",
+        "placeholder": "Dites-nous ce que vous pensez..."
+      },
+      "submit": "Envoyer le retour"
+    },
+    "calendar": {
+      "title": "Calendrier",
+      "description": "Gérer vos intégrations de calendrier",
+      "google": {
+        "title": "Google Calendar",
+        "description": "Synchroniser avec Google Calendar"
+      },
+      "ical": {
+        "title": "Calendrier iCal",
+        "description": "Importer des événements depuis les flux iCal"
+      }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Gérer vos préférences de notification",
+      "scheduledMeetings": {
+        "title": "Réunions planifiées",
+        "description": "Recevoir des notifications pour les réunions planifiées"
+      },
+      "autoIdentified": {
+        "title": "Réunions auto-identifiées",
+        "description": "Recevoir des notifications lorsque des réunions sont automatiquement identifiées"
+      }
+    },
+    "integrations": {
+      "title": "Intégrations",
+      "description": "Se connecter avec vos applications favorites",
+      "connect": "Connecter",
+      "slack": {
+        "title": "Slack",
+        "description": "Partager les notes de réunion directement dans les canaux Slack"
+      },
+      "notion": {
+        "title": "Notion",
+        "description": "Exporter les notes vers votre espace de travail Notion"
+      }
+    },
+    "billing": {
+      "title": "Facturation",
+      "description": "Gérer vos paramètres d'abonnement et de facturation",
+      "billingCycle": {
+        "monthly": "Mensuel",
+        "yearly": "Annuel"
+      },
+      "plans": {
+        "pro": {
+          "title": "Pro",
+          "features": {
+            "noteCreation": "Création et édition de notes",
+            "speechRecognition": "Reconnaissance vocale illimitée",
+            "multiLanguage": "Support multilingue",
+            "offlineMode": "Mode hors ligne (anglais)",
+            "aiFeatures": "Fonctionnalités IA avancées",
+            "sharing": "Liens de partage de notes",
+            "integrations": "Intégrations d'applications (Notion, Slack, etc.)"
+          }
+        },
+        "business": {
+          "title": "Business",
+          "features": {
+            "allPro": "Toutes les fonctionnalités Pro",
+            "workspace": "Espace de travail d'équipe",
+            "accessControl": "Contrôle d'accès détaillé",
+            "sharedEditing": "Permissions d'édition partagée",
+            "teamBilling": "Facturation d'équipe",
+            "dashboard": "Tableau de bord d'utilisation"
+          }
+        }
+      },
+      "status": {
+        "current": "Plan actuel",
+        "comingSoon": "Bientôt disponible",
+        "daysLeft": "{{days}} jours restants",
+        "upgrade": "Mettre à niveau",
+        "downgrade": "Rétrograder"
+      },
+      "pricing": {
+        "perMonth": "/mois"
+      }
+    }
+  }
+}

@@ -1,14 +1,18 @@
+import { useTranslation } from "react-i18next";
+
 interface SearchBarProps {
   onSearchClick: () => void;
 }
 
 export default function SearchBar({ onSearchClick }: SearchBarProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="relative">
       <button
         onClick={onSearchClick}
         className="flex items-center gap-2 rounded-md sm:bg-gray-100 sm:py-2 sm:pl-3 sm:pr-2"
-        aria-label="검색"
+        aria-label={t("search.label")}
       >
         <svg
           className="h-4 w-4 text-gray-600"
@@ -24,7 +28,7 @@ export default function SearchBar({ onSearchClick }: SearchBarProps) {
           />
         </svg>
         <span className="hidden text-xs text-gray-600 sm:inline">
-          검색...
+          {t("search.placeholder")}
           <span className="ml-4 rounded bg-gray-300 px-2 py-0.5 text-xs">
             ⌘K
           </span>

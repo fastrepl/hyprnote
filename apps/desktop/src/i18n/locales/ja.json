@@ -1,0 +1,221 @@
+{
+  "common": {
+    "login": "ログイン",
+    "home": "ホーム",
+    "notes": "ノート",
+    "untitled": "無題",
+    "demo": "デモ",
+    "welcome": "ようこそ",
+    "search": "検索",
+    "settings": "設定"
+  },
+  "auth": {
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "continueWith": "{{provider}}で続ける"
+  },
+  "home": {
+    "newUser": {
+      "question": "ハイパーノートについて知りたいですか？",
+      "tryDemo": "デモを試す"
+    },
+    "upcomingEvents": "今後のイベント",
+    "recentNotes": "最近のノート",
+    "updated": "{{time}}に更新"
+  },
+  "note": {
+    "new": {
+      "label": "新規ノート作成",
+      "button": "新規ノート"
+    },
+    "panel": {
+      "open": "パネルを開く",
+      "close": "パネルを閉じる"
+    },
+    "title": {
+      "placeholder": "無題"
+    },
+    "calendar": {
+      "time": "{{start}} ~ {{end}}"
+    },
+    "controls": {
+      "start": "録音開始",
+      "pause": "一時停止",
+      "resume": "再開",
+      "hypercharge": "ハイパーチャージ",
+      "recording": "録音中",
+      "recordingTime": "{{minutes}}:{{seconds}}",
+      "joinMeeting": "ミーティングに参加",
+      "startRecording": "録音開始",
+      "paused": "一時停止中"
+    },
+    "tags": {
+      "title": "タグ"
+    },
+    "sidePanel": {
+      "transcript": "文字起こし",
+      "chat": "チャット"
+    },
+    "chat": {
+      "placeholder": "AIアシスタントに質問する",
+      "description": "会議の内容を分析し、整理するのをお手伝いします",
+      "error": "申し訳ありません。エラーが発生しました。",
+      "quickActions": {
+        "summarizeQA": "Q&Aの要約",
+        "listActions": "アクションアイテムの一覧",
+        "summarizeMeeting": "会議の要約",
+        "writeEmail": "フォローアップメールの作成",
+        "suggestAgenda": "次回の議題を提案"
+      },
+      "send": "送信"
+    }
+  },
+  "search": {
+    "label": "検索",
+    "placeholder": "検索...",
+    "noResults": "結果が見つかりません",
+    "results": "検索結果",
+    "shortcut": "⌘K"
+  },
+  "settings": {
+    "shortcut": "⌘,",
+    "tabs": {
+      "profile": "プロフィール",
+      "general": "一般",
+      "feedback": "フィードバック",
+      "billing": "お支払い",
+      "calendar": "カレンダー",
+      "notification": "通知",
+      "integrations": "連携"
+    },
+    "general": {
+      "description": "基本的なアプリの設定を管理",
+      "language": "言語",
+      "languageDescription": "希望する言語を選択してください",
+      "autoStart": "自動起動",
+      "autoStartDescription": "コンピューター起動時に自動的にアプリを起動",
+      "autoUpdate": "自動更新",
+      "autoUpdateDescription": "新しいバージョンが利用可能になったら自動的に更新",
+      "crashReports": "クラッシュレポートの送信",
+      "crashReportsDescription": "アプリの改善のためにクラッシュレポートを送信",
+      "usageData": "使用データの送信",
+      "usageDataDescription": "アプリの改善のために匿名の使用データを送信",
+      "theme": "テーマ",
+      "themeDescription": "お好みの外観を選択してください",
+      "themes": {
+        "light": "ライト",
+        "dark": "ダーク",
+        "system": "システム"
+      }
+    },
+    "billing": {
+      "title": "お支払い",
+      "description": "サブスクリプションとお支払い設定を管理",
+      "billingCycle": {
+        "monthly": "月払い",
+        "yearly": "年払い"
+      },
+      "plans": {
+        "pro": {
+          "title": "プロ",
+          "features": {
+            "noteCreation": "ノートの作成と編集",
+            "speechRecognition": "無制限の音声認識",
+            "multiLanguage": "多言語サポート",
+            "offlineMode": "オフラインモード（英語）",
+            "aiFeatures": "高度なAI機能",
+            "sharing": "ノート共有リンク",
+            "integrations": "アプリ連携（Notion、Slack等）"
+          }
+        },
+        "business": {
+          "title": "ビジネス",
+          "features": {
+            "allPro": "プロプランの全機能",
+            "workspace": "チームワークスペース",
+            "accessControl": "詳細なアクセス制御",
+            "sharedEditing": "共有ノートの編集権限",
+            "teamBilling": "チーム単位の請求",
+            "dashboard": "使用状況ダッシュボード"
+          }
+        }
+      },
+      "status": {
+        "current": "現在のプラン",
+        "comingSoon": "近日公開",
+        "daysLeft": "残り{{days}}日",
+        "upgrade": "アップグレード",
+        "downgrade": "ダウングレード"
+      },
+      "pricing": {
+        "perMonth": "/月"
+      }
+    },
+    "calendar": {
+      "title": "カレンダー",
+      "description": "カレンダー連携の管理",
+      "google": {
+        "title": "Googleカレンダー",
+        "description": "Googleカレンダーと同期"
+      },
+      "ical": {
+        "title": "iCalカレンダー",
+        "description": "iCalフィードから予定をインポート"
+      }
+    },
+    "profile": {
+      "title": "プロフィール",
+      "description": "プロフィール情報の管理",
+      "avatar": {
+        "change": "写真を変更"
+      },
+      "fullName": "氏名",
+      "fullNamePlaceholder": "氏名を入力してください",
+      "email": "メールアドレス",
+      "save": "変更を保存",
+      "cancel": "キャンセル"
+    },
+    "feedback": {
+      "title": "フィードバック",
+      "description": "ご意見やご報告をお聞かせください",
+      "type": {
+        "label": "フィードバックの種類",
+        "general": "一般的なフィードバック",
+        "problem": "問題を報告",
+        "question": "質問する"
+      },
+      "content": {
+        "label": "メッセージ",
+        "placeholder": "ご意見をお聞かせください..."
+      },
+      "submit": "フィードバックを送信"
+    },
+    "notifications": {
+      "title": "通知",
+      "description": "通知設定の管理",
+      "scheduledMeetings": {
+        "title": "予定された会議",
+        "description": "予定された会議の通知を受け取る"
+      },
+      "autoIdentified": {
+        "title": "自動検出された会議",
+        "description": "会議が自動検出された時に通知を受け取る"
+      }
+    },
+    "integrations": {
+      "title": "連携",
+      "description": "お気に入りのアプリと連携",
+      "connect": "連携する",
+      "slack": {
+        "title": "Slack",
+        "description": "会議ノートをSlackチャンネルに直接共有"
+      },
+      "notion": {
+        "title": "Notion",
+        "description": "ノートをNotionワークスペースにエクスポート"
+      }
+    }
+  }
+}

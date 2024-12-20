@@ -1,4 +1,5 @@
 import * as Tabs from "@radix-ui/react-tabs";
+import { useTranslation } from "react-i18next";
 import {
   RiSettings4Line,
   RiMessage2Line,
@@ -16,14 +17,40 @@ interface TabItem {
 }
 
 export function SettingsTabs() {
+  const { t } = useTranslation();
+
   const mainTabs: TabItem[] = [
-    { value: "profile", label: "프로필", icon: RiUser3Line },
-    { value: "general", label: "일반", icon: RiSettings4Line },
-    { value: "feedback", label: "피드백", icon: RiMessage2Line },
-    { value: "billing", label: "결제", icon: RiBankCardLine },
-    { value: "calendar", label: "캘린더", icon: RiCalendarLine },
-    { value: "notification", label: "알림", icon: RiNotification3Line },
-    { value: "integrations", label: "연동", icon: RiPlugLine },
+    { value: "profile", label: t("settings.tabs.profile"), icon: RiUser3Line },
+    {
+      value: "general",
+      label: t("settings.tabs.general"),
+      icon: RiSettings4Line,
+    },
+    {
+      value: "feedback",
+      label: t("settings.tabs.feedback"),
+      icon: RiMessage2Line,
+    },
+    {
+      value: "billing",
+      label: t("settings.tabs.billing"),
+      icon: RiBankCardLine,
+    },
+    {
+      value: "calendar",
+      label: t("settings.tabs.calendar"),
+      icon: RiCalendarLine,
+    },
+    {
+      value: "notification",
+      label: t("settings.tabs.notifications"),
+      icon: RiNotification3Line,
+    },
+    {
+      value: "integrations",
+      label: t("settings.tabs.integrations"),
+      icon: RiPlugLine,
+    },
   ];
 
   const TabButton = ({ tab }: { tab: TabItem }) => (

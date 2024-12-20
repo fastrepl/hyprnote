@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Note } from "../../types";
 
 interface PastNotesProps {
@@ -6,9 +7,11 @@ interface PastNotesProps {
 }
 
 export const PastNotes = ({ notes, onNoteClick }: PastNotesProps) => {
+  const { t } = useTranslation();
+
   return (
     <section>
-      <h2 className="mb-4 text-xl font-semibold">최근 노트</h2>
+      <h2 className="mb-4 text-xl font-semibold">{t('home.recentNotes')}</h2>
       <div className="space-y-4">
         {notes.map((note) => (
           <div
@@ -18,11 +21,11 @@ export const PastNotes = ({ notes, onNoteClick }: PastNotesProps) => {
           >
             <div className="mb-3 flex items-start justify-between">
               <h3 className="line-clamp-1 font-medium">
-                {note.title || "Untitled Note"}
+                {note.title || t('common.untitled')}
               </h3>
             </div>
             <p className="mb-2 shrink-0 text-sm text-gray-500">
-              {new Date(note.updatedAt).toLocaleString()}
+              {t('home.updated', { time: new Date(note.updatedAt).toLocaleString() })}
             </p>
             <p className="my-2 line-clamp-2 text-sm text-gray-600">
               {note.rawMemo}

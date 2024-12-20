@@ -1,0 +1,221 @@
+{
+  "common": {
+    "login": "Anmelden",
+    "home": "Start",
+    "notes": "Notizen",
+    "untitled": "Unbenannt",
+    "demo": "Demo",
+    "welcome": "Willkommen",
+    "search": "Suche",
+    "settings": "Einstellungen"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "continueWith": "Weiter mit {{provider}}"
+  },
+  "home": {
+    "newUser": {
+      "question": "Neugierig auf Hyprnote?",
+      "tryDemo": "Demo testen"
+    },
+    "upcomingEvents": "Kommende Ereignisse",
+    "recentNotes": "Letzte Notizen",
+    "updated": "Aktualisiert um {{time}}"
+  },
+  "note": {
+    "new": {
+      "label": "Neue Notiz erstellen",
+      "button": "Neue Notiz"
+    },
+    "panel": {
+      "open": "Panel öffnen",
+      "close": "Panel schließen"
+    },
+    "title": {
+      "placeholder": "Unbenannt"
+    },
+    "calendar": {
+      "time": "{{start}} ~ {{end}}"
+    },
+    "controls": {
+      "start": "Aufnahme starten",
+      "pause": "Pause",
+      "resume": "Fortsetzen",
+      "hypercharge": "Hypercharge",
+      "recording": "Aufnahme",
+      "recordingTime": "{{minutes}}:{{seconds}}",
+      "joinMeeting": "Meeting beitreten",
+      "startRecording": "Aufnahme starten",
+      "paused": "Pausiert"
+    },
+    "tags": {
+      "title": "Tags"
+    },
+    "sidePanel": {
+      "transcript": "Transkript",
+      "chat": "Chat"
+    },
+    "chat": {
+      "placeholder": "KI-Assistent fragen...",
+      "description": "Ich kann Ihnen helfen, Ihre Meeting-Inhalte zu analysieren und zu organisieren",
+      "error": "Entschuldigung, ein Fehler ist aufgetreten",
+      "quickActions": {
+        "summarizeQA": "Q&A zusammenfassen",
+        "listActions": "Aktionspunkte auflisten",
+        "summarizeMeeting": "Meeting zusammenfassen",
+        "writeEmail": "Follow-up E-Mail verfassen",
+        "suggestAgenda": "Nächste Agenda vorschlagen"
+      },
+      "send": "Senden"
+    }
+  },
+  "search": {
+    "label": "Suche",
+    "placeholder": "Suchen...",
+    "noResults": "Keine Ergebnisse gefunden",
+    "results": "Ergebnisse",
+    "shortcut": "⌘K"
+  },
+  "settings": {
+    "shortcut": "⌘,",
+    "tabs": {
+      "profile": "Profil",
+      "general": "Allgemein",
+      "feedback": "Feedback",
+      "billing": "Abrechnung",
+      "calendar": "Kalender",
+      "notifications": "Benachrichtigungen",
+      "integrations": "Integrationen"
+    },
+    "general": {
+      "description": "Grundlegende App-Einstellungen verwalten",
+      "language": "Sprache",
+      "languageDescription": "Wählen Sie Ihre bevorzugte Sprache",
+      "autoStart": "Autostart",
+      "autoStartDescription": "App automatisch beim Computerstart starten",
+      "autoUpdate": "Automatische Updates",
+      "autoUpdateDescription": "Automatisch aktualisieren, wenn neue Version verfügbar",
+      "crashReports": "Absturzberichte senden",
+      "crashReportsDescription": "Absturzberichte senden, um die App zu verbessern",
+      "usageData": "Nutzungsdaten senden",
+      "usageDataDescription": "Anonyme Nutzungsdaten senden, um die App zu verbessern",
+      "theme": "Design",
+      "themeDescription": "Wählen Sie Ihr bevorzugtes Erscheinungsbild",
+      "themes": {
+        "light": "Hell",
+        "dark": "Dunkel",
+        "system": "System"
+      }
+    },
+    "profile": {
+      "title": "Profil",
+      "description": "Verwalten Sie Ihre Profilinformationen",
+      "avatar": {
+        "change": "Foto ändern"
+      },
+      "fullName": "Vollständiger Name",
+      "fullNamePlaceholder": "Geben Sie Ihren vollständigen Namen ein",
+      "email": "E-Mail",
+      "save": "Änderungen speichern",
+      "cancel": "Abbrechen"
+    },
+    "feedback": {
+      "title": "Feedback",
+      "description": "Teilen Sie Ihre Gedanken oder melden Sie Probleme",
+      "type": {
+        "label": "Feedback-Typ",
+        "general": "Allgemeines Feedback",
+        "problem": "Problem melden",
+        "question": "Frage stellen"
+      },
+      "content": {
+        "label": "Ihre Nachricht",
+        "placeholder": "Teilen Sie uns Ihre Gedanken mit..."
+      },
+      "submit": "Feedback senden"
+    },
+    "calendar": {
+      "title": "Kalender",
+      "description": "Verwalten Sie Ihre Kalenderintegrationen",
+      "google": {
+        "title": "Google Kalender",
+        "description": "Mit Google Kalender synchronisieren"
+      },
+      "ical": {
+        "title": "iCal Kalender",
+        "description": "Termine aus iCal-Feeds importieren"
+      }
+    },
+    "notifications": {
+      "title": "Benachrichtigungen",
+      "description": "Verwalten Sie Ihre Benachrichtigungseinstellungen",
+      "scheduledMeetings": {
+        "title": "Geplante Meetings",
+        "description": "Benachrichtigungen für geplante Meetings erhalten"
+      },
+      "autoIdentified": {
+        "title": "Automatisch erkannte Meetings",
+        "description": "Benachrichtigungen erhalten, wenn Meetings automatisch erkannt werden"
+      }
+    },
+    "integrations": {
+      "title": "Integrationen",
+      "description": "Verbinden Sie sich mit Ihren Lieblings-Apps",
+      "connect": "Verbinden",
+      "slack": {
+        "title": "Slack",
+        "description": "Meeting-Notizen direkt in Slack-Kanäle teilen"
+      },
+      "notion": {
+        "title": "Notion",
+        "description": "Notizen in Ihren Notion-Workspace exportieren"
+      }
+    },
+    "billing": {
+      "title": "Abrechnung",
+      "description": "Verwalten Sie Ihre Abonnement- und Zahlungseinstellungen",
+      "billingCycle": {
+        "monthly": "Monatlich",
+        "yearly": "Jährlich"
+      },
+      "plans": {
+        "pro": {
+          "title": "Pro",
+          "features": {
+            "noteCreation": "Notizen erstellen und bearbeiten",
+            "speechRecognition": "Unbegrenzte Spracherkennung",
+            "multiLanguage": "Mehrsprachenunterstützung",
+            "offlineMode": "Offline-Modus (Englisch)",
+            "aiFeatures": "Erweiterte KI-Funktionen",
+            "sharing": "Notizen-Sharing-Links",
+            "integrations": "App-Integrationen (Notion, Slack, etc.)"
+          }
+        },
+        "business": {
+          "title": "Business",
+          "features": {
+            "allPro": "Alle Pro-Plan-Funktionen",
+            "workspace": "Team-Workspace",
+            "accessControl": "Detaillierte Zugriffssteuerung",
+            "sharedEditing": "Gemeinsame Bearbeitungsrechte",
+            "teamBilling": "Team-Abrechnung",
+            "dashboard": "Nutzungs-Dashboard"
+          }
+        }
+      },
+      "status": {
+        "current": "Aktueller Plan",
+        "comingSoon": "Demnächst verfügbar",
+        "daysLeft": "{{days}} Tage verbleibend",
+        "upgrade": "Upgrade",
+        "downgrade": "Downgrade"
+      },
+      "pricing": {
+        "perMonth": "/Monat"
+      }
+    }
+  }
+}

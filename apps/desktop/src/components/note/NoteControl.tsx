@@ -1,4 +1,5 @@
 import type { Note } from "../../types";
+import { useTranslation } from "react-i18next";
 
 interface NoteControlProps {
   note: Note | null;
@@ -21,6 +22,7 @@ export default function NoteControl({
   onStart,
   onPauseResume,
 }: NoteControlProps) {
+  const { t } = useTranslation();
   const isVirtualMeeting =
     (note?.calendarEvent?.conferenceData?.entryPoints?.length ?? 0) > 0;
   const meetingUrl =
@@ -41,7 +43,7 @@ export default function NoteControl({
             onClick={() => window.open(meetingUrl)}
             className="rounded-full bg-blue-600 px-4 py-1.5 text-sm text-white hover:bg-blue-800"
           >
-            미팅 참여하기
+            {t("note.controls.joinMeeting")}
           </button>
         )}
         {showhyprcharge && (
@@ -49,7 +51,7 @@ export default function NoteControl({
             onClick={onhyprcharge}
             className="rounded-full border-2 border-purple-600 bg-purple-600 px-4 py-1.5 text-sm text-white hover:bg-purple-700"
           >
-            하이퍼차지
+            {t("note.controls.hypercharge")}
           </button>
         )}
       </div>
@@ -65,14 +67,14 @@ export default function NoteControl({
             }`}
           >
             <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-600" />
-            {isPaused ? "일시정지 중" : formatTime(recordingTime)}
+            {isPaused ? t("note.controls.paused") : formatTime(recordingTime)}
           </button>
         ) : (
           <button
             onClick={onStart}
             className="rounded-full border-2 border-red-600 bg-red-600 px-4 py-1.5 text-sm text-white hover:bg-red-700"
           >
-            녹음 시작
+            {t("note.controls.startRecording")}
           </button>
         )}
       </div>

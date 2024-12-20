@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router";
 import { UIProvider } from "./contexts/UIContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
+import "./i18n/config";
 import NavBar from "./components/layout/NavBar";
 import Home from "./pages/Home";
 import Note from "./pages/Note";
@@ -35,35 +37,37 @@ function App() {
 
   return (
     <BrowserRouter>
-      <UIProvider>
-        <div className="flex h-screen flex-col">
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route
-              path="/"
-              element={
-                <>
-                  <NavBar />
-                  <main className="w-full flex-1 overflow-auto bg-gray-50">
-                    <Home />
-                  </main>
-                </>
-              }
-            />
-            <Route
-              path="/note/:id"
-              element={
-                <>
-                  <NavBar />
-                  <main className="w-full flex-1 overflow-auto bg-gray-50">
-                    <Note />
-                  </main>
-                </>
-              }
-            />
-          </Routes>
-        </div>
-      </UIProvider>
+      <LanguageProvider>
+        <UIProvider>
+          <div className="flex h-screen flex-col">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/"
+                element={
+                  <>
+                    <NavBar />
+                    <main className="w-full flex-1 overflow-auto bg-gray-50">
+                      <Home />
+                    </main>
+                  </>
+                }
+              />
+              <Route
+                path="/note/:id"
+                element={
+                  <>
+                    <NavBar />
+                    <main className="w-full flex-1 overflow-auto bg-gray-50">
+                      <Note />
+                    </main>
+                  </>
+                }
+              />
+            </Routes>
+          </div>
+        </UIProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }

@@ -1,8 +1,11 @@
-use crate::{audio, auth::AuthStore, config::ConfigStore, permissions};
+use crate::{audio, auth::AuthStore, config::ConfigStore, permissions, App};
 use anyhow::Result;
 use cap_media::feeds::AudioInputFeed;
-use std::path::PathBuf;
-use tauri::{AppHandle, Manager};
+use std::{path::PathBuf, sync::Arc};
+use tauri::{AppHandle, Manager, State};
+use tokio::sync::RwLock;
+
+type MutableState<'a, T> = State<'a, Arc<RwLock<T>>>;
 
 #[tauri::command]
 #[specta::specta]
@@ -70,16 +73,14 @@ pub fn stop_recording() {
 
 #[tauri::command]
 #[specta::specta]
-pub fn auth_url(app: AppHandle) -> String {
-    let config = hypr_cloud::ClientConfig {
-        base_url: "https://api.hypr.com".parse().unwrap(),
-        auth_token: None,
-    };
+pub async fn auth_url(state: MutableState<'_, App>) -> Result<String, ()> {
+    let state = state.read().await;
+    let client = hypr_cloud::Client::new(state.cloud_config.clone());
 
-    let client = hypr_cloud::Client::new(config);
-    client
+    let url = client
         .get_authentication_url(hypr_cloud::AuthKind::GoogleOAuth)
-        .to_string()
+        .to_string();
+    Ok(url)
 }
 
 #[tauri::command]

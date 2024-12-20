@@ -57,3 +57,4 @@ flume = "0.11.1"
 objc = "0.2.7"
 cap-media = { workspace = true }
 tauri-plugin-stronghold = "2.2.0"
+tauri-plugin-shell = "2.2.0"

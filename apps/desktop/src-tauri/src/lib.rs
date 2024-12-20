@@ -14,15 +14,11 @@ mod events;
 mod permissions;
 mod session;
 
-#[derive(specta::Type)]
-#[serde(rename_all = "camelCase")]
 pub struct App {
-    #[serde(skip)]
     handle: AppHandle,
-    #[serde(skip)]
     audio_input_feed: Option<AudioInputFeed>,
-    #[serde(skip)]
     audio_input_tx: AudioInputSamplesSender,
+    cloud_config: hypr_cloud::ClientConfig,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -37,6 +33,7 @@ pub fn run() {
             commands::list_apple_calendars,
             commands::list_apple_events,
             permissions::open_permission_settings,
+            commands::auth_url,
         ])
         .events(tauri_specta::collect_events![
             events::Transcript,
@@ -132,6 +129,7 @@ pub fn run() {
     builder
         // TODO: https://v2.tauri.app/plugin/updater/#building
         // .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_shell::init())
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
             move |invoke| handler(invoke)
@@ -139,12 +137,24 @@ pub fn run() {
         .setup(move |app| {
             let app = app.handle().clone();
 
-            if let Ok(Some(_auth)) = auth::AuthStore::load(&app) {}
+            let mut cloud_config = hypr_cloud::ClientConfig {
+                base_url: if cfg!(debug_assertions) {
+                    "http://localhost:4000".parse().unwrap()
+                } else {
+                    "https://server.hyprnote.com".parse().unwrap()
+                },
+                auth_token: None,
+            };
+
+            if let Ok(Some(auth)) = auth::AuthStore::load(&app) {
+                cloud_config.auth_token = Some(auth.token);
+            }
 
             app.manage(RwLock::new(App {
                 handle: app.clone(),
                 audio_input_tx,
                 audio_input_feed: None,
+                cloud_config,
             }));
 
             Ok(())

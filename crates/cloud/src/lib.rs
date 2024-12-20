@@ -42,6 +42,7 @@ pub struct Client {
     reqwest_client: reqwest::Client,
 }
 
+#[derive(Debug, Clone)]
 pub struct ClientConfig {
     pub base_url: Url,
     pub auth_token: Option<String>,

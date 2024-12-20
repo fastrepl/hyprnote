@@ -1,9 +1,11 @@
 use anyhow::Result;
-use tokio::sync::mpsc;
-use tokio_tungstenite::tungstenite;
 use url::Url;
 
-use hypr_proto::protobuf::Message;
+use futures_util::StreamExt;
+use tokio::sync::mpsc;
+use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+
+// use hypr_proto::protobuf::Message;
 use hypr_proto::v0 as proto;
 
 pub type TranscribeInputSender = mpsc::Sender<proto::TranscribeInputChunk>;
@@ -15,6 +17,12 @@ pub struct TranscribeHandler {
     input_sender: TranscribeInputSender,
     output_receiver: TranscribeOutputReceiver,
 }
+
+// TODO: we are splitting, for concurrent usage & send/receive in multiple threads.
+// it makes no sense if we combine this two.
+// we should return 2 struct, I think.
+
+// TODO: periodical ping is needed.
 
 impl TranscribeHandler {
     pub async fn tx(&self, value: proto::TranscribeInputChunk) -> Result<()> {
@@ -29,10 +37,6 @@ impl TranscribeHandler {
     }
 }
 
-struct WebsocketClient {
-    output_sender: TranscribeOutputSender,
-}
-
 pub struct Client {
     config: ClientConfig,
     reqwest_client: reqwest::Client,
@@ -40,7 +44,12 @@ pub struct Client {
 
 pub struct ClientConfig {
     base_url: Url,
-    auth_token: String,
+    auth_token: Option<String>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum AuthKind {
+    GoogleOAuth,
 }
 
 impl Client {
@@ -53,33 +62,32 @@ impl Client {
         }
     }
 
-    fn enhance_url(&self) -> Url {
-        let mut url = self.config.base_url.clone();
-        url.set_path("/enhance");
-        url
-    }
-
-    fn ws_url(&self) -> Url {
-        let mut url = self.config.base_url.clone();
-
-        if self.config.base_url.scheme() == "http" {
-            url.set_scheme("ws").unwrap();
-        } else {
-            url.set_scheme("wss").unwrap();
+    pub fn get_authentication_url(&self, kind: AuthKind) -> Url {
+        match kind {
+            AuthKind::GoogleOAuth => {
+                let mut url = self.config.base_url.clone();
+                url.set_path("/auth/desktop/login/google");
+                url
+            }
         }
-
-        url
     }
 
     pub async fn ws_connect(&mut self) -> Result<TranscribeHandler> {
+        if self.config.auth_token.is_none() {
+            anyhow::bail!("No auth token provided");
+        }
+
         let (input_sender, mut input_receiver) = mpsc::channel::<proto::TranscribeInputChunk>(100);
         let (output_sender, output_receiver) = mpsc::channel::<proto::TranscribeOutputChunk>(100);
 
-        let request =
-            tungstenite::ClientRequestBuilder::new(self.ws_url().to_string().parse().unwrap())
-                .with_header("x-hypr-token", &self.config.auth_token);
+        let mut request = self.ws_url().to_string().into_client_request().unwrap();
+        request.headers_mut().insert(
+            "x-hypr-token",
+            self.config.auth_token.clone().unwrap().parse().unwrap(),
+        );
 
-        let (stream, response) = tokio_tungstenite::connect_async(request).await?;
+        let (ws_stream, _response) = tokio_tungstenite::connect_async(request).await?;
+        let (write, read) = ws_stream.split();
 
         Ok(TranscribeHandler {
             input_sender,
@@ -101,6 +109,24 @@ impl Client {
 
         Ok(())
     }
+
+    fn enhance_url(&self) -> Url {
+        let mut url = self.config.base_url.clone();
+        url.set_path("/enhance");
+        url
+    }
+
+    fn ws_url(&self) -> Url {
+        let mut url = self.config.base_url.clone();
+
+        if self.config.base_url.scheme() == "http" {
+            url.set_scheme("ws").unwrap();
+        } else {
+            url.set_scheme("wss").unwrap();
+        }
+
+        url
+    }
 }
 
 #[cfg(test)]
@@ -111,7 +137,7 @@ mod tests {
     async fn test_simple() {
         let _ = Client::new(ClientConfig {
             base_url: Url::parse("http://localhost:8080").unwrap(),
-            auth_token: "".to_string(),
+            auth_token: Some("".to_string()),
         });
     }
 }

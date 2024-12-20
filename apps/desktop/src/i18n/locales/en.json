@@ -1,0 +1,69 @@
+{
+  "common": {
+    "login": "Login",
+    "home": "Home",
+    "notes": "Notes",
+    "untitled": "Untitled",
+    "demo": "Demo",
+    "welcome": "Welcome to",
+    "search": "Search",
+    "settings": "Settings"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "continueWith": "Continue with {{provider}}"
+  },
+  "home": {
+    "newUser": {
+      "question": "Curious about HyperNote?",
+      "tryDemo": "Try Demo"
+    },
+    "upcomingEvents": "Upcoming Events",
+    "recentNotes": "Recent Notes",
+    "updated": "Updated at {{time}}"
+  },
+  "note": {
+    "title": {
+      "placeholder": "Untitled"
+    },
+    "calendar": {
+      "time": "{{start}} ~ {{end}}"
+    },
+    "controls": {
+      "start": "Start Recording",
+      "pause": "Pause",
+      "resume": "Resume",
+      "hypercharge": "Hypercharge",
+      "recording": "Recording",
+      "recordingTime": "{{minutes}}:{{seconds}}"
+    },
+    "tags": {
+      "title": "Tags"
+    },
+    "sidePanel": {
+      "transcript": "Transcript",
+      "chat": "Chat"
+    }
+  },
+  "search": {
+    "placeholder": "Search notes...",
+    "noResults": "No notes found.",
+    "shortcut": "⌘K",
+    "label": "Search"
+  },
+  "settings": {
+    "shortcut": "⌘,",
+    "tabs": {
+      "profile": "Profile",
+      "general": "General",
+      "feedback": "Feedback",
+      "billing": "Billing",
+      "calendar": "Calendar",
+      "notification": "Notifications",
+      "integrations": "Integrations"
+    }
+  }
+}

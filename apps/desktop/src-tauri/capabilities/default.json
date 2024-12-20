@@ -10,6 +10,7 @@
     "sql:default",
     "sql:allow-execute",
     "store:default",
-    "stronghold:default"
+    "stronghold:default",
+    "shell:allow-open"
   ]
 }

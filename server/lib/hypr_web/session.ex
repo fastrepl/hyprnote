@@ -5,7 +5,10 @@ defmodule HyprWeb.Session do
   def child_spec(_opts), do: :ignore
 
   @impl Phoenix.Socket.Transport
-  def connect(state), do: {:ok, state}
+  def connect(transport_info) do
+    IO.inspect(transport_info)
+    {:ok, %{}}
+  end
 
   @impl Phoenix.Socket.Transport
   def init(state) do
@@ -26,7 +29,7 @@ defmodule HyprWeb.Session do
   end
 
   @impl Phoenix.Socket.Transport
-  def handle_info({:stt, {:transcript, text}}, state) do
+  def handle_info({:stt, {:transcript, _text}}, state) do
     {:ok, state}
   end
 

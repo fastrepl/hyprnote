@@ -1,9 +1,11 @@
 use anyhow::Result;
-use async_trait::async_trait;
-use tokio::sync::mpsc;
 use url::Url;
 
-use hypr_proto::protobuf::Message;
+use futures_util::StreamExt;
+use tokio::sync::mpsc;
+use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+
+// use hypr_proto::protobuf::Message;
 use hypr_proto::v0 as proto;
 
 pub type TranscribeInputSender = mpsc::Sender<proto::TranscribeInputChunk>;
@@ -15,6 +17,12 @@ pub struct TranscribeHandler {
     input_sender: TranscribeInputSender,
     output_receiver: TranscribeOutputReceiver,
 }
+
+// TODO: we are splitting, for concurrent usage & send/receive in multiple threads.
+// it makes no sense if we combine this two.
+// we should return 2 struct, I think.
+
+// TODO: periodical ping is needed.
 
 impl TranscribeHandler {
     pub async fn tx(&self, value: proto::TranscribeInputChunk) -> Result<()> {
@@ -29,38 +37,20 @@ impl TranscribeHandler {
     }
 }
 
-struct WebsocketClient {
-    output_sender: TranscribeOutputSender,
-}
-
-#[async_trait]
-impl ezsockets::ClientExt for WebsocketClient {
-    // https://docs.rs/ezsockets/latest/ezsockets/client/trait.ClientExt.html
-    type Call = ();
-
-    async fn on_text(&mut self, _text: String) -> Result<(), ezsockets::Error> {
-        Ok(())
-    }
-
-    async fn on_binary(&mut self, bytes: Vec<u8>) -> Result<(), ezsockets::Error> {
-        let data = proto::TranscribeOutputChunk::parse_from_bytes(&bytes).unwrap();
-        let _ = self.output_sender.send(data).await;
-        Ok(())
-    }
-
-    async fn on_call(&mut self, _call: Self::Call) -> Result<(), ezsockets::Error> {
-        Ok(())
-    }
-}
-
 pub struct Client {
     config: ClientConfig,
     reqwest_client: reqwest::Client,
-    ws_client: Option<ezsockets::Client<WebsocketClient>>,
 }
 
+#[derive(Debug, Clone)]
 pub struct ClientConfig {
-    base_url: Url,
+    pub base_url: Url,
+    pub auth_token: Option<String>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum AuthKind {
+    GoogleOAuth,
 }
 
 impl Client {
@@ -70,8 +60,55 @@ impl Client {
         Self {
             config,
             reqwest_client: client,
-            ws_client: None,
         }
+    }
+
+    pub fn get_authentication_url(&self, kind: AuthKind) -> Url {
+        match kind {
+            AuthKind::GoogleOAuth => {
+                let mut url = self.config.base_url.clone();
+                url.set_path("/auth/desktop/login/google");
+                url
+            }
+        }
+    }
+
+    pub async fn ws_connect(&mut self) -> Result<TranscribeHandler> {
+        if self.config.auth_token.is_none() {
+            anyhow::bail!("No auth token provided");
+        }
+
+        let (input_sender, mut input_receiver) = mpsc::channel::<proto::TranscribeInputChunk>(100);
+        let (output_sender, output_receiver) = mpsc::channel::<proto::TranscribeOutputChunk>(100);
+
+        let mut request = self.ws_url().to_string().into_client_request().unwrap();
+        request.headers_mut().insert(
+            "x-hypr-token",
+            self.config.auth_token.clone().unwrap().parse().unwrap(),
+        );
+
+        let (ws_stream, _response) = tokio_tungstenite::connect_async(request).await?;
+        let (write, read) = ws_stream.split();
+
+        Ok(TranscribeHandler {
+            input_sender,
+            output_receiver,
+        })
+    }
+
+    pub fn ws_disconnect(&mut self) -> Result<()> {
+        Ok(())
+    }
+
+    pub async fn enhance_note(self, note: hypr_db::types::Session) -> Result<()> {
+        let _ = self
+            .reqwest_client
+            .post(self.enhance_url())
+            .json(&note)
+            .send()
+            .await?;
+
+        Ok(())
     }
 
     fn enhance_url(&self) -> Url {
@@ -91,44 +128,6 @@ impl Client {
 
         url
     }
-
-    pub async fn ws_connect(&mut self) -> Result<TranscribeHandler> {
-        let (input_sender, mut input_receiver) = mpsc::channel::<proto::TranscribeInputChunk>(100);
-        let (output_sender, output_receiver) = mpsc::channel::<proto::TranscribeOutputChunk>(100);
-
-        let config = ezsockets::ClientConfig::new(self.ws_url().as_str());
-
-        let (handle, future) =
-            ezsockets::connect(|_client| WebsocketClient { output_sender }, config).await;
-
-        tokio::spawn(async move {
-            while let Some(input) = input_receiver.recv().await {
-                let _ = handle.binary(input.audio);
-            }
-            future.await.unwrap();
-        });
-
-        Ok(TranscribeHandler {
-            input_sender,
-            output_receiver,
-        })
-    }
-
-    pub fn ws_disconnect(&mut self) -> Result<()> {
-        self.ws_client.take().unwrap().close(None)?;
-        Ok(())
-    }
-
-    pub async fn enhance_note(self, note: hypr_db::types::Session) -> Result<()> {
-        let _ = self
-            .reqwest_client
-            .post(self.enhance_url())
-            .json(&note)
-            .send()
-            .await?;
-
-        Ok(())
-    }
 }
 
 #[cfg(test)]
@@ -139,6 +138,7 @@ mod tests {
     async fn test_simple() {
         let _ = Client::new(ClientConfig {
             base_url: Url::parse("http://localhost:8080").unwrap(),
+            auth_token: Some("".to_string()),
         });
     }
 }

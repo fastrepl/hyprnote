@@ -1,4 +1,4 @@
-defmodule HyprWeb.Plugs.Health do
+defmodule HyprWeb.HealthPlug do
   import Plug.Conn
 
   def init(opts), do: opts

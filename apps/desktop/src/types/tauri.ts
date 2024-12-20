@@ -5,12 +5,6 @@
 /** user-defined commands **/
 
 export const commands = {
-  async setConfig(config: Config): Promise<void> {
-    await TAURI_INVOKE("set_config", { config });
-  },
-  async getConfig(): Promise<Config> {
-    return await TAURI_INVOKE("get_config");
-  },
   async listAudioDevices(): Promise<string[]> {
     return await TAURI_INVOKE("list_audio_devices");
   },
@@ -35,13 +29,20 @@ export const commands = {
   async openPermissionSettings(permission: OSPermission): Promise<void> {
     await TAURI_INVOKE("open_permission_settings", { permission });
   },
+  async authUrl(): Promise<string> {
+    return await TAURI_INVOKE("auth_url");
+  },
 };
 
 /** user-defined events **/
 
 export const events = __makeEvents__<{
+  justAuthenticated: JustAuthenticated;
+  notAuthenticated: NotAuthenticated;
   transcript: Transcript;
 }>({
+  justAuthenticated: "just-authenticated",
+  notAuthenticated: "not-authenticated",
   transcript: "transcript",
 });
 
@@ -50,24 +51,19 @@ export const events = __makeEvents__<{
 /** user-defined types **/
 
 export type Calendar = { title: string };
-export type Config = ConfigV0;
-export type ConfigV0 = {
-  version: number;
-  language: Language;
-  user_name: string;
-};
 export type Event = { title: string; start_date: string; end_date: string };
 export type EventFilter = {
   last_n_days: number | null;
   calendar_titles: string[];
 };
-export type Language = "English" | "Korean";
+export type JustAuthenticated = null;
+export type NotAuthenticated = null;
 export type OSPermission =
   | "screenRecording"
   | "camera"
   | "microphone"
   | "accessibility";
-export type Transcript = Record<string, never>;
+export type Transcript = null;
 
 /** tauri-specta globals **/
 

@@ -1,8 +1,11 @@
-use crate::{audio, config, permissions};
+use crate::{audio, auth::AuthStore, config::ConfigStore, permissions, App};
+use anyhow::Result;
 use cap_media::feeds::AudioInputFeed;
-use std::path::PathBuf;
-use tauri::{AppHandle, Manager};
-use tauri_plugin_store::StoreExt;
+use std::{path::PathBuf, sync::Arc};
+use tauri::{AppHandle, Manager, State};
+use tokio::sync::RwLock;
+
+type MutableState<'a, T> = State<'a, Arc<RwLock<T>>>;
 
 #[tauri::command]
 #[specta::specta]
@@ -70,6 +73,18 @@ pub fn stop_recording() {
 
 #[tauri::command]
 #[specta::specta]
+pub async fn auth_url(state: MutableState<'_, App>) -> Result<String, ()> {
+    let state = state.read().await;
+    let client = hypr_cloud::Client::new(state.cloud_config.clone());
+
+    let url = client
+        .get_authentication_url(hypr_cloud::AuthKind::GoogleOAuth)
+        .to_string();
+    Ok(url)
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn list_recordings(app: AppHandle) -> Result<Vec<(String, PathBuf)>, String> {
     let recordings_dir = recordings_path(&app);
 
@@ -82,17 +97,16 @@ pub fn list_recordings(app: AppHandle) -> Result<Vec<(String, PathBuf)>, String>
 
 #[tauri::command]
 #[specta::specta]
-pub fn set_config(app: AppHandle, config: config::Config) {
-    let store = app.store("store.json").unwrap();
-    store.set("config", serde_json::json!(config));
+pub fn is_authenticated(app: AppHandle) -> bool {
+    AuthStore::get(&app).is_ok()
 }
 
-#[tauri::command]
-#[specta::specta]
-pub fn get_config(app: AppHandle) -> config::Config {
-    let store = app.store("store.json").unwrap();
-    let value = store.get("config").unwrap();
-    serde_json::from_value(value).unwrap()
+pub enum AuthProvider {
+    Google,
+}
+
+pub fn login(provider: AuthProvider) -> Result<(), String> {
+    Ok(())
 }
 
 fn recordings_path(app: &AppHandle) -> PathBuf {

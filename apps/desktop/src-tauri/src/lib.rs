@@ -1,8 +1,12 @@
 use cap_media::feeds::{AudioInputFeed, AudioInputSamplesSender};
-use tauri::{AppHandle, Manager};
 use tokio::sync::RwLock;
 
+use tauri::{AppHandle, Manager};
+use tauri_plugin_deep_link::DeepLinkExt;
+use tauri_specta::Event;
+
 mod audio;
+mod auth;
 mod commands;
 mod config;
 mod db;
@@ -10,23 +14,17 @@ mod events;
 mod permissions;
 mod session;
 
-#[derive(specta::Type)]
-#[serde(rename_all = "camelCase")]
 pub struct App {
-    #[serde(skip)]
     handle: AppHandle,
-    #[serde(skip)]
     audio_input_feed: Option<AudioInputFeed>,
-    #[serde(skip)]
     audio_input_tx: AudioInputSamplesSender,
+    cloud_config: hypr_cloud::ClientConfig,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let specta_builder = tauri_specta::Builder::new()
         .commands(tauri_specta::collect_commands![
-            commands::set_config,
-            commands::get_config,
             commands::list_audio_devices,
             commands::start_recording,
             commands::stop_recording,
@@ -35,8 +33,13 @@ pub fn run() {
             commands::list_apple_calendars,
             commands::list_apple_events,
             permissions::open_permission_settings,
+            commands::auth_url,
         ])
-        .events(tauri_specta::collect_events![events::Transcript])
+        .events(tauri_specta::collect_events![
+            events::Transcript,
+            events::NotAuthenticated,
+            events::JustAuthenticated,
+        ])
         .typ::<hypr_calendar::apple::Calendar>()
         .typ::<hypr_calendar::apple::Event>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw);
@@ -84,14 +87,36 @@ pub fn run() {
         );
     }
 
-    builder = builder.plugin(tauri_plugin_deep_link::init());
+    builder = builder.plugin(tauri_plugin_deep_link::init()).setup(|app| {
+        let app_handle = app.handle().clone();
+
+        app.deep_link().on_open_url(move |event| {
+            let urls = event.urls();
+            let url = urls.first().unwrap();
+
+            if url.path() == "/auth" {
+                let query_pairs: std::collections::HashMap<String, String> = url
+                    .query_pairs()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect();
+
+                let local_data_dir = app_handle.path().app_local_data_dir().unwrap();
+                let file_path = local_data_dir.join("api_key.txt");
+                let key = query_pairs.get("key").unwrap().clone();
+
+                std::fs::write(&file_path, key).unwrap();
+                let _ = events::JustAuthenticated.emit(&app_handle);
+            }
+        });
+
+        Ok(())
+    });
 
     // https://v2.tauri.app/plugin/deep-linking/#registering-desktop-deep-links-at-runtime
     #[cfg(any(windows, target_os = "linux"))]
     {
         builder = builder.setup(|app| {
             {
-                use tauri_plugin_deep_link::DeepLinkExt;
                 app.deep_link().register_all()?;
             }
 
@@ -104,9 +129,35 @@ pub fn run() {
     builder
         // TODO: https://v2.tauri.app/plugin/updater/#building
         // .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_shell::init())
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
             move |invoke| handler(invoke)
+        })
+        .setup(move |app| {
+            let app = app.handle().clone();
+
+            let mut cloud_config = hypr_cloud::ClientConfig {
+                base_url: if cfg!(debug_assertions) {
+                    "http://localhost:4000".parse().unwrap()
+                } else {
+                    "https://server.hyprnote.com".parse().unwrap()
+                },
+                auth_token: None,
+            };
+
+            if let Ok(Some(auth)) = auth::AuthStore::load(&app) {
+                cloud_config.auth_token = Some(auth.token);
+            }
+
+            app.manage(RwLock::new(App {
+                handle: app.clone(),
+                audio_input_tx,
+                audio_input_feed: None,
+                cloud_config,
+            }));
+
+            Ok(())
         })
         .setup(|app| {
             let salt_path = app.path().app_local_data_dir()?.join("salt.txt");
@@ -139,17 +190,6 @@ pub fn run() {
                 let autostart_manager = app.autolaunch();
                 let _ = autostart_manager.enable();
             }
-            Ok(())
-        })
-        .setup(move |app| {
-            let app = app.handle().clone();
-
-            app.manage(RwLock::new(App {
-                handle: app.clone(),
-                audio_input_tx,
-                audio_input_feed: None,
-            }));
-
             Ok(())
         })
         .run(tauri::generate_context!())

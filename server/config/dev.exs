@@ -23,8 +23,11 @@ config :hypr, HyprWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "ayHrC/h6i0LMY7jpChPNqljJLFdb6KFs5AX6jWChWmtQdtUJ0ex58+6rC4JRHtDa",
-  watchers: []
+  secret_key_base: "tCazuLUp2tzcSYGQ/bl9TK9UOYr8VdHhZJYzw2KDHj7U6dAGn+6ZvbLLYKZsKRKA",
+  watchers: [
+    esbuild: {Esbuild, :install_and_run, [:hypr, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:hypr, ~w(--watch)]}
+  ]
 
 # ## SSL Support
 #
@@ -49,6 +52,16 @@ config :hypr, HyprWeb.Endpoint,
 # configured to run both http and https servers on
 # different ports.
 
+# Watch static and templates for browser reloading.
+config :hypr, HyprWeb.Endpoint,
+  live_reload: [
+    patterns: [
+      ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/gettext/.*(po)$",
+      ~r"lib/hypr_web/(controllers|live|components)/.*(ex|heex)$"
+    ]
+  ]
+
 # Enable dev routes for dashboard and mailbox
 config :hypr, dev_routes: true
 
@@ -61,3 +74,12 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+config :phoenix_live_view,
+  # Include HEEx debug annotations as HTML comments in rendered markup
+  debug_heex_annotations: true,
+  # Enable helpful, but potentially expensive runtime checks
+  enable_expensive_runtime_checks: true
+
+# Disable swoosh api client as it is only required for production adapters.
+config :swoosh, :api_client, false

@@ -7,19 +7,19 @@ defmodule HyprWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_hypr_key",
-    signing_salt: "Z/RHYM4E",
+    signing_salt: "MWJdmtgb",
     same_site: "Lax"
   ]
 
-  plug HyprWeb.Plugs.Health
+  plug HyprWeb.HealthPlug
 
-  socket "/v0/conversation", HyprWeb.Session,
-    websocket: [path: "/"],
+  socket "/v0/session", HyprWeb.Session,
+    websocket: [path: "/", connect_info: [:uri, :x_headers]],
     longpoll: false
 
-  # socket "/live", Phoenix.LiveView.Socket,
-  #   websocket: [connect_info: [session: @session_options]],
-  #   longpoll: [connect_info: [session: @session_options]]
+  socket "/live", Phoenix.LiveView.Socket,
+    websocket: [connect_info: [session: @session_options]],
+    longpoll: [connect_info: [session: @session_options]]
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -34,6 +34,8 @@ defmodule HyprWeb.Endpoint do
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
+    socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
+    plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
     plug Phoenix.Ecto.CheckRepoStatus, otp_app: :hypr
   end

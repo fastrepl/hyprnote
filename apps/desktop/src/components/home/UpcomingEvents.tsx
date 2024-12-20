@@ -3,6 +3,7 @@ import { Note } from "../../types";
 import { EventCard } from "./EventCard";
 import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
 import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
 interface UpcomingEventsProps {
   futureNotes: Note[];
@@ -13,6 +14,7 @@ export const UpcomingEvents = ({
   futureNotes,
   onNoteClick,
 }: UpcomingEventsProps) => {
+  const { t } = useTranslation();
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     slidesToScroll: 1,
@@ -30,7 +32,7 @@ export const UpcomingEvents = ({
 
   return (
     <div className="relative">
-      <h2 className="text-xl font-semibold">다가오는 이벤트</h2>
+      <h2 className="text-xl font-semibold">{t('home.upcomingEvents')}</h2>
       <div className="relative">
         <div className="overflow-hidden px-2 py-4" ref={emblaRef}>
           <div className="flex gap-4">

@@ -1,4 +1,5 @@
 import { RiGoogleFill, RiAppleFill } from "@remixicon/react";
+import { useTranslation } from "react-i18next";
 import { RetroGrid } from "../components/ui/retro-grid.tsx";
 import { AudioControls } from "../components/AudioControls";
 import BlurFade from "../components/ui/blur-fade.tsx";
@@ -6,6 +7,8 @@ import SparklesText from "../components/ui/sparkles-text.tsx";
 import ShimmerButton from "../components/ui/shimmer-button.tsx";
 
 const Login = () => {
+  const { t } = useTranslation();
+
   const handleGoogleSignIn = () => {
     // Implement Google Sign In
     console.log("Google Sign In clicked");
@@ -28,9 +31,9 @@ const Login = () => {
             className="mb-8 text-center text-4xl font-bold"
             style={{ fontFamily: "'Racing Sans One', cursive" }}
           >
-            Welcome to{" "}
+            {t("common.welcome")}{" "}
             <SparklesText
-              text="HYPERNOTE"
+              text="Hyprnote"
               colors={{ first: "#FFD700", second: "#8A2BE2" }}
             />
           </h1>
@@ -42,7 +45,7 @@ const Login = () => {
             className="flex flex-1 items-center justify-center gap-2"
           >
             <RiGoogleFill size={20} />
-            <span>Continue with Google</span>
+            <span>{t("auth.continueWith", { provider: "Google" })}</span>
           </ShimmerButton>
 
           <ShimmerButton
@@ -50,7 +53,7 @@ const Login = () => {
             className="flex flex-1 items-center justify-center gap-2"
           >
             <RiAppleFill size={20} />
-            <span>Continue with Apple</span>
+            <span>{t("auth.continueWith", { provider: "Apple" })}</span>
           </ShimmerButton>
         </div>
       </div>

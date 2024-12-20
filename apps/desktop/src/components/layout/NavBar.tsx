@@ -5,6 +5,7 @@ import {
   RiSidebarUnfoldLine,
   RiSidebarFoldLine,
 } from "@remixicon/react";
+import { useTranslation } from "react-i18next";
 
 import SearchModal from "../modals/search/SearchModal";
 import SettingsModal from "../modals/settings/SettingsModal";
@@ -15,6 +16,7 @@ import NavigationButtons from "./NavigationButtons";
 import { useUI } from "../../contexts/UIContext";
 
 export default function NavBar() {
+  const { t } = useTranslation();
   const { isPanelOpen, setIsPanelOpen } = useUI();
   const navigate = useNavigate();
   const location = useLocation();
@@ -54,6 +56,7 @@ export default function NavBar() {
                 <button
                   onClick={handleSettingsClick}
                   className="flex items-center rounded p-2 hover:bg-gray-100"
+                  aria-label={t("settings.title")}
                 >
                   <RiMenuLine className="size-5" />
                 </button>
@@ -71,7 +74,7 @@ export default function NavBar() {
                 <button
                   onClick={togglePanel}
                   className="rounded p-2 hover:bg-gray-100"
-                  aria-label={isPanelOpen ? "Close panel" : "Open panel"}
+                  aria-label={t(isPanelOpen ? "note.panel.close" : "note.panel.open")}
                 >
                   {isPanelOpen ? (
                     <RiSidebarUnfoldLine className="size-5" />
@@ -83,9 +86,9 @@ export default function NavBar() {
                 <button
                   onClick={handleNewNote}
                   className="rounded-md bg-blue-500 px-2.5 py-1 text-sm text-white hover:bg-blue-600"
-                  aria-label="새 노트 만들기"
+                  aria-label={t("note.new.label")}
                 >
-                  새 노트
+                  {t("note.new.button")}
                 </button>
               )}
             </div>

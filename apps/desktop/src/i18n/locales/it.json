@@ -1,0 +1,221 @@
+{
+  "common": {
+    "login": "Accedi",
+    "home": "Home",
+    "notes": "Note",
+    "untitled": "Senza titolo",
+    "demo": "Demo",
+    "welcome": "Benvenuto su",
+    "search": "Cerca",
+    "settings": "Impostazioni"
+  },
+  "auth": {
+    "login": "Accedi",
+    "logout": "Esci",
+    "email": "Email",
+    "password": "Password",
+    "continueWith": "Continua con {{provider}}"
+  },
+  "home": {
+    "newUser": {
+      "question": "Curioso di Hyprnote?",
+      "tryDemo": "Prova Demo"
+    },
+    "upcomingEvents": "Prossimi Eventi",
+    "recentNotes": "Note Recenti",
+    "updated": "Aggiornato alle {{time}}"
+  },
+  "note": {
+    "new": {
+      "label": "Crea nuova nota",
+      "button": "Nuova Nota"
+    },
+    "panel": {
+      "open": "Apri pannello",
+      "close": "Chiudi pannello"
+    },
+    "title": {
+      "placeholder": "Senza titolo"
+    },
+    "calendar": {
+      "time": "{{start}} ~ {{end}}"
+    },
+    "controls": {
+      "start": "Avvia registrazione",
+      "pause": "Pausa",
+      "resume": "Riprendi",
+      "hypercharge": "Hypercharge",
+      "recording": "Registrazione in corso",
+      "recordingTime": "{{minutes}}:{{seconds}}",
+      "joinMeeting": "Partecipa alla riunione",
+      "startRecording": "Avvia registrazione",
+      "paused": "In pausa"
+    },
+    "tags": {
+      "title": "Tag"
+    },
+    "sidePanel": {
+      "transcript": "Trascrizione",
+      "chat": "Chat"
+    },
+    "chat": {
+      "placeholder": "Chiedi all'Assistente IA...",
+      "description": "Posso aiutarti ad analizzare e organizzare il contenuto della tua riunione",
+      "error": "Spiacenti, si è verificato un errore",
+      "quickActions": {
+        "summarizeQA": "Riassumi Domande e Risposte",
+        "listActions": "Elenca Azioni",
+        "summarizeMeeting": "Riassumi Riunione",
+        "writeEmail": "Scrivi Email di Follow-up",
+        "suggestAgenda": "Suggerisci Prossimo Ordine del Giorno"
+      },
+      "send": "Invia"
+    }
+  },
+  "search": {
+    "label": "Cerca",
+    "placeholder": "Cerca...",
+    "noResults": "Nessun risultato trovato",
+    "results": "Risultati",
+    "shortcut": "⌘K"
+  },
+  "settings": {
+    "shortcut": "⌘,",
+    "tabs": {
+      "profile": "Profilo",
+      "general": "Generale",
+      "feedback": "Feedback",
+      "billing": "Fatturazione",
+      "calendar": "Calendario",
+      "notifications": "Notifiche",
+      "integrations": "Integrazioni"
+    },
+    "general": {
+      "description": "Gestisci le impostazioni base dell'applicazione",
+      "language": "Lingua",
+      "languageDescription": "Scegli la tua lingua preferita",
+      "autoStart": "Avvio automatico",
+      "autoStartDescription": "Avvia automaticamente l'app all'accensione del computer",
+      "autoUpdate": "Aggiornamento automatico",
+      "autoUpdateDescription": "Aggiorna automaticamente quando è disponibile una nuova versione",
+      "crashReports": "Invia segnalazioni di errori",
+      "crashReportsDescription": "Invia segnalazioni di errori per aiutare a migliorare l'app",
+      "usageData": "Invia dati di utilizzo",
+      "usageDataDescription": "Invia dati di utilizzo anonimi per aiutare a migliorare l'app",
+      "theme": "Tema",
+      "themeDescription": "Scegli il tuo aspetto preferito",
+      "themes": {
+        "light": "Chiaro",
+        "dark": "Scuro",
+        "system": "Sistema"
+      }
+    },
+    "profile": {
+      "title": "Profilo",
+      "description": "Gestisci le tue informazioni del profilo",
+      "fullName": "Nome completo",
+      "fullNamePlaceholder": "Inserisci il tuo nome completo",
+      "email": "Email",
+      "avatar": {
+        "change": "Cambia foto"
+      },
+      "save": "Salva modifiche",
+      "cancel": "Annulla"
+    },
+    "feedback": {
+      "title": "Feedback",
+      "description": "Condividi i tuoi pensieri o segnala un problema",
+      "type": {
+        "label": "Tipo di feedback",
+        "general": "Feedback generale",
+        "problem": "Segnala problema",
+        "question": "Fai una domanda"
+      },
+      "content": {
+        "label": "Il tuo messaggio",
+        "placeholder": "Condividi i tuoi pensieri..."
+      },
+      "submit": "Invia feedback"
+    },
+    "calendar": {
+      "title": "Calendario",
+      "description": "Gestisci le tue integrazioni del calendario",
+      "google": {
+        "title": "Google Calendar",
+        "description": "Sincronizza con Google Calendar"
+      },
+      "ical": {
+        "title": "iCal Calendar",
+        "description": "Importa eventi dai feed iCal"
+      }
+    },
+    "notifications": {
+      "title": "Notifiche",
+      "description": "Gestisci le tue preferenze di notifica",
+      "scheduledMeetings": {
+        "title": "Riunioni programmate",
+        "description": "Ricevi notifiche per le riunioni programmate"
+      },
+      "autoIdentified": {
+        "title": "Riunioni identificate automaticamente",
+        "description": "Ricevi notifiche quando le riunioni vengono identificate automaticamente"
+      }
+    },
+    "integrations": {
+      "title": "Integrazioni",
+      "description": "Connettiti con le tue app preferite",
+      "connect": "Connetti",
+      "slack": {
+        "title": "Slack",
+        "description": "Condividi note delle riunioni direttamente nei canali Slack"
+      },
+      "notion": {
+        "title": "Notion",
+        "description": "Esporta note nel tuo spazio di lavoro Notion"
+      }
+    },
+    "billing": {
+      "title": "Fatturazione",
+      "description": "Gestisci il tuo abbonamento e le impostazioni di fatturazione",
+      "billingCycle": {
+        "monthly": "Mensile",
+        "yearly": "Annuale"
+      },
+      "plans": {
+        "pro": {
+          "title": "Pro",
+          "features": {
+            "noteCreation": "Creazione e modifica note",
+            "speechRecognition": "Riconoscimento vocale illimitato",
+            "multiLanguage": "Supporto multilingua",
+            "offlineMode": "Modalità offline (Inglese)",
+            "aiFeatures": "Funzionalità AI avanzate",
+            "sharing": "Link di condivisione note",
+            "integrations": "Integrazioni app (Notion, Slack, ecc.)"
+          }
+        },
+        "business": {
+          "title": "Business",
+          "features": {
+            "allPro": "Tutte le funzionalità del piano Pro",
+            "workspace": "Spazio di lavoro team",
+            "accessControl": "Controllo accessi dettagliato",
+            "sharedEditing": "Permessi di modifica condivisa",
+            "teamBilling": "Fatturazione team",
+            "dashboard": "Dashboard di utilizzo"
+          }
+        }
+      },
+      "status": {
+        "current": "Piano attuale",
+        "comingSoon": "Prossimamente",
+        "daysLeft": "{{days}} giorni rimanenti",
+        "upgrade": "Passa a versione superiore",
+        "downgrade": "Passa a versione inferiore"
+      },
+      "pricing": {
+        "perMonth": "/mese"
+      }
+    }
+  }
+}

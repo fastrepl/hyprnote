@@ -1,19 +1,24 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import i18n from "i18next";
 
 interface LanguageContextType {
   language: string;
   setLanguage: (lang: string) => void;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined,
+);
 
-export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState(localStorage.getItem('language') || 'en');
+export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [language, setLanguage] = useState(
+    localStorage.getItem("language") || "en",
+  );
 
   useEffect(() => {
-    localStorage.setItem('language', language);
+    localStorage.setItem("language", language);
     i18n.changeLanguage(language);
   }, [language]);
 
@@ -27,7 +32,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
+    throw new Error("useLanguage must be used within a LanguageProvider");
   }
   return context;
 };

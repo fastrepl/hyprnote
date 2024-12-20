@@ -3,10 +3,12 @@ import "../../../styles/cmdk.css";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Command } from "cmdk";
+import { useTranslation } from "react-i18next";
 
 import { mockNotes } from "../../../mocks/data";
 
 const SearchModal = () => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
@@ -62,17 +64,17 @@ const SearchModal = () => {
         />
       )}
       {open && (
-        <Command label="Search" onKeyDown={handleKeyDown}>
+        <Command label={t('search.label')} onKeyDown={handleKeyDown}>
           <Command className="fixed left-[50%] top-[50%] z-[51] max-h-[85vh] w-[90vw] max-w-[450px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white shadow-lg dark:bg-gray-800">
             <Command.Input
               value={search}
               onValueChange={setSearch}
-              placeholder="Search notes..."
+              placeholder={t('search.placeholder')}
               className="w-full"
               autoFocus
             />
             <Command.List>
-              <Command.Empty>No notes found.</Command.Empty>
+              <Command.Empty>{t('search.noResults')}</Command.Empty>
               <Command.Group>
                 {filteredNotes.map((note) => (
                   <Command.Item

@@ -1,16 +1,18 @@
 import { useState } from "react";
 import * as Switch from "@radix-ui/react-switch";
+import { useTranslation } from "react-i18next";
 
 export function Calendars() {
+  const { t } = useTranslation();
   const [googleCalendar, setGoogleCalendar] = useState(false);
   const [iCalCalendar, setICalCalendar] = useState(false);
 
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-medium text-gray-900">캘린더</h3>
+        <h3 className="text-lg font-medium text-gray-900">{t("settings.calendar.title")}</h3>
         <p className="mt-1 text-sm text-gray-500">
-          캘린더 연동 설정을 관리하세요
+          {t("settings.calendar.description")}
         </p>
       </div>
 
@@ -19,10 +21,10 @@ export function Calendars() {
       <div className="flex items-center justify-between">
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Google 캘린더
+            {t("settings.calendar.google.title")}
           </label>
           <p className="text-sm text-gray-500">
-            Google 캘린더와 연동하여 일정을 자동으로 가져옵니다
+            {t("settings.calendar.google.description")}
           </p>
         </div>
         <Switch.Root
@@ -37,10 +39,10 @@ export function Calendars() {
       <div className="flex items-center justify-between">
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            iCal 캘린더
+            {t("settings.calendar.ical.title")}
           </label>
           <p className="text-sm text-gray-500">
-            iCal 형식의 캘린더를 가져와서 일정을 동기화합니다
+            {t("settings.calendar.ical.description")}
           </p>
         </div>
         <Switch.Root

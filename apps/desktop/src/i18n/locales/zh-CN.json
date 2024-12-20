@@ -1,0 +1,221 @@
+{
+  "common": {
+    "login": "登录",
+    "home": "首页",
+    "notes": "笔记",
+    "untitled": "未命名",
+    "demo": "演示",
+    "welcome": "欢迎使用",
+    "search": "搜索",
+    "settings": "设置"
+  },
+  "auth": {
+    "login": "登录",
+    "logout": "退出",
+    "email": "邮箱",
+    "password": "密码",
+    "continueWith": "使用{{provider}}继续"
+  },
+  "home": {
+    "newUser": {
+      "question": "想了解更多关于超级笔记的信息吗？",
+      "tryDemo": "体验演示"
+    },
+    "upcomingEvents": "即将到来的事件",
+    "recentNotes": "最近笔记",
+    "updated": "更新于 {{time}}"
+  },
+  "note": {
+    "new": {
+      "label": "创建新笔记",
+      "button": "新笔记"
+    },
+    "panel": {
+      "open": "打开面板",
+      "close": "关闭面板"
+    },
+    "title": {
+      "placeholder": "未命名"
+    },
+    "calendar": {
+      "time": "{{start}} ~ {{end}}"
+    },
+    "controls": {
+      "start": "开始录音",
+      "pause": "暂停",
+      "resume": "继续",
+      "hypercharge": "超级加速",
+      "recording": "录音中",
+      "recordingTime": "{{minutes}}:{{seconds}}",
+      "joinMeeting": "加入会议",
+      "startRecording": "开始录音",
+      "paused": "已暂停"
+    },
+    "tags": {
+      "title": "标签"
+    },
+    "sidePanel": {
+      "transcript": "转录",
+      "chat": "聊天"
+    },
+    "chat": {
+      "placeholder": "询问AI助手...",
+      "description": "我可以帮助分析和整理会议内容",
+      "error": "抱歉，发生错误",
+      "quickActions": {
+        "summarizeQA": "总结问答内容",
+        "listActions": "列出行动项目",
+        "summarizeMeeting": "会议总结",
+        "writeEmail": "撰写跟进邮件",
+        "suggestAgenda": "建议下次议程"
+      },
+      "send": "发送"
+    }
+  },
+  "search": {
+    "label": "搜索",
+    "placeholder": "搜索笔记...",
+    "noResults": "未找到笔记",
+    "results": "搜索结果",
+    "shortcut": "⌘K"
+  },
+  "settings": {
+    "shortcut": "⌘,",
+    "tabs": {
+      "profile": "个人资料",
+      "general": "通用",
+      "feedback": "反馈",
+      "billing": "付款",
+      "calendar": "日历",
+      "notifications": "通知",
+      "integrations": "集成"
+    },
+    "general": {
+      "description": "管理基本应用设置",
+      "language": "语言",
+      "languageDescription": "选择您偏好的语言",
+      "autoStart": "自动启动",
+      "autoStartDescription": "开机时自动启动应用",
+      "autoUpdate": "自动更新",
+      "autoUpdateDescription": "有新版本时自动更新",
+      "crashReports": "发送崩溃报告",
+      "crashReportsDescription": "发送崩溃报告以帮助改进应用",
+      "usageData": "发送使用数据",
+      "usageDataDescription": "发送匿名使用数据以帮助改进应用",
+      "theme": "主题",
+      "themeDescription": "选择您偏好的外观",
+      "themes": {
+        "light": "浅色",
+        "dark": "深色",
+        "system": "系统"
+      }
+    },
+    "profile": {
+      "title": "个人资料",
+      "description": "管理您的个人资料信息",
+      "fullName": "姓名",
+      "fullNamePlaceholder": "请输入您的姓名",
+      "email": "电子邮箱",
+      "avatar": {
+        "change": "更换头像"
+      },
+      "save": "保存更改",
+      "cancel": "取消"
+    },
+    "feedback": {
+      "title": "反馈",
+      "description": "分享您的想法或报告问题",
+      "type": {
+        "label": "反馈类型",
+        "general": "一般反馈",
+        "problem": "报告问题",
+        "question": "提出问题"
+      },
+      "content": {
+        "label": "您的留言",
+        "placeholder": "请告诉我们您的想法..."
+      },
+      "submit": "提交反馈"
+    },
+    "calendar": {
+      "title": "日历",
+      "description": "管理您的日历集成",
+      "google": {
+        "title": "Google日历",
+        "description": "与Google日历同步"
+      },
+      "ical": {
+        "title": "iCal日历",
+        "description": "从iCal源导入事件"
+      }
+    },
+    "notifications": {
+      "title": "通知",
+      "description": "管理您的通知设置",
+      "scheduledMeetings": {
+        "title": "已安排的会议",
+        "description": "接收即将举行的已安排会议的通知"
+      },
+      "autoIdentified": {
+        "title": "自动识别的会议",
+        "description": "当自动识别到会议时接收通知"
+      }
+    },
+    "integrations": {
+      "title": "集成",
+      "description": "连接您喜爱的应用",
+      "connect": "连接",
+      "slack": {
+        "title": "Slack",
+        "description": "直接在Slack频道中分享会议笔记"
+      },
+      "notion": {
+        "title": "Notion",
+        "description": "将笔记导出到Notion工作区"
+      }
+    },
+    "billing": {
+      "title": "付款",
+      "description": "管理您的订阅和付款设置",
+      "billingCycle": {
+        "monthly": "月付",
+        "yearly": "年付"
+      },
+      "plans": {
+        "pro": {
+          "title": "专业版",
+          "features": {
+            "noteCreation": "笔记创建和编辑",
+            "speechRecognition": "无限语音识别",
+            "multiLanguage": "多语言支持",
+            "offlineMode": "离线模式（英文）",
+            "aiFeatures": "高级AI功能",
+            "sharing": "笔记分享链接",
+            "integrations": "应用集成（Notion、Slack等）"
+          }
+        },
+        "business": {
+          "title": "商业版",
+          "features": {
+            "allPro": "包含专业版所有功能",
+            "workspace": "团队工作空间",
+            "accessControl": "详细访问控制",
+            "sharedEditing": "共享笔记编辑权限",
+            "teamBilling": "团队计费",
+            "dashboard": "使用情况仪表板"
+          }
+        }
+      },
+      "status": {
+        "current": "当前方案",
+        "comingSoon": "即将推出",
+        "daysLeft": "剩余{{days}}天",
+        "upgrade": "升级",
+        "downgrade": "降级"
+      },
+      "pricing": {
+        "perMonth": "/月"
+      }
+    }
+  }
+}

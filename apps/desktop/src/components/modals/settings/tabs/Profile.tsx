@@ -1,7 +1,9 @@
 import { useState, useRef } from "react";
 import { RiUser3Line } from "@remixicon/react";
+import { useTranslation } from "react-i18next";
 
 export function Profile() {
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState("");
   const [email] = useState("john@example.com");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -9,8 +11,7 @@ export function Profile() {
   const [initialAvatarUrl] = useState(avatarUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isChanged =
-    fullName !== initialFullName || avatarUrl !== initialAvatarUrl;
+  const isChanged = fullName !== initialFullName || avatarUrl !== initialAvatarUrl;
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -30,8 +31,12 @@ export function Profile() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-medium text-gray-900">프로필</h3>
-        <p className="mt-1 text-sm text-gray-500">프로필 정보를 관리하세요</p>
+        <h3 className="text-lg font-medium text-gray-900">
+          {t("settings.profile.title")}
+        </h3>
+        <p className="mt-1 text-sm text-gray-500">
+          {t("settings.profile.description")}
+        </p>
       </div>
 
       <div className="h-px bg-gray-200" />
@@ -42,7 +47,7 @@ export function Profile() {
             {avatarUrl ? (
               <img
                 src={avatarUrl}
-                alt="Profile"
+                alt={t("settings.profile.avatar.change")}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -53,7 +58,9 @@ export function Profile() {
               className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 transition-opacity hover:opacity-100"
               onClick={() => fileInputRef.current?.click()}
             >
-              <span className="text-xs text-white">변경</span>
+              <span className="text-xs text-white">
+                {t("settings.profile.avatar.change")}
+              </span>
             </button>
             <input
               type="file"
@@ -71,15 +78,15 @@ export function Profile() {
               htmlFor="fullName"
               className="block text-sm font-medium text-gray-700"
             >
-              이름
+              {t("settings.profile.fullName")}
             </label>
             <input
               type="text"
               id="fullName"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="mt-1 block rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="이름을 입력하세요"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder={t("settings.profile.fullNamePlaceholder")}
             />
           </div>
 
@@ -88,32 +95,39 @@ export function Profile() {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
-              이메일
+              {t("settings.profile.email")}
             </label>
             <input
               type="email"
               id="email"
               value={email}
               disabled
-              className="mt-1 block rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500"
             />
           </div>
         </div>
 
-        <div>
-          <button
-            type="button"
-            disabled={!isChanged}
-            onClick={handleSave}
-            className={`rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-              isChanged
-                ? "bg-blue-600 hover:bg-blue-700"
-                : "cursor-not-allowed bg-gray-400"
-            }`}
-          >
-            저장
-          </button>
-        </div>
+        {isChanged && (
+          <div className="flex space-x-3">
+            <button
+              type="button"
+              className="rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              onClick={handleSave}
+            >
+              {t("settings.profile.save")}
+            </button>
+            <button
+              type="button"
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              onClick={() => {
+                setFullName(initialFullName);
+                setAvatarUrl(initialAvatarUrl);
+              }}
+            >
+              {t("settings.profile.cancel")}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

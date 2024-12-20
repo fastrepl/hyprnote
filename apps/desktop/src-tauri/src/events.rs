@@ -4,7 +4,9 @@ use std::path::PathBuf;
 use tauri_specta::Event;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
-pub struct Transcript;
+pub struct Transcript {
+    pub text: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
 pub struct NotAuthenticated;

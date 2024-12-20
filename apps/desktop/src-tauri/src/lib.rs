@@ -26,9 +26,7 @@ pub struct App {
 pub fn run() {
     let specta_builder = tauri_specta::Builder::new()
         .commands(tauri_specta::collect_commands![
-            commands::list_audio_devices,
-            commands::start_recording,
-            commands::stop_recording,
+            commands::start_session,
             commands::start_playback,
             commands::stop_playback,
             commands::list_apple_calendars,

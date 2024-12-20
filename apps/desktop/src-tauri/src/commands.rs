@@ -1,23 +1,19 @@
-use crate::{audio, auth::AuthStore, config::ConfigStore, permissions, App};
+use crate::{audio, auth::AuthStore, config::ConfigStore, events, permissions, App};
 use anyhow::Result;
-use cap_media::feeds::AudioInputFeed;
 use std::{path::PathBuf, sync::Arc};
-use tauri::{AppHandle, Manager, State};
+use tauri::{ipc::Channel, AppHandle, Manager, State};
 use tokio::sync::RwLock;
 
 type MutableState<'a, T> = State<'a, Arc<RwLock<T>>>;
 
 #[tauri::command]
 #[specta::specta]
-pub async fn list_audio_devices() -> Result<Vec<String>, ()> {
-    if !permissions::do_permissions_check(false)
-        .microphone
-        .permitted()
-    {
-        return Ok(vec![]);
-    }
-
-    Ok(AudioInputFeed::list_devices().keys().cloned().collect())
+pub fn start_session(_app: AppHandle, on_event: Channel<events::Transcript>) {
+    let _ = tokio::spawn(async move {
+        let _ = on_event.send(events::Transcript {
+            text: "Hello, world!".to_string(),
+        });
+    });
 }
 
 #[tauri::command]

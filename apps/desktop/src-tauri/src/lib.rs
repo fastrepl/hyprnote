@@ -1,8 +1,9 @@
 use cap_media::feeds::{AudioInputFeed, AudioInputSamplesSender};
 use tokio::sync::RwLock;
 
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Manager};
 use tauri_plugin_deep_link::DeepLinkExt;
+use tauri_specta::Event;
 
 mod audio;
 mod auth;
@@ -28,8 +29,6 @@ pub struct App {
 pub fn run() {
     let specta_builder = tauri_specta::Builder::new()
         .commands(tauri_specta::collect_commands![
-            commands::set_config,
-            commands::get_config,
             commands::list_audio_devices,
             commands::start_recording,
             commands::stop_recording,
@@ -39,7 +38,11 @@ pub fn run() {
             commands::list_apple_events,
             permissions::open_permission_settings,
         ])
-        .events(tauri_specta::collect_events![events::Transcript])
+        .events(tauri_specta::collect_events![
+            events::Transcript,
+            events::NotAuthenticated,
+            events::JustAuthenticated,
+        ])
         .typ::<hypr_calendar::apple::Calendar>()
         .typ::<hypr_calendar::apple::Event>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw);
@@ -105,7 +108,7 @@ pub fn run() {
                 let key = query_pairs.get("key").unwrap().clone();
 
                 std::fs::write(&file_path, key).unwrap();
-                let _ = app_handle.emit("auth", true);
+                let _ = events::JustAuthenticated.emit(&app_handle);
             }
         });
 
@@ -132,6 +135,19 @@ pub fn run() {
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
             move |invoke| handler(invoke)
+        })
+        .setup(move |app| {
+            let app = app.handle().clone();
+
+            if let Ok(Some(_auth)) = auth::AuthStore::load(&app) {}
+
+            app.manage(RwLock::new(App {
+                handle: app.clone(),
+                audio_input_tx,
+                audio_input_feed: None,
+            }));
+
+            Ok(())
         })
         .setup(|app| {
             let salt_path = app.path().app_local_data_dir()?.join("salt.txt");
@@ -164,19 +180,6 @@ pub fn run() {
                 let autostart_manager = app.autolaunch();
                 let _ = autostart_manager.enable();
             }
-            Ok(())
-        })
-        .setup(move |app| {
-            let app = app.handle().clone();
-
-            if let Ok(Some(_auth)) = auth::AuthStore::load(&app) {}
-
-            app.manage(RwLock::new(App {
-                handle: app.clone(),
-                audio_input_tx,
-                audio_input_feed: None,
-            }));
-
             Ok(())
         })
         .run(tauri::generate_context!())

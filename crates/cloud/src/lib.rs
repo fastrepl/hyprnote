@@ -43,8 +43,8 @@ pub struct Client {
 }
 
 pub struct ClientConfig {
-    base_url: Url,
-    auth_token: Option<String>,
+    pub base_url: Url,
+    pub auth_token: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Eq)]

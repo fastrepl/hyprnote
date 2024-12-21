@@ -16,9 +16,15 @@ export default function ChatPanel({ transcript }: ChatPanelProps) {
   const quickActions = [
     { label: t("note.chat.quickActions.summarizeQA"), action: "SUMMARIZE_QA" },
     { label: t("note.chat.quickActions.listActions"), action: "LIST_ACTIONS" },
-    { label: t("note.chat.quickActions.summarizeMeeting"), action: "SUMMARIZE_MEETING" },
+    {
+      label: t("note.chat.quickActions.summarizeMeeting"),
+      action: "SUMMARIZE_MEETING",
+    },
     { label: t("note.chat.quickActions.writeEmail"), action: "WRITE_EMAIL" },
-    { label: t("note.chat.quickActions.suggestAgenda"), action: "SUGGEST_AGENDA" },
+    {
+      label: t("note.chat.quickActions.suggestAgenda"),
+      action: "SUGGEST_AGENDA",
+    },
   ];
 
   const handleSubmit = async () => {

@@ -10,7 +10,9 @@ export function Calendars() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-medium text-gray-900">{t("settings.calendar.title")}</h3>
+        <h3 className="text-lg font-medium text-gray-900">
+          {t("settings.calendar.title")}
+        </h3>
         <p className="mt-1 text-sm text-gray-500">
           {t("settings.calendar.description")}
         </p>

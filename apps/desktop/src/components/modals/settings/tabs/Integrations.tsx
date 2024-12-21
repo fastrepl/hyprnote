@@ -63,7 +63,9 @@ export function Integrations() {
   return (
     <div className="space-y-4" tabIndex={-1}>
       <div>
-        <h3 className="text-lg font-medium text-gray-900">{t("settings.integrations.title")}</h3>
+        <h3 className="text-lg font-medium text-gray-900">
+          {t("settings.integrations.title")}
+        </h3>
         <p className="mt-1 text-sm text-gray-500">
           {t("settings.integrations.description")}
         </p>

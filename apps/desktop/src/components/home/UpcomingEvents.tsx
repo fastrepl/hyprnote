@@ -32,7 +32,7 @@ export const UpcomingEvents = ({
 
   return (
     <div className="relative">
-      <h2 className="text-xl font-semibold">{t('home.upcomingEvents')}</h2>
+      <h2 className="text-xl font-semibold">{t("home.upcomingEvents")}</h2>
       <div className="relative">
         <div className="overflow-hidden px-2 py-4" ref={emblaRef}>
           <div className="flex gap-4">

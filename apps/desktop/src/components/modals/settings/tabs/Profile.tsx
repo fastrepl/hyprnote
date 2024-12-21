@@ -11,7 +11,8 @@ export function Profile() {
   const [initialAvatarUrl] = useState(avatarUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isChanged = fullName !== initialFullName || avatarUrl !== initialAvatarUrl;
+  const isChanged =
+    fullName !== initialFullName || avatarUrl !== initialAvatarUrl;
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

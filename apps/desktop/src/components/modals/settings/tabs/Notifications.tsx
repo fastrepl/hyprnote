@@ -10,8 +10,12 @@ export function Notifications() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-medium text-gray-900">{t("settings.notifications.title")}</h3>
-        <p className="mt-1 text-sm text-gray-500">{t("settings.notifications.description")}</p>
+        <h3 className="text-lg font-medium text-gray-900">
+          {t("settings.notifications.title")}
+        </h3>
+        <p className="mt-1 text-sm text-gray-500">
+          {t("settings.notifications.description")}
+        </p>
       </div>
 
       <div className="h-px bg-gray-200" />

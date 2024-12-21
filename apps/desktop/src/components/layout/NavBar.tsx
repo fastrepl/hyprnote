@@ -74,7 +74,9 @@ export default function NavBar() {
                 <button
                   onClick={togglePanel}
                   className="rounded p-2 hover:bg-gray-100"
-                  aria-label={t(isPanelOpen ? "note.panel.close" : "note.panel.open")}
+                  aria-label={t(
+                    isPanelOpen ? "note.panel.close" : "note.panel.open",
+                  )}
                 >
                   {isPanelOpen ? (
                     <RiSidebarUnfoldLine className="size-5" />

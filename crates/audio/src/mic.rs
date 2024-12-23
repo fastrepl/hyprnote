@@ -1,6 +1,6 @@
+use futures::StreamExt;
 use kalosm_sound::rodio::Source;
 use kalosm_sound::MicInput;
-use tokio_stream::StreamExt;
 
 async fn main2() {
     let mic = MicInput::default();

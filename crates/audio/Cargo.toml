@@ -8,7 +8,10 @@ anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
-tokio-stream = { workspace = true }
+futures = "0.3"
+futures-core = "0.3.31"
+futures-util = "0.3.31"
+futures-channel = "0.3.31"
 
 cpal = { workspace = true }
 rodio = { version = "0.20.1", features = ["wav", "hound", "vorbis"] }

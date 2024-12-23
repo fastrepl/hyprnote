@@ -1,6 +1,6 @@
-mod capture;
 mod format;
 mod mic;
+mod speaker;
 
 use anyhow::Result;
 use cpal::traits::{DeviceTrait, HostTrait};

@@ -441,12 +441,15 @@ dependencies = [
  "anyhow",
  "cidre 0.5.0",
  "cpal",
+ "futures",
+ "futures-channel",
+ "futures-core",
+ "futures-util",
  "kalosm-sound",
  "rodio 0.20.1",
  "serde",
  "serde_json",
  "tokio",
- "tokio-stream",
  "windows 0.58.0",
 ]
 

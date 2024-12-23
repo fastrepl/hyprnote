@@ -1,3 +1,5 @@
+pub mod macos;
+
 use anyhow::Result;
 use cpal::traits::{DeviceTrait, HostTrait};
 

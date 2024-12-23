@@ -3,10 +3,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use objc2::{rc::Retained, runtime::Bool};
-use objc2_event_kit::{
-    EKAuthorizationStatus, EKCalendar, EKEntityType, EKEventStore,
-    EKEventStoreRequestAccessCompletionHandler,
-};
+use objc2_event_kit::{EKAuthorizationStatus, EKCalendar, EKEntityType, EKEventStore};
 use objc2_foundation::{NSArray, NSDate, NSError, NSPredicate};
 
 pub struct Handle {
@@ -36,9 +33,9 @@ impl Handle {
         let store = unsafe { EKEventStore::new() };
 
         let completion = RcBlock::new(move |_granted: Bool, _error: *mut NSError| {});
-        let completion_ptr: EKEventStoreRequestAccessCompletionHandler =
-            &*completion as *const _ as *mut _;
-        unsafe { store.requestFullAccessToEventsWithCompletion(completion_ptr) };
+        unsafe {
+            store.requestFullAccessToEventsWithCompletion(&*completion as *const _ as *mut _)
+        };
 
         Self { store }
     }

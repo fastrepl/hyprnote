@@ -5,6 +5,7 @@ members = ["apps/desktop/src-tauri", "crates/*"]
 [workspace.dependencies]
 tauri = "2.1.1"
 tokio = "1"
+tokio-stream = "0.1.17"
 
 anyhow = "1"
 thiserror = "2"

@@ -1,4 +1,6 @@
-pub mod macos;
+mod capture;
+mod format;
+mod mic;
 
 use anyhow::Result;
 use cpal::traits::{DeviceTrait, HostTrait};

@@ -26,4 +26,3 @@ objc2-event-kit = { version = "0.2.2", features = [
   "block2",
 ] }
 objc2-foundation = { version = "0.2.2", features = ["NSEnumerator"] }
-

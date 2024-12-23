@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = { workspace = true }
 google-calendar = "0.7.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]

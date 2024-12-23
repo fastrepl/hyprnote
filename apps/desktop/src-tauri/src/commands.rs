@@ -27,9 +27,9 @@ pub async fn stop_playback(_app: AppHandle, _audio_id: String) {}
 #[cfg(target_os = "macos")]
 #[tauri::command]
 #[specta::specta]
-pub fn list_apple_calendars() -> Option<Vec<hypr_calendar::apple::Calendar>> {
-    let handle = hypr_calendar::apple::Handle::new();
-    Some(handle.list_calendars())
+pub fn list_apple_calendars() -> Result<Vec<hypr_calendar::apple::Calendar>, String> {
+    let handle = hypr_calendar::apple::Handle::new().map_err(|e| e.to_string())?;
+    Ok(handle.list_calendars())
 }
 
 #[cfg(target_os = "macos")]
@@ -37,9 +37,9 @@ pub fn list_apple_calendars() -> Option<Vec<hypr_calendar::apple::Calendar>> {
 #[specta::specta]
 pub fn list_apple_events(
     filter: hypr_calendar::apple::EventFilter,
-) -> Option<Vec<hypr_calendar::apple::Event>> {
-    let handle = hypr_calendar::apple::Handle::new();
-    Some(handle.list_events(filter))
+) -> Result<Vec<hypr_calendar::apple::Event>, String> {
+    let handle = hypr_calendar::apple::Handle::new().map_err(|e| e.to_string())?;
+    Ok(handle.list_events(filter))
 }
 
 #[tauri::command]

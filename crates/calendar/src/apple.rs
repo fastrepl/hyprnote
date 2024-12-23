@@ -1,7 +1,8 @@
-use block2::RcBlock;
+use anyhow::Result;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
+use block2::RcBlock;
 use objc2::{rc::Retained, runtime::Bool};
 use objc2_event_kit::{EKAuthorizationStatus, EKCalendar, EKEntityType, EKEventStore};
 use objc2_foundation::{NSArray, NSDate, NSError, NSPredicate};
@@ -29,15 +30,23 @@ pub struct EventFilter {
 }
 
 impl Handle {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self> {
         let store = unsafe { EKEventStore::new() };
 
-        let completion = RcBlock::new(move |_granted: Bool, _error: *mut NSError| {});
+        let (tx, rx) = std::sync::mpsc::channel::<bool>();
+        let completion = RcBlock::new(move |granted: Bool, _error: *mut NSError| {
+            let _ = tx.send(granted.as_bool());
+        });
+
         unsafe {
             store.requestFullAccessToEventsWithCompletion(&*completion as *const _ as *mut _)
         };
 
-        Self { store }
+        if let Ok(true) = rx.recv() {
+            return Ok(Self { store });
+        }
+
+        Err(anyhow::anyhow!("failed to get calendar permissions"))
     }
 
     pub fn authorization_status(&self) -> bool {
@@ -50,6 +59,7 @@ impl Handle {
 
     pub fn list_calendars(&self) -> Vec<Calendar> {
         let calendars = unsafe { self.store.calendars() };
+
         calendars
             .iter()
             .map(|calendar| {
@@ -149,13 +159,13 @@ mod tests {
 
     #[test]
     fn test_list_calendars() {
-        let handle = Handle::new();
+        let handle = Handle::new().unwrap();
         let _ = handle.list_calendars();
     }
 
     #[test]
     fn test_list_events() {
-        let handle = Handle::new();
+        let handle = Handle::new().unwrap();
         let filter = EventFilter {
             last_n_days: Some(100),
             calendar_titles: vec!["something_not_exist".to_string()],

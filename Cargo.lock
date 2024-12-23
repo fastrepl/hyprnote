@@ -814,6 +814,7 @@ dependencies = [
 name = "calendar"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "block2",
  "google-calendar",
  "itertools 0.13.0",

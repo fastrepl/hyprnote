@@ -1,0 +1,21 @@
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - server/**
+      - crates/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - server/**
+      - crates/**
+jobs:
+  ci:
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+    steps:
+      - uses: actions/checkout@v4
+      - uses: useblacksmith/rust-cache@v3
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: cargo build -p server

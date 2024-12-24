@@ -4,7 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
 tokio = { workspace = true }
 axum = "0.7.4"
 shuttle-axum = "0.49.0"
 shuttle-runtime = "0.49.0"
+
+stytch = "6.2.0"
+deepgram = "0.6.4"

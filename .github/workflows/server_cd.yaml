@@ -1,0 +1,13 @@
+on:
+  release:
+    types:
+      - published
+jobs:
+  deploy:
+    if: startsWith(github.event.release.tag_name, 'server_')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: shuttle-hq/deploy-action@v2
+        with:
+          shuttle-api-key: ${{ secrets.SHUTTLE_API_KEY }}
+          project-id: proj_01JFW5KSP4K9CGJCEC9335B1MA

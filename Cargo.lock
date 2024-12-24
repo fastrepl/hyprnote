@@ -455,6 +455,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "audio"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2d8fdbcbaf6b6967eefcbf476d7ded6d3bd29ddfa5b141e39e25d3cd531a14f"
+dependencies = [
+ "audio-core",
+]
+
+[[package]]
+name = "audio-core"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db446410e749ce0157f460ef73d97f002251808aa6b6ca69f476578f36e958e0"
+
+[[package]]
 name = "auto-launch"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2245,6 +2260,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "deepgram"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "38eae1c4c2359ed63afacda712548f8b1616063080958acdb9b393e2725767fb"
+dependencies = [
+ "anyhow",
+ "audio 0.2.0",
+ "bytes",
+ "futures",
+ "http 0.2.12",
+ "pin-project",
+ "pkg-config",
+ "proc-macro2",
+ "reqwest 0.11.27",
+ "rodio 0.17.3",
+ "serde",
+ "serde_json",
+ "serde_urlencoded",
+ "sha256",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio-stream",
+ "tokio-tungstenite 0.20.1",
+ "tokio-util",
+ "tungstenite 0.20.1",
+ "url",
+ "uuid",
+]
+
+[[package]]
 name = "der"
 version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2336,7 +2381,7 @@ name = "desktop"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "audio",
+ "audio 0.1.0",
  "calendar",
  "cap-media",
  "cloud",
@@ -3537,11 +3582,11 @@ dependencies = [
  "bytes",
  "chrono",
  "http 0.2.12",
- "jsonwebtoken",
+ "jsonwebtoken 8.3.0",
  "log",
  "mime",
  "parse_link_header",
- "pem",
+ "pem 1.1.1",
  "percent-encoding",
  "reqwest 0.11.27",
  "reqwest-conditional-middleware",
@@ -3980,6 +4025,16 @@ dependencies = [
  "http 1.2.0",
  "http-body 1.0.1",
  "pin-project-lite",
+]
+
+[[package]]
+name = "http-serde"
+version = "2.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f056c8559e3757392c8d091e796416e4649d8e49e88b8d76df6c002f05027fd"
+dependencies = [
+ "http 1.2.0",
+ "serde",
 ]
 
 [[package]]
@@ -4451,8 +4506,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6971da4d9c3aa03c3d8f3ff0f4155b534aad021292003895a469716b2a230378"
 dependencies = [
  "base64 0.21.7",
- "pem",
+ "pem 1.1.1",
  "ring 0.16.20",
+ "serde",
+ "serde_json",
+ "simple_asn1",
+]
+
+[[package]]
+name = "jsonwebtoken"
+version = "9.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9ae10193d25051e74945f1ea2d0b42e03cc3b890f7e4cc5faa44997d808193f"
+dependencies = [
+ "base64 0.21.7",
+ "js-sys",
+ "pem 3.0.4",
+ "ring 0.17.8",
  "serde",
  "serde_json",
  "simple_asn1",
@@ -6208,6 +6278,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "pem"
+version = "3.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e459365e590736a54c3fa561947c84837534b8e9af6fc5bf781307e82658fae"
+dependencies = [
+ "base64 0.22.1",
+ "serde",
+]
+
+[[package]]
 name = "pem-rfc7468"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7180,10 +7260,12 @@ dependencies = [
  "tokio",
  "tokio-native-tls",
  "tokio-rustls 0.24.1",
+ "tokio-util",
  "tower-service",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "wasm-streams",
  "web-sys",
  "webpki-roots 0.25.4",
  "winreg 0.50.0",
@@ -8039,8 +8121,12 @@ name = "server"
 version = "0.1.0"
 dependencies = [
  "axum 0.7.9",
+ "deepgram",
+ "serde",
+ "serde_json",
  "shuttle-axum",
  "shuttle-runtime",
+ "stytch",
  "tokio",
 ]
 
@@ -8074,6 +8160,19 @@ dependencies = [
  "cfg-if 1.0.0",
  "cpufeatures",
  "digest",
+]
+
+[[package]]
+name = "sha256"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18278f6a914fa3070aa316493f7d2ddfb9ac86ebc06fa3b83bffda487e9065b0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "hex",
+ "sha2",
+ "tokio",
 ]
 
 [[package]]
@@ -8835,6 +8934,26 @@ dependencies = [
  "serde_json",
  "tokenizers",
  "tokio",
+]
+
+[[package]]
+name = "stytch"
+version = "6.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77a8a4834d1386276a41df28b679362bae1239fd82bfde46d0076307fc44af16"
+dependencies = [
+ "base64 0.22.1",
+ "chrono",
+ "http 1.2.0",
+ "http-serde",
+ "jsonwebtoken 9.3.0",
+ "reqwest 0.12.9",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "tracing",
+ "url",
 ]
 
 [[package]]

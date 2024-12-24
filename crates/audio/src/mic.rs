@@ -1,11 +1,4 @@
-use futures::StreamExt;
-use kalosm_sound::rodio::Source;
-use kalosm_sound::MicInput;
-
-async fn main2() {
-    let mic = MicInput::default();
-    let stream = mic.stream().unwrap();
-}
+pub use kalosm_sound::{AsyncSource, MicInput, MicStream};
 
 #[cfg(test)]
 mod tests {
@@ -13,6 +6,18 @@ mod tests {
 
     #[tokio::test]
     async fn test_mic() {
-        main2().await;
+        let mic = MicInput::default();
+        let mut stream = mic.stream().unwrap();
+
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+       
+        let samples = stream
+            .read_samples(48000 * 1)
+            .await
+            .into_iter()
+            .collect::<Vec<_>>();
+
+        assert!(samples.len() > 10 * 1000);
+        assert!(!samples.iter().all(|x| *x == 0.0));
     }
 }

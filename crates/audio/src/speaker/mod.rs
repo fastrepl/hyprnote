@@ -23,8 +23,9 @@ impl SpeakerInput {
     }
 
     #[cfg(target_os = "macos")]
-    pub fn stream(&self) -> macos::SpeakerStream {
-        self.inner.stream()
+    pub fn stream(&self) -> Result<SpeakerStream> {
+        let inner = self.inner.stream();
+        Ok(SpeakerStream { inner })
     }
 }
 
@@ -90,7 +91,7 @@ mod tests {
     fn test_macos() {
         let handle = play_for_sec(1);
         let input = SpeakerInput::new().unwrap();
-        let mut stream = input.stream();
+        let mut stream = input.stream().unwrap();
 
         std::thread::sleep(std::time::Duration::from_millis(500));
 

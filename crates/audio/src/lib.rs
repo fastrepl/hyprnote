@@ -2,6 +2,9 @@ mod format;
 mod mic;
 mod speaker;
 
+pub use mic::*;
+pub use speaker::*;
+
 use anyhow::Result;
 use cpal::traits::{DeviceTrait, HostTrait};
 

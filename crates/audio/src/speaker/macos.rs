@@ -27,7 +27,7 @@ struct Ctx {
 }
 
 impl SpeakerInput {
-    fn new() -> Result<Self> {
+    pub fn new() -> Result<Self> {
         let output_device = ca::System::default_output_device()?;
         let output_uid = output_device.uid()?;
 
@@ -70,7 +70,7 @@ impl SpeakerInput {
         Ok(Self { tap, agg_desc })
     }
 
-    fn attach_proc_and_start(
+    fn start_device(
         &self,
         ctx: &mut Box<Ctx>,
     ) -> Result<ca::hardware::StartedDevice<ca::AggregateDevice>> {
@@ -106,13 +106,13 @@ impl SpeakerInput {
     }
 
     pub fn stream(&self) -> SpeakerStream {
-        let (tx, rx) = futures_channel::mpsc::unbounded();
-
         let asbd = self.tap.asbd().unwrap();
         let format = av::AudioFormat::with_asbd(&asbd).unwrap();
+
+        let (tx, rx) = futures_channel::mpsc::unbounded();
         let mut ctx = Box::new(Ctx { format, sender: tx });
 
-        let device = self.attach_proc_and_start(&mut ctx).unwrap();
+        let device = self.start_device(&mut ctx).unwrap();
         let receiver = rx.map(futures_util::stream::iter).flatten();
 
         SpeakerStream {
@@ -143,7 +143,7 @@ impl futures_core::Stream for SpeakerStream {
 }
 
 impl SpeakerStream {
-    fn read_sync(&mut self) -> Vec<f32> {
+    pub fn read_sync(&mut self) -> Vec<f32> {
         let mut ctx = std::task::Context::from_waker(futures_util::task::noop_waker_ref());
 
         while let std::task::Poll::Ready(Some(data_chunk)) = self.receiver.poll_next_unpin(&mut ctx)
@@ -151,52 +151,5 @@ impl SpeakerStream {
             self.read_data.push(data_chunk);
         }
         self.read_data.clone()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use serial_test::serial;
-
-    fn play_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
-        use rodio::{
-            cpal::SampleRate,
-            source::{Function::Sine, SignalGenerator, Source},
-            OutputStream,
-        };
-        use std::{
-            thread::{sleep, spawn},
-            time::Duration,
-        };
-
-        spawn(move || {
-            let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-            let source = SignalGenerator::new(SampleRate(44100), 440.0, Sine);
-
-            let source = source
-                .convert_samples()
-                .take_duration(Duration::from_secs(seconds))
-                .amplify(0.01);
-
-            stream_handle.play_raw(source).unwrap();
-            sleep(Duration::from_secs(seconds));
-        })
-    }
-
-    #[test]
-    #[serial]
-    fn test_speaker_input() {
-        let handle = play_for_sec(3);
-        let input = SpeakerInput::new().unwrap();
-        let mut stream = input.stream();
-
-        std::thread::sleep(std::time::Duration::from_millis(1000));
-
-        let data = stream.read_sync();
-        assert!(!data.iter().all(|x| *x == 0.0));
-
-        std::thread::sleep(std::time::Duration::from_millis(1000));
-        handle.join().unwrap();
     }
 }

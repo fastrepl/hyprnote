@@ -2,8 +2,7 @@
   "name": "@hypr/proto",
   "main": "./index.ts",
   "scripts": {
-    "generate": "pnpm generate:elixir && pnpm generate:typescript",
-    "generate:elixir": "protoc ./v0.proto --elixir_out ../../server/lib/proto",
+    "generate": "pnpm generate:typescript",
     "generate:typescript": "protoc ./v0.proto --es_out . --es_opt target=ts",
     "format": "buf format -w ."
   },

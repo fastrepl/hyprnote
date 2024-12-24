@@ -10,7 +10,7 @@ hypr-proto = { path = "../proto", package = "proto" }
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
-url = "2.5.4"
+url = "2"
 reqwest = { version = "0.12.9", features = ["json"] }
 tokio-tungstenite = { version = "0.26.0", features = ["native-tls-vendored"] }
 futures-util = "0.3.31"

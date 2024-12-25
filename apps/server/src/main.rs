@@ -6,6 +6,7 @@ use axum::{
     Router,
 };
 use shuttle_deepgram::deepgram::Deepgram;
+use shuttle_posthog::posthog::Client as Posthog;
 use shuttle_runtime::SecretStore;
 use shuttle_stytch::Client as Stytch;
 
@@ -25,6 +26,11 @@ async fn main(
     #[shuttle_shared_db::Postgres] db: PgPool,
     #[shuttle_stytch::Stytch(secret = "{secrets.STYTCH_API_KEY}")] stytch: Stytch,
     #[shuttle_deepgram::Deepgram(api_key = "{secrets.DEEPGRAM_API_KEY}")] deepgram: Deepgram,
+    #[shuttle_posthog::Posthog(
+        api_base = "https://us.i.posthog.com",
+        api_key = "{secrets.POSTHOG_API_KEY}"
+    )]
+    posthog: Posthog,
 ) -> shuttle_axum::ShuttleAxum {
     hypr_db_server::migrate(&db).await.unwrap();
 
@@ -34,6 +40,7 @@ async fn main(
         db,
         stytch,
         deepgram,
+        posthog,
     };
 
     let api_router = Router::new()

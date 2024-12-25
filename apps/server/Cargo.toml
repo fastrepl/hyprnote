@@ -14,6 +14,7 @@ axum = { version = "0.7.4", features = ["ws"] }
 tower-http = { version = "0.6.2", features = ["timeout"] }
 reqwest = "0.12.9"
 async-openai = { version = "0.26.0", default-features = false }
+sentry = { workspace = true }
 sqlx = { workspace = true, features = [
   "postgres",
   "runtime-tokio",

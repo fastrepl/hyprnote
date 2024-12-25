@@ -43,7 +43,7 @@ async fn main(
             post(enhance::handler).layer(TimeoutLayer::new(Duration::from_secs(20))),
         )
         .route(
-            "/openai",
+            "/chat/completions",
             post(openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
         )
         .route("/transcribe", get(transcribe::handler))

@@ -8,3 +8,6 @@ tasks:
   fmt:
     silent: true
     deps: ['fmt:yaml', 'fmt:toml', 'fmt:rs', 'fmt:swift', 'fmt:js']
+
+  server:dev: shuttle run
+  server:deploy: shuttle deploy

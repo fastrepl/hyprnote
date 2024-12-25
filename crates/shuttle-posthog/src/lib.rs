@@ -2,15 +2,15 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use shuttle_service::{CustomError, Error, IntoResource, ResourceFactory, ResourceInputBuilder};
 
-pub use clova;
-use clova::{Client, Config as ClovaConfig};
+pub use posthog_rs;
+use posthog_rs::Client;
 
 #[derive(Default, Serialize)]
-pub struct Clova {
+pub struct Posthog {
     api_key: Option<String>,
 }
 
-impl Clova {
+impl Posthog {
     pub fn api_key(mut self, api_key: &str) -> Self {
         self.api_key = Some(api_key.to_string());
         self
@@ -23,27 +23,24 @@ pub struct Config {
 }
 
 #[async_trait]
-impl ResourceInputBuilder for Clova {
+impl ResourceInputBuilder for Posthog {
     type Input = Config;
     type Output = Config;
 
     async fn build(self, _factory: &ResourceFactory) -> Result<Self::Input, Error> {
         let api_key = self
             .api_key
-            .ok_or(Error::Custom(CustomError::msg("Clova API key required")))?;
+            .ok_or(Error::Custom(CustomError::msg("Posthog API key required")))?;
 
         Ok(Config { api_key })
     }
 }
 
 #[async_trait]
-impl IntoResource<clova::Client> for Config {
-    async fn into_resource(self) -> Result<clova::Client, Error> {
-        let config =
-            ClovaConfig::from_key_and_language(&self.api_key, clova::interface::Language::Korean);
-        let client = Client::new(config)
-            .await
-            .map_err(|e| Error::Custom(CustomError::msg(e.to_string())))?;
+impl IntoResource<Client> for Config {
+    async fn into_resource(self) -> Result<Client, Error> {
+        let options = posthog_rs::ClientOptions::from(self.api_key.as_str());
+        let client = posthog_rs::client(options);
 
         Ok(client)
     }

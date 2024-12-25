@@ -1,4 +1,4 @@
-mod interface;
+pub mod interface;
 use interface::nest_service_client::NestServiceClient;
 
 use serde::{Deserialize, Serialize};
@@ -12,6 +12,17 @@ pub struct Client {
 pub struct Config {
     secret_key: String,
     config: interface::ConfigRequest,
+}
+
+impl Config {
+    pub fn from_key_and_language(key: &str, language: interface::Language) -> Self {
+        Self {
+            secret_key: key.to_string(),
+            config: interface::ConfigRequest {
+                transcription: interface::Transcription { language },
+            },
+        }
+    }
 }
 
 impl Client {

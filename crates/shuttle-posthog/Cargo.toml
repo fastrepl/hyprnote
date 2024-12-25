@@ -1,0 +1,11 @@
+[package]
+name = "shuttle-posthog"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+async-trait = "0.1.83"
+shuttle-service = "0.49.0"
+posthog-rs = "0.2.2"

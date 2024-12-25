@@ -46,8 +46,8 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+uuid = { workspace = true }
 dotenvy_macro = "0.15.7"
-uuid = "1.11.0"
 log = "0.4.22"
 
 reqwest = { version = "0.12", features = ["stream"] }

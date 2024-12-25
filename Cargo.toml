@@ -29,6 +29,8 @@ specta-util = "0.0.7"
 cap-media = { git = "https://github.com/CapSoftware/Cap", tag = "cap-v0.3.4" }
 cpal = "0.15.3"
 
+uuid = "1.11.0"
+sqlx = "0.8"
 schemars = "=1.0.0-alpha.17"
 
 [patch.crates-io]

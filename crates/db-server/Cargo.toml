@@ -8,8 +8,8 @@ anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 time = { workspace = true, features = ["serde"] }
-uuid = { version = "1.11.0", features = ["v4", "serde"] }
-sqlx = { version = "0.8", features = [
+uuid = { workspace = true, features = ["v4", "serde"] }
+sqlx = { workspace = true, features = [
   "sqlite",
   "migrate",
   "time",

@@ -12,7 +12,6 @@ tokio = { workspace = true }
 futures = "0.3.31"
 axum = { version = "0.7.4", features = ["ws"] }
 tower-http = { version = "0.6.2", features = ["timeout"] }
-http = "1.2.0"
 reqwest = "0.12.9"
 async-openai = { version = "0.26.0", default-features = false }
 sqlx = { version = "0.8.2", features = [

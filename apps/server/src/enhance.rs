@@ -6,10 +6,10 @@ use async_openai::types::{
 use axum::{
     body::Body,
     extract::State,
+    http::StatusCode,
     response::{IntoResponse, Response},
     Json,
 };
-use http::StatusCode;
 
 use crate::state::AppState;
 use hypr_bridge::{EnhanceInput, EnhanceOutput};

@@ -8368,7 +8368,6 @@ dependencies = [
  "axum 0.7.9",
  "bridge",
  "futures",
- "http 1.2.0",
  "reqwest 0.12.9",
  "schemars 1.0.0-alpha.17",
  "serde",

@@ -18,7 +18,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-hypr-db = { path = "../../../crates/db", package = "db" }
+hypr-db-client = { path = "../../../crates/db-client", package = "db-client" }
 hypr-audio = { path = "../../../crates/audio", package = "audio" }
 hypr-cloud = { path = "../../../crates/cloud", package = "cloud" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar" }
@@ -46,13 +46,13 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+uuid = { workspace = true }
 dotenvy_macro = "0.15.7"
-uuid = "1.11.0"
 log = "0.4.22"
 
 reqwest = { version = "0.12", features = ["stream"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
-futures = "0.3.31"
+futures = { workspace = true }
 
 flume = "0.11.1"
 objc = "0.2.7"

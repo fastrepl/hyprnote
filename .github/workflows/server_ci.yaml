@@ -16,6 +16,8 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v4
+      - run: rustup toolchain install stable --profile minimal --no-self-update
+      - run: sudo apt-get update && sudo apt-get install -y libasound2-dev pkg-config
+      - uses: arduino/setup-protoc@v3
       - uses: useblacksmith/rust-cache@v3
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
       - run: cargo build -p server

@@ -4,9 +4,6 @@ use url::Url;
 use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 
-use hypr_proto::protobuf::Message;
-use hypr_proto::v0 as proto;
-
 pub struct Client {
     config: ClientConfig,
     reqwest_client: reqwest::Client,
@@ -40,12 +37,12 @@ impl Sender {
         Self { stream }
     }
 
-    pub async fn run(&mut self, chunk: proto::TranscribeInputChunk) -> Result<()> {
-        let bytes = chunk.write_to_bytes()?;
-        let msg = tokio_tungstenite::tungstenite::Message::binary(bytes);
-        self.stream.send(msg).await?;
-        Ok(())
-    }
+    // pub async fn run(&mut self, chunk: proto::TranscribeInputChunk) -> Result<()> {
+    //     let bytes = chunk.write_to_bytes()?;
+    //     let msg = tokio_tungstenite::tungstenite::Message::binary(bytes);
+    //     self.stream.send(msg).await?;
+    //     Ok(())
+    // }
 }
 
 pub struct Receiver {
@@ -57,12 +54,12 @@ impl Receiver {
         Self { stream }
     }
 
-    pub async fn run(&mut self) -> Result<proto::TranscribeOutputChunk> {
-        let msg = self.stream.next().await.unwrap()?;
-        let bytes = msg.into_data();
-        let chunk = proto::TranscribeOutputChunk::parse_from_bytes(&bytes)?;
-        Ok(chunk)
-    }
+    // pub async fn run(&mut self) -> Result<proto::TranscribeOutputChunk> {
+    //     let msg = self.stream.next().await.unwrap()?;
+    //     let bytes = msg.into_data();
+    //     let chunk = proto::TranscribeOutputChunk::parse_from_bytes(&bytes)?;
+    //     Ok(chunk)
+    // }
 }
 
 impl Client {
@@ -103,7 +100,7 @@ impl Client {
         Ok(())
     }
 
-    pub async fn enhance_note(self, note: hypr_db::types::Session) -> Result<()> {
+    pub async fn enhance_note(self, note: hypr_db_client::types::Session) -> Result<()> {
         let _ = self
             .reqwest_client
             .post(self.enhance_url())
@@ -154,11 +151,11 @@ mod tests {
 
         let (mut sender, mut receiver) = client.ws_connect().await?;
 
-        let input = proto::TranscribeInputChunk::default();
-        sender.run(input.clone()).await?;
-        let output = receiver.run().await?;
+        // let input = proto::TranscribeInputChunk::default();
+        // sender.run(input.clone()).await?;
+        // let output = receiver.run().await?;
 
-        assert_eq!(input.write_to_bytes()?, output.write_to_bytes()?);
+        // assert_eq!(input.write_to_bytes()?, output.write_to_bytes()?);
         Ok(())
     }
 }

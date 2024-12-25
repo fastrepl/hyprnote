@@ -4,25 +4,33 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
-tokio = { workspace = true }
-futures = "0.3.31"
-axum = { version = "0.7.4", features = ["ws"] }
-tower-http = { version = "0.6.2", features = ["timeout"] }
+hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
+hypr-db-server = { path = "../../crates/db-server", package = "db-server" }
 
 shuttle-axum = "0.49.0"
 shuttle-runtime = "0.49.0"
 shuttle-shared-db = { version = "0.49.0", features = ["postgres", "sqlx"] }
-shuttle-openai = "0.49.0"
-shuttle-deepgram = { path = "../../crates/shuttle-deepgram" }
-shuttle-clova = { path = "../../crates/shuttle-clova" }
 shuttle-posthog = { path = "../../crates/shuttle-posthog" }
-shuttle-stytch = { path = "../../crates/shuttle-stytch" }
 
-sqlx = { version = "0.8.2", features = [
+tokio = { workspace = true }
+futures = { workspace = true }
+axum = { version = "0.7.4", features = ["ws"] }
+tower-http = { version = "0.6.2", features = ["timeout"] }
+reqwest = "0.12.9"
+async-openai = { version = "0.26.0", default-features = false }
+sentry = { workspace = true }
+sqlx = { workspace = true, features = [
   "postgres",
   "runtime-tokio",
   "tls-rustls",
   "macros",
 ] }
+
+anyhow = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+schemars = { workspace = true, features = ["preserve_order"] }
+
+lettre = "0.11.11"
+async-stripe = { version = "0.39.1", features = ["runtime-tokio-hyper"] }
+clerk-rs = { version = "0.4.0", features = ["axum"] }

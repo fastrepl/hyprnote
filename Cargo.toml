@@ -5,6 +5,10 @@ members = ["apps/desktop/src-tauri", "apps/server", "crates/*"]
 [workspace.dependencies]
 tauri = "2.1.1"
 tokio = "1"
+futures = "0.3.31"
+futures-core = "0.3.31"
+futures-util = "0.3.31"
+futures-channel = "0.3.31"
 tokio-stream = "0.1.17"
 
 anyhow = "1"
@@ -12,6 +16,8 @@ thiserror = "2"
 serde = "1"
 serde_json = "1"
 time = "0.3.37"
+pin-project = "1"
+sentry = "0.35.0"
 
 ndarray = "0.16.1"
 ort = "2.0.0-rc.9"
@@ -28,6 +34,11 @@ specta-util = "0.0.7"
 
 cap-media = { git = "https://github.com/CapSoftware/Cap", tag = "cap-v0.3.4" }
 cpal = "0.15.3"
+rodio = "0.20.1"
+
+uuid = "1.11.0"
+sqlx = "0.8"
+schemars = "=1.0.0-alpha.17"
 
 [patch.crates-io]
 # This includes a currently-unreleased fix that ensures the audio stream is actually stopped and released on drop on macOS.

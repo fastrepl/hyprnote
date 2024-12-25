@@ -1,5 +1,5 @@
 [package]
-name = "db"
+name = "db-server"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,9 +8,9 @@ anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 time = { workspace = true, features = ["serde"] }
-uuid = { version = "1.11.0", features = ["v4", "serde"] }
-sqlx = { version = "0.8", features = [
-  "sqlite",
+uuid = { workspace = true, features = ["v4", "serde"] }
+sqlx = { workspace = true, features = [
+  "postgres",
   "migrate",
   "time",
   "uuid",

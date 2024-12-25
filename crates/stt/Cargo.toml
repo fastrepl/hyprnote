@@ -5,12 +5,15 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
-tokio = { workspace = true }
-
+serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+tokio = { workspace = true }
+futures = { workspace = true }
+bytes = "1.9.0"
 
-tokenizers = { workspace = true }
-candle-examples = { workspace = true }
-candle-core = { workspace = true, features = ["metal"] }
-candle-transformers = { workspace = true, features = ["metal"] }
-candle-nn = { workspace = true, features = ["metal"] }
+deepgram = { version = "0.6.4", features = ["listen"] }
+hypr-clova = { path = "../clova", package = "clova" }
+
+[dev-dependencies]
+serial_test = "3"
+cpal = { workspace = true }

@@ -1,3 +1,1 @@
-struct Decoder {}
-
-impl Decoder {}
+// TODO

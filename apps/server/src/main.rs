@@ -1,4 +1,5 @@
 use axum::{
+    handler::Handler,
     http::StatusCode,
     middleware,
     response::IntoResponse,
@@ -9,6 +10,8 @@ use shuttle_deepgram::deepgram::Deepgram;
 use shuttle_openai::async_openai::{config::OpenAIConfig, Client as OpenAIClient};
 use shuttle_runtime::SecretStore;
 use sqlx::PgPool;
+use std::time::Duration;
+use tower_http::timeout::TimeoutLayer;
 
 mod auth;
 mod enhance;
@@ -33,7 +36,10 @@ async fn main(
     let state = AppState { db: pool };
 
     let api_router = Router::new()
-        .route("/enhance", post(enhance::handler))
+        .route(
+            "/enhance",
+            post(enhance::handler.layer(TimeoutLayer::new(Duration::from_secs(20)))),
+        )
         .route("/transcribe", get(transcribe::handler))
         .layer(middleware::from_fn(auth::middleware_fn));
 

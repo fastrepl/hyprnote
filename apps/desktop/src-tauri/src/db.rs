@@ -1,8 +1,8 @@
-pub use hypr_db::export_ts_types_to;
-pub use hypr_db::ops::*;
-pub use hypr_db::types::*;
+pub use hypr_db_client::export_ts_types_to;
+pub use hypr_db_client::ops::*;
+pub use hypr_db_client::types::*;
 
-use hypr_db::{
+use hypr_db_client::{
     migrations as hyprMigrations, Migration as HyprMigration, MigrationKind as HyprMigrationKind,
 };
 use tauri_plugin_sql::{Migration as TauriMigration, MigrationKind as TauriMigrationKind};

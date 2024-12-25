@@ -1,5 +1,8 @@
 use axum::{
-    extract::{Request, State}, http::{header, StatusCode}, middleware, response::{IntoResponse, Redirect, Response}
+    extract::{Request, State},
+    http::{header, StatusCode},
+    middleware,
+    response::{IntoResponse, Redirect, Response},
 };
 
 use crate::state::AppState;

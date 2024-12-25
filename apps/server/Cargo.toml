@@ -30,3 +30,4 @@ shuttle-posthog = { path = "../../crates/shuttle-posthog" }
 shuttle-stytch = { path = "../../crates/shuttle-stytch" }
 
 hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
+hypr-db-server = { path = "../../crates/db-server", package = "db-server" }

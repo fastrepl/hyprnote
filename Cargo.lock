@@ -1504,7 +1504,7 @@ name = "cloud"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "db",
+ "db-client",
  "futures-util",
  "reqwest 0.12.9",
  "tokio",
@@ -2306,7 +2306,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8566979429cf69b49a5c740c60791108e86440e8be149bbea4fe54d2c32d6e2"
 
 [[package]]
-name = "db"
+name = "db-client"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "specta-util",
+ "sqlx",
+ "time",
+ "uuid",
+]
+
+[[package]]
+name = "db-server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2457,7 +2472,7 @@ dependencies = [
  "calendar",
  "cap-media",
  "cloud",
- "db",
+ "db-client",
  "dotenvy_macro",
  "flume 0.11.1",
  "futures",
@@ -8367,6 +8382,7 @@ dependencies = [
  "async-openai",
  "axum 0.7.9",
  "bridge",
+ "db-server",
  "futures",
  "reqwest 0.12.9",
  "schemars 1.0.0-alpha.17",

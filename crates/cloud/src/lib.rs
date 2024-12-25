@@ -100,7 +100,7 @@ impl Client {
         Ok(())
     }
 
-    pub async fn enhance_note(self, note: hypr_db::types::Session) -> Result<()> {
+    pub async fn enhance_note(self, note: hypr_db_client::types::Session) -> Result<()> {
         let _ = self
             .reqwest_client
             .post(self.enhance_url())

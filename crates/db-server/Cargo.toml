@@ -10,7 +10,7 @@ serde_json = { workspace = true }
 time = { workspace = true, features = ["serde"] }
 uuid = { workspace = true, features = ["v4", "serde"] }
 sqlx = { workspace = true, features = [
-  "sqlite",
+  "postgres",
   "migrate",
   "time",
   "uuid",

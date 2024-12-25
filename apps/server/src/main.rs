@@ -25,7 +25,7 @@ async fn main(
     #[shuttle_stytch::Stytch(secret = "{secrets.STYTCH_API_KEY}")] stytch: Stytch,
     #[shuttle_deepgram::Deepgram(api_key = "{secrets.DEEPGRAM_API_KEY}")] deepgram: Deepgram,
 ) -> shuttle_axum::ShuttleAxum {
-    sqlx::migrate!("./migrations").run(&db).await.unwrap();
+    hypr_db_server::migrate(&db).await.unwrap();
 
     let state = state::AppState {
         reqwest: reqwest::Client::new(),

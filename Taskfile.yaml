@@ -2,7 +2,7 @@ version: '3'
 tasks:
   fmt:js: pnpm -r format
   fmt:yaml: yamlfmt .github pnpm-workspace.yaml
-  fmt:toml: taplo fmt apps/**/Cargo.toml crates/**/Cargo.toml Cargo.toml
+  fmt:toml: taplo fmt apps/**/Cargo.toml crates/**/Cargo.toml *.toml
   fmt:rs: cargo fmt
   fmt:swift: find crates -type f \( -name "*.swift" \) -not -path "*/\.build/*" | xargs swift-format format -i
   fmt:

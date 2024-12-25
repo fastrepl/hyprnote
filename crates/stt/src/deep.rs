@@ -1,18 +1,30 @@
 use anyhow::Result;
 use bytes::Bytes;
+use serde::{Deserialize, Serialize};
 use std::error::Error;
 
-use deepgram::{
-    common::stream_response::StreamResponse as DeepgramStreamResponse,
-    listen::websocket::TranscriptionStream as DeepgramTranscriptionStream,
-};
+use deepgram::common::stream_response::StreamResponse as DeepgramStreamResponse;
 use futures::{Stream, StreamExt};
 
 use crate::{RealtimeSpeechToText, StreamResponse};
 
-pub struct Deepgram {}
+pub struct DeepgramClient {
+    #[allow(unused)]
+    config: DeepgramConfig,
+}
 
-impl<S, E> RealtimeSpeechToText<S, E> for Deepgram {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DeepgramConfig {
+    api_key: String,
+}
+
+impl DeepgramClient {
+    pub fn new(config: DeepgramConfig) -> Self {
+        Self { config }
+    }
+}
+
+impl<S, E> RealtimeSpeechToText<S, E> for DeepgramClient {
     async fn transcribe(&self, stream: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
@@ -20,7 +32,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for Deepgram {
     {
         let deepgram = deepgram::Deepgram::with_base_url_and_api_key(
             "https://api.deepgram.com/v1",
-            "your-api-key-here",
+            self.config.api_key.clone(),
         )
         .unwrap();
 
@@ -42,6 +54,9 @@ impl From<DeepgramStreamResponse> for StreamResponse {
             DeepgramStreamResponse::TranscriptResponse { channel, .. } => {
                 channel.alternatives.first().unwrap().transcript.clone()
             }
+            DeepgramStreamResponse::TerminalResponse { .. } => "".to_string(),
+            DeepgramStreamResponse::SpeechStartedResponse { .. } => "".to_string(),
+            DeepgramStreamResponse::UtteranceEndResponse { .. } => "".to_string(),
             _ => "".to_string(),
         };
         StreamResponse { text }

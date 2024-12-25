@@ -1,20 +1,21 @@
-// use anyhow::Result;
-// use bytes::Bytes;
-// use std::error::Error;
+use anyhow::Result;
+use bytes::Bytes;
+use std::error::Error;
 
-// use futures::Stream;
-// use hypr_clova::{interface as clova, Client as ClovaClient, Config as ClovaConfig};
+use futures::Stream;
 
-// use crate::{RealtimeSpeechToText, TranscriptionStream};
+use crate::{RealtimeSpeechToText, StreamResponse};
 
-// pub struct Clova {}
+#[allow(unused)]
+use hypr_clova::{interface as clova, Client as ClovaClient, Config as ClovaConfig};
 
-// impl<S, E> RealtimeSpeechToText<S, E> for Clova {
-//     async fn transcribe(&self, stream: S) -> Result<TranscriptionStream>
-//     where
-//         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
-//         E: Error + Send + Sync + 'static,
-//     {
-//         unimplemented!()
-//     }
-// }
+impl<S, E> RealtimeSpeechToText<S, E> for ClovaClient {
+    async fn transcribe(&self, _stream: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
+    where
+        S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
+        E: Error + Send + Sync + 'static,
+    {
+        let s = futures::stream::empty();
+        Ok(s)
+    }
+}

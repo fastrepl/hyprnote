@@ -5,9 +5,10 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 tokio = { workspace = true }
 futures = { workspace = true }
-pin-project = { workspace = true }
 bytes = "1.9.0"
 
 deepgram = { version = "0.6.4", features = ["listen"] }

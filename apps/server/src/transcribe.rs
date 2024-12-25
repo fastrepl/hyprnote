@@ -19,19 +19,19 @@ pub async fn handler(
 }
 
 async fn websocket(stream: WebSocket, state: Arc<Mutex<AppState>>) {
-    let deepgram = state.lock().await.deepgram.clone();
-    let (mut tx, mut rx) = stream.split();
+    // let deepgram = state.lock().await.deepgram.clone();
+    // let (mut tx, mut rx) = stream.split();
 
-    let mut tx_task = tokio::spawn(async move { todo!() });
+    // let mut tx_task = tokio::spawn(async move { todo!() });
 
-    let mut rx_task = tokio::spawn(async move {
-        while let Some(Ok(Message::Text(text))) = rx.next().await {
-            println!("this example does not read any messages, but got: {text}");
-        }
-    });
+    // let mut rx_task = tokio::spawn(async move {
+    //     while let Some(Ok(Message::Text(text))) = rx.next().await {
+    //         println!("this example does not read any messages, but got: {text}");
+    //     }
+    // });
 
-    tokio::select! {
-        _ = (&mut tx_task) => rx_task.abort(),
-        _ = (&mut rx_task) => tx_task.abort(),
-    };
+    // tokio::select! {
+    //     _ = (&mut tx_task) => rx_task.abort(),
+    //     _ = (&mut rx_task) => tx_task.abort(),
+    // };
 }

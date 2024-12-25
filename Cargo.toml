@@ -5,6 +5,10 @@ members = ["apps/desktop/src-tauri", "apps/server", "crates/*"]
 [workspace.dependencies]
 tauri = "2.1.1"
 tokio = "1"
+futures = "0.3.31"
+futures-core = "0.3.31"
+futures-util = "0.3.31"
+futures-channel = "0.3.31"
 tokio-stream = "0.1.17"
 
 anyhow = "1"

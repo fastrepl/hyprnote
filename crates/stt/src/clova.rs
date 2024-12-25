@@ -1,19 +1,20 @@
-use std::error::Error;
-
 use anyhow::Result;
 use bytes::Bytes;
+use std::error::Error;
+
 use deepgram::listen::websocket::TranscriptionStream;
-use futures::Stream;
+use futures::{Stream, StreamExt};
 
-mod clova;
-pub use clova::*;
+use crate::RealtimeSpeechToText;
 
-mod deep;
-pub use deep::*;
+pub struct Clova {}
 
-trait RealtimeSpeechToText<S, E> {
+impl<S, E> RealtimeSpeechToText<S, E> for Clova {
     async fn transcribe(&self, stream: S) -> Result<TranscriptionStream>
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
-        E: Error + Send + Sync + 'static;
+        E: Error + Send + Sync + 'static,
+    {
+        todo!()
+    }
 }

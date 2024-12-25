@@ -52,7 +52,7 @@ log = "0.4.22"
 
 reqwest = { version = "0.12", features = ["stream"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
-futures = "0.3.31"
+futures = { workspace = true }
 
 flume = "0.11.1"
 objc = "0.2.7"

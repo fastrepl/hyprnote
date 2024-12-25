@@ -9258,6 +9258,18 @@ name = "stt"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bytes",
+ "clova",
+ "deepgram",
+ "futures",
+ "tokio",
+]
+
+[[package]]
+name = "stt-old"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
  "candle-core 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "candle-examples",
  "candle-nn 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",

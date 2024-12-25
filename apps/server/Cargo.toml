@@ -9,7 +9,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 schemars = { workspace = true, features = ["preserve_order"] }
 tokio = { workspace = true }
-futures = "0.3.31"
+futures = { workspace = true }
 axum = { version = "0.7.4", features = ["ws"] }
 tower-http = { version = "0.6.2", features = ["timeout"] }
 reqwest = "0.12.9"

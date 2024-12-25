@@ -5,7 +5,6 @@ edition = "2021"
 
 [dependencies]
 hypr-db = { path = "../db", package = "db" }
-hypr-proto = { path = "../proto", package = "proto" }
 
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

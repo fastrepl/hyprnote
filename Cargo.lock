@@ -697,7 +697,7 @@ dependencies = [
  "regex",
  "rustc-hash 1.1.0",
  "shlex 0.1.1",
- "which 3.1.1",
+ "which",
 ]
 
 [[package]]
@@ -1496,7 +1496,6 @@ dependencies = [
  "anyhow",
  "db",
  "futures-util",
- "proto",
  "reqwest 0.12.9",
  "tokio",
  "tokio-tungstenite 0.26.1",
@@ -7000,125 +6999,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "proto"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "protobuf",
- "protobuf-codegen",
- "protoc-bin-vendored",
-]
-
-[[package]]
-name = "protobuf"
-version = "3.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3a7c64d9bf75b1b8d981124c14c179074e8caa7dfe7b6a12e6222ddcd0c8f72"
-dependencies = [
- "bytes",
- "once_cell",
- "protobuf-support",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "protobuf-codegen"
-version = "3.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e26b833f144769a30e04b1db0146b2aaa53fd2fd83acf10a6b5f996606c18144"
-dependencies = [
- "anyhow",
- "once_cell",
- "protobuf",
- "protobuf-parse",
- "regex",
- "tempfile",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "protobuf-parse"
-version = "3.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "322330e133eab455718444b4e033ebfac7c6528972c784fcde28d2cc783c6257"
-dependencies = [
- "anyhow",
- "indexmap 2.7.0",
- "log",
- "protobuf",
- "protobuf-support",
- "tempfile",
- "thiserror 1.0.69",
- "which 4.4.2",
-]
-
-[[package]]
-name = "protobuf-support"
-version = "3.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b088fd20b938a875ea00843b6faf48579462630015c3788d397ad6a786663252"
-dependencies = [
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "protoc-bin-vendored"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd89a830d0eab2502c81a9b8226d446a52998bb78e5e33cb2637c0cdd6068d99"
-dependencies = [
- "protoc-bin-vendored-linux-aarch_64",
- "protoc-bin-vendored-linux-ppcle_64",
- "protoc-bin-vendored-linux-x86_32",
- "protoc-bin-vendored-linux-x86_64",
- "protoc-bin-vendored-macos-aarch_64",
- "protoc-bin-vendored-macos-x86_64",
- "protoc-bin-vendored-win32",
-]
-
-[[package]]
-name = "protoc-bin-vendored-linux-aarch_64"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f563627339f1653ea1453dfbcb4398a7369b768925eb14499457aeaa45afe22c"
-
-[[package]]
-name = "protoc-bin-vendored-linux-ppcle_64"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5025c949a02cd3b60c02501dd0f348c16e8fff464f2a7f27db8a9732c608b746"
-
-[[package]]
-name = "protoc-bin-vendored-linux-x86_32"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c9500ce67d132c2f3b572504088712db715755eb9adf69d55641caa2cb68a07"
-
-[[package]]
-name = "protoc-bin-vendored-linux-x86_64"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5462592380cefdc9f1f14635bcce70ba9c91c1c2464c7feb2ce564726614cc41"
-
-[[package]]
-name = "protoc-bin-vendored-macos-aarch_64"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c637745681b68b4435484543667a37606c95ddacf15e917710801a0877506030"
-
-[[package]]
-name = "protoc-bin-vendored-macos-x86_64"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38943f3c90319d522f94a6dfd4a134ba5e36148b9506d2d9723a82ebc57c8b55"
-
-[[package]]
-name = "protoc-bin-vendored-win32"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7dc55d7dec32ecaf61e0bd90b3d2392d721a28b95cfd23c3e176eccefbeab2f2"
-
-[[package]]
 name = "ptr_meta"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11707,18 +11587,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d011071ae14a2f6671d0b74080ae0cd8ebf3a6f8c9589a2cd45f23126fe29724"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "which"
-version = "4.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87ba24419a2078cd2b0f2ede2691b6c66d8e47836da3b6db8265ebad47afbfc7"
-dependencies = [
- "either",
- "home",
- "once_cell",
- "rustix",
 ]
 
 [[package]]

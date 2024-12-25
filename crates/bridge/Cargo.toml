@@ -1,0 +1,10 @@
+[package]
+name = "bridge"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+specta = { workspace = true, features = ["derive"] }
+schemars = { version = "=1.0.0-alpha.17", features = ["preserve_order"] }

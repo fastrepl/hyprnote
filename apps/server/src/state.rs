@@ -2,14 +2,15 @@ use axum::extract::FromRef;
 use sqlx::PgPool;
 
 use shuttle_deepgram::deepgram::Deepgram;
-use shuttle_openai::async_openai::{config::OpenAIConfig, Client as OpenAIClient};
+use shuttle_runtime::SecretStore;
 use shuttle_stytch::Client as Stytch;
 
 #[derive(Clone)]
 pub struct AppState {
+    pub secrets: SecretStore,
+    pub reqwest: reqwest::Client,
     pub db: PgPool,
     pub stytch: Stytch,
-    pub openai: OpenAIClient<OpenAIConfig>,
     pub deepgram: Deepgram,
 }
 

@@ -237,15 +237,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-convert"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d416feee97712e43152cd42874de162b8f9b77295b1c85e5d92725cc8310bae"
-dependencies = [
- "async-trait",
-]
-
-[[package]]
 name = "async-executor"
 version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -297,32 +288,6 @@ dependencies = [
  "event-listener",
  "event-listener-strategy",
  "pin-project-lite",
-]
-
-[[package]]
-name = "async-openai"
-version = "0.23.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc0e5ff98f9e7c605df4c88783a0439d1dc667ce86bd79e99d4164f8b0c05ccc"
-dependencies = [
- "async-convert",
- "backoff",
- "base64 0.22.1",
- "bytes",
- "derive_builder",
- "eventsource-stream",
- "futures",
- "rand 0.8.5",
- "reqwest 0.12.9",
- "reqwest-eventsource",
- "secrecy",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "tokio",
- "tokio-stream",
- "tokio-util",
- "tracing",
 ]
 
 [[package]]
@@ -625,20 +590,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "backoff"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b62ddb9cb1ec0a098ad4bbf9344d0713fa193ae1a80af55febcff2627b6a00c1"
-dependencies = [
- "futures-core",
- "getrandom 0.2.15",
- "instant",
- "pin-project-lite",
- "rand 0.8.5",
- "tokio",
-]
-
-[[package]]
 name = "backtrace"
 version = "0.3.74"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -861,6 +812,16 @@ dependencies = [
  "quote",
  "syn 2.0.91",
  "syn_derive",
+]
+
+[[package]]
+name = "bridge"
+version = "0.1.0"
+dependencies = [
+ "schemars 1.0.0-alpha.17",
+ "serde",
+ "serde_json",
+ "specta",
 ]
 
 [[package]]
@@ -2936,17 +2897,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "eventsource-stream"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74fef4569247a5f429d9156b9d0a2599914385dd189c539334c625d8099d90ab"
-dependencies = [
- "futures-core",
- "nom 7.1.3",
- "pin-project-lite",
-]
-
-[[package]]
 name = "exr"
 version = "1.73.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3262,12 +3212,6 @@ name = "futures-task"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f90f7dce0722e95104fcb095585910c0977252f286e354b5e3bd38902cd99988"
-
-[[package]]
-name = "futures-timer"
-version = "3.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f288b0a4f20f9a56b5d1da57e2227c661b7b16168e2f72365f57b63326e29b24"
 
 [[package]]
 name = "futures-util"
@@ -3732,7 +3676,7 @@ dependencies = [
  "reqwest-retry",
  "reqwest-tracing",
  "ring 0.16.20",
- "schemars",
+ "schemars 0.8.21",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -4249,7 +4193,7 @@ dependencies = [
  "hyper 0.14.32",
  "log",
  "rustls 0.21.12",
- "rustls-native-certs 0.6.3",
+ "rustls-native-certs",
  "tokio",
  "tokio-rustls 0.24.1",
 ]
@@ -4265,7 +4209,6 @@ dependencies = [
  "hyper 1.5.2",
  "hyper-util",
  "rustls 0.23.20",
- "rustls-native-certs 0.8.1",
  "rustls-pki-types",
  "tokio",
  "tokio-rustls 0.26.1",
@@ -5405,7 +5348,7 @@ dependencies = [
  "openssl-probe",
  "openssl-sys",
  "schannel",
- "security-framework 2.11.1",
+ "security-framework",
  "security-framework-sys",
  "tempfile",
 ]
@@ -7318,6 +7261,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "ref-cast"
+version = "1.0.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ccf0a6f84d5f1d581da8b41b47ec8600871962f2a528115b542b362d4b744931"
+dependencies = [
+ "ref-cast-impl",
+]
+
+[[package]]
+name = "ref-cast-impl"
+version = "1.0.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bcc303e793d3734489387d205e9b186fac9c6cfacedd98cbb2e8a5943595f3e6"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.91",
+]
+
+[[package]]
 name = "regex"
 version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7446,14 +7409,12 @@ dependencies = [
  "js-sys",
  "log",
  "mime",
- "mime_guess",
  "native-tls",
  "once_cell",
  "percent-encoding",
  "pin-project-lite",
  "quinn",
  "rustls 0.23.20",
- "rustls-native-certs 0.8.1",
  "rustls-pemfile 2.2.0",
  "rustls-pki-types",
  "serde",
@@ -7485,22 +7446,6 @@ dependencies = [
  "reqwest 0.11.27",
  "reqwest-middleware",
  "task-local-extensions",
-]
-
-[[package]]
-name = "reqwest-eventsource"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "632c55746dbb44275691640e7b40c907c16a2dc1a5842aa98aaec90da6ec6bde"
-dependencies = [
- "eventsource-stream",
- "futures-core",
- "futures-timer",
- "mime",
- "nom 7.1.3",
- "pin-project-lite",
- "reqwest 0.12.9",
- "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -7854,19 +7799,7 @@ dependencies = [
  "openssl-probe",
  "rustls-pemfile 1.0.4",
  "schannel",
- "security-framework 2.11.1",
-]
-
-[[package]]
-name = "rustls-native-certs"
-version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fcff2dd52b58a8d98a70243663a0d234c4e2b79235637849d15913394a247d3"
-dependencies = [
- "openssl-probe",
- "rustls-pki-types",
- "schannel",
- "security-framework 3.1.0",
+ "security-framework",
 ]
 
 [[package]]
@@ -8013,7 +7946,7 @@ dependencies = [
  "chrono",
  "dyn-clone",
  "indexmap 1.9.3",
- "schemars_derive",
+ "schemars_derive 0.8.21",
  "serde",
  "serde_json",
  "url",
@@ -8021,10 +7954,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "schemars"
+version = "1.0.0-alpha.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88ef2a6523400a2228db974a8ddc9e1d3deaa04f51bddd7832ef8d7e531bafcc"
+dependencies = [
+ "dyn-clone",
+ "ref-cast",
+ "schemars_derive 1.0.0-alpha.17",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "schemars_derive"
 version = "0.8.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1eee588578aff73f856ab961cd2f79e36bc45d7ded33a7562adba4667aecc0e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde_derive_internals",
+ "syn 2.0.91",
+]
+
+[[package]]
+name = "schemars_derive"
+version = "1.0.0-alpha.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c6d4e1945a3c9e58edaa708449b026519f7f4197185e1b5dbc689615c1ad724d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -8093,16 +8051,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c107b6f4780854c8b126e228ea8869f4d7b71260f962fefb57b996b8959ba6b"
 
 [[package]]
-name = "secrecy"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bd1c54ea06cfd2f6b63219704de0b9b4f72dcc2b8fdef820be6cd799780e91e"
-dependencies = [
- "serde",
- "zeroize",
-]
-
-[[package]]
 name = "security-framework"
 version = "2.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8110,19 +8058,6 @@ checksum = "897b2245f0b511c87893af39b033e5ca9cce68824c4d7e7630b5a1d339658d02"
 dependencies = [
  "bitflags 2.6.0",
  "core-foundation 0.9.4",
- "core-foundation-sys 0.8.7",
- "libc",
- "security-framework-sys",
-]
-
-[[package]]
-name = "security-framework"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81d3f8c9bfcc3cbb6b0179eb57042d75b1582bdc65c3cb95f3fa999509c03cbc"
-dependencies = [
- "bitflags 2.6.0",
- "core-foundation 0.10.0",
  "core-foundation-sys 0.8.7",
  "libc",
  "security-framework-sys",
@@ -8221,6 +8156,7 @@ version = "1.0.134"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d00f4175c42ee48b15416f6193a959ba3a0d67fc699a0db9ad12df9f83991c7d"
 dependencies = [
+ "indexmap 2.7.0",
  "itoa 1.0.14",
  "memchr",
  "ryu",
@@ -8334,15 +8270,17 @@ dependencies = [
 name = "server"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "axum 0.7.9",
+ "bridge",
  "futures",
  "http 1.2.0",
+ "reqwest 0.12.9",
  "serde",
  "serde_json",
  "shuttle-axum",
  "shuttle-clova",
  "shuttle-deepgram",
- "shuttle-openai",
  "shuttle-posthog",
  "shuttle-runtime",
  "shuttle-shared-db",
@@ -8521,19 +8459,6 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "deepgram",
- "serde",
- "serde_json",
- "shuttle-service",
-]
-
-[[package]]
-name = "shuttle-openai"
-version = "0.49.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14f40ba60eba4d5b1f57f364f8f03e93423aac0230881787815b183055bd87f2"
-dependencies = [
- "async-openai",
- "async-trait",
  "serde",
  "serde_json",
  "shuttle-service",
@@ -9620,7 +9545,7 @@ dependencies = [
  "glob",
  "heck 0.5.0",
  "json-patch",
- "schemars",
+ "schemars 0.8.21",
  "semver",
  "serde",
  "serde_json",
@@ -9680,7 +9605,7 @@ dependencies = [
  "anyhow",
  "glob",
  "plist",
- "schemars",
+ "schemars 0.8.21",
  "serde",
  "serde_json",
  "tauri-utils",
@@ -9750,7 +9675,7 @@ dependencies = [
  "dunce",
  "glob",
  "percent-encoding",
- "schemars",
+ "schemars 0.8.21",
  "serde",
  "serde_json",
  "serde_repr",
@@ -9845,7 +9770,7 @@ dependencies = [
  "open",
  "os_pipe",
  "regex",
- "schemars",
+ "schemars 0.8.21",
  "serde",
  "serde_json",
  "shared_child",
@@ -10031,7 +9956,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "regex",
- "schemars",
+ "schemars 0.8.21",
  "semver",
  "serde",
  "serde-untagged",

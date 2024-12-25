@@ -1,5 +1,4 @@
 use axum::{
-    handler::Handler,
     http::StatusCode,
     middleware,
     response::IntoResponse,
@@ -7,7 +6,6 @@ use axum::{
     Router,
 };
 use shuttle_deepgram::deepgram::Deepgram;
-use shuttle_openai::async_openai::{config::OpenAIConfig, Client as OpenAIClient};
 use shuttle_runtime::SecretStore;
 use shuttle_stytch::Client as Stytch;
 
@@ -26,23 +24,21 @@ async fn main(
     #[shuttle_shared_db::Postgres] db: PgPool,
     #[shuttle_stytch::Stytch(secret = "{secrets.STYTCH_API_KEY}")] stytch: Stytch,
     #[shuttle_deepgram::Deepgram(api_key = "{secrets.DEEPGRAM_API_KEY}")] deepgram: Deepgram,
-    #[shuttle_openai::OpenAI(api_key = "{secrets.OPENAI_API_KEY}")] openai: OpenAIClient<
-        OpenAIConfig,
-    >,
 ) -> shuttle_axum::ShuttleAxum {
     sqlx::migrate!("./migrations").run(&db).await.unwrap();
 
     let state = state::AppState {
+        reqwest: reqwest::Client::new(),
+        secrets,
         db,
         stytch,
-        openai,
         deepgram,
     };
 
     let api_router = Router::new()
         .route(
             "/enhance",
-            post(enhance::handler.layer(TimeoutLayer::new(Duration::from_secs(20)))),
+            post(enhance::handler).layer(TimeoutLayer::new(Duration::from_secs(20))),
         )
         .route("/transcribe", get(transcribe::handler))
         .layer(middleware::from_fn_with_state(

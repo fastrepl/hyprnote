@@ -9,6 +9,7 @@ use axum::{
 };
 
 use crate::state::AppState;
+use hypr_bridge::{TranscribeInputChunk, TranscribeOutputChunk};
 
 pub async fn handler(
     ws: WebSocketUpgrade,

@@ -3,7 +3,9 @@ use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 
-use deepgram::common::stream_response::StreamResponse as DeepgramStreamResponse;
+use deepgram::common::{
+    options::Encoding, stream_response::StreamResponse as DeepgramStreamResponse,
+};
 use futures::{Stream, StreamExt};
 
 use crate::{RealtimeSpeechToText, StreamResponse};
@@ -15,7 +17,7 @@ pub struct DeepgramClient {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeepgramConfig {
-    api_key: String,
+    pub api_key: String,
 }
 
 impl DeepgramClient {
@@ -40,6 +42,9 @@ impl<S, E> RealtimeSpeechToText<S, E> for DeepgramClient {
             .transcription()
             .stream_request()
             .keep_alive()
+            .sample_rate(16000)
+            .channels(1)
+            .encoding(Encoding::Linear16)
             .stream(stream)
             .await?
             .map(|result| result.map(Into::into).map_err(Into::into));

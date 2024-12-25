@@ -8,7 +8,7 @@ use axum::{
     Extension,
 };
 
-use crate::AppState;
+use crate::state::AppState;
 
 pub async fn handler(
     ws: WebSocketUpgrade,

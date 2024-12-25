@@ -10,6 +10,7 @@ tokio = { workspace = true }
 futures = "0.3.31"
 axum = { version = "0.7.4", features = ["ws"] }
 tower-http = { version = "0.6.2", features = ["timeout"] }
+http = "1.2.0"
 
 shuttle-axum = "0.49.0"
 shuttle-runtime = "0.49.0"

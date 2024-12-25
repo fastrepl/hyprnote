@@ -8456,6 +8456,7 @@ version = "0.1.0"
 dependencies = [
  "axum 0.7.9",
  "futures",
+ "http 1.2.0",
  "serde",
  "serde_json",
  "shuttle-axum",

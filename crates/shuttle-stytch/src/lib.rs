@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use shuttle_service::{CustomError, Error, IntoResource, ResourceFactory, ResourceInputBuilder};
 
 pub use stytch;
-use stytch::consumer::client::Client;
+pub use stytch::client::Client;
 
 #[derive(Default, Serialize)]
 pub struct Stytch {

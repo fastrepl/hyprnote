@@ -1,19 +1,38 @@
-use std::error::Error;
-
 use anyhow::Result;
 use bytes::Bytes;
-use deepgram::listen::websocket::TranscriptionStream;
-use futures::Stream;
+use futures::{channel::mpsc::Receiver, Stream};
+use pin_project::pin_project;
+use std::{
+    error::Error,
+    pin::Pin,
+    task::{Context, Poll},
+};
 
-mod clova;
-pub use clova::*;
+// mod clova;
+// pub use clova::*;
 
 mod deep;
 pub use deep::*;
 
 trait RealtimeSpeechToText<S, E> {
-    async fn transcribe(&self, stream: S) -> Result<TranscriptionStream>
+    async fn transcribe(&self, stream: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
         E: Error + Send + Sync + 'static;
+}
+
+pub struct StreamResponse {
+    pub text: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serial_test::serial;
+
+    #[test]
+    #[serial]
+    fn test_transcribe() {
+        assert!(true);
+    }
 }

@@ -15,6 +15,7 @@ use tower_http::timeout::TimeoutLayer;
 
 mod auth;
 mod enhance;
+mod openai;
 mod state;
 mod transcribe;
 
@@ -39,6 +40,10 @@ async fn main(
         .route(
             "/enhance",
             post(enhance::handler).layer(TimeoutLayer::new(Duration::from_secs(20))),
+        )
+        .route(
+            "/openai",
+            post(openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
         )
         .route("/transcribe", get(transcribe::handler))
         .layer(middleware::from_fn_with_state(

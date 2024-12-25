@@ -1,3 +1,0 @@
-struct Decoder {}
-
-impl Decoder {}

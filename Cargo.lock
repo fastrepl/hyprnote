@@ -8026,6 +8026,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "scc"
+version = "2.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94b13f8ea6177672c49d12ed964cca44836f59621981b04a3e26b87e675181de"
+dependencies = [
+ "sdd",
+]
+
+[[package]]
 name = "schannel"
 version = "0.1.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8141,6 +8150,12 @@ dependencies = [
  "ring 0.17.8",
  "untrusted 0.9.0",
 ]
+
+[[package]]
+name = "sdd"
+version = "3.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "478f121bb72bbf63c52c93011ea1791dca40140dfe13f8336c4c5ac952c33aa9"
 
 [[package]]
 name = "seahash"
@@ -8347,6 +8362,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d846214a9854ef724f3da161b426242d8de7c1fc7de2f89bb1efcb154dca79d"
 dependencies = [
  "darling",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.91",
+]
+
+[[package]]
+name = "serial_test"
+version = "3.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b258109f244e1d6891bf1053a55d63a5cd4f8f4c30cf9a1280989f80e7a1fa9"
+dependencies = [
+ "futures",
+ "log",
+ "once_cell",
+ "parking_lot 0.12.3",
+ "scc",
+ "serial_test_derive",
+]
+
+[[package]]
+name = "serial_test_derive"
+version = "3.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d69265a08751de7844521fd15003ae0a888e035773ba05695c5c759a6f89eef"
+dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.91",
@@ -9260,22 +9300,11 @@ dependencies = [
  "anyhow",
  "bytes",
  "clova",
+ "cpal",
  "deepgram",
  "futures",
- "tokio",
-]
-
-[[package]]
-name = "stt-old"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "candle-core 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "candle-examples",
- "candle-nn 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "candle-transformers 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_json",
- "tokenizers",
+ "pin-project",
+ "serial_test",
  "tokio",
 ]
 

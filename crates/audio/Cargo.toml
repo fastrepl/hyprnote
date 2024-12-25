@@ -14,7 +14,7 @@ futures-util = { workspace = true }
 futures-channel = { workspace = true }
 
 cpal = { workspace = true }
-rodio = { version = "0.20.1", features = ["wav", "hound", "vorbis"] }
+rodio = { workspace = true, features = ["wav", "hound", "vorbis"] }
 kalosm-sound = { version = "0.3.5", default-features = false }
 
 [target.'cfg(target_os = "macos")'.dependencies.cidre]

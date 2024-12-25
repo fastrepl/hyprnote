@@ -7,7 +7,12 @@ edition = "2021"
 anyhow = { workspace = true }
 tokio = { workspace = true }
 futures = { workspace = true }
+pin-project = { workspace = true }
 bytes = "1.9.0"
 
 deepgram = { version = "0.6.4", features = ["listen"] }
 hypr-clova = { path = "../clova", package = "clova" }
+
+[dev-dependencies]
+serial_test = "3"
+cpal = { workspace = true }

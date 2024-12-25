@@ -22,7 +22,7 @@ async fn websocket(stream: WebSocket, state: Arc<Mutex<AppState>>) {
     let deepgram = state.lock().await.deepgram.clone();
     let (mut tx, mut rx) = stream.split();
 
-    let mut tx_task = tokio::spawn(async move { deepgram.transcription().stream_request() });
+    let mut tx_task = tokio::spawn(async move { todo!() });
 
     let mut rx_task = tokio::spawn(async move {
         while let Some(Ok(Message::Text(text))) = rx.next().await {

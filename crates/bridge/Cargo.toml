@@ -7,4 +7,4 @@ edition = "2021"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 specta = { workspace = true, features = ["derive"] }
-schemars = { version = "=1.0.0-alpha.17", features = ["preserve_order"] }
+schemars = { workspace = true }

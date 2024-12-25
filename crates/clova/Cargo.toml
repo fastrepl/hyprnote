@@ -1,0 +1,13 @@
+[package]
+name = "clova"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+tonic-build = "0.12.3"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+prost = "0.13.4"
+tonic = { version = "0.12.3", features = ["tls"] }

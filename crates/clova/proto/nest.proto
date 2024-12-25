@@ -1,0 +1,34 @@
+// https://api.ncloud-docs.com/docs/en/ai-application-service-clovaspeech-grpc#1-install-and-prepare-protoc-compiler
+
+syntax = "proto3";
+package com.nbp.cdncp.nest.grpc.proto.v1;
+
+enum RequestType {
+  CONFIG = 0;
+  DATA = 1;
+}
+
+message NestConfig {
+  string config = 1;
+}
+
+message NestData {
+  bytes chunk = 1;
+  string extra_contents = 2;
+}
+
+message NestRequest {
+  RequestType type = 1;
+  oneof part {
+    NestConfig config = 2;
+    NestData data = 3;
+  }
+}
+
+message NestResponse {
+  string contents = 1;
+}
+
+service NestService {
+  rpc recognize(stream NestRequest) returns (stream NestResponse) {}
+}

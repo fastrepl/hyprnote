@@ -14,7 +14,7 @@ shuttle-posthog = { path = "../../crates/shuttle-posthog" }
 shuttle-clerk = { path = "../../crates/shuttle-clerk" }
 shuttle-stt = { path = "../../crates/shuttle-stt" }
 
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 futures = { workspace = true }
 
 axum = { version = "0.7.4", features = ["ws"] }
@@ -34,5 +34,4 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 schemars = { workspace = true, features = ["preserve_order"] }
 
-lettre = "0.11.11"
 async-stripe = { version = "0.39.1", features = ["runtime-tokio-hyper"] }

@@ -1,15 +1,9 @@
 import { z } from "zod";
+import { useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { useMutation } from "@tanstack/react-query";
-
-import {
-  SignedIn,
-  SignedOut,
-  RedirectToSignIn,
-  useAuth,
-} from "@clerk/clerk-react";
-import { useEffect } from "react";
+import { SignedIn, RedirectToSignIn, useAuth } from "@clerk/clerk-react";
 
 const schema = z.object({
   code: z.string().optional(),

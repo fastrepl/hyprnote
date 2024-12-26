@@ -21,6 +21,7 @@ use tower_http::{
 mod auth;
 mod native;
 mod state;
+mod stripe;
 mod web;
 
 #[shuttle_runtime::main]
@@ -72,17 +73,20 @@ async fn main(
             auth::middleware_fn,
         ));
 
-    let web_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../web");
+    let webhook_router = Router::new().route("/stripe", post(stripe::webhook::handler));
 
     let router = Router::new()
+        .route("/health", get(health))
         .nest("/api/native", native_router)
         .nest("/api/web", web_router)
-        .route("/health", get(health))
-        .fallback_service(
+        .nest("/webhook", webhook_router)
+        .fallback_service({
+            let web_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../web");
+
             ServeDir::new(web_dir.join("dist"))
                 .append_index_html_on_directories(false)
-                .fallback(ServeFile::new(web_dir.join("dist/index.html"))),
-        )
+                .fallback(ServeFile::new(web_dir.join("dist/index.html")))
+        })
         .with_state(state);
 
     Ok(router.into())

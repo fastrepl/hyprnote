@@ -10,6 +10,7 @@ futures-core = "0.3.31"
 futures-util = "0.3.31"
 futures-channel = "0.3.31"
 tokio-stream = "0.1.17"
+reqwest = "0.12"
 
 anyhow = "1"
 thiserror = "2"

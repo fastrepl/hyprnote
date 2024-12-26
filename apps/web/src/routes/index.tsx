@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { SignedIn, SignedOut, SignIn, SignOutButton } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, SignIn, UserButton } from "@clerk/clerk-react";
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,
@@ -14,7 +14,7 @@ function HomeComponent() {
         <SignIn />
       </SignedOut>
       <SignedIn>
-        <SignOutButton />
+        <UserButton />
       </SignedIn>
     </div>
   );

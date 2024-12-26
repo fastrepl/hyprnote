@@ -26,8 +26,10 @@
     "@clerk/clerk-react": "^5.21.0",
     "@tanstack/react-query": "^5.62.10",
     "@tanstack/react-router": "^1.92.3",
+    "@tanstack/zod-adapter": "^1.92.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "zod": "^3.24.1",
     "zustand": "^5.0.2"
   }
 }

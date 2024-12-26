@@ -19,10 +19,9 @@ use tower_http::{
 };
 
 mod auth;
-mod enhance;
-mod openai;
+mod native;
 mod state;
-mod transcribe;
+mod web;
 
 #[shuttle_runtime::main]
 async fn main(
@@ -47,10 +46,11 @@ async fn main(
         secrets,
         db,
         posthog,
+        clerk: clerk.clone(),
     };
 
     let web_router = Router::new()
-        .route("/health", get(health))
+        .route("/connect", get(web::connect::handler))
         .layer(ClerkLayer::new(
             MemoryCacheJwksProvider::new(clerk),
             None,
@@ -60,13 +60,13 @@ async fn main(
     let native_router = Router::new()
         .route(
             "/enhance",
-            post(enhance::handler).layer(TimeoutLayer::new(Duration::from_secs(20))),
+            post(native::enhance::handler).layer(TimeoutLayer::new(Duration::from_secs(20))),
         )
         .route(
             "/chat/completions",
-            post(openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
+            post(native::openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
         )
-        .route("/transcribe", get(transcribe::handler))
+        .route("/transcribe", get(native::transcribe::handler))
         .layer(middleware::from_fn_with_state(
             state.clone(),
             auth::middleware_fn,

@@ -2,8 +2,9 @@ use axum::{
     extract::{Request, State},
     http::{header, StatusCode},
     middleware,
-    response::{IntoResponse, Redirect, Response},
+    response::Response,
 };
+use shuttle_clerk::clerk_rs::endpoints::ClerkDynamicGetEndpoint;
 
 use crate::state::AppState;
 
@@ -26,18 +27,16 @@ pub async fn middleware_fn(
         return Err(StatusCode::UNAUTHORIZED);
     };
 
+    let _user = state
+        .clerk
+        .get_with_params(ClerkDynamicGetEndpoint::GetUser, vec![auth_header])
+        .await
+        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+
     if true {
         req.extensions_mut().insert(User {});
         Ok(next.run(req).await)
     } else {
         Err(StatusCode::UNAUTHORIZED)
     }
-}
-
-pub async fn oauth_login_handler(State(state): State<AppState>) -> impl IntoResponse {
-    Redirect::temporary("/")
-}
-
-pub async fn oauth_callback_handler(State(state): State<AppState>) -> impl IntoResponse {
-    Redirect::temporary("/")
 }

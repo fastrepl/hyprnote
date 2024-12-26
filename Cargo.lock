@@ -691,25 +691,26 @@ dependencies = [
 
 [[package]]
 name = "axum-extra"
-version = "0.9.3"
+version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0be6ea09c9b96cb5076af0de2e383bd2bc0c18f827cf1967bdd353e0b910d733"
+checksum = "c794b30c904f0a1c2fb7740f7df7f7972dfaa14ef6f57cb6178dc63e5dca2f04"
 dependencies = [
  "axum 0.7.9",
  "axum-core 0.4.5",
  "bytes",
  "cookie",
+ "fastrand 2.3.0",
  "futures-util",
  "http 1.2.0",
  "http-body 1.0.1",
  "http-body-util",
  "mime",
+ "multer",
  "pin-project-lite",
  "serde",
- "tower 0.4.13",
+ "tower 0.5.2",
  "tower-layer",
  "tower-service",
- "tracing",
 ]
 
 [[package]]
@@ -5766,6 +5767,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "multer"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "83e87776546dc87511aa5ee218730c92b666d7264ab6ed41f9d215af9cd5224b"
+dependencies = [
+ "bytes",
+ "encoding_rs",
+ "futures-util",
+ "http 1.2.0",
+ "httparse",
+ "memchr",
+ "mime",
+ "spin 0.9.8",
+ "version_check",
+]
+
+[[package]]
 name = "multimap"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9000,7 +9018,6 @@ dependencies = [
  "async-stripe",
  "axum 0.7.9",
  "bridge",
- "clerk-rs",
  "db-server",
  "futures",
  "lettre",
@@ -9010,6 +9027,7 @@ dependencies = [
  "serde",
  "serde_json",
  "shuttle-axum",
+ "shuttle-clerk",
  "shuttle-posthog",
  "shuttle-runtime",
  "shuttle-shared-db",
@@ -9125,6 +9143,17 @@ checksum = "05c1bf60a94a13bab7b8ecdd3166bd424bbe5816e94e02b0d836455a0e222b44"
 dependencies = [
  "axum 0.7.9",
  "shuttle-runtime",
+]
+
+[[package]]
+name = "shuttle-clerk"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "clerk-rs",
+ "serde",
+ "serde_json",
+ "shuttle-service",
 ]
 
 [[package]]

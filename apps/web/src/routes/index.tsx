@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { SignIn, SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, SignIn, SignOutButton } from "@clerk/clerk-react";
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,
@@ -9,11 +9,13 @@ export const Route = createFileRoute("/")({
 
 function HomeComponent() {
   return (
-    <div className="p-2">
-      <h1 className="text-3xl font-bold underline">Hello world!</h1>
+    <div className="flex flex-col items-center justify-center h-screen">
       <SignedOut>
         <SignIn />
       </SignedOut>
+      <SignedIn>
+        <SignOutButton />
+      </SignedIn>
     </div>
   );
 }

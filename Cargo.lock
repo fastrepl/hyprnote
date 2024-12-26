@@ -1637,8 +1637,12 @@ dependencies = [
 name = "clova"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "bytes",
+ "futures",
  "prost 0.13.4",
  "serde",
+ "serde_json",
  "tokio",
  "tonic 0.12.3",
  "tonic-build",

@@ -18,6 +18,7 @@ serde_json = "1"
 time = "0.3.37"
 pin-project = "1"
 sentry = "0.35.0"
+bytes = "1.9.0"
 
 ndarray = "0.16.1"
 ort = "2.0.0-rc.9"

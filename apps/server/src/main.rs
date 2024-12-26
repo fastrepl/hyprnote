@@ -5,12 +5,17 @@ use axum::{
     routing::{get, post},
     Router,
 };
+
+use shuttle_clerk::{ClerkClient as Clerk, ClerkLayer, MemoryCacheJwksProvider};
 use shuttle_posthog::posthog::Client as Posthog;
 use shuttle_runtime::SecretStore;
 
 use sqlx::PgPool;
 use std::time::Duration;
-use tower_http::timeout::TimeoutLayer;
+use tower_http::{
+    services::{ServeDir, ServeFile},
+    timeout::TimeoutLayer,
+};
 
 mod auth;
 mod enhance;
@@ -22,6 +27,7 @@ mod transcribe;
 async fn main(
     #[shuttle_runtime::Secrets] secrets: SecretStore,
     #[shuttle_shared_db::Postgres] db: PgPool,
+    #[shuttle_clerk::Clerk(secret_key = "{secrets.CLERK_SECRET_KEY}")] clerk: Clerk,
     #[shuttle_posthog::Posthog(
         api_base = "https://us.i.posthog.com",
         api_key = "{secrets.POSTHOG_API_KEY}"
@@ -37,7 +43,15 @@ async fn main(
         posthog,
     };
 
-    let api_router = Router::new()
+    let web_router = Router::new()
+        .route("/health", get(health))
+        .layer(ClerkLayer::new(
+            MemoryCacheJwksProvider::new(clerk),
+            None,
+            true,
+        ));
+
+    let native_router = Router::new()
         .route(
             "/enhance",
             post(enhance::handler).layer(TimeoutLayer::new(Duration::from_secs(20))),
@@ -52,9 +66,17 @@ async fn main(
             auth::middleware_fn,
         ));
 
+    let web_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../web");
+
     let router = Router::new()
-        .nest("/api", api_router)
+        .nest("/api/native", native_router)
+        .nest("/api/web", web_router)
         .route("/health", get(health))
+        .fallback_service(
+            ServeDir::new(web_dir.join("dist"))
+                .append_index_html_on_directories(false)
+                .fallback(ServeFile::new(web_dir.join("dist/index.html"))),
+        )
         .with_state(state);
 
     Ok(router.into())

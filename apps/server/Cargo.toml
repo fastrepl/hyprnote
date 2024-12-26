@@ -11,11 +11,12 @@ shuttle-axum = "0.49.0"
 shuttle-runtime = "0.49.0"
 shuttle-shared-db = { version = "0.49.0", features = ["postgres", "sqlx"] }
 shuttle-posthog = { path = "../../crates/shuttle-posthog" }
+shuttle-clerk = { path = "../../crates/shuttle-clerk" }
 
 tokio = { workspace = true }
 futures = { workspace = true }
 axum = { version = "0.7.4", features = ["ws"] }
-tower-http = { version = "0.6.2", features = ["timeout"] }
+tower-http = { version = "0.6.2", features = ["fs", "timeout"] }
 reqwest = "0.12.9"
 async-openai = { version = "0.26.0", default-features = false }
 sentry = { workspace = true }
@@ -33,4 +34,3 @@ schemars = { workspace = true, features = ["preserve_order"] }
 
 lettre = "0.11.11"
 async-stripe = { version = "0.39.1", features = ["runtime-tokio-hyper"] }
-clerk-rs = { version = "0.4.0", features = ["axum"] }

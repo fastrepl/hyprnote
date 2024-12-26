@@ -3,12 +3,14 @@ on:
     branches:
       - main
     paths:
+      - 'apps/web/**'
       - server/**
       - crates/**
   pull_request:
     branches:
       - main
     paths:
+      - 'apps/web/**'
       - server/**
       - crates/**
 jobs:
@@ -16,8 +18,13 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v4
+      - uses: useblacksmith/rust-cache@v3
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - run: pnpm install
+      - run: pnpm -F web build
       - run: rustup toolchain install stable --profile minimal --no-self-update
       - run: sudo apt-get update && sudo apt-get install -y libasound2-dev pkg-config
       - uses: arduino/setup-protoc@v3
-      - uses: useblacksmith/rust-cache@v3
       - run: cargo build -p server

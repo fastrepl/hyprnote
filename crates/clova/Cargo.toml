@@ -7,7 +7,13 @@ edition = "2021"
 tonic-build = "0.12.3"
 
 [dependencies]
-tokio = { workspace = true }
+anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+bytes = { workspace = true }
+
+tokio = { workspace = true }
+futures = { workspace = true }
+
 prost = "0.13.4"
 tonic = { version = "0.12.3", features = ["tls"] }

@@ -27,7 +27,7 @@ impl DeepgramClient {
 }
 
 impl<S, E> RealtimeSpeechToText<S, E> for DeepgramClient {
-    async fn transcribe(&self, stream: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
+    async fn transcribe(&mut self, stream: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
         E: Error + Send + Sync + 'static,

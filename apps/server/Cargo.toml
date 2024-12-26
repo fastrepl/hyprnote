@@ -17,7 +17,7 @@ shuttle-stt = { path = "../../crates/shuttle-stt" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 futures = { workspace = true }
 
-axum = { version = "0.7.4", features = ["ws"] }
+axum = { version = "0.7.4", features = ["ws", "multipart"] }
 tower-http = { version = "0.6.2", features = ["fs", "timeout"] }
 reqwest = "0.12.9"
 async-openai = { version = "0.26.0", default-features = false }

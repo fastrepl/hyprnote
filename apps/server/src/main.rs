@@ -10,7 +10,10 @@ use shuttle_runtime::SecretStore;
 
 use sqlx::PgPool;
 use std::time::Duration;
-use tower_http::timeout::TimeoutLayer;
+use tower_http::{
+    services::{ServeDir, ServeFile},
+    timeout::TimeoutLayer,
+};
 
 mod auth;
 mod enhance;
@@ -52,9 +55,16 @@ async fn main(
             auth::middleware_fn,
         ));
 
+    let web_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../web");
+
     let router = Router::new()
         .nest("/api", api_router)
         .route("/health", get(health))
+        .fallback_service(
+            ServeDir::new(web_dir.join("dist"))
+                .append_index_html_on_directories(false)
+                .fallback(ServeFile::new(web_dir.join("dist/index.html"))),
+        )
         .with_state(state);
 
     Ok(router.into())

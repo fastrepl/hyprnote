@@ -4,16 +4,15 @@ use bytes::Bytes;
 mod handle;
 pub mod interface;
 
-use std::{error::Error, str::FromStr};
-
 use futures::{Stream, StreamExt};
-use interface::nest_service_client::NestServiceClient;
-
 use serde::{Deserialize, Serialize};
+use std::{error::Error, str::FromStr};
 use tonic::{
     metadata::{MetadataMap, MetadataValue},
-    Request, Status,
+    Request,
 };
+
+use interface::nest_service_client::NestServiceClient;
 
 pub struct Client {
     inner: NestServiceClient<tonic::transport::Channel>,
@@ -107,19 +106,19 @@ impl Client {
     {
         self.config_request().await?;
 
-        let request_stream = stream
-            .map(move |chunk| chunk.map_err(|e| Status::internal(e.to_string())))
-            .map(|chunk| interface::NestRequest {
-                r#type: interface::RequestType::Data.into(),
-                part: Some(interface::nest_request::Part::Data(interface::NestData {
-                    chunk: chunk.unwrap().to_vec(),
-                    extra_contents: serde_json::to_string(&serde_json::json!({
-                        "seqId": 0,
-                        "epFlag": false
-                    }))
-                    .unwrap(),
-                })),
-            });
+        let request_stream = stream.filter_map(|chunk| async {
+            if let Ok(chunk) = chunk {
+                Some(interface::NestRequest {
+                    r#type: interface::RequestType::Data.into(),
+                    part: Some(interface::nest_request::Part::Data(interface::NestData {
+                        chunk: chunk.to_vec(),
+                        extra_contents: "".to_string(),
+                    })),
+                })
+            } else {
+                None
+            }
+        });
 
         let response = self
             .inner
@@ -127,7 +126,7 @@ impl Client {
             .await?
             .into_inner()
             .map(|message| {
-                let res: interface::StreamResponse = serde_json::from_str(&message?.contents)?;
+                let res = serde_json::from_str::<interface::StreamResponse>(&message?.contents)?;
                 Ok(res)
             });
 

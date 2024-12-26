@@ -10,7 +10,7 @@ mod deep;
 pub use deep::*;
 
 trait RealtimeSpeechToText<S, E> {
-    async fn transcribe(&self, stream: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
+    async fn transcribe(&mut self, stream: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
         E: Error + Send + Sync + 'static;
@@ -83,7 +83,7 @@ mod tests {
         let config = DeepgramConfig {
             api_key: "".to_string(),
         };
-        let client = DeepgramClient::new(config);
+        let mut client = DeepgramClient::new(config);
         let stream = microphone_as_stream();
         let _ = client.transcribe(stream).await.unwrap();
         assert!(true);

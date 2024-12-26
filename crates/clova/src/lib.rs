@@ -6,13 +6,13 @@ pub mod interface;
 
 use std::{error::Error, str::FromStr};
 
-use futures::{Stream, StreamExt, TryStreamExt};
+use futures::{Stream, StreamExt};
 use interface::nest_service_client::NestServiceClient;
 
 use serde::{Deserialize, Serialize};
 use tonic::{
     metadata::{MetadataMap, MetadataValue},
-    Request,
+    Request, Status,
 };
 
 pub struct Client {
@@ -87,9 +87,9 @@ impl Client {
         let mut stream = response.into_inner();
 
         while let Some(message) = stream.message().await? {
-            let contents: serde_json::Value = serde_json::from_str(&message.contents)?;
+            let res: interface::ConfigResponse = serde_json::from_str(&message.contents)?;
 
-            if contents["config"]["status"] != "Success" {
+            if res.config.status != interface::ConfigResponseStatus::Success {
                 return Err(anyhow::anyhow!("config request failed"));
             }
         }
@@ -97,36 +97,40 @@ impl Client {
         Ok(())
     }
 
-    // pub async fn stream<S, E>(&mut self, stream: S) -> Result<Streaming<interface::NestResponse>>
-    // where
-    //     S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
-    //     E: Error + Send + Sync + 'static,
-    // {
-    //     self.config_request().await?;
+    pub async fn stream<S, E>(
+        &mut self,
+        stream: S,
+    ) -> Result<impl Stream<Item = Result<interface::StreamResponse>>>
+    where
+        S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
+        E: Error + Send + Sync + 'static,
+    {
+        self.config_request().await?;
 
-    //     let request_stream = stream
-    //         .map(move |chunk| chunk.map_err(|e| anyhow::anyhow!("{}", e)))
-    //         .try_filter_map(|chunk| {
-    //             Ok(interface::NestRequest {
-    //                 r#type: interface::RequestType::Data.into(),
-    //                 part: Some(interface::nest_request::Part::Data(interface::NestData {
-    //                     chunk: chunk.to_vec(),
-    //                     extra_contents: serde_json::to_string(&serde_json::json!({
-    //                         "seqId": 0,
-    //                         "epFlag": false
-    //                     }))?,
-    //                 })),
-    //             })
-    //         })
-    //         .map_err(tonic::Status::from);
+        let request_stream = stream
+            .map(move |chunk| chunk.map_err(|e| Status::internal(e.to_string())))
+            .map(|chunk| interface::NestRequest {
+                r#type: interface::RequestType::Data.into(),
+                part: Some(interface::nest_request::Part::Data(interface::NestData {
+                    chunk: chunk.unwrap().to_vec(),
+                    extra_contents: serde_json::to_string(&serde_json::json!({
+                        "seqId": 0,
+                        "epFlag": false
+                    }))
+                    .unwrap(),
+                })),
+            });
 
-    //     let response = self.inner.recognize(request_stream).await?;
-    //     Ok(response.into_inner())
-    // }
-}
+        let response = self
+            .inner
+            .recognize(request_stream)
+            .await?
+            .into_inner()
+            .map(|message| {
+                let res: interface::StreamResponse = serde_json::from_str(&message?.contents)?;
+                Ok(res)
+            });
 
-impl Drop for Client {
-    fn drop(&mut self) {
-        todo!()
+        Ok(response)
     }
 }

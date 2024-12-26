@@ -1,5 +1,5 @@
 [package]
-name = "shuttle-clova"
+name = "shuttle-stt"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,4 +8,4 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 async-trait = "0.1.83"
 shuttle-service = "0.49.0"
-clova = { path = "../clova" }
+hypr-stt = { path = "../stt", package = "stt" }

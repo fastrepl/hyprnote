@@ -12,6 +12,7 @@ shuttle-runtime = "0.49.0"
 shuttle-shared-db = { version = "0.49.0", features = ["postgres", "sqlx"] }
 shuttle-posthog = { path = "../../crates/shuttle-posthog" }
 shuttle-clerk = { path = "../../crates/shuttle-clerk" }
+shuttle-stt = { path = "../../crates/shuttle-stt" }
 
 tokio = { workspace = true }
 futures = { workspace = true }

@@ -9,6 +9,7 @@ use axum::{
 use shuttle_clerk::{ClerkClient as Clerk, ClerkLayer, MemoryCacheJwksProvider};
 use shuttle_posthog::posthog::Client as Posthog;
 use shuttle_runtime::SecretStore;
+use shuttle_stt::STTClient as STT;
 
 use sqlx::PgPool;
 use std::time::Duration;
@@ -33,6 +34,11 @@ async fn main(
         api_key = "{secrets.POSTHOG_API_KEY}"
     )]
     posthog: Posthog,
+    #[shuttle_stt::STT(
+        deepgram_api_key = "{secrets.DEEPGRAM_API_KEY}",
+        clova_api_key = "{secrets.CLOVA_API_KEY}"
+    )]
+    _stt: STT,
 ) -> shuttle_axum::ShuttleAxum {
     hypr_db_server::migrate(&db).await.unwrap();
 

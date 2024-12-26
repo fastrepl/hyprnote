@@ -20,6 +20,10 @@ pub struct StreamResponse {
     pub text: String,
 }
 
+pub struct Client {}
+
+pub struct Config {}
+
 #[cfg(test)]
 mod tests {
     use super::*;

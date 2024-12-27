@@ -42,7 +42,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for DeepgramClient {
             .transcription()
             .stream_request()
             .keep_alive()
-            .sample_rate(44100)
+            .sample_rate(16 * 1000)
             .channels(1)
             .encoding(Encoding::Linear16)
             .stream(stream)

@@ -31,61 +31,23 @@ mod tests {
     use serial_test::serial;
 
     use anyhow::Result;
-    use bytes::{BufMut, Bytes, BytesMut};
-    use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-    use futures::{SinkExt, StreamExt};
+    use bytes::{BufMut, Bytes};
+    use futures::StreamExt;
+    use kalosm_sound::AsyncSource;
 
-    fn microphone_as_stream() -> futures::channel::mpsc::Receiver<Result<Bytes, std::io::Error>> {
-        let (sync_tx, sync_rx) = std::sync::mpsc::channel();
-        let (mut async_tx, async_rx) = futures::channel::mpsc::channel(1);
+    fn microphone_as_stream(
+    ) -> impl Stream<Item = Result<Bytes, std::io::Error>> + Send + Unpin + 'static {
+        let mic_input = kalosm_sound::MicInput::default();
+        let mic_stream = mic_input.stream().unwrap().resample(16 * 1000).chunks(128);
 
-        std::thread::spawn(move || {
-            fn build_stream<S: dasp::sample::ToSample<i16> + cpal::SizedSample>(
-                device: &cpal::Device,
-                config: &cpal::SupportedStreamConfig,
-                tx: std::sync::mpsc::Sender<Bytes>,
-            ) -> Result<cpal::Stream, cpal::BuildStreamError> {
-                device.build_input_stream(
-                    &config.config(),
-                    move |data: &[S], _: &_| {
-                        let mut bytes = BytesMut::with_capacity(data.len() * 2);
-                        for s in data {
-                            bytes.put_i16_le(s.to_sample());
-                        }
-                        tx.send(bytes.freeze()).unwrap();
-                    },
-                    |err| {
-                        panic!("error: {:?}", err);
-                    },
-                    None,
-                )
+        mic_stream.map(|chunk| {
+            let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
+            for sample in chunk {
+                let scaled = (sample * 32767.0).clamp(-32768.0, 32767.0);
+                buf.put_i16_le(scaled as i16);
             }
-
-            let host = cpal::default_host();
-            let device = host.default_input_device().unwrap();
-            let config = device.default_input_config().unwrap();
-
-            let stream = match config.sample_format() {
-                cpal::SampleFormat::F32 => build_stream::<f32>(&device, &config, sync_tx).unwrap(),
-                cpal::SampleFormat::I16 => build_stream::<i16>(&device, &config, sync_tx).unwrap(),
-                _ => panic!("unsupported sample format"),
-            };
-
-            stream.play().unwrap();
-
-            loop {
-                std::thread::park();
-            }
-        });
-
-        tokio::spawn(async move {
-            loop {
-                let data = sync_rx.recv().unwrap();
-                async_tx.send(Ok(data)).await.unwrap();
-            }
-        });
-
-        async_rx
+            Ok(buf.freeze())
+        })
     }
 
     // cargo test test_deepgram -p stt --  --ignored --nocapture
@@ -114,7 +76,7 @@ mod tests {
         let audio_stream = microphone_as_stream();
 
         let config = ClovaConfig {
-            secret_key: "2f6a831630f943f8b81104d09df8b4e8".to_string(),
+            secret_key: "2fbc878c49bf48dbad194a95051083cb".to_string(),
             config: clova::clova::ConfigRequest {
                 transcription: clova::clova::Transcription {
                     language: clova::clova::Language::Korean,

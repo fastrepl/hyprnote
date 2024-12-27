@@ -7,7 +7,7 @@ edition = "2021"
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 ndarray = { workspace = true }
-ort = { workspace = true, features = ["coreml"] }
+ort = { version = "2.0.0-rc.9", features = ["coreml"] }
 
 [dev-dependencies]
 reqwest = { workspace = true }

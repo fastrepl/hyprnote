@@ -78,8 +78,6 @@ impl Client {
 
         let mut stream = response.into_inner();
 
-        println!("go response stream");
-
         while let Some(message) = stream.message().await? {
             let res: interface::ConfigResponse = serde_json::from_str(&message.contents)?;
 

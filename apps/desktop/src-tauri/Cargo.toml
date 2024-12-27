@@ -50,7 +50,7 @@ uuid = { workspace = true }
 dotenvy_macro = "0.15.7"
 log = "0.4.22"
 
-reqwest = { version = "0.12", features = ["stream"] }
+reqwest = { workspace = true, features = ["json", "stream"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
 futures = { workspace = true }
 

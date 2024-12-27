@@ -1,0 +1,7 @@
+[package]
+name = "turso"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = { workspace = true, features = ["json"] }

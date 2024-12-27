@@ -10573,6 +10573,7 @@ dependencies = [
  "bytes",
  "clova",
  "cpal",
+ "dasp",
  "deepgram",
  "futures",
  "serde",

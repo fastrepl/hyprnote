@@ -17,3 +17,4 @@ hypr-clova = { path = "../clova", package = "clova" }
 [dev-dependencies]
 serial_test = "3"
 cpal = { workspace = true }
+dasp = "0.11.0"

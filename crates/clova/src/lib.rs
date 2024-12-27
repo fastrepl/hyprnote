@@ -21,8 +21,8 @@ pub struct Client {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
-    secret_key: String,
-    config: interface::ConfigRequest,
+    pub secret_key: String,
+    pub config: interface::ConfigRequest,
 }
 
 impl Config {

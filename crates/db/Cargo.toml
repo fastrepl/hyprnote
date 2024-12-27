@@ -4,4 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = { workspace = true }
+tokio = { workspace = true, features = ["rt", "macros"] }
 libsql = "0.6.0"

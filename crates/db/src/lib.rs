@@ -1,17 +1,70 @@
-// https://github.com/tursodatabase/libsql/tree/main/libsql/examples
+pub mod admin;
+pub mod user;
 
-pub async fn exploring() {
-    let db_path = "test.db".to_string();
-    let sync_url = "https://localhost:50051".to_string();
-    let auth_token = "test".to_string();
+struct ConnectionConfig {
+    local_path: Option<std::path::PathBuf>,
+    remote_url: Option<String>,
+    remote_token: Option<String>,
+}
 
-    let db = libsql::Builder::new_remote_replica(db_path, sync_url, auth_token)
-        .build()
-        .await
-        .unwrap();
+impl Default for ConnectionConfig {
+    fn default() -> Self {
+        Self {
+            local_path: None,
+            remote_url: None,
+            remote_token: None,
+        }
+    }
+}
 
-    let conn = db.connect().unwrap();
+impl ConnectionConfig {
+    pub async fn connect(&self) -> anyhow::Result<libsql::Connection> {
+        let db = match (
+            self.local_path.clone(),
+            self.remote_url.clone(),
+            self.remote_token.clone(),
+        ) {
+            (Some(path), None, None) => libsql::Builder::new_local(path).build().await?,
+            (None, Some(url), Some(token)) => {
+                libsql::Builder::new_remote(url, token).build().await?
+            }
+            (Some(path), Some(url), Some(token)) => {
+                libsql::Builder::new_remote_replica(path, url, token)
+                    .build()
+                    .await?
+            }
+            (_, _, _) => anyhow::bail!("invalid connection config"),
+        };
 
-    let _rows = conn.query("SELECT * FROM test", ()).await.unwrap();
-    // println!("{:?}", rows);
+        let conn = db.connect()?;
+        Ok(conn)
+    }
+}
+
+pub struct ConnectionBuilder {
+    config: ConnectionConfig,
+}
+
+impl ConnectionBuilder {
+    pub fn new() -> Self {
+        Self {
+            config: ConnectionConfig::default(),
+        }
+    }
+
+    pub fn local(mut self, path: impl AsRef<std::path::Path>) -> Self {
+        self.config.local_path = Some(path.as_ref().to_owned());
+        self
+    }
+
+    pub fn remote(mut self, url: impl AsRef<str>, token: impl AsRef<str>) -> Self {
+        self.config.remote_url = Some(url.as_ref().to_owned());
+        self.config.remote_token = Some(token.as_ref().to_owned());
+        self
+    }
+
+    pub async fn connect(self) -> anyhow::Result<libsql::Connection> {
+        let conn = self.config.connect().await?;
+        Ok(conn)
+    }
 }

@@ -69,6 +69,15 @@ impl Client {
         }
     }
 
+    pub async fn get_bucket(&self) -> bool {
+        self.s3
+            .head_bucket()
+            .bucket(&self.bucket)
+            .send()
+            .await
+            .is_ok()
+    }
+
     pub async fn create_bucket(&self) -> Result<(), ApiError> {
         let _ = self.s3.create_bucket().bucket(&self.bucket).send().await?;
         Ok(())
@@ -151,7 +160,9 @@ mod tests {
         })
         .await;
 
-        // client.create_bucket().await.unwrap();
+        if !client.get_bucket().await {
+            client.create_bucket().await.unwrap();
+        }
 
         let user_client = client.for_user("123");
 

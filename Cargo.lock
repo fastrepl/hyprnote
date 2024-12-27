@@ -2937,6 +2937,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "libsql",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "specta-util",
+ "time",
  "tokio",
 ]
 

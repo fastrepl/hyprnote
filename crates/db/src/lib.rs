@@ -1,20 +1,11 @@
 pub mod admin;
 pub mod user;
 
+#[derive(Debug, Default)]
 struct ConnectionConfig {
     local_path: Option<std::path::PathBuf>,
     remote_url: Option<String>,
     remote_token: Option<String>,
-}
-
-impl Default for ConnectionConfig {
-    fn default() -> Self {
-        Self {
-            local_path: None,
-            remote_url: None,
-            remote_token: None,
-        }
-    }
 }
 
 impl ConnectionConfig {
@@ -30,6 +21,7 @@ impl ConnectionConfig {
             }
             (Some(path), Some(url), Some(token)) => {
                 libsql::Builder::new_remote_replica(path, url, token)
+                    .sync_interval(std::time::Duration::from_secs(300))
                     .build()
                     .await?
             }

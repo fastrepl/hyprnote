@@ -40,7 +40,7 @@ impl Client {
     pub async fn new(config: Config) -> Result<Self> {
         let channel =
             tonic::transport::Channel::from_static("https://clovaspeech-gw.ncloud.com:50051")
-                .tls_config(tonic::transport::ClientTlsConfig::new())?
+                .tls_config(tonic::transport::ClientTlsConfig::new().with_native_roots())?
                 .connect()
                 .await?;
 

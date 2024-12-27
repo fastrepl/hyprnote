@@ -117,7 +117,7 @@ mod tests {
             secret_key: "2f6a831630f943f8b81104d09df8b4e8".to_string(),
             config: clova::clova::ConfigRequest {
                 transcription: clova::clova::Transcription {
-                    language: clova::clova::Language::Korean
+                    language: clova::clova::Language::Korean,
                 },
             },
         };

@@ -1,21 +1,20 @@
-use anyhow::Result;
-use bytes::Bytes;
-
 mod handle;
 pub mod interface;
 
+use anyhow::Result;
+use bytes::Bytes;
 use futures::{Stream, StreamExt};
 use serde::{Deserialize, Serialize};
-use std::{error::Error, str::FromStr};
-use tonic::{
-    metadata::{MetadataMap, MetadataValue},
-    Request,
-};
+use std::error::Error;
 
 use interface::nest_service_client::NestServiceClient;
+use tonic::{service::interceptor::InterceptedService, transport::Channel, Request, Status};
+
+// https://docs.rs/tonic/latest/tonic/service/trait.Interceptor.html
+type Interceptor = Box<dyn FnMut(Request<()>) -> Result<Request<()>, Status>>;
 
 pub struct Client {
-    inner: NestServiceClient<tonic::transport::Channel>,
+    inner: NestServiceClient<InterceptedService<Channel, Interceptor>>,
     config: Config,
 }
 
@@ -44,23 +43,18 @@ impl Client {
                 .connect()
                 .await?;
 
-        let inner = NestServiceClient::new(channel);
+        let key = config.secret_key.clone();
+        let inner = NestServiceClient::with_interceptor(channel, Self::make_interceptor(key));
 
         Ok(Self { inner, config })
     }
 
-    fn auth<T>(&self, request: T) -> Request<T> {
-        let mut req = Request::new(request);
-        let mut metadata = MetadataMap::new();
-
-        let auth_header = format!("Bearer {}", self.config.secret_key);
-        let auth_value = MetadataValue::from_str(&auth_header).unwrap();
-
-        // never capitalize authorization
-        metadata.insert("authorization", auth_value);
-
-        *req.metadata_mut() = metadata;
-        req
+    fn make_interceptor(secret_key: String) -> Interceptor {
+        Box::new(move |mut req: Request<()>| {
+            req.metadata_mut()
+                .insert("authorization", secret_key.parse().unwrap());
+            Ok(req)
+        })
     }
 
     async fn config_request(&mut self) -> Result<()> {
@@ -75,15 +69,16 @@ impl Client {
             )),
         };
 
-        let request = self.auth(request);
         let response = self
             .inner
             .recognize(tonic::Request::new(futures::stream::once(async {
-                request.into_inner()
+                request
             })))
             .await?;
 
         let mut stream = response.into_inner();
+
+        println!("go response stream");
 
         while let Some(message) = stream.message().await? {
             let res: interface::ConfigResponse = serde_json::from_str(&message.contents)?;

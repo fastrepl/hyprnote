@@ -32,7 +32,7 @@ dependencies = [
  "hound",
  "ndarray",
  "ndrustfft",
- "ort",
+ "onnx",
  "tokio",
 ]
 
@@ -3171,7 +3171,7 @@ dependencies = [
  "approx",
  "hound",
  "ndarray",
- "ort",
+ "onnx",
  "reqwest 0.12.11",
  "tokio",
 ]
@@ -7157,6 +7157,13 @@ checksum = "7b829e3d7e9cc74c7e315ee8edb185bf4190da5acde74afd7fc59c35b1f086e7"
 dependencies = [
  "cc",
  "pkg-config",
+]
+
+[[package]]
+name = "onnx"
+version = "0.1.0"
+dependencies = [
+ "ort",
 ]
 
 [[package]]

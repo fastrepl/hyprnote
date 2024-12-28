@@ -4,10 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+hypr-onnx = { path = "../onnx", package = "onnx" }
+
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 ndarray = { workspace = true }
-ort = { version = "2.0.0-rc.9", features = ["coreml"] }
 
 [dev-dependencies]
 reqwest = { workspace = true }

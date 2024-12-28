@@ -1,22 +1,11 @@
 use anyhow::Result;
-
 use ndarray::{Array1, Array2};
 use ndrustfft::{Complex, R2cFftHandler};
-use ort::{execution_providers::CoreMLExecutionProvider, session::Session};
+
+use hypr_onnx::ort::session::Session;
 
 const MODEL_1_BYTES: &[u8] = include_bytes!("../data/model_1.onnx");
 const MODEL_2_BYTES: &[u8] = include_bytes!("../data/model_2.onnx");
-
-fn load_model(bytes: &[u8]) -> Result<Session> {
-    let session = Session::builder()?
-        .with_execution_providers([
-            #[cfg(target_os = "macos")]
-            CoreMLExecutionProvider::default().build(),
-        ])?
-        .commit_from_memory(bytes)?;
-
-    Ok(session)
-}
 
 pub struct AEC {
     session_1: Session,
@@ -26,8 +15,8 @@ pub struct AEC {
 impl AEC {
     pub fn new() -> Result<Self> {
         Ok(AEC {
-            session_1: load_model(MODEL_1_BYTES)?,
-            session_2: load_model(MODEL_2_BYTES)?,
+            session_1: hypr_onnx::load_model(MODEL_1_BYTES)?,
+            session_2: hypr_onnx::load_model(MODEL_2_BYTES)?,
         })
     }
 

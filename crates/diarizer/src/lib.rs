@@ -1,6 +1,6 @@
 use anyhow::Result;
+use hypr_onnx::ort::{session::Session, value::Value};
 use ndarray::Array3;
-use ort::{execution_providers::CoreMLExecutionProvider, session::Session, value::Value};
 
 mod math;
 
@@ -29,12 +29,7 @@ const MODEL_BYTES: &[u8] = include_bytes!("../data/model.onnx");
 
 impl Diarizer {
     pub fn new() -> Result<Self> {
-        let session = Session::builder()?
-            .with_execution_providers([
-                #[cfg(target_os = "macos")]
-                CoreMLExecutionProvider::default().build(),
-            ])?
-            .commit_from_memory(MODEL_BYTES)?;
+        let session = hypr_onnx::load_model(MODEL_BYTES)?;
 
         // https://huggingface.co/onnx-community/pyannote-segmentation-3.0/blob/main/preprocessor_config.json
         let config = Config {

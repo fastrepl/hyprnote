@@ -1,0 +1,8 @@
+[package]
+name = "host"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+mac_address = { version = "1.1.7" }
+sysinfo = { version = "0.33.1", features = ["apple-app-store"] }

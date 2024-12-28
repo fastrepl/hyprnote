@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+hypr_host = { path = "../host", package = "host" }
+
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 posthog = { git = "https://github.com/shuttle-hq/posthog-rs", package = "async-posthog", rev = "f20f60de7eb786ea80d7a276073fecdfc697bc61" }

@@ -566,6 +566,7 @@ dependencies = [
  "anyhow",
  "cidre 0.5.0",
  "cpal",
+ "dasp",
  "futures",
  "futures-channel",
  "futures-core",
@@ -2015,9 +2016,9 @@ dependencies = [
 [[package]]
 name = "cidre"
 version = "0.5.0"
-source = "git+https://github.com/yury/cidre?rev=23efaabee6bf75bfb57a9e7739b2beb83cb93942#23efaabee6bf75bfb57a9e7739b2beb83cb93942"
+source = "git+https://github.com/yury/cidre?rev=7bc6c3addbd3fe2c586fbe15319a17f6d16c9049#7bc6c3addbd3fe2c586fbe15319a17f6d16c9049"
 dependencies = [
- "cidre-macros 0.1.0 (git+https://github.com/yury/cidre?rev=23efaabee6bf75bfb57a9e7739b2beb83cb93942)",
+ "cidre-macros 0.1.0 (git+https://github.com/yury/cidre?rev=7bc6c3addbd3fe2c586fbe15319a17f6d16c9049)",
  "parking_lot 0.12.3",
  "tokio",
 ]
@@ -2030,7 +2031,7 @@ source = "git+https://github.com/yury/cidre?rev=1e008bec49a0f97aeaaea6130a0ba20f
 [[package]]
 name = "cidre-macros"
 version = "0.1.0"
-source = "git+https://github.com/yury/cidre?rev=23efaabee6bf75bfb57a9e7739b2beb83cb93942#23efaabee6bf75bfb57a9e7739b2beb83cb93942"
+source = "git+https://github.com/yury/cidre?rev=7bc6c3addbd3fe2c586fbe15319a17f6d16c9049#7bc6c3addbd3fe2c586fbe15319a17f6d16c9049"
 
 [[package]]
 name = "cipher"

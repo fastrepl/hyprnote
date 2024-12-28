@@ -17,6 +17,10 @@ cpal = { workspace = true }
 rodio = { workspace = true, features = ["wav", "hound", "vorbis"] }
 kalosm-sound = { version = "0.3.5", default-features = false }
 
+[dev-dependencies]
+rodio = "*"
+serial_test = "3"
+
 [target.'cfg(target_os = "macos")'.dependencies.cidre]
 git = "https://github.com/yury/cidre"
 rev = "23efaabee6bf75bfb57a9e7739b2beb83cb93942"

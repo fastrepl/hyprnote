@@ -3,11 +3,11 @@ use ort::{execution_providers::CoreMLExecutionProvider, session::Session};
 
 const MODEL_BYTES: &[u8] = include_bytes!("../data/model.onnx");
 
-pub struct Aec {
+pub struct AEC {
     session: Session,
 }
 
-impl Aec {
+impl AEC {
     pub fn new() -> Result<Self> {
         let session = Session::builder()?
             .with_execution_providers([
@@ -16,6 +16,16 @@ impl Aec {
             ])?
             .commit_from_memory(MODEL_BYTES)?;
 
-        Ok(Aec { session })
+        Ok(AEC { session })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_aec() {
+        let aec = AEC::new().unwrap();
     }
 }

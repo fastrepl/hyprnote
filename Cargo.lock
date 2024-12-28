@@ -360,7 +360,7 @@ dependencies = [
  "eventsource-stream",
  "futures",
  "rand 0.8.5",
- "reqwest 0.12.10",
+ "reqwest 0.12.11",
  "reqwest-eventsource",
  "secrecy",
  "serde",
@@ -378,7 +378,7 @@ version = "0.2.3"
 source = "git+https://github.com/shuttle-hq/posthog-rs?rev=f20f60de7eb786ea80d7a276073fecdfc697bc61#f20f60de7eb786ea80d7a276073fecdfc697bc61"
 dependencies = [
  "posthog-core",
- "reqwest 0.12.10",
+ "reqwest 0.12.11",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
@@ -1677,7 +1677,7 @@ dependencies = [
  "log",
  "num_cpus",
  "rand 0.8.5",
- "reqwest 0.12.10",
+ "reqwest 0.12.11",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
@@ -2083,7 +2083,7 @@ dependencies = [
  "futures-util",
  "jsonwebtoken 9.3.0",
  "regex",
- "reqwest 0.12.10",
+ "reqwest 0.12.11",
  "serde",
  "serde_derive",
  "serde_json",
@@ -2099,7 +2099,7 @@ dependencies = [
  "anyhow",
  "db-client",
  "futures-util",
- "reqwest 0.12.10",
+ "reqwest 0.12.11",
  "tokio",
  "tokio-tungstenite 0.26.1",
  "url",
@@ -3134,7 +3134,7 @@ dependencies = [
  "futures",
  "log",
  "objc",
- "reqwest 0.12.10",
+ "reqwest 0.12.11",
  "serde",
  "serde_json",
  "specta",
@@ -3169,7 +3169,7 @@ dependencies = [
  "hound",
  "ndarray",
  "ort",
- "reqwest 0.12.10",
+ "reqwest 0.12.11",
  "tokio",
 ]
 
@@ -8512,9 +8512,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.12.10"
+version = "0.12.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d3536321cfc54baa8cf3e273d5e1f63f889067829c4b410fcdbac8ca7b80994"
+checksum = "7fe060fe50f524be480214aba758c71f99f90ee8c83c5a36b5e9e1d568eb4eb3"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -8587,7 +8587,7 @@ dependencies = [
  "mime",
  "nom 7.1.3",
  "pin-project-lite",
- "reqwest 0.12.10",
+ "reqwest 0.12.11",
  "thiserror 1.0.69",
 ]
 
@@ -9119,9 +9119,9 @@ dependencies = [
 
 [[package]]
 name = "scc"
-version = "2.2.6"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94b13f8ea6177672c49d12ed964cca44836f59621981b04a3e26b87e675181de"
+checksum = "28e1c91382686d21b5ac7959341fcb9780fa7c03773646995a87c950fa7be640"
 dependencies = [
  "sdd",
 ]
@@ -9352,7 +9352,7 @@ checksum = "016958f51b96861dead7c1e02290f138411d05e94fad175c8636a835dee6e51e"
 dependencies = [
  "httpdate",
  "native-tls",
- "reqwest 0.12.10",
+ "reqwest 0.12.11",
  "sentry-backtrace",
  "sentry-contexts",
  "sentry-core",
@@ -9460,9 +9460,9 @@ checksum = "a3f0bf26fd526d2a95683cd0f87bf103b8539e2ca1ef48ce002d67aad59aa0b4"
 
 [[package]]
 name = "serde"
-version = "1.0.216"
+version = "1.0.217"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b9781016e935a97e8beecf0c933758c97a5520d32930e460142b4cd80c6338e"
+checksum = "02fc4265df13d6fa1d00ecff087228cc0a2b5f3c0e87e258d8b94a156e984c70"
 dependencies = [
  "serde_derive",
 ]
@@ -9480,9 +9480,9 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.216"
+version = "1.0.217"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46f859dbbf73865c6627ed570e78961cd3ac92407a2d117204c49232485da55e"
+checksum = "5a9bf7cf98d04a2b28aead066b7496853d4779c9cc183c440dbac457641e19a0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -9670,31 +9670,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serial_test"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b258109f244e1d6891bf1053a55d63a5cd4f8f4c30cf9a1280989f80e7a1fa9"
-dependencies = [
- "futures",
- "log",
- "once_cell",
- "parking_lot 0.12.3",
- "scc",
- "serial_test_derive",
-]
-
-[[package]]
-name = "serial_test_derive"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d69265a08751de7844521fd15003ae0a888e035773ba05695c5c759a6f89eef"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.91",
-]
-
-[[package]]
 name = "serialize-to-javascript"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9728,7 +9703,7 @@ dependencies = [
  "clerk-rs",
  "db-server",
  "futures",
- "reqwest 0.12.10",
+ "reqwest 0.12.11",
  "s3",
  "schemars 1.0.0-alpha.17",
  "sentry",
@@ -10941,7 +10916,7 @@ dependencies = [
  "percent-encoding",
  "plist",
  "raw-window-handle",
- "reqwest 0.12.10",
+ "reqwest 0.12.11",
  "serde",
  "serde_json",
  "serde_repr",
@@ -11276,7 +11251,7 @@ dependencies = [
  "infer 0.16.0",
  "minisign-verify",
  "percent-encoding",
- "reqwest 0.12.10",
+ "reqwest 0.12.11",
  "semver",
  "serde",
  "serde_json",
@@ -12253,7 +12228,7 @@ dependencies = [
 name = "turso"
 version = "0.1.0"
 dependencies = [
- "reqwest 0.12.10",
+ "reqwest 0.12.11",
 ]
 
 [[package]]

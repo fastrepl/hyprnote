@@ -19,7 +19,7 @@ kalosm-sound = { version = "0.3.5", default-features = false }
 
 [dev-dependencies]
 rodio = "*"
-serial_test = "3"
+serial_test = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies.cidre]
 git = "https://github.com/yury/cidre"

@@ -10,7 +10,7 @@ mod tests {
         let mut stream = mic.stream().unwrap();
 
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-       
+
         let samples = stream
             .read_samples(48000 * 1)
             .await

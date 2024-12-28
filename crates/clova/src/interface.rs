@@ -1,3 +1,4 @@
+use serde::de::Error as _;
 use serde::{Deserialize, Serialize};
 
 // https://api.ncloud-docs.com/docs/en/ai-application-service-clovaspeech-grpc#3-request-config-json
@@ -22,34 +23,69 @@ pub enum Language {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ConfigResponse {
     pub config: ConfigResponseInner,
+    pub uid: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ConfigResponseInner {
-    pub status: ConfigResponseStatus,
+    pub status: String,
+    #[serde(rename = "contextCode")]
+    pub context_code: ContextCode,
+    pub transcription: TranscriptionStatus,
 }
 
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
-pub enum ConfigResponseStatus {
-    Success,
-    Failure,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ContextCode {
+    pub status: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TranscriptionStatus {
+    pub status: String,
 }
 
 // https://api.ncloud-docs.com/docs/ai-application-service-clovaspeech-grpc#%EC%9D%91%EB%8B%B5-%EC%98%88%EC%8B%9C1
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(try_from = "StreamResponseRaw")]
 pub enum StreamResponse {
-    Success(StreamResponseSuccess),
-    Failure(StreamResponseFailure),
+    Config(ConfigResponse),
+    AudioSuccess(StreamResponseSuccess),
+    AudioFailure(StreamResponseFailure),
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct StreamResponseRaw {
+    response_type: Vec<String>,
+    #[serde(flatten)]
+    raw: serde_json::Value,
+}
+
+impl TryFrom<StreamResponseRaw> for StreamResponse {
+    type Error = serde_json::Error;
+
+    fn try_from(raw: StreamResponseRaw) -> Result<Self, Self::Error> {
+        match raw.response_type.first().map(String::as_str) {
+            Some("config") => serde_json::from_value(raw.raw).map(StreamResponse::Config),
+            Some("transcription") => {
+                serde_json::from_value(raw.raw).map(StreamResponse::AudioSuccess)
+            }
+            Some("error") => serde_json::from_value(raw.raw).map(StreamResponse::AudioFailure),
+            _ => Err(serde_json::Error::custom(
+                "invalid or missing response_type",
+            )),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct StreamResponseSuccess {
     pub uid: String,
-    pub response_type: Vec<String>,
     pub transcription: TranscriptionResponse,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TranscriptionResponse {
     pub text: String,
     pub position: i32,
@@ -75,7 +111,6 @@ pub struct AlignInfo {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct StreamResponseFailure {
     pub uid: String,
-    pub response_type: Vec<String>,
     pub recognize: RecognizeError,
 }
 

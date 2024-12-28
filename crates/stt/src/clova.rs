@@ -16,12 +16,12 @@ impl<S, E> RealtimeSpeechToText<S, E> for ClovaClient {
         let transcription = self.stream(audio).await?;
 
         return Ok(transcription.map(|r| match r {
-            Ok(clova::StreamResponse::Success(r)) => Ok(StreamResponse {
+            Ok(clova::StreamResponse::AudioSuccess(r)) => Ok(StreamResponse {
                 text: r.transcription.text,
             }),
-            Ok(clova::StreamResponse::Failure(r)) => {
-                Err(anyhow::anyhow!("Failed to transcribe: {:?}", r))
-            }
+            Ok(_) => Ok(StreamResponse {
+                text: "".to_string(),
+            }),
             Err(e) => Err(e.into()),
         }));
     }

@@ -52,41 +52,10 @@ impl Client {
     fn make_interceptor(secret_key: String) -> Interceptor {
         Box::new(move |mut req: Request<()>| {
             req.metadata_mut()
+                // lowercase is required
                 .insert("authorization", secret_key.parse().unwrap());
             Ok(req)
         })
-    }
-
-    async fn config_request(&mut self) -> Result<()> {
-        let config = self.config.config.clone();
-
-        let request = interface::NestRequest {
-            r#type: interface::RequestType::Config.into(),
-            part: Some(interface::nest_request::Part::Config(
-                interface::NestConfig {
-                    config: serde_json::to_string(&config).unwrap(),
-                },
-            )),
-        };
-
-        let response = self
-            .inner
-            .recognize(tonic::Request::new(futures::stream::once(async {
-                request
-            })))
-            .await?;
-
-        let mut stream = response.into_inner();
-
-        while let Some(message) = stream.message().await? {
-            let res: interface::ConfigResponse = serde_json::from_str(&message.contents)?;
-
-            if res.config.status != interface::ConfigResponseStatus::Success {
-                return Err(anyhow::anyhow!("config request failed"));
-            }
-        }
-
-        Ok(())
     }
 
     pub async fn stream<S, E>(
@@ -97,15 +66,22 @@ impl Client {
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
         E: Error + Send + Sync + 'static,
     {
-        self.config_request().await?;
+        let config = serde_json::to_string(&self.config.config).unwrap();
+        let config_request = interface::NestRequest {
+            r#type: interface::RequestType::Config.into(),
+            part: Some(interface::nest_request::Part::Config(
+                interface::NestConfig { config },
+            )),
+        };
+        let config_stream = futures::stream::once(async move { config_request });
 
-        let request_stream = stream.filter_map(|chunk| async {
+        let audio_request_stream = stream.filter_map(|chunk| async {
             if let Ok(chunk) = chunk {
                 Some(interface::NestRequest {
                     r#type: interface::RequestType::Data.into(),
                     part: Some(interface::nest_request::Part::Data(interface::NestData {
-                        chunk: chunk.to_vec(),
-                        extra_contents: "".to_string(),
+                        chunk: chunk.into(),
+                        extra_contents: r#"{"seqId": 0, "epFlag": false}"#.to_string(),
                     })),
                 })
             } else {
@@ -115,10 +91,11 @@ impl Client {
 
         let response = self
             .inner
-            .recognize(request_stream)
+            .recognize(config_stream.chain(audio_request_stream))
             .await?
             .into_inner()
             .map(|message| {
+                println!("message: {:?}", message);
                 let res = serde_json::from_str::<interface::StreamResponse>(&message?.contents)?;
                 Ok(res)
             });

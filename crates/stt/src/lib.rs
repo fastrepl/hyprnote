@@ -4,11 +4,12 @@ use futures::Stream;
 use std::error::Error;
 
 mod clova;
-pub use clova::*;
+pub use clova::{ClovaClient, ClovaConfig};
 
 mod deep;
-pub use deep::*;
+pub use deep::{DeepgramClient, DeepgramConfig};
 
+#[allow(dead_code)]
 trait RealtimeSpeechToText<S, E> {
     async fn transcribe(&mut self, stream: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
     where
@@ -21,9 +22,39 @@ pub struct StreamResponse {
     pub text: String,
 }
 
-pub struct Client {}
+pub struct Client {
+    config: Config,
+}
 
-pub struct Config {}
+pub struct Config {
+    pub deepgram_api_key: String,
+    pub clova_secret_key: String,
+}
+
+impl Client {
+    pub fn new(config: Config) -> Self {
+        Self { config }
+    }
+
+    pub async fn for_korean(&self) -> ClovaClient {
+        let config = ClovaConfig {
+            secret_key: self.config.clova_secret_key.clone(),
+            config: clova::clova::ConfigRequest {
+                transcription: clova::clova::Transcription {
+                    language: clova::clova::Language::Korean,
+                },
+            },
+        };
+        ClovaClient::new(config).await.unwrap()
+    }
+
+    pub fn for_english(&self) -> DeepgramClient {
+        let config = DeepgramConfig {
+            api_key: self.config.deepgram_api_key.clone(),
+        };
+        DeepgramClient::new(config)
+    }
+}
 
 #[cfg(test)]
 mod tests {

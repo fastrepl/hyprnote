@@ -1,11 +1,9 @@
 [package]
-name = "shuttle-posthog"
+name = "analytics"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-async-trait = "0.1.83"
-shuttle-service = "0.49.0"
 posthog = { git = "https://github.com/shuttle-hq/posthog-rs", package = "async-posthog", rev = "f20f60de7eb786ea80d7a276073fecdfc697bc61" }

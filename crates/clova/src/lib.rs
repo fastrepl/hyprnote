@@ -95,7 +95,6 @@ impl Client {
             .await?
             .into_inner()
             .map(|message| {
-                println!("message: {:?}", message);
                 let res = serde_json::from_str::<interface::StreamResponse>(&message?.contents)?;
                 Ok(res)
             });

@@ -19,7 +19,7 @@ pub async fn handler(
 }
 
 async fn websocket(stream: WebSocket, state: Arc<Mutex<AppState>>) {
-    // let deepgram = state.lock().await.deepgram.clone();
+    let _client = state.lock().await.stt.for_english();
     // let (mut tx, mut rx) = stream.split();
 
     // let mut tx_task = tokio::spawn(async move { todo!() });

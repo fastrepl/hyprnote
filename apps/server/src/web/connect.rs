@@ -7,7 +7,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 
 use crate::state::AppState;
-use shuttle_clerk::clerk_rs::validators::authorizer::ClerkJwt;
+use clerk_rs::validators::authorizer::ClerkJwt;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Input {}

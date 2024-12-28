@@ -6,8 +6,11 @@ use axum::{
     Router,
 };
 
-use shuttle_clerk::{ClerkClient as Clerk, ClerkLayer, MemoryCacheJwksProvider};
-use shuttle_posthog::posthog::Client as Posthog;
+use clerk_rs::{
+    clerk::Clerk,
+    validators::{axum::ClerkLayer, jwks::MemoryCacheJwksProvider},
+    ClerkConfiguration,
+};
 use shuttle_runtime::SecretStore;
 
 use sqlx::PgPool;
@@ -27,21 +30,29 @@ mod web;
 async fn main(
     #[shuttle_runtime::Secrets] secrets: SecretStore,
     #[shuttle_shared_db::Postgres] db: PgPool,
-    #[shuttle_clerk::Clerk(secret_key = "{secrets.CLERK_SECRET_KEY}")] clerk: Clerk,
-    #[shuttle_posthog::Posthog(
-        api_base = "https://us.i.posthog.com",
-        api_key = "{secrets.POSTHOG_API_KEY}"
-    )]
-    posthog: Posthog,
 ) -> shuttle_axum::ShuttleAxum {
     hypr_db_server::migrate(&db).await.unwrap();
+
+    let clerk_config = ClerkConfiguration::new(
+        None,
+        None,
+        Some(secrets.get("CLERK_SECRET_KEY").unwrap()),
+        None,
+    );
+    let clerk = Clerk::new(clerk_config);
+
+    let stt_config = hypr_stt::Config {
+        deepgram_api_key: secrets.get("DEEPGRAM_API_KEY").unwrap(),
+        clova_secret_key: secrets.get("CLOVA_SECRET_KEY").unwrap(),
+    };
+    let stt = hypr_stt::Client::new(stt_config);
 
     let state = state::AppState {
         reqwest: reqwest::Client::new(),
         secrets,
         db,
-        posthog,
         clerk: clerk.clone(),
+        stt,
     };
 
     let web_router = Router::new()

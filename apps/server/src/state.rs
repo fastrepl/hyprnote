@@ -1,8 +1,7 @@
 use axum::extract::FromRef;
 use sqlx::PgPool;
 
-use shuttle_clerk::ClerkClient as Clerk;
-use shuttle_posthog::posthog::Client as Posthog;
+use clerk_rs::clerk::Clerk;
 use shuttle_runtime::SecretStore;
 
 #[derive(Clone)]
@@ -10,8 +9,8 @@ pub struct AppState {
     pub secrets: SecretStore,
     pub reqwest: reqwest::Client,
     pub db: PgPool,
-    pub posthog: Posthog,
     pub clerk: Clerk,
+    pub stt: hypr_stt::Client,
 }
 
 #[derive(Clone)]

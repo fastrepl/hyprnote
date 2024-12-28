@@ -120,6 +120,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "analytics"
+version = "0.1.0"
+dependencies = [
+ "async-posthog",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "android-tzdata"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9690,6 +9699,7 @@ dependencies = [
  "async-stripe",
  "axum 0.7.9",
  "bridge",
+ "clerk-rs",
  "db-server",
  "futures",
  "reqwest 0.12.10",
@@ -9699,8 +9709,6 @@ dependencies = [
  "serde",
  "serde_json",
  "shuttle-axum",
- "shuttle-clerk",
- "shuttle-posthog",
  "shuttle-runtime",
  "shuttle-shared-db",
  "sqlx",
@@ -9819,17 +9827,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "shuttle-clerk"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "clerk-rs",
- "serde",
- "serde_json",
- "shuttle-service",
-]
-
-[[package]]
 name = "shuttle-codegen"
 version = "0.49.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9870,17 +9867,6 @@ dependencies = [
  "url",
  "uuid 1.11.0",
  "zeroize",
-]
-
-[[package]]
-name = "shuttle-posthog"
-version = "0.1.0"
-dependencies = [
- "async-posthog",
- "async-trait",
- "serde",
- "serde_json",
- "shuttle-service",
 ]
 
 [[package]]

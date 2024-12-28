@@ -4,7 +4,7 @@ use axum::{
     middleware,
     response::Response,
 };
-use shuttle_clerk::clerk_rs::endpoints::ClerkDynamicGetEndpoint;
+use clerk_rs::endpoints::ClerkDynamicGetEndpoint;
 
 use crate::state::AppState;
 

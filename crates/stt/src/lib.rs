@@ -22,10 +22,12 @@ pub struct StreamResponse {
     pub text: String,
 }
 
+#[derive(Debug, Clone)]
 pub struct Client {
     config: Config,
 }
 
+#[derive(Debug, Clone)]
 pub struct Config {
     pub deepgram_api_key: String,
     pub clova_secret_key: String,

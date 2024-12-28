@@ -11,5 +11,5 @@ ort = { version = "2.0.0-rc.9", features = ["coreml"] }
 
 [dev-dependencies]
 reqwest = { workspace = true }
-hound = "3.5.1"
-approx = "0.5.1"
+hound = { workspace = true }
+approx = { workspace = true }

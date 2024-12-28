@@ -1,4 +1,7 @@
 use anyhow::Result;
+
+use ndarray::{Array1, Array2};
+use ndrustfft::{Complex, R2cFftHandler};
 use ort::{execution_providers::CoreMLExecutionProvider, session::Session};
 
 const MODEL_1_BYTES: &[u8] = include_bytes!("../data/model_1.onnx");
@@ -29,15 +32,27 @@ impl AEC {
     }
 
     // https://github.com/breizhn/DTLN-aec/blob/9d24e128b4f409db18227b8babb343016625921f/run_aec.py
-    pub fn process(&self, input: &[f32]) {}
+    pub fn process(&self, _mic_input: &[f32], _lpb_input: &[f32]) -> Result<Vec<f32>> {
+        Ok(vec![])
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use hound::WavReader;
 
     #[test]
     fn test_aec() {
-        let aec = AEC::new().unwrap();
+        let data_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("data");
+
+        // all pcm_s16le, 16k, 1chan.
+        let _lpb_sample = WavReader::open(data_dir.join("doubletalk_lpb_sample.wav")).unwrap();
+        let _mic_sample = WavReader::open(data_dir.join("doubletalk_mic_sample.wav")).unwrap();
+        let processed = WavReader::open(data_dir.join("doubletalk_processed.wav")).unwrap();
+
+        assert_eq!(processed.len(), 170720);
+
+        let _aec = AEC::new().unwrap();
     }
 }

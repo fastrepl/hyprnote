@@ -23,6 +23,7 @@ bytes = "1.9.0"
 dotenvy = "0.15.7"
 dotenvy_macro = "0.15.7"
 serial_test = "3"
+approx = "0.5.1"
 
 ndarray = "0.16.1"
 tokenizers = "0.19.1"
@@ -39,6 +40,7 @@ specta-util = "0.0.7"
 cap-media = { git = "https://github.com/CapSoftware/Cap", tag = "cap-v0.3.4" }
 cpal = "0.15.3"
 rodio = "0.20.1"
+hound = "3.5.1"
 
 uuid = "1.11.0"
 sqlx = "0.8"

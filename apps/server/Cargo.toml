@@ -7,13 +7,13 @@ edition = "2021"
 hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
 hypr-db-server = { path = "../../crates/db-server", package = "db-server" }
 hypr-s3 = { path = "../../crates/s3", package = "s3" }
+hypr-stt = { path = "../../crates/stt", package = "stt" }
 
 shuttle-axum = "0.49.0"
 shuttle-runtime = "0.49.0"
 shuttle-shared-db = { version = "0.49.0", features = ["postgres", "sqlx"] }
 shuttle-posthog = { path = "../../crates/shuttle-posthog" }
 shuttle-clerk = { path = "../../crates/shuttle-clerk" }
-shuttle-stt = { path = "../../crates/shuttle-stt" }
 
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 futures = { workspace = true }

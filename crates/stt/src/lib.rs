@@ -58,7 +58,7 @@ mod tests {
         let audio_stream = microphone_as_stream();
 
         let config = DeepgramConfig {
-            api_key: "a37c100f6aac3703fe23e5e41c63008f746d456b".to_string(),
+            api_key: std::env::var("DEEPGRAM_API_KEY").unwrap(),
         };
         let mut client = DeepgramClient::new(config);
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
@@ -76,7 +76,7 @@ mod tests {
         let audio_stream = microphone_as_stream();
 
         let config = ClovaConfig {
-            secret_key: "2fbc878c49bf48dbad194a95051083cb".to_string(),
+            secret_key: std::env::var("CLOVA_SECRET_KEY").unwrap(),
             config: clova::clova::ConfigRequest {
                 transcription: clova::clova::Transcription {
                     language: clova::clova::Language::Korean,

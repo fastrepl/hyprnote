@@ -9703,8 +9703,8 @@ dependencies = [
  "shuttle-posthog",
  "shuttle-runtime",
  "shuttle-shared-db",
- "shuttle-stt",
  "sqlx",
+ "stt",
  "tokio",
  "tower-http 0.6.2",
 ]
@@ -9947,17 +9947,6 @@ dependencies = [
  "serde_json",
  "shuttle-service",
  "sqlx",
-]
-
-[[package]]
-name = "shuttle-stt"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "serde",
- "serde_json",
- "shuttle-service",
- "stt",
 ]
 
 [[package]]

@@ -16,7 +16,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for ClovaClient {
         let transcription = self.stream(audio).await?;
 
         return Ok(transcription.map(|r| match r {
-            Ok(clova::StreamResponse::AudioSuccess(r)) => Ok(StreamResponse {
+            Ok(clova::StreamResponse::TranscribeSuccess(r)) => Ok(StreamResponse {
                 text: r.transcription.text,
             }),
             Ok(_) => Ok(StreamResponse {

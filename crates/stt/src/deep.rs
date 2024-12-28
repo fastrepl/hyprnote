@@ -38,32 +38,41 @@ impl<S, E> RealtimeSpeechToText<S, E> for DeepgramClient {
         )
         .unwrap();
 
-        let stream = deepgram
+        let deepgram_stream = deepgram
             .transcription()
             .stream_request()
             .keep_alive()
-            .sample_rate(16000)
+            .sample_rate(16 * 1000)
             .channels(1)
             .encoding(Encoding::Linear16)
             .stream(stream)
-            .await?
-            .map(|result| result.map(Into::into).map_err(Into::into));
+            .await?;
 
-        Ok(stream)
+        let transformed_stream = deepgram_stream.map(|result| {
+            result
+                .map_err(Into::into)
+                .and_then(|resp| StreamResponse::try_from(resp))
+        });
+
+        Ok(transformed_stream)
     }
 }
 
-impl From<DeepgramStreamResponse> for StreamResponse {
-    fn from(response: DeepgramStreamResponse) -> Self {
-        let text = match response {
+impl TryFrom<DeepgramStreamResponse> for StreamResponse {
+    type Error = anyhow::Error;
+
+    fn try_from(response: DeepgramStreamResponse) -> Result<Self, Self::Error> {
+        match response {
             DeepgramStreamResponse::TranscriptResponse { channel, .. } => {
-                channel.alternatives.first().unwrap().transcript.clone()
+                let text = channel
+                    .alternatives
+                    .first()
+                    .map(|alt| alt.transcript.clone())
+                    .unwrap_or_default();
+
+                Ok(StreamResponse { text })
             }
-            DeepgramStreamResponse::TerminalResponse { .. } => "".to_string(),
-            DeepgramStreamResponse::SpeechStartedResponse { .. } => "".to_string(),
-            DeepgramStreamResponse::UtteranceEndResponse { .. } => "".to_string(),
-            _ => "".to_string(),
-        };
-        StreamResponse { text }
+            _ => Err(anyhow::anyhow!("no conversion defined")),
+        }
     }
 }

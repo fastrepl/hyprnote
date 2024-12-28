@@ -5,8 +5,7 @@ use std::error::Error;
 
 use crate::{RealtimeSpeechToText, StreamResponse};
 
-#[allow(unused)]
-use hypr_clova::{interface as clova, Client as ClovaClient, Config as ClovaConfig};
+pub use hypr_clova::{interface as clova, Client as ClovaClient, Config as ClovaConfig};
 
 impl<S, E> RealtimeSpeechToText<S, E> for ClovaClient {
     async fn transcribe(&mut self, audio: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
@@ -17,12 +16,12 @@ impl<S, E> RealtimeSpeechToText<S, E> for ClovaClient {
         let transcription = self.stream(audio).await?;
 
         return Ok(transcription.map(|r| match r {
-            Ok(clova::StreamResponse::Success(r)) => Ok(StreamResponse {
+            Ok(clova::StreamResponse::TranscribeSuccess(r)) => Ok(StreamResponse {
                 text: r.transcription.text,
             }),
-            Ok(clova::StreamResponse::Failure(r)) => {
-                Err(anyhow::anyhow!("Failed to transcribe: {:?}", r))
-            }
+            Ok(_) => Ok(StreamResponse {
+                text: "".to_string(),
+            }),
             Err(e) => Err(e.into()),
         }));
     }

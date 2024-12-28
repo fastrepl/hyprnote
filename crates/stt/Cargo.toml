@@ -16,4 +16,4 @@ hypr-clova = { path = "../clova", package = "clova" }
 
 [dev-dependencies]
 serial_test = "3"
-cpal = { workspace = true }
+kalosm-sound = { version = "0.3.5", default-features = false }

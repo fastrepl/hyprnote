@@ -4,11 +4,12 @@ use futures::Stream;
 use std::error::Error;
 
 mod clova;
-pub use clova::*;
+pub use clova::{ClovaClient, ClovaConfig};
 
 mod deep;
-pub use deep::*;
+pub use deep::{DeepgramClient, DeepgramConfig};
 
+#[allow(dead_code)]
 trait RealtimeSpeechToText<S, E> {
     async fn transcribe(&mut self, stream: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
     where
@@ -16,13 +17,44 @@ trait RealtimeSpeechToText<S, E> {
         E: Error + Send + Sync + 'static;
 }
 
+#[derive(Debug)]
 pub struct StreamResponse {
     pub text: String,
 }
 
-pub struct Client {}
+pub struct Client {
+    config: Config,
+}
 
-pub struct Config {}
+pub struct Config {
+    pub deepgram_api_key: String,
+    pub clova_secret_key: String,
+}
+
+impl Client {
+    pub fn new(config: Config) -> Self {
+        Self { config }
+    }
+
+    pub async fn for_korean(&self) -> ClovaClient {
+        let config = ClovaConfig {
+            secret_key: self.config.clova_secret_key.clone(),
+            config: clova::clova::ConfigRequest {
+                transcription: clova::clova::Transcription {
+                    language: clova::clova::Language::Korean,
+                },
+            },
+        };
+        ClovaClient::new(config).await.unwrap()
+    }
+
+    pub fn for_english(&self) -> DeepgramClient {
+        let config = DeepgramConfig {
+            api_key: self.config.deepgram_api_key.clone(),
+        };
+        DeepgramClient::new(config)
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -30,66 +62,64 @@ mod tests {
     use serial_test::serial;
 
     use anyhow::Result;
-    use bytes::{BufMut, Bytes, BytesMut};
-    use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-    use cpal::Sample;
-    use futures::SinkExt;
-    use std::thread;
+    use bytes::{BufMut, Bytes};
+    use futures::StreamExt;
+    use kalosm_sound::AsyncSource;
 
-    fn microphone_as_stream() -> futures::channel::mpsc::Receiver<Result<Bytes, std::io::Error>> {
-        let (sync_tx, sync_rx) = std::sync::mpsc::channel();
-        let (mut async_tx, async_rx) = futures::channel::mpsc::channel(1);
+    fn microphone_as_stream(
+    ) -> impl Stream<Item = Result<Bytes, std::io::Error>> + Send + Unpin + 'static {
+        let mic_input = kalosm_sound::MicInput::default();
+        let mic_stream = mic_input.stream().unwrap().resample(16 * 1000).chunks(128);
 
-        thread::spawn(move || {
-            let host = cpal::default_host();
-            let device = host.default_input_device().unwrap();
-            let config = device.default_input_config().unwrap();
-
-            let stream = match config.sample_format() {
-                cpal::SampleFormat::F32 => device
-                    .build_input_stream(
-                        &config.into(),
-                        move |data: &[f32], _: &_| {
-                            let mut bytes = BytesMut::with_capacity(data.len() * 2);
-                            for s in data {
-                                let sample = s.to_sample::<i16>();
-                                bytes.put_i16_le(sample);
-                            }
-                            sync_tx.send(bytes.freeze()).unwrap();
-                        },
-                        |_| panic!(),
-                        None,
-                    )
-                    .unwrap(),
-                _ => panic!(),
-            };
-
-            stream.play().unwrap();
-
-            loop {
-                thread::park();
+        mic_stream.map(|chunk| {
+            let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
+            for sample in chunk {
+                let scaled = (sample * 32767.0).clamp(-32768.0, 32767.0);
+                buf.put_i16_le(scaled as i16);
             }
-        });
-
-        tokio::spawn(async move {
-            loop {
-                let data = sync_rx.recv().unwrap();
-                async_tx.send(Ok(data)).await.unwrap();
-            }
-        });
-
-        async_rx
+            Ok(buf.freeze())
+        })
     }
 
+    // cargo test test_deepgram -p stt --  --ignored --nocapture
+    #[ignore]
     #[tokio::test]
     #[serial]
-    async fn test_transcribe() {
+    async fn test_deepgram() {
+        let audio_stream = microphone_as_stream();
+
         let config = DeepgramConfig {
-            api_key: "".to_string(),
+            api_key: std::env::var("DEEPGRAM_API_KEY").unwrap(),
         };
         let mut client = DeepgramClient::new(config);
-        let stream = microphone_as_stream();
-        let _ = client.transcribe(stream).await.unwrap();
-        assert!(true);
+        let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
+
+        while let Some(result) = transcript_stream.next().await {
+            println!("deepgram: {:?}", result.unwrap());
+        }
+    }
+
+    // cargo test test_clova -p stt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    #[serial]
+    async fn test_clova() {
+        let audio_stream = microphone_as_stream();
+
+        let config = ClovaConfig {
+            secret_key: std::env::var("CLOVA_SECRET_KEY").unwrap(),
+            config: clova::clova::ConfigRequest {
+                transcription: clova::clova::Transcription {
+                    language: clova::clova::Language::Korean,
+                },
+            },
+        };
+
+        let mut client = ClovaClient::new(config).await.unwrap();
+        let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
+
+        while let Some(result) = transcript_stream.next().await {
+            println!("clova: {:?}", result.unwrap());
+        }
     }
 }

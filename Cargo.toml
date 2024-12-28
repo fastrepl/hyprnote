@@ -20,9 +20,10 @@ time = "0.3.37"
 pin-project = "1"
 sentry = "0.35.0"
 bytes = "1.9.0"
+dotenvy = "0.15.7"
+dotenvy_macro = "0.15.7"
 
 ndarray = "0.16.1"
-ort = "2.0.0-rc.9"
 tokenizers = "0.19.1"
 candle-examples = { git = "https://github.com/huggingface/candle", tag = "0.8.1" }
 candle-core = "0.8.1"

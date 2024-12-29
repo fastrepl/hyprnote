@@ -1,16 +1,24 @@
-use time::OffsetDateTime;
+use serde::{Deserialize, Serialize};
+use time::{serde::iso8601, OffsetDateTime};
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct User {
-    pub id: String,
+    #[serde(with = "iso8601")]
     pub created_at: OffsetDateTime,
+    #[serde(with = "iso8601")]
     pub updated_at: OffsetDateTime,
+    pub clerk_user_id: String,
+    pub turso_db_name: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Device {
     pub id: String,
-    pub created_at: OffsetDateTime,
-    pub updated_at: OffsetDateTime,
     pub user_id: String,
+    #[serde(with = "iso8601")]
+    pub created_at: OffsetDateTime,
+    #[serde(with = "iso8601")]
+    pub updated_at: OffsetDateTime,
     pub fingerprint: String,
     pub api_key: String,
 }

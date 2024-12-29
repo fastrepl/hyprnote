@@ -18,17 +18,22 @@ impl UserDatabase {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ConnectionBuilder;
+    use crate::{migrate, user::migrations, ConnectionBuilder};
 
-    #[tokio::test]
-    async fn test_simple() {
+    async fn setup_db() -> UserDatabase {
         let conn = ConnectionBuilder::new()
             .local(":memory:")
             .connect()
             .await
             .unwrap();
 
-        let db = UserDatabase::from(conn).await;
+        migrate(&conn, migrations::v0()).await.unwrap();
+        UserDatabase::from(conn).await
+    }
+
+    #[tokio::test]
+    async fn test_simple() {
+        let db = setup_db().await;
         assert_eq!(db.select_1().await, 1);
     }
 }

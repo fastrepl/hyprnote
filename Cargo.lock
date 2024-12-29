@@ -1414,10 +1414,15 @@ dependencies = [
 name = "bridge"
 version = "0.1.0"
 dependencies = [
+ "futures-util",
+ "reqwest 0.12.11",
  "schemars 1.0.0-alpha.17",
  "serde",
  "serde_json",
  "specta",
+ "tokio",
+ "tokio-tungstenite 0.26.1",
+ "url",
 ]
 
 [[package]]
@@ -2094,19 +2099,6 @@ dependencies = [
  "serde_json",
  "serde_with 2.3.3",
  "tower 0.5.2",
- "url",
-]
-
-[[package]]
-name = "cloud"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "db-client",
- "futures-util",
- "reqwest 0.12.11",
- "tokio",
- "tokio-tungstenite 0.26.1",
  "url",
 ]
 
@@ -3130,9 +3122,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "audio 0.1.0",
+ "bridge",
  "calendar",
  "cap-media",
- "cloud",
  "db-client",
  "dotenvy_macro",
  "flume 0.11.1",

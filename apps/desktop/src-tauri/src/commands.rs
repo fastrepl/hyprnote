@@ -70,13 +70,7 @@ pub fn stop_recording() {
 #[tauri::command]
 #[specta::specta]
 pub async fn auth_url(state: MutableState<'_, App>) -> Result<String, ()> {
-    let state = state.read().await;
-    let client = hypr_cloud::Client::new(state.cloud_config.clone());
-
-    let url = client
-        .get_authentication_url(hypr_cloud::AuthKind::GoogleOAuth)
-        .to_string();
-    Ok(url)
+    Ok("url".to_string())
 }
 
 #[tauri::command]

@@ -1,16 +1,15 @@
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+mod types;
+pub use types::*;
 
-#[derive(Debug, Deserialize, Serialize, specta::Type)]
-pub struct TranscribeInputChunk {}
+use url::Url;
 
-#[derive(Debug, Deserialize, Serialize, specta::Type)]
-pub struct TranscribeOutputChunk {}
-
-#[derive(Debug, Deserialize, Serialize, specta::Type)]
-pub struct EnhanceInput {
-    pub text: String,
+pub struct Client {
+    config: ClientConfig,
+    reqwest_client: reqwest::Client,
 }
 
-#[derive(Debug, Deserialize, Serialize, specta::Type, JsonSchema)]
-pub struct EnhanceOutput {}
+#[derive(Debug, Clone)]
+pub struct ClientConfig {
+    pub base_url: Url,
+    pub auth_token: Option<String>,
+}

@@ -19,7 +19,7 @@ pub struct App {
     handle: AppHandle,
     audio_input_feed: Option<AudioInputFeed>,
     audio_input_tx: AudioInputSamplesSender,
-    cloud_config: hypr_cloud::ClientConfig,
+    cloud_config: hypr_bridge::ClientConfig,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -140,7 +140,7 @@ pub fn run() {
         .setup(move |app| {
             let app = app.handle().clone();
 
-            let mut cloud_config = hypr_cloud::ClientConfig {
+            let mut cloud_config = hypr_bridge::ClientConfig {
                 base_url: if cfg!(debug_assertions) {
                     "http://localhost:4000".parse().unwrap()
                 } else {

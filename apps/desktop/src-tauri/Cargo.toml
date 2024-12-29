@@ -20,8 +20,8 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 hypr-db-client = { path = "../../../crates/db-client", package = "db-client" }
 hypr-audio = { path = "../../../crates/audio", package = "audio" }
-hypr-cloud = { path = "../../../crates/cloud", package = "cloud" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar" }
+hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 
 tauri = { workspace = true, features = ["tray-icon", "image-png", "devtools"] }
 tauri-plugin-updater = "2"

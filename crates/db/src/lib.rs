@@ -72,7 +72,14 @@ pub async fn migrate(
         .execute_batch(
             &migrations
                 .iter()
-                .map(|s| s.as_ref())
+                .map(|s| {
+                    let s = s.as_ref();
+                    if !s.ends_with(";") {
+                        panic!("each sql statement must end with a semicolon");
+                    } else {
+                        s
+                    }
+                })
                 .collect::<Vec<&str>>()
                 .join("\n"),
         )

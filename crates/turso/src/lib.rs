@@ -146,7 +146,7 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn test_create_database() {
-        let key = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJHSnhtbThWdkVlLWlnVjd1X21ISHpnIn0.I5z10kNXLf_EL0E_ezgoKi0hcoIKoCN9MgE-rfKOGjcKUfaO0YWw4UYLe9BEdV6_UVSWUUeqpa4x0UTR29p3Dg";
+        let key = "TODO";
         let client = TursoClient::new(key);
 
         let req = CreateDatabaseRequest::default().with_name("test");
@@ -169,7 +169,7 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn test_retrieve_database() {
-        let key = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJHSnhtbThWdkVlLWlnVjd1X21ISHpnIn0.I5z10kNXLf_EL0E_ezgoKi0hcoIKoCN9MgE-rfKOGjcKUfaO0YWw4UYLe9BEdV6_UVSWUUeqpa4x0UTR29p3Dg";
+        let key = "TODO";
         let client = TursoClient::new(key);
 
         let res = client.retrieve_database("test").await;

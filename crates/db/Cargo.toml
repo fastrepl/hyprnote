@@ -10,7 +10,7 @@ serde_json = { workspace = true }
 time = { workspace = true, features = ["serde"] }
 
 tokio = { workspace = true, features = ["rt", "macros"] }
-libsql = "0.6.0"
+libsql = { version = "0.6.0", features = ["encryption"] }
 
 specta = { workspace = true, features = ["derive", "time"] }
 specta-typescript = { workspace = true }

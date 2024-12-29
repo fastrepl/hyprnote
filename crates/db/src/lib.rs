@@ -60,3 +60,20 @@ impl ConnectionBuilder {
         Ok(conn)
     }
 }
+
+pub async fn migrate(
+    conn: &libsql::Connection,
+    migrations: Vec<impl AsRef<str>>,
+) -> anyhow::Result<()> {
+    let _ = conn
+        .execute_batch(
+            &migrations
+                .iter()
+                .map(|s| s.as_ref())
+                .collect::<Vec<&str>>()
+                .join("\n"),
+        )
+        .await?;
+
+    Ok(())
+}

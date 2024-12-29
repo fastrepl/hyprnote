@@ -77,9 +77,3 @@ pub async fn migrate(
 
     Ok(())
 }
-
-fn format_iso8601(datetime: time::OffsetDateTime) -> String {
-    datetime
-        .format(&time::format_description::well_known::iso8601::Iso8601::DEFAULT)
-        .unwrap()
-}

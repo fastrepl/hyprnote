@@ -13,7 +13,6 @@ use clerk_rs::{
 };
 use shuttle_runtime::SecretStore;
 
-use sqlx::PgPool;
 use std::time::Duration;
 use tower_http::{
     services::{ServeDir, ServeFile},
@@ -27,12 +26,7 @@ mod stripe;
 mod web;
 
 #[shuttle_runtime::main]
-async fn main(
-    #[shuttle_runtime::Secrets] secrets: SecretStore,
-    #[shuttle_shared_db::Postgres] db: PgPool,
-) -> shuttle_axum::ShuttleAxum {
-    hypr_db_server::migrate(&db).await.unwrap();
-
+async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum::ShuttleAxum {
     let clerk_config = ClerkConfiguration::new(
         None,
         None,
@@ -50,7 +44,6 @@ async fn main(
     let state = state::AppState {
         reqwest: reqwest::Client::new(),
         secrets,
-        db,
         clerk: clerk.clone(),
         stt,
     };

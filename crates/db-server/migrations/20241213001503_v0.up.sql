@@ -1,4 +1,0 @@
-CREATE TABLE users (
-    id UUID PRIMARY KEY,
-    created_at TIMESTAMPTZ NOT NULL
-);

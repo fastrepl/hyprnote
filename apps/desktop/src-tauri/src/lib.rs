@@ -9,7 +9,6 @@ mod audio;
 mod auth;
 mod commands;
 mod config;
-mod db;
 mod events;
 mod permissions;
 mod session;
@@ -54,15 +53,9 @@ pub fn run() {
         .unwrap();
 
     #[cfg(debug_assertions)]
-    db::export_ts_types_to("../src/types/db.ts").unwrap();
+    hypr_db::user::export_ts_types_to("../src/types/db.ts").unwrap();
 
-    let mut builder = tauri::Builder::default()
-        .plugin(
-            tauri_plugin_sql::Builder::default()
-                .add_migrations(&db::url(), db::migrations())
-                .build(),
-        )
-        .plugin(tauri_plugin_positioner::init());
+    let mut builder = tauri::Builder::default().plugin(tauri_plugin_positioner::init());
 
     // https://v2.tauri.app/plugin/single-instance/#focusing-on-new-instance
     #[cfg(desktop)]

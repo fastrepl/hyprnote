@@ -1,5 +1,4 @@
 use super::{Device, User};
-use crate::format_iso8601;
 
 pub struct AdminDatabase {
     conn: libsql::Connection,
@@ -39,16 +38,11 @@ impl AdminDatabase {
             .conn
             .query(
                 "INSERT INTO users (
-                    created_at,
                     clerk_user_id,
                     turso_db_name
-                ) VALUES (?, ?, ?) 
+                ) VALUES (?, ?) 
                 RETURNING *",
-                vec![
-                    format_iso8601(user.created_at),
-                    user.clerk_user_id,
-                    user.turso_db_name,
-                ],
+                vec![user.clerk_user_id, user.turso_db_name],
             )
             .await?;
 
@@ -76,14 +70,12 @@ impl AdminDatabase {
             .conn
             .query(
                 "INSERT INTO devices (
-                    created_at,
                     user_id,
                     fingerprint,
                     api_key
-                ) VALUES (?, ?, ?, ?) 
+                ) VALUES (?, ?, ?) 
                 RETURNING *",
                 vec![
-                    format_iso8601(device.created_at),
                     device.user_id.to_string(),
                     device.fingerprint,
                     device.api_key,

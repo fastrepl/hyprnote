@@ -18,7 +18,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-hypr-db-client = { path = "../../../crates/db-client", package = "db-client" }
+hypr-db = { path = "../../../crates/db", package = "db" }
 hypr-audio = { path = "../../../crates/audio", package = "audio" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
@@ -28,7 +28,6 @@ tauri-plugin-updater = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-positioner = "2"
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
-tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 tauri-plugin-log = "2"
 tauri-plugin-deep-link = "2"
 tauri-plugin-dialog = "2"

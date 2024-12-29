@@ -3,5 +3,22 @@ name = "db"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["admin", "user"]
+admin = []
+user = []
+
 [dependencies]
-libsql = "0.6.0"
+hypr_calendar = { path = "../calendar", package = "calendar" }
+
+anyhow = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+time = { workspace = true, features = ["serde", "formatting", "parsing"] }
+
+tokio = { workspace = true, features = ["rt", "macros"] }
+libsql = { version = "0.6.0", features = ["encryption"] }
+
+specta = { workspace = true, features = ["derive", "time", "serde_json"] }
+specta-typescript = { workspace = true }
+specta-util = { workspace = true }

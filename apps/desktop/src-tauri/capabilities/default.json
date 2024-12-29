@@ -7,8 +7,6 @@
     "core:default",
     "positioner:default",
     "fs:default",
-    "sql:default",
-    "sql:allow-execute",
     "store:default",
     "shell:allow-open"
   ]

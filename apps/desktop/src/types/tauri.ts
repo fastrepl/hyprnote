@@ -5,14 +5,8 @@
 /** user-defined commands **/
 
 export const commands = {
-  async listAudioDevices(): Promise<string[]> {
-    return await TAURI_INVOKE("list_audio_devices");
-  },
-  async startRecording(): Promise<null> {
-    return await TAURI_INVOKE("start_recording");
-  },
-  async stopRecording(): Promise<void> {
-    await TAURI_INVOKE("stop_recording");
+  async startSession(onEvent: TAURI_CHANNEL<Transcript>): Promise<void> {
+    await TAURI_INVOKE("start_session", { onEvent });
   },
   async startPlayback(audioId: string): Promise<void> {
     await TAURI_INVOKE("start_playback", { audioId });
@@ -20,10 +14,10 @@ export const commands = {
   async stopPlayback(audioId: string): Promise<void> {
     await TAURI_INVOKE("stop_playback", { audioId });
   },
-  async listAppleCalendars(): Promise<Calendar[] | null> {
+  async listAppleCalendars(): Promise<Calendar[]> {
     return await TAURI_INVOKE("list_apple_calendars");
   },
-  async listAppleEvents(filter: EventFilter): Promise<Event[] | null> {
+  async listAppleEvents(filter: EventFilter): Promise<Event[]> {
     return await TAURI_INVOKE("list_apple_events", { filter });
   },
   async openPermissionSettings(permission: OSPermission): Promise<void> {
@@ -63,7 +57,7 @@ export type OSPermission =
   | "camera"
   | "microphone"
   | "accessibility";
-export type Transcript = null;
+export type Transcript = { text: string };
 
 /** tauri-specta globals **/
 

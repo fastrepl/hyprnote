@@ -4,6 +4,8 @@ use std::{path::PathBuf, sync::Arc};
 use tauri::{ipc::Channel, AppHandle, Manager, State};
 use tokio::sync::RwLock;
 
+use hypr_calendar::CalendarSource;
+
 type MutableState<'a, T> = State<'a, Arc<RwLock<T>>>;
 
 #[tauri::command]
@@ -27,19 +29,13 @@ pub async fn stop_playback(_app: AppHandle, _audio_id: String) {}
 #[cfg(target_os = "macos")]
 #[tauri::command]
 #[specta::specta]
-pub fn list_apple_calendars() -> Result<Vec<hypr_calendar::apple::Calendar>, String> {
-    let handle = hypr_calendar::apple::Handle::new().map_err(|e| e.to_string())?;
-    Ok(handle.list_calendars())
-}
-
-#[cfg(target_os = "macos")]
-#[tauri::command]
-#[specta::specta]
-pub fn list_apple_events(
-    filter: hypr_calendar::apple::EventFilter,
-) -> Result<Vec<hypr_calendar::apple::Event>, String> {
-    let handle = hypr_calendar::apple::Handle::new().map_err(|e| e.to_string())?;
-    Ok(handle.list_events(filter))
+pub async fn list_calendars() -> Result<Vec<hypr_calendar::Calendar>, String> {
+    tokio::task::spawn_blocking(|| {
+        let handle = hypr_calendar::apple::Handle::new().map_err(|e| e.to_string())?;
+        futures::executor::block_on(handle.list_calendars()).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]

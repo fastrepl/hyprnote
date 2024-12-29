@@ -43,7 +43,6 @@ rodio = "0.20.1"
 hound = "3.5.1"
 
 uuid = "1.11.0"
-sqlx = "0.8"
 schemars = "=1.0.0-alpha.17"
 
 [patch.crates-io]

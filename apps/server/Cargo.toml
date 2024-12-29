@@ -4,14 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+hypr-calendar = { path = "../../crates/calendar", package = "calendar" }
 hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
-hypr-db-server = { path = "../../crates/db-server", package = "db-server" }
 hypr-s3 = { path = "../../crates/s3", package = "s3" }
 hypr-stt = { path = "../../crates/stt", package = "stt" }
+hypr-db = { path = "../../crates/db", package = "db", default-features = false, features = [
+  "admin",
+] }
 
 shuttle-axum = "0.49.0"
 shuttle-runtime = "0.49.0"
-shuttle-shared-db = { version = "0.49.0", features = ["postgres", "sqlx"] }
 
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 futures = { workspace = true }
@@ -21,12 +23,6 @@ axum = { version = "0.7.4", features = ["ws", "multipart"] }
 tower-http = { version = "0.6.2", features = ["fs", "timeout"] }
 async-openai = { version = "0.26.0", default-features = false }
 sentry = { workspace = true }
-sqlx = { workspace = true, features = [
-  "postgres",
-  "runtime-tokio",
-  "tls-rustls",
-  "macros",
-] }
 
 anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

@@ -9,7 +9,6 @@ mod audio;
 mod auth;
 mod commands;
 mod config;
-mod db;
 mod events;
 mod permissions;
 mod session;
@@ -29,8 +28,7 @@ pub fn run() {
             commands::start_session,
             commands::start_playback,
             commands::stop_playback,
-            commands::list_apple_calendars,
-            commands::list_apple_events,
+            commands::list_calendars,
             permissions::open_permission_settings,
             commands::auth_url,
         ])
@@ -39,8 +37,8 @@ pub fn run() {
             events::NotAuthenticated,
             events::JustAuthenticated,
         ])
-        .typ::<hypr_calendar::apple::Calendar>()
-        .typ::<hypr_calendar::apple::Event>()
+        .typ::<hypr_calendar::Calendar>()
+        .typ::<hypr_calendar::Event>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw);
 
     #[cfg(debug_assertions)]
@@ -54,15 +52,9 @@ pub fn run() {
         .unwrap();
 
     #[cfg(debug_assertions)]
-    db::export_ts_types_to("../src/types/db.ts").unwrap();
+    hypr_db::user::export_ts_types_to("../src/types/db.ts").unwrap();
 
-    let mut builder = tauri::Builder::default()
-        .plugin(
-            tauri_plugin_sql::Builder::default()
-                .add_migrations(&db::url(), db::migrations())
-                .build(),
-        )
-        .plugin(tauri_plugin_positioner::init());
+    let mut builder = tauri::Builder::default().plugin(tauri_plugin_positioner::init());
 
     // https://v2.tauri.app/plugin/single-instance/#focusing-on-new-instance
     #[cfg(desktop)]

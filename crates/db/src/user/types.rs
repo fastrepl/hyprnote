@@ -1,6 +1,8 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use time::{serde::timestamp, OffsetDateTime};
 
+pub use hypr_calendar::{Calendar, Event};
+
 pub fn register_all(collection: &mut specta_util::TypeCollection) {
     collection.register::<Session>();
 }

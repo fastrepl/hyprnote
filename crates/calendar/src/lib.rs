@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::future::Future;
+use time::{serde::timestamp, OffsetDateTime};
 
 pub mod google;
 
@@ -21,13 +22,17 @@ pub struct Calendar {
 pub struct Event {
     pub id: String,
     pub name: String,
-    pub start_date: time::OffsetDateTime,
-    pub end_date: time::OffsetDateTime,
+    #[serde(with = "timestamp")]
+    pub start_date: OffsetDateTime,
+    #[serde(with = "timestamp")]
+    pub end_date: OffsetDateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct EventFilter {
     pub calendar_id: String,
-    pub from: time::OffsetDateTime,
-    pub to: time::OffsetDateTime,
+    #[serde(with = "timestamp")]
+    pub from: OffsetDateTime,
+    #[serde(with = "timestamp")]
+    pub to: OffsetDateTime,
 }

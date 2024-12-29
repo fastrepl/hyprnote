@@ -11,5 +11,11 @@ pub fn v0() -> Vec<impl AsRef<str>> {
             enhanced_memo TEXT DEFAULT NULL,
             transcript TEXT DEFAULT NULL
         );",
+        "CREATE TABLE calendars (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+        );",
+        "CREATE TABLE events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+        );",
     ]
 }

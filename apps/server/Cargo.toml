@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
-hypr-db = { path = "../../crates/db", package = "db" }
+hypr-db = { path = "../../crates/db", package = "db", features = ["admin"] }
 hypr-s3 = { path = "../../crates/s3", package = "s3" }
 hypr-stt = { path = "../../crates/stt", package = "stt" }
 

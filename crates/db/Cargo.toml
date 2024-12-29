@@ -3,6 +3,11 @@ name = "db"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+all = ["admin", "user"]
+admin = []
+user = []
+
 [dependencies]
 anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

@@ -1,4 +1,7 @@
+#[cfg(feature = "admin")]
 pub mod admin;
+
+#[cfg(feature = "user")]
 pub mod user;
 
 #[derive(Debug, Default)]

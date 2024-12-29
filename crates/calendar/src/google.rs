@@ -1,15 +1,79 @@
 // https://developers.google.com/calendar/api/v3/reference/calendars
 // https://developers.google.com/calendar/api/v3/reference/events
-pub use google_calendar::*;
+
+use crate::{Calendar, CalendarSource, Event, EventFilter};
+use anyhow::Result;
 use time_tz::{timezones, Offset, TimeZone};
+
+pub use google_calendar::*;
 
 pub struct Handle {
     client: google_calendar::Client,
 }
 
 impl Handle {
-    pub fn new(client: google_calendar::Client) -> Self {
+    pub async fn new(token: impl Into<String>) -> Self {
+        let client = google_calendar::Client::new_from_env(token.into(), "".to_string()).await;
         Self { client }
+    }
+}
+
+impl CalendarSource for Handle {
+    async fn list_calendars(&self) -> Result<Vec<Calendar>> {
+        let list = self
+            .client
+            .calendar_list()
+            .list_all(google_calendar::types::MinAccessRole::Noop, false, false)
+            .await?
+            .body
+            .iter()
+            .map(|calendar| Calendar {
+                id: calendar.id.clone(),
+                name: calendar.summary.clone(),
+            })
+            .collect();
+
+        Ok(list)
+    }
+
+    async fn list_events(&self, filter: EventFilter) -> anyhow::Result<Vec<crate::Event>> {
+        let events = self
+            .client
+            .events()
+            .list(
+                &filter.calendar_id,
+                "",
+                100,
+                500,
+                google_calendar::types::OrderBy::StartTime,
+                "",
+                &Vec::new(),
+                "",
+                &Vec::new(),
+                false,
+                false,
+                true,
+                "",
+                "",
+                "",
+                "",
+            )
+            .await?
+            .body
+            .iter()
+            .map(|event| {
+                let start = convert_to_time(event.start.clone().unwrap()).unwrap();
+                let end = convert_to_time(event.end.clone().unwrap()).unwrap();
+
+                Event {
+                    id: event.id.clone(),
+                    name: event.summary.clone(),
+                    start_date: start,
+                    end_date: end,
+                }
+            })
+            .collect();
+        Ok(events)
     }
 }
 

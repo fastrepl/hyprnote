@@ -28,8 +28,7 @@ pub fn run() {
             commands::start_session,
             commands::start_playback,
             commands::stop_playback,
-            commands::list_apple_calendars,
-            commands::list_apple_events,
+            commands::list_calendars,
             permissions::open_permission_settings,
             commands::auth_url,
         ])
@@ -38,8 +37,8 @@ pub fn run() {
             events::NotAuthenticated,
             events::JustAuthenticated,
         ])
-        .typ::<hypr_calendar::apple::Calendar>()
-        .typ::<hypr_calendar::apple::Event>()
+        .typ::<hypr_calendar::Calendar>()
+        .typ::<hypr_calendar::Event>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw);
 
     #[cfg(debug_assertions)]

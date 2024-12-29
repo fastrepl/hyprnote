@@ -1569,6 +1569,7 @@ dependencies = [
  "specta",
  "time",
  "time-tz",
+ "tokio",
 ]
 
 [[package]]

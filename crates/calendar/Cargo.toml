@@ -14,9 +14,6 @@ google-calendar = "0.7.0"
 time = { workspace = true, features = ["formatting", "parsing", "serde"] }
 time-tz = "2.0.0"
 
-[dev-dependencies]
-chrono = "0.4.39"
-
 [target.'cfg(target_os = "macos")'.dependencies]
 block2 = "0.5.1"
 objc2 = "0.5.2"
@@ -30,3 +27,7 @@ objc2-event-kit = { version = "0.2.2", features = [
   "block2",
 ] }
 objc2-foundation = { version = "0.2.2", features = ["NSEnumerator"] }
+
+[dev-dependencies]
+chrono = "0.4.39"
+tokio = { workspace = true, features = ["rt", "macros"] }

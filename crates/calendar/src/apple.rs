@@ -1,40 +1,15 @@
 use anyhow::Result;
 use itertools::Itertools;
-use serde::{Deserialize, Serialize};
 
 use block2::RcBlock;
 use objc2::{rc::Retained, runtime::Bool};
 use objc2_event_kit::{EKAuthorizationStatus, EKCalendar, EKEntityType, EKEventStore};
 use objc2_foundation::{NSArray, NSDate, NSError, NSPredicate};
 
+use crate::{Calendar, CalendarSource, Event, EventFilter};
+
 pub struct Handle {
     store: Retained<EKEventStore>,
-}
-
-// https://docs.rs/objc2-event-kit/latest/objc2_event_kit/struct.EKCalendar.html
-// https://developer.apple.com/documentation/eventkit/ekcalendar
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-pub struct Calendar {
-    pub id: String,
-    pub title: String,
-}
-
-// https://docs.rs/objc2-event-kit/latest/objc2_event_kit/struct.EKEvent.html
-// https://developer.apple.com/documentation/eventkit/ekevent?language=objc
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-pub struct Event {
-    // https://developer.apple.com/documentation/eventkit/ekevent/eventidentifier
-    // If the calendar of an event changes, its identifier most likely changes as well.
-    pub id: String,
-    pub title: String,
-    pub start_date: time::OffsetDateTime,
-    pub end_date: time::OffsetDateTime,
-}
-
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-pub struct EventFilter {
-    pub last_n_days: Option<u32>,
-    pub calendar_titles: Vec<String>,
 }
 
 impl Handle {
@@ -65,53 +40,6 @@ impl Handle {
         }
     }
 
-    pub fn list_calendars(&self) -> Vec<Calendar> {
-        let calendars = unsafe { self.store.calendars() };
-
-        calendars
-            .iter()
-            .map(|calendar| {
-                let id = unsafe { calendar.calendarIdentifier() };
-                let title = unsafe { calendar.title() };
-                Calendar {
-                    id: id.to_string(),
-                    title: title.to_string(),
-                }
-            })
-            .sorted_by(|a, b| a.title.cmp(&b.title))
-            .collect()
-    }
-
-    pub fn list_events(&self, filter: EventFilter) -> Vec<Event> {
-        let predicate = self.events_predicate(&filter);
-        let events = unsafe { self.store.eventsMatchingPredicate(&predicate) };
-
-        events
-            .iter()
-            .filter_map(|event| {
-                let id = unsafe { event.eventIdentifier() }.unwrap();
-                let title = unsafe { event.title() };
-                let start_date = unsafe { event.startDate() };
-                let end_date = unsafe { event.endDate() };
-                let calendar = unsafe { event.calendar() }.unwrap();
-                let calendar_title = unsafe { calendar.title() };
-
-                // This is theoretically not needed, but it seems like the 'calendars' filter does not work in the predicate.
-                if !filter.calendar_titles.contains(&calendar_title.to_string()) {
-                    return None;
-                }
-
-                Some(Event {
-                    id: id.to_string(),
-                    title: title.to_string(),
-                    start_date: offset_date_time_from(start_date),
-                    end_date: offset_date_time_from(end_date),
-                })
-            })
-            .sorted_by(|a, b| a.start_date.cmp(&b.start_date))
-            .collect()
-    }
-
     fn events_predicate(&self, filter: &EventFilter) -> Retained<NSPredicate> {
         let start_date = unsafe { NSDate::new() };
         let end_date = unsafe {
@@ -124,8 +52,8 @@ impl Handle {
         let calendars: Retained<NSArray<EKCalendar>> = calendars
             .into_iter()
             .filter(|c| {
-                let title = unsafe { c.title() };
-                filter.calendar_titles.contains(&title.to_string())
+                let id = unsafe { c.calendarIdentifier() }.to_string();
+                filter.calendar_id.eq(&id)
             })
             .collect();
 
@@ -139,6 +67,67 @@ impl Handle {
         };
 
         predicate
+    }
+}
+
+impl CalendarSource for Handle {
+    async fn list_calendars(&self) -> Result<Vec<Calendar>> {
+        let calendars = unsafe { self.store.calendars() };
+
+        let list = calendars
+            .iter()
+            .map(|calendar| {
+                // https://docs.rs/objc2-event-kit/latest/objc2_event_kit/struct.EKCalendar.html
+                // https://developer.apple.com/documentation/eventkit/ekcalendar
+                // https://developer.apple.com/documentation/eventkit/ekevent/eventidentifier
+                // If the calendar of an event changes, its identifier most likely changes as well.
+                let id = unsafe { calendar.calendarIdentifier() };
+                let title = unsafe { calendar.title() };
+
+                Calendar {
+                    id: id.to_string(),
+                    name: title.to_string(),
+                }
+            })
+            .sorted_by(|a, b| a.name.cmp(&b.name))
+            .collect();
+
+        Ok(list)
+    }
+
+    async fn list_events(&self, filter: EventFilter) -> Result<Vec<Event>> {
+        let predicate = self.events_predicate(&filter);
+        let events = unsafe { self.store.eventsMatchingPredicate(&predicate) };
+
+        let list = events
+            .iter()
+            .filter_map(|event| {
+                // https://docs.rs/objc2-event-kit/latest/objc2_event_kit/struct.EKEvent.html
+                // https://developer.apple.com/documentation/eventkit/ekevent
+                let id = unsafe { event.eventIdentifier() }.unwrap();
+                let title = unsafe { event.title() };
+                let start_date = unsafe { event.startDate() };
+                let end_date = unsafe { event.endDate() };
+
+                let calendar = unsafe { event.calendar() }.unwrap();
+                let calendar_id = unsafe { calendar.calendarIdentifier() };
+
+                // This is theoretically not needed, but it seems like the 'calendars' filter does not work in the predicate.
+                if !filter.calendar_id.eq(&calendar_id.to_string()) {
+                    return None;
+                }
+
+                Some(Event {
+                    id: id.to_string(),
+                    name: title.to_string(),
+                    start_date: offset_date_time_from(start_date),
+                    end_date: offset_date_time_from(end_date),
+                })
+            })
+            .sorted_by(|a, b| a.start_date.cmp(&b.start_date))
+            .collect();
+
+        Ok(list)
     }
 }
 
@@ -160,8 +149,8 @@ fn offset_date_time_from(date: Retained<NSDate>) -> time::OffsetDateTime {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_time() {
+    #[tokio::test]
+    async fn test_time() {
         let now = unsafe { NSDate::new() };
         let now_from_nsdate = offset_date_time_from(now.to_owned());
         let now_from_time = time::OffsetDateTime::now_utc();
@@ -169,20 +158,22 @@ mod tests {
         assert!(diff.whole_seconds() < 1);
     }
 
-    #[test]
-    fn test_list_calendars() {
+    #[tokio::test]
+    async fn test_list_calendars() {
         let handle = Handle::new().unwrap();
-        let _ = handle.list_calendars();
+        let calendars = handle.list_calendars().await.unwrap();
+        assert!(!calendars.is_empty());
     }
 
-    #[test]
-    fn test_list_events() {
+    #[tokio::test]
+    async fn test_list_events() {
         let handle = Handle::new().unwrap();
         let filter = EventFilter {
             last_n_days: Some(100),
-            calendar_titles: vec!["something_not_exist".to_string()],
+            calendar_id: "something_not_exist".into(),
         };
-        let events = handle.list_events(filter);
-        assert_eq!(events.len(), 0);
+
+        let events = handle.list_events(filter).await.unwrap();
+        assert!(events.is_empty());
     }
 }

@@ -11,13 +11,21 @@ pub struct Handle {
     store: Retained<EKEventStore>,
 }
 
+// https://docs.rs/objc2-event-kit/latest/objc2_event_kit/struct.EKCalendar.html
+// https://developer.apple.com/documentation/eventkit/ekcalendar
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct Calendar {
+    pub id: String,
     pub title: String,
 }
 
+// https://docs.rs/objc2-event-kit/latest/objc2_event_kit/struct.EKEvent.html
+// https://developer.apple.com/documentation/eventkit/ekevent?language=objc
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct Event {
+    // https://developer.apple.com/documentation/eventkit/ekevent/eventidentifier
+    // If the calendar of an event changes, its identifier most likely changes as well.
+    pub id: String,
     pub title: String,
     pub start_date: time::OffsetDateTime,
     pub end_date: time::OffsetDateTime,
@@ -63,8 +71,10 @@ impl Handle {
         calendars
             .iter()
             .map(|calendar| {
+                let id = unsafe { calendar.calendarIdentifier() };
                 let title = unsafe { calendar.title() };
                 Calendar {
+                    id: id.to_string(),
                     title: title.to_string(),
                 }
             })
@@ -79,6 +89,7 @@ impl Handle {
         events
             .iter()
             .filter_map(|event| {
+                let id = unsafe { event.eventIdentifier() }.unwrap();
                 let title = unsafe { event.title() };
                 let start_date = unsafe { event.startDate() };
                 let end_date = unsafe { event.endDate() };
@@ -91,6 +102,7 @@ impl Handle {
                 }
 
                 Some(Event {
+                    id: id.to_string(),
                     title: title.to_string(),
                     start_date: offset_date_time_from(start_date),
                     end_date: offset_date_time_from(end_date),

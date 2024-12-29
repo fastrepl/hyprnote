@@ -1,4 +1,5 @@
 use super::{Device, User};
+use anyhow::Result;
 
 pub struct AdminDatabase {
     conn: libsql::Connection,
@@ -9,7 +10,7 @@ impl AdminDatabase {
         Self { conn }
     }
 
-    pub async fn list_devices(&self) -> anyhow::Result<Vec<Device>> {
+    pub async fn list_devices(&self) -> Result<Vec<Device>> {
         let mut rows = self.conn.query("SELECT * FROM devices", ()).await.unwrap();
         let mut devices = Vec::new();
 
@@ -21,7 +22,7 @@ impl AdminDatabase {
         Ok(devices)
     }
 
-    pub async fn list_users(&self) -> anyhow::Result<Vec<User>> {
+    pub async fn list_users(&self) -> Result<Vec<User>> {
         let mut rows = self.conn.query("SELECT * FROM users", ()).await.unwrap();
         let mut users = Vec::new();
 
@@ -33,7 +34,7 @@ impl AdminDatabase {
         Ok(users)
     }
 
-    pub async fn create_user(&self, user: User) -> anyhow::Result<User> {
+    pub async fn create_user(&self, user: User) -> Result<User> {
         let mut rows = self
             .conn
             .query(
@@ -51,7 +52,7 @@ impl AdminDatabase {
         Ok(user)
     }
 
-    pub async fn get_user_by_clerk_user_id(&self, clerk_user_id: String) -> anyhow::Result<User> {
+    pub async fn get_user_by_clerk_user_id(&self, clerk_user_id: String) -> Result<User> {
         let mut rows = self
             .conn
             .query(
@@ -65,7 +66,7 @@ impl AdminDatabase {
         Ok(user)
     }
 
-    pub async fn create_device(&self, device: Device) -> anyhow::Result<Device> {
+    pub async fn create_device(&self, device: Device) -> Result<Device> {
         let mut rows = self
             .conn
             .query(

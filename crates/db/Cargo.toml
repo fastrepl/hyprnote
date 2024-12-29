@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-all = ["admin", "user"]
+default = ["admin", "user"]
 admin = []
 user = []
 
@@ -17,6 +17,6 @@ time = { workspace = true, features = ["serde", "formatting", "parsing"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
 libsql = { version = "0.6.0", features = ["encryption"] }
 
-specta = { workspace = true, features = ["derive", "time"] }
+specta = { workspace = true, features = ["derive", "time", "serde_json"] }
 specta-typescript = { workspace = true }
 specta-util = { workspace = true }

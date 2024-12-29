@@ -3,6 +3,7 @@
 
 use crate::{Calendar, CalendarSource, Event, EventFilter};
 use anyhow::Result;
+use time::format_description::well_known::Rfc3339;
 use time_tz::{timezones, Offset, TimeZone};
 
 pub use google_calendar::*;
@@ -53,8 +54,8 @@ impl CalendarSource for Handle {
                 false,
                 false,
                 true,
-                "",
-                "",
+                filter.from.format(&Rfc3339)?.as_str(),
+                filter.to.format(&Rfc3339)?.as_str(),
                 "",
                 "",
             )

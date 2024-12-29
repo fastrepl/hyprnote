@@ -2,7 +2,7 @@ use anyhow::Result;
 use itertools::Itertools;
 
 use block2::RcBlock;
-use objc2::{rc::Retained, runtime::Bool};
+use objc2::{rc::Retained, runtime::Bool, ClassType};
 use objc2_event_kit::{EKAuthorizationStatus, EKCalendar, EKEntityType, EKEventStore};
 use objc2_foundation::{NSArray, NSDate, NSError, NSPredicate};
 
@@ -41,10 +41,16 @@ impl Handle {
     }
 
     fn events_predicate(&self, filter: &EventFilter) -> Retained<NSPredicate> {
-        let start_date = unsafe { NSDate::new() };
+        let start_date = unsafe {
+            NSDate::initWithTimeIntervalSince1970(
+                NSDate::alloc(),
+                filter.from.unix_timestamp() as f64,
+            )
+        };
         let end_date = unsafe {
-            start_date.dateByAddingTimeInterval(
-                filter.last_n_days.unwrap_or(30) as f64 * 24.0 * 60.0 * 60.0,
+            NSDate::initWithTimeIntervalSince1970(
+                NSDate::alloc(),
+                filter.to.unix_timestamp() as f64,
             )
         };
 
@@ -169,8 +175,9 @@ mod tests {
     async fn test_list_events() {
         let handle = Handle::new().unwrap();
         let filter = EventFilter {
-            last_n_days: Some(100),
             calendar_id: "something_not_exist".into(),
+            from: time::OffsetDateTime::now_utc() - time::Duration::days(100),
+            to: time::OffsetDateTime::now_utc() + time::Duration::days(100),
         };
 
         let events = handle.list_events(filter).await.unwrap();

@@ -27,6 +27,7 @@ pub struct Event {
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct EventFilter {
-    pub last_n_days: Option<u32>,
     pub calendar_id: String,
+    pub from: time::OffsetDateTime,
+    pub to: time::OffsetDateTime,
 }

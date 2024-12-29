@@ -22,3 +22,9 @@ pub struct Device {
     pub fingerprint: String,
     pub api_key: String,
 }
+
+pub fn format_iso8601(datetime: OffsetDateTime) -> String {
+    datetime
+        .format(&time::format_description::well_known::iso8601::Iso8601::DEFAULT)
+        .unwrap()
+}

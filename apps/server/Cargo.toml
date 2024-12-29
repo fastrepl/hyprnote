@@ -4,12 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+hypr-calendar = { path = "../../crates/calendar", package = "calendar" }
 hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
+hypr-s3 = { path = "../../crates/s3", package = "s3" }
+hypr-stt = { path = "../../crates/stt", package = "stt" }
 hypr-db = { path = "../../crates/db", package = "db", default-features = false, features = [
   "admin",
 ] }
-hypr-s3 = { path = "../../crates/s3", package = "s3" }
-hypr-stt = { path = "../../crates/stt", package = "stt" }
 
 shuttle-axum = "0.49.0"
 shuttle-runtime = "0.49.0"

@@ -126,10 +126,11 @@ dependencies = [
 name = "analytics"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "async-posthog",
- "host",
  "serde",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -3129,6 +3130,7 @@ dependencies = [
  "dotenvy_macro",
  "flume 0.11.1",
  "futures",
+ "host",
  "log",
  "objc",
  "reqwest 0.12.11",

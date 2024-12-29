@@ -22,6 +22,7 @@ hypr-db-client = { path = "../../../crates/db-client", package = "db-client" }
 hypr-audio = { path = "../../../crates/audio", package = "audio" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
+hypr_host = { path = "../../../crates/host", package = "host" }
 
 tauri = { workspace = true, features = ["tray-icon", "image-png", "devtools"] }
 tauri-plugin-updater = "2"

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import { useUI } from "../contexts/UIContext";
@@ -13,10 +13,17 @@ import NoteEditor from "../components/note/NoteEditor";
 
 export const Route = createFileRoute("/note/$id")({
   component: Component,
+  loader: ({ context: { queryClient }, params: { id } }) => {
+    console.log(queryClient);
+
+    return {
+      id,
+    };
+  },
 });
 
 function Component() {
-  const { id } = useParams({ from: Route.path });
+  const { id } = Route.useParams();
 
   const { isPanelOpen } = useUI();
   const {

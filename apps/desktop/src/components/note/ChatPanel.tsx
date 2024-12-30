@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { sendChatMessage } from "../../api/noteApi";
 import { useTranslation } from "react-i18next";
 
 interface ChatPanelProps {
@@ -12,6 +11,13 @@ export default function ChatPanel({ transcript }: ChatPanelProps) {
   const [messages, setMessages] = useState<
     Array<{ text: string; isUser: boolean }>
   >([]);
+
+  const sendChatMessage = (message: any, transcript: any) => {
+    console.log("sendChatMessage", message, transcript);
+    return {
+      text: "Hello, world!",
+    };
+  };
 
   const quickActions = [
     { label: t("note.chat.quickActions.summarizeQA"), action: "SUMMARIZE_QA" },

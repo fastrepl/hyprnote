@@ -49,14 +49,14 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.15",
+    "@lingui/babel-plugin-lingui-macro": "^5.1.2",
+    "@lingui/vite-plugin": "^5.1.2",
     "@tanstack/router-devtools": "^1.92.11",
     "@tanstack/router-plugin": "^1.92.11",
     "@tauri-apps/cli": "^2.1.0",
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
-    "@types/react-slick": "^0.23.13",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",

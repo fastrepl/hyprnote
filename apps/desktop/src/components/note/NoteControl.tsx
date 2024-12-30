@@ -1,5 +1,6 @@
-import type { Note } from "../../types";
 import { useTranslation } from "react-i18next";
+
+import type { Note } from "../../types";
 
 interface NoteControlProps {
   note: Note | null;

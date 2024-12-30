@@ -112,7 +112,6 @@ pub fn run() {
         });
     }
 
-
     builder
         // TODO: https://v2.tauri.app/plugin/updater/#building
         // .plugin(tauri_plugin_updater::Builder::new().build())

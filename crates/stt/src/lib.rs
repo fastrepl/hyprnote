@@ -3,6 +3,8 @@ use bytes::Bytes;
 use futures::Stream;
 use std::error::Error;
 
+use hypr_clova::interface::KeywordBoosting;
+
 mod clova;
 pub use clova::{ClovaClient, ClovaConfig};
 
@@ -45,6 +47,10 @@ impl Client {
                 transcription: clova::clova::Transcription {
                     language: clova::clova::Language::Korean,
                 },
+                keyword_boosting: vec![KeywordBoosting {
+                    words: "하이퍼노트".to_string(),
+                    boost: 1.0,
+                }],
             },
         };
         ClovaClient::new(config).await.unwrap()
@@ -114,6 +120,7 @@ mod tests {
                 transcription: clova::clova::Transcription {
                     language: clova::clova::Language::Korean,
                 },
+                keyword_boosting: vec![],
             },
         };
 

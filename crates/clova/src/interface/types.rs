@@ -3,13 +3,21 @@ use serde::{Deserialize, Serialize};
 
 // https://api.ncloud-docs.com/docs/en/ai-application-service-clovaspeech-grpc#3-request-config-json
 #[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ConfigRequest {
     pub transcription: Transcription,
+    pub keyword_boosting: Vec<KeywordBoosting>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Transcription {
     pub language: Language,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct KeywordBoosting {
+    pub words: String,
+    pub boost: f64,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

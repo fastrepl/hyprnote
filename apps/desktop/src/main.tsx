@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 
 import { AuthProvider, useAuth } from "./auth";
+import { UIProvider } from "./contexts/UIContext";
+
 import "./styles/global.css";
 
 const queryClient = new QueryClient();
@@ -36,9 +38,11 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <UIProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </UIProvider>
     </QueryClientProvider>,
   );
 }

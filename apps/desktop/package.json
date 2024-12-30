@@ -36,7 +36,6 @@
     "@tiptap/starter-kit": "^2.10.4",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
-    "date-fns": "^4.1.0",
     "embla-carousel": "^8.5.1",
     "embla-carousel-react": "^8.5.1",
     "framer-motion": "^11.15.0",
@@ -45,7 +44,6 @@
     "react-dom": "^18.3.1",
     "react-i18next": "^15.3.0",
     "react-resizable-panels": "^2.1.7",
-    "react-router": "^7.1.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "zustand": "^5.0.2"

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useNavigate, useLocation } from "react-router";
+import { useNavigate, useLocation, useRouter } from "@tanstack/react-router";
 import {
   RiMenuLine,
   RiSidebarUnfoldLine,
@@ -20,12 +20,16 @@ export default function NavBar() {
   const { isPanelOpen, setIsPanelOpen } = useUI();
   const navigate = useNavigate();
   const location = useLocation();
+  const { history } = useRouter();
 
   const isNotePage = location.pathname.startsWith("/note/");
 
   const handleNewNote = useCallback(() => {
-    const noteId = crypto.randomUUID();
-    navigate(`/note/${noteId}`);
+    const id = crypto.randomUUID();
+    navigate({
+      to: "/note/$id",
+      params: { id },
+    });
   }, [navigate]);
 
   const handleSettingsClick = useCallback(() => {
@@ -49,8 +53,8 @@ export default function NavBar() {
             <div className="flex items-center">
               {isNotePage ? (
                 <NavigationButtons
-                  onHomeClick={() => navigate("/")}
-                  onBackClick={() => navigate(-1)}
+                  onHomeClick={() => navigate({ to: "/" })}
+                  onBackClick={() => history.back()}
                 />
               ) : (
                 <button

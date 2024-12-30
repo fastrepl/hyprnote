@@ -13,9 +13,7 @@ import NoteEditor from "../components/note/NoteEditor";
 
 export const Route = createFileRoute("/note/$id")({
   component: Component,
-  loader: ({ context: { queryClient }, params: { id } }) => {
-    console.log(queryClient);
-
+  loader: ({ params: { id } }) => {
     return {
       id,
     };

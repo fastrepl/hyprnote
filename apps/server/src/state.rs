@@ -1,9 +1,10 @@
 use axum::extract::FromRef;
 
 use clerk_rs::clerk::Clerk;
+use shuttle_runtime::SecretStore;
+
 use hypr_analytics::AnalyticsClient;
 use hypr_db::admin::AdminDatabase;
-use shuttle_runtime::SecretStore;
 
 #[derive(Clone)]
 pub struct AppState {

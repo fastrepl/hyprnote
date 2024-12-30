@@ -1,16 +1,28 @@
 import { useEffect } from "react";
-import { useParams } from "react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import SidePanel from "../components/note/SidePanel";
-import NoteHeader from "../components/note/NoteHeader";
-import NoteEditor from "../components/note/NoteEditor";
+
 import { useUI } from "../contexts/UIContext";
 import { useNoteState } from "../hooks/useNoteState";
 import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import { mockTranscripts } from "../mocks/data";
 
-export default function Note() {
-  const { id } = useParams();
+import SidePanel from "../components/note/SidePanel";
+import NoteHeader from "../components/note/NoteHeader";
+import NoteEditor from "../components/note/NoteEditor";
+
+export const Route = createFileRoute("/note/$id")({
+  component: Component,
+  loader: ({ params: { id } }) => {
+    return {
+      id,
+    };
+  },
+});
+
+function Component() {
+  const { id } = Route.useParams();
+
   const { isPanelOpen } = useUI();
   const {
     state,

@@ -27,16 +27,11 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v3
+      - uses: Swatinem/rust-cache@v2
+      - run: rustup toolchain install stable --profile minimal --no-self-update
+      - uses: arduino/setup-protoc@v3
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: rust-${{ matrix.platform }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            rust-${{ matrix.platform }}-
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - uses: AnimMouse/setup-ffmpeg@v1
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - run: cargo build
       - uses: pnpm/action-setup@v4
         with:

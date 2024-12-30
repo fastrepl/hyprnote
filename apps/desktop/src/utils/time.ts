@@ -1,6 +1,4 @@
 import type { CalendarEvent } from "../types";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
 
 export const formatMeetingTime = (date: CalendarEvent["start"]) => {
   if (!date) return "";
@@ -13,5 +11,5 @@ export const formatMeetingTime = (date: CalendarEvent["start"]) => {
 
   if (!time) return "";
 
-  return format(time, "HH:mm", { locale: ko });
+  return time.toDateString();
 };

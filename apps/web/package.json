@@ -12,21 +12,21 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
-    "@tanstack/router-plugin": "^1.91.1",
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.2",
+    "@tanstack/router-plugin": "^1.92.11",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
-    "tailwindcss": "^3.4.16",
-    "vite": "^6.0.3"
+    "tailwindcss": "^3.4.17",
+    "vite": "^6.0.6"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.21.0",
-    "@tanstack/react-query": "^5.62.10",
-    "@tanstack/react-router": "^1.92.3",
-    "@tanstack/zod-adapter": "^1.92.3",
+    "@tanstack/react-query": "^5.62.11",
+    "@tanstack/react-router": "^1.92.11",
+    "@tanstack/zod-adapter": "^1.92.11",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.24.1",

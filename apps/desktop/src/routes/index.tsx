@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+
 import { mockNotes } from "../mocks/data";
 import { UpcomingEvents } from "../components/home/UpcomingEvents";
 import { PastNotes } from "../components/home/PastNotes";
@@ -8,7 +9,11 @@ import { NewUserBanner } from "../components/home/NewUserBanner";
 import { open } from "@tauri-apps/plugin-shell";
 import { commands } from "../types";
 
-export default function Home() {
+export const Route = createFileRoute("/")({
+  component: Component,
+});
+
+function Component() {
   const [isNewUser] = useState(true);
   const navigate = useNavigate();
 
@@ -43,8 +48,11 @@ export default function Home() {
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
 
-  const handleNoteClick = (noteId: string) => {
-    navigate(`/note/${noteId}`);
+  const handleNoteClick = (id: string) => {
+    navigate({
+      to: "/note/$id",
+      params: { id },
+    });
   };
 
   const handleDemoClick = () => {

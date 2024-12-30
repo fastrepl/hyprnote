@@ -1,7 +1,7 @@
 import "../../../styles/cmdk.css";
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { Command } from "cmdk";
 import { useTranslation } from "react-i18next";
 
@@ -80,7 +80,10 @@ const SearchModal = () => {
                   <Command.Item
                     key={note.id}
                     onSelect={() => {
-                      navigate(`/note/${note.id}`);
+                      navigate({
+                        to: "/note/$id",
+                        params: { id: note.id },
+                      });
                       setOpen(false);
                     }}
                   >

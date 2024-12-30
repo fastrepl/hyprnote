@@ -1,4 +1,3 @@
-use cap_media::feeds::{AudioInputFeed, AudioInputSamplesSender};
 use tokio::sync::RwLock;
 
 use tauri::{AppHandle, Manager};
@@ -16,8 +15,6 @@ mod tray;
 
 pub struct App {
     handle: AppHandle,
-    audio_input_feed: Option<AudioInputFeed>,
-    audio_input_tx: AudioInputSamplesSender,
     cloud_config: hypr_bridge::ClientConfig,
 }
 
@@ -115,8 +112,6 @@ pub fn run() {
         });
     }
 
-    let (audio_input_tx, _audio_input_rx) = AudioInputFeed::create_channel();
-
     builder
         // TODO: https://v2.tauri.app/plugin/updater/#building
         // .plugin(tauri_plugin_updater::Builder::new().build())
@@ -149,8 +144,6 @@ pub fn run() {
             {
                 app.manage(RwLock::new(App {
                     handle: app.clone(),
-                    audio_input_tx,
-                    audio_input_feed: None,
                     cloud_config,
                 }));
             }

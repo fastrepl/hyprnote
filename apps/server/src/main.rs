@@ -1,9 +1,16 @@
+use std::time::Duration;
+
 use axum::{
+    extract::FromRef,
     http::StatusCode,
     middleware,
     response::IntoResponse,
     routing::{get, post},
     Router,
+};
+use tower_http::{
+    services::{ServeDir, ServeFile},
+    timeout::TimeoutLayer,
 };
 
 use clerk_rs::{
@@ -13,12 +20,9 @@ use clerk_rs::{
 };
 use shuttle_runtime::SecretStore;
 
-use std::time::Duration;
-use tower_http::{
-    services::{ServeDir, ServeFile},
-    timeout::TimeoutLayer,
-};
+use state::{AnalyticsState, AuthState};
 
+mod analytics;
 mod auth;
 mod native;
 mod state;
@@ -48,12 +52,15 @@ async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum:
         .unwrap();
     let admin_db = hypr_db::admin::AdminDatabase::from(admin_db_conn).await;
 
+    let analytics = hypr_analytics::AnalyticsClient::new("TODO");
+
     let state = state::AppState {
         reqwest: reqwest::Client::new(),
         secrets,
         clerk: clerk.clone(),
         stt,
         admin_db,
+        analytics,
     };
 
     let web_router = Router::new()
@@ -74,10 +81,17 @@ async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum:
             post(native::openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
         )
         .route("/transcribe", get(native::transcribe::handler))
-        .layer(middleware::from_fn_with_state(
-            state.clone(),
-            auth::middleware_fn,
-        ));
+        .layer(
+            tower::builder::ServiceBuilder::new()
+                .layer(middleware::from_fn_with_state(
+                    AuthState::from_ref(&state),
+                    auth::middleware_fn,
+                ))
+                .layer(middleware::from_fn_with_state(
+                    AnalyticsState::from_ref(&state),
+                    analytics::middleware_fn,
+                )),
+        );
 
     let webhook_router = Router::new().route("/stripe", post(stripe::webhook::handler));
 

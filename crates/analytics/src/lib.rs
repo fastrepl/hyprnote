@@ -2,6 +2,7 @@ use anyhow::Result;
 use serde::Serialize;
 use std::collections::HashMap;
 
+#[derive(Clone)]
 pub struct AnalyticsClient {
     client: posthog::Client,
 }
@@ -38,6 +39,7 @@ pub struct AnalyticsPayload {
     props: HashMap<String, serde_json::Value>,
 }
 
+#[derive(Clone)]
 pub struct AnalyticsPayloadBuilder {
     event: Option<String>,
     distinct_id: String,
@@ -55,16 +57,12 @@ impl AnalyticsPayload {
 }
 
 impl AnalyticsPayloadBuilder {
-    pub fn event(&mut self, name: impl Into<String>) -> &mut Self {
+    pub fn event(mut self, name: impl Into<String>) -> Self {
         self.event = Some(name.into());
         self
     }
 
-    pub fn with(
-        &mut self,
-        key: impl Into<String>,
-        value: impl Into<serde_json::Value>,
-    ) -> &mut Self {
+    pub fn with(mut self, key: impl Into<String>, value: impl Into<serde_json::Value>) -> Self {
         self.props.insert(key.into(), value.into());
         self
     }

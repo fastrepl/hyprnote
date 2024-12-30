@@ -5,13 +5,10 @@ use axum::{
     response::Response,
 };
 
-use crate::state::AppState;
-
-#[derive(Clone)]
-pub struct User {}
+use crate::state::AuthState;
 
 pub async fn middleware_fn(
-    State(state): State<AppState>,
+    State(state): State<AuthState>,
     mut req: Request,
     next: middleware::Next,
 ) -> Result<Response, StatusCode> {

@@ -9539,6 +9539,7 @@ dependencies = [
 name = "server"
 version = "0.1.0"
 dependencies = [
+ "analytics",
  "anyhow",
  "async-openai",
  "async-stripe",
@@ -9558,6 +9559,7 @@ dependencies = [
  "shuttle-runtime",
  "stt",
  "tokio",
+ "tower 0.5.2",
  "tower-http 0.6.2",
 ]
 

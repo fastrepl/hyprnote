@@ -31,7 +31,7 @@ pub async fn stop_playback(_app: AppHandle, _audio_id: String) {}
 #[specta::specta]
 pub async fn list_calendars() -> Result<Vec<hypr_calendar::Calendar>, String> {
     tokio::task::spawn_blocking(|| {
-        let handle = hypr_calendar::apple::Handle::new().map_err(|e| e.to_string())?;
+        let handle = hypr_calendar::apple::Handle::new();
         futures::executor::block_on(handle.list_calendars()).map_err(|e| e.to_string())
     })
     .await

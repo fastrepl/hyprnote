@@ -2,19 +2,46 @@ use anyhow::Result;
 use itertools::Itertools;
 
 use block2::RcBlock;
-use objc2::{rc::Retained, runtime::Bool, ClassType};
+use objc2::{
+    rc::Retained,
+    runtime::{Bool, ProtocolObject},
+    ClassType,
+};
+use objc2_contacts::{CNAuthorizationStatus, CNContactStore, CNEntityType, CNKeyDescriptor};
 use objc2_event_kit::{EKAuthorizationStatus, EKCalendar, EKEntityType, EKEventStore};
-use objc2_foundation::{NSArray, NSDate, NSError, NSPredicate};
+use objc2_foundation::{NSArray, NSDate, NSError, NSPredicate, NSString};
 
 use crate::{Calendar, CalendarSource, Event, EventFilter, Participant};
 
 pub struct Handle {
     event_store: Retained<EKEventStore>,
+    contacts_store: Retained<CNContactStore>,
+    calendar_access_granted: bool,
+    contacts_access_granted: bool,
 }
 
 impl Handle {
-    pub fn new() -> Result<Self> {
-        let store = unsafe { EKEventStore::new() };
+    pub fn new() -> Self {
+        let event_store = unsafe { EKEventStore::new() };
+        let contacts_store = unsafe { CNContactStore::new() };
+
+        let mut handle = Self {
+            event_store,
+            contacts_store,
+            calendar_access_granted: false,
+            contacts_access_granted: false,
+        };
+
+        handle.calendar_access_granted = handle.calendar_access_status();
+        handle.contacts_access_granted = handle.contacts_access_status();
+
+        handle
+    }
+
+    pub fn request_calendar_access(&mut self) {
+        if self.calendar_access_granted {
+            return;
+        }
 
         let (tx, rx) = std::sync::mpsc::channel::<bool>();
         let completion = RcBlock::new(move |granted: Bool, _error: *mut NSError| {
@@ -22,20 +49,52 @@ impl Handle {
         });
 
         unsafe {
-            store.requestFullAccessToEventsWithCompletion(&*completion as *const _ as *mut _)
+            self.event_store
+                .requestFullAccessToEventsWithCompletion(&*completion as *const _ as *mut _)
         };
 
         if let Ok(true) = rx.recv() {
-            return Ok(Self { event_store: store });
+            self.calendar_access_granted = true;
+        } else {
+            self.calendar_access_granted = false;
         }
-
-        Err(anyhow::anyhow!("failed to get calendar permissions"))
     }
 
-    pub fn authorization_status(&self) -> bool {
+    pub fn request_contacts_access(&mut self) {
+        if self.contacts_access_granted {
+            return;
+        }
+
+        let (tx, rx) = std::sync::mpsc::channel::<bool>();
+        let completion = RcBlock::new(move |granted: Bool, _error: *mut NSError| {
+            let _ = tx.send(granted.as_bool());
+        });
+
+        unsafe {
+            self.contacts_store
+                .requestAccessForEntityType_completionHandler(CNEntityType::Contacts, &completion);
+        };
+
+        if let Ok(true) = rx.recv() {
+            self.calendar_access_granted = true;
+        } else {
+            self.calendar_access_granted = false;
+        }
+    }
+
+    pub fn calendar_access_status(&self) -> bool {
         let status = unsafe { EKEventStore::authorizationStatusForEntityType(EKEntityType::Event) };
         match status {
             EKAuthorizationStatus::FullAccess => true,
+            _ => false,
+        }
+    }
+
+    pub fn contacts_access_status(&self) -> bool {
+        let status =
+            unsafe { CNContactStore::authorizationStatusForEntityType(CNEntityType::Contacts) };
+        match status {
+            CNAuthorizationStatus::Authorized => true,
             _ => false,
         }
     }
@@ -127,13 +186,32 @@ impl CalendarSource for Handle {
                 let participants = unsafe { event.attendees().unwrap_or_default() }
                     .iter()
                     .map(|p| {
-                        let name = unsafe { p.name() }.unwrap_or_default();
-                        let _contact_pred = unsafe { p.contactPredicate() };
+                        let name = unsafe { p.name() }.unwrap_or_default().to_string();
+                        let contact_pred = unsafe { p.contactPredicate() };
 
-                        Participant {
-                            name: name.to_string(),
-                            email: "".to_string(),
+                        let email_string = NSString::from_str("emailAddresses");
+                        let cnkey_email: Retained<ProtocolObject<dyn CNKeyDescriptor>> =
+                            ProtocolObject::from_retained(email_string);
+                        let keys = NSArray::from_vec(vec![cnkey_email]);
+
+                        let contact = unsafe {
+                            self.contacts_store
+                                .unifiedContactsMatchingPredicate_keysToFetch_error(
+                                    &contact_pred,
+                                    &keys,
+                                )
                         }
+                        .unwrap_or_default();
+
+                        let email: String = match contact.first() {
+                            Some(contact) => {
+                                unsafe { contact.emailAddresses().first().unwrap().value() }
+                                    .to_string()
+                            }
+                            None => "".to_string(),
+                        };
+
+                        Participant { name, email }
                     })
                     .collect();
 
@@ -181,15 +259,22 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_request_access() {
+        let mut handle = Handle::new();
+        handle.request_calendar_access();
+        handle.request_contacts_access();
+    }
+
+    #[tokio::test]
     async fn test_list_calendars() {
-        let handle = Handle::new().unwrap();
+        let handle = Handle::new();
         let calendars = handle.list_calendars().await.unwrap();
         assert!(!calendars.is_empty());
     }
 
     #[tokio::test]
     async fn test_list_events() {
-        let handle = Handle::new().unwrap();
+        let handle = Handle::new();
         let filter = EventFilter {
             calendar_id: "something_not_exist".into(),
             from: time::OffsetDateTime::now_utc() - time::Duration::days(100),

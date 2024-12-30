@@ -1,10 +1,11 @@
 // https://developers.google.com/calendar/api/v3/reference/calendars
 // https://developers.google.com/calendar/api/v3/reference/events
 
-use crate::{Calendar, CalendarSource, Event, EventFilter};
 use anyhow::Result;
 use time::format_description::well_known::Rfc3339;
 use time_tz::{timezones, Offset, TimeZone};
+
+use crate::{Calendar, CalendarSource, Event, EventFilter, Participant};
 
 pub use google_calendar::*;
 
@@ -66,11 +67,20 @@ impl CalendarSource for Handle {
                 let start = convert_to_time(event.start.clone().unwrap()).unwrap();
                 let end = convert_to_time(event.end.clone().unwrap()).unwrap();
 
+                let participants = event
+                    .attendees
+                    .iter()
+                    .map(|a| Participant {
+                        name: a.display_name.clone(),
+                        email: a.email.clone(),
+                    })
+                    .collect::<Vec<Participant>>();
+
                 Event {
                     id: event.id.clone(),
                     name: event.summary.clone(),
                     note: event.description.clone(),
-                    participants: Vec::new(),
+                    participants,
                     start_date: start,
                     end_date: end,
                 }

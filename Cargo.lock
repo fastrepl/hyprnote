@@ -1564,6 +1564,7 @@ dependencies = [
  "google-calendar",
  "itertools 0.13.0",
  "objc2",
+ "objc2-contacts",
  "objc2-event-kit",
  "objc2-foundation",
  "serde",

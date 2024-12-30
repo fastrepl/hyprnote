@@ -74,39 +74,3 @@ impl OSPermissionStatus {
 pub struct OSPermissionsCheck {
     pub microphone: OSPermissionStatus,
 }
-
-#[tauri::command(async)]
-#[specta::specta]
-pub fn do_permissions_check(initial_check: bool) -> OSPermissionsCheck {
-    #[cfg(target_os = "macos")]
-    {
-        use cap_media::platform::AVMediaType;
-
-        fn check_av_permission(media_type: AVMediaType) -> OSPermissionStatus {
-            use cap_media::platform::AVAuthorizationStatus;
-            use objc::*;
-
-            let cls = objc::class!(AVCaptureDevice);
-            let status: AVAuthorizationStatus =
-                unsafe { msg_send![cls, authorizationStatusForMediaType:media_type.into_ns_str()] };
-            match status {
-                AVAuthorizationStatus::NotDetermined => OSPermissionStatus::Empty,
-                AVAuthorizationStatus::Authorized => OSPermissionStatus::Granted,
-                _ => OSPermissionStatus::Denied,
-            }
-        }
-
-        OSPermissionsCheck {
-            microphone: check_av_permission(AVMediaType::Audio),
-        }
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    {
-        OSPermissionsCheck {
-            microphone: OSPermissionStatus::NotNeeded,
-            camera: OSPermissionStatus::NotNeeded,
-            accessibility: OSPermissionStatus::NotNeeded,
-        }
-    }
-}

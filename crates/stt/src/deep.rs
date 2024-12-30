@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::error::Error;
 
 use deepgram::common::{
-    options::Encoding, stream_response::StreamResponse as DeepgramStreamResponse,
+    options::{Encoding, Language, Model, Options},
+    stream_response::StreamResponse as DeepgramStreamResponse,
 };
 use futures::{Stream, StreamExt};
 
@@ -38,9 +39,21 @@ impl<S, E> RealtimeSpeechToText<S, E> for DeepgramClient {
         )
         .unwrap();
 
+        let options = Options::builder()
+            .model(Model::BaseMeeting)
+            .multichannel(false)
+            .smart_format(true)
+            .punctuate(true)
+            .numerals(true)
+            .language(Language::en)
+            .filler_words(true)
+            .diarize(true)
+            .keywords(["Hyprnote"])
+            .build();
+
         let deepgram_stream = deepgram
             .transcription()
-            .stream_request()
+            .stream_request_with_options(options)
             .keep_alive()
             .sample_rate(16 * 1000)
             .channels(1)

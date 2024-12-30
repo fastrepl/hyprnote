@@ -13,4 +13,6 @@ pub struct EnhanceInput {
 }
 
 #[derive(Debug, Deserialize, Serialize, specta::Type, JsonSchema)]
-pub struct EnhanceOutput {}
+pub struct EnhanceOutput {
+    pub text: String,
+}

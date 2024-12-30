@@ -1406,6 +1406,7 @@ dependencies = [
 name = "bridge"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "futures-util",
  "reqwest 0.12.11",
  "schemars 1.0.0-alpha.17",

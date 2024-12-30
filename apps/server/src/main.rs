@@ -41,11 +41,19 @@ async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum:
     };
     let stt = hypr_stt::Client::new(stt_config);
 
+    let admin_db_conn = hypr_db::ConnectionBuilder::new()
+        .local("./admin.libsql")
+        .connect()
+        .await
+        .unwrap();
+    let admin_db = hypr_db::admin::AdminDatabase::from(admin_db_conn).await;
+
     let state = state::AppState {
         reqwest: reqwest::Client::new(),
         secrets,
         clerk: clerk.clone(),
         stt,
+        admin_db,
     };
 
     let web_router = Router::new()

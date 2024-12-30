@@ -7,7 +7,7 @@ use futures::{Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 
-use interface::{nest_service_client::NestServiceClient};
+use interface::nest_service_client::NestServiceClient;
 use tonic::{service::interceptor::InterceptedService, transport::Channel, Request, Status};
 
 // https://docs.rs/tonic/latest/tonic/service/trait.Interceptor.html

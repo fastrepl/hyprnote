@@ -2,6 +2,7 @@ use super::{Device, User};
 use anyhow::Result;
 use rand::{distributions::Alphanumeric, Rng};
 
+#[derive(Clone)]
 pub struct AdminDatabase {
     conn: libsql::Connection,
 }
@@ -79,19 +80,22 @@ impl AdminDatabase {
         Ok(device)
     }
 
-    pub async fn delete_device_with_api_key(&self, api_key: String) -> Result<()> {
+    pub async fn delete_device_with_api_key(&self, api_key: impl AsRef<str>) -> Result<()> {
         self.conn
-            .query("DELETE FROM devices WHERE api_key = ?", vec![api_key])
+            .query(
+                "DELETE FROM devices WHERE api_key = ?",
+                vec![api_key.as_ref()],
+            )
             .await?;
         Ok(())
     }
 
-    pub async fn get_user_by_clerk_user_id(&self, clerk_user_id: String) -> Result<User> {
+    pub async fn get_user_by_clerk_user_id(&self, clerk_user_id: impl AsRef<str>) -> Result<User> {
         let mut rows = self
             .conn
             .query(
                 "SELECT * FROM users WHERE clerk_user_id = ?",
-                vec![clerk_user_id],
+                vec![clerk_user_id.as_ref()],
             )
             .await?;
 
@@ -100,14 +104,14 @@ impl AdminDatabase {
         Ok(user)
     }
 
-    pub async fn get_user_by_device_api_key(&self, api_key: String) -> Result<User> {
+    pub async fn get_user_by_device_api_key(&self, api_key: impl AsRef<str>) -> Result<User> {
         let mut rows = self
             .conn
             .query(
                 "SELECT users.* FROM users 
                 JOIN devices ON devices.user_id = users.id 
                 WHERE devices.api_key = ?",
-                vec![api_key],
+                vec![api_key.as_ref()],
             )
             .await?;
 
@@ -197,13 +201,13 @@ mod tests {
         let db = setup_db().await;
 
         let user_1 = db
-        .create_user(User {
-            clerk_user_id: "21".to_string(),
-            turso_db_name: "12".to_string(),
-            ..User::default()
-        })
-        .await
-        .unwrap();
+            .create_user(User {
+                clerk_user_id: "21".to_string(),
+                turso_db_name: "12".to_string(),
+                ..User::default()
+            })
+            .await
+            .unwrap();
 
         let device = db
             .upsert_device(Device {
@@ -214,10 +218,7 @@ mod tests {
             .await
             .unwrap();
 
-        let user_2 = db
-            .get_user_by_device_api_key(device.api_key)
-            .await
-            .unwrap();
+        let user_2 = db.get_user_by_device_api_key(device.api_key).await.unwrap();
 
         assert_eq!(user_1.id, user_2.id);
     }

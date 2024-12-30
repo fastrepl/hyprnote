@@ -1,6 +1,7 @@
 use axum::extract::FromRef;
 
 use clerk_rs::clerk::Clerk;
+use hypr_db::admin::AdminDatabase;
 use shuttle_runtime::SecretStore;
 
 #[derive(Clone)]
@@ -9,6 +10,7 @@ pub struct AppState {
     pub reqwest: reqwest::Client,
     pub clerk: Clerk,
     pub stt: hypr_stt::Client,
+    pub admin_db: AdminDatabase,
 }
 
 #[derive(Clone)]

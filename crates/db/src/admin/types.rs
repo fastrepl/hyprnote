@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use time::{serde::timestamp, OffsetDateTime};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub id: u16,
     #[serde(with = "timestamp")]
@@ -21,7 +21,7 @@ impl Default for User {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Device {
     pub id: u16,
     pub user_id: u16,

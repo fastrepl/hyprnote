@@ -62,8 +62,8 @@ impl kalosm_sound::AsyncSource for SpeakerStream {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serial_test::serial;
     use kalosm_sound::AsyncSource;
+    use serial_test::serial;
 
     fn play_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
         use rodio::{

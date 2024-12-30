@@ -46,7 +46,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for DeepgramClient {
             .punctuate(true)
             .numerals(true)
             .language(Language::en)
-            .filler_words(true)
+            .filler_words(false)
             .diarize(true)
             .keywords(["Hyprnote"])
             .build();

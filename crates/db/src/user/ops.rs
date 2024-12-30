@@ -1,6 +1,7 @@
 use super::{Session, SessionRow};
 use anyhow::Result;
 
+#[derive(Clone)]
 pub struct UserDatabase {
     pub conn: libsql::Connection,
 }

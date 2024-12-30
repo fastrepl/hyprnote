@@ -7,7 +7,7 @@ pub fn register_all(collection: &mut specta_util::TypeCollection) {
     collection.register::<Session>();
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct Session {
     pub id: u16,
     #[serde(with = "timestamp")]
@@ -37,7 +37,7 @@ impl Default for Session {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SessionRow {
     pub id: u16,
     pub timestamp: u64,
@@ -86,13 +86,13 @@ fn parse_json<T: DeserializeOwned>(json: &str) -> T {
     serde_json::from_str(json).unwrap()
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct Transcript {
     pub speakers: Vec<String>,
     pub blocks: Vec<TranscriptBlock>,
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct TranscriptBlock {
     pub timestamp: String,
     pub text: String,

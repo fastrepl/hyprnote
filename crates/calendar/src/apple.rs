@@ -6,10 +6,10 @@ use objc2::{rc::Retained, runtime::Bool, ClassType};
 use objc2_event_kit::{EKAuthorizationStatus, EKCalendar, EKEntityType, EKEventStore};
 use objc2_foundation::{NSArray, NSDate, NSError, NSPredicate};
 
-use crate::{Calendar, CalendarSource, Event, EventFilter};
+use crate::{Calendar, CalendarSource, Event, EventFilter, Participant};
 
 pub struct Handle {
-    store: Retained<EKEventStore>,
+    event_store: Retained<EKEventStore>,
 }
 
 impl Handle {
@@ -26,7 +26,7 @@ impl Handle {
         };
 
         if let Ok(true) = rx.recv() {
-            return Ok(Self { store });
+            return Ok(Self { event_store: store });
         }
 
         Err(anyhow::anyhow!("failed to get calendar permissions"))
@@ -54,7 +54,7 @@ impl Handle {
             )
         };
 
-        let calendars = unsafe { self.store.calendars() };
+        let calendars = unsafe { self.event_store.calendars() };
         let calendars: Retained<NSArray<EKCalendar>> = calendars
             .into_iter()
             .filter(|c| {
@@ -64,7 +64,7 @@ impl Handle {
             .collect();
 
         let predicate = unsafe {
-            self.store
+            self.event_store
                 .predicateForEventsWithStartDate_endDate_calendars(
                     &start_date,
                     &end_date,
@@ -78,7 +78,7 @@ impl Handle {
 
 impl CalendarSource for Handle {
     async fn list_calendars(&self) -> Result<Vec<Calendar>> {
-        let calendars = unsafe { self.store.calendars() };
+        let calendars = unsafe { self.event_store.calendars() };
 
         let list = calendars
             .iter()
@@ -103,7 +103,7 @@ impl CalendarSource for Handle {
 
     async fn list_events(&self, filter: EventFilter) -> Result<Vec<Event>> {
         let predicate = self.events_predicate(&filter);
-        let events = unsafe { self.store.eventsMatchingPredicate(&predicate) };
+        let events = unsafe { self.event_store.eventsMatchingPredicate(&predicate) };
 
         let list = events
             .iter()
@@ -112,6 +112,7 @@ impl CalendarSource for Handle {
                 // https://developer.apple.com/documentation/eventkit/ekevent
                 let id = unsafe { event.eventIdentifier() }.unwrap();
                 let title = unsafe { event.title() };
+                let note = unsafe { event.notes().unwrap_or_default() };
                 let start_date = unsafe { event.startDate() };
                 let end_date = unsafe { event.endDate() };
 
@@ -123,9 +124,24 @@ impl CalendarSource for Handle {
                     return None;
                 }
 
+                let participants = unsafe { event.attendees().unwrap_or_default() }
+                    .iter()
+                    .map(|p| {
+                        let name = unsafe { p.name() }.unwrap_or_default();
+                        let _contact_pred = unsafe { p.contactPredicate() };
+
+                        Participant {
+                            name: name.to_string(),
+                            email: "".to_string(),
+                        }
+                    })
+                    .collect();
+
                 Some(Event {
                     id: id.to_string(),
                     name: title.to_string(),
+                    note: note.to_string(),
+                    participants,
                     start_date: offset_date_time_from(start_date),
                     end_date: offset_date_time_from(end_date),
                 })

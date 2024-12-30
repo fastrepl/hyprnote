@@ -22,10 +22,18 @@ pub struct Calendar {
 pub struct Event {
     pub id: String,
     pub name: String,
+    pub note: String,
+    pub participants: Vec<Participant>,
     #[serde(with = "timestamp")]
     pub start_date: OffsetDateTime,
     #[serde(with = "timestamp")]
     pub end_date: OffsetDateTime,
+}
+
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
+pub struct Participant {
+    pub name: String,
+    pub email: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]

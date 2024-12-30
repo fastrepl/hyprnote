@@ -69,6 +69,8 @@ impl CalendarSource for Handle {
                 Event {
                     id: event.id.clone(),
                     name: event.summary.clone(),
+                    note: event.description.clone(),
+                    participants: Vec::new(),
                     start_date: start,
                     end_date: end,
                 }

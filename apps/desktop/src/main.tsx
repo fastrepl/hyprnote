@@ -3,8 +3,10 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 
-import { AuthProvider, useAuth } from "./auth";
+import { AuthContext, AuthProvider, useAuth } from "./auth";
 import { UIProvider } from "./contexts/UIContext";
+
+import axios from "redaxios";
 
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
@@ -19,11 +21,18 @@ i18n.activate("ko");
 
 import "./styles/global.css";
 
+export type Context = {
+  auth?: AuthContext;
+  axios?: ReturnType<typeof axios.create>;
+  queryClient: QueryClient;
+};
+
 const queryClient = new QueryClient();
 const router = createRouter({
   routeTree,
   context: {
     auth: undefined,
+    axios: undefined,
     queryClient,
   },
   defaultPreload: "intent",
@@ -40,7 +49,22 @@ declare module "@tanstack/react-router" {
 
 function App() {
   const auth = useAuth();
-  return <RouterProvider router={router} context={{ auth, queryClient }} />;
+
+  const token = "TODO";
+  const axiosInstance = axios.create({
+    baseURL: "http://localhost:8000",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const coutext: Required<Context> = {
+    auth,
+    axios: axiosInstance,
+    queryClient,
+  };
+
+  return <RouterProvider router={router} context={coutext} />;
 }
 
 const rootElement = document.getElementById("root")!;

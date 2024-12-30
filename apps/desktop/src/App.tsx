@@ -3,10 +3,9 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import { UIProvider } from "./contexts/UIContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import "./i18n/config";
-import NavBar from "./components/layout/NavBar";
-import Home from "./pages/Home";
-import Note from "./pages/Note";
-import Login from "./pages/Login";
+// import NavBar from "./components/layout/NavBar";
+// import Home from "./pages/Home";
+// import Login from "./pages/Login";
 
 // interface ProtectedRouteProps {
 //   children: React.ReactNode;
@@ -41,8 +40,8 @@ function App() {
         <UIProvider>
           <div className="flex h-screen flex-col">
             <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route
+              {/* <Route path="/login" element={<Login />} /> */}
+              {/* <Route
                 path="/"
                 element={
                   <>
@@ -52,8 +51,8 @@ function App() {
                     </main>
                   </>
                 }
-              />
-              <Route
+              /> */}
+              {/* <Route
                 path="/note/:id"
                 element={
                   <>
@@ -63,7 +62,7 @@ function App() {
                     </main>
                   </>
                 }
-              />
+              /> */}
             </Routes>
           </div>
         </UIProvider>

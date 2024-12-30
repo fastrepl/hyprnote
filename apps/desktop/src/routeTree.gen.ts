@@ -11,13 +11,27 @@
 // Import Routes
 
 import { Route as rootRoute } from "./routes/__root";
+import { Route as LoginImport } from "./routes/login";
 import { Route as IndexImport } from "./routes/index";
+import { Route as NoteIdImport } from "./routes/note.$id";
 
 // Create/Update Routes
+
+const LoginRoute = LoginImport.update({
+  id: "/login",
+  path: "/login",
+  getParentRoute: () => rootRoute,
+} as any);
 
 const IndexRoute = IndexImport.update({
   id: "/",
   path: "/",
+  getParentRoute: () => rootRoute,
+} as any);
+
+const NoteIdRoute = NoteIdImport.update({
+  id: "/note/$id",
+  path: "/note/$id",
   getParentRoute: () => rootRoute,
 } as any);
 
@@ -32,6 +46,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexImport;
       parentRoute: typeof rootRoute;
     };
+    "/login": {
+      id: "/login";
+      path: "/login";
+      fullPath: "/login";
+      preLoaderRoute: typeof LoginImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/note/$id": {
+      id: "/note/$id";
+      path: "/note/$id";
+      fullPath: "/note/$id";
+      preLoaderRoute: typeof NoteIdImport;
+      parentRoute: typeof rootRoute;
+    };
   }
 }
 
@@ -39,32 +67,42 @@ declare module "@tanstack/react-router" {
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
+  "/login": typeof LoginRoute;
+  "/note/$id": typeof NoteIdRoute;
 }
 
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
+  "/login": typeof LoginRoute;
+  "/note/$id": typeof NoteIdRoute;
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute;
   "/": typeof IndexRoute;
+  "/login": typeof LoginRoute;
+  "/note/$id": typeof NoteIdRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/";
+  fullPaths: "/" | "/login" | "/note/$id";
   fileRoutesByTo: FileRoutesByTo;
-  to: "/";
-  id: "__root__" | "/";
+  to: "/" | "/login" | "/note/$id";
+  id: "__root__" | "/" | "/login" | "/note/$id";
   fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
+  LoginRoute: typeof LoginRoute;
+  NoteIdRoute: typeof NoteIdRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
+  NoteIdRoute: NoteIdRoute,
 };
 
 export const routeTree = rootRoute
@@ -77,11 +115,19 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/"
+        "/",
+        "/login",
+        "/note/$id"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/login": {
+      "filePath": "login.tsx"
+    },
+    "/note/$id": {
+      "filePath": "note.$id.tsx"
     }
   }
 }

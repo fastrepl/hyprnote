@@ -1,23 +1,21 @@
+import { createFileRoute } from "@tanstack/react-router";
 import { RiGoogleFill, RiAppleFill } from "@remixicon/react";
 import { useTranslation } from "react-i18next";
+
 import { RetroGrid } from "../components/ui/retro-grid.tsx";
 import { AudioControls } from "../components/AudioControls";
 import BlurFade from "../components/ui/blur-fade.tsx";
 import SparklesText from "../components/ui/sparkles-text.tsx";
 import ShimmerButton from "../components/ui/shimmer-button.tsx";
 
-const Login = () => {
+export const Route = createFileRoute("/login")({
+  component: Component,
+});
+
+function Component() {
   const { t } = useTranslation();
 
-  const handleGoogleSignIn = () => {
-    // Implement Google Sign In
-    console.log("Google Sign In clicked");
-  };
-
-  const handleAppleSignIn = () => {
-    // Implement Apple Sign In
-    console.log("Apple Sign In clicked");
-  };
+  const handleSignIn = () => {};
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden text-black">
@@ -41,7 +39,7 @@ const Login = () => {
 
         <div className="flex w-full flex-col gap-4 sm:flex-row">
           <ShimmerButton
-            onClick={handleGoogleSignIn}
+            onClick={handleSignIn}
             className="flex flex-1 items-center justify-center gap-2"
           >
             <RiGoogleFill size={20} />
@@ -49,7 +47,7 @@ const Login = () => {
           </ShimmerButton>
 
           <ShimmerButton
-            onClick={handleAppleSignIn}
+            onClick={handleSignIn}
             className="flex flex-1 items-center justify-center gap-2"
           >
             <RiAppleFill size={20} />
@@ -59,6 +57,4 @@ const Login = () => {
       </div>
     </div>
   );
-};
-
-export default Login;
+}

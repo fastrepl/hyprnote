@@ -1,6 +1,8 @@
 import { RiCalendarLine } from "@remixicon/react";
+import { useLingui } from "@lingui/react";
+import { Trans } from "@lingui/react/macro";
+
 import type { Note } from "../../types";
-import { formatMeetingTime } from "../../utils/time";
 import NoteControl from "./NoteControl";
 
 interface NoteHeaderProps {
@@ -28,6 +30,8 @@ export default function NoteHeader({
   onStartRecording,
   onPauseResume,
 }: NoteHeaderProps) {
+  const { i18n } = useLingui();
+
   return (
     <div className="border-b bg-white p-4 px-6">
       <div className="flex items-center justify-between">
@@ -45,8 +49,10 @@ export default function NoteHeader({
                 <RiCalendarLine className="mr-2 h-4 w-4" />
                 <span className="font-medium">
                   {note.calendarEvent.summary}{" "}
-                  {formatMeetingTime(note.calendarEvent.start)} ~{" "}
-                  {formatMeetingTime(note.calendarEvent.end)}
+                  <Trans>
+                    {i18n.date(note.calendarEvent.start.dateTime!)} ~{" "}
+                    {i18n.date(note.calendarEvent.end.dateTime!)}
+                  </Trans>
                 </span>
               </div>
             )}

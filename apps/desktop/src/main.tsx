@@ -6,6 +6,17 @@ import { routeTree } from "./routeTree.gen";
 import { AuthProvider, useAuth } from "./auth";
 import { UIProvider } from "./contexts/UIContext";
 
+import { i18n } from "@lingui/core";
+import { I18nProvider } from "@lingui/react";
+import { messages as enMessages } from "./locales/en/messages";
+import { messages as koMessages } from "./locales/ko/messages";
+
+i18n.load({
+  en: enMessages,
+  ko: koMessages,
+});
+i18n.activate("ko");
+
 import "./styles/global.css";
 
 const queryClient = new QueryClient();
@@ -38,11 +49,13 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <QueryClientProvider client={queryClient}>
-      <UIProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </UIProvider>
+      <I18nProvider i18n={i18n}>
+        <UIProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </UIProvider>
+      </I18nProvider>
     </QueryClientProvider>,
   );
 }

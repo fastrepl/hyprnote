@@ -8,7 +8,10 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "extract": "lingui extract",
+    "compile": "lingui compile --typescript",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@lingui/core": "^5.1.2",
@@ -27,6 +30,7 @@
     "@tauri-apps/plugin-fs": "^2.2.0",
     "@tauri-apps/plugin-log": "^2.2.0",
     "@tauri-apps/plugin-shell": "^2.2.0",
+    "@tauri-apps/plugin-store": "^2.2.0",
     "@tauri-apps/plugin-updater": "^2.3.0",
     "@tiptap/extension-highlight": "^2.10.4",
     "@tiptap/extension-placeholder": "^2.10.4",
@@ -49,7 +53,9 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "@lingui/babel-plugin-lingui-macro": "^5.1.2",
+    "@lingui/cli": "^5.1.2",
     "@lingui/vite-plugin": "^5.1.2",
     "@tanstack/router-devtools": "^1.92.11",
     "@tanstack/router-plugin": "^1.92.11",
@@ -59,11 +65,16 @@
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "eslint": "^9.17.0",
+    "eslint-plugin-lingui": "^0.9.0",
+    "eslint-plugin-react": "^7.37.3",
+    "globals": "^15.14.0",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.9",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
+    "typescript-eslint": "^8.19.0",
     "vite": "^5.4.11"
   }
 }

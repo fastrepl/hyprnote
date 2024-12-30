@@ -14,11 +14,8 @@ export const commands = {
   async stopPlayback(audioId: string): Promise<void> {
     await TAURI_INVOKE("stop_playback", { audioId });
   },
-  async listAppleCalendars(): Promise<Calendar[]> {
-    return await TAURI_INVOKE("list_apple_calendars");
-  },
-  async listAppleEvents(filter: EventFilter): Promise<Event[]> {
-    return await TAURI_INVOKE("list_apple_events", { filter });
+  async listCalendars(): Promise<Calendar[]> {
+    return await TAURI_INVOKE("list_calendars");
   },
   async openPermissionSettings(permission: OSPermission): Promise<void> {
     await TAURI_INVOKE("open_permission_settings", { permission });
@@ -44,11 +41,14 @@ export const events = __makeEvents__<{
 
 /** user-defined types **/
 
-export type Calendar = { title: string };
-export type Event = { title: string; start_date: string; end_date: string };
-export type EventFilter = {
-  last_n_days: number | null;
-  calendar_titles: string[];
+export type Calendar = { id: string; name: string };
+export type Event = {
+  id: string;
+  name: string;
+  note: string;
+  participants: Participant[];
+  start_date: string;
+  end_date: string;
 };
 export type JustAuthenticated = null;
 export type NotAuthenticated = null;
@@ -57,6 +57,7 @@ export type OSPermission =
   | "camera"
   | "microphone"
   | "accessibility";
+export type Participant = { name: string; email: string };
 export type Transcript = { text: string };
 
 /** tauri-specta globals **/

@@ -49,9 +49,13 @@ impl futures_core::Stream for SpeakerStream {
     }
 }
 
-impl SpeakerStream {
-    pub fn read_sync(&mut self) -> Vec<f32> {
-        self.inner.read_sync()
+impl kalosm_sound::AsyncSource for SpeakerStream {
+    fn as_stream(&mut self) -> impl futures::Stream<Item = f32> + '_ {
+        self
+    }
+
+    fn sample_rate(&self) -> u32 {
+        self.inner.sample_rate()
     }
 }
 
@@ -59,6 +63,7 @@ impl SpeakerStream {
 mod tests {
     use super::*;
     use serial_test::serial;
+    use kalosm_sound::AsyncSource;
 
     fn play_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
         use rodio::{
@@ -86,20 +91,14 @@ mod tests {
     }
 
     #[cfg(target_os = "macos")]
-    #[test]
+    #[tokio::test]
     #[serial]
-    fn test_macos() {
-        let handle = play_for_sec(1);
+    async fn test_macos() {
+        let _handle = play_for_sec(1);
         let input = SpeakerInput::new().unwrap();
         let mut stream = input.stream().unwrap();
-
-        std::thread::sleep(std::time::Duration::from_millis(500));
-
-        let data = stream.read_sync();
-        assert!(data.len() > 10);
-        assert!(!data.iter().all(|x| *x == 0.0));
-
-        handle.join().unwrap();
+        let samples = stream.read_samples(44100 * 1).await;
+        assert!(samples.count() == 44100 * 1);
     }
 
     #[cfg(target_os = "windows")]

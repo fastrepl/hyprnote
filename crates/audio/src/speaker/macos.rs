@@ -18,6 +18,13 @@ pub struct SpeakerStream {
     receiver: std::pin::Pin<Box<dyn futures_core::Stream<Item = f32> + Send + Sync>>,
     device: ca::hardware::StartedDevice<ca::AggregateDevice>,
     _ctx: Box<Ctx>,
+    stream_desc: cat::AudioBasicStreamDesc,
+}
+
+impl SpeakerStream {
+    pub fn sample_rate(&self) -> u32 {
+        self.stream_desc.sample_rate as u32
+    }
 }
 
 #[derive(Clone)]
@@ -120,6 +127,7 @@ impl SpeakerInput {
             read_data: Vec::new(),
             device,
             _ctx: ctx,
+            stream_desc: asbd,
         }
     }
 }
@@ -139,17 +147,5 @@ impl futures_core::Stream for SpeakerStream {
             std::task::Poll::Ready(None) => std::task::Poll::Ready(None),
             std::task::Poll::Pending => std::task::Poll::Pending,
         }
-    }
-}
-
-impl SpeakerStream {
-    pub fn read_sync(&mut self) -> Vec<f32> {
-        let mut ctx = std::task::Context::from_waker(futures_util::task::noop_waker_ref());
-
-        while let std::task::Poll::Ready(Some(data_chunk)) = self.receiver.poll_next_unpin(&mut ctx)
-        {
-            self.read_data.push(data_chunk);
-        }
-        self.read_data.clone()
     }
 }

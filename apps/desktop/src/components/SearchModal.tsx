@@ -2,15 +2,18 @@ import "../../../styles/cmdk.css";
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
+
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+
 import { Command } from "cmdk";
-import { useTranslation } from "react-i18next";
 
-import { mockNotes } from "../../../mocks/data";
+import { mockNotes } from "../mocks/data";
 
-const SearchModal = () => {
-  const { t } = useTranslation();
+export default function SearchModal() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,27 +67,29 @@ const SearchModal = () => {
         />
       )}
       {open && (
-        <Command label={t("search.label")} onKeyDown={handleKeyDown}>
+        <Command onKeyDown={handleKeyDown}>
           <Command className="fixed left-[50%] top-[50%] z-[51] max-h-[85vh] w-[90vw] max-w-[450px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white shadow-lg dark:bg-gray-800">
             <Command.Input
               value={search}
               onValueChange={setSearch}
-              placeholder={t("search.placeholder")}
+              placeholder={t`Search`}
               className="w-full"
               autoFocus
             />
             <Command.List>
-              <Command.Empty>{t("search.noResults")}</Command.Empty>
+              <Command.Empty>
+                <Trans>No results</Trans>
+              </Command.Empty>
               <Command.Group>
                 {filteredNotes.map((note) => (
                   <Command.Item
                     key={note.id}
                     onSelect={() => {
+                      setOpen(false);
                       navigate({
                         to: "/note/$id",
                         params: { id: note.id },
                       });
-                      setOpen(false);
                     }}
                   >
                     {note.title}
@@ -97,6 +102,4 @@ const SearchModal = () => {
       )}
     </>
   );
-};
-
-export default SearchModal;
+}

@@ -6,38 +6,39 @@ type TauriStoreData = {
   key?: string;
 };
 
-// @ts-ignore
-let store: Store = null;
-
-load("store.json", { autoSave: false }).then((s) => {
-  store = s;
-});
-
 const defaultStoreData: TauriStoreData = {
   locale: "en",
 };
 
-const storeOperation = {
-  get: async (key: keyof TauriStoreData) => {
-    return store.get(key);
-  },
-  set: async (key: keyof TauriStoreData, value: string) => {
-    return store.set(key, value);
-  },
-};
+export const useTauriStore = create<
+  TauriStoreData & {
+    _store: Store | null;
+    load: () => Promise<void>;
+    setKey: (key: TauriStoreData["key"]) => void;
+    setLocale: (locale: TauriStoreData["locale"]) => void;
+  }
+>((set) => ({
+  ...defaultStoreData,
+  _store: null,
+  load: async () => {
+    const store = await load("store.json", { autoSave: false });
 
-export const useTauriStore = create<TauriStoreData & typeof storeOperation>(
-  (set) => ({
-    ...defaultStoreData,
-    ...storeOperation,
-    load: async () => {
-      const locale = ((await storeOperation.get("locale")) ||
-        "en") as TauriStoreData["locale"];
+    const key = (await store.get("key")) as TauriStoreData["key"];
+    const locale = ((await store.get("locale")) ||
+      "en") as TauriStoreData["locale"];
 
-      set((state) => ({ ...state, locale }));
-    },
-    setLocale: (locale: TauriStoreData["locale"]) => {
-      set((state) => ({ ...state, locale }));
-    },
-  }),
-);
+    set((state) => ({ ...state, _store: store, locale, key }));
+  },
+  setKey: (key: TauriStoreData["key"]) => {
+    set((state) => {
+      state._store?.set("key", key);
+      return { ...state, key };
+    });
+  },
+  setLocale: (locale: TauriStoreData["locale"]) => {
+    set((state) => {
+      state._store?.set("locale", locale);
+      return { ...state, locale };
+    });
+  },
+}));

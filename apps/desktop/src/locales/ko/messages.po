@@ -13,6 +13,11 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#. placeholder {0}: i18n.date(note.updatedAt)
+#: src/components/home/PastNotes.tsx:32
+msgid "{0}"
+msgstr ""
+
 #. placeholder {0}: i18n.date(note.calendarEvent.start.dateTime!)
 #. placeholder {1}: i18n.date(note.calendarEvent.end.dateTime!)
 #: src/components/note/NoteHeader.tsx:52
@@ -24,15 +29,31 @@ msgid "Get Started"
 msgstr ""
 
 #: src/components/home/NewUserBanner.tsx:12
-msgid "home.newUser.question"
-msgstr ""
+#~ msgid "home.newUser.question"
+#~ msgstr ""
 
 #: src/components/home/NewUserBanner.tsx:17
-msgid "home.newUser.tryDemo"
+#~ msgid "home.newUser.tryDemo"
+#~ msgstr ""
+
+#: src/components/layout/NavBar.tsx:85
+msgid "New Note"
 msgstr ""
 
-#: src/components/layout/NavBar.tsx:91
-msgid "New Note"
+#: src/components/SearchModal.tsx:78
+msgid "No results"
+msgstr ""
+
+#: src/components/home/PastNotes.tsx:16
+msgid "Recent Notes"
+msgstr ""
+
+#: src/components/SearchModal.tsx:72
+msgid "Search"
+msgstr ""
+
+#: src/components/home/PastNotes.tsx:28
+msgid "Untitled"
 msgstr ""
 
 #: src/routes/login.tsx:28

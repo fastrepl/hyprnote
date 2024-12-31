@@ -13,12 +13,12 @@ export const Route = createFileRoute("/callback/connect")({
 });
 
 function Component() {
-  const set = useTauriStore((state) => state.set);
+  const setKey = useTauriStore((state) => state.setKey);
   const { k } = Route.useSearch();
 
   useEffect(() => {
-    set("key", k);
-  }, [set, k]);
+    setKey(k);
+  }, [setKey, k]);
 
   return <div>got {k}</div>;
 }

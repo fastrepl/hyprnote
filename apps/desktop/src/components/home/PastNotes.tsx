@@ -4,7 +4,7 @@ import type { Note } from "../../types";
 
 interface PastNotesProps {
   notes: Note[];
-  handleClickNote: (noteId: string) => void;
+  handleClickNote: (note: Note) => void;
 }
 
 export const PastNotes = ({ notes, handleClickNote }: PastNotesProps) => {
@@ -20,7 +20,7 @@ export const PastNotes = ({ notes, handleClickNote }: PastNotesProps) => {
         {notes.map((note) => (
           <div
             key={note.id}
-            onClick={() => handleClickNote(note.id)}
+            onClick={() => handleClickNote(note)}
             className="cursor-pointer rounded-lg bg-white p-4 transition-shadow hover:shadow-[0_4px_12px_0px_rgba(251,191,36,0.2),0_4px_12px_0px_rgba(99,102,241,0.2)]"
           >
             <div className="mb-3 flex items-start justify-between">

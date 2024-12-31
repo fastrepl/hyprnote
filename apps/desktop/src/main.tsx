@@ -19,6 +19,7 @@ i18n.load({
 i18n.activate("ko");
 
 import "./styles/global.css";
+import { useTauriStore } from "./stores/tauri";
 
 export type Context = {
   auth?: AuthContext;
@@ -47,6 +48,9 @@ declare module "@tanstack/react-router" {
 }
 
 function App() {
+  const load = useTauriStore((state) => state.load);
+  load().then(() => {});
+
   const auth = useAuth();
 
   const token = "TODO";

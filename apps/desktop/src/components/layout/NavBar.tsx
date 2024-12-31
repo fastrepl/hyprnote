@@ -9,7 +9,7 @@ import {
 import { Trans } from "@lingui/react/macro";
 import { useUI } from "../../stores/ui";
 
-import SearchModal from "../modals/search/SearchModal";
+import SearchModal from "../SearchModal";
 import SettingsModal from "../modals/settings/SettingsModal";
 import SearchBar from "./SearchBar";
 import ExportMenu from "./ExportMenu";

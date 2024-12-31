@@ -1,23 +1,21 @@
 import { useCallback } from "react";
-import { useTranslation } from "react-i18next";
-
 import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
 import useEmblaCarousel from "embla-carousel-react";
+import { Trans } from "@lingui/react/macro";
+
 import { EventCard } from "./EventCard";
 
-import type { Note } from "../../types";
+import type { Event } from "../../types";
 
 interface UpcomingEventsProps {
-  futureNotes: Note[];
-  handleClickNote: (noteId: string) => void;
+  events: Event[];
+  handleClickEvent: (event: Event) => void;
 }
 
 export const UpcomingEvents = ({
-  futureNotes,
-  handleClickNote,
+  events,
+  handleClickEvent,
 }: UpcomingEventsProps) => {
-  const { t } = useTranslation();
-
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     slidesToScroll: 1,
@@ -31,28 +29,29 @@ export const UpcomingEvents = ({
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
-  const limitedFutureNotes = futureNotes.slice(0, 10);
-
   return (
     <div className="relative">
-      <h2 className="text-xl font-semibold">{t("home.upcomingEvents")}</h2>
+      <h2 className="text-xl font-semibold">
+        <Trans>Upcoming Events</Trans>
+      </h2>
+
       <div className="relative">
         <div className="overflow-hidden px-2 py-4" ref={emblaRef}>
           <div className="flex gap-4">
-            {limitedFutureNotes.map((note) => (
+            {events.map((event) => (
               <div
-                key={note.id}
+                key={event.id}
                 className="w-[280px] flex-[0_0_auto] max-[400px]:w-full max-[400px]:flex-[0_0_100%]"
               >
                 <EventCard
-                  note={note}
-                  onClick={() => handleClickNote(note.id)}
+                  event={event}
+                  handleClick={() => handleClickEvent(event)}
                 />
               </div>
             ))}
           </div>
         </div>
-        {limitedFutureNotes.length > 1 && (
+        {events.length > 1 && (
           <>
             <button
               onClick={scrollPrev}

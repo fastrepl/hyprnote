@@ -1,13 +1,15 @@
 use super::{Session, SessionRow};
 use anyhow::Result;
 
+use crate::Connection;
+
 #[derive(Clone)]
 pub struct UserDatabase {
-    pub conn: libsql::Connection,
+    pub conn: Connection,
 }
 
 impl UserDatabase {
-    pub async fn from(conn: libsql::Connection) -> Self {
+    pub async fn from(conn: Connection) -> Self {
         Self { conn }
     }
 

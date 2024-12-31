@@ -2,13 +2,15 @@ use super::{Device, User};
 use anyhow::Result;
 use rand::{distributions::Alphanumeric, Rng};
 
+use crate::Connection;
+
 #[derive(Clone)]
 pub struct AdminDatabase {
-    conn: libsql::Connection,
+    conn: Connection,
 }
 
 impl AdminDatabase {
-    pub async fn from(conn: libsql::Connection) -> Self {
+    pub async fn from(conn: Connection) -> Self {
         Self { conn }
     }
 }

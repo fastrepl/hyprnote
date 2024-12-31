@@ -5,7 +5,7 @@ use anyhow::Result;
 use time::format_description::well_known::Rfc3339;
 use time_tz::{timezones, Offset, TimeZone};
 
-use crate::{Calendar, CalendarSource, Event, EventFilter, Participant};
+use crate::{Calendar, CalendarSource, CalendarSourceKind, Event, EventFilter, Participant};
 
 pub use google_calendar::*;
 
@@ -32,6 +32,7 @@ impl CalendarSource for Handle {
             .map(|calendar| Calendar {
                 id: calendar.id.clone(),
                 name: calendar.summary.clone(),
+                kind: CalendarSourceKind::Google,
             })
             .collect();
 

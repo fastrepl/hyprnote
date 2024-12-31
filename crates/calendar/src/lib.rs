@@ -13,9 +13,16 @@ pub trait CalendarSource {
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
+pub enum CalendarSourceKind {
+    Apple,
+    Google,
+}
+
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct Calendar {
     pub id: String,
     pub name: String,
+    pub kind: CalendarSourceKind,
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]

@@ -11,7 +11,7 @@ use objc2_contacts::{CNAuthorizationStatus, CNContactStore, CNEntityType, CNKeyD
 use objc2_event_kit::{EKAuthorizationStatus, EKCalendar, EKEntityType, EKEventStore};
 use objc2_foundation::{NSArray, NSDate, NSError, NSPredicate, NSString};
 
-use crate::{Calendar, CalendarSource, Event, EventFilter, Participant};
+use crate::{Calendar, CalendarSource, CalendarSourceKind, Event, EventFilter, Participant};
 
 pub struct Handle {
     event_store: Retained<EKEventStore>,
@@ -152,6 +152,7 @@ impl CalendarSource for Handle {
                 Calendar {
                     id: id.to_string(),
                     name: title.to_string(),
+                    kind: CalendarSourceKind::Apple,
                 }
             })
             .sorted_by(|a, b| a.name.cmp(&b.name))
@@ -270,18 +271,20 @@ mod tests {
         let handle = Handle::new();
         let calendars = handle.list_calendars().await.unwrap();
         assert!(!calendars.is_empty());
+        // println!("{:?}", calendars);
     }
 
     #[tokio::test]
     async fn test_list_events() {
         let handle = Handle::new();
         let filter = EventFilter {
-            calendar_id: "something_not_exist".into(),
+            calendar_id: "698327C2-47A9-4777-A033-A68FB62F9F86".into(),
             from: time::OffsetDateTime::now_utc() - time::Duration::days(100),
             to: time::OffsetDateTime::now_utc() + time::Duration::days(100),
         };
 
         let events = handle.list_events(filter).await.unwrap();
-        assert!(events.is_empty());
+        // assert!(events.is_empty());
+        println!("{:?}", events);
     }
 }

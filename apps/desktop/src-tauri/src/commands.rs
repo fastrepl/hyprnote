@@ -26,16 +26,24 @@ pub async fn start_playback(_app: AppHandle, _audio_id: String) {}
 #[specta::specta]
 pub async fn stop_playback(_app: AppHandle, _audio_id: String) {}
 
-#[cfg(target_os = "macos")]
 #[tauri::command]
 #[specta::specta]
 pub async fn list_calendars() -> Result<Vec<hypr_calendar::Calendar>, String> {
-    tokio::task::spawn_blocking(|| {
-        let handle = hypr_calendar::apple::Handle::new();
-        futures::executor::block_on(handle.list_calendars()).map_err(|e| e.to_string())
-    })
-    .await
-    .map_err(|e| e.to_string())?
+    let mut calendars: Vec<hypr_calendar::Calendar> = Vec::new();
+
+    #[cfg(target_os = "macos")]
+    {
+        let apple_calendars = tokio::task::spawn_blocking(|| {
+            let handle = hypr_calendar::apple::Handle::new();
+            futures::executor::block_on(handle.list_calendars()).unwrap_or(vec![])
+        })
+        .await
+        .map_err(|e| e.to_string())?;
+
+        calendars.extend(apple_calendars);
+    }
+
+    Ok(calendars)
 }
 
 #[tauri::command]

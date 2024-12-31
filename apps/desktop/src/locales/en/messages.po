@@ -6,6 +6,22 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: @lingui/cli\n"
 "Language: en\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#. placeholder {0}: i18n.date(note.calendarEvent.start.dateTime!)
+#. placeholder {1}: i18n.date(note.calendarEvent.end.dateTime!)
+#: src/components/note/NoteHeader.tsx:52
+msgid "{0} ~ {1}"
+msgstr "{0} ~ {1}"
+
+#: src/routes/login.tsx:38
+msgid "Get Started"
+msgstr "Get Started"
 
 #: src/components/home/NewUserBanner.tsx:12
 msgid "home.newUser.question"
@@ -14,3 +30,11 @@ msgstr "home.newUser.question"
 #: src/components/home/NewUserBanner.tsx:17
 msgid "home.newUser.tryDemo"
 msgstr "home.newUser.tryDemo"
+
+#: src/components/layout/NavBar.tsx:91
+msgid "New Note"
+msgstr "New Note"
+
+#: src/routes/login.tsx:28
+msgid "Welcome to"
+msgstr "Welcome to"

@@ -2,10 +2,11 @@ import { useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
-import { useUI } from "../contexts/UIContext";
 import { useNoteState } from "../hooks/useNoteState";
 import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import { mockTranscripts } from "../mocks/data";
+
+import { useUI } from "../stores/ui";
 
 import SidePanel from "../components/note/SidePanel";
 import NoteHeader from "../components/note/NoteHeader";

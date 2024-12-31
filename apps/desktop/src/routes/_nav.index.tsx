@@ -14,7 +14,7 @@ const queryOptions = () => ({
   },
 });
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_nav/")({
   component: Component,
   loader: ({ context: { queryClient } }) => {
     return queryClient.ensureQueryData(queryOptions());
@@ -41,6 +41,7 @@ function Component() {
 
   return (
     <main className="mx-auto max-w-4xl space-y-8 p-6">
+      123
       <UpcomingEvents futureNotes={[]} handleClickNote={handleNoteClick} />
       <PastNotes notes={[]} handleClickNote={handleNoteClick} />
     </main>

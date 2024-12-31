@@ -12,7 +12,7 @@ const queryOptions = (id: string) => ({
   },
 });
 
-export const Route = createFileRoute("/note/$id")({
+export const Route = createFileRoute("/_nav/note/$id")({
   component: Component,
   loader: ({ context: { queryClient }, params: { id } }) => {
     return queryClient.ensureQueryData(queryOptions(id));

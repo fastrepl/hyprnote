@@ -12,10 +12,11 @@
 
 import { Route as rootRoute } from "./routes/__root";
 import { Route as LoginImport } from "./routes/login";
-import { Route as IndexImport } from "./routes/index";
+import { Route as NavImport } from "./routes/_nav";
+import { Route as NavIndexImport } from "./routes/_nav.index";
 import { Route as NoteNewImport } from "./routes/note.new";
-import { Route as NoteIdImport } from "./routes/note.$id";
 import { Route as CallbackConnectImport } from "./routes/callback.connect";
+import { Route as NavNoteIdImport } from "./routes/_nav.note.$id";
 
 // Create/Update Routes
 
@@ -25,21 +26,20 @@ const LoginRoute = LoginImport.update({
   getParentRoute: () => rootRoute,
 } as any);
 
-const IndexRoute = IndexImport.update({
+const NavRoute = NavImport.update({
+  id: "/_nav",
+  getParentRoute: () => rootRoute,
+} as any);
+
+const NavIndexRoute = NavIndexImport.update({
   id: "/",
   path: "/",
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => NavRoute,
 } as any);
 
 const NoteNewRoute = NoteNewImport.update({
   id: "/note/new",
   path: "/note/new",
-  getParentRoute: () => rootRoute,
-} as any);
-
-const NoteIdRoute = NoteIdImport.update({
-  id: "/note/$id",
-  path: "/note/$id",
   getParentRoute: () => rootRoute,
 } as any);
 
@@ -49,15 +49,21 @@ const CallbackConnectRoute = CallbackConnectImport.update({
   getParentRoute: () => rootRoute,
 } as any);
 
+const NavNoteIdRoute = NavNoteIdImport.update({
+  id: "/note/$id",
+  path: "/note/$id",
+  getParentRoute: () => NavRoute,
+} as any);
+
 // Populate the FileRoutesByPath interface
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexImport;
+    "/_nav": {
+      id: "/_nav";
+      path: "";
+      fullPath: "";
+      preLoaderRoute: typeof NavImport;
       parentRoute: typeof rootRoute;
     };
     "/login": {
@@ -74,13 +80,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof CallbackConnectImport;
       parentRoute: typeof rootRoute;
     };
-    "/note/$id": {
-      id: "/note/$id";
-      path: "/note/$id";
-      fullPath: "/note/$id";
-      preLoaderRoute: typeof NoteIdImport;
-      parentRoute: typeof rootRoute;
-    };
     "/note/new": {
       id: "/note/new";
       path: "/note/new";
@@ -88,64 +87,97 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof NoteNewImport;
       parentRoute: typeof rootRoute;
     };
+    "/_nav/": {
+      id: "/_nav/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof NavIndexImport;
+      parentRoute: typeof NavImport;
+    };
+    "/_nav/note/$id": {
+      id: "/_nav/note/$id";
+      path: "/note/$id";
+      fullPath: "/note/$id";
+      preLoaderRoute: typeof NavNoteIdImport;
+      parentRoute: typeof NavImport;
+    };
   }
 }
 
 // Create and export the route tree
 
+interface NavRouteChildren {
+  NavIndexRoute: typeof NavIndexRoute;
+  NavNoteIdRoute: typeof NavNoteIdRoute;
+}
+
+const NavRouteChildren: NavRouteChildren = {
+  NavIndexRoute: NavIndexRoute,
+  NavNoteIdRoute: NavNoteIdRoute,
+};
+
+const NavRouteWithChildren = NavRoute._addFileChildren(NavRouteChildren);
+
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
+  "": typeof NavRouteWithChildren;
   "/login": typeof LoginRoute;
   "/callback/connect": typeof CallbackConnectRoute;
-  "/note/$id": typeof NoteIdRoute;
   "/note/new": typeof NoteNewRoute;
+  "/": typeof NavIndexRoute;
+  "/note/$id": typeof NavNoteIdRoute;
 }
 
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
   "/login": typeof LoginRoute;
   "/callback/connect": typeof CallbackConnectRoute;
-  "/note/$id": typeof NoteIdRoute;
   "/note/new": typeof NoteNewRoute;
+  "/": typeof NavIndexRoute;
+  "/note/$id": typeof NavNoteIdRoute;
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute;
-  "/": typeof IndexRoute;
+  "/_nav": typeof NavRouteWithChildren;
   "/login": typeof LoginRoute;
   "/callback/connect": typeof CallbackConnectRoute;
-  "/note/$id": typeof NoteIdRoute;
   "/note/new": typeof NoteNewRoute;
+  "/_nav/": typeof NavIndexRoute;
+  "/_nav/note/$id": typeof NavNoteIdRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/" | "/login" | "/callback/connect" | "/note/$id" | "/note/new";
-  fileRoutesByTo: FileRoutesByTo;
-  to: "/" | "/login" | "/callback/connect" | "/note/$id" | "/note/new";
-  id:
-    | "__root__"
-    | "/"
+  fullPaths:
+    | ""
     | "/login"
     | "/callback/connect"
-    | "/note/$id"
-    | "/note/new";
+    | "/note/new"
+    | "/"
+    | "/note/$id";
+  fileRoutesByTo: FileRoutesByTo;
+  to: "/login" | "/callback/connect" | "/note/new" | "/" | "/note/$id";
+  id:
+    | "__root__"
+    | "/_nav"
+    | "/login"
+    | "/callback/connect"
+    | "/note/new"
+    | "/_nav/"
+    | "/_nav/note/$id";
   fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
+  NavRoute: typeof NavRouteWithChildren;
   LoginRoute: typeof LoginRoute;
   CallbackConnectRoute: typeof CallbackConnectRoute;
-  NoteIdRoute: typeof NoteIdRoute;
   NoteNewRoute: typeof NoteNewRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  NavRoute: NavRouteWithChildren,
   LoginRoute: LoginRoute,
   CallbackConnectRoute: CallbackConnectRoute,
-  NoteIdRoute: NoteIdRoute,
   NoteNewRoute: NoteNewRoute,
 };
 
@@ -159,15 +191,18 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
+        "/_nav",
         "/login",
         "/callback/connect",
-        "/note/$id",
         "/note/new"
       ]
     },
-    "/": {
-      "filePath": "index.tsx"
+    "/_nav": {
+      "filePath": "_nav.tsx",
+      "children": [
+        "/_nav/",
+        "/_nav/note/$id"
+      ]
     },
     "/login": {
       "filePath": "login.tsx"
@@ -175,11 +210,16 @@ export const routeTree = rootRoute
     "/callback/connect": {
       "filePath": "callback.connect.tsx"
     },
-    "/note/$id": {
-      "filePath": "note.$id.tsx"
-    },
     "/note/new": {
       "filePath": "note.new.tsx"
+    },
+    "/_nav/": {
+      "filePath": "_nav.index.tsx",
+      "parent": "/_nav"
+    },
+    "/_nav/note/$id": {
+      "filePath": "_nav.note.$id.tsx",
+      "parent": "/_nav"
     }
   }
 }

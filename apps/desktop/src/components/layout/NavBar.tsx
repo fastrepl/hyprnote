@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useNavigate, useLocation, useRouter } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import {
   RiMenuLine,
   RiSidebarUnfoldLine,
@@ -16,12 +16,10 @@ import ExportMenu from "./ExportMenu";
 import NavigationButtons from "./NavigationButtons";
 
 export default function NavBar() {
+  const { history, navigate } = useRouter();
   const { isPanelOpen, setIsPanelOpen } = useUI();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { history } = useRouter();
 
-  const isNotePage = location.pathname.startsWith("/note/");
+  const isNotePage = history.location.pathname.startsWith("/note/");
 
   const handleNewNote = useCallback(() => {
     const id = crypto.randomUUID();

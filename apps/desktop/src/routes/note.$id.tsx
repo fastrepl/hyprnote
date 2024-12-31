@@ -1,120 +1,45 @@
-import { useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
-import { useNoteState } from "../hooks/useNoteState";
-import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
-import { mockTranscripts } from "../mocks/data";
-
+import Editor from "../components/editor";
 import { useUI } from "../stores/ui";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-import SidePanel from "../components/note/SidePanel";
-import NoteHeader from "../components/note/NoteHeader";
-import NoteEditor from "../components/note/NoteEditor";
+const queryOptions = (id: string) => ({
+  queryKey: ["note", { id }],
+  queryFn: () => {
+    return {};
+  },
+});
 
 export const Route = createFileRoute("/note/$id")({
   component: Component,
-  loader: ({ params: { id } }) => {
-    return {
-      id,
-    };
+  loader: ({ context: { queryClient }, params: { id } }) => {
+    return queryClient.ensureQueryData(queryOptions(id));
   },
 });
 
 function Component() {
   const { id } = Route.useParams();
+  const { data: _note } = useSuspenseQuery(queryOptions(id));
 
   const { isPanelOpen } = useUI();
-  const {
-    state,
-    updateState,
-    shouldStartRecording,
-    updateRecordingTime,
-    handlePauseResume,
-    handlehyprcharge,
-  } = useNoteState(id);
-  const {
-    isRecording,
-    isPaused,
-    transcript,
-    startRecording,
-    pauseRecording,
-    resumeRecording,
-    stopRecording,
-  } = useSpeechRecognition();
-
-  const handlePauseResumeClick = () => {
-    handlePauseResume(isPaused, resumeRecording, pauseRecording);
-  };
-
-  useEffect(() => {
-    if (
-      state.isNew ||
-      (state.note?.calendarEvent &&
-        shouldStartRecording(state.note.calendarEvent))
-    ) {
-      startRecording();
-    }
-
-    const timer = setInterval(() => {
-      if (isRecording && !isPaused) {
-        updateRecordingTime();
-      }
-    }, 1000);
-
-    return () => {
-      void stopRecording();
-      clearInterval(timer);
-    };
-  }, [
-    state.isNew,
-    state.note,
-    isRecording,
-    isPaused,
-    startRecording,
-    stopRecording,
-    updateRecordingTime,
-  ]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <main className="flex-1">
-        <PanelGroup direction="horizontal">
-          <Panel defaultSize={100} minSize={50}>
-            <div className="flex h-full flex-col overflow-hidden">
-              <NoteHeader
-                note={state.note}
-                noteTitle={state.title}
-                showhyprcharge={state.showhyprcharge}
-                isRecording={isRecording}
-                isPaused={isPaused}
-                recordingTime={state.recordingTime}
-                onTitleChange={(title) => updateState({ title })}
-                onhyprcharge={handlehyprcharge}
-                onStartRecording={startRecording}
-                onPauseResume={handlePauseResumeClick}
-              />
-
-              <NoteEditor
-                content={state.content}
-                onChange={(content) => updateState({ content })}
-              />
-            </div>
-          </Panel>
-
-          {isPanelOpen && (
-            <>
-              <PanelResizeHandle />
-              <Panel defaultSize={30} minSize={30} maxSize={50}>
-                <SidePanel
-                  transcript={transcript}
-                  timestamps={mockTranscripts}
-                />
-              </Panel>
-            </>
-          )}
-        </PanelGroup>
-      </main>
+    <div>
+      <PanelGroup direction="horizontal">
+        <Panel>
+          <Editor />
+        </Panel>
+        {!isPanelOpen && (
+          <>
+            <PanelResizeHandle />
+            <Panel defaultSize={30} minSize={30} maxSize={60}>
+              <div>side panel</div>
+            </Panel>
+          </>
+        )}
+      </PanelGroup>
     </div>
   );
 }

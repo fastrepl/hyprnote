@@ -1,15 +1,12 @@
 import { useState } from "react";
-import * as Switch from "@radix-ui/react-switch";
 import { useTranslation } from "react-i18next";
-import { useLanguage } from "../../../../contexts/LanguageContext";
-import { useTheme } from "../../../../contexts/ThemeContext";
+
+import * as Switch from "@radix-ui/react-switch";
 import * as Select from "@radix-ui/react-select";
 import { RiArrowDownSLine, RiCheckLine } from "@remixicon/react";
 
 export function General() {
   const { t } = useTranslation();
-  const { language, setLanguage } = useLanguage();
-  const { theme, setTheme } = useTheme();
   const [settings, setSettings] = useState({
     autoStart: true,
     autoUpdate: true,
@@ -68,7 +65,7 @@ export function General() {
               {t("settings.general.languageDescription")}
             </p>
           </div>
-          <Select.Root value={language} onValueChange={setLanguage}>
+          <Select.Root value={"ko"} onValueChange={() => {}}>
             <Select.Trigger className="inline-flex h-9 items-center justify-between gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50 focus:outline-none">
               <Select.Value />
               <Select.Icon>
@@ -107,7 +104,7 @@ export function General() {
               {t("settings.general.themeDescription")}
             </p>
           </div>
-          <Select.Root value={theme} onValueChange={setTheme}>
+          <Select.Root value={"light"} onValueChange={() => {}}>
             <Select.Trigger className="inline-flex h-9 items-center justify-between gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50 focus:outline-none">
               <Select.Value />
               <Select.Icon>

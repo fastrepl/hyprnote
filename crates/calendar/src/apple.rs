@@ -11,7 +11,7 @@ use objc2_contacts::{CNAuthorizationStatus, CNContactStore, CNEntityType, CNKeyD
 use objc2_event_kit::{EKAuthorizationStatus, EKCalendar, EKEntityType, EKEventStore};
 use objc2_foundation::{NSArray, NSDate, NSError, NSPredicate, NSString};
 
-use crate::{Calendar, CalendarSource, CalendarSourceKind, Event, EventFilter, Participant};
+use crate::{Calendar, CalendarSource, Event, EventFilter, Participant, Platform};
 
 pub struct Handle {
     event_store: Retained<EKEventStore>,
@@ -151,8 +151,8 @@ impl CalendarSource for Handle {
 
                 Calendar {
                     id: id.to_string(),
+                    platform: Platform::Apple,
                     name: title.to_string(),
-                    kind: CalendarSourceKind::Apple,
                 }
             })
             .sorted_by(|a, b| a.name.cmp(&b.name))
@@ -218,11 +218,14 @@ impl CalendarSource for Handle {
 
                 Some(Event {
                     id: id.to_string(),
+                    platform: Platform::Apple,
                     name: title.to_string(),
                     note: note.to_string(),
                     participants,
                     start_date: offset_date_time_from(start_date),
                     end_date: offset_date_time_from(end_date),
+                    apple_calendar_id: Some(calendar_id.to_string()),
+                    google_event_url: None,
                 })
             })
             .sorted_by(|a, b| a.start_date.cmp(&b.start_date))
@@ -271,20 +274,18 @@ mod tests {
         let handle = Handle::new();
         let calendars = handle.list_calendars().await.unwrap();
         assert!(!calendars.is_empty());
-        // println!("{:?}", calendars);
     }
 
     #[tokio::test]
     async fn test_list_events() {
         let handle = Handle::new();
         let filter = EventFilter {
-            calendar_id: "698327C2-47A9-4777-A033-A68FB62F9F86".into(),
+            calendar_id: "something_not_exist".into(),
             from: time::OffsetDateTime::now_utc() - time::Duration::days(100),
             to: time::OffsetDateTime::now_utc() + time::Duration::days(100),
         };
 
         let events = handle.list_events(filter).await.unwrap();
-        // assert!(events.is_empty());
-        println!("{:?}", events);
+        assert!(events.is_empty());
     }
 }

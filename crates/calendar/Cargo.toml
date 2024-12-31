@@ -3,6 +3,11 @@ name = "calendar"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["apple", "google"]
+apple = []
+google = []
+
 [dependencies]
 anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

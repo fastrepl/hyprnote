@@ -10,6 +10,10 @@ type MutableState<'a, T> = State<'a, Arc<RwLock<T>>>;
 
 #[tauri::command]
 #[specta::specta]
+pub fn create_session(_app: AppHandle) {}
+
+#[tauri::command]
+#[specta::specta]
 pub fn start_session(_app: AppHandle, on_event: Channel<events::Transcript>) {
     let _ = tokio::spawn(async move {
         let _ = on_event.send(events::Transcript {
@@ -73,12 +77,6 @@ pub fn stop_recording() {
 
 #[tauri::command]
 #[specta::specta]
-pub async fn auth_url(state: MutableState<'_, App>) -> Result<String, ()> {
-    Ok("url".to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
 pub fn list_recordings(app: AppHandle) -> Result<Vec<(String, PathBuf)>, String> {
     let recordings_dir = recordings_path(&app);
 
@@ -87,20 +85,6 @@ pub fn list_recordings(app: AppHandle) -> Result<Vec<(String, PathBuf)>, String>
     }
 
     Ok(Vec::new())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub fn is_authenticated(app: AppHandle) -> bool {
-    AuthStore::get(&app).is_ok()
-}
-
-pub enum AuthProvider {
-    Google,
-}
-
-pub fn login(provider: AuthProvider) -> Result<(), String> {
-    Ok(())
 }
 
 fn recordings_path(app: &AppHandle) -> PathBuf {

@@ -20,9 +20,6 @@ export const commands = {
   async openPermissionSettings(permission: OSPermission): Promise<void> {
     await TAURI_INVOKE("open_permission_settings", { permission });
   },
-  async authUrl(): Promise<string> {
-    return await TAURI_INVOKE("auth_url");
-  },
 };
 
 /** user-defined events **/
@@ -41,9 +38,10 @@ export const events = __makeEvents__<{
 
 /** user-defined types **/
 
-export type Calendar = { id: string; name: string };
+export type Calendar = { id: string; platform: Platform; name: string };
 export type Event = {
   id: string;
+  platform: Platform;
   name: string;
   note: string;
   participants: Participant[];
@@ -58,6 +56,7 @@ export type OSPermission =
   | "microphone"
   | "accessibility";
 export type Participant = { name: string; email: string };
+export type Platform = "Apple" | "Google";
 export type Transcript = { text: string };
 
 /** tauri-specta globals **/

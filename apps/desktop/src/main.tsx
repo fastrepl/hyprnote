@@ -5,8 +5,6 @@ import { routeTree } from "./routeTree.gen";
 
 import { AuthContext, AuthProvider, useAuth } from "./auth";
 
-import axios from "redaxios";
-
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
 import { messages as enMessages } from "./locales/en/messages";
@@ -23,7 +21,6 @@ import { useTauriStore } from "./stores/tauri";
 
 export type Context = {
   auth?: AuthContext;
-  axios?: ReturnType<typeof axios.create>;
   queryClient: QueryClient;
 };
 
@@ -32,7 +29,6 @@ const router = createRouter({
   routeTree,
   context: {
     auth: undefined,
-    axios: undefined,
     queryClient,
   },
   defaultPreload: "intent",
@@ -53,17 +49,8 @@ function App() {
 
   const auth = useAuth();
 
-  const token = "TODO";
-  const axiosInstance = axios.create({
-    baseURL: "http://localhost:8000",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
   const coutext: Required<Context> = {
     auth,
-    axios: axiosInstance,
     queryClient,
   };
 

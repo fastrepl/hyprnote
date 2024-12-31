@@ -4,6 +4,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { UpcomingEvents } from "../components/home/UpcomingEvents";
 import { PastNotes } from "../components/home/PastNotes";
 import { Event, Note } from "../types";
+import { useEffect } from "react";
+import { enhanceNote } from "../utils";
 
 const queryOptions = () => ({
   queryKey: ["notes"],
@@ -45,6 +47,15 @@ function Component() {
       params: { id: note.id },
     });
   };
+
+  useEffect(() => {
+    (async () => {
+      const { elementStream } = await enhanceNote(1);
+      for await (const hero of elementStream) {
+        console.log(hero);
+      }
+    })();
+  }, []);
 
   return (
     <main className="mx-auto flex max-w-4xl flex-col space-y-8 p-6">

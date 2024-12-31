@@ -16,6 +16,7 @@ mod tray;
 pub struct App {
     handle: AppHandle,
     cloud_config: hypr_bridge::ClientConfig,
+    // db: hypr_db::user::UserDatabase,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -27,7 +28,6 @@ pub fn run() {
             commands::stop_playback,
             commands::list_calendars,
             permissions::open_permission_settings,
-            commands::auth_url,
         ])
         .events(tauri_specta::collect_events![
             events::Transcript,
@@ -75,31 +75,6 @@ pub fn run() {
         );
     }
 
-    builder = builder.plugin(tauri_plugin_deep_link::init()).setup(|app| {
-        let app_handle = app.handle().clone();
-
-        app.deep_link().on_open_url(move |event| {
-            let urls = event.urls();
-            let url = urls.first().unwrap();
-
-            if url.path() == "/auth" {
-                let query_pairs: std::collections::HashMap<String, String> = url
-                    .query_pairs()
-                    .map(|(k, v)| (k.to_string(), v.to_string()))
-                    .collect();
-
-                let local_data_dir = app_handle.path().app_local_data_dir().unwrap();
-                let file_path = local_data_dir.join("api_key.txt");
-                let key = query_pairs.get("key").unwrap().clone();
-
-                std::fs::write(&file_path, key).unwrap();
-                let _ = events::JustAuthenticated.emit(&app_handle);
-            }
-        });
-
-        Ok(())
-    });
-
     // https://v2.tauri.app/plugin/deep-linking/#registering-desktop-deep-links-at-runtime
     #[cfg(any(windows, target_os = "linux"))]
     {
@@ -119,6 +94,7 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_http::init())
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
             move |invoke| handler(invoke)
@@ -142,6 +118,14 @@ pub fn run() {
             if let Ok(Some(auth)) = auth::AuthStore::load(&app) {
                 cloud_config.auth_token = Some(auth.token);
             }
+
+            // let conn = hypr_db::ConnectionBuilder::new()
+            //     .local(":memory:")
+            //     .connect()
+            //     .await
+            //     .unwrap();
+
+            // let db = hypr_db::user::UserDatabase::from(conn);
 
             // These MUST be called before anything else!
             {

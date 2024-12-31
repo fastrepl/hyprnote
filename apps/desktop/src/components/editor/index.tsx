@@ -1,20 +1,10 @@
-import { useEffect } from "react";
-
-import { type SuggestionOptions } from "@tiptap/suggestion";
-import {
-  BubbleMenu,
-  EditorProvider,
-  FloatingMenu,
-  useCurrentEditor,
-} from "@tiptap/react";
+import { BubbleMenu, EditorProvider, FloatingMenu } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
 import Placeholder from "@tiptap/extension-placeholder";
 
-import tippy from "tippy.js";
-
-const extensions = [StarterKit];
+const extensions = [StarterKit, Placeholder, Highlight, Typography];
 
 const content = "<p>Hello World!</p>";
 

@@ -20,6 +20,7 @@ i18n.load({
 i18n.activate("ko");
 
 import "./styles/global.css";
+import DeeplinkHandler from "./deeplink";
 
 export type Context = {
   auth?: AuthContext;
@@ -73,13 +74,15 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <QueryClientProvider client={queryClient}>
-      <I18nProvider i18n={i18n}>
-        <UIProvider>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </UIProvider>
-      </I18nProvider>
+      <DeeplinkHandler>
+        <I18nProvider i18n={i18n}>
+          <UIProvider>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </UIProvider>
+        </I18nProvider>
+      </DeeplinkHandler>
     </QueryClientProvider>,
   );
 }

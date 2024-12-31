@@ -1,11 +1,17 @@
 import { create } from "zustand";
-import { load } from "@tauri-apps/plugin-store";
+import { load, Store } from "@tauri-apps/plugin-store";
 
 type TauriStoreData = {
   locale: "en" | "ko";
+  key?: string;
 };
 
-const store = await load("store.json", { autoSave: false });
+// @ts-ignore
+let store: Store = null;
+
+load("store.json", { autoSave: false }).then((s) => {
+  store = s;
+});
 
 const defaultStoreData: TauriStoreData = {
   locale: "en",
@@ -27,7 +33,7 @@ export const useTauriStore = create<TauriStoreData & typeof storeOperation>(
     load: async () => {
       const locale = ((await storeOperation.get("locale")) ||
         "en") as TauriStoreData["locale"];
-        
+
       set((state) => ({ ...state, locale }));
     },
     setLocale: (locale: TauriStoreData["locale"]) => {

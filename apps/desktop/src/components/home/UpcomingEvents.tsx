@@ -1,20 +1,23 @@
-import useEmblaCarousel from "embla-carousel-react";
-import { Note } from "../../types";
-import { EventCard } from "./EventCard";
-import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
+import useEmblaCarousel from "embla-carousel-react";
+import { EventCard } from "./EventCard";
+
+import type { Note } from "../../types";
+
 interface UpcomingEventsProps {
   futureNotes: Note[];
-  onNoteClick: (noteId: string) => void;
+  handleClickNote: (noteId: string) => void;
 }
 
 export const UpcomingEvents = ({
   futureNotes,
-  onNoteClick,
+  handleClickNote,
 }: UpcomingEventsProps) => {
   const { t } = useTranslation();
+
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     slidesToScroll: 1,
@@ -41,7 +44,10 @@ export const UpcomingEvents = ({
                 key={note.id}
                 className="w-[280px] flex-[0_0_auto] max-[400px]:w-full max-[400px]:flex-[0_0_100%]"
               >
-                <EventCard note={note} onClick={() => onNoteClick(note.id)} />
+                <EventCard
+                  note={note}
+                  onClick={() => handleClickNote(note.id)}
+                />
               </div>
             ))}
           </div>

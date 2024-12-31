@@ -6,17 +6,9 @@ import {
   RiFileTextFill,
 } from "@remixicon/react";
 
-import { useClickOutside } from "../../hooks/useClickOutside";
-
 export default function ExportMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
-
-  useClickOutside(exportRef, () => {
-    if (isOpen) {
-      setIsOpen(false);
-    }
-  });
 
   return (
     <div className="relative" ref={exportRef}>

@@ -1,16 +1,24 @@
-import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { mockNotes } from "../mocks/data";
 import { UpcomingEvents } from "../components/home/UpcomingEvents";
 import { PastNotes } from "../components/home/PastNotes";
-import { NewUserBanner } from "../components/home/NewUserBanner";
 
-import { open } from "@tauri-apps/plugin-shell";
-import { commands } from "../types";
+const queryOptions = () => ({
+  queryKey: ["notes"],
+  queryFn: () => {
+    return {
+      notes: [],
+      events: [],
+    };
+  },
+});
 
 export const Route = createFileRoute("/")({
   component: Component,
+  loader: ({ context: { queryClient } }) => {
+    return queryClient.ensureQueryData(queryOptions());
+  },
   // beforeLoad: ({ context }) => {
   //   if (!context.auth?.isAuthenticated) {
   //     throw redirect({ to: "/login" });
@@ -19,39 +27,10 @@ export const Route = createFileRoute("/")({
 });
 
 function Component() {
-  const [isNewUser] = useState(true);
   const navigate = useNavigate();
-
-  // 현재 시간을 기준으로 미래/과거 이벤트 필터링
-  const now = new Date();
-  const futureNotes = mockNotes
-    .filter(
-      (note) =>
-        note.calendarEvent?.start?.dateTime &&
-        new Date(note.calendarEvent.start.dateTime) > now,
-    )
-    .sort((a, b) => {
-      if (
-        !a.calendarEvent?.start?.dateTime ||
-        !b.calendarEvent?.start?.dateTime
-      )
-        return 0;
-      return (
-        new Date(a.calendarEvent.start.dateTime).getTime() -
-        new Date(b.calendarEvent.start.dateTime).getTime()
-      );
-    });
-
-  const pastNotes = mockNotes
-    .filter(
-      (note) =>
-        !note.calendarEvent?.start?.dateTime ||
-        new Date(note.calendarEvent.start.dateTime) <= now,
-    )
-    .sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    );
+  const {
+    data: { notes: _notes, events: _events },
+  } = useSuspenseQuery(queryOptions());
 
   const handleNoteClick = (id: string) => {
     navigate({
@@ -60,26 +39,10 @@ function Component() {
     });
   };
 
-  const handleDemoClick = () => {
-    // TODO: 데모 페이지로 이동하는 로직 구현
-    console.log("Demo clicked");
-  };
-
   return (
     <main className="mx-auto max-w-4xl space-y-8 p-6">
-      <button
-        onClick={() => {
-          commands.authUrl().then((url) => {
-            console.log(url);
-            open(url);
-          });
-        }}
-      >
-        open auth url
-      </button>
-      {isNewUser && <NewUserBanner onDemoClick={handleDemoClick} />}
-      <UpcomingEvents futureNotes={futureNotes} onNoteClick={handleNoteClick} />
-      <PastNotes notes={pastNotes} onNoteClick={handleNoteClick} />
+      <UpcomingEvents futureNotes={[]} handleClickNote={handleNoteClick} />
+      <PastNotes notes={[]} handleClickNote={handleNoteClick} />
     </main>
   );
 }

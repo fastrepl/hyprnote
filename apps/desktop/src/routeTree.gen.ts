@@ -13,6 +13,7 @@
 import { Route as rootRoute } from "./routes/__root";
 import { Route as LoginImport } from "./routes/login";
 import { Route as IndexImport } from "./routes/index";
+import { Route as NoteNewImport } from "./routes/note.new";
 import { Route as NoteIdImport } from "./routes/note.$id";
 import { Route as CallbackConnectImport } from "./routes/callback.connect";
 
@@ -27,6 +28,12 @@ const LoginRoute = LoginImport.update({
 const IndexRoute = IndexImport.update({
   id: "/",
   path: "/",
+  getParentRoute: () => rootRoute,
+} as any);
+
+const NoteNewRoute = NoteNewImport.update({
+  id: "/note/new",
+  path: "/note/new",
   getParentRoute: () => rootRoute,
 } as any);
 
@@ -74,6 +81,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof NoteIdImport;
       parentRoute: typeof rootRoute;
     };
+    "/note/new": {
+      id: "/note/new";
+      path: "/note/new";
+      fullPath: "/note/new";
+      preLoaderRoute: typeof NoteNewImport;
+      parentRoute: typeof rootRoute;
+    };
   }
 }
 
@@ -84,6 +98,7 @@ export interface FileRoutesByFullPath {
   "/login": typeof LoginRoute;
   "/callback/connect": typeof CallbackConnectRoute;
   "/note/$id": typeof NoteIdRoute;
+  "/note/new": typeof NoteNewRoute;
 }
 
 export interface FileRoutesByTo {
@@ -91,6 +106,7 @@ export interface FileRoutesByTo {
   "/login": typeof LoginRoute;
   "/callback/connect": typeof CallbackConnectRoute;
   "/note/$id": typeof NoteIdRoute;
+  "/note/new": typeof NoteNewRoute;
 }
 
 export interface FileRoutesById {
@@ -99,14 +115,21 @@ export interface FileRoutesById {
   "/login": typeof LoginRoute;
   "/callback/connect": typeof CallbackConnectRoute;
   "/note/$id": typeof NoteIdRoute;
+  "/note/new": typeof NoteNewRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/" | "/login" | "/callback/connect" | "/note/$id";
+  fullPaths: "/" | "/login" | "/callback/connect" | "/note/$id" | "/note/new";
   fileRoutesByTo: FileRoutesByTo;
-  to: "/" | "/login" | "/callback/connect" | "/note/$id";
-  id: "__root__" | "/" | "/login" | "/callback/connect" | "/note/$id";
+  to: "/" | "/login" | "/callback/connect" | "/note/$id" | "/note/new";
+  id:
+    | "__root__"
+    | "/"
+    | "/login"
+    | "/callback/connect"
+    | "/note/$id"
+    | "/note/new";
   fileRoutesById: FileRoutesById;
 }
 
@@ -115,6 +138,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute;
   CallbackConnectRoute: typeof CallbackConnectRoute;
   NoteIdRoute: typeof NoteIdRoute;
+  NoteNewRoute: typeof NoteNewRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -122,6 +146,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   CallbackConnectRoute: CallbackConnectRoute,
   NoteIdRoute: NoteIdRoute,
+  NoteNewRoute: NoteNewRoute,
 };
 
 export const routeTree = rootRoute
@@ -137,7 +162,8 @@ export const routeTree = rootRoute
         "/",
         "/login",
         "/callback/connect",
-        "/note/$id"
+        "/note/$id",
+        "/note/new"
       ]
     },
     "/": {
@@ -151,6 +177,9 @@ export const routeTree = rootRoute
     },
     "/note/$id": {
       "filePath": "note.$id.tsx"
+    },
+    "/note/new": {
+      "filePath": "note.new.tsx"
     }
   }
 }

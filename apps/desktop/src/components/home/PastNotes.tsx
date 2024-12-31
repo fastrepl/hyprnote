@@ -1,33 +1,35 @@
-import { useTranslation } from "react-i18next";
-import { Note } from "../../types";
+import { Trans, useLingui } from "@lingui/react/macro";
+
+import type { Note } from "../../types";
 
 interface PastNotesProps {
   notes: Note[];
-  onNoteClick: (noteId: string) => void;
+  handleClickNote: (noteId: string) => void;
 }
 
-export const PastNotes = ({ notes, onNoteClick }: PastNotesProps) => {
-  const { t } = useTranslation();
+export const PastNotes = ({ notes, handleClickNote }: PastNotesProps) => {
+  const { i18n } = useLingui();
 
   return (
     <section>
-      <h2 className="mb-4 text-xl font-semibold">{t("home.recentNotes")}</h2>
+      <h2 className="mb-4 text-xl font-semibold">
+        <Trans>Recent Notes</Trans>
+      </h2>
+
       <div className="space-y-4">
         {notes.map((note) => (
           <div
             key={note.id}
-            onClick={() => onNoteClick(note.id)}
+            onClick={() => handleClickNote(note.id)}
             className="cursor-pointer rounded-lg bg-white p-4 transition-shadow hover:shadow-[0_4px_12px_0px_rgba(251,191,36,0.2),0_4px_12px_0px_rgba(99,102,241,0.2)]"
           >
             <div className="mb-3 flex items-start justify-between">
               <h3 className="line-clamp-1 font-medium">
-                {note.title || t("common.untitled")}
+                {note.title || <Trans>Untitled</Trans>}
               </h3>
             </div>
             <p className="mb-2 shrink-0 text-sm text-gray-500">
-              {t("home.updated", {
-                time: new Date(note.updatedAt).toLocaleString(),
-              })}
+              <Trans>{i18n.date(note.updatedAt)}</Trans>
             </p>
             <p className="my-2 line-clamp-2 text-sm text-gray-600">
               {note.rawMemo}

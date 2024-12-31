@@ -22,11 +22,7 @@ export default function NavBar() {
   const isNotePage = history.location.pathname.startsWith("/note/");
 
   const handleNewNote = useCallback(() => {
-    const id = crypto.randomUUID();
-    navigate({
-      to: "/note/$id",
-      params: { id },
-    });
+    navigate({ to: "/note/new" });
   }, [navigate]);
 
   const handleSettingsClick = useCallback(() => {

@@ -114,7 +114,8 @@ pub fn run() {
 
     builder
         // TODO: https://v2.tauri.app/plugin/updater/#building
-        // .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
         .invoke_handler({
             let handler = specta_builder.invoke_handler();

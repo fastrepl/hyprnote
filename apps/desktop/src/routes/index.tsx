@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { mockNotes } from "../mocks/data";
@@ -8,6 +8,7 @@ import { NewUserBanner } from "../components/home/NewUserBanner";
 
 import { open } from "@tauri-apps/plugin-shell";
 import { commands } from "../types";
+import { useTauriStore } from "../stores/tauri";
 
 export const Route = createFileRoute("/")({
   component: Component,
@@ -16,6 +17,15 @@ export const Route = createFileRoute("/")({
 function Component() {
   const [isNewUser] = useState(true);
   const navigate = useNavigate();
+
+  const { set, get } = useTauriStore();
+
+  useEffect(() => {
+    set("a", "b");
+    get("a").then((a) => {
+      console.log(a);
+    });
+  }, [get]);
 
   // 현재 시간을 기준으로 미래/과거 이벤트 필터링
   const now = new Date();

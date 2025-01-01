@@ -6,13 +6,17 @@ import BlurFade from "../components/ui/blur-fade.tsx";
 import SparklesText from "../components/ui/sparkles-text.tsx";
 import ShimmerButton from "../components/ui/shimmer-button.tsx";
 import { Trans } from "@lingui/react/macro";
+import { open } from "@tauri-apps/plugin-shell";
 
 export const Route = createFileRoute("/login")({
   component: Component,
 });
 
 function Component() {
-  const handleSignIn = () => {};
+  const handleSignIn = () => {
+    const code = window.crypto.randomUUID();
+    open(`http://127.0.0.1:3000/auth/connect?code=${code}`);
+  };
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden text-black">

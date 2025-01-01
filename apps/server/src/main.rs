@@ -90,7 +90,7 @@ fn main() {
             };
 
             let web_router = Router::new()
-                .route("/connect", get(web::connect::handler))
+                .route("/connect", post(web::connect::handler))
                 .layer(ClerkLayer::new(
                     MemoryCacheJwksProvider::new(clerk),
                     None,

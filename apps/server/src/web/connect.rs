@@ -10,10 +10,14 @@ use crate::state::AppState;
 use clerk_rs::validators::authorizer::ClerkJwt;
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Input {}
+pub struct Input {
+    code: String,
+}
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Output {}
+pub struct Output {
+    code: String,
+}
 
 pub async fn handler(
     State(state): State<AppState>,
@@ -21,5 +25,6 @@ pub async fn handler(
     Json(input): Json<Input>,
 ) -> Result<impl IntoResponse, StatusCode> {
     let clerk_user_id = jwt.sub;
-    Ok(Json(Output {}))
+    println!("clerk_user_id: {}", clerk_user_id);
+    Ok(Json(Output { code: input.code }))
 }

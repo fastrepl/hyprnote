@@ -9,7 +9,7 @@ const schema = z.object({
   code: z.string().optional(),
 });
 
-export const Route = createFileRoute("/auth/connect")({
+export const Route = createFileRoute("/auth/connect/")({
   validateSearch: zodValidator(schema),
   component: Component,
 });
@@ -18,6 +18,30 @@ function Component() {
   const navigate = useNavigate();
   const { code } = Route.useSearch();
   const { isLoaded, userId } = useAuth();
+
+  const mutation = useMutation({
+    mutationFn: async (args: { code: string }) => {
+      const response = await fetch("/api/web/connect", {
+        method: "POST",
+        body: JSON.stringify(args),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      console.log(data);
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    if (mutation.status === "success") {
+      navigate({ to: "/auth/connect/success" });
+    }
+    if (mutation.status === "error") {
+      navigate({ to: "/auth/connect/failed" });
+    }
+  }, [mutation.status]);
 
   if (!isLoaded) {
     return <div>...</div>;
@@ -36,24 +60,12 @@ function Component() {
     );
   }
 
-  const mutation = useMutation({
-    mutationFn: (args: any) => {
-      return args as any;
-    },
-  });
-
-  useEffect(() => {
-    if (mutation.isSuccess) {
-      navigate({ to: "/auth/connect/success" });
-    }
-  }, [mutation.isSuccess]);
-
   return (
     <SignedIn>
       <div>
         <button
           disabled={mutation.status !== "idle"}
-          onClick={() => mutation.mutate({})}
+          onClick={() => mutation.mutate({ code })}
         >
           Connect
         </button>

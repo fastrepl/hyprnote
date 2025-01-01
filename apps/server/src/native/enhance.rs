@@ -1,7 +1,7 @@
 use anyhow::Result;
 use async_openai::types::{
     ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs,
-    CreateChatCompletionRequest, ResponseFormat,
+    CreateChatCompletionRequest, ResponseFormat, ResponseFormatJsonSchema,
 };
 use axum::{
     body::Body,
@@ -12,16 +12,23 @@ use axum::{
 };
 
 use crate::state::AppState;
-use hypr_bridge::{EnhanceInput, EnhanceOutput};
+use hypr_bridge::enhance;
 
+// TODO: https://github.com/tokio-rs/axum/blob/main/examples/validator/src/main.rs
 pub async fn handler(
     State(state): State<AppState>,
-    Json(input): Json<EnhanceInput>,
+    Json(input): Json<serde_json::Value>,
 ) -> Result<impl IntoResponse, StatusCode> {
     let api_key = state.secrets.get("OPENAI_API_KEY").unwrap();
 
-    let json_schema = convert_json_schema(schemars::schema_for!(EnhanceOutput))
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let prompt = format!(
+        r#"
+        Input: {}
+
+        Generate more sentences that are similar to the input.
+        "#,
+        serde_json::to_string(&input).unwrap()
+    );
 
     let request = CreateChatCompletionRequest {
         model: "gpt-4o-mini".to_string(),
@@ -32,16 +39,25 @@ pub async fn handler(
                 .unwrap()
                 .into(),
             ChatCompletionRequestUserMessageArgs::default()
-                .content(serde_json::to_string(&input).unwrap())
+                .content(prompt.trim())
                 .build()
                 .unwrap()
                 .into(),
         ],
-        response_format: Some(ResponseFormat::JsonSchema { json_schema }),
+        response_format: Some(ResponseFormat::JsonSchema {
+            json_schema: ResponseFormatJsonSchema {
+                strict: Some(true),
+                schema: Some(enhance::schema()),
+                name: "enhanced_editor_state".into(),
+                description: None,
+            },
+        }),
         temperature: Some(0.0),
         stream: Some(true),
         ..CreateChatCompletionRequest::default()
     };
+
+    println!("request: {:?}", request);
 
     let response = state
         .reqwest
@@ -53,6 +69,8 @@ pub async fn handler(
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
+    println!("response: {:?}", response);
+
     let stream = response.bytes_stream();
 
     let response = Response::builder()
@@ -61,12 +79,4 @@ pub async fn handler(
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     Ok(response)
-}
-
-fn convert_json_schema(
-    schema: schemars::Schema,
-) -> Result<async_openai::types::ResponseFormatJsonSchema> {
-    let json_value = serde_json::to_value(schema)?;
-    let json_schema = serde_json::from_value(json_value).unwrap();
-    Ok(json_schema)
 }

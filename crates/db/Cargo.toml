@@ -18,7 +18,7 @@ time = { workspace = true, features = ["serde", "formatting", "parsing"] }
 rand = "0.8.5"
 
 tokio = { workspace = true, features = ["rt", "macros"] }
-libsql = { version = "0.6.0", features = ["encryption"] }
+libsql = { version = "0.6.0", features = [] }
 
 specta = { workspace = true, features = ["derive", "time", "serde_json"] }
 specta-typescript = { workspace = true }

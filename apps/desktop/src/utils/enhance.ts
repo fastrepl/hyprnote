@@ -1,0 +1,102 @@
+import { useCallback, useRef, useState } from "react";
+import { parsePartialJson } from "@ai-sdk/ui-utils";
+import { JSONContent } from "@tiptap/react";
+import { fetch } from "@tauri-apps/plugin-http";
+
+interface EnhanceRequest {
+  baseUrl: string;
+  apiKey: string;
+  editor: JSONContent;
+}
+
+export function useEnhance(input: EnhanceRequest) {
+  const [data, setData] = useState<JSONContent>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<undefined | Error>(undefined);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const stop = useCallback(() => {
+    try {
+      abortControllerRef.current?.abort();
+    } catch (ignored) {
+    } finally {
+      setIsLoading(false);
+      abortControllerRef.current = null;
+    }
+  }, []);
+
+  const submit = async () => {
+    try {
+      setIsLoading(true);
+      setData(input.editor);
+      setError(undefined);
+
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
+      const response = await fetch(`${input.baseUrl}/api/native/enhance`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${input.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(input.editor),
+        signal: abortController.signal,
+      });
+
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+
+        const chunk = decoder.decode(value);
+
+        try {
+          const { error } = JSON.parse(chunk);
+          setError(error);
+          break;
+        } catch (_ignored) {}
+
+        const lines = chunk
+          .split("data: ")
+          .filter(Boolean)
+          .filter((line) => line !== "[DONE]");
+
+        const delta = lines
+          .map((line) => {
+            try {
+              return JSON.parse(line)?.choices[0]?.delta?.content;
+            } catch (error) {
+              return null;
+            }
+          })
+          .filter(Boolean)
+          .join("");
+
+        buffer += delta;
+
+        const parsed = parsePartialJson(buffer);
+        if (parsed.state === "successful-parse" && parsed.value) {
+          setData(parsed.value as JSONContent);
+        }
+      }
+    } catch (error) {
+      setError(error as Error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return {
+    stop,
+    submit,
+    data,
+    isLoading,
+    error,
+  };
+}

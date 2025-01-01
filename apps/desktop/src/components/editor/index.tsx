@@ -1,18 +1,55 @@
-import { BubbleMenu, EditorProvider, FloatingMenu } from "@tiptap/react";
+import { useEffect } from "react";
+
+import {
+  EditorContent,
+  useEditor,
+  type JSONContent,
+  type Editor as TiptapEditor,
+} from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
 import Placeholder from "@tiptap/extension-placeholder";
+import { UniqueID, HTML_ID } from "./extensions";
 
-const extensions = [StarterKit, Placeholder, Highlight, Typography];
+import "../../styles/tiptap.css";
 
-const content = "<p>Hello World!</p>";
+export const extensions = [
+  StarterKit,
+  Placeholder,
+  Highlight,
+  Typography,
+  UniqueID,
+  HTML_ID,
+];
 
-export default function Editor() {
+interface EditorProps {
+  handleChange: (content: JSONContent) => void;
+  content: JSONContent;
+}
+
+export default function Editor({ handleChange, content }: EditorProps) {
+  const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
+    if (editor.isInitialized) {
+      handleChange(editor.getJSON());
+    }
+  };
+
+  const editor = useEditor({
+    extensions,
+    content,
+    onUpdate,
+  });
+
+  useEffect(() => {
+    if (editor && editor.isInitialized) {
+      editor.commands.setContent(content);
+    }
+  }, [content]);
+
   return (
-    <EditorProvider extensions={extensions} content={content}>
-      <FloatingMenu editor={null}>This is the floating menu</FloatingMenu>
-      <BubbleMenu editor={null}>This is the bubble menu</BubbleMenu>
-    </EditorProvider>
+    <>
+      <EditorContent editor={editor} />
+    </>
   );
 }

@@ -24,6 +24,8 @@ dotenvy = "0.15.7"
 dotenvy_macro = "0.15.7"
 serial_test = "3"
 approx = "0.5.1"
+tracing = "0.1.41"
+tracing-opentelemetry = "0.28.0"
 
 ndarray = "0.16.1"
 tokenizers = "0.19.1"

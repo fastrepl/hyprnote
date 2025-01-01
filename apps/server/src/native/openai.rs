@@ -14,10 +14,7 @@ pub async fn handler(
     State(state): State<AppState>,
     Json(request): Json<CreateChatCompletionRequest>,
 ) -> Result<impl IntoResponse, StatusCode> {
-    let api_key = state
-        .secrets
-        .get("OPENAI_API_KEY")
-        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
+    let api_key = std::env::var("OPENAI_API_KEY").unwrap();
 
     let response = state
         .reqwest

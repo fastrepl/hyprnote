@@ -32,7 +32,7 @@ pub struct Client {
 #[derive(Debug, Clone)]
 pub struct Config {
     pub deepgram_api_key: String,
-    pub clova_secret_key: String,
+    pub clova_api_key: String,
 }
 
 impl Client {
@@ -42,7 +42,7 @@ impl Client {
 
     pub async fn for_korean(&self) -> ClovaClient {
         let config = ClovaConfig {
-            secret_key: self.config.clova_secret_key.clone(),
+            secret_key: self.config.clova_api_key.clone(),
             config: clova::clova::ConfigRequest {
                 transcription: clova::clova::Transcription {
                     language: clova::clova::Language::Korean,
@@ -115,7 +115,7 @@ mod tests {
         let audio_stream = microphone_as_stream();
 
         let config = ClovaConfig {
-            secret_key: std::env::var("CLOVA_SECRET_KEY").unwrap(),
+            secret_key: std::env::var("clova_api_key").unwrap(),
             config: clova::clova::ConfigRequest {
                 transcription: clova::clova::Transcription {
                     language: clova::clova::Language::Korean,

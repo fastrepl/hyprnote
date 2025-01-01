@@ -1,23 +1,22 @@
 use axum::extract::FromRef;
 
 use clerk_rs::clerk::Clerk;
-use shuttle_runtime::SecretStore;
-
 use hypr_analytics::AnalyticsClient;
 use hypr_db::admin::AdminDatabase;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub secrets: SecretStore,
     pub reqwest: reqwest::Client,
     pub clerk: Clerk,
     pub stt: hypr_stt::Client,
+    pub admin_db: AdminDatabase,
     pub analytics: AnalyticsClient,
 }
 
 #[derive(Clone)]
 pub struct AuthState {
     pub clerk: Clerk,
+    pub admin_db: AdminDatabase,
 }
 
 #[derive(Clone)]
@@ -29,6 +28,7 @@ impl FromRef<AppState> for AuthState {
     fn from_ref(app_state: &AppState) -> AuthState {
         AuthState {
             clerk: app_state.clerk.clone(),
+            admin_db: app_state.admin_db.clone(),
         }
     }
 }

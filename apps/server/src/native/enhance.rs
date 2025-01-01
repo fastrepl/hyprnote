@@ -19,7 +19,7 @@ pub async fn handler(
     State(state): State<AppState>,
     Json(input): Json<serde_json::Value>,
 ) -> Result<impl IntoResponse, StatusCode> {
-    let api_key = state.secrets.get("OPENAI_API_KEY").unwrap();
+    let api_key = std::env::var("OPENAI_API_KEY").unwrap();
 
     let prompt = format!(
         r#"

@@ -5,9 +5,10 @@ on:
 jobs:
   deploy:
     if: startsWith(github.event.release.tag_name, 'server_')
-    runs-on: ubuntu-latest
+    concurrency: deploy-group
     steps:
-      - uses: shuttle-hq/deploy-action@v2
-        with:
-          shuttle-api-key: ${{ secrets.SHUTTLE_API_KEY }}
-          project-id: proj_01JFW5KSP4K9CGJCEC9335B1MA
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

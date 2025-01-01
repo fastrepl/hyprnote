@@ -13,3 +13,9 @@ tasks:
     cmds:
       - pnpm -F web build
       - cargo watch -x 'run -p server'
+  
+  server:env:
+    cmds:
+      - |
+        secrets=$(grep -v '^#' .env | grep '=' | sed 's/"/\\"/g' | tr '\n' ' ')
+        fly secrets set $secrets -a hypr-server

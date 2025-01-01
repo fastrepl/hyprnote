@@ -32,7 +32,7 @@ fn main() {
     dotenv::dotenv().unwrap();
 
     let _guard = sentry::init((
-        "https://examplePublicKey@o0.ingest.sentry.io/0",
+        std::env::var("SENTRY_DSN").unwrap(),
         sentry::ClientOptions {
             release: sentry::release_name!(),
             ..Default::default()
@@ -69,8 +69,8 @@ fn main() {
                 #[cfg(not(debug_assertions))]
                 let conn = hypr_db::ConnectionBuilder::new()
                     .remote(
-                        &std::env::var("DATABASE_URL").unwrap(),
-                        &std::env::var("DATABASE_TOKEN").unwrap(),
+                        std::env::var("DATABASE_URL").unwrap(),
+                        std::env::var("DATABASE_TOKEN").unwrap(),
                     )
                     .connect()
                     .await
@@ -84,7 +84,9 @@ fn main() {
                 clerk: clerk.clone(),
                 stt,
                 admin_db: hypr_db::admin::AdminDatabase::from(admin_db_conn).await,
-                analytics: hypr_analytics::AnalyticsClient::new(std::env::var("POSTHOG_API_KEY").unwrap()),
+                analytics: hypr_analytics::AnalyticsClient::new(
+                    std::env::var("POSTHOG_API_KEY").unwrap(),
+                ),
             };
 
             let web_router = Router::new()

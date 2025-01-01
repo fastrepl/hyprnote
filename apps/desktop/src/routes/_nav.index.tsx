@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { UpcomingEvents } from "../components/home/UpcomingEvents";
-import { PastNotes } from "../components/home/PastNotes";
+// import { UpcomingEvents } from "../components/home/UpcomingEvents";
+// import { PastNotes } from "../components/home/PastNotes";
 import { Event, Note } from "../types";
 import { useEnhanceNote } from "../utils/ai";
 import { useEffect } from "react";
+import Editor from "../components/editor";
 
 const queryOptions = () => ({
   queryKey: ["notes"],
@@ -49,9 +50,7 @@ function Component() {
   };
 
   const { data, isLoading, error, stop, submit } = useEnhanceNote();
-  useEffect(() => {
-    submit();
-  }, []);
+
   useEffect(() => {
     if (error) {
       console.error(error);
@@ -66,8 +65,13 @@ function Component() {
 
   return (
     <main className="mx-auto flex max-w-4xl flex-col space-y-8 p-6">
-      <UpcomingEvents events={[]} handleClickEvent={handleClickEvent} />
-      <PastNotes notes={[]} handleClickNote={handleClickNote} />
+      {isLoading && <div>Loading...</div>}
+      {error && <div>Error: {error.message}</div>}
+
+      <button type="button" onClick={() => submit()}>
+        Enhance
+      </button>
+      <Editor />
     </main>
   );
 }

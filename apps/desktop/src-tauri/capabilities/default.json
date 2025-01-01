@@ -11,7 +11,10 @@
     "shell:allow-open",
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://api.openai.com" }]
+      "allow": [
+        { "url": "https://api.openai.com" },
+        { "url": "https://api.fireworks.ai" }
+      ]
     }
   ]
 }

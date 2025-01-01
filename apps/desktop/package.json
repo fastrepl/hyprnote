@@ -14,7 +14,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@ai-sdk/openai": "^1.0.11",
+    "@ai-sdk/ui-utils": "^1.0.6",
     "@lingui/core": "^5.1.2",
     "@lingui/react": "^5.1.2",
     "@radix-ui/react-dialog": "^1.1.4",
@@ -43,7 +43,6 @@
     "@tiptap/react": "^2.10.4",
     "@tiptap/starter-kit": "^2.10.4",
     "@tiptap/suggestion": "^2.11.0",
-    "ai": "^4.0.22",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
     "embla-carousel": "^8.5.1",

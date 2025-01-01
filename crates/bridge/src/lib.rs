@@ -1,6 +1,6 @@
-mod enhance;
-mod transcribe;
-mod types;
+pub mod enhance;
+pub mod transcribe;
+pub mod types;
 
 use tokio_tungstenite::tungstenite::{client::ClientRequestBuilder, http::uri};
 pub use types::*;

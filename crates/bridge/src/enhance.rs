@@ -1,18 +1,12 @@
-use crate::{Client, EnhanceInput, EnhanceOutput};
-use anyhow::Result;
+pub fn schema() -> serde_json::Value {
+    serde_json::json!({
+        "type": "object",
+        "properties": {
+            "text": { "type": "string" }
+        }
+    })
+}
 
-impl Client {
-    pub async fn enhance(&self, input: EnhanceInput) -> Result<EnhanceOutput> {
-        let mut url = self.base.clone();
-        url.set_path("/api/native/enhance");
-
-        let response = self
-            .reqwest_client
-            .post(url.to_string())
-            .json(&input)
-            .send()
-            .await?;
-
-        Ok(response.json().await?)
-    }
+pub fn validator() -> anyhow::Result<jsonschema::Validator> {
+    Ok(jsonschema::validator_for(&schema())?)
 }

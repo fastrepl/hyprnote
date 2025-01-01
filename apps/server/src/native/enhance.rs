@@ -21,6 +21,15 @@ pub async fn handler(
 ) -> Result<impl IntoResponse, StatusCode> {
     let api_key = state.secrets.get("OPENAI_API_KEY").unwrap();
 
+    let prompt = format!(
+        r#"
+        Input: {}
+
+        Generate more sentences that are similar to the input.
+        "#,
+        serde_json::to_string(&input).unwrap()
+    );
+
     let request = CreateChatCompletionRequest {
         model: "gpt-4o-mini".to_string(),
         messages: vec![
@@ -30,7 +39,7 @@ pub async fn handler(
                 .unwrap()
                 .into(),
             ChatCompletionRequestUserMessageArgs::default()
-                .content(format!("Input: {}", serde_json::to_string(&input).unwrap()))
+                .content(prompt.trim())
                 .build()
                 .unwrap()
                 .into(),
@@ -48,6 +57,8 @@ pub async fn handler(
         ..CreateChatCompletionRequest::default()
     };
 
+    println!("request: {:?}", request);
+
     let response = state
         .reqwest
         .post("https://api.openai.com/v1/chat/completions")
@@ -57,6 +68,8 @@ pub async fn handler(
         .send()
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    println!("response: {:?}", response);
 
     let stream = response.bytes_stream();
 

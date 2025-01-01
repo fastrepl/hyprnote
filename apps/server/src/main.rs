@@ -45,12 +45,12 @@ async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum:
     };
     let stt = hypr_stt::Client::new(stt_config);
 
-    let admin_db_conn = hypr_db::ConnectionBuilder::new()
-        .local("./admin.libsql")
-        .connect()
-        .await
-        .unwrap();
-    let admin_db = hypr_db::admin::AdminDatabase::from(admin_db_conn).await;
+    // let admin_db_conn = hypr_db::ConnectionBuilder::new()
+    //     .local("./admin.libsql")
+    //     .connect()
+    //     .await
+    //     .unwrap();
+    // let admin_db = hypr_db::admin::AdminDatabase::from(admin_db_conn).await;
 
     let analytics = hypr_analytics::AnalyticsClient::new("TODO");
 
@@ -59,7 +59,6 @@ async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum:
         secrets,
         clerk: clerk.clone(),
         stt,
-        admin_db,
         analytics,
     };
 
@@ -80,18 +79,18 @@ async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum:
             "/chat/completions",
             post(native::openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
         )
-        .route("/transcribe", get(native::transcribe::handler))
-        .layer(
-            tower::builder::ServiceBuilder::new()
-                .layer(middleware::from_fn_with_state(
-                    AuthState::from_ref(&state),
-                    auth::middleware_fn,
-                ))
-                .layer(middleware::from_fn_with_state(
-                    AnalyticsState::from_ref(&state),
-                    analytics::middleware_fn,
-                )),
-        );
+        .route("/transcribe", get(native::transcribe::handler));
+    // .layer(
+    //     tower::builder::ServiceBuilder::new()
+    //         .layer(middleware::from_fn_with_state(
+    //             AuthState::from_ref(&state),
+    //             auth::middleware_fn,
+    //         ))
+    //         .layer(middleware::from_fn_with_state(
+    //             AnalyticsState::from_ref(&state),
+    //             analytics::middleware_fn,
+    //         )),
+    // );
 
     let webhook_router = Router::new().route("/stripe", post(stripe::webhook::handler));
 

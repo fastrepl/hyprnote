@@ -10,7 +10,7 @@ interface EnhanceRequest {
 }
 
 export function useEnhance(input: EnhanceRequest) {
-  const [data, setData] = useState<JSONContent[]>([]);
+  const [data, setData] = useState<JSONContent>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<undefined | Error>(undefined);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -28,7 +28,7 @@ export function useEnhance(input: EnhanceRequest) {
   const submit = async () => {
     try {
       setIsLoading(true);
-      setData([]);
+      setData(input.editor);
       setError(undefined);
 
       const abortController = new AbortController();
@@ -49,28 +49,40 @@ export function useEnhance(input: EnhanceRequest) {
       let buffer = "";
 
       while (true) {
-        const { done, value: chunk } = await reader.read();
+        const { done, value } = await reader.read();
         if (done) {
           break;
         }
 
-        const lines = decoder
-          .decode(chunk)
-          .split("\n")
+        const chunk = decoder.decode(value);
+
+        try {
+          const { error } = JSON.parse(chunk);
+          setError(error);
+          break;
+        } catch (_ignored) {}
+
+        const lines = chunk
+          .split("data: ")
           .filter(Boolean)
-          .map((line) => line.slice(6))
           .filter((line) => line !== "[DONE]");
 
         const delta = lines
-          .map((line) => JSON.parse(line))
-          .map((line) => line.choices[0].delta.content)
+          .map((line) => {
+            try {
+              return JSON.parse(line)?.choices[0]?.delta?.content;
+            } catch (error) {
+              return null;
+            }
+          })
+          .filter(Boolean)
           .join("");
 
         buffer += delta;
 
-        const { state, value } = parsePartialJson(buffer);
-        if (state === "successful-parse" && value) {
-          setData(value as JSONContent[]);
+        const parsed = parsePartialJson(buffer);
+        if (parsed.state === "successful-parse" && parsed.value) {
+          setData(parsed.value as JSONContent);
         }
       }
     } catch (error) {

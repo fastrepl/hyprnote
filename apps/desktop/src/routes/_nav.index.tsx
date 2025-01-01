@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
@@ -8,6 +8,7 @@ import Editor from "../components/editor";
 
 import { Event, Note } from "../types";
 import { useEnhance } from "../utils";
+import { JSONContent } from "@tiptap/react";
 
 const queryOptions = () => ({
   queryKey: ["notes"],
@@ -37,23 +38,24 @@ function Component() {
     data: { notes: _notes, events: _events },
   } = useSuspenseQuery(queryOptions());
 
-  const handleClickEvent = (event: Event) => {
-    navigate({
-      to: "/note/new",
-      search: { eventId: event.id },
-    });
-  };
-  const handleClickNote = (note: Note) => {
-    navigate({
-      to: "/note/$id",
-      params: { id: note.id },
-    });
-  };
+  const [editorContent, setEditorContent] = useState<JSONContent>({
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "Hello World!" }],
+      },
+    ],
+  });
+
+  const handleChange = useCallback((content: JSONContent) => {
+    setEditorContent(content);
+  }, []);
 
   const { data, isLoading, error, stop, submit } = useEnhance({
     baseUrl: "http://127.0.0.1:8000",
     apiKey: "TODO",
-    editor: {},
+    editor: editorContent,
   });
 
   useEffect(() => {
@@ -64,19 +66,25 @@ function Component() {
 
   useEffect(() => {
     if (data) {
-      console.log(data);
+      setEditorContent(data);
     }
   }, [data]);
 
   return (
     <main className="mx-auto flex max-w-4xl flex-col space-y-8 p-6">
-      {isLoading && <div>Loading...</div>}
       {error && <div>Error: {error.message}</div>}
 
-      <button type="button" onClick={() => submit()}>
-        Enhance
-      </button>
-      <Editor />
+      {isLoading ? (
+        <button type="button" onClick={() => stop()}>
+          Stop
+        </button>
+      ) : (
+        <button type="button" onClick={() => submit()}>
+          Enhance
+        </button>
+      )}
+
+      <Editor handleChange={handleChange} content={editorContent} />
     </main>
   );
 }

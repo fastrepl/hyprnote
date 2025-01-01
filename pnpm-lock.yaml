@@ -113,6 +113,9 @@ importers:
       i18next:
         specifier: ^24.2.0
         version: 24.2.0(typescript@5.7.2)
+      nanoid:
+        specifier: ^5.0.9
+        version: 5.0.9
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -2918,6 +2921,11 @@ packages:
   nanoid@3.3.8:
     resolution: {integrity: sha512-WNLf5Sd8oZxOm+TzppcYk8gVOgP+l58xNy58D0nbUnOxOWRWvlcCV4kUF7ltmI6PsrLl/BgKEyS4mqsGChFN0w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
+    hasBin: true
+
+  nanoid@5.0.9:
+    resolution: {integrity: sha512-Aooyr6MXU6HpvvWXKoVoXwKMs/KyVakWwg7xQfv5/S/RIgJMy0Ifa45H9qqYy7pTCszrHzP21Uk4PZq2HpEM8Q==}
+    engines: {node: ^18 || >=20}
     hasBin: true
 
   natural-compare@1.4.0:
@@ -6614,6 +6622,8 @@ snapshots:
       thenify-all: 1.6.0
 
   nanoid@3.3.8: {}
+
+  nanoid@5.0.9: {}
 
   natural-compare@1.4.0: {}
 

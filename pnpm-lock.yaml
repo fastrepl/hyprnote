@@ -134,6 +134,9 @@ importers:
       tippy.js:
         specifier: ^6.3.7
         version: 6.3.7
+      tiptap-unique-id:
+        specifier: ^2.10.3
+        version: 2.10.3(@tiptap/core@2.10.4(@tiptap/pm@2.10.4))(@tiptap/pm@2.10.4)
       zod:
         specifier: ^3.24.1
         version: 3.24.1
@@ -3573,6 +3576,12 @@ packages:
 
   tippy.js@6.3.7:
     resolution: {integrity: sha512-E1d3oP2emgJ9dRQZdf3Kkn0qJgI6ZLpyS5z6ZkY1DF3kaQaBsGZsndEpHwx+eC+tYM41HaSNvNtLx8tU57FzTQ==}
+
+  tiptap-unique-id@2.10.3:
+    resolution: {integrity: sha512-6HKb/kdrHCWbfszmRUyWO6EbSKYergBlOzWC9oXomfvCWIVXM4GLBPoR/fE3f8mWe4fQN/zYReyHDthAxyqMuQ==}
+    peerDependencies:
+      '@tiptap/core': ^2.10.3
+      '@tiptap/pm': ^2.10.3
 
   tmp@0.0.33:
     resolution: {integrity: sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==}
@@ -7319,6 +7328,11 @@ snapshots:
   tippy.js@6.3.7:
     dependencies:
       '@popperjs/core': 2.11.8
+
+  tiptap-unique-id@2.10.3(@tiptap/core@2.10.4(@tiptap/pm@2.10.4))(@tiptap/pm@2.10.4):
+    dependencies:
+      '@tiptap/core': 2.10.4(@tiptap/pm@2.10.4)
+      '@tiptap/pm': 2.10.4
 
   tmp@0.0.33:
     dependencies:

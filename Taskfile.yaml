@@ -12,8 +12,4 @@ tasks:
   server:dev:
     cmds:
       - pnpm -F web build
-      - shuttle run
-  server:deploy:
-    cmds:
-      - pnpm -F web build
-      - shuttle deploy
+      - cargo watch -x 'run -p server'

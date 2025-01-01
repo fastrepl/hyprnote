@@ -15,9 +15,6 @@ hypr-db = { path = "../../crates/db", package = "db", default-features = false, 
   "admin",
 ] }
 
-shuttle-axum = "0.49.0"
-shuttle-runtime = "0.49.0"
-
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 futures = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
@@ -27,10 +24,13 @@ tower = "0.5.2"
 
 async-openai = { version = "0.26.0", default-features = false }
 sentry = { workspace = true }
+dotenv = "0.15.0"
 
 anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-opentelemetry = { workspace = true }
 schemars = { workspace = true, features = ["preserve_order"] }
 
 async-stripe = { version = "0.39.1", features = ["runtime-tokio-hyper"] }

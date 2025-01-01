@@ -18,7 +18,6 @@ use clerk_rs::{
     validators::{axum::ClerkLayer, jwks::MemoryCacheJwksProvider},
     ClerkConfiguration,
 };
-use shuttle_runtime::SecretStore;
 
 use state::{AnalyticsState, AuthState};
 
@@ -29,88 +28,106 @@ mod state;
 mod stripe;
 mod web;
 
-#[shuttle_runtime::main]
-async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum::ShuttleAxum {
-    let clerk_config = ClerkConfiguration::new(
-        None,
-        None,
-        Some(secrets.get("CLERK_SECRET_KEY").unwrap()),
-        None,
-    );
-    let clerk = Clerk::new(clerk_config);
+fn main() {
+    #[cfg(debug_assertions)]
+    dotenv::dotenv().unwrap();
 
-    let stt_config = hypr_stt::Config {
-        deepgram_api_key: secrets.get("DEEPGRAM_API_KEY").unwrap(),
-        clova_secret_key: secrets.get("CLOVA_API_KEY").unwrap(),
-    };
-    let stt = hypr_stt::Client::new(stt_config);
+    let _guard = sentry::init((
+        "https://examplePublicKey@o0.ingest.sentry.io/0",
+        sentry::ClientOptions {
+            release: sentry::release_name!(),
+            ..Default::default()
+        },
+    ));
 
-    // let admin_db_conn = hypr_db::ConnectionBuilder::new()
-    //     .local("./admin.libsql")
-    //     .connect()
-    //     .await
-    //     .unwrap();
-    // let admin_db = hypr_db::admin::AdminDatabase::from(admin_db_conn).await;
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(async {
+            let clerk_config = ClerkConfiguration::new(
+                None,
+                None,
+                Some(std::env::var("CLERK_SECRET_KEY").unwrap()),
+                None,
+            );
+            let clerk = Clerk::new(clerk_config);
 
-    let analytics = hypr_analytics::AnalyticsClient::new("TODO");
+            let stt_config = hypr_stt::Config {
+                deepgram_api_key: std::env::var("DEEPGRAM_API_KEY").unwrap(),
+                clova_api_key: std::env::var("CLOVA_API_KEY").unwrap(),
+            };
+            let stt = hypr_stt::Client::new(stt_config);
 
-    let state = state::AppState {
-        reqwest: reqwest::Client::new(),
-        secrets,
-        clerk: clerk.clone(),
-        stt,
-        analytics,
-    };
+            let admin_db_conn = hypr_db::ConnectionBuilder::new()
+                .local("./admin.libsql")
+                .connect()
+                .await
+                .unwrap();
+            let admin_db = hypr_db::admin::AdminDatabase::from(admin_db_conn).await;
 
-    let web_router = Router::new()
-        .route("/connect", get(web::connect::handler))
-        .layer(ClerkLayer::new(
-            MemoryCacheJwksProvider::new(clerk),
-            None,
-            true,
-        ));
+            let analytics = hypr_analytics::AnalyticsClient::new("TODO");
 
-    let native_router = Router::new()
-        .route(
-            "/enhance",
-            post(native::enhance::handler).layer(TimeoutLayer::new(Duration::from_secs(20))),
-        )
-        .route(
-            "/chat/completions",
-            post(native::openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
-        )
-        .route("/transcribe", get(native::transcribe::handler));
-    // .layer(
-    //     tower::builder::ServiceBuilder::new()
-    //         .layer(middleware::from_fn_with_state(
-    //             AuthState::from_ref(&state),
-    //             auth::middleware_fn,
-    //         ))
-    //         .layer(middleware::from_fn_with_state(
-    //             AnalyticsState::from_ref(&state),
-    //             analytics::middleware_fn,
-    //         )),
-    // );
+            let state = state::AppState {
+                reqwest: reqwest::Client::new(),
+                clerk: clerk.clone(),
+                stt,
+                admin_db,
+                analytics,
+            };
 
-    let webhook_router = Router::new().route("/stripe", post(stripe::webhook::handler));
+            let web_router = Router::new()
+                .route("/connect", get(web::connect::handler))
+                .layer(ClerkLayer::new(
+                    MemoryCacheJwksProvider::new(clerk),
+                    None,
+                    true,
+                ));
 
-    let router = Router::new()
-        .route("/health", get(health))
-        .nest("/api/native", native_router)
-        .nest("/api/web", web_router)
-        .nest("/webhook", webhook_router)
-        .fallback_service({
-            let web_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../web");
+            let native_router = Router::new()
+                .route(
+                    "/enhance",
+                    post(native::enhance::handler)
+                        .layer(TimeoutLayer::new(Duration::from_secs(20))),
+                )
+                .route(
+                    "/chat/completions",
+                    post(native::openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
+                )
+                .route("/transcribe", get(native::transcribe::handler))
+                .layer(
+                    tower::builder::ServiceBuilder::new()
+                        .layer(middleware::from_fn_with_state(
+                            AuthState::from_ref(&state),
+                            auth::middleware_fn,
+                        ))
+                        .layer(middleware::from_fn_with_state(
+                            AnalyticsState::from_ref(&state),
+                            analytics::middleware_fn,
+                        )),
+                );
 
-            ServeDir::new(web_dir.join("dist"))
-                .append_index_html_on_directories(false)
-                .fallback(ServeFile::new(web_dir.join("dist/index.html")))
-        })
-        .with_state(state);
+            let webhook_router = Router::new().route("/stripe", post(stripe::webhook::handler));
 
-    Ok(router.into())
-}
+            let router = Router::new()
+                .route("/health", get(|| async { (StatusCode::OK, "OK") }))
+                .nest("/api/native", native_router)
+                .nest("/api/web", web_router)
+                .nest("/webhook", webhook_router)
+                .fallback_service({
+                    let web_dir =
+                        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../web");
 
-async fn health() -> impl IntoResponse {
-    (StatusCode::OK, "OK")
+                    ServeDir::new(web_dir.join("dist"))
+                        .append_index_html_on_directories(false)
+                        .fallback(ServeFile::new(web_dir.join("dist/index.html")))
+                })
+                .with_state(state);
+
+            let port = std::env::var("PORT").unwrap_or("3000".to_string());
+            let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port))
+                .await
+                .unwrap();
+            axum::serve(listener, router).await.unwrap();
+        });
 }

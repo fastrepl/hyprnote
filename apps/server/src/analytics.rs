@@ -21,7 +21,7 @@ pub async fn middleware_fn(
         .with("key2", 2)
         .build();
 
-    state.analytics.event(payload).await;
+    let _ = state.analytics.event(payload).await;
 
     Ok(next.run(req).await)
 }

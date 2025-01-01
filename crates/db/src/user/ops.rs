@@ -13,6 +13,19 @@ impl UserDatabase {
         Self { conn }
     }
 
+    pub async fn list_sessions(&self) -> Result<Vec<Session>> {
+        let mut rows = self.conn.query("SELECT * FROM sessions", ()).await.unwrap();
+        let mut sessions = Vec::new();
+
+        while let Some(row) = rows.next().await.unwrap() {
+            let session_row: SessionRow = libsql::de::from_row(&row)?;
+            let session = Session::from(session_row);
+            sessions.push(session);
+        }
+
+        Ok(sessions)
+    }
+
     pub async fn create_session(&self, session: Session) -> Result<Session> {
         let session = SessionRow::from(session);
 
@@ -25,7 +38,7 @@ impl UserDatabase {
                     enhanced_memo,
                     tags,
                     transcript
-                ) VALUES ( ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?)
                 RETURNING *",
                 vec![
                     session.title,
@@ -62,7 +75,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_simple() {
+    async fn test_sessions() {
         let db = setup_db().await;
         let session = Session {
             title: "test".to_string(),
@@ -73,5 +86,10 @@ mod tests {
         let session = db.create_session(session).await.unwrap();
         assert_eq!(session.title, "test");
         assert_eq!(session.tags, vec!["test".to_string()]);
+
+        let sessions = db.list_sessions().await.unwrap();
+        assert_eq!(sessions.len(), 1);
+        assert_eq!(sessions[0].title, "test");
+        assert_eq!(sessions[0].tags, vec!["test".to_string()]);
     }
 }

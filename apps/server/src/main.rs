@@ -58,21 +58,33 @@ fn main() {
             };
             let stt = hypr_stt::Client::new(stt_config);
 
-            let admin_db_conn = hypr_db::ConnectionBuilder::new()
-                .local("./admin.libsql")
-                .connect()
-                .await
-                .unwrap();
-            let admin_db = hypr_db::admin::AdminDatabase::from(admin_db_conn).await;
+            let admin_db_conn = {
+                #[cfg(debug_assertions)]
+                let conn = hypr_db::ConnectionBuilder::new()
+                    .local(":memory:")
+                    .connect()
+                    .await
+                    .unwrap();
 
-            let analytics = hypr_analytics::AnalyticsClient::new("TODO");
+                #[cfg(not(debug_assertions))]
+                let conn = hypr_db::ConnectionBuilder::new()
+                    .remote(
+                        &std::env::var("DATABASE_URL").unwrap(),
+                        &std::env::var("DATABASE_TOKEN").unwrap(),
+                    )
+                    .connect()
+                    .await
+                    .unwrap();
+
+                conn
+            };
 
             let state = state::AppState {
                 reqwest: reqwest::Client::new(),
                 clerk: clerk.clone(),
                 stt,
-                admin_db,
-                analytics,
+                admin_db: hypr_db::admin::AdminDatabase::from(admin_db_conn).await,
+                analytics: hypr_analytics::AnalyticsClient::new(std::env::var("POSTHOG_API_KEY").unwrap()),
             };
 
             let web_router = Router::new()

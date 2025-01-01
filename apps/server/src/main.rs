@@ -41,7 +41,7 @@ async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum:
 
     let stt_config = hypr_stt::Config {
         deepgram_api_key: secrets.get("DEEPGRAM_API_KEY").unwrap(),
-        clova_secret_key: secrets.get("CLOVA_SECRET_KEY").unwrap(),
+        clova_secret_key: secrets.get("CLOVA_API_KEY").unwrap(),
     };
     let stt = hypr_stt::Client::new(stt_config);
 

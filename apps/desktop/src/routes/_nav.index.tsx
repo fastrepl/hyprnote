@@ -1,12 +1,13 @@
+import { useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 // import { UpcomingEvents } from "../components/home/UpcomingEvents";
 // import { PastNotes } from "../components/home/PastNotes";
-import { Event, Note } from "../types";
-import { useEnhanceNote } from "../utils/ai";
-import { useEffect } from "react";
 import Editor from "../components/editor";
+
+import { Event, Note } from "../types";
+import { useEnhance } from "../utils";
 
 const queryOptions = () => ({
   queryKey: ["notes"],
@@ -49,7 +50,11 @@ function Component() {
     });
   };
 
-  const { data, isLoading, error, stop, submit } = useEnhanceNote();
+  const { data, isLoading, error, stop, submit } = useEnhance({
+    baseUrl: "http://127.0.0.1:8000",
+    apiKey: "TODO",
+    editor: {},
+  });
 
   useEffect(() => {
     if (error) {

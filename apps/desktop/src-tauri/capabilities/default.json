@@ -13,7 +13,8 @@
       "identifier": "http:default",
       "allow": [
         { "url": "https://api.openai.com" },
-        { "url": "https://api.fireworks.ai" }
+        { "url": "https://api.fireworks.ai" },
+        { "url": "http://127.0.0.1:8000" }
       ]
     }
   ]

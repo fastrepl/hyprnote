@@ -1,9 +1,7 @@
 import { useEffect } from "react";
 
 import {
-  BubbleMenu,
   EditorContent,
-  FloatingMenu,
   useEditor,
   type JSONContent,
   type Editor as TiptapEditor,
@@ -16,7 +14,7 @@ import { UniqueID, HTML_ID } from "./extensions";
 
 import "../../styles/tiptap.css";
 
-const extensions = [
+export const extensions = [
   StarterKit,
   Placeholder,
   Highlight,

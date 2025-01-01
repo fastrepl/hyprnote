@@ -12,10 +12,10 @@ pub fn v0() -> Vec<impl AsRef<str>> {
             transcript TEXT DEFAULT NULL
         );",
         "CREATE TABLE calendars (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY AUTOINCREMENT
         );",
         "CREATE TABLE events (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY AUTOINCREMENT
         );",
     ]
 }

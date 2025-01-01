@@ -8,8 +8,8 @@ hypr-onnx = { path = "../onnx", package = "onnx" }
 
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
+ndarray = { workspace = true }
 ndrustfft = "0.5.0"
-ndarray = "0.16"
 
 [dev-dependencies]
 hound = { workspace = true }

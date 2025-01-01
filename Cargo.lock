@@ -1561,7 +1561,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d1e306c8a4276ba57ce9fac76d823cc8c8a7fca14bf222ac20ad8b12c4273152"
 dependencies = [
  "byteorder",
- "candle-metal-kernels",
+ "candle-metal-kernels 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gemm",
  "half",
  "memmap2",
@@ -1585,9 +1585,11 @@ version = "0.8.1"
 source = "git+https://github.com/huggingface/candle?tag=0.8.1#67cab7d6b8279f953b0a8cc5012b135b9743cdc8"
 dependencies = [
  "byteorder",
+ "candle-metal-kernels 0.8.1 (git+https://github.com/huggingface/candle?tag=0.8.1)",
  "gemm",
  "half",
  "memmap2",
+ "metal 0.27.0",
  "num-traits",
  "num_cpus",
  "rand 0.8.5",
@@ -1596,6 +1598,7 @@ dependencies = [
  "safetensors",
  "thiserror 1.0.69",
  "ug",
+ "ug-metal",
  "yoke",
  "zip 1.1.4",
 ]
@@ -1654,6 +1657,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "candle-metal-kernels"
+version = "0.8.1"
+source = "git+https://github.com/huggingface/candle?tag=0.8.1#67cab7d6b8279f953b0a8cc5012b135b9743cdc8"
+dependencies = [
+ "metal 0.27.0",
+ "once_cell",
+ "thiserror 1.0.69",
+ "tracing",
+]
+
+[[package]]
 name = "candle-nn"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1675,7 +1689,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39d417059c44d719fd03a0f711ccfe148d341469c9273d4b5731ebe965b2c97e"
 dependencies = [
  "candle-core 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "candle-metal-kernels",
+ "candle-metal-kernels 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "half",
  "metal 0.27.0",
  "num-traits",
@@ -1691,7 +1705,9 @@ version = "0.8.1"
 source = "git+https://github.com/huggingface/candle?tag=0.8.1#67cab7d6b8279f953b0a8cc5012b135b9743cdc8"
 dependencies = [
  "candle-core 0.8.1 (git+https://github.com/huggingface/candle?tag=0.8.1)",
+ "candle-metal-kernels 0.8.1 (git+https://github.com/huggingface/candle?tag=0.8.1)",
  "half",
+ "metal 0.27.0",
  "num-traits",
  "rayon",
  "safetensors",

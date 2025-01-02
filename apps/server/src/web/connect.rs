@@ -10,16 +10,64 @@ use crate::state::AppState;
 use clerk_rs::validators::authorizer::ClerkJwt;
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Input {}
+pub struct Input {
+    #[serde(rename = "c")]
+    code: String,
+    #[serde(rename = "f")]
+    fingerprint: String,
+}
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Output {}
+pub struct Output {
+    key: String,
+}
 
 pub async fn handler(
     State(state): State<AppState>,
     Extension(jwt): Extension<ClerkJwt>,
     Json(input): Json<Input>,
-) -> Result<impl IntoResponse, StatusCode> {
+) -> impl IntoResponse {
     let clerk_user_id = jwt.sub;
-    Ok(Json(Output {}))
+
+    let create_db_req = hypr_turso::CreateDatabaseRequestBuilder::new()
+        .with_name(uuid::Uuid::new_v4().to_string())
+        .build();
+
+    let turso_db_name = match state.turso.create_database(create_db_req).await {
+        Ok(hypr_turso::DatabaseResponse::Database { database }) => database.name,
+        Ok(hypr_turso::DatabaseResponse::Error { error }) => {
+            return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string()))
+        }
+        Err(error) => return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string())),
+    };
+
+    let user = match state
+        .admin_db
+        .upsert_user(hypr_db::admin::User {
+            clerk_user_id,
+            turso_db_name,
+            ..Default::default()
+        })
+        .await
+    {
+        Ok(user) => user,
+        Err(error) => return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string())),
+    };
+
+    let device = match state
+        .admin_db
+        .upsert_device(hypr_db::admin::Device {
+            user_id: user.id,
+            fingerprint: input.fingerprint,
+            ..Default::default()
+        })
+        .await
+    {
+        Ok(device) => device,
+        Err(error) => return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string())),
+    };
+
+    Ok(Json(Output {
+        key: device.api_key,
+    }))
 }

@@ -3,6 +3,7 @@ use axum::extract::FromRef;
 use clerk_rs::clerk::Clerk;
 use hypr_analytics::AnalyticsClient;
 use hypr_db::admin::AdminDatabase;
+use hypr_turso::TursoClient;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -11,12 +12,14 @@ pub struct AppState {
     pub stt: hypr_stt::Client,
     pub admin_db: AdminDatabase,
     pub analytics: AnalyticsClient,
+    pub turso: TursoClient,
 }
 
 #[derive(Clone)]
 pub struct AuthState {
     pub clerk: Clerk,
     pub admin_db: AdminDatabase,
+    pub turso: TursoClient,
 }
 
 #[derive(Clone)]
@@ -29,6 +32,7 @@ impl FromRef<AppState> for AuthState {
         AuthState {
             clerk: app_state.clerk.clone(),
             admin_db: app_state.admin_db.clone(),
+            turso: app_state.turso.clone(),
         }
     }
 }

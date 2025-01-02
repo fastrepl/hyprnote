@@ -15,10 +15,9 @@ import { Route as SettingsImport } from "./routes/settings";
 import { Route as IndexImport } from "./routes/index";
 import { Route as NotesIdImport } from "./routes/notes.$id";
 import { Route as AuthSignUpImport } from "./routes/auth.sign-up";
+import { Route as AuthSignOutImport } from "./routes/auth.sign-out";
 import { Route as AuthSignInImport } from "./routes/auth.sign-in";
 import { Route as AuthConnectImport } from "./routes/auth.connect";
-import { Route as AuthConnectSuccessImport } from "./routes/auth.connect.success";
-import { Route as AuthConnectFailedImport } from "./routes/auth.connect.failed";
 
 // Create/Update Routes
 
@@ -46,6 +45,12 @@ const AuthSignUpRoute = AuthSignUpImport.update({
   getParentRoute: () => rootRoute,
 } as any);
 
+const AuthSignOutRoute = AuthSignOutImport.update({
+  id: "/auth/sign-out",
+  path: "/auth/sign-out",
+  getParentRoute: () => rootRoute,
+} as any);
+
 const AuthSignInRoute = AuthSignInImport.update({
   id: "/auth/sign-in",
   path: "/auth/sign-in",
@@ -56,18 +61,6 @@ const AuthConnectRoute = AuthConnectImport.update({
   id: "/auth/connect",
   path: "/auth/connect",
   getParentRoute: () => rootRoute,
-} as any);
-
-const AuthConnectSuccessRoute = AuthConnectSuccessImport.update({
-  id: "/success",
-  path: "/success",
-  getParentRoute: () => AuthConnectRoute,
-} as any);
-
-const AuthConnectFailedRoute = AuthConnectFailedImport.update({
-  id: "/failed",
-  path: "/failed",
-  getParentRoute: () => AuthConnectRoute,
 } as any);
 
 // Populate the FileRoutesByPath interface
@@ -102,6 +95,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthSignInImport;
       parentRoute: typeof rootRoute;
     };
+    "/auth/sign-out": {
+      id: "/auth/sign-out";
+      path: "/auth/sign-out";
+      fullPath: "/auth/sign-out";
+      preLoaderRoute: typeof AuthSignOutImport;
+      parentRoute: typeof rootRoute;
+    };
     "/auth/sign-up": {
       id: "/auth/sign-up";
       path: "/auth/sign-up";
@@ -116,71 +116,40 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof NotesIdImport;
       parentRoute: typeof rootRoute;
     };
-    "/auth/connect/failed": {
-      id: "/auth/connect/failed";
-      path: "/failed";
-      fullPath: "/auth/connect/failed";
-      preLoaderRoute: typeof AuthConnectFailedImport;
-      parentRoute: typeof AuthConnectImport;
-    };
-    "/auth/connect/success": {
-      id: "/auth/connect/success";
-      path: "/success";
-      fullPath: "/auth/connect/success";
-      preLoaderRoute: typeof AuthConnectSuccessImport;
-      parentRoute: typeof AuthConnectImport;
-    };
   }
 }
 
 // Create and export the route tree
 
-interface AuthConnectRouteChildren {
-  AuthConnectFailedRoute: typeof AuthConnectFailedRoute;
-  AuthConnectSuccessRoute: typeof AuthConnectSuccessRoute;
-}
-
-const AuthConnectRouteChildren: AuthConnectRouteChildren = {
-  AuthConnectFailedRoute: AuthConnectFailedRoute,
-  AuthConnectSuccessRoute: AuthConnectSuccessRoute,
-};
-
-const AuthConnectRouteWithChildren = AuthConnectRoute._addFileChildren(
-  AuthConnectRouteChildren,
-);
-
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
   "/settings": typeof SettingsRoute;
-  "/auth/connect": typeof AuthConnectRouteWithChildren;
+  "/auth/connect": typeof AuthConnectRoute;
   "/auth/sign-in": typeof AuthSignInRoute;
+  "/auth/sign-out": typeof AuthSignOutRoute;
   "/auth/sign-up": typeof AuthSignUpRoute;
   "/notes/$id": typeof NotesIdRoute;
-  "/auth/connect/failed": typeof AuthConnectFailedRoute;
-  "/auth/connect/success": typeof AuthConnectSuccessRoute;
 }
 
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
   "/settings": typeof SettingsRoute;
-  "/auth/connect": typeof AuthConnectRouteWithChildren;
+  "/auth/connect": typeof AuthConnectRoute;
   "/auth/sign-in": typeof AuthSignInRoute;
+  "/auth/sign-out": typeof AuthSignOutRoute;
   "/auth/sign-up": typeof AuthSignUpRoute;
   "/notes/$id": typeof NotesIdRoute;
-  "/auth/connect/failed": typeof AuthConnectFailedRoute;
-  "/auth/connect/success": typeof AuthConnectSuccessRoute;
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute;
   "/": typeof IndexRoute;
   "/settings": typeof SettingsRoute;
-  "/auth/connect": typeof AuthConnectRouteWithChildren;
+  "/auth/connect": typeof AuthConnectRoute;
   "/auth/sign-in": typeof AuthSignInRoute;
+  "/auth/sign-out": typeof AuthSignOutRoute;
   "/auth/sign-up": typeof AuthSignUpRoute;
   "/notes/$id": typeof NotesIdRoute;
-  "/auth/connect/failed": typeof AuthConnectFailedRoute;
-  "/auth/connect/success": typeof AuthConnectSuccessRoute;
 }
 
 export interface FileRouteTypes {
@@ -190,38 +159,36 @@ export interface FileRouteTypes {
     | "/settings"
     | "/auth/connect"
     | "/auth/sign-in"
+    | "/auth/sign-out"
     | "/auth/sign-up"
-    | "/notes/$id"
-    | "/auth/connect/failed"
-    | "/auth/connect/success";
+    | "/notes/$id";
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
     | "/settings"
     | "/auth/connect"
     | "/auth/sign-in"
+    | "/auth/sign-out"
     | "/auth/sign-up"
-    | "/notes/$id"
-    | "/auth/connect/failed"
-    | "/auth/connect/success";
+    | "/notes/$id";
   id:
     | "__root__"
     | "/"
     | "/settings"
     | "/auth/connect"
     | "/auth/sign-in"
+    | "/auth/sign-out"
     | "/auth/sign-up"
-    | "/notes/$id"
-    | "/auth/connect/failed"
-    | "/auth/connect/success";
+    | "/notes/$id";
   fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
   SettingsRoute: typeof SettingsRoute;
-  AuthConnectRoute: typeof AuthConnectRouteWithChildren;
+  AuthConnectRoute: typeof AuthConnectRoute;
   AuthSignInRoute: typeof AuthSignInRoute;
+  AuthSignOutRoute: typeof AuthSignOutRoute;
   AuthSignUpRoute: typeof AuthSignUpRoute;
   NotesIdRoute: typeof NotesIdRoute;
 }
@@ -229,8 +196,9 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SettingsRoute: SettingsRoute,
-  AuthConnectRoute: AuthConnectRouteWithChildren,
+  AuthConnectRoute: AuthConnectRoute,
   AuthSignInRoute: AuthSignInRoute,
+  AuthSignOutRoute: AuthSignOutRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   NotesIdRoute: NotesIdRoute,
 };
@@ -249,6 +217,7 @@ export const routeTree = rootRoute
         "/settings",
         "/auth/connect",
         "/auth/sign-in",
+        "/auth/sign-out",
         "/auth/sign-up",
         "/notes/$id"
       ]
@@ -260,28 +229,19 @@ export const routeTree = rootRoute
       "filePath": "settings.tsx"
     },
     "/auth/connect": {
-      "filePath": "auth.connect.tsx",
-      "children": [
-        "/auth/connect/failed",
-        "/auth/connect/success"
-      ]
+      "filePath": "auth.connect.tsx"
     },
     "/auth/sign-in": {
       "filePath": "auth.sign-in.tsx"
+    },
+    "/auth/sign-out": {
+      "filePath": "auth.sign-out.tsx"
     },
     "/auth/sign-up": {
       "filePath": "auth.sign-up.tsx"
     },
     "/notes/$id": {
       "filePath": "notes.$id.tsx"
-    },
-    "/auth/connect/failed": {
-      "filePath": "auth.connect.failed.tsx",
-      "parent": "/auth/connect"
-    },
-    "/auth/connect/success": {
-      "filePath": "auth.connect.success.tsx",
-      "parent": "/auth/connect"
     }
   }
 }

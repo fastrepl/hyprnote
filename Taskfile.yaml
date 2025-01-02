@@ -1,4 +1,5 @@
 version: '3'
+dotenv: ['.env']
 tasks:
   fmt:js: pnpm -r format
   fmt:yaml: yamlfmt .github pnpm-workspace.yaml
@@ -9,11 +10,8 @@ tasks:
     silent: true
     deps: ['fmt:yaml', 'fmt:toml', 'fmt:rs', 'fmt:swift', 'fmt:js']
 
-  server:dev:
-    cmds:
-      - pnpm -F web build
-      - cargo watch -x 'run -p server'
-  
+  desktop:build: pnpm -F desktop tauri build
+  server:dev: cargo watch -x 'run -p server'
   server:env:
     cmds:
       - |

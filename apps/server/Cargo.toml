@@ -8,11 +8,12 @@ hypr-s3 = { path = "../../crates/s3", package = "s3" }
 hypr-stt = { path = "../../crates/stt", package = "stt" }
 hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
 hypr-analytics = { path = "../../crates/analytics", package = "analytics" }
-hypr-calendar = { path = "../../crates/calendar", package = "calendar", default-features = false, features = [
-  "google",
-] }
+hypr-turso = { path = "../../crates/turso", package = "turso" }
 hypr-db = { path = "../../crates/db", package = "db", default-features = false, features = [
   "admin",
+] }
+hypr-calendar = { path = "../../crates/calendar", package = "calendar", default-features = false, features = [
+  "google",
 ] }
 
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
@@ -29,6 +30,7 @@ dotenv = "0.15.0"
 anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+uuid = { workspace = true }
 tracing = { workspace = true }
 tracing-opentelemetry = { workspace = true }
 schemars = { workspace = true, features = ["preserve_order"] }

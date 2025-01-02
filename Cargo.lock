@@ -8833,6 +8833,8 @@ dependencies = [
  "tower-http 0.6.2",
  "tracing",
  "tracing-opentelemetry",
+ "turso",
+ "uuid 1.11.0",
 ]
 
 [[package]]

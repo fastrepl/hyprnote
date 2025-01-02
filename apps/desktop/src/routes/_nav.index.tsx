@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 // import { UpcomingEvents } from "../components/home/UpcomingEvents";
@@ -19,11 +19,11 @@ export const Route = createFileRoute("/_nav/")({
   loader: ({ context: { queryClient } }) => {
     return queryClient.ensureQueryData(queryOptions());
   },
-  // beforeLoad: ({ context }) => {
-  //   if (!context.auth?.isAuthenticated) {
-  //     throw redirect({ to: "/login" });
-  //   }
-  // },
+  beforeLoad: ({ context }) => {
+    if (!context.auth?.isAuthenticated) {
+      throw redirect({ to: "/login" });
+    }
+  },
 });
 
 function Component() {

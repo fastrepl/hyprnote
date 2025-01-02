@@ -3,7 +3,7 @@ pub fn v0() -> Vec<impl AsRef<str>> {
         "CREATE TABLE users (
             id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             timestamp INTEGER DEFAULT (unixepoch()) NOT NULL,
-            clerk_user_id TEXT NOT NULL,
+            clerk_user_id TEXT NOT NULL UNIQUE,
             turso_db_name TEXT NOT NULL
         );",
         "CREATE INDEX idx_users_clerk_user_id ON users(clerk_user_id);",

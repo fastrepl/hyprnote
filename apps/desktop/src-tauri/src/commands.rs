@@ -10,6 +10,18 @@ type MutableState<'a, T> = State<'a, Arc<RwLock<T>>>;
 
 #[tauri::command]
 #[specta::specta]
+pub fn get_env(name: &str) -> String {
+    std::env::var(String::from(name)).unwrap_or(String::from(""))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_fingerprint() -> String {
+    hypr_host::fingerprint()
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn create_session(_app: AppHandle) {}
 
 #[tauri::command]

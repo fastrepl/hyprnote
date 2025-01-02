@@ -44,6 +44,8 @@ fn main() {
         .build()
         .unwrap()
         .block_on(async {
+            let turso = hypr_turso::TursoClient::new(std::env::var("TURSO_API_KEY").unwrap());
+
             let clerk_config = ClerkConfiguration::new(
                 None,
                 None,
@@ -76,6 +78,10 @@ fn main() {
                     .await
                     .unwrap();
 
+                hypr_db::migrate(&conn, hypr_db::admin::migrations::v0())
+                    .await
+                    .unwrap();
+
                 conn
             };
 
@@ -83,6 +89,7 @@ fn main() {
                 reqwest: reqwest::Client::new(),
                 clerk: clerk.clone(),
                 stt,
+                turso,
                 admin_db: hypr_db::admin::AdminDatabase::from(admin_db_conn).await,
                 analytics: hypr_analytics::AnalyticsClient::new(
                     std::env::var("POSTHOG_API_KEY").unwrap(),
@@ -90,14 +97,15 @@ fn main() {
             };
 
             let web_router = Router::new()
-                .route("/connect", get(web::connect::handler))
+                .route("/connect", post(web::connect::handler))
                 .layer(ClerkLayer::new(
                     MemoryCacheJwksProvider::new(clerk),
                     None,
                     true,
                 ));
 
-            let native_router = Router::new()
+            #[allow(unused)]
+            let mut native_router = Router::new()
                 .route(
                     "/enhance",
                     post(native::enhance::handler)
@@ -107,8 +115,11 @@ fn main() {
                     "/chat/completions",
                     post(native::openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
                 )
-                .route("/transcribe", get(native::transcribe::handler))
-                .layer(
+                .route("/transcribe", get(native::transcribe::handler));
+
+            #[cfg(not(debug_assertions))]
+            {
+                native_router = native_router.layer(
                     tower::builder::ServiceBuilder::new()
                         .layer(middleware::from_fn_with_state(
                             AuthState::from_ref(&state),
@@ -119,6 +130,7 @@ fn main() {
                             analytics::middleware_fn,
                         )),
                 );
+            }
 
             let webhook_router = Router::new().route("/stripe", post(stripe::webhook::handler));
 

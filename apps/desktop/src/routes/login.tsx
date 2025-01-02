@@ -1,18 +1,37 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { open } from "@tauri-apps/plugin-shell";
+import { Trans } from "@lingui/react/macro";
+
+import { commands } from "../types/tauri.ts";
 
 import { RetroGrid } from "../components/ui/retro-grid.tsx";
 // import { AudioControls } from "../components/AudioControls";
 import BlurFade from "../components/ui/blur-fade.tsx";
 import SparklesText from "../components/ui/sparkles-text.tsx";
 import ShimmerButton from "../components/ui/shimmer-button.tsx";
-import { Trans } from "@lingui/react/macro";
 
 export const Route = createFileRoute("/login")({
   component: Component,
+  loader: async () => {
+    const fingerprint = await commands.getFingerprint();
+    return {
+      code: window.crypto.randomUUID(),
+      fingerprint,
+    };
+  },
 });
 
 function Component() {
-  const handleSignIn = () => {};
+  const { code, fingerprint } = Route.useLoaderData();
+
+  const handleSignIn = () => {
+    const base = "http://127.0.0.1:3000";
+    const u = new URL(base);
+    u.pathname = "/auth/connect";
+    u.searchParams.set("c", code);
+    u.searchParams.set("f", fingerprint);
+    open(u.toString());
+  };
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden text-black">

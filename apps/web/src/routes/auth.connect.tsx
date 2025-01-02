@@ -3,10 +3,11 @@ import { useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { useMutation } from "@tanstack/react-query";
-import { SignedIn, RedirectToSignIn, useAuth } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/clerk-react";
 
 const schema = z.object({
-  code: z.string().optional(),
+  c: z.string(),
+  f: z.string(),
 });
 
 export const Route = createFileRoute("/auth/connect")({
@@ -15,49 +16,82 @@ export const Route = createFileRoute("/auth/connect")({
 });
 
 function Component() {
-  const navigate = useNavigate();
-  const { code } = Route.useSearch();
+  const search = Route.useSearch();
+  const { c: code, f: _fingerprint } = search;
   const { isLoaded, userId } = useAuth();
-
-  if (!isLoaded) {
-    return <div>...</div>;
-  }
-
-  if (!userId) {
-    return <RedirectToSignIn />;
-  }
-
-  if (!code) {
-    return (
-      <div>
-        <p>No code provided</p>
-        <Link href="https://hyprnote.com">Go to Hyprnote</Link>
-      </div>
-    );
-  }
+  const navigate = useNavigate();
 
   const mutation = useMutation({
-    mutationFn: (args: any) => {
-      return args as any;
+    mutationFn: async (args: ReturnType<typeof Route.useSearch>) => {
+      const response = await fetch("/api/web/connect", {
+        method: "POST",
+        body: JSON.stringify(args),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const { key } = await response.json();
+      return { key };
     },
   });
 
   useEffect(() => {
-    if (mutation.isSuccess) {
-      navigate({ to: "/auth/connect/success" });
+    if (mutation.status === "success") {
+      const { key } = mutation.data;
+      window.location.href = `hypr://callback/connect?k=${key}`;
     }
-  }, [mutation.isSuccess]);
+  }, [mutation.status]);
+
+  if (isLoaded && !userId) {
+    throw navigate({ to: "/auth/sign-in" });
+  }
+
+  if (!code) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <div>
+          <p>No code provided</p>
+          <Link href="https://hyprnote.com">Go to Hyprnote</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <SignedIn>
-      <div>
-        <button
-          disabled={mutation.status !== "idle"}
-          onClick={() => mutation.mutate({})}
-        >
-          Connect
-        </button>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <div className="h-[600px] w-[400px] bg-gray-200 rounded-lg">
+        {isLoaded ? (
+          <div>
+            <span>Code: {code}</span>
+          </div>
+        ) : (
+          <div>
+            <span>Loading...</span>
+          </div>
+        )}
+
+        {mutation.status === "success" ? (
+          <div>
+            <span>Success</span>
+          </div>
+        ) : mutation.status === "error" ? (
+          <div>
+            <span>Error</span>
+          </div>
+        ) : mutation.status === "pending" ? (
+          <div>
+            <span>Pending</span>
+          </div>
+        ) : (
+          <button
+            className="bg-blue-800 text-white p-1 rounded-md"
+            disabled={mutation.status !== "idle"}
+            onClick={() => mutation.mutate(search)}
+          >
+            Connect
+          </button>
+        )}
       </div>
-    </SignedIn>
+    </div>
   );
 }

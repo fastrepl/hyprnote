@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 import {
   EditorContent,
@@ -13,11 +13,16 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { UniqueID, HTML_ID } from "./extensions";
 import { HyprchargeNode } from "./nodes";
 
+import clsx from "clsx";
 import "../../styles/tiptap.css";
 
 export const extensions = [
   StarterKit,
-  Placeholder,
+  Placeholder.configure({
+    placeholder: "Welcome to Hyprnote!",
+    emptyEditorClass:
+      "text-lg text-gray-500 first:float-left first:h-0 first:pointer-events-none first:before:content-[attr(data-placeholder)]",
+  }),
   Highlight,
   Typography,
   UniqueID,
@@ -41,7 +46,16 @@ export default function Editor({ handleChange, content }: EditorProps) {
     extensions,
     content,
     onUpdate,
+    editorProps: {
+      attributes: {
+        class: clsx(["p-4 focus:outline-none focus:ring-0"]),
+      },
+    },
   });
+
+  const handleClickArea = useCallback(() => {
+    editor?.commands.focus("end");
+  }, [editor]);
 
   useEffect(() => {
     if (editor && editor.isInitialized) {
@@ -50,8 +64,14 @@ export default function Editor({ handleChange, content }: EditorProps) {
   }, [content]);
 
   return (
-    <>
+    <div
+      role="textbox"
+      className={clsx([
+        "relative m-1 h-[600px] w-full rounded-xl border border-slate-200",
+      ])}
+      onClick={handleClickArea}
+    >
       <EditorContent editor={editor} />
-    </>
+    </div>
   );
 }

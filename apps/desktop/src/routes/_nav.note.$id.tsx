@@ -48,7 +48,6 @@ function Component() {
   });
 
   useEffect(() => {
-    console.log("data", data);
     if (data) {
       setEditorContent(data);
     }

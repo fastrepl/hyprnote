@@ -47,14 +47,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: [
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Apple SD Gothic Neo",
-          "Pretendard",
-          "system-ui",
-          "sans-serif",
-        ],
+        sans: ["Inter", "system-ui"],
       },
       keyframes: {
         marquee: {

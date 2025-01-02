@@ -96,6 +96,11 @@ pub struct RetrieveDatabaseResponse {
     pub archived: bool,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct DeleteDatabaseResponse {
+    pub database: String,
+}
+
 const ORG: &str = "yujonglee";
 
 // https://docs.turso.tech/api-reference
@@ -150,6 +155,20 @@ impl TursoClient {
 
         let res = self.client.get(url).send().await?.json().await?;
 
+        Ok(res)
+    }
+
+    pub async fn delete_database(
+        &self,
+        db: impl std::fmt::Display,
+    ) -> Result<DatabaseResponse<DeleteDatabaseResponse>, reqwest::Error> {
+        let url = format!(
+            "https://api.turso.tech/v1/organizations/{org}/databases/{db}",
+            org = ORG,
+            db = db
+        );
+
+        let res = self.client.delete(url).send().await?.json().await?;
         Ok(res)
     }
 }

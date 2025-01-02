@@ -12,7 +12,12 @@ tasks:
     deps: ['fmt:yaml', 'fmt:toml', 'fmt:rs', 'fmt:swift', 'fmt:js', 'fmt:sql']
 
   desktop:build: pnpm -F desktop tauri build
-  server:dev: cargo watch -x 'run -p server'
+  server:dev:
+    cmds:
+      - docker-compose -f crates/s3/docker-compose.yaml up -d
+      - cmd: cargo watch -x 'run -p server'
+        ignore_error: true
+      - docker-compose -f crates/s3/docker-compose.yaml down
   server:env:
     cmds:
       - |

@@ -1,8 +1,6 @@
 use tokio::sync::RwLock;
 
 use tauri::{AppHandle, Manager};
-use tauri_plugin_deep_link::DeepLinkExt;
-use tauri_specta::Event;
 
 mod audio;
 mod auth;
@@ -89,6 +87,31 @@ pub fn run() {
         });
     }
 
+    let _db = tauri::async_runtime::block_on(async {
+        let conn = {
+            #[cfg(debug_assertions)]
+            {
+                hypr_db::ConnectionBuilder::new()
+                    .local(":memory:")
+                    .connect()
+                    .await
+                    .unwrap()
+            }
+
+            #[cfg(not(debug_assertions))]
+            {
+                hypr_db::ConnectionBuilder::new()
+                    .local(":memory:")
+                    .connect()
+                    .await
+                    .unwrap()
+            }
+        };
+
+        hypr_db::user::migrate(&conn).await.unwrap();
+        hypr_db::user::UserDatabase::from(conn)
+    });
+
     builder
         // TODO: https://v2.tauri.app/plugin/updater/#building
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -120,14 +143,6 @@ pub fn run() {
             if let Ok(Some(auth)) = auth::AuthStore::load(&app) {
                 cloud_config.auth_token = Some(auth.token);
             }
-
-            // let conn = hypr_db::ConnectionBuilder::new()
-            //     .local(":memory:")
-            //     .connect()
-            //     .await
-            //     .unwrap();
-
-            // let db = hypr_db::user::UserDatabase::from(conn);
 
             // These MUST be called before anything else!
             {

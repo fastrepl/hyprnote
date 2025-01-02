@@ -68,23 +68,30 @@ impl ConnectionBuilder {
     }
 }
 
-pub async fn migrate(conn: &Connection, migrations: Vec<impl AsRef<str>>) -> anyhow::Result<()> {
-    let _ = conn
-        .execute_batch(
-            &migrations
-                .iter()
-                .map(|s| {
-                    let s = s.as_ref();
-                    if !s.ends_with(";") {
-                        panic!("each sql statement must end with a semicolon");
-                    } else {
-                        s
-                    }
-                })
-                .collect::<Vec<&str>>()
-                .join("\n"),
-        )
-        .await?;
+async fn migrate(conn: &Connection, migrations: Vec<impl AsRef<str>>) -> anyhow::Result<()> {
+    let current_version: i32 = conn
+        .query("PRAGMA user_version", ())
+        .await?
+        .next()
+        .await?
+        .unwrap()
+        .get(0)
+        .unwrap();
+
+    let latest_version = migrations.len() as i32;
+
+    if current_version < latest_version {
+        let tx = conn.transaction().await?;
+
+        for migration in migrations.iter().skip(current_version as usize) {
+            tx.execute(migration.as_ref(), ()).await?;
+        }
+
+        tx.execute(&format!("PRAGMA user_version = {}", latest_version), ())
+            .await?;
+
+        tx.commit().await?;
+    }
 
     Ok(())
 }

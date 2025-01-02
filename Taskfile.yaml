@@ -5,10 +5,11 @@ tasks:
   fmt:yaml: yamlfmt .github pnpm-workspace.yaml
   fmt:toml: taplo fmt apps/**/Cargo.toml crates/**/Cargo.toml *.toml
   fmt:rs: cargo fmt
+  fmt:sql: sleek "**/*.sql"
   fmt:swift: find crates -type f \( -name "*.swift" \) -not -path "*/\.build/*" | xargs swift-format format -i
   fmt:
     silent: true
-    deps: ['fmt:yaml', 'fmt:toml', 'fmt:rs', 'fmt:swift', 'fmt:js']
+    deps: ['fmt:yaml', 'fmt:toml', 'fmt:rs', 'fmt:swift', 'fmt:js', 'fmt:sql']
 
   desktop:build: pnpm -F desktop tauri build
   server:dev: cargo watch -x 'run -p server'

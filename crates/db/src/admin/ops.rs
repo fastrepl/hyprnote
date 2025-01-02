@@ -10,7 +10,7 @@ pub struct AdminDatabase {
 }
 
 impl AdminDatabase {
-    pub async fn from(conn: Connection) -> Self {
+    pub fn from(conn: Connection) -> Self {
         Self { conn }
     }
 }
@@ -138,7 +138,7 @@ fn generate_api_key() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{admin::migrations, migrate, ConnectionBuilder};
+    use crate::{admin::migrate, ConnectionBuilder};
 
     async fn setup_db() -> AdminDatabase {
         let conn = ConnectionBuilder::new()
@@ -147,8 +147,8 @@ mod tests {
             .await
             .unwrap();
 
-        migrate(&conn, migrations::v0()).await.unwrap();
-        AdminDatabase::from(conn).await
+        migrate(&conn).await.unwrap();
+        AdminDatabase::from(conn)
     }
 
     #[tokio::test]
@@ -197,6 +197,7 @@ mod tests {
             })
             .await
             .unwrap();
+
         assert_eq!(device.user_id, user.id);
     }
 

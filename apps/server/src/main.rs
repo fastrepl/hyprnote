@@ -60,7 +60,7 @@ fn main() {
             };
             let stt = hypr_stt::Client::new(stt_config);
 
-            let admin_db_conn = {
+            let admin_db = {
                 #[cfg(debug_assertions)]
                 let conn = hypr_db::ConnectionBuilder::new()
                     .local(":memory:")
@@ -78,11 +78,8 @@ fn main() {
                     .await
                     .unwrap();
 
-                hypr_db::migrate(&conn, hypr_db::admin::migrations::v0())
-                    .await
-                    .unwrap();
-
-                conn
+                hypr_db::admin::migrate(&conn).await.unwrap();
+                hypr_db::admin::AdminDatabase::from(conn)
             };
 
             let state = state::AppState {
@@ -90,7 +87,7 @@ fn main() {
                 clerk: clerk.clone(),
                 stt,
                 turso,
-                admin_db: hypr_db::admin::AdminDatabase::from(admin_db_conn).await,
+                admin_db,
                 analytics: hypr_analytics::AnalyticsClient::new(
                     std::env::var("POSTHOG_API_KEY").unwrap(),
                 ),

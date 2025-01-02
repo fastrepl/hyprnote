@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use time::{serde::timestamp, OffsetDateTime};
 
 use crate::deserialize;
-pub use hypr_calendar::{Calendar, Event};
+pub use hypr_calendar::Event;
 
 pub fn register_all(collection: &mut specta_util::TypeCollection) {
     collection.register::<Session>();

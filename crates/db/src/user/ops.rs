@@ -9,7 +9,7 @@ pub struct UserDatabase {
 }
 
 impl UserDatabase {
-    pub async fn from(conn: Connection) -> Self {
+    pub fn from(conn: Connection) -> Self {
         Self { conn }
     }
 
@@ -61,8 +61,7 @@ impl UserDatabase {
 mod tests {
     use super::*;
     use crate::{
-        migrate,
-        user::{migrations, Transcript},
+        user::{migrate, Transcript},
         ConnectionBuilder,
     };
 
@@ -73,8 +72,8 @@ mod tests {
             .await
             .unwrap();
 
-        migrate(&conn, migrations::v0()).await.unwrap();
-        UserDatabase::from(conn).await
+        migrate(&conn).await.unwrap();
+        UserDatabase::from(conn)
     }
 
     #[tokio::test]

@@ -1,0 +1,6 @@
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    timestamp INTEGER DEFAULT (unixepoch()) NOT NULL,
+    clerk_user_id TEXT NOT NULL UNIQUE,
+    turso_db_name TEXT NOT NULL
+);

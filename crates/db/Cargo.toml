@@ -9,7 +9,7 @@ admin = []
 user = []
 
 [dependencies]
-hypr_calendar = { path = "../calendar", package = "calendar" }
+hypr_calendar = { path = "../calendar", package = "calendar", default-features = false }
 
 anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

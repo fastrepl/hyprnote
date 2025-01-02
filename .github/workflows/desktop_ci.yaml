@@ -1,21 +1,16 @@
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
-    paths-ignore:
-      - '.github/**'
-      - 'apps/web/**'
-      - 'packages/**'
-      - 'server/**'
+    paths:
+      - apps/desktop/**
+      - crates/**
   pull_request:
     branches:
       - main
-    paths-ignore:
-      - '.github/**'
-      - 'apps/web/**'
-      - 'packages/**'
-      - 'server/**'
+    paths:
+      - apps/desktop/**
+      - crates/**
 jobs:
   ci:
     strategy:

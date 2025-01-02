@@ -3,15 +3,15 @@ on:
     branches:
       - main
     paths:
-      - 'apps/web/**'
-      - server/**
+      - apps/server/**
+      - apps/web/**
       - crates/**
   pull_request:
     branches:
       - main
     paths:
-      - 'apps/web/**'
-      - server/**
+      - apps/server/**
+      - apps/web/**
       - crates/**
 jobs:
   ci:

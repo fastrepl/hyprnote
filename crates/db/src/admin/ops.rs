@@ -28,7 +28,7 @@ impl AdminDatabase {
         Ok(users)
     }
 
-    pub async fn create_user(&self, user: User) -> Result<User> {
+    pub async fn upsert_user(&self, user: User) -> Result<User> {
         let mut rows = self
             .conn
             .query(
@@ -36,6 +36,8 @@ impl AdminDatabase {
                     clerk_user_id,
                     turso_db_name
                 ) VALUES (?, ?) 
+                ON CONFLICT (clerk_user_id) DO UPDATE SET
+                    turso_db_name = excluded.turso_db_name
                 RETURNING *",
                 vec![user.clerk_user_id, user.turso_db_name],
             )
@@ -154,7 +156,7 @@ mod tests {
         let db = setup_db().await;
 
         let user = db
-            .create_user(User {
+            .upsert_user(User {
                 clerk_user_id: "21".to_string(),
                 turso_db_name: "12".to_string(),
                 ..User::default()
@@ -179,7 +181,7 @@ mod tests {
         let db = setup_db().await;
 
         let user = db
-            .create_user(User {
+            .upsert_user(User {
                 clerk_user_id: "21".to_string(),
                 turso_db_name: "12".to_string(),
                 ..User::default()
@@ -203,7 +205,7 @@ mod tests {
         let db = setup_db().await;
 
         let user_1 = db
-            .create_user(User {
+            .upsert_user(User {
                 clerk_user_id: "21".to_string(),
                 turso_db_name: "12".to_string(),
                 ..User::default()

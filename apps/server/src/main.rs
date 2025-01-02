@@ -78,6 +78,10 @@ fn main() {
                     .await
                     .unwrap();
 
+                hypr_db::migrate(&conn, hypr_db::admin::migrations::v0())
+                    .await
+                    .unwrap();
+
                 conn
             };
 

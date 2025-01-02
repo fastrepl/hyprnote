@@ -30,6 +30,7 @@ dotenv = "0.15.0"
 anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+uuid = { workspace = true }
 tracing = { workspace = true }
 tracing-opentelemetry = { workspace = true }
 schemars = { workspace = true, features = ["preserve_order"] }

@@ -16,9 +16,10 @@ export const Route = createFileRoute("/auth/connect/")({
 });
 
 function Component() {
-  const { c: code, f: _fingerprint } = Route.useSearch();
-  const navigate = useNavigate();
+  const search = Route.useSearch();
+  const { c: code, f: _fingerprint } = search;
   const { isLoaded, userId } = useAuth();
+  const navigate = useNavigate();
 
   const mutation = useMutation({
     mutationFn: async (args: ReturnType<typeof Route.useSearch>) => {
@@ -65,7 +66,7 @@ function Component() {
       <div>
         <button
           disabled={mutation.status !== "idle"}
-          onClick={() => mutation.mutate({ code })}
+          onClick={() => mutation.mutate(search)}
         >
           Connect
         </button>

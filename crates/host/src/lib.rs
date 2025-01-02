@@ -28,7 +28,7 @@ pub fn fingerprint() -> String {
 
     let mut hasher = DefaultHasher::new();
     fingerprint.hash(&mut hasher);
-    hasher.finish().to_string()
+    format!("{:x}", hasher.finish())
 }
 
 #[cfg(test)]

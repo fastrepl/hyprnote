@@ -19,46 +19,55 @@ pub struct Input {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Output {
-    code: String,
+    key: String,
 }
 
 pub async fn handler(
     State(state): State<AppState>,
     Extension(jwt): Extension<ClerkJwt>,
     Json(input): Json<Input>,
-) -> Result<impl IntoResponse, StatusCode> {
+) -> impl IntoResponse {
     let clerk_user_id = jwt.sub;
 
     let create_db_req = hypr_turso::CreateDatabaseRequestBuilder::new()
-        .with_group(
-            #[cfg(debug_assertions)]
-            hypr_turso::DatabaseGroup::HyprnoteDev,
-            #[cfg(not(debug_assertions))]
-            hypr_turso::DatabaseGroup::HyprnoteProd,
-        )
-        .with_name(format!("hyprnote_{}", clerk_user_id))
+        .with_name(uuid::Uuid::new_v4().to_string())
         .build();
 
-    let create_db_res = state
-        .turso
-        .create_database(create_db_req)
-        .await
-        .map_err(|_e| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    let turso_db_name = match create_db_res {
-        hypr_turso::DatabaseResponse::Database { database } => database.name,
-        _ => return Err(StatusCode::INTERNAL_SERVER_ERROR),
+    let turso_db_name = match state.turso.create_database(create_db_req).await {
+        Ok(hypr_turso::DatabaseResponse::Database { database }) => database.name,
+        Ok(hypr_turso::DatabaseResponse::Error { error }) => {
+            return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string()))
+        }
+        Err(error) => return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string())),
     };
 
-    let _user = state
+    let user = match state
         .admin_db
-        .create_user(hypr_db::admin::User {
+        .upsert_user(hypr_db::admin::User {
             clerk_user_id,
             turso_db_name,
             ..Default::default()
         })
         .await
-        .map_err(|_e| StatusCode::INTERNAL_SERVER_ERROR)?;
+    {
+        Ok(user) => user,
+        Err(error) => return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string())),
+    };
 
-    Ok(Json(Output { code: input.code }))
+    let device = match state
+        .admin_db
+        .upsert_device(hypr_db::admin::Device {
+            user_id: user.id,
+            fingerprint: input.fingerprint,
+            ..Default::default()
+        })
+        .await
+    {
+        Ok(device) => device,
+        Err(error) => return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string())),
+    };
+
+    Ok(Json(Output {
+        key: device.api_key,
+    }))
 }

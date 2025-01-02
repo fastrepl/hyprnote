@@ -7,7 +7,6 @@ pub struct TursoClient {
 
 pub struct CreateDatabaseRequestBuilder {
     pub name: Option<String>,
-    pub group: Option<String>,
     pub is_schema: Option<bool>,
     pub schema: Option<String>,
 }
@@ -20,43 +19,26 @@ pub struct CreateDatabaseRequest {
     pub schema: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
-pub enum DatabaseGroup {
-    HyprnoteDev,
-    HyprnoteProd,
-}
-
-impl ToString for DatabaseGroup {
-    fn to_string(&self) -> String {
-        match self {
-            DatabaseGroup::HyprnoteDev => "hyprnote-dev".to_string(),
-            DatabaseGroup::HyprnoteProd => "hyprnote-prod".to_string(),
-        }
-    }
-}
-
 impl CreateDatabaseRequestBuilder {
     pub fn new() -> Self {
         Self {
             name: None,
-            group: None,
             is_schema: None,
             schema: None,
         }
     }
 
     pub fn build(self) -> CreateDatabaseRequest {
+        // `_` is invalid
         CreateDatabaseRequest {
-            name: self.name.unwrap(),
-            group: self.group.unwrap().to_string(),
+            #[cfg(debug_assertions)]
+            name: format!("dev-{}", self.name.unwrap()),
+            #[cfg(not(debug_assertions))]
+            name: format!("prod-{}", self.name.unwrap()),
+            group: "hyprnote".to_string(),
             is_schema: self.is_schema,
             schema: self.schema,
         }
-    }
-
-    pub fn with_group(mut self, group: DatabaseGroup) -> Self {
-        self.group = Some(group.to_string());
-        self
     }
 
     pub fn with_name(mut self, name: impl Into<String>) -> Self {
@@ -184,7 +166,6 @@ mod tests {
         let client = TursoClient::new(key);
 
         let req = CreateDatabaseRequestBuilder::new()
-            .with_group(DatabaseGroup::HyprnoteDev)
             .with_name("test")
             .build();
         let res = client.create_database(req).await;

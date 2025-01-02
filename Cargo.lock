@@ -8834,6 +8834,7 @@ dependencies = [
  "tracing",
  "tracing-opentelemetry",
  "turso",
+ "uuid 1.11.0",
 ]
 
 [[package]]

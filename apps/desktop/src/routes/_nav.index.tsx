@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 // import { UpcomingEvents } from "../components/home/UpcomingEvents";
@@ -20,6 +20,10 @@ export const Route = createFileRoute("/_nav/")({
     return queryClient.ensureQueryData(queryOptions());
   },
   beforeLoad: ({ context }) => {
+    if (!import.meta.env.PROD) {
+      return;
+    }
+
     if (!context.auth?.isAuthenticated) {
       throw redirect({ to: "/login" });
     }
@@ -32,6 +36,10 @@ function Component() {
   } = useSuspenseQuery(queryOptions());
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col space-y-8 p-6"></main>
+    <main className="mx-auto flex max-w-4xl flex-col space-y-8 p-6">
+      <Link to="/note/$id" params={{ id: "123" }}>
+        Note
+      </Link>
+    </main>
   );
 }

@@ -13,7 +13,8 @@ const queryOptions = (id: string) => ({
   queryKey: ["note", { id }],
   queryFn: () => {
     return {
-      noteHtml: "<p>Hello World!</p>",
+      noteHtml:
+        "<hyprcharge text='Analyzing transcript with your notes...'></hyprcharge><p>Hello World!</p>",
     };
   },
 });
@@ -47,6 +48,7 @@ function Component() {
   });
 
   useEffect(() => {
+    console.log("data", data);
     if (data) {
       setEditorContent(data);
     }

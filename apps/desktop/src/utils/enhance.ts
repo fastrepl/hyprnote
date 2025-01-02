@@ -10,7 +10,7 @@ interface EnhanceRequest {
 }
 
 export function useEnhance(input: EnhanceRequest) {
-  const [data, setData] = useState<JSONContent>({});
+  const [data, setData] = useState<JSONContent>(input.editor);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<undefined | Error>(undefined);
   const abortControllerRef = useRef<AbortController | null>(null);

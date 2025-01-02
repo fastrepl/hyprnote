@@ -10,6 +10,7 @@ tasks:
     silent: true
     deps: ['fmt:yaml', 'fmt:toml', 'fmt:rs', 'fmt:swift', 'fmt:js']
 
+  desktop:build: pnpm -F desktop tauri build
   server:dev: cargo watch -x 'run -p server'
   server:env:
     cmds:

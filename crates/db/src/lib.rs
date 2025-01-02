@@ -4,6 +4,8 @@ pub mod admin;
 #[cfg(feature = "user")]
 pub mod user;
 
+mod deserialize;
+
 pub type Connection = libsql::Connection;
 
 #[derive(Debug, Default)]

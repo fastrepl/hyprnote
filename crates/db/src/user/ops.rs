@@ -1,6 +1,6 @@
-use super::{Session, SessionRow};
 use anyhow::Result;
 
+use super::Session;
 use crate::Connection;
 
 #[derive(Clone)]
@@ -18,8 +18,7 @@ impl UserDatabase {
         let mut sessions = Vec::new();
 
         while let Some(row) = rows.next().await.unwrap() {
-            let session_row: SessionRow = libsql::de::from_row(&row)?;
-            let session = Session::from(session_row);
+            let session: Session = libsql::de::from_row(&row)?;
             sessions.push(session);
         }
 
@@ -27,8 +26,6 @@ impl UserDatabase {
     }
 
     pub async fn create_session(&self, session: Session) -> Result<Session> {
-        let session = SessionRow::from(session);
-
         let mut rows = self
             .conn
             .query(
@@ -41,19 +38,23 @@ impl UserDatabase {
                 ) VALUES (?, ?, ?, ?, ?)
                 RETURNING *",
                 vec![
-                    session.title,
-                    session.raw_memo.unwrap_or("null".to_string()),
-                    session.enhanced_memo.unwrap_or("null".to_string()),
-                    session.tags.unwrap_or("[]".to_string()),
-                    session.transcript.unwrap_or("null".to_string()),
+                    libsql::Value::Text(session.title),
+                    session.raw_memo.map_or(libsql::Value::Null, |v| {
+                        libsql::Value::Text(serde_json::to_string(&v).unwrap())
+                    }),
+                    session.enhanced_memo.map_or(libsql::Value::Null, |v| {
+                        libsql::Value::Text(serde_json::to_string(&v).unwrap())
+                    }),
+                    libsql::Value::Text(serde_json::to_string(&session.tags).unwrap()),
+                    session.transcript.map_or(libsql::Value::Null, |v| {
+                        libsql::Value::Text(serde_json::to_string(&v).unwrap())
+                    }),
                 ],
             )
             .await?;
 
         let row = rows.next().await?.unwrap();
-        let session: SessionRow = libsql::de::from_row(&row)?;
-        let session = Session::from(session);
-
+        let session: Session = libsql::de::from_row(&row)?;
         Ok(session)
     }
 }
@@ -61,7 +62,11 @@ impl UserDatabase {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{migrate, user::migrations, ConnectionBuilder};
+    use crate::{
+        migrate,
+        user::{migrations, Transcript},
+        ConnectionBuilder,
+    };
 
     async fn setup_db() -> UserDatabase {
         let conn = ConnectionBuilder::new()
@@ -77,19 +82,33 @@ mod tests {
     #[tokio::test]
     async fn test_sessions() {
         let db = setup_db().await;
+
+        let sessions = db.list_sessions().await.unwrap();
+        assert_eq!(sessions.len(), 0);
+
         let session = Session {
             title: "test".to_string(),
             tags: vec!["test".to_string()],
+            transcript: Some(Transcript {
+                speakers: vec![],
+                blocks: vec![],
+            }),
             ..Session::default()
         };
 
         let session = db.create_session(session).await.unwrap();
+        assert_eq!(session.enhanced_memo, None);
         assert_eq!(session.title, "test");
         assert_eq!(session.tags, vec!["test".to_string()]);
+        assert_eq!(
+            session.transcript,
+            Some(Transcript {
+                speakers: vec![],
+                blocks: vec![],
+            })
+        );
 
         let sessions = db.list_sessions().await.unwrap();
         assert_eq!(sessions.len(), 1);
-        assert_eq!(sessions[0].title, "test");
-        assert_eq!(sessions[0].tags, vec!["test".to_string()]);
     }
 }

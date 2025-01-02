@@ -1,5 +1,5 @@
 version: '3'
-dotenv: ['.env']
+dotenv: ['.env.local']
 tasks:
   fmt:js: pnpm -r format
   fmt:yaml: yamlfmt .github pnpm-workspace.yaml
@@ -16,5 +16,5 @@ tasks:
   server:env:
     cmds:
       - |
-        secrets=$(grep -v '^#' .env | grep '=' | sed 's/"/\\"/g' | tr '\n' ' ')
+        secrets=$(grep -v '^#' .env.prod | grep '=' | sed 's/"/\\"/g' | tr '\n' ' ')
         fly secrets set $secrets -a hypr-server

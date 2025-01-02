@@ -1,9 +1,7 @@
 use std::time::Duration;
 
 use axum::{
-    extract::FromRef,
     http::StatusCode,
-    middleware,
     routing::{get, post},
     Router,
 };
@@ -18,8 +16,6 @@ use clerk_rs::{
     ClerkConfiguration,
 };
 
-use state::{AnalyticsState, AuthState};
-
 mod analytics;
 mod auth;
 mod native;
@@ -29,7 +25,7 @@ mod web;
 
 fn main() {
     #[cfg(debug_assertions)]
-    dotenv::dotenv().unwrap();
+    dotenv::from_filename(".env.local").unwrap();
 
     let _guard = sentry::init((
         std::env::var("SENTRY_DSN").unwrap(),

@@ -5,6 +5,12 @@
 /** user-defined commands **/
 
 export const commands = {
+  async getEnv(name: string): Promise<string> {
+    return await TAURI_INVOKE("get_env", { name });
+  },
+  async getFingerprint(): Promise<string> {
+    return await TAURI_INVOKE("get_fingerprint");
+  },
   async startSession(onEvent: TAURI_CHANNEL<Transcript>): Promise<void> {
     await TAURI_INVOKE("start_session", { onEvent });
   },

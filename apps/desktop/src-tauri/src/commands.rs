@@ -9,8 +9,15 @@ use hypr_calendar::CalendarSource;
 type MutableState<'a, T> = State<'a, Arc<RwLock<T>>>;
 
 #[tauri::command]
-fn get_env(name: &str) -> String {
+#[specta::specta]
+pub fn get_env(name: &str) -> String {
     std::env::var(String::from(name)).unwrap_or(String::from(""))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_fingerprint() -> String {
+    hypr_host::fingerprint()
 }
 
 #[tauri::command]

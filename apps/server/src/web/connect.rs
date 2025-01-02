@@ -11,7 +11,10 @@ use clerk_rs::validators::authorizer::ClerkJwt;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Input {
+    #[serde(rename = "c")]
     code: String,
+    #[serde(rename = "f")]
+    fingerprint: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

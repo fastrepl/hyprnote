@@ -6,7 +6,8 @@ import { useMutation } from "@tanstack/react-query";
 import { SignedIn, RedirectToSignIn, useAuth } from "@clerk/clerk-react";
 
 const schema = z.object({
-  code: z.string().optional(),
+  c: z.string(),
+  f: z.string(),
 });
 
 export const Route = createFileRoute("/auth/connect/")({
@@ -15,12 +16,12 @@ export const Route = createFileRoute("/auth/connect/")({
 });
 
 function Component() {
+  const { c: code, f: _fingerprint } = Route.useSearch();
   const navigate = useNavigate();
-  const { code } = Route.useSearch();
   const { isLoaded, userId } = useAuth();
 
   const mutation = useMutation({
-    mutationFn: async (args: { code: string }) => {
+    mutationFn: async (args: ReturnType<typeof Route.useSearch>) => {
       const response = await fetch("/api/web/connect", {
         method: "POST",
         body: JSON.stringify(args),

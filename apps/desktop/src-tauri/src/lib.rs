@@ -23,6 +23,8 @@ pub struct App {
 pub fn run() {
     let specta_builder = tauri_specta::Builder::new()
         .commands(tauri_specta::collect_commands![
+            commands::get_env,
+            commands::get_fingerprint,
             commands::start_session,
             commands::start_playback,
             commands::stop_playback,

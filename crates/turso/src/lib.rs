@@ -1,8 +1,15 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
 
+#[derive(Clone)]
 pub struct TursoClient {
     client: reqwest::Client,
+}
+
+pub struct CreateDatabaseRequestBuilder {
+    pub name: Option<String>,
+    pub group: Option<String>,
+    pub is_schema: Option<bool>,
+    pub schema: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -13,20 +20,47 @@ pub struct CreateDatabaseRequest {
     pub schema: Option<String>,
 }
 
-impl Default for CreateDatabaseRequest {
-    fn default() -> Self {
-        Self {
-            name: "".to_string(),
-            group: "hyprnote".to_string(),
-            is_schema: None,
-            schema: None,
+#[derive(Debug, Serialize)]
+pub enum DatabaseGroup {
+    HyprnoteDev,
+    HyprnoteProd,
+}
+
+impl ToString for DatabaseGroup {
+    fn to_string(&self) -> String {
+        match self {
+            DatabaseGroup::HyprnoteDev => "hyprnote-dev".to_string(),
+            DatabaseGroup::HyprnoteProd => "hyprnote-prod".to_string(),
         }
     }
 }
 
-impl CreateDatabaseRequest {
+impl CreateDatabaseRequestBuilder {
+    pub fn new() -> Self {
+        Self {
+            name: None,
+            group: None,
+            is_schema: None,
+            schema: None,
+        }
+    }
+
+    pub fn build(self) -> CreateDatabaseRequest {
+        CreateDatabaseRequest {
+            name: self.name.unwrap(),
+            group: self.group.unwrap().to_string(),
+            is_schema: self.is_schema,
+            schema: self.schema,
+        }
+    }
+
+    pub fn with_group(mut self, group: DatabaseGroup) -> Self {
+        self.group = Some(group.to_string());
+        self
+    }
+
     pub fn with_name(mut self, name: impl Into<String>) -> Self {
-        self.name = name.into();
+        self.name = Some(name.into());
         self
     }
 
@@ -39,7 +73,7 @@ impl CreateDatabaseRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
-// There can be other field along with 'database' field, which we are not interested in.
+// There can be other fields along with 'database' field, which we are not interested in.
 pub enum DatabaseResponse<T> {
     #[serde(rename = "error")]
     Error { error: String },
@@ -84,7 +118,7 @@ const ORG: &str = "yujonglee";
 
 // https://docs.turso.tech/api-reference
 impl TursoClient {
-    pub fn new(api_key: impl Display) -> Self {
+    pub fn new(api_key: impl std::fmt::Display) -> Self {
         let mut headers = reqwest::header::HeaderMap::new();
 
         let auth_str = format!("Bearer {}", api_key);
@@ -124,7 +158,7 @@ impl TursoClient {
 
     pub async fn retrieve_database(
         &self,
-        db: impl Display,
+        db: impl std::fmt::Display,
     ) -> Result<DatabaseResponse<RetrieveDatabaseResponse>, reqwest::Error> {
         let url = format!(
             "https://api.turso.tech/v1/organizations/{org}/databases/{db}",
@@ -149,7 +183,10 @@ mod tests {
         let key = "TODO";
         let client = TursoClient::new(key);
 
-        let req = CreateDatabaseRequest::default().with_name("test");
+        let req = CreateDatabaseRequestBuilder::new()
+            .with_group(DatabaseGroup::HyprnoteDev)
+            .with_name("test")
+            .build();
         let res = client.create_database(req).await;
 
         match res {

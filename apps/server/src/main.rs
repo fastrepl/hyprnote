@@ -44,6 +44,8 @@ fn main() {
         .build()
         .unwrap()
         .block_on(async {
+            let turso = hypr_turso::TursoClient::new(std::env::var("TURSO_API_KEY").unwrap());
+
             let clerk_config = ClerkConfiguration::new(
                 None,
                 None,
@@ -83,6 +85,7 @@ fn main() {
                 reqwest: reqwest::Client::new(),
                 clerk: clerk.clone(),
                 stt,
+                turso,
                 admin_db: hypr_db::admin::AdminDatabase::from(admin_db_conn).await,
                 analytics: hypr_analytics::AnalyticsClient::new(
                     std::env::var("POSTHOG_API_KEY").unwrap(),

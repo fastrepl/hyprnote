@@ -5,7 +5,7 @@ interface EventCardProps {
   handleClick: () => void;
 }
 
-export const EventCard = ({ event, handleClick }: EventCardProps) => {
+export const EventCard = ({ handleClick }: EventCardProps) => {
   return (
     <div className="h-[140px] w-full">
       <div

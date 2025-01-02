@@ -11,6 +11,7 @@ import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
 import Placeholder from "@tiptap/extension-placeholder";
 import { UniqueID, HTML_ID } from "./extensions";
+import { HyperchargeNode } from "./nodes";
 
 import "../../styles/tiptap.css";
 
@@ -21,6 +22,7 @@ export const extensions = [
   Typography,
   UniqueID,
   HTML_ID,
+  HyperchargeNode,
 ];
 
 interface EditorProps {

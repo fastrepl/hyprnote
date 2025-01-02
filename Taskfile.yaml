@@ -1,4 +1,5 @@
 version: '3'
+dotenv: ['.env']
 tasks:
   fmt:js: pnpm -r format
   fmt:yaml: yamlfmt .github pnpm-workspace.yaml

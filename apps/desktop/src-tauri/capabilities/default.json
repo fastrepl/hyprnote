@@ -9,6 +9,7 @@
     "fs:default",
     "store:default",
     "shell:allow-open",
+    "notification:default",
     {
       "identifier": "http:default",
       "allow": [

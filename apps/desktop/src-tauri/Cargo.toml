@@ -25,16 +25,16 @@ hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr_host = { path = "../../../crates/host", package = "host" }
 
 tauri = { workspace = true, features = ["tray-icon", "image-png", "devtools"] }
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+tauri-plugin-notification = { version = "2", features = ["windows7-compat"] }
 tauri-plugin-updater = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-positioner = "2"
-tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 tauri-plugin-log = "2"
 tauri-plugin-deep-link = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-store = "2"
-tauri-plugin-notification = "2"
 tauri-plugin-autostart = "2"
 tauri-plugin-shell = "2"
 tauri-plugin-clipboard-manager = "2"

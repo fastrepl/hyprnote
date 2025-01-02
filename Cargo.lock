@@ -5913,6 +5913,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "notif"
+version = "0.1.0"
+dependencies = [
+ "objc2",
+ "objc2-app-kit",
+ "objc2-foundation",
+ "serde",
+]
+
+[[package]]
 name = "notify-rust"
 version = "4.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9808,6 +9818,8 @@ dependencies = [
  "thiserror 2.0.9",
  "time",
  "url",
+ "win7-notifications",
+ "windows-version",
 ]
 
 [[package]]
@@ -11465,6 +11477,16 @@ dependencies = [
  "home",
  "once_cell",
  "rustix",
+]
+
+[[package]]
+name = "win7-notifications"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63b4745047a00800bd8f2b8fb4b0eb6f7d96822084127f0ff7d68d07f692fe38"
+dependencies = [
+ "once_cell",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

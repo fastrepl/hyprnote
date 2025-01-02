@@ -7,8 +7,8 @@ pub fn v0() -> Vec<impl AsRef<str>> {
             audio_local_path TEXT DEFAULT NULL,
             audio_remote_path TEXT DEFAULT NULL,
             tags TEXT DEFAULT NULL,
-            raw_memo TEXT DEFAULT NULL,
-            enhanced_memo TEXT DEFAULT NULL,
+            raw_memo_html TEXT NOT NULL,
+            enhanced_memo_html TEXT DEFAULT NULL,
             transcript TEXT DEFAULT NULL
         );",
         "CREATE TABLE calendars (

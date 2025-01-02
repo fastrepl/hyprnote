@@ -18,10 +18,8 @@ pub struct Session {
     pub tags: Vec<String>,
     pub audio_local_path: Option<String>,
     pub audio_remote_path: Option<String>,
-    #[serde(deserialize_with = "deserialize::json_string")]
-    pub raw_memo: Option<serde_json::Value>,
-    #[serde(deserialize_with = "deserialize::json_string")]
-    pub enhanced_memo: Option<serde_json::Value>,
+    pub raw_memo_html: String,
+    pub enhanced_memo_html: Option<String>,
     #[serde(deserialize_with = "deserialize::json_string")]
     pub transcript: Option<Transcript>,
 }
@@ -35,8 +33,8 @@ impl Default for Session {
             tags: vec![],
             audio_local_path: None,
             audio_remote_path: None,
-            raw_memo: None,
-            enhanced_memo: None,
+            raw_memo_html: "".to_string(),
+            enhanced_memo_html: None,
             transcript: None,
         }
     }

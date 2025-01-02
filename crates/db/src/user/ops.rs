@@ -31,20 +31,18 @@ impl UserDatabase {
             .query(
                 "INSERT INTO sessions (
                     title,
-                    raw_memo,
-                    enhanced_memo,
+                    raw_memo_html,
+                    enhanced_memo_html,
                     tags,
                     transcript
                 ) VALUES (?, ?, ?, ?, ?)
                 RETURNING *",
                 vec![
                     libsql::Value::Text(session.title),
-                    session.raw_memo.map_or(libsql::Value::Null, |v| {
-                        libsql::Value::Text(serde_json::to_string(&v).unwrap())
-                    }),
-                    session.enhanced_memo.map_or(libsql::Value::Null, |v| {
-                        libsql::Value::Text(serde_json::to_string(&v).unwrap())
-                    }),
+                    libsql::Value::Text(session.raw_memo_html),
+                    session
+                        .enhanced_memo_html
+                        .map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
                     libsql::Value::Text(serde_json::to_string(&session.tags).unwrap()),
                     session.transcript.map_or(libsql::Value::Null, |v| {
                         libsql::Value::Text(serde_json::to_string(&v).unwrap())
@@ -97,7 +95,8 @@ mod tests {
         };
 
         let session = db.create_session(session).await.unwrap();
-        assert_eq!(session.enhanced_memo, None);
+        assert_eq!(session.raw_memo_html, "");
+        assert_eq!(session.enhanced_memo_html, None);
         assert_eq!(session.title, "test");
         assert_eq!(session.tags, vec!["test".to_string()]);
         assert_eq!(

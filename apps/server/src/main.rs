@@ -104,7 +104,8 @@ fn main() {
                     true,
                 ));
 
-            let native_router = Router::new()
+            #[allow(unused)]
+            let mut native_router = Router::new()
                 .route(
                     "/enhance",
                     post(native::enhance::handler)
@@ -114,8 +115,11 @@ fn main() {
                     "/chat/completions",
                     post(native::openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
                 )
-                .route("/transcribe", get(native::transcribe::handler))
-                .layer(
+                .route("/transcribe", get(native::transcribe::handler));
+
+            #[cfg(not(debug_assertions))]
+            {
+                native_router = native_router.layer(
                     tower::builder::ServiceBuilder::new()
                         .layer(middleware::from_fn_with_state(
                             AuthState::from_ref(&state),
@@ -126,6 +130,7 @@ fn main() {
                             analytics::middleware_fn,
                         )),
                 );
+            }
 
             let webhook_router = Router::new().route("/stripe", post(stripe::webhook::handler));
 

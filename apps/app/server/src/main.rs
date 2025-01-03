@@ -133,12 +133,11 @@ fn main() {
                 .nest("/api/web", web_router)
                 .nest("/webhook", webhook_router)
                 .fallback_service({
-                    let web_dir =
-                        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../web");
+                    let app_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..");
 
-                    ServeDir::new(web_dir.join("dist"))
+                    ServeDir::new(app_dir.join("dist"))
                         .append_index_html_on_directories(false)
-                        .fallback(ServeFile::new(web_dir.join("dist/index.html")))
+                        .fallback(ServeFile::new(app_dir.join("dist/index.html")))
                 })
                 .with_state(state);
 

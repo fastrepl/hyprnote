@@ -12,13 +12,13 @@ tasks:
     deps: ['fmt:yaml', 'fmt:toml', 'fmt:rs', 'fmt:swift', 'fmt:js', 'fmt:sql']
 
   desktop:build: pnpm -F desktop tauri build
-  server:dev:
+  app:dev:
     cmds:
       - docker-compose -f crates/s3/docker-compose.yaml up -d
-      - cmd: cargo watch -x 'run -p server'
+      - cmd: cargo watch -x 'run -p app'
         ignore_error: true
       - docker-compose -f crates/s3/docker-compose.yaml down
-  server:env:
+  app:env:
     cmds:
       - |
         secrets=$(grep -v '^#' .env.prod | grep '=' | sed 's/"/\\"/g' | tr '\n' ' ')

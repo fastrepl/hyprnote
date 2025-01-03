@@ -177,6 +177,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "app"
+version = "0.1.0"
+dependencies = [
+ "analytics",
+ "anyhow",
+ "async-openai",
+ "async-stripe",
+ "axum 0.7.9",
+ "bridge",
+ "calendar",
+ "clerk-rs",
+ "db",
+ "dotenv",
+ "futures",
+ "reqwest 0.12.12",
+ "s3",
+ "schemars 1.0.0-alpha.17",
+ "sentry",
+ "serde",
+ "serde_json",
+ "stt",
+ "tokio",
+ "tower 0.5.2",
+ "tower-http 0.6.2",
+ "tracing",
+ "tracing-opentelemetry",
+ "turso",
+ "uuid 1.11.0",
+]
+
+[[package]]
 name = "approx"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8825,37 +8856,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "server"
-version = "0.1.0"
-dependencies = [
- "analytics",
- "anyhow",
- "async-openai",
- "async-stripe",
- "axum 0.7.9",
- "bridge",
- "calendar",
- "clerk-rs",
- "db",
- "dotenv",
- "futures",
- "reqwest 0.12.12",
- "s3",
- "schemars 1.0.0-alpha.17",
- "sentry",
- "serde",
- "serde_json",
- "stt",
- "tokio",
- "tower 0.5.2",
- "tower-http 0.6.2",
- "tracing",
- "tracing-opentelemetry",
- "turso",
- "uuid 1.11.0",
 ]
 
 [[package]]

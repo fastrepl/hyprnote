@@ -13,26 +13,24 @@ on:
       - crates/**
 jobs:
   ci:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: 'macos-latest'
-            args: '--target aarch64-apple-darwin'
-    runs-on: ${{ matrix.platform }}
+    runs-on: blacksmith-4vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - run: rustup toolchain install stable --profile minimal --no-self-update
-      - uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - run: cargo build
+      - uses: useblacksmith/rust-cache@v3
       - uses: pnpm/action-setup@v4
         with:
           version: 9.15.0
       - run: pnpm install
-      - uses: tauri-apps/tauri-action@v0
+      - run: pnpm -F desktop build
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - uses: arduino/setup-protoc@v3
         with:
-          args: ${{ matrix.args }}
-          projectPath: ./apps/desktop
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: rustup toolchain install stable --profile minimal --no-self-update
+      - run: sudo apt-get update && sudo apt-get install -y libasound2-dev pkg-config
+      - uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: cargo build -p desktop

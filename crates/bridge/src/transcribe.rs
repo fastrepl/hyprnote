@@ -8,7 +8,7 @@ use crate::Client;
 
 impl Client {
     pub async fn transcribe(&self) -> Result<()> {
-        let (ws_stream, _) =
+        let (_ws_stream, _) =
             connect_async(self.transcribe_request.clone().into_client_request()?).await?;
 
         Ok(())

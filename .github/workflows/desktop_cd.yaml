@@ -3,17 +3,30 @@ on:
   release:
     types:
       - published
+env:
+  SHOULD_RUN: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
 permissions:
   contents: write
 jobs:
-  ci:
-    if: startsWith(github.event.release.tag_name, 'desktop_')
+  draft:
+    if: ${{ env.SHOULD_RUN }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: create draft release
+        uses: crabnebula-dev/cloud-release@v0
+        with:
+          command: release draft ${{ env.CN_APPLICATION }} --framework tauri
+          api-key: ${{ secrets.CN_API_KEY }}
+  build:
+    if: ${{ env.SHOULD_RUN }}
+    needs: draft
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: 'macos-latest'
-            args: '--target aarch64-apple-darwin'
+            args: '--target universal-apple-darwin'
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -25,9 +38,21 @@ jobs:
       - uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - run: rustup toolchain install stable --profile minimal --no-self-update
+      - run: |
+          rustup toolchain install stable --profile minimal --no-self-update
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
       - uses: tauri-apps/tauri-action@v0
         with:
           args: ${{ matrix.args }}
           projectPath: ./apps/desktop
           prerelease: false
+  publish:
+    if: ${{ env.SHOULD_RUN }}
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: crabnebula-dev/cloud-release@v0
+        with:
+          command: release publish ${{ env.CN_APPLICATION }} --framework tauri
+          api-key: ${{ secrets.CN_API_KEY }}

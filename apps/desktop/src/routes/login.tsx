@@ -6,10 +6,7 @@ import { commands } from "../types/tauri.ts";
 
 // import { AudioControls } from "../components/AudioControls";
 
-import RetroGrid from "../components/magic/retro-grid";
-import BlurFade from "../components/magic/blur-fade";
-import SparklesText from "../components/magic/sparkles-text";
-import ShimmerButton from "../components/magic/shimmer-button";
+import { BlurFade, RetroGrid, SparklesText, ShimmerButton } from "@hypr/magic";
 
 export const Route = createFileRoute("/login")({
   component: Component,

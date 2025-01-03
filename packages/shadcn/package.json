@@ -1,0 +1,33 @@
+{
+  "name": "@hypr/shadcn",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./styles.css": "./dist/index.css"
+  },
+  "scripts": {
+    "build": "pnpm -F shadcn typescript && pnpm -F shadcn tailwind",
+    "typescript": "tsc --declaration --outDir dist",
+    "tailwind": "tailwindcss -i ./src/index.css -o ./dist/index.css",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "prettier": "^3.4.2",
+    "tailwindcss": "^3.4.17"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.1.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.6.0",
+    "react": "^18.3.1",
+    "@types/react": "^18.3.1",
+    "typescript": "~5.6.2"
+  }
+}

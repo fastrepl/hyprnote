@@ -17,6 +17,9 @@ i18n.load({
 i18n.activate("ko");
 
 import "./styles/global.css";
+import "@hypr/magic/styles.css";
+import "@hypr/shadcn/styles.css";
+
 import { useTauriStore } from "./stores/tauri";
 
 export type Context = {

@@ -14,6 +14,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@hypr/magic": "workspace:*",
+    "@hypr/shadcn": "workspace:*",
     "@ai-sdk/ui-utils": "^1.0.6",
     "@lingui/core": "^5.1.2",
     "@lingui/react": "^5.1.2",
@@ -57,7 +59,6 @@
     "react-i18next": "^15.4.0",
     "react-resizable-panels": "^2.1.7",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7",
     "tippy.js": "^6.3.7",
     "tiptap-unique-id": "^2.10.3",
     "zod": "^3.24.1",

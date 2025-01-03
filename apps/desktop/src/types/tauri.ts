@@ -26,6 +26,9 @@ export const commands = {
   async listEvents(calendarId: string): Promise<Event[]> {
     return await TAURI_INVOKE("list_events", { calendarId });
   },
+  async dbListEvents(): Promise<Event[]> {
+    return await TAURI_INVOKE("db_list_events");
+  },
   async openPermissionSettings(permission: OSPermission): Promise<void> {
     await TAURI_INVOKE("open_permission_settings", { permission });
   },

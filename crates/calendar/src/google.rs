@@ -79,13 +79,13 @@ impl CalendarSource for Handle {
 
                 Event {
                     id: event.id.clone(),
+                    calendar_id: filter.calendar_id.clone(),
                     platform: Platform::Google,
                     name: event.summary.clone(),
                     note: event.description.clone(),
                     participants,
                     start_date: start,
                     end_date: end,
-                    apple_calendar_id: None,
                     google_event_url: Some(event.html_link.clone()),
                 }
             })

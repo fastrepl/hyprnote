@@ -1510,6 +1510,7 @@ dependencies = [
  "anyhow",
  "block2",
  "chrono",
+ "db-utils",
  "google-calendar",
  "itertools 0.13.0",
  "objc2",
@@ -2567,6 +2568,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "calendar",
+ "db-utils",
  "libsql",
  "rand 0.8.5",
  "serde",
@@ -2576,6 +2578,14 @@ dependencies = [
  "specta-util",
  "time",
  "tokio",
+]
+
+[[package]]
+name = "db-utils"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -2716,7 +2726,6 @@ dependencies = [
  "dotenvy_macro",
  "futures",
  "host",
- "log",
  "reqwest 0.12.12",
  "serde",
  "serde_json",
@@ -2740,7 +2749,9 @@ dependencies = [
  "tauri-plugin-updater",
  "tauri-specta",
  "thiserror 2.0.9",
+ "time",
  "tokio",
+ "tracing",
  "uuid 1.11.0",
 ]
 

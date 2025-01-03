@@ -50,12 +50,14 @@ export const events = __makeEvents__<{
 export type Calendar = { id: string; platform: Platform; name: string };
 export type Event = {
   id: string;
+  calendar_id: string;
   platform: Platform;
   name: string;
   note: string;
   participants: Participant[];
   start_date: string;
   end_date: string;
+  google_event_url: string | null;
 };
 export type JustAuthenticated = null;
 export type NotAuthenticated = null;

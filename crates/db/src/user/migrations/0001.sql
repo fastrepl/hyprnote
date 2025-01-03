@@ -1,1 +1,5 @@
-CREATE TABLE calendars (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE calendars (
+    id TEXT PRIMARY KEY,
+    platform TEXT NOT NULL,
+    name TEXT NOT NULL
+);

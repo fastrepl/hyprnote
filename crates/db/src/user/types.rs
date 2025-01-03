@@ -1,11 +1,13 @@
 use serde::{Deserialize, Serialize};
 use time::{serde::timestamp, OffsetDateTime};
 
-use crate::deserialize;
-pub use hypr_calendar::Event;
+pub use hypr_calendar::{Calendar, Event, Participant, Platform};
+use hypr_db_utils::json_string;
 
 pub fn register_all(collection: &mut specta_util::TypeCollection) {
     collection.register::<Session>();
+    collection.register::<Calendar>();
+    collection.register::<Event>();
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
@@ -14,13 +16,13 @@ pub struct Session {
     #[serde(with = "timestamp")]
     pub timestamp: OffsetDateTime,
     pub title: String,
-    #[serde(deserialize_with = "deserialize::json_string")]
+    #[serde(with = "json_string")]
     pub tags: Vec<String>,
     pub audio_local_path: Option<String>,
     pub audio_remote_path: Option<String>,
     pub raw_memo_html: String,
     pub enhanced_memo_html: Option<String>,
-    #[serde(deserialize_with = "deserialize::json_string")]
+    #[serde(with = "json_string")]
     pub transcript: Option<Transcript>,
 }
 

@@ -9,6 +9,8 @@ apple = []
 google = []
 
 [dependencies]
+hypr_db_utils = { path = "../db-utils", package = "db-utils" }
+
 anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

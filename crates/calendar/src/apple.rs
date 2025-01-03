@@ -218,13 +218,13 @@ impl CalendarSource for Handle {
 
                 Some(Event {
                     id: id.to_string(),
+                    calendar_id: calendar_id.to_string(),
                     platform: Platform::Apple,
                     name: title.to_string(),
                     note: note.to_string(),
                     participants,
                     start_date: offset_date_time_from(start_date),
                     end_date: offset_date_time_from(end_date),
-                    apple_calendar_id: Some(calendar_id.to_string()),
                     google_event_url: None,
                 })
             })

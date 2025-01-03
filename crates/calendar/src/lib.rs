@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::future::Future;
 use time::{serde::timestamp, OffsetDateTime};
 
+use hypr_db_utils::json_string;
+
 #[cfg(feature = "google")]
 pub mod google;
 
@@ -14,37 +16,45 @@ pub trait CalendarSource {
     fn list_events(&self, filter: EventFilter) -> impl Future<Output = anyhow::Result<Vec<Event>>>;
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 pub enum Platform {
     Apple,
     Google,
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
+impl std::fmt::Display for Platform {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Platform::Apple => write!(f, "Apple"),
+            Platform::Google => write!(f, "Google"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct Calendar {
     pub id: String,
     pub platform: Platform,
     pub name: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct Event {
     pub id: String,
+    pub calendar_id: String,
     pub platform: Platform,
     pub name: String,
     pub note: String,
+    #[serde(with = "json_string")]
     pub participants: Vec<Participant>,
     #[serde(with = "timestamp")]
     pub start_date: OffsetDateTime,
     #[serde(with = "timestamp")]
     pub end_date: OffsetDateTime,
-    #[serde(skip)]
-    apple_calendar_id: Option<String>,
-    #[serde(skip)]
-    google_event_url: Option<String>,
+    pub google_event_url: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct Participant {
     pub name: String,
     pub email: String,

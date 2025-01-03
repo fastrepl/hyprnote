@@ -4,11 +4,12 @@ import { Trans } from "@lingui/react/macro";
 
 import { commands } from "../types/tauri.ts";
 
-import { RetroGrid } from "../components/ui/retro-grid.tsx";
 // import { AudioControls } from "../components/AudioControls";
-import BlurFade from "../components/ui/blur-fade.tsx";
-import SparklesText from "../components/ui/sparkles-text.tsx";
-import ShimmerButton from "../components/ui/shimmer-button.tsx";
+
+import RetroGrid from "../components/magic/retro-grid";
+import BlurFade from "../components/magic/blur-fade";
+import SparklesText from "../components/magic/sparkles-text";
+import ShimmerButton from "../components/magic/shimmer-button";
 
 export const Route = createFileRoute("/login")({
   component: Component,

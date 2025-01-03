@@ -1,3 +1,5 @@
+// https://magicui.design/docs/components/shimmer-button
+
 import React, { CSSProperties } from "react";
 
 import { cn } from "../../utils";

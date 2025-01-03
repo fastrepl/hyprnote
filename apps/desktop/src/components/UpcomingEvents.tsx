@@ -3,30 +3,32 @@ import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
 import useEmblaCarousel from "embla-carousel-react";
 import { Trans } from "@lingui/react/macro";
 
-import { EventCard } from "./EventCard";
-
-import type { Event } from "../../types";
+import type { Event } from "../types";
 
 interface UpcomingEventsProps {
   events: Event[];
   handleClickEvent: (event: Event) => void;
 }
 
-export const UpcomingEvents = ({
+export default function UpcomingEvents({
   events,
   handleClickEvent,
-}: UpcomingEventsProps) => {
+}: UpcomingEventsProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     slidesToScroll: 1,
   });
 
   const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
+    if (emblaApi) {
+      emblaApi.scrollPrev();
+    }
   }, [emblaApi]);
 
   const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
+    if (emblaApi) {
+      emblaApi.scrollNext();
+    }
   }, [emblaApi]);
 
   return (
@@ -39,18 +41,11 @@ export const UpcomingEvents = ({
         <div className="overflow-hidden px-2 py-4" ref={emblaRef}>
           <div className="flex gap-4">
             {events.map((event) => (
-              <div
-                key={event.id}
-                className="w-[280px] flex-[0_0_auto] max-[400px]:w-full max-[400px]:flex-[0_0_100%]"
-              >
-                <EventCard
-                  event={event}
-                  handleClick={() => handleClickEvent(event)}
-                />
-              </div>
+              <pre>{JSON.stringify(event, null, 2)}</pre>
             ))}
           </div>
         </div>
+
         {events.length > 1 && (
           <>
             <button
@@ -70,4 +65,4 @@ export const UpcomingEvents = ({
       </div>
     </div>
   );
-};
+}

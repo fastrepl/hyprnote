@@ -1,7 +1,9 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-// import { UpcomingEvents } from "../components/home/UpcomingEvents";
+import UpcomingEvents from "../components/UpcomingEvents";
+import { useEffect } from "react";
+import { commands } from "../types";
 // import { PastNotes } from "../components/home/PastNotes";
 
 const queryOptions = () => ({
@@ -35,11 +37,20 @@ function Component() {
     data: { notes: _notes, events: _events },
   } = useSuspenseQuery(queryOptions());
 
+  useEffect(() => {
+    const id = "C30E6C6A-80EC-4F5D-93A8-CB1473C338C5";
+    // commands.listCalendars().then((calendars) => {
+    //   console.log(calendars);
+    // });
+
+    commands.listEvents(id).then((events) => {
+      console.log(events);
+    });
+  }, []);
+
   return (
     <main className="mx-auto flex max-w-4xl flex-col space-y-8 p-6">
-      <Link to="/note/$id" params={{ id: "123" }}>
-        Note
-      </Link>
+      <UpcomingEvents events={[]} handleClickEvent={() => {}} />
     </main>
   );
 }

@@ -8,8 +8,6 @@ import { t } from "@lingui/core/macro";
 
 import { Command } from "cmdk";
 
-import { mockNotes } from "../mocks/data";
-
 export default function SearchModal() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -41,8 +39,8 @@ export default function SearchModal() {
     };
   }, [open]);
 
-  const filteredNotes = mockNotes.filter(
-    (note) =>
+  const filteredNotes = ([] as any).filter(
+    (note: any) =>
       note.title.toLowerCase().includes(search.toLowerCase()) ||
       note.rawMemo.toLowerCase().includes(search.toLowerCase()),
   );
@@ -81,7 +79,7 @@ export default function SearchModal() {
                 <Trans>No results</Trans>
               </Command.Empty>
               <Command.Group>
-                {filteredNotes.map((note) => (
+                {filteredNotes.map((note: any) => (
                   <Command.Item
                     key={note.id}
                     onSelect={() => {

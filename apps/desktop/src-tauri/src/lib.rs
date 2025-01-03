@@ -27,6 +27,7 @@ pub fn run() {
             commands::start_playback,
             commands::stop_playback,
             commands::list_calendars,
+            commands::list_events,
             permissions::open_permission_settings,
         ])
         .events(tauri_specta::collect_events![

@@ -50,7 +50,8 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 uuid = { workspace = true }
 dotenvy_macro = { workspace = true }
-log = "0.4.22"
+time = { workspace = true }
+tracing = { workspace = true }
 
 reqwest = { workspace = true, features = ["json", "stream"] }
 tokio = { workspace = true, features = ["rt", "macros"] }

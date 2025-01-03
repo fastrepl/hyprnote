@@ -6,9 +6,16 @@ export const Route = createFileRoute("/_nav")({
 
 function Component() {
   return (
-    <div className="flex flex-col">
-      <nav>nav</nav>
+    <>
+      <header className="w-full border-b">
+        <nav className="px-4">
+          <div className="flex h-12 items-center justify-between">
+            <button>Button</button>
+            <button>Settings</button>
+          </div>
+        </nav>
+      </header>
       <Outlet />
-    </div>
+    </>
   );
 }

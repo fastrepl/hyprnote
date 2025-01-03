@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 
 import UpcomingEvents from "../components/UpcomingEvents";
 import { useEffect } from "react";
-import { commands } from "../types";
+import { commands } from "../types/tauri";
 // import { PastNotes } from "../components/home/PastNotes";
 
 const queryOptions = () => ({

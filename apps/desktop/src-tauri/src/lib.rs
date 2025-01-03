@@ -1,5 +1,3 @@
-use tokio::sync::RwLock;
-
 use tauri::{AppHandle, Manager};
 
 mod audio;
@@ -14,7 +12,7 @@ mod tray;
 pub struct App {
     handle: AppHandle,
     cloud_config: hypr_bridge::ClientConfig,
-    // db: hypr_db::user::UserDatabase,
+    db: hypr_db::user::UserDatabase,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -28,6 +26,7 @@ pub fn run() {
             commands::stop_playback,
             commands::list_calendars,
             commands::list_events,
+            commands::db::db_list_events,
             permissions::open_permission_settings,
         ])
         .events(tauri_specta::collect_events![
@@ -88,7 +87,7 @@ pub fn run() {
         });
     }
 
-    let _db = tauri::async_runtime::block_on(async {
+    let db = tauri::async_runtime::block_on(async {
         let conn = {
             #[cfg(debug_assertions)]
             {
@@ -148,9 +147,10 @@ pub fn run() {
 
             // These MUST be called before anything else!
             {
-                app.manage(RwLock::new(App {
+                app.manage(std::sync::RwLock::new(App {
                     handle: app.clone(),
                     cloud_config,
+                    db,
                 }));
             }
 

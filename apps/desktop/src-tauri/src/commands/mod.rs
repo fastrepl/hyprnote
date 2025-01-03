@@ -1,12 +1,11 @@
-use crate::{audio, auth::AuthStore, config::ConfigStore, events, permissions, App};
+pub mod db;
+
+use crate::{audio, events, App};
 use anyhow::Result;
-use std::{path::PathBuf, sync::Arc};
-use tauri::{ipc::Channel, AppHandle, Manager, State};
-use tokio::sync::RwLock;
+use std::path::PathBuf;
+use tauri::{ipc::Channel, AppHandle, Manager};
 
 use hypr_calendar::CalendarSource;
-
-type MutableState<'a, T> = State<'a, Arc<RwLock<T>>>;
 
 #[tauri::command]
 #[specta::specta]

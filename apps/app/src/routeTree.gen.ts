@@ -12,7 +12,9 @@
 
 import { Route as rootRoute } from "./routes/__root";
 import { Route as SettingsImport } from "./routes/settings";
+import { Route as OnboardingImport } from "./routes/onboarding";
 import { Route as IndexImport } from "./routes/index";
+import { Route as OnboardingIndexImport } from "./routes/onboarding.index";
 import { Route as NotesIdImport } from "./routes/notes.$id";
 import { Route as AuthSignUpImport } from "./routes/auth.sign-up";
 import { Route as AuthSignOutImport } from "./routes/auth.sign-out";
@@ -27,10 +29,22 @@ const SettingsRoute = SettingsImport.update({
   getParentRoute: () => rootRoute,
 } as any);
 
+const OnboardingRoute = OnboardingImport.update({
+  id: "/onboarding",
+  path: "/onboarding",
+  getParentRoute: () => rootRoute,
+} as any);
+
 const IndexRoute = IndexImport.update({
   id: "/",
   path: "/",
   getParentRoute: () => rootRoute,
+} as any);
+
+const OnboardingIndexRoute = OnboardingIndexImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => OnboardingRoute,
 } as any);
 
 const NotesIdRoute = NotesIdImport.update({
@@ -72,6 +86,13 @@ declare module "@tanstack/react-router" {
       path: "/";
       fullPath: "/";
       preLoaderRoute: typeof IndexImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/onboarding": {
+      id: "/onboarding";
+      path: "/onboarding";
+      fullPath: "/onboarding";
+      preLoaderRoute: typeof OnboardingImport;
       parentRoute: typeof rootRoute;
     };
     "/settings": {
@@ -116,19 +137,40 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof NotesIdImport;
       parentRoute: typeof rootRoute;
     };
+    "/onboarding/": {
+      id: "/onboarding/";
+      path: "/";
+      fullPath: "/onboarding/";
+      preLoaderRoute: typeof OnboardingIndexImport;
+      parentRoute: typeof OnboardingImport;
+    };
   }
 }
 
 // Create and export the route tree
 
+interface OnboardingRouteChildren {
+  OnboardingIndexRoute: typeof OnboardingIndexRoute;
+}
+
+const OnboardingRouteChildren: OnboardingRouteChildren = {
+  OnboardingIndexRoute: OnboardingIndexRoute,
+};
+
+const OnboardingRouteWithChildren = OnboardingRoute._addFileChildren(
+  OnboardingRouteChildren,
+);
+
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
+  "/onboarding": typeof OnboardingRouteWithChildren;
   "/settings": typeof SettingsRoute;
   "/auth/connect": typeof AuthConnectRoute;
   "/auth/sign-in": typeof AuthSignInRoute;
   "/auth/sign-out": typeof AuthSignOutRoute;
   "/auth/sign-up": typeof AuthSignUpRoute;
   "/notes/$id": typeof NotesIdRoute;
+  "/onboarding/": typeof OnboardingIndexRoute;
 }
 
 export interface FileRoutesByTo {
@@ -139,29 +181,34 @@ export interface FileRoutesByTo {
   "/auth/sign-out": typeof AuthSignOutRoute;
   "/auth/sign-up": typeof AuthSignUpRoute;
   "/notes/$id": typeof NotesIdRoute;
+  "/onboarding": typeof OnboardingIndexRoute;
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute;
   "/": typeof IndexRoute;
+  "/onboarding": typeof OnboardingRouteWithChildren;
   "/settings": typeof SettingsRoute;
   "/auth/connect": typeof AuthConnectRoute;
   "/auth/sign-in": typeof AuthSignInRoute;
   "/auth/sign-out": typeof AuthSignOutRoute;
   "/auth/sign-up": typeof AuthSignUpRoute;
   "/notes/$id": typeof NotesIdRoute;
+  "/onboarding/": typeof OnboardingIndexRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | "/"
+    | "/onboarding"
     | "/settings"
     | "/auth/connect"
     | "/auth/sign-in"
     | "/auth/sign-out"
     | "/auth/sign-up"
-    | "/notes/$id";
+    | "/notes/$id"
+    | "/onboarding/";
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
@@ -170,21 +217,25 @@ export interface FileRouteTypes {
     | "/auth/sign-in"
     | "/auth/sign-out"
     | "/auth/sign-up"
-    | "/notes/$id";
+    | "/notes/$id"
+    | "/onboarding";
   id:
     | "__root__"
     | "/"
+    | "/onboarding"
     | "/settings"
     | "/auth/connect"
     | "/auth/sign-in"
     | "/auth/sign-out"
     | "/auth/sign-up"
-    | "/notes/$id";
+    | "/notes/$id"
+    | "/onboarding/";
   fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
+  OnboardingRoute: typeof OnboardingRouteWithChildren;
   SettingsRoute: typeof SettingsRoute;
   AuthConnectRoute: typeof AuthConnectRoute;
   AuthSignInRoute: typeof AuthSignInRoute;
@@ -195,6 +246,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  OnboardingRoute: OnboardingRouteWithChildren,
   SettingsRoute: SettingsRoute,
   AuthConnectRoute: AuthConnectRoute,
   AuthSignInRoute: AuthSignInRoute,
@@ -214,6 +266,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/onboarding",
         "/settings",
         "/auth/connect",
         "/auth/sign-in",
@@ -224,6 +277,12 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/onboarding": {
+      "filePath": "onboarding.tsx",
+      "children": [
+        "/onboarding/"
+      ]
     },
     "/settings": {
       "filePath": "settings.tsx"
@@ -242,6 +301,10 @@ export const routeTree = rootRoute
     },
     "/notes/$id": {
       "filePath": "notes.$id.tsx"
+    },
+    "/onboarding/": {
+      "filePath": "onboarding.index.tsx",
+      "parent": "/onboarding"
     }
   }
 }

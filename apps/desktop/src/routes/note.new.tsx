@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { zodValidator } from "@tanstack/zod-adapter";
 
 const schema = z.object({
   eventId: z.string().optional(),
@@ -20,5 +21,5 @@ export const Route = createFileRoute("/note/new")({
     });
   },
   component: () => null,
-  validateSearch: schema,
+  validateSearch: zodValidator(schema),
 });

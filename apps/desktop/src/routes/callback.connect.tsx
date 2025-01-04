@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createFileRoute } from "@tanstack/react-router";
+import { zodValidator } from "@tanstack/zod-adapter";
 import { useTauriStore } from "../stores/tauri";
 import { useEffect } from "react";
 
@@ -9,7 +10,7 @@ const schema = z.object({
 
 export const Route = createFileRoute("/callback/connect")({
   component: Component,
-  validateSearch: schema,
+  validateSearch: zodValidator(schema),
 });
 
 function Component() {

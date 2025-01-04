@@ -12,10 +12,10 @@ google = []
 hypr_db_utils = { path = "../db-utils", package = "db-utils" }
 
 anyhow = { workspace = true }
+itertools = "0.13.0"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 specta = { workspace = true, features = ["derive", "time"] }
-itertools = "0.13.0"
 
 google-calendar = "0.7.0"
 time = { workspace = true, features = ["formatting", "parsing", "serde"] }
@@ -24,22 +24,8 @@ time-tz = "2.0.0"
 [target.'cfg(target_os = "macos")'.dependencies]
 block2 = "0.5.1"
 objc2 = "0.5.2"
-objc2-event-kit = { version = "0.2.2", features = [
-  "EKEventStore",
-  "EKCalendarItem",
-  "EKCalendar",
-  "EKParticipant",
-  "EKObject",
-  "EKEvent",
-  "EKTypes",
-  "block2",
-] }
-objc2-contacts = { version = "0.2.2", features = [
-  "CNContactStore",
-  "CNLabeledValue",
-  "CNContact",
-  "block2",
-] }
+objc2-event-kit = { version = "0.2.2", features = ["EKEventStore", "EKCalendarItem", "EKCalendar", "EKParticipant", "EKObject", "EKEvent", "EKTypes", "block2"] }
+objc2-contacts = { version = "0.2.2", features = ["CNContactStore", "CNLabeledValue", "CNContact", "block2"] }
 objc2-foundation = { version = "0.2.2", features = ["NSEnumerator"] }
 
 [dev-dependencies]

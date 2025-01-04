@@ -8,12 +8,12 @@ tonic-build = "0.12.3"
 
 [dependencies]
 anyhow = { workspace = true }
+bytes = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-bytes = { workspace = true }
 
-tokio = { workspace = true }
 futures = { workspace = true }
+tokio = { workspace = true }
 
 prost = "0.13.4"
 tonic = { version = "0.12.3", features = ["channel", "tls-native-roots"] }

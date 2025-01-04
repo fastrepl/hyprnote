@@ -5,15 +5,15 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
+bytes = { workspace = true }
+futures = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 tokio = { workspace = true }
-futures = { workspace = true }
-bytes = { workspace = true }
 
 deepgram = { version = "0.6.4", features = ["listen"] }
 hypr-clova = { path = "../clova", package = "clova" }
 
 [dev-dependencies]
-serial_test = { workspace = true }
 kalosm-sound = { version = "0.3.5", default-features = false }
+serial_test = { workspace = true }

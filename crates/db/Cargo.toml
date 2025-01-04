@@ -13,13 +13,13 @@ hypr_calendar = { path = "../calendar", package = "calendar", default-features =
 hypr_db_utils = { path = "../db-utils", package = "db-utils" }
 
 anyhow = { workspace = true }
+rand = "0.8.5"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 time = { workspace = true, features = ["serde", "formatting", "parsing"] }
-rand = "0.8.5"
 
-tokio = { workspace = true, features = ["rt", "macros"] }
 libsql = { version = "0.6.0", features = [] }
+tokio = { workspace = true, features = ["rt", "macros"] }
 
 specta = { workspace = true, features = ["derive", "time", "serde_json"] }
 specta-typescript = { workspace = true }

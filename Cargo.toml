@@ -1,43 +1,43 @@
 [workspace]
 resolver = "2"
-members = ["apps/desktop/src-tauri", "apps/app/server", "crates/*"]
+members = ["apps/app/server", "apps/desktop/src-tauri", "crates/*"]
 
 [workspace.dependencies]
-tauri = "2.1.1"
-tokio = "1"
 futures = "0.3.31"
+futures-channel = "0.3.31"
 futures-core = "0.3.31"
 futures-util = "0.3.31"
-futures-channel = "0.3.31"
-tokio-stream = "0.1.17"
 reqwest = "0.12"
+tauri = "2.1.1"
+tokio = "1"
+tokio-stream = "0.1.17"
 
 anyhow = "1"
-thiserror = "2"
-serde = "1"
-serde_json = "1"
-time = "0.3.37"
-sentry = "0.35.0"
+approx = "0.5.1"
 bytes = "1.9.0"
 dotenvy = "0.15.7"
 dotenvy_macro = "0.15.7"
+ndarray = "0.16.1"
+sentry = "0.35.0"
+serde = "1"
+serde_json = "1"
 serial_test = "3"
-approx = "0.5.1"
+thiserror = "2"
+time = "0.3.37"
 tracing = "0.1.41"
 tracing-opentelemetry = "0.28.0"
-ndarray = "0.16.1"
 
 specta = "2.0.0-rc.20"
-tauri-specta = "2.0.0-rc.20"
 specta-typescript = "0.0.7"
 specta-util = "0.0.7"
+tauri-specta = "2.0.0-rc.20"
 
 cpal = "0.15.3"
-rodio = "0.20.1"
 hound = "3.5.1"
+rodio = "0.20.1"
 
-uuid = "1.11.0"
 schemars = "=1.0.0-alpha.17"
+uuid = "1.11.0"
 
 [patch.crates-io]
 # This includes a currently-unreleased fix that ensures the audio stream is actually stopped and released on drop on macOS.

@@ -1,15 +1,12 @@
-version: '3'
-dotenv: ['.env.local']
+version: "3"
+dotenv: [".env.local"]
 tasks:
   fmt:js: pnpm -r format
-  fmt:yaml: yamlfmt .github pnpm-workspace.yaml
-  fmt:toml: taplo fmt apps/**/Cargo.toml crates/**/Cargo.toml *.toml
-  fmt:rs: cargo fmt
-  fmt:sql: sleek "**/*.sql"
   fmt:swift: find crates -type f \( -name "*.swift" \) -not -path "*/\.build/*" | xargs swift-format format -i
+  fmt:dprint: dprint fmt
   fmt:
     silent: true
-    deps: ['fmt:yaml', 'fmt:toml', 'fmt:rs', 'fmt:swift', 'fmt:js', 'fmt:sql']
+    deps: ["fmt:swift", "fmt:js", "fmt:dprint"]
 
   desktop:build: pnpm -F desktop tauri build
   app:dev:
@@ -21,5 +18,5 @@ tasks:
   app:env:
     cmds:
       - |
-        secrets=$(grep -v '^#' .env.prod | grep '=' | sed 's/"/\\"/g' | tr '\n' ' ')
-        fly secrets set $secrets -a hypr-server
+          secrets=$(grep -v '^#' .env.prod | grep '=' | sed 's/"/\\"/g' | tr '\n' ' ')
+          fly secrets set $secrets -a hypr-server

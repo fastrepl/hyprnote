@@ -1,0 +1,22 @@
+{
+  "yaml": {},
+  "toml": {},
+  "markup": {},
+  "sql": {},
+  "dockerfile": {},
+  "exec": {
+    "cwd": "${configDir}",
+    "commands": [{
+      "command": "rustfmt --edition 2021",
+      "exts": ["rs"]
+    }]
+  },
+  "plugins": [
+    "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.5.0.wasm",
+    "https://plugins.dprint.dev/toml-0.6.4.wasm",
+    "https://plugins.dprint.dev/g-plane/markup_fmt-v0.18.0.wasm",
+    "https://plugins.dprint.dev/sql-0.2.0.wasm",
+    "https://plugins.dprint.dev/dockerfile-0.3.2.wasm",
+    "https://plugins.dprint.dev/exec-0.5.1.json@492414e39dea4dccc07b4af796d2f4efdb89e84bae2bd4e1e924c0cc050855bf"
+  ]
+}

@@ -7,9 +7,7 @@ edition = "2021"
 anyhow = { workspace = true }
 tokio = { workspace = true }
 
-tokenizers = "0.19.1"
 candle-core = { version = "0.8.1", features = ["metal"] }
+candle-examples = { git = "https://github.com/huggingface/candle", tag = "0.8.1", features = ["metal"] }
 candle-transformers = { version = "0.8.1", features = ["metal"] }
-candle-examples = { git = "https://github.com/huggingface/candle", tag = "0.8.1", features = [
-  "metal",
-] }
+tokenizers = "0.19.1"

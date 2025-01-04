@@ -7,10 +7,10 @@ edition = "2021"
 hypr-onnx = { path = "../onnx", package = "onnx" }
 
 anyhow = { workspace = true }
-tokio = { workspace = true, features = ["rt", "macros"] }
 ndarray = { workspace = true }
 ndrustfft = "0.5.0"
+tokio = { workspace = true, features = ["rt", "macros"] }
 
 [dev-dependencies]
-hound = { workspace = true }
 approx = { workspace = true }
+hound = { workspace = true }

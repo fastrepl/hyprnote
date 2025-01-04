@@ -1,9 +1,9 @@
 [package]
 name = "desktop"
 version = "0.1.0"
-description = "Hyprnote"
 authors = ["you"]
 edition = "2021"
+description = "Hyprnote"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -18,49 +18,42 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-hypr-db = { path = "../../../crates/db", package = "db", default-features = false, features = [
-  "user",
-] }
 hypr-audio = { path = "../../../crates/audio", package = "audio" }
-hypr-calendar = { path = "../../../crates/calendar", package = "calendar" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
+hypr-calendar = { path = "../../../crates/calendar", package = "calendar" }
+hypr-db = { path = "../../../crates/db", package = "db", default-features = false, features = ["user"] }
 hypr_host = { path = "../../../crates/host", package = "host" }
 
-tauri = { workspace = true, features = [
-  "tray-icon",
-  "image-png",
-  "devtools",
-  "macos-private-api",
-] }
-tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
-tauri-plugin-notification = { version = "2", features = ["windows7-compat"] }
-tauri-plugin-updater = "2"
-tauri-plugin-fs = "2"
-tauri-plugin-positioner = "2"
-tauri-plugin-log = "2"
+tauri = { workspace = true, features = ["tray-icon", "image-png", "devtools", "macos-private-api"] }
+tauri-plugin-autostart = "2"
+tauri-plugin-clipboard-manager = "2"
 tauri-plugin-deep-link = "2"
 tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
 tauri-plugin-global-shortcut = "2"
-tauri-plugin-store = "2"
-tauri-plugin-autostart = "2"
-tauri-plugin-shell = "2"
-tauri-plugin-clipboard-manager = "2"
 tauri-plugin-http = "2"
+tauri-plugin-log = "2"
+tauri-plugin-notification = { version = "2", features = ["windows7-compat"] }
 tauri-plugin-os = "2"
+tauri-plugin-positioner = "2"
+tauri-plugin-shell = "2"
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+tauri-plugin-store = "2"
+tauri-plugin-updater = "2"
 
 specta = { workspace = true }
 specta-typescript = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 anyhow = { workspace = true }
-thiserror = { workspace = true }
+dotenvy_macro = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-uuid = { workspace = true }
-dotenvy_macro = { workspace = true }
+thiserror = { workspace = true }
 time = { workspace = true }
 tracing = { workspace = true }
+uuid = { workspace = true }
 
+futures = { workspace = true }
 reqwest = { workspace = true, features = ["json", "stream"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
-futures = { workspace = true }

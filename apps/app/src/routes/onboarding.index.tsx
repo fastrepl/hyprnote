@@ -1,9 +1,12 @@
 import { z } from "zod";
 import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
+import { useQuery } from "@tanstack/react-query";
+
+const STEPS = ["permissions"] as const;
 
 const schema = z.object({
-  step: z.enum(["permissions"]),
+  step: z.enum(STEPS).default(STEPS[0]),
 });
 
 export const Route = createFileRoute("/onboarding/")({
@@ -12,11 +15,23 @@ export const Route = createFileRoute("/onboarding/")({
 });
 
 function Component() {
+  const { step } = Route.useSearch();
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <div className="flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold">Onboarding</h1>
-      </div>
+      {step === "permissions" && <Permissions />}
     </div>
   );
+}
+
+function Permissions() {
+  const { status, data, error, isFetching } = useQuery({
+    queryKey: ["onboarding", "permissions"],
+    queryFn: async (): Promise<boolean> => {
+      return true;
+    },
+    refetchInterval: 1000,
+  });
+
+  return <div>Permissions</div>;
 }

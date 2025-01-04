@@ -3,7 +3,8 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 
-import { ThemeProvider } from "./components/theme-provider";
+import { ThemeProvider } from "./contexts/theme";
+import { WindowProvider } from "./contexts/window";
 import { AuthContext, AuthProvider, useAuth } from "./auth";
 
 import { i18n } from "@lingui/core";
@@ -67,13 +68,15 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <I18nProvider i18n={i18n}>
-            <App />
-          </I18nProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+      <WindowProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <I18nProvider i18n={i18n}>
+              <App />
+            </I18nProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </WindowProvider>
     </ThemeProvider>,
   );
 }

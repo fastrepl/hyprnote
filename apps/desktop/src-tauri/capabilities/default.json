@@ -17,6 +17,8 @@
         { "url": "https://api.fireworks.ai" },
         { "url": "http://127.0.0.1:8000" }
       ]
-    }
+    },
+    "core:window:default",
+    "core:window:allow-start-dragging"
   ]
 }

@@ -13,10 +13,7 @@
   "app": {
     "windows": [
       {
-        "decorations": true,
-        "height": 800,
-        "width": 1200,
-        "title": "Hyprnote"
+        "decorations": false
       }
     ],
     "security": {

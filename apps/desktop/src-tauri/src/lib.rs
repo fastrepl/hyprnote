@@ -51,7 +51,15 @@ pub fn run() {
     #[cfg(debug_assertions)]
     hypr_db::user::export_ts_types_to("../src/types/db.ts").unwrap();
 
-    let mut builder = tauri::Builder::default().plugin(tauri_plugin_positioner::init());
+    let mut builder = tauri::Builder::default()
+        .plugin(tauri_plugin_positioner::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_http::init());
 
     // https://v2.tauri.app/plugin/single-instance/#focusing-on-new-instance
     #[cfg(desktop)]
@@ -73,18 +81,6 @@ pub fn run() {
                 ))
                 .build(),
         );
-    }
-
-    // https://v2.tauri.app/plugin/deep-linking/#registering-desktop-deep-links-at-runtime
-    #[cfg(any(windows, target_os = "linux"))]
-    {
-        builder = builder.setup(|app| {
-            {
-                app.deep_link().register_all()?;
-            }
-
-            Ok(())
-        });
     }
 
     let db = tauri::async_runtime::block_on(async {
@@ -113,14 +109,6 @@ pub fn run() {
     });
 
     builder
-        // TODO: https://v2.tauri.app/plugin/updater/#building
-        .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_store::Builder::new().build())
-        .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_http::init())
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
             move |invoke| handler(invoke)

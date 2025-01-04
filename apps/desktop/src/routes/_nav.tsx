@@ -1,13 +1,15 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
+import clsx from "clsx";
 
 import Controls from "@/components/controls";
-import clsx from "clsx";
 
 export const Route = createFileRoute("/_nav")({
   component: Component,
 });
 
 function Component() {
+  const { pathname } = useLocation();
+  const isOnboarding = pathname.includes("onboarding");
   return (
     <>
       <header
@@ -18,7 +20,7 @@ function Component() {
         data-tauri-drag-region
       >
         <Controls />
-        <button>Settings</button>
+        {!isOnboarding && <button>Settings</button>}
       </header>
       <Outlet />
     </>

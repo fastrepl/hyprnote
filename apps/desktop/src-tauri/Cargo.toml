@@ -1,7 +1,7 @@
 [package]
 name = "desktop"
 version = "0.1.0"
-description = "A Tauri App"
+description = "Hyprnote"
 authors = ["you"]
 edition = "2021"
 
@@ -46,7 +46,7 @@ tauri-plugin-autostart = "2"
 tauri-plugin-shell = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-http = "2"
-tauri-plugin-os = "2.2.0"
+tauri-plugin-os = "2"
 
 specta = { workspace = true }
 specta-typescript = { workspace = true }

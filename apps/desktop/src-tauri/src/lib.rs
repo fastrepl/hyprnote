@@ -52,6 +52,7 @@ pub fn run() {
     hypr_db::user::export_ts_types_to("../src/types/db.ts").unwrap();
 
     let mut builder = tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())

@@ -3,17 +3,14 @@ import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
 import useEmblaCarousel from "embla-carousel-react";
 import { Trans } from "@lingui/react/macro";
 
-import type { Event } from "../types";
+import type { Event } from "../types/db";
 
 interface UpcomingEventsProps {
   events: Event[];
   handleClickEvent: (event: Event) => void;
 }
 
-export default function UpcomingEvents({
-  events,
-  handleClickEvent,
-}: UpcomingEventsProps) {
+export default function UpcomingEvents({ events }: UpcomingEventsProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     slidesToScroll: 1,

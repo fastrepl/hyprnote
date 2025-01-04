@@ -1,0 +1,18 @@
+{
+  "style": "default",
+  "rsc": true,
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/index.css",
+    "baseColor": "gray",
+    "cssVariables": true,
+    "rsc": false,
+    "tsx": true
+  },
+  "aliases": {
+    "lib": "@/lib",
+    "utils": "@/lib/utils",
+    "hooks": "@/hooks",
+    "components": "@/components"
+  }
+}

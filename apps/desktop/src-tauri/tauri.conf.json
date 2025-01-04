@@ -11,12 +11,17 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
-        "decorations": true,
-        "height": 800,
-        "width": 1200,
-        "title": "Hyprnote"
+        "fullscreen": false,
+        "resizable": true,
+        "height": 680,
+        "width": 1160,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "center": true
       }
     ],
     "security": {

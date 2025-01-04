@@ -11,9 +11,17 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
-        "decorations": false
+        "fullscreen": false,
+        "resizable": true,
+        "height": 680,
+        "width": 1160,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "center": true
       }
     ],
     "security": {

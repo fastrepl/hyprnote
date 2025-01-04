@@ -26,7 +26,12 @@ hypr-calendar = { path = "../../../crates/calendar", package = "calendar" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr_host = { path = "../../../crates/host", package = "host" }
 
-tauri = { workspace = true, features = ["tray-icon", "image-png", "devtools"] }
+tauri = { workspace = true, features = [
+  "tray-icon",
+  "image-png",
+  "devtools",
+  "macos-private-api",
+] }
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 tauri-plugin-notification = { version = "2", features = ["windows7-compat"] }
 tauri-plugin-updater = "2"

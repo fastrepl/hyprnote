@@ -14,9 +14,9 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@ai-sdk/ui-utils": "^1.0.6",
     "@hypr/magic": "workspace:*",
     "@hypr/shadcn": "workspace:*",
-    "@ai-sdk/ui-utils": "^1.0.6",
     "@lingui/core": "^5.1.2",
     "@lingui/react": "^5.1.2",
     "@radix-ui/react-dialog": "^1.1.4",

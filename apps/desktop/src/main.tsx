@@ -74,7 +74,6 @@ if (!rootElement.innerHTML) {
           </I18nProvider>
         </AuthProvider>
       </QueryClientProvider>
-      ,
     </ThemeProvider>,
   );
 }

@@ -8,7 +8,7 @@ import {
   CarouselPrevious,
 } from "@hypr/ui/components/ui/carousel";
 
-import type { Event } from "../types/db";
+import type { Event } from "@/types/db";
 
 interface UpcomingEventsProps {
   events: Event[];

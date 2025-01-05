@@ -13,18 +13,15 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#. placeholder {0}: i18n.date(note.updatedAt)
 #: src/components/home/PastNotes.tsx:32
-msgid "{0}"
-msgstr ""
+#~ msgid "{0}"
+#~ msgstr ""
 
-#. placeholder {0}: i18n.date(note.calendarEvent.start.dateTime!)
-#. placeholder {1}: i18n.date(note.calendarEvent.end.dateTime!)
 #: src/components/note/NoteHeader.tsx:52
-msgid "{0} ~ {1}"
-msgstr ""
+#~ msgid "{0} ~ {1}"
+#~ msgstr ""
 
-#: src/routes/login.tsx:38
+#: src/routes/login.tsx:63
 msgid "Get Started"
 msgstr ""
 
@@ -37,25 +34,33 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/layout/NavBar.tsx:85
-msgid "New Note"
-msgstr ""
+#~ msgid "New Note"
+#~ msgstr ""
 
 #: src/components/SearchModal.tsx:78
-msgid "No results"
+#~ msgid "No results"
+#~ msgstr ""
+
+#: src/components/past-sessions.tsx:13
+msgid "Past Sessions"
 msgstr ""
 
 #: src/components/home/PastNotes.tsx:16
-msgid "Recent Notes"
-msgstr ""
+#~ msgid "Recent Notes"
+#~ msgstr ""
 
 #: src/components/SearchModal.tsx:72
-msgid "Search"
-msgstr ""
+#~ msgid "Search"
+#~ msgstr ""
 
 #: src/components/home/PastNotes.tsx:28
-msgid "Untitled"
+#~ msgid "Untitled"
+#~ msgstr ""
+
+#: src/components/upcoming-events.tsx:22
+msgid "Upcoming Events"
 msgstr ""
 
-#: src/routes/login.tsx:28
+#: src/routes/login.tsx:52
 msgid "Welcome to"
 msgstr ""

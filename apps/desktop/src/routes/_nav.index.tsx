@@ -48,7 +48,7 @@ function Component() {
   }, []);
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col space-y-8 p-6">
+    <main className="flex flex-col items-center justify-center gap-8">
       <UpcomingEvents events={[]} handleClickEvent={() => {}} />
       <PastSessions sessions={[]} handleClickSession={() => {}} />
     </main>

@@ -17,7 +17,7 @@ interface UpcomingEventsProps {
 
 export default function UpcomingEvents({ events }: UpcomingEventsProps) {
   return (
-    <div className="relative">
+    <div className="text-foreground">
       <h2 className="text-xl font-semibold">
         <Trans>Upcoming Events</Trans>
       </h2>

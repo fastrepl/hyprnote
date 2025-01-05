@@ -31,7 +31,7 @@ const rootElement = document.getElementById("app")!;
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
-    <ThemeProvider>
+    <ThemeProvider defaultTheme="light">
       <QueryClientProvider client={queryClient}>
         <ClerkProvider
           publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}

@@ -31,12 +31,13 @@ function Component() {
         </div>
         {!isOnboarding && (
           <button
-            className="mr-3 text-gray-500 hover:text-gray-900"
+            className="text-gray-500 hover:text-gray-900"
             onClick={handleSettings}
           >
             <Settings size={18} />
           </button>
         )}
+        <span className="pl-4"></span>
       </header>
       <Outlet />
     </>

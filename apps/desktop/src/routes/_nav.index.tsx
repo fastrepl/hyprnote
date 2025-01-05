@@ -25,10 +25,9 @@ export const Route = createFileRoute("/_nav/")({
     // if (!import.meta.env.PROD) {
     //   return;
     // }
-
-    if (!context.auth?.isAuthenticated) {
-      throw redirect({ to: "/login" });
-    }
+    // if (!context.auth?.isAuthenticated) {
+    //   throw redirect({ to: "/login" });
+    // }
   },
 });
 

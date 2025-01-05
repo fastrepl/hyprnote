@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { open } from "@tauri-apps/plugin-shell";
 import { Trans } from "@lingui/react/macro";
 
@@ -20,6 +20,9 @@ export const Route = createFileRoute("/login")({
       code: window.crypto.randomUUID(),
       fingerprint,
     };
+  },
+  beforeLoad: () => {
+    throw redirect({ to: "/" });
   },
 });
 
@@ -49,6 +52,7 @@ function Component() {
             <Trans>Welcome to</Trans>
             <SparklesText
               text="Hyprnote"
+              className="text-black"
               colors={{ first: "#FFD700", second: "#8A2BE2" }}
             />
           </h1>

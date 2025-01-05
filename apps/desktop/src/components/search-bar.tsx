@@ -1,9 +1,20 @@
-import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import { useState, useEffect } from "react";
 import clsx from "clsx";
+import { Search } from "lucide-react";
+
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "@hypr/ui/components/ui/command";
 
 export default function SearchBar() {
-  const [_open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -31,16 +42,28 @@ export default function SearchBar() {
         <span className="text-xs text-gray-500">Search</span>
         <Shortcut />
       </button>
+
+      <CommandDialog open={open} onOpenChange={setOpen}>
+        <CommandInput placeholder="Type a command or search..." />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Suggestions">
+            <CommandItem>Calendar</CommandItem>
+            <CommandItem>Search Emoji</CommandItem>
+            <CommandItem>Calculator</CommandItem>
+          </CommandGroup>
+          <CommandSeparator />
+          <CommandGroup heading="Settings">
+            <CommandItem>Profile</CommandItem>
+            <CommandItem>Billing</CommandItem>
+            <CommandItem>Settings</CommandItem>
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
     </>
   );
 }
 
 function Shortcut() {
-  const isMac = true;
-  return (
-    <kbd className="pointer-events-none ml-auto inline-flex h-4 select-none items-center gap-1 rounded border border-gray-200 bg-gray-100 px-1.5 shadow-sm">
-      <span className="text-xs text-gray-500">{isMac ? "⌘" : "Ctrl"}</span>
-      <span className="text-[10px] text-gray-500">K</span>
-    </kbd>
-  );
+  return <CommandShortcut>⌘K</CommandShortcut>;
 }

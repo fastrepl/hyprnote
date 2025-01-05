@@ -9,11 +9,10 @@ import {
 import { Trans } from "@lingui/react/macro";
 import { useUI } from "../../stores/ui";
 
-import SearchModal from "../SearchModal";
 import SettingsModal from "../modals/settings/SettingsModal";
-import SearchBar from "./SearchBar";
 import ExportMenu from "./ExportMenu";
 import NavigationButtons from "./NavigationButtons";
+import SearchBar from "@/components/search-bar";
 
 export default function NavBar() {
   const { history, navigate } = useRouter();
@@ -27,10 +26,6 @@ export default function NavBar() {
 
   const handleSettingsClick = useCallback(() => {
     window.dispatchEvent(new Event("openSettings"));
-  }, []);
-
-  const handleSearchClick = useCallback(() => {
-    window.dispatchEvent(new Event("openSearch"));
   }, []);
 
   const togglePanel = useCallback(() => {
@@ -61,7 +56,7 @@ export default function NavBar() {
 
             {/* Right Section - Search and New Note */}
             <div className="flex items-center gap-4">
-              <SearchBar onSearchClick={handleSearchClick} />
+              <SearchBar />
 
               {isNotePage && <ExportMenu />}
 
@@ -90,7 +85,6 @@ export default function NavBar() {
         </nav>
       </header>
 
-      <SearchModal />
       <SettingsModal />
     </>
   );

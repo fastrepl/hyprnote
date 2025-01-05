@@ -2,7 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@hypr/ui/components/ui/resizable";
+
 import { generateJSON, JSONContent } from "@tiptap/react";
 
 import Editor, { extensions } from "../components/editor";
@@ -55,8 +60,8 @@ function Component() {
 
   return (
     <div>
-      <PanelGroup direction="horizontal">
-        <Panel>
+      <ResizablePanelGroup direction="horizontal">
+        <ResizablePanel>
           {isLoading ? (
             <button type="button" onClick={() => stop()}>
               Stop
@@ -68,16 +73,16 @@ function Component() {
           )}
 
           <Editor handleChange={handleChange} content={editorContent} />
-        </Panel>
+        </ResizablePanel>
         {!isPanelOpen && (
           <>
-            <PanelResizeHandle />
-            <Panel defaultSize={30} minSize={30} maxSize={60}>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={30} minSize={30} maxSize={60}>
               <div>side panel</div>
-            </Panel>
+            </ResizablePanel>
           </>
         )}
-      </PanelGroup>
+      </ResizablePanelGroup>
     </div>
   );
 }

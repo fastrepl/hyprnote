@@ -1,6 +1,6 @@
 // https://magicui.design/docs/components/retro-grid
 
-import { cn } from "@/lib/utils";
+import { cn } from "@hypr/ui/lib/utils";
 
 interface RetroGridProps extends React.HTMLAttributes<HTMLDivElement> {
   /**

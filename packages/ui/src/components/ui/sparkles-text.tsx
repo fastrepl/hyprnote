@@ -3,7 +3,7 @@
 import { CSSProperties, ReactElement, useEffect, useState } from "react";
 import { motion } from "motion/react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@hypr/ui/lib/utils";
 
 interface Sparkle {
   id: string;

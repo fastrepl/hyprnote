@@ -1,3 +1,6 @@
+import path from "path";
+import type { Config } from "tailwindcss";
+
 // https://magicui.design/docs/components/shimmer-button
 const shimmerButton = {
   animation: {
@@ -41,9 +44,8 @@ const retroGrid = {
   },
 };
 
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: ["src/components/**/*.tsx"],
+const config = {
+  content: [path.resolve(__dirname, "src/components/**/*.tsx")],
   theme: {
     extend: {
       animation: {
@@ -57,4 +59,6 @@ export default {
     },
   },
   plugins: [],
-};
+} satisfies Config;
+
+export default config;

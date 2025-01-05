@@ -22,9 +22,9 @@ export const Route = createFileRoute("/_nav/")({
     return queryClient.ensureQueryData(queryOptions());
   },
   beforeLoad: ({ context }) => {
-    if (!import.meta.env.PROD) {
-      return;
-    }
+    // if (!import.meta.env.PROD) {
+    //   return;
+    // }
 
     if (!context.auth?.isAuthenticated) {
       throw redirect({ to: "/login" });

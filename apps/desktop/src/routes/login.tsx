@@ -6,7 +6,10 @@ import { commands } from "../types/tauri.ts";
 
 // import { AudioControls } from "../components/AudioControls";
 
-import { BlurFade, RetroGrid, SparklesText, ShimmerButton } from "@hypr/magic";
+import BlurFade from "@hypr/ui/components/ui/blur-fade";
+import RetroGrid from "@hypr/ui/components/ui/retro-grid";
+import SparklesText from "@hypr/ui/components/ui/sparkles-text";
+import ShimmerButton from "@hypr/ui/components/ui/shimmer-button";
 
 export const Route = createFileRoute("/login")({
   component: Component,
@@ -32,7 +35,7 @@ function Component() {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden text-black">
+    <div>
       <RetroGrid angle={30} />
       {/* <AudioControls /> */}
 

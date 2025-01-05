@@ -1,18 +1,17 @@
 {
-  "name": "@hypr/magic",
+  "name": "@hypr/ui",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./styles.css": "./dist/index.css"
+    "./globals.css": "./src/styles/globals.css",
+    "./postcss.config": "./postcss.config.mjs",
+    "./tailwind.config": "./tailwind.config.ts",
+    "./lib/*": "./src/lib/*.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./hooks/*": "./src/hooks/*.ts"
   },
   "scripts": {
-    "build": "pnpm -F magic typescript && pnpm -F magic tailwind",
-    "typescript": "tsc --declaration --outDir dist",
-    "tailwind": "tailwindcss -i ./src/index.css -o ./dist/index.css",
     "format": "prettier --write ."
   },
   "devDependencies": {

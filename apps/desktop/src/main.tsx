@@ -16,11 +16,10 @@ i18n.load({
   en: enMessages,
   ko: koMessages,
 });
-i18n.activate("ko");
+i18n.activate("en");
 
 import "./styles/global.css";
-import "@hypr/magic/styles.css";
-import "@hypr/shadcn/styles.css";
+import "@hypr/ui/globals.css";
 
 import { useTauriStore } from "./stores/tauri";
 

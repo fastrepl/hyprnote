@@ -1,8 +1,10 @@
 import { z } from "zod";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { useQuery } from "@tanstack/react-query";
+
 import { commands } from "@/types/tauri";
+import { ArrowUpRight, CircleCheck } from "lucide-react";
 
 const STEPS = ["permissions"] as const;
 
@@ -17,16 +19,24 @@ export const Route = createFileRoute("/_nav/onboarding/")({
 
 function Component() {
   const { step } = Route.useSearch();
+  const navigate = useNavigate();
+  const handleNext = () => {
+    if (step === "permissions") {
+      navigate({ to: "/" });
+    } else {
+      navigate({ to: "/onboarding", search: { step: "permissions" } });
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
-      {step === "permissions" && <Permissions />}
+      {step === "permissions" && <Permissions handleNext={handleNext} />}
     </div>
   );
 }
 
-function Permissions() {
-  const _micPermission = useQuery({
+function Permissions({ handleNext }: { handleNext: () => void }) {
+  const micPermission = useQuery({
     queryKey: ["permissions", "mic"],
     queryFn: async (): Promise<boolean> => {
       return true;
@@ -34,7 +44,7 @@ function Permissions() {
     refetchInterval: 1000,
   });
 
-  const _capturePermission = useQuery({
+  const capturePermission = useQuery({
     queryKey: ["permissions", "capture"],
     queryFn: async (): Promise<boolean> => {
       return true;
@@ -47,21 +57,43 @@ function Permissions() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center">
-      <h1>Permissions</h1>
+    <div className="flex flex-col items-center justify-center gap-8">
+      <h1 className="text-xl font-bold">
+        Please allow Hyprnote to have proper access to your system
+      </h1>
 
-      <div className="flex flex-col">
-        <div className="flex flex-row items-center justify-between">
+      <div className="flex w-full flex-col gap-2 rounded-md border py-2">
+        <div className="flex flex-row items-center justify-between px-4">
           <span>Access to my voice</span>
-          <button onClick={handleClickMic}>Allow</button>
+          {micPermission.data ? (
+            <CircleCheck size={16} color="green" />
+          ) : (
+            <button
+              className="text-gray-600 hover:text-gray-900"
+              onClick={handleClickMic}
+            >
+              <ArrowUpRight size={18} />
+            </button>
+          )}
         </div>
-        <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center justify-between px-4">
           <span>Access to other people's voices</span>
-          <button>Allow</button>
+          {capturePermission.data ? (
+            <CircleCheck size={16} color="green" />
+          ) : (
+            <button
+              className="text-gray-600 hover:text-gray-900"
+              onClick={handleClickMic}
+            >
+              <ArrowUpRight size={18} />
+            </button>
+          )}
         </div>
       </div>
 
-      <button>Next</button>
+      {micPermission.data && capturePermission.data && (
+        <button onClick={handleNext}>Next</button>
+      )}
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
-import { Settings2 as Settings } from "lucide-react";
 import clsx from "clsx";
 
 import Controls from "@/components/controls";
 import SearchBar from "@/components/search-bar";
+import SettingsDialog from "@/components/settings-dialog";
 
 export const Route = createFileRoute("/_nav")({
   component: Component,
@@ -13,8 +13,6 @@ function Component() {
   const { pathname } = useLocation();
 
   const isOnboarding = pathname.includes("onboarding");
-
-  const handleSettings = () => {};
 
   return (
     <>
@@ -29,14 +27,7 @@ function Component() {
         <div className="flex flex-1 justify-center" data-tauri-drag-region>
           <SearchBar />
         </div>
-        {!isOnboarding && (
-          <button
-            className="text-gray-500 hover:text-gray-900"
-            onClick={handleSettings}
-          >
-            <Settings size={18} />
-          </button>
-        )}
+        {!isOnboarding && <SettingsDialog />}
         <span className="pl-4"></span>
       </header>
       <Outlet />

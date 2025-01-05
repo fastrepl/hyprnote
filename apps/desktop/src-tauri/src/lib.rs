@@ -183,6 +183,7 @@ pub fn run() {
             let app = app.handle().clone();
             tray::create_tray(&app).unwrap();
             ShowHyprWindow::Main.show(&app).unwrap();
+            ShowHyprWindow::Demo.show(&app).unwrap();
             Ok(())
         })
         .run(tauri::generate_context!())

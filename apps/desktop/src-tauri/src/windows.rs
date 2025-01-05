@@ -48,7 +48,7 @@ impl HyprWindowId {
 
 #[derive(Clone, Serialize, Deserialize, specta::Type)]
 pub enum ShowHyprWindow {
-    Demo { url: String },
+    Demo,
     Main,
 }
 
@@ -67,14 +67,15 @@ impl ShowHyprWindow {
         }
 
         let window = match self {
-            Self::Demo { url: _ } => self
-                .window_builder(app)
+            Self::Demo => self
+                .window_builder(app, "/demo")
                 .maximized(false)
                 .minimizable(false)
                 .maximizable(false)
+                .inner_size(400.0, 300.0)
                 .build()?,
             Self::Main => self
-                .window_builder(app)
+                .window_builder(app, "/")
                 .minimizable(true)
                 .maximizable(true)
                 .inner_size(1160.0, 680.0)
@@ -89,13 +90,13 @@ impl ShowHyprWindow {
     fn window_builder<'a>(
         &'a self,
         app: &'a AppHandle<Wry>,
+        url: impl Into<std::path::PathBuf>,
     ) -> WebviewWindowBuilder<'a, Wry, AppHandle<Wry>> {
         let id = self.id();
 
-        let builder = WebviewWindow::builder(app, id.label(), WebviewUrl::default())
+        let builder = WebviewWindow::builder(app, id.label(), WebviewUrl::App(url.into()))
             .title(id.title())
-            .visible(true)
-            .accept_first_mouse(false)
+            .accept_first_mouse(true)
             .shadow(false)
             .transparent(true)
             .decorations(false);

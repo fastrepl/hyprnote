@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Capability for the main window",
-  "windows": ["main"],
+  "description": "Capability for Hyprnote",
+  "windows": ["*"],
   "permissions": [
     "core:default",
     "positioner:default",
@@ -23,6 +23,8 @@
     "core:window:allow-set-fullscreen",
     "core:window:allow-minimize",
     "core:window:allow-maximize",
-    "core:window:allow-close"
+    "core:window:allow-close",
+    "core:window:allow-show",
+    "core:window:allow-set-position"
   ]
 }

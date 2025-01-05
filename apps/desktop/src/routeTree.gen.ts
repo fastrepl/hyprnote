@@ -12,7 +12,9 @@
 
 import { Route as rootRoute } from "./routes/__root";
 import { Route as LoginImport } from "./routes/login";
+import { Route as DemoImport } from "./routes/demo";
 import { Route as NavImport } from "./routes/_nav";
+import { Route as DemoIndexImport } from "./routes/demo.index";
 import { Route as NavIndexImport } from "./routes/_nav.index";
 import { Route as NoteNewImport } from "./routes/note.new";
 import { Route as CallbackConnectImport } from "./routes/callback.connect";
@@ -28,9 +30,21 @@ const LoginRoute = LoginImport.update({
   getParentRoute: () => rootRoute,
 } as any);
 
+const DemoRoute = DemoImport.update({
+  id: "/demo",
+  path: "/demo",
+  getParentRoute: () => rootRoute,
+} as any);
+
 const NavRoute = NavImport.update({
   id: "/_nav",
   getParentRoute: () => rootRoute,
+} as any);
+
+const DemoIndexRoute = DemoIndexImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => DemoRoute,
 } as any);
 
 const NavIndexRoute = NavIndexImport.update({
@@ -80,6 +94,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof NavImport;
       parentRoute: typeof rootRoute;
     };
+    "/demo": {
+      id: "/demo";
+      path: "/demo";
+      fullPath: "/demo";
+      preLoaderRoute: typeof DemoImport;
+      parentRoute: typeof rootRoute;
+    };
     "/login": {
       id: "/login";
       path: "/login";
@@ -114,6 +135,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/";
       preLoaderRoute: typeof NavIndexImport;
       parentRoute: typeof NavImport;
+    };
+    "/demo/": {
+      id: "/demo/";
+      path: "/";
+      fullPath: "/demo/";
+      preLoaderRoute: typeof DemoIndexImport;
+      parentRoute: typeof DemoImport;
     };
     "/_nav/note/$id": {
       id: "/_nav/note/$id";
@@ -160,13 +188,25 @@ const NavRouteChildren: NavRouteChildren = {
 
 const NavRouteWithChildren = NavRoute._addFileChildren(NavRouteChildren);
 
+interface DemoRouteChildren {
+  DemoIndexRoute: typeof DemoIndexRoute;
+}
+
+const DemoRouteChildren: DemoRouteChildren = {
+  DemoIndexRoute: DemoIndexRoute,
+};
+
+const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren);
+
 export interface FileRoutesByFullPath {
   "": typeof NavRouteWithChildren;
+  "/demo": typeof DemoRouteWithChildren;
   "/login": typeof LoginRoute;
   "/onboarding": typeof NavOnboardingRouteWithChildren;
   "/callback/connect": typeof CallbackConnectRoute;
   "/note/new": typeof NoteNewRoute;
   "/": typeof NavIndexRoute;
+  "/demo/": typeof DemoIndexRoute;
   "/note/$id": typeof NavNoteIdRoute;
   "/onboarding/": typeof NavOnboardingIndexRoute;
 }
@@ -176,6 +216,7 @@ export interface FileRoutesByTo {
   "/callback/connect": typeof CallbackConnectRoute;
   "/note/new": typeof NoteNewRoute;
   "/": typeof NavIndexRoute;
+  "/demo": typeof DemoIndexRoute;
   "/note/$id": typeof NavNoteIdRoute;
   "/onboarding": typeof NavOnboardingIndexRoute;
 }
@@ -183,11 +224,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute;
   "/_nav": typeof NavRouteWithChildren;
+  "/demo": typeof DemoRouteWithChildren;
   "/login": typeof LoginRoute;
   "/_nav/onboarding": typeof NavOnboardingRouteWithChildren;
   "/callback/connect": typeof CallbackConnectRoute;
   "/note/new": typeof NoteNewRoute;
   "/_nav/": typeof NavIndexRoute;
+  "/demo/": typeof DemoIndexRoute;
   "/_nav/note/$id": typeof NavNoteIdRoute;
   "/_nav/onboarding/": typeof NavOnboardingIndexRoute;
 }
@@ -196,11 +239,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | ""
+    | "/demo"
     | "/login"
     | "/onboarding"
     | "/callback/connect"
     | "/note/new"
     | "/"
+    | "/demo/"
     | "/note/$id"
     | "/onboarding/";
   fileRoutesByTo: FileRoutesByTo;
@@ -209,16 +254,19 @@ export interface FileRouteTypes {
     | "/callback/connect"
     | "/note/new"
     | "/"
+    | "/demo"
     | "/note/$id"
     | "/onboarding";
   id:
     | "__root__"
     | "/_nav"
+    | "/demo"
     | "/login"
     | "/_nav/onboarding"
     | "/callback/connect"
     | "/note/new"
     | "/_nav/"
+    | "/demo/"
     | "/_nav/note/$id"
     | "/_nav/onboarding/";
   fileRoutesById: FileRoutesById;
@@ -226,6 +274,7 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   NavRoute: typeof NavRouteWithChildren;
+  DemoRoute: typeof DemoRouteWithChildren;
   LoginRoute: typeof LoginRoute;
   CallbackConnectRoute: typeof CallbackConnectRoute;
   NoteNewRoute: typeof NoteNewRoute;
@@ -233,6 +282,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   NavRoute: NavRouteWithChildren,
+  DemoRoute: DemoRouteWithChildren,
   LoginRoute: LoginRoute,
   CallbackConnectRoute: CallbackConnectRoute,
   NoteNewRoute: NoteNewRoute,
@@ -249,6 +299,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/_nav",
+        "/demo",
         "/login",
         "/callback/connect",
         "/note/new"
@@ -260,6 +311,12 @@ export const routeTree = rootRoute
         "/_nav/onboarding",
         "/_nav/",
         "/_nav/note/$id"
+      ]
+    },
+    "/demo": {
+      "filePath": "demo.tsx",
+      "children": [
+        "/demo/"
       ]
     },
     "/login": {
@@ -281,6 +338,10 @@ export const routeTree = rootRoute
     "/_nav/": {
       "filePath": "_nav.index.tsx",
       "parent": "/_nav"
+    },
+    "/demo/": {
+      "filePath": "demo.index.tsx",
+      "parent": "/demo"
     },
     "/_nav/note/$id": {
       "filePath": "_nav.note.$id.tsx",

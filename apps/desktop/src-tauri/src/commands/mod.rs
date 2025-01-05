@@ -19,6 +19,12 @@ pub fn get_fingerprint() -> String {
     hypr_host::fingerprint()
 }
 
+// #[tauri::command]
+// #[specta::specta]
+// pub fn get_fingerprint() -> String {
+//     hypr_host::fingerprint()
+// }
+
 #[tauri::command]
 #[specta::specta]
 pub fn create_session(_app: AppHandle) {}

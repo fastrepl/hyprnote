@@ -10,6 +10,7 @@ import BlurFade from "@hypr/ui/components/ui/blur-fade";
 import RetroGrid from "@hypr/ui/components/ui/retro-grid";
 import SparklesText from "@hypr/ui/components/ui/sparkles-text";
 import ShimmerButton from "@hypr/ui/components/ui/shimmer-button";
+import { Button } from "@hypr/ui/components/ui/button";
 
 export const Route = createFileRoute("/login")({
   component: Component,
@@ -58,6 +59,8 @@ function Component() {
             <Trans>Get Started</Trans>
           </ShimmerButton>
         </BlurFade>
+
+        <Button variant="destructive">HI</Button>
       </div>
     </div>
   );

@@ -3,17 +3,19 @@
   "style": "default",
   "rsc": true,
   "tailwind": {
-    "config": "tailwind.config.js",
-    "css": "src/index.css",
+    "config": "tailwind.config.ts",
+    "css": "src/styles/globals.css",
     "baseColor": "gray",
     "cssVariables": true,
     "rsc": false,
     "tsx": true
   },
+  "iconLibrary": "lucide",
   "aliases": {
-    "lib": "@/lib",
-    "utils": "@/lib/utils",
-    "hooks": "@/hooks",
-    "components": "@/components"
+    "utils": "@hypr/ui/lib/utils",
+    "ui": "@hypr/ui/components/ui",
+    "components": "@hypr/ui/components",
+    "lib": "@hypr/ui/lib",
+    "hooks": "@hypr/ui/hooks"
   }
 }

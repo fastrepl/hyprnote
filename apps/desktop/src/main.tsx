@@ -18,7 +18,7 @@ i18n.load({
 });
 i18n.activate("en");
 
-import "./styles/global.css";
+import "./styles/globals.css";
 import "@hypr/ui/globals.css";
 
 import { useTauriStore } from "./stores/tauri";

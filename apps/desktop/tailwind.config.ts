@@ -3,7 +3,7 @@ import UI from "@hypr/ui/tailwind.config";
 
 const config = {
   ...UI,
-  content: [...UI.content, "src/components/**/*.tsx", "index.html"],
+  content: [...UI.content, "src/**/*.{js,ts,jsx,tsx}", "index.html"],
 } satisfies Config;
 
 export default config;

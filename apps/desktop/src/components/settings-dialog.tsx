@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState } from "react";
 import {
   Bell,
   Check,
@@ -59,7 +59,7 @@ const data = {
 };
 
 export default function SettingsDialog() {
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

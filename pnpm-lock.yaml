@@ -276,6 +276,9 @@ importers:
       "@radix-ui/react-dialog":
         specifier: ^1.1.4
         version: 1.1.4(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@radix-ui/react-scroll-area":
+        specifier: ^1.2.2
+        version: 1.2.2(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       "@radix-ui/react-select":
         specifier: ^2.1.4
         version: 2.1.4(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1783,6 +1786,21 @@ packages:
   "@radix-ui/react-roving-focus@1.1.1":
     resolution: {
       integrity: sha512-QE1RoxPGJ/Nm8Qmk0PxP8ojmoaS67i0s7hVssS7KuI2FQoc/uzVlZsqKfQvxPE6D8hICCPHJ4D88zNhT3OOmkw==,
+    }
+    peerDependencies:
+      "@types/react": "*"
+      "@types/react-dom": "*"
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      "@types/react":
+        optional: true
+      "@types/react-dom":
+        optional: true
+
+  "@radix-ui/react-scroll-area@1.2.2":
+    resolution: {
+      integrity: sha512-EFI1N/S3YxZEW/lJ/H1jY3njlvTd8tBmgKEn4GHi51+aMm94i6NmAJstsm5cu3yJwYqYc93gpCPm21FeAbFk6g==,
     }
     peerDependencies:
       "@types/react": "*"
@@ -6654,6 +6672,23 @@ snapshots:
       "@radix-ui/react-primitive": 2.0.1(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       "@radix-ui/react-use-callback-ref": 1.1.0(@types/react@18.3.18)(react@18.3.1)
       "@radix-ui/react-use-controllable-state": 1.1.0(@types/react@18.3.18)(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    optionalDependencies:
+      "@types/react": 18.3.18
+      "@types/react-dom": 18.3.5(@types/react@18.3.18)
+
+  "@radix-ui/react-scroll-area@1.2.2(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)":
+    dependencies:
+      "@radix-ui/number": 1.1.0
+      "@radix-ui/primitive": 1.1.1
+      "@radix-ui/react-compose-refs": 1.1.1(@types/react@18.3.18)(react@18.3.1)
+      "@radix-ui/react-context": 1.1.1(@types/react@18.3.18)(react@18.3.1)
+      "@radix-ui/react-direction": 1.1.0(@types/react@18.3.18)(react@18.3.1)
+      "@radix-ui/react-presence": 1.1.2(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@radix-ui/react-primitive": 2.0.1(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@radix-ui/react-use-callback-ref": 1.1.0(@types/react@18.3.18)(react@18.3.1)
+      "@radix-ui/react-use-layout-effect": 1.1.0(@types/react@18.3.18)(react@18.3.1)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
     optionalDependencies:

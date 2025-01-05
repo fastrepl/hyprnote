@@ -4,6 +4,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 
 import PastSessions from "@/components/past-sessions";
 import UpcomingEvents from "@/components/upcoming-events";
+import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
+
 import { commands } from "@/types/tauri";
 
 const queryOptions = () => ({
@@ -48,9 +50,11 @@ function Component() {
   }, []);
 
   return (
-    <main className="flex flex-col items-center justify-center gap-8">
-      <UpcomingEvents events={[]} handleClickEvent={() => {}} />
-      <PastSessions sessions={[]} handleClickSession={() => {}} />
+    <main className="px-12 py-6">
+      <ScrollArea className="flex flex-col">
+        <UpcomingEvents events={[]} handleClickEvent={() => {}} />
+        <PastSessions sessions={[]} handleClickSession={() => {}} />
+      </ScrollArea>
     </main>
   );
 }

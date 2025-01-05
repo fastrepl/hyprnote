@@ -9,7 +9,8 @@
     "./tailwind.config": "./tailwind.config.ts",
     "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
-    "./hooks/*": "./src/hooks/*.ts"
+    "./hooks/*": "./src/hooks/*.ts",
+    "./contexts/*": "./src/contexts/*.tsx"
   },
   "scripts": {
     "format": "prettier --write ."

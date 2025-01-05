@@ -6,6 +6,7 @@ import { routeTree } from "./routeTree.gen";
 import "./styles/globals.css";
 import "@hypr/ui/globals.css";
 
+import { ThemeProvider } from "@hypr/ui/contexts/theme";
 import { ClerkProvider } from "@clerk/clerk-react";
 
 if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
@@ -30,12 +31,14 @@ const rootElement = document.getElementById("app")!;
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
-    <QueryClientProvider client={queryClient}>
-      <ClerkProvider
-        publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
-      >
-        <RouterProvider router={router} />
-      </ClerkProvider>
-    </QueryClientProvider>,
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ClerkProvider
+          publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
+        >
+          <RouterProvider router={router} />
+        </ClerkProvider>
+      </QueryClientProvider>
+    </ThemeProvider>,
   );
 }

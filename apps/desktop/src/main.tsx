@@ -3,7 +3,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 
-import { ThemeProvider } from "./contexts/theme";
+import { ThemeProvider } from "@hypr/ui/contexts/theme";
 import { WindowProvider } from "./contexts/window";
 import { AuthContext, AuthProvider, useAuth } from "./auth";
 

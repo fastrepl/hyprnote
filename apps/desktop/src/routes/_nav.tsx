@@ -1,16 +1,16 @@
+import { useCallback } from "react";
 import {
   createFileRoute,
   Outlet,
   useLocation,
   useRouter,
 } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
 import clsx from "clsx";
 
 import Controls from "@/components/controls";
 import SearchBar from "@/components/search-bar";
 import SettingsDialog from "@/components/settings-dialog";
-import { ArrowLeft } from "lucide-react";
-import { useCallback } from "react";
 
 export const Route = createFileRoute("/_nav")({
   component: Component,
@@ -29,7 +29,7 @@ function Component() {
       <header
         className={clsx([
           "flex w-full items-center justify-between",
-          "h-12 border-b border-border",
+          "h-10 border-b border-border bg-secondary",
         ])}
         data-tauri-drag-region
       >
@@ -39,16 +39,20 @@ function Component() {
             className="text-gray-600 hover:text-gray-900"
             onClick={handleClickBack}
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft
+              size={16}
+              className={clsx(["opacity-0", pathname !== "/" && "opacity-100"])}
+            />
           </button>
         </div>
-        {pathname === "/" && (
-          <div className="flex flex-1 justify-center" data-tauri-drag-region>
-            <SearchBar />
+        <div className="flex flex-1 justify-center" data-tauri-drag-region>
+          <SearchBar />
+        </div>
+        {!pathname.includes("onboarding") && (
+          <div className="mr-4 pt-1.5">
+            <SettingsDialog />
           </div>
         )}
-        {!pathname.includes("onboarding") && <SettingsDialog />}
-        <span className="pl-4"></span>
       </header>
       <Outlet />
     </>

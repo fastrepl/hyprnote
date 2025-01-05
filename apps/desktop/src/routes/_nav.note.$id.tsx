@@ -32,7 +32,24 @@ export const Route = createFileRoute("/_nav/note/$id")({
 });
 
 function Component() {
+  return (
+    <div>
+      <ResizablePanelGroup direction="horizontal">
+        <ResizablePanel>
+          <LeftPanel />
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize={30} minSize={30} maxSize={60}>
+          <RightPanel />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
+  );
+}
+
+function LeftPanel() {
   const { id } = Route.useParams();
+
   const {
     data: { noteHtml },
   } = useSuspenseQuery(queryOptions(id));
@@ -59,30 +76,22 @@ function Component() {
   }, [data]);
 
   return (
-    <div>
-      <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel>
-          {isLoading ? (
-            <button type="button" onClick={() => stop()}>
-              Stop
-            </button>
-          ) : (
-            <button type="button" onClick={() => submit()}>
-              Enhance
-            </button>
-          )}
+    <>
+      {isLoading ? (
+        <button type="button" onClick={() => stop()}>
+          Stop
+        </button>
+      ) : (
+        <button type="button" onClick={() => submit()}>
+          Enhance
+        </button>
+      )}
 
-          <Editor handleChange={handleChange} content={editorContent} />
-        </ResizablePanel>
-        {!isPanelOpen && (
-          <>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={30} minSize={30} maxSize={60}>
-              <div>side panel</div>
-            </ResizablePanel>
-          </>
-        )}
-      </ResizablePanelGroup>
-    </div>
+      <Editor handleChange={handleChange} content={editorContent} />
+    </>
   );
+}
+
+function RightPanel() {
+  return <div>right panel</div>;
 }

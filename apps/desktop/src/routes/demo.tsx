@@ -13,7 +13,7 @@ function Component() {
       <header
         className={clsx([
           "flex w-full items-center justify-between",
-          "h-12 border-b border-border",
+          "h-10 border-b border-border",
         ])}
         data-tauri-drag-region
       >

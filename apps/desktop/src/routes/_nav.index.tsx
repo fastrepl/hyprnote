@@ -50,10 +50,80 @@ function Component() {
   }, []);
 
   return (
-    <main className="px-12 py-6">
-      <ScrollArea className="flex flex-col">
+    <main className="h-full w-full">
+      <ScrollArea className="flex h-full w-full flex-col px-12 py-6">
         <UpcomingEvents events={[]} handleClickEvent={() => {}} />
-        <PastSessions sessions={[]} handleClickSession={() => {}} />
+        <PastSessions
+          sessions={[
+            {
+              id: 1,
+              title: "Session 1",
+              timestamp: "2024-01-01",
+              tags: [],
+              audio_local_path: "",
+              audio_remote_path: "",
+              transcript: null,
+              raw_memo_html: "",
+              enhanced_memo_html: "",
+            },
+            {
+              id: 1,
+              title: "Session 1",
+              timestamp: "2024-01-01",
+              tags: [],
+              audio_local_path: "",
+              audio_remote_path: "",
+              transcript: null,
+              raw_memo_html: "",
+              enhanced_memo_html: "",
+            },
+            {
+              id: 1,
+              title: "Session 1",
+              timestamp: "2024-01-01",
+              tags: [],
+              audio_local_path: "",
+              audio_remote_path: "",
+              transcript: null,
+              raw_memo_html: "",
+              enhanced_memo_html: "",
+            },
+            {
+              id: 1,
+              title: "Session 1",
+              timestamp: "2024-01-01",
+              tags: [],
+              audio_local_path: "",
+              audio_remote_path: "",
+              transcript: null,
+              raw_memo_html: "",
+              enhanced_memo_html: "",
+            },
+            {
+              id: 1,
+              title: "Session 1",
+              timestamp: "2024-01-01",
+              tags: [],
+              audio_local_path: "",
+              audio_remote_path: "",
+              transcript: null,
+              raw_memo_html: "",
+              enhanced_memo_html: "",
+            },
+            {
+              id: 1,
+              title: "Session 1",
+              timestamp: "2024-01-01",
+              tags: [],
+              audio_local_path: "",
+              audio_remote_path: "",
+              transcript: null,
+              raw_memo_html: "",
+              enhanced_memo_html: "",
+            },
+          ]}
+          handleClickSession={() => {}}
+        />
       </ScrollArea>
     </main>
   );

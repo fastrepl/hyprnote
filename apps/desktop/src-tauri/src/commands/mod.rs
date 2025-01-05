@@ -1,6 +1,6 @@
 pub mod db;
 
-use crate::{audio, events, App};
+use crate::{audio, events, windows::ShowHyprWindow, App};
 use anyhow::Result;
 use std::path::PathBuf;
 use tauri::{ipc::Channel, AppHandle, Manager};
@@ -19,11 +19,11 @@ pub fn get_fingerprint() -> String {
     hypr_host::fingerprint()
 }
 
-// #[tauri::command]
-// #[specta::specta]
-// pub fn get_fingerprint() -> String {
-//     hypr_host::fingerprint()
-// }
+#[tauri::command]
+#[specta::specta]
+pub fn show_window(app: AppHandle, window: ShowHyprWindow) {
+    window.show(&app).unwrap();
+}
 
 #[tauri::command]
 #[specta::specta]

@@ -8,8 +8,9 @@ mod session;
 mod tray;
 mod windows;
 
-use tauri::{AppHandle, Manager};
-use windows::ShowHyprWindow;
+use std::str::FromStr;
+use tauri::{AppHandle, Manager, WindowEvent};
+use windows::{HyprWindowId, ShowHyprWindow};
 
 pub struct App {
     handle: AppHandle,
@@ -28,6 +29,8 @@ pub fn run() {
             commands::stop_playback,
             commands::list_calendars,
             commands::list_events,
+            commands::show_window,
+            commands::create_session,
             commands::db::db_list_events,
             permissions::open_permission_settings,
         ])
@@ -69,7 +72,7 @@ pub fn run() {
     #[cfg(desktop)]
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            ShowHyprWindow::Main.show(app).unwrap();
+            ShowHyprWindow::MainWithoutDemo.show(app).unwrap();
         }));
     }
 
@@ -121,6 +124,28 @@ pub fn run() {
     });
 
     builder
+        .on_window_event(|window, event| {
+            let label = window.label();
+            let app = window.app_handle();
+
+            match event {
+                WindowEvent::Destroyed => {
+                    if let Ok(window_id) = HyprWindowId::from_str(label) {
+                        match window_id {
+                            HyprWindowId::Main => {
+                                if let Some(w) = HyprWindowId::Demo.get(app) {
+                                    w.close().ok();
+                                }
+                            }
+                            HyprWindowId::Demo => {
+                                ShowHyprWindow::MainWithoutDemo.show(app).unwrap();
+                            }
+                        };
+                    }
+                }
+                _ => {}
+            }
+        })
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
             move |invoke| handler(invoke)
@@ -182,8 +207,9 @@ pub fn run() {
         .setup(|app| {
             let app = app.handle().clone();
             tray::create_tray(&app).unwrap();
-            ShowHyprWindow::Main.show(&app).unwrap();
-            ShowHyprWindow::Demo.show(&app).unwrap();
+
+            ShowHyprWindow::MainWithoutDemo.show(&app).unwrap();
+
             Ok(())
         })
         .run(tauri::generate_context!())

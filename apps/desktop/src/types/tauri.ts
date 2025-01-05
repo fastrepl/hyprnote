@@ -26,6 +26,12 @@ export const commands = {
   async listEvents(calendarId: string): Promise<Event[]> {
     return await TAURI_INVOKE("list_events", { calendarId });
   },
+  async showWindow(window: ShowHyprWindow): Promise<void> {
+    await TAURI_INVOKE("show_window", { window });
+  },
+  async createSession(): Promise<void> {
+    await TAURI_INVOKE("create_session");
+  },
   async dbListEvents(): Promise<Event[]> {
     return await TAURI_INVOKE("db_list_events");
   },
@@ -71,6 +77,7 @@ export type OSPermission =
   | "accessibility";
 export type Participant = { name: string; email: string };
 export type Platform = "Apple" | "Google";
+export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo";
 export type Transcript = { text: string };
 
 /** tauri-specta globals **/

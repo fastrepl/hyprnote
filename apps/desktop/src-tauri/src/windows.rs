@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Wry};
+use tauri::{
+    AppHandle, LogicalPosition, LogicalSize, Manager, WebviewUrl, WebviewWindow,
+    WebviewWindowBuilder, Wry,
+};
 
 #[derive(Clone)]
 pub enum HyprWindowId {
@@ -49,38 +52,63 @@ impl HyprWindowId {
 #[derive(Clone, Serialize, Deserialize, specta::Type)]
 pub enum ShowHyprWindow {
     Demo,
-    Main,
+    MainWithoutDemo,
+    MainWithDemo,
 }
 
 impl ShowHyprWindow {
     pub fn id(&self) -> HyprWindowId {
         match self {
             ShowHyprWindow::Demo { .. } => HyprWindowId::Demo,
-            ShowHyprWindow::Main => HyprWindowId::Main,
+            ShowHyprWindow::MainWithoutDemo => HyprWindowId::Main,
+            ShowHyprWindow::MainWithDemo => HyprWindowId::Main,
         }
     }
 
     pub fn show(&self, app: &AppHandle<Wry>) -> tauri::Result<WebviewWindow> {
-        if let Some(window) = self.id().get(app) {
-            window.set_focus()?;
-            return Ok(window);
-        }
+        let window = match self.id().get(app) {
+            Some(window) => window,
+            None => {
+                let url = match self {
+                    Self::Demo => "/demo",
+                    Self::MainWithDemo => "/",
+                    Self::MainWithoutDemo => "/",
+                };
+                self.window_builder(app, url).build()?
+            }
+        };
 
-        let window = match self {
-            Self::Demo => self
-                .window_builder(app, "/demo")
-                .maximized(false)
-                .minimizable(false)
-                .maximizable(false)
-                .inner_size(400.0, 300.0)
-                .build()?,
-            Self::Main => self
-                .window_builder(app, "/")
-                .minimizable(true)
-                .maximizable(true)
-                .inner_size(1160.0, 680.0)
-                .center()
-                .build()?,
+        let monitor = app.primary_monitor()?.unwrap();
+        let display_width = (monitor.size().width as f64) / monitor.scale_factor();
+        let display_height = (monitor.size().height as f64) / monitor.scale_factor();
+
+        match self {
+            Self::Demo => {
+                let width = display_width * 0.7;
+                window.set_maximizable(false)?;
+                window.set_minimizable(false)?;
+                window.set_size(LogicalSize::new(width, display_height * 0.95))?;
+                window.set_position(LogicalPosition::new(20.0, display_height * 0.03))?;
+            }
+            Self::MainWithDemo => {
+                let width = display_width * 0.27;
+                window.set_maximizable(false)?;
+                window.set_minimizable(false)?;
+                window.set_size(LogicalSize::new(width, display_height * 0.95))?;
+                window.set_position(LogicalPosition::new(
+                    display_width - width - 15.0,
+                    display_height * 0.03,
+                ))?;
+            }
+
+            Self::MainWithoutDemo => {
+                let width = display_width.min(1100.0);
+                let height = display_height.min(700.0);
+                window.set_maximizable(true)?;
+                window.set_minimizable(true)?;
+                window.set_size(LogicalSize::new(width.max(800.0), height.max(600.0)))?;
+                window.center()?;
+            }
         };
 
         window.set_focus()?;

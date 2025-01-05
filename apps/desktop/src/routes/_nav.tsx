@@ -24,8 +24,6 @@ function Component() {
     history.back();
   }, [history]);
 
-  const isOnboarding = pathname.includes("onboarding");
-
   return (
     <>
       <header
@@ -44,10 +42,12 @@ function Component() {
             <ArrowLeft size={16} />
           </button>
         </div>
-        <div className="flex flex-1 justify-center" data-tauri-drag-region>
-          <SearchBar />
-        </div>
-        {!isOnboarding && <SettingsDialog />}
+        {pathname === "/" && (
+          <div className="flex flex-1 justify-center" data-tauri-drag-region>
+            <SearchBar />
+          </div>
+        )}
+        {!pathname.includes("onboarding") && <SettingsDialog />}
         <span className="pl-4"></span>
       </header>
       <Outlet />

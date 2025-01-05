@@ -35,11 +35,12 @@ tauri-plugin-http = "2"
 tauri-plugin-log = "2"
 tauri-plugin-notification = { version = "2", features = ["windows7-compat"] }
 tauri-plugin-os = "2"
-tauri-plugin-positioner = "2"
+tauri-plugin-positioner = { version = "2", features = ["tray-icon"] }
 tauri-plugin-shell = "2"
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 tauri-plugin-store = "2"
 tauri-plugin-updater = "2"
+tauri-plugin-window-state = "2"
 
 specta = { workspace = true }
 specta-typescript = { workspace = true }

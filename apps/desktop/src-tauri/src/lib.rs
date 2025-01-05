@@ -1,5 +1,3 @@
-use tauri::{AppHandle, Manager};
-
 mod audio;
 mod auth;
 mod commands;
@@ -8,6 +6,10 @@ mod events;
 mod permissions;
 mod session;
 mod tray;
+mod windows;
+
+use tauri::{AppHandle, Manager};
+use windows::ShowHyprWindow;
 
 pub struct App {
     handle: AppHandle,
@@ -53,6 +55,7 @@ pub fn run() {
 
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())
@@ -66,10 +69,7 @@ pub fn run() {
     #[cfg(desktop)]
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            let _ = app
-                .get_webview_window("main")
-                .expect("no main window")
-                .set_focus();
+            ShowHyprWindow::Main.show(app).unwrap();
         }));
     }
 
@@ -83,6 +83,17 @@ pub fn run() {
                 .build(),
         );
     }
+
+    // https://v2.tauri.app/plugin/positioner/#setup
+    builder = builder.setup(|app| {
+        let _ = app.handle().plugin(tauri_plugin_positioner::init());
+        tauri::tray::TrayIconBuilder::new()
+            .on_tray_icon_event(|tray_handle, event| {
+                tauri_plugin_positioner::on_tray_event(tray_handle.app_handle(), &event);
+            })
+            .build(app)?;
+        Ok(())
+    });
 
     let db = tauri::async_runtime::block_on(async {
         let conn = {
@@ -171,6 +182,7 @@ pub fn run() {
         .setup(|app| {
             let app = app.handle().clone();
             tray::create_tray(&app).unwrap();
+            ShowHyprWindow::Main.show(&app).unwrap();
             Ok(())
         })
         .run(tauri::generate_context!())

@@ -12,18 +12,6 @@
   },
   "app": {
     "macOSPrivateApi": true,
-    "windows": [
-      {
-        "fullscreen": false,
-        "resizable": true,
-        "height": 680,
-        "width": 1160,
-        "decorations": false,
-        "transparent": true,
-        "shadow": false,
-        "center": true
-      }
-    ],
     "security": {
       "csp": null
     }

@@ -23,7 +23,7 @@ function Component() {
   const handleClickBack = useCallback(() => {
     history.back();
   }, [history]);
-  
+
   const isOnboarding = pathname.includes("onboarding");
 
   return (

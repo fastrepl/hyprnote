@@ -66,9 +66,7 @@ export default function Editor({ handleChange, content }: EditorProps) {
   return (
     <div
       role="textbox"
-      className={clsx([
-        "relative m-1 h-[600px] w-full rounded-xl border border-slate-200",
-      ])}
+      className={clsx(["relative m-1 h-[600px] w-full"])}
       onClick={handleClickArea}
     >
       <EditorContent editor={editor} />

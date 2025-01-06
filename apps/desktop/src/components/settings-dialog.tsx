@@ -65,7 +65,7 @@ export default function SettingsDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button className="text-gray-500 hover:text-gray-900">
-          <Settings2 size={18} />
+          <Settings2 size={16} />
         </button>
       </DialogTrigger>
       <DialogContent className="overflow-hidden p-0 md:max-h-[500px] md:max-w-[700px] lg:max-w-[800px]">

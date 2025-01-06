@@ -31,9 +31,9 @@ pub fn create_session(_app: AppHandle) {}
 
 #[tauri::command]
 #[specta::specta]
-pub fn start_session(_app: AppHandle, on_event: Channel<events::Transcript>) {
+pub fn start_session(_app: AppHandle, on_event: Channel<events::TranscriptEvent>) {
     let _ = tokio::spawn(async move {
-        let _ = on_event.send(events::Transcript {
+        let _ = on_event.send(events::TranscriptEvent {
             text: "Hello, world!".to_string(),
         });
     });

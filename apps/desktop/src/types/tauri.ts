@@ -11,7 +11,7 @@ export const commands = {
   async getFingerprint(): Promise<string> {
     return await TAURI_INVOKE("get_fingerprint");
   },
-  async startSession(onEvent: TAURI_CHANNEL<Transcript>): Promise<void> {
+  async startSession(onEvent: TAURI_CHANNEL<TranscriptEvent>): Promise<void> {
     await TAURI_INVOKE("start_session", { onEvent });
   },
   async startPlayback(audioId: string): Promise<void> {
@@ -35,6 +35,9 @@ export const commands = {
   async dbListEvents(): Promise<Event[]> {
     return await TAURI_INVOKE("db_list_events");
   },
+  async dbListSessions(): Promise<Session[]> {
+    return await TAURI_INVOKE("db_list_sessions");
+  },
   async openPermissionSettings(permission: OSPermission): Promise<void> {
     await TAURI_INVOKE("open_permission_settings", { permission });
   },
@@ -43,13 +46,13 @@ export const commands = {
 /** user-defined events **/
 
 export const events = __makeEvents__<{
-  justAuthenticated: JustAuthenticated;
-  notAuthenticated: NotAuthenticated;
-  transcript: Transcript;
+  recordingStarted: RecordingStarted;
+  recordingStopped: RecordingStopped;
+  transcriptEvent: TranscriptEvent;
 }>({
-  justAuthenticated: "just-authenticated",
-  notAuthenticated: "not-authenticated",
-  transcript: "transcript",
+  recordingStarted: "recording-started",
+  recordingStopped: "recording-stopped",
+  transcriptEvent: "transcript-event",
 });
 
 /** user-defined constants **/
@@ -68,8 +71,6 @@ export type Event = {
   end_date: string;
   google_event_url: string | null;
 };
-export type JustAuthenticated = null;
-export type NotAuthenticated = null;
 export type OSPermission =
   | "screenRecording"
   | "camera"
@@ -77,8 +78,27 @@ export type OSPermission =
   | "accessibility";
 export type Participant = { name: string; email: string };
 export type Platform = "Apple" | "Google";
+export type RecordingStarted = null;
+export type RecordingStopped = { path: string };
+export type Session = {
+  id: number;
+  timestamp: string;
+  title: string;
+  tags: string[];
+  audio_local_path: string | null;
+  audio_remote_path: string | null;
+  raw_memo_html: string;
+  enhanced_memo_html: string | null;
+  transcript: Transcript | null;
+};
 export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo";
-export type Transcript = { text: string };
+export type Transcript = { speakers: string[]; blocks: TranscriptBlock[] };
+export type TranscriptBlock = {
+  timestamp: string;
+  text: string;
+  speaker: string;
+};
+export type TranscriptEvent = { text: string };
 
 /** tauri-specta globals **/
 

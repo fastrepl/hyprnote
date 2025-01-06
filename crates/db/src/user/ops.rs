@@ -174,7 +174,7 @@ impl UserDatabase {
 mod tests {
     use super::*;
     use crate::{
-        user::{migrate, Transcript},
+        user::{migrate, seed, Transcript},
         ConnectionBuilder,
     };
 
@@ -187,6 +187,12 @@ mod tests {
 
         migrate(&conn).await.unwrap();
         UserDatabase::from(conn)
+    }
+
+    #[tokio::test]
+    async fn test_seed() {
+        let db = setup_db().await;
+        seed(&db).await.unwrap();
     }
 
     #[tokio::test]

@@ -1,3 +1,4 @@
+// TODO: support Option
 pub fn serialize<T, S>(value: &T, serializer: S) -> Result<S::Ok, S::Error>
 where
     T: serde::Serialize,

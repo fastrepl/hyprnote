@@ -1,9 +1,11 @@
 mod migrations;
 mod ops;
+mod seed;
 mod types;
 
 pub use migrations::*;
 pub use ops::*;
+pub use seed::*;
 pub use types::*;
 
 pub fn export_ts_types_to(path: impl AsRef<std::path::Path>) -> anyhow::Result<()> {

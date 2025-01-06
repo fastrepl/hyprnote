@@ -32,12 +32,13 @@ pub fn run() {
             commands::show_window,
             commands::create_session,
             commands::db::db_list_events,
+            commands::db::db_list_sessions,
             permissions::open_permission_settings,
         ])
         .events(tauri_specta::collect_events![
-            events::Transcript,
-            events::NotAuthenticated,
-            events::JustAuthenticated,
+            events::TranscriptEvent,
+            events::RecordingStarted,
+            events::RecordingStopped,
         ])
         .typ::<hypr_calendar::Calendar>()
         .typ::<hypr_calendar::Event>()
@@ -120,7 +121,12 @@ pub fn run() {
         };
 
         hypr_db::user::migrate(&conn).await.unwrap();
-        hypr_db::user::UserDatabase::from(conn)
+        let db = hypr_db::user::UserDatabase::from(conn);
+
+        #[cfg(debug_assertions)]
+        hypr_db::user::seed(&db).await.unwrap();
+
+        db
     });
 
     builder
@@ -154,33 +160,6 @@ pub fn run() {
             specta_builder.mount_events(app);
             Ok(())
         })
-        .setup(move |app| {
-            let app = app.handle().clone();
-
-            let mut cloud_config = hypr_bridge::ClientConfig {
-                base_url: if cfg!(debug_assertions) {
-                    "http://localhost:4000".parse().unwrap()
-                } else {
-                    "https://server.hyprnote.com".parse().unwrap()
-                },
-                auth_token: None,
-            };
-
-            if let Ok(Some(auth)) = auth::AuthStore::load(&app) {
-                cloud_config.auth_token = Some(auth.token);
-            }
-
-            // These MUST be called before anything else!
-            {
-                app.manage(std::sync::RwLock::new(App {
-                    handle: app.clone(),
-                    cloud_config,
-                    db,
-                }));
-            }
-
-            Ok(())
-        })
         .setup(|app| {
             #[cfg(desktop)]
             let _ = app
@@ -206,9 +185,31 @@ pub fn run() {
         })
         .setup(|app| {
             let app = app.handle().clone();
+
             tray::create_tray(&app).unwrap();
 
             ShowHyprWindow::MainWithoutDemo.show(&app).unwrap();
+
+            let mut cloud_config = hypr_bridge::ClientConfig {
+                base_url: if cfg!(debug_assertions) {
+                    "http://localhost:4000".parse().unwrap()
+                } else {
+                    "https://server.hyprnote.com".parse().unwrap()
+                },
+                auth_token: None,
+            };
+
+            if let Ok(Some(auth)) = auth::AuthStore::load(&app) {
+                cloud_config.auth_token = Some(auth.token);
+            }
+
+            {
+                app.manage(App {
+                    handle: app.clone(),
+                    cloud_config,
+                    db,
+                });
+            }
 
             Ok(())
         })

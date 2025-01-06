@@ -20,26 +20,29 @@ export const commands = {
   async stopPlayback(audioId: string): Promise<void> {
     await TAURI_INVOKE("stop_playback", { audioId });
   },
-  async listCalendars(): Promise<Calendar[]> {
-    return await TAURI_INVOKE("list_calendars");
-  },
-  async listEvents(calendarId: string): Promise<Event[]> {
-    return await TAURI_INVOKE("list_events", { calendarId });
-  },
   async showWindow(window: ShowHyprWindow): Promise<void> {
     await TAURI_INVOKE("show_window", { window });
   },
   async createSession(): Promise<void> {
     await TAURI_INVOKE("create_session");
   },
+  async openPermissionSettings(permission: OSPermission): Promise<void> {
+    await TAURI_INVOKE("open_permission_settings", { permission });
+  },
+  async dbListCalendars(): Promise<Calendar[]> {
+    return await TAURI_INVOKE("db_list_calendars");
+  },
   async dbListEvents(): Promise<Event[]> {
     return await TAURI_INVOKE("db_list_events");
   },
-  async dbListSessions(): Promise<Session[]> {
-    return await TAURI_INVOKE("db_list_sessions");
+  async dbListSessions(search: string | null): Promise<Session[]> {
+    return await TAURI_INVOKE("db_list_sessions", { search });
   },
-  async openPermissionSettings(permission: OSPermission): Promise<void> {
-    await TAURI_INVOKE("open_permission_settings", { permission });
+  async dbListParticipants(search: string | null): Promise<Participant[]> {
+    return await TAURI_INVOKE("db_list_participants", { search });
+  },
+  async dbUpsertParticipant(participant: Participant): Promise<Participant> {
+    return await TAURI_INVOKE("db_upsert_participant", { participant });
   },
 };
 
@@ -59,14 +62,19 @@ export const events = __makeEvents__<{
 
 /** user-defined types **/
 
-export type Calendar = { id: string; platform: Platform; name: string };
+export type Calendar = {
+  id: string;
+  tracking_id: string;
+  platform: Platform;
+  name: string;
+};
 export type Event = {
   id: string;
+  tracking_id: string;
   calendar_id: string;
   platform: Platform;
   name: string;
   note: string;
-  participants: Participant[];
   start_date: string;
   end_date: string;
   google_event_url: string | null;
@@ -76,12 +84,17 @@ export type OSPermission =
   | "camera"
   | "microphone"
   | "accessibility";
-export type Participant = { name: string; email: string };
+export type Participant = {
+  id: string;
+  name: string;
+  email: string;
+  color_hex: string;
+};
 export type Platform = "Apple" | "Google";
 export type RecordingStarted = null;
 export type RecordingStopped = { path: string };
 export type Session = {
-  id: number;
+  id: string;
   timestamp: string;
   title: string;
   tags: string[];

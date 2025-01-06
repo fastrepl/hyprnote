@@ -7,6 +7,7 @@ mod permissions;
 mod session;
 mod tray;
 mod windows;
+mod workers;
 
 use std::str::FromStr;
 use tauri::{AppHandle, Manager, WindowEvent};
@@ -27,21 +28,20 @@ pub fn run() {
             commands::start_session,
             commands::start_playback,
             commands::stop_playback,
-            commands::list_calendars,
-            commands::list_events,
             commands::show_window,
             commands::create_session,
+            permissions::open_permission_settings,
+            commands::db::db_list_calendars,
             commands::db::db_list_events,
             commands::db::db_list_sessions,
-            permissions::open_permission_settings,
+            commands::db::db_list_participants,
+            commands::db::db_upsert_participant,
         ])
         .events(tauri_specta::collect_events![
             events::TranscriptEvent,
             events::RecordingStarted,
             events::RecordingStopped,
         ])
-        .typ::<hypr_calendar::Calendar>()
-        .typ::<hypr_calendar::Event>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw);
 
     #[cfg(debug_assertions)]
@@ -53,9 +53,6 @@ pub fn run() {
             "../src/types/tauri.ts",
         )
         .unwrap();
-
-    #[cfg(debug_assertions)]
-    hypr_db::user::export_ts_types_to("../src/types/db.ts").unwrap();
 
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_os::init())

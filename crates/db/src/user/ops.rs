@@ -1,5 +1,6 @@
 use anyhow::Result;
 
+#[allow(unused)]
 use super::{Calendar, Event, Participant, Platform, Session};
 use crate::Connection;
 
@@ -13,8 +14,18 @@ impl UserDatabase {
         Self { conn }
     }
 
-    pub async fn list_sessions(&self) -> Result<Vec<Session>> {
-        let mut rows = self.conn.query("SELECT * FROM sessions", ()).await.unwrap();
+    pub async fn list_sessions(&self, search: Option<&str>) -> Result<Vec<Session>> {
+        let mut rows = match search {
+            Some(q) => self
+                .conn
+                .query(
+                    "SELECT * FROM sessions WHERE title LIKE ?",
+                    vec![format!("%{}%", q)],
+                )
+                .await
+                .unwrap(),
+            None => self.conn.query("SELECT * FROM sessions", ()).await.unwrap(),
+        };
 
         let mut items = Vec::new();
         while let Some(row) = rows.next().await.unwrap() {
@@ -287,7 +298,7 @@ mod tests {
     async fn test_sessions() {
         let db = setup_db().await;
 
-        let sessions = db.list_sessions().await.unwrap();
+        let sessions = db.list_sessions(None).await.unwrap();
         assert_eq!(sessions.len(), 0);
 
         let session = Session {
@@ -313,7 +324,7 @@ mod tests {
             })
         );
 
-        let sessions = db.list_sessions().await.unwrap();
+        let sessions = db.list_sessions(Some("test")).await.unwrap();
         assert_eq!(sessions.len(), 1);
     }
 

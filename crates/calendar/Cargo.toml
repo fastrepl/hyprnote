@@ -15,7 +15,6 @@ anyhow = { workspace = true }
 itertools = "0.13.0"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-specta = { workspace = true, features = ["derive", "time"] }
 
 google-calendar = "0.7.0"
 time = { workspace = true, features = ["formatting", "parsing", "serde"] }

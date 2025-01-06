@@ -16,7 +16,7 @@ pub trait CalendarSource {
     fn list_events(&self, filter: EventFilter) -> impl Future<Output = anyhow::Result<Vec<Event>>>;
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Platform {
     Apple,
     Google,
@@ -31,14 +31,14 @@ impl std::fmt::Display for Platform {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Calendar {
     pub id: String,
     pub platform: Platform,
     pub name: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Event {
     pub id: String,
     pub calendar_id: String,
@@ -54,13 +54,13 @@ pub struct Event {
     pub google_event_url: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Participant {
     pub name: String,
     pub email: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct EventFilter {
     pub calendar_id: String,
     #[serde(with = "timestamp")]
@@ -69,7 +69,7 @@ pub struct EventFilter {
     pub to: OffsetDateTime,
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Opener {
     AppleScript(String),
     Url(String),

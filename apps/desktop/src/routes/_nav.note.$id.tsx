@@ -13,6 +13,7 @@ import { generateJSON, JSONContent } from "@tiptap/react";
 import Editor, { extensions } from "../components/editor";
 import { useUI } from "../stores/ui";
 import { useEnhance } from "../utils/enhance";
+import ParticipantsSelector from "@/components/participants-selector";
 
 const queryOptions = (id: string) => ({
   queryKey: ["note", { id }],
@@ -86,6 +87,8 @@ function LeftPanel() {
           Enhance
         </button>
       )}
+
+      <ParticipantsSelector />
 
       <Editor handleChange={handleChange} content={editorContent} />
     </>

@@ -23,7 +23,7 @@ import {
   AvatarFallback,
 } from "@hypr/ui/components/ui/avatar";
 
-import type { Event, Participant } from "@/types/db";
+import type { Event, Participant } from "@/types/tauri";
 
 interface UpcomingEventsProps {
   events: Event[];
@@ -105,7 +105,7 @@ function EventCard({ event }: EventCardProps) {
         <div className="flex items-center">
           <Users className="mr-2 h-4 w-4 text-muted-foreground" />
           <div className="flex -space-x-2">
-            {event.participants.map((participant: Participant) => (
+            {[].map((participant: Participant) => (
               <Avatar
                 key={participant.email}
                 className="h-6 w-6 border-2 border-background"

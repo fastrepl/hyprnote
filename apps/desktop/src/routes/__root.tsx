@@ -33,7 +33,7 @@ function Component() {
     <>
       <Outlet />
       <Suspense>
-        <TanStackRouterDevtools />
+        <TanStackRouterDevtools position="bottom-right" />
       </Suspense>
     </>
   );
@@ -44,6 +44,8 @@ const TanStackRouterDevtools =
     ? () => null
     : lazy(() =>
         import("@tanstack/router-devtools").then((res) => ({
-          default: res.TanStackRouterDevtools,
+          default: (
+            props: React.ComponentProps<typeof res.TanStackRouterDevtools>,
+          ) => <res.TanStackRouterDevtools {...props} />,
         })),
       );

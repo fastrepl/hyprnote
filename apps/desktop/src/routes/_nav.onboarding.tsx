@@ -5,9 +5,5 @@ export const Route = createFileRoute("/_nav/onboarding")({
 });
 
 function RouteComponent() {
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center">
-      <Outlet />
-    </div>
-  );
+  return <Outlet />;
 }

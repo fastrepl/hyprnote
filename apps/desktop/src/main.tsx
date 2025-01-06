@@ -1,5 +1,10 @@
 import ReactDOM from "react-dom/client";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import {
+  CatchBoundary,
+  ErrorComponent,
+  RouterProvider,
+  createRouter,
+} from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 
@@ -36,6 +41,7 @@ const router = createRouter({
     queryClient,
   },
   defaultPreload: "intent",
+  defaultViewTransition: true,
   // Since we're using React Query, we don't want loader calls to ever be stale
   // This will ensure that the loader is always called when the route is preloaded or visited
   defaultPreloadStaleTime: 0,
@@ -66,16 +72,18 @@ const rootElement = document.getElementById("root")!;
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
-    <ThemeProvider defaultTheme="light">
-      <WindowProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <I18nProvider i18n={i18n}>
-              <App />
-            </I18nProvider>
-          </AuthProvider>
-        </QueryClientProvider>
-      </WindowProvider>
-    </ThemeProvider>,
+    <CatchBoundary getResetKey={() => "error"} errorComponent={ErrorComponent}>
+      <ThemeProvider defaultTheme="light">
+        <WindowProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <I18nProvider i18n={i18n}>
+                <App />
+              </I18nProvider>
+            </AuthProvider>
+          </QueryClientProvider>
+        </WindowProvider>
+      </ThemeProvider>
+    </CatchBoundary>,
   );
 }

@@ -46,9 +46,11 @@ function Component() {
 
   return (
     <main className="h-full w-full">
-      <ScrollArea className="flex h-full w-full flex-col px-12 py-6">
-        <UpcomingEvents events={events} handleClickEvent={() => {}} />
-        <PastSessions sessions={sessions} handleClickSession={() => {}} />
+      <ScrollArea className="flex h-full w-full px-12 py-6">
+        <div className="mb-12 flex flex-col gap-8">
+          <UpcomingEvents events={events} handleClickEvent={() => {}} />
+          <PastSessions sessions={sessions} handleClickSession={() => {}} />
+        </div>
       </ScrollArea>
     </main>
   );

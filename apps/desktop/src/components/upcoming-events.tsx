@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Trans } from "@lingui/react/macro";
 import { Calendar, Clock, Users } from "lucide-react";
 
@@ -29,45 +31,59 @@ interface UpcomingEventsProps {
 }
 
 export default function UpcomingEvents({ events }: UpcomingEventsProps) {
-  return (
-    <div className="text-foreground">
-      <h2 className="text-2xl font-semibold mb-4">Upcoming Events</h2>
+  const navigate = useNavigate();
 
-      <div className="relative">
-        <Carousel className="w-full">
-          <CarouselContent>
-            {events.map((event) => (
-              <CarouselItem key={event.id} className="md:basis-1/2 lg:basis-1/3">
-                <EventCard event={event} handleClickEvent={() => {}} />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background shadow-md opacity-0 group-hover:opacity-100 transition-opacity" />
-          <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background shadow-md opacity-0 group-hover:opacity-100 transition-opacity" />
-        </Carousel>
-      </div>
+  const handleClickEvent = useCallback(
+    (event: Event) => {
+      navigate({
+        to: "/note/$id",
+        params: { id: event.id.toString() },
+      });
+    },
+    [navigate],
+  );
+
+  return (
+    <div className="flex flex-col gap-4 text-foreground">
+      <h2 className="text-2xl font-semibold">
+        <Trans>Upcoming Events</Trans>
+      </h2>
+      <Carousel>
+        <CarouselContent>
+          {events.map((event) => (
+            <CarouselItem key={event.id} className="md:basis-1/2 lg:basis-1/3">
+              <div onClick={() => handleClickEvent(event)}>
+                <EventCard event={event} />
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <div className="absolute left-2 top-1/2 flex items-center justify-center">
+          <CarouselPrevious className="relative left-0 translate-x-0 hover:translate-x-0 hover:bg-secondary/90" />
+        </div>
+        <div className="absolute right-2 top-1/2 flex items-center justify-center">
+          <CarouselNext className="relative right-0 translate-x-0 hover:translate-x-0 hover:bg-secondary/90" />
+        </div>
+      </Carousel>
     </div>
   );
 }
 
 interface EventCardProps {
   event: Event;
-  handleClickEvent: (event: Event) => void;
 }
 
-function EventCard({ event, handleClickEvent }: EventCardProps) {
+function EventCard({ event }: EventCardProps) {
   return (
-    <Card
-      className="h-full cursor-pointer transition-shadow hover:shadow-md"
-      onClick={() => handleClickEvent(event)}
-    >
+    <Card className="h-full cursor-pointer transition-shadow hover:shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="truncate text-lg font-semibold">{event.name}</span>
           <Badge variant="outline">{event.platform}</Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+
+      <CardContent className="space-y-2">
         <div className="flex items-center text-sm text-muted-foreground">
           <Calendar className="mr-2 h-4 w-4" />
           <span>{new Date(event.start_date).toLocaleDateString()}</span>

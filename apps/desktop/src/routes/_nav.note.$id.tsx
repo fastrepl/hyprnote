@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import clsx from "clsx";
 
 import {
   ResizableHandle,
@@ -18,13 +19,15 @@ import { useEnhance } from "@/utils/enhance";
 
 import Editor, { extensions } from "@/components/editor";
 import ParticipantsSelector from "@/components/participants-selector";
+import { Button } from "@hypr/ui/components/ui/button";
 
 const queryOptions = (id: string) => ({
   queryKey: ["note", { id }],
   queryFn: () => {
     return {
       noteHtml:
-        "<hyprcharge text='Analyzing transcript with your notes...'></hyprcharge><p>Hello World!</p>",
+        // <hyprcharge text='Analyzing transcript with your notes...'></hyprcharge><
+        "<p>Hello World!</p>",
     };
   },
 });
@@ -82,21 +85,31 @@ function LeftPanel() {
   }, [data]);
 
   return (
-    <>
-      {isLoading ? (
-        <button type="button" onClick={() => stop()}>
-          Stop
-        </button>
-      ) : (
-        <button type="button" onClick={() => submit()}>
-          Enhance
-        </button>
-      )}
-
+    <div className="flex flex-col p-8">
+      <div className="flex flex-row items-center justify-between">
+        <input
+          type="text"
+          placeholder="Untitled meeting"
+          className={clsx([
+            "border-none bg-transparent p-2 text-2xl font-bold caret-gray-300 focus:outline-none",
+          ])}
+        />
+        <div>
+          {isLoading ? (
+            <Button variant="outline" onClick={() => stop()}>
+              Stop
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={() => submit()}>
+              Enhance
+            </Button>
+          )}
+        </div>
+      </div>
       <ParticipantsSelector />
 
       <Editor handleChange={handleChange} content={editorContent} />
-    </>
+    </div>
   );
 }
 

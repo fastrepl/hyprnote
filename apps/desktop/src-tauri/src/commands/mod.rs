@@ -1,11 +1,9 @@
 pub mod db;
 
-use crate::{audio, events, windows::ShowHyprWindow, App};
+use crate::{audio, events, windows::ShowHyprWindow};
 use anyhow::Result;
 use std::path::PathBuf;
 use tauri::{ipc::Channel, AppHandle, Manager};
-
-use hypr_calendar::CalendarSource;
 
 #[tauri::command]
 #[specta::specta]

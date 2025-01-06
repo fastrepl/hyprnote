@@ -19,6 +19,8 @@ pub struct App {
     db: hypr_db::user::UserDatabase,
 }
 
+pub struct SessionState {}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let specta_builder = tauri_specta::Builder::new()
@@ -200,13 +202,13 @@ pub fn run() {
                 cloud_config.auth_token = Some(auth.token);
             }
 
-            {
-                app.manage(App {
-                    handle: app.clone(),
-                    cloud_config,
-                    db,
-                });
-            }
+            app.manage(App {
+                handle: app.clone(),
+                cloud_config,
+                db,
+            });
+
+            app.manage(tokio::sync::Mutex::new(SessionState {}));
 
             Ok(())
         })

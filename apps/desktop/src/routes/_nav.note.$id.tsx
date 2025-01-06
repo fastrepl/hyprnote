@@ -13,13 +13,14 @@ import { generateJSON, JSONContent } from "@tiptap/react";
 
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
+import { Button } from "@hypr/ui/components/ui/button";
 
 import { useUI } from "@/stores/ui";
 import { useEnhance } from "@/utils/enhance";
 
 import Editor, { extensions } from "@/components/editor";
 import ParticipantsSelector from "@/components/participants-selector";
-import { Button } from "@hypr/ui/components/ui/button";
+import SelectedEvent from "@/components/selected-event";
 
 const queryOptions = (id: string) => ({
   queryKey: ["note", { id }],
@@ -91,7 +92,7 @@ function LeftPanel() {
           type="text"
           placeholder="Untitled meeting"
           className={clsx([
-            "border-none bg-transparent p-2 text-2xl font-bold caret-gray-300 focus:outline-none",
+            "border-none bg-transparent text-2xl font-bold caret-gray-300 focus:outline-none",
           ])}
         />
         <div>
@@ -106,7 +107,13 @@ function LeftPanel() {
           )}
         </div>
       </div>
-      <ParticipantsSelector />
+
+      <div className="flex flex-row items-center gap-2 p-1">
+        <SelectedEvent />
+        <div className="w-[200px]">
+          <ParticipantsSelector />
+        </div>
+      </div>
 
       <Editor handleChange={handleChange} content={editorContent} />
     </div>

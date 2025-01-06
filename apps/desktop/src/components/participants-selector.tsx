@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { Check, Speech, Search } from "lucide-react";
 import clsx from "clsx";
 
-import { Button } from "@hypr/ui/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -33,15 +32,14 @@ export default function ParticipantsSelector() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
+        <button
           role="combobox"
           aria-expanded={open}
-          className="justify-between"
+          className="flex flex-row items-center gap-2 rounded-md border border-border px-2 py-1"
         >
-          Button
-          <ChevronsUpDown className="opacity-50" size={10} />
-        </Button>
+          <Speech size={14} />
+          <span className="text-sm">Selected Event</span>
+        </button>
       </PopoverTrigger>
       <PopoverContent className="p-0">
         <Command className="w-full">

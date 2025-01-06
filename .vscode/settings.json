@@ -8,5 +8,11 @@
   },
   "files.readonlyInclude": {
     "**/routeTree.gen.ts": true
+  },
+  "rust-analyzer.check.command": "check",
+  "rust-analyzer.checkOnSave": true,
+  "rust-analyzer.check.allTargets": false,
+  "rust-analyzer.cargo.extraEnv": {
+    "MACOSX_DEPLOYMENT_TARGET": "14.2"
   }
 }

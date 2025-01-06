@@ -1,18 +1,18 @@
 use serde::{Deserialize, Serialize};
 use time::{serde::timestamp, OffsetDateTime};
 
-pub use hypr_calendar::{Calendar, Event, Participant, Platform};
 use hypr_db_utils::json_string;
 
 pub fn register_all(collection: &mut specta_util::TypeCollection) {
     collection.register::<Session>();
     collection.register::<Calendar>();
     collection.register::<Event>();
+    collection.register::<Participant>();
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
 pub struct Session {
-    pub id: u16,
+    pub id: String,
     #[serde(with = "timestamp")]
     pub timestamp: OffsetDateTime,
     pub title: String,
@@ -29,7 +29,7 @@ pub struct Session {
 impl Default for Session {
     fn default() -> Self {
         Session {
-            id: 0,
+            id: uuid::Uuid::new_v4().to_string(),
             timestamp: OffsetDateTime::now_utc(),
             title: "".to_string(),
             tags: vec![],
@@ -53,4 +53,108 @@ pub struct TranscriptBlock {
     pub timestamp: String,
     pub text: String,
     pub speaker: String,
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
+pub struct Calendar {
+    pub id: String,
+    pub tracking_id: String,
+    pub platform: Platform,
+    pub name: String,
+}
+
+impl From<hypr_calendar::Calendar> for Calendar {
+    fn from(calendar: hypr_calendar::Calendar) -> Self {
+        Calendar {
+            id: uuid::Uuid::new_v4().to_string(),
+            tracking_id: calendar.id,
+            platform: calendar.platform.into(),
+            name: calendar.name,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
+pub struct Event {
+    pub id: String,
+    pub tracking_id: String,
+    pub calendar_id: String,
+    pub platform: Platform,
+    pub name: String,
+    pub note: String,
+    #[serde(with = "timestamp")]
+    pub start_date: OffsetDateTime,
+    #[serde(with = "timestamp")]
+    pub end_date: OffsetDateTime,
+    pub google_event_url: Option<String>,
+}
+
+impl From<hypr_calendar::Event> for Event {
+    fn from(event: hypr_calendar::Event) -> Self {
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            tracking_id: event.id,
+            calendar_id: event.calendar_id,
+            platform: event.platform.into(),
+            name: event.name,
+            note: event.note,
+            start_date: event.start_date,
+            end_date: event.end_date,
+            google_event_url: event.google_event_url,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
+pub struct Participant {
+    pub id: String,
+    pub name: String,
+    pub email: String,
+    pub color_hex: String,
+}
+
+impl From<hypr_calendar::Participant> for Participant {
+    fn from(participant: hypr_calendar::Participant) -> Self {
+        Participant {
+            id: uuid::Uuid::new_v4().to_string(),
+            name: participant.name,
+            email: participant.email,
+            color_hex: random_color::RandomColor::new().to_hex(),
+        }
+    }
+}
+
+impl Default for Participant {
+    fn default() -> Self {
+        Participant {
+            id: uuid::Uuid::new_v4().to_string(),
+            name: "".to_string(),
+            email: "".to_string(),
+            color_hex: random_color::RandomColor::new().to_hex(),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
+pub enum Platform {
+    Apple,
+    Google,
+}
+
+impl From<hypr_calendar::Platform> for Platform {
+    fn from(platform: hypr_calendar::Platform) -> Self {
+        match platform {
+            hypr_calendar::Platform::Apple => Platform::Apple,
+            hypr_calendar::Platform::Google => Platform::Google,
+        }
+    }
+}
+
+impl std::fmt::Display for Platform {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Platform::Apple => write!(f, "Apple"),
+            Platform::Google => write!(f, "Google"),
+        }
+    }
 }

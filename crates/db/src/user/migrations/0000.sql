@@ -1,5 +1,5 @@
 CREATE TABLE sessions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id TEXT PRIMARY KEY,
   timestamp INTEGER DEFAULT (unixepoch()) NOT NULL,
   title TEXT NOT NULL,
   audio_local_path TEXT DEFAULT NULL,

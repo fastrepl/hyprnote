@@ -1,7 +1,6 @@
 use anyhow::Result;
 
-#[allow(unused_imports)]
-use super::{Calendar, Event, Platform, Session};
+use super::{Calendar, Event, Participant, Platform, Session};
 use crate::Connection;
 
 #[derive(Clone)]
@@ -25,19 +24,77 @@ impl UserDatabase {
         Ok(items)
     }
 
+    pub async fn list_participants(&self, search: Option<&str>) -> Result<Vec<Participant>> {
+        let mut rows = match search {
+            Some(q) => self
+                .conn
+                .query(
+                    "SELECT * FROM participants 
+                    WHERE name LIKE ? OR email LIKE ?",
+                    vec![format!("%{}%", q), format!("%{}%", q)],
+                )
+                .await
+                .unwrap(),
+            None => self
+                .conn
+                .query("SELECT * FROM participants", ())
+                .await
+                .unwrap(),
+        };
+
+        let mut items = Vec::new();
+        while let Some(row) = rows.next().await.unwrap() {
+            let item: Participant = libsql::de::from_row(&row)?;
+            items.push(item);
+        }
+        Ok(items)
+    }
+
+    pub async fn list_calendars(&self) -> Result<Vec<Calendar>> {
+        let mut rows = self
+            .conn
+            .query("SELECT * FROM calendars", ())
+            .await
+            .unwrap();
+
+        let mut items = Vec::new();
+        while let Some(row) = rows.next().await.unwrap() {
+            let item: Calendar = libsql::de::from_row(&row)?;
+            items.push(item);
+        }
+        Ok(items)
+    }
+
+    pub async fn list_events(&self) -> Result<Vec<Event>> {
+        let mut rows = self
+            .conn
+            .query("SELECT * FROM calendar_events", ())
+            .await
+            .unwrap();
+
+        let mut items = Vec::new();
+        while let Some(row) = rows.next().await.unwrap() {
+            let item: Event = libsql::de::from_row(&row)?;
+            items.push(item);
+        }
+        Ok(items)
+    }
+
     pub async fn create_session(&self, session: Session) -> Result<Session> {
         let mut rows = self
             .conn
             .query(
                 "INSERT INTO sessions (
+                    id,
                     title,
                     raw_memo_html,
                     enhanced_memo_html,
                     tags,
                     transcript
-                ) VALUES (?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?)
                 RETURNING *",
                 vec![
+                    libsql::Value::Text(session.id),
                     libsql::Value::Text(session.title),
                     libsql::Value::Text(session.raw_memo_html),
                     session
@@ -56,19 +113,36 @@ impl UserDatabase {
         Ok(session)
     }
 
-    pub async fn list_calendars(&self) -> Result<Vec<Calendar>> {
+    pub async fn upsert_participant(&self, participant: Participant) -> Result<Participant> {
         let mut rows = self
             .conn
-            .query("SELECT * FROM calendars", ())
-            .await
-            .unwrap();
+            .query(
+                "INSERT INTO participants (
+                    id,
+                    name,
+                    email,
+                    color_hex
+                ) VALUES (
+                    :id,
+                    :name,
+                    :email,
+                    :color_hex
+                ) ON CONFLICT(email) DO UPDATE SET
+                    name = :name,
+                    color_hex = :color_hex
+                RETURNING *",
+                libsql::named_params! {
+                    ":id": participant.id,
+                    ":name": participant.name,
+                    ":email": participant.email,
+                    ":color_hex": participant.color_hex,
+                },
+            )
+            .await?;
 
-        let mut items = Vec::new();
-        while let Some(row) = rows.next().await.unwrap() {
-            let item: Calendar = libsql::de::from_row(&row)?;
-            items.push(item);
-        }
-        Ok(items)
+        let row = rows.next().await?.unwrap();
+        let participant: Participant = libsql::de::from_row(&row)?;
+        Ok(participant)
     }
 
     pub async fn upsert_calendar(&self, calendar: Calendar) -> Result<Calendar> {
@@ -77,19 +151,21 @@ impl UserDatabase {
             .query(
                 "INSERT INTO calendars (
                     id,
+                    tracking_id,
                     name,
                     platform
                 ) VALUES (
                     :id,
+                    :tracking_id,
                     :name,
                     :platform
-                ) ON CONFLICT(id) DO UPDATE SET
-                    id = :id,
+                ) ON CONFLICT(tracking_id) DO UPDATE SET
                     name = :name,
                     platform = :platform
                 RETURNING *",
                 libsql::named_params! {
                     ":id": calendar.id,
+                    ":tracking_id": calendar.tracking_id,
                     ":name": calendar.name,
                     ":platform": calendar.platform.to_string(),
                 },
@@ -101,62 +177,45 @@ impl UserDatabase {
         Ok(calendar)
     }
 
-    pub async fn list_events(&self) -> Result<Vec<Event>> {
-        let mut rows = self
-            .conn
-            .query("SELECT * FROM calendar_events", ())
-            .await
-            .unwrap();
-
-        let mut items = Vec::new();
-        while let Some(row) = rows.next().await.unwrap() {
-            let item: Event = libsql::de::from_row(&row)?;
-            items.push(item);
-        }
-        Ok(items)
-    }
-
     pub async fn upsert_event(&self, event: Event) -> Result<Event> {
         let mut rows = self
             .conn
             .query(
                 "INSERT INTO calendar_events (
                     id,
+                    tracking_id,
                     calendar_id,
                     platform,
                     name,
                     note,
-                    participants,
                     start_date,
                     end_date,
                     google_event_url
                 ) VALUES (
                     :id,
+                    :tracking_id,
                     :calendar_id,
                     :platform,
                     :name,
                     :note,
-                    :participants,
                     :start_date,
                     :end_date,
                     :google_event_url
-                ) ON CONFLICT(id) DO UPDATE SET
-                    calendar_id = :calendar_id,
+                ) ON CONFLICT(tracking_id) DO UPDATE SET
                     platform = :platform,
                     name = :name,
                     note = :note,
-                    participants = :participants,
                     start_date = :start_date,
                     end_date = :end_date,
                     google_event_url = :google_event_url
                 RETURNING *",
                 libsql::named_params! {
                     ":id": event.id,
+                    ":tracking_id": event.tracking_id,
                     ":calendar_id": event.calendar_id,
                     ":platform": event.platform.to_string(),
                     ":name": event.name,
                     ":note": event.note,
-                    ":participants": serde_json::to_string(&event.participants).unwrap(),
                     ":start_date": event.start_date.unix_timestamp(),
                     ":end_date": event.end_date.unix_timestamp(),
                     ":google_event_url": event.google_event_url,
@@ -193,6 +252,35 @@ mod tests {
     async fn test_seed() {
         let db = setup_db().await;
         seed(&db).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_participants() {
+        let db = setup_db().await;
+
+        let participants = db.list_participants(None).await.unwrap();
+        assert_eq!(participants.len(), 0);
+
+        let participant = Participant {
+            name: "test".to_string(),
+            email: "test@test.com".to_string(),
+            ..Participant::default()
+        };
+
+        let p = db.upsert_participant(participant).await.unwrap();
+        assert_eq!(p.name, "test");
+
+        let participants = db.list_participants(None).await.unwrap();
+        assert_eq!(participants.len(), 1);
+
+        let participants = db.list_participants(Some("test")).await.unwrap();
+        assert_eq!(participants.len(), 1);
+
+        let participants = db
+            .list_participants(Some("somethingnotindb"))
+            .await
+            .unwrap();
+        assert_eq!(participants.len(), 0);
     }
 
     #[tokio::test]
@@ -237,7 +325,8 @@ mod tests {
         assert_eq!(calendars.len(), 0);
 
         let input_1 = Calendar {
-            id: "test".to_string(),
+            id: uuid::Uuid::new_v4().to_string(),
+            tracking_id: "test".to_string(),
             name: "test".to_string(),
             platform: Platform::Google,
         };
@@ -260,37 +349,29 @@ mod tests {
         assert_eq!(events.len(), 0);
 
         let calendar = Calendar {
-            id: "calendar_test".to_string(),
+            id: uuid::Uuid::new_v4().to_string(),
+            tracking_id: "calendar_test".to_string(),
             name: "test".to_string(),
             platform: Platform::Google,
         };
 
-        db.upsert_calendar(calendar.clone()).await.unwrap();
+        let calendar = db.upsert_calendar(calendar.clone()).await.unwrap();
+        assert_eq!(calendar.tracking_id, "calendar_test");
 
         let event = Event {
-            id: "event_test".to_string(),
+            id: uuid::Uuid::new_v4().to_string(),
+            tracking_id: "event_test".to_string(),
             calendar_id: calendar.id,
             platform: Platform::Google,
             name: "test".to_string(),
             note: "test".to_string(),
-            participants: vec![Participant {
-                name: "test".to_string(),
-                email: "test".to_string(),
-            }],
             start_date: time::OffsetDateTime::now_utc(),
             end_date: time::OffsetDateTime::now_utc(),
             google_event_url: None,
         };
 
         let event = db.upsert_event(event).await.unwrap();
-        assert_eq!(event.calendar_id, "calendar_test");
-        assert_eq!(
-            event.participants,
-            vec![Participant {
-                name: "test".to_string(),
-                email: "test".to_string(),
-            }]
-        );
+        assert_eq!(event.tracking_id, "event_test");
         assert_eq!(event.google_event_url, None);
 
         let events = db.list_events().await.unwrap();

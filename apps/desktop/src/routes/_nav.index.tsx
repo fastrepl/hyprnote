@@ -10,10 +10,15 @@ import { commands } from "@/types/tauri";
 const queryOptions = () => ({
   queryKey: ["notes"],
   queryFn: async () => {
-    const [sessions, events] = await Promise.all([
+    const [sessions, _events] = await Promise.all([
       commands.dbListSessions(),
       commands.dbListEvents(),
     ]);
+
+    const events = _events.map((event) => ({
+      ...event,
+      participants: JSON.parse(event.participants as unknown as string),
+    }));
 
     return {
       sessions,

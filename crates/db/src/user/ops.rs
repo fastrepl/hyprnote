@@ -174,7 +174,7 @@ impl UserDatabase {
 mod tests {
     use super::*;
     use crate::{
-        user::{migrate, seed, Transcript},
+        user::{migrate, seed, Participant, Transcript},
         ConnectionBuilder,
     };
 
@@ -273,7 +273,10 @@ mod tests {
             platform: Platform::Google,
             name: "test".to_string(),
             note: "test".to_string(),
-            participants: vec![],
+            participants: vec![Participant {
+                name: "test".to_string(),
+                email: "test".to_string(),
+            }],
             start_date: time::OffsetDateTime::now_utc(),
             end_date: time::OffsetDateTime::now_utc(),
             google_event_url: None,
@@ -281,7 +284,13 @@ mod tests {
 
         let event = db.upsert_event(event).await.unwrap();
         assert_eq!(event.calendar_id, "calendar_test");
-        assert_eq!(event.participants, vec![]);
+        assert_eq!(
+            event.participants,
+            vec![Participant {
+                name: "test".to_string(),
+                email: "test".to_string(),
+            }]
+        );
         assert_eq!(event.google_event_url, None);
 
         let events = db.list_events().await.unwrap();

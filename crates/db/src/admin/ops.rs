@@ -138,14 +138,16 @@ fn generate_api_key() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{admin::{migrate, seed}, ConnectionBuilder};
+    use crate::{
+        admin::{migrate, seed},
+        ConnectionBuilder,
+    };
 
     #[tokio::test]
     async fn test_seed() {
         let db = setup_db().await;
         seed(&db).await.unwrap();
     }
-
 
     async fn setup_db() -> AdminDatabase {
         let conn = ConnectionBuilder::new()

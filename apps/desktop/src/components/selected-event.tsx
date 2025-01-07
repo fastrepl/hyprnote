@@ -11,7 +11,7 @@ export default function SelectedEvent() {
       <PopoverTrigger>
         <div className="flex flex-row items-center gap-2 rounded-md border border-border px-2 py-1">
           <CalendarIcon size={14} />
-          <span className="text-sm">Selected Event</span>
+          <span className="text-xs">Selected Event</span>
         </div>
       </PopoverTrigger>
       <PopoverContent>

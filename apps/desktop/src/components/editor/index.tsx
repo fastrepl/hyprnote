@@ -21,7 +21,7 @@ export const extensions = [
   Placeholder.configure({
     placeholder: "Welcome to Hyprnote!",
     emptyEditorClass:
-      "text-lg text-gray-500 first:float-left first:h-0 first:pointer-events-none first:before:content-[attr(data-placeholder)]",
+      "text-lg text-gray-400 first:float-left first:h-0 first:pointer-events-none first:before:content-[attr(data-placeholder)]",
   }),
   Highlight,
   Typography,
@@ -48,7 +48,7 @@ export default function Editor({ handleChange, content }: EditorProps) {
     onUpdate,
     editorProps: {
       attributes: {
-        class: clsx(["p-4 focus:outline-none focus:ring-0"]),
+        class: clsx(["focus:outline-none focus:ring-0"]),
       },
     },
   });
@@ -66,10 +66,10 @@ export default function Editor({ handleChange, content }: EditorProps) {
   return (
     <div
       role="textbox"
-      className={clsx(["relative m-1 h-[600px] w-full"])}
+      className={clsx(["relative h-full w-full"])}
       onClick={handleClickArea}
     >
-      <EditorContent editor={editor} />
+      <EditorContent className="h-full w-full" editor={editor} />
     </div>
   );
 }

@@ -38,7 +38,7 @@ export default function ParticipantsSelector() {
           className="flex flex-row items-center gap-2 rounded-md border border-border px-2 py-1"
         >
           <Speech size={14} />
-          <span className="text-sm">Selected Event</span>
+          <span className="text-xs">Selected Event</span>
         </button>
       </PopoverTrigger>
       <PopoverContent className="p-0">

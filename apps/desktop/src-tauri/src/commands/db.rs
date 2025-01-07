@@ -1,6 +1,7 @@
 use tauri::State;
 
 use crate::App;
+use hypr_db::user::ParticipantFilter;
 
 #[tauri::command]
 #[specta::specta]
@@ -27,9 +28,9 @@ pub async fn db_list_sessions(
 #[specta::specta]
 pub async fn db_list_participants(
     state: State<'_, App>,
-    search: Option<&str>,
+    filter: ParticipantFilter,
 ) -> Result<Vec<hypr_db::user::Participant>, ()> {
-    Ok(state.db.list_participants(search).await.unwrap())
+    Ok(state.db.list_participants(filter).await.unwrap())
 }
 
 #[tauri::command]
@@ -49,6 +50,21 @@ pub async fn db_get_session(
 ) -> Result<Option<hypr_db::user::Session>, String> {
     let found = state.db.get_session(id).await.map_err(|e| e.to_string())?;
     Ok(found)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn db_set_session_event(
+    state: State<'_, App>,
+    session_id: String,
+    event_id: String,
+) -> Result<(), String> {
+    let _ = state
+        .db
+        .session_set_event(session_id, event_id)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 #[tauri::command]

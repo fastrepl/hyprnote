@@ -18,7 +18,22 @@ pub async fn seed(db: &UserDatabase) -> anyhow::Result<()> {
         color_hex: random_color::RandomColor::new().to_hex(),
     };
 
-    let participants = vec![yujonglee, john];
+    let alex = Participant {
+        id: uuid::Uuid::new_v4().to_string(),
+        name: "Alex".to_string(),
+        email: "alex@hyprnote.com".to_string(),
+        color_hex: random_color::RandomColor::new().to_hex(),
+    };
+
+    let jenny = Participant {
+        id: uuid::Uuid::new_v4().to_string(),
+        name: "Jenny".to_string(),
+        email: "jenny@hyprnote.com".to_string(),
+        color_hex: random_color::RandomColor::new().to_hex(),
+    };
+
+    let participants = vec![yujonglee, john, alex, jenny];
+    let participant_ids: Vec<String> = participants.iter().map(|p| p.id.clone()).collect();
 
     let calendars = vec![Calendar {
         id: uuid::Uuid::new_v4().to_string(),
@@ -33,7 +48,7 @@ pub async fn seed(db: &UserDatabase) -> anyhow::Result<()> {
             tracking_id: "event_1".to_string(),
             calendar_id: calendars[0].id.clone(),
             platform: Platform::Apple,
-            name: "Event 1".to_string(),
+            name: "User Interview with Alex".to_string(),
             note: "Description 1".to_string(),
             start_date: now - Duration::days(1) - Duration::hours(1),
             end_date: now - Duration::days(1),
@@ -80,7 +95,10 @@ pub async fn seed(db: &UserDatabase) -> anyhow::Result<()> {
         let _ = db.upsert_participant(participant).await.unwrap();
     }
     for event in events {
-        let _ = db.upsert_event(event).await.unwrap();
+        let _ = db.upsert_event(event.clone()).await.unwrap();
+        db.event_set_participants(event.id.clone(), participant_ids.clone())
+            .await
+            .unwrap();
     }
     for session in sessions {
         let _ = db.create_session(session).await.unwrap();

@@ -38,8 +38,8 @@ export const commands = {
   async dbListSessions(search: string | null): Promise<Session[]> {
     return await TAURI_INVOKE("db_list_sessions", { search });
   },
-  async dbListParticipants(search: string | null): Promise<Participant[]> {
-    return await TAURI_INVOKE("db_list_participants", { search });
+  async dbListParticipants(filter: ParticipantFilter): Promise<Participant[]> {
+    return await TAURI_INVOKE("db_list_participants", { filter });
   },
   async dbUpsertParticipant(participant: Participant): Promise<Participant> {
     return await TAURI_INVOKE("db_upsert_participant", { participant });
@@ -49,6 +49,9 @@ export const commands = {
   },
   async dbCreateSession(session: Session): Promise<Session> {
     return await TAURI_INVOKE("db_create_session", { session });
+  },
+  async dbSetSessionEvent(sessionId: string, eventId: string): Promise<null> {
+    return await TAURI_INVOKE("db_set_session_event", { sessionId, eventId });
   },
 };
 
@@ -96,6 +99,7 @@ export type Participant = {
   email: string;
   color_hex: string;
 };
+export type ParticipantFilter = { Text: string } | { Event: string } | "All";
 export type Platform = "Apple" | "Google";
 export type RecordingStarted = null;
 export type RecordingStopped = { path: string };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Check, Speech, Search } from "lucide-react";
 import clsx from "clsx";
 
@@ -15,19 +15,21 @@ import {
   PopoverTrigger,
 } from "@hypr/ui/components/ui/popover";
 import { Input } from "@hypr/ui/components/ui/input";
-import { commands, type Participant } from "@/types/tauri";
+import { type Participant } from "@/types/tauri";
 
-export default function ParticipantsSelector() {
+interface ParticipantSelectorProps {
+  options: Participant[];
+  selected: Participant[];
+  handleSelect: (participants: Participant[]) => void;
+}
+
+export default function ParticipantsSelector({
+  options,
+  selected,
+  handleSelect,
+}: ParticipantSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const [options, setOptions] = useState<Participant[]>([]);
-
-  useEffect(() => {
-    commands.dbListParticipants(null).then((participants) => {
-      setOptions(participants);
-    });
-  }, []);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

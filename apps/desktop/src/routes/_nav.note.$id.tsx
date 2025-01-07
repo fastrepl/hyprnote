@@ -129,7 +129,11 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
       <div className="flex flex-row items-center gap-2 py-1">
         <SelectedEvent />
         <div className="w-[200px]">
-          <ParticipantsSelector />
+          <ParticipantsSelector
+            options={[]}
+            selected={[]}
+            handleSelect={() => {}}
+          />
         </div>
       </div>
 

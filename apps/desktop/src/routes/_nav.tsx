@@ -5,7 +5,7 @@ import {
   useLocation,
   useRouter,
 } from "@tanstack/react-router";
-import { ArrowLeft, PanelRight, PanelRightClose } from "lucide-react";
+import { ArrowLeft, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import clsx from "clsx";
 
@@ -99,7 +99,11 @@ function PanelToggle() {
       className="text-gray-600 hover:text-gray-900"
       onClick={() => setIsPanelOpen(!isPanelOpen)}
     >
-      {isPanelOpen ? <PanelRightClose size={16} /> : <PanelRight size={16} />}
+      {isPanelOpen ? (
+        <PanelRightClose size={16} />
+      ) : (
+        <PanelRightOpen size={16} />
+      )}
     </button>
   );
 }

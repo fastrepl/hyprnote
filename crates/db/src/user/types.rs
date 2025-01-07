@@ -135,6 +135,13 @@ impl Default for Participant {
     }
 }
 
+#[derive(Serialize, Deserialize, specta::Type)]
+pub enum ParticipantFilter {
+    Text(String),
+    Event(String),
+    All,
+}
+
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
 pub enum Platform {
     Apple,

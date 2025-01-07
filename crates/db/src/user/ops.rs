@@ -2,7 +2,7 @@ use anyhow::Result;
 use time::format_description::well_known::Rfc3339;
 
 #[allow(unused)]
-use super::{Calendar, Event, Participant, Platform, Session};
+use super::{Calendar, Event, Participant, ParticipantFilter, Platform, Session};
 use crate::Connection;
 
 #[derive(Clone)]
@@ -52,22 +52,27 @@ impl UserDatabase {
         Ok(items)
     }
 
-    pub async fn list_participants(&self, search: Option<&str>) -> Result<Vec<Participant>> {
-        let mut rows = match search {
-            Some(q) => self
-                .conn
-                .query(
-                    "SELECT * FROM participants 
-                    WHERE name LIKE ? OR email LIKE ?",
-                    vec![format!("%{}%", q), format!("%{}%", q)],
-                )
-                .await
-                .unwrap(),
-            None => self
-                .conn
-                .query("SELECT * FROM participants", ())
-                .await
-                .unwrap(),
+    pub async fn list_participants(&self, filter: ParticipantFilter) -> Result<Vec<Participant>> {
+        let mut rows = match filter {
+            ParticipantFilter::Text(q) => {
+                self.conn
+                    .query(
+                        "SELECT * FROM participants WHERE name LIKE ? OR email LIKE ?",
+                        vec![format!("%{}%", q), format!("%{}%", q)],
+                    )
+                    .await?
+            }
+            ParticipantFilter::Event(e) => {
+                self.conn
+                    .query(
+                        "SELECT p.* FROM participants p 
+                         JOIN event_participants ep ON p.id = ep.participant_id 
+                         WHERE ep.event_id = ?",
+                        vec![e],
+                    )
+                    .await?
+            }
+            ParticipantFilter::All => self.conn.query("SELECT * FROM participants", ()).await?,
         };
 
         let mut items = Vec::new();
@@ -141,6 +146,40 @@ impl UserDatabase {
         let row = rows.next().await?.unwrap();
         let session: Session = libsql::de::from_row(&row)?;
         Ok(session)
+    }
+
+    pub async fn session_set_event(&self, session_id: String, event_id: String) -> Result<()> {
+        self.conn
+            .query(
+                "UPDATE sessions SET calendar_event_id = ? WHERE id = ?",
+                vec![event_id, session_id],
+            )
+            .await?;
+        Ok(())
+    }
+
+    pub async fn event_set_participants(
+        &self,
+        event_id: String,
+        participant_ids: Vec<String>,
+    ) -> Result<()> {
+        self.conn
+            .query(
+                "DELETE FROM event_participants WHERE event_id = ?",
+                vec![event_id.clone()],
+            )
+            .await?;
+
+        for participant_id in participant_ids {
+            self.conn
+                .query(
+                    "INSERT INTO event_participants (event_id, participant_id) VALUES (?, ?)",
+                    vec![event_id.clone(), participant_id],
+                )
+                .await?;
+        }
+
+        Ok(())
     }
 
     pub async fn upsert_participant(&self, participant: Participant) -> Result<Participant> {
@@ -288,7 +327,7 @@ mod tests {
     async fn test_participants() {
         let db = setup_db().await;
 
-        let participants = db.list_participants(None).await.unwrap();
+        let participants = db.list_participants(ParticipantFilter::All).await.unwrap();
         assert_eq!(participants.len(), 0);
 
         let participant = Participant {
@@ -300,14 +339,17 @@ mod tests {
         let p = db.upsert_participant(participant).await.unwrap();
         assert_eq!(p.name, "test");
 
-        let participants = db.list_participants(None).await.unwrap();
-        assert_eq!(participants.len(), 1);
-
-        let participants = db.list_participants(Some("test")).await.unwrap();
+        let participants = db.list_participants(ParticipantFilter::All).await.unwrap();
         assert_eq!(participants.len(), 1);
 
         let participants = db
-            .list_participants(Some("somethingnotindb"))
+            .list_participants(ParticipantFilter::Text("test".to_string()))
+            .await
+            .unwrap();
+        assert_eq!(participants.len(), 1);
+
+        let participants = db
+            .list_participants(ParticipantFilter::Text("somethingnotindb".to_string()))
             .await
             .unwrap();
         assert_eq!(participants.len(), 0);

@@ -11,10 +11,6 @@ const schema = z.object({
 
 export const Route = createFileRoute("/note/new")({
   beforeLoad: async ({ search }) => {
-    if (search.eventId) {
-      // link event when creating event
-    }
-
     let session: Session | null = null;
 
     try {
@@ -35,6 +31,10 @@ export const Route = createFileRoute("/note/new")({
     } catch (error) {
       console.error(error);
       throw redirect({ to: "/" });
+    }
+
+    if (search.eventId) {
+      commands.dbSetSessionEvent(session.id, search.eventId);
     }
 
     throw redirect({

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Trans } from "@lingui/react/macro";
 import { Calendar, Clock, Users } from "lucide-react";
@@ -23,7 +23,7 @@ import {
   AvatarFallback,
 } from "@hypr/ui/components/ui/avatar";
 
-import type { Event, Participant } from "@/types/tauri";
+import { commands, type Event, type Participant } from "@/types/tauri";
 
 interface UpcomingEventsProps {
   events: Event[];
@@ -74,6 +74,14 @@ interface EventCardProps {
 }
 
 function EventCard({ event }: EventCardProps) {
+  const [participants, setParticipants] = useState<Participant[]>([]);
+
+  useEffect(() => {
+    commands.dbListParticipants({ Event: event.id }).then((participants) => {
+      console.log(participants);
+      setParticipants(participants);
+    });
+  }, []);
   return (
     <Card className="h-full cursor-pointer transition-shadow hover:shadow-md">
       <CardHeader>
@@ -105,7 +113,7 @@ function EventCard({ event }: EventCardProps) {
         <div className="flex items-center">
           <Users className="mr-2 h-4 w-4 text-muted-foreground" />
           <div className="flex -space-x-2">
-            {[].map((participant: Participant) => (
+            {participants.map((participant: Participant) => (
               <Avatar
                 key={participant.email}
                 className="h-6 w-6 border-2 border-background"

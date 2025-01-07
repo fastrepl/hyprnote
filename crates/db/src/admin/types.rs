@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
-use time::{serde::timestamp, OffsetDateTime};
+use time::{serde::rfc3339, OffsetDateTime};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct User {
-    pub id: u16,
-    #[serde(with = "timestamp")]
+    pub id: String,
+    #[serde(with = "rfc3339")]
     pub timestamp: OffsetDateTime,
     pub clerk_user_id: String,
     pub turso_db_name: String,
@@ -13,7 +13,7 @@ pub struct User {
 impl Default for User {
     fn default() -> Self {
         User {
-            id: 0,
+            id: uuid::Uuid::new_v4().to_string(),
             timestamp: time::OffsetDateTime::now_utc(),
             clerk_user_id: "".to_string(),
             turso_db_name: "".to_string(),
@@ -23,24 +23,12 @@ impl Default for User {
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Device {
-    pub id: u16,
-    pub user_id: u16,
-    #[serde(with = "timestamp")]
+    pub id: String,
+    pub user_id: String,
+    #[serde(with = "rfc3339")]
     pub timestamp: OffsetDateTime,
     pub fingerprint: String,
     pub api_key: String,
-}
-
-impl Default for Device {
-    fn default() -> Self {
-        Device {
-            id: 0,
-            user_id: 0,
-            timestamp: time::OffsetDateTime::now_utc(),
-            fingerprint: "".to_string(),
-            api_key: "".to_string(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

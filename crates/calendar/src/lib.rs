@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::future::Future;
-use time::{serde::timestamp, OffsetDateTime};
-
-use hypr_db_utils::json_string;
+use time::OffsetDateTime;
 
 #[cfg(feature = "google")]
 pub mod google;
@@ -45,11 +43,8 @@ pub struct Event {
     pub platform: Platform,
     pub name: String,
     pub note: String,
-    #[serde(with = "json_string")]
     pub participants: Vec<Participant>,
-    #[serde(with = "timestamp")]
     pub start_date: OffsetDateTime,
-    #[serde(with = "timestamp")]
     pub end_date: OffsetDateTime,
     pub google_event_url: Option<String>,
 }
@@ -63,9 +58,7 @@ pub struct Participant {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventFilter {
     pub calendar_id: String,
-    #[serde(with = "timestamp")]
     pub from: OffsetDateTime,
-    #[serde(with = "timestamp")]
     pub to: OffsetDateTime,
 }
 

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use time::{serde::timestamp, OffsetDateTime};
+use time::{serde::rfc3339, OffsetDateTime};
 
-use hypr_db_utils::json_string;
+use hypr_db_utils::deserialize::{json_string, optional_json_string};
 
 pub fn register_all(collection: &mut specta_util::TypeCollection) {
     collection.register::<Session>();
@@ -13,16 +13,16 @@ pub fn register_all(collection: &mut specta_util::TypeCollection) {
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
 pub struct Session {
     pub id: String,
-    #[serde(with = "timestamp")]
+    #[serde(with = "rfc3339")]
     pub timestamp: OffsetDateTime,
     pub title: String,
-    #[serde(with = "json_string")]
+    #[serde(deserialize_with = "json_string")]
     pub tags: Vec<String>,
     pub audio_local_path: Option<String>,
     pub audio_remote_path: Option<String>,
     pub raw_memo_html: String,
     pub enhanced_memo_html: Option<String>,
-    #[serde(with = "json_string")]
+    #[serde(deserialize_with = "optional_json_string")]
     pub transcript: Option<Transcript>,
 }
 
@@ -82,9 +82,9 @@ pub struct Event {
     pub platform: Platform,
     pub name: String,
     pub note: String,
-    #[serde(with = "timestamp")]
+    #[serde(with = "rfc3339")]
     pub start_date: OffsetDateTime,
-    #[serde(with = "timestamp")]
+    #[serde(with = "rfc3339")]
     pub end_date: OffsetDateTime,
     pub google_event_url: Option<String>,
 }

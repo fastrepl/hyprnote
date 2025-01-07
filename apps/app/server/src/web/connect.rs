@@ -57,9 +57,11 @@ pub async fn handler(
     let device = match state
         .admin_db
         .upsert_device(hypr_db::admin::Device {
+            id: uuid::Uuid::new_v4().to_string(),
             user_id: user.id,
+            timestamp: time::OffsetDateTime::now_utc(),
             fingerprint: input.fingerprint,
-            ..Default::default()
+            api_key: uuid::Uuid::new_v4().to_string(),
         })
         .await
     {

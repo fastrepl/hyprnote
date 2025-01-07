@@ -1,7 +1,8 @@
-use super::{Device, User};
 use anyhow::Result;
 use rand::{distributions::Alphanumeric, Rng};
+use time::format_description::well_known::Rfc3339;
 
+use super::{Device, User};
 use crate::Connection;
 
 #[derive(Clone)]
@@ -33,13 +34,20 @@ impl AdminDatabase {
             .conn
             .query(
                 "INSERT INTO users (
+                    id,
+                    timestamp,
                     clerk_user_id,
                     turso_db_name
-                ) VALUES (?, ?) 
+                ) VALUES (?, ?, ?, ?) 
                 ON CONFLICT (clerk_user_id) DO UPDATE SET
                     turso_db_name = excluded.turso_db_name
                 RETURNING *",
-                vec![user.clerk_user_id, user.turso_db_name],
+                vec![
+                    user.id,
+                    user.timestamp.format(&Rfc3339).unwrap(),
+                    user.clerk_user_id,
+                    user.turso_db_name,
+                ],
             )
             .await?;
 
@@ -64,15 +72,19 @@ impl AdminDatabase {
             .conn
             .query(
                 "INSERT INTO devices (
+                    id,
+                    timestamp,
                     user_id,
                     fingerprint,
                     api_key
-                ) VALUES (?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT (user_id, fingerprint) DO UPDATE SET
                     api_key = excluded.api_key
                 RETURNING *",
                 vec![
-                    device.user_id.to_string(),
+                    device.id,
+                    device.timestamp.format(&Rfc3339).unwrap(),
+                    device.user_id,
                     device.fingerprint,
                     generate_api_key(),
                 ],
@@ -200,9 +212,11 @@ mod tests {
 
         let device = db
             .upsert_device(Device {
-                user_id: user.id,
-                fingerprint: "3".to_string(),
-                ..Device::default()
+                id: uuid::Uuid::new_v4().to_string(),
+                timestamp: time::OffsetDateTime::now_utc(),
+                user_id: user.id.clone(),
+                fingerprint: "fingerprint".to_string(),
+                api_key: "key".to_string(),
             })
             .await
             .unwrap();
@@ -225,9 +239,11 @@ mod tests {
 
         let device = db
             .upsert_device(Device {
-                user_id: user_1.id,
-                fingerprint: "3".to_string(),
-                ..Device::default()
+                id: uuid::Uuid::new_v4().to_string(),
+                timestamp: time::OffsetDateTime::now_utc(),
+                user_id: user_1.id.clone(),
+                fingerprint: "fingerprint".to_string(),
+                api_key: "key".to_string(),
             })
             .await
             .unwrap();

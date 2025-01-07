@@ -1,4 +1,5 @@
 use anyhow::Result;
+use time::format_description::well_known::Rfc3339;
 
 #[allow(unused)]
 use super::{Calendar, Event, Participant, Platform, Session};
@@ -12,6 +13,22 @@ pub struct UserDatabase {
 impl UserDatabase {
     pub fn from(conn: Connection) -> Self {
         Self { conn }
+    }
+
+    pub async fn get_session(&self, id: String) -> Result<Option<Session>> {
+        let mut rows = self
+            .conn
+            .query("SELECT * FROM sessions WHERE id = ?", vec![id])
+            .await
+            .unwrap();
+
+        match rows.next().await? {
+            None => Ok(None),
+            Some(row) => {
+                let session: Session = libsql::de::from_row(&row)?;
+                Ok(Some(session))
+            }
+        }
     }
 
     pub async fn list_sessions(&self, search: Option<&str>) -> Result<Vec<Session>> {
@@ -97,15 +114,17 @@ impl UserDatabase {
             .query(
                 "INSERT INTO sessions (
                     id,
+                    timestamp,
                     title,
                     raw_memo_html,
                     enhanced_memo_html,
                     tags,
                     transcript
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 RETURNING *",
                 vec![
                     libsql::Value::Text(session.id),
+                    libsql::Value::Text(session.timestamp.format(&Rfc3339).unwrap()),
                     libsql::Value::Text(session.title),
                     libsql::Value::Text(session.raw_memo_html),
                     session
@@ -227,8 +246,8 @@ impl UserDatabase {
                     ":platform": event.platform.to_string(),
                     ":name": event.name,
                     ":note": event.note,
-                    ":start_date": event.start_date.unix_timestamp(),
-                    ":end_date": event.end_date.unix_timestamp(),
+                    ":start_date": event.start_date.format(&Rfc3339).unwrap(),
+                    ":end_date": event.end_date.format(&Rfc3339).unwrap(),
                     ":google_event_url": event.google_event_url,
                 },
             )

@@ -6,6 +6,7 @@ import {
   useRouter,
 } from "@tanstack/react-router";
 import { ArrowLeft, PanelRight, PanelRightClose } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
 import clsx from "clsx";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -20,12 +21,16 @@ export const Route = createFileRoute("/_nav")({
 });
 
 function Component() {
-  const { history } = useRouter();
+  const { history, navigate } = useRouter();
   const { pathname } = useLocation();
 
   const handleClickBack = useCallback(() => {
     history.back();
   }, [history]);
+
+  const handleClickNewNote = useCallback(() => {
+    navigate({ to: "/note/new" });
+  }, [navigate]);
 
   return (
     <>
@@ -60,8 +65,9 @@ function Component() {
               "h-7 px-2 text-xs",
               pathname === "/" ? "opacity-100" : "opacity-0",
             ])}
+            onClick={handleClickNewNote}
           >
-            New Note
+            <Trans>New Note</Trans>
           </Button>
           {pathname.includes("note") ? <PanelToggle /> : <SettingsDialog />}
         </div>

@@ -1,7 +1,7 @@
 CREATE TABLE devices (
-  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-  timestamp INTEGER DEFAULT (unixepoch()) NOT NULL,
-  user_id INTEGER NOT NULL,
+  id TEXT PRIMARY KEY NOT NULL,
+  timestamp TEXT NOT NULL,
+  user_id TEXT NOT NULL,
   fingerprint TEXT NOT NULL,
   api_key TEXT NOT NULL,
   UNIQUE(user_id, fingerprint),

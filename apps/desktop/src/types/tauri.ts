@@ -44,6 +44,12 @@ export const commands = {
   async dbUpsertParticipant(participant: Participant): Promise<Participant> {
     return await TAURI_INVOKE("db_upsert_participant", { participant });
   },
+  async dbGetSession(id: string): Promise<Session | null> {
+    return await TAURI_INVOKE("db_get_session", { id });
+  },
+  async dbCreateSession(session: Session): Promise<Session> {
+    return await TAURI_INVOKE("db_create_session", { session });
+  },
 };
 
 /** user-defined events **/

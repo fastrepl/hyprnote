@@ -33,6 +33,7 @@ serde_json = { workspace = true }
 tracing = { workspace = true }
 tracing-opentelemetry = { workspace = true }
 uuid = { workspace = true }
+time = { workspace = true }
 
 async-stripe = { version = "0.39.1", features = ["runtime-tokio-hyper"] }
 clerk-rs = { version = "0.4.0", features = ["axum"] }

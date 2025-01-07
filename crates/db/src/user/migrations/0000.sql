@@ -1,6 +1,6 @@
 CREATE TABLE sessions (
   id TEXT PRIMARY KEY,
-  timestamp INTEGER DEFAULT (unixepoch()) NOT NULL,
+  timestamp TEXT NOT NULL,
   title TEXT NOT NULL,
   audio_local_path TEXT DEFAULT NULL,
   audio_remote_path TEXT DEFAULT NULL,

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { Disc3, Sparkles, StopCircle } from "lucide-react";
 import clsx from "clsx";
 
 import {
@@ -17,6 +18,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 
 import { useUI } from "@/stores/ui";
 import { useEnhance } from "@/utils/enhance";
+import { commands } from "@/types/tauri";
 
 import Editor, { extensions } from "@/components/editor";
 import ParticipantsSelector from "@/components/participants-selector";
@@ -24,12 +26,13 @@ import SelectedEvent from "@/components/selected-event";
 
 const queryOptions = (id: string) => ({
   queryKey: ["note", { id }],
-  queryFn: () => {
-    return {
-      noteHtml:
-        // <hyprcharge text='Analyzing transcript with your notes...'></hyprcharge><
-        "<p>Hello World!</p>",
-    };
+  queryFn: async () => {
+    const session = await commands.dbGetSession(id);
+    if (!session) {
+      throw redirect({ to: "/" });
+    }
+
+    return session;
   },
 });
 
@@ -61,12 +64,12 @@ function Component() {
 function LeftPanel() {
   const { id } = Route.useParams();
 
-  const {
-    data: { noteHtml },
-  } = useSuspenseQuery(queryOptions(id));
+  const { data: session } = useSuspenseQuery(queryOptions(id));
+
+  const [title, setTitle] = useState(session.title);
 
   const [editorContent, setEditorContent] = useState<JSONContent>(
-    generateJSON(noteHtml, extensions),
+    generateJSON(session.raw_memo_html, extensions),
   );
 
   const handleChange = useCallback((content: JSONContent) => {
@@ -90,19 +93,25 @@ function LeftPanel() {
       <div className="flex flex-row items-center justify-between">
         <input
           type="text"
+          onChange={(e) => setTitle(e.target.value)}
+          value={title}
           placeholder="Untitled meeting"
           className={clsx([
             "border-none bg-transparent text-2xl font-bold caret-gray-300 focus:outline-none",
           ])}
         />
         <div>
+          <Button variant="outline" size="icon" onClick={() => submit()}>
+            <Disc3 className="animate-spin" size={14} />
+          </Button>
+
           {isLoading ? (
-            <Button variant="outline" onClick={() => stop()}>
-              Stop
+            <Button variant="outline" size="icon" onClick={() => stop()}>
+              <StopCircle size={14} />
             </Button>
           ) : (
-            <Button variant="outline" onClick={() => submit()}>
-              Enhance
+            <Button variant="outline" size="icon" onClick={() => submit()}>
+              <Sparkles size={14} />
             </Button>
           )}
         </div>

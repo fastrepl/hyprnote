@@ -36,8 +36,8 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
   const handleClickEvent = useCallback(
     (event: Event) => {
       navigate({
-        to: "/note/$id",
-        params: { id: event.id.toString() },
+        to: "/note/new",
+        search: { eventId: event.id.toString() },
       });
     },
     [navigate],

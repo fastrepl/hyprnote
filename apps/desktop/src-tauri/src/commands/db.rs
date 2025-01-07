@@ -40,3 +40,23 @@ pub async fn db_upsert_participant(
 ) -> Result<hypr_db::user::Participant, ()> {
     Ok(state.db.upsert_participant(participant).await.unwrap())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn db_get_session(
+    state: State<'_, App>,
+    id: String,
+) -> Result<Option<hypr_db::user::Session>, String> {
+    let found = state.db.get_session(id).await.map_err(|e| e.to_string())?;
+    Ok(found)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn db_create_session(
+    state: State<'_, App>,
+    session: hypr_db::user::Session,
+) -> Result<hypr_db::user::Session, ()> {
+    println!("creating session: {:?}", session);
+    Ok(state.db.create_session(session).await.unwrap())
+}

@@ -10,7 +10,7 @@ import {
 } from "@hypr/ui/components/ui/card";
 import { Badge } from "@hypr/ui/components/ui/badge";
 
-import type { Session } from "@/types/db";
+import type { Session } from "@/types/tauri";
 
 interface PastSessionsProps {
   sessions: Session[];
@@ -83,18 +83,15 @@ export function SessionCard({ session }: SessionCardProps) {
           <span>{formattedTime}</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {(JSON.parse(session.tags as unknown as string) as string[]).map(
-            (tag) => (
-              <Badge key={tag} variant="secondary">
-                {tag}
-              </Badge>
-            ),
-          )}
+          {session.tags.map((tag) => (
+            <Badge key={tag} variant="secondary">
+              {tag}
+            </Badge>
+          ))}
         </div>
         {session.transcript && (
           <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-            {JSON.parse(session.transcript as unknown as string).blocks[0]
-              ?.text || "No transcript available"}
+            {JSON.stringify(session.transcript)}
           </p>
         )}
       </CardContent>

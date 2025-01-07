@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { AlignLeft, Ear, EarOff, Zap } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import clsx from "clsx";
 
 import { generateJSON, JSONContent } from "@tiptap/react";
@@ -45,23 +46,29 @@ export const Route = createFileRoute("/_nav/note/$id")({
 
 function Component() {
   const { isPanelOpen } = useUI();
+  const [listening, setListening] = useState(true);
 
   return isPanelOpen ? (
     <ResizablePanelGroup direction="horizontal">
       <ResizablePanel>
-        <LeftPanel />
+        <LeftPanel listening={listening} setListening={setListening} />
       </ResizablePanel>
       <ResizableHandle withHandle className="w-1 bg-secondary" />
       <ResizablePanel defaultSize={25} minSize={25} maxSize={40}>
-        <RightPanel transcript={t} />
+        <RightPanel listening={listening} transcript={t} />
       </ResizablePanel>
     </ResizablePanelGroup>
   ) : (
-    <LeftPanel />
+    <LeftPanel listening={listening} setListening={setListening} />
   );
 }
 
-function LeftPanel() {
+interface LeftPanelProps {
+  listening: boolean;
+  setListening: (listening: boolean) => void;
+}
+
+function LeftPanel({ listening, setListening }: LeftPanelProps) {
   const { id } = Route.useParams();
 
   const { data: session } = useSuspenseQuery(queryOptions(id));
@@ -82,7 +89,7 @@ function LeftPanel() {
   //   editor: editorContent,
   // });
 
-  const [listening, setListening] = useState(false);
+  const [showRaw, setShowRaw] = useState(true);
 
   useEffect(() => {
     if (editorContent) {
@@ -126,13 +133,23 @@ function LeftPanel() {
         </div>
       </div>
 
-      <div className="flex-1 mt-6">
+      <div className="mt-6 flex-1">
         <Editor handleChange={handleChange} content={editorContent} />
       </div>
 
-      <div className="mb-8 flex justify-center">
-        <EnhanceControls />
-      </div>
+      <AnimatePresence>
+        {!listening && (
+          <motion.div
+            className="mb-8 flex justify-center"
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 50, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <EnhanceControls showRaw={showRaw} setShowRaw={setShowRaw} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -154,10 +171,11 @@ const t: Transcript = {
 };
 
 interface RightPanelProps {
+  listening: boolean;
   transcript: Transcript;
 }
 
-function RightPanel({ transcript }: RightPanelProps) {
+function RightPanel({ listening, transcript }: RightPanelProps) {
   return (
     <div className="flex h-full flex-col justify-end">
       <ScrollArea className="flex-1 p-4">
@@ -172,43 +190,52 @@ function RightPanel({ transcript }: RightPanelProps) {
         </div>
       </ScrollArea>
 
-      <div className="mb-10 p-2">
-        <Textarea
-          className="resize-none"
-          placeholder="Ask about this meeting..."
-        />
-      </div>
+      {!listening && (
+        <div className="mb-10 p-2">
+          <Textarea
+            className="resize-none"
+            placeholder="Ask about this meeting..."
+          />
+        </div>
+      )}
     </div>
   );
 }
 
-function EnhanceControls() {
-  const [left, setLeft] = useState(true);
-
+function EnhanceControls({
+  showRaw,
+  setShowRaw,
+}: {
+  showRaw: boolean;
+  setShowRaw: (showRaw: boolean) => void;
+}) {
   return (
     <div className="flex w-fit flex-row items-center">
       <button
-        onClick={() => setLeft(!left)}
+        onClick={() => setShowRaw(!showRaw)}
         className={clsx([
-          "rounded-l-xl border border-r-0 border-border px-3 py-2",
-          left ? "bg-primary/20" : "bg-background",
-          left ? "text-primary" : "text-muted-foreground",
+          "h-9 rounded-l-xl border border-r-0 border-border px-3",
+          "duration-400 transition-all ease-in-out",
+          showRaw ? "bg-primary/20" : "bg-background",
+          showRaw ? "text-primary" : "text-muted-foreground",
         ])}
       >
         <AlignLeft size={20} />
       </button>
       <button
-        onClick={() => setLeft(!left)}
+        onClick={() => setShowRaw(!showRaw)}
         className={clsx([
-          "rounded-r-xl border border-l-0 border-border px-3 py-2",
-          !left ? "bg-primary/20" : "bg-background",
-          !left ? "text-primary" : "text-muted-foreground",
+          "h-9 rounded-r-xl border border-l-0 border-border px-3",
+          "duration-400 transition-all ease-in-out",
+          !showRaw ? "bg-primary/20" : "bg-background",
+          !showRaw ? "text-primary" : "text-muted-foreground",
         ])}
       >
         <Zap
           size={20}
           className={clsx([
-            !left ? "fill-primary/60" : "fill-background",
+            "transition-[fill] duration-200 ease-in-out",
+            !showRaw ? "fill-primary/60" : "fill-background",
           ])}
         />
       </button>

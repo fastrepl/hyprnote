@@ -19,7 +19,8 @@ import "../../styles/tiptap.css";
 export const extensions = [
   StarterKit,
   Placeholder.configure({
-    placeholder: "Welcome to Hyprnote!",
+    placeholder:
+      "Only note what's important. Hyprnote will handle the rest.",
     emptyEditorClass:
       "text-lg text-gray-400 first:float-left first:h-0 first:pointer-events-none first:before:content-[attr(data-placeholder)]",
   }),

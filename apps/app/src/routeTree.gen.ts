@@ -13,7 +13,7 @@
 import { Route as rootRoute } from "./routes/__root";
 import { Route as SettingsImport } from "./routes/settings";
 import { Route as IndexImport } from "./routes/index";
-import { Route as NotesIdImport } from "./routes/notes.$id";
+import { Route as SIdImport } from "./routes/s.$id";
 import { Route as AuthSignUpImport } from "./routes/auth.sign-up";
 import { Route as AuthSignOutImport } from "./routes/auth.sign-out";
 import { Route as AuthSignInImport } from "./routes/auth.sign-in";
@@ -33,9 +33,9 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any);
 
-const NotesIdRoute = NotesIdImport.update({
-  id: "/notes/$id",
-  path: "/notes/$id",
+const SIdRoute = SIdImport.update({
+  id: "/s/$id",
+  path: "/s/$id",
   getParentRoute: () => rootRoute,
 } as any);
 
@@ -109,11 +109,11 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthSignUpImport;
       parentRoute: typeof rootRoute;
     };
-    "/notes/$id": {
-      id: "/notes/$id";
-      path: "/notes/$id";
-      fullPath: "/notes/$id";
-      preLoaderRoute: typeof NotesIdImport;
+    "/s/$id": {
+      id: "/s/$id";
+      path: "/s/$id";
+      fullPath: "/s/$id";
+      preLoaderRoute: typeof SIdImport;
       parentRoute: typeof rootRoute;
     };
   }
@@ -128,7 +128,7 @@ export interface FileRoutesByFullPath {
   "/auth/sign-in": typeof AuthSignInRoute;
   "/auth/sign-out": typeof AuthSignOutRoute;
   "/auth/sign-up": typeof AuthSignUpRoute;
-  "/notes/$id": typeof NotesIdRoute;
+  "/s/$id": typeof SIdRoute;
 }
 
 export interface FileRoutesByTo {
@@ -138,7 +138,7 @@ export interface FileRoutesByTo {
   "/auth/sign-in": typeof AuthSignInRoute;
   "/auth/sign-out": typeof AuthSignOutRoute;
   "/auth/sign-up": typeof AuthSignUpRoute;
-  "/notes/$id": typeof NotesIdRoute;
+  "/s/$id": typeof SIdRoute;
 }
 
 export interface FileRoutesById {
@@ -149,7 +149,7 @@ export interface FileRoutesById {
   "/auth/sign-in": typeof AuthSignInRoute;
   "/auth/sign-out": typeof AuthSignOutRoute;
   "/auth/sign-up": typeof AuthSignUpRoute;
-  "/notes/$id": typeof NotesIdRoute;
+  "/s/$id": typeof SIdRoute;
 }
 
 export interface FileRouteTypes {
@@ -161,7 +161,7 @@ export interface FileRouteTypes {
     | "/auth/sign-in"
     | "/auth/sign-out"
     | "/auth/sign-up"
-    | "/notes/$id";
+    | "/s/$id";
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
@@ -170,7 +170,7 @@ export interface FileRouteTypes {
     | "/auth/sign-in"
     | "/auth/sign-out"
     | "/auth/sign-up"
-    | "/notes/$id";
+    | "/s/$id";
   id:
     | "__root__"
     | "/"
@@ -179,7 +179,7 @@ export interface FileRouteTypes {
     | "/auth/sign-in"
     | "/auth/sign-out"
     | "/auth/sign-up"
-    | "/notes/$id";
+    | "/s/$id";
   fileRoutesById: FileRoutesById;
 }
 
@@ -190,7 +190,7 @@ export interface RootRouteChildren {
   AuthSignInRoute: typeof AuthSignInRoute;
   AuthSignOutRoute: typeof AuthSignOutRoute;
   AuthSignUpRoute: typeof AuthSignUpRoute;
-  NotesIdRoute: typeof NotesIdRoute;
+  SIdRoute: typeof SIdRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -200,7 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignInRoute: AuthSignInRoute,
   AuthSignOutRoute: AuthSignOutRoute,
   AuthSignUpRoute: AuthSignUpRoute,
-  NotesIdRoute: NotesIdRoute,
+  SIdRoute: SIdRoute,
 };
 
 export const routeTree = rootRoute
@@ -219,7 +219,7 @@ export const routeTree = rootRoute
         "/auth/sign-in",
         "/auth/sign-out",
         "/auth/sign-up",
-        "/notes/$id"
+        "/s/$id"
       ]
     },
     "/": {
@@ -240,8 +240,8 @@ export const routeTree = rootRoute
     "/auth/sign-up": {
       "filePath": "auth.sign-up.tsx"
     },
-    "/notes/$id": {
-      "filePath": "notes.$id.tsx"
+    "/s/$id": {
+      "filePath": "s.$id.tsx"
     }
   }
 }

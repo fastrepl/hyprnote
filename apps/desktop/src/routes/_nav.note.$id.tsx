@@ -101,36 +101,6 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
     }
   }, [editorContent]);
 
-  const addParagraph = useCallback(() => {
-    const newContent = {
-      ...editorContent,
-      content: [
-        ...(editorContent.content || []).filter(
-          (node) => node.type !== "hyprcharge",
-        ),
-        {
-          type: "paragraph",
-          attrs: { id: nanoid() },
-          content: [
-            {
-              type: "text",
-              text: "New paragraph " + Math.random().toString(36).substring(7),
-            },
-          ],
-        },
-        {
-          type: "hyprcharge",
-          attrs: {
-            id: "id",
-            text: "WIP",
-          },
-        },
-      ],
-    };
-
-    setEditorContent(newContent);
-  }, [editorContent]);
-
   return (
     <div className="flex h-full flex-col p-8">
       <div className="flex flex-row items-center justify-between">
@@ -171,17 +141,10 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
         </div>
       </div>
 
-      <div className="mt-6 flex-1">
-        <div className="mb-4 flex justify-end">
-          <button
-            onClick={addParagraph}
-            className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:bg-primary/10"
-          >
-            <Plus size={16} />
-            Add Paragraph
-          </button>
-        </div>
-        <Editor handleChange={handleChange} content={editorContent} />
+      <div className="mt-6 flex flex-1 flex-col">
+        <ScrollArea type="auto" className="h-[calc(100vh-240px)]">
+          <Editor handleChange={handleChange} content={editorContent} />
+        </ScrollArea>
       </div>
 
       <AnimatePresence>

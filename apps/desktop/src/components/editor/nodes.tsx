@@ -35,6 +35,9 @@ export const HyprchargeNode = Node.create({
   group: "block",
   addAttributes() {
     return {
+      id: {
+        default: "id",
+      },
       text: {
         default: "warning: use 'text' attribute to set the text.",
       },

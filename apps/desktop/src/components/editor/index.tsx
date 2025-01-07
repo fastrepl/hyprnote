@@ -10,7 +10,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
 import Placeholder from "@tiptap/extension-placeholder";
-import { UniqueID, HTML_ID } from "./extensions";
+import { HTML_ID } from "./extensions";
 import { HyprchargeNode } from "./nodes";
 
 import clsx from "clsx";
@@ -25,7 +25,6 @@ export const extensions = [
   }),
   Highlight,
   Typography,
-  UniqueID,
   HTML_ID,
   HyprchargeNode,
 ];
@@ -48,7 +47,10 @@ export default function Editor({ handleChange, content }: EditorProps) {
     onUpdate,
     editorProps: {
       attributes: {
-        class: clsx(["focus:outline-none focus:ring-0"]),
+        class: clsx([
+          "prose dark:prose-invert prose-lg",
+          "focus:outline-none focus:ring-0",
+        ]),
       },
     },
   });

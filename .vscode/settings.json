@@ -1,5 +1,4 @@
 {
-  "swift.disableSwiftPackageManagerIntegration": true,
   "files.watcherExclude": {
     "**/routeTree.gen.ts": true
   },

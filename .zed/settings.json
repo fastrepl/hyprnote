@@ -1,0 +1,20 @@
+{
+  "formatter": "language_server",
+  "lsp": {
+    "rust-analyzer": {
+      "initialization_options": {
+        "checkOnSave": true,
+        "check": {
+          "command": "check",
+          "workspace": false
+        },
+        "cargo": {
+          "allTargets": false,
+          "extraEnv": {
+            "MACOSX_DEPLOYMENT_TARGET": "14.2"
+          }
+        }
+      }
+    }
+  }
+}

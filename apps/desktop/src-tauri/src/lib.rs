@@ -130,6 +130,8 @@ pub fn run() {
 
         db
     });
+    
+    workers::run(db.clone());
 
     builder
         .on_window_event(|window, event| {

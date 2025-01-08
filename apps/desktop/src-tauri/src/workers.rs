@@ -45,24 +45,27 @@ async fn list_calendars() -> Result<Vec<hypr_calendar::Calendar>, String> {
     Ok(calendars)
 }
 
-pub fn run(db: UserDatabase) {
-    tauri::async_runtime::spawn(async move {
-        loop {
-            let calendar_access = tauri::async_runtime::spawn_blocking(|| {
-                let handle = hypr_calendar::apple::Handle::new();
-                handle.calendar_access_status()
-            })
-            .await
-            .unwrap_or(false);
+pub fn sync_apple_calendar(db: UserDatabase) {
+    #[cfg(target_os = "macos")]
+    {
+        tauri::async_runtime::spawn(async move {
+            loop {
+                let calendar_access = tauri::async_runtime::spawn_blocking(|| {
+                    let handle = hypr_calendar::apple::Handle::new();
+                    handle.calendar_access_status()
+                })
+                .await
+                .unwrap_or(false);
 
-            if calendar_access {
-                let calendars = list_calendars().await.unwrap_or(vec![]);
-                for calendar in calendars {
-                    db.upsert_calendar(calendar.into()).await.unwrap();
+                if calendar_access {
+                    let calendars = list_calendars().await.unwrap_or(vec![]);
+                    for calendar in calendars {
+                        db.upsert_calendar(calendar.into()).await.unwrap();
+                    }
                 }
-            }
 
-            tokio::time::sleep(std::time::Duration::from_secs(5)).await;
-        }
-    });
+                tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+            }
+        });
+    }
 }

@@ -10,274 +10,274 @@
 
 // Import Routes
 
-import { Route as rootRoute } from "./routes/__root";
-import { Route as LoginImport } from "./routes/login";
-import { Route as DemoImport } from "./routes/demo";
-import { Route as NavImport } from "./routes/_nav";
-import { Route as DemoIndexImport } from "./routes/demo.index";
-import { Route as NavIndexImport } from "./routes/_nav.index";
-import { Route as NoteNewImport } from "./routes/note.new";
-import { Route as CallbackConnectImport } from "./routes/callback.connect";
-import { Route as NavOnboardingImport } from "./routes/_nav.onboarding";
-import { Route as NavOnboardingIndexImport } from "./routes/_nav.onboarding.index";
-import { Route as NavNoteIdImport } from "./routes/_nav.note.$id";
+import { Route as rootRoute } from './routes/__root'
+import { Route as LoginImport } from './routes/login'
+import { Route as DemoImport } from './routes/demo'
+import { Route as NavImport } from './routes/_nav'
+import { Route as DemoIndexImport } from './routes/demo.index'
+import { Route as NavIndexImport } from './routes/_nav.index'
+import { Route as NoteNewImport } from './routes/note.new'
+import { Route as CallbackConnectImport } from './routes/callback.connect'
+import { Route as NavOnboardingImport } from './routes/_nav.onboarding'
+import { Route as NavOnboardingIndexImport } from './routes/_nav.onboarding.index'
+import { Route as NavNoteIdImport } from './routes/_nav.note.$id'
 
 // Create/Update Routes
 
 const LoginRoute = LoginImport.update({
-  id: "/login",
-  path: "/login",
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const DemoRoute = DemoImport.update({
-  id: "/demo",
-  path: "/demo",
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const NavRoute = NavImport.update({
-  id: "/_nav",
+  id: '/_nav',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const DemoIndexRoute = DemoIndexImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => DemoRoute,
-} as any);
+} as any)
 
 const NavIndexRoute = NavIndexImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => NavRoute,
-} as any);
+} as any)
 
 const NoteNewRoute = NoteNewImport.update({
-  id: "/note/new",
-  path: "/note/new",
+  id: '/note/new',
+  path: '/note/new',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const CallbackConnectRoute = CallbackConnectImport.update({
-  id: "/callback/connect",
-  path: "/callback/connect",
+  id: '/callback/connect',
+  path: '/callback/connect',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const NavOnboardingRoute = NavOnboardingImport.update({
-  id: "/onboarding",
-  path: "/onboarding",
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => NavRoute,
-} as any);
+} as any)
 
 const NavOnboardingIndexRoute = NavOnboardingIndexImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => NavOnboardingRoute,
-} as any);
+} as any)
 
 const NavNoteIdRoute = NavNoteIdImport.update({
-  id: "/note/$id",
-  path: "/note/$id",
+  id: '/note/$id',
+  path: '/note/$id',
   getParentRoute: () => NavRoute,
-} as any);
+} as any)
 
 // Populate the FileRoutesByPath interface
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/_nav": {
-      id: "/_nav";
-      path: "";
-      fullPath: "";
-      preLoaderRoute: typeof NavImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/demo": {
-      id: "/demo";
-      path: "/demo";
-      fullPath: "/demo";
-      preLoaderRoute: typeof DemoImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/login": {
-      id: "/login";
-      path: "/login";
-      fullPath: "/login";
-      preLoaderRoute: typeof LoginImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/_nav/onboarding": {
-      id: "/_nav/onboarding";
-      path: "/onboarding";
-      fullPath: "/onboarding";
-      preLoaderRoute: typeof NavOnboardingImport;
-      parentRoute: typeof NavImport;
-    };
-    "/callback/connect": {
-      id: "/callback/connect";
-      path: "/callback/connect";
-      fullPath: "/callback/connect";
-      preLoaderRoute: typeof CallbackConnectImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/note/new": {
-      id: "/note/new";
-      path: "/note/new";
-      fullPath: "/note/new";
-      preLoaderRoute: typeof NoteNewImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/_nav/": {
-      id: "/_nav/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof NavIndexImport;
-      parentRoute: typeof NavImport;
-    };
-    "/demo/": {
-      id: "/demo/";
-      path: "/";
-      fullPath: "/demo/";
-      preLoaderRoute: typeof DemoIndexImport;
-      parentRoute: typeof DemoImport;
-    };
-    "/_nav/note/$id": {
-      id: "/_nav/note/$id";
-      path: "/note/$id";
-      fullPath: "/note/$id";
-      preLoaderRoute: typeof NavNoteIdImport;
-      parentRoute: typeof NavImport;
-    };
-    "/_nav/onboarding/": {
-      id: "/_nav/onboarding/";
-      path: "/";
-      fullPath: "/onboarding/";
-      preLoaderRoute: typeof NavOnboardingIndexImport;
-      parentRoute: typeof NavOnboardingImport;
-    };
+    '/_nav': {
+      id: '/_nav'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof NavImport
+      parentRoute: typeof rootRoute
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoImport
+      parentRoute: typeof rootRoute
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginImport
+      parentRoute: typeof rootRoute
+    }
+    '/_nav/onboarding': {
+      id: '/_nav/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof NavOnboardingImport
+      parentRoute: typeof NavImport
+    }
+    '/callback/connect': {
+      id: '/callback/connect'
+      path: '/callback/connect'
+      fullPath: '/callback/connect'
+      preLoaderRoute: typeof CallbackConnectImport
+      parentRoute: typeof rootRoute
+    }
+    '/note/new': {
+      id: '/note/new'
+      path: '/note/new'
+      fullPath: '/note/new'
+      preLoaderRoute: typeof NoteNewImport
+      parentRoute: typeof rootRoute
+    }
+    '/_nav/': {
+      id: '/_nav/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof NavIndexImport
+      parentRoute: typeof NavImport
+    }
+    '/demo/': {
+      id: '/demo/'
+      path: '/'
+      fullPath: '/demo/'
+      preLoaderRoute: typeof DemoIndexImport
+      parentRoute: typeof DemoImport
+    }
+    '/_nav/note/$id': {
+      id: '/_nav/note/$id'
+      path: '/note/$id'
+      fullPath: '/note/$id'
+      preLoaderRoute: typeof NavNoteIdImport
+      parentRoute: typeof NavImport
+    }
+    '/_nav/onboarding/': {
+      id: '/_nav/onboarding/'
+      path: '/'
+      fullPath: '/onboarding/'
+      preLoaderRoute: typeof NavOnboardingIndexImport
+      parentRoute: typeof NavOnboardingImport
+    }
   }
 }
 
 // Create and export the route tree
 
 interface NavOnboardingRouteChildren {
-  NavOnboardingIndexRoute: typeof NavOnboardingIndexRoute;
+  NavOnboardingIndexRoute: typeof NavOnboardingIndexRoute
 }
 
 const NavOnboardingRouteChildren: NavOnboardingRouteChildren = {
   NavOnboardingIndexRoute: NavOnboardingIndexRoute,
-};
+}
 
 const NavOnboardingRouteWithChildren = NavOnboardingRoute._addFileChildren(
   NavOnboardingRouteChildren,
-);
+)
 
 interface NavRouteChildren {
-  NavOnboardingRoute: typeof NavOnboardingRouteWithChildren;
-  NavIndexRoute: typeof NavIndexRoute;
-  NavNoteIdRoute: typeof NavNoteIdRoute;
+  NavOnboardingRoute: typeof NavOnboardingRouteWithChildren
+  NavIndexRoute: typeof NavIndexRoute
+  NavNoteIdRoute: typeof NavNoteIdRoute
 }
 
 const NavRouteChildren: NavRouteChildren = {
   NavOnboardingRoute: NavOnboardingRouteWithChildren,
   NavIndexRoute: NavIndexRoute,
   NavNoteIdRoute: NavNoteIdRoute,
-};
+}
 
-const NavRouteWithChildren = NavRoute._addFileChildren(NavRouteChildren);
+const NavRouteWithChildren = NavRoute._addFileChildren(NavRouteChildren)
 
 interface DemoRouteChildren {
-  DemoIndexRoute: typeof DemoIndexRoute;
+  DemoIndexRoute: typeof DemoIndexRoute
 }
 
 const DemoRouteChildren: DemoRouteChildren = {
   DemoIndexRoute: DemoIndexRoute,
-};
+}
 
-const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren);
+const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren)
 
 export interface FileRoutesByFullPath {
-  "": typeof NavRouteWithChildren;
-  "/demo": typeof DemoRouteWithChildren;
-  "/login": typeof LoginRoute;
-  "/onboarding": typeof NavOnboardingRouteWithChildren;
-  "/callback/connect": typeof CallbackConnectRoute;
-  "/note/new": typeof NoteNewRoute;
-  "/": typeof NavIndexRoute;
-  "/demo/": typeof DemoIndexRoute;
-  "/note/$id": typeof NavNoteIdRoute;
-  "/onboarding/": typeof NavOnboardingIndexRoute;
+  '': typeof NavRouteWithChildren
+  '/demo': typeof DemoRouteWithChildren
+  '/login': typeof LoginRoute
+  '/onboarding': typeof NavOnboardingRouteWithChildren
+  '/callback/connect': typeof CallbackConnectRoute
+  '/note/new': typeof NoteNewRoute
+  '/': typeof NavIndexRoute
+  '/demo/': typeof DemoIndexRoute
+  '/note/$id': typeof NavNoteIdRoute
+  '/onboarding/': typeof NavOnboardingIndexRoute
 }
 
 export interface FileRoutesByTo {
-  "/login": typeof LoginRoute;
-  "/callback/connect": typeof CallbackConnectRoute;
-  "/note/new": typeof NoteNewRoute;
-  "/": typeof NavIndexRoute;
-  "/demo": typeof DemoIndexRoute;
-  "/note/$id": typeof NavNoteIdRoute;
-  "/onboarding": typeof NavOnboardingIndexRoute;
+  '/login': typeof LoginRoute
+  '/callback/connect': typeof CallbackConnectRoute
+  '/note/new': typeof NoteNewRoute
+  '/': typeof NavIndexRoute
+  '/demo': typeof DemoIndexRoute
+  '/note/$id': typeof NavNoteIdRoute
+  '/onboarding': typeof NavOnboardingIndexRoute
 }
 
 export interface FileRoutesById {
-  __root__: typeof rootRoute;
-  "/_nav": typeof NavRouteWithChildren;
-  "/demo": typeof DemoRouteWithChildren;
-  "/login": typeof LoginRoute;
-  "/_nav/onboarding": typeof NavOnboardingRouteWithChildren;
-  "/callback/connect": typeof CallbackConnectRoute;
-  "/note/new": typeof NoteNewRoute;
-  "/_nav/": typeof NavIndexRoute;
-  "/demo/": typeof DemoIndexRoute;
-  "/_nav/note/$id": typeof NavNoteIdRoute;
-  "/_nav/onboarding/": typeof NavOnboardingIndexRoute;
+  __root__: typeof rootRoute
+  '/_nav': typeof NavRouteWithChildren
+  '/demo': typeof DemoRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_nav/onboarding': typeof NavOnboardingRouteWithChildren
+  '/callback/connect': typeof CallbackConnectRoute
+  '/note/new': typeof NoteNewRoute
+  '/_nav/': typeof NavIndexRoute
+  '/demo/': typeof DemoIndexRoute
+  '/_nav/note/$id': typeof NavNoteIdRoute
+  '/_nav/onboarding/': typeof NavOnboardingIndexRoute
 }
 
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | ""
-    | "/demo"
-    | "/login"
-    | "/onboarding"
-    | "/callback/connect"
-    | "/note/new"
-    | "/"
-    | "/demo/"
-    | "/note/$id"
-    | "/onboarding/";
-  fileRoutesByTo: FileRoutesByTo;
+    | ''
+    | '/demo'
+    | '/login'
+    | '/onboarding'
+    | '/callback/connect'
+    | '/note/new'
+    | '/'
+    | '/demo/'
+    | '/note/$id'
+    | '/onboarding/'
+  fileRoutesByTo: FileRoutesByTo
   to:
-    | "/login"
-    | "/callback/connect"
-    | "/note/new"
-    | "/"
-    | "/demo"
-    | "/note/$id"
-    | "/onboarding";
+    | '/login'
+    | '/callback/connect'
+    | '/note/new'
+    | '/'
+    | '/demo'
+    | '/note/$id'
+    | '/onboarding'
   id:
-    | "__root__"
-    | "/_nav"
-    | "/demo"
-    | "/login"
-    | "/_nav/onboarding"
-    | "/callback/connect"
-    | "/note/new"
-    | "/_nav/"
-    | "/demo/"
-    | "/_nav/note/$id"
-    | "/_nav/onboarding/";
-  fileRoutesById: FileRoutesById;
+    | '__root__'
+    | '/_nav'
+    | '/demo'
+    | '/login'
+    | '/_nav/onboarding'
+    | '/callback/connect'
+    | '/note/new'
+    | '/_nav/'
+    | '/demo/'
+    | '/_nav/note/$id'
+    | '/_nav/onboarding/'
+  fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  NavRoute: typeof NavRouteWithChildren;
-  DemoRoute: typeof DemoRouteWithChildren;
-  LoginRoute: typeof LoginRoute;
-  CallbackConnectRoute: typeof CallbackConnectRoute;
-  NoteNewRoute: typeof NoteNewRoute;
+  NavRoute: typeof NavRouteWithChildren
+  DemoRoute: typeof DemoRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  CallbackConnectRoute: typeof CallbackConnectRoute
+  NoteNewRoute: typeof NoteNewRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -286,11 +286,11 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   CallbackConnectRoute: CallbackConnectRoute,
   NoteNewRoute: NoteNewRoute,
-};
+}
 
 export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
 
 /* ROUTE_MANIFEST_START
 {

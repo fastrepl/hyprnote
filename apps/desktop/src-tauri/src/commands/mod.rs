@@ -29,12 +29,19 @@ pub fn create_session(_app: AppHandle) {}
 
 #[tauri::command]
 #[specta::specta]
-pub fn start_session(_app: AppHandle, on_event: Channel<events::TranscriptEvent>) {
-    let _ = tokio::spawn(async move {
-        let _ = on_event.send(events::TranscriptEvent {
-            text: "Hello, world!".to_string(),
-        });
-    });
+pub fn start_session(
+    app: AppHandle,
+    on_event: Channel<events::TranscriptEvent>,
+) -> Result<(), String> {
+    println!("Starting session...");
+
+    on_event
+        .send(events::TranscriptEvent {
+            text: "New transcript text...".to_string(),
+        })
+        .unwrap();
+
+    Ok(())
 }
 
 #[tauri::command]
@@ -90,4 +97,11 @@ fn recordings_path(app: &AppHandle) -> PathBuf {
 
 fn recording_path(app: &AppHandle, recording_id: &str) -> PathBuf {
     recordings_path(app).join(format!("{}.cap", recording_id))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn stop_session(app: AppHandle) -> Result<(), String> {
+    // Implementation to stop the session...
+    Ok(())
 }

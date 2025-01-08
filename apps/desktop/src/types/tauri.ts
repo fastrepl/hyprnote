@@ -11,8 +11,8 @@ export const commands = {
   async getFingerprint(): Promise<string> {
     return await TAURI_INVOKE("get_fingerprint");
   },
-  async startSession(onEvent: TAURI_CHANNEL<TranscriptEvent>): Promise<void> {
-    await TAURI_INVOKE("start_session", { onEvent });
+  async startSession(onEvent: TAURI_CHANNEL<TranscriptEvent>): Promise<null> {
+    return await TAURI_INVOKE("start_session", { onEvent });
   },
   async startPlayback(audioId: string): Promise<void> {
     await TAURI_INVOKE("start_playback", { audioId });

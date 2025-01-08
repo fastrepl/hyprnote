@@ -1,3 +1,3 @@
-export * from "./note";
+export * from "./session";
 export * from "./ui";
 export * from "./tauri";

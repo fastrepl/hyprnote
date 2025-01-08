@@ -1,9 +1,8 @@
 {
-  "yaml": {},
-  "toml": {},
-  "markup": {},
-  "sql": {},
-  "dockerfile": {},
+  "excludes": [
+    "**/*-lock.yaml",
+    "**/*-lock.json"
+  ],
   "exec": {
     "cwd": "${configDir}",
     "commands": [{

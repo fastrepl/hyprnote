@@ -1,3 +1,4 @@
 src-tauri/target/
 src/locales/
-src/types/
+src/types/*
+**/*.gen.ts

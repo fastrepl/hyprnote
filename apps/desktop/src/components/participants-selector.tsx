@@ -15,6 +15,7 @@ import {
   PopoverTrigger,
 } from "@hypr/ui/components/ui/popover";
 import { Input } from "@hypr/ui/components/ui/input";
+
 import { type Participant } from "@/types/tauri";
 
 interface ParticipantSelectorProps {
@@ -25,8 +26,6 @@ interface ParticipantSelectorProps {
 
 export default function ParticipantsSelector({
   options,
-  selected,
-  handleSelect,
 }: ParticipantSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");

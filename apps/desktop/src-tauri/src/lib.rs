@@ -130,8 +130,9 @@ pub fn run() {
 
         db
     });
-    
-    workers::run(db.clone());
+
+    #[cfg(target_os = "macos")]
+    workers::sync_apple_calendar(db.clone());
 
     builder
         .on_window_event(|window, event| {

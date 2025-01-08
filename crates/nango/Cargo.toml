@@ -1,0 +1,11 @@
+[package]
+name = "nango"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = { workspace = true, features = ["json"] }
+serde = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }

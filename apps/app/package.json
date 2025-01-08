@@ -23,8 +23,9 @@
     "vite": "^6.0.7"
   },
   "dependencies": {
-    "@hypr/ui": "workspace:*",
     "@clerk/clerk-react": "^5.21.0",
+    "@hypr/ui": "workspace:*",
+    "@nangohq/frontend": "^0.48.1",
     "@tanstack/react-query": "^5.62.14",
     "@tanstack/react-router": "^1.95.0",
     "@tanstack/zod-adapter": "^1.95.0",

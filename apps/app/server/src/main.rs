@@ -22,6 +22,7 @@ mod native;
 mod state;
 mod stripe;
 mod web;
+mod worker;
 
 fn main() {
     #[cfg(debug_assertions)]
@@ -35,20 +36,25 @@ fn main() {
         },
     ));
 
+    let turso = hypr_turso::TursoClient::new(std::env::var("TURSO_API_KEY").unwrap());
+
+    let clerk_config = ClerkConfiguration::new(
+        None,
+        None,
+        Some(std::env::var("CLERK_SECRET_KEY").unwrap()),
+        None,
+    );
+    let clerk = Clerk::new(clerk_config);
+
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .unwrap()
         .block_on(async {
-            let turso = hypr_turso::TursoClient::new(std::env::var("TURSO_API_KEY").unwrap());
-
-            let clerk_config = ClerkConfiguration::new(
-                None,
-                None,
-                Some(std::env::var("CLERK_SECRET_KEY").unwrap()),
-                None,
-            );
-            let clerk = Clerk::new(clerk_config);
+            let nango_client = hypr_nango::NangoClientBuilder::new()
+                .api_key("TODO_API_KEY")
+                .integrations(std::collections::HashMap::new())
+                .build();
 
             let stt_config = hypr_stt::Config {
                 deepgram_api_key: std::env::var("DEEPGRAM_API_KEY").unwrap(),
@@ -84,6 +90,7 @@ fn main() {
                 stt,
                 turso,
                 admin_db,
+                nango: nango_client,
                 analytics: hypr_analytics::AnalyticsClient::new(
                     std::env::var("POSTHOG_API_KEY").unwrap(),
                 ),
@@ -91,6 +98,10 @@ fn main() {
 
             let web_router = Router::new()
                 .route("/connect", post(web::connect::handler))
+                .route(
+                    "/integration/session",
+                    post(web::integration::create_session),
+                )
                 .layer(ClerkLayer::new(
                     MemoryCacheJwksProvider::new(clerk),
                     None,

@@ -9,7 +9,7 @@
           "workspace": false
         },
         "cargo": {
-          "allTargets": false,
+          "allTargets": true,
           "extraEnv": {
             "MACOSX_DEPLOYMENT_TARGET": "14.2"
           }

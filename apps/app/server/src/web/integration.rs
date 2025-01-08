@@ -1,0 +1,17 @@
+use axum::{extract::State, http::StatusCode, Json};
+use hypr_nango::{NangoConnectSessionRequest, NangoConnectSessionResponse};
+
+use crate::state::AppState;
+
+pub async fn create_session(
+    State(state): State<AppState>,
+    Json(input): Json<NangoConnectSessionRequest>,
+) -> Result<Json<NangoConnectSessionResponse>, StatusCode> {
+    let res = state
+        .nango
+        .create_connect_session(input)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok(Json(res))
+}

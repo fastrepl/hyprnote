@@ -191,7 +191,10 @@ dependencies = [
  "db",
  "dotenv",
  "futures",
+ "nango",
  "reqwest 0.12.12",
+ "rspc",
+ "rspc-axum",
  "s3",
  "schemars 1.0.0-alpha.17",
  "sentry",
@@ -1187,6 +1190,12 @@ name = "base64ct"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
+
+[[package]]
+name = "better_any"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1795ebc740ea791ffbe6685e0688ab1effec16c2864e0476db40bfdf0c02cb3d"
 
 [[package]]
 name = "bincode"
@@ -5823,6 +5832,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "defc4c55412d89136f966bbb339008b474350e5e6e78d2714439c386b3137a03"
 
 [[package]]
+name = "nango"
+version = "0.1.0"
+dependencies = [
+ "reqwest 0.12.12",
+ "serde",
+ "tokio",
+]
+
+[[package]]
 name = "native-tls"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6609,6 +6627,15 @@ name = "option-ext"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
+
+[[package]]
+name = "ordered-float"
+version = "2.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68f19d67e5a2795c94e73e0bb1cc1a7edeb2e28efd39e2e1c9b7a40c1108b11c"
+dependencies = [
+ "num-traits",
+]
 
 [[package]]
 name = "ordered-multimap"
@@ -8042,6 +8069,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "rspc"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c891dd1a73396c64492b10db14da67f745d65f0d46f3169f91941331005eb70"
+dependencies = [
+ "better_any",
+ "erased-serde",
+ "futures",
+ "serde",
+ "serde-value",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "specta-util",
+ "thiserror 2.0.9",
+ "tokio",
+ "transient",
+ "typeid",
+]
+
+[[package]]
+name = "rspc-axum"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "03078eb68ed199cee42cdd7facfe96f6703b803f91ce6aec10af7f02c5e5c5d4"
+dependencies = [
+ "axum 0.7.9",
+ "form_urlencoded",
+ "futures",
+ "rspc",
+ "serde_json",
+]
+
+[[package]]
 name = "rust-ini"
 version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8657,6 +8718,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde-value"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3a1a3341211875ef120e117ea7fd5228530ae7e7036a779fdc9117be6b3282c"
+dependencies = [
+ "ordered-float",
+ "serde",
+]
+
+[[package]]
 name = "serde-xml-rs"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9111,6 +9182,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ccbb212565d2dc177bc15ecb7b039d66c4490da892436a4eee5b394d620c9bc"
 dependencies = [
  "paste",
+ "serde",
  "serde_json",
  "specta-macros",
  "thiserror 1.0.69",
@@ -10797,6 +10869,28 @@ dependencies = [
  "sharded-slab",
  "thread_local",
  "tracing-core",
+]
+
+[[package]]
+name = "transient"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cdb61be2bc3753cfec3ea4a16753bb98322be47dac7b910ee3170a5307ba9341"
+dependencies = [
+ "rustversion",
+ "transient-derive",
+]
+
+[[package]]
+name = "transient-derive"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "045931745df1346c58e3d822f81f07cabbb515e737613d5c93d3a77c13b66cd8"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.93",
+ "thiserror 1.0.69",
 ]
 
 [[package]]

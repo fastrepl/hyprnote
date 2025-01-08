@@ -22,7 +22,7 @@ pub struct NangoClient {
     integrations: HashMap<NangoIntegration, String>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct NangoConnectSessionRequest {
     pub end_user: NangoConnectSessionRequestUser,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -30,7 +30,7 @@ pub struct NangoConnectSessionRequest {
     pub allowed_integrations: Vec<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct NangoConnectSessionRequestUser {
     pub id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -39,14 +39,14 @@ pub struct NangoConnectSessionRequestUser {
     pub email: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct NangoConnectSessionRequestOrganization {
     pub id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum NangoConnectSessionResponse {
     #[serde(rename = "data")]
     Data { token: String, expires_at: String },

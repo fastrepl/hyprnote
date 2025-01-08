@@ -8,7 +8,7 @@ import {
 } from "@remixicon/react";
 
 export default function Calendar() {
-  const { data, isLoading } = useQuery({
+  const calendars = useQuery({
     queryKey: ["settings", "calendars"],
     queryFn: () => commands.dbListCalendars(),
   });
@@ -36,7 +36,7 @@ export default function Calendar() {
       <div>
         <h2 className="mb-2 font-semibold">Selected</h2>
         <ul className="flex flex-col gap-2">
-          {(data ?? []).map((calendar) => (
+          {(calendars.data ?? []).map((calendar) => (
             <li className="flex flex-row justify-between">
               <div className="flex flex-row items-center gap-1">
                 <span>{calendar.name}</span>

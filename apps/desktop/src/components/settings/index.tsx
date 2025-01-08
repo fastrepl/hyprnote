@@ -4,6 +4,7 @@ import {
   Settings2Icon,
   LayoutTemplateIcon,
   CalendarIcon,
+  UserIcon,
 } from "lucide-react";
 
 import {
@@ -24,22 +25,26 @@ import {
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
 } from "@hypr/ui/components/ui/sidebar";
-
-import Template from "./template";
-import Calendar from "./calendar";
-import General from "./general";
 import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
+
+import General from "./general";
+import Profile from "./profile";
+import Calendar from "./calendar";
+import Template from "./template";
 
 const data = {
   nav: [
     { name: "General", icon: SettingsIcon },
+    { name: "Profile", icon: UserIcon },
     { name: "Calendar", icon: CalendarIcon },
     { name: "Template", icon: LayoutTemplateIcon },
   ],
@@ -89,32 +94,42 @@ export default function SettingsDialog() {
               </SidebarGroup>
 
               <SidebarGroup>
+                <SidebarGroupLabel>Support</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     <SidebarMenuItem>
-                      <SidebarMenuButton>
-                        <span>Logout</span>
-                      </SidebarMenuButton>
+                      <SidebarMenuButton>123</SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton>123</SidebarMenuButton>
                     </SidebarMenuItem>
                   </SidebarMenu>
                 </SidebarGroupContent>
               </SidebarGroup>
             </SidebarContent>
+
+            <SidebarFooter>
+              <span>Logout</span>
+            </SidebarFooter>
           </Sidebar>
 
-          {active === "Template" ? (
-            <Content title="Template">
-              <Template />
+          {active === "Profile" ? (
+            <Content title="Profile">
+              <Profile />
+            </Content>
+          ) : active === "General" ? (
+            <Content title="General">
+              <General />
             </Content>
           ) : active === "Calendar" ? (
             <Content title="Calendar">
               <Calendar />
             </Content>
-          ) : (
-            <Content title="General">
-              <General />
+          ) : active === "Template" ? (
+            <Content title="Template">
+              <Template />
             </Content>
-          )}
+          ) : null}
         </SidebarProvider>
       </DialogContent>
     </Dialog>

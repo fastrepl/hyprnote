@@ -9,14 +9,12 @@ dotenv = "0.15.0"
 [dependencies]
 hypr-analytics = { path = "../../../crates/analytics", package = "analytics" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
-hypr-calendar = { path = "../../../crates/calendar", package = "calendar", default-features = false, features = [
-    "google",
-] }
+hypr-calendar = { path = "../../../crates/calendar", package = "calendar", default-features = false, features = ["google"] }
 hypr-db = { path = "../../../crates/db", package = "db" }
+hypr-nango = { path = "../../../crates/nango", package = "nango" }
 hypr-s3 = { path = "../../../crates/s3", package = "s3" }
 hypr-stt = { path = "../../../crates/stt", package = "stt" }
 hypr-turso = { path = "../../../crates/turso", package = "turso" }
-hypr-nango = { path = "../../../crates/nango", package = "nango" }
 
 axum = { version = "0.7.4", features = ["ws", "multipart"] }
 futures = { workspace = true }
@@ -25,18 +23,21 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tower = "0.5.2"
 tower-http = { version = "0.6.2", features = ["fs", "timeout"] }
 
-async-openai = { version = "0.26.0", default-features = false }
-dotenv = "0.15.0"
 sentry = { workspace = true }
+tracing = { workspace = true }
+tracing-opentelemetry = { workspace = true }
 
 anyhow = { workspace = true }
+chrono = "0.4.39"
+dotenv = "0.15.0"
 schemars = { workspace = true, features = ["preserve_order"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 time = { workspace = true }
-tracing = { workspace = true }
-tracing-opentelemetry = { workspace = true }
 uuid = { workspace = true }
 
+apalis = { version = "0.6.3", features = ["sentry"] }
+apalis-cron = "0.6.3"
+async-openai = { version = "0.26.0", default-features = false }
 async-stripe = { version = "0.39.1", features = ["runtime-tokio-hyper"] }
 clerk-rs = { version = "0.4.0", features = ["axum"] }

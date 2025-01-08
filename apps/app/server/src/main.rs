@@ -1,4 +1,7 @@
-use std::time::Duration;
+use std::{
+    io::{Error, ErrorKind},
+    time::Duration,
+};
 
 use axum::{
     http::StatusCode,
@@ -156,6 +159,15 @@ fn main() {
             let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port))
                 .await
                 .unwrap();
-            axum::serve(listener, router).await.unwrap();
+
+            let http = async {
+                axum::serve(listener, router)
+                    .await
+                    .map_err(|e| Error::new(ErrorKind::Interrupted, e))
+            };
+
+            let monitor = async { worker::monitor().await.unwrap() };
+
+            let _ = tokio::join!(http, monitor);
         });
 }

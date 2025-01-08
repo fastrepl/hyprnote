@@ -14,7 +14,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { useUI } from "@/stores/ui";
 import Controls from "@/components/controls";
 import SearchBar from "@/components/search-bar";
-import SettingsDialog from "@/components/settings-dialog";
+import SettingsDialog from "@/components/settings";
 
 export const Route = createFileRoute("/_nav")({
   component: Component,

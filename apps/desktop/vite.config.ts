@@ -1,5 +1,6 @@
 import path from "path";
-import { defineConfig } from "vite";
+
+import { defineConfig, type UserConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import { lingui } from "@lingui/vite-plugin";
@@ -22,7 +23,10 @@ export default defineConfig(async () => ({
     }),
     TanStackRouterVite(),
   ],
+  ...tauri,
+}));
 
+const tauri: UserConfig = {
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent vite from obscuring rust errors
@@ -44,4 +48,4 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
-}));
+};

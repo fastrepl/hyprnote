@@ -1,4 +1,4 @@
-use super::extractor::StripeEvent;
+use crate::stripe::StripeEvent;
 use axum::response::IntoResponse;
 use stripe::{EventObject, EventType};
 

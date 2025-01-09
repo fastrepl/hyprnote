@@ -57,8 +57,6 @@ pub async fn handler(
         ..CreateChatCompletionRequest::default()
     };
 
-    println!("request: {:?}", request);
-
     let response = state
         .reqwest
         .post("https://api.openai.com/v1/chat/completions")
@@ -68,8 +66,6 @@ pub async fn handler(
         .send()
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    println!("response: {:?}", response);
 
     let stream = response.bytes_stream();
 

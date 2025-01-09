@@ -25,6 +25,7 @@ mod native;
 mod state;
 mod stripe;
 mod web;
+mod webhook;
 mod worker;
 
 fn main() {
@@ -151,7 +152,9 @@ fn main() {
                 );
             }
 
-            let webhook_router = Router::new().route("/stripe", post(stripe::webhook::handler));
+            let webhook_router = Router::new()
+                .route("/stripe", post(webhook::stripe::handler))
+                .route("/nango", post(webhook::nango::handler));
 
             let router = Router::new()
                 .route("/health", get(|| async { (StatusCode::OK, "OK") }))

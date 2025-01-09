@@ -1,4 +1,4 @@
-// https://github.com/arlyon/async-stripe/blob/c71a7eb6d7115089193f7dd602a0ce356848ab73/examples/webhook-axum.rs
+// https://github.com/arlyon/async-stripe/blob/c71a7eb/examples/webhook-axum.rs
 
 use axum::{
     async_trait,

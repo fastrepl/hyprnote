@@ -1,1 +1,2 @@
 **/*.gen.ts
+src/types/server.ts

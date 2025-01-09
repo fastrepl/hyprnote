@@ -55,6 +55,25 @@ pub enum NangoConnectSessionResponse {
     Error { code: String },
 }
 
+// https://docs.nango.dev/guides/getting-started/authorize-an-api-from-your-app#save-the-connection-id-backend
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
+pub struct NangoConnectWebhook {
+    pub r#type: String,
+    pub operation: String,
+    #[serde(rename = "connectionId")]
+    pub connection_id: String,
+    #[serde(rename = "endUser")]
+    pub end_user: NangoConnectWebhookEndUser,
+}
+
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
+pub struct NangoConnectWebhookEndUser {
+    #[serde(rename = "endUserId")]
+    pub end_user_id: String,
+    #[serde(rename = "organizationId")]
+    pub organization_id: Option<String>,
+}
+
 impl NangoClient {
     // https://docs.nango.dev/reference/api/connect/sessions/create
     pub async fn create_connect_session(

@@ -7,6 +7,7 @@ use std::collections::HashMap;
 #[derive(Clone, Hash, Eq, PartialEq)]
 pub enum NangoIntegration {
     GoogleCalendar,
+    OutlookCalendar,
 }
 
 #[derive(Clone)]
@@ -22,7 +23,7 @@ pub struct NangoClient {
     integrations: HashMap<NangoIntegration, String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct NangoConnectSessionRequest {
     pub end_user: NangoConnectSessionRequestUser,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -30,7 +31,7 @@ pub struct NangoConnectSessionRequest {
     pub allowed_integrations: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct NangoConnectSessionRequestUser {
     pub id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -39,19 +40,19 @@ pub struct NangoConnectSessionRequestUser {
     pub email: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct NangoConnectSessionRequestOrganization {
     pub id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub enum NangoConnectSessionResponse {
     #[serde(rename = "data")]
     Data { token: String, expires_at: String },
     #[serde(rename = "error")]
-    Error { code: String, message: String },
+    Error { code: String },
 }
 
 impl NangoClient {
@@ -63,6 +64,7 @@ impl NangoClient {
         let res = self
             .client
             .post(&format!("{}/connect/sessions", self.api_base))
+            .header("Content-Type", "application/json")
             .json(&req)
             .send()
             .await?
@@ -170,11 +172,8 @@ mod tests {
     #[tokio::test]
     async fn test_non_proxy() {
         let nango_client = NangoClientBuilder::new()
-            .api_key("api_key")
-            .integrations(HashMap::from([(
-                NangoIntegration::GoogleCalendar,
-                String::from("some_key"),
-            )]))
+            .api_key("de9c36c9-33dc-4ebf-b006-153d458583ea")
+            .integrations(HashMap::from([]))
             .build();
 
         let _ = nango_client

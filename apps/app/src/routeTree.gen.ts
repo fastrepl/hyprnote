@@ -10,202 +10,224 @@
 
 // Import Routes
 
-import { Route as rootRoute } from "./routes/__root";
-import { Route as SettingsImport } from "./routes/settings";
-import { Route as IndexImport } from "./routes/index";
-import { Route as SIdImport } from "./routes/s.$id";
-import { Route as AuthSignUpImport } from "./routes/auth.sign-up";
-import { Route as AuthSignOutImport } from "./routes/auth.sign-out";
-import { Route as AuthSignInImport } from "./routes/auth.sign-in";
-import { Route as AuthConnectImport } from "./routes/auth.connect";
+import { Route as rootRoute } from './routes/__root'
+import { Route as SettingsImport } from './routes/settings'
+import { Route as IntegrationImport } from './routes/integration'
+import { Route as IndexImport } from './routes/index'
+import { Route as SIdImport } from './routes/s.$id'
+import { Route as AuthSignUpImport } from './routes/auth.sign-up'
+import { Route as AuthSignOutImport } from './routes/auth.sign-out'
+import { Route as AuthSignInImport } from './routes/auth.sign-in'
+import { Route as AuthConnectImport } from './routes/auth.connect'
 
 // Create/Update Routes
 
 const SettingsRoute = SettingsImport.update({
-  id: "/settings",
-  path: "/settings",
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
+
+const IntegrationRoute = IntegrationImport.update({
+  id: '/integration',
+  path: '/integration',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const SIdRoute = SIdImport.update({
-  id: "/s/$id",
-  path: "/s/$id",
+  id: '/s/$id',
+  path: '/s/$id',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const AuthSignUpRoute = AuthSignUpImport.update({
-  id: "/auth/sign-up",
-  path: "/auth/sign-up",
+  id: '/auth/sign-up',
+  path: '/auth/sign-up',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const AuthSignOutRoute = AuthSignOutImport.update({
-  id: "/auth/sign-out",
-  path: "/auth/sign-out",
+  id: '/auth/sign-out',
+  path: '/auth/sign-out',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const AuthSignInRoute = AuthSignInImport.update({
-  id: "/auth/sign-in",
-  path: "/auth/sign-in",
+  id: '/auth/sign-in',
+  path: '/auth/sign-in',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const AuthConnectRoute = AuthConnectImport.update({
-  id: "/auth/connect",
-  path: "/auth/connect",
+  id: '/auth/connect',
+  path: '/auth/connect',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 // Populate the FileRoutesByPath interface
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/settings": {
-      id: "/settings";
-      path: "/settings";
-      fullPath: "/settings";
-      preLoaderRoute: typeof SettingsImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/auth/connect": {
-      id: "/auth/connect";
-      path: "/auth/connect";
-      fullPath: "/auth/connect";
-      preLoaderRoute: typeof AuthConnectImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/auth/sign-in": {
-      id: "/auth/sign-in";
-      path: "/auth/sign-in";
-      fullPath: "/auth/sign-in";
-      preLoaderRoute: typeof AuthSignInImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/auth/sign-out": {
-      id: "/auth/sign-out";
-      path: "/auth/sign-out";
-      fullPath: "/auth/sign-out";
-      preLoaderRoute: typeof AuthSignOutImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/auth/sign-up": {
-      id: "/auth/sign-up";
-      path: "/auth/sign-up";
-      fullPath: "/auth/sign-up";
-      preLoaderRoute: typeof AuthSignUpImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/s/$id": {
-      id: "/s/$id";
-      path: "/s/$id";
-      fullPath: "/s/$id";
-      preLoaderRoute: typeof SIdImport;
-      parentRoute: typeof rootRoute;
-    };
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/integration': {
+      id: '/integration'
+      path: '/integration'
+      fullPath: '/integration'
+      preLoaderRoute: typeof IntegrationImport
+      parentRoute: typeof rootRoute
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsImport
+      parentRoute: typeof rootRoute
+    }
+    '/auth/connect': {
+      id: '/auth/connect'
+      path: '/auth/connect'
+      fullPath: '/auth/connect'
+      preLoaderRoute: typeof AuthConnectImport
+      parentRoute: typeof rootRoute
+    }
+    '/auth/sign-in': {
+      id: '/auth/sign-in'
+      path: '/auth/sign-in'
+      fullPath: '/auth/sign-in'
+      preLoaderRoute: typeof AuthSignInImport
+      parentRoute: typeof rootRoute
+    }
+    '/auth/sign-out': {
+      id: '/auth/sign-out'
+      path: '/auth/sign-out'
+      fullPath: '/auth/sign-out'
+      preLoaderRoute: typeof AuthSignOutImport
+      parentRoute: typeof rootRoute
+    }
+    '/auth/sign-up': {
+      id: '/auth/sign-up'
+      path: '/auth/sign-up'
+      fullPath: '/auth/sign-up'
+      preLoaderRoute: typeof AuthSignUpImport
+      parentRoute: typeof rootRoute
+    }
+    '/s/$id': {
+      id: '/s/$id'
+      path: '/s/$id'
+      fullPath: '/s/$id'
+      preLoaderRoute: typeof SIdImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
-  "/settings": typeof SettingsRoute;
-  "/auth/connect": typeof AuthConnectRoute;
-  "/auth/sign-in": typeof AuthSignInRoute;
-  "/auth/sign-out": typeof AuthSignOutRoute;
-  "/auth/sign-up": typeof AuthSignUpRoute;
-  "/s/$id": typeof SIdRoute;
+  '/': typeof IndexRoute
+  '/integration': typeof IntegrationRoute
+  '/settings': typeof SettingsRoute
+  '/auth/connect': typeof AuthConnectRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-out': typeof AuthSignOutRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
+  '/s/$id': typeof SIdRoute
 }
 
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
-  "/settings": typeof SettingsRoute;
-  "/auth/connect": typeof AuthConnectRoute;
-  "/auth/sign-in": typeof AuthSignInRoute;
-  "/auth/sign-out": typeof AuthSignOutRoute;
-  "/auth/sign-up": typeof AuthSignUpRoute;
-  "/s/$id": typeof SIdRoute;
+  '/': typeof IndexRoute
+  '/integration': typeof IntegrationRoute
+  '/settings': typeof SettingsRoute
+  '/auth/connect': typeof AuthConnectRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-out': typeof AuthSignOutRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
+  '/s/$id': typeof SIdRoute
 }
 
 export interface FileRoutesById {
-  __root__: typeof rootRoute;
-  "/": typeof IndexRoute;
-  "/settings": typeof SettingsRoute;
-  "/auth/connect": typeof AuthConnectRoute;
-  "/auth/sign-in": typeof AuthSignInRoute;
-  "/auth/sign-out": typeof AuthSignOutRoute;
-  "/auth/sign-up": typeof AuthSignUpRoute;
-  "/s/$id": typeof SIdRoute;
+  __root__: typeof rootRoute
+  '/': typeof IndexRoute
+  '/integration': typeof IntegrationRoute
+  '/settings': typeof SettingsRoute
+  '/auth/connect': typeof AuthConnectRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-out': typeof AuthSignOutRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
+  '/s/$id': typeof SIdRoute
 }
 
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | "/"
-    | "/settings"
-    | "/auth/connect"
-    | "/auth/sign-in"
-    | "/auth/sign-out"
-    | "/auth/sign-up"
-    | "/s/$id";
-  fileRoutesByTo: FileRoutesByTo;
+    | '/'
+    | '/integration'
+    | '/settings'
+    | '/auth/connect'
+    | '/auth/sign-in'
+    | '/auth/sign-out'
+    | '/auth/sign-up'
+    | '/s/$id'
+  fileRoutesByTo: FileRoutesByTo
   to:
-    | "/"
-    | "/settings"
-    | "/auth/connect"
-    | "/auth/sign-in"
-    | "/auth/sign-out"
-    | "/auth/sign-up"
-    | "/s/$id";
+    | '/'
+    | '/integration'
+    | '/settings'
+    | '/auth/connect'
+    | '/auth/sign-in'
+    | '/auth/sign-out'
+    | '/auth/sign-up'
+    | '/s/$id'
   id:
-    | "__root__"
-    | "/"
-    | "/settings"
-    | "/auth/connect"
-    | "/auth/sign-in"
-    | "/auth/sign-out"
-    | "/auth/sign-up"
-    | "/s/$id";
-  fileRoutesById: FileRoutesById;
+    | '__root__'
+    | '/'
+    | '/integration'
+    | '/settings'
+    | '/auth/connect'
+    | '/auth/sign-in'
+    | '/auth/sign-out'
+    | '/auth/sign-up'
+    | '/s/$id'
+  fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  SettingsRoute: typeof SettingsRoute;
-  AuthConnectRoute: typeof AuthConnectRoute;
-  AuthSignInRoute: typeof AuthSignInRoute;
-  AuthSignOutRoute: typeof AuthSignOutRoute;
-  AuthSignUpRoute: typeof AuthSignUpRoute;
-  SIdRoute: typeof SIdRoute;
+  IndexRoute: typeof IndexRoute
+  IntegrationRoute: typeof IntegrationRoute
+  SettingsRoute: typeof SettingsRoute
+  AuthConnectRoute: typeof AuthConnectRoute
+  AuthSignInRoute: typeof AuthSignInRoute
+  AuthSignOutRoute: typeof AuthSignOutRoute
+  AuthSignUpRoute: typeof AuthSignUpRoute
+  SIdRoute: typeof SIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  IntegrationRoute: IntegrationRoute,
   SettingsRoute: SettingsRoute,
   AuthConnectRoute: AuthConnectRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignOutRoute: AuthSignOutRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   SIdRoute: SIdRoute,
-};
+}
 
 export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
 
 /* ROUTE_MANIFEST_START
 {
@@ -214,6 +236,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/integration",
         "/settings",
         "/auth/connect",
         "/auth/sign-in",
@@ -224,6 +247,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/integration": {
+      "filePath": "integration.tsx"
     },
     "/settings": {
       "filePath": "settings.tsx"

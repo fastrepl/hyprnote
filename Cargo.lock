@@ -250,6 +250,9 @@ dependencies = [
  "sentry",
  "serde",
  "serde_json",
+ "specta",
+ "specta-typescript",
+ "specta-util",
  "stt",
  "time",
  "tokio",
@@ -2671,8 +2674,6 @@ dependencies = [
  "serde",
  "serde_json",
  "specta",
- "specta-typescript",
- "specta-util",
  "time",
  "tokio",
  "uuid 1.11.0",
@@ -5893,6 +5894,7 @@ version = "0.1.0"
 dependencies = [
  "reqwest 0.12.12",
  "serde",
+ "specta",
  "tokio",
 ]
 

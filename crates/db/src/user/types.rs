@@ -3,13 +3,6 @@ use time::{serde::rfc3339, OffsetDateTime};
 
 use hypr_db_utils::deserialize::{json_string, optional_json_string};
 
-pub fn register_all(collection: &mut specta_util::TypeCollection) {
-    collection.register::<Session>();
-    collection.register::<Calendar>();
-    collection.register::<Event>();
-    collection.register::<Participant>();
-}
-
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
 pub struct Session {
     pub id: String,

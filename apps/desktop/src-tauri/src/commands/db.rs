@@ -73,6 +73,5 @@ pub async fn db_create_session(
     state: State<'_, App>,
     session: hypr_db::user::Session,
 ) -> Result<hypr_db::user::Session, ()> {
-    println!("creating session: {:?}", session);
     Ok(state.db.create_session(session).await.unwrap())
 }

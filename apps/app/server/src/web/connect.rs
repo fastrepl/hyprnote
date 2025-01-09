@@ -9,23 +9,23 @@ use serde::{Deserialize, Serialize};
 use crate::state::AppState;
 use clerk_rs::validators::authorizer::ClerkJwt;
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Input {
+#[derive(Debug, Deserialize, Serialize, specta::Type)]
+pub struct ConnectInput {
     #[serde(rename = "c")]
     code: String,
     #[serde(rename = "f")]
     fingerprint: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Output {
+#[derive(Debug, Deserialize, Serialize, specta::Type)]
+pub struct ConnectOutput {
     key: String,
 }
 
 pub async fn handler(
     State(state): State<AppState>,
     Extension(jwt): Extension<ClerkJwt>,
-    Json(input): Json<Input>,
+    Json(input): Json<ConnectInput>,
 ) -> impl IntoResponse {
     let clerk_user_id = jwt.sub;
 
@@ -69,7 +69,7 @@ pub async fn handler(
         Err(error) => return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string())),
     };
 
-    Ok(Json(Output {
+    Ok(Json(ConnectOutput {
         key: device.api_key,
     }))
 }

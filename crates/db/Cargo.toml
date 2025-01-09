@@ -24,5 +24,3 @@ tokio = { workspace = true, features = ["rt", "macros"] }
 
 random_color = "1.0.0"
 specta = { workspace = true, features = ["derive", "time", "serde_json"] }
-specta-typescript = { workspace = true }
-specta-util = { workspace = true }

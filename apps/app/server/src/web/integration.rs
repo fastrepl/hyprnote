@@ -3,6 +3,9 @@ use hypr_nango::{NangoConnectSessionRequest, NangoConnectSessionResponse};
 
 use crate::state::AppState;
 
+pub type CreateSessionInput = NangoConnectSessionRequest;
+pub type CreateSessionOutput = NangoConnectSessionResponse;
+
 pub async fn create_session(
     State(state): State<AppState>,
     Json(input): Json<NangoConnectSessionRequest>,

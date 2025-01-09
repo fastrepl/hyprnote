@@ -31,6 +31,9 @@ fn main() {
     #[cfg(debug_assertions)]
     dotenv::from_filename(".env.local").unwrap();
 
+    #[cfg(debug_assertions)]
+    export_ts_types().unwrap();
+
     let _guard = sentry::init((
         std::env::var("SENTRY_DSN").unwrap(),
         sentry::ClientOptions {
@@ -55,8 +58,17 @@ fn main() {
         .unwrap()
         .block_on(async {
             let nango_client = hypr_nango::NangoClientBuilder::new()
-                .api_key("TODO_API_KEY")
-                .integrations(std::collections::HashMap::new())
+                .api_key(std::env::var("NANGO_API_KEY").unwrap())
+                .integrations(std::collections::HashMap::from([
+                    (
+                        hypr_nango::NangoIntegration::GoogleCalendar,
+                        String::from("google-calendar"),
+                    ),
+                    (
+                        hypr_nango::NangoIntegration::OutlookCalendar,
+                        String::from("outlook-calendar"),
+                    ),
+                ]))
                 .build();
 
             let stt_config = hypr_stt::Config {
@@ -170,4 +182,24 @@ fn main() {
 
             let _ = tokio::join!(http, monitor);
         });
+}
+
+fn export_ts_types() -> anyhow::Result<()> {
+    let mut collection = specta_util::TypeCollection::default();
+
+    collection.register::<web::connect::ConnectInput>();
+    collection.register::<web::connect::ConnectOutput>();
+    collection.register::<web::integration::CreateSessionInput>();
+    collection.register::<web::integration::CreateSessionOutput>();
+
+    let language = specta_typescript::Typescript::default()
+        .header("// @ts-nocheck\n\n")
+        .formatter(specta_typescript::formatter::prettier)
+        .bigint(specta_typescript::BigIntExportBehavior::Number);
+
+    let base = env!("CARGO_MANIFEST_DIR");
+    let path = std::path::Path::new(base).join("../src/types/server.ts");
+
+    collection.export_to(language, path)?;
+    Ok(())
 }

@@ -15,7 +15,7 @@ mod deep;
 pub use deep::{DeepgramClient, DeepgramConfig};
 
 #[allow(dead_code)]
-trait RealtimeSpeechToText<S, E> {
+pub trait RealtimeSpeechToText<S, E> {
     async fn transcribe(&mut self, stream: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,

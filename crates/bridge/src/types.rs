@@ -4,4 +4,6 @@ use serde::{Deserialize, Serialize};
 pub struct TranscribeInputChunk {}
 
 #[derive(Debug, Deserialize, Serialize, specta::Type)]
-pub struct TranscribeOutputChunk {}
+pub struct TranscribeOutputChunk {
+    pub text: String,
+}

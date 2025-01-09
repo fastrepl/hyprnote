@@ -11,12 +11,13 @@ use futures::{Stream, StreamExt};
 
 use crate::{RealtimeSpeechToText, StreamResponse};
 
+#[derive(Debug, Clone)]
 pub struct DeepgramClient {
     #[allow(unused)]
     config: DeepgramConfig,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeepgramConfig {
     pub api_key: String,
 }

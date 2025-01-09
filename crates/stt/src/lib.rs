@@ -5,6 +5,9 @@ use std::error::Error;
 
 use hypr_clova::interface::KeywordBoosting;
 
+mod mock;
+mod whisper;
+
 mod clova;
 pub use clova::{ClovaClient, ClovaConfig};
 
@@ -87,6 +90,21 @@ mod tests {
             }
             Ok(buf.freeze())
         })
+    }
+
+    // cargo test test_mock -p stt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    #[serial]
+    async fn test_mock() {
+        let audio_stream = microphone_as_stream();
+
+        let mut client = mock::MockClient::new();
+        let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
+
+        while let Some(result) = transcript_stream.next().await {
+            println!("mock: {:?}", result.unwrap());
+        }
     }
 
     // cargo test test_deepgram -p stt --  --ignored --nocapture

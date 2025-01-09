@@ -2,15 +2,62 @@
 // https://github.com/snapview/tokio-tungstenite/blob/master/examples/client.rs
 
 use anyhow::Result;
-use tokio_tungstenite::{connect_async, tungstenite::client::IntoClientRequest};
+use futures_util::{SinkExt, StreamExt};
+use tokio::sync::mpsc::{self, Receiver, Sender};
+use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
-use crate::Client;
+use crate::{Client, TranscribeInputChunk, TranscribeOutputChunk};
 
 impl Client {
-    pub async fn transcribe(&self) -> Result<()> {
-        let (_ws_stream, _) =
-            connect_async(self.transcribe_request.clone().into_client_request()?).await?;
+    pub async fn transcribe(
+        &self,
+    ) -> Result<(
+        Sender<TranscribeInputChunk>,
+        Receiver<TranscribeOutputChunk>,
+    )> {
+        let req = self.transcribe_request.clone().into_client_request()?;
+        let (ws_stream, _) = connect_async(req).await?;
 
-        Ok(())
+        let (mut ws_sender, mut ws_receiver) = ws_stream.split();
+
+        let (transcript_tx, transcript_rx) = mpsc::channel::<TranscribeOutputChunk>(32);
+        let (audio_tx, mut audio_rx) = mpsc::channel::<TranscribeInputChunk>(32);
+
+        let mut send_task = tokio::spawn(async move {
+            while let Some(audio) = audio_rx.recv().await {
+                let msg = Message::Binary(serde_json::to_vec(&audio).unwrap().into());
+                if let Err(_) = ws_sender.send(msg).await {
+                    break;
+                }
+            }
+        });
+
+        let mut recv_task = tokio::spawn(async move {
+            while let Some(Ok(msg)) = ws_receiver.next().await {
+                match msg {
+                    Message::Text(data) => {
+                        let out: TranscribeOutputChunk = serde_json::from_str(&data).unwrap();
+                        transcript_tx.send(out).await.unwrap();
+                    }
+                    Message::Binary(_) => {}
+                    Message::Close(_) => break,
+                    Message::Ping(_) => {}
+                    Message::Pong(_) => {}
+                    Message::Frame(_) => {}
+                }
+            }
+        });
+
+        tokio::select! {
+            _ = (&mut send_task) => {
+                recv_task.abort();
+            },
+            _ = (&mut recv_task) => {
+                send_task.abort();
+            }
+        }
+
+        Ok((audio_tx, transcript_rx))
     }
 }

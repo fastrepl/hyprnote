@@ -1434,6 +1434,7 @@ name = "bridge"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "futures-util",
  "jsonschema",
  "reqwest 0.12.12",
  "schemars 1.0.0-alpha.17",

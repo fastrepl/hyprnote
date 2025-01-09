@@ -1,25 +1,33 @@
-use crate::stripe::StripeEvent;
-use axum::response::IntoResponse;
+// https://github.com/arlyon/async-stripe/blob/c71a7eb/examples/webhook-axum.rs#L68
+
+use axum::{extract::State, response::IntoResponse};
 use stripe::{EventObject, EventType};
 
-pub async fn handler(StripeEvent(event): StripeEvent) -> impl IntoResponse {
+use crate::{state::AppState, stripe::StripeEvent};
+
+pub async fn handler(
+    State(_state): State<AppState>,
+    StripeEvent(event): StripeEvent,
+) -> impl IntoResponse {
     match event.type_ {
-        EventType::CheckoutSessionCompleted => {
-            if let EventObject::CheckoutSession(session) = event.data.object {
-                println!(
-                    "Received checkout session completed webhook with id: {:?}",
-                    session.id
-                );
-            }
+        EventType::CustomerCreated => {
+            if let EventObject::Customer(_customer) = event.data.object {}
         }
-        EventType::AccountUpdated => {
-            if let EventObject::Account(account) = event.data.object {
-                println!(
-                    "Received account updated webhook for account: {:?}",
-                    account.id
-                );
-            }
+        EventType::CustomerUpdated => {
+            if let EventObject::Customer(_customer) = event.data.object {}
         }
-        _ => println!("Unknown event encountered in webhook: {:?}", event.type_),
+        EventType::CustomerDeleted => {
+            if let EventObject::Customer(_customer) = event.data.object {}
+        }
+        EventType::CustomerSubscriptionCreated => {
+            if let EventObject::Subscription(_subscription) = event.data.object {}
+        }
+        EventType::CustomerSubscriptionUpdated => {
+            if let EventObject::Subscription(_subscription) = event.data.object {}
+        }
+        EventType::CustomerSubscriptionDeleted => {
+            if let EventObject::Subscription(_subscription) = event.data.object {}
+        }
+        _ => {}
     }
 }

@@ -29,9 +29,12 @@ where
             .await
             .map_err(IntoResponse::into_response)?;
 
-        Ok(Self(
-            stripe::Webhook::construct_event(&payload, signature.to_str().unwrap(), "whsec_xxxxx")
-                .map_err(|_| StatusCode::BAD_REQUEST.into_response())?,
-        ))
+        let secret = std::env::var("STRIPE_WEBHOOK_SECRET").unwrap();
+
+        let event =
+            stripe::Webhook::construct_event(&payload, signature.to_str().unwrap(), &secret)
+                .map_err(|_| StatusCode::BAD_REQUEST.into_response())?;
+
+        Ok(Self(event))
     }
 }

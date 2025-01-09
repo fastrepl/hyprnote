@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use time::{serde::rfc3339, OffsetDateTime};
 
+use hypr_db_utils::deserialize::optional_json_string;
+
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct User {
     pub id: String,
@@ -34,7 +36,9 @@ pub struct Device {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Billing {
     // https://docs.stripe.com/api/customers/object
+    #[serde(deserialize_with = "optional_json_string")]
     pub stripe_customer: Option<serde_json::Value>,
     // https://docs.stripe.com/api/subscriptions/object
+    #[serde(deserialize_with = "optional_json_string")]
     pub stripe_subscription: Option<serde_json::Value>,
 }

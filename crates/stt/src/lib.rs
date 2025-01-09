@@ -5,7 +5,9 @@ use std::error::Error;
 
 use hypr_clova::interface::KeywordBoosting;
 
+#[cfg(debug_assertions)]
 mod mock;
+
 mod whisper;
 
 mod clova;
@@ -41,6 +43,11 @@ pub struct Config {
 impl Client {
     pub fn new(config: Config) -> Self {
         Self { config }
+    }
+
+    #[cfg(debug_assertions)]
+    pub fn for_mock(&self) -> mock::MockClient {
+        mock::MockClient::new()
     }
 
     pub async fn for_korean(&self) -> ClovaClient {

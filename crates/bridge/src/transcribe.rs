@@ -24,7 +24,7 @@ impl Client {
         let (transcript_tx, transcript_rx) = mpsc::channel::<TranscribeOutputChunk>(32);
         let (audio_tx, mut audio_rx) = mpsc::channel::<TranscribeInputChunk>(32);
 
-        let mut send_task = tokio::spawn(async move {
+        let _send_task = tokio::spawn(async move {
             while let Some(audio) = audio_rx.recv().await {
                 let msg = Message::Binary(serde_json::to_vec(&audio).unwrap().into());
                 if let Err(_) = ws_sender.send(msg).await {
@@ -33,7 +33,7 @@ impl Client {
             }
         });
 
-        let mut recv_task = tokio::spawn(async move {
+        let _recv_task = tokio::spawn(async move {
             while let Some(Ok(msg)) = ws_receiver.next().await {
                 match msg {
                     Message::Text(data) => {
@@ -48,15 +48,6 @@ impl Client {
                 }
             }
         });
-
-        tokio::select! {
-            _ = (&mut send_task) => {
-                recv_task.abort();
-            },
-            _ = (&mut recv_task) => {
-                send_task.abort();
-            }
-        }
 
         Ok((audio_tx, transcript_rx))
     }

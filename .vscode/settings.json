@@ -10,6 +10,7 @@
   },
   "editor.inlayHints.enabled": "offUnlessPressed",
   "rust-analyzer.check.command": "check",
+  "rust-analyzer.check.workspace": false,
   "rust-analyzer.checkOnSave": true,
   "rust-analyzer.check.allTargets": false,
   "rust-analyzer.cargo.extraEnv": {

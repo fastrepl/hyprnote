@@ -18,6 +18,11 @@ pub struct AppState {
 }
 
 #[derive(Clone)]
+pub struct STTState {
+    pub stt: hypr_stt::Client,
+}
+
+#[derive(Clone)]
 pub struct AuthState {
     pub clerk: Clerk,
     pub admin_db: AdminDatabase,
@@ -27,6 +32,14 @@ pub struct AuthState {
 #[derive(Clone)]
 pub struct AnalyticsState {
     pub analytics: AnalyticsClient,
+}
+
+impl FromRef<AppState> for STTState {
+    fn from_ref(app_state: &AppState) -> STTState {
+        STTState {
+            stt: app_state.stt.clone(),
+        }
+    }
 }
 
 impl FromRef<AppState> for AuthState {

@@ -1,30 +1,27 @@
 // https://github.com/tokio-rs/axum/blob/4f11b45/examples/websockets/src/main.rs#L85
 
 use axum::{
-    extract::ws::{Message, WebSocket, WebSocketUpgrade},
+    extract::{
+        ws::{Message, WebSocket, WebSocketUpgrade},
+        State,
+    },
     response::IntoResponse,
-    Extension,
 };
 use bytes::Bytes;
 use futures::{SinkExt, StreamExt};
-use std::sync::Arc;
-use tokio::sync::Mutex;
 
-use crate::state::AppState;
+use crate::state::STTState;
 use hypr_bridge::{TranscribeInputChunk, TranscribeOutputChunk};
 use hypr_stt::{RealtimeSpeechToText, StreamResponse};
 
-pub async fn handler(
-    ws: WebSocketUpgrade,
-    Extension(state): Extension<Arc<Mutex<AppState>>>,
-) -> impl IntoResponse {
+pub async fn handler(ws: WebSocketUpgrade, State(state): State<STTState>) -> impl IntoResponse {
     ws.on_upgrade(|socket| websocket(socket, state))
 }
 
-async fn websocket(socket: WebSocket, state: Arc<Mutex<AppState>>) {
+async fn websocket(socket: WebSocket, state: STTState) {
     let (mut ws_sender, ws_receiver) = socket.split();
 
-    let mut stt = state.lock().await.stt.for_english();
+    let mut stt = state.stt.for_mock();
 
     let input_stream = futures::stream::try_unfold(ws_receiver, |mut ws_receiver| async move {
         match ws_receiver.next().await {
@@ -73,7 +70,14 @@ mod tests {
     };
 
     fn app() -> axum::Router {
-        axum::Router::new().route("/ws", axum::routing::get(handler))
+        axum::Router::new()
+            .route("/api/native/transcribe", axum::routing::get(handler))
+            .with_state(STTState {
+                stt: hypr_stt::Client::new(hypr_stt::Config {
+                    deepgram_api_key: "".to_string(),
+                    clova_api_key: "".to_string(),
+                }),
+            })
     }
 
     // https://github.com/tokio-rs/axum/blob/4f11b45/examples/testing-websockets/src/main.rs#L104
@@ -85,10 +89,12 @@ mod tests {
         let addr = listener.local_addr().unwrap();
         tokio::spawn(axum::serve(listener, app()).into_future());
 
-        let _ = hypr_bridge::Client::builder()
+        let client = hypr_bridge::Client::builder()
             .with_base(format!("http://localhost:{}", addr.port()))
             .with_token("")
             .build()
             .unwrap();
+
+        let _ = client.transcribe().await.unwrap();
     }
 }

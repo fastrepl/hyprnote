@@ -66,7 +66,9 @@ impl ClientBuilder {
         if cfg!(debug_assertions) {
             url.set_scheme("ws").unwrap();
             url.set_host(Some("localhost")).unwrap();
-            url.set_port(Some(3000)).unwrap();
+            if url.port().is_none() {
+                url.set_port(Some(3000)).unwrap();
+            }
         } else {
             url.set_scheme("wss").unwrap();
             url.set_host(Some("api.hyprnote.com")).unwrap();

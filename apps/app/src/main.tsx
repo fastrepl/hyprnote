@@ -6,6 +6,7 @@ import { routeTree } from "./routeTree.gen";
 import "./styles/globals.css";
 import "@hypr/ui/globals.css";
 
+import * as Sentry from "@sentry/react";
 import { ThemeProvider } from "@hypr/ui/contexts/theme";
 import { ClerkProvider } from "@clerk/clerk-react";
 
@@ -18,6 +19,12 @@ const queryClient = new QueryClient();
 const router = createRouter({
   routeTree,
   defaultPreload: "intent",
+});
+
+Sentry.init({
+  dsn: "https://a4abe058104d9e2142abe78f702e3de9@o4506190168522752.ingest.us.sentry.io/4508570874937344",
+  integrations: [Sentry.tanstackRouterBrowserTracingIntegration(router)],
+  tracesSampleRate: 1.0,
 });
 
 declare module "@tanstack/react-router" {

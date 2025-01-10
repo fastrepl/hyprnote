@@ -8,7 +8,7 @@ tasks:
     silent: true
     deps: ["fmt:swift", "fmt:js", "fmt:dprint"]
 
-  desktop:build: pnpm -F desktop tauri build
+  stripe: stripe listen --skip-verify --forward-to http://localhost:3000/webhook/stripe
   app:dev:
     cmds:
       - docker-compose -f crates/s3/docker-compose.yaml up -d

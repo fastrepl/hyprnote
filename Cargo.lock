@@ -2669,6 +2669,7 @@ dependencies = [
  "calendar",
  "db-utils",
  "libsql",
+ "nango",
  "rand 0.8.5",
  "random_color",
  "serde",

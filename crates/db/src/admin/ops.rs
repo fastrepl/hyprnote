@@ -2,7 +2,7 @@ use anyhow::Result;
 use rand::{distributions::Alphanumeric, Rng};
 use time::format_description::well_known::Rfc3339;
 
-use super::{Device, User};
+use super::{Device, Integration, User};
 use crate::Connection;
 
 #[derive(Clone)]
@@ -134,6 +134,50 @@ impl AdminDatabase {
         let row = rows.next().await.unwrap().unwrap();
         let user: User = libsql::de::from_row(&row).unwrap();
         Ok(user)
+    }
+
+    pub async fn list_integrations(&self, user_id: impl AsRef<str>) -> Result<Vec<Integration>> {
+        let mut rows = self
+            .conn
+            .query(
+                "SELECT * FROM integrations WHERE user_id = ?",
+                vec![user_id.as_ref()],
+            )
+            .await?;
+
+        let mut items = Vec::new();
+        while let Some(row) = rows.next().await.unwrap() {
+            let item: Integration = libsql::de::from_row(&row).unwrap();
+            items.push(item);
+        }
+        Ok(items)
+    }
+
+    pub async fn upsert_integration(&self, integration: Integration) -> Result<Integration> {
+        let mut rows = self
+            .conn
+            .query(
+                "INSERT INTO integrations (
+                    id,
+                    user_id,
+                    nango_integration_id,
+                    nango_connection_id
+                ) VALUES (?, ?, ?, ?)
+                ON CONFLICT (user_id, nango_integration_id) DO UPDATE SET
+                    nango_connection_id = excluded.nango_connection_id
+                RETURNING *",
+                vec![
+                    integration.id,
+                    integration.user_id,
+                    integration.nango_integration_id.into(),
+                    integration.nango_connection_id,
+                ],
+            )
+            .await?;
+
+        let row = rows.next().await.unwrap().unwrap();
+        let integration: Integration = libsql::de::from_row(&row).unwrap();
+        Ok(integration)
     }
 }
 

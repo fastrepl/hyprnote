@@ -4,12 +4,16 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@clerk/clerk-react";
 import Nango from "@nangohq/frontend";
 
-import { createNangoSession } from "../client";
+import { createNangoConnection } from "../client";
+import { NangoIntegration } from "../types";
 
-const integrations = ["google-calendar", "outlook-calendar"] as const;
+const integrations: NangoIntegration[] = [
+  "google-calendar",
+  "outlook-calendar",
+] as const;
 
 const schema = z.object({
-  provider: z.enum(integrations),
+  provider: z.enum(integrations as unknown as [string, ...string[]]),
 });
 
 export const Route = createFileRoute("/integration")({
@@ -33,7 +37,7 @@ function Component() {
         return;
       }
 
-      const res = await createNangoSession({
+      const res = await createNangoConnection({
         end_user: { id: userId },
         allowed_integrations: integrations as unknown as string[],
       });

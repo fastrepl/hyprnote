@@ -1,26 +1,46 @@
 // https://docs.nango.dev/host/cloud#cloud-vs-self-hosting
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 // https://docs.nango.dev/understand/concepts/integrations
-#[derive(Clone, Hash, Eq, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
 pub enum NangoIntegration {
+    #[serde(rename = "google-calendar")]
     GoogleCalendar,
+    #[serde(rename = "outlook-calendar")]
     OutlookCalendar,
+}
+
+impl TryFrom<String> for NangoIntegration {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "google-calendar" => Ok(NangoIntegration::GoogleCalendar),
+            "outlook-calendar" => Ok(NangoIntegration::OutlookCalendar),
+            _ => Err(format!("Unknown integration: {}", value)),
+        }
+    }
+}
+
+impl From<NangoIntegration> for String {
+    fn from(integration: NangoIntegration) -> Self {
+        match integration {
+            NangoIntegration::GoogleCalendar => "google-calendar".to_string(),
+            NangoIntegration::OutlookCalendar => "outlook-calendar".to_string(),
+        }
+    }
 }
 
 #[derive(Clone)]
 pub struct NangoClientBuilder {
     api_key: Option<String>,
-    integrations: Option<HashMap<NangoIntegration, String>>,
 }
 
 #[derive(Clone)]
 pub struct NangoClient {
     client: reqwest::Client,
     api_base: String,
-    integrations: HashMap<NangoIntegration, String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
@@ -55,6 +75,24 @@ pub enum NangoConnectSessionResponse {
     Error { code: String },
 }
 
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[serde(untagged)]
+pub enum NangoGetConnectionResponse {
+    Data(NangoGetConnectionResponseData),
+    Error { message: String },
+}
+
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
+pub struct NangoGetConnectionResponseData {
+    pub id: String,
+    pub connection_id: String,
+    pub provider_config_key: String,
+    pub provider: String,
+    pub created_at: String,
+    pub updated_at: String,
+    pub last_fetched_at: String,
+}
+
 // https://docs.nango.dev/guides/getting-started/authorize-an-api-from-your-app#save-the-connection-id-backend
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct NangoConnectWebhook {
@@ -75,6 +113,22 @@ pub struct NangoConnectWebhookEndUser {
 }
 
 impl NangoClient {
+    // https://docs.nango.dev/reference/api/connection/get
+    pub async fn get_connection(
+        &self,
+        connection_id: impl std::fmt::Display,
+    ) -> Result<NangoGetConnectionResponse, reqwest::Error> {
+        let res = self
+            .client
+            .get(&format!("{}/connection/{}", self.api_base, connection_id))
+            .send()
+            .await?
+            .json()
+            .await?;
+
+        Ok(res)
+    }
+
     // https://docs.nango.dev/reference/api/connect/sessions/create
     pub async fn create_connect_session(
         &self,
@@ -100,7 +154,7 @@ impl NangoClient {
     ) -> NangoProxyBuilder {
         NangoProxyBuilder {
             nango: self,
-            integration_id: self.integrations.get(&integration).unwrap().clone(),
+            integration_id: integration.into(),
             connection_id: connection_id.into(),
         }
     }
@@ -115,19 +169,11 @@ pub struct NangoProxyBuilder<'a> {
 
 impl NangoClientBuilder {
     pub fn new() -> Self {
-        NangoClientBuilder {
-            api_key: None,
-            integrations: None,
-        }
+        NangoClientBuilder { api_key: None }
     }
 
     pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
         self.api_key = Some(api_key.into());
-        self
-    }
-
-    pub fn integrations(mut self, m: HashMap<NangoIntegration, String>) -> Self {
-        self.integrations = Some(m);
         self
     }
 
@@ -149,7 +195,6 @@ impl NangoClientBuilder {
         NangoClient {
             client,
             api_base: "https://api.nango.dev".to_string(),
-            integrations: self.integrations.unwrap(),
         }
     }
 }
@@ -192,7 +237,6 @@ mod tests {
     async fn test_non_proxy() {
         let nango_client = NangoClientBuilder::new()
             .api_key("de9c36c9-33dc-4ebf-b006-153d458583ea")
-            .integrations(HashMap::from([]))
             .build();
 
         let _ = nango_client
@@ -211,13 +255,7 @@ mod tests {
 
     #[test]
     fn test_proxy() {
-        let nango_client = NangoClientBuilder::new()
-            .api_key("api_key")
-            .integrations(HashMap::from([(
-                NangoIntegration::GoogleCalendar,
-                String::from("some_key"),
-            )]))
-            .build();
+        let nango_client = NangoClientBuilder::new().api_key("api_key").build();
 
         let _ = nango_client
             .for_connection(NangoIntegration::GoogleCalendar, "connection")

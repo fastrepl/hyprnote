@@ -6,7 +6,7 @@ use crate::state::AppState;
 pub type CreateSessionInput = NangoConnectSessionRequest;
 pub type CreateSessionOutput = NangoConnectSessionResponse;
 
-pub async fn create_session(
+pub async fn create_connection(
     State(state): State<AppState>,
     Json(input): Json<NangoConnectSessionRequest>,
 ) -> Result<Json<NangoConnectSessionResponse>, StatusCode> {

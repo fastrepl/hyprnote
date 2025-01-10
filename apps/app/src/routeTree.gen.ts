@@ -11,7 +11,6 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as SettingsImport } from './routes/settings'
 import { Route as IntegrationImport } from './routes/integration'
 import { Route as IndexImport } from './routes/index'
 import { Route as SIdImport } from './routes/s.$id'
@@ -21,12 +20,6 @@ import { Route as AuthSignInImport } from './routes/auth.sign-in'
 import { Route as AuthConnectImport } from './routes/auth.connect'
 
 // Create/Update Routes
-
-const SettingsRoute = SettingsImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRoute,
-} as any)
 
 const IntegrationRoute = IntegrationImport.update({
   id: '/integration',
@@ -88,13 +81,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegrationImport
       parentRoute: typeof rootRoute
     }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsImport
-      parentRoute: typeof rootRoute
-    }
     '/auth/connect': {
       id: '/auth/connect'
       path: '/auth/connect'
@@ -138,7 +124,6 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/integration': typeof IntegrationRoute
-  '/settings': typeof SettingsRoute
   '/auth/connect': typeof AuthConnectRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-out': typeof AuthSignOutRoute
@@ -149,7 +134,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/integration': typeof IntegrationRoute
-  '/settings': typeof SettingsRoute
   '/auth/connect': typeof AuthConnectRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-out': typeof AuthSignOutRoute
@@ -161,7 +145,6 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/integration': typeof IntegrationRoute
-  '/settings': typeof SettingsRoute
   '/auth/connect': typeof AuthConnectRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-out': typeof AuthSignOutRoute
@@ -174,7 +157,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/integration'
-    | '/settings'
     | '/auth/connect'
     | '/auth/sign-in'
     | '/auth/sign-out'
@@ -184,7 +166,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/integration'
-    | '/settings'
     | '/auth/connect'
     | '/auth/sign-in'
     | '/auth/sign-out'
@@ -194,7 +175,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/integration'
-    | '/settings'
     | '/auth/connect'
     | '/auth/sign-in'
     | '/auth/sign-out'
@@ -206,7 +186,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   IntegrationRoute: typeof IntegrationRoute
-  SettingsRoute: typeof SettingsRoute
   AuthConnectRoute: typeof AuthConnectRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignOutRoute: typeof AuthSignOutRoute
@@ -217,7 +196,6 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   IntegrationRoute: IntegrationRoute,
-  SettingsRoute: SettingsRoute,
   AuthConnectRoute: AuthConnectRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignOutRoute: AuthSignOutRoute,
@@ -237,7 +215,6 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/integration",
-        "/settings",
         "/auth/connect",
         "/auth/sign-in",
         "/auth/sign-out",
@@ -250,9 +227,6 @@ export const routeTree = rootRoute
     },
     "/integration": {
       "filePath": "integration.tsx"
-    },
-    "/settings": {
-      "filePath": "settings.tsx"
     },
     "/auth/connect": {
       "filePath": "auth.connect.tsx"

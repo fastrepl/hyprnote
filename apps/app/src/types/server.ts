@@ -14,3 +14,5 @@ export type NangoConnectSessionRequestUser = { id: string; display_name?: string
 
 export type NangoConnectSessionResponse = { data: { token: string; expires_at: string } } | { error: { code: string } }
 
+export type NangoIntegration = "google-calendar" | "outlook-calendar"
+

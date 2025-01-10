@@ -60,16 +60,6 @@ fn main() {
         .block_on(async {
             let nango_client = hypr_nango::NangoClientBuilder::new()
                 .api_key(std::env::var("NANGO_API_KEY").unwrap())
-                .integrations(std::collections::HashMap::from([
-                    (
-                        hypr_nango::NangoIntegration::GoogleCalendar,
-                        String::from("google-calendar"),
-                    ),
-                    (
-                        hypr_nango::NangoIntegration::OutlookCalendar,
-                        String::from("outlook-calendar"),
-                    ),
-                ]))
                 .build();
 
             let stt_config = hypr_stt::Config {
@@ -115,8 +105,8 @@ fn main() {
             let web_router = Router::new()
                 .route("/connect", post(web::connect::handler))
                 .route(
-                    "/integration/session",
-                    post(web::integration::create_session),
+                    "/integration/connection",
+                    post(web::integration::create_connection),
                 )
                 .layer(ClerkLayer::new(
                     MemoryCacheJwksProvider::new(clerk),
@@ -194,6 +184,7 @@ fn export_ts_types() -> anyhow::Result<()> {
     collection.register::<web::connect::ConnectOutput>();
     collection.register::<web::integration::CreateSessionInput>();
     collection.register::<web::integration::CreateSessionOutput>();
+    collection.register::<hypr_nango::NangoIntegration>();
 
     let language = specta_typescript::Typescript::default()
         .header("// @ts-nocheck\n\n")

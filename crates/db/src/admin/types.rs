@@ -8,6 +8,7 @@ pub struct User {
     pub id: String,
     #[serde(with = "rfc3339")]
     pub timestamp: OffsetDateTime,
+    pub clerk_org_id: Option<String>,
     pub clerk_user_id: String,
     pub turso_db_name: String,
 }
@@ -17,6 +18,7 @@ impl Default for User {
         User {
             id: uuid::Uuid::new_v4().to_string(),
             timestamp: time::OffsetDateTime::now_utc(),
+            clerk_org_id: None,
             clerk_user_id: "".to_string(),
             turso_db_name: "".to_string(),
         }
@@ -35,10 +37,21 @@ pub struct Device {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Billing {
+    pub id: String,
+    pub user_id: String,
     // https://docs.stripe.com/api/customers/object
     #[serde(deserialize_with = "optional_json_string")]
     pub stripe_customer: Option<serde_json::Value>,
     // https://docs.stripe.com/api/subscriptions/object
     #[serde(deserialize_with = "optional_json_string")]
     pub stripe_subscription: Option<serde_json::Value>,
+    pub usage_seconds: u64,
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct Integration {
+    pub id: String,
+    pub user_id: String,
+    pub nango_integration_id: hypr_nango::NangoIntegration,
+    pub nango_connection_id: String,
 }

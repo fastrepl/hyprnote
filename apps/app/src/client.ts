@@ -15,10 +15,10 @@ export const connect = async (input: ConnectInput): Promise<ConnectOutput> => {
   }).then((res) => res.json());
 };
 
-export const createNangoSession = async (
+export const createNangoConnection = async (
   input: NangoConnectSessionRequest,
 ): Promise<NangoConnectSessionResponse> => {
-  return fetch(`${BASE}/integration/session`, {
+  return fetch(`${BASE}/integration/connection`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),

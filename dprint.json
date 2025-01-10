@@ -1,7 +1,8 @@
 {
   "excludes": [
     "**/*-lock.yaml",
-    "**/*-lock.json"
+    "**/*-lock.json",
+    "lago"
   ],
   "exec": {
     "cwd": "${configDir}",

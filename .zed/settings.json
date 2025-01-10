@@ -1,4 +1,7 @@
 {
+  "file_scan_exclusions": [
+    "lago"
+  ],
   "formatter": "language_server",
   "lsp": {
     "rust-analyzer": {

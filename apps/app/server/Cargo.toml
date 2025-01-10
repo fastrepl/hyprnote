@@ -11,6 +11,7 @@ hypr-analytics = { path = "../../../crates/analytics", package = "analytics" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar", default-features = false, features = ["google"] }
 hypr-db = { path = "../../../crates/db", package = "db" }
+hypr-lago = { path = "../../../crates/lago", package = "lago" }
 hypr-nango = { path = "../../../crates/nango", package = "nango" }
 hypr-s3 = { path = "../../../crates/s3", package = "s3" }
 hypr-stt = { path = "../../../crates/stt", package = "stt" }

@@ -243,6 +243,7 @@ dependencies = [
  "db",
  "dotenv",
  "futures",
+ "lago",
  "nango",
  "reqwest 0.12.12",
  "s3",
@@ -5311,6 +5312,16 @@ dependencies = [
  "indexmap 1.9.3",
  "matches",
  "selectors",
+]
+
+[[package]]
+name = "lago"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "reqwest 0.12.12",
+ "serde",
+ "tokio",
 ]
 
 [[package]]

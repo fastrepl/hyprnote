@@ -30,7 +30,7 @@ function Component() {
   const { code, fingerprint } = Route.useLoaderData();
 
   const handleSignIn = () => {
-    const base = "http://127.0.0.1:3000";
+    const base = "http://localhost:5000";
     const u = new URL(base);
     u.pathname = "/auth/connect";
     u.searchParams.set("c", code);

@@ -145,7 +145,8 @@ fn main() {
 
             let webhook_router = Router::new()
                 .route("/stripe", post(webhook::stripe::handler))
-                .route("/nango", post(webhook::nango::handler));
+                .route("/nango", post(webhook::nango::handler))
+                .route("/lago", post(webhook::lago::handler));
 
             let router = Router::new()
                 .route("/health", get(|| async { (StatusCode::OK, "OK") }))
@@ -161,7 +162,7 @@ fn main() {
                 })
                 .with_state(state);
 
-            let port = std::env::var("PORT").unwrap_or("3000".to_string());
+            let port = std::env::var("PORT").unwrap_or("5000".to_string());
             let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port))
                 .await
                 .unwrap();

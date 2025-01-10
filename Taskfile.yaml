@@ -8,7 +8,6 @@ tasks:
     silent: true
     deps: ["fmt:swift", "fmt:js", "fmt:dprint"]
 
-  stripe: stripe listen --skip-verify --forward-to http://localhost:3000/webhook/stripe
   app:dev:
     cmds:
       - docker-compose -f crates/s3/docker-compose.yaml up -d
@@ -21,6 +20,7 @@ tasks:
           secrets=$(grep -v '^#' .env.prod | grep '=' | sed 's/"/\\"/g' | tr '\n' ' ')
           fly secrets set $secrets -a hypr-server
 
+  stripe: stripe listen --skip-verify --forward-to http://localhost:5000/webhook/stripe
   lago:
     env:
       LAGO_RSA_PRIVATE_KEY:

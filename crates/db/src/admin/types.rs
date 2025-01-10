@@ -36,16 +36,10 @@ pub struct Device {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Billing {
+pub struct Customer {
     pub id: String,
-    pub user_id: String,
-    // https://docs.stripe.com/api/customers/object
-    #[serde(deserialize_with = "optional_json_string")]
-    pub stripe_customer: Option<serde_json::Value>,
-    // https://docs.stripe.com/api/subscriptions/object
-    #[serde(deserialize_with = "optional_json_string")]
-    pub stripe_subscription: Option<serde_json::Value>,
-    pub usage_seconds: u64,
+    pub clerk_org_id: Option<String>,
+    pub clerk_user_id: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]

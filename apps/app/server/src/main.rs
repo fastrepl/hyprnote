@@ -125,7 +125,8 @@ fn main() {
                     "/chat/completions",
                     post(native::openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
                 )
-                .route("/transcribe", get(native::transcribe::handler));
+                .route("/transcribe", get(native::transcribe::handler))
+                .route("/user/integrations", get(native::user::list_integrations));
 
             #[cfg(not(debug_assertions))]
             {

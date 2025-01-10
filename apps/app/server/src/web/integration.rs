@@ -1,4 +1,4 @@
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use hypr_nango::{NangoConnectSessionRequest, NangoConnectSessionResponse};
 
 use crate::state::AppState;
@@ -9,7 +9,7 @@ pub type CreateSessionOutput = NangoConnectSessionResponse;
 pub async fn create_connection(
     State(state): State<AppState>,
     Json(input): Json<NangoConnectSessionRequest>,
-) -> Result<Json<NangoConnectSessionResponse>, StatusCode> {
+) -> Result<impl IntoResponse, StatusCode> {
     let res = state
         .nango
         .create_connect_session(input)

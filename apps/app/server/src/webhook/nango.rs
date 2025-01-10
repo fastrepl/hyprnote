@@ -1,6 +1,7 @@
 use axum::{
     extract::{Json, State},
     http::StatusCode,
+    response::IntoResponse,
 };
 
 use crate::state::AppState;
@@ -8,7 +9,7 @@ use crate::state::AppState;
 pub async fn handler(
     State(state): State<AppState>,
     Json(input): Json<hypr_nango::NangoConnectWebhook>,
-) -> Result<StatusCode, StatusCode> {
+) -> Result<impl IntoResponse, StatusCode> {
     let connection = match state.nango.get_connection(input.connection_id).await {
         Ok(hypr_nango::NangoGetConnectionResponse::Data(connection)) => Ok(connection),
         _ => Err(StatusCode::NOT_FOUND),

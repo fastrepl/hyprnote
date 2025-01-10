@@ -1,6 +1,9 @@
 use crate::LagoClient;
 
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct CreateSubscriptionRequest {}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct CreateSubscriptionResponse {}
 
 impl LagoClient {
@@ -9,6 +12,15 @@ impl LagoClient {
         &self,
         _: CreateSubscriptionRequest,
     ) -> anyhow::Result<CreateSubscriptionResponse> {
-        todo!()
+        let url = format!("{}/subscriptions", self.api_base);
+        let res = self
+            .client
+            .post(url)
+            .send()
+            .await?
+            .json::<CreateSubscriptionResponse>()
+            .await?;
+
+        Ok(res)
     }
 }

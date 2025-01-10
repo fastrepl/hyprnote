@@ -1,8 +1,9 @@
 {
   "excludes": [
+    ".venv",
+    "lago",
     "**/*-lock.yaml",
     "**/*-lock.json",
-    "lago"
   ],
   "exec": {
     "cwd": "${configDir}",
@@ -17,6 +18,7 @@
     "https://plugins.dprint.dev/g-plane/markup_fmt-v0.18.0.wasm",
     "https://plugins.dprint.dev/sql-0.2.0.wasm",
     "https://plugins.dprint.dev/dockerfile-0.3.2.wasm",
-    "https://plugins.dprint.dev/exec-0.5.1.json@492414e39dea4dccc07b4af796d2f4efdb89e84bae2bd4e1e924c0cc050855bf"
+    "https://plugins.dprint.dev/exec-0.5.1.json@492414e39dea4dccc07b4af796d2f4efdb89e84bae2bd4e1e924c0cc050855bf",
+    "https://plugins.dprint.dev/ruff-0.3.9.wasm"
   ]
 }

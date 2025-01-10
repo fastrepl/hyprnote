@@ -1,1 +1,1 @@
-# Hypr
+# Hyprnote

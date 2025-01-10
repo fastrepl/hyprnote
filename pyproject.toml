@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "scripts"
+version = "0.1.0"
+description = ""
+authors = ["yujonglee <yujonglee.dev@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+lago-python-client = "^1.16.1"
+python-dotenv = "^1.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

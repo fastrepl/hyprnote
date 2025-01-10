@@ -9,6 +9,7 @@ pub enum CreateWalletResponse {
     Error { status: u8, error: String },
 }
 
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct RetrieveWalletRequest {
     pub lago_id: String,
 }
@@ -19,6 +20,18 @@ pub enum RetrieveWalletResponse {
     Ok { wallet: Wallet },
     Error { status: u8, error: String },
 }
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct TopUpWalletRequest {}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct TopUpWalletResponse {}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct ListWalletTransactionsRequest {}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct ListWalletTransactionsResponse {}
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Wallet {
@@ -42,6 +55,21 @@ impl LagoClient {
         &self,
         _: RetrieveWalletRequest,
     ) -> anyhow::Result<RetrieveWalletResponse> {
+        todo!()
+    }
+
+    // https://getlago.com/docs/api-reference/wallets/top-up
+    pub async fn top_up_wallet(
+        &self,
+        _: TopUpWalletRequest,
+    ) -> anyhow::Result<TopUpWalletResponse> {
+        todo!()
+    }
+
+    pub async fn list_wallet_transactions(
+        &self,
+        _: ListWalletTransactionsRequest,
+    ) -> anyhow::Result<ListWalletTransactionsResponse> {
         todo!()
     }
 }

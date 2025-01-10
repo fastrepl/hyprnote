@@ -222,9 +222,11 @@ mod tests {
 
         let user = db
             .upsert_user(User {
+                id: uuid::Uuid::new_v4().to_string(),
+                timestamp: time::OffsetDateTime::now_utc(),
+                clerk_org_id: None,
                 clerk_user_id: "21".to_string(),
                 turso_db_name: "12".to_string(),
-                ..User::default()
             })
             .await
             .unwrap();
@@ -247,9 +249,11 @@ mod tests {
 
         let user = db
             .upsert_user(User {
+                id: uuid::Uuid::new_v4().to_string(),
+                timestamp: time::OffsetDateTime::now_utc(),
+                clerk_org_id: None,
                 clerk_user_id: "21".to_string(),
                 turso_db_name: "12".to_string(),
-                ..User::default()
             })
             .await
             .unwrap();
@@ -274,9 +278,11 @@ mod tests {
 
         let user_1 = db
             .upsert_user(User {
+                id: uuid::Uuid::new_v4().to_string(),
+                timestamp: time::OffsetDateTime::now_utc(),
+                clerk_org_id: None,
                 clerk_user_id: "21".to_string(),
                 turso_db_name: "12".to_string(),
-                ..User::default()
             })
             .await
             .unwrap();

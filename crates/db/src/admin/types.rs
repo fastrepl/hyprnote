@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use time::{serde::rfc3339, OffsetDateTime};
 
-use hypr_db_utils::deserialize::optional_json_string;
-
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct User {
     pub id: String,
@@ -11,18 +9,6 @@ pub struct User {
     pub clerk_org_id: Option<String>,
     pub clerk_user_id: String,
     pub turso_db_name: String,
-}
-
-impl Default for User {
-    fn default() -> Self {
-        User {
-            id: uuid::Uuid::new_v4().to_string(),
-            timestamp: time::OffsetDateTime::now_utc(),
-            clerk_org_id: None,
-            clerk_user_id: "".to_string(),
-            turso_db_name: "".to_string(),
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]

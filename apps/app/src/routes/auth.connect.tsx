@@ -5,6 +5,8 @@ import { zodValidator } from "@tanstack/zod-adapter";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-react";
 
+import type { ConnectInput, ConnectOutput } from "../types";
+
 const schema = z.object({
   c: z.string(),
   f: z.string(),
@@ -18,20 +20,20 @@ export const Route = createFileRoute("/auth/connect")({
 function Component() {
   const search = Route.useSearch();
   const { c: code, f: _fingerprint } = search;
-  const { isLoaded, userId } = useAuth();
+  const { isLoaded, userId, orgId } = useAuth();
   const navigate = useNavigate();
 
   const mutation = useMutation({
-    mutationFn: async (args: ReturnType<typeof Route.useSearch>) => {
-      const response = await fetch("/api/web/connect", {
+    mutationFn: async (input: ConnectInput) => {
+      const response: ConnectOutput = await fetch("/api/web/connect", {
         method: "POST",
-        body: JSON.stringify(args),
+        body: JSON.stringify(input),
         headers: {
           "Content-Type": "application/json",
         },
-      });
-      const { key } = await response.json();
-      return { key };
+      }).then((res) => res.json());
+
+      return response;
     },
   });
 
@@ -45,6 +47,13 @@ function Component() {
   if (isLoaded && !userId) {
     throw navigate({ to: "/auth/sign-in" });
   }
+
+  const payload: ConnectInput = {
+    code,
+    fingerprint: _fingerprint,
+    org_id: orgId ?? null,
+    user_id: userId!,
+  };
 
   if (!code) {
     return (
@@ -86,7 +95,7 @@ function Component() {
           <button
             className="bg-blue-800 text-white p-1 rounded-md"
             disabled={mutation.status !== "idle"}
-            onClick={() => mutation.mutate(search)}
+            onClick={() => mutation.mutate(payload)}
           >
             Connect
           </button>

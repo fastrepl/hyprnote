@@ -60,7 +60,7 @@ pub enum DatabaseResponse<T> {
     #[serde(rename = "error")]
     Error { error: String },
     #[serde(rename = "database")]
-    Database { database: T },
+    Ok { database: T },
 }
 
 #[derive(Debug, Deserialize)]

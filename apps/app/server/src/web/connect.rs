@@ -11,10 +11,10 @@ use clerk_rs::validators::authorizer::ClerkJwt;
 
 #[derive(Debug, Deserialize, Serialize, specta::Type)]
 pub struct ConnectInput {
-    #[serde(rename = "c")]
     code: String,
-    #[serde(rename = "f")]
     fingerprint: String,
+    org_id: Option<String>,
+    user_id: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, specta::Type)]
@@ -34,7 +34,7 @@ pub async fn handler(
         .build();
 
     let turso_db_name = match state.turso.create_database(create_db_req).await {
-        Ok(hypr_turso::DatabaseResponse::Database { database }) => database.name,
+        Ok(hypr_turso::DatabaseResponse::Ok { database }) => database.name,
         Ok(hypr_turso::DatabaseResponse::Error { error }) => {
             return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string()))
         }
@@ -44,9 +44,11 @@ pub async fn handler(
     let user = match state
         .admin_db
         .upsert_user(hypr_db::admin::User {
+            id: uuid::Uuid::new_v4().to_string(),
+            timestamp: time::OffsetDateTime::now_utc(),
+            clerk_org_id: input.org_id,
             clerk_user_id,
             turso_db_name,
-            ..Default::default()
         })
         .await
     {

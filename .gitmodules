@@ -1,0 +1,3 @@
+[submodule "lago"]
+	path = lago
+	url = https://github.com/getlago/lago.git

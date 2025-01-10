@@ -20,3 +20,15 @@ tasks:
       - |
           secrets=$(grep -v '^#' .env.prod | grep '=' | sed 's/"/\\"/g' | tr '\n' ' ')
           fly secrets set $secrets -a hypr-server
+
+  lago:
+    env:
+      LAGO_RSA_PRIVATE_KEY:
+        sh: openssl genrsa 2048 | base64
+    cmds:
+      - docker compose -f lago/docker-compose.yml up -d api
+      - docker compose -f lago/docker-compose.yml exec api rails db:create
+      - sleep 3
+      - docker compose -f lago/docker-compose.yml exec api rails db:migrate
+      - sleep 3
+      - docker compose -f lago/docker-compose.yml up -d front

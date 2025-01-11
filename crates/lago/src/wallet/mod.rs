@@ -61,3 +61,45 @@ pub struct Meta {
     pub key: String,
     pub value: String,
 }
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct RecurringTransactionRule {
+    pub trigger: RecurringTransactionTrigger,
+    pub granted_credits: String,
+    pub interval: RecurringTransactionInterval,
+    pub invoice_requires_successful_payment: Option<bool>,
+    pub method: RecurringTransactionMethod,
+    pub paid_credits: String,
+    pub started_at: Option<String>,
+    pub target_ongoing_balance: Option<String>,
+    pub threshold_credits: Option<String>,
+    pub transaction_metadata: Option<Vec<Meta>>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub enum RecurringTransactionMethod {
+    #[serde(rename = "fixed")]
+    Fixed,
+    #[serde(rename = "target")]
+    Target,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub enum RecurringTransactionTrigger {
+    #[serde(rename = "interval")]
+    Interval,
+    #[serde(rename = "threshold")]
+    Threshold,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub enum RecurringTransactionInterval {
+    #[serde(rename = "weekly")]
+    Weekly,
+    #[serde(rename = "monthly")]
+    Monthly,
+    #[serde(rename = "quarterly")]
+    Quarterly,
+    #[serde(rename = "yearly")]
+    Yearly,
+}

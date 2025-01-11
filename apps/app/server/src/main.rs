@@ -91,6 +91,11 @@ fn main() {
                 hypr_db::admin::AdminDatabase::from(conn)
             };
 
+            let lago = hypr_lago::LagoClient::builder()
+                .api_base(std::env::var("LAGO_API_BASE").unwrap())
+                .api_key(std::env::var("LAGO_API_KEY").unwrap())
+                .build();
+
             let state = state::AppState {
                 reqwest: reqwest::Client::new(),
                 clerk: clerk.clone(),
@@ -101,6 +106,7 @@ fn main() {
                 analytics: hypr_analytics::AnalyticsClient::new(
                     std::env::var("POSTHOG_API_KEY").unwrap(),
                 ),
+                lago,
             };
 
             let web_router = Router::new()

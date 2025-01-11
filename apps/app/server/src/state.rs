@@ -3,6 +3,7 @@ use axum::extract::FromRef;
 use clerk_rs::clerk::Clerk;
 use hypr_analytics::AnalyticsClient;
 use hypr_db::admin::AdminDatabase;
+use hypr_lago::LagoClient;
 use hypr_nango::NangoClient;
 use hypr_turso::TursoClient;
 
@@ -15,6 +16,7 @@ pub struct AppState {
     pub analytics: AnalyticsClient,
     pub turso: TursoClient,
     pub nango: NangoClient,
+    pub lago: LagoClient,
 }
 
 #[derive(Clone)]

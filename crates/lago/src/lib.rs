@@ -3,6 +3,7 @@ mod event;
 mod subscription;
 mod wallet;
 
+#[derive(Clone)]
 pub struct LagoClient {
     api_base: url::Url,
     client: reqwest::Client,

@@ -142,7 +142,11 @@ fn main() {
 
             let webhook_router = Router::new()
                 .route("/nango", post(webhook::nango::handler))
-                .route("/lago", post(webhook::lago::handler));
+                .route(
+                    "/lago",
+                    post(webhook::lago::handler)
+                        .layer(axum::middleware::from_fn(middleware::verify_lago)),
+                );
 
             let router = Router::new()
                 .route("/health", get(|| async { (StatusCode::OK, "OK") }))

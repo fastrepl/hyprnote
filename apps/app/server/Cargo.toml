@@ -18,6 +18,7 @@ hypr-stt = { path = "../../../crates/stt", package = "stt" }
 hypr-turso = { path = "../../../crates/turso", package = "turso" }
 
 axum = { version = "0.7.4", features = ["ws", "multipart"] }
+axum-extra = { version = "0.10.0", features = ["typed-header"] }
 futures = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
@@ -47,3 +48,5 @@ apalis-cron = "0.6.3"
 async-openai = { version = "0.26.0", default-features = false }
 clerk-rs = { version = "0.4.0", features = ["axum"] }
 hmac = "0.12.1"
+sha2 = "0.10.8"
+hex = "0.4.3"

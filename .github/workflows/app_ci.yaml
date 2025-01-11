@@ -29,4 +29,4 @@ jobs:
       - uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - run: cargo build -p server
+      - run: cargo build -p app

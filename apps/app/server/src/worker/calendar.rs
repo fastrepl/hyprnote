@@ -1,42 +1,27 @@
-use apalis::prelude::*;
-use apalis_cron::{CronStream, Schedule};
+use apalis::prelude::Data;
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use std::str::FromStr;
+use clerk_rs::endpoints::ClerkDynamicGetEndpoint;
 
-use clerk_rs::{clerk::Clerk, endpoints::ClerkDynamicGetEndpoint, ClerkConfiguration};
-use hypr_db::admin::AdminDatabase;
+use crate::state::WorkerState;
 
 #[derive(Default, Debug, Clone)]
-struct Reminder(DateTime<Utc>);
+pub struct Job(DateTime<Utc>);
 
-impl From<DateTime<Utc>> for Reminder {
+impl From<DateTime<Utc>> for Job {
     fn from(t: DateTime<Utc>) -> Self {
-        Reminder(t)
+        Job(t)
     }
 }
 
-pub async fn monitor() -> std::io::Result<()> {
-    let schedule = Schedule::from_str("@daily").unwrap();
-    let worker = WorkerBuilder::new("worker")
-        .backend(CronStream::new(schedule))
-        .build_fn(sync_calendar_events);
-
-    Monitor::new().register(worker).run().await
-}
-
-async fn sync_calendar_events(job: Reminder) {
-    // Do reminder stuff
-}
-
-pub async fn fetch(admin_db: AdminDatabase, clerk: Clerk) {
+pub async fn perform(_job: Job, ctx: Data<WorkerState>) {
     let user_id = "";
     let provider = "oauth_google";
 
-    let user_db = get_user_db("turso_db_url_from_admin_db", "turso_token_from_env").await;
+    let _user_db = get_user_db("turso_db_url_from_admin_db", "turso_token_from_env").await;
 
     // https://clerk.com/docs/reference/backend-api/tag/Users#operation/GetOAuthAccessToken
-    let token = clerk
+    let _token = ctx
+        .clerk
         .get_with_params(
             ClerkDynamicGetEndpoint::GetOAuthAccessToken,
             vec![user_id, provider],

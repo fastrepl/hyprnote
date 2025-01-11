@@ -43,7 +43,7 @@ specta = { workspace = true }
 specta-typescript = { workspace = true }
 specta-util = { workspace = true }
 
-apalis = { version = "0.6.3", features = ["sentry"] }
+apalis = { version = "0.6.3", features = ["sentry", "limit"] }
 apalis-cron = "0.6.3"
 async-openai = { version = "0.26.0", default-features = false }
 clerk-rs = { version = "0.4.0", features = ["axum"] }

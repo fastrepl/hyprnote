@@ -1,3 +1,10 @@
+mod middleware;
+mod native;
+mod state;
+mod web;
+mod webhook;
+mod worker;
+
 use std::{
     io::{Error, ErrorKind},
     time::Duration,
@@ -20,14 +27,7 @@ use clerk_rs::{
     ClerkConfiguration,
 };
 
-mod middleware;
-mod native;
-mod state;
-mod web;
-mod webhook;
-mod worker;
-
-use state::{AnalyticsState, AuthState};
+use state::{AnalyticsState, AuthState, WorkerState};
 
 fn main() {
     #[cfg(debug_assertions)]
@@ -167,7 +167,7 @@ fn main() {
                         .append_index_html_on_directories(false)
                         .fallback(ServeFile::new(static_dir.join("index.html")))
                 })
-                .with_state(state);
+                .with_state(state.clone());
 
             let port = std::env::var("PORT").unwrap_or("5000".to_string());
             let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port))
@@ -180,9 +180,9 @@ fn main() {
                     .map_err(|e| Error::new(ErrorKind::Interrupted, e))
             };
 
-            let monitor = async { worker::monitor().await.unwrap() };
-
-            let _ = tokio::join!(http, monitor);
+            let worker_state = WorkerState::from_ref(&state);
+            let monitor = async { worker::monitor(worker_state).await.unwrap() };
+            let _result = tokio::join!(http, monitor);
         });
 }
 

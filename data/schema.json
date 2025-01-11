@@ -1,0 +1,232 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["plan"],
+  "properties": {
+    "plan": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "invoice_display_name": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "interval": {
+          "type": "string",
+          "enum": ["weekly", "monthly", "quarterly", "yearly"]
+        },
+        "description": {
+          "type": "string"
+        },
+        "amount_cents": {
+          "type": "integer"
+        },
+        "amount_currency": {
+          "type": "string"
+        },
+        "trial_period": {
+          "type": "number"
+        },
+        "pay_in_advance": {
+          "type": "boolean"
+        },
+        "bill_charges_monthly": {
+          "type": "boolean",
+          "nullable": true
+        },
+        "tax_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "minimum_commitment": {
+          "type": "object",
+          "nullable": true,
+          "required": ["amount_cents"],
+          "properties": {
+            "amount_cents": {
+              "type": "integer"
+            },
+            "invoice_display_name": {
+              "type": "string"
+            },
+            "tax_codes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "charges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "billable_metric_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "charge_model": {
+                "type": "string",
+                "enum": [
+                  "standard",
+                  "graduated",
+                  "graduated_percentage",
+                  "package",
+                  "percentage",
+                  "volume",
+                  "dynamic"
+                ]
+              },
+              "pay_in_advance": {
+                "type": "boolean"
+              },
+              "invoiceable": {
+                "type": "boolean"
+              },
+              "regroup_paid_fees": {
+                "type": "string",
+                "nullable": true,
+                "enum": [null, "invoice"]
+              },
+              "invoice_display_name": {
+                "type": "string"
+              },
+              "prorated": {
+                "type": "boolean"
+              },
+              "min_amount_cents": {
+                "type": "integer"
+              },
+              "properties": {
+                "type": "object",
+                "properties": {
+                  "graduated_ranges": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "from_value",
+                        "to_value",
+                        "flat_amount",
+                        "per_unit_amount"
+                      ],
+                      "properties": {
+                        "from_value": {
+                          "type": "integer"
+                        },
+                        "to_value": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "flat_amount": {
+                          "type": "string",
+                          "pattern": "^[0-9]+.?[0-9]*$"
+                        },
+                        "per_unit_amount": {
+                          "type": "string",
+                          "pattern": "^[0-9]+.?[0-9]*$"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "filters": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "invoice_display_name": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "properties": {
+                      "type": "object",
+                      "properties": {
+                        "graduated_ranges": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "from_value",
+                              "to_value",
+                              "flat_amount",
+                              "per_unit_amount"
+                            ],
+                            "properties": {
+                              "from_value": {
+                                "type": "integer"
+                              },
+                              "to_value": {
+                                "type": "integer",
+                                "nullable": true
+                              },
+                              "flat_amount": {
+                                "type": "string",
+                                "pattern": "^[0-9]+.?[0-9]*$"
+                              },
+                              "per_unit_amount": {
+                                "type": "string",
+                                "pattern": "^[0-9]+.?[0-9]*$"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "values": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "tax_codes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "usage_thresholds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["amount_cents", "recurring"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "nullable": true
+              },
+              "threshold_display_name": {
+                "type": "string",
+                "nullable": true
+              },
+              "amount_cents": {
+                "type": "integer"
+              },
+              "recurring": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,3 @@
+- `https://getlago.com/docs/api-reference/plans/create`
+- `https://getlago.com/docs/api-reference/plans/object`
+- `https://github.com/getlago/lago-openapi/blob/fd7e4f8/openapi.yaml#L7665`

@@ -5,9 +5,11 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
+url = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt", "macros"] }

@@ -4,7 +4,7 @@ mod subscription;
 mod wallet;
 
 pub struct LagoClient {
-    api_base: String,
+    api_base: url::Url,
     client: reqwest::Client,
 }
 
@@ -52,7 +52,7 @@ impl LagoClientBuilder {
             .unwrap();
 
         LagoClient {
-            api_base: self.api_base.unwrap(),
+            api_base: self.api_base.unwrap().parse().unwrap(),
             client,
         }
     }

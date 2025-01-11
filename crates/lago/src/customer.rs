@@ -24,8 +24,17 @@ impl LagoClient {
     // https://getlago.com/docs/api-reference/customers/create
     pub async fn create_customer(
         &self,
-        _: CreateCustomerRequest,
+        req: CreateCustomerRequest,
     ) -> anyhow::Result<CreateCustomerResponse> {
-        todo!()
+        let url = format!("{}/api/v1/customers", self.api_base);
+        let response = self
+            .client
+            .post(url)
+            .json(&req)
+            .send()
+            .await?
+            .json::<CreateCustomerResponse>()
+            .await?;
+        Ok(response)
     }
 }

@@ -4,7 +4,13 @@ use crate::LagoClient;
 pub struct CreateSubscriptionRequest {}
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
-pub struct CreateSubscriptionResponse {}
+pub enum CreateSubscriptionResponse {
+    Ok { subscription: Subscription },
+    Error { status: u16, error: String },
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct Subscription {}
 
 impl LagoClient {
     // https://getlago.com/docs/api-reference/subscriptions/assign-plan

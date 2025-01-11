@@ -8,7 +8,7 @@ pub struct CreateCustomerRequest {
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub enum CreateCustomerResponse {
     Ok { customer: Customer },
-    Error { status: u8, error: String },
+    Error { status: u16, error: String },
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]

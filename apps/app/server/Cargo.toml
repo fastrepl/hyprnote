@@ -45,5 +45,5 @@ specta-util = { workspace = true }
 apalis = { version = "0.6.3", features = ["sentry"] }
 apalis-cron = "0.6.3"
 async-openai = { version = "0.26.0", default-features = false }
-async-stripe = { version = "0.39.1", features = ["runtime-tokio-hyper"] }
 clerk-rs = { version = "0.4.0", features = ["axum"] }
+hmac = "0.12.1"

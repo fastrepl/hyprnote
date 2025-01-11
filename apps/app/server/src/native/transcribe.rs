@@ -21,7 +21,7 @@ pub async fn handler(ws: WebSocketUpgrade, State(state): State<STTState>) -> imp
 async fn websocket(socket: WebSocket, state: STTState) {
     let (mut ws_sender, ws_receiver) = socket.split();
 
-    let mut stt = state.stt.for_mock();
+    let mut stt = state.stt.for_english();
 
     let input_stream = futures::stream::try_unfold(ws_receiver, |mut ws_receiver| async move {
         match ws_receiver.next().await {

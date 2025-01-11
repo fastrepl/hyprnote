@@ -4,6 +4,7 @@ use std::{
 };
 
 use axum::{
+    extract::FromRef,
     http::StatusCode,
     routing::{get, post},
     Router,
@@ -19,14 +20,14 @@ use clerk_rs::{
     ClerkConfiguration,
 };
 
-mod analytics;
-mod auth;
+mod middleware;
 mod native;
 mod state;
-mod stripe;
 mod web;
 mod webhook;
 mod worker;
+
+use state::{AnalyticsState, AuthState};
 
 fn main() {
     #[cfg(debug_assertions)]
@@ -126,25 +127,20 @@ fn main() {
                     post(native::openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
                 )
                 .route("/transcribe", get(native::transcribe::handler))
-                .route("/user/integrations", get(native::user::list_integrations));
-
-            #[cfg(not(debug_assertions))]
-            {
-                native_router = native_router.layer(
+                .route("/user/integrations", get(native::user::list_integrations))
+                .layer(
                     tower::builder::ServiceBuilder::new()
-                        .layer(middleware::from_fn_with_state(
+                        .layer(axum::middleware::from_fn_with_state(
                             AuthState::from_ref(&state),
-                            auth::middleware_fn,
+                            middleware::for_api_key,
                         ))
-                        .layer(middleware::from_fn_with_state(
+                        .layer(axum::middleware::from_fn_with_state(
                             AnalyticsState::from_ref(&state),
-                            analytics::middleware_fn,
+                            middleware::for_analytics,
                         )),
                 );
-            }
 
             let webhook_router = Router::new()
-                .route("/stripe", post(webhook::stripe::handler))
                 .route("/nango", post(webhook::nango::handler))
                 .route("/lago", post(webhook::lago::handler));
 
@@ -154,11 +150,12 @@ fn main() {
                 .nest("/api/web", web_router)
                 .nest("/webhook", webhook_router)
                 .fallback_service({
-                    let app_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..");
+                    let static_dir: std::path::PathBuf =
+                        std::env::var("APP_STATIC_DIR").unwrap().into();
 
-                    ServeDir::new(app_dir.join("dist"))
+                    ServeDir::new(&static_dir)
                         .append_index_html_on_directories(false)
-                        .fallback(ServeFile::new(app_dir.join("dist/index.html")))
+                        .fallback(ServeFile::new(static_dir.join("index.html")))
                 })
                 .with_state(state);
 

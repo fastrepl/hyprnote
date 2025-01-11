@@ -3,11 +3,12 @@ use axum::{
     http::{header, StatusCode},
     middleware,
     response::Response,
+    Extension,
 };
 
-use crate::state::AuthState;
+use crate::state::{AnalyticsState, AuthState};
 
-pub async fn middleware_fn(
+pub async fn for_api_key(
     State(state): State<AuthState>,
     mut req: Request,
     next: middleware::Next,
@@ -27,7 +28,7 @@ pub async fn middleware_fn(
         return Err(StatusCode::UNAUTHORIZED);
     };
 
-    let user = state
+    let user: hypr_db::admin::User = state
         .admin_db
         .get_user_by_device_api_key(api_key)
         .await
@@ -39,4 +40,21 @@ pub async fn middleware_fn(
     } else {
         Err(StatusCode::UNAUTHORIZED)
     }
+}
+
+pub async fn for_analytics(
+    Extension(user): Extension<hypr_db::admin::User>,
+    State(state): State<AnalyticsState>,
+    req: Request,
+    next: middleware::Next,
+) -> Result<Response, StatusCode> {
+    let payload = hypr_analytics::AnalyticsPayload::for_user(user.id.to_string())
+        .event("test_event")
+        .with("key1", "value1")
+        .with("key2", 2)
+        .build();
+
+    let _ = state.analytics.event(payload).await;
+
+    Ok(next.run(req).await)
 }

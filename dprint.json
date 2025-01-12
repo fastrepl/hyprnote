@@ -2,6 +2,7 @@
   "excludes": [
     ".venv",
     "lago",
+    "lago-openapi",
     "**/*-lock.yaml",
     "**/*-lock.json"
   ],

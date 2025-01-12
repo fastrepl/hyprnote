@@ -54,8 +54,8 @@ type NavItem = (typeof data.nav)[number];
 type NavNames = NavItem["name"];
 
 export default function SettingsDialog() {
-  const [open, setOpen] = useState(true);
-  const [active, setActive] = useState<NavNames>(data.nav[2].name);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState<NavNames>(data.nav[0].name);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

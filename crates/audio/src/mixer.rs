@@ -36,7 +36,6 @@ where
         let this = self.get_mut();
         let s1 = pin!(this.source1.as_stream());
         let s2 = pin!(this.source2.as_stream());
-        
 
         let s1_sample = s1.poll_next(cx);
         let s2_sample = s2.poll_next(cx);
@@ -90,7 +89,7 @@ mod tests {
     #[tokio::test]
     async fn test_mixer() {
         let _handle = play_sine_for_sec(1);
-        
+
         let mic = MicInput::default().stream().unwrap();
         let speaker = SpeakerInput::new().unwrap().stream().unwrap();
 
@@ -98,7 +97,10 @@ mod tests {
 
         let result = tokio::time::timeout(
             Duration::from_secs(2),
-            mixed_stream.take(1024).ready_chunks(1024).collect::<Vec<_>>(),
+            mixed_stream
+                .take(1024)
+                .ready_chunks(1024)
+                .collect::<Vec<_>>(),
         )
         .await;
 

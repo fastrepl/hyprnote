@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { AlignLeft, Ear, EarOff, Zap, Plus } from "lucide-react";
+import { AlignLeft, Ear, EarOff, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import clsx from "clsx";
-import { nanoid } from "nanoid";
 
 import { generateJSON, JSONContent } from "@tiptap/react";
 

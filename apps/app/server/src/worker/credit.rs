@@ -12,4 +12,4 @@ impl From<DateTime<Utc>> for Job {
     }
 }
 
-pub async fn perform(_job: Job, _context: Data<WorkerState>) {}
+pub async fn perform(_job: Job, _ctx: Data<WorkerState>) {}

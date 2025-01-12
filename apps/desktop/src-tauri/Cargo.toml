@@ -47,14 +47,17 @@ specta-typescript = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 anyhow = { workspace = true }
+chrono = { workspace = true }
 dotenvy_macro = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 time = { workspace = true }
-tracing = { workspace = true }
 uuid = { workspace = true }
 
 futures = { workspace = true }
 reqwest = { workspace = true, features = ["json", "stream"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
+
+apalis = { workspace = true }
+apalis-cron = { workspace = true }

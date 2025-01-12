@@ -28,11 +28,14 @@ pub struct ResponseSubscription {
 
 impl LagoClient {
     // https://getlago.com/docs/api-reference/subscriptions/assign-plan
-    pub async fn create_subscription(&self, _: Request) -> anyhow::Result<Response> {
-        let url = format!("{}/subscriptions", self.api_base);
+    pub async fn create_subscription(&self, req: Request) -> anyhow::Result<Response> {
+        let mut url = self.api_base.clone();
+        url.set_path("/api/v1/subscriptions");
+
         let res = self
             .client
             .post(url)
+            .json(&req)
             .send()
             .await?
             .json::<Response>()

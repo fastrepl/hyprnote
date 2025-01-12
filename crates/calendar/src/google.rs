@@ -7,8 +7,6 @@ use time_tz::{timezones, Offset, TimeZone};
 
 use crate::{Calendar, CalendarSource, Event, EventFilter, Participant, Platform};
 
-pub use google_calendar::*;
-
 pub struct Handle {
     client: google_calendar::Client,
 }

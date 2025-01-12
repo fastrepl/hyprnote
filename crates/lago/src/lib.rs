@@ -1,7 +1,7 @@
-mod customer;
-mod event;
-mod subscription;
-mod wallet;
+pub mod customer;
+pub mod event;
+pub mod subscription;
+pub mod wallet;
 
 #[derive(Clone)]
 pub struct LagoClient {

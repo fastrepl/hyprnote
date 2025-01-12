@@ -7,6 +7,7 @@ mod worker;
 
 use std::{
     io::{Error, ErrorKind},
+    path::Path,
     time::Duration,
 };
 
@@ -133,6 +134,7 @@ fn main() {
                     post(native::openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
                 )
                 .route("/transcribe", get(native::transcribe::handler))
+                .route("/user/checkout", get(native::user::checkout_url))
                 .route("/user/integrations", get(native::user::list_integrations))
                 .layer(
                     tower::builder::ServiceBuilder::new()
@@ -187,23 +189,28 @@ fn main() {
 }
 
 fn export_ts_types() -> anyhow::Result<()> {
-    let mut collection = specta_util::TypeCollection::default();
+    let mut web_collection = specta_util::TypeCollection::default();
+    let mut native_collection = specta_util::TypeCollection::default();
 
-    collection.register::<web::connect::ConnectInput>();
-    collection.register::<web::connect::ConnectOutput>();
-    collection.register::<web::integration::CreateSessionInput>();
-    collection.register::<web::integration::CreateSessionOutput>();
-    collection.register::<hypr_nango::NangoIntegration>();
+    web_collection.register::<web::connect::ConnectInput>();
+    web_collection.register::<web::connect::ConnectOutput>();
+    web_collection.register::<web::integration::CreateSessionInput>();
+    web_collection.register::<web::integration::CreateSessionOutput>();
+    web_collection.register::<hypr_nango::NangoIntegration>();
+
+    native_collection.register::<hypr_lago::customer::regenerate_checkout_url::Request>();
+    native_collection.register::<hypr_lago::customer::regenerate_checkout_url::Response>();
 
     let language = specta_typescript::Typescript::default()
         .header("// @ts-nocheck\n\n")
-        .formatter(specta_typescript::formatter::prettier)
         .bigint(specta_typescript::BigIntExportBehavior::Number);
 
     let base = env!("CARGO_MANIFEST_DIR");
-    let path = std::path::Path::new(base).join("../src/types/server.ts");
+    let web_path = Path::new(base).join("../src/types/server.ts");
+    let native_path = Path::new(base).join("../../desktop/src/types/server.ts");
 
-    collection.export_to(language, path)?;
+    web_collection.export_to(language.clone(), web_path)?;
+    native_collection.export_to(language, native_path)?;
     Ok(())
 }
 

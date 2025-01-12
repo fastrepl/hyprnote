@@ -114,7 +114,12 @@ fn main() {
                 .route("/connect", post(web::connect::handler))
                 .route(
                     "/integration/connection",
-                    post(web::integration::create_connection),
+                    post(web::integration::create_connection).layer(
+                        axum::middleware::from_fn_with_state(
+                            AuthState::from_ref(&state),
+                            middleware::attach_user_from_clerk,
+                        ),
+                    ),
                 )
                 .layer(ClerkLayer::new(
                     MemoryCacheJwksProvider::new(clerk),
@@ -146,7 +151,7 @@ fn main() {
                             AnalyticsState::from_ref(&state),
                             middleware::send_analytics,
                         ))
-                        .layer(axum::middleware::from_fn(middleware::attach_user_client)),
+                        .layer(axum::middleware::from_fn(middleware::attach_user_db)),
                 );
 
             let webhook_router = Router::new()

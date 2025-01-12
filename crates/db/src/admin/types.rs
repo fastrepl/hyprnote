@@ -24,8 +24,7 @@ pub struct Device {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Customer {
     pub id: String,
-    pub clerk_org_id: Option<String>,
-    pub clerk_user_id: Option<String>,
+    pub user_id: String,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]

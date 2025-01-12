@@ -5,6 +5,7 @@ import {
   LayoutTemplateIcon,
   CalendarIcon,
   UserIcon,
+  CreditCardIcon,
 } from "lucide-react";
 
 import {
@@ -47,6 +48,7 @@ const data = {
     { name: "Profile", icon: UserIcon },
     { name: "Calendar", icon: CalendarIcon },
     { name: "Template", icon: LayoutTemplateIcon },
+    { name: "Billing", icon: CreditCardIcon },
   ],
 } as const;
 

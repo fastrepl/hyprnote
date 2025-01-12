@@ -2,7 +2,7 @@ use anyhow::Result;
 use rand::{distributions::Alphanumeric, Rng};
 use time::format_description::well_known::Rfc3339;
 
-use super::{Device, Integration, User};
+use super::{Customer, Device, Integration, User};
 use crate::Connection;
 
 #[derive(Clone)]
@@ -67,6 +67,7 @@ impl AdminDatabase {
 
         Ok(devices)
     }
+
     pub async fn upsert_device(&self, device: Device) -> Result<Device> {
         let mut rows = self
             .conn
@@ -91,9 +92,44 @@ impl AdminDatabase {
             )
             .await?;
 
-        let row = rows.next().await.unwrap().unwrap();
+        let row = rows.next().await?.unwrap();
         let device: Device = libsql::de::from_row(&row).unwrap();
         Ok(device)
+    }
+
+    pub async fn create_customer(&self, user: User) -> Result<Customer> {
+        let mut rows = self
+            .conn
+            .query(
+                "INSERT INTO customers (
+                    id,
+                    user_id
+                ) VALUES (?, ?)
+                RETURNING *",
+                vec![
+                    libsql::Value::Text(uuid::Uuid::new_v4().to_string()),
+                    libsql::Value::Text(user.id),
+                ],
+            )
+            .await?;
+
+        let row = rows.next().await?.unwrap();
+        let customer: Customer = libsql::de::from_row(&row)?;
+        Ok(customer)
+    }
+
+    pub async fn get_customer_by_user_id(&self, user_id: impl AsRef<str>) -> Result<Customer> {
+        let mut rows = self
+            .conn
+            .query(
+                "SELECT * FROM customers WHERE user_id = ?",
+                vec![user_id.as_ref()],
+            )
+            .await?;
+
+        let row = rows.next().await?.unwrap();
+        let customer: Customer = libsql::de::from_row(&row)?;
+        Ok(customer)
     }
 
     pub async fn delete_device_with_api_key(&self, api_key: impl AsRef<str>) -> Result<()> {

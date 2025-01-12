@@ -6,6 +6,7 @@ use axum::{
     Extension,
 };
 
+use clerk_rs::validators::authorizer::ClerkJwt;
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
@@ -44,7 +45,25 @@ pub async fn verify_api_key(
     Ok(next.run(req).await)
 }
 
-pub async fn attach_user_client(
+pub async fn attach_user_from_clerk(
+    State(state): State<AuthState>,
+    Extension(jwt): Extension<ClerkJwt>,
+    mut req: Request,
+    next: middleware::Next,
+) -> Result<Response, StatusCode> {
+    let clerk_user_id = jwt.sub;
+
+    let user = state
+        .admin_db
+        .get_user_by_clerk_user_id(clerk_user_id)
+        .await
+        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+
+    req.extensions_mut().insert(user);
+    Ok(next.run(req).await)
+}
+
+pub async fn attach_user_db(
     Extension(user): Extension<hypr_db::admin::User>,
     mut req: Request,
     next: middleware::Next,

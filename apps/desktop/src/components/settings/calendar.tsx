@@ -77,11 +77,16 @@ interface IntegrationProps {
   connected: boolean;
 }
 function Integration({ type, connected }: IntegrationProps) {
-  const { baseUrl } = useServer();
+  const { fetch } = useServer();
   const navigate = useNavigate();
-  
+
+  useQuery({
+    queryKey: ["settings", "calendars"],
+    queryFn: () => fetch("/api/native/integration/list"),
+  });
+
   const handleClick = useCallback(() => {
-    navigate({ href: `${baseUrl}/settings/calendar/${type}` });
+    navigate({ href: `/settings/calendar/${type}` });
   }, [type]);
 
   return (

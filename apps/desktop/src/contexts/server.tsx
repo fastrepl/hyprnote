@@ -1,26 +1,41 @@
 // https://github.com/agmmnn/tauri-controls/blob/f3592f0/apps/tauri-controls/src/tauri-controls/contexts/plugin-window.tsx
 
 import React, { createContext, useContext } from "react";
+import { fetch } from "@tauri-apps/plugin-http";
 
-interface ServerContextType {
-  baseUrl: string;
-}
+type Fetch = typeof fetch;
+type AuthFetch = (
+  path: string,
+  init?: Parameters<Fetch>[1],
+) => ReturnType<Fetch>;
 
-const ServerContext = createContext<ServerContextType>({
-  baseUrl: "",
-});
+const ServerContext = createContext<{ fetch: AuthFetch }>({ fetch });
 
-interface ServerProviderProps {
+export const ServerProvider: React.FC<{
   children: React.ReactNode;
-}
+}> = ({ children }) => {
+  const base = new URL(
+    import.meta.env.DEV ? "http://localhost:1234" : "https://app.hyprnote.com",
+  );
 
-export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
-  const baseUrl = import.meta.env.DEV
-    ? "http://localhost:1234"
-    : "https://app.hyprnote.com";
+  const token = "123";
+
+  const authFetch = (path: string, init?: Parameters<typeof fetch>[1]) => {
+    const url = new URL(path, base);
+
+    const opts = {
+      ...init,
+      headers: {
+        ...init?.headers,
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    return fetch(url, opts);
+  };
 
   return (
-    <ServerContext.Provider value={{ baseUrl }}>
+    <ServerContext.Provider value={{ fetch: authFetch }}>
       {children}
     </ServerContext.Provider>
   );

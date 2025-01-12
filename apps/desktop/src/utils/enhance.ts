@@ -1,15 +1,14 @@
 import { useCallback, useRef, useState } from "react";
 import { parsePartialJson } from "@ai-sdk/ui-utils";
 import { JSONContent } from "@tiptap/react";
-import { fetch } from "@tauri-apps/plugin-http";
+import { useServer } from "@/contexts";
 
 interface EnhanceRequest {
-  baseUrl: string;
-  apiKey: string;
   editor: JSONContent;
 }
 
 export function useEnhance(input: EnhanceRequest) {
+  const { fetch } = useServer();
   const [data, setData] = useState<JSONContent>(input.editor);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<undefined | Error>(undefined);
@@ -34,12 +33,9 @@ export function useEnhance(input: EnhanceRequest) {
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
-      const response = await fetch(`${input.baseUrl}/api/native/enhance`, {
+      const response = await fetch("/api/native/enhance", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${input.apiKey}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input.editor),
         signal: abortController.signal,
       });

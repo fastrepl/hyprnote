@@ -65,7 +65,7 @@ mod tests {
     use kalosm_sound::AsyncSource;
     use serial_test::serial;
 
-    fn play_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
+    fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
         use rodio::{
             cpal::SampleRate,
             source::{Function::Sine, SignalGenerator, Source},
@@ -94,11 +94,15 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_macos() {
-        let _handle = play_for_sec(1);
+        let _handle = play_sine_for_sec(1);
         let input = SpeakerInput::new().unwrap();
         let mut stream = input.stream().unwrap();
-        let samples = stream.read_samples(44100 * 1).await;
-        assert!(samples.count() == 44100 * 1);
+
+        let samples_1 = stream.read_samples(44100 * 1).await;
+        assert!(samples_1.count() == 44100 * 1);
+
+        let mut samples_2 = stream.read_samples(44100 * 1).await;
+        assert!(samples_2.any(|x| x != 0.0));
     }
 
     #[cfg(target_os = "windows")]

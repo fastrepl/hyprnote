@@ -1,8 +1,10 @@
 mod format;
 mod mic;
+mod mixer;
 mod speaker;
 
 pub use mic::*;
+pub use mixer::*;
 pub use speaker::*;
 
 use anyhow::Result;

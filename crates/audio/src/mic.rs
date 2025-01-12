@@ -18,6 +18,6 @@ mod tests {
             .collect::<Vec<_>>();
 
         assert!(samples.len() > 10 * 1000);
-        assert!(!samples.iter().all(|x| *x == 0.0));
+        assert!(samples.iter().any(|x| *x != 0.0));
     }
 }

@@ -1,7 +1,6 @@
 use std::sync::mpsc;
 
 pub struct SessionState {
-    stream: hypr_audio::MicStream,
     bridge: hypr_bridge::Client,
     audio_tx: Option<mpsc::Sender<Vec<u8>>>,
     transcript_rx: Option<mpsc::Receiver<String>>,
@@ -10,10 +9,12 @@ pub struct SessionState {
 impl SessionState {
     pub fn new(bridge: hypr_bridge::Client) -> anyhow::Result<Self> {
         let mic = hypr_audio::MicInput::default();
-        let stream = mic.stream().unwrap();
+        let _mic_stream = mic.stream().unwrap();
+
+        let speaker = hypr_audio::SpeakerInput::new().unwrap();
+        let _speaker_stream = speaker.stream().unwrap();
 
         Ok(Self {
-            stream,
             bridge,
             audio_tx: None,
             transcript_rx: None,

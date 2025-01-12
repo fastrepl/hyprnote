@@ -37,21 +37,16 @@ fn main() {
     export_ts_types().unwrap();
 
     let _guard = sentry::init((
-        std::env::var("SENTRY_DSN").unwrap(),
+        get_env("SENTRY_DSN"),
         sentry::ClientOptions {
             release: sentry::release_name!(),
             ..Default::default()
         },
     ));
 
-    let turso = hypr_turso::TursoClient::new(std::env::var("TURSO_API_KEY").unwrap());
+    let turso = hypr_turso::TursoClient::new(get_env("TURSO_API_KEY"));
 
-    let clerk_config = ClerkConfiguration::new(
-        None,
-        None,
-        Some(std::env::var("CLERK_SECRET_KEY").unwrap()),
-        None,
-    );
+    let clerk_config = ClerkConfiguration::new(None, None, Some(get_env("CLERK_SECRET_KEY")), None);
     let clerk = Clerk::new(clerk_config);
 
     tokio::runtime::Builder::new_multi_thread()
@@ -59,15 +54,10 @@ fn main() {
         .build()
         .unwrap()
         .block_on(async {
-            let nango_client = hypr_nango::NangoClientBuilder::new()
-                .api_key(std::env::var("NANGO_API_KEY").unwrap())
-                .build();
-
-            let stt_config = hypr_stt::Config {
-                deepgram_api_key: std::env::var("DEEPGRAM_API_KEY").unwrap(),
-                clova_api_key: std::env::var("CLOVA_API_KEY").unwrap(),
-            };
-            let stt = hypr_stt::Client::new(stt_config);
+            let stt = hypr_stt::Client::new(hypr_stt::Config {
+                deepgram_api_key: get_env("DEEPGRAM_API_KEY"),
+                clova_api_key: get_env("CLOVA_API_KEY"),
+            });
 
             let admin_db = {
                 #[cfg(debug_assertions)]
@@ -79,10 +69,7 @@ fn main() {
 
                 #[cfg(not(debug_assertions))]
                 let conn = hypr_db::ConnectionBuilder::new()
-                    .remote(
-                        std::env::var("DATABASE_URL").unwrap(),
-                        std::env::var("DATABASE_TOKEN").unwrap(),
-                    )
+                    .remote(get_env("DATABASE_URL"), get_env("DATABASE_TOKEN"))
                     .connect()
                     .await
                     .unwrap();
@@ -91,10 +78,24 @@ fn main() {
                 hypr_db::admin::AdminDatabase::from(conn)
             };
 
-            let lago = hypr_lago::LagoClient::builder()
-                .api_base(std::env::var("LAGO_API_BASE").unwrap())
-                .api_key(std::env::var("LAGO_API_KEY").unwrap())
+            let nango = hypr_nango::NangoClientBuilder::new()
+                .api_key(get_env("NANGO_API_KEY"))
                 .build();
+
+            let lago = hypr_lago::LagoClient::builder()
+                .api_base(get_env("LAGO_API_BASE"))
+                .api_key(get_env("LAGO_API_KEY"))
+                .build();
+
+            let analytics = hypr_analytics::AnalyticsClient::new(get_env("POSTHOG_API_KEY"));
+
+            let s3 = hypr_s3::Client::new(hypr_s3::Config {
+                endpoint_url: get_env("S3_ENDPOINT_URL"),
+                bucket: get_env("S3_BUCKET"),
+                access_key_id: get_env("S3_ACCESS_KEY_ID"),
+                secret_access_key: get_env("S3_SECRET_ACCESS_KEY"),
+            })
+            .await;
 
             let state = state::AppState {
                 reqwest: reqwest::Client::new(),
@@ -102,11 +103,10 @@ fn main() {
                 stt,
                 turso,
                 admin_db,
-                nango: nango_client,
-                analytics: hypr_analytics::AnalyticsClient::new(
-                    std::env::var("POSTHOG_API_KEY").unwrap(),
-                ),
+                nango,
+                analytics,
                 lago,
+                s3,
             };
 
             let web_router = Router::new()
@@ -138,12 +138,13 @@ fn main() {
                     tower::builder::ServiceBuilder::new()
                         .layer(axum::middleware::from_fn_with_state(
                             AuthState::from_ref(&state),
-                            middleware::for_api_key,
+                            middleware::verify_api_key,
                         ))
                         .layer(axum::middleware::from_fn_with_state(
                             AnalyticsState::from_ref(&state),
-                            middleware::for_analytics,
-                        )),
+                            middleware::send_analytics,
+                        ))
+                        .layer(axum::middleware::from_fn(middleware::attach_user_client)),
                 );
 
             let webhook_router = Router::new()
@@ -160,8 +161,7 @@ fn main() {
                 .nest("/api/web", web_router)
                 .nest("/webhook", webhook_router)
                 .fallback_service({
-                    let static_dir: std::path::PathBuf =
-                        std::env::var("APP_STATIC_DIR").unwrap().into();
+                    let static_dir: std::path::PathBuf = get_env("APP_STATIC_DIR").into();
 
                     ServeDir::new(&static_dir)
                         .append_index_html_on_directories(false)
@@ -205,4 +205,8 @@ fn export_ts_types() -> anyhow::Result<()> {
 
     collection.export_to(language, path)?;
     Ok(())
+}
+
+fn get_env(key: &str) -> String {
+    std::env::var(key).expect(&format!("env: '{}' is not set", key))
 }

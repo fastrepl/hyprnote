@@ -1,4 +1,3 @@
-mod handle;
 pub mod interface;
 
 use anyhow::Result;

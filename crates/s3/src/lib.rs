@@ -7,6 +7,7 @@ use aws_sdk_s3::operation::get_object::GetObjectError;
 use aws_sdk_s3::operation::put_object::PutObjectError;
 use aws_sdk_s3::primitives::{AggregatedBytes, ByteStreamError};
 
+#[derive(Clone)]
 pub struct Client {
     s3: aws_sdk_s3::Client,
     bucket: String,

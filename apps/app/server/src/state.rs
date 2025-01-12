@@ -5,6 +5,7 @@ use hypr_analytics::AnalyticsClient;
 use hypr_db::admin::AdminDatabase;
 use hypr_lago::LagoClient;
 use hypr_nango::NangoClient;
+use hypr_s3::Client as S3Client;
 use hypr_turso::TursoClient;
 
 #[derive(Clone)]
@@ -17,6 +18,7 @@ pub struct AppState {
     pub turso: TursoClient,
     pub nango: NangoClient,
     pub lago: LagoClient,
+    pub s3: S3Client,
 }
 
 #[derive(Clone)]

@@ -9,9 +9,12 @@ use axum::{
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
-use crate::state::{AnalyticsState, AuthState};
+use crate::{
+    get_env,
+    state::{AnalyticsState, AuthState},
+};
 
-pub async fn for_api_key(
+pub async fn verify_api_key(
     State(state): State<AuthState>,
     mut req: Request,
     next: middleware::Next,
@@ -37,15 +40,30 @@ pub async fn for_api_key(
         .await
         .map_err(|_| StatusCode::UNAUTHORIZED)?;
 
-    if true {
-        req.extensions_mut().insert(user);
-        Ok(next.run(req).await)
-    } else {
-        Err(StatusCode::UNAUTHORIZED)
-    }
+    req.extensions_mut().insert(user);
+    Ok(next.run(req).await)
 }
 
-pub async fn for_analytics(
+pub async fn attach_user_client(
+    Extension(user): Extension<hypr_db::admin::User>,
+    mut req: Request,
+    next: middleware::Next,
+) -> Result<Response, StatusCode> {
+    let token = get_env("TURSO_API_KEY");
+    let url = format!("{}-yujonglee.turso.io", user.turso_db_name);
+    let conn = hypr_db::ConnectionBuilder::new()
+        .remote(url, token)
+        .connect()
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let db = hypr_db::user::UserDatabase::from(conn);
+
+    req.extensions_mut().insert(db);
+    Ok(next.run(req).await)
+}
+
+pub async fn send_analytics(
     Extension(user): Extension<hypr_db::admin::User>,
     State(state): State<AnalyticsState>,
     req: Request,
@@ -53,8 +71,7 @@ pub async fn for_analytics(
 ) -> Result<Response, StatusCode> {
     let payload = hypr_analytics::AnalyticsPayload::for_user(user.id.to_string())
         .event("test_event")
-        .with("key1", "value1")
-        .with("key2", 2)
+        .with("url", req.uri().path().to_string())
         .build();
 
     let _ = state.analytics.event(payload).await;

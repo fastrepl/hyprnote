@@ -57,9 +57,9 @@ pub struct Participant {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventFilter {
-    pub calendar_id: String,
     pub from: OffsetDateTime,
     pub to: OffsetDateTime,
+    pub calendars: Vec<Calendar>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

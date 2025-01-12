@@ -37,7 +37,7 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
     let now = time::OffsetDateTime::from_unix_timestamp(job.0.timestamp()).unwrap();
 
     let filter = hypr_calendar::EventFilter {
-        calendar_id: "".to_string(),
+        calendars: vec![],
         from: now - time::Duration::days(1),
         to: now + time::Duration::days(1),
     };

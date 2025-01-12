@@ -1,13 +1,13 @@
 use hypr_calendar::CalendarSource;
 use hypr_db::user::UserDatabase;
 
-async fn list_events(calendar_id: String) -> Result<Vec<hypr_calendar::Event>, String> {
+async fn list_events(calendars: Vec<hypr_calendar::Calendar>) -> Result<Vec<hypr_calendar::Event>, String> {
     let now = time::OffsetDateTime::now_utc();
 
     let mut events: Vec<hypr_calendar::Event> = Vec::new();
 
     let filter = hypr_calendar::EventFilter {
-        calendar_id,
+        calendars,
         from: now.checked_sub(time::Duration::days(30)).unwrap(),
         to: now.checked_add(time::Duration::days(30)).unwrap(),
     };

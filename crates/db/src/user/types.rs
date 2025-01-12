@@ -54,6 +54,7 @@ pub struct Calendar {
     pub tracking_id: String,
     pub platform: Platform,
     pub name: String,
+    pub selected: bool,
 }
 
 impl From<hypr_calendar::Calendar> for Calendar {
@@ -63,6 +64,7 @@ impl From<hypr_calendar::Calendar> for Calendar {
             tracking_id: calendar.id,
             platform: calendar.platform.into(),
             name: calendar.name,
+            selected: false,
         }
     }
 }

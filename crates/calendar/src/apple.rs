@@ -118,7 +118,7 @@ impl Handle {
             .into_iter()
             .filter(|c| {
                 let id = unsafe { c.calendarIdentifier() }.to_string();
-                filter.calendar_id.eq(&id)
+                filter.calendars.iter().any(|c| c.id.eq(&id))
             })
             .collect();
 
@@ -180,7 +180,11 @@ impl CalendarSource for Handle {
                 let calendar_id = unsafe { calendar.calendarIdentifier() };
 
                 // This is theoretically not needed, but it seems like the 'calendars' filter does not work in the predicate.
-                if !filter.calendar_id.eq(&calendar_id.to_string()) {
+                if !filter
+                    .calendars
+                    .iter()
+                    .any(|c| c.id.eq(&calendar_id.to_string()))
+                {
                     return None;
                 }
 
@@ -280,7 +284,7 @@ mod tests {
     async fn test_list_events() {
         let handle = Handle::new();
         let filter = EventFilter {
-            calendar_id: "something_not_exist".into(),
+            calendars: vec![],
             from: time::OffsetDateTime::now_utc() - time::Duration::days(100),
             to: time::OffsetDateTime::now_utc() + time::Duration::days(100),
         };

@@ -12,7 +12,7 @@ google = []
 hypr_db_utils = { path = "../db-utils", package = "db-utils" }
 
 anyhow = { workspace = true }
-itertools = "0.13.0"
+itertools = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 

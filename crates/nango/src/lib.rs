@@ -3,11 +3,13 @@
 use serde::{Deserialize, Serialize};
 
 // https://docs.nango.dev/understand/concepts/integrations
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, strum::AsRefStr, specta::Type)]
 pub enum NangoIntegration {
     #[serde(rename = "google-calendar")]
+    #[strum(serialize = "google-calendar")]
     GoogleCalendar,
     #[serde(rename = "outlook-calendar")]
+    #[strum(serialize = "outlook-calendar")]
     OutlookCalendar,
 }
 
@@ -70,7 +72,7 @@ pub struct NangoConnectSessionRequestOrganization {
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub enum NangoConnectSessionResponse {
     #[serde(rename = "data")]
-    Data { token: String, expires_at: String },
+    Ok { token: String, expires_at: String },
     #[serde(rename = "error")]
     Error { code: String },
 }
@@ -78,7 +80,9 @@ pub enum NangoConnectSessionResponse {
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 #[serde(untagged)]
 pub enum NangoGetConnectionResponse {
-    Data(NangoGetConnectionResponseData),
+    #[serde(rename = "data")]
+    Ok(NangoGetConnectionResponseData),
+    #[serde(rename = "error")]
     Error { message: String },
 }
 
@@ -91,6 +95,19 @@ pub struct NangoGetConnectionResponseData {
     pub created_at: String,
     pub updated_at: String,
     pub last_fetched_at: String,
+    pub credentials: NangoCredentials,
+}
+
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[serde(tag = "type")]
+pub enum NangoCredentials {
+    #[serde(rename = "OAUTH2")]
+    OAuth2(NangoCredentialsOAuth2),
+}
+
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
+pub struct NangoCredentialsOAuth2 {
+    pub access_token: String,
 }
 
 // https://docs.nango.dev/guides/getting-started/authorize-an-api-from-your-app#save-the-connection-id-backend

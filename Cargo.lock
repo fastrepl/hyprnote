@@ -6160,6 +6160,7 @@ dependencies = [
  "reqwest 0.12.12",
  "serde",
  "specta",
+ "strum 0.26.3",
  "tokio",
 ]
 

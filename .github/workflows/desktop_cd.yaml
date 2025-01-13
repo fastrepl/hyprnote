@@ -9,12 +9,11 @@ concurrency:
   cancel-in-progress: true
 env:
   CN_APPLICATION: "fastrepl/hyprnote"
-  SHOULD_RUN: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
 permissions:
   contents: write
 jobs:
   draft:
-    if: ${{ env.SHOULD_RUN }}
+    if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -24,7 +23,7 @@ jobs:
           command: release draft ${{ env.CN_APPLICATION }} --framework tauri
           api-key: ${{ secrets.CN_API_KEY }}
   build:
-    if: ${{ env.SHOULD_RUN }}
+    if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
     needs: draft
     strategy:
       fail-fast: false
@@ -55,7 +54,7 @@ jobs:
           projectPath: ./apps/desktop
           prerelease: false
   publish:
-    if: ${{ env.SHOULD_RUN }}
+    if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
     needs: build
     runs-on: ubuntu-22.04
     steps:

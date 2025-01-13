@@ -70,7 +70,7 @@ fn main() {
 
                 #[cfg(not(debug_assertions))]
                 let conn = hypr_db::ConnectionBuilder::new()
-                    .remote(get_env("DATABASE_URL"), get_env("DATABASE_TOKEN"))
+                    .remote(get_env("TURSO_DATABASE_URL"), get_env("TURSO_API_KEY"))
                     .connect()
                     .await
                     .unwrap();
@@ -92,7 +92,7 @@ fn main() {
 
             let s3 = hypr_s3::Client::new(hypr_s3::Config {
                 endpoint_url: get_env("S3_ENDPOINT_URL"),
-                bucket: get_env("S3_BUCKET"),
+                bucket: get_env("S3_BUCKET_NAME"),
                 access_key_id: get_env("S3_ACCESS_KEY_ID"),
                 secret_access_key: get_env("S3_SECRET_ACCESS_KEY"),
             })

@@ -5,6 +5,7 @@ on:
 jobs:
   deploy:
     if: startsWith(github.event.release.tag_name, 'app_')
+    runs-on: ubuntu-latest
     concurrency: deploy-group
     steps:
       - uses: actions/checkout@v4

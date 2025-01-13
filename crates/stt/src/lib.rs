@@ -140,7 +140,7 @@ mod tests {
         let audio_stream = microphone_as_stream();
 
         let config = ClovaConfig {
-            secret_key: std::env::var("clova_api_key").unwrap(),
+            secret_key: std::env::var("CLOVA_API_KEY").unwrap(),
             config: clova::clova::ConfigRequest {
                 transcription: clova::clova::Transcription {
                     language: clova::clova::Language::Korean,

@@ -20,7 +20,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 hypr-audio = { path = "../../../crates/audio", package = "audio" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
-hypr-calendar = { path = "../../../crates/calendar", package = "calendar" }
+hypr-calendar = { path = "../../../crates/calendar", package = "calendar", features = ["apple"] }
 hypr-db = { path = "../../../crates/db", package = "db", default-features = false, features = ["user"] }
 hypr_host = { path = "../../../crates/host", package = "host" }
 

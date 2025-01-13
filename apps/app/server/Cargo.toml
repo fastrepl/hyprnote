@@ -9,7 +9,7 @@ dotenv = "0.15.0"
 [dependencies]
 hypr-analytics = { path = "../../../crates/analytics", package = "analytics" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
-hypr-calendar = { path = "../../../crates/calendar", package = "calendar", default-features = false, features = ["google"] }
+hypr-calendar = { path = "../../../crates/calendar", package = "calendar", features = ["google", "outlook"] }
 hypr-db = { path = "../../../crates/db", package = "db" }
 hypr-lago = { path = "../../../crates/lago", package = "lago" }
 hypr-nango = { path = "../../../crates/nango", package = "nango" }

@@ -2,6 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::future::Future;
 use time::OffsetDateTime;
 
+#[cfg(feature = "outlook")]
+pub mod outlook;
+
 #[cfg(feature = "google")]
 pub mod google;
 

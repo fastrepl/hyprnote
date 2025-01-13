@@ -188,9 +188,13 @@ pub fn run() {
         .setup(|app| {
             let app = app.handle().clone();
 
+            let worker_app = app.clone();
             let worker_db = db.clone();
             tauri::async_runtime::spawn(async move {
-                let state = workers::WorkerState { db: worker_db };
+                let state = workers::WorkerState {
+                    db: worker_db,
+                    app: worker_app,
+                };
                 let _m = workers::monitor(state).await.unwrap();
             });
 

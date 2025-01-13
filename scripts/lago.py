@@ -19,11 +19,12 @@ def run():
 
     client.plans.create(
         Plan(
-            name="test",
-            invoice_display_name="test",
+            code="hyprnote-pro",
+            name="Hyprnote Pro",
+            invoice_display_name="Hyprnote Pro",
             interval="monthly",
-            amount_cents=1000,
-            amount_currency="usd",
+            amount_cents=3000,
+            amount_currency="USD",
             trial_period=0,
             pay_in_advance=True,
             bill_charges_monthly=True,

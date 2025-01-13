@@ -5,6 +5,7 @@ pub struct TursoClient {
     client: reqwest::Client,
     pub api_base: url::Url,
     pub api_key: String,
+    pub org_slug: String,
 }
 
 pub struct CreateDatabaseRequestBuilder {
@@ -103,18 +104,33 @@ pub struct DeleteDatabaseResponse {
     pub database: String,
 }
 
-const ORG: &str = "yujonglee";
-
-pub fn db_host(name: impl Into<String>) -> String {
-    format!("{}-{}.turso.io", name.into(), ORG)
+#[derive(Default)]
+pub struct TursoClientBuilder {
+    api_base: Option<String>,
+    api_key: Option<String>,
+    org_slug: Option<String>,
 }
 
-// https://docs.turso.tech/api-reference
-impl TursoClient {
-    pub fn new(api_base: impl Into<String>, api_key: impl Into<String>) -> Self {
+impl TursoClientBuilder {
+    pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
+        self.api_base = Some(api_base.into());
+        self
+    }
+
+    pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
+        self.api_key = Some(api_key.into());
+        self
+    }
+
+    pub fn org_slug(mut self, org_slug: impl Into<String>) -> Self {
+        self.org_slug = Some(org_slug.into());
+        self
+    }
+
+    pub fn build(self) -> TursoClient {
         let mut headers = reqwest::header::HeaderMap::new();
 
-        let api_key = api_key.into();
+        let api_key = self.api_key.unwrap();
         let auth_str = format!("Bearer {}", &api_key);
         let mut auth_value = reqwest::header::HeaderValue::from_str(&auth_str).unwrap();
         auth_value.set_sensitive(true);
@@ -126,11 +142,47 @@ impl TursoClient {
             .build()
             .unwrap();
 
-        Self {
+        TursoClient {
             client,
-            api_base: api_base.into().parse().unwrap(),
+            api_base: self.api_base.unwrap().parse().unwrap(),
             api_key,
+            org_slug: self.org_slug.unwrap(),
         }
+    }
+}
+
+// https://docs.turso.tech/api-reference
+impl TursoClient {
+    pub fn builder() -> TursoClientBuilder {
+        TursoClientBuilder::default()
+    }
+
+    pub fn db_url(&self, name: impl Into<String>) -> String {
+        format!("libsql://{}-{}.turso.io", name.into(), self.org_slug)
+    }
+
+    pub async fn generate_db_token(
+        &self,
+        db_name: impl Into<String>,
+    ) -> Result<String, reqwest::Error> {
+        let mut url = self.api_base.clone();
+        url.set_path(&format!(
+            "/v1/organizations/{}/databases/{}/auth/tokens",
+            self.org_slug,
+            db_name.into()
+        ));
+        url.query_pairs_mut()
+            .append_pair("expiration", "never")
+            .append_pair("authorization", "full-access");
+
+        let res = self
+            .client
+            .post(url)
+            .send()
+            .await?
+            .json::<serde_json::Value>()
+            .await?;
+        Ok(res["jwt"].to_string())
     }
 
     pub async fn create_database(
@@ -138,7 +190,7 @@ impl TursoClient {
         req: CreateDatabaseRequest,
     ) -> Result<DatabaseResponse<CreateDatabaseResponse>, reqwest::Error> {
         let mut url = self.api_base.clone();
-        url.set_path(&format!("/v1/organizations/{}/databases", ORG));
+        url.set_path(&format!("/v1/organizations/{}/databases", self.org_slug));
 
         let res = self
             .client
@@ -157,7 +209,10 @@ impl TursoClient {
         db: impl std::fmt::Display,
     ) -> Result<DatabaseResponse<RetrieveDatabaseResponse>, reqwest::Error> {
         let mut url = self.api_base.clone();
-        url.set_path(&format!("/v1/organizations/{}/databases/{}", ORG, db));
+        url.set_path(&format!(
+            "/v1/organizations/{}/databases/{}",
+            self.org_slug, db
+        ));
 
         let res = self.client.get(url).send().await?.json().await?;
 
@@ -169,7 +224,10 @@ impl TursoClient {
         db: impl std::fmt::Display,
     ) -> Result<DatabaseResponse<DeleteDatabaseResponse>, reqwest::Error> {
         let mut url = self.api_base.clone();
-        url.set_path(&format!("/v1/organizations/{}/databases/{}", ORG, db));
+        url.set_path(&format!(
+            "/v1/organizations/{}/databases/{}",
+            self.org_slug, db
+        ));
 
         let res = self.client.delete(url).send().await?.json().await?;
         Ok(res)

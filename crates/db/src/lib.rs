@@ -9,28 +9,23 @@ pub type Connection = libsql::Connection;
 #[derive(Debug, Default)]
 struct ConnectionConfig {
     local_path: Option<std::path::PathBuf>,
-    remote_url: Option<String>,
-    remote_token: Option<String>,
+    remote_config: Option<(String, String)>,
 }
 
 impl ConnectionConfig {
     pub async fn connect(&self) -> anyhow::Result<Connection> {
-        let db = match (
-            self.local_path.clone(),
-            self.remote_url.clone(),
-            self.remote_token.clone(),
-        ) {
-            (Some(path), None, None) => libsql::Builder::new_local(path).build().await?,
-            (None, Some(url), Some(token)) => {
-                libsql::Builder::new_remote(url, token).build().await?
-            }
-            (Some(path), Some(url), Some(token)) => {
+        let db = match (self.local_path.clone(), self.remote_config.clone()) {
+            (Some(path), None) => libsql::Builder::new_local(path).build().await?,
+            (None, Some((url, token))) => libsql::Builder::new_remote(url, token).build().await?,
+            (Some(path), Some((url, token))) => {
                 libsql::Builder::new_remote_replica(path, url, token)
                     .sync_interval(std::time::Duration::from_secs(300))
                     .build()
                     .await?
             }
-            (_, _, _) => anyhow::bail!("invalid connection config"),
+            (None, None) => {
+                anyhow::bail!("either '.local()' or '.remote()' must be called")
+            }
         };
 
         let conn = db.connect()?;
@@ -54,9 +49,8 @@ impl ConnectionBuilder {
         self
     }
 
-    pub fn remote(mut self, url: impl AsRef<str>, token: impl AsRef<str>) -> Self {
-        self.config.remote_url = Some(url.as_ref().to_owned());
-        self.config.remote_token = Some(token.as_ref().to_owned());
+    pub fn remote(mut self, url: impl Into<String>, token: impl Into<String>) -> Self {
+        self.config.remote_config = Some((url.into(), token.into()));
         self
     }
 

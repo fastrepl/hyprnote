@@ -55,8 +55,16 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
                     .await
                     .map_err(|e| err_from(e.to_string()))?;
 
-                let user_db =
-                    get_user_db(hypr_turso::db_host(&user.turso_db_name), &ctx.turso.api_key).await;
+                let user_db = {
+                    let url = ctx.turso.db_url(&user.turso_db_name);
+                    let token = ctx.turso.generate_db_token(&user.turso_db_name).await?;
+                    let conn = hypr_db::ConnectionBuilder::new()
+                        .remote(url, token)
+                        .connect()
+                        .await?;
+
+                    hypr_db::user::UserDatabase::from(conn)
+                };
 
                 for event in events {
                     let _ = user_db.upsert_event(event.into()).await;
@@ -66,14 +74,4 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
     }
 
     Ok(())
-}
-
-async fn get_user_db(url: impl AsRef<str>, token: impl AsRef<str>) -> hypr_db::user::UserDatabase {
-    let conn = hypr_db::ConnectionBuilder::new()
-        .remote(url, token)
-        .connect()
-        .await
-        .unwrap();
-
-    hypr_db::user::UserDatabase::from(conn)
 }

@@ -45,7 +45,11 @@ fn main() {
         },
     ));
 
-    let turso = hypr_turso::TursoClient::new("https://api.turso.tech", get_env("TURSO_API_KEY"));
+    let turso = hypr_turso::TursoClient::builder()
+        .api_base(get_env("TURSO_API_BASE"))
+        .api_key(get_env("TURSO_API_KEY"))
+        .org_slug(get_env("TURSO_ORG_SLUG"))
+        .build();
 
     let clerk_config = ClerkConfiguration::new(None, None, Some(get_env("CLERK_SECRET_KEY")), None);
     let clerk = Clerk::new(clerk_config);
@@ -61,19 +65,31 @@ fn main() {
             });
 
             let admin_db = {
-                #[cfg(debug_assertions)]
-                let conn = hypr_db::ConnectionBuilder::new()
-                    .local(":memory:")
-                    .connect()
-                    .await
-                    .unwrap();
+                let conn = {
+                    #[cfg(debug_assertions)]
+                    {
+                        hypr_db::ConnectionBuilder::new()
+                            .local(":memory:")
+                            .connect()
+                            .await
+                            .unwrap()
+                    }
 
-                #[cfg(not(debug_assertions))]
-                let conn = hypr_db::ConnectionBuilder::new()
-                    .remote(get_env("TURSO_DATABASE_URL"), get_env("TURSO_API_KEY"))
-                    .connect()
-                    .await
-                    .unwrap();
+                    #[cfg(not(debug_assertions))]
+                    {
+                        let name = get_env("TURSO_ADMIN_DB_NAME");
+                        let url = turso.db_url(&name);
+                        let token = turso.generate_db_token(&name).await.unwrap();
+
+                        println!("token: {}", token);
+
+                        hypr_db::ConnectionBuilder::new()
+                            .remote(url, token)
+                            .connect()
+                            .await
+                            .unwrap()
+                    }
+                };
 
                 hypr_db::admin::migrate(&conn).await.unwrap();
                 hypr_db::admin::AdminDatabase::from(conn)

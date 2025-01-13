@@ -188,6 +188,12 @@ pub fn run() {
         .setup(|app| {
             let app = app.handle().clone();
 
+            let worker_db = db.clone();
+            tauri::async_runtime::spawn(async move {
+                let state = workers::WorkerState { db: worker_db };
+                let _m = workers::monitor(state).await.unwrap();
+            });
+
             tray::create_tray(&app).unwrap();
 
             ShowHyprWindow::MainWithoutDemo.show(&app).unwrap();

@@ -17,25 +17,26 @@ impl From<DateTime<Utc>> for Job {
 pub async fn perform(_job: Job, ctx: Data<WorkerState>) {
     #[cfg(target_os = "macos")]
     {
-        tauri::async_runtime::spawn(async move {
-            loop {
-                let calendar_access = tauri::async_runtime::spawn_blocking(|| {
-                    let handle = hypr_calendar::apple::Handle::new();
-                    handle.calendar_access_status()
-                })
-                .await
-                .unwrap_or(false);
+        let calendar_access = tauri::async_runtime::spawn_blocking(|| {
+            let handle = hypr_calendar::apple::Handle::new();
+            handle.calendar_access_status()
+        })
+        .await
+        .unwrap_or(false);
 
-                if calendar_access {
-                    let calendars = list_calendars().await.unwrap_or(vec![]);
-                    for calendar in calendars {
-                        ctx.db.upsert_calendar(calendar.into()).await.unwrap();
-                    }
-                }
+        if !calendar_access {
+            return;
+        }
 
-                tokio::time::sleep(std::time::Duration::from_secs(10)).await;
-            }
-        });
+        let calendars = list_calendars().await.unwrap_or(vec![]);
+        for calendar in calendars.clone() {
+            ctx.db.upsert_calendar(calendar.into()).await.unwrap();
+        }
+
+        let events = list_events(calendars).await.unwrap_or(vec![]);
+        for event in events {
+            ctx.db.upsert_event(event.into()).await.unwrap();
+        }
     }
 }
 

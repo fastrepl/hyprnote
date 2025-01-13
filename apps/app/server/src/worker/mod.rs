@@ -21,20 +21,20 @@ pub async fn monitor(state: WorkerState) -> Result<(), std::io::Error> {
     let credit_ctx = state;
 
     apalis::prelude::Monitor::new()
-        .register({
+        .register(
             WorkerBuilder::new("calendar")
-                .concurrency(4)
+                .concurrency(1)
                 .data(calendar_ctx)
                 .backend(apalis_cron::CronStream::new(calendar_schedule))
-                .build_fn(calendar::perform)
-        })
-        .register({
+                .build_fn(calendar::perform),
+        )
+        .register(
             WorkerBuilder::new("credit")
-                .concurrency(4)
+                .concurrency(1)
                 .data(credit_ctx)
                 .backend(apalis_cron::CronStream::new(credit_schedule))
-                .build_fn(credit::perform)
-        })
+                .build_fn(credit::perform),
+        )
         .run()
         .await
 }

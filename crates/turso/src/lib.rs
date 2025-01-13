@@ -105,6 +105,10 @@ pub struct DeleteDatabaseResponse {
 
 const ORG: &str = "yujonglee";
 
+pub fn db_host(name: impl Into<String>) -> String {
+    format!("{}-{}.turso.io", name.into(), ORG)
+}
+
 // https://docs.turso.tech/api-reference
 impl TursoClient {
     pub fn new(api_base: impl Into<String>, api_key: impl Into<String>) -> Self {

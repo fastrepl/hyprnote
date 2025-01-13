@@ -45,7 +45,7 @@ fn main() {
         },
     ));
 
-    let turso = hypr_turso::TursoClient::new(get_env("TURSO_API_KEY"));
+    let turso = hypr_turso::TursoClient::new("https://api.turso.tech", get_env("TURSO_API_KEY"));
 
     let clerk_config = ClerkConfiguration::new(None, None, Some(get_env("CLERK_SECRET_KEY")), None);
     let clerk = Clerk::new(clerk_config);

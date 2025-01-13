@@ -19,7 +19,7 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
     let user_id = "";
     let provider = "oauth_google";
 
-    let _user_db = get_user_db("turso_db_url_from_admin_db", "turso_token_from_env").await;
+    let _user_db = get_user_db("turso_db_url_from_admin_db", &ctx.turso.api_key).await;
 
     // https://clerk.com/docs/reference/backend-api/tag/Users#operation/GetOAuthAccessToken
     let token = ctx

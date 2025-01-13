@@ -26,6 +26,7 @@ pub struct WorkerState {
     pub clerk: Clerk,
     pub lago: LagoClient,
     pub admin_db: AdminDatabase,
+    pub turso: TursoClient,
 }
 
 #[derive(Clone)]
@@ -77,6 +78,7 @@ impl FromRef<AppState> for WorkerState {
             clerk: s.clerk.clone(),
             admin_db: s.admin_db.clone(),
             lago: s.lago.clone(),
+            turso: s.turso.clone(),
         }
     }
 }

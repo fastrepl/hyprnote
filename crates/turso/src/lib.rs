@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone)]
 pub struct TursoClient {
     client: reqwest::Client,
+    pub api_base: url::Url,
+    pub api_key: String,
 }
 
 pub struct CreateDatabaseRequestBuilder {
@@ -105,10 +107,11 @@ const ORG: &str = "yujonglee";
 
 // https://docs.turso.tech/api-reference
 impl TursoClient {
-    pub fn new(api_key: impl std::fmt::Display) -> Self {
+    pub fn new(api_base: impl Into<String>, api_key: impl Into<String>) -> Self {
         let mut headers = reqwest::header::HeaderMap::new();
 
-        let auth_str = format!("Bearer {}", api_key);
+        let api_key = api_key.into();
+        let auth_str = format!("Bearer {}", &api_key);
         let mut auth_value = reqwest::header::HeaderValue::from_str(&auth_str).unwrap();
         auth_value.set_sensitive(true);
 
@@ -119,17 +122,19 @@ impl TursoClient {
             .build()
             .unwrap();
 
-        Self { client }
+        Self {
+            client,
+            api_base: api_base.into().parse().unwrap(),
+            api_key,
+        }
     }
 
     pub async fn create_database(
         &self,
         req: CreateDatabaseRequest,
     ) -> Result<DatabaseResponse<CreateDatabaseResponse>, reqwest::Error> {
-        let url = format!(
-            "https://api.turso.tech/v1/organizations/{org}/databases",
-            org = ORG
-        );
+        let mut url = self.api_base.clone();
+        url.set_path(&format!("/v1/organizations/{}/databases", ORG));
 
         let res = self
             .client
@@ -147,11 +152,8 @@ impl TursoClient {
         &self,
         db: impl std::fmt::Display,
     ) -> Result<DatabaseResponse<RetrieveDatabaseResponse>, reqwest::Error> {
-        let url = format!(
-            "https://api.turso.tech/v1/organizations/{org}/databases/{db}",
-            org = ORG,
-            db = db
-        );
+        let mut url = self.api_base.clone();
+        url.set_path(&format!("/v1/organizations/{}/databases/{}", ORG, db));
 
         let res = self.client.get(url).send().await?.json().await?;
 
@@ -162,11 +164,8 @@ impl TursoClient {
         &self,
         db: impl std::fmt::Display,
     ) -> Result<DatabaseResponse<DeleteDatabaseResponse>, reqwest::Error> {
-        let url = format!(
-            "https://api.turso.tech/v1/organizations/{org}/databases/{db}",
-            org = ORG,
-            db = db
-        );
+        let mut url = self.api_base.clone();
+        url.set_path(&format!("/v1/organizations/{}/databases/{}", ORG, db));
 
         let res = self.client.delete(url).send().await?.json().await?;
         Ok(res)
@@ -181,8 +180,7 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn test_create_database() {
-        let key = "TODO";
-        let client = TursoClient::new(key);
+        let client = TursoClient::new("https://api.turso.tech", "api_key");
 
         let req = CreateDatabaseRequestBuilder::new()
             .with_name("test")
@@ -206,8 +204,7 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn test_retrieve_database() {
-        let key = "TODO";
-        let client = TursoClient::new(key);
+        let client = TursoClient::new("https://api.turso.tech", "api_key");
 
         let res = client.retrieve_database("test").await;
 

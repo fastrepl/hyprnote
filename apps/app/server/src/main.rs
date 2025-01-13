@@ -80,6 +80,7 @@ fn main() {
             };
 
             let nango = hypr_nango::NangoClientBuilder::new()
+                .api_base(get_env("NANGO_API_BASE"))
                 .api_key(get_env("NANGO_API_KEY"))
                 .build();
 

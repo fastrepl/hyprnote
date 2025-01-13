@@ -6162,6 +6162,7 @@ dependencies = [
  "specta",
  "strum 0.26.3",
  "tokio",
+ "url",
 ]
 
 [[package]]

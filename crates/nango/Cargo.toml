@@ -8,6 +8,7 @@ reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }
 strum = { workspace = true, features = ["derive"] }
 specta = { workspace = true, features = ["derive"] }
+url = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt", "macros"] }

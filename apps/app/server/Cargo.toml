@@ -9,7 +9,7 @@ dotenv = "0.15.0"
 [dependencies]
 hypr-analytics = { path = "../../../crates/analytics", package = "analytics" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
-hypr-calendar = { path = "../../../crates/calendar", package = "calendar", default-features = false, features = ["google"] }
+hypr-calendar = { path = "../../../crates/calendar", package = "calendar", features = ["google", "outlook"] }
 hypr-db = { path = "../../../crates/db", package = "db" }
 hypr-lago = { path = "../../../crates/lago", package = "lago" }
 hypr-nango = { path = "../../../crates/nango", package = "nango" }
@@ -31,7 +31,7 @@ tracing-opentelemetry = { workspace = true }
 
 anyhow = { workspace = true }
 bytes = { workspace = true }
-chrono = "0.4.39"
+chrono = { workspace = true }
 dotenv = "0.15.0"
 schemars = { workspace = true, features = ["preserve_order"] }
 serde = { workspace = true, features = ["derive"] }
@@ -39,14 +39,15 @@ serde_json = { workspace = true }
 time = { workspace = true }
 uuid = { workspace = true }
 
+hex = "0.4.3"
+hmac = "0.12.1"
+sha2 = "0.10.8"
+
 specta = { workspace = true }
 specta-typescript = { workspace = true }
 specta-util = { workspace = true }
 
-apalis = { version = "0.6.3", features = ["sentry", "limit"] }
-apalis-cron = "0.6.3"
+apalis = { workspace = true, features = ["sentry", "limit"] }
+apalis-cron = { workspace = true }
 async-openai = { version = "0.26.0", default-features = false }
 clerk-rs = { version = "0.4.0", features = ["axum"] }
-hex = "0.4.3"
-hmac = "0.12.1"
-sha2 = "0.10.8"

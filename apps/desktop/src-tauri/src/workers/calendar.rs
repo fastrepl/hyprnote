@@ -1,13 +1,54 @@
-use hypr_calendar::CalendarSource;
-use hypr_db::user::UserDatabase;
+use apalis::prelude::Data;
+use chrono::{DateTime, Utc};
 
-async fn list_events(calendar_id: String) -> Result<Vec<hypr_calendar::Event>, String> {
+use hypr_calendar::CalendarSource;
+
+use super::WorkerState;
+
+#[derive(Default, Debug, Clone)]
+pub struct Job(DateTime<Utc>);
+
+impl From<DateTime<Utc>> for Job {
+    fn from(t: DateTime<Utc>) -> Self {
+        Job(t)
+    }
+}
+
+pub async fn perform(_job: Job, ctx: Data<WorkerState>) {
+    #[cfg(target_os = "macos")]
+    {
+        let calendar_access = tauri::async_runtime::spawn_blocking(|| {
+            let handle = hypr_calendar::apple::Handle::new();
+            handle.calendar_access_status()
+        })
+        .await
+        .unwrap_or(false);
+
+        if !calendar_access {
+            return;
+        }
+
+        let calendars = list_calendars().await.unwrap_or(vec![]);
+        for calendar in calendars.clone() {
+            ctx.db.upsert_calendar(calendar.into()).await.unwrap();
+        }
+
+        let events = list_events(calendars).await.unwrap_or(vec![]);
+        for event in events {
+            ctx.db.upsert_event(event.into()).await.unwrap();
+        }
+    }
+}
+
+async fn list_events(
+    calendars: Vec<hypr_calendar::Calendar>,
+) -> Result<Vec<hypr_calendar::Event>, String> {
     let now = time::OffsetDateTime::now_utc();
 
     let mut events: Vec<hypr_calendar::Event> = Vec::new();
 
     let filter = hypr_calendar::EventFilter {
-        calendar_id,
+        calendars,
         from: now.checked_sub(time::Duration::days(30)).unwrap(),
         to: now.checked_add(time::Duration::days(30)).unwrap(),
     };
@@ -43,29 +84,4 @@ async fn list_calendars() -> Result<Vec<hypr_calendar::Calendar>, String> {
     }
 
     Ok(calendars)
-}
-
-pub fn sync_apple_calendar(db: UserDatabase) {
-    #[cfg(target_os = "macos")]
-    {
-        tauri::async_runtime::spawn(async move {
-            loop {
-                let calendar_access = tauri::async_runtime::spawn_blocking(|| {
-                    let handle = hypr_calendar::apple::Handle::new();
-                    handle.calendar_access_status()
-                })
-                .await
-                .unwrap_or(false);
-
-                if calendar_access {
-                    let calendars = list_calendars().await.unwrap_or(vec![]);
-                    for calendar in calendars {
-                        db.upsert_calendar(calendar.into()).await.unwrap();
-                    }
-                }
-
-                tokio::time::sleep(std::time::Duration::from_secs(10)).await;
-            }
-        });
-    }
 }

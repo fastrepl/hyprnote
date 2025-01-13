@@ -3,11 +3,13 @@
 use serde::{Deserialize, Serialize};
 
 // https://docs.nango.dev/understand/concepts/integrations
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, strum::AsRefStr, specta::Type)]
 pub enum NangoIntegration {
     #[serde(rename = "google-calendar")]
+    #[strum(serialize = "google-calendar")]
     GoogleCalendar,
     #[serde(rename = "outlook-calendar")]
+    #[strum(serialize = "outlook-calendar")]
     OutlookCalendar,
 }
 
@@ -35,12 +37,13 @@ impl From<NangoIntegration> for String {
 #[derive(Clone)]
 pub struct NangoClientBuilder {
     api_key: Option<String>,
+    api_base: Option<String>,
 }
 
 #[derive(Clone)]
 pub struct NangoClient {
     client: reqwest::Client,
-    api_base: String,
+    api_base: url::Url,
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
@@ -70,7 +73,7 @@ pub struct NangoConnectSessionRequestOrganization {
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub enum NangoConnectSessionResponse {
     #[serde(rename = "data")]
-    Data { token: String, expires_at: String },
+    Ok { token: String, expires_at: String },
     #[serde(rename = "error")]
     Error { code: String },
 }
@@ -78,7 +81,9 @@ pub enum NangoConnectSessionResponse {
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 #[serde(untagged)]
 pub enum NangoGetConnectionResponse {
-    Data(NangoGetConnectionResponseData),
+    #[serde(rename = "data")]
+    Ok(NangoGetConnectionResponseData),
+    #[serde(rename = "error")]
     Error { message: String },
 }
 
@@ -91,6 +96,19 @@ pub struct NangoGetConnectionResponseData {
     pub created_at: String,
     pub updated_at: String,
     pub last_fetched_at: String,
+    pub credentials: NangoCredentials,
+}
+
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[serde(tag = "type")]
+pub enum NangoCredentials {
+    #[serde(rename = "OAUTH2")]
+    OAuth2(NangoCredentialsOAuth2),
+}
+
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
+pub struct NangoCredentialsOAuth2 {
+    pub access_token: String,
 }
 
 // https://docs.nango.dev/guides/getting-started/authorize-an-api-from-your-app#save-the-connection-id-backend
@@ -118,13 +136,10 @@ impl NangoClient {
         &self,
         connection_id: impl std::fmt::Display,
     ) -> Result<NangoGetConnectionResponse, reqwest::Error> {
-        let res = self
-            .client
-            .get(&format!("{}/connection/{}", self.api_base, connection_id))
-            .send()
-            .await?
-            .json()
-            .await?;
+        let mut url = self.api_base.clone();
+        url.set_path(&format!("/connection/{}", connection_id));
+
+        let res = self.client.get(url).send().await?.json().await?;
 
         Ok(res)
     }
@@ -134,9 +149,12 @@ impl NangoClient {
         &self,
         req: NangoConnectSessionRequest,
     ) -> Result<NangoConnectSessionResponse, reqwest::Error> {
+        let mut url = self.api_base.clone();
+        url.set_path("/connect/sessions");
+
         let res = self
             .client
-            .post(&format!("{}/connect/sessions", self.api_base))
+            .post(url)
             .header("Content-Type", "application/json")
             .json(&req)
             .send()
@@ -169,7 +187,15 @@ pub struct NangoProxyBuilder<'a> {
 
 impl NangoClientBuilder {
     pub fn new() -> Self {
-        NangoClientBuilder { api_key: None }
+        NangoClientBuilder {
+            api_base: None,
+            api_key: None,
+        }
+    }
+
+    pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
+        self.api_base = Some(api_base.into());
+        self
     }
 
     pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
@@ -194,7 +220,7 @@ impl NangoClientBuilder {
 
         NangoClient {
             client,
-            api_base: "https://api.nango.dev".to_string(),
+            api_base: self.api_base.unwrap().parse().unwrap(),
         }
     }
 }
@@ -202,7 +228,8 @@ impl NangoClientBuilder {
 impl<'a> NangoProxyBuilder<'a> {
     // https://docs.nango.dev/reference/api/proxy/get
     pub fn get(&self, url: impl std::fmt::Display) -> reqwest::RequestBuilder {
-        let url = format!("{}/proxy/{}", self.nango.api_base, url);
+        let mut url = self.nango.api_base.clone();
+        url.set_path(&format!("/proxy/{}", url));
 
         self.nango
             .client
@@ -217,7 +244,8 @@ impl<'a> NangoProxyBuilder<'a> {
         url: impl std::fmt::Display,
         data: &T,
     ) -> reqwest::RequestBuilder {
-        let url = format!("{}/proxy/{}", self.nango.api_base, url);
+        let mut url = self.nango.api_base.clone();
+        url.set_path(&format!("/proxy/{}", url));
 
         self.nango
             .client
@@ -236,6 +264,7 @@ mod tests {
     #[tokio::test]
     async fn test_non_proxy() {
         let nango_client = NangoClientBuilder::new()
+            .api_base("https://api.nango.dev")
             .api_key("de9c36c9-33dc-4ebf-b006-153d458583ea")
             .build();
 
@@ -255,7 +284,10 @@ mod tests {
 
     #[test]
     fn test_proxy() {
-        let nango_client = NangoClientBuilder::new().api_key("api_key").build();
+        let nango_client = NangoClientBuilder::new()
+            .api_base("https://api.nango.dev")
+            .api_key("api_key")
+            .build();
 
         let _ = nango_client
             .for_connection(NangoIntegration::GoogleCalendar, "connection")

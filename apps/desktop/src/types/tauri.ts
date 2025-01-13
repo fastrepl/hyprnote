@@ -76,6 +76,7 @@ export type Calendar = {
   tracking_id: string;
   platform: Platform;
   name: string;
+  selected: boolean;
 };
 export type Event = {
   id: string;

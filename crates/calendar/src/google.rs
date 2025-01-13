@@ -37,58 +37,65 @@ impl CalendarSource for Handle {
         Ok(list)
     }
 
-    async fn list_events(&self, filter: EventFilter) -> anyhow::Result<Vec<crate::Event>> {
-        let events = self
-            .client
-            .events()
-            .list(
-                &filter.calendar_id,
-                "",
-                100,
-                500,
-                google_calendar::types::OrderBy::StartTime,
-                "",
-                &Vec::new(),
-                "",
-                &Vec::new(),
-                false,
-                false,
-                true,
-                filter.from.format(&Rfc3339)?.as_str(),
-                filter.to.format(&Rfc3339)?.as_str(),
-                "",
-                "",
-            )
-            .await?
-            .body
-            .iter()
-            .map(|event| {
-                let start = convert_to_time(event.start.clone().unwrap()).unwrap();
-                let end = convert_to_time(event.end.clone().unwrap()).unwrap();
+    async fn list_events(&self, filter: EventFilter) -> anyhow::Result<Vec<Event>> {
+        let mut all_events = Vec::new();
 
-                let participants = event
-                    .attendees
-                    .iter()
-                    .map(|a| Participant {
-                        name: a.display_name.clone(),
-                        email: a.email.clone(),
-                    })
-                    .collect::<Vec<Participant>>();
+        for calendar in filter.calendars {
+            let events: Vec<Event> = self
+                .client
+                .events()
+                .list(
+                    &calendar.id,
+                    "",
+                    100,
+                    500,
+                    google_calendar::types::OrderBy::StartTime,
+                    "",
+                    &Vec::new(),
+                    "",
+                    &Vec::new(),
+                    false,
+                    false,
+                    true,
+                    filter.from.format(&Rfc3339)?.as_str(),
+                    filter.to.format(&Rfc3339)?.as_str(),
+                    "",
+                    "",
+                )
+                .await?
+                .body
+                .iter()
+                .map(|event| {
+                    let start = convert_to_time(event.start.clone().unwrap()).unwrap();
+                    let end = convert_to_time(event.end.clone().unwrap()).unwrap();
 
-                Event {
-                    id: event.id.clone(),
-                    calendar_id: filter.calendar_id.clone(),
-                    platform: Platform::Google,
-                    name: event.summary.clone(),
-                    note: event.description.clone(),
-                    participants,
-                    start_date: start,
-                    end_date: end,
-                    google_event_url: Some(event.html_link.clone()),
-                }
-            })
-            .collect();
-        Ok(events)
+                    let participants = event
+                        .attendees
+                        .iter()
+                        .map(|a| Participant {
+                            name: a.display_name.clone(),
+                            email: a.email.clone(),
+                        })
+                        .collect::<Vec<Participant>>();
+
+                    Event {
+                        id: event.id.clone(),
+                        calendar_id: calendar.id.clone(),
+                        platform: Platform::Google,
+                        name: event.summary.clone(),
+                        note: event.description.clone(),
+                        participants,
+                        start_date: start,
+                        end_date: end,
+                        google_event_url: Some(event.html_link.clone()),
+                    }
+                })
+                .collect();
+
+            all_events.extend(events);
+        }
+
+        Ok(all_events)
     }
 }
 

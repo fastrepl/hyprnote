@@ -25,6 +25,8 @@ pub struct AppState {
 pub struct WorkerState {
     pub clerk: Clerk,
     pub lago: LagoClient,
+    pub turso: TursoClient,
+    pub nango: NangoClient,
     pub admin_db: AdminDatabase,
 }
 
@@ -75,8 +77,10 @@ impl FromRef<AppState> for WorkerState {
     fn from_ref(s: &AppState) -> WorkerState {
         WorkerState {
             clerk: s.clerk.clone(),
-            admin_db: s.admin_db.clone(),
             lago: s.lago.clone(),
+            turso: s.turso.clone(),
+            nango: s.nango.clone(),
+            admin_db: s.admin_db.clone(),
         }
     }
 }

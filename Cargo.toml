@@ -15,9 +15,12 @@ tokio-stream = "0.1.17"
 anyhow = "1"
 approx = "0.5.1"
 bytes = "1.9.0"
+chrono = "0.4.39"
 dotenvy = "0.15.7"
 dotenvy_macro = "0.15.7"
+itertools = "0.14.0"
 ndarray = "0.16.1"
+schemars = "=1.0.0-alpha.17"
 sentry = "0.35.0"
 serde = "1"
 serde_json = "1"
@@ -25,9 +28,14 @@ serial_test = "3"
 strum = "0.26"
 thiserror = "2"
 time = "0.3.37"
+url = "2"
+uuid = "1.11.0"
+
 tracing = "0.1.41"
 tracing-opentelemetry = "0.28.0"
-url = "2"
+
+apalis = "0.6.3"
+apalis-cron = "0.6.3"
 
 specta = "2.0.0-rc.20"
 specta-typescript = "0.0.7"
@@ -37,9 +45,6 @@ tauri-specta = "2.0.0-rc.20"
 cpal = "0.15.3"
 hound = "3.5.1"
 rodio = "0.20.1"
-
-schemars = "=1.0.0-alpha.17"
-uuid = "1.11.0"
 
 [patch.crates-io]
 # This includes a currently-unreleased fix that ensures the audio stream is actually stopped and released on drop on macOS.

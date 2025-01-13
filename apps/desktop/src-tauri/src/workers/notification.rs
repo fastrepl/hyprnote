@@ -1,7 +1,7 @@
 use apalis::prelude::Data;
 use chrono::{DateTime, Utc};
 
-use crate::state::WorkerState;
+use super::WorkerState;
 
 #[derive(Default, Debug, Clone)]
 pub struct Job(DateTime<Utc>);
@@ -12,4 +12,4 @@ impl From<DateTime<Utc>> for Job {
     }
 }
 
-pub async fn perform(_job: Job, _ctx: Data<WorkerState>) {}
+pub async fn perform(_job: Job, ctx: Data<WorkerState>) {}

@@ -24,7 +24,9 @@ impl SpeakerInput {
 
     #[cfg(not(any(target_os = "macos")))]
     pub fn new() -> Result<Self> {
-        Err(anyhow::anyhow!("'SpeakerInput::new' is not supported on this platform"))
+        Err(anyhow::anyhow!(
+            "'SpeakerInput::new' is not supported on this platform"
+        ))
     }
 
     #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -35,7 +37,9 @@ impl SpeakerInput {
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     pub fn stream(&self) -> Result<SpeakerStream> {
-        Err(anyhow::anyhow!("'SpeakerInput::stream' is not supported on this platform"))
+        Err(anyhow::anyhow!(
+            "'SpeakerInput::stream' is not supported on this platform"
+        ))
     }
 }
 

@@ -2,6 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::future::Future;
 use time::OffsetDateTime;
 
+#[cfg(feature = "outlook")]
+pub mod outlook;
+
 #[cfg(feature = "google")]
 pub mod google;
 
@@ -57,9 +60,9 @@ pub struct Participant {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventFilter {
-    pub calendar_id: String,
     pub from: OffsetDateTime,
     pub to: OffsetDateTime,
+    pub calendars: Vec<Calendar>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

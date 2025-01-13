@@ -4,19 +4,21 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["apple", "google"]
+default = []
 apple = []
 google = []
+outlook = []
 
 [dependencies]
 hypr_db_utils = { path = "../db-utils", package = "db-utils" }
 
 anyhow = { workspace = true }
-itertools = "0.13.0"
+itertools = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
 google-calendar = "0.7.0"
+graph-rs-sdk = "2.0.3"
 time = { workspace = true, features = ["formatting", "parsing", "serde"] }
 time-tz = "2.0.0"
 

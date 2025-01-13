@@ -40,6 +40,7 @@ pub async fn seed(db: &UserDatabase) -> anyhow::Result<()> {
         tracking_id: "calendar_1".to_string(),
         name: "Work".to_string(),
         platform: Platform::Apple,
+        selected: true,
     }];
 
     let events = vec![

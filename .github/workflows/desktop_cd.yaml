@@ -1,9 +1,14 @@
+# https://docs.crabnebula.dev/cloud/ci/tauri-v2-workflow/
 on:
   workflow_dispatch:
   release:
     types:
       - published
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 env:
+  CN_APPLICATION: "fastrepl/hyprnote"
   SHOULD_RUN: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
 permissions:
   contents: write
@@ -42,6 +47,9 @@ jobs:
           rustup toolchain install stable --profile minimal --no-self-update
           rustup target add aarch64-apple-darwin x86_64-apple-darwin
       - uses: tauri-apps/tauri-action@v0
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           args: ${{ matrix.args }}
           projectPath: ./apps/desktop

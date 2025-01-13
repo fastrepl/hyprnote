@@ -57,11 +57,17 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
 
                 let user_db = {
                     let url = ctx.turso.db_url(&user.turso_db_name);
-                    let token = ctx.turso.generate_db_token(&user.turso_db_name).await?;
+                    let token = ctx
+                        .turso
+                        .generate_db_token(&user.turso_db_name)
+                        .await
+                        .map_err(|e| err_from(e.to_string()))?;
+
                     let conn = hypr_db::ConnectionBuilder::new()
                         .remote(url, token)
                         .connect()
-                        .await?;
+                        .await
+                        .map_err(|e| err_from(e.to_string()))?;
 
                     hypr_db::user::UserDatabase::from(conn)
                 };

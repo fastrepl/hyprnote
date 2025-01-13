@@ -161,6 +161,7 @@ impl TursoClient {
         format!("libsql://{}-{}.turso.io", name.into(), self.org_slug)
     }
 
+    // https://docs.turso.tech/api-reference/databases/create-token
     pub async fn generate_db_token(
         &self,
         db_name: impl Into<String>,
@@ -185,6 +186,7 @@ impl TursoClient {
         Ok(res["jwt"].to_string())
     }
 
+    // https://docs.turso.tech/api-reference/databases/create
     pub async fn create_database(
         &self,
         req: CreateDatabaseRequest,
@@ -204,6 +206,7 @@ impl TursoClient {
         Ok(res)
     }
 
+    // https://docs.turso.tech/api-reference/databases/retrieve
     pub async fn retrieve_database(
         &self,
         db: impl std::fmt::Display,
@@ -219,6 +222,7 @@ impl TursoClient {
         Ok(res)
     }
 
+    // https://docs.turso.tech/api-reference/databases/delete
     pub async fn delete_database(
         &self,
         db: impl std::fmt::Display,

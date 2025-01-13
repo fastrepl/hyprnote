@@ -1,6 +1,7 @@
 {
   "excludes": [
     ".venv",
+    "nango",
     "lago",
     "lago-openapi",
     "**/*-lock.yaml",

@@ -4,3 +4,6 @@
 [submodule "lago-openapi"]
 	path = lago-openapi
 	url = https://github.com/getlago/lago-openapi.git
+[submodule "nango"]
+	path = nango
+	url = https://github.com/NangoHQ/nango

@@ -19,8 +19,8 @@ fn err_from(e: impl Into<String>) -> Error {
 }
 
 pub async fn monitor(state: WorkerState) -> Result<(), std::io::Error> {
-    let calendar_schedule = apalis_cron::Schedule::from_str("0 * * * *").unwrap();
-    let notification_schedule = apalis_cron::Schedule::from_str("0 * * * *").unwrap();
+    let calendar_schedule = apalis_cron::Schedule::from_str("@daily").unwrap();
+    let notification_schedule = apalis_cron::Schedule::from_str("@daily").unwrap();
     apalis::prelude::Monitor::new()
         .register({
             WorkerBuilder::new("notification")

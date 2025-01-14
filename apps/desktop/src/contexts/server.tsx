@@ -3,13 +3,15 @@
 import React, { createContext, useContext } from "react";
 import { fetch } from "@tauri-apps/plugin-http";
 
-type Fetch = typeof fetch;
 type AuthFetch = (
   path: string,
-  init?: Parameters<Fetch>[1],
-) => ReturnType<Fetch>;
+  init?: Parameters<typeof fetch>[1],
+) => ReturnType<typeof fetch>;
 
-const ServerContext = createContext<{ fetch: AuthFetch }>({ fetch });
+const ServerContext = createContext<{
+  base: URL;
+  fetch: AuthFetch;
+}>({ base: new URL("https://app.hyprnote.com"), fetch });
 
 export const ServerProvider: React.FC<{
   children: React.ReactNode;
@@ -35,7 +37,7 @@ export const ServerProvider: React.FC<{
   };
 
   return (
-    <ServerContext.Provider value={{ fetch: authFetch }}>
+    <ServerContext.Provider value={{ base, fetch: authFetch }}>
       {children}
     </ServerContext.Provider>
   );

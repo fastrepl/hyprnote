@@ -5,12 +5,15 @@ import {
   Outlet,
   useNavigate,
   createRootRouteWithContext,
+  CatchNotFound,
 } from "@tanstack/react-router";
 
 import type { Context } from "../main";
+import { CatchNotFoundFallback, NotFoundComponent } from "@/components/control";
 
 export const Route = createRootRouteWithContext<Context>()({
   component: Component,
+  notFoundComponent: NotFoundComponent,
 });
 
 function Component() {
@@ -31,7 +34,9 @@ function Component() {
 
   return (
     <>
-      <Outlet />
+      <CatchNotFound fallback={(e) => <CatchNotFoundFallback error={e} />}>
+        <Outlet />
+      </CatchNotFound>
       <Suspense>
         <TanStackRouterDevtools position="bottom-right" />
       </Suspense>

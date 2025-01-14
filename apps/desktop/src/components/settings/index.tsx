@@ -41,6 +41,7 @@ import General from "./general";
 import Profile from "./profile";
 import Calendar from "./calendar";
 import Template from "./template";
+import Billing from "./billing";
 
 const data = {
   nav: [
@@ -48,7 +49,7 @@ const data = {
     { name: "Profile", icon: UserIcon },
     { name: "Calendar", icon: CalendarIcon },
     { name: "Template", icon: LayoutTemplateIcon },
-    { name: "Billing", icon: CreditCardIcon },
+    { name: "Team & Billing", icon: CreditCardIcon },
   ],
 } as const;
 
@@ -115,23 +116,19 @@ export default function SettingsDialog() {
             </SidebarFooter>
           </Sidebar>
 
-          {active === "Profile" ? (
-            <Content title="Profile">
+          <Content title={active}>
+            {active === "Profile" ? (
               <Profile />
-            </Content>
-          ) : active === "General" ? (
-            <Content title="General">
+            ) : active === "General" ? (
               <General />
-            </Content>
-          ) : active === "Calendar" ? (
-            <Content title="Calendar">
+            ) : active === "Calendar" ? (
               <Calendar />
-            </Content>
-          ) : active === "Template" ? (
-            <Content title="Template">
+            ) : active === "Template" ? (
               <Template />
-            </Content>
-          ) : null}
+            ) : active === "Team & Billing" ? (
+              <Billing />
+            ) : null}
+          </Content>
         </SidebarProvider>
       </DialogContent>
     </Dialog>
@@ -161,7 +158,9 @@ function Content({ title, children }: ContentProps) {
           </Breadcrumb>
         </div>
       </header>
-      <ScrollArea type="auto">{children}</ScrollArea>
+      <ScrollArea className="px-4" type="auto">
+        {children}
+      </ScrollArea>
     </main>
   );
 }

@@ -18,7 +18,7 @@ export default function Calendar() {
   });
 
   return (
-    <div className="flex flex-col gap-6 px-8">
+    <div className="flex flex-col gap-6">
       <div>
         <h2 className="mb-3 font-semibold">
           <Trans>Integrations</Trans>
@@ -77,7 +77,7 @@ interface IntegrationProps {
   connected: boolean;
 }
 function Integration({ type, connected }: IntegrationProps) {
-  const { fetch } = useServer();
+  const { base, fetch } = useServer();
   const navigate = useNavigate();
 
   useQuery({
@@ -86,7 +86,7 @@ function Integration({ type, connected }: IntegrationProps) {
   });
 
   const handleClick = useCallback(() => {
-    navigate({ href: `/settings/calendar/${type}` });
+    navigate({ href: new URL(`/settings/calendar/${type}`, base).toString() });
   }, [type]);
 
   return (

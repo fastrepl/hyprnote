@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GripVertical as HandleIcon, XIcon } from "lucide-react";
 import { motion, Reorder, useDragControls } from "motion/react";
 import { clsx } from "clsx";
@@ -12,57 +12,85 @@ import { Textarea } from "@hypr/ui/components/ui/textarea";
 
 interface TemplateProps {
   template: Template;
+  onTemplateUpdate: (template: Template) => void;
 }
 
-export default function Template({ template }: TemplateProps) {
-  const handleUpdateSections = (sections: any[]) => {
-    console.log(sections);
+export default function Template({
+  template,
+  onTemplateUpdate,
+}: TemplateProps) {
+  const handleUpdateSections = (sections: Template["sections"]) => {
+    onTemplateUpdate({ ...template, sections });
   };
 
   return (
-    <div>
-      <div className="mb-4">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
         <h2 className="text-lg font-semibold">Title</h2>
         <Input value={template.title} />
       </div>
-      <div className="mb-4">
+      <div className="flex flex-col gap-1">
         <h2 className="text-lg font-semibold">Description</h2>
         <Textarea value={template.description} />
       </div>
-      <h2 className="mb-2 text-lg font-semibold">Sections</h2>
-      <SectionsList
-        sections={template.sections}
-        handleUpdate={handleUpdateSections}
+      <div className="flex flex-col gap-1">
+        <h2 className="text-lg font-semibold">Sections</h2>
+        <SectionsList
+          sections={template.sections}
+          onSectionsUpdate={handleUpdateSections}
       />
+      </div>
     </div>
   );
 }
 
 interface SectionsListProps {
   sections: Template["sections"];
-  handleUpdate: (sections: Template["sections"]) => void;
+  onSectionsUpdate: (sections: Template["sections"]) => void;
 }
 
 export function SectionsList({
   sections: _sections,
-  handleUpdate,
+  onSectionsUpdate,
 }: SectionsListProps) {
-  const [sections, setSections] = useState(
-    _sections.map((s) => ({ ...s, id: Math.random().toString(36).slice(2) })),
-  );
+  const [sections, setSections] = useState<
+    ({ id: string } & Template["sections"][number])[]
+  >([]);
+
+  useEffect(() => {
+    setSections(
+      _sections.map((section) => ({
+        ...section,
+        id: Math.random().toString(36),
+      })),
+    );
+  }, [_sections]);
+
+  useEffect(() => {
+    if (sections.length > 0) {
+      onSectionsUpdate(sections.map(({ id, ...section }) => section));
+    }
+  }, [sections, onSectionsUpdate]);
 
   const ops = {
     addSection: () => {
-      handleUpdate([]);
+      setSections([
+        ...sections,
+        { id: Math.random().toString(36), title: "", description: "" },
+      ]);
     },
     removeSection: (id: string) => {
-      handleUpdate([]);
+      setSections(sections.filter((section) => section.id !== id));
     },
     updateSection: (
       id: string,
       updates: Partial<Template["sections"][number]>,
     ) => {
-      handleUpdate([]);
+      setSections(
+        sections.map((section) =>
+          section.id === id ? { ...section, ...updates } : section,
+        ),
+      );
     },
   };
 
@@ -95,13 +123,7 @@ interface SectionItemProps {
   onUpdate: (id: string, data: Partial<Template["sections"][number]>) => void;
 }
 
-function SectionItem({
-  section: _section,
-  onRemove,
-  onUpdate,
-}: SectionItemProps) {
-  const [section, setSection] = useState(_section);
-
+function SectionItem({ section, onRemove, onUpdate }: SectionItemProps) {
   const controls = useDragControls();
 
   return (

@@ -27,7 +27,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -41,7 +40,7 @@ import CalendarComponent from "./calendar";
 import TemplateComponent from "./template";
 import BillingComponent from "./billing";
 
-import type { Template } from "@/types/tauri";
+import { commands, type Template } from "@/types/tauri";
 
 const data = {
   nav: [
@@ -57,17 +56,25 @@ type NavItem = (typeof data.nav)[number];
 type NavNames = NavItem["name"];
 
 export default function SettingsDialog() {
+  const [open, setOpen] = useState(false);
   const [active, setActive] = useState<NavNames>(data.nav[3].name);
   const [templateIndex, setTemplateIndex] = useState(0);
 
+  const handleUpdateTemplate = (template: Template) => {
+    commands.dbUpsertTemplate(template);
+  };
+
   useEffect(() => {
+    if (!open) {
+      setActive(data.nav[0].name);
+    }
     if (active === "Template") {
       setTemplateIndex(0);
     }
-  }, [active]);
+  }, [open, active]);
 
   return (
-    <DialogWrapper>
+    <DialogWrapper open={open} setOpen={setOpen}>
       <SidebarProvider className="items-start">
         <Sidebar collapsible="none" className="hidden md:flex">
           <SidebarContent>
@@ -131,7 +138,10 @@ export default function SettingsDialog() {
           ) : active === "Calendar" ? (
             <CalendarComponent />
           ) : active === "Template" ? (
-            <TemplateComponent template={BUILTIN_TEMPLATES[templateIndex]} />
+            <TemplateComponent
+              template={BUILTIN_TEMPLATES[templateIndex]}
+              onTemplateUpdate={handleUpdateTemplate}
+            />
           ) : active === "Team & Billing" ? (
             <BillingComponent />
           ) : null}
@@ -148,7 +158,7 @@ interface ContentProps {
 
 function Content({ title, children }: ContentProps) {
   return (
-    <main className="flex h-[480px] flex-1 flex-col overflow-hidden">
+    <main className="flex h-[calc(100vh-140px)] flex-1 flex-col overflow-hidden">
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
         <div className="flex items-center gap-2 px-4">
           <Breadcrumb>
@@ -171,9 +181,15 @@ function Content({ title, children }: ContentProps) {
   );
 }
 
-function DialogWrapper({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(true);
-
+function DialogWrapper({
+  open,
+  setOpen,
+  children,
+}: {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  children: ReactNode;
+}) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

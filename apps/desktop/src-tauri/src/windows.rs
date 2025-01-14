@@ -103,7 +103,7 @@ impl ShowHyprWindow {
 
             Self::MainWithoutDemo => {
                 let width = display_width.min(1100.0);
-                let height = display_height.min(700.0);
+                let height = display_height.min(800.0);
                 window.set_maximizable(true)?;
                 window.set_minimizable(true)?;
                 window.set_size(LogicalSize::new(width.max(800.0), height.max(600.0)))?;

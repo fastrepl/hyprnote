@@ -16,6 +16,8 @@ import { HyprchargeNode } from "./nodes";
 import clsx from "clsx";
 import "../../styles/tiptap.css";
 
+import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
+
 export const extensions = [
   StarterKit,
   Placeholder.configure({
@@ -66,12 +68,20 @@ export default function Editor({ handleChange, content }: EditorProps) {
   }, [content]);
 
   return (
-    <div
-      role="textbox"
-      className={clsx(["relative h-full w-full"])}
-      onClick={handleClickArea}
+    <ScrollArea
+      onClick={() => {
+        editor?.commands.focus("end");
+      }}
+      type="auto"
+      className="h-[calc(100vh-240px)]"
     >
-      <EditorContent className="h-full w-full" editor={editor} />
-    </div>
+      <div
+        role="textbox"
+        className={clsx(["relative h-full w-full"])}
+        onClick={handleClickArea}
+      >
+        <EditorContent className="h-full w-full" editor={editor} />
+      </div>
+    </ScrollArea>
   );
 }

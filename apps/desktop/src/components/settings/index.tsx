@@ -6,6 +6,7 @@ import {
   CalendarIcon,
   UserIcon,
   CreditCardIcon,
+  ArrowLeftFromLineIcon,
 } from "lucide-react";
 
 import {
@@ -26,7 +27,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -57,81 +57,92 @@ type NavItem = (typeof data.nav)[number];
 type NavNames = NavItem["name"];
 
 export default function SettingsDialog() {
-  const [open, setOpen] = useState(false);
-  const [active, setActive] = useState<NavNames>(data.nav[0].name);
+  const [active, setActive] = useState<NavNames>(data.nav[2].name);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <button className="text-gray-500 hover:text-gray-900">
-          <Settings2Icon size={16} />
-        </button>
-      </DialogTrigger>
-
-      <DialogContent className="overflow-hidden p-0 md:max-h-[500px] md:max-w-[700px] lg:max-w-[800px]">
-        <DialogTitle className="sr-only">Settings</DialogTitle>
-        <DialogDescription className="sr-only">Settings</DialogDescription>
-
-        <SidebarProvider className="items-start">
-          <Sidebar collapsible="none" className="hidden md:flex">
-            <SidebarContent>
+    <DialogWrapper>
+      <SidebarProvider className="items-start">
+        <Sidebar collapsible="none" className="hidden md:flex">
+          <SidebarContent>
+            {active === "Template" ? (
               <SidebarGroup>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {data.nav.map((item) => (
-                      <SidebarMenuItem key={item.name}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={item.name === active}
-                          onClick={() => setActive(item.name)}
-                        >
-                          <div>
-                            <item.icon />
-                            <span>{item.name}</span>
-                          </div>
-                        </SidebarMenuButton>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        isActive={true}
+                        className="flex flex-row gap-2"
+                        onClick={() => setActive(data.nav[0].name)}
+                      >
+                        <ArrowLeftFromLineIcon />
+                        <span>Template</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton>{"template 1"}</SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton>{"template 2"}</SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            ) : (
+              <>
+                <SidebarGroup>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {data.nav.map((item) => (
+                        <SidebarMenuItem key={item.name}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={item.name === active}
+                            onClick={() => setActive(item.name)}
+                          >
+                            <div>
+                              <item.icon />
+                              <span>{item.name}</span>
+                            </div>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+
+                <SidebarGroup>
+                  <SidebarGroupLabel>Support</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton>123</SidebarMenuButton>
                       </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton>123</SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              </>
+            )}
+          </SidebarContent>
+        </Sidebar>
 
-              <SidebarGroup>
-                <SidebarGroupLabel>Support</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton>123</SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton>123</SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            </SidebarContent>
-
-            <SidebarFooter>
-              <span>Logout</span>
-            </SidebarFooter>
-          </Sidebar>
-
-          <Content title={active}>
-            {active === "Profile" ? (
-              <Profile />
-            ) : active === "General" ? (
-              <General />
-            ) : active === "Calendar" ? (
-              <Calendar />
-            ) : active === "Template" ? (
-              <Template />
-            ) : active === "Team & Billing" ? (
-              <Billing />
-            ) : null}
-          </Content>
-        </SidebarProvider>
-      </DialogContent>
-    </Dialog>
+        <Content title={active}>
+          {active === "Profile" ? (
+            <Profile />
+          ) : active === "General" ? (
+            <General />
+          ) : active === "Calendar" ? (
+            <Calendar />
+          ) : active === "Template" ? (
+            <Template />
+          ) : active === "Team & Billing" ? (
+            <Billing />
+          ) : null}
+        </Content>
+      </SidebarProvider>
+    </DialogWrapper>
   );
 }
 
@@ -162,5 +173,23 @@ function Content({ title, children }: ContentProps) {
         {children}
       </ScrollArea>
     </main>
+  );
+}
+
+function DialogWrapper({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(true);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button className="text-gray-500 hover:text-gray-900">
+          <Settings2Icon size={16} />
+        </button>
+      </DialogTrigger>
+
+      <DialogContent className="h-[700px] w-[1000px] overflow-hidden p-0">
+        {children}
+      </DialogContent>
+    </Dialog>
   );
 }

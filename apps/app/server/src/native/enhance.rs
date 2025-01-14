@@ -17,18 +17,7 @@ use hypr_bridge::enhance;
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct EnhanceRequest {
     pub editor: serde_json::Value,
-    pub template: EnhanceTemplate,
-}
-
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
-pub struct EnhanceTemplate {
-    pub sections: Vec<EnhanceTemplateSection>,
-}
-
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
-pub struct EnhanceTemplateSection {
-    pub header: String,
-    pub description: String,
+    pub template: hypr_db::user::Template,
 }
 
 // TODO: https://github.com/tokio-rs/axum/blob/main/examples/validator/src/main.rs

@@ -20,6 +20,27 @@ pub async fn db_upsert_calendar(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn db_list_templates(state: State<'_, App>) -> Result<Vec<hypr_db::user::Template>, ()> {
+    Ok(state.db.list_templates().await.unwrap())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn db_upsert_template(
+    state: State<'_, App>,
+    template: hypr_db::user::Template,
+) -> Result<hypr_db::user::Template, ()> {
+    Ok(state.db.upsert_template(template).await.unwrap())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn db_delete_template(state: State<'_, App>, id: String) -> Result<(), ()> {
+    Ok(state.db.delete_template(id).await.unwrap())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn db_list_events(state: State<'_, App>) -> Result<Vec<hypr_db::user::Event>, ()> {
     Ok(state.db.list_events().await.unwrap())
 }

@@ -1,2 +1,2 @@
-export * from "./server";
+export * from "./hypr";
 export * from "./window";

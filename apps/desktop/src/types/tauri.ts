@@ -56,6 +56,15 @@ export const commands = {
   async dbSetSessionEvent(sessionId: string, eventId: string): Promise<null> {
     return await TAURI_INVOKE("db_set_session_event", { sessionId, eventId });
   },
+  async dbListTemplates(): Promise<Template[]> {
+    return await TAURI_INVOKE("db_list_templates");
+  },
+  async dbUpsertTemplate(template: Template): Promise<Template> {
+    return await TAURI_INVOKE("db_upsert_template", { template });
+  },
+  async dbDeleteTemplate(id: string): Promise<null> {
+    return await TAURI_INVOKE("db_delete_template", { id });
+  },
 };
 
 /** user-defined events **/
@@ -121,6 +130,13 @@ export type Session = {
   transcript: Transcript | null;
 };
 export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo";
+export type Template = {
+  id: string;
+  title: string;
+  description: string;
+  sections: TemplateSection[];
+};
+export type TemplateSection = { title: string; description: string };
 export type Transcript = { speakers: string[]; blocks: TranscriptBlock[] };
 export type TranscriptBlock = {
   timestamp: string;

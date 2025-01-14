@@ -141,9 +141,7 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
       </div>
 
       <div className="mt-6 flex flex-1 flex-col">
-        <ScrollArea type="auto" className="h-[calc(100vh-240px)]">
-          <Editor handleChange={handleChange} content={editorContent} />
-        </ScrollArea>
+        <Editor handleChange={handleChange} content={editorContent} />
       </div>
 
       <AnimatePresence>

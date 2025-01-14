@@ -1,6 +1,7 @@
 use anyhow::Result;
 use time::format_description::well_known::Rfc3339;
 
+use super::Template;
 #[allow(unused)]
 use super::{Calendar, Event, Participant, ParticipantFilter, Platform, Session};
 use crate::Connection;
@@ -14,7 +15,61 @@ impl UserDatabase {
     pub fn from(conn: Connection) -> Self {
         Self { conn }
     }
+}
 
+impl UserDatabase {
+    pub async fn list_templates(&self) -> Result<Vec<Template>> {
+        let mut rows = self.conn.query("SELECT * FROM templates", ()).await?;
+        let mut items = Vec::new();
+        while let Some(row) = rows.next().await.unwrap() {
+            let item: Template = libsql::de::from_row(&row)?;
+            items.push(item);
+        }
+        Ok(items)
+    }
+
+    pub async fn upsert_template(&self, template: Template) -> Result<Template> {
+        let mut rows = self
+            .conn
+            .query(
+                "INSERT INTO templates (
+                    id,
+                    title,
+                    description,
+                    sections
+                ) VALUES (
+                    :id,
+                    :title,
+                    :description,
+                    :sections
+                ) ON CONFLICT(id) DO UPDATE SET
+                    title = :title,
+                    description = :description,
+                    sections = :sections
+                RETURNING *",
+                libsql::named_params! {
+                    ":id": template.id,
+                    ":title": template.title,
+                    ":description": template.description,
+                    ":sections": serde_json::to_string(&template.sections).unwrap(),
+                },
+            )
+            .await?;
+
+        let row = rows.next().await?.unwrap();
+        let template: Template = libsql::de::from_row(&row)?;
+        Ok(template)
+    }
+
+    pub async fn delete_template(&self, id: String) -> Result<()> {
+        self.conn
+            .query("DELETE FROM templates WHERE id = ?", vec![id])
+            .await?;
+        Ok(())
+    }
+}
+
+impl UserDatabase {
     pub async fn get_session(&self, id: String) -> Result<Option<Session>> {
         let mut rows = self
             .conn
@@ -25,7 +80,7 @@ impl UserDatabase {
         match rows.next().await? {
             None => Ok(None),
             Some(row) => {
-                let session: Session = libsql::de::from_row(&row)?;
+                let session = Session::from_row(&row)?;
                 Ok(Some(session))
             }
         }
@@ -46,12 +101,49 @@ impl UserDatabase {
 
         let mut items = Vec::new();
         while let Some(row) = rows.next().await.unwrap() {
-            let item: Session = libsql::de::from_row(&row)?;
+            let item = Session::from_row(&row)?;
             items.push(item);
         }
         Ok(items)
     }
 
+    pub async fn create_session(&self, session: Session) -> Result<Session> {
+        let mut rows = self
+            .conn
+            .query(
+                "INSERT INTO sessions (
+                    id,
+                    timestamp,
+                    title,
+                    raw_memo_html,
+                    enhanced_memo_html,
+                    tags,
+                    transcript
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                RETURNING *",
+                vec![
+                    libsql::Value::Text(session.id),
+                    libsql::Value::Text(session.timestamp.format(&Rfc3339).unwrap()),
+                    libsql::Value::Text(session.title),
+                    libsql::Value::Text(session.raw_memo_html),
+                    session
+                        .enhanced_memo_html
+                        .map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
+                    libsql::Value::Text(serde_json::to_string(&session.tags).unwrap()),
+                    session.transcript.map_or(libsql::Value::Null, |v| {
+                        libsql::Value::Text(serde_json::to_string(&v).unwrap())
+                    }),
+                ],
+            )
+            .await?;
+
+        let row = rows.next().await?.unwrap();
+        let session = Session::from_row(&row)?;
+        Ok(session)
+    }
+}
+
+impl UserDatabase {
     pub async fn list_participants(&self, filter: ParticipantFilter) -> Result<Vec<Participant>> {
         let mut rows = match filter {
             ParticipantFilter::Text(q) => {
@@ -111,41 +203,6 @@ impl UserDatabase {
             items.push(item);
         }
         Ok(items)
-    }
-
-    pub async fn create_session(&self, session: Session) -> Result<Session> {
-        let mut rows = self
-            .conn
-            .query(
-                "INSERT INTO sessions (
-                    id,
-                    timestamp,
-                    title,
-                    raw_memo_html,
-                    enhanced_memo_html,
-                    tags,
-                    transcript
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                RETURNING *",
-                vec![
-                    libsql::Value::Text(session.id),
-                    libsql::Value::Text(session.timestamp.format(&Rfc3339).unwrap()),
-                    libsql::Value::Text(session.title),
-                    libsql::Value::Text(session.raw_memo_html),
-                    session
-                        .enhanced_memo_html
-                        .map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
-                    libsql::Value::Text(serde_json::to_string(&session.tags).unwrap()),
-                    session.transcript.map_or(libsql::Value::Null, |v| {
-                        libsql::Value::Text(serde_json::to_string(&v).unwrap())
-                    }),
-                ],
-            )
-            .await?;
-
-        let row = rows.next().await?.unwrap();
-        let session: Session = libsql::de::from_row(&row)?;
-        Ok(session)
     }
 
     pub async fn session_set_event(&self, session_id: String, event_id: String) -> Result<()> {

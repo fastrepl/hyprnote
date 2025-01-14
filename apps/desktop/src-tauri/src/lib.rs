@@ -42,6 +42,9 @@ pub fn run() {
             commands::db::db_get_session,
             commands::db::db_create_session,
             commands::db::db_set_session_event,
+            commands::db::db_list_templates,
+            commands::db::db_upsert_template,
+            commands::db::db_delete_template,
         ])
         .events(tauri_specta::collect_events![
             events::TranscriptEvent,

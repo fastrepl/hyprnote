@@ -3,6 +3,8 @@ import { GripVertical as HandleIcon, XIcon } from "lucide-react";
 import { motion, Reorder, useDragControls } from "motion/react";
 import { clsx } from "clsx";
 
+import type { Template } from "@/types/tauri";
+
 import { Button } from "@hypr/ui/components/ui/button";
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
 import { Input } from "@hypr/ui/components/ui/input";
@@ -11,6 +13,19 @@ import { Textarea } from "@hypr/ui/components/ui/textarea";
 export default function Template() {
   return <SectionsList />;
 }
+
+const BUILTIN_TEMPLATES: Omit<Template, "id">[] = [
+  {
+    title: "Template 1",
+    description: "Template 1 description",
+    sections: [
+      {
+        title: "Introduction",
+        description: "Introduction to the template",
+      },
+    ],
+  },
+];
 
 export function SectionsList() {
   const [sections, setSections] = useState<Section[]>([

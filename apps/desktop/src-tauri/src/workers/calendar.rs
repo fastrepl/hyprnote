@@ -34,6 +34,7 @@ pub async fn perform(_job: Job, ctx: Data<WorkerState>) {
         }
 
         let events = list_events(calendars).await.unwrap_or(vec![]);
+
         for event in events {
             ctx.db.upsert_event(event.into()).await.unwrap();
         }

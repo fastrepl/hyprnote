@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import {
   SettingsIcon,
   Settings2Icon,
@@ -20,8 +20,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogTitle,
   DialogTrigger,
 } from "@hypr/ui/components/ui/dialog";
 import {
@@ -37,11 +35,13 @@ import {
 } from "@hypr/ui/components/ui/sidebar";
 import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
 
-import General from "./general";
-import Profile from "./profile";
-import Calendar from "./calendar";
-import Template from "./template";
-import Billing from "./billing";
+import GeneralComponent from "./general";
+import ProfileComponent from "./profile";
+import CalendarComponent from "./calendar";
+import TemplateComponent from "./template";
+import BillingComponent from "./billing";
+
+import type { Template } from "@/types/tauri";
 
 const data = {
   nav: [
@@ -57,7 +57,14 @@ type NavItem = (typeof data.nav)[number];
 type NavNames = NavItem["name"];
 
 export default function SettingsDialog() {
-  const [active, setActive] = useState<NavNames>(data.nav[2].name);
+  const [active, setActive] = useState<NavNames>(data.nav[3].name);
+  const [templateIndex, setTemplateIndex] = useState(0);
+
+  useEffect(() => {
+    if (active === "Template") {
+      setTemplateIndex(0);
+    }
+  }, [active]);
 
   return (
     <DialogWrapper>
@@ -78,67 +85,55 @@ export default function SettingsDialog() {
                         <span>Template</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton>{"template 1"}</SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton>{"template 2"}</SidebarMenuButton>
-                    </SidebarMenuItem>
+                    {BUILTIN_TEMPLATES.map((template, index) => (
+                      <SidebarMenuItem key={template.id}>
+                        <SidebarMenuButton
+                          isActive={index === templateIndex}
+                          onClick={() => setTemplateIndex(index)}
+                        >
+                          {template.title}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
               </SidebarGroup>
             ) : (
-              <>
-                <SidebarGroup>
-                  <SidebarGroupContent>
-                    <SidebarMenu>
-                      {data.nav.map((item) => (
-                        <SidebarMenuItem key={item.name}>
-                          <SidebarMenuButton
-                            asChild
-                            isActive={item.name === active}
-                            onClick={() => setActive(item.name)}
-                          >
-                            <div>
-                              <item.icon />
-                              <span>{item.name}</span>
-                            </div>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-
-                <SidebarGroup>
-                  <SidebarGroupLabel>Support</SidebarGroupLabel>
-                  <SidebarGroupContent>
-                    <SidebarMenu>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton>123</SidebarMenuButton>
+              <SidebarGroup>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {data.nav.map((item) => (
+                      <SidebarMenuItem key={item.name}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={item.name === active}
+                          onClick={() => setActive(item.name)}
+                        >
+                          <div>
+                            <item.icon />
+                            <span>{item.name}</span>
+                          </div>
+                        </SidebarMenuButton>
                       </SidebarMenuItem>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton>123</SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              </>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
             )}
           </SidebarContent>
         </Sidebar>
 
         <Content title={active}>
           {active === "Profile" ? (
-            <Profile />
+            <ProfileComponent />
           ) : active === "General" ? (
-            <General />
+            <GeneralComponent />
           ) : active === "Calendar" ? (
-            <Calendar />
+            <CalendarComponent />
           ) : active === "Template" ? (
-            <Template />
+            <TemplateComponent template={BUILTIN_TEMPLATES[templateIndex]} />
           ) : active === "Team & Billing" ? (
-            <Billing />
+            <BillingComponent />
           ) : null}
         </Content>
       </SidebarProvider>
@@ -193,3 +188,62 @@ function DialogWrapper({ children }: { children: ReactNode }) {
     </Dialog>
   );
 }
+
+const BUILTIN_TEMPLATES: Template[] = [
+  {
+    id: "1",
+    title: "Standup",
+    description:
+      "Share updates, highlight roadblocks, and align priorities for the day",
+    sections: [
+      {
+        title: "Yesterday",
+        description: `
+        - Each participant shares key accomplishments from the previous day.
+        - Focus on tasks relevant to the team/project.`.trim(),
+      },
+      {
+        title: "Today",
+        description: `
+        - Outline what each participant plans to work on.
+        - Highlight priority tasks.`.trim(),
+      },
+      {
+        title: "Roadblocks",
+        description: `
+        - Mention obstacles preventing progress.
+        - Identify who can help or next steps for resolution.`.trim(),
+      },
+    ],
+  },
+  {
+    id: "2",
+    title: "Kickoff",
+    description:
+      "Align stakeholders and set the tone for a new project or initiative",
+    sections: [
+      {
+        title: "Objective",
+        description: `
+        - Define the project's purpose and expected outcomes.
+        - Ensure alignment among all attendees.`.trim(),
+      },
+      {
+        title: "Scope & Deliverables",
+        description: `
+        - Detail project boundaries, key deliverables, and success criteria.`.trim(),
+      },
+      {
+        title: "Timeline",
+        description: `
+        - Share high-level milestones and deadlines.`.trim(),
+      },
+      {
+        title: "Responsibilities",
+        description: `
+        - Assign ownership for each aspect of the project.
+        - Include contact points for follow-ups.`.trim(),
+      },
+    ],
+  },
+];

@@ -10,69 +10,68 @@ import { Card, CardContent } from "@hypr/ui/components/ui/card";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
-export default function Template() {
-  return <SectionsList />;
+interface TemplateProps {
+  template: Template;
 }
 
-const BUILTIN_TEMPLATES: Omit<Template, "id">[] = [
-  {
-    title: "Template 1",
-    description: "Template 1 description",
-    sections: [
-      {
-        title: "Introduction",
-        description: "Introduction to the template",
-      },
-    ],
-  },
-];
+export default function Template({ template }: TemplateProps) {
+  const handleUpdateSections = (sections: any[]) => {
+    console.log(sections);
+  };
 
-export function SectionsList() {
-  const [sections, setSections] = useState<Section[]>([
-    {
-      id: "1",
-      title: "Introduction",
-      content:
-        "Include any note-worthy points from the small-talk at the beginning of the",
-    },
-    {
-      id: "2",
-      title: "Section title",
-      content: "Instructions for Granola...",
-    },
-  ]);
+  return (
+    <div>
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold">Title</h2>
+        <Input value={template.title} />
+      </div>
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold">Description</h2>
+        <Textarea value={template.description} />
+      </div>
+      <h2 className="mb-2 text-lg font-semibold">Sections</h2>
+      <SectionsList
+        sections={template.sections}
+        handleUpdate={handleUpdateSections}
+      />
+    </div>
+  );
+}
+
+interface SectionsListProps {
+  sections: Template["sections"];
+  handleUpdate: (sections: Template["sections"]) => void;
+}
+
+export function SectionsList({
+  sections: _sections,
+  handleUpdate,
+}: SectionsListProps) {
+  const [sections, setSections] = useState(
+    _sections.map((s) => ({ ...s, id: Math.random().toString(36).slice(2) })),
+  );
 
   const ops = {
     addSection: () => {
-      const id = Math.random().toString(36).slice(2);
-      setSections((sections) => [
-        ...sections,
-        {
-          id,
-          title: "Section title",
-          content: "Instructions for Hyprnote",
-        },
-      ]);
+      handleUpdate([]);
     },
     removeSection: (id: string) => {
-      setSections((sections) => sections.filter((s) => s.id !== id));
+      handleUpdate([]);
     },
-    updateSection: (id: string, updates: Partial<Section>) => {
-      setSections((sections) =>
-        sections.map((section) =>
-          section.id === id ? { ...section, ...updates } : section,
-        ),
-      );
+    updateSection: (
+      id: string,
+      updates: Partial<Template["sections"][number]>,
+    ) => {
+      handleUpdate([]);
     },
   };
 
   return (
-    <div className="mx-auto w-full max-w-3xl p-4">
-      <h1 className="mb-6 text-2xl font-semibold">Sections</h1>
+    <div>
       <Reorder.Group axis="y" values={sections} onReorder={setSections}>
-        {sections.map((section) => (
+        {sections.map((section, i) => (
           <SectionItem
-            key={section.id}
+            key={i}
             section={section}
             onUpdate={ops.updateSection}
             onRemove={ops.removeSection}
@@ -90,19 +89,19 @@ export function SectionsList() {
   );
 }
 
-interface Section {
-  id: string;
-  title: string;
-  content: string;
-}
-
 interface SectionItemProps {
-  section: Section;
+  section: { id: string } & Template["sections"][number];
   onRemove: (id: string) => void;
-  onUpdate: (id: string, data: Partial<Section>) => void;
+  onUpdate: (id: string, data: Partial<Template["sections"][number]>) => void;
 }
 
-function SectionItem({ section, onRemove, onUpdate }: SectionItemProps) {
+function SectionItem({
+  section: _section,
+  onRemove,
+  onUpdate,
+}: SectionItemProps) {
+  const [section, setSection] = useState(_section);
+
   const controls = useDragControls();
 
   return (
@@ -126,9 +125,9 @@ function SectionItem({ section, onRemove, onUpdate }: SectionItemProps) {
               placeholder="Section title"
             />
             <Textarea
-              value={section.content}
+              value={section.description}
               onChange={(e) =>
-                onUpdate(section.id, { content: e.target.value })
+                onUpdate(section.id, { description: e.target.value })
               }
               className="min-h-[60px] resize-none"
               placeholder="Instructions or content..."

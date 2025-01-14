@@ -10,7 +10,7 @@ import { routeTree } from "./routeTree.gen";
 
 import { ThemeProvider } from "@hypr/ui/contexts/theme";
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
-import { WindowProvider, ServerProvider } from "./contexts";
+import { WindowProvider, HyprProvider } from "./contexts";
 import { useTauriStore } from "./stores/tauri";
 import { AuthContext, AuthProvider, useAuth } from "./auth";
 
@@ -73,7 +73,7 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <CatchBoundary getResetKey={() => "error"} errorComponent={ErrorComponent}>
-      <ServerProvider>
+      <HyprProvider>
         <TooltipProvider delayDuration={700} skipDelayDuration={300}>
           <ThemeProvider defaultTheme="light">
             <WindowProvider>
@@ -87,7 +87,7 @@ if (!rootElement.innerHTML) {
             </WindowProvider>
           </ThemeProvider>
         </TooltipProvider>
-      </ServerProvider>
+      </HyprProvider>
     </CatchBoundary>,
   );
 }

@@ -1,14 +1,14 @@
 import { useCallback, useRef, useState } from "react";
 import { parsePartialJson } from "@ai-sdk/ui-utils";
 import { JSONContent } from "@tiptap/react";
-import { useServer } from "@/contexts";
+import { useHypr } from "@/contexts";
 
 interface EnhanceRequest {
   editor: JSONContent;
 }
 
 export function useEnhance(input: EnhanceRequest) {
-  const { fetch } = useServer();
+  const { client } = useHypr();
   const [data, setData] = useState<JSONContent>(input.editor);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<undefined | Error>(undefined);
@@ -33,11 +33,11 @@ export function useEnhance(input: EnhanceRequest) {
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
-      const response = await fetch("/api/native/enhance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input.editor),
-        signal: abortController.signal,
+      const response = await client.enhance({
+        editor: input.editor,
+        template: {
+          sections: [],
+        },
       });
 
       const reader = response.body!.getReader();

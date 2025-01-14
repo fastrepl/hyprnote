@@ -14,20 +14,45 @@ use axum::{
 use crate::state::AppState;
 use hypr_bridge::enhance;
 
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct EnhanceRequest {
+    pub editor: serde_json::Value,
+    pub template: EnhanceTemplate,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct EnhanceTemplate {
+    pub sections: Vec<EnhanceTemplateSection>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct EnhanceTemplateSection {
+    pub header: String,
+    pub description: String,
+}
+
 // TODO: https://github.com/tokio-rs/axum/blob/main/examples/validator/src/main.rs
 pub async fn handler(
     State(state): State<AppState>,
-    Json(input): Json<serde_json::Value>,
+    Json(input): Json<EnhanceRequest>,
 ) -> Result<impl IntoResponse, StatusCode> {
     let api_key = std::env::var("OPENAI_API_KEY").unwrap();
 
     let prompt = format!(
         r#"
-        Input: {}
+        ```editor
+        {}
+        ```
 
-        Generate more sentences that are similar to the input.
-        "#,
-        serde_json::to_string(&input).unwrap()
+        Your job is to transform above editor state, based on the template below.
+
+        ```template
+        {}
+        ```
+
+        Generate more sentences that are similar to the input."#,
+        serde_json::to_string(&input.editor).unwrap(),
+        serde_json::to_string(&input.template).unwrap(),
     );
 
     let request = CreateChatCompletionRequest {

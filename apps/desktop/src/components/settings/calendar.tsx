@@ -1,7 +1,8 @@
 import { useCallback } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trans } from "@lingui/react/macro";
 
+import { Trans } from "@lingui/react/macro";
 import { ArrowUpRight, CircleCheck, XIcon } from "lucide-react";
 import { RiAppleFill as AppleIcon } from "@remixicon/react";
 
@@ -13,15 +14,9 @@ import {
   SelectValue,
 } from "@hypr/ui/components/ui/select";
 
+import { useHypr } from "@/contexts";
 import { type Calendar, commands } from "@/types/tauri";
-import { useNavigate } from "@tanstack/react-router";
-import { useServer } from "@/contexts";
-
-import { NangoIntegration } from "@/types/server";
-
-type CalendarIntegration =
-  | Exclude<NangoIntegration, "outlook-calendar">
-  | "apple-calendar";
+import type { CalendarIntegration } from "@/types";
 
 const supportedIntegrations: CalendarIntegration[] = [
   "apple-calendar",
@@ -143,21 +138,23 @@ interface IntegrationProps {
   connected: boolean;
 }
 function Integration({ type, connected }: IntegrationProps) {
-  const { base, fetch } = useServer();
+  const { client } = useHypr();
   const navigate = useNavigate();
 
   useQuery({
     queryKey: ["settings", "integration"],
-    queryFn: () => fetch("/api/native/integration/list"),
+    queryFn: async () => {
+      const integrations = await client.listIntegrations();
+      return integrations;
+    },
   });
 
   const handleClick = useCallback(() => {
     if (type === "apple-calendar") {
       commands.openPermissionSettings("calendar");
     } else {
-      navigate({
-        href: new URL(`/integrations/calendar/${type}`, base).toString(),
-      });
+      const href = client.getIntegrationURL(type);
+      navigate({ href });
     }
   }, [type]);
 

@@ -5,20 +5,38 @@ import { Trans } from "@lingui/react/macro";
 import { ArrowUpRight, CircleCheck, XIcon } from "lucide-react";
 import { RiAppleFill as AppleIcon } from "@remixicon/react";
 
-import { commands } from "@/types/tauri";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@hypr/ui/components/ui/select";
+
+import { type Calendar, commands } from "@/types/tauri";
 import { useNavigate } from "@tanstack/react-router";
 import { useServer } from "@/contexts";
 
-import { NangoIntegration } from "@/types/server"
+import { NangoIntegration } from "@/types/server";
 
-type CalendarIntegration = Exclude<NangoIntegration, "outlook-calendar"> | "apple-calendar";
-const supportedIntegrations: CalendarIntegration[] = ["apple-calendar", "google-calendar"];
+type CalendarIntegration =
+  | Exclude<NangoIntegration, "outlook-calendar">
+  | "apple-calendar";
+
+const supportedIntegrations: CalendarIntegration[] = [
+  "apple-calendar",
+  "google-calendar",
+];
 
 export default function Calendar() {
   const calendars = useQuery({
     queryKey: ["settings", "calendars"],
     queryFn: () => commands.dbListCalendars(),
   });
+
+  const handleClickDeselectCalendar = useCallback((calendar: Calendar) => {
+    commands.dbUpsertCalendar({ ...calendar, selected: false });
+  }, []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -29,10 +47,7 @@ export default function Calendar() {
         <ul className="flex flex-col gap-3">
           {supportedIntegrations.map((type) => (
             <li>
-              <Integration
-                type={type}
-                connected={false}
-              />
+              <Integration type={type} connected={false} />
             </li>
           ))}
         </ul>
@@ -41,17 +56,35 @@ export default function Calendar() {
       <div>
         <h2 className="mb-2 font-semibold">Selected</h2>
         <ul className="flex flex-col gap-2">
-          {(calendars.data ?? []).map((calendar, i) => (
-            <li key={i} className="flex flex-row justify-between">
-              <div className="flex flex-row items-center gap-1">
-                <span>{calendar.name}</span>
-              </div>
-              <button>
-                <XIcon size={16} />
-              </button>
-            </li>
-          ))}
+          {(calendars.data ?? [])
+            .filter((calendar) => calendar.selected)
+            .map((calendar, i) => (
+              <li key={i} className="flex flex-row justify-between">
+                <div className="flex flex-row items-center gap-1">
+                  <span>{calendar.name}</span>
+                </div>
+                <button>
+                  <XIcon
+                    size={16}
+                    onClick={() => handleClickDeselectCalendar(calendar)}
+                  />
+                </button>
+              </li>
+            ))}
         </ul>
+
+        <Select>
+          <SelectTrigger className="mt-2">
+            <SelectValue placeholder="Select" />
+          </SelectTrigger>
+          <SelectContent>
+            {(calendars.data ?? [])
+              .filter((calendar) => !calendar.selected)
+              .map((calendar) => (
+                <SelectItem value={calendar.id}>{calendar.name}</SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
@@ -90,9 +123,11 @@ function Integration({ type, connected }: IntegrationProps) {
 
   const handleClick = useCallback(() => {
     if (type === "apple-calendar") {
-      commands.openPermissionSettings("contacts");
+      commands.openPermissionSettings("calendar");
     } else {
-      navigate({ href: new URL(`/integrations/calendar/${type}`, base).toString() });
+      navigate({
+        href: new URL(`/integrations/calendar/${type}`, base).toString(),
+      });
     }
   }, [type]);
 
@@ -107,8 +142,14 @@ function Integration({ type, connected }: IntegrationProps) {
           <OutlookIcon />
         )}
         <span className="text-sm">
-          {type === "apple-calendar" ? "Apple" : type === "google-calendar" ? "Google" : "Outlook"}
-          </span>
+          {type === "apple-calendar"
+            ? "Apple"
+            : type === "google-calendar"
+              ? "Google"
+              : type === "outlook-calendar"
+                ? "Outlook"
+                : null}
+        </span>
       </div>
       <button onClick={handleClick}>
         {connected ? (

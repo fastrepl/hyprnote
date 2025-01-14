@@ -11,6 +11,15 @@ pub async fn db_list_calendars(state: State<'_, App>) -> Result<Vec<hypr_db::use
 
 #[tauri::command]
 #[specta::specta]
+pub async fn db_upsert_calendar(
+    state: State<'_, App>,
+    calendar: hypr_db::user::Calendar,
+) -> Result<hypr_db::user::Calendar, ()> {
+    Ok(state.db.upsert_calendar(calendar).await.unwrap())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn db_list_events(state: State<'_, App>) -> Result<Vec<hypr_db::user::Event>, ()> {
     Ok(state.db.list_events().await.unwrap())
 }

@@ -33,6 +33,7 @@ pub fn run() {
             commands::show_window,
             commands::create_session,
             permissions::open_permission_settings,
+            commands::db::db_upsert_calendar,
             commands::db::db_list_calendars,
             commands::db::db_list_events,
             commands::db::db_list_sessions,

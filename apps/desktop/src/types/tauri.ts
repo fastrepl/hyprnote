@@ -29,6 +29,9 @@ export const commands = {
   async openPermissionSettings(permission: OSPermission): Promise<void> {
     await TAURI_INVOKE("open_permission_settings", { permission });
   },
+  async dbUpsertCalendar(calendar: Calendar): Promise<Calendar> {
+    return await TAURI_INVOKE("db_upsert_calendar", { calendar });
+  },
   async dbListCalendars(): Promise<Calendar[]> {
     return await TAURI_INVOKE("db_list_calendars");
   },
@@ -92,8 +95,8 @@ export type Event = {
 export type OSPermission =
   | "calendar"
   | "contacts"
+  | "audioRecording"
   | "screenRecording"
-  | "camera"
   | "microphone"
   | "accessibility";
 export type Participant = {

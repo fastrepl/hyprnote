@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 pub enum OSPermission {
     Calendar,
     Contacts,
+    AudioRecording,
     ScreenRecording,
-    Camera,
     Microphone,
     Accessibility,
 }
@@ -23,7 +23,9 @@ pub fn open_permission_settings(permission: OSPermission) {
         match permission {
             OSPermission::Calendar => {
                 Command::new("open")
-                    .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars")
+                    .arg(
+                        "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars",
+                    )
                     .spawn()
                     .expect("Failed to open Calendar settings");
             }
@@ -33,17 +35,17 @@ pub fn open_permission_settings(permission: OSPermission) {
                     .spawn()
                     .expect("Failed to open Contacts settings");
             }
+            OSPermission::AudioRecording => {
+                Command::new("open")
+                    .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_AudioCapture")
+                    .spawn()
+                    .expect("Failed to open Audio Recording settings");
+            }
             OSPermission::ScreenRecording => {
                 Command::new("open")
                     .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")
                     .spawn()
                     .expect("Failed to open Screen Recording settings");
-            }
-            OSPermission::Camera => {
-                Command::new("open")
-                    .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Camera")
-                    .spawn()
-                    .expect("Failed to open Camera settings");
             }
             OSPermission::Microphone => {
                 Command::new("open")
@@ -59,32 +61,4 @@ pub fn open_permission_settings(permission: OSPermission) {
             }
         }
     }
-}
-
-#[derive(Serialize, Deserialize, Debug, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub enum OSPermissionStatus {
-    // This platform does not require this permission
-    NotNeeded,
-    // The user has neither granted nor denied permission
-    Empty,
-    // The user has explicitly granted permission
-    Granted,
-    // The user has denied permission, or has granted it but not yet restarted
-    Denied,
-}
-
-impl OSPermissionStatus {
-    pub fn permitted(&self) -> bool {
-        match self {
-            Self::NotNeeded | Self::Granted => true,
-            _ => false,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct OSPermissionsCheck {
-    pub microphone: OSPermissionStatus,
 }

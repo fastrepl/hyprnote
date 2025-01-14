@@ -78,7 +78,6 @@ function EventCard({ event }: EventCardProps) {
 
   useEffect(() => {
     commands.dbListParticipants({ Event: event.id }).then((participants) => {
-      console.log(participants);
       setParticipants(participants);
     });
   }, []);

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Trans } from "@lingui/react/macro";
 
 import { ArrowUpRight, CircleCheck, XIcon } from "lucide-react";
@@ -29,14 +29,33 @@ const supportedIntegrations: CalendarIntegration[] = [
 ];
 
 export default function Calendar() {
+  const queryClient = useQueryClient();
+
   const calendars = useQuery({
     queryKey: ["settings", "calendars"],
-    queryFn: () => commands.dbListCalendars(),
+    queryFn: async () => {
+      const calendars = await commands.dbListCalendars();
+      return calendars;
+    },
   });
 
-  const handleClickDeselectCalendar = useCallback((calendar: Calendar) => {
-    commands.dbUpsertCalendar({ ...calendar, selected: false });
-  }, []);
+  const mutation = useMutation({
+    mutationFn: async ({
+      calendar_id,
+      selected,
+    }: {
+      calendar_id: Calendar["id"];
+      selected: boolean;
+    }) => {
+      const calendar = calendars.data?.find(
+        (calendar) => calendar.id === calendar_id,
+      );
+      if (calendar) {
+        commands.dbUpsertCalendar({ ...calendar, selected });
+        queryClient.invalidateQueries({ queryKey: ["settings", "calendars"] });
+      }
+    },
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -45,8 +64,8 @@ export default function Calendar() {
           <Trans>Integrations</Trans>
         </h2>
         <ul className="flex flex-col gap-3">
-          {supportedIntegrations.map((type) => (
-            <li>
+          {supportedIntegrations.map((type, i) => (
+            <li key={i}>
               <Integration type={type} connected={false} />
             </li>
           ))}
@@ -66,22 +85,33 @@ export default function Calendar() {
                 <button>
                   <XIcon
                     size={16}
-                    onClick={() => handleClickDeselectCalendar(calendar)}
+                    onClick={() =>
+                      mutation.mutate({
+                        calendar_id: calendar.id,
+                        selected: false,
+                      })
+                    }
                   />
                 </button>
               </li>
             ))}
         </ul>
 
-        <Select>
-          <SelectTrigger className="mt-2">
+        <Select
+          onValueChange={(id) =>
+            mutation.mutate({ calendar_id: id, selected: true })
+          }
+        >
+          <SelectTrigger>
             <SelectValue placeholder="Select" />
           </SelectTrigger>
           <SelectContent>
             {(calendars.data ?? [])
               .filter((calendar) => !calendar.selected)
-              .map((calendar) => (
-                <SelectItem value={calendar.id}>{calendar.name}</SelectItem>
+              .map((calendar, i) => (
+                <SelectItem key={i} value={calendar.id}>
+                  {calendar.name}
+                </SelectItem>
               ))}
           </SelectContent>
         </Select>
@@ -117,7 +147,7 @@ function Integration({ type, connected }: IntegrationProps) {
   const navigate = useNavigate();
 
   useQuery({
-    queryKey: ["settings", "calendars"],
+    queryKey: ["settings", "integration"],
     queryFn: () => fetch("/api/native/integration/list"),
   });
 

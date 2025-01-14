@@ -227,9 +227,8 @@ impl NangoClientBuilder {
 
 impl<'a> NangoProxyBuilder<'a> {
     // https://docs.nango.dev/reference/api/proxy/get
-    pub fn get(&self, url: impl std::fmt::Display) -> reqwest::RequestBuilder {
-        let mut url = self.nango.api_base.clone();
-        url.set_path(&format!("/proxy/{}", url));
+    pub fn get(&self, path: impl std::fmt::Display) -> reqwest::RequestBuilder {
+        let url = make_proxy_url(&self.nango.api_base, path);
 
         self.nango
             .client
@@ -241,11 +240,10 @@ impl<'a> NangoProxyBuilder<'a> {
     // https://docs.nango.dev/reference/api/proxy/post
     pub fn post<T: Serialize + ?Sized>(
         &self,
-        url: impl std::fmt::Display,
+        path: impl std::fmt::Display,
         data: &T,
     ) -> reqwest::RequestBuilder {
-        let mut url = self.nango.api_base.clone();
-        url.set_path(&format!("/proxy/{}", url));
+        let url = make_proxy_url(&self.nango.api_base, path);
 
         self.nango
             .client
@@ -257,9 +255,38 @@ impl<'a> NangoProxyBuilder<'a> {
     }
 }
 
+fn make_proxy_url(base: &url::Url, path: impl std::fmt::Display) -> url::Url {
+    let mut url = base.clone();
+    url.path_segments_mut()
+        .unwrap()
+        .push("proxy")
+        .extend(path.to_string().split('/').filter(|s| !s.is_empty()));
+    url
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_make_proxy_url() {
+        let base = "https://api.nango.dev".parse().unwrap();
+
+        assert_eq!(
+            make_proxy_url(&base, "/users").to_string(),
+            "https://api.nango.dev/proxy/users"
+        );
+        assert_eq!(
+            make_proxy_url(&base, "users/123").to_string(),
+            "https://api.nango.dev/proxy/users/123"
+        );
+
+        // we don't support query params yet
+        assert_eq!(
+            make_proxy_url(&base, "users/123?foo=bar").to_string(),
+            "https://api.nango.dev/proxy/users/123"
+        );
+    }
 
     #[tokio::test]
     async fn test_non_proxy() {

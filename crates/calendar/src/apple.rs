@@ -192,28 +192,35 @@ impl CalendarSource for Handle {
                     .iter()
                     .map(|p| {
                         let name = unsafe { p.name() }.unwrap_or_default().to_string();
-                        let contact_pred = unsafe { p.contactPredicate() };
 
-                        let email_string = NSString::from_str("emailAddresses");
-                        let cnkey_email: Retained<ProtocolObject<dyn CNKeyDescriptor>> =
-                            ProtocolObject::from_retained(email_string);
-                        let keys = NSArray::from_vec(vec![cnkey_email]);
+                        let email = {
+                            if !self.contacts_access_granted {
+                                None
+                            } else {
+                                let email_string = NSString::from_str("emailAddresses");
+                                let cnkey_email: Retained<ProtocolObject<dyn CNKeyDescriptor>> =
+                                    ProtocolObject::from_retained(email_string);
+                                let keys = NSArray::from_vec(vec![cnkey_email]);
 
-                        let contact = unsafe {
-                            self.contacts_store
-                                .unifiedContactsMatchingPredicate_keysToFetch_error(
-                                    &contact_pred,
-                                    &keys,
-                                )
-                        }
-                        .unwrap_or_default();
+                                let contact_pred = unsafe { p.contactPredicate() };
+                                let contact = unsafe {
+                                    self.contacts_store
+                                        .unifiedContactsMatchingPredicate_keysToFetch_error(
+                                            &contact_pred,
+                                            &keys,
+                                        )
+                                }
+                                .unwrap_or_default();
 
-                        let email: String = match contact.first() {
-                            Some(contact) => {
-                                unsafe { contact.emailAddresses().first().unwrap().value() }
-                                    .to_string()
+                                let s = match contact.first() {
+                                    Some(contact) => {
+                                        unsafe { contact.emailAddresses().first().unwrap().value() }
+                                            .to_string()
+                                    }
+                                    None => "".to_string(),
+                                };
+                                Some(s)
                             }
-                            None => "".to_string(),
                         };
 
                         Participant { name, email }

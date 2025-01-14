@@ -90,6 +90,8 @@ export type Event = {
   google_event_url: string | null;
 };
 export type OSPermission =
+  | "calendar"
+  | "contacts"
   | "screenRecording"
   | "camera"
   | "microphone"
@@ -97,7 +99,7 @@ export type OSPermission =
 export type Participant = {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   color_hex: string;
 };
 export type ParticipantFilter = { Text: string } | { Event: string } | "All";

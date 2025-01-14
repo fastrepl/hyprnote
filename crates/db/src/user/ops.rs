@@ -196,8 +196,9 @@ impl UserDatabase {
                     :name,
                     :email,
                     :color_hex
-                ) ON CONFLICT(email) DO UPDATE SET
+                ) ON CONFLICT(id) DO UPDATE SET
                     name = :name,
+                    email = :email,
                     color_hex = :color_hex
                 RETURNING *",
                 libsql::named_params! {
@@ -336,7 +337,7 @@ mod tests {
 
         let participant = Participant {
             name: "test".to_string(),
-            email: "test@test.com".to_string(),
+            email: Some("test@test.com".to_string()),
             ..Participant::default()
         };
 

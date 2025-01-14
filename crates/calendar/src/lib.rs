@@ -55,7 +55,7 @@ pub struct Event {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Participant {
     pub name: String,
-    pub email: String,
+    pub email: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

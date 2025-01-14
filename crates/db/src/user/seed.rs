@@ -7,28 +7,28 @@ pub async fn seed(db: &UserDatabase) -> anyhow::Result<()> {
     let yujonglee = Participant {
         id: uuid::Uuid::new_v4().to_string(),
         name: "Yujong Lee".to_string(),
-        email: "yujonglee@hyprnote.com".to_string(),
+        email: Some("yujonglee@hyprnote.com".to_string()),
         color_hex: random_color::RandomColor::new().to_hex(),
     };
 
     let john = Participant {
         id: uuid::Uuid::new_v4().to_string(),
         name: "John".to_string(),
-        email: "john@hyprnote.com".to_string(),
+        email: Some("john@hyprnote.com".to_string()),
         color_hex: random_color::RandomColor::new().to_hex(),
     };
 
     let alex = Participant {
         id: uuid::Uuid::new_v4().to_string(),
         name: "Alex".to_string(),
-        email: "alex@hyprnote.com".to_string(),
+        email: Some("alex@hyprnote.com".to_string()),
         color_hex: random_color::RandomColor::new().to_hex(),
     };
 
     let jenny = Participant {
         id: uuid::Uuid::new_v4().to_string(),
         name: "Jenny".to_string(),
-        email: "jenny@hyprnote.com".to_string(),
+        email: None,
         color_hex: random_color::RandomColor::new().to_hex(),
     };
 

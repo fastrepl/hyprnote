@@ -74,7 +74,7 @@ impl CalendarSource for Handle {
                         .iter()
                         .map(|a| Participant {
                             name: a.display_name.clone(),
-                            email: a.email.clone(),
+                            email: Some(a.email.clone()),
                         })
                         .collect::<Vec<Participant>>();
 

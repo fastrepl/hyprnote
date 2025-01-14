@@ -9,7 +9,10 @@ import { commands } from "@/types/tauri";
 import { useNavigate } from "@tanstack/react-router";
 import { useServer } from "@/contexts";
 
-type CalendarIntegration = "Apple" | "Google" | "Outlook";
+import { NangoIntegration } from "@/types/server"
+
+type CalendarIntegration = Exclude<NangoIntegration, "outlook-calendar"> | "apple-calendar";
+const supportedIntegrations: CalendarIntegration[] = ["apple-calendar", "google-calendar"];
 
 export default function Calendar() {
   const calendars = useQuery({
@@ -24,10 +27,10 @@ export default function Calendar() {
           <Trans>Integrations</Trans>
         </h2>
         <ul className="flex flex-col gap-3">
-          {["Apple", "Google", "Outlook"].map((type) => (
+          {supportedIntegrations.map((type) => (
             <li>
               <Integration
-                type={type as CalendarIntegration}
+                type={type}
                 connected={false}
               />
             </li>
@@ -86,20 +89,26 @@ function Integration({ type, connected }: IntegrationProps) {
   });
 
   const handleClick = useCallback(() => {
-    navigate({ href: new URL(`/settings/calendar/${type}`, base).toString() });
+    if (type === "apple-calendar") {
+      commands.openPermissionSettings("contacts");
+    } else {
+      navigate({ href: new URL(`/integrations/calendar/${type}`, base).toString() });
+    }
   }, [type]);
 
   return (
     <div className="flex flex-row justify-between">
       <div className="flex flex-row items-center gap-2">
-        {type === "Apple" ? (
+        {type === "apple-calendar" ? (
           <AppleIcon size={16} />
-        ) : type === "Google" ? (
+        ) : type === "google-calendar" ? (
           <GoogleIcon />
         ) : (
           <OutlookIcon />
         )}
-        <span className="text-sm">{type}</span>
+        <span className="text-sm">
+          {type === "apple-calendar" ? "Apple" : type === "google-calendar" ? "Google" : "Outlook"}
+          </span>
       </div>
       <button onClick={handleClick}>
         {connected ? (

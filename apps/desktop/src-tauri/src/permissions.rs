@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum OSPermission {
+    Calendar,
+    Contacts,
     ScreenRecording,
     Camera,
     Microphone,
@@ -19,6 +21,18 @@ pub fn open_permission_settings(permission: OSPermission) {
         use std::process::Command;
 
         match permission {
+            OSPermission::Calendar => {
+                Command::new("open")
+                    .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars")
+                    .spawn()
+                    .expect("Failed to open Calendar settings");
+            }
+            OSPermission::Contacts => {
+                Command::new("open")
+                    .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Contacts")
+                    .spawn()
+                    .expect("Failed to open Contacts settings");
+            }
             OSPermission::ScreenRecording => {
                 Command::new("open")
                     .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")

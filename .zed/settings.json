@@ -1,6 +1,8 @@
 {
   "file_scan_exclusions": [
-    "lago"
+    "nango",
+    "lago",
+    "lago-openapi"
   ],
   "formatter": "language_server",
   "lsp": {

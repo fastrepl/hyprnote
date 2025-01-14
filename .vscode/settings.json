@@ -4,11 +4,15 @@
   },
   "search.exclude": {
     "**/routeTree.gen.ts": true,
-    "lago": true
+    "lago": true,
+    "lago-openapi": true,
+    "nango": true
   },
   "files.readonlyInclude": {
     "**/routeTree.gen.ts": true,
-    "lago": true
+    "lago": true,
+    "lago-openapi": true,
+    "nango": true
   },
   "editor.inlayHints.enabled": "offUnlessPressed",
   "rust-analyzer.check.command": "check",

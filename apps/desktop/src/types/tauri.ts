@@ -29,6 +29,11 @@ export const commands = {
   async openPermissionSettings(permission: OSPermission): Promise<void> {
     await TAURI_INVOKE("open_permission_settings", { permission });
   },
+  async checkPermissionStatus(
+    permission: OSPermission,
+  ): Promise<boolean | null> {
+    return await TAURI_INVOKE("check_permission_status", { permission });
+  },
   async dbUpsertCalendar(calendar: Calendar): Promise<Calendar> {
     return await TAURI_INVOKE("db_upsert_calendar", { calendar });
   },

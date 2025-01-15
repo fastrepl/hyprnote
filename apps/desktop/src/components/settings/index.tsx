@@ -201,7 +201,7 @@ function DialogWrapper({
       </DialogTrigger>
 
       <DialogContent className="h-[700px] w-[1000px] overflow-hidden p-0">
-        <DialogHeader>
+        <DialogHeader className="hidden">
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
         {children}

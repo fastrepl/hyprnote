@@ -3,11 +3,11 @@
 import React, { createContext, useContext } from "react";
 import { fetch } from "@tauri-apps/plugin-http";
 
-import type { EnhanceRequest } from "@/types/server";
+import type { EnhanceRequest, NangoIntegration } from "@/types/server";
 import { CalendarIntegration } from "@/types";
 
 type Client = {
-  listIntegrations: () => Promise<any[]>;
+  listIntegrations: () => Promise<NangoIntegration[]>;
   getIntegrationURL: (
     type: Exclude<CalendarIntegration, "apple-calendar">,
   ) => string;
@@ -43,7 +43,9 @@ export const HyprProvider: React.FC<{
 
   const client: Client = {
     listIntegrations: async () => {
-      return [];
+      return authFetch("/api/native/user/integrations", { method: "GET" }).then(
+        (res) => res.json(),
+      );
     },
     getIntegrationURL: (type) => {
       return new URL(`/integrations?provider=${type}`, base).toString();

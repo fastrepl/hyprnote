@@ -65,9 +65,9 @@ export default function Calendar() {
           <Trans>Integrations</Trans>
         </h2>
         <ul className="flex flex-col px-1">
-          {supportedIntegrations.map((type, i) => (
-            <li key={i}>
-              <Integration type={type} connected={false} />
+          {supportedIntegrations.map((type) => (
+            <li key={type}>
+              <Integration type={type} />
             </li>
           ))}
         </ul>
@@ -100,13 +100,13 @@ export default function Calendar() {
           </Select>
         </div>
 
-        <ul className="mt-2 flex flex-col gap-2">
+        <ul className="mt-2 flex flex-col gap-2 pl-2">
           {(calendars.data ?? [])
             .filter((calendar) => calendar.selected)
             .map((calendar, i) => (
-              <li key={i} className="flex flex-row justify-between">
+              <li key={i} className="flex flex-row justify-between hover:bg-gray-50 p-1 rounded-md">
                 <div className="flex flex-row items-center gap-1">
-                  <span>{calendar.name}</span>
+                  <span>- {calendar.name}</span>
                 </div>
                 <button>
                   <XIcon
@@ -145,31 +145,7 @@ function OutlookIcon() {
   );
 }
 
-interface IntegrationProps {
-  type: CalendarIntegration;
-  connected: boolean;
-}
-function Integration({ type, connected }: IntegrationProps) {
-  const { client } = useHypr();
-  const navigate = useNavigate();
-
-  useQuery({
-    queryKey: ["settings", "integration"],
-    queryFn: async () => {
-      const integrations = await client.listIntegrations();
-      return integrations;
-    },
-  });
-
-  const handleClick = useCallback(() => {
-    if (type === "apple-calendar") {
-      commands.openPermissionSettings("calendar");
-    } else {
-      const href = client.getIntegrationURL(type);
-      navigate({ href });
-    }
-  }, [type]);
-
+function Integration({ type }: { type: CalendarIntegration }) {
   return (
     <Accordion type="single" collapsible>
       <AccordionItem value="item-1">
@@ -194,21 +170,48 @@ function OauthCalendarIntegrationDetails({
   type: Exclude<CalendarIntegration, "apple-calendar">;
 }) {
   const { client } = useHypr();
+  const integrations = useQuery({
+    queryKey: ["settings", "integration"],
+    queryFn: async () => {
+      const integrations = await client.listIntegrations();
+      return integrations;
+    },
+  });
+
+  const integration = integrations.data?.find((i) => i === type);
+
   return (
     <div>
       <p>
-        <Trans>
-          To connect your Calendar, you need to{" "}
-          <a href={client.getIntegrationURL(type)} className="underline">
-            authorize Hypr to access your calendar.
-          </a>
-        </Trans>
+        {integration ? (
+          <Trans>
+            Calendar connected. Hyprnote will periodically sync your calendar
+            events.
+          </Trans>
+        ) : (
+          <Trans>
+            To connect your Calendar, you need to{" "}
+            <a href={client.getIntegrationURL(type)} className="underline">
+              authorize Hypr to access your calendar.
+            </a>
+          </Trans>
+        )}
       </p>
     </div>
   );
 }
 
 function AppleCalendarIntegrationDetails() {
+  const calendarAccess = useQuery({
+    queryKey: ["settings", "calendarAccess"],
+    queryFn: async () => commands.checkPermissionStatus("calendar"),
+  });
+
+  const contactsAccess = useQuery({
+    queryKey: ["settings", "contactsAccess"],
+    queryFn: async () => commands.checkPermissionStatus("contacts"),
+  });
+
   const handleRequestCalendarAccess = useCallback(() => {
     commands.openPermissionSettings("calendar");
   }, []);
@@ -218,26 +221,32 @@ function AppleCalendarIntegrationDetails() {
   }, []);
 
   return (
-    <ul className="flex flex-col gap-2 text-xs">
-      <li className="flex flex-row justify-between">
-        <div className="flex flex-row items-center gap-1">
-          <CalendarIcon size={16} />
-          <span>Calendar Access (required)</span>
-        </div>
-        <button onClick={handleRequestCalendarAccess}>
-          <ArrowUpRight size={16} className="text-muted-foreground" />
-        </button>
-      </li>
-      <li className="flex flex-row justify-between">
-        <div className="flex flex-row items-center gap-1">
-          <ContactIcon size={16} />
-          <span>Contacts Access (optional)</span>
-        </div>
-        <button onClick={handleRequestContactsAccess}>
-          <ArrowUpRight size={16} className="text-muted-foreground" />
-        </button>
-      </li>
-    </ul>
+    <Trans>
+      <p>
+        {calendarAccess.data ? (
+          <span>Calendar access granted.</span>
+        ) : (
+          <span>
+            Calendar access not granted.{" "}
+            <button onClick={handleRequestCalendarAccess}>
+              This is required.
+            </button>
+          </span>
+        )}
+      </p>
+      <p>
+        {contactsAccess.data ? (
+          <span>Contacts access granted.</span>
+        ) : (
+          <span>
+            Contacts access not granted.{" "}
+            <button onClick={handleRequestContactsAccess}>
+              This is optional.
+            </button>
+          </span>
+        )}
+      </p>
+    </Trans>
   );
 }
 

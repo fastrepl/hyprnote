@@ -15,6 +15,26 @@ pub enum OSPermission {
 
 #[tauri::command(async)]
 #[specta::specta]
+pub fn check_permission_status(permission: OSPermission) -> Option<bool> {
+    #[cfg(target_os = "macos")]
+    {
+        match permission {
+            OSPermission::Calendar => {
+                Some(hypr_calendar::apple::Handle::new().calendar_access_status())
+            }
+            OSPermission::Contacts => {
+                Some(hypr_calendar::apple::Handle::new().contacts_access_status())
+            }
+            OSPermission::AudioRecording => None,
+            OSPermission::ScreenRecording => None,
+            OSPermission::Microphone => None,
+            OSPermission::Accessibility => None,
+        }
+    }
+}
+
+#[tauri::command(async)]
+#[specta::specta]
 pub fn open_permission_settings(permission: OSPermission) {
     #[cfg(target_os = "macos")]
     {

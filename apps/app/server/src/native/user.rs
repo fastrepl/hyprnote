@@ -12,7 +12,12 @@ pub async fn list_integrations(
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(Json(integrations))
+    let nango_integrations = integrations
+        .into_iter()
+        .map(|i| i.nango_integration_id)
+        .collect::<Vec<_>>();
+
+    Ok(Json(nango_integrations))
 }
 
 pub async fn checkout_url(

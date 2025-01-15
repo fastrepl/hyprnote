@@ -2,7 +2,6 @@ CREATE TABLE calendar_events (
   id TEXT PRIMARY KEY,
   tracking_id TEXT NOT NULL UNIQUE,
   calendar_id TEXT NOT NULL,
-  platform TEXT NOT NULL,
   name TEXT NOT NULL,
   note TEXT NOT NULL,
   start_date TEXT NOT NULL,

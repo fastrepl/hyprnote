@@ -94,7 +94,6 @@ export type Event = {
   id: string;
   tracking_id: string;
   calendar_id: string;
-  platform: Platform;
   name: string;
   note: string;
   start_date: string;

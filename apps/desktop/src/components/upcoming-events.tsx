@@ -86,7 +86,6 @@ function EventCard({ event }: EventCardProps) {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="truncate text-lg font-semibold">{event.name}</span>
-          <Badge variant="outline">{event.platform}</Badge>
         </CardTitle>
       </CardHeader>
 

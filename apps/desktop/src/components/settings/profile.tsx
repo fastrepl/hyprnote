@@ -81,9 +81,9 @@ export default function Profile() {
   }, [mutation]);
 
   return (
-    <div className="px-8">
+    <div>
       <Form {...form}>
-        <form className="gap-2">
+        <form className="flex flex-col gap-4">
           <FormField
             control={form.control}
             name="fullName"
@@ -117,13 +117,15 @@ export default function Profile() {
             name="companyName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Company Name</FormLabel>
+                <div>
+                  <FormLabel>Company Name</FormLabel>
+                  <FormDescription>
+                    This is the name of the company you work for.
+                  </FormDescription>
+                </div>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
-                <FormDescription>
-                  This is your public display name.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -134,16 +136,18 @@ export default function Profile() {
             name="companyDescription"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Company Description</FormLabel>
+                <div>
+                  <FormLabel>Company Description</FormLabel>
+                  <FormDescription>
+                    This is a short description of your company.
+                  </FormDescription>
+                </div>
                 <FormControl>
                   <Textarea
                     placeholder="Add a few words about your company."
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>
-                  This is your public display name.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

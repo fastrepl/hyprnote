@@ -20,6 +20,8 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "@hypr/ui/components/ui/dialog";
 import {
@@ -199,6 +201,9 @@ function DialogWrapper({
       </DialogTrigger>
 
       <DialogContent className="h-[700px] w-[1000px] overflow-hidden p-0">
+        <DialogHeader>
+          <DialogTitle>Settings</DialogTitle>
+        </DialogHeader>
         {children}
       </DialogContent>
     </Dialog>

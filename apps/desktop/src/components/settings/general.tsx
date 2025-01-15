@@ -98,7 +98,7 @@ export default function General() {
   }, [mutation]);
 
   return (
-    <div className="px-4">
+    <div>
       <Form {...form}>
         <form className="mb-4 flex flex-col gap-8">
           <FormField

@@ -99,7 +99,12 @@ export type Calendar = {
 export type Config =
   | { type: "general"; data: ConfigDataGeneral }
   | { type: "profile"; data: ConfigDataProfile };
-export type ConfigDataGeneral = { language: string };
+export type ConfigDataGeneral = {
+  autostart: boolean;
+  notifications: boolean;
+  language: string;
+  context: string;
+};
 export type ConfigDataProfile = {
   full_name: string | null;
   job_title: string | null;

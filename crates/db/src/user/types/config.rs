@@ -22,14 +22,20 @@ pub enum Config {
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct ConfigDataGeneral {
+    pub autostart: bool,
+    pub notifications: bool,
     #[specta(type = String)]
     pub language: codes_iso_639::part_1::LanguageCode,
+    pub context: String,
 }
 
 impl Default for ConfigDataGeneral {
     fn default() -> Self {
         Self {
+            autostart: true,
+            notifications: true,
             language: codes_iso_639::part_1::LanguageCode::En,
+            context: "".to_string(),
         }
     }
 }

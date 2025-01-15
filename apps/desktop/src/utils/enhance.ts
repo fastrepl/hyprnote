@@ -3,13 +3,11 @@ import { parsePartialJson } from "@ai-sdk/ui-utils";
 import { JSONContent } from "@tiptap/react";
 import { useHypr } from "@/contexts";
 
-interface EnhanceRequest {
-  editor: JSONContent;
-}
+import type { EnhanceRequest } from "@/types/server";
 
 export function useEnhance(input: EnhanceRequest) {
   const { client } = useHypr();
-  const [data, setData] = useState<JSONContent>(input.editor);
+  const [data, setData] = useState<JSONContent>(input.editor as JSONContent);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<undefined | Error>(undefined);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -27,7 +25,7 @@ export function useEnhance(input: EnhanceRequest) {
   const submit = async () => {
     try {
       setIsLoading(true);
-      setData(input.editor);
+      setData(input.editor as JSONContent);
       setError(undefined);
 
       const abortController = new AbortController();

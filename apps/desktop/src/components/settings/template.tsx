@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { GripVertical as HandleIcon, XIcon } from "lucide-react";
 import { motion, Reorder, useDragControls } from "motion/react";
-import { clsx } from "clsx";
+import clsx from "clsx";
 
 import type { Template } from "@/types/tauri";
 

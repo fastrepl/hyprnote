@@ -20,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@hypr/ui/components/ui/select";
+import { Checkbox } from "@hypr/ui/components/ui/checkbox";
+import { Textarea } from "@hypr/ui/components/ui/textarea";
 
 import { commands, type ConfigDataGeneral } from "@/types/tauri";
 
@@ -35,7 +37,10 @@ const LANGUAGES = [
 ] as const;
 
 const schema = z.object({
-  language: z.enum(["En", "Ko"]),
+  autostart: z.boolean().optional(),
+  notifications: z.boolean().optional(),
+  language: z.enum(["En", "Ko"]).optional(),
+  context: z.string().max(2000).optional(),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -57,16 +62,22 @@ export default function General() {
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     defaultValues: {
+      autostart: config.data?.autostart ?? false,
+      notifications: config.data?.notifications ?? false,
       language: config.data?.language
         ? (config.data?.language as "En" | "Ko")
         : "En",
+      context: config.data?.context ?? "",
     },
   });
 
   const mutation = useMutation({
     mutationFn: async (v: Schema) => {
       const config: ConfigDataGeneral = {
-        language: v.language,
+        autostart: v.autostart ?? true,
+        notifications: v.notifications ?? true,
+        language: v.language ?? "En",
+        context: v.context ?? "",
       };
 
       await commands.dbSetConfig({ type: "general", data: config });
@@ -87,22 +98,72 @@ export default function General() {
   }, [mutation]);
 
   return (
-    <div className="px-8">
+    <div className="px-4">
       <Form {...form}>
-        <form className="gap-2">
+        <form className="mb-4 flex flex-col gap-8">
+          <FormField
+            control={form.control}
+            name="autostart"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div>
+                  <FormLabel>Open Hyprnote on startup</FormLabel>
+                  <FormDescription>
+                    Hyprnote will be opened automatically when you start your
+                    computer.
+                  </FormDescription>
+                </div>
+
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="notifications"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div>
+                  <FormLabel>Meeting notifications</FormLabel>
+                  <FormDescription>
+                    Hyprnote will notify you when a meeting is starting.
+                  </FormDescription>
+                </div>
+
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="language"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Language</FormLabel>
+              <FormItem className="flex flex-row items-center justify-between">
+                <div>
+                  <FormLabel>Language</FormLabel>
+                  <FormDescription>
+                    You can manage email addresses in your{" "}
+                  </FormDescription>
+                </div>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select language" />
+                    <SelectTrigger className="max-w-[100px]">
+                      <SelectValue placeholder="Select a verified email to display" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -113,9 +174,31 @@ export default function General() {
                     ))}
                   </SelectContent>
                 </Select>
-                <FormDescription>
-                  Select your preferred interface language
-                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="context"
+            render={({ field }) => (
+              <FormItem>
+                <div>
+                  <FormLabel>Context</FormLabel>
+                  <FormDescription>
+                    You can add context to your notes to help you get started
+                    with your meetings. your meetings.
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Textarea
+                    placeholder="Tell us a little bit about yourself"
+                    className="resize-none"
+                    {...field}
+                  />
+                </FormControl>
+
                 <FormMessage />
               </FormItem>
             )}

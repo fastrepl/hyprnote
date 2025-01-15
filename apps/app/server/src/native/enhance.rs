@@ -16,6 +16,7 @@ use hypr_bridge::enhance;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct EnhanceRequest {
+    pub user: hypr_db::user::ConfigDataProfile,
     pub editor: serde_json::Value,
     pub template: hypr_db::user::Template,
 }

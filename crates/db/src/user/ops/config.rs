@@ -80,5 +80,11 @@ mod tests {
         let default_config = ConfigDataGeneral::default();
         let t = serde_json::to_string(&default_config).unwrap();
         assert_eq!(t, "{\"language\":\"En\"}");
+
+        let ko_config = ConfigDataGeneral {
+            language: codes_iso_639::part_1::LanguageCode::Ko,
+        };
+        let t = serde_json::to_string(&ko_config).unwrap();
+        assert_eq!(t, "{\"language\":\"Ko\"}");
     }
 }

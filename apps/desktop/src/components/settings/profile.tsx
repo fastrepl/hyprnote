@@ -33,17 +33,23 @@ export default function Profile() {
 
   const config = useQuery({
     queryKey: ["config", "profile"],
-    queryFn: () => commands.dbGetConfig("profile"),
+    queryFn: async () => {
+      const result = await commands.dbGetConfig("profile");
+      if (result === null) {
+        return null;
+      }
+      return result.data as ConfigDataProfile;
+    },
   });
 
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     defaultValues: {
-      fullName: config.data?.data.full_name ?? undefined,
-      jobTitle: config.data?.data.job_title ?? undefined,
-      companyName: config.data?.data.company_name ?? undefined,
-      companyDescription: config.data?.data.company_description ?? undefined,
-      linkedinUserName: config.data?.data.linkedin_username ?? undefined,
+      fullName: config.data?.full_name ?? undefined,
+      jobTitle: config.data?.job_title ?? undefined,
+      companyName: config.data?.company_name ?? undefined,
+      companyDescription: config.data?.company_description ?? undefined,
+      linkedinUserName: config.data?.linkedin_username ?? undefined,
     },
   });
 

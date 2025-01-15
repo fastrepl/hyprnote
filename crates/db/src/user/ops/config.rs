@@ -21,6 +21,10 @@ impl UserDatabase {
 
     pub async fn set_config(&self, config: Config) -> Result<()> {
         let (kind, data) = match config {
+            Config::General { data } => (
+                ConfigKind::General.to_string(),
+                serde_json::to_string(&data)?,
+            ),
             Config::Profile { data } => (
                 ConfigKind::Profile.to_string(),
                 serde_json::to_string(&data)?,
@@ -39,12 +43,12 @@ impl UserDatabase {
 
 #[cfg(test)]
 mod tests {
-    use crate::user::{ops::tests::setup_db, ConfigDataProfile};
+    use crate::user::{ops::tests::setup_db, ConfigDataGeneral, ConfigDataProfile};
 
     use super::*;
 
     #[tokio::test]
-    async fn test_config() {
+    async fn test_profile_config() {
         let db = setup_db().await;
 
         let config = db.get_config(ConfigKind::Profile).await.unwrap();
@@ -64,5 +68,23 @@ mod tests {
         } else {
             panic!("Config not found");
         }
+    }
+
+    #[tokio::test]
+    async fn test_general_config() {
+        let db = setup_db().await;
+
+        let config = db.get_config(ConfigKind::General).await.unwrap();
+        assert!(config.is_none());
+
+        let default_config = ConfigDataGeneral::default();
+        let t = serde_json::to_string(&default_config).unwrap();
+        assert_eq!(t, "{\"language\":\"En\"}");
+
+        let ko_config = ConfigDataGeneral {
+            language: codes_iso_639::part_1::LanguageCode::Ko,
+        };
+        let t = serde_json::to_string(&ko_config).unwrap();
+        assert_eq!(t, "{\"language\":\"Ko\"}");
     }
 }

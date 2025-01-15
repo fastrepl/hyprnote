@@ -96,7 +96,10 @@ export type Calendar = {
   name: string;
   selected: boolean;
 };
-export type Config = { type: "profile"; data: ConfigDataProfile };
+export type Config =
+  | { type: "general"; data: ConfigDataGeneral }
+  | { type: "profile"; data: ConfigDataProfile };
+export type ConfigDataGeneral = { language: string };
 export type ConfigDataProfile = {
   full_name: string | null;
   job_title: string | null;
@@ -104,7 +107,7 @@ export type ConfigDataProfile = {
   company_description: string | null;
   linkedin_username: string | null;
 };
-export type ConfigKind = "profile";
+export type ConfigKind = "general" | "profile";
 export type Event = {
   id: string;
   tracking_id: string;

@@ -4,6 +4,7 @@ use tauri_plugin_notification::NotificationExt;
 
 use super::{err_from, WorkerState};
 
+#[allow(unused)]
 #[derive(Default, Debug, Clone)]
 pub struct Job(DateTime<Utc>);
 

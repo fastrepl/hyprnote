@@ -104,7 +104,10 @@ export default function Calendar() {
           {(calendars.data ?? [])
             .filter((calendar) => calendar.selected)
             .map((calendar, i) => (
-              <li key={i} className="flex flex-row justify-between hover:bg-gray-50 p-1 rounded-md">
+              <li
+                key={i}
+                className="flex flex-row justify-between rounded-md p-1 hover:bg-gray-50"
+              >
                 <div className="flex flex-row items-center gap-1">
                   <span>- {calendar.name}</span>
                 </div>

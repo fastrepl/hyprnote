@@ -29,6 +29,7 @@
     "@remixicon/react": "^4.6.0",
     "@tanstack/react-query": "^5.62.14",
     "@tanstack/react-router": "^1.95.0",
+    "@tanstack/react-table": "^8.20.6",
     "@tanstack/zod-adapter": "^1.95.0",
     "@tauri-apps/api": "^2.2.0",
     "@tauri-apps/plugin-clipboard-manager": "^2.2.0",

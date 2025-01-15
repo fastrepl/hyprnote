@@ -6,6 +6,7 @@ pub struct Session {
     pub id: String,
     #[serde(with = "rfc3339")]
     pub timestamp: OffsetDateTime,
+    pub calendar_event_id: Option<String>,
     pub title: String,
     pub tags: Vec<String>,
     pub audio_local_path: Option<String>,
@@ -20,7 +21,7 @@ impl Session {
         Ok(Self {
             id: row.get(0).expect("id"),
             timestamp: OffsetDateTime::parse(row.get_str(1).expect("timestamp"), &Rfc3339).unwrap(),
-            // calendar_event_id
+            calendar_event_id: row.get(2).expect("calendar_event_id"),
             title: row.get(3).expect("title"),
             audio_local_path: row.get(4).expect("audio_local_path"),
             audio_remote_path: row.get(5).expect("audio_remote_path"),
@@ -37,6 +38,7 @@ impl Default for Session {
         Session {
             id: uuid::Uuid::new_v4().to_string(),
             timestamp: OffsetDateTime::now_utc(),
+            calendar_event_id: None,
             title: "".to_string(),
             tags: vec![],
             audio_local_path: None,

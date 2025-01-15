@@ -5,6 +5,17 @@ use super::UserDatabase;
 use crate::user::{Event, Participant, ParticipantFilter};
 
 impl UserDatabase {
+    pub async fn get_event(&self, id: String) -> Result<Event> {
+        let mut rows = self
+            .conn
+            .query("SELECT * FROM calendar_events WHERE id = ?", vec![id])
+            .await?;
+
+        let row = rows.next().await?.unwrap();
+        let event: Event = libsql::de::from_row(&row)?;
+        Ok(event)
+    }
+
     pub async fn list_participants(&self, filter: ParticipantFilter) -> Result<Vec<Participant>> {
         let mut rows = match filter {
             ParticipantFilter::Text(q) => {

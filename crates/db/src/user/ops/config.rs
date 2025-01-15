@@ -77,14 +77,20 @@ mod tests {
         let config = db.get_config(ConfigKind::General).await.unwrap();
         assert!(config.is_none());
 
-        let default_config = ConfigDataGeneral::default();
-        let t = serde_json::to_string(&default_config).unwrap();
-        assert_eq!(t, "{\"language\":\"En\"}");
-
-        let ko_config = ConfigDataGeneral {
+        let config = ConfigDataGeneral {
+            autostart: true,
+            notifications: true,
+            context: "work".to_string(),
             language: codes_iso_639::part_1::LanguageCode::Ko,
         };
-        let t = serde_json::to_string(&ko_config).unwrap();
-        assert_eq!(t, "{\"language\":\"Ko\"}");
+        db.set_config(Config::General { data: config })
+            .await
+            .unwrap();
+
+        let Some(Config::General { data }) = db.get_config(ConfigKind::General).await.unwrap()
+        else {
+            panic!("Config not found");
+        };
+        assert_eq!(data.context, "work");
     }
 }

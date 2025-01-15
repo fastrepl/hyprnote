@@ -14,13 +14,13 @@ hypr_db_utils = { path = "../db-utils", package = "db-utils" }
 hypr_nango = { path = "../nango", package = "nango", optional = true }
 
 anyhow = { workspace = true }
-codes-iso-639 = "0.1.5"
-rand = "0.8.5"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 time = { workspace = true, features = ["serde", "formatting", "parsing"] }
 uuid = { workspace = true, features = ["v4", "serde"] }
+codes-iso-639 = { workspace = true }
+rand = "0.8.5"
 
 libsql = { version = "0.6.0", features = [] }
 tokio = { workspace = true, features = ["rt", "macros"] }

@@ -6,9 +6,11 @@ edition = "2021"
 [dependencies]
 anyhow = { workspace = true }
 bytes = { workspace = true }
-futures = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+codes-iso-639 = { workspace = true }
+
+futures = { workspace = true }
 tokio = { workspace = true }
 
 deepgram = { version = "0.6.4", features = ["listen"] }

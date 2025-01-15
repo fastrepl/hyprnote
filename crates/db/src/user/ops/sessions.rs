@@ -49,16 +49,20 @@ impl UserDatabase {
                 "INSERT INTO sessions (
                     id,
                     timestamp,
+                    calendar_event_id,
                     title,
                     raw_memo_html,
                     enhanced_memo_html,
                     tags,
                     transcript
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 RETURNING *",
                 vec![
                     libsql::Value::Text(session.id),
                     libsql::Value::Text(session.timestamp.format(&Rfc3339).unwrap()),
+                    session
+                        .calendar_event_id
+                        .map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
                     libsql::Value::Text(session.title),
                     libsql::Value::Text(session.raw_memo_html),
                     session

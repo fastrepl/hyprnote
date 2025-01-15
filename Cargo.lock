@@ -9824,6 +9824,7 @@ dependencies = [
  "anyhow",
  "bytes",
  "clova",
+ "codes-iso-639",
  "deepgram",
  "futures",
  "kalosm-sound",

@@ -30,6 +30,7 @@ thiserror = "2"
 time = "0.3.37"
 url = "2"
 uuid = "1.11.0"
+codes-iso-639 = "0.1.5"
 
 tracing = "0.1.41"
 tracing-opentelemetry = "0.28.0"

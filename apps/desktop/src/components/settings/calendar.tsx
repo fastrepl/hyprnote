@@ -1,11 +1,17 @@
 import { useCallback } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Trans } from "@lingui/react/macro";
-import { ArrowUpRight, CircleCheck, XIcon } from "lucide-react";
+import { ArrowUpRight, CalendarIcon, ContactIcon, XIcon } from "lucide-react";
 import { RiAppleFill as AppleIcon } from "@remixicon/react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@hypr/ui/components/ui/accordion";
 import {
   Select,
   SelectContent,
@@ -53,12 +59,12 @@ export default function Calendar() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <div>
-        <h2 className="mb-3 font-semibold">
+        <h2 className="mb-1 font-semibold">
           <Trans>Integrations</Trans>
         </h2>
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col px-1">
           {supportedIntegrations.map((type, i) => (
             <li key={i}>
               <Integration type={type} connected={false} />
@@ -68,8 +74,33 @@ export default function Calendar() {
       </div>
 
       <div>
-        <h2 className="mb-2 font-semibold">Selected</h2>
-        <ul className="flex flex-col gap-2">
+        <div className="flex flex-row items-center gap-4">
+          <h2 className="mb-2 font-semibold">Selected</h2>
+          <Select
+            value="new"
+            onValueChange={(id) =>
+              mutation.mutate({ calendar_id: id, selected: true })
+            }
+          >
+            <SelectTrigger className="max-w-[100px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem disabled value="new">
+                New
+              </SelectItem>
+              {(calendars.data ?? [])
+                .filter((calendar) => !calendar.selected)
+                .map((calendar, i) => (
+                  <SelectItem key={i} value={calendar.id}>
+                    {calendar.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <ul className="mt-2 flex flex-col gap-2">
           {(calendars.data ?? [])
             .filter((calendar) => calendar.selected)
             .map((calendar, i) => (
@@ -91,25 +122,6 @@ export default function Calendar() {
               </li>
             ))}
         </ul>
-
-        <Select
-          onValueChange={(id) =>
-            mutation.mutate({ calendar_id: id, selected: true })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select" />
-          </SelectTrigger>
-          <SelectContent>
-            {(calendars.data ?? [])
-              .filter((calendar) => !calendar.selected)
-              .map((calendar, i) => (
-                <SelectItem key={i} value={calendar.id}>
-                  {calendar.name}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
       </div>
     </div>
   );
@@ -159,35 +171,95 @@ function Integration({ type, connected }: IntegrationProps) {
   }, [type]);
 
   return (
-    <div className="flex flex-row justify-between">
-      <div className="flex flex-row items-center gap-2">
-        {type === "apple-calendar" ? (
-          <AppleIcon size={16} />
-        ) : type === "google-calendar" ? (
-          <GoogleIcon />
-        ) : (
-          <OutlookIcon />
-        )}
-        <span className="text-sm">
-          {type === "apple-calendar"
-            ? "Apple"
-            : type === "google-calendar"
-              ? "Google"
-              : type === "outlook-calendar"
-                ? "Outlook"
-                : null}
-        </span>
-      </div>
-      <button onClick={handleClick}>
-        {connected ? (
-          <CircleCheck size={16} color="green" />
-        ) : (
-          <ArrowUpRight
-            size={16}
-            className="text-gray-400 hover:text-gray-900"
-          />
-        )}
-      </button>
+    <Accordion type="single" collapsible>
+      <AccordionItem value="item-1">
+        <AccordionTrigger>
+          <CalendarIconWithText type={type} />
+        </AccordionTrigger>
+        <AccordionContent className="px-2">
+          {type === "apple-calendar" ? (
+            <AppleCalendarIntegrationDetails />
+          ) : (
+            <OauthCalendarIntegrationDetails type={type} />
+          )}
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+}
+
+function OauthCalendarIntegrationDetails({
+  type,
+}: {
+  type: Exclude<CalendarIntegration, "apple-calendar">;
+}) {
+  const { client } = useHypr();
+  return (
+    <div>
+      <p>
+        <Trans>
+          To connect your Calendar, you need to{" "}
+          <a href={client.getIntegrationURL(type)} className="underline">
+            authorize Hypr to access your calendar.
+          </a>
+        </Trans>
+      </p>
+    </div>
+  );
+}
+
+function AppleCalendarIntegrationDetails() {
+  const handleRequestCalendarAccess = useCallback(() => {
+    commands.openPermissionSettings("calendar");
+  }, []);
+
+  const handleRequestContactsAccess = useCallback(() => {
+    commands.openPermissionSettings("contacts");
+  }, []);
+
+  return (
+    <ul className="flex flex-col gap-2 text-xs">
+      <li className="flex flex-row justify-between">
+        <div className="flex flex-row items-center gap-1">
+          <CalendarIcon size={16} />
+          <span>Calendar Access (required)</span>
+        </div>
+        <button onClick={handleRequestCalendarAccess}>
+          <ArrowUpRight size={16} className="text-muted-foreground" />
+        </button>
+      </li>
+      <li className="flex flex-row justify-between">
+        <div className="flex flex-row items-center gap-1">
+          <ContactIcon size={16} />
+          <span>Contacts Access (optional)</span>
+        </div>
+        <button onClick={handleRequestContactsAccess}>
+          <ArrowUpRight size={16} className="text-muted-foreground" />
+        </button>
+      </li>
+    </ul>
+  );
+}
+
+function CalendarIconWithText({ type }: { type: CalendarIntegration }) {
+  return (
+    <div className="flex flex-row items-center gap-2">
+      {type === "apple-calendar" ? (
+        <AppleIcon size={16} />
+      ) : type === "google-calendar" ? (
+        <GoogleIcon />
+      ) : (
+        <OutlookIcon />
+      )}
+      <span className="text-sm">
+        {type === "apple-calendar"
+          ? "Apple"
+          : type === "google-calendar"
+            ? "Google"
+            : type === "outlook-calendar"
+              ? "Outlook"
+              : null}
+      </span>
     </div>
   );
 }

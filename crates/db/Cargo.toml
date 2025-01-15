@@ -20,6 +20,7 @@ serde_json = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 time = { workspace = true, features = ["serde", "formatting", "parsing"] }
 uuid = { workspace = true, features = ["v4", "serde"] }
+codes-iso-639 = "0.1.5"
 
 libsql = { version = "0.6.0", features = [] }
 tokio = { workspace = true, features = ["rt", "macros"] }

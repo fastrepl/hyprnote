@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback } from "react";
+import { useCallback } from "react";
 import {
   createFileRoute,
   Outlet,
@@ -13,7 +13,6 @@ import { Button } from "@hypr/ui/components/ui/button";
 
 import { useUI } from "@/stores/ui";
 import Controls from "@/components/controls";
-import SearchBar from "@/components/search-bar";
 import SettingsDialog from "@/components/settings";
 
 export const Route = createFileRoute("/_nav")({
@@ -21,6 +20,15 @@ export const Route = createFileRoute("/_nav")({
 });
 
 function Component() {
+  return (
+    <>
+      <Header />
+      <Outlet />
+    </>
+  );
+}
+
+function Header() {
   const { history, navigate } = useRouter();
   const { pathname } = useLocation();
 
@@ -33,52 +41,6 @@ function Component() {
   }, [navigate]);
 
   return (
-    <>
-      <Header>
-        <div className="flex flex-row gap-2">
-          <Controls />
-          {!pathname.includes("onboarding") && (
-            <button
-              className="text-gray-600 hover:text-gray-900"
-              onClick={handleClickBack}
-            >
-              <ArrowLeft
-                size={16}
-                className={clsx([
-                  "opacity-0",
-                  pathname !== "/" && "opacity-100",
-                ])}
-              />
-            </button>
-          )}
-        </div>
-        {!pathname.includes("onboarding") && (
-          <div className="flex flex-1 justify-center" data-tauri-drag-region>
-            <SearchBar />
-          </div>
-        )}
-        <div className="mr-3 flex flex-row gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className={clsx([
-              "h-7 px-2 text-xs",
-              pathname === "/" ? "opacity-100" : "opacity-0",
-            ])}
-            onClick={handleClickNewNote}
-          >
-            <Trans>New Note</Trans>
-          </Button>
-          {pathname.includes("note") ? <PanelToggle /> : <SettingsDialog />}
-        </div>
-      </Header>
-      <Outlet />
-    </>
-  );
-}
-
-function Header({ children }: { children: ReactNode }) {
-  return (
     <header
       className={clsx([
         "flex w-full items-center justify-between",
@@ -86,7 +48,39 @@ function Header({ children }: { children: ReactNode }) {
       ])}
       data-tauri-drag-region
     >
-      {children}
+      <div className="flex flex-row gap-2">
+        <Controls />
+        {!pathname.includes("onboarding") && (
+          <button
+            className="text-gray-600 hover:text-gray-900"
+            onClick={handleClickBack}
+          >
+            <ArrowLeft
+              size={16}
+              className={clsx(["opacity-0", pathname !== "/" && "opacity-100"])}
+            />
+          </button>
+        )}
+      </div>
+      {/* {!pathname.includes("onboarding") && (
+        <div className="flex flex-1 justify-center" data-tauri-drag-region>
+          <SearchBar />
+        </div>
+      )} */}
+      <div className="mr-3 flex flex-row gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className={clsx([
+            "h-7 px-2 text-xs",
+            pathname === "/" ? "opacity-100" : "opacity-0",
+          ])}
+          onClick={handleClickNewNote}
+        >
+          <Trans>New Note</Trans>
+        </Button>
+        {pathname.includes("note") ? <PanelToggle /> : <SettingsDialog />}
+      </div>
     </header>
   );
 }

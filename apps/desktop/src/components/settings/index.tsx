@@ -43,6 +43,7 @@ import TemplateComponent from "./template";
 import BillingComponent from "./billing";
 
 import { commands, type Template } from "@/types/tauri";
+import { useQuery } from "@tanstack/react-query";
 
 const data = {
   nav: [
@@ -61,6 +62,11 @@ export default function SettingsDialog() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<NavNames>(data.nav[3].name);
   const [templateIndex, setTemplateIndex] = useState(0);
+
+  const _customTemplates = useQuery({
+    queryKey: ["settings", "customTemplates"],
+    queryFn: () => commands.dbListTemplates(),
+  });
 
   const handleUpdateTemplate = (template: Template) => {
     commands.dbUpsertTemplate(template);

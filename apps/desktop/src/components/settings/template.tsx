@@ -1,11 +1,12 @@
 import React, { useCallback, useState } from "react";
-import { GripVertical as HandleIcon } from "lucide-react";
+import { EditIcon, GripVertical as HandleIcon } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 
 import type { Template } from "@/types/tauri";
 
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
+import { Button } from "@hypr/ui/components/ui/button";
 
 type ReorderItem = Template["sections"][number];
 
@@ -43,8 +44,13 @@ export default function TemplateEditor({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold">Title</h2>
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-row items-center justify-between">
+          <h2 className="text-lg font-semibold">Title</h2>
+          <Button variant="outline" size="icon">
+            <EditIcon className="h-2 w-2" />
+          </Button>
+        </div>
         <Input
           disabled={disabled}
           value={template.title}

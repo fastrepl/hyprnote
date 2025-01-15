@@ -1,5 +1,5 @@
 [package]
-name = "notif"
+name = "notification"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,5 +8,6 @@ serde = { workspace = true, features = ["derive"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.5.2"
+objc2-foundation = { version = "0.2.2", features = ["all"] }
+objc2-user-notifications = { version = "0.2.2", features = ["all"] }
 objc2-app-kit = { version = "0.2.2", features = ["NSWorkspace"] }
-objc2-foundation = "0.2.2"

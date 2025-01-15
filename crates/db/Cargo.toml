@@ -17,6 +17,7 @@ anyhow = { workspace = true }
 rand = "0.8.5"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
 time = { workspace = true, features = ["serde", "formatting", "parsing"] }
 uuid = { workspace = true, features = ["v4", "serde"] }
 

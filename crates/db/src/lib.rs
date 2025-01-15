@@ -60,7 +60,7 @@ impl ConnectionBuilder {
     }
 }
 
-async fn migrate(conn: &Connection, migrations: Vec<impl AsRef<str>>) -> anyhow::Result<()> {
+async fn migrate(conn: &Connection, migrations: Vec<impl AsRef<str>>) -> libsql::Result<()> {
     let current_version: i32 = conn
         .query("PRAGMA user_version", ())
         .await?

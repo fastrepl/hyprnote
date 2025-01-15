@@ -58,7 +58,7 @@ impl UserDatabase {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::user::{ops::tests::setup_db, Transcript};
+    use crate::user::ops::tests::setup_db;
 
     #[tokio::test]
     async fn test_templates() {
@@ -67,7 +67,7 @@ mod tests {
         let templates = db.list_templates().await.unwrap();
         assert_eq!(templates.len(), 0);
 
-        let template = db
+        let _template = db
             .upsert_template(Template {
                 id: "test".to_string(),
                 title: "test".to_string(),

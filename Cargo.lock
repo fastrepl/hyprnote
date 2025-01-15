@@ -2769,6 +2769,7 @@ dependencies = [
  "serde",
  "serde_json",
  "specta",
+ "strum 0.26.3",
  "time",
  "tokio",
  "uuid",

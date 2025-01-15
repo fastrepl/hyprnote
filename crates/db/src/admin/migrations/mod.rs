@@ -7,6 +7,6 @@ const MIGRATIONS: [&str; 4] = [
     include_str!("./0003.sql"),
 ];
 
-pub async fn migrate(conn: &Connection) -> anyhow::Result<()> {
+pub async fn migrate(conn: &Connection) -> libsql::Result<()> {
     migrate_impl(conn, MIGRATIONS.to_vec()).await
 }

@@ -1,6 +1,6 @@
 use crate::{migrate as migrate_impl, Connection};
 
-const MIGRATIONS: [&str; 7] = [
+const MIGRATIONS: [&str; 8] = [
     include_str!("./0000.sql"),
     include_str!("./0001.sql"),
     include_str!("./0002.sql"),
@@ -8,8 +8,9 @@ const MIGRATIONS: [&str; 7] = [
     include_str!("./0004.sql"),
     include_str!("./0005.sql"),
     include_str!("./0006.sql"),
+    include_str!("./0007.sql"),
 ];
 
-pub async fn migrate(conn: &Connection) -> anyhow::Result<()> {
+pub async fn migrate(conn: &Connection) -> libsql::Result<()> {
     migrate_impl(conn, MIGRATIONS.to_vec()).await
 }

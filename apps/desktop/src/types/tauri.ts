@@ -65,6 +65,12 @@ export const commands = {
   async dbDeleteTemplate(id: string): Promise<null> {
     return await TAURI_INVOKE("db_delete_template", { id });
   },
+  async dbGetConfig(kind: ConfigKind): Promise<Config | null> {
+    return await TAURI_INVOKE("db_get_config", { kind });
+  },
+  async dbSetConfig(config: Config): Promise<null> {
+    return await TAURI_INVOKE("db_set_config", { config });
+  },
 };
 
 /** user-defined events **/
@@ -90,6 +96,15 @@ export type Calendar = {
   name: string;
   selected: boolean;
 };
+export type Config = { type: "profile"; data: ConfigDataProfile };
+export type ConfigDataProfile = {
+  full_name: string | null;
+  job_title: string | null;
+  company_name: string | null;
+  company_description: string | null;
+  linkedin_username: string | null;
+};
+export type ConfigKind = "profile";
 export type Event = {
   id: string;
   tracking_id: string;

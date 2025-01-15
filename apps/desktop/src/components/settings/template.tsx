@@ -38,7 +38,7 @@ export default function Template({
         <SectionsList
           sections={template.sections}
           onSectionsUpdate={handleUpdateSections}
-      />
+        />
       </div>
     </div>
   );

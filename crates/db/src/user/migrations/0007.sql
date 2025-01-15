@@ -1,0 +1,5 @@
+CREATE TABLE configs (
+  id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL,
+  data TEXT NOT NULL
+);

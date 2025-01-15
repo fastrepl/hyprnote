@@ -1,6 +1,7 @@
 use crate::Connection;
 
 mod calendars;
+mod config;
 mod events;
 mod sessions;
 mod templates;

@@ -105,3 +105,18 @@ pub async fn db_create_session(
 ) -> Result<hypr_db::user::Session, ()> {
     Ok(state.db.create_session(session).await.unwrap())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn db_get_config(
+    state: State<'_, App>,
+    kind: hypr_db::user::ConfigKind,
+) -> Result<Option<hypr_db::user::Config>, ()> {
+    Ok(state.db.get_config(kind).await.unwrap())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn db_set_config(state: State<'_, App>, config: hypr_db::user::Config) -> Result<(), ()> {
+    Ok(state.db.set_config(config).await.unwrap())
+}

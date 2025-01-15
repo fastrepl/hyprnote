@@ -2,6 +2,7 @@ import { z } from "zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   Form,
@@ -15,8 +16,10 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
+import { commands, type ConfigDataProfile } from "@/types/tauri";
+
 const schema = z.object({
-  fullName: z.string().min(2).max(50),
+  fullName: z.string().min(2).max(50).optional(),
   jobTitle: z.string().min(2).max(50).optional(),
   companyName: z.string().min(2).max(50).optional(),
   companyDescription: z.string().min(2).max(50).optional(),
@@ -26,21 +29,50 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 
 export default function Profile() {
+  const queryClient = useQueryClient();
+
+  const config = useQuery({
+    queryKey: ["config", "profile"],
+    queryFn: () => commands.dbGetConfig("profile"),
+  });
+
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     defaultValues: {
-      fullName: "User",
+      fullName: config.data?.data.full_name ?? undefined,
+      jobTitle: config.data?.data.job_title ?? undefined,
+      companyName: config.data?.data.company_name ?? undefined,
+      companyDescription: config.data?.data.company_description ?? undefined,
+      linkedinUserName: config.data?.data.linkedin_username ?? undefined,
     },
   });
 
-  function onSubmit(values: Schema) {
-    console.log(values);
-  }
+  const mutation = useMutation({
+    mutationFn: async (v: Schema) => {
+      const config: ConfigDataProfile = {
+        full_name: v.fullName ?? null,
+        job_title: v.jobTitle ?? null,
+        company_name: v.companyName ?? null,
+        company_description: v.companyDescription ?? null,
+        linkedin_username: v.linkedinUserName ?? null,
+      };
+
+      await commands.dbSetConfig({ type: "profile", data: config });
+    },
+  });
 
   useEffect(() => {
-    const subscription = form.watch(() => form.handleSubmit(onSubmit)());
+    if (mutation.status === "success") {
+      queryClient.invalidateQueries({ queryKey: ["config", "profile"] });
+    }
+  }, [mutation.status]);
+
+  useEffect(() => {
+    const subscription = form.watch(() =>
+      form.handleSubmit((v) => mutation.mutate(v))(),
+    );
     return () => subscription.unsubscribe();
-  }, []);
+  }, [mutation]);
 
   return (
     <div className="px-8">

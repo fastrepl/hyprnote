@@ -21,12 +21,12 @@ import ParticipantsSelector from "@/components/participants-selector";
 import SelectedEvent from "@/components/selected-event";
 
 import { useUI } from "@/stores/ui";
-// import { useEnhance } from "@/utils/enhance";
-import { commands, TranscribeOutputChunk, Transcript } from "@/types/tauri";
+import { useEnhance } from "@/utils/enhance";
+import { commands, Transcript } from "@/types/tauri";
 import AudioIndicator from "@/components/audio-indicator";
-import { Channel } from "@tauri-apps/api/core";
+import { BUILTIN_TEMPLATES } from "@/data/templates";
 
-const queryOptions = (id: string) => ({
+const noteQueryOptions = (id: string) => ({
   queryKey: ["note", { id }],
   queryFn: async () => {
     const session = await commands.dbGetSession(id);
@@ -44,7 +44,7 @@ const queryOptions = (id: string) => ({
 export const Route = createFileRoute("/_nav/note/$id")({
   component: Component,
   loader: ({ context: { queryClient }, params: { id } }) => {
-    return queryClient.ensureQueryData(queryOptions(id));
+    return queryClient.ensureQueryData(noteQueryOptions(id));
   },
 });
 
@@ -52,13 +52,13 @@ function Component() {
   const { isPanelOpen } = useUI();
   const [listening, setListening] = useState(true);
 
-  useEffect(() => {
-    const channel = new Channel<TranscribeOutputChunk>();
-    channel.onmessage = (event) => {
-      console.log(event);
-    };
-    commands.startSession(channel);
-  }, []);
+  // useEffect(() => {
+  //   const channel = new Channel<TranscribeOutputChunk>();
+  //   channel.onmessage = (event) => {
+  //     console.log(event);
+  //   };
+  //   commands.startSession(channel);
+  // }, []);
 
   return isPanelOpen ? (
     <ResizablePanelGroup direction="horizontal">
@@ -81,9 +81,7 @@ interface LeftPanelProps {
 }
 
 function LeftPanel({ listening, setListening }: LeftPanelProps) {
-  const { id } = Route.useParams();
-
-  const { data: session } = useSuspenseQuery(queryOptions(id));
+  const session = Route.useLoaderData();
 
   const [title, setTitle] = useState(session.title);
 
@@ -95,11 +93,17 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
     setEditorContent(content);
   }, []);
 
-  // const { data, isLoading, stop, submit } = useEnhance({
-  //   baseUrl: "http://127.0.0.1:8000",
-  //   apiKey: "TODO",
-  //   editor: editorContent,
-  // });
+  const enhance = useEnhance({
+    template: BUILTIN_TEMPLATES[0],
+    editor: editorContent,
+    user: {
+      full_name: "TODO",
+      job_title: "TODO",
+      company_name: "TODO",
+      company_description: "TODO",
+      linkedin_username: "TODO",
+    },
+  });
 
   const [showRaw, setShowRaw] = useState(true);
 
@@ -109,8 +113,14 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
     }
   }, [editorContent]);
 
+  useEffect(() => {
+    setEditorContent(enhance.data);
+  }, [enhance.data]);
+
   return (
     <div className="flex h-full flex-col p-8">
+      <button onClick={() => enhance.submit()}>Enhance</button>
+
       <div className="flex flex-row items-center justify-between">
         <input
           type="text"

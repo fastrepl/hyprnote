@@ -32,6 +32,7 @@ pub fn run() {
             commands::stop_playback,
             commands::show_window,
             commands::create_session,
+            commands::run_enhance,
             permissions::open_permission_settings,
             permissions::check_permission_status,
             commands::db::db_upsert_calendar,

@@ -10,7 +10,7 @@ dotenv = "0.15.0"
 hypr-analytics = { path = "../../../crates/analytics", package = "analytics" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar", features = ["google", "outlook"] }
-hypr-db = { path = "../../../crates/db", package = "db" }
+hypr-db = { path = "../../../crates/db", package = "db", features = ["admin", "user"] }
 hypr-lago = { path = "../../../crates/lago", package = "lago" }
 hypr-nango = { path = "../../../crates/nango", package = "nango" }
 hypr-s3 = { path = "../../../crates/s3", package = "s3" }
@@ -38,8 +38,8 @@ schemars = { workspace = true, features = ["preserve_order"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 time = { workspace = true }
-uuid = { workspace = true }
 url = { workspace = true }
+uuid = { workspace = true }
 
 hex = "0.4.3"
 hmac = "0.12.1"

@@ -5,13 +5,15 @@ import { fetch } from "@tauri-apps/plugin-http";
 
 import type { EnhanceRequest, NangoIntegration } from "@/types/server";
 import { CalendarIntegration } from "@/types";
+import { commands } from "@/types/tauri";
+import { Channel } from "@tauri-apps/api/core";
 
 type Client = {
   listIntegrations: () => Promise<NangoIntegration[]>;
   getIntegrationURL: (
     type: Exclude<CalendarIntegration, "apple-calendar">,
   ) => string;
-  enhance: (req: EnhanceRequest) => Promise<Response>;
+  enhance: (req: EnhanceRequest) => ReadableStream;
 };
 
 const HyprContext = createContext<{ client: Client }>({
@@ -51,10 +53,22 @@ export const HyprProvider: React.FC<{
       return new URL(`/integrations?provider=${type}`, base).toString();
     },
     enhance: (req: EnhanceRequest) => {
-      return authFetch("/api/native/enhance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(req),
+      const channel = new Channel<string>();
+      const encoder = new TextEncoder();
+
+      return new ReadableStream({
+        start(controller) {
+          channel.onmessage = (message) => {
+            try {
+              controller.enqueue(encoder.encode(message));
+            } catch (_ignored) {}
+          };
+
+          commands.runEnhance(req, channel).finally(() => {
+            channel.onmessage = () => {};
+            controller.close();
+          });
+        },
       });
     },
   };

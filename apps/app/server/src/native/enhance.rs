@@ -14,17 +14,9 @@ use axum::{
 use crate::state::AppState;
 use hypr_bridge::enhance;
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
-pub struct EnhanceRequest {
-    pub user: hypr_db::user::ConfigDataProfile,
-    pub editor: serde_json::Value,
-    pub template: hypr_db::user::Template,
-}
-
-// TODO: https://github.com/tokio-rs/axum/blob/main/examples/validator/src/main.rs
 pub async fn handler(
     State(state): State<AppState>,
-    Json(input): Json<EnhanceRequest>,
+    Json(input): Json<hypr_bridge::EnhanceRequest>,
 ) -> Result<impl IntoResponse, StatusCode> {
     let prompt = format!(
         r#"
@@ -44,7 +36,7 @@ pub async fn handler(
     );
 
     let request = CreateChatCompletionRequest {
-        model: "gpt-4o".to_string(),
+        model: "gpt-4o-mini".to_string(),
         messages: vec![
             ChatCompletionRequestSystemMessageArgs::default()
                 .content("You are a helpful assistant that only outputs JSON.")

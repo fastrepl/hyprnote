@@ -28,6 +28,12 @@ export const commands = {
   async createSession(): Promise<void> {
     await TAURI_INVOKE("create_session");
   },
+  async runEnhance(
+    req: EnhanceRequest,
+    onEvent: TAURI_CHANNEL<string>,
+  ): Promise<null> {
+    return await TAURI_INVOKE("run_enhance", { req, onEvent });
+  },
   async openPermissionSettings(permission: OSPermission): Promise<void> {
     await TAURI_INVOKE("open_permission_settings", { permission });
   },
@@ -118,6 +124,11 @@ export type ConfigDataProfile = {
   linkedin_username: string | null;
 };
 export type ConfigKind = "general" | "profile";
+export type EnhanceRequest = {
+  user: ConfigDataProfile;
+  editor: JsonValue;
+  template: Template;
+};
 export type Event = {
   id: string;
   tracking_id: string;
@@ -128,6 +139,13 @@ export type Event = {
   end_date: string;
   google_event_url: string | null;
 };
+export type JsonValue =
+  | null
+  | boolean
+  | number
+  | string
+  | JsonValue[]
+  | { [key in string]: JsonValue };
 export type OSPermission =
   | "calendar"
   | "contacts"

@@ -1,7 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 import { parsePartialJson } from "@ai-sdk/ui-utils";
-import { JSONContent } from "@tiptap/react";
+import type { JSONContent } from "@tiptap/react";
+
 import { useHypr } from "@/contexts";
+import { validateSchema } from "@/components/editor/utils";
 
 import type { EnhanceRequest } from "@/types/server";
 
@@ -31,9 +33,8 @@ export function useEnhance(input: EnhanceRequest) {
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
-      const response = await client.enhance(input);
-
-      const reader = response.body!.getReader();
+      const stream = client.enhance(input);
+      const reader = stream.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
 
@@ -70,7 +71,16 @@ export function useEnhance(input: EnhanceRequest) {
         buffer += delta;
 
         const parsed = parsePartialJson(buffer);
-        if (parsed.state === "successful-parse" && parsed.value) {
+
+        if (
+          parsed.state === "failed-parse" ||
+          parsed.state === "undefined-input" ||
+          !parsed.value
+        ) {
+          continue;
+        }
+
+        if (validateSchema(parsed.value as JSONContent)) {
           setData(parsed.value as JSONContent);
         }
       }

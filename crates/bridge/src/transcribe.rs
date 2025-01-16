@@ -1,7 +1,6 @@
 // https://github.com/tokio-rs/axum/blob/main/examples/websockets/src/client.rs
 // https://github.com/snapview/tokio-tungstenite/blob/master/examples/client.rs
 
-use anyhow::Result;
 use futures_util::{SinkExt, Stream, StreamExt};
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
@@ -12,8 +11,12 @@ impl Client {
     pub async fn transcribe(
         &self,
         audio_stream: impl Stream<Item = f32> + Send + Unpin + 'static,
-    ) -> Result<impl Stream<Item = TranscribeOutputChunk>> {
-        let req = self.transcribe_request.clone().into_client_request()?;
+    ) -> Result<impl Stream<Item = TranscribeOutputChunk>, crate::Error> {
+        let req = self
+            .transcribe_request
+            .clone()
+            .into_client_request()
+            .unwrap();
         let (ws_stream, _) = connect_async(req).await?;
 
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
@@ -22,7 +25,24 @@ impl Client {
             let mut audio_stream = audio_stream.chunks(1024);
 
             while let Some(audio) = audio_stream.next().await {
-                let input = TranscribeInputChunk { audio };
+                // TODO: this is one-off solution
+                let data = {
+                    let samples: Vec<i16> = audio
+                        .iter()
+                        .map(|&sample| {
+                            let scaled = (sample * 32767.0).clamp(-32768.0, 32767.0);
+                            scaled as i16
+                        })
+                        .collect();
+
+                    samples
+                        .iter()
+                        .flat_map(|&sample| sample.to_le_bytes())
+                        .collect::<Vec<u8>>()
+                        .into()
+                };
+
+                let input = TranscribeInputChunk { audio: data };
                 let msg = Message::Text(serde_json::to_string(&input).unwrap().into());
                 if let Err(_) = ws_sender.send(msg).await {
                     break;

@@ -157,19 +157,19 @@ fn main() {
                 )
                 .route("/transcribe", get(native::transcribe::handler))
                 .route("/user/checkout", get(native::user::checkout_url))
-                .route("/user/integrations", get(native::user::list_integrations))
-                .layer(
-                    tower::builder::ServiceBuilder::new()
-                        .layer(axum::middleware::from_fn_with_state(
-                            AuthState::from_ref(&state),
-                            middleware::verify_api_key,
-                        ))
-                        .layer(axum::middleware::from_fn_with_state(
-                            AnalyticsState::from_ref(&state),
-                            middleware::send_analytics,
-                        ))
-                        .layer(axum::middleware::from_fn(middleware::attach_user_db)),
-                );
+                .route("/user/integrations", get(native::user::list_integrations));
+            // .layer(
+            //     tower::builder::ServiceBuilder::new()
+            //         .layer(axum::middleware::from_fn_with_state(
+            //             AuthState::from_ref(&state),
+            //             middleware::verify_api_key,
+            //         ))
+            //         .layer(axum::middleware::from_fn_with_state(
+            //             AnalyticsState::from_ref(&state),
+            //             middleware::send_analytics,
+            //         ))
+            //         .layer(axum::middleware::from_fn(middleware::attach_user_db)),
+            // );
 
             let webhook_router = Router::new()
                 .route("/nango", post(webhook::nango::handler))
@@ -193,7 +193,7 @@ fn main() {
                 })
                 .with_state(state.clone());
 
-            let port = std::env::var("PORT").unwrap_or("5000".to_string());
+            let port = std::env::var("PORT").unwrap_or("1234".to_string());
             let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port))
                 .await
                 .unwrap();

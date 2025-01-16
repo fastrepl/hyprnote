@@ -3,6 +3,7 @@ resolver = "2"
 members = ["apps/app/server", "apps/desktop/src-tauri", "crates/*"]
 
 [workspace.dependencies]
+async-stream = "0.3.6"
 futures = "0.3.31"
 futures-channel = "0.3.31"
 futures-core = "0.3.31"
@@ -10,7 +11,6 @@ futures-util = "0.3.31"
 reqwest = "0.12"
 tauri = "2.1.1"
 tokio = "1"
-tokio-stream = "0.1.17"
 
 anyhow = "1"
 approx = "0.5.1"
@@ -31,6 +31,7 @@ thiserror = "2"
 time = "0.3.37"
 url = "2"
 uuid = "1.11.0"
+serde_bytes = "0.11.15"
 
 tracing = "0.1.41"
 tracing-opentelemetry = "0.28.0"

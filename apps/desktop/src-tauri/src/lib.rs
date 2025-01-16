@@ -47,10 +47,9 @@ pub fn run() {
             commands::db::db_upsert_template,
             commands::db::db_delete_template,
             commands::db::db_get_config,
-            commands::db::db_set_config,
+            commands::db::db_set_config
         ])
         .events(tauri_specta::collect_events![
-            events::TranscriptEvent,
             events::RecordingStarted,
             events::RecordingStopped,
         ])

@@ -14,8 +14,8 @@ fn err_from(e: impl Into<String>) -> Error {
 }
 
 pub async fn monitor(state: WorkerState) -> Result<(), std::io::Error> {
-    let calendar_schedule = apalis_cron::Schedule::from_str("0 * * * *").unwrap();
-    let credit_schedule = apalis_cron::Schedule::from_str("0 * * * *").unwrap();
+    let calendar_schedule = apalis_cron::Schedule::from_str("0 0 * * * *").unwrap();
+    let credit_schedule = apalis_cron::Schedule::from_str("0 0 * * * *").unwrap();
 
     let calendar_ctx = state.clone();
     let credit_ctx = state;

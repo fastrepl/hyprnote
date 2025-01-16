@@ -4,11 +4,6 @@ use std::path::PathBuf;
 use tauri_specta::Event;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
-pub struct TranscriptEvent {
-    pub text: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
 pub struct RecordingStarted;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]

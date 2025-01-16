@@ -8,7 +8,7 @@ use axum::{
     response::IntoResponse,
 };
 use bytes::Bytes;
-use futures::{SinkExt, StreamExt};
+use futures::{SinkExt, Stream, StreamExt};
 
 use crate::state::STTState;
 use hypr_bridge::{TranscribeInputChunk, TranscribeOutputChunk};
@@ -23,10 +23,28 @@ async fn websocket(socket: WebSocket, state: STTState) {
 
     let mut stt = state.stt.for_english();
 
+    // let input_stream = async_stream::try_stream! {
+    //     while let Some(Ok(msg)) = ws_receiver.next().await {
+    //         match msg {
+    //             Message::Text(data) => {
+    //                 let input: TranscribeInputChunk = serde_json::from_str(&data)?;
+    //                 let audio = Bytes::from(input.audio);
+    //                 yield audio;
+    //             }
+    //             Message::Binary(_) => {}
+    //             Message::Close(_) => break,
+    //             Message::Ping(_) => {}
+    //             Message::Pong(_) => {}
+    //         }
+    //     }
+    // };
+
     let input_stream = futures::stream::try_unfold(ws_receiver, |mut ws_receiver| async move {
         match ws_receiver.next().await {
-            Some(Ok(Message::Text(_data))) => {
-                Ok::<Option<(Bytes, _)>, axum::Error>(Some((Bytes::new(), ws_receiver)))
+            Some(Ok(Message::Text(data))) => {
+                let input: TranscribeInputChunk = serde_json::from_str(&data).unwrap();
+                let audio = Bytes::from(input.audio);
+                Ok::<Option<(Bytes, _)>, axum::Error>(Some((audio, ws_receiver)))
             }
             _ => Ok::<Option<(Bytes, _)>, axum::Error>(Some((Bytes::new(), ws_receiver))),
         }

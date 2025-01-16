@@ -8,6 +8,8 @@ tonic-build = "0.12.3"
 
 [dependencies]
 anyhow = { workspace = true }
+thiserror = { workspace = true }
+
 bytes = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

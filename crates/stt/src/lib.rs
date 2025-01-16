@@ -5,6 +5,9 @@ use std::error::Error;
 
 use hypr_clova::interface::KeywordBoosting;
 
+mod types;
+pub use types::*;
+
 #[cfg(debug_assertions)]
 mod mock;
 

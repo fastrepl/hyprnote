@@ -11,7 +11,9 @@ export const commands = {
   async getFingerprint(): Promise<string> {
     return await TAURI_INVOKE("get_fingerprint");
   },
-  async startSession(onEvent: TAURI_CHANNEL<TranscriptEvent>): Promise<null> {
+  async startSession(
+    onEvent: TAURI_CHANNEL<TranscribeOutputChunk>,
+  ): Promise<null> {
     return await TAURI_INVOKE("start_session", { onEvent });
   },
   async startPlayback(audioId: string): Promise<void> {
@@ -83,11 +85,9 @@ export const commands = {
 export const events = __makeEvents__<{
   recordingStarted: RecordingStarted;
   recordingStopped: RecordingStopped;
-  transcriptEvent: TranscriptEvent;
 }>({
   recordingStarted: "recording-started",
   recordingStopped: "recording-stopped",
-  transcriptEvent: "transcript-event",
 });
 
 /** user-defined constants **/
@@ -148,6 +148,7 @@ export type RecordingStopped = { path: string };
 export type Session = {
   id: string;
   timestamp: string;
+  calendar_event_id: string | null;
   title: string;
   tags: string[];
   audio_local_path: string | null;
@@ -164,13 +165,13 @@ export type Template = {
   sections: TemplateSection[];
 };
 export type TemplateSection = { title: string; description: string };
+export type TranscribeOutputChunk = { text: string };
 export type Transcript = { speakers: string[]; blocks: TranscriptBlock[] };
 export type TranscriptBlock = {
   timestamp: string;
   text: string;
   speaker: string;
 };
-export type TranscriptEvent = { text: string };
 
 /** tauri-specta globals **/
 

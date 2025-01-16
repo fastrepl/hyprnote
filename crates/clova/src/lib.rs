@@ -1,10 +1,12 @@
 pub mod interface;
 
+mod errors;
+pub use errors::*;
+
 use anyhow::Result;
 use bytes::Bytes;
 use futures::{Stream, StreamExt};
 use serde::{Deserialize, Serialize};
-use std::error::Error;
 
 use interface::nest_service_client::NestServiceClient;
 use tonic::{service::interceptor::InterceptedService, transport::Channel, Request, Status};
@@ -24,7 +26,7 @@ pub struct Config {
 }
 
 impl Client {
-    pub async fn new(config: Config) -> Result<Self> {
+    pub async fn new(config: Config) -> Result<Self, crate::Error> {
         let channel =
             tonic::transport::Channel::from_static("https://clovaspeech-gw.ncloud.com:50051")
                 .tls_config(tonic::transport::ClientTlsConfig::new().with_native_roots())?
@@ -52,7 +54,7 @@ impl Client {
     ) -> Result<impl Stream<Item = Result<interface::StreamResponse>>>
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
-        E: Error + Send + Sync + 'static,
+        E: std::error::Error + Send + Sync + 'static,
     {
         let config = serde_json::to_string(&self.config.config).unwrap();
         let config_request = interface::NestRequest {

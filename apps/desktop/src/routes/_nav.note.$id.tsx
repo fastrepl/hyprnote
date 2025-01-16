@@ -22,8 +22,9 @@ import SelectedEvent from "@/components/selected-event";
 
 import { useUI } from "@/stores/ui";
 // import { useEnhance } from "@/utils/enhance";
-import { commands, Transcript } from "@/types/tauri";
+import { commands, TranscribeOutputChunk, Transcript } from "@/types/tauri";
 import AudioIndicator from "@/components/audio-indicator";
+import { Channel } from "@tauri-apps/api/core";
 
 const queryOptions = (id: string) => ({
   queryKey: ["note", { id }],
@@ -50,6 +51,14 @@ export const Route = createFileRoute("/_nav/note/$id")({
 function Component() {
   const { isPanelOpen } = useUI();
   const [listening, setListening] = useState(true);
+
+  useEffect(() => {
+    const channel = new Channel<TranscribeOutputChunk>();
+    channel.onmessage = (event) => {
+      console.log(event);
+    };
+    commands.startSession(channel);
+  }, []);
 
   return isPanelOpen ? (
     <ResizablePanelGroup direction="horizontal">

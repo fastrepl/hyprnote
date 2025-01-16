@@ -4,18 +4,20 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+hypr-clova = { path = "../clova", package = "clova" }
+
 anyhow = { workspace = true }
+thiserror = { workspace = true }
+
 bytes = { workspace = true }
 codes-iso-639 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
-futures = { workspace = true }
-tokio = { workspace = true }
-
 async-trait = "0.1.85"
 deepgram = { version = "0.6.4", features = ["listen"] }
-hypr-clova = { path = "../clova", package = "clova" }
+futures = { workspace = true }
+tokio = { workspace = true }
 
 [dev-dependencies]
 kalosm-sound = { version = "0.3.5", default-features = false }

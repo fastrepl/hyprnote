@@ -1,6 +1,6 @@
 pub mod db;
 
-use crate::{audio, events, windows::ShowHyprWindow};
+use crate::{audio, events, session, windows::ShowHyprWindow, SessionState};
 use anyhow::Result;
 use std::path::PathBuf;
 use tauri::{ipc::Channel, AppHandle, Manager};
@@ -29,18 +29,17 @@ pub fn create_session(_app: AppHandle) {}
 
 #[tauri::command]
 #[specta::specta]
-pub fn start_session(
+pub async fn start_session(
     app: AppHandle,
-    on_event: Channel<events::TranscriptEvent>,
+    on_event: Channel<hypr_bridge::TranscribeOutputChunk>,
 ) -> Result<(), String> {
-    println!("Starting session...");
-
-    on_event
-        .send(events::TranscriptEvent {
-            text: "New transcript text...".to_string(),
-        })
+    let bridge = hypr_bridge::Client::builder()
+        .with_base("http://localhost:1234")
+        .with_token("123")
+        .build()
         .unwrap();
-
+    let mut s = session::SessionState::new(bridge).unwrap();
+    s.start(on_event).await;
     Ok(())
 }
 

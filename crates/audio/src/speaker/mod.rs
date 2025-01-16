@@ -1,5 +1,5 @@
 use anyhow::Result;
-use futures::StreamExt;
+use futures_util::StreamExt;
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -71,7 +71,7 @@ impl futures_core::Stream for SpeakerStream {
 }
 
 impl kalosm_sound::AsyncSource for SpeakerStream {
-    fn as_stream(&mut self) -> impl futures::Stream<Item = f32> + '_ {
+    fn as_stream(&mut self) -> impl futures_core::Stream<Item = f32> + '_ {
         self
     }
 

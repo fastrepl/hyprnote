@@ -5,7 +5,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
-futures = { workspace = true }
 futures-channel = { workspace = true }
 futures-core = { workspace = true }
 futures-util = { workspace = true }

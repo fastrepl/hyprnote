@@ -1,4 +1,4 @@
-use futures::{Stream, StreamExt};
+use futures_util::StreamExt;
 use std::{
     pin::{pin, Pin},
     task::{Context, Poll},
@@ -25,7 +25,7 @@ where
     }
 }
 
-impl<S1, S2> Stream for MixedStream<S1, S2>
+impl<S1, S2> futures_core::Stream for MixedStream<S1, S2>
 where
     S1: AsyncSource + Unpin,
     S2: AsyncSource + Unpin,

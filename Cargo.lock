@@ -654,7 +654,6 @@ dependencies = [
  "cidre",
  "cpal",
  "dasp",
- "futures",
  "futures-channel",
  "futures-core",
  "futures-util",

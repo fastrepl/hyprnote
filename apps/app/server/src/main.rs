@@ -1,5 +1,6 @@
 mod middleware;
 mod native;
+mod openai;
 mod state;
 mod web;
 mod webhook;
@@ -115,8 +116,12 @@ fn main() {
             })
             .await;
 
+            let openai = crate::openai::Client::builder()
+                .api_key(get_env("OPENAI_API_KEY"))
+                .api_base(get_env("OPENAI_API_BASE"))
+                .build();
+
             let state = state::AppState {
-                reqwest: reqwest::Client::new(),
                 clerk: clerk.clone(),
                 stt,
                 turso,
@@ -125,6 +130,7 @@ fn main() {
                 analytics,
                 lago,
                 s3,
+                openai,
             };
 
             let web_router = Router::new()
@@ -150,10 +156,6 @@ fn main() {
                     "/enhance",
                     post(native::enhance::handler)
                         .layer(TimeoutLayer::new(Duration::from_secs(20))),
-                )
-                .route(
-                    "/chat/completions",
-                    post(native::openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
                 )
                 .route("/transcribe", get(native::transcribe::handler))
                 .route("/user/checkout", get(native::user::checkout_url))

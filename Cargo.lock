@@ -270,6 +270,7 @@ dependencies = [
  "tracing",
  "tracing-opentelemetry",
  "turso",
+ "url",
  "uuid",
 ]
 

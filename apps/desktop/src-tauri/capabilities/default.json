@@ -13,9 +13,9 @@
     {
       "identifier": "http:default",
       "allow": [
-        { "url": "https://api.openai.com" },
-        { "url": "https://api.fireworks.ai" },
-        { "url": "http://127.0.0.1:8000" }
+        { "url": "http://localhost:*" },
+        { "url": "http://127.0.0.1:*" },
+        { "url": "https://app.hyprnote.com/*" }
       ]
     },
     "core:window:default",

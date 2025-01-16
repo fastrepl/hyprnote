@@ -39,6 +39,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 time = { workspace = true }
 uuid = { workspace = true }
+url = { workspace = true }
 
 hex = "0.4.3"
 hmac = "0.12.1"

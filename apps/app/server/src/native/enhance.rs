@@ -26,8 +26,6 @@ pub async fn handler(
     State(state): State<AppState>,
     Json(input): Json<EnhanceRequest>,
 ) -> Result<impl IntoResponse, StatusCode> {
-    let api_key = std::env::var("OPENAI_API_KEY").unwrap();
-
     let prompt = format!(
         r#"
         ```editor
@@ -46,7 +44,7 @@ pub async fn handler(
     );
 
     let request = CreateChatCompletionRequest {
-        model: "gpt-4o-mini".to_string(),
+        model: "gpt-4o".to_string(),
         messages: vec![
             ChatCompletionRequestSystemMessageArgs::default()
                 .content("You are a helpful assistant that only outputs JSON.")
@@ -73,12 +71,8 @@ pub async fn handler(
     };
 
     let response = state
-        .reqwest
-        .post("https://api.openai.com/v1/chat/completions")
-        .header("Authorization", format!("Bearer {}", api_key))
-        .header("Accept", "text/event-stream")
-        .json(&request)
-        .send()
+        .openai
+        .chat_completion(&request)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 

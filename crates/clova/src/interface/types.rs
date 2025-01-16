@@ -86,8 +86,8 @@ pub struct StreamResponseSuccess {
 #[serde(rename_all = "camelCase")]
 pub struct TranscriptionResponse {
     pub text: String,
-    pub start_timestamp: i64,
-    pub end_timestamp: i64,
+    pub start_timestamp: u64,
+    pub end_timestamp: u64,
     pub confidence: f64,
 }
 

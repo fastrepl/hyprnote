@@ -183,7 +183,9 @@ impl TursoClient {
             .await?
             .json::<serde_json::Value>()
             .await?;
-        Ok(res["jwt"].to_string())
+
+        let jwt = res.get("jwt").unwrap().as_str().unwrap();
+        Ok(jwt.to_string())
     }
 
     // https://docs.turso.tech/api-reference/databases/create
@@ -242,11 +244,29 @@ impl TursoClient {
 mod tests {
     use super::*;
 
+    fn get_client() -> TursoClient {
+        TursoClient::builder()
+            .api_base("https://api.turso.tech")
+            .api_key("API_KEY")
+            .org_slug("yujonglee")
+            .build()
+    }
+
+    // cargo test test_generate_db_token -p turso --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_generate_db_token() {
+        let client = get_client();
+
+        let jwt = client.generate_db_token("dev-admin").await.unwrap();
+        println!("jwt: {:?}", jwt);
+    }
+
     // cargo test test_create_database -p turso --  --ignored --nocapture
     #[ignore]
     #[tokio::test]
     async fn test_create_database() {
-        let client = TursoClient::new("https://api.turso.tech", "api_key");
+        let client = get_client();
 
         let req = CreateDatabaseRequestBuilder::new()
             .with_name("test")
@@ -254,7 +274,7 @@ mod tests {
         let res = client.create_database(req).await;
 
         match res {
-            Ok(DatabaseResponse::Database { database: _ }) => {
+            Ok(DatabaseResponse::Ok { database: _ }) => {
                 assert!(true)
             }
             Ok(DatabaseResponse::Error { error }) => {
@@ -270,12 +290,12 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn test_retrieve_database() {
-        let client = TursoClient::new("https://api.turso.tech", "api_key");
+        let client = get_client();
 
         let res = client.retrieve_database("test").await;
 
         match res {
-            Ok(DatabaseResponse::Database { database: _ }) => {
+            Ok(DatabaseResponse::Ok { database: _ }) => {
                 assert!(true)
             }
             Ok(DatabaseResponse::Error { error }) => {

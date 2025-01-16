@@ -31,12 +31,7 @@ export function useEnhance(input: EnhanceRequest) {
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
-      const response = await client.enhance({
-        editor: input.editor,
-        template: {
-          sections: [],
-        },
-      });
+      const response = await client.enhance(input);
 
       const reader = response.body!.getReader();
       const decoder = new TextDecoder();

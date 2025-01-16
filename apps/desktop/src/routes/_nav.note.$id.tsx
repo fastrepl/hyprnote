@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { AlignLeft, Ear, EarOff, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import clsx from "clsx";
@@ -22,9 +21,10 @@ import SelectedEvent from "@/components/selected-event";
 
 import { useUI } from "@/stores/ui";
 import { useEnhance } from "@/utils/enhance";
-import { commands, Transcript } from "@/types/tauri";
+import { commands, TranscribeOutputChunk, Transcript } from "@/types/tauri";
 import AudioIndicator from "@/components/audio-indicator";
 import { BUILTIN_TEMPLATES } from "@/data/templates";
+import { Channel } from "@tauri-apps/api/core";
 
 const noteQueryOptions = (id: string) => ({
   queryKey: ["note", { id }],
@@ -106,6 +106,12 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
   });
 
   const [showRaw, setShowRaw] = useState(true);
+
+  useEffect(() => {
+    const channel = new Channel<TranscribeOutputChunk>();
+    channel.onmessage = console.log;
+    commands.startSession(channel);
+  }, []);
 
   useEffect(() => {
     if (editorContent) {

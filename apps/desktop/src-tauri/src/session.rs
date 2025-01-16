@@ -1,3 +1,4 @@
+use kalosm_sound::AsyncSource;
 use std::sync::mpsc;
 
 pub struct SessionState {

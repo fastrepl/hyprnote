@@ -59,6 +59,7 @@ uuid = { workspace = true }
 futures = { workspace = true }
 reqwest = { workspace = true, features = ["json", "stream"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
+kalosm-sound = { version = "0.3.5", default-features = false }
 
 apalis = { workspace = true }
 apalis-cron = { workspace = true }

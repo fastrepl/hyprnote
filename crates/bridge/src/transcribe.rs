@@ -5,12 +5,14 @@ use futures_util::{SinkExt, Stream, StreamExt};
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
-use crate::{Client, TranscribeInputChunk, TranscribeOutputChunk};
+use bytes::{BufMut, Bytes};
+use kalosm_sound::AsyncSource;
 
+use crate::{Client, TranscribeInputChunk, TranscribeOutputChunk};
 impl Client {
     pub async fn transcribe(
         &self,
-        audio_stream: impl Stream<Item = f32> + Send + Unpin + 'static,
+        audio_stream: impl Stream<Item = f32> + Send + Unpin + 'static + AsyncSource,
     ) -> Result<impl Stream<Item = TranscribeOutputChunk>, crate::Error> {
         let req = self
             .transcribe_request
@@ -22,27 +24,19 @@ impl Client {
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
 
         let _send_task = tokio::spawn(async move {
-            let mut audio_stream = audio_stream.chunks(1024);
+            let mut audio_stream = audio_stream.resample(16 * 1000).chunks(1024).map(|chunk| {
+                let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
+                for sample in chunk {
+                    let scaled = (sample * 32767.0).clamp(-32768.0, 32767.0);
+                    buf.put_i16_le(scaled as i16);
+                }
+                buf.freeze()
+            });
 
             while let Some(audio) = audio_stream.next().await {
-                // TODO: this is one-off solution
-                let data = {
-                    let samples: Vec<i16> = audio
-                        .iter()
-                        .map(|&sample| {
-                            let scaled = (sample * 32767.0).clamp(-32768.0, 32767.0);
-                            scaled as i16
-                        })
-                        .collect();
-
-                    samples
-                        .iter()
-                        .flat_map(|&sample| sample.to_le_bytes())
-                        .collect::<Vec<u8>>()
-                        .into()
+                let input = TranscribeInputChunk {
+                    audio: audio.to_vec(),
                 };
-
-                let input = TranscribeInputChunk { audio: data };
                 let msg = Message::Text(serde_json::to_string(&input).unwrap().into());
                 if let Err(_) = ws_sender.send(msg).await {
                     break;

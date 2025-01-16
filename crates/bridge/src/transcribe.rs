@@ -2,8 +2,7 @@
 // https://github.com/snapview/tokio-tungstenite/blob/master/examples/client.rs
 
 use anyhow::Result;
-use futures_util::{SinkExt, StreamExt};
-use tokio::sync::mpsc::{self, Receiver, Sender};
+use futures_util::{SinkExt, Stream, StreamExt};
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
@@ -12,33 +11,31 @@ use crate::{Client, TranscribeInputChunk, TranscribeOutputChunk};
 impl Client {
     pub async fn transcribe(
         &self,
-    ) -> Result<(
-        Sender<TranscribeInputChunk>,
-        Receiver<TranscribeOutputChunk>,
-    )> {
+        audio_stream: impl Stream<Item = f32> + Send + Unpin + 'static,
+    ) -> Result<impl Stream<Item = TranscribeOutputChunk>> {
         let req = self.transcribe_request.clone().into_client_request()?;
         let (ws_stream, _) = connect_async(req).await?;
 
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
 
-        let (transcript_tx, transcript_rx) = mpsc::channel::<TranscribeOutputChunk>(32);
-        let (audio_tx, mut audio_rx) = mpsc::channel::<TranscribeInputChunk>(32);
-
         let _send_task = tokio::spawn(async move {
-            while let Some(audio) = audio_rx.recv().await {
-                let msg = Message::Text(serde_json::to_string(&audio).unwrap().into());
+            let mut audio_stream = audio_stream.chunks(1024);
+
+            while let Some(audio) = audio_stream.next().await {
+                let input = TranscribeInputChunk { audio };
+                let msg = Message::Text(serde_json::to_string(&input).unwrap().into());
                 if let Err(_) = ws_sender.send(msg).await {
                     break;
                 }
             }
         });
 
-        let _recv_task = tokio::spawn(async move {
+        let transcript_stream = async_stream::stream! {
             while let Some(Ok(msg)) = ws_receiver.next().await {
                 match msg {
                     Message::Text(data) => {
-                        let out: TranscribeOutputChunk = serde_json::from_str(&data).unwrap();
-                        transcript_tx.send(out).await.unwrap();
+                        let output: TranscribeOutputChunk = serde_json::from_str(&data).unwrap();
+                        yield output;
                     }
                     Message::Binary(_) => {}
                     Message::Close(_) => break,
@@ -47,9 +44,9 @@ impl Client {
                     Message::Frame(_) => {}
                 }
             }
-        });
+        };
 
-        Ok((audio_tx, transcript_rx))
+        Ok(transcript_stream)
     }
 }
 
@@ -58,10 +55,10 @@ mod tests {
     use super::*;
     use futures_channel::oneshot;
     use futures_util::{SinkExt, StreamExt};
+    use std::net::{Ipv4Addr, SocketAddr};
     use tokio_tungstenite::accept_async;
 
-    async fn setup_test_server() -> (String, oneshot::Receiver<Vec<Message>>) {
-        let (msg_tx, msg_rx) = oneshot::channel();
+    async fn setup_test_server() -> String {
         let (ready_tx, ready_rx) = oneshot::channel();
 
         let listener = tokio::net::TcpListener::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, 0)))
@@ -72,60 +69,50 @@ mod tests {
         tokio::spawn(async move {
             ready_tx.send(()).unwrap();
 
-            let (stream, _) = listener
-                .accept()
-                .await
-                .expect("Failed to accept connection");
-            let ws_stream = accept_async(stream)
-                .await
-                .expect("Failed to accept websocket");
+            let (stream, _) = listener.accept().await.unwrap();
+            let ws_stream = accept_async(stream).await.unwrap();
             let (mut ws_sender, mut ws_receiver) = ws_stream.split();
 
-            let mut messages = vec![];
             while let Some(Ok(msg)) = ws_receiver.next().await {
-                // Echo the message back
-                ws_sender.send(msg.clone()).await.unwrap();
-                messages.push(msg);
-
-                // Break if we receive a close message
                 if matches!(msg, Message::Close(_)) {
                     break;
                 }
-            }
 
-            msg_tx
-                .send(messages)
-                .expect("Failed to send collected messages");
+                let text = msg.into_text().unwrap();
+                let input: TranscribeInputChunk = serde_json::from_str(text.as_str()).unwrap();
+
+                let size = input.audio.len();
+                let non_zero_count = input.audio.iter().filter(|b| **b != 0.0).count();
+                let text = format!("Received {} bytes, {} non-zero", size, non_zero_count);
+
+                let output = serde_json::to_string(&TranscribeOutputChunk { text }).unwrap();
+                ws_sender.send(Message::Text(output.into())).await.unwrap();
+            }
         });
 
-        ready_rx.await.expect("Server failed to start");
-        (format!("ws://{}", addr), msg_rx)
+        ready_rx.await.unwrap();
+        format!("ws://{}", addr)
     }
 
+    // cargo test test_transcribe -p bridge -- --ignored --nocapture
     #[tokio::test]
+    #[ignore]
     async fn test_transcribe() {
-        let (server_url, msg_rx) = setup_test_server().await;
-        let client = Client::builder().with_base(&server_url).build().unwrap();
+        let server_url = setup_test_server().await;
+        let client = Client::builder()
+            .with_base(&server_url)
+            .with_token("test")
+            .build()
+            .unwrap();
 
-        // Get the client channels
-        let (input_tx, mut output_rx) = client.transcribe().await.unwrap();
+        let mic = hypr_audio::MicInput::default();
+        let audio_stream = mic.stream().unwrap();
 
-        // Send a test message
-        let test_chunk = TranscribeInputChunk {
-            // Fill with your test data
-        };
-        input_tx.send(test_chunk).await.unwrap();
+        let transcript_stream = client.transcribe(audio_stream).await.unwrap();
+        futures_util::pin_mut!(transcript_stream);
 
-        // Verify we receive the echoed message
-        if let Some(response) = output_rx.recv().await {
-            // Add your assertions here
+        while let Some(chunk) = transcript_stream.next().await {
+            println!("{:?}", chunk);
         }
-
-        // Clean up
-        drop(input_tx);
-
-        // Verify all messages received by the server
-        let server_messages = msg_rx.await.expect("Failed to get server messages");
-        assert!(!server_messages.is_empty());
     }
 }

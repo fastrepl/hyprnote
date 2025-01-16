@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
+bytes = { workspace = true }
 jsonschema = { version = "0.28.1", default-features = false }
 schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
@@ -12,7 +13,12 @@ serde_json = { workspace = true }
 specta = { workspace = true, features = ["derive"] }
 url = { workspace = true }
 
+async-stream = "0.3.6"
 futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-tungstenite = { version = "0.26.0", features = ["native-tls-vendored"] }
+
+[dev-dependencies]
+futures-channel = { workspace = true }
+hypr-audio = { path = "../../crates/audio", package = "audio" }

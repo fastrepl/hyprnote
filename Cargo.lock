@@ -1531,6 +1531,10 @@ name = "bridge"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-stream",
+ "audio 0.1.0",
+ "bytes",
+ "futures-channel",
  "futures-util",
  "jsonschema",
  "reqwest 0.12.12",

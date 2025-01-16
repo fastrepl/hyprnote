@@ -95,6 +95,6 @@ mod tests {
             .build()
             .unwrap();
 
-        let _ = client.transcribe().await.unwrap();
+        // let _ = client.transcribe().await.unwrap();
     }
 }

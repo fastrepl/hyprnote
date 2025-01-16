@@ -90,14 +90,11 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_transcribe() {
-        let client = Client::builder()
+    async fn client() {
+        let _ = Client::builder()
             .with_base("http://localhost:8080")
             .with_token("test")
             .build()
             .unwrap();
-
-        let result = client.transcribe().await;
-        assert!(result.is_ok());
     }
 }

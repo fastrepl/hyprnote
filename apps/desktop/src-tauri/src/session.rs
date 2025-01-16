@@ -11,9 +11,6 @@ impl SessionState {
         let mic = hypr_audio::MicInput::default();
         let _mic_stream = mic.stream().unwrap();
 
-        let speaker = hypr_audio::SpeakerInput::new().unwrap();
-        let _speaker_stream = speaker.stream().unwrap();
-
         Ok(Self {
             bridge,
             audio_tx: None,
@@ -22,14 +19,9 @@ impl SessionState {
     }
 
     pub async fn start(&mut self, channel: tauri::ipc::Channel) {
-        let (audio_tx, transcript_rx) = self.bridge.transcribe().await.unwrap();
+        let mic = hypr_audio::MicInput::default();
+        let audio_stream = mic.stream().unwrap();
 
-        // tokio::spawn(async move {
-        //     while let Some(audio_chunk) = audio_stream.next().await {
-        //         if self.audio_tx.send(audio_chunk).await.is_err() {
-        //             break;
-        //         }
-        //     }
-        // });
+        let transcript_stream = self.bridge.transcribe(audio_stream).await.unwrap();
     }
 }

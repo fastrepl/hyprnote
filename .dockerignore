@@ -3,3 +3,7 @@
 **/dist
 **/build
 **/.env
+lago
+lago-openapi
+nango
+.venv

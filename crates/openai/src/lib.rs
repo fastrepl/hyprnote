@@ -1,15 +1,17 @@
+pub use async_openai::types::*;
+
 #[derive(Clone)]
-pub struct Client {
+pub struct OpenAIClient {
     api_base: url::Url,
     client: reqwest::Client,
 }
 
-pub struct ClientBuilder {
+pub struct OpenAIClientBuilder {
     api_key: Option<String>,
     api_base: Option<String>,
 }
 
-impl ClientBuilder {
+impl OpenAIClientBuilder {
     pub fn api_key(mut self, api_key: String) -> Self {
         self.api_key = Some(api_key);
         self
@@ -20,7 +22,7 @@ impl ClientBuilder {
         self
     }
 
-    pub fn build(self) -> Client {
+    pub fn build(self) -> OpenAIClient {
         let mut headers = reqwest::header::HeaderMap::new();
 
         let auth_str = format!("Bearer {}", self.api_key.unwrap());
@@ -34,16 +36,16 @@ impl ClientBuilder {
             .build()
             .unwrap();
 
-        Client {
+        OpenAIClient {
             api_base: self.api_base.unwrap().parse().unwrap(),
             client,
         }
     }
 }
 
-impl Client {
-    pub fn builder() -> ClientBuilder {
-        ClientBuilder {
+impl OpenAIClient {
+    pub fn builder() -> OpenAIClientBuilder {
+        OpenAIClientBuilder {
             api_key: None,
             api_base: None,
         }

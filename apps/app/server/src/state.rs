@@ -1,11 +1,11 @@
 use axum::extract::FromRef;
 
-use crate::openai::Client as OpenAIClient;
 use clerk_rs::clerk::Clerk;
 use hypr_analytics::AnalyticsClient;
 use hypr_db::admin::AdminDatabase;
 use hypr_lago::LagoClient;
 use hypr_nango::NangoClient;
+use hypr_openai::OpenAIClient;
 use hypr_s3::Client as S3Client;
 use hypr_stt::Client as STTClient;
 use hypr_turso::TursoClient;

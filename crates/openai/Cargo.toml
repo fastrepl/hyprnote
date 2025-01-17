@@ -1,0 +1,9 @@
+[package]
+name = "openai"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-openai = { version = "0.26.0", default-features = false }
+reqwest = { workspace = true, features = ["json"] }
+url = { workspace = true }

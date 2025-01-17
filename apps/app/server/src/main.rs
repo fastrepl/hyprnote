@@ -1,6 +1,5 @@
 mod middleware;
 mod native;
-mod openai;
 mod state;
 mod web;
 mod webhook;
@@ -116,7 +115,7 @@ fn main() {
             })
             .await;
 
-            let openai = crate::openai::Client::builder()
+            let openai = hypr_openai::OpenAIClient::builder()
                 .api_key(get_env("OPENAI_API_KEY"))
                 .api_base(get_env("OPENAI_API_BASE"))
                 .build();

@@ -234,7 +234,6 @@ dependencies = [
  "anyhow",
  "apalis",
  "apalis-cron",
- "async-openai",
  "async-stream",
  "axum 0.7.9",
  "axum-extra 0.10.0",
@@ -252,9 +251,8 @@ dependencies = [
  "html",
  "lago",
  "nango",
- "reqwest 0.12.12",
+ "openai",
  "s3",
- "schemars 1.0.0-alpha.17",
  "sentry",
  "serde",
  "serde_json",
@@ -6922,6 +6920,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "openai"
+version = "0.1.0"
+dependencies = [
+ "async-openai",
+ "reqwest 0.12.12",
+ "url",
+]
+
+[[package]]
 name = "openssl"
 version = "0.10.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9188,7 +9195,6 @@ version = "1.0.134"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d00f4175c42ee48b15416f6193a959ba3a0d67fc699a0db9ad12df9f83991c7d"
 dependencies = [
- "indexmap 2.7.0",
  "itoa 1.0.14",
  "memchr",
  "ryu",

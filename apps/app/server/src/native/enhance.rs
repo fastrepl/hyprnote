@@ -1,10 +1,10 @@
 use anyhow::Result;
-use async_openai::types::{
+use axum::{extract::State, http::StatusCode, response::sse, Json};
+use futures_util::StreamExt;
+use hypr_openai::{
     ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs,
     CreateChatCompletionRequest,
 };
-use axum::{extract::State, http::StatusCode, response::sse, Json};
-use futures_util::StreamExt;
 use std::convert::Infallible;
 
 use crate::state::AppState;

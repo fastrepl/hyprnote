@@ -58,3 +58,6 @@ impl LagoClientBuilder {
         }
     }
 }
+
+pub const LAGO_HEADER_WEBHOOK_SIGNATURE: &str = "X-Lago-Signature";
+pub const LAGO_HEADER_WEBHOOK_ALGORITHM: &str = "X-Lago-Signature-Algorithm";

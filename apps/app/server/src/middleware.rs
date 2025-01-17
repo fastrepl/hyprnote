@@ -112,13 +112,13 @@ pub async fn verify_lago(req: Request, next: middleware::Next) -> Result<Respons
     let headers = parts.headers.clone();
 
     let signature = headers
-        .get("X-Lago-Signature")
+        .get(hypr_lago::LAGO_HEADER_WEBHOOK_SIGNATURE)
         .ok_or(StatusCode::BAD_REQUEST)?
         .to_str()
         .map_err(|_| StatusCode::BAD_REQUEST)?;
 
     let algorithm = headers
-        .get("X-Lago-Signature-Algorithm")
+        .get(hypr_lago::LAGO_HEADER_WEBHOOK_ALGORITHM)
         .ok_or(StatusCode::BAD_REQUEST)?
         .to_str()
         .map_err(|_| StatusCode::BAD_REQUEST)?;

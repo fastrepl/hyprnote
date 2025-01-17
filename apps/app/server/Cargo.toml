@@ -11,17 +11,18 @@ hypr-analytics = { path = "../../../crates/analytics", package = "analytics" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar", features = ["google", "outlook"] }
 hypr-db = { path = "../../../crates/db", package = "db", features = ["admin", "user"] }
+hypr-html = { path = "../../../crates/html", package = "html" }
 hypr-lago = { path = "../../../crates/lago", package = "lago" }
 hypr-nango = { path = "../../../crates/nango", package = "nango" }
 hypr-s3 = { path = "../../../crates/s3", package = "s3" }
 hypr-stt = { path = "../../../crates/stt", package = "stt" }
 hypr-turso = { path = "../../../crates/turso", package = "turso" }
-hypr-html = { path = "../../../crates/html", package = "html" }
 
 async-stream = { workspace = true }
 axum = { version = "0.7.4", features = ["ws", "multipart"] }
 axum-extra = { version = "0.10.0", features = ["typed-header"] }
-futures = { workspace = true }
+futures-core = { workspace = true }
+futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tower = "0.5.2"

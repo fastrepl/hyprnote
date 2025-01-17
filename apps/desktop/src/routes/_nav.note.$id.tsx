@@ -4,8 +4,6 @@ import { AlignLeft, Ear, EarOff, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import clsx from "clsx";
 
-import { generateJSON, JSONContent } from "@tiptap/react";
-
 import {
   ResizableHandle,
   ResizablePanel,
@@ -85,11 +83,11 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
 
   const [title, setTitle] = useState(session.title);
 
-  const [editorContent, setEditorContent] = useState<JSONContent>(
-    generateJSON(session.raw_memo_html, extensions),
+  const [editorContent, setEditorContent] = useState<string>(
+    session.raw_memo_html,
   );
 
-  const handleChange = useCallback((content: JSONContent) => {
+  const handleChange = useCallback((content: string) => {
     setEditorContent(content);
   }, []);
 
@@ -107,11 +105,11 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
 
   const [showRaw, setShowRaw] = useState(true);
 
-  useEffect(() => {
-    const channel = new Channel<TranscribeOutputChunk>();
-    channel.onmessage = console.log;
-    commands.startSession(channel);
-  }, []);
+  // useEffect(() => {
+  //   const channel = new Channel<TranscribeOutputChunk>();
+  //   channel.onmessage = console.log;
+  //   commands.startSession(channel);
+  // }, []);
 
   useEffect(() => {
     if (editorContent) {

@@ -126,7 +126,7 @@ export type ConfigDataProfile = {
 export type ConfigKind = "general" | "profile";
 export type EnhanceRequest = {
   user: ConfigDataProfile;
-  editor: JsonValue;
+  editor: string;
   template: Template;
 };
 export type Event = {
@@ -139,13 +139,6 @@ export type Event = {
   end_date: string;
   google_event_url: string | null;
 };
-export type JsonValue =
-  | null
-  | boolean
-  | number
-  | string
-  | JsonValue[]
-  | { [key in string]: JsonValue };
 export type OSPermission =
   | "calendar"
   | "contacts"

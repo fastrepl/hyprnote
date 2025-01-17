@@ -14,7 +14,8 @@ export const Route = createFileRoute("/note/new")({
 
     try {
       session = await commands.dbCreateSession({
-        id: crypto.randomUUID(),
+        id: crypto.randomUUID() as string,
+        calendar_event_id: null,
         title: "",
         raw_memo_html: "",
         timestamp: new Date().toISOString(),

@@ -4,9 +4,7 @@
 
 export type ConfigDataProfile = { full_name: string | null; job_title: string | null; company_name: string | null; company_description: string | null; linkedin_username: string | null }
 
-export type EnhanceRequest = { user: ConfigDataProfile; editor: JsonValue; template: Template }
-
-export type JsonValue = null | boolean | number | string | JsonValue[] | { [key in string]: JsonValue }
+export type EnhanceRequest = { user: ConfigDataProfile; editor: string; template: Template }
 
 export type NangoIntegration = "google-calendar" | "outlook-calendar"
 

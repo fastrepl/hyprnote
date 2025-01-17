@@ -225,6 +225,7 @@ fn export_ts_types() -> anyhow::Result<()> {
     native_collection.register::<hypr_lago::customer::regenerate_checkout_url::Request>();
     native_collection.register::<hypr_lago::customer::regenerate_checkout_url::Response>();
     native_collection.register::<hypr_nango::NangoIntegration>();
+    native_collection.register::<hypr_bridge::EnhanceRequest>();
 
     let language = specta_typescript::Typescript::default()
         .header("// @ts-nocheck\n\n")

@@ -3,7 +3,7 @@ import { useCallback, useEffect } from "react";
 import {
   EditorContent,
   useEditor,
-  type JSONContent,
+  type HTMLContent,
   type Editor as TiptapEditor,
 } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -32,14 +32,14 @@ export const extensions = [
 ];
 
 interface EditorProps {
-  handleChange: (content: JSONContent) => void;
-  content: JSONContent;
+  handleChange: (content: HTMLContent) => void;
+  content: HTMLContent;
 }
 
 export default function Editor({ handleChange, content }: EditorProps) {
   const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
     if (editor.isInitialized) {
-      handleChange(editor.getJSON());
+      handleChange(editor.getHTML());
     }
   };
 

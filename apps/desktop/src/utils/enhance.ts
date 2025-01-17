@@ -1,15 +1,12 @@
 import { useCallback, useRef, useState } from "react";
-import { parsePartialJson } from "@ai-sdk/ui-utils";
-import type { JSONContent } from "@tiptap/react";
 
 import { useHypr } from "@/contexts";
-import { validateSchema } from "@/components/editor/utils";
 
 import type { EnhanceRequest } from "@/types/server";
 
 export function useEnhance(input: EnhanceRequest) {
   const { client } = useHypr();
-  const [data, setData] = useState<JSONContent>(input.editor as JSONContent);
+  const [data, setData] = useState<string>(input.editor);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<undefined | Error>(undefined);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -27,7 +24,7 @@ export function useEnhance(input: EnhanceRequest) {
   const submit = async () => {
     try {
       setIsLoading(true);
-      setData(input.editor as JSONContent);
+      setData(input.editor);
       setError(undefined);
 
       const abortController = new AbortController();
@@ -46,43 +43,15 @@ export function useEnhance(input: EnhanceRequest) {
 
         const chunk = decoder.decode(value);
 
-        try {
-          const { error } = JSON.parse(chunk);
-          setError(error);
-          break;
-        } catch (_ignored) {}
-
-        const lines = chunk
-          .split("data: ")
-          .filter(Boolean)
-          .filter((line) => line !== "[DONE]");
-
-        const delta = lines
-          .map((line) => {
-            try {
-              return JSON.parse(line)?.choices[0]?.delta?.content;
-            } catch (error) {
-              return null;
-            }
-          })
-          .filter(Boolean)
-          .join("");
-
-        buffer += delta;
-
-        const parsed = parsePartialJson(buffer);
-
-        if (
-          parsed.state === "failed-parse" ||
-          parsed.state === "undefined-input" ||
-          !parsed.value
-        ) {
-          continue;
+        for (const line of chunk.split("\n")) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(5);
+            buffer += data;
+          }
         }
 
-        if (validateSchema(parsed.value as JSONContent)) {
-          setData(parsed.value as JSONContent);
-        }
+        setData(buffer);
+        console.log("buffer", buffer);
       }
     } catch (error) {
       setError(error as Error);

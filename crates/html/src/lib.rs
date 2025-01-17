@@ -30,7 +30,7 @@ mod tests {
     #[test]
     fn test_simple() {
         let buffer = HtmlBuffer::new();
-        
+
         buffer.write("<h1>Hello,");
         buffer.write(" world");
         buffer.write("</h1><ul><li>item1");

@@ -32,7 +32,7 @@ impl PyannoteClientBuilder {
         self
     }
 
-    pub async fn build(self) -> PyannoteClient {
+    pub fn build(self) -> PyannoteClient {
         let mut headers = reqwest::header::HeaderMap::new();
 
         // https://docs.pyannote.ai/authentication
@@ -61,7 +61,29 @@ impl PyannoteClientBuilder {
 mod tests {
     use super::*;
 
+    fn get_client() -> PyannoteClient {
+        PyannoteClient::builder()
+            .api_key("sk_b669518cdf86452a9ffe19b7ae5d6cee")
+            .build()
+    }
+
+    // cargo test test_client -p pyannote --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
     async fn test_client() {
-        let _ = PyannoteClient::builder().api_key("key").build();
+        let client = get_client();
+
+        match client.test().await.unwrap() {
+            test_key::Response::Ok { status, message } => assert_eq!(status, "OK"),
+            test_key::Response::Error { message } => panic!("{}", message),
+        }
+    }
+
+    // cargo test test_diarization -p pyannote --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_diarization() {
+        let _ = get_client();
+        let _ = hypr_data::ENGLISH_CONVERSATION_WAV;
     }
 }

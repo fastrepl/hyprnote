@@ -2793,6 +2793,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "data"
+version = "0.1.0"
+
+[[package]]
 name = "data-encoding"
 version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7798,8 +7802,10 @@ dependencies = [
 name = "pyannote"
 version = "0.1.0"
 dependencies = [
+ "data",
  "reqwest 0.12.12",
  "serde",
+ "tokio",
  "url",
 ]
 

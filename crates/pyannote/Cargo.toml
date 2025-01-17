@@ -7,3 +7,7 @@ edition = "2021"
 reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }
 url = { workspace = true }
+
+[dev-dependencies]
+hypr-data = { path = "../../crates/data", package = "data" }
+tokio = { workspace = true, features = ["rt", "macros"] }

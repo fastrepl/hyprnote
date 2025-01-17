@@ -25,9 +25,6 @@ export const commands = {
   async showWindow(window: ShowHyprWindow): Promise<void> {
     await TAURI_INVOKE("show_window", { window });
   },
-  async createSession(): Promise<void> {
-    await TAURI_INVOKE("create_session");
-  },
   async runEnhance(
     req: EnhanceRequest,
     onEvent: TAURI_CHANNEL<string>,

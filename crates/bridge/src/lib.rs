@@ -5,6 +5,7 @@ pub mod types;
 use tokio_tungstenite::tungstenite::{client::ClientRequestBuilder, http::uri};
 pub use types::*;
 
+#[derive(Clone)]
 pub struct Client {
     base: url::Url,
     transcribe_request: ClientRequestBuilder,
@@ -77,12 +78,6 @@ impl ClientBuilder {
         let uri = url.to_string().parse()?;
         Ok(uri)
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct ClientConfig {
-    pub base_url: url::Url,
-    pub auth_token: Option<String>,
 }
 
 #[cfg(test)]

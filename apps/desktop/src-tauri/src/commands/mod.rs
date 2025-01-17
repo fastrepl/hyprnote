@@ -1,10 +1,10 @@
 pub mod db;
 
-use crate::{audio, session, windows::ShowHyprWindow};
+use crate::{audio, session, windows::ShowHyprWindow, App};
 use anyhow::Result;
 use futures::{Stream, StreamExt};
-use std::path::PathBuf;
-use tauri::{ipc::Channel, AppHandle, Manager};
+use std::{path::PathBuf, sync::Mutex};
+use tauri::{ipc::Channel, AppHandle, Manager, State};
 
 #[tauri::command]
 #[specta::specta]
@@ -26,19 +26,11 @@ pub fn show_window(app: AppHandle, window: ShowHyprWindow) {
 
 #[tauri::command]
 #[specta::specta]
-pub fn create_session(_app: AppHandle) {}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn start_session(
-    app: AppHandle,
+pub async fn start_session<'a>(
+    app: State<'a, Mutex<App>>,
     on_event: Channel<hypr_bridge::TranscribeOutputChunk>,
 ) -> Result<(), String> {
-    let bridge = hypr_bridge::Client::builder()
-        .with_base("http://localhost:1234")
-        .with_token("123")
-        .build()
-        .unwrap();
+    let bridge = app.lock().unwrap().bridge.clone();
     let mut s = session::SessionState::new(bridge).unwrap();
     s.start(on_event).await;
     Ok(())

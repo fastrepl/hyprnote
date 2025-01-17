@@ -15,8 +15,8 @@ use windows::{HyprWindowId, ShowHyprWindow};
 
 pub struct App {
     handle: AppHandle,
-    cloud_config: hypr_bridge::ClientConfig,
     db: hypr_db::user::UserDatabase,
+    bridge: hypr_bridge::Client,
 }
 
 pub struct SessionState {}
@@ -31,7 +31,6 @@ pub fn run() {
             commands::start_playback,
             commands::stop_playback,
             commands::show_window,
-            commands::create_session,
             commands::run_enhance,
             permissions::open_permission_settings,
             permissions::check_permission_status,
@@ -209,23 +208,16 @@ pub fn run() {
 
             ShowHyprWindow::MainWithoutDemo.show(&app).unwrap();
 
-            let mut cloud_config = hypr_bridge::ClientConfig {
-                base_url: if cfg!(debug_assertions) {
-                    "http://localhost:4000".parse().unwrap()
-                } else {
-                    "https://server.hyprnote.com".parse().unwrap()
-                },
-                auth_token: None,
-            };
-
-            if let Ok(Some(auth)) = auth::AuthStore::load(&app) {
-                cloud_config.auth_token = Some(auth.token);
-            }
+            let bridge = hypr_bridge::Client::builder()
+                .with_base("http://localhost:1234")
+                .with_token("123")
+                .build()
+                .unwrap();
 
             app.manage(App {
                 handle: app.clone(),
-                cloud_config,
                 db,
+                bridge,
             });
 
             app.manage(tokio::sync::Mutex::new(SessionState {}));

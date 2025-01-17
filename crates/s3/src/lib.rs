@@ -5,6 +5,7 @@ use aws_sdk_s3::operation::create_bucket::CreateBucketError;
 use aws_sdk_s3::operation::delete_object::DeleteObjectError;
 use aws_sdk_s3::operation::get_object::GetObjectError;
 use aws_sdk_s3::operation::put_object::PutObjectError;
+use aws_sdk_s3::presigning::PresigningConfig;
 use aws_sdk_s3::primitives::{AggregatedBytes, ByteStreamError};
 
 #[derive(Clone)]
@@ -96,6 +97,25 @@ impl<'a> Deref for UserClient<'a> {
 impl<'a> UserClient<'a> {
     fn folder(&self) -> String {
         format!("user_{}", self.user_id)
+    }
+
+    pub async fn presigned_url(&self, file_name: &str) -> Result<String, ApiError> {
+        let config = PresigningConfig::builder()
+            .expires_in(std::time::Duration::from_secs(60 * 30))
+            .build()
+            .unwrap();
+
+        let url = self
+            .s3
+            .get_object()
+            .bucket(&self.bucket)
+            .key(format!("{}/{}", self.folder(), file_name))
+            .presigned(config)
+            .await?
+            .uri()
+            .to_string();
+
+        Ok(url)
     }
 
     pub async fn get(&self, file_name: &str) -> Result<AggregatedBytes, ApiError> {

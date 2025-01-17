@@ -1,0 +1,9 @@
+[package]
+name = "pyannote"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = { workspace = true, features = ["json"] }
+serde = { workspace = true, features = ["derive"] }
+url = { workspace = true }

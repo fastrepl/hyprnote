@@ -1,0 +1,42 @@
+use crate::PyannoteClient;
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct Request {
+    url: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    webhook: Option<String>,
+    #[serde(rename = "numSpeakers", skip_serializing_if = "Option::is_none")]
+    num_speakers: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    confidence: Option<bool>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[serde(untagged)]
+pub enum Response {
+    Ok {
+        status: String,
+        #[serde(rename = "jobId")]
+        job_id: String,
+    },
+    Error {
+        message: String,
+    },
+}
+
+impl PyannoteClient {
+    pub async fn submit_diarization_job(&self, req: Request) -> Result<Response, reqwest::Error> {
+        let mut url = self.api_base.clone();
+        url.set_path("/v1/diarize");
+
+        let res = self
+            .client
+            .post(url)
+            .json(&req)
+            .send()
+            .await?
+            .json::<Response>()
+            .await?;
+        Ok(res)
+    }
+}

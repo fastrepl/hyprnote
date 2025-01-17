@@ -7795,6 +7795,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "pyannote"
+version = "0.1.0"
+dependencies = [
+ "reqwest 0.12.12",
+ "serde",
+ "url",
+]
+
+[[package]]
 name = "qoi"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9748,6 +9757,7 @@ dependencies = [
  "deepgram",
  "futures-core",
  "futures-util",
+ "hound",
  "kalosm-sound",
  "serde",
  "serde_json",

@@ -1,3 +1,4 @@
+use futures_util::StreamExt;
 use kalosm_sound::AsyncSource;
 use std::sync::mpsc;
 
@@ -29,9 +30,7 @@ impl SessionState {
         let transcript_stream = self.bridge.transcribe(audio_stream).await.unwrap();
 
         tauri::async_runtime::spawn(async move {
-            use futures::StreamExt;
-
-            futures::pin_mut!(transcript_stream);
+            futures_util::pin_mut!(transcript_stream);
 
             while let Some(transcript) = transcript_stream.next().await {
                 if channel.send(transcript).is_err() {

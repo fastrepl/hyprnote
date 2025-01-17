@@ -14,7 +14,8 @@ bytes = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
-futures = { workspace = true }
+futures-core = { workspace = true }
+futures-util = { workspace = true }
 tokio = { workspace = true }
 
 prost = "0.13.4"

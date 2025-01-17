@@ -1,7 +1,9 @@
 use anyhow::Result;
 use bytes::Bytes;
-use futures::{Stream, StreamExt};
 use std::error::Error;
+
+use futures_core::Stream;
+use futures_util::StreamExt;
 
 use crate::{RealtimeSpeechToText, StreamResponse};
 

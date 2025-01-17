@@ -2,8 +2,9 @@ pub mod db;
 
 use crate::{audio, session, windows::ShowHyprWindow, App};
 use anyhow::Result;
-use futures::{Stream, StreamExt};
-use std::{path::PathBuf, sync::Mutex};
+use futures_core::Stream;
+use futures_util::StreamExt;
+use std::path::PathBuf;
 use tauri::{ipc::Channel, AppHandle, Manager, State};
 
 #[tauri::command]
@@ -27,10 +28,10 @@ pub fn show_window(app: AppHandle, window: ShowHyprWindow) {
 #[tauri::command]
 #[specta::specta]
 pub async fn start_session<'a>(
-    app: State<'a, Mutex<App>>,
+    app: State<'a, App>,
     on_event: Channel<hypr_bridge::TranscribeOutputChunk>,
 ) -> Result<(), String> {
-    let bridge = app.lock().unwrap().bridge.clone();
+    let bridge = app.bridge.clone();
     let mut s = session::SessionState::new(bridge).unwrap();
     s.start(on_event).await;
     Ok(())
@@ -38,17 +39,12 @@ pub async fn start_session<'a>(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn run_enhance(
+pub async fn run_enhance<'a>(
+    app: State<'a, App>,
     req: hypr_bridge::EnhanceRequest,
     on_event: Channel<String>,
 ) -> Result<(), String> {
-    let bridge = hypr_bridge::Client::builder()
-        .with_base("http://localhost:1234")
-        .with_token("123")
-        .build()
-        .unwrap();
-
-    let mut stream = bridge.enhance(req).await.map_err(|e| e.to_string())?;
+    let mut stream = app.bridge.enhance(req).await.map_err(|e| e.to_string())?;
 
     while let Some(event) = stream.next().await {
         if let Ok(event) = event {

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use bytes::Bytes;
-use futures::Stream;
+use futures_core::Stream;
 use std::error::Error;
 
 use hypr_clova::interface::KeywordBoosting;
@@ -84,7 +84,7 @@ mod tests {
 
     use anyhow::Result;
     use bytes::{BufMut, Bytes};
-    use futures::StreamExt;
+    use futures_util::StreamExt;
     use kalosm_sound::AsyncSource;
 
     fn microphone_as_stream(

@@ -5,7 +5,8 @@ pub use errors::*;
 
 use anyhow::Result;
 use bytes::Bytes;
-use futures::{Stream, StreamExt};
+use futures_core::Stream;
+use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 
 use interface::nest_service_client::NestServiceClient;
@@ -63,7 +64,7 @@ impl Client {
                 interface::NestConfig { config },
             )),
         };
-        let config_stream = futures::stream::once(async move { config_request });
+        let config_stream = futures_util::stream::once(async move { config_request });
 
         let audio_request_stream = stream.filter_map(|chunk| async {
             if let Ok(chunk) = chunk {

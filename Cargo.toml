@@ -4,7 +4,6 @@ members = ["apps/app/server", "apps/desktop/src-tauri", "crates/*"]
 
 [workspace.dependencies]
 async-stream = "0.3.6"
-futures = "0.3.31"
 futures-channel = "0.3.31"
 futures-core = "0.3.31"
 futures-util = "0.3.31"

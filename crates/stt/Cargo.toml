@@ -16,7 +16,8 @@ serde_json = { workspace = true }
 
 async-trait = "0.1.85"
 deepgram = { version = "0.6.4", features = ["listen"] }
-futures = { workspace = true }
+futures-core = { workspace = true }
+futures-util = { workspace = true }
 tokio = { workspace = true }
 
 [dev-dependencies]

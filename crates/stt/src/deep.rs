@@ -7,7 +7,8 @@ use deepgram::common::{
     options::{Encoding, Language, Model, Options},
     stream_response::StreamResponse as DeepgramStreamResponse,
 };
-use futures::{Stream, StreamExt};
+use futures_core::Stream;
+use futures_util::StreamExt;
 
 use crate::{RealtimeSpeechToText, StreamResponse};
 

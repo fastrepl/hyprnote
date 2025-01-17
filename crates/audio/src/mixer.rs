@@ -57,7 +57,7 @@ where
 mod tests {
     use super::*;
     use crate::{MicInput, SpeakerInput};
-    use futures::StreamExt;
+    use futures_util::StreamExt;
     use std::time::Duration;
 
     fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {

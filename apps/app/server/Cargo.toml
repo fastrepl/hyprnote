@@ -16,6 +16,7 @@ hypr-nango = { path = "../../../crates/nango", package = "nango" }
 hypr-s3 = { path = "../../../crates/s3", package = "s3" }
 hypr-stt = { path = "../../../crates/stt", package = "stt" }
 hypr-turso = { path = "../../../crates/turso", package = "turso" }
+hypr-html = { path = "../../../crates/html", package = "html" }
 
 async-stream = { workspace = true }
 axum = { version = "0.7.4", features = ["ws", "multipart"] }

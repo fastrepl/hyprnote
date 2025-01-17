@@ -16,25 +16,31 @@ pub async fn handler(
 {
     let prompt = format!(
         r#"
+        ```user
+        {}
+        ```
+
         ```editor
         {}
         ```
 
-        Your job is to generate HTML, based on the template below.
-
         ```template
         {}
         ```
+
+        Your job is to rewrite the editor content, while adhering to the template.
         
-        Allowed tags: "h1", "h2", "h3", "p", "ul", "ol", "li".
-        No need to wrap the output with <body> or <html> tags.
-        Your response itself should be valid HTML. No explanation is needed. Don't even wrap it in "```html" or anything like that."#,
+        Response format guide:
+        - Allowed tags for the editor content: "h1", "h2", "h3", "h4", "h5", "h6", "p", "ul", "ol", "li", "div", "span", "strong", "em", "i".
+        - No need to wrap the output with <body>, <html> tags or even "```html" or anything like that.
+        - Your response itself should be valid HTML. No explanation is needed."#,
+        serde_json::to_string(&input.user).unwrap(),
         serde_json::to_string(&input.editor).unwrap(),
         serde_json::to_string(&input.template).unwrap(),
     );
 
     let request = CreateChatCompletionRequest {
-        model: "gpt-4o-mini".to_string(),
+        model: "gpt-4o".to_string(),
         messages: vec![
             ChatCompletionRequestSystemMessageArgs::default()
                 .content("You are a helpful assistant that only outputs JSON.")
@@ -47,7 +53,7 @@ pub async fn handler(
                 .unwrap()
                 .into(),
         ],
-        temperature: Some(0.0),
+        temperature: Some(0.1),
         stream: Some(true),
         ..CreateChatCompletionRequest::default()
     };

@@ -1,14 +1,15 @@
 mod format;
 mod mic;
 mod mixer;
+mod source;
 mod speaker;
-
-pub use mic::*;
-pub use mixer::*;
-pub use speaker::*;
 
 use anyhow::Result;
 use cpal::traits::{DeviceTrait, HostTrait};
+pub use mic::*;
+pub use mixer::*;
+pub use source::*;
+pub use speaker::*;
 
 pub struct Audio {
     config: Config,

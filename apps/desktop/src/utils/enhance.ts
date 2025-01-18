@@ -33,7 +33,6 @@ export function useEnhance(input: EnhanceRequest) {
       const stream = client.enhance(input);
       const reader = stream.getReader();
       const decoder = new TextDecoder();
-      let buffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
@@ -43,6 +42,7 @@ export function useEnhance(input: EnhanceRequest) {
 
         const chunk = decoder.decode(value);
 
+        let buffer = "";
         for (const line of chunk.split("\n")) {
           if (line.startsWith("data: ")) {
             const data = line.slice(5);
@@ -51,7 +51,6 @@ export function useEnhance(input: EnhanceRequest) {
         }
 
         setData(buffer);
-        console.log("buffer", buffer);
       }
     } catch (error) {
       setError(error as Error);

@@ -16,34 +16,37 @@ pub async fn handler(
 {
     let prompt = format!(
         r#"
-        ```user
-        {}
-        ```
-
         ```editor
         {}
         ```
+
+        Your job is to rewrite the above editor content, while adhering to the below template.
 
         ```template
         {}
         ```
 
-        Your job is to rewrite the editor content, while adhering to the template.
+        Here is the user's profile:
+
+        ```user
+        {}
+        ```
         
-        Response format guide:
+        When rewriting the editor content, follow these rules:
         - Allowed tags for the editor content: "h1", "h2", "h3", "h4", "h5", "h6", "p", "ul", "ol", "li", "div", "span", "strong", "em", "i".
-        - No need to wrap the output with <body>, <html> tags or even "```html" or anything like that.
-        - Your response itself should be valid HTML. No explanation is needed."#,
-        serde_json::to_string(&input.user).unwrap(),
+        - No need to wrap the output with <html> or <body> tags or anything like that.
+        
+        Now, give me just the rewritten editor content in HTML."#,
         serde_json::to_string(&input.editor).unwrap(),
         serde_json::to_string(&input.template).unwrap(),
+        serde_json::to_string(&input.user).unwrap(),
     );
 
     let request = CreateChatCompletionRequest {
         model: "gpt-4o".to_string(),
         messages: vec![
             ChatCompletionRequestSystemMessageArgs::default()
-                .content("You are a helpful assistant that only outputs JSON.")
+                .content("You are a helpful assistant that only outputs HTML. No code block, no explanation.")
                 .build()
                 .unwrap()
                 .into(),

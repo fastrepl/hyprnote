@@ -159,7 +159,12 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
         </div>
       </div>
 
-      <div className="mt-6 flex flex-1 flex-col">
+      <div
+        className={clsx([
+          "mt-6 flex flex-1 flex-col",
+          enhance.isLoading ? "tiptap-animate" : "",
+        ])}
+      >
         <Editor handleChange={handleChange} content={editorContent} />
       </div>
 

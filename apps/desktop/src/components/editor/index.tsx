@@ -22,8 +22,10 @@ export const extensions = [
   StarterKit,
   Placeholder.configure({
     placeholder: "Jot down what's important. Hyprnote will handle the rest.",
-    emptyEditorClass:
+    emptyEditorClass: clsx([
       "text-lg text-gray-400 first:float-left first:h-0 first:pointer-events-none first:before:content-[attr(data-placeholder)]",
+      "tiptap-no-animate",
+    ]),
   }),
   Highlight,
   Typography,
@@ -50,7 +52,7 @@ export default function Editor({ handleChange, content }: EditorProps) {
     editorProps: {
       attributes: {
         class: clsx([
-          "prose dark:prose-invert prose-lg",
+          "prose dark:prose-invert prose-sm",
           "focus:outline-none focus:ring-0",
         ]),
       },

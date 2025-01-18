@@ -1,26 +1,16 @@
-.tiptap p {
-  margin-top: 0.325em;
-  margin-bottom: 0.325em;
-}
-
-.tiptap li p {
-  margin-top: 0.25em;
-  margin-bottom: 0.25em;
-}
-
-.tiptap p,
-.tiptap h1,
-.tiptap h2,
-.tiptap h3,
-.tiptap h4,
-.tiptap h5,
-.tiptap h6,
-.tiptap ul,
-.tiptap ol,
-.tiptap blockquote,
-.tiptap pre,
-.tiptap hr {
-  animation: show 800ms cubic-bezier(0.38, 0.97, 0.56, 0.76) forwards;
+.tiptap-animate h1:not(.tiptap-no-animate),
+.tiptap-animate h2:not(.tiptap-no-animate),
+.tiptap-animate h3:not(.tiptap-no-animate),
+.tiptap-animate h4:not(.tiptap-no-animate),
+.tiptap-animate h5:not(.tiptap-no-animate),
+.tiptap-animate h6:not(.tiptap-no-animate),
+.tiptap-animate p:not(.tiptap-no-animate),
+.tiptap-animate ul:not(.tiptap-no-animate),
+.tiptap-animate ol:not(.tiptap-no-animate),
+.tiptap-animate blockquote:not(.tiptap-no-animate),
+.tiptap-animate pre:not(.tiptap-no-animate),
+.tiptap-animate hr:not(.tiptap-no-animate) {
+  animation: show 500ms linear forwards;
 }
 
 @keyframes show {

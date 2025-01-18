@@ -1,12 +1,12 @@
 import { useCallback, useRef, useState } from "react";
-
 import { useHypr } from "@/contexts";
-
 import type { EnhanceRequest } from "@/types/server";
+
+const EMPTY = "";
 
 export function useEnhance(input: EnhanceRequest) {
   const { client } = useHypr();
-  const [data, setData] = useState<string>(input.editor);
+  const [data, setData] = useState<string>(EMPTY);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<undefined | Error>(undefined);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -23,8 +23,8 @@ export function useEnhance(input: EnhanceRequest) {
 
   const submit = async () => {
     try {
+      setData(EMPTY);
       setIsLoading(true);
-      setData(input.editor);
       setError(undefined);
 
       const abortController = new AbortController();

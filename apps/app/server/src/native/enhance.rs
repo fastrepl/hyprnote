@@ -33,7 +33,7 @@ pub async fn handler(
         ```
         
         When rewriting the editor content, follow these rules:
-        - Allowed tags for the editor content: "h1", "h2", "h3", "h4", "h5", "h6", "p", "ul", "ol", "li", "div", "span", "strong", "em", "i".
+        - Allowed tags for the editor content: "h2", "h3", "h4", "p", "ul", "ol", "li", "div", "span", "strong", "em", "i".
         - No need to wrap the output with <html> or <body> tags or anything like that.
         
         Now, give me just the rewritten editor content in HTML."#,
@@ -108,9 +108,10 @@ pub async fn handler(
                 break;
             }
 
+            tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
             let html = read_buffer.read().unwrap();
             yield sse::Event::default().data(html);
-            tokio::time::sleep(tokio::time::Duration::from_millis(350)).await;
+            tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
         }
     };
 

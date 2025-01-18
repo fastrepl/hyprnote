@@ -158,7 +158,9 @@ fn main() {
                 )
                 .route("/transcribe", get(native::transcribe::handler))
                 .route("/user/checkout", get(native::user::checkout_url))
-                .route("/user/integrations", get(native::user::list_integrations));
+                .route("/user/integrations", get(native::user::list_integrations))
+                .route("/upload/create", post(native::upload::create_upload))
+                .route("/upload/complete", post(native::upload::complete_upload));
             // .layer(
             //     tower::builder::ServiceBuilder::new()
             //         .layer(axum::middleware::from_fn_with_state(

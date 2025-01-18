@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["multipart"] }
+thiserror = { workspace = true }
+
+futures-core = { workspace = true }
+futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros", "fs"] }

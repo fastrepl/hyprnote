@@ -3557,8 +3557,10 @@ dependencies = [
 name = "file"
 version = "0.1.0"
 dependencies = [
+ "futures-core",
  "futures-util",
  "reqwest 0.12.12",
+ "thiserror 2.0.9",
  "tokio",
 ]
 

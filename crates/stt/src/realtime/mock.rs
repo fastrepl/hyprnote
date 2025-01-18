@@ -5,7 +5,7 @@ use std::error::Error;
 use futures_core::Stream;
 use futures_util::StreamExt;
 
-use crate::{RealtimeSpeechToText, StreamResponse};
+use super::{RealtimeSpeechToText, StreamResponse};
 
 pub struct MockClient {}
 

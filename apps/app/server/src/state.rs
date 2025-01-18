@@ -7,7 +7,7 @@ use hypr_lago::LagoClient;
 use hypr_nango::NangoClient;
 use hypr_openai::OpenAIClient;
 use hypr_s3::Client as S3Client;
-use hypr_stt::Client as STTClient;
+use hypr_stt::realtime::Client as STTClient;
 use hypr_turso::TursoClient;
 
 #[derive(Clone)]
@@ -34,7 +34,7 @@ pub struct WorkerState {
 
 #[derive(Clone)]
 pub struct STTState {
-    pub stt: hypr_stt::Client,
+    pub stt: hypr_stt::realtime::Client,
 }
 
 #[derive(Clone)]

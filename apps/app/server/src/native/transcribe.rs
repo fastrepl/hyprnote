@@ -12,7 +12,7 @@ use futures_util::{SinkExt, StreamExt};
 
 use crate::state::STTState;
 use hypr_bridge::{TranscribeInputChunk, TranscribeOutputChunk};
-use hypr_stt::{RealtimeSpeechToText, StreamResponse};
+use hypr_stt::realtime::{RealtimeSpeechToText, StreamResponse};
 
 pub async fn handler(ws: WebSocketUpgrade, State(state): State<STTState>) -> impl IntoResponse {
     ws.on_upgrade(|socket| websocket(socket, state))
@@ -92,7 +92,7 @@ mod tests {
         axum::Router::new()
             .route("/api/native/transcribe", axum::routing::get(handler))
             .with_state(STTState {
-                stt: hypr_stt::Client::new(hypr_stt::Config {
+                stt: hypr_stt::realtime::Client::new(hypr_stt::realtime::Config {
                     deepgram_api_key: "".to_string(),
                     clova_api_key: "".to_string(),
                 }),

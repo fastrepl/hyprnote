@@ -10,7 +10,7 @@ use deepgram::common::{
 use futures_core::Stream;
 use futures_util::StreamExt;
 
-use crate::{RealtimeSpeechToText, StreamResponse};
+use super::{RealtimeSpeechToText, StreamResponse};
 
 #[derive(Debug, Clone)]
 pub struct DeepgramClient {

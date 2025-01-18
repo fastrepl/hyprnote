@@ -4,7 +4,7 @@ use futures_core::Stream;
 use futures_util::StreamExt;
 use std::error::Error;
 
-use crate::{RealtimeSpeechToText, StreamResponse};
+use super::{RealtimeSpeechToText, StreamResponse};
 
 pub use hypr_clova::{interface as clova, Client as ClovaClient, Config as ClovaConfig};
 

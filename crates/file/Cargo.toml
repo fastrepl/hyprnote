@@ -1,0 +1,9 @@
+[package]
+name = "file"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+futures-util = { workspace = true }
+reqwest = { workspace = true, features = ["multipart"] }
+tokio = { workspace = true, features = ["rt", "macros", "fs"] }

@@ -3554,6 +3554,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "file"
+version = "0.1.0"
+dependencies = [
+ "futures-util",
+ "reqwest 0.12.12",
+ "tokio",
+]
+
+[[package]]
 name = "filetime"
 version = "0.2.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"

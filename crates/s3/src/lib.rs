@@ -1,10 +1,13 @@
 use std::ops::Deref;
 
 use aws_sdk_s3::error::SdkError;
+use aws_sdk_s3::operation::complete_multipart_upload::CompleteMultipartUploadError;
 use aws_sdk_s3::operation::create_bucket::CreateBucketError;
+use aws_sdk_s3::operation::create_multipart_upload::CreateMultipartUploadError;
 use aws_sdk_s3::operation::delete_object::DeleteObjectError;
 use aws_sdk_s3::operation::get_object::GetObjectError;
 use aws_sdk_s3::operation::put_object::PutObjectError;
+use aws_sdk_s3::operation::upload_part::UploadPartError;
 use aws_sdk_s3::presigning::PresigningConfig;
 use aws_sdk_s3::primitives::{AggregatedBytes, ByteStreamError};
 
@@ -38,6 +41,12 @@ pub enum ApiError {
     CreateBucketError(#[from] SdkError<CreateBucketError>),
     #[error("Error while collecting bytes: {0}")]
     CollectBytesError(#[from] ByteStreamError),
+    #[error("Error while creating multipart upload: {0}")]
+    CreateMultipartUploadError(#[from] SdkError<CreateMultipartUploadError>),
+    #[error("Error while uploading part: {0}")]
+    UploadPartError(#[from] SdkError<UploadPartError>),
+    #[error("Error while completing multipart upload: {0}")]
+    CompleteMultipartUploadError(#[from] SdkError<CompleteMultipartUploadError>),
 }
 
 impl Client {
@@ -99,7 +108,67 @@ impl<'a> UserClient<'a> {
         format!("user_{}", self.user_id)
     }
 
-    pub async fn presigned_url(&self, file_name: &str) -> Result<String, ApiError> {
+    pub async fn create_multipart_upload(&self, file_name: &str) -> Result<String, ApiError> {
+        let res = self
+            .s3
+            .create_multipart_upload()
+            .bucket(&self.bucket)
+            .key(format!("{}/{}", self.folder(), file_name))
+            .send()
+            .await?;
+
+        let id = res.upload_id().unwrap().to_string();
+        Ok(id)
+    }
+
+    pub async fn complete_multipart_upload(
+        &self,
+        file_name: &str,
+        upload_id: &str,
+    ) -> Result<(), ApiError> {
+        let _res = self
+            .s3
+            .complete_multipart_upload()
+            .bucket(&self.bucket)
+            .key(format!("{}/{}", self.folder(), file_name))
+            .upload_id(upload_id)
+            .send()
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn presigned_url_for_multipart_upload(
+        &self,
+        file_name: &str,
+        upload_id: &str,
+        num_parts: usize,
+    ) -> Result<Vec<String>, ApiError> {
+        let config = PresigningConfig::builder()
+            .expires_in(std::time::Duration::from_secs(60 * 30))
+            .build()
+            .unwrap();
+
+        let mut urls = Vec::with_capacity(num_parts);
+
+        for part_number in 1..=num_parts {
+            let presigned_req = self
+                .s3
+                .upload_part()
+                .bucket(&self.bucket)
+                .key(format!("{}/{}", self.folder(), file_name))
+                .upload_id(upload_id)
+                .part_number(part_number as i32)
+                .presigned(config.clone())
+                .await?;
+
+            urls.push(presigned_req.uri().to_string());
+        }
+
+        Ok(urls)
+    }
+
+    pub async fn presigned_url_for_download(&self, file_name: &str) -> Result<String, ApiError> {
         let config = PresigningConfig::builder()
             .expires_in(std::time::Duration::from_secs(60 * 30))
             .build()

@@ -42,14 +42,14 @@ impl<S, E> RealtimeSpeechToText<S, E> for DeepgramClient {
         .unwrap();
 
         let options = Options::builder()
-            .model(Model::BaseMeeting)
+            .model(Model::Nova2Meeting)
             .multichannel(false)
             .smart_format(true)
             .punctuate(true)
             .numerals(true)
             .language(Language::en)
             .filler_words(false)
-            .diarize(true)
+            .diarize(false)
             .keywords(["Hyprnote"])
             .build();
 
@@ -79,13 +79,12 @@ impl TryFrom<DeepgramStreamResponse> for StreamResponse {
     fn try_from(response: DeepgramStreamResponse) -> Result<Self, Self::Error> {
         match response {
             DeepgramStreamResponse::TranscriptResponse { channel, .. } => {
-                let text = channel
-                    .alternatives
-                    .first()
-                    .map(|alt| alt.transcript.clone())
-                    .unwrap_or_default();
+                let data = channel.alternatives.first().unwrap();
+                let text = data.transcript.clone();
+                let start = data.words.first().unwrap().start;
+                let end = data.words.last().unwrap().end;
 
-                Ok(StreamResponse { text })
+                Ok(StreamResponse { text, start, end })
             }
             e => {
                 eprintln!("deepgram response: {:?}", e);

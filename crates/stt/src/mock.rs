@@ -29,7 +29,11 @@ impl<S, E> RealtimeSpeechToText<S, E> for MockClient {
                     let size = bytes.len();
                     let non_zero_count = bytes.iter().filter(|b| **b != 0).count();
                     let text = format!("Received {} bytes, {} non-zero", size, non_zero_count);
-                    Ok(StreamResponse { text })
+                    Ok(StreamResponse {
+                        text,
+                        start: 0.0,
+                        end: 0.0,
+                    })
                 }
             }
         });

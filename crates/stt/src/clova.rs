@@ -19,9 +19,13 @@ impl<S, E> RealtimeSpeechToText<S, E> for ClovaClient {
         return Ok(transcription.map(|r| match r {
             Ok(clova::StreamResponse::TranscribeSuccess(r)) => Ok(StreamResponse {
                 text: r.transcription.text,
+                start: r.transcription.start_timestamp as f64 / 1000.0,
+                end: r.transcription.end_timestamp as f64 / 1000.0,
             }),
             Ok(_) => Ok(StreamResponse {
                 text: "".to_string(),
+                start: 0.0,
+                end: 0.0,
             }),
             Err(e) => Err(e.into()),
         }));

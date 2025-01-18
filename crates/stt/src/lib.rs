@@ -30,6 +30,8 @@ pub trait RealtimeSpeechToText<S, E> {
 #[derive(Debug)]
 pub struct StreamResponse {
     pub text: String,
+    pub start: f64,
+    pub end: f64,
 }
 
 #[derive(Debug, Clone)]

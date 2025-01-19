@@ -16,4 +16,5 @@ thiserror = { workspace = true }
 
 [dev-dependencies]
 bat = "0.25.0"
+markdown = "1.0.0-alpha.21"
 tokio = { workspace = true, features = ["rt", "macros"] }

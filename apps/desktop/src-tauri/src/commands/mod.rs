@@ -27,7 +27,7 @@ pub fn show_window(app: AppHandle, window: ShowHyprWindow) {
 #[tauri::command]
 #[specta::specta]
 pub fn list_builtin_templates() -> Vec<hypr_db::user::Template> {
-    hypr_template::builtin_templates()
+    hypr_template::builtins()
 }
 
 #[tauri::command]

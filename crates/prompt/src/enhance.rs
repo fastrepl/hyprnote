@@ -31,22 +31,34 @@ mod tests {
     fn input_1() -> Input {
         Input {
             user: hypr_db::user::ConfigDataProfile::default(),
-            editor: "<p>Hello, world!</p>".to_string(),
-            template: hypr_template::builtin_templates()
-                .first()
-                .unwrap()
-                .to_owned(),
+            template: hypr_template::standup(),
+            editor: markdown::to_html(
+                r#"## Hello, *world*!
+                
+                This is a multi-line test input.
+                With multiple paragraphs.
+                
+                - And some
+                - Bullet points
+                - For good measure"#,
+            ),
         }
     }
 
     fn input_2() -> Input {
         Input {
             user: hypr_db::user::ConfigDataProfile::default(),
-            editor: "<p>Hello, world!</p><p>Hello, world!</p>".to_string(),
-            template: hypr_template::builtin_templates()
-                .last()
-                .unwrap()
-                .to_owned(),
+            template: hypr_template::kickoff(),
+            editor: markdown::to_html(
+                r#"## Another Test
+                
+                Different multi-line content
+                for the second test case.
+                
+                1. With numbered
+                2. List items
+                3. Instead"#,
+            ),
         }
     }
 

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct Template {
     pub id: String,
     pub title: String,
@@ -8,7 +8,7 @@ pub struct Template {
     pub sections: Vec<TemplateSection>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
 pub struct TemplateSection {
     pub title: String,
     pub description: String,

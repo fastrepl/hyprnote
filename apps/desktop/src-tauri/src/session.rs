@@ -39,4 +39,24 @@ impl SessionState {
             }
         });
     }
+
+    pub async fn start2(
+        &mut self,
+        channel: tauri::ipc::Channel<hypr_bridge::TranscribeOutputChunk>,
+    ) {
+        let capture = hypr_audio::SpeakerInput::new().unwrap();
+        let audio_stream = capture.stream().unwrap();
+
+        let transcript_stream = self.bridge.transcribe(audio_stream).await.unwrap();
+
+        tauri::async_runtime::spawn(async move {
+            futures_util::pin_mut!(transcript_stream);
+
+            while let Some(transcript) = transcript_stream.next().await {
+                if channel.send(transcript).is_err() {
+                    break;
+                }
+            }
+        });
+    }
 }

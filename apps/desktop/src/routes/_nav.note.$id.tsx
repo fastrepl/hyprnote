@@ -20,7 +20,13 @@ import SelectedEvent from "@/components/selected-event";
 
 import { useUI } from "@/stores/ui";
 import { useEnhance } from "@/utils/enhance";
-import { commands, ConfigDataGeneral, ConfigDataProfile, TranscribeOutputChunk, Transcript } from "@/types/tauri";
+import {
+  commands,
+  ConfigDataGeneral,
+  ConfigDataProfile,
+  TranscribeOutputChunk,
+  Transcript,
+} from "@/types/tauri";
 import AudioIndicator from "@/components/audio-indicator";
 
 const noteQueryOptions = (id: string) => ({
@@ -108,11 +114,11 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
     transcript: {
       blocks: [],
     },
-      config_general: general ?? {
-        autostart: false,
-        notifications: false,
-        language: "Ko",
-        context: "TODO",
+    config_general: general ?? {
+      autostart: false,
+      notifications: false,
+      language: "Ko",
+      context: "TODO",
     },
     config_profile: profile ?? {
       full_name: "TODO",

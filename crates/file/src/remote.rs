@@ -89,6 +89,7 @@ mod tests {
         })
         .await;
         let user_s3 = admin_s3.for_user("test-user");
+
         let _ = admin_s3.create_bucket().await.unwrap();
 
         let file_key = "audio.wav";
@@ -101,11 +102,11 @@ mod tests {
             .presigned_url_for_multipart_upload(file_key, &upload_id, 2)
             .await
             .unwrap();
+        assert!(presigned_urls.len() == 2);
 
         let etags = upload(presigned_urls, temp_file.into_temp_path().to_path_buf())
             .await
             .unwrap();
-
         assert!(etags.len() == 2);
 
         // let _ = user_s3

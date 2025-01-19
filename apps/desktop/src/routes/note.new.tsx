@@ -24,7 +24,6 @@ export const Route = createFileRoute("/note/new")({
         audio_remote_path: null,
         enhanced_memo_html: null,
         transcript: {
-          speakers: [],
           blocks: [],
         },
       });

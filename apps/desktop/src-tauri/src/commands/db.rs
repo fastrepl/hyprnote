@@ -108,15 +108,6 @@ pub async fn db_set_session_event(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn upsert_session(
-    state: State<'_, App>,
-    session: hypr_db::user::Session,
-) -> Result<hypr_db::user::Session, ()> {
-    Ok(state.db.upsert_session(session).await.unwrap())
-}
-
-#[tauri::command]
-#[specta::specta]
 pub async fn db_get_config(
     state: State<'_, App>,
     kind: hypr_db::user::ConfigKind,

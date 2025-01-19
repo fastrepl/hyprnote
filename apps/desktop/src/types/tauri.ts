@@ -42,6 +42,9 @@ export const commands = {
   ): Promise<boolean | null> {
     return await TAURI_INVOKE("check_permission_status", { permission });
   },
+  async dbUpsertSession(session: Session): Promise<Session> {
+    return await TAURI_INVOKE("db_upsert_session", { session });
+  },
   async dbUpsertCalendar(calendar: Calendar): Promise<Calendar> {
     return await TAURI_INVOKE("db_upsert_calendar", { calendar });
   },
@@ -122,8 +125,9 @@ export type ConfigDataProfile = {
 };
 export type ConfigKind = "general" | "profile";
 export type EnhanceRequest = {
-  user: ConfigDataProfile;
   editor: string;
+  config_general: ConfigDataGeneral;
+  config_profile: ConfigDataProfile;
   transcript: Transcript;
   template: Template;
 };

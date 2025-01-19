@@ -35,6 +35,7 @@ pub fn run() {
             commands::list_builtin_templates,
             permissions::open_permission_settings,
             permissions::check_permission_status,
+            commands::db::db_upsert_session,
             commands::db::db_upsert_calendar,
             commands::db::db_list_calendars,
             commands::db::db_list_events,

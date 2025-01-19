@@ -20,16 +20,17 @@ import SelectedEvent from "@/components/selected-event";
 
 import { useUI } from "@/stores/ui";
 import { useEnhance } from "@/utils/enhance";
-import { commands, TranscribeOutputChunk, Transcript } from "@/types/tauri";
+import { commands, ConfigDataGeneral, ConfigDataProfile, TranscribeOutputChunk, Transcript } from "@/types/tauri";
 import AudioIndicator from "@/components/audio-indicator";
 
 const noteQueryOptions = (id: string) => ({
   queryKey: ["note", { id }],
   queryFn: async () => {
-    const [session, user, builtinTemplates, customTemplates] =
+    const [session, profile, general, builtinTemplates, customTemplates] =
       await Promise.all([
         commands.dbGetSession(id),
         commands.dbGetConfig("profile"),
+        commands.dbGetConfig("general"),
         commands.listBuiltinTemplates(),
         commands.dbListTemplates(),
       ]);
@@ -39,7 +40,8 @@ const noteQueryOptions = (id: string) => ({
 
     return {
       session,
-      user,
+      profile: profile?.data as ConfigDataProfile,
+      general: general?.data as ConfigDataGeneral,
       templates: [...builtinTemplates, ...customTemplates],
     };
   },
@@ -87,7 +89,7 @@ interface LeftPanelProps {
 }
 
 function LeftPanel({ listening, setListening }: LeftPanelProps) {
-  const { session, templates } = Route.useLoaderData();
+  const { session, templates, profile, general } = Route.useLoaderData();
 
   const [showRaw, setShowRaw] = useState(true);
   const [title, setTitle] = useState(session.title);
@@ -103,7 +105,16 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
   const enhance = useEnhance({
     template: templates[0],
     editor: session.raw_memo_html,
-    user: {
+    transcript: {
+      blocks: [],
+    },
+      config_general: general ?? {
+        autostart: false,
+        notifications: false,
+        language: "Ko",
+        context: "TODO",
+    },
+    config_profile: profile ?? {
       full_name: "TODO",
       job_title: "TODO",
       company_name: "TODO",
@@ -193,17 +204,16 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
 const t: Transcript = {
   blocks: [
     {
-      timestamp: "2024-01-01 10:00:00",
+      start: 0,
+      end: 1000,
       text: "Hello, how are you?",
-      speaker: "John Doe",
     },
     {
-      timestamp: "2024-01-01 10:00:00",
+      start: 1000,
+      end: 2000,
       text: "I'm fine, thank you!",
-      speaker: "Jane Doe",
     },
   ],
-  speakers: [],
 };
 
 interface RightPanelProps {

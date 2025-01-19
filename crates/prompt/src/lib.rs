@@ -6,7 +6,8 @@ use tera::Tera;
 
 lazy_static::lazy_static! {
     pub static ref TEMPLATES: Tera = {
-        let mut tera = match Tera::new("templates/*.tera") {
+        let base = env!("CARGO_MANIFEST_DIR");
+        let mut tera = match Tera::new(format!("{}/templates/*.tera", base).as_str()) {
             Ok(t) => t,
             Err(e) => panic!("{}", e),
         };

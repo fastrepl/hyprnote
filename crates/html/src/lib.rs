@@ -1,5 +1,13 @@
 use std::sync::Mutex;
 
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    #[error("failed to parse html")]
+    ParseError(#[from] tl::ParseError),
+    #[error("invalid html")]
+    InvalidHTML,
+}
+
 pub struct HtmlBuffer {
     buffer: Mutex<String>,
 }
@@ -16,10 +24,16 @@ impl HtmlBuffer {
         buffer.push_str(text);
     }
 
-    pub fn read(&self) -> Result<String, tl::ParseError> {
+    pub fn read(&self) -> Result<String, Error> {
         let buffer = self.buffer.lock().unwrap();
         let dom = tl::parse(&*buffer, tl::ParserOptions::default())?;
-        Ok(dom.outer_html())
+        let html = dom.outer_html();
+
+        if html.is_empty() || !html.starts_with("<") || !html.ends_with(">") {
+            return Err(Error::InvalidHTML);
+        }
+
+        Ok(html)
     }
 }
 

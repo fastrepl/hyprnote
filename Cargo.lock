@@ -4936,6 +4936,7 @@ checksum = "62adaabb884c94955b19907d60019f4e145d091c75345379e70d1ee696f7854f"
 name = "html"
 version = "0.1.0"
 dependencies = [
+ "thiserror 2.0.9",
  "tl",
 ]
 

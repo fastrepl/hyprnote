@@ -57,15 +57,17 @@ pub async fn handler(
     let output_stream = async_stream::try_stream! {
         loop {
             if is_done_reader.load(std::sync::atomic::Ordering::Acquire) {
-                let html = read_buffer.read().unwrap();
-                yield sse::Event::default().data(html);
+                if let Ok(html) = read_buffer.read() {
+                    yield sse::Event::default().data(html);
+                }
                 break;
             }
 
-            tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
-            let html = read_buffer.read().unwrap();
-            yield sse::Event::default().data(html);
-            tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            if let Ok(html) = read_buffer.read() {
+                yield sse::Event::default().data(html);
+            }
+            tokio::time::sleep(tokio::time::Duration::from_millis(250)).await;
         }
     };
 

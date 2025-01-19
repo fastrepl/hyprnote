@@ -107,13 +107,12 @@ fn main() {
 
             let analytics = hypr_analytics::AnalyticsClient::new(get_env("POSTHOG_API_KEY"));
 
-            let s3 = hypr_s3::Client::new(hypr_s3::Config {
-                endpoint_url: get_env("S3_ENDPOINT_URL"),
-                bucket: get_env("S3_BUCKET_NAME"),
-                access_key_id: get_env("S3_ACCESS_KEY_ID"),
-                secret_access_key: get_env("S3_SECRET_ACCESS_KEY"),
-            })
-            .await;
+            let s3 = hypr_s3::Client::builder()
+                .endpoint_url(get_env("S3_ENDPOINT_URL"))
+                .bucket(get_env("S3_BUCKET_NAME"))
+                .credentials(get_env("S3_ACCESS_KEY_ID"), get_env("S3_SECRET_ACCESS_KEY"))
+                .build()
+                .await;
 
             let openai = hypr_openai::OpenAIClient::builder()
                 .api_key(get_env("OPENAI_API_KEY"))

@@ -11,6 +11,14 @@ use aws_sdk_s3::operation::upload_part::UploadPartError;
 use aws_sdk_s3::presigning::PresigningConfig;
 use aws_sdk_s3::primitives::{AggregatedBytes, ByteStreamError};
 
+#[derive(Default)]
+pub struct ClientBuilder {
+    endpoint_url: Option<String>,
+    bucket: Option<String>,
+    access_key_id: Option<String>,
+    secret_access_key: Option<String>,
+}
+
 #[derive(Clone)]
 pub struct Client {
     s3: aws_sdk_s3::Client,
@@ -49,16 +57,36 @@ pub enum ApiError {
     CompleteMultipartUploadError(#[from] SdkError<CompleteMultipartUploadError>),
 }
 
-impl Client {
-    pub async fn new(config: Config) -> Self {
+impl ClientBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn endpoint_url(mut self, endpoint_url: impl Into<String>) -> Self {
+        self.endpoint_url = Some(endpoint_url.into());
+        self
+    }
+
+    pub fn bucket(mut self, bucket: impl Into<String>) -> Self {
+        self.bucket = Some(bucket.into());
+        self
+    }
+
+    pub fn credentials(mut self, id: impl Into<String>, secret: impl Into<String>) -> Self {
+        self.access_key_id = Some(id.into());
+        self.secret_access_key = Some(secret.into());
+        self
+    }
+
+    pub async fn build(self) -> Client {
         let creds = aws_credential_types::Credentials::from_keys(
-            config.access_key_id,
-            config.secret_access_key,
+            self.access_key_id.unwrap(),
+            self.secret_access_key.unwrap(),
             None,
         );
 
         let cfg = aws_config::from_env()
-            .endpoint_url(config.endpoint_url)
+            .endpoint_url(self.endpoint_url.unwrap())
             // https://www.tigrisdata.com/docs/concepts/regions/
             .region(aws_config::Region::new("auto"))
             .credentials_provider(creds)
@@ -67,10 +95,16 @@ impl Client {
 
         let s3 = aws_sdk_s3::Client::new(&cfg);
 
-        Self {
+        Client {
             s3,
-            bucket: config.bucket,
+            bucket: self.bucket.unwrap(),
         }
+    }
+}
+
+impl Client {
+    pub fn builder() -> ClientBuilder {
+        ClientBuilder::new()
     }
 
     pub fn for_user<'a>(&'a self, user_id: impl Into<String>) -> UserClient<'a> {
@@ -252,14 +286,14 @@ mod tests {
         let container = minio::MinIO::default().start().await.unwrap();
         let port = container.get_host_port_ipv4(9000).await.unwrap();
 
-        let s3 = Client::new(Config {
-            endpoint_url: format!("http://127.0.0.1:{}", port),
-            bucket: "test".to_string(),
-            access_key_id: "minioadmin".to_string(),
-            secret_access_key: "minioadmin".to_string(),
-        })
-        .await;
+        let s3 = Client::builder()
+            .endpoint_url(format!("http://127.0.0.1:{}", port))
+            .bucket("test")
+            .credentials("minioadmin", "minioadmin")
+            .build()
+            .await;
 
         let _ = s3.create_bucket().await.unwrap();
+        assert!(s3.get_bucket().await);
     }
 }

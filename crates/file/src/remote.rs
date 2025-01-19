@@ -81,13 +81,12 @@ mod tests {
         let container = minio::MinIO::default().start().await.unwrap();
         let port = container.get_host_port_ipv4(9000).await.unwrap();
 
-        let admin_s3 = hypr_s3::Client::new(hypr_s3::Config {
-            endpoint_url: format!("http://127.0.0.1:{}", port),
-            bucket: "test".to_string(),
-            access_key_id: "minioadmin".to_string(),
-            secret_access_key: "minioadmin".to_string(),
-        })
-        .await;
+        let admin_s3 = hypr_s3::Client::builder()
+            .endpoint_url(format!("http://127.0.0.1:{}", port))
+            .bucket("test")
+            .credentials("minioadmin", "minioadmin")
+            .build()
+            .await;
         let user_s3 = admin_s3.for_user("test-user");
 
         let _ = admin_s3.create_bucket().await.unwrap();

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use bytes::Bytes;
-use futures_core::Stream;
+use futures_core::{Future,Stream};
 use std::error::Error;
 
 use hypr_clova::interface::KeywordBoosting;
@@ -16,7 +16,10 @@ pub use deep::{DeepgramClient, DeepgramConfig};
 
 #[allow(dead_code)]
 pub trait RealtimeSpeechToText<S, E> {
-    async fn transcribe(&mut self, stream: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
+    fn transcribe(
+        &mut self,
+        stream: S,
+    ) -> impl Future<Output = Result<impl Stream<Item = Result<StreamResponse>>>>
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
         E: Error + Send + Sync + 'static;

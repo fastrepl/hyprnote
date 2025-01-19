@@ -14,33 +14,11 @@ pub async fn handler(
     Json(input): Json<hypr_bridge::EnhanceRequest>,
 ) -> Result<sse::Sse<impl futures_core::Stream<Item = Result<sse::Event, Infallible>>>, StatusCode>
 {
-    let prompt = format!(
-        r#"
-        ```editor
-        {}
-        ```
-
-        Your job is to rewrite the above editor content, while adhering to the below template.
-
-        ```template
-        {}
-        ```
-
-        Here is the user's profile:
-
-        ```user
-        {}
-        ```
-        
-        When rewriting the editor content, follow these rules:
-        - Allowed tags for the editor content: "h2", "h3", "h4", "p", "ul", "ol", "li", "div", "span", "strong", "em", "i".
-        - No need to wrap the output with <html> or <body> tags or anything like that.
-        
-        Now, give me just the rewritten editor content in HTML."#,
-        serde_json::to_string(&input.editor).unwrap(),
-        serde_json::to_string(&input.template).unwrap(),
-        serde_json::to_string(&input.user).unwrap(),
-    );
+    let prompt = hypr_prompt::render(
+        hypr_prompt::Template::Enhance,
+        &hypr_prompt::Context::from_serialize(&input).unwrap(),
+    )
+    .unwrap();
 
     let request = CreateChatCompletionRequest {
         model: "gpt-4o".to_string(),

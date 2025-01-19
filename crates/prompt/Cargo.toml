@@ -1,0 +1,13 @@
+[package]
+name = "prompt"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
+hypr-db = { path = "../../crates/db", package = "db", features = ["user"] }
+hypr-openai = { path = "../../crates/openai", package = "openai" }
+
+lazy_static = "1.5.0"
+serde = { workspace = true, features = ["derive"] }
+tera = { version = "1", default-features = false }

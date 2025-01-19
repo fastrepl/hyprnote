@@ -1,0 +1,21 @@
+```editor
+{{ editor | json_encode() }}
+```
+
+Your job is to rewrite the above editor content, while adhering to the below template.
+
+```template
+{{ template | json_encode() }}
+```
+
+Here is the user's profile:
+
+```user
+{{ user | json_encode() }}
+```
+
+When rewriting the editor content, follow these rules:
+- Allowed tags for the editor content: "h2", "h3", "h4", "p", "ul", "ol", "li", "div", "span", "strong", "em", "i".
+- No need to wrap the output with <html> or <body> tags or anything like that.
+
+Now, give me just the rewritten editor content in HTML.

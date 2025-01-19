@@ -13,7 +13,7 @@ export const Route = createFileRoute("/note/new")({
     let session: Session | null = null;
 
     try {
-      session = await commands.dbCreateSession({
+      session = await commands.dbUpsertSession({
         id: crypto.randomUUID() as string,
         calendar_event_id: null,
         title: "",

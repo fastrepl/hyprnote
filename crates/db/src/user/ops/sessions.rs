@@ -42,7 +42,7 @@ impl UserDatabase {
         Ok(items)
     }
 
-    pub async fn create_session(&self, session: Session) -> Result<Session> {
+    pub async fn upsert_session(&self, session: Session) -> Result<Session> {
         let mut rows = self
             .conn
             .query(
@@ -55,7 +55,12 @@ impl UserDatabase {
                     enhanced_memo_html,
                     tags,
                     transcript
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET
+                    title = :title,
+                    raw_memo_html = :raw_memo_html,
+                    enhanced_memo_html = :enhanced_memo_html,
+                    tags = :tags,
+                    transcript = :transcript
                 RETURNING *",
                 vec![
                     libsql::Value::Text(session.id),
@@ -114,7 +119,7 @@ mod tests {
             ..Session::default()
         };
 
-        let session = db.create_session(session).await.unwrap();
+        let session = db.upsert_session(session).await.unwrap();
         assert_eq!(session.raw_memo_html, "");
         assert_eq!(session.enhanced_memo_html, None);
         assert_eq!(session.title, "test");

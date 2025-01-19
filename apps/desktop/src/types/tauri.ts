@@ -60,8 +60,8 @@ export const commands = {
   async dbGetSession(id: string): Promise<Session | null> {
     return await TAURI_INVOKE("db_get_session", { id });
   },
-  async dbCreateSession(session: Session): Promise<Session> {
-    return await TAURI_INVOKE("db_create_session", { session });
+  async dbUpsertSession(session: Session): Promise<Session> {
+    return await TAURI_INVOKE("upsert_session", { session });
   },
   async dbSetSessionEvent(sessionId: string, eventId: string): Promise<null> {
     return await TAURI_INVOKE("db_set_session_event", { sessionId, eventId });

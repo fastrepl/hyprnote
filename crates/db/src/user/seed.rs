@@ -100,7 +100,7 @@ pub async fn seed(db: &UserDatabase) -> anyhow::Result<()> {
             .unwrap();
     }
     for session in sessions {
-        let _ = db.create_session(session).await.unwrap();
+        let _ = db.upsert_session(session).await.unwrap();
     }
 
     Ok(())

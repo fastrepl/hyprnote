@@ -20,6 +20,15 @@ pub async fn db_upsert_calendar(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn db_upsert_session(
+    state: State<'_, App>,
+    session: hypr_db::user::Session,
+) -> Result<hypr_db::user::Session, ()> {
+    Ok(state.db.upsert_session(session).await.unwrap())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn db_list_templates(state: State<'_, App>) -> Result<Vec<hypr_db::user::Template>, ()> {
     Ok(state.db.list_templates().await.unwrap())
 }
@@ -99,11 +108,11 @@ pub async fn db_set_session_event(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn db_create_session(
+pub async fn upsert_session(
     state: State<'_, App>,
     session: hypr_db::user::Session,
 ) -> Result<hypr_db::user::Session, ()> {
-    Ok(state.db.create_session(session).await.unwrap())
+    Ok(state.db.upsert_session(session).await.unwrap())
 }
 
 #[tauri::command]

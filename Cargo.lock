@@ -7996,11 +7996,13 @@ version = "0.1.0"
 dependencies = [
  "bat",
  "bridge",
+ "codes-iso-639",
  "db",
  "lazy_static",
  "markdown",
  "openai",
  "serde",
+ "serde_json",
  "template",
  "tera",
  "thiserror 2.0.9",

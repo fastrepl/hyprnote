@@ -20,7 +20,10 @@ impl Template {
             id: row.get(0).expect("id"),
             title: row.get(1).expect("title"),
             description: row.get(2).expect("description"),
-            sections: serde_json::from_str(row.get_str(3).expect("sections")).unwrap(),
+            sections: row
+                .get_str(3)
+                .map(|s| serde_json::from_str(s).unwrap())
+                .unwrap_or_default(),
         })
     }
 }

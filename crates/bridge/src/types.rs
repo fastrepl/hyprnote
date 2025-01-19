@@ -13,8 +13,9 @@ pub struct TranscribeOutputChunk {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct EnhanceRequest {
-    pub user: hypr_db::user::ConfigDataProfile,
     pub editor: String,
+    pub config_general: hypr_db::user::ConfigDataGeneral,
+    pub config_profile: hypr_db::user::ConfigDataProfile,
     pub transcript: hypr_db::user::Transcript,
     pub template: hypr_db::user::Template,
 }

@@ -31,7 +31,10 @@ impl Session {
                 .unwrap_or_default(),
             raw_memo_html: row.get(7).expect("raw_memo_html"),
             enhanced_memo_html: row.get(8).expect("enhanced_memo_html"),
-            transcript: row.get_str(9).map(|s| serde_json::from_str(s).unwrap()),
+            transcript: row
+                .get_str(9)
+                .map(|s| serde_json::from_str(s).unwrap())
+                .ok(),
         })
     }
 }

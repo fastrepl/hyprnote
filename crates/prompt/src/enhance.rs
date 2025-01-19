@@ -31,17 +31,18 @@ mod tests {
     fn input_1() -> Input {
         Input {
             template: hypr_template::standup(),
-            user: hypr_db::user::ConfigDataProfile::default(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
             transcript: hypr_db::user::Transcript::default(),
             editor: markdown::to_html(
-                r#"## Hello, *world*!
-                
-                This is a multi-line test input.
-                With multiple paragraphs.
-                
-                - And some
-                - Bullet points
-                - For good measure"#,
+                r#"openai 새로운 gpt-based 모델 관련 토론 진행
+
+                - vs Anthropic?
+                - 회사 방향성 관련 토론
+                "#,
             ),
         }
     }
@@ -49,7 +50,8 @@ mod tests {
     fn input_2() -> Input {
         Input {
             template: hypr_template::kickoff(),
-            user: hypr_db::user::ConfigDataProfile::default(),
+            config_general: hypr_db::user::ConfigDataGeneral::default(),
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
             transcript: hypr_db::user::Transcript::default(),
             editor: markdown::to_html(
                 r#"## Another Test

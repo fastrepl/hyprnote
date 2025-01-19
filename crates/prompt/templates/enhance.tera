@@ -1,8 +1,9 @@
 ```editor
-{{ editor | json_encode() }}
+{{ editor }}
 ```
 
 Your job is to rewrite the above editor content, while adhering to the below template.
+Note that template is just a formatting guide, should not influence the content.
 
 ```template
 {{ template | json_encode() }}
@@ -11,8 +12,10 @@ Your job is to rewrite the above editor content, while adhering to the below tem
 Here is the user's profile:
 
 ```user
-{{ user | json_encode() }}
+{{ config_profile | json_encode() }}
 ```
+
+Output language: {{ config_general.language | render_language }}
 
 When rewriting the editor content, follow these rules:
 - Allowed tags for the editor content: "h2", "h3", "h4", "p", "ul", "ol", "li", "div", "span", "strong", "em", "i".

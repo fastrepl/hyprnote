@@ -1,4 +1,5 @@
 pub mod enhance;
+mod renderer;
 
 use tera::Context;
 use tera::Tera;
@@ -11,6 +12,7 @@ lazy_static::lazy_static! {
         };
 
         tera.autoescape_on(vec![]);
+        tera.register_filter("render_language", renderer::language());
         tera
     };
 }

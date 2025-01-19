@@ -41,7 +41,7 @@ pub async fn create_upload(
 pub struct CompleteUploadRequest {
     file_name: String,
     upload_id: String,
-    presigned_urls: Vec<String>,
+    etags: Vec<String>,
 }
 
 pub async fn complete_upload(
@@ -51,7 +51,7 @@ pub async fn complete_upload(
 ) -> Result<impl IntoResponse, StatusCode> {
     let user_s3 = state.s3.for_user(user.id);
     let _result = user_s3
-        .complete_multipart_upload(&input.file_name, &input.upload_id)
+        .complete_multipart_upload(&input.file_name, &input.upload_id, input.etags)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 

@@ -18,7 +18,9 @@ Here is the user's profile:
 Output language: {{ config_general.language | render_language }}
 
 When rewriting the editor content, follow these rules:
-- Allowed tags for the editor content: "h2", "h3", "h4", "p", "ul", "ol", "li", "div", "span", "strong", "em", "i".
-- No need to wrap the output with <html> or <body> tags or anything like that.
+- Allowed tags for the editor content: "h2", "h3", "h4", "p", "ul", "ol", "li", "div", "em".
+- Information that is already noted in the editor should be considered as "important", and should be kept.
+(Feel free to rewrite/paraphrase the information, but do not remove it.) Also it should be wrapped with <em> tag.
+- Above rule for <em> should be applied to all headings. For example, <h2><em>[SOMETHING]</em></h2> is valid if [SOMETHING] is already noted in the editor.
 
 Now, give me just the rewritten editor content in HTML.

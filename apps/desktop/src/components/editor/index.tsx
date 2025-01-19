@@ -53,6 +53,9 @@ export default function Editor({ handleChange, content }: EditorProps) {
       attributes: {
         class: clsx([
           "prose dark:prose-invert prose-sm",
+          "prose-headings:text-gray-700 prose-p:text-gray-600",
+          "prose-headings:font-medium",
+          "prose-em:not-italic prose-em:text-black prose-em:font-semibold",
           "focus:outline-none focus:ring-0",
         ]),
       },

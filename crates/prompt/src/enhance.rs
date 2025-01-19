@@ -30,8 +30,9 @@ mod tests {
 
     fn input_1() -> Input {
         Input {
-            user: hypr_db::user::ConfigDataProfile::default(),
             template: hypr_template::standup(),
+            user: hypr_db::user::ConfigDataProfile::default(),
+            transcript: hypr_db::user::Transcript::default(),
             editor: markdown::to_html(
                 r#"## Hello, *world*!
                 
@@ -47,8 +48,9 @@ mod tests {
 
     fn input_2() -> Input {
         Input {
-            user: hypr_db::user::ConfigDataProfile::default(),
             template: hypr_template::kickoff(),
+            user: hypr_db::user::ConfigDataProfile::default(),
+            transcript: hypr_db::user::Transcript::default(),
             editor: markdown::to_html(
                 r#"## Another Test
                 

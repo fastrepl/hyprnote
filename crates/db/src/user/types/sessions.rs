@@ -25,10 +25,13 @@ impl Session {
             title: row.get(3).expect("title"),
             audio_local_path: row.get(4).expect("audio_local_path"),
             audio_remote_path: row.get(5).expect("audio_remote_path"),
-            tags: serde_json::from_str(row.get_str(6).expect("tags")).unwrap(),
+            tags: row
+                .get_str(6)
+                .map(|s| serde_json::from_str(s).unwrap())
+                .unwrap_or_default(),
             raw_memo_html: row.get(7).expect("raw_memo_html"),
             enhanced_memo_html: row.get(8).expect("enhanced_memo_html"),
-            transcript: serde_json::from_str(row.get_str(9).expect("transcript")).unwrap(),
+            transcript: row.get_str(9).map(|s| serde_json::from_str(s).unwrap()),
         })
     }
 }
@@ -49,15 +52,14 @@ impl Default for Session {
         }
     }
 }
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Default, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
 pub struct Transcript {
-    pub speakers: Vec<String>,
     pub blocks: Vec<TranscriptBlock>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Default, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
 pub struct TranscriptBlock {
-    pub timestamp: String,
+    pub start: i32,
+    pub end: i32,
     pub text: String,
-    pub speaker: String,
 }

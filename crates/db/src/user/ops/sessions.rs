@@ -112,10 +112,7 @@ mod tests {
         let session = Session {
             title: "test".to_string(),
             tags: vec!["test".to_string()],
-            transcript: Some(Transcript {
-                speakers: vec![],
-                blocks: vec![],
-            }),
+            transcript: None,
             ..Session::default()
         };
 
@@ -124,13 +121,7 @@ mod tests {
         assert_eq!(session.enhanced_memo_html, None);
         assert_eq!(session.title, "test");
         assert_eq!(session.tags, vec!["test".to_string()]);
-        assert_eq!(
-            session.transcript,
-            Some(Transcript {
-                speakers: vec![],
-                blocks: vec![],
-            })
-        );
+        assert_eq!(session.transcript, None);
 
         let sessions = db.list_sessions(Some("test")).await.unwrap();
         assert_eq!(sessions.len(), 1);

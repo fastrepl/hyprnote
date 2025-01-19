@@ -124,6 +124,7 @@ export type ConfigKind = "general" | "profile";
 export type EnhanceRequest = {
   user: ConfigDataProfile;
   editor: string;
+  transcript: Transcript;
   template: Template;
 };
 export type Event = {
@@ -174,12 +175,8 @@ export type Template = {
 };
 export type TemplateSection = { title: string; description: string };
 export type TranscribeOutputChunk = { text: string };
-export type Transcript = { speakers: string[]; blocks: TranscriptBlock[] };
-export type TranscriptBlock = {
-  timestamp: string;
-  text: string;
-  speaker: string;
-};
+export type Transcript = { blocks: TranscriptBlock[] };
+export type TranscriptBlock = { start: number; end: number; text: string };
 
 /** tauri-specta globals **/
 

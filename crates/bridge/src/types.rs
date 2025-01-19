@@ -15,6 +15,7 @@ pub struct TranscribeOutputChunk {
 pub struct EnhanceRequest {
     pub user: hypr_db::user::ConfigDataProfile,
     pub editor: String,
+    pub transcript: hypr_db::user::Transcript,
     pub template: hypr_db::user::Template,
 }
 

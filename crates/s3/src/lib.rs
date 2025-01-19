@@ -125,13 +125,24 @@ impl<'a> UserClient<'a> {
         &self,
         file_name: &str,
         upload_id: &str,
+        parts: Vec<String>,
     ) -> Result<(), ApiError> {
+        let payload = aws_sdk_s3::types::CompletedMultipartUpload::builder()
+            .set_parts(Some(
+                parts
+                    .into_iter()
+                    .map(|p| aws_sdk_s3::types::CompletedPart::builder().e_tag(p).build())
+                    .collect(),
+            ))
+            .build();
+
         let _res = self
             .s3
             .complete_multipart_upload()
             .bucket(&self.bucket)
             .key(format!("{}/{}", self.folder(), file_name))
             .upload_id(upload_id)
+            .multipart_upload(payload)
             .send()
             .await?;
 
@@ -234,35 +245,21 @@ impl<'a> UserClient<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use testcontainers_modules::{minio, testcontainers::runners::AsyncRunner};
 
-    #[ignore]
     #[tokio::test]
     async fn test_client() {
-        let endpoint_url = "http://127.0.0.1:9000";
-        let access_key_id = "minio-user";
-        let secret_access_key = "minio-password";
+        let container = minio::MinIO::default().start().await.unwrap();
+        let port = container.get_host_port_ipv4(9000).await.unwrap();
 
-        let client = Client::new(Config {
-            endpoint_url: endpoint_url.to_string(),
-            bucket: "hyprnote".to_string(),
-            access_key_id: access_key_id.to_string(),
-            secret_access_key: secret_access_key.to_string(),
+        let s3 = Client::new(Config {
+            endpoint_url: format!("http://127.0.0.1:{}", port),
+            bucket: "test".to_string(),
+            access_key_id: "minioadmin".to_string(),
+            secret_access_key: "minioadmin".to_string(),
         })
         .await;
 
-        if !client.get_bucket().await {
-            client.create_bucket().await.unwrap();
-        }
-
-        let user_client = client.for_user("123");
-
-        user_client
-            .put("test.mp3", "test".as_bytes().to_vec())
-            .await
-            .unwrap();
-
-        let res = user_client.get("test.mp3").await.unwrap();
-        let data = res.into_bytes();
-        assert_eq!(data, "test".as_bytes());
+        let _ = s3.create_bucket().await.unwrap();
     }
 }

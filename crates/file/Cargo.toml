@@ -10,3 +10,8 @@ thiserror = { workspace = true }
 futures-core = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros", "fs"] }
+
+[dev-dependencies]
+hypr-s3 = { path = "../../crates/s3", package = "s3" }
+tempfile = { workspace = true }
+testcontainers-modules = { workspace = true, features = ["minio"] }

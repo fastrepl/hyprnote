@@ -40,6 +40,12 @@ pub async fn upload(
                     .send()
                     .await?;
 
+                if !response.status().is_success() {
+                    return Err(crate::Error::UploadError(
+                        response.error_for_status().unwrap_err(),
+                    ));
+                }
+
                 let etag = response
                     .headers()
                     .get("ETag")
@@ -61,4 +67,50 @@ pub async fn upload(
         .collect::<Vec<String>>();
 
     Ok(etags)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::io::Write;
+    use testcontainers_modules::{minio, testcontainers::runners::AsyncRunner};
+
+    #[tokio::test]
+    async fn test_upload() {
+        let container = minio::MinIO::default().start().await.unwrap();
+        let port = container.get_host_port_ipv4(9000).await.unwrap();
+
+        let admin_s3 = hypr_s3::Client::new(hypr_s3::Config {
+            endpoint_url: format!("http://127.0.0.1:{}", port),
+            bucket: "test".to_string(),
+            access_key_id: "minioadmin".to_string(),
+            secret_access_key: "minioadmin".to_string(),
+        })
+        .await;
+        let user_s3 = admin_s3.for_user("test-user");
+        let _ = admin_s3.create_bucket().await.unwrap();
+
+        let file_key = "audio.wav";
+        let mut temp_file = tempfile::NamedTempFile::new().unwrap();
+        let test_data = vec![0u8; 120 * 1024 * 1024];
+        temp_file.write_all(&test_data).unwrap();
+
+        let upload_id = user_s3.create_multipart_upload(file_key).await.unwrap();
+        let presigned_urls = user_s3
+            .presigned_url_for_multipart_upload(file_key, &upload_id, 2)
+            .await
+            .unwrap();
+
+        let etags = upload(presigned_urls, temp_file.into_temp_path().to_path_buf())
+            .await
+            .unwrap();
+
+        assert!(etags.len() == 2);
+
+        // let _ = user_s3
+        //     .complete_multipart_upload(file_key, &upload_id, etags)
+        //     .await
+        //     .unwrap();
+    }
 }

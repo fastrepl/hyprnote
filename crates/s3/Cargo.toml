@@ -10,4 +10,5 @@ aws-sdk-s3 = { version = "1.66.0", features = ["behavior-version-latest"] }
 thiserror = { workspace = true }
 
 [dev-dependencies]
+testcontainers-modules = { workspace = true, features = ["minio"] }
 tokio = { workspace = true, features = ["macros", "rt"] }

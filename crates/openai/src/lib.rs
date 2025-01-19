@@ -12,13 +12,13 @@ pub struct OpenAIClientBuilder {
 }
 
 impl OpenAIClientBuilder {
-    pub fn api_key(mut self, api_key: String) -> Self {
-        self.api_key = Some(api_key);
+    pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
+        self.api_key = Some(api_key.into());
         self
     }
 
-    pub fn api_base(mut self, api_base: String) -> Self {
-        self.api_base = Some(api_base);
+    pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
+        self.api_base = Some(api_base.into());
         self
     }
 

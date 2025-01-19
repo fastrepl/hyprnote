@@ -1,11 +1,9 @@
 use anyhow::Result;
 use axum::{extract::State, http::StatusCode, response::sse, Json};
 use futures_util::StreamExt;
-use hypr_openai::{
-    ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs,
-    CreateChatCompletionRequest,
-};
 use std::convert::Infallible;
+
+use hypr_openai::CreateChatCompletionRequest;
 
 use crate::state::AppState;
 
@@ -14,42 +12,20 @@ pub async fn handler(
     Json(input): Json<hypr_bridge::EnhanceRequest>,
 ) -> Result<sse::Sse<impl futures_core::Stream<Item = Result<sse::Event, Infallible>>>, StatusCode>
 {
-    let prompt = hypr_prompt::render(
-        hypr_prompt::Template::Enhance,
-        &hypr_prompt::Context::from_serialize(&input).unwrap(),
-    )
-    .unwrap();
-
-    let request = CreateChatCompletionRequest {
-        model: "gpt-4o".to_string(),
-        messages: vec![
-            ChatCompletionRequestSystemMessageArgs::default()
-                .content("You are a helpful assistant that only outputs HTML. No code block, no explanation.")
-                .build()
-                .unwrap()
-                .into(),
-            ChatCompletionRequestUserMessageArgs::default()
-                .content(prompt.trim())
-                .build()
-                .unwrap()
-                .into(),
-        ],
-        temperature: Some(0.1),
-        stream: Some(true),
-        ..CreateChatCompletionRequest::default()
-    };
+    let mut input_stream = state
+        .openai
+        .chat_completion(&CreateChatCompletionRequest {
+            stream: Some(true),
+            ..hypr_prompt::enhance::request_from(&input).unwrap()
+        })
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .bytes_stream();
 
     let write_buffer = std::sync::Arc::new(hypr_html::HtmlBuffer::new());
     let read_buffer = std::sync::Arc::clone(&write_buffer);
     let is_done_writer = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
     let is_done_reader = std::sync::Arc::clone(&is_done_writer);
-
-    let mut input_stream = state
-        .openai
-        .chat_completion(&request)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .bytes_stream();
 
     tokio::spawn(async move {
         while let Some(chunk) = input_stream.next().await {

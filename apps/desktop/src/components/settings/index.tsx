@@ -44,7 +44,6 @@ import TemplateComponent from "./template";
 import BillingComponent from "./billing";
 
 import { commands, type Template } from "@/types/tauri";
-import { BUILTIN_TEMPLATES } from "@/data/templates";
 
 const data = {
   nav: [
@@ -64,9 +63,15 @@ export default function SettingsDialog() {
   const [active, setActive] = useState<NavNames>(data.nav[3].name);
   const [templateIndex, setTemplateIndex] = useState(0);
 
-  const _customTemplates = useQuery({
-    queryKey: ["settings", "customTemplates"],
-    queryFn: () => commands.dbListTemplates(),
+  const templates = useQuery({
+    queryKey: ["settings", "templates"],
+    queryFn: async () => {
+      const [builtin, custom] = await Promise.all([
+        commands.listBuiltinTemplates(),
+        commands.dbListTemplates(),
+      ]);
+      return { builtin, custom };
+    },
   });
 
   const handleUpdateTemplate = (template: Template) => {
@@ -101,7 +106,7 @@ export default function SettingsDialog() {
                         <span>Template</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    {BUILTIN_TEMPLATES.map((template, index) => (
+                    {templates.data?.custom.map((template, index) => (
                       <SidebarMenuItem key={template.id}>
                         <SidebarMenuButton
                           isActive={index === templateIndex}
@@ -147,11 +152,13 @@ export default function SettingsDialog() {
           ) : active === "Calendar" ? (
             <CalendarComponent />
           ) : active === "Template" ? (
-            <TemplateComponent
-              disabled={true}
-              template={BUILTIN_TEMPLATES[templateIndex]}
-              onTemplateUpdate={handleUpdateTemplate}
-            />
+            templates.data?.builtin && (
+              <TemplateComponent
+                disabled={true}
+                template={templates.data?.builtin[templateIndex]}
+                onTemplateUpdate={handleUpdateTemplate}
+              />
+            )
           ) : active === "Team & Billing" ? (
             <BillingComponent />
           ) : null}

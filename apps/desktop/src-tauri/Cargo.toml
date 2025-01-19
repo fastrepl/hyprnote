@@ -22,6 +22,7 @@ hypr-audio = { path = "../../../crates/audio", package = "audio" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar", features = ["apple"] }
 hypr-db = { path = "../../../crates/db", package = "db", features = ["user"] }
+hypr-template = { path = "../../../crates/template", package = "template" }
 hypr_host = { path = "../../../crates/host", package = "host" }
 
 tauri = { workspace = true, features = ["tray-icon", "image-png", "devtools", "macos-private-api"] }

@@ -1,6 +1,6 @@
-mod enhance;
+pub mod enhance;
 
-pub use tera::Context;
+use tera::Context;
 use tera::Tera;
 
 lazy_static::lazy_static! {
@@ -15,6 +15,12 @@ lazy_static::lazy_static! {
     };
 }
 
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    #[error("Tera error: {0}")]
+    Tera(#[from] tera::Error),
+}
+
 pub enum Template {
     Enhance,
 }
@@ -27,8 +33,9 @@ impl std::fmt::Display for Template {
     }
 }
 
-pub fn render(tpl: Template, ctx: &tera::Context) -> Result<String, tera::Error> {
+fn render(tpl: Template, ctx: &tera::Context) -> Result<String, Error> {
     TEMPLATES
         .render(&tpl.to_string(), ctx)
         .map(|s| s.trim().to_string())
+        .map_err(Error::Tera)
 }

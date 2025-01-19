@@ -2,7 +2,6 @@ pub mod db;
 
 use crate::{audio, session, windows::ShowHyprWindow, App};
 use anyhow::Result;
-use futures_core::Stream;
 use futures_util::StreamExt;
 use std::path::PathBuf;
 use tauri::{ipc::Channel, AppHandle, Manager, State};
@@ -23,6 +22,12 @@ pub fn get_fingerprint() -> String {
 #[specta::specta]
 pub fn show_window(app: AppHandle, window: ShowHyprWindow) {
     window.show(&app).unwrap();
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn list_builtin_templates() -> Vec<hypr_db::user::Template> {
+    hypr_template::builtin_templates()
 }
 
 #[tauri::command]

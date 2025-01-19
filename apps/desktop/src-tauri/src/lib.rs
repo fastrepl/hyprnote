@@ -32,6 +32,7 @@ pub fn run() {
             commands::stop_playback,
             commands::show_window,
             commands::run_enhance,
+            commands::list_builtin_templates,
             permissions::open_permission_settings,
             permissions::check_permission_status,
             commands::db::db_upsert_calendar,
@@ -41,13 +42,12 @@ pub fn run() {
             commands::db::db_list_participants,
             commands::db::db_upsert_participant,
             commands::db::db_get_session,
-            commands::db::db_create_session,
             commands::db::db_set_session_event,
             commands::db::db_list_templates,
             commands::db::db_upsert_template,
             commands::db::db_delete_template,
             commands::db::db_get_config,
-            commands::db::db_set_config
+            commands::db::db_set_config,
         ])
         .events(tauri_specta::collect_events![
             events::RecordingStarted,

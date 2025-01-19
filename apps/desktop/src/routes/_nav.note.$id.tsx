@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AlignLeft, Ear, EarOff, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { Channel } from "@tauri-apps/api/core";
 import clsx from "clsx";
 
 import {
@@ -21,20 +22,25 @@ import { useUI } from "@/stores/ui";
 import { useEnhance } from "@/utils/enhance";
 import { commands, TranscribeOutputChunk, Transcript } from "@/types/tauri";
 import AudioIndicator from "@/components/audio-indicator";
-import { BUILTIN_TEMPLATES } from "@/data/templates";
-import { Channel } from "@tauri-apps/api/core";
 
 const noteQueryOptions = (id: string) => ({
   queryKey: ["note", { id }],
   queryFn: async () => {
-    const session = await commands.dbGetSession(id);
+    const [session, user, builtinTemplates, customTemplates] =
+      await Promise.all([
+        commands.dbGetSession(id),
+        commands.dbGetConfig("profile"),
+        commands.listBuiltinTemplates(),
+        commands.dbListTemplates(),
+      ]);
     if (!session) {
       throw redirect({ to: "/" });
     }
 
     return {
-      ...session,
-      raw_memo_html: "<p>123</p>",
+      session,
+      user,
+      templates: [...builtinTemplates, ...customTemplates],
     };
   },
 });
@@ -81,8 +87,9 @@ interface LeftPanelProps {
 }
 
 function LeftPanel({ listening, setListening }: LeftPanelProps) {
-  const session = Route.useLoaderData();
+  const { session, templates } = Route.useLoaderData();
 
+  const [showRaw, setShowRaw] = useState(true);
   const [title, setTitle] = useState(session.title);
 
   const [editorContent, setEditorContent] = useState<string>(
@@ -94,8 +101,8 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
   }, []);
 
   const enhance = useEnhance({
-    template: BUILTIN_TEMPLATES[0],
-    editor: editorContent,
+    template: templates[0],
+    editor: session.raw_memo_html,
     user: {
       full_name: "TODO",
       job_title: "TODO",
@@ -104,8 +111,6 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
       linkedin_username: "TODO",
     },
   });
-
-  const [showRaw, setShowRaw] = useState(true);
 
   useEffect(() => {
     if (editorContent) {

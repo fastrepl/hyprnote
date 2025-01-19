@@ -31,6 +31,9 @@ export const commands = {
   ): Promise<null> {
     return await TAURI_INVOKE("run_enhance", { req, onEvent });
   },
+  async listBuiltinTemplates(): Promise<Template[]> {
+    return await TAURI_INVOKE("list_builtin_templates");
+  },
   async openPermissionSettings(permission: OSPermission): Promise<void> {
     await TAURI_INVOKE("open_permission_settings", { permission });
   },
@@ -59,9 +62,6 @@ export const commands = {
   },
   async dbGetSession(id: string): Promise<Session | null> {
     return await TAURI_INVOKE("db_get_session", { id });
-  },
-  async dbUpsertSession(session: Session): Promise<Session> {
-    return await TAURI_INVOKE("upsert_session", { session });
   },
   async dbSetSessionEvent(sessionId: string, eventId: string): Promise<null> {
     return await TAURI_INVOKE("db_set_session_event", { sessionId, eventId });

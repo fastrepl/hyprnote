@@ -1,0 +1,7 @@
+[package]
+name = "template"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hypr-db = { path = "../../crates/db", package = "db", features = ["user"] }

@@ -106,17 +106,11 @@ pub struct DeleteDatabaseResponse {
 
 #[derive(Default)]
 pub struct TursoClientBuilder {
-    api_base: Option<String>,
     api_key: Option<String>,
     org_slug: Option<String>,
 }
 
 impl TursoClientBuilder {
-    pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
-        self.api_base = Some(api_base.into());
-        self
-    }
-
     pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
         self.api_key = Some(api_key.into());
         self
@@ -144,7 +138,7 @@ impl TursoClientBuilder {
 
         TursoClient {
             client,
-            api_base: self.api_base.unwrap().parse().unwrap(),
+            api_base: "https://api.turso.tech".parse().unwrap(),
             api_key,
             org_slug: self.org_slug.unwrap(),
         }

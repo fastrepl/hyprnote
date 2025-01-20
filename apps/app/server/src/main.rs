@@ -46,7 +46,6 @@ fn main() {
     ));
 
     let turso = hypr_turso::TursoClient::builder()
-        .api_base(get_env("TURSO_API_BASE"))
         .api_key(get_env("TURSO_API_KEY"))
         .org_slug(get_env("TURSO_ORG_SLUG"))
         .build();

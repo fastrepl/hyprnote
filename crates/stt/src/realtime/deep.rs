@@ -1,6 +1,5 @@
 use anyhow::Result;
 use bytes::Bytes;
-use serde::{Deserialize, Serialize};
 use std::error::Error;
 
 use deepgram::common::{
@@ -14,18 +13,51 @@ use super::{RealtimeSpeechToText, StreamResponse};
 
 #[derive(Debug, Clone)]
 pub struct DeepgramClient {
-    #[allow(unused)]
-    config: DeepgramConfig,
+    api_key: String,
+    language: deepgram::common::options::Language,
+    keywords: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeepgramConfig {
-    pub api_key: String,
+#[derive(Debug, Default)]
+pub struct DeepgramClientBuilder {
+    api_key: Option<String>,
+    language: Option<codes_iso_639::part_1::LanguageCode>,
+    keywords: Option<Vec<String>>,
+}
+
+impl DeepgramClientBuilder {
+    pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
+        self.api_key = Some(api_key.into());
+        self
+    }
+
+    pub fn language(mut self, language: codes_iso_639::part_1::LanguageCode) -> Self {
+        self.language = Some(language);
+        self
+    }
+
+    pub fn keywords(mut self, keywords: impl Into<Vec<String>>) -> Self {
+        self.keywords = Some(keywords.into());
+        self
+    }
+
+    pub fn build(self) -> DeepgramClient {
+        let language = match self.language.unwrap() {
+            codes_iso_639::part_1::LanguageCode::En => Language::en,
+            _ => panic!("Unsupported language: {:?}", self.language.unwrap()),
+        };
+
+        DeepgramClient {
+            api_key: self.api_key.unwrap(),
+            language,
+            keywords: self.keywords.unwrap_or_default(),
+        }
+    }
 }
 
 impl DeepgramClient {
-    pub fn new(config: DeepgramConfig) -> Self {
-        Self { config }
+    pub fn builder() -> DeepgramClientBuilder {
+        DeepgramClientBuilder::default()
     }
 }
 
@@ -37,7 +69,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for DeepgramClient {
     {
         let deepgram = deepgram::Deepgram::with_base_url_and_api_key(
             "https://api.deepgram.com/v1",
-            self.config.api_key.clone(),
+            &self.api_key,
         )
         .unwrap();
 
@@ -47,10 +79,10 @@ impl<S, E> RealtimeSpeechToText<S, E> for DeepgramClient {
             .smart_format(true)
             .punctuate(true)
             .numerals(true)
-            .language(Language::en)
+            .language(self.language.clone())
             .filler_words(false)
             .diarize(false)
-            .keywords(["Hyprnote"])
+            .keywords(self.keywords.iter().map(String::as_str))
             .build();
 
         let deepgram_stream = deepgram

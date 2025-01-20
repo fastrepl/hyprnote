@@ -240,8 +240,7 @@ mod tests {
 
     fn get_client() -> TursoClient {
         TursoClient::builder()
-            .api_base("https://api.turso.tech")
-            .api_key("API_KEY")
+            .api_key(std::env::var("TURSO_API_KEY").unwrap())
             .org_slug("yujonglee")
             .build()
     }
@@ -252,7 +251,7 @@ mod tests {
     async fn test_generate_db_token() {
         let client = get_client();
 
-        let jwt = client.generate_db_token("dev-admin").await.unwrap();
+        let jwt = client.generate_db_token("prod-admin").await.unwrap();
         println!("jwt: {:?}", jwt);
     }
 

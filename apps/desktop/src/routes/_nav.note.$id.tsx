@@ -10,24 +10,23 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@hypr/ui/components/ui/resizable";
-
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
 
 import Editor from "@/components/editor";
 import ParticipantsSelector from "@/components/participants-selector";
 import SelectedEvent from "@/components/selected-event";
+import AudioIndicator from "@/components/audio-indicator";
 
 import { useUI } from "@/stores/ui";
 import { useEnhance } from "@/utils/enhance";
 import {
   commands,
-  ConfigDataGeneral,
-  ConfigDataProfile,
-  TranscribeOutputChunk,
-  Transcript,
+  type ConfigDataGeneral,
+  type ConfigDataProfile,
+  type TranscribeOutputChunk,
+  type Transcript,
 } from "@/types/tauri";
-import AudioIndicator from "@/components/audio-indicator";
 
 const noteQueryOptions = (id: string) => ({
   queryKey: ["note", { id }],
@@ -64,11 +63,18 @@ function Component() {
   const { isPanelOpen } = useUI();
   const [listening, setListening] = useState(false);
 
+  const [transcript, setTranscript] = useState<Transcript>({
+    blocks: [],
+  });
+
   useEffect(() => {
     if (listening) {
       const channel = new Channel<TranscribeOutputChunk>();
       channel.onmessage = (event) => {
-        console.log(event);
+        setTranscript((prev) => ({
+          ...prev,
+          blocks: [...prev.blocks, { text: event.text, start: 0, end: 0 }],
+        }));
       };
       commands.startSession(channel);
     } else {
@@ -79,24 +85,33 @@ function Component() {
   return isPanelOpen ? (
     <ResizablePanelGroup direction="horizontal">
       <ResizablePanel>
-        <LeftPanel listening={listening} setListening={setListening} />
+        <LeftPanel
+          listening={listening}
+          setListening={setListening}
+          transcript={transcript}
+        />
       </ResizablePanel>
       <ResizableHandle withHandle className="w-1 bg-secondary" />
       <ResizablePanel defaultSize={25} minSize={25} maxSize={40}>
-        <RightPanel listening={listening} transcript={t} />
+        <RightPanel listening={listening} transcript={transcript} />
       </ResizablePanel>
     </ResizablePanelGroup>
   ) : (
-    <LeftPanel listening={listening} setListening={setListening} />
+    <LeftPanel
+      listening={listening}
+      setListening={setListening}
+      transcript={transcript}
+    />
   );
 }
 
 interface LeftPanelProps {
   listening: boolean;
   setListening: (listening: boolean) => void;
+  transcript: Transcript;
 }
 
-function LeftPanel({ listening, setListening }: LeftPanelProps) {
+function LeftPanel({ listening, setListening, transcript }: LeftPanelProps) {
   const { session, templates, profile, general } = Route.useLoaderData();
 
   const [showRaw, setShowRaw] = useState(true);
@@ -113,13 +128,11 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
   const enhance = useEnhance({
     template: templates[0],
     editor: session.raw_memo_html,
-    transcript: {
-      blocks: [],
-    },
+    transcript,
     config_general: general ?? {
       autostart: false,
       notifications: false,
-      language: "Ko",
+      language: "En",
       context: "TODO",
     },
     config_profile: profile ?? {
@@ -208,21 +221,6 @@ function LeftPanel({ listening, setListening }: LeftPanelProps) {
     </div>
   );
 }
-
-const t: Transcript = {
-  blocks: [
-    {
-      start: 0,
-      end: 1000,
-      text: "Hello, how are you?",
-    },
-    {
-      start: 1000,
-      end: 2000,
-      text: "I'm fine, thank you!",
-    },
-  ],
-};
 
 interface RightPanelProps {
   listening: boolean;

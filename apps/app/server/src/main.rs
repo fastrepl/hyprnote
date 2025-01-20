@@ -80,8 +80,6 @@ fn main() {
                         let url = turso.db_url(&name);
                         let token = turso.generate_db_token(&name).await.unwrap();
 
-                        println!("token: {}", token);
-
                         hypr_db::ConnectionBuilder::new()
                             .remote(url, token)
                             .connect()

@@ -22,6 +22,7 @@ impl Client {
         let (ws_stream, _) = connect_async(req).await?;
 
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
+        let (done_tx, mut done_rx) = tokio::sync::oneshot::channel();
 
         let _send_task = tokio::spawn(async move {
             let mut audio_stream = audio_stream.resample(16 * 1000).chunks(1024).map(|chunk| {
@@ -42,20 +43,30 @@ impl Client {
                     break;
                 }
             }
+
+            let _ = ws_sender.send(Message::Close(None)).await;
+            let _ = done_tx.send(());
         });
 
         let transcript_stream = async_stream::stream! {
-            while let Some(Ok(msg)) = ws_receiver.next().await {
-                match msg {
-                    Message::Text(data) => {
-                        let output: TranscribeOutputChunk = serde_json::from_str(&data).unwrap();
-                        yield output;
+            loop {
+                tokio::select! {
+                    _ = &mut done_rx => break,
+                    msg = ws_receiver.next() => {
+                        match msg {
+                            Some(Ok(msg)) => {
+                                match msg {
+                                    Message::Text(data) => yield serde_json::from_str::<TranscribeOutputChunk>(&data).unwrap(),
+                                    Message::Binary(_) => {},
+                                    Message::Close(_) => break,
+                                    Message::Ping(_) => {},
+                                    Message::Pong(_) => {},
+                                    Message::Frame(_) => {},
+                                }
+                            }
+                            _ => break,
+                        }
                     }
-                    Message::Binary(_) => {}
-                    Message::Close(_) => break,
-                    Message::Ping(_) => {}
-                    Message::Pong(_) => {}
-                    Message::Frame(_) => {}
                 }
             }
         };

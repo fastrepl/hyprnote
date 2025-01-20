@@ -33,45 +33,58 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
     let mut stt = state.stt.for_language(params.language).await;
 
     // TODO: Use async_stream::try_stream!
-    let input_stream =
-        futures_util::stream::try_unfold(ws_receiver, |mut ws_receiver| async move {
-            match ws_receiver.next().await {
+    let input_stream = Box::pin(futures_util::stream::try_unfold(
+        ws_receiver,
+        |mut ws_receiver| async move {
+            let item: Result<Option<(Bytes, _)>, axum::Error> = match ws_receiver.next().await {
                 Some(Ok(Message::Text(data))) => {
                     let input: TranscribeInputChunk = serde_json::from_str(&data).unwrap();
                     let audio = Bytes::from(input.audio);
-                    Ok::<Option<(Bytes, _)>, axum::Error>(Some((audio, ws_receiver)))
+                    Ok(Some((audio, ws_receiver)))
                 }
-                _ => Ok::<Option<(Bytes, _)>, axum::Error>(Some((Bytes::new(), ws_receiver))),
-            }
-        });
-    let input_stream = Box::pin(input_stream);
+                _ => Ok(Some((Bytes::new(), ws_receiver))),
+            };
 
-    let _handle = tokio::spawn(async move {
+            item
+        },
+    ));
+
+    let task = async {
         match stt.transcribe(input_stream).await {
-            Err(e) => {
-                eprintln!("transcription error: {:?}", e);
-            }
-
+            Err(e) => eprintln!("transcription error: {:?}", e),
             Ok(mut transcript_stream) => {
-                while let Some(result) = transcript_stream.next().await {
-                    match result {
-                        Ok(input) => {
-                            let output = TranscribeOutputChunk { text: input.text };
-                            let msg = Message::Text(serde_json::to_string(&output).unwrap());
-                            if let Err(e) = ws_sender.send(msg).await {
-                                eprintln!("websocket send error: {:?}", e);
-                                break;
+                let mut last_activity = tokio::time::Instant::now();
+
+                loop {
+                    tokio::select! {
+                        item = transcript_stream.next() => {
+                            match item {
+                                Some(Ok(result)) => {
+                                    last_activity = tokio::time::Instant::now();
+
+                                    let output = TranscribeOutputChunk { text: result.text };
+                                    let msg = Message::Text(serde_json::to_string(&output).unwrap());
+
+                                    if let Err(e) = ws_sender.send(msg).await {
+                                        eprintln!("websocket send error: {:?}", e);
+                                    }
+                                }
+                                _ => continue,
                             }
                         }
-                        Err(e) => {
-                            eprintln!("transcription error: {:?}", e);
-                            break;
+
+                        _ = tokio::time::sleep(tokio::time::Duration::from_millis(500)) => {
+                            if last_activity.elapsed() >= tokio::time::Duration::from_secs(5) {
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
-    });
+    };
+
+    task.await;
 }
 
 #[cfg(test)]

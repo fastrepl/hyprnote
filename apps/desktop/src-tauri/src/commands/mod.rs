@@ -1,11 +1,6 @@
 pub mod db;
 
-use crate::{
-    audio,
-    session::SessionState,
-    windows::ShowHyprWindow,
-    App,
-};
+use crate::{audio, session::SessionState, windows::ShowHyprWindow, App};
 use anyhow::Result;
 use futures_util::StreamExt;
 use std::path::PathBuf;

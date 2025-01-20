@@ -7,21 +7,20 @@ edition = "2021"
 hypr-clova = { path = "../clova", package = "clova" }
 
 anyhow = { workspace = true }
-thiserror = { workspace = true }
-
 bytes = { workspace = true }
 codes-iso-639 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+thiserror = { workspace = true }
 
-async-trait = "0.1.85"
 deepgram = { version = "0.6.4", features = ["listen"] }
 futures-core = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true }
 
 [dev-dependencies]
-hound = { workspace = true }
 hypr-audio = { path = "../audio", package = "audio" }
+
+hound = { workspace = true }
 kalosm-sound = { version = "0.3.5", default-features = false }
 serial_test = { workspace = true }

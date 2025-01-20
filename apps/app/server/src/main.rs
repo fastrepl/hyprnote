@@ -59,10 +59,10 @@ fn main() {
         .build()
         .unwrap()
         .block_on(async {
-            let stt = hypr_stt::realtime::Client::new(hypr_stt::realtime::Config {
-                deepgram_api_key: get_env("DEEPGRAM_API_KEY"),
-                clova_api_key: get_env("CLOVA_API_KEY"),
-            });
+            let stt = hypr_stt::realtime::Client::builder()
+                .deepgram_api_key(get_env("DEEPGRAM_API_KEY"))
+                .clova_api_key(get_env("CLOVA_API_KEY"))
+                .build();
 
             let admin_db = {
                 let conn = {

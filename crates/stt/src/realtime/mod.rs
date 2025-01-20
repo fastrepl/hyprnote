@@ -3,16 +3,14 @@ use bytes::Bytes;
 use futures_core::{Future, Stream};
 use std::error::Error;
 
-use hypr_clova::interface::KeywordBoosting;
-
 #[cfg(debug_assertions)]
 mod mock;
 
 mod clova;
-pub use clova::{ClovaClient, ClovaConfig};
+pub use clova::ClovaClient;
 
 mod deep;
-pub use deep::{DeepgramClient, DeepgramConfig};
+pub use deep::DeepgramClient;
 
 #[allow(dead_code)]
 pub trait RealtimeSpeechToText<S, E> {
@@ -32,20 +30,40 @@ pub struct StreamResponse {
     pub end: f64,
 }
 
-#[derive(Debug, Clone)]
-pub struct Client {
-    config: Config,
+#[derive(Debug, Default)]
+pub struct ClientBuilder {
+    pub deepgram_api_key: Option<String>,
+    pub clova_api_key: Option<String>,
+}
+
+impl ClientBuilder {
+    pub fn deepgram_api_key(mut self, api_key: impl Into<String>) -> Self {
+        self.deepgram_api_key = Some(api_key.into());
+        self
+    }
+
+    pub fn clova_api_key(mut self, api_key: impl Into<String>) -> Self {
+        self.clova_api_key = Some(api_key.into());
+        self
+    }
+
+    pub fn build(self) -> Client {
+        Client {
+            deepgram_api_key: self.deepgram_api_key.unwrap(),
+            clova_api_key: self.clova_api_key.unwrap(),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
-pub struct Config {
+pub struct Client {
     pub deepgram_api_key: String,
     pub clova_api_key: String,
 }
 
 impl Client {
-    pub fn new(config: Config) -> Self {
-        Self { config }
+    pub fn builder() -> ClientBuilder {
+        ClientBuilder::default()
     }
 
     #[cfg(debug_assertions)]
@@ -53,27 +71,31 @@ impl Client {
         mock::MockClient::new()
     }
 
-    pub async fn for_korean(&self) -> ClovaClient {
-        let config = ClovaConfig {
-            secret_key: self.config.clova_api_key.clone(),
-            config: clova::clova::ConfigRequest {
-                transcription: clova::clova::Transcription {
-                    language: clova::clova::Language::Korean,
-                },
-                keyword_boosting: vec![KeywordBoosting {
-                    words: "하이퍼노트".to_string(),
-                    boost: 1.0,
-                }],
-            },
-        };
-        ClovaClient::new(config).await.unwrap()
-    }
+    pub async fn for_language(
+        &self,
+        language: codes_iso_639::part_1::LanguageCode,
+    ) -> DeepgramClient {
+        match language {
+            // codes_iso_639::part_1::LanguageCode::Ko => {
+            //     let clova = ClovaClient::builder()
+            //         .api_key(&self.clova_api_key)
+            //         .keywords(vec!["하이퍼노트".to_string()])
+            //         .build()
+            //         .await
+            //         .unwrap();
+            //     MultiClient::Clova(clova)
+            // }
+            codes_iso_639::part_1::LanguageCode::En => {
+                let deepgram = DeepgramClient::builder()
+                    .api_key(&self.deepgram_api_key)
+                    .keywords(vec!["Hyprnote".to_string()])
+                    .language(language)
+                    .build();
 
-    pub fn for_english(&self) -> DeepgramClient {
-        let config = DeepgramConfig {
-            api_key: self.config.deepgram_api_key.clone(),
-        };
-        DeepgramClient::new(config)
+                deepgram
+            }
+            _ => panic!("Unsupported language: {:?}", language),
+        }
     }
 }
 
@@ -139,10 +161,10 @@ mod tests {
     async fn test_deepgram() {
         let audio_stream = microphone_as_stream();
 
-        let config = DeepgramConfig {
-            api_key: std::env::var("DEEPGRAM_API_KEY").unwrap(),
-        };
-        let mut client = DeepgramClient::new(config);
+        let mut client = DeepgramClient::builder()
+            .api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
+            .language(codes_iso_639::part_1::LanguageCode::En)
+            .build();
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
         while let Some(result) = transcript_stream.next().await {
@@ -157,17 +179,13 @@ mod tests {
     async fn test_clova() {
         let audio_stream = microphone_as_stream();
 
-        let config = ClovaConfig {
-            secret_key: std::env::var("CLOVA_API_KEY").unwrap(),
-            config: clova::clova::ConfigRequest {
-                transcription: clova::clova::Transcription {
-                    language: clova::clova::Language::Korean,
-                },
-                keyword_boosting: vec![],
-            },
-        };
+        let mut client = ClovaClient::builder()
+            .api_key(std::env::var("CLOVA_API_KEY").unwrap())
+            .keywords(vec!["Hyprnote".to_string()])
+            .build()
+            .await
+            .unwrap();
 
-        let mut client = ClovaClient::new(config).await.unwrap();
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
         while let Some(result) = transcript_stream.next().await {

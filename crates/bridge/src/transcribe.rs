@@ -5,7 +5,7 @@ use futures_util::{SinkExt, Stream, StreamExt};
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
-use bytes::{BufMut, Bytes};
+use bytes::BufMut;
 use kalosm_sound::AsyncSource;
 
 use crate::{Client, TranscribeInputChunk, TranscribeOutputChunk};

@@ -2,6 +2,7 @@ pub mod enhance;
 pub mod transcribe;
 pub mod types;
 
+use serde::Serialize;
 use tokio_tungstenite::tungstenite::{client::ClientRequestBuilder, http::uri};
 pub use types::*;
 
@@ -61,8 +62,13 @@ impl ClientBuilder {
     }
 
     fn ws_url(&self, url: &url::Url) -> anyhow::Result<uri::Uri> {
+        let en = codes_iso_639::part_1::LanguageCode::En;
+        let language = en.code();
+        let language = language.chars().next().unwrap().to_uppercase().to_string() + &language[1..];
+
         let mut url = url.clone();
         url.set_path("/api/native/transcribe");
+        url.query_pairs_mut().append_pair("language", &language);
 
         if cfg!(debug_assertions) {
             url.set_scheme("ws").unwrap();
@@ -72,7 +78,7 @@ impl ClientBuilder {
             }
         } else {
             url.set_scheme("wss").unwrap();
-            url.set_host(Some("api.hyprnote.com")).unwrap();
+            url.set_host(Some("app.hyprnote.com")).unwrap();
         }
 
         let uri = url.to_string().parse()?;

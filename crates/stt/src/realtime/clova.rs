@@ -6,7 +6,7 @@ use std::error::Error;
 
 use super::{RealtimeSpeechToText, StreamResponse};
 
-pub use hypr_clova::{interface as clova, Client as ClovaClient, Config as ClovaConfig};
+pub use hypr_clova::{interface as clova, Client as ClovaClient};
 
 impl<S, E> RealtimeSpeechToText<S, E> for ClovaClient {
     async fn transcribe(&mut self, audio: S) -> Result<impl Stream<Item = Result<StreamResponse>>>

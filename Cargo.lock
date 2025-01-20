@@ -301,6 +301,7 @@ dependencies = [
  "calendar",
  "chrono",
  "clerk-rs",
+ "codes-iso-639",
  "db",
  "dotenv",
  "futures-core",
@@ -1666,6 +1667,7 @@ dependencies = [
  "async-stream",
  "audio 0.1.0",
  "bytes",
+ "codes-iso-639",
  "db",
  "futures-channel",
  "futures-util",
@@ -10281,7 +10283,6 @@ name = "stt"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "async-trait",
  "audio 0.1.0",
  "bytes",
  "clova",

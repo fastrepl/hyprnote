@@ -3,7 +3,7 @@
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
-        State,
+        Query, State,
     },
     response::IntoResponse,
 };
@@ -12,18 +12,27 @@ use futures_util::{SinkExt, StreamExt};
 
 use crate::state::STTState;
 use hypr_bridge::{TranscribeInputChunk, TranscribeOutputChunk};
-use hypr_stt::realtime::{RealtimeSpeechToText, StreamResponse};
+use hypr_stt::realtime::RealtimeSpeechToText;
 
-pub async fn handler(ws: WebSocketUpgrade, State(state): State<STTState>) -> impl IntoResponse {
-    ws.on_upgrade(|socket| websocket(socket, state))
+#[derive(Debug, serde::Deserialize)]
+pub struct Params {
+    language: codes_iso_639::part_1::LanguageCode,
 }
 
-async fn websocket(socket: WebSocket, state: STTState) {
+pub async fn handler(
+    Query(params): Query<Params>,
+    ws: WebSocketUpgrade,
+    State(state): State<STTState>,
+) -> impl IntoResponse {
+    ws.on_upgrade(|socket| websocket(socket, state, params))
+}
+
+async fn websocket(socket: WebSocket, state: STTState, params: Params) {
     let (mut ws_sender, ws_receiver) = socket.split();
 
-    let mut stt = state.stt.for_english();
+    let mut stt = state.stt.for_language(params.language).await;
 
-    // TODO: use async_stream::try_stream!
+    // TODO: Use async_stream::try_stream!
     let input_stream =
         futures_util::stream::try_unfold(ws_receiver, |mut ws_receiver| async move {
             match ws_receiver.next().await {
@@ -37,7 +46,7 @@ async fn websocket(socket: WebSocket, state: STTState) {
         });
     let input_stream = Box::pin(input_stream);
 
-    tokio::spawn(async move {
+    let _handle = tokio::spawn(async move {
         match stt.transcribe(input_stream).await {
             Err(e) => {
                 eprintln!("transcription error: {:?}", e);
@@ -77,10 +86,10 @@ mod tests {
         axum::Router::new()
             .route("/api/native/transcribe", axum::routing::get(handler))
             .with_state(STTState {
-                stt: hypr_stt::realtime::Client::new(hypr_stt::realtime::Config {
-                    deepgram_api_key: "".to_string(),
-                    clova_api_key: "".to_string(),
-                }),
+                stt: hypr_stt::realtime::Client::builder()
+                    .deepgram_api_key("".to_string())
+                    .clova_api_key("".to_string())
+                    .build(),
             })
     }
 

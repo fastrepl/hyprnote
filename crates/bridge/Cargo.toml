@@ -10,13 +10,13 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 
 bytes = { workspace = true }
+codes-iso-639 = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_bytes = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true, features = ["derive"] }
 url = { workspace = true }
-codes-iso-639 = { workspace = true }
 
 async-stream = { workspace = true }
 futures-util = { workspace = true }

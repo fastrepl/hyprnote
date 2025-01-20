@@ -10,10 +10,10 @@ tasks:
 
   app:dev:
     cmds:
-      - docker-compose -f crates/s3/docker-compose.yaml up -d
-      - cmd: cargo watch -x 'run -p app' -i **/types/**
+      - docker-compose up -d minio createbuckets
+      - cmd: bacon app
         ignore_error: true
-      - docker-compose -f crates/s3/docker-compose.yaml down
+      - docker-compose down
   app:env:
     cmds:
       - |

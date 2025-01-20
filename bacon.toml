@@ -1,0 +1,18 @@
+# https://dystroy.org/bacon/config/
+# https://github.com/Canop/bacon/blob/main/defaults/default-bacon.toml
+
+[jobs.app]
+command = [
+  "cargo",
+  "run",
+  "-p",
+  "app",
+]
+need_stdout = true
+allow_warnings = true
+background = false
+on_change_strategy = "kill_then_restart"
+default_watch = false
+watch = [
+  "apps/app/server",
+]

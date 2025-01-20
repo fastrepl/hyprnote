@@ -97,11 +97,6 @@ fn main() {
                 .api_key(get_env("NANGO_API_KEY"))
                 .build();
 
-            let lago = hypr_lago::LagoClient::builder()
-                .api_base(get_env("LAGO_API_BASE"))
-                .api_key(get_env("LAGO_API_KEY"))
-                .build();
-
             let analytics = hypr_analytics::AnalyticsClient::new(get_env("POSTHOG_API_KEY"));
 
             let s3 = hypr_s3::Client::builder()
@@ -123,7 +118,6 @@ fn main() {
                 admin_db,
                 nango,
                 analytics,
-                lago,
                 s3,
                 openai,
             };
@@ -153,7 +147,6 @@ fn main() {
                         .layer(TimeoutLayer::new(Duration::from_secs(20))),
                 )
                 .route("/transcribe", get(native::transcribe::handler))
-                .route("/user/checkout", get(native::user::checkout_url))
                 .route("/user/integrations", get(native::user::list_integrations))
                 .route("/upload/create", post(native::upload::create_upload))
                 .route("/upload/complete", post(native::upload::complete_upload));
@@ -170,13 +163,7 @@ fn main() {
             //         .layer(axum::middleware::from_fn(middleware::attach_user_db)),
             // );
 
-            let webhook_router = Router::new()
-                .route("/nango", post(webhook::nango::handler))
-                .route(
-                    "/lago",
-                    post(webhook::lago::handler)
-                        .layer(axum::middleware::from_fn(middleware::verify_lago)),
-                );
+            let webhook_router = Router::new().route("/nango", post(webhook::nango::handler));
 
             let router = Router::new()
                 .route("/health", get(|| async { (StatusCode::OK, "OK") }))
@@ -219,8 +206,6 @@ fn export_ts_types() -> anyhow::Result<()> {
     web_collection.register::<web::integration::CreateSessionOutput>();
     web_collection.register::<hypr_nango::NangoIntegration>();
 
-    native_collection.register::<hypr_lago::customer::regenerate_checkout_url::Request>();
-    native_collection.register::<hypr_lago::customer::regenerate_checkout_url::Response>();
     native_collection.register::<hypr_nango::NangoIntegration>();
     native_collection.register::<hypr_bridge::EnhanceRequest>();
 

@@ -5,10 +5,7 @@ use axum::{
     response::Response,
     Extension,
 };
-
 use clerk_rs::validators::authorizer::ClerkJwt;
-use hmac::{Hmac, Mac};
-use sha2::Sha256;
 
 use crate::{
     get_env,
@@ -95,50 +92,5 @@ pub async fn send_analytics(
 
     let _ = state.analytics.event(payload).await;
 
-    Ok(next.run(req).await)
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct LagoWebhookPayload {
-    pub webhook_type: String,
-    pub object_type: String,
-    #[serde(flatten)]
-    pub object: serde_json::Value,
-}
-
-// https://github.com/tokio-rs/axum/blob/28c6be7/examples/consume-body-in-extractor-or-middleware/src/main.rs#L1
-pub async fn verify_lago(req: Request, next: middleware::Next) -> Result<Response, StatusCode> {
-    let (parts, body) = req.into_parts();
-    let headers = parts.headers.clone();
-
-    let signature = headers
-        .get(hypr_lago::LAGO_HEADER_WEBHOOK_SIGNATURE)
-        .ok_or(StatusCode::BAD_REQUEST)?
-        .to_str()
-        .map_err(|_| StatusCode::BAD_REQUEST)?;
-
-    let algorithm = headers
-        .get(hypr_lago::LAGO_HEADER_WEBHOOK_ALGORITHM)
-        .ok_or(StatusCode::BAD_REQUEST)?
-        .to_str()
-        .map_err(|_| StatusCode::BAD_REQUEST)?;
-
-    if algorithm != "hmac" {
-        return Err(StatusCode::BAD_REQUEST);
-    }
-
-    let bytes = axum::body::to_bytes(body, usize::MAX)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    let secret = std::env::var("LAGO_WEBHOOK_SECRET").unwrap();
-    let mut mac: Hmac<Sha256> = Hmac::new_from_slice(secret.as_bytes()).unwrap();
-    mac.update(&bytes);
-    mac.verify_slice(&hex::decode(signature).unwrap()).unwrap();
-
-    let payload: LagoWebhookPayload = serde_json::from_slice(&bytes).unwrap();
-    let mut req = axum::extract::Request::from_parts(parts, axum::body::Body::from(bytes));
-
-    req.extensions_mut().insert(payload);
     Ok(next.run(req).await)
 }

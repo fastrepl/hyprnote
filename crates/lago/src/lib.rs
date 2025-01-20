@@ -9,6 +9,7 @@ pub struct LagoClient {
     client: reqwest::Client,
 }
 
+#[derive(Debug, Default)]
 pub struct LagoClientBuilder {
     api_base: Option<String>,
     api_key: Option<String>,
@@ -16,17 +17,10 @@ pub struct LagoClientBuilder {
 
 impl LagoClient {
     pub fn builder() -> LagoClientBuilder {
-        LagoClientBuilder::new()
+        LagoClientBuilder::default()
     }
 }
 impl LagoClientBuilder {
-    pub fn new() -> Self {
-        LagoClientBuilder {
-            api_base: None,
-            api_key: None,
-        }
-    }
-
     pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
         self.api_base = Some(api_base.into());
         self

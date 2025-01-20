@@ -12,7 +12,6 @@ hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar", features = ["google", "outlook"] }
 hypr-db = { path = "../../../crates/db", package = "db", features = ["admin", "user"] }
 hypr-html = { path = "../../../crates/html", package = "html" }
-hypr-lago = { path = "../../../crates/lago", package = "lago" }
 hypr-nango = { path = "../../../crates/nango", package = "nango" }
 hypr-openai = { path = "../../../crates/openai", package = "openai" }
 hypr-prompt = { path = "../../../crates/prompt", package = "prompt" }
@@ -43,10 +42,6 @@ serde_json = { workspace = true }
 time = { workspace = true }
 url = { workspace = true }
 uuid = { workspace = true }
-
-hex = "0.4.3"
-hmac = "0.12.1"
-sha2 = "0.10.8"
 
 specta = { workspace = true }
 specta-typescript = { workspace = true }

@@ -1,10 +1,8 @@
 fn main() {
     #[cfg(debug_assertions)]
     {
-        println!("cargo:rerun-if-changed=../src/");
-
         dotenv::from_filename(".env.local").ok();
-        let vars = std::env::vars();
+        let vars = std::env::vars().filter(|(k, _)| k.starts_with("VITE_"));
 
         let status = std::process::Command::new("pnpm")
             .args(["-F", "app", "build"])

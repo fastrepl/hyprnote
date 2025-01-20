@@ -3,7 +3,6 @@ use axum::extract::FromRef;
 use clerk_rs::clerk::Clerk;
 use hypr_analytics::AnalyticsClient;
 use hypr_db::admin::AdminDatabase;
-use hypr_lago::LagoClient;
 use hypr_nango::NangoClient;
 use hypr_openai::OpenAIClient;
 use hypr_s3::Client as S3Client;
@@ -19,14 +18,12 @@ pub struct AppState {
     pub analytics: AnalyticsClient,
     pub turso: TursoClient,
     pub nango: NangoClient,
-    pub lago: LagoClient,
     pub s3: S3Client,
 }
 
 #[derive(Clone)]
 pub struct WorkerState {
     pub clerk: Clerk,
-    pub lago: LagoClient,
     pub turso: TursoClient,
     pub nango: NangoClient,
     pub admin_db: AdminDatabase,
@@ -79,7 +76,6 @@ impl FromRef<AppState> for WorkerState {
     fn from_ref(s: &AppState) -> WorkerState {
         WorkerState {
             clerk: s.clerk.clone(),
-            lago: s.lago.clone(),
             turso: s.turso.clone(),
             nango: s.nango.clone(),
             admin_db: s.admin_db.clone(),

@@ -1,6 +1,11 @@
 pub mod db;
 
-use crate::{audio, session, windows::ShowHyprWindow, App};
+use crate::{
+    audio,
+    session::SessionState,
+    windows::ShowHyprWindow,
+    App,
+};
 use anyhow::Result;
 use futures_util::StreamExt;
 use std::path::PathBuf;
@@ -33,12 +38,25 @@ pub fn list_builtin_templates() -> Vec<hypr_db::user::Template> {
 #[tauri::command]
 #[specta::specta]
 pub async fn start_session<'a>(
-    app: State<'a, App>,
+    session: State<'_, tokio::sync::Mutex<SessionState>>,
     on_event: Channel<hypr_bridge::TranscribeOutputChunk>,
 ) -> Result<(), String> {
-    let bridge = app.bridge.clone();
-    let mut s = session::SessionState::new(bridge).unwrap();
-    s.start(on_event).await;
+    {
+        let mut s = session.lock().await;
+        s.start(on_event).await;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn stop_session(
+    session: State<'_, tokio::sync::Mutex<SessionState>>,
+) -> Result<(), String> {
+    {
+        let mut s = session.lock().await;
+        s.stop().await;
+    }
     Ok(())
 }
 
@@ -114,11 +132,4 @@ fn recordings_path(app: &AppHandle) -> PathBuf {
 
 fn recording_path(app: &AppHandle, recording_id: &str) -> PathBuf {
     recordings_path(app).join(format!("{}.cap", recording_id))
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn stop_session(app: AppHandle) -> Result<(), String> {
-    // Implementation to stop the session...
-    Ok(())
 }

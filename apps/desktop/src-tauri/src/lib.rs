@@ -19,8 +19,6 @@ pub struct App {
     bridge: hypr_bridge::Client,
 }
 
-pub struct SessionState {}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let specta_builder = tauri_specta::Builder::new()
@@ -28,6 +26,7 @@ pub fn run() {
             commands::get_env,
             commands::get_fingerprint,
             commands::start_session,
+            commands::stop_session,
             commands::start_playback,
             commands::stop_playback,
             commands::show_window,
@@ -218,10 +217,12 @@ pub fn run() {
             app.manage(App {
                 handle: app.clone(),
                 db,
-                bridge,
+                bridge: bridge.clone(),
             });
 
-            app.manage(tokio::sync::Mutex::new(SessionState {}));
+            app.manage(tokio::sync::Mutex::new(
+                session::SessionState::new(bridge).unwrap(),
+            ));
 
             Ok(())
         })

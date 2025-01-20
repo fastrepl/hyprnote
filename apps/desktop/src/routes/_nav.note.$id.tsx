@@ -71,6 +71,8 @@ function Component() {
         console.log(event);
       };
       commands.startSession(channel);
+    } else {
+      commands.stopSession();
     }
   }, [listening]);
 

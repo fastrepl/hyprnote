@@ -16,6 +16,9 @@ export const commands = {
   ): Promise<null> {
     return await TAURI_INVOKE("start_session", { onEvent });
   },
+  async stopSession(): Promise<null> {
+    return await TAURI_INVOKE("stop_session");
+  },
   async startPlayback(audioId: string): Promise<void> {
     await TAURI_INVOKE("start_playback", { audioId });
   },

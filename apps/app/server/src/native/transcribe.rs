@@ -23,22 +23,7 @@ async fn websocket(socket: WebSocket, state: STTState) {
 
     let mut stt = state.stt.for_english();
 
-    // let input_stream = async_stream::try_stream! {
-    //     while let Some(Ok(msg)) = ws_receiver.next().await {
-    //         match msg {
-    //             Message::Text(data) => {
-    //                 let input: TranscribeInputChunk = serde_json::from_str(&data)?;
-    //                 let audio = Bytes::from(input.audio);
-    //                 yield audio;
-    //             }
-    //             Message::Binary(_) => {}
-    //             Message::Close(_) => break,
-    //             Message::Ping(_) => {}
-    //             Message::Pong(_) => {}
-    //         }
-    //     }
-    // };
-
+    // TODO: use async_stream::try_stream!
     let input_stream =
         futures_util::stream::try_unfold(ws_receiver, |mut ws_receiver| async move {
             match ws_receiver.next().await {

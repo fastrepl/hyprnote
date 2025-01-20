@@ -80,6 +80,11 @@ impl TryFrom<DeepgramStreamResponse> for StreamResponse {
         match response {
             DeepgramStreamResponse::TranscriptResponse { channel, .. } => {
                 let data = channel.alternatives.first().unwrap();
+
+                if data.words.is_empty() {
+                    return Err(anyhow::anyhow!("empty response"));
+                }
+
                 let text = data.transcript.clone();
                 let start = data.words.first().unwrap().start;
                 let end = data.words.last().unwrap().end;

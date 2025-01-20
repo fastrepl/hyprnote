@@ -22,5 +22,6 @@ tokio = { workspace = true }
 
 [dev-dependencies]
 hound = { workspace = true }
+hypr-audio = { path = "../audio", package = "audio" }
 kalosm-sound = { version = "0.3.5", default-features = false }
 serial_test = { workspace = true }

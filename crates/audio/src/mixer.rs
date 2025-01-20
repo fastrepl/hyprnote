@@ -40,9 +40,6 @@ where
         let s1_sample = s1.poll_next(cx);
         let s2_sample = s2.poll_next(cx);
 
-        println!("s1_sample: {:?}", s1_sample);
-        println!("s2_sample: {:?}", s2_sample);
-
         match (s1_sample, s2_sample) {
             (Poll::Ready(Some(v1)), Poll::Ready(Some(v2))) => Poll::Ready(Some(v1 + v2)),
             (Poll::Ready(Some(v1)), _) => Poll::Ready(Some(v1)),
@@ -88,7 +85,7 @@ mod tests {
     // cargo test test_mixer -p audio -- --nocapture
     #[tokio::test]
     async fn test_mixer() {
-        let _handle = play_sine_for_sec(1);
+        // let _handle = play_sine_for_sec(1);
 
         let mic = MicInput::default().stream().unwrap();
         let speaker = SpeakerInput::new().unwrap().stream().unwrap();
@@ -104,11 +101,8 @@ mod tests {
         )
         .await;
 
-        // Make sure we got some data
         assert!(result.is_ok());
-        println!("result: {:?}", result);
         let chunks = result.unwrap();
         assert!(!chunks.is_empty());
-        println!("Collected {} chunks of audio data", chunks.len());
     }
 }

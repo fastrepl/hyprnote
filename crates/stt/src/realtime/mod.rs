@@ -1,6 +1,6 @@
 use anyhow::Result;
 use bytes::Bytes;
-use futures_core::{Future,Stream};
+use futures_core::{Future, Stream};
 use std::error::Error;
 
 use hypr_clova::interface::KeywordBoosting;
@@ -89,10 +89,25 @@ mod tests {
 
     fn microphone_as_stream(
     ) -> impl Stream<Item = Result<Bytes, std::io::Error>> + Send + Unpin + 'static {
-        let mic_input = kalosm_sound::MicInput::default();
-        let mic_stream = mic_input.stream().unwrap().resample(16 * 1000).chunks(128);
+        let source = hypr_audio::MicInput::default();
+        let stream = source.stream().unwrap().resample(16 * 1000).chunks(128);
 
-        mic_stream.map(|chunk| {
+        stream.map(|chunk| {
+            let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
+            for sample in chunk {
+                let scaled = (sample * 32767.0).clamp(-32768.0, 32767.0);
+                buf.put_i16_le(scaled as i16);
+            }
+            Ok(buf.freeze())
+        })
+    }
+
+    fn system_audio_as_stream(
+    ) -> impl Stream<Item = Result<Bytes, std::io::Error>> + Send + Unpin + 'static {
+        let source = hypr_audio::SpeakerInput::new().unwrap();
+        let stream = source.stream().unwrap().resample(16 * 1000).chunks(128);
+
+        stream.map(|chunk| {
             let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
             for sample in chunk {
                 let scaled = (sample * 32767.0).clamp(-32768.0, 32767.0);
@@ -113,7 +128,7 @@ mod tests {
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
         while let Some(result) = transcript_stream.next().await {
-            println!("mock: {:?}", result.unwrap());
+            println!("mock: {:?}", result);
         }
     }
 
@@ -131,7 +146,7 @@ mod tests {
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
         while let Some(result) = transcript_stream.next().await {
-            println!("deepgram: {:?}", result.unwrap());
+            println!("deepgram: {:?}", result);
         }
     }
 
@@ -156,7 +171,7 @@ mod tests {
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
         while let Some(result) = transcript_stream.next().await {
-            println!("clova: {:?}", result.unwrap());
+            println!("clova: {:?}", result);
         }
     }
 }

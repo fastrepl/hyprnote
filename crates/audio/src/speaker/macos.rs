@@ -14,8 +14,8 @@ pub struct SpeakerInput {
 
 #[cfg(target_os = "macos")]
 pub struct SpeakerStream {
-    read_data: Vec<f32>,
     receiver: std::pin::Pin<Box<dyn futures_core::Stream<Item = f32> + Send + Sync>>,
+    #[allow(unused)]
     device: ca::hardware::StartedDevice<ca::AggregateDevice>,
     _ctx: Box<Ctx>,
     stream_desc: cat::AudioBasicStreamDesc,
@@ -124,7 +124,6 @@ impl SpeakerInput {
 
         SpeakerStream {
             receiver: Box::pin(receiver),
-            read_data: Vec::new(),
             device,
             _ctx: ctx,
             stream_desc: asbd,
@@ -140,10 +139,7 @@ impl futures_core::Stream for SpeakerStream {
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
         match self.receiver.as_mut().poll_next_unpin(cx) {
-            std::task::Poll::Ready(Some(data_chunk)) => {
-                self.read_data.push(data_chunk);
-                std::task::Poll::Ready(Some(data_chunk))
-            }
+            std::task::Poll::Ready(Some(chunk)) => std::task::Poll::Ready(Some(chunk)),
             std::task::Poll::Ready(None) => std::task::Poll::Ready(None),
             std::task::Poll::Pending => std::task::Poll::Pending,
         }

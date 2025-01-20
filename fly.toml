@@ -10,7 +10,7 @@ primary_region = 'sjc'
 dockerfile = 'Dockerfile'
 
 [build.args]
-VITE_CLERK_PUBLISHABLE_KEY = "pk_test_Zml0LWtvZGlhay0xNi5jbGVyay5hY2NvdW50cy5kZXYk"
+VITE_CLERK_PUBLISHABLE_KEY = "pk_test_aW5jbHVkZWQtbW9uc3Rlci03MS5jbGVyay5hY2NvdW50cy5kZXYk"
 
 [env]
 PORT = '8080'

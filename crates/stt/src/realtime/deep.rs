@@ -113,8 +113,13 @@ impl TryFrom<DeepgramStreamResponse> for StreamResponse {
             DeepgramStreamResponse::TranscriptResponse { channel, .. } => {
                 let data = channel.alternatives.first().unwrap();
 
+                // TODO: returning Err here break something
                 if data.words.is_empty() {
-                    return Err(anyhow::anyhow!("empty response"));
+                    return Ok(StreamResponse {
+                        text: "".to_string(),
+                        start: 0.0,
+                        end: 0.0,
+                    });
                 }
 
                 let text = data.transcript.clone();

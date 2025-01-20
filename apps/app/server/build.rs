@@ -2,16 +2,20 @@ fn main() {
     #[cfg(debug_assertions)]
     {
         dotenv::from_filename(".env.local").ok();
-        let vars = std::env::vars().filter(|(k, _)| k.starts_with("VITE_"));
 
-        let status = std::process::Command::new("pnpm")
-            .args(["-F", "app", "build"])
-            .envs(vars)
+        let exec = "pnpm";
+        let args = ["-F", "app", "build"];
+        let envs = std::env::vars().filter(|(k, _)| k.starts_with("VITE_"));
+
+        let status = std::process::Command::new(exec)
+            .args(args)
+            .envs(envs)
             .status()
             .unwrap();
 
         if !status.success() {
-            panic!("'pnpm -F app build' command failed");
+            panic!("{exec} {args:?} failed");
         }
     }
 }
+

@@ -28,7 +28,7 @@ use clerk_rs::{
     ClerkConfiguration,
 };
 
-use state::{AnalyticsState, AuthState, WorkerState};
+use state::{AuthState, WorkerState};
 
 fn main() {
     #[cfg(debug_assertions)]
@@ -165,19 +165,22 @@ fn main() {
 
             let webhook_router = Router::new().route("/nango", post(webhook::nango::handler));
 
-            let router = Router::new()
+            let mut router = Router::new()
                 .route("/health", get(|| async { (StatusCode::OK, "OK") }))
                 .nest("/api/native", native_router)
                 .nest("/api/web", web_router)
                 .nest("/webhook", webhook_router)
-                .fallback_service({
+                .with_state(state.clone());
+
+            {
+                router = router.fallback_service({
                     let static_dir: std::path::PathBuf = get_env("APP_STATIC_DIR").into();
 
                     ServeDir::new(&static_dir)
                         .append_index_html_on_directories(false)
                         .fallback(ServeFile::new(static_dir.join("index.html")))
-                })
-                .with_state(state.clone());
+                });
+            }
 
             let port = std::env::var("PORT").unwrap_or("1234".to_string());
             let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port))

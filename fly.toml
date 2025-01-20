@@ -9,6 +9,9 @@ primary_region = 'sjc'
 [build]
 dockerfile = 'Dockerfile'
 
+[build.args]
+VITE_CLERK_PUBLISHABLE_KEY = "pk_test_Zml0LWtvZGlhay0xNi5jbGVyay5hY2NvdW50cy5kZXYk"
+
 [env]
 PORT = '8080'
 

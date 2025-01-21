@@ -12,7 +12,8 @@ import {
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
 
-import Editor from "@/components/editor";
+import Editor from "@hypr/tiptap/editor";
+
 import ParticipantsSelector from "@/components/participants-selector";
 import SelectedEvent from "@/components/selected-event";
 import AudioIndicator from "@/components/audio-indicator";

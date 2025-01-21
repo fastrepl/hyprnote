@@ -1,0 +1,29 @@
+{
+  "name": "@hypr/tiptap",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./editor": "./src/editor/index.tsx",
+    "./editor/tailwind.config": "./src/editor/tailwind.config.ts"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "dependencies": {
+    "@remixicon/react": "^4.6.0",
+    "@tiptap/core": "^2.11.0",
+    "@tiptap/extension-highlight": "^2.11.0",
+    "@tiptap/extension-placeholder": "^2.11.0",
+    "@tiptap/extension-typography": "^2.11.0",
+    "@tiptap/pm": "^2.11.0",
+    "@tiptap/react": "^2.11.0",
+    "@tiptap/starter-kit": "^2.11.0",
+    "@tiptap/suggestion": "^2.11.0",
+    "clsx": "^2.1.1"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

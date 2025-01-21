@@ -10,13 +10,12 @@ import StarterKit from "@tiptap/starter-kit";
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
 import Placeholder from "@tiptap/extension-placeholder";
+import clsx from "clsx";
+
 import { HTML_ID } from "./extensions";
 import { HyprchargeNode } from "./nodes";
 
-import clsx from "clsx";
-import "../../styles/tiptap.css";
 
-import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
 
 export const extensions = [
   StarterKit,
@@ -73,11 +72,10 @@ export default function Editor({ handleChange, content }: EditorProps) {
   }, [content]);
 
   return (
-    <ScrollArea
+    <div
       onClick={() => {
         editor?.commands.focus("end");
       }}
-      type="auto"
       className="h-[calc(100vh-240px)]"
     >
       <div
@@ -87,6 +85,6 @@ export default function Editor({ handleChange, content }: EditorProps) {
       >
         <EditorContent className="h-full w-full" editor={editor} />
       </div>
-    </ScrollArea>
+    </div>
   );
 }

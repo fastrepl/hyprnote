@@ -26,6 +26,7 @@
   "dependencies": {
     "@clerk/clerk-react": "^5.21.0",
     "@hypr/ui": "workspace:*",
+    "@hypr/tiptap": "workspace:*",
     "@nangohq/frontend": "^0.48.1",
     "@sentry/react": "^8.48.0",
     "@tanstack/react-query": "^5.62.14",

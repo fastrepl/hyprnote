@@ -26,12 +26,9 @@ export default defineConfig(async () => ({
   ...tauri,
 }));
 
+// https://v2.tauri.app/start/frontend/vite/#update-vite-configuration
 const tauri: UserConfig = {
-  // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
-  //
-  // 1. prevent vite from obscuring rust errors
   clearScreen: false,
-  // 2. tauri expects a fixed port, fail if that port is not available
   server: {
     port: 1420,
     strictPort: true,
@@ -44,8 +41,16 @@ const tauri: UserConfig = {
         }
       : undefined,
     watch: {
-      // 3. tell vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
     },
+  },
+  envPrefix: ["VITE_", "TAURI_ENV_*"],
+  build: {
+    outDir: "./dist",
+    chunkSizeWarningLimit: 500 * 10,
+    target:
+      process.env.TAURI_ENV_PLATFORM == "windows" ? "chrome105" : "safari13",
+    minify: !process.env.TAURI_ENV_DEBUG ? "esbuild" : false,
+    sourcemap: !!process.env.TAURI_ENV_DEBUG,
   },
 };

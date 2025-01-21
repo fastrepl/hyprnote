@@ -25,7 +25,7 @@ hypr-db = { path = "../../../crates/db", package = "db", features = ["user"] }
 hypr-template = { path = "../../../crates/template", package = "template" }
 hypr_host = { path = "../../../crates/host", package = "host" }
 
-tauri = { workspace = true, features = ["tray-icon", "image-png", "devtools", "macos-private-api"] }
+tauri = { workspace = true, features = ["tray-icon", "image-png", "macos-private-api"] }
 tauri-plugin-autostart = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-deep-link = "2"

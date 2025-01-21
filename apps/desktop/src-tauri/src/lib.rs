@@ -9,7 +9,6 @@ mod tray;
 mod windows;
 mod workers;
 
-use std::str::FromStr;
 use tauri::{AppHandle, Manager, WindowEvent};
 use windows::{HyprWindowId, ShowHyprWindow};
 
@@ -21,6 +20,38 @@ pub struct App {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let mut builder = tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_window_state::Builder::default().build())
+        .plugin(tauri_plugin_positioner::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_positioner::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec![]),
+        ));
+    // .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+    //     ShowHyprWindow::MainWithoutDemo.show(app).unwrap();
+    // }));
+
+    // #[cfg(debug_assertions)]
+    {
+        builder = builder.plugin(
+            tauri_plugin_log::Builder::new()
+                .target(tauri_plugin_log::Target::new(
+                    tauri_plugin_log::TargetKind::Stdout,
+                ))
+                .build(),
+        );
+    }
+
     let specta_builder = tauri_specta::Builder::new()
         .commands(tauri_specta::collect_commands![
             commands::get_env,
@@ -66,43 +97,6 @@ pub fn run() {
         )
         .unwrap();
 
-    let mut builder = tauri::Builder::default()
-        .plugin(tauri_plugin_os::init())
-        .plugin(tauri_plugin_window_state::Builder::default().build())
-        .plugin(tauri_plugin_positioner::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_store::Builder::new().build())
-        .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_http::init())
-        .plugin(tauri_plugin_positioner::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
-        .plugin(tauri_plugin_autostart::init(
-            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            Some(vec![]),
-        ));
-
-    // https://v2.tauri.app/plugin/single-instance/#focusing-on-new-instance
-    #[cfg(desktop)]
-    {
-        builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            ShowHyprWindow::MainWithoutDemo.show(app).unwrap();
-        }));
-    }
-
-    #[cfg(debug_assertions)]
-    {
-        builder = builder.plugin(
-            tauri_plugin_log::Builder::new()
-                .target(tauri_plugin_log::Target::new(
-                    tauri_plugin_log::TargetKind::Stdout,
-                ))
-                .build(),
-        );
-    }
-
     let db = tauri::async_runtime::block_on(async {
         let conn = {
             #[cfg(debug_assertions)]
@@ -134,28 +128,6 @@ pub fn run() {
     });
 
     builder
-        .on_window_event(|window, event| {
-            let label = window.label();
-            let app = window.app_handle();
-
-            match event {
-                WindowEvent::Destroyed => {
-                    if let Ok(window_id) = HyprWindowId::from_str(label) {
-                        match window_id {
-                            HyprWindowId::Main => {
-                                if let Some(w) = HyprWindowId::Demo.get(app) {
-                                    w.close().ok();
-                                }
-                            }
-                            HyprWindowId::Demo => {
-                                ShowHyprWindow::MainWithoutDemo.show(app).unwrap();
-                            }
-                        };
-                    }
-                }
-                _ => {}
-            }
-        })
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
             move |invoke| handler(invoke)
@@ -188,12 +160,6 @@ pub fn run() {
                 let _ = autostart_manager.enable().unwrap();
             }
 
-            // tauri::tray::TrayIconBuilder::new()
-            //     .on_tray_icon_event(|tray_handle, event| {
-            //         tauri_plugin_positioner::on_tray_event(tray_handle.app_handle(), &event);
-            //     })
-            //     .build(app)?;
-
             let worker_app = app.clone();
             let worker_db = db.clone();
             tauri::async_runtime::spawn(async move {
@@ -206,7 +172,21 @@ pub fn run() {
 
             tray::create_tray(&app).unwrap();
 
-            ShowHyprWindow::MainWithoutDemo.show(&app).unwrap();
+            tauri::WebviewWindowBuilder::new(&app, "main", tauri::WebviewUrl::default())
+                .title("Hyprnote")
+                .inner_size(800.0, 600.0)
+                .accept_first_mouse(true)
+                .shadow(false)
+                .transparent(true)
+                .decorations(false)
+                .build()
+                .unwrap();
+
+            #[cfg(debug_assertions)]
+            {
+                let window = app.get_webview_window("main").unwrap();
+                window.open_devtools();
+            }
 
             Ok(())
         })

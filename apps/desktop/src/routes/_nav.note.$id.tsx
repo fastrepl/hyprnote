@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AlignLeft, Ear, EarOff, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -57,8 +57,8 @@ export const Route = createFileRoute("/_nav/note/$id")({
 });
 
 function Component() {
-  const { isPanelOpen } = useUI();
   const { session } = Route.useLoaderData();
+  const { isPanelOpen } = useUI();
 
   return (
     <SessionProvider session={session}>
@@ -81,22 +81,27 @@ function Component() {
 
 function LeftPanel() {
   const { templates, profile, general } = Route.useLoaderData();
-  const { session, listening, start, pause } = useSession((s) => ({
+  const {
+    session,
+    listening,
+    start,
+    pause,
+    updateRawNote,
+    updateEnhancedNote,
+  } = useSession((s) => ({
     session: s.session,
     listening: s.listening,
     start: s.start,
     pause: s.pause,
+    updateRawNote: s.updateRawNote,
+    updateEnhancedNote: s.updateEnhancedNote,
   }));
 
   const [showRaw, setShowRaw] = useState(true);
   const [title, setTitle] = useState(session.title);
 
-  const [editorContent, setEditorContent] = useState<string>(
-    session.raw_memo_html,
-  );
-
   const handleChange = useCallback((content: string) => {
-    setEditorContent(content);
+    updateRawNote(content);
   }, []);
 
   const enhance = useEnhance({
@@ -117,6 +122,12 @@ function LeftPanel() {
       linkedin_username: "TODO",
     },
   });
+
+  useEffect(() => {
+    if (enhance.data) {
+      updateEnhancedNote(enhance.data);
+    }
+  }, [enhance.data]);
 
   return (
     <div className="flex h-full flex-col p-8">
@@ -172,7 +183,12 @@ function LeftPanel() {
           enhance.isLoading ? "tiptap-animate" : "",
         ])}
       >
-        <Editor handleChange={handleChange} content={editorContent} />
+        <Editor
+          handleChange={handleChange}
+          content={
+            showRaw ? session.raw_memo_html : (session.enhanced_memo_html ?? "")
+          }
+        />
       </div>
 
       <AnimatePresence>

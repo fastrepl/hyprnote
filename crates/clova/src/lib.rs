@@ -1,3 +1,5 @@
+// https://api.ncloud-docs.com/docs/en/ai-application-service-clovaspeech-grpc
+
 pub mod interface;
 
 mod errors;
@@ -51,18 +53,10 @@ impl ClientBuilder {
         );
 
         let config = interface::ConfigRequest {
-            transcription: interface::Transcription {
+            transcription: Some(interface::Transcription {
                 language: interface::Language::Korean,
-            },
-            keyword_boosting: self
-                .keywords
-                .unwrap_or_default()
-                .into_iter()
-                .map(|keyword| interface::KeywordBoosting {
-                    words: keyword,
-                    boost: 1.0,
-                })
-                .collect(),
+            }),
+            keyword_boosting: Some(vec!["하이퍼노트".to_string()].into()),
         };
 
         Ok(Client { inner, config })

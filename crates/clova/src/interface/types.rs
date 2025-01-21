@@ -5,8 +5,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ConfigRequest {
-    pub transcription: Transcription,
-    pub keyword_boosting: Vec<KeywordBoosting>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transcription: Option<Transcription>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub keyword_boosting: Option<KeywordBoosting>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -16,8 +18,24 @@ pub struct Transcription {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct KeywordBoosting {
+    pub boostings: Vec<KeywordBoostingItem>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct KeywordBoostingItem {
     pub words: String,
-    pub boost: f64,
+    pub weight: f64,
+}
+
+impl From<Vec<String>> for KeywordBoosting {
+    fn from(value: Vec<String>) -> Self {
+        Self {
+            boostings: value
+                .into_iter()
+                .map(|words| KeywordBoostingItem { words, weight: 1.0 })
+                .collect(),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

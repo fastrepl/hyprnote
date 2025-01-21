@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, type ChangeEvent } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AlignLeft, Ear, EarOff, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -81,33 +81,42 @@ function Component() {
 
 function LeftPanel() {
   const { templates, profile, general } = Route.useLoaderData();
-  const {
-    session,
-    listening,
-    start,
-    pause,
-    updateRawNote,
-    updateEnhancedNote,
-  } = useSession((s) => ({
+
+  const store = useSession((s) => ({
     session: s.session,
     listening: s.listening,
     start: s.start,
     pause: s.pause,
+    updateTitle: s.updateTitle,
     updateRawNote: s.updateRawNote,
     updateEnhancedNote: s.updateEnhancedNote,
   }));
 
   const [showRaw, setShowRaw] = useState(true);
-  const [title, setTitle] = useState(session.title);
 
-  const handleChange = useCallback((content: string) => {
-    updateRawNote(content);
-  }, []);
+  const handleChangeNote = useCallback(
+    (content: string) => {
+      if (showRaw) {
+        store.updateRawNote(content);
+      } else {
+        store.updateEnhancedNote(content);
+      }
+    },
+    [showRaw, store],
+  );
+
+  const handleClickListen = useCallback(() => {
+    if (store.listening) {
+      store.pause();
+    } else {
+      store.start();
+    }
+  }, [store]);
 
   const enhance = useEnhance({
     template: templates[0],
-    editor: session.raw_memo_html,
-    transcript: session.transcript!,
+    editor: store.session.raw_memo_html,
+    transcript: store.session.transcript!,
     config_general: general ?? {
       autostart: false,
       notifications: false,
@@ -125,9 +134,13 @@ function LeftPanel() {
 
   useEffect(() => {
     if (enhance.data) {
-      updateEnhancedNote(enhance.data);
+      store.updateEnhancedNote(enhance.data);
     }
   }, [enhance.data]);
+
+  const handleTitleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    store.updateTitle(e.target.value);
+  }, []);
 
   return (
     <div className="flex h-full flex-col p-8">
@@ -136,29 +149,23 @@ function LeftPanel() {
       <div className="flex flex-row items-center justify-between">
         <input
           type="text"
-          onChange={(e) => setTitle(e.target.value)}
-          value={title}
+          onChange={handleTitleChange}
+          value={store.session.title}
           placeholder="Untitled meeting"
           className={clsx([
             "border-none bg-transparent text-2xl font-bold caret-gray-300 focus:outline-none",
           ])}
         />
         <button
+          onClick={handleClickListen}
           className={clsx([
             "relative rounded-lg border border-border p-2",
-            listening ? "text-foreground/30" : "text-foreground/50",
-            listening && "border-primary/30",
+            store.listening ? "text-foreground/30" : "text-foreground/50",
+            store.listening && "border-primary/30",
           ])}
-          onClick={() => {
-            if (listening) {
-              pause();
-            } else {
-              start();
-            }
-          }}
         >
-          {listening ? <Ear size={20} /> : <EarOff size={20} />}
-          {listening && (
+          {store.listening ? <Ear size={20} /> : <EarOff size={20} />}
+          {store.listening && (
             <div className="absolute inset-0 flex items-center justify-center">
               <AudioIndicator amplitude={0.5} />
             </div>
@@ -184,15 +191,17 @@ function LeftPanel() {
         ])}
       >
         <Editor
-          handleChange={handleChange}
+          handleChange={handleChangeNote}
           content={
-            showRaw ? session.raw_memo_html : (session.enhanced_memo_html ?? "")
+            showRaw
+              ? store.session.raw_memo_html
+              : (store.session.enhanced_memo_html ?? "")
           }
         />
       </div>
 
       <AnimatePresence>
-        {!listening && (
+        {!store.listening && (
           <motion.div
             className="mb-8 flex justify-center"
             initial={{ y: 50, opacity: 0 }}

@@ -1,9 +1,10 @@
 import { createContext, useContext, useRef } from "react";
+
+import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
 import { createSessionStore } from "@/stores/session";
 import type { Session } from "@/types/tauri";
-import { useStore } from "zustand";
 
 const SessionContext = createContext<ReturnType<
   typeof createSessionStore

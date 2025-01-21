@@ -18,6 +18,7 @@ type Actions = {
   start: () => void;
   pause: () => void;
   destroy: () => void;
+  updateTitle: (title: string) => void;
   updateRawNote: (note: string) => void;
   updateEnhancedNote: (note: string) => void;
 };
@@ -27,6 +28,13 @@ export const createSessionStore = (session: Session) => {
     session,
     listening: false,
     channel: null,
+    updateTitle: (title: string) => {
+      set((state) =>
+        mutate(state, (draft) => {
+          draft.session.title = title;
+        }),
+      );
+    },
     updateEnhancedNote: (note: string) => {
       set((state) =>
         mutate(state, (draft) => {

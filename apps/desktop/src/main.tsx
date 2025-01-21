@@ -33,7 +33,15 @@ export type Context = {
   queryClient: QueryClient;
 };
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // for most case, we don't want cache
+      gcTime: 0,
+    },
+  },
+});
+
 const router = createRouter({
   routeTree,
   context: {

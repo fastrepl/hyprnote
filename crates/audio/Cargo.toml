@@ -23,7 +23,7 @@ serial_test = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies.cidre]
 git = "https://github.com/yury/cidre"
-rev = "7bc6c3addbd3fe2c586fbe15319a17f6d16c9049"
+rev = "3f786684ef19186f02606b22d4dabdea1ee7a82b"
 features = ["av"]
 
 [target.'cfg(target_os = "windows")'.dependencies.windows]

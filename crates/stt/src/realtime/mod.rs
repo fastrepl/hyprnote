@@ -17,7 +17,7 @@ pub trait RealtimeSpeechToText<S, E> {
     fn transcribe(
         &mut self,
         stream: S,
-    ) -> impl Future<Output = Result<impl Stream<Item = Result<StreamResponse>>>>
+    ) -> impl Future<Output = Result<Box<dyn Stream<Item = Result<StreamResponse>> + Send + Unpin>>>
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
         E: Error + Send + Sync + 'static;
@@ -55,6 +55,12 @@ impl ClientBuilder {
     }
 }
 
+#[derive(Debug)]
+pub enum MultiClient {
+    Deepgram(DeepgramClient),
+    Clova(clova::ClovaClient),
+}
+
 #[derive(Debug, Clone)]
 pub struct Client {
     pub deepgram_api_key: String,
@@ -71,20 +77,17 @@ impl Client {
         mock::MockClient::new()
     }
 
-    pub async fn for_language(
-        &self,
-        language: codes_iso_639::part_1::LanguageCode,
-    ) -> DeepgramClient {
+    pub async fn for_language(&self, language: codes_iso_639::part_1::LanguageCode) -> MultiClient {
         match language {
-            // codes_iso_639::part_1::LanguageCode::Ko => {
-            //     let clova = ClovaClient::builder()
-            //         .api_key(&self.clova_api_key)
-            //         .keywords(vec!["하이퍼노트".to_string()])
-            //         .build()
-            //         .await
-            //         .unwrap();
-            //     MultiClient::Clova(clova)
-            // }
+            codes_iso_639::part_1::LanguageCode::Ko => {
+                let clova = ClovaClient::builder()
+                    .api_key(&self.clova_api_key)
+                    .keywords(vec!["하이퍼노트".to_string()])
+                    .build()
+                    .await
+                    .unwrap();
+                MultiClient::Clova(clova)
+            }
             codes_iso_639::part_1::LanguageCode::En => {
                 let deepgram = DeepgramClient::builder()
                     .api_key(&self.deepgram_api_key)
@@ -92,9 +95,25 @@ impl Client {
                     .language(language)
                     .build();
 
-                deepgram
+                MultiClient::Deepgram(deepgram)
             }
             _ => panic!("Unsupported language: {:?}", language),
+        }
+    }
+}
+
+impl<S, E> RealtimeSpeechToText<S, E> for MultiClient
+where
+    S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
+    E: Error + Send + Sync + 'static,
+{
+    async fn transcribe(
+        &mut self,
+        stream: S,
+    ) -> Result<Box<dyn Stream<Item = Result<StreamResponse>> + Send + Unpin>> {
+        match self {
+            MultiClient::Deepgram(client) => Ok(Box::new(client.transcribe(stream).await?)),
+            MultiClient::Clova(client) => Ok(Box::new(client.transcribe(stream).await?)),
         }
     }
 }

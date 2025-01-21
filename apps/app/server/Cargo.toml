@@ -20,8 +20,9 @@ hypr-stt = { path = "../../../crates/stt", package = "stt" }
 hypr-turso = { path = "../../../crates/turso", package = "turso" }
 
 async-stream = { workspace = true }
-axum = { version = "0.7.4", features = ["ws", "multipart"] }
-axum-extra = { version = "0.10.0", features = ["typed-header"] }
+axum = { version = "0.8.1", features = ["ws", "multipart"] }
+axum-proxy = "0.3.0"
+
 futures-core = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
@@ -49,4 +50,4 @@ specta-util = { workspace = true }
 
 apalis = { workspace = true, features = ["sentry", "limit"] }
 apalis-cron = { workspace = true }
-clerk-rs = { version = "0.4.0", features = ["axum"] }
+clerk-rs = { git = "https://github.com/DarrenBaldwin07/clerk-rs", rev = "6f1d312", features = ["axum"] }

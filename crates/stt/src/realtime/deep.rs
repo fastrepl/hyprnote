@@ -62,7 +62,10 @@ impl DeepgramClient {
 }
 
 impl<S, E> RealtimeSpeechToText<S, E> for DeepgramClient {
-    async fn transcribe(&mut self, stream: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
+    async fn transcribe(
+        &mut self,
+        stream: S,
+    ) -> Result<Box<dyn Stream<Item = Result<StreamResponse>> + Send + Unpin>>
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
         E: Error + Send + Sync + 'static,
@@ -101,7 +104,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for DeepgramClient {
                 .and_then(|resp| StreamResponse::try_from(resp))
         });
 
-        Ok(transformed_stream)
+        Ok(Box::from(Box::pin(transformed_stream)))
     }
 }
 

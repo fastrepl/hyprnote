@@ -63,7 +63,7 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
                                     last_activity = tokio::time::Instant::now();
 
                                     let output = TranscribeOutputChunk { text: result.text };
-                                    let msg = Message::Text(serde_json::to_string(&output).unwrap());
+                                    let msg = Message::Text(serde_json::to_string(&output).unwrap().into());
 
                                     if let Err(e) = ws_sender.send(msg).await {
                                         eprintln!("websocket send error: {:?}", e);

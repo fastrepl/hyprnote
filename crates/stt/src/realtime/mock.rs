@@ -17,7 +17,10 @@ impl MockClient {
 }
 
 impl<S, E> RealtimeSpeechToText<S, E> for MockClient {
-    async fn transcribe(&mut self, audio: S) -> Result<impl Stream<Item = Result<StreamResponse>>>
+    async fn transcribe(
+        &mut self,
+        audio: S,
+    ) -> Result<Box<dyn Stream<Item = Result<StreamResponse>> + Send + Unpin>>
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
         E: Error + Send + Sync + 'static,
@@ -38,6 +41,6 @@ impl<S, E> RealtimeSpeechToText<S, E> for MockClient {
             }
         });
 
-        Ok(Box::pin(response_stream))
+        Ok(Box::from(Box::pin(response_stream)))
     }
 }

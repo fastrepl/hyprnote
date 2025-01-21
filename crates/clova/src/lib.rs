@@ -12,8 +12,10 @@ use interface::nest_service_client::NestServiceClient;
 use tonic::{service::interceptor::InterceptedService, transport::Channel, Request, Status};
 
 // https://docs.rs/tonic/latest/tonic/service/trait.Interceptor.html
-type Interceptor = Box<dyn FnMut(Request<()>) -> Result<Request<()>, Status>>;
+// 'Send' is required in the websocket handler context
+type Interceptor = Box<dyn FnMut(Request<()>) -> Result<Request<()>, Status> + Send>;
 
+#[derive(Debug)]
 pub struct Client {
     inner: NestServiceClient<InterceptedService<Channel, Interceptor>>,
     config: interface::ConfigRequest,

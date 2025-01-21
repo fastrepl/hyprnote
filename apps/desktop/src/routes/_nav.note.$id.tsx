@@ -116,21 +116,16 @@ function LeftPanel() {
   const enhance = useEnhance({
     template: templates[0],
     editor: store.session.raw_memo_html,
-    transcript: store.session.transcript!,
-    config_general: general ?? {
-      autostart: false,
-      notifications: false,
-      language: "En",
-      context: "TODO",
-    },
-    config_profile: profile ?? {
-      full_name: "TODO",
-      job_title: "TODO",
-      company_name: "TODO",
-      company_description: "TODO",
-      linkedin_username: "TODO",
-    },
+    transcript: store.session.transcript ?? { blocks: [] },
+    config_general: general,
+    config_profile: profile,
   });
+
+  useEffect(() => {
+    if (!showRaw && !store.session.enhanced_memo_html) {
+      enhance.submit();
+    }
+  }, [showRaw, store.session.enhanced_memo_html]);
 
   useEffect(() => {
     if (enhance.data) {
@@ -144,8 +139,6 @@ function LeftPanel() {
 
   return (
     <div className="flex h-full flex-col p-8">
-      <button onClick={() => enhance.submit()}>Enhance</button>
-
       <div className="flex flex-row items-center justify-between">
         <input
           type="text"

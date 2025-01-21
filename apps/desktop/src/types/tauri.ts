@@ -86,7 +86,7 @@ export const commands = {
   async dbDeleteTemplate(id: string): Promise<null> {
     return await TAURI_INVOKE("db_delete_template", { id });
   },
-  async dbGetConfig(kind: ConfigKind): Promise<Config | null> {
+  async dbGetConfig(kind: ConfigKind): Promise<Config> {
     return await TAURI_INVOKE("db_get_config", { kind });
   },
   async dbSetConfig(config: Config): Promise<null> {

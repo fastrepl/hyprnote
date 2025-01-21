@@ -49,6 +49,18 @@ pub struct ConfigDataProfile {
     pub linkedin_username: Option<String>,
 }
 
+impl From<ConfigDataProfile> for Config {
+    fn from(data: ConfigDataProfile) -> Self {
+        Self::Profile { data }
+    }
+}
+
+impl From<ConfigDataGeneral> for Config {
+    fn from(data: ConfigDataGeneral) -> Self {
+        Self::General { data }
+    }
+}
+
 impl Config {
     pub fn from_row<'de>(row: &'de libsql::Row) -> Result<Self, serde::de::value::Error> {
         let kind = ConfigKind::from_str(row.get_str(0).expect("kind")).unwrap();

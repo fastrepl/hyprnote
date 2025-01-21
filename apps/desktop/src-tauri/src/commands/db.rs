@@ -111,8 +111,19 @@ pub async fn db_set_session_event(
 pub async fn db_get_config(
     state: State<'_, App>,
     kind: hypr_db::user::ConfigKind,
-) -> Result<Option<hypr_db::user::Config>, ()> {
-    Ok(state.db.get_config(kind).await.unwrap())
+) -> Result<hypr_db::user::Config, ()> {
+    let found = state.db.get_config(kind.clone()).await.unwrap();
+
+    match (found, kind) {
+        (None, hypr_db::user::ConfigKind::Profile) => {
+            Ok(hypr_db::user::ConfigDataProfile::default().into())
+        }
+        (None, hypr_db::user::ConfigKind::General) => {
+            Ok(hypr_db::user::ConfigDataGeneral::default().into())
+        }
+        (Some(config), hypr_db::user::ConfigKind::Profile) => Ok(config),
+        (Some(config), hypr_db::user::ConfigKind::General) => Ok(config),
+    }
 }
 
 #[tauri::command]

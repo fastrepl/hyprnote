@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AlignLeft, Ear, EarOff, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { Channel } from "@tauri-apps/api/core";
 import clsx from "clsx";
 
 import {
@@ -24,95 +23,69 @@ import {
   commands,
   type ConfigDataGeneral,
   type ConfigDataProfile,
-  type TranscribeOutputChunk,
-  type Transcript,
 } from "@/types/tauri";
-
-const noteQueryOptions = (id: string) => ({
-  queryKey: ["note", { id }],
-  queryFn: async () => {
-    const [session, profile, general, builtinTemplates, customTemplates] =
-      await Promise.all([
-        commands.dbGetSession(id),
-        commands.dbGetConfig("profile"),
-        commands.dbGetConfig("general"),
-        commands.listBuiltinTemplates(),
-        commands.dbListTemplates(),
-      ]);
-    if (!session) {
-      throw redirect({ to: "/" });
-    }
-
-    return {
-      session,
-      profile: profile?.data as ConfigDataProfile,
-      general: general?.data as ConfigDataGeneral,
-      templates: [...builtinTemplates, ...customTemplates],
-    };
-  },
-});
+import { SessionProvider, useSession } from "@/contexts";
 
 export const Route = createFileRoute("/_nav/note/$id")({
   component: Component,
   loader: ({ context: { queryClient }, params: { id } }) => {
-    return queryClient.ensureQueryData(noteQueryOptions(id));
+    return queryClient.fetchQuery({
+      queryKey: ["note", { id }],
+      queryFn: async () => {
+        const [session, profile, general, builtinTemplates, customTemplates] =
+          await Promise.all([
+            commands.dbGetSession(id),
+            commands.dbGetConfig("profile"),
+            commands.dbGetConfig("general"),
+            commands.listBuiltinTemplates(),
+            commands.dbListTemplates(),
+          ]);
+        if (!session) {
+          throw redirect({ to: "/" });
+        }
+
+        return {
+          session,
+          profile: profile?.data as ConfigDataProfile,
+          general: general?.data as ConfigDataGeneral,
+          templates: [...builtinTemplates, ...customTemplates],
+        };
+      },
+    });
   },
 });
 
 function Component() {
   const { isPanelOpen } = useUI();
-  const [listening, setListening] = useState(false);
+  const { session } = Route.useLoaderData();
 
-  const [transcript, setTranscript] = useState<Transcript>({
-    blocks: [],
-  });
-
-  useEffect(() => {
-    if (listening) {
-      const channel = new Channel<TranscribeOutputChunk>();
-      channel.onmessage = (event) => {
-        setTranscript((prev) => ({
-          ...prev,
-          blocks: [...prev.blocks, { text: event.text, start: 0, end: 0 }],
-        }));
-      };
-      commands.startMicSession(channel);
-    } else {
-      commands.stopSession();
-    }
-  }, [listening]);
-
-  return isPanelOpen ? (
-    <ResizablePanelGroup direction="horizontal">
-      <ResizablePanel>
-        <LeftPanel
-          listening={listening}
-          setListening={setListening}
-          transcript={transcript}
-        />
-      </ResizablePanel>
-      <ResizableHandle withHandle className="w-1 bg-secondary" />
-      <ResizablePanel defaultSize={25} minSize={25} maxSize={40}>
-        <RightPanel listening={listening} transcript={transcript} />
-      </ResizablePanel>
-    </ResizablePanelGroup>
-  ) : (
-    <LeftPanel
-      listening={listening}
-      setListening={setListening}
-      transcript={transcript}
-    />
+  return (
+    <SessionProvider session={session}>
+      {isPanelOpen ? (
+        <ResizablePanelGroup direction="horizontal">
+          <ResizablePanel>
+            <LeftPanel />
+          </ResizablePanel>
+          <ResizableHandle withHandle className="w-1 bg-secondary" />
+          <ResizablePanel defaultSize={25} minSize={25} maxSize={40}>
+            <RightPanel />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      ) : (
+        <LeftPanel />
+      )}
+    </SessionProvider>
   );
 }
 
-interface LeftPanelProps {
-  listening: boolean;
-  setListening: (listening: boolean) => void;
-  transcript: Transcript;
-}
-
-function LeftPanel({ listening, setListening, transcript }: LeftPanelProps) {
-  const { session, templates, profile, general } = Route.useLoaderData();
+function LeftPanel() {
+  const { templates, profile, general } = Route.useLoaderData();
+  const { session, listening, start, pause } = useSession((s) => ({
+    session: s.session,
+    listening: s.listening,
+    start: s.start,
+    pause: s.pause,
+  }));
 
   const [showRaw, setShowRaw] = useState(true);
   const [title, setTitle] = useState(session.title);
@@ -128,7 +101,7 @@ function LeftPanel({ listening, setListening, transcript }: LeftPanelProps) {
   const enhance = useEnhance({
     template: templates[0],
     editor: session.raw_memo_html,
-    transcript,
+    transcript: session.transcript!,
     config_general: general ?? {
       autostart: false,
       notifications: false,
@@ -143,16 +116,6 @@ function LeftPanel({ listening, setListening, transcript }: LeftPanelProps) {
       linkedin_username: "TODO",
     },
   });
-
-  useEffect(() => {
-    if (editorContent) {
-      setEditorContent(editorContent);
-    }
-  }, [editorContent]);
-
-  useEffect(() => {
-    setEditorContent(enhance.data);
-  }, [enhance.data]);
 
   return (
     <div className="flex h-full flex-col p-8">
@@ -174,7 +137,13 @@ function LeftPanel({ listening, setListening, transcript }: LeftPanelProps) {
             listening ? "text-foreground/30" : "text-foreground/50",
             listening && "border-primary/30",
           ])}
-          onClick={() => setListening(!listening)}
+          onClick={() => {
+            if (listening) {
+              pause();
+            } else {
+              start();
+            }
+          }}
         >
           {listening ? <Ear size={20} /> : <EarOff size={20} />}
           {listening && (
@@ -222,17 +191,17 @@ function LeftPanel({ listening, setListening, transcript }: LeftPanelProps) {
   );
 }
 
-interface RightPanelProps {
-  listening: boolean;
-  transcript: Transcript;
-}
+function RightPanel() {
+  const { listening, session } = useSession((s) => ({
+    listening: s.listening,
+    session: s.session,
+  }));
 
-function RightPanel({ listening, transcript }: RightPanelProps) {
   return (
     <div className="flex h-full flex-col justify-end">
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4 text-sm">
-          {transcript.blocks.map((message, index) => (
+          {session.transcript?.blocks.map((message, index) => (
             <div className="mb-4" key={index}>
               <div className="rounded-lg bg-muted px-3 py-1 text-muted-foreground">
                 {message.text}

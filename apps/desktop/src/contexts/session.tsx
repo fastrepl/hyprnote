@@ -1,48 +1,40 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useRef } from "react";
+import { useShallow } from "zustand/shallow";
 
 import { createSessionStore } from "@/stores/session";
 import type { Session } from "@/types/tauri";
+import { useStore } from "zustand";
 
-type Context = {
-  store: ReturnType<typeof createSessionStore>;
-};
-
-const SessionContext = createContext<Context>({ store: null as any });
+const SessionContext = createContext<ReturnType<
+  typeof createSessionStore
+> | null>(null);
 
 export const SessionProvider: React.FC<{
   session: Session;
   children: React.ReactNode;
 }> = ({ session, children }) => {
-  const [store, setStore] = useState<ReturnType<
-    typeof createSessionStore
-  > | null>(null);
-
-  useEffect(() => {
-    const newStore = createSessionStore(session);
-    setStore(newStore);
-
-    return () => {
-      newStore.getState().destroy();
-    };
-  }, [session.id]);
-
-  if (!store) {
-    return null;
+  const storeRef = useRef<ReturnType<typeof createSessionStore> | null>(null);
+  if (!storeRef.current) {
+    storeRef.current = createSessionStore(session);
   }
 
   return (
-    <SessionContext.Provider value={{ store }}>
+    <SessionContext.Provider value={storeRef.current}>
       {children}
     </SessionContext.Provider>
   );
 };
 
-export const useSession = () => {
-  const context = useContext(SessionContext);
+export const useSession = <T,>(
+  selector: Parameters<
+    typeof useStore<ReturnType<typeof createSessionStore>, T>
+  >[1],
+) => {
+  const store = useContext(SessionContext);
 
-  if (!context) {
+  if (!store) {
     throw new Error("'useSession' must be used within a 'SessionProvider'");
   }
 
-  return context;
+  return useStore(store, useShallow(selector));
 };

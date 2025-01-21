@@ -1,10 +1,11 @@
 import { createStore } from "zustand";
+import { Channel } from "@tauri-apps/api/core";
+
 import {
   commands,
   type Session,
   type TranscribeOutputChunk,
 } from "@/types/tauri";
-import { Channel } from "@tauri-apps/api/core";
 
 type State = {
   channel: Channel<TranscribeOutputChunk> | null;

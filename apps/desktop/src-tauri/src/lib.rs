@@ -76,7 +76,13 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_http::init());
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_positioner::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec![]),
+        ));
 
     // https://v2.tauri.app/plugin/single-instance/#focusing-on-new-instance
     #[cfg(desktop)]
@@ -96,17 +102,6 @@ pub fn run() {
                 .build(),
         );
     }
-
-    // https://v2.tauri.app/plugin/positioner/#setup
-    builder = builder.setup(|app| {
-        let _ = app.handle().plugin(tauri_plugin_positioner::init());
-        tauri::tray::TrayIconBuilder::new()
-            .on_tray_icon_event(|tray_handle, event| {
-                tauri_plugin_positioner::on_tray_event(tray_handle.app_handle(), &event);
-            })
-            .build(app)?;
-        Ok(())
-    });
 
     let db = tauri::async_runtime::block_on(async {
         let conn = {
@@ -166,34 +161,38 @@ pub fn run() {
             move |invoke| handler(invoke)
         })
         .setup(move |app| {
-            specta_builder.mount_events(app);
-            Ok(())
-        })
-        .setup(|app| {
-            #[cfg(desktop)]
-            let _ = app
-                .handle()
-                .plugin(tauri_plugin_global_shortcut::Builder::new().build());
+            let app = app.handle().clone();
+            specta_builder.mount_events(&app);
 
-            Ok(())
-        })
-        .setup(|app| {
-            #[cfg(desktop)]
+            {
+                let bridge = hypr_bridge::Client::builder()
+                    .with_base("http://localhost:1234")
+                    .with_token("123")
+                    .build()
+                    .unwrap();
+
+                app.manage(App {
+                    handle: app.clone(),
+                    db: db.clone(),
+                    bridge: bridge.clone(),
+                });
+
+                app.manage(tokio::sync::Mutex::new(
+                    session::SessionState::new(bridge).unwrap(),
+                ));
+            }
+
             {
                 use tauri_plugin_autostart::ManagerExt;
-
-                let _ = app.handle().plugin(tauri_plugin_autostart::init(
-                    tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-                    Some(vec![]),
-                ));
-
                 let autostart_manager = app.autolaunch();
-                let _ = autostart_manager.enable();
+                let _ = autostart_manager.enable().unwrap();
             }
-            Ok(())
-        })
-        .setup(|app| {
-            let app = app.handle().clone();
+
+            // tauri::tray::TrayIconBuilder::new()
+            //     .on_tray_icon_event(|tray_handle, event| {
+            //         tauri_plugin_positioner::on_tray_event(tray_handle.app_handle(), &event);
+            //     })
+            //     .build(app)?;
 
             let worker_app = app.clone();
             let worker_db = db.clone();
@@ -208,22 +207,6 @@ pub fn run() {
             tray::create_tray(&app).unwrap();
 
             ShowHyprWindow::MainWithoutDemo.show(&app).unwrap();
-
-            let bridge = hypr_bridge::Client::builder()
-                .with_base("http://localhost:1234")
-                .with_token("123")
-                .build()
-                .unwrap();
-
-            app.manage(App {
-                handle: app.clone(),
-                db,
-                bridge: bridge.clone(),
-            });
-
-            app.manage(tokio::sync::Mutex::new(
-                session::SessionState::new(bridge).unwrap(),
-            ));
 
             Ok(())
         })

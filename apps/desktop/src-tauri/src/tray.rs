@@ -52,7 +52,7 @@ pub fn create_tray(app: &AppHandle) -> Result<()> {
         ))?)
         .icon_as_template(true)
         .menu(&menu)
-        .menu_on_left_click(true)
+        .show_menu_on_left_click(true)
         .on_menu_event({
             move |app: &AppHandle, event| match TrayItem::from(event.id) {
                 TrayItem::Open => {

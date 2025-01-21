@@ -10,12 +10,6 @@ export type EnhanceRequest = { editor: string; config_general: ConfigDataGeneral
 
 export type NangoIntegration = "google-calendar" | "outlook-calendar"
 
-export type RegenerateCheckoutUrlRequest = { external_customer_id: string }
-
-export type RegenerateCheckoutUrlResponse = { customer: RegenerateCheckoutUrlResponseCustomer } | { status: number; error: string }
-
-export type RegenerateCheckoutUrlResponseCustomer = { lago_customer_id: string; external_customer_id: string; payment_provider: string; checkout_url: string }
-
 export type Template = { id: string; title: string; description: string; sections: TemplateSection[] }
 
 export type TemplateSection = { title: string; description: string }

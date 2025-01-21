@@ -11,10 +11,15 @@ export const commands = {
   async getFingerprint(): Promise<string> {
     return await TAURI_INVOKE("get_fingerprint");
   },
-  async startSession(
+  async startMicSession(
     onEvent: TAURI_CHANNEL<TranscribeOutputChunk>,
   ): Promise<null> {
-    return await TAURI_INVOKE("start_session", { onEvent });
+    return await TAURI_INVOKE("start_mic_session", { onEvent });
+  },
+  async startCaptureSession(
+    onEvent: TAURI_CHANNEL<TranscribeOutputChunk>,
+  ): Promise<null> {
+    return await TAURI_INVOKE("start_capture_session", { onEvent });
   },
   async stopSession(): Promise<null> {
     return await TAURI_INVOKE("stop_session");

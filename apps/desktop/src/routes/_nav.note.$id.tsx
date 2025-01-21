@@ -76,7 +76,7 @@ function Component() {
           blocks: [...prev.blocks, { text: event.text, start: 0, end: 0 }],
         }));
       };
-      commands.startSession(channel);
+      commands.startMicSession(channel);
     } else {
       commands.stopSession();
     }

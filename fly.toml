@@ -11,6 +11,7 @@ dockerfile = 'Dockerfile'
 
 [build.args]
 VITE_CLERK_PUBLISHABLE_KEY = "pk_test_aW5jbHVkZWQtbW9uc3Rlci03MS5jbGVyay5hY2NvdW50cy5kZXYk"
+VITE_SENTRY_DSN = "https://a4abe058104d9e2142abe78f702e3de9@o4506190168522752.ingest.us.sentry.io/4508570874937344"
 
 [env]
 PORT = '8080'

@@ -10,21 +10,9 @@ import * as Sentry from "@sentry/react";
 import { ThemeProvider } from "@hypr/ui/contexts/theme";
 import { ClerkProvider } from "@clerk/clerk-react";
 
-if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
-  throw new Error("VITE_CLERK_PUBLISHABLE_KEY is not set");
-}
-
-const queryClient = new QueryClient();
-
 const router = createRouter({
   routeTree,
   defaultPreload: "intent",
-});
-
-Sentry.init({
-  dsn: "https://a4abe058104d9e2142abe78f702e3de9@o4506190168522752.ingest.us.sentry.io/4508570874937344",
-  integrations: [Sentry.tanstackRouterBrowserTracingIntegration(router)],
-  tracesSampleRate: 1.0,
 });
 
 declare module "@tanstack/react-router" {
@@ -33,19 +21,47 @@ declare module "@tanstack/react-router" {
   }
 }
 
-const rootElement = document.getElementById("app")!;
-
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(
-    <ThemeProvider defaultTheme="light">
-      <QueryClientProvider client={queryClient}>
-        <ClerkProvider
-          publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
-        >
-          <RouterProvider router={router} />
-        </ClerkProvider>
-      </QueryClientProvider>
-    </ThemeProvider>,
-  );
+if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
+  throw new Error("'VITE_CLERK_PUBLISHABLE_KEY' is not set");
 }
+
+if (!import.meta.env.VITE_SENTRY_DSN) {
+  throw new Error("'VITE_SENTRY_DSN' is not set");
+}
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  integrations: [Sentry.tanstackRouterBrowserTracingIntegration(router)],
+  tracesSampleRate: 1.0,
+});
+
+const queryClient = new QueryClient();
+
+const enableMocking = async () => {
+  if (process.env.NODE_ENV !== "development") {
+    return;
+  }
+
+  const { worker } = await import("./mocks/browser");
+  return worker.start();
+};
+
+enableMocking().then(() => {
+  const rootElement = document.getElementById("app")!;
+
+  if (!rootElement.innerHTML) {
+    const root = ReactDOM.createRoot(rootElement);
+
+    root.render(
+      <ThemeProvider defaultTheme="light">
+        <QueryClientProvider client={queryClient}>
+          <ClerkProvider
+            publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
+          >
+            <RouterProvider router={router} />
+          </ClerkProvider>
+        </QueryClientProvider>
+      </ThemeProvider>,
+    );
+  }
+});

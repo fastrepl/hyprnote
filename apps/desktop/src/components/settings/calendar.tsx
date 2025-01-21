@@ -1,9 +1,8 @@
 import { useCallback } from "react";
-import { useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Trans } from "@lingui/react/macro";
-import { ArrowUpRight, CalendarIcon, ContactIcon, XIcon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import { RiAppleFill as AppleIcon } from "@remixicon/react";
 
 import {

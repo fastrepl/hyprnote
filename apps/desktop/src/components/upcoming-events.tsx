@@ -10,7 +10,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@hypr/ui/components/ui/carousel";
-import { Badge } from "@hypr/ui/components/ui/badge";
 import {
   Card,
   CardHeader,

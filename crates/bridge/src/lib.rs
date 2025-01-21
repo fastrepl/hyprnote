@@ -1,15 +1,12 @@
 pub mod enhance;
 pub mod transcribe;
 pub mod types;
-
-use serde::Serialize;
-use tokio_tungstenite::tungstenite::{client::ClientRequestBuilder, http::uri};
 pub use types::*;
 
 #[derive(Clone)]
 pub struct Client {
-    base: url::Url,
-    transcribe_request: ClientRequestBuilder,
+    api_base: url::Url,
+    api_key: String,
     reqwest_client: reqwest::Client,
 }
 
@@ -17,22 +14,28 @@ impl Client {
     pub fn builder() -> ClientBuilder {
         ClientBuilder::default()
     }
+
+    pub fn transcribe(&self) -> transcribe::TranscribeClientBuilder {
+        transcribe::TranscribeClient::builder()
+            .api_base(self.api_base.clone())
+            .api_key(self.api_key.clone())
+    }
 }
 
 #[derive(Default)]
 pub struct ClientBuilder {
-    base: Option<String>,
-    token: Option<String>,
+    api_base: Option<String>,
+    api_key: Option<String>,
 }
 
 impl ClientBuilder {
-    pub fn with_base(mut self, base: impl Into<String>) -> Self {
-        self.base = Some(base.into());
+    pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
+        self.api_base = Some(api_base.into());
         self
     }
 
-    pub fn with_token(mut self, token: impl Into<String>) -> Self {
-        self.token = Some(token.into());
+    pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
+        self.api_key = Some(api_key.into());
         self
     }
 
@@ -48,41 +51,14 @@ impl ClientBuilder {
             .default_headers(headers)
             .build()?;
 
-        let base = self.base.clone().unwrap().parse::<url::Url>()?;
-        let transcribe_request = ClientRequestBuilder::new(self.ws_url(&base)?).with_header(
-            reqwest::header::AUTHORIZATION.to_string(),
-            format!("Bearer {}", self.token.unwrap()),
-        );
+        let api_base = self.api_base.unwrap().parse::<url::Url>()?;
+        let api_key = self.api_key.unwrap();
 
         Ok(Client {
-            base,
-            transcribe_request,
+            api_base,
+            api_key,
             reqwest_client,
         })
-    }
-
-    fn ws_url(&self, url: &url::Url) -> anyhow::Result<uri::Uri> {
-        let en = codes_iso_639::part_1::LanguageCode::En;
-        let language = en.code();
-        let language = language.chars().next().unwrap().to_uppercase().to_string() + &language[1..];
-
-        let mut url = url.clone();
-        url.set_path("/api/native/transcribe");
-        url.query_pairs_mut().append_pair("language", &language);
-
-        if cfg!(debug_assertions) {
-            url.set_scheme("ws").unwrap();
-            url.set_host(Some("localhost")).unwrap();
-            if url.port().is_none() {
-                url.set_port(Some(3000)).unwrap();
-            }
-        } else {
-            url.set_scheme("wss").unwrap();
-            url.set_host(Some("app.hyprnote.com")).unwrap();
-        }
-
-        let uri = url.to_string().parse()?;
-        Ok(uri)
     }
 }
 
@@ -91,10 +67,10 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn client() {
+    async fn test_simple_client() {
         let _ = Client::builder()
-            .with_base("http://localhost:8080")
-            .with_token("test")
+            .api_base("http://localhost:8080")
+            .api_key("test")
             .build()
             .unwrap();
     }

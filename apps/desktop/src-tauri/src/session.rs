@@ -22,7 +22,13 @@ impl SessionState {
             source.stream().unwrap()
         };
 
-        let transcript_stream = self.bridge.transcribe(stream).await.unwrap();
+        let transcribe_client = self
+            .bridge
+            .transcribe()
+            .language(codes_iso_639::part_1::LanguageCode::Ko)
+            .build();
+
+        let transcript_stream = transcribe_client.from_audio(stream).await.unwrap();
 
         let handle: tauri::async_runtime::JoinHandle<()> =
             tauri::async_runtime::spawn(async move {
@@ -48,7 +54,13 @@ impl SessionState {
             source.stream().unwrap()
         };
 
-        let transcript_stream = self.bridge.transcribe(stream).await.unwrap();
+        let transcribe_client = self
+            .bridge
+            .transcribe()
+            .language(codes_iso_639::part_1::LanguageCode::En)
+            .build();
+
+        let transcript_stream = transcribe_client.from_audio(stream).await.unwrap();
 
         let handle: tauri::async_runtime::JoinHandle<()> =
             tauri::async_runtime::spawn(async move {

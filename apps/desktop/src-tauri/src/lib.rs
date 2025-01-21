@@ -138,8 +138,8 @@ pub fn run() {
 
             {
                 let bridge = hypr_bridge::Client::builder()
-                    .with_base("http://localhost:1234")
-                    .with_token("123")
+                    .api_base("http://localhost:1234")
+                    .api_key("123")
                     .build()
                     .unwrap();
 

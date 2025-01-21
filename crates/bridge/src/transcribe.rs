@@ -2,15 +2,85 @@
 // https://github.com/snapview/tokio-tungstenite/blob/master/examples/client.rs
 
 use futures_util::{SinkExt, Stream, StreamExt};
-use tokio_tungstenite::tungstenite::client::IntoClientRequest;
-use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
+use tokio_tungstenite::{
+    connect_async,
+    tungstenite::{client::IntoClientRequest, http::Uri, protocol::Message, ClientRequestBuilder},
+};
 
 use bytes::BufMut;
 use kalosm_sound::AsyncSource;
 
-use crate::{Client, TranscribeInputChunk, TranscribeOutputChunk};
-impl Client {
-    pub async fn transcribe(
+use crate::{TranscribeInputChunk, TranscribeOutputChunk};
+
+#[derive(Default)]
+pub struct TranscribeClientBuilder {
+    api_base: Option<url::Url>,
+    api_key: Option<String>,
+    language: Option<codes_iso_639::part_1::LanguageCode>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TranscribeClient {
+    transcribe_request: ClientRequestBuilder,
+}
+
+impl TranscribeClientBuilder {
+    pub fn api_base(mut self, api_base: url::Url) -> Self {
+        self.api_base = Some(api_base);
+        self
+    }
+
+    pub fn api_key(mut self, api_key: String) -> Self {
+        self.api_key = Some(api_key);
+        self
+    }
+
+    pub fn language(mut self, language: codes_iso_639::part_1::LanguageCode) -> Self {
+        self.language = Some(language);
+        self
+    }
+
+    pub fn build(self) -> TranscribeClient {
+        let uri = {
+            let mut url = self.api_base.unwrap();
+
+            let language = self.language.unwrap().code();
+            let language =
+                language.chars().next().unwrap().to_uppercase().to_string() + &language[1..];
+
+            url.set_path("/api/native/transcribe");
+            url.query_pairs_mut().append_pair("language", &language);
+
+            if cfg!(debug_assertions) {
+                if url.port().is_none() {
+                    url.set_port(Some(3000)).unwrap();
+                }
+
+                url.set_scheme("ws").unwrap();
+                url.set_host(Some("localhost")).unwrap();
+            } else {
+                url.set_scheme("wss").unwrap();
+                url.set_host(Some("app.hyprnote.com")).unwrap();
+            }
+
+            url.to_string().parse::<Uri>().unwrap()
+        };
+
+        let transcribe_request = ClientRequestBuilder::new(uri).with_header(
+            reqwest::header::AUTHORIZATION.to_string(),
+            format!("Bearer {}", self.api_key.unwrap()),
+        );
+
+        TranscribeClient { transcribe_request }
+    }
+}
+
+impl TranscribeClient {
+    pub fn builder() -> TranscribeClientBuilder {
+        TranscribeClientBuilder::default()
+    }
+
+    pub async fn from_audio(
         &self,
         audio_stream: impl Stream<Item = f32> + Send + Unpin + 'static + AsyncSource,
     ) -> Result<impl Stream<Item = TranscribeOutputChunk>, crate::Error> {
@@ -19,8 +89,8 @@ impl Client {
             .clone()
             .into_client_request()
             .unwrap();
-        let (ws_stream, _) = connect_async(req).await?;
 
+        let (ws_stream, _) = connect_async(req).await?;
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
         let (done_tx, mut done_rx) = tokio::sync::oneshot::channel();
 
@@ -107,7 +177,7 @@ mod tests {
                 let input: TranscribeInputChunk = serde_json::from_str(text.as_str()).unwrap();
 
                 let size = input.audio.len();
-                let non_zero_count = input.audio.iter().filter(|b| **b != 0.0).count();
+                let non_zero_count = input.audio.iter().filter(|b| **b != 0).count();
                 let text = format!("Received {} bytes, {} non-zero", size, non_zero_count);
 
                 let output = serde_json::to_string(&TranscribeOutputChunk { text }).unwrap();
@@ -124,16 +194,21 @@ mod tests {
     #[ignore]
     async fn test_transcribe() {
         let server_url = setup_test_server().await;
-        let client = Client::builder()
-            .with_base(&server_url)
-            .with_token("test")
+        let client = crate::Client::builder()
+            .api_base(&server_url)
+            .api_key("test")
             .build()
             .unwrap();
 
-        let mic = hypr_audio::MicInput::default();
-        let audio_stream = mic.stream().unwrap();
+        let transcribe_client = client
+            .transcribe()
+            .language(codes_iso_639::part_1::LanguageCode::En)
+            .build();
 
-        let transcript_stream = client.transcribe(audio_stream).await.unwrap();
+        let source = hypr_audio::MicInput::default();
+        let stream = source.stream().unwrap();
+
+        let transcript_stream = transcribe_client.from_audio(stream).await.unwrap();
         futures_util::pin_mut!(transcript_stream);
 
         while let Some(chunk) = transcript_stream.next().await {

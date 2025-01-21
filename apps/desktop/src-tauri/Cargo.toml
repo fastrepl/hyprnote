@@ -50,6 +50,7 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 anyhow = { workspace = true }
 bytes = { workspace = true }
 chrono = { workspace = true }
+codes-iso-639 = { workspace = true }
 dotenvy_macro = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

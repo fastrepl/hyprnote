@@ -5,7 +5,7 @@ impl Client {
         &self,
         req: EnhanceRequest,
     ) -> Result<impl futures_util::Stream<Item = reqwest::Result<bytes::Bytes>>, Error> {
-        let mut url = self.base.clone();
+        let mut url = self.api_base.clone();
         url.set_path("/api/native/enhance");
 
         let req = self

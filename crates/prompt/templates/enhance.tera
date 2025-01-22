@@ -1,3 +1,12 @@
+The user just finished a meeting.
+Here is the transcript(some of it might be incomplete):
+
+```transcript
+{{ transcript | render_transcript }}
+```
+
+Here is the note that the user wrote during the meeting:
+
 ```editor
 {{ editor }}
 ```

@@ -1,3 +1,12 @@
+pub fn auto() -> hypr_db::user::Template {
+    hypr_db::user::Template {
+        id: "0".to_string(),
+        title: "Auto template".to_string(),
+        description: "No specific format specified. Just use the available information to write structured content".to_string(),
+        sections: vec![],
+    }
+}
+
 pub fn standup() -> hypr_db::user::Template {
     hypr_db::user::Template {
         id: "1".to_string(),
@@ -47,5 +56,5 @@ pub fn kickoff() -> hypr_db::user::Template {
 }
 
 pub fn builtins() -> Vec<hypr_db::user::Template> {
-    vec![standup(), kickoff()]
+    vec![auto(), standup(), kickoff()]
 }

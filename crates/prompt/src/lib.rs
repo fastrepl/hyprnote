@@ -14,6 +14,7 @@ lazy_static::lazy_static! {
 
         tera.autoescape_on(vec![]);
         tera.register_filter("render_language", renderer::language());
+        tera.register_filter("render_transcript", renderer::transcript());
         tera
     };
 }
@@ -37,8 +38,13 @@ impl std::fmt::Display for Template {
 }
 
 fn render(tpl: Template, ctx: &tera::Context) -> Result<String, Error> {
-    TEMPLATES
+    let rendered = TEMPLATES
         .render(&tpl.to_string(), ctx)
         .map(|s| s.trim().to_string())
-        .map_err(Error::Tera)
+        .map_err(Error::Tera);
+
+    #[cfg(debug_assertions)]
+    println!("{:?}", &rendered);
+
+    rendered
 }

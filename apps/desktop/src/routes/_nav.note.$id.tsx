@@ -225,7 +225,7 @@ function LeftPanel() {
                 .enhanced_memo_html ? (
               <EnhanceControls showRaw={showRaw} setShowRaw={setShowRaw} />
             ) : (
-              <EnhanceOnlyButton handleClick={() => {}} />
+              <EnhanceOnlyButton handleClick={() => setShowRaw(false)} />
             )}
           </motion.div>
         )}

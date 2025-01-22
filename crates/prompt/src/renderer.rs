@@ -2,6 +2,22 @@ use codes_iso_639::part_1::{LanguageCode, LanguageCode::*};
 use serde_json::Value;
 use std::{collections::HashMap, str::FromStr};
 
+pub fn transcript() -> impl tera::Filter {
+    Box::new(
+        move |value: &Value, _args: &HashMap<String, Value>| -> tera::Result<Value> {
+            let transcript: hypr_db::user::Transcript =
+                serde_json::from_value(value.clone()).unwrap();
+
+            let mut buffer = String::new();
+            for block in transcript.blocks {
+                buffer.push_str(&block.text);
+            }
+
+            Ok(s(buffer))
+        },
+    )
+}
+
 pub fn language() -> impl tera::Filter {
     Box::new(
         move |value: &Value, _args: &HashMap<String, Value>| -> tera::Result<Value> {

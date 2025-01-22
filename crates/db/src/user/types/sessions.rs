@@ -66,3 +66,38 @@ pub struct TranscriptBlock {
     pub end: i32,
     pub text: String,
 }
+
+impl Transcript {
+    #[cfg(debug_assertions)]
+    pub fn builder() -> TranscriptBuilder {
+        TranscriptBuilder::default()
+    }
+}
+
+#[cfg(debug_assertions)]
+#[derive(Debug, Default)]
+pub struct TranscriptBuilder {
+    pub timestamp: i32,
+    pub blocks: Vec<TranscriptBlock>,
+}
+
+#[cfg(debug_assertions)]
+impl TranscriptBuilder {
+    pub fn text(mut self, text: impl Into<String>) -> Self {
+        let text = text.into();
+        let text_len = text.len() as i32;
+        self.blocks.push(TranscriptBlock {
+            start: self.timestamp,
+            end: self.timestamp + text_len,
+            text,
+        });
+        self.timestamp += text_len;
+        self
+    }
+
+    pub fn build(self) -> Transcript {
+        Transcript {
+            blocks: self.blocks,
+        }
+    }
+}

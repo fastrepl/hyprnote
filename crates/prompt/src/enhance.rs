@@ -36,7 +36,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            transcript: hypr_db::user::Transcript::default(),
+            transcript: hypr_db::user::Transcript::builder()
+                .text("OpenAI 좋은데요? 당장 결제합니다")
+                .text("저는 Anthropic이 더 나은거같아요.")
+                .build(),
             editor: markdown::to_html(
                 r#"openai 새로운 gpt-based 모델 관련 토론 진행
 
@@ -49,10 +52,13 @@ mod tests {
 
     fn input_2() -> Input {
         Input {
-            template: hypr_template::kickoff(),
+            template: hypr_template::auto(),
             config_general: hypr_db::user::ConfigDataGeneral::default(),
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            transcript: hypr_db::user::Transcript::default(),
+            transcript: hypr_db::user::Transcript::builder()
+                .text("this just a test")
+                .text("this is another test")
+                .build(),
             editor: markdown::to_html(
                 r#"## Another Test
                 

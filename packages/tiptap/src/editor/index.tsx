@@ -51,8 +51,9 @@ export default function Editor({ handleChange, content }: EditorProps) {
     editorProps: {
       attributes: {
         class: clsx([
-          "prose dark:prose-invert prose-sm",
+          "prose dark:prose-invert prose-md",
           "prose-headings:text-gray-700 prose-p:text-gray-600",
+          "prose-p:my-1",
           "prose-headings:font-medium",
           "prose-em:not-italic prose-em:text-black prose-em:font-semibold",
           "focus:outline-none focus:ring-0",
@@ -61,9 +62,7 @@ export default function Editor({ handleChange, content }: EditorProps) {
     },
   });
 
-  const handleClickArea = useCallback(() => {
-    editor?.commands.focus("end");
-  }, [editor]);
+
 
   useEffect(() => {
     if (editor && editor.isInitialized) {
@@ -73,15 +72,11 @@ export default function Editor({ handleChange, content }: EditorProps) {
 
   return (
     <div
-      onClick={() => {
-        editor?.commands.focus("end");
-      }}
       className="h-[calc(100vh-240px)]"
     >
       <div
         role="textbox"
         className={clsx(["relative h-full w-full"])}
-        onClick={handleClickArea}
       >
         <EditorContent className="h-full w-full" editor={editor} />
       </div>

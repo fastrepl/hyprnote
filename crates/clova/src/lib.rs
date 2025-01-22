@@ -58,7 +58,8 @@ impl ClientBuilder {
             }),
             keyword_boosting: Some(vec!["하이퍼노트".to_string()].into()),
             semantic_epd: Some(interface::SemanticEpd {
-                skip_empty_text: Some(true),
+                // TODO: we might want to set this true at some point, but currently we need this to flush out buffer
+                skip_empty_text: Some(false),
                 use_word_epd: Some(true),
                 gap_threshold: Some(500),
                 ..Default::default()

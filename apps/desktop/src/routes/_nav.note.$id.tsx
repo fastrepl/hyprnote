@@ -240,17 +240,11 @@ function RightPanel() {
     session: s.session,
   }));
 
-  const blocks = Array.from({ length: 200 }, (_, i) => ({
-    text: `This is a test block ${i}`,
-    start: i * 10,
-    end: i * 10 + 10,
-  }));
-
   return (
     <div className="flex h-full flex-col justify-end">
       <ScrollArea type="auto" className="flex-1 p-4">
         <div className="space-y-4 text-sm">
-          {blocks.map((message, index) => (
+          {session.transcript?.blocks.map((message, index) => (
             <div className="mb-4" key={index}>
               <div className="rounded-lg bg-muted px-3 py-1 text-muted-foreground">
                 {message.text}

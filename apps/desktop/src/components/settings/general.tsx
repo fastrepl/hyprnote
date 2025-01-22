@@ -61,12 +61,10 @@ export default function General() {
 
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
-    defaultValues: {
+    values: {
       autostart: config.data?.autostart ?? false,
       notifications: config.data?.notifications ?? false,
-      language: config.data?.language
-        ? (config.data?.language as "En" | "Ko")
-        : "En",
+      language: (config.data?.language ?? "En") as "En" | "Ko",
       context: config.data?.context ?? "",
     },
   });
@@ -157,10 +155,7 @@ export default function General() {
                     You can manage email addresses in your{" "}
                   </FormDescription>
                 </div>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger className="max-w-[100px]">
                       <SelectValue placeholder="Select a verified email to display" />

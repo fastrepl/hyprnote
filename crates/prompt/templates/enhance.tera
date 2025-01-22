@@ -17,10 +17,18 @@ Here is the user's profile:
 
 Output language: {{ config_general.language | render_language }}
 
-When rewriting the editor content, follow these rules:
-- Allowed tags for the editor content: "h2", "h3", "h4", "p", "ul", "ol", "li", "div", "em".
-- Information that is already noted in the editor should be considered as "important", and should be kept.
-(Feel free to rewrite/paraphrase the information, but do not remove it.) Also it should be wrapped with <em> tag.
-- Above rule for <em> should be applied to all headings. For example, <h2><em>[SOMETHING]</em></h2> is valid if [SOMETHING] is already noted in the editor.
+Note that template is always provided in English. You should translate headers or other formattings if needed.
 
-Now, give me just the rewritten editor content in HTML.
+When rewriting the editor content, follow these rules:
+- Use only these HTML tags: "h2", "h3", "h4", "p", "ul", "ol", "li", "div", "em"
+- Preserve all important information from the original editor content:
+  - Any existing information must be kept (you may rewrite/paraphrase it)
+  - Mark preserved information with <em> tags
+- Heading requirements:
+  - If a heading contains text from the original content, wrap it with <em>
+  - Example: <h2><em>Original Heading</em></h2>
+- Balance <em> usage:
+  - No more than 50% of the total content should be wrapped in <em> tags
+  - This ensures emphasis remains meaningful
+
+Output: Provide only the rewritten HTML content.

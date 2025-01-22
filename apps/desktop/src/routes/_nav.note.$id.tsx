@@ -11,6 +11,11 @@ import {
 } from "@hypr/ui/components/ui/resizable";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
 
 import NoteEditor from "@hypr/tiptap/editor";
 import NoteRenderer from "@hypr/tiptap/renderer";
@@ -147,7 +152,7 @@ function LeftPanel() {
   }, []);
 
   return (
-    <div className="flex h-full flex-col p-8">
+    <div className="relative flex h-full flex-col p-8">
       <div className="flex flex-row items-center justify-between">
         <input
           type="text"
@@ -186,31 +191,33 @@ function LeftPanel() {
         </div>
       </div>
 
-      {showRaw ? (
-        <div className={clsx(["mt-6 flex flex-1 flex-col"])}>
-          <NoteEditor
-            handleChange={handleChangeNote}
-            content={store.session.raw_memo_html}
-          />
-        </div>
-      ) : (
-        <div
-          className={clsx([
-            "mt-6 flex flex-1 flex-col",
-            enhance.status === "loading" ? "tiptap-animate" : "",
-          ])}
-        >
-          <NoteRenderer
-            handleChange={handleChangeNote}
-            content={store.session.enhanced_memo_html ?? ""}
-          />
-        </div>
-      )}
+      <ScrollArea type="auto" className="h-[calc(100vh-240px)]">
+        {showRaw ? (
+          <div className={clsx(["mt-6 flex flex-1 flex-col"])}>
+            <NoteEditor
+              handleChange={handleChangeNote}
+              content={store.session.raw_memo_html}
+            />
+          </div>
+        ) : (
+          <div
+            className={clsx([
+              "mt-6 flex flex-1 flex-col",
+              enhance.status === "loading" ? "tiptap-animate" : "",
+            ])}
+          >
+            <NoteRenderer
+              handleChange={handleChangeNote}
+              content={store.session.enhanced_memo_html ?? ""}
+            />
+          </div>
+        )}
+      </ScrollArea>
 
       <AnimatePresence>
         {!store.listening && (
           <motion.div
-            className="mb-8 flex justify-center"
+            className="absolute bottom-16 left-1/2 flex -translate-x-1/2 justify-center"
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
@@ -266,7 +273,7 @@ function EnhanceControls({
   return (
     <div className="flex w-fit flex-row items-center">
       <button
-        onClick={() => setShowRaw(!showRaw)}
+        onClick={() => setShowRaw(true)}
         className={clsx([
           "h-9 rounded-l-xl border border-r-0 border-border px-3",
           "duration-400 transition-all ease-in-out",
@@ -276,23 +283,37 @@ function EnhanceControls({
       >
         <AlignLeft size={20} />
       </button>
-      <button
-        onClick={() => setShowRaw(!showRaw)}
+      <div
         className={clsx([
-          "h-9 rounded-r-xl border border-l-0 border-border px-3",
+          "flex h-9 flex-row items-center rounded-r-xl border border-l-0 border-border",
           "duration-400 transition-all ease-in-out",
+          showRaw ? "px-3" : "pl-2 pr-1",
           !showRaw ? "bg-primary/20" : "bg-background",
           !showRaw ? "text-primary" : "text-muted-foreground",
         ])}
       >
-        <Zap
-          size={20}
-          className={clsx([
-            "transition-[fill] duration-200 ease-in-out",
-            !showRaw ? "fill-primary/60" : "fill-background",
-          ])}
-        />
-      </button>
+        <button onClick={() => setShowRaw(false)}>
+          <Zap
+            size={20}
+            className={clsx([
+              "transition-[fill] duration-200 ease-in-out",
+              !showRaw ? "fill-primary/60" : "fill-background",
+            ])}
+          />
+        </button>
+        {!showRaw && (
+          <Popover>
+            <PopoverTrigger className="flex flex-row items-center text-xs">
+              <span className="rounded-xl px-2 py-0.5 hover:bg-indigo-200">
+                Stand up
+              </span>
+            </PopoverTrigger>
+            <PopoverContent>
+              <div>Template Selector</div>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
     </div>
   );
 }

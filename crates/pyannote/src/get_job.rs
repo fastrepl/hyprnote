@@ -33,6 +33,7 @@ pub enum JobStatus {
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[serde(untagged)]
 pub enum JobResult {
     Diarization(DiarizationResult),
 }
@@ -40,7 +41,7 @@ pub enum JobResult {
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct DiarizationResult {
     pub diarization: Vec<DiarizationSegment>,
-    pub confidence: DiarizationConfidence,
+    pub confidence: Option<DiarizationConfidence>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -56,6 +57,7 @@ pub struct DiarizationConfidence {
     pub score: Vec<f32>,
 }
 
+// https://docs.pyannote.ai/api-reference/get-job
 impl PyannoteClient {
     pub async fn get_job(
         &self,

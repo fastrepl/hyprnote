@@ -2,13 +2,13 @@ use crate::PyannoteClient;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Request {
-    url: String,
+    pub url: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    webhook: Option<String>,
+    pub webhook: Option<String>,
     #[serde(rename = "numSpeakers", skip_serializing_if = "Option::is_none")]
-    num_speakers: Option<u8>,
+    pub num_speakers: Option<u8>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    confidence: Option<bool>,
+    pub confidence: Option<bool>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -24,6 +24,7 @@ pub enum Response {
     },
 }
 
+// https://docs.pyannote.ai/api-reference/diarize
 impl PyannoteClient {
     pub async fn submit_diarization_job(&self, req: Request) -> Result<Response, reqwest::Error> {
         let mut url = self.api_base.clone();

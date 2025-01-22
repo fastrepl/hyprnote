@@ -5,7 +5,12 @@
   "type": "module",
   "exports": {
     "./editor": "./src/editor/index.tsx",
-    "./editor/tailwind.config": "./src/editor/tailwind.config.ts"
+    "./editor/tailwind.config": "./src/editor/tailwind.config.ts",
+    "./renderer": "./src/renderer/index.tsx",
+    "./renderer/tailwind.config": "./src/renderer/tailwind.config.ts"
+  },
+  "scripts": {
+    "format": "prettier --write ."
   },
   "peerDependencies": {
     "react": "^18.3.1",
@@ -20,10 +25,10 @@
     "@tiptap/pm": "^2.11.0",
     "@tiptap/react": "^2.11.0",
     "@tiptap/starter-kit": "^2.11.0",
-    "@tiptap/suggestion": "^2.11.0",
     "clsx": "^2.1.1"
   },
   "devDependencies": {
+    "prettier": "^3.4.2",
     "tailwindcss": "^3.4.17"
   }
 }

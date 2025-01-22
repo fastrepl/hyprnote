@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
-    "@hypr/ap": "workspace:*",
+    "@hypr/tiptap": "workspace:*",
     "@hypr/ui": "workspace:*",
     "@lingui/core": "^5.1.2",
     "@lingui/react": "^5.1.2",

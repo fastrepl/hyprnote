@@ -21,13 +21,18 @@ type Actions = {
   updateTitle: (title: string) => void;
   updateRawNote: (note: string) => void;
   updateEnhancedNote: (note: string) => void;
+  persistSession: () => Promise<void>;
 };
 
 export const createSessionStore = (session: Session) => {
-  return createStore<State & Actions>((set) => ({
+  return createStore<State & Actions>((set, get) => ({
     session,
     listening: false,
     channel: null,
+    persistSession: async () => {
+      const { session } = get();
+      await commands.dbUpsertSession(session);
+    },
     updateTitle: (title: string) => {
       set((state) =>
         mutate(state, (draft) => {

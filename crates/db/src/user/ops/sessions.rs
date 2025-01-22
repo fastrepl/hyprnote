@@ -55,31 +55,26 @@ impl UserDatabase {
                     enhanced_memo_html,
                     tags,
                     transcript
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET
+                ) VALUES (:id, :timestamp, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :tags, :transcript) 
+                ON CONFLICT(id) DO UPDATE SET
+                    timestamp = :timestamp,
                     title = :title,
                     raw_memo_html = :raw_memo_html,
                     enhanced_memo_html = :enhanced_memo_html,
                     tags = :tags,
                     transcript = :transcript
                 RETURNING *",
-                vec![
-                    libsql::Value::Text(session.id),
-                    libsql::Value::Text(session.timestamp.format(&Rfc3339).unwrap()),
-                    session
-                        .calendar_event_id
-                        .map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
-                    libsql::Value::Text(session.title),
-                    libsql::Value::Text(session.raw_memo_html),
-                    session
-                        .enhanced_memo_html
-                        .map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
-                    libsql::Value::Text(serde_json::to_string(&session.tags).unwrap()),
-                    session.transcript.map_or(libsql::Value::Null, |v| {
-                        libsql::Value::Text(serde_json::to_string(&v).unwrap())
-                    }),
-                ],
-            )
-            .await?;
+                libsql::named_params! {
+                    ":id": libsql::Value::Text(session.id),
+                    ":timestamp": libsql::Value::Text(session.timestamp.format(&Rfc3339).unwrap()),
+                    ":calendar_event_id": session.calendar_event_id.map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
+                    ":title": libsql::Value::Text(session.title),
+                    ":raw_memo_html": libsql::Value::Text(session.raw_memo_html),
+                    ":enhanced_memo_html": session.enhanced_memo_html.map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
+                    ":tags": libsql::Value::Text(serde_json::to_string(&session.tags).unwrap()),
+                    ":transcript": session.transcript.map_or(libsql::Value::Null, |v| libsql::Value::Text(serde_json::to_string(&v).unwrap())),
+                },
+            ).await?;
 
         let row = rows.next().await?.unwrap();
         let session = Session::from_row(&row)?;

@@ -2,13 +2,14 @@ import { useCallback, useRef, useState } from "react";
 import { useHypr } from "@/contexts";
 import type { EnhanceRequest } from "@/types/server";
 
-const EMPTY = "";
+type EnhanceStatus = "idle" | "loading" | "error" | "success";
 
 export function useEnhance(input: EnhanceRequest) {
-  const { client } = useHypr();
-  const [data, setData] = useState<string>(EMPTY);
-  const [isLoading, setIsLoading] = useState(false);
+  const [data, setData] = useState<string>("");
+  const [status, setStatus] = useState<EnhanceStatus>("idle");
   const [error, setError] = useState<undefined | Error>(undefined);
+
+  const { client } = useHypr();
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const stop = useCallback(() => {
@@ -16,15 +17,15 @@ export function useEnhance(input: EnhanceRequest) {
       abortControllerRef.current?.abort();
     } catch (ignored) {
     } finally {
-      setIsLoading(false);
+      setStatus("idle");
       abortControllerRef.current = null;
     }
   }, []);
 
   const submit = async () => {
     try {
-      setData(EMPTY);
-      setIsLoading(true);
+      setData("");
+      setStatus("loading");
       setError(undefined);
 
       const abortController = new AbortController();
@@ -52,10 +53,11 @@ export function useEnhance(input: EnhanceRequest) {
 
         setData(buffer);
       }
+
+      setStatus("success");
     } catch (error) {
+      setStatus("error");
       setError(error as Error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -63,7 +65,7 @@ export function useEnhance(input: EnhanceRequest) {
     stop,
     submit,
     data,
-    isLoading,
+    status,
     error,
   };
 }

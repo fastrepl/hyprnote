@@ -91,6 +91,7 @@ function LeftPanel() {
     updateTitle: s.updateTitle,
     updateRawNote: s.updateRawNote,
     updateEnhancedNote: s.updateEnhancedNote,
+    persistSession: s.persistSession,
   }));
 
   const [showRaw, setShowRaw] = useState(true);
@@ -99,6 +100,7 @@ function LeftPanel() {
     (content: string) => {
       if (showRaw) {
         store.updateRawNote(content);
+        store.persistSession();
       } else {
         store.updateEnhancedNote(content);
       }
@@ -133,6 +135,12 @@ function LeftPanel() {
       store.updateEnhancedNote(enhance.data);
     }
   }, [enhance.data]);
+
+  useEffect(() => {
+    if (enhance.status === "success" || enhance.status === "loading") {
+      store.persistSession();
+    }
+  }, [enhance.status]);
 
   const handleTitleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     store.updateTitle(e.target.value);
@@ -189,7 +197,7 @@ function LeftPanel() {
         <div
           className={clsx([
             "mt-6 flex flex-1 flex-col",
-            enhance.isLoading ? "tiptap-animate" : "",
+            enhance.status === "loading" ? "tiptap-animate" : "",
           ])}
         >
           <NoteRenderer

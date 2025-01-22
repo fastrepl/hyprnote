@@ -1,6 +1,15 @@
 use serde::de::Error as _;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecognizeRequestExtra {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ep_flag: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub seq_id: Option<i32>,
+}
+
 // https://api.ncloud-docs.com/docs/en/ai-application-service-clovaspeech-grpc#3-request-config-json
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]

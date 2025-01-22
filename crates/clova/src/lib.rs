@@ -106,11 +106,24 @@ impl Client {
                     r#type: interface::RequestType::Data.into(),
                     part: Some(interface::nest_request::Part::Data(interface::NestData {
                         chunk: chunk.into(),
-                        extra_contents: r#"{"seqId": 0, "epFlag": false}"#.to_string(),
+                        extra_contents: serde_json::to_string(
+                            &interface::RecognizeRequestExtra::default(),
+                        )
+                        .unwrap(),
                     })),
                 })
             } else {
-                None
+                Some(interface::NestRequest {
+                    r#type: interface::RequestType::Data.into(),
+                    part: Some(interface::nest_request::Part::Data(interface::NestData {
+                        chunk: vec![].into(),
+                        extra_contents: serde_json::to_string(&interface::RecognizeRequestExtra {
+                            ep_flag: Some(true),
+                            ..Default::default()
+                        })
+                        .unwrap(),
+                    })),
+                })
             }
         });
 

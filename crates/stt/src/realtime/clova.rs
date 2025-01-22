@@ -38,7 +38,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for ClovaClient {
                     buffer.push(response);
 
                     let should_emit = if let Some(last) = buffer.last() {
-                        last.text.ends_with('.') || buffer.len() >= 6
+                        last.text.trim().ends_with('.') || buffer.len() >= 6
                     } else {
                         false
                     };

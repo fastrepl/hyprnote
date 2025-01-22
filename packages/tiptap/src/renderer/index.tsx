@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 import {
   EditorContent,
@@ -11,8 +11,6 @@ import clsx from "clsx";
 import * as shared from "../shared";
 import { HyprchargeNode } from "./nodes";
 
-import "./style.css";
-
 export const extensions = [...shared.extensions, HyprchargeNode];
 
 interface EditorProps {
@@ -20,7 +18,7 @@ interface EditorProps {
   content: HTMLContent;
 }
 
-export default function Editor({ handleChange, content }: EditorProps) {
+export default function Renderer({ handleChange, content }: EditorProps) {
   const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
     if (!editor.isInitialized) {
       return;
@@ -47,7 +45,7 @@ export default function Editor({ handleChange, content }: EditorProps) {
   });
 
   useEffect(() => {
-    if (editor && editor.isEmpty) {
+    if (editor) {
       editor.commands.setContent(content);
     }
   }, [editor, content]);

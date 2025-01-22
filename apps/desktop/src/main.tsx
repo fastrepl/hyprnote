@@ -27,6 +27,7 @@ i18n.activate("en");
 
 import "./styles/globals.css";
 import "@hypr/ui/globals.css";
+import "@hypr/tiptap/renderer/style.css";
 
 export type Context = {
   auth?: AuthContext;

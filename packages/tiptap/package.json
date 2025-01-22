@@ -7,7 +7,8 @@
     "./editor": "./src/editor/index.tsx",
     "./editor/tailwind.config": "./src/editor/tailwind.config.ts",
     "./renderer": "./src/renderer/index.tsx",
-    "./renderer/tailwind.config": "./src/renderer/tailwind.config.ts"
+    "./renderer/tailwind.config": "./src/renderer/tailwind.config.ts",
+    "./renderer/style.css": "./src/renderer/style.css"
   },
   "scripts": {
     "format": "prettier --write ."

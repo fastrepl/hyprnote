@@ -12,7 +12,8 @@ import {
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
 
-import Editor from "@hypr/tiptap/editor";
+import NoteEditor from "@hypr/tiptap/editor";
+import NoteRenderer from "@hypr/tiptap/renderer";
 
 import ParticipantsSelector from "@/components/participants-selector";
 import SelectedEvent from "@/components/selected-event";
@@ -177,21 +178,26 @@ function LeftPanel() {
         </div>
       </div>
 
-      <div
-        className={clsx([
-          "mt-6 flex flex-1 flex-col",
-          enhance.isLoading ? "tiptap-animate" : "",
-        ])}
-      >
-        <Editor
-          handleChange={handleChangeNote}
-          content={
-            showRaw
-              ? store.session.raw_memo_html
-              : (store.session.enhanced_memo_html ?? "")
-          }
-        />
-      </div>
+      {showRaw ? (
+        <div className={clsx(["mt-6 flex flex-1 flex-col"])}>
+          <NoteEditor
+            handleChange={handleChangeNote}
+            content={store.session.raw_memo_html}
+          />
+        </div>
+      ) : (
+        <div
+          className={clsx([
+            "mt-6 flex flex-1 flex-col",
+            enhance.isLoading ? "tiptap-animate" : "",
+          ])}
+        >
+          <NoteRenderer
+            handleChange={handleChangeNote}
+            content={store.session.enhanced_memo_html ?? ""}
+          />
+        </div>
+      )}
 
       <AnimatePresence>
         {!store.listening && (

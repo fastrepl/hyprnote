@@ -9,6 +9,8 @@ pub struct ConfigRequest {
     pub transcription: Option<Transcription>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keyword_boosting: Option<KeywordBoosting>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub semantic_epd: Option<SemanticEpd>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -25,6 +27,23 @@ pub struct KeywordBoosting {
 pub struct KeywordBoostingItem {
     pub words: String,
     pub weight: f64,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct SemanticEpd {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub skip_empty_text: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub use_word_epd: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub use_period_epd: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gap_threshold: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration_threshold: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub syllable_threshold: Option<i32>,
 }
 
 impl From<Vec<String>> for KeywordBoosting {

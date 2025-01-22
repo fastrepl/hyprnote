@@ -57,6 +57,12 @@ impl ClientBuilder {
                 language: interface::Language::Korean,
             }),
             keyword_boosting: Some(vec!["하이퍼노트".to_string()].into()),
+            semantic_epd: Some(interface::SemanticEpd {
+                skip_empty_text: Some(true),
+                use_word_epd: Some(true),
+                gap_threshold: Some(500),
+                ..Default::default()
+            }),
         };
 
         Ok(Client { inner, config })

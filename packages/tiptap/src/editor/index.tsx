@@ -39,14 +39,15 @@ interface EditorProps {
 
 export default function Editor({ handleChange, content }: EditorProps) {
   const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
-    if (editor.isInitialized) {
-      handleChange(editor.getHTML());
+    if (!editor.isInitialized) {
+      return;
     }
+
+    handleChange(editor.getHTML());
   };
 
   const editor = useEditor({
     extensions,
-    content,
     onUpdate,
     editorProps: {
       attributes: {
@@ -63,9 +64,8 @@ export default function Editor({ handleChange, content }: EditorProps) {
   });
 
 
-
   useEffect(() => {
-    if (editor && editor.isInitialized) {
+    if (editor && editor.isEmpty) {
       editor.commands.setContent(content);
     }
   }, [content]);

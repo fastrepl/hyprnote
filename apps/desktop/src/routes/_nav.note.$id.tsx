@@ -191,26 +191,23 @@ function LeftPanel() {
         </div>
       </div>
 
-      <ScrollArea type="auto" className="h-[calc(100vh-240px)]">
+      <ScrollArea
+        type="auto"
+        className={clsx([
+          "h-[calc(100vh-240px)] pt-6",
+          enhance.status === "loading" ? "tiptap-animate" : "",
+        ])}
+      >
         {showRaw ? (
-          <div className={clsx(["mt-6 flex flex-1 flex-col"])}>
-            <NoteEditor
-              handleChange={handleChangeNote}
-              content={store.session.raw_memo_html}
-            />
-          </div>
+          <NoteEditor
+            handleChange={handleChangeNote}
+            content={store.session.raw_memo_html}
+          />
         ) : (
-          <div
-            className={clsx([
-              "mt-6 flex flex-1 flex-col",
-              enhance.status === "loading" ? "tiptap-animate" : "",
-            ])}
-          >
-            <NoteRenderer
-              handleChange={handleChangeNote}
-              content={store.session.enhanced_memo_html ?? ""}
-            />
-          </div>
+          <NoteRenderer
+            handleChange={handleChangeNote}
+            content={store.session.enhanced_memo_html ?? ""}
+          />
         )}
       </ScrollArea>
 
@@ -243,11 +240,17 @@ function RightPanel() {
     session: s.session,
   }));
 
+  const blocks = Array.from({ length: 200 }, (_, i) => ({
+    text: `This is a test block ${i}`,
+    start: i * 10,
+    end: i * 10 + 10,
+  }));
+
   return (
     <div className="flex h-full flex-col justify-end">
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea type="auto" className="flex-1 p-4">
         <div className="space-y-4 text-sm">
-          {session.transcript?.blocks.map((message, index) => (
+          {blocks.map((message, index) => (
             <div className="mb-4" key={index}>
               <div className="rounded-lg bg-muted px-3 py-1 text-muted-foreground">
                 {message.text}

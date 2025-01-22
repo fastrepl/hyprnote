@@ -50,10 +50,8 @@ export default function Editor({ handleChange, content }: EditorProps) {
   }, [editor, content]);
 
   return (
-    <div className="h-[calc(100vh-240px)]">
-      <div role="textbox" className={clsx(["relative h-full w-full"])}>
-        <EditorContent className="h-full w-full" editor={editor} />
-      </div>
+    <div role="textbox" className={clsx(["relative h-full w-full"])}>
+      <EditorContent className="h-full w-full" editor={editor} />
     </div>
   );
 }

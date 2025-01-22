@@ -9,16 +9,15 @@ import {
 import clsx from "clsx";
 
 import * as shared from "../shared";
-import { HyprchargeNode } from "./nodes";
 
-export const extensions = [...shared.extensions, HyprchargeNode];
+export const extensions = [...shared.extensions];
 
 interface EditorProps {
   handleChange: (content: HTMLContent) => void;
   content: HTMLContent;
 }
 
-export default function Renderer({ handleChange, content }: EditorProps) {
+export default function Editor({ handleChange, content }: EditorProps) {
   const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
     if (!editor.isInitialized) {
       return;

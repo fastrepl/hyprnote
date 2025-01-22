@@ -223,7 +223,13 @@ function LeftPanel() {
             exit={{ y: 50, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <EnhanceControls showRaw={showRaw} setShowRaw={setShowRaw} />
+            {store.listening ||
+            !store.session.transcript?.blocks.length ? null : store.session
+                .enhanced_memo_html ? (
+              <EnhanceControls showRaw={showRaw} setShowRaw={setShowRaw} />
+            ) : (
+              <EnhanceOnlyButton handleClick={() => {}} />
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -260,6 +266,23 @@ function RightPanel() {
         </div>
       )}
     </div>
+  );
+}
+
+function EnhanceOnlyButton({ handleClick }: { handleClick: () => void }) {
+  return (
+    <button
+      className={clsx([
+        "rounded-xl border border-border",
+        "duration-400 transition-all ease-in-out",
+        "px-6 py-2",
+        "bg-primary/20",
+        "text-primary",
+      ])}
+      onClick={handleClick}
+    >
+      <Zap size={20} className={"fill-primary/60"} />
+    </button>
   );
 }
 

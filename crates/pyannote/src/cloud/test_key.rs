@@ -1,4 +1,4 @@
-use crate::PyannoteClient;
+use super::PyannoteClient;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 #[serde(untagged)]

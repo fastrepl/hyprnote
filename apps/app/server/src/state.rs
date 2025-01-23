@@ -5,7 +5,7 @@ use hypr_analytics::AnalyticsClient;
 use hypr_db::admin::AdminDatabase;
 use hypr_nango::NangoClient;
 use hypr_openai::OpenAIClient;
-use hypr_pyannote::PyannoteClient;
+use hypr_pyannote::cloud::PyannoteClient;
 use hypr_s3::Client as S3Client;
 use hypr_stt::realtime::Client as STTClient;
 use hypr_turso::TursoClient;

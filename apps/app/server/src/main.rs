@@ -111,7 +111,7 @@ fn main() {
                 .api_base(get_env("OPENAI_API_BASE"))
                 .build();
 
-            let pyannote = hypr_pyannote::PyannoteClient::builder()
+            let pyannote = hypr_pyannote::cloud::PyannoteClient::builder()
                 .api_key(get_env("PYANNOTE_API_KEY"))
                 .build();
 

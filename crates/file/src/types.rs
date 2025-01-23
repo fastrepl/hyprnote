@@ -4,4 +4,6 @@ pub enum Error {
     UploadError(#[from] reqwest::Error),
     #[error("Error while reading file: {0}")]
     FileIOError(#[from] std::io::Error),
+    #[error("Other error: {0}")]
+    OtherError(String),
 }

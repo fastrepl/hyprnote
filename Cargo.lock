@@ -3827,6 +3827,8 @@ dependencies = [
 name = "file"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
+ "crc32fast",
  "futures-core",
  "futures-util",
  "reqwest 0.12.12",

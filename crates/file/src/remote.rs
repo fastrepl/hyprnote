@@ -1,11 +1,13 @@
-use reqwest::header::{CONTENT_LENGTH, CONTENT_RANGE};
+use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
+use reqwest::header::CONTENT_LENGTH;
 use tokio::io::{AsyncReadExt, AsyncSeekExt};
 
 pub async fn upload(
     presigned_urls: Vec<String>,
     local_path: std::path::PathBuf,
 ) -> Result<Vec<String>, crate::Error> {
-    const CHUNK_SIZE: usize = 30 * 1024 * 1024;
+    // TODO
+    const CHUNK_SIZE: usize = 60 * 1024 * 1024;
 
     let file = tokio::fs::File::open(&local_path).await?;
     let file_size = file.metadata().await?.len() as usize;
@@ -26,24 +28,27 @@ pub async fn upload(
                 let mut file = tokio::fs::File::open(&local_path).await?;
                 file.seek(std::io::SeekFrom::Start(start as u64)).await?;
 
-                let mut buffer = vec![0u8; length];
-                file.read_exact(&mut buffer).await?;
+                let mut buffer = vec![0; length];
+                let n_read = file.read_exact(&mut buffer).await?;
+                buffer.shrink_to(n_read);
+
+                let mut hasher = crc32fast::Hasher::new();
+                hasher.update(&buffer);
+                let checksum = hasher.finalize();
+                let checksum_b64 = BASE64.encode(checksum.to_be_bytes());
 
                 let response = client
                     .put(&presigned_url)
                     .header(CONTENT_LENGTH, length.to_string())
-                    .header(
-                        CONTENT_RANGE,
-                        format!("bytes {}-{}/{}", start, end - 1, file_size),
-                    )
+                    .header("x-amz-checksum-algorithm", "CRC32")
+                    .header("x-amz-checksum-crc32", checksum_b64)
                     .body(buffer)
                     .send()
                     .await?;
 
                 if !response.status().is_success() {
-                    return Err(crate::Error::UploadError(
-                        response.error_for_status().unwrap_err(),
-                    ));
+                    let body = response.text().await?;
+                    return Err(crate::Error::OtherError(body));
                 }
 
                 let etag = response
@@ -87,9 +92,10 @@ mod tests {
             .credentials("minioadmin", "minioadmin")
             .build()
             .await;
-        let user_s3 = admin_s3.for_user("test-user");
 
         let _ = admin_s3.create_bucket().await.unwrap();
+
+        let user_s3 = admin_s3.for_user("test-user");
 
         let file_key = "audio.wav";
         let mut temp_file = tempfile::NamedTempFile::new().unwrap();

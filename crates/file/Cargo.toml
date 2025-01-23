@@ -4,11 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-reqwest = { workspace = true, features = ["multipart"] }
+base64 = "0.22.1"
+crc32fast = "1.4.2"
 thiserror = { workspace = true }
 
 futures-core = { workspace = true }
 futures-util = { workspace = true }
+reqwest = { workspace = true, features = ["multipart"] }
 tokio = { workspace = true, features = ["rt", "macros", "fs"] }
 
 [dev-dependencies]

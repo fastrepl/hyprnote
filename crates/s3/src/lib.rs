@@ -203,6 +203,7 @@ impl<'a> UserClient<'a> {
                 .bucket(&self.bucket)
                 .key(format!("{}/{}", self.folder(), file_name))
                 .upload_id(upload_id)
+                .checksum_algorithm(aws_sdk_s3::types::ChecksumAlgorithm::Crc32)
                 .part_number(part_number as i32)
                 .presigned(config.clone())
                 .await?;

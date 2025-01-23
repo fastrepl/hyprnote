@@ -28,47 +28,49 @@ pub fn request_from(
 mod tests {
     use super::*;
 
+    #[derive(serde::Deserialize)]
+    struct ConversationItem {
+        pub speaker: String,
+        pub start: u64,
+        pub end: u64,
+        pub text: String,
+    }
+
+    fn transcript_from_path(p: impl AsRef<std::path::Path>) -> hypr_db::user::Transcript {
+        let data = std::fs::read_to_string(p).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&data).unwrap();
+        let conversation: Vec<ConversationItem> = value["conversation"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|v| serde_json::from_value(v.clone()).unwrap())
+            .collect();
+
+        hypr_db::user::Transcript {
+            blocks: conversation
+                .iter()
+                .map(|item| hypr_db::user::TranscriptBlock {
+                    start: item.start as i32,
+                    end: item.end as i32,
+                    text: item.text.clone(),
+                })
+                .collect(),
+        }
+    }
+
     fn input_1() -> Input {
+        let note = std::fs::read_to_string("data/1/note.md").unwrap();
+        let transcript = transcript_from_path("data/1/conversation.json");
+
         Input {
-            template: hypr_template::standup(),
+            template: hypr_template::auto(),
             config_general: hypr_db::user::ConfigDataGeneral {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            transcript: hypr_db::user::Transcript::builder()
-                .text("OpenAI 좋은데요? 당장 결제합니다")
-                .text("저는 Anthropic이 더 나은거같아요.")
-                .build(),
-            editor: markdown::to_html(
-                r#"openai 새로운 gpt-based 모델 관련 토론 진행
-
-                - vs Anthropic?
-                - 회사 방향성 관련 토론
-                "#,
-            ),
-        }
-    }
-
-    fn input_2() -> Input {
-        Input {
-            template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral::default(),
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
-            transcript: hypr_db::user::Transcript::builder()
-                .text("this just a test")
-                .text("this is another test")
-                .build(),
-            editor: markdown::to_html(
-                r#"## Another Test
-                
-                Different multi-line content
-                for the second test case.
-                
-                1. With numbered
-                2. List items
-                3. Instead"#,
-            ),
+            editor: markdown::to_html(&note),
+            transcript,
         }
     }
 
@@ -108,12 +110,5 @@ mod tests {
     #[tokio::test]
     async fn test_enhance_run_1() {
         run_input(input_1()).await;
-    }
-
-    // cargo test test_enhance_run_2 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_2() {
-        run_input(input_2()).await;
     }
 }

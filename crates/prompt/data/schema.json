@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "language": {
+      "type": "string",
+      "enum": ["en", "kr"]
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "conversation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "speaker": {
+            "type": "string"
+          },
+          "start": {
+            "type": "number"
+          },
+          "end": {
+            "type": "number"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": ["speaker", "start", "end", "text"]
+      }
+    }
+  },
+  "required": ["conversation", "language"]
+}

@@ -43,8 +43,8 @@ fn render(tpl: Template, ctx: &tera::Context) -> Result<String, Error> {
         .map(|s| s.trim().to_string())
         .map_err(Error::Tera);
 
-    #[cfg(debug_assertions)]
-    println!("{:?}", &rendered);
+    // #[cfg(debug_assertions)]
+    // println!("{:?}", &rendered);
 
     rendered
 }

@@ -4,7 +4,7 @@ pub mod cloud;
 #[cfg(not(feature = "local"))]
 pub mod local;
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct SpeakerSegment {
     pub label: String,
     pub confidence: Option<f32>,

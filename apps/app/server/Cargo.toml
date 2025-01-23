@@ -15,6 +15,7 @@ hypr-html = { path = "../../../crates/html", package = "html" }
 hypr-nango = { path = "../../../crates/nango", package = "nango" }
 hypr-openai = { path = "../../../crates/openai", package = "openai" }
 hypr-prompt = { path = "../../../crates/prompt", package = "prompt" }
+hypr-pyannote = { path = "../../../crates/pyannote", package = "pyannote" }
 hypr-s3 = { path = "../../../crates/s3", package = "s3" }
 hypr-stt = { path = "../../../crates/stt", package = "stt" }
 hypr-turso = { path = "../../../crates/turso", package = "turso" }

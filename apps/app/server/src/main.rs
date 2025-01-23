@@ -111,6 +111,10 @@ fn main() {
                 .api_base(get_env("OPENAI_API_BASE"))
                 .build();
 
+            let pyannote = hypr_pyannote::PyannoteClient::builder()
+                .api_key(get_env("PYANNOTE_API_KEY"))
+                .build();
+
             let state = state::AppState {
                 clerk: clerk.clone(),
                 stt,
@@ -120,6 +124,7 @@ fn main() {
                 analytics,
                 s3,
                 openai,
+                pyannote,
             };
 
             let web_router = Router::new()
@@ -149,7 +154,9 @@ fn main() {
                 .route("/transcribe", get(native::transcribe::handler))
                 .route("/user/integrations", get(native::user::list_integrations))
                 .route("/upload/create", post(native::upload::create_upload))
-                .route("/upload/complete", post(native::upload::complete_upload));
+                .route("/upload/complete", post(native::upload::complete_upload))
+                .route("/diarization/submit", post(native::diarization::submit))
+                .route("/diarization/retrieve", post(native::diarization::retrieve));
             // .layer(
             //     tower::builder::ServiceBuilder::new()
             //         .layer(axum::middleware::from_fn_with_state(
@@ -211,6 +218,10 @@ fn export_ts_types() -> anyhow::Result<()> {
 
     native_collection.register::<hypr_nango::NangoIntegration>();
     native_collection.register::<hypr_bridge::EnhanceRequest>();
+    native_collection.register::<native::diarization::SubmitRequest>();
+    native_collection.register::<native::diarization::SubmitResponse>();
+    native_collection.register::<native::diarization::RetrieveRequest>();
+    native_collection.register::<native::diarization::RetrieveResponse>();
 
     let language = specta_typescript::Typescript::default()
         .header("// @ts-nocheck\n\n")

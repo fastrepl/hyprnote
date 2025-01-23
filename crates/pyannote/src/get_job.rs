@@ -1,7 +1,14 @@
 use crate::PyannoteClient;
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+#[specta(rename = "DiarizationRetrieveRequest")]
+pub struct Request {
+    pub job_id: String,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(untagged)]
+#[specta(rename = "DiarizationRetrieveResponse")]
 pub enum Response {
     Ok {
         status: JobStatus,
@@ -18,7 +25,7 @@ pub enum Response {
     },
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub enum JobStatus {
     #[serde(rename = "pending")]
     Pending,
@@ -32,26 +39,26 @@ pub enum JobStatus {
     Failed,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(untagged)]
 pub enum JobResult {
     Diarization(DiarizationResult),
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct DiarizationResult {
     pub diarization: Vec<DiarizationSegment>,
     pub confidence: Option<DiarizationConfidence>,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct DiarizationSegment {
     pub speaker: String,
     pub start: f32,
     pub end: f32,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct DiarizationConfidence {
     pub resolution: f32,
     pub score: Vec<f32>,
@@ -59,12 +66,9 @@ pub struct DiarizationConfidence {
 
 // https://docs.pyannote.ai/api-reference/get-job
 impl PyannoteClient {
-    pub async fn get_job(
-        &self,
-        job_id: impl std::fmt::Display,
-    ) -> Result<Response, reqwest::Error> {
+    pub async fn get_job(&self, input: Request) -> Result<Response, reqwest::Error> {
         let mut url = self.api_base.clone();
-        url.set_path(&format!("/v1/jobs/{}", job_id));
+        url.set_path(&format!("/v1/jobs/{}", input.job_id));
 
         let res = self
             .client

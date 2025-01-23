@@ -1,7 +1,8 @@
-mod get_job;
-mod submit_diarization_job;
-mod test_key;
+pub mod get_job;
+pub mod submit_diarization_job;
+pub mod test_key;
 
+#[derive(Debug, Clone)]
 pub struct PyannoteClient {
     client: reqwest::Client,
     api_base: url::Url,
@@ -9,24 +10,15 @@ pub struct PyannoteClient {
 
 impl PyannoteClient {
     pub fn builder() -> PyannoteClientBuilder {
-        PyannoteClientBuilder {
-            api_base: None,
-            api_key: None,
-        }
+        PyannoteClientBuilder { api_key: None }
     }
 }
 
 pub struct PyannoteClientBuilder {
-    api_base: Option<String>,
     api_key: Option<String>,
 }
 
 impl PyannoteClientBuilder {
-    pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
-        self.api_base = Some(api_base.into());
-        self
-    }
-
     pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
         self.api_key = Some(api_key.into());
         self
@@ -47,12 +39,7 @@ impl PyannoteClientBuilder {
             .build()
             .unwrap();
 
-        let api_base = self
-            .api_base
-            .unwrap_or("https://api.pyannote.ai".to_string())
-            .parse()
-            .unwrap();
-
+        let api_base = "https://api.pyannote.ai".parse().unwrap();
         PyannoteClient { client, api_base }
     }
 }
@@ -106,10 +93,11 @@ mod tests {
     #[tokio::test]
     async fn test_get_job() {
         let client = get_client();
-        let res = client
-            .get_job("54a2cfa1-b71d-4c77-abae-50bdd0a4f892")
-            .await
-            .unwrap();
+
+        let req = get_job::Request {
+            job_id: "54a2cfa1-b71d-4c77-abae-50bdd0a4f892".to_string(),
+        };
+        let res = client.get_job(req).await.unwrap();
         println!("{:?}", res);
     }
 }

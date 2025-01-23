@@ -1,6 +1,7 @@
 use crate::PyannoteClient;
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+#[specta(rename = "DiarizationSubmitRequest")]
 pub struct Request {
     pub url: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -11,8 +12,9 @@ pub struct Request {
     pub confidence: Option<bool>,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(untagged)]
+#[specta(rename = "DiarizationSubmitResponse")]
 pub enum Response {
     Ok {
         status: String,

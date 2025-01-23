@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }
+specta = { workspace = true, features = ["derive"] }
 url = { workspace = true }
 
 [dev-dependencies]

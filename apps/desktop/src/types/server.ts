@@ -6,7 +6,25 @@ export type ConfigDataGeneral = { autostart: boolean; notifications: boolean; la
 
 export type ConfigDataProfile = { full_name: string | null; job_title: string | null; company_name: string | null; company_description: string | null; linkedin_username: string | null }
 
+export type DiarizationConfidence = { resolution: number; score: number[] }
+
+export type DiarizationResult = { diarization: DiarizationSegment[]; confidence: DiarizationConfidence | null }
+
+export type DiarizationRetrieveRequest = { job_id: string }
+
+export type DiarizationRetrieveResponse = { status: JobStatus; jobId: string; createdAt: string; updatedAt: string; output: JobResult } | { message: string }
+
+export type DiarizationSegment = { speaker: string; start: number; end: number }
+
+export type DiarizationSubmitRequest = { url: string; webhook?: string | null; numSpeakers?: number | null; confidence?: boolean | null }
+
+export type DiarizationSubmitResponse = { status: string; jobId: string } | { message: string }
+
 export type EnhanceRequest = { editor: string; config_general: ConfigDataGeneral; config_profile: ConfigDataProfile; transcript: Transcript; template: Template }
+
+export type JobResult = DiarizationResult
+
+export type JobStatus = "pending" | "created" | "succeeded" | "canceled" | "failed"
 
 export type NangoIntegration = "google-calendar" | "outlook-calendar"
 

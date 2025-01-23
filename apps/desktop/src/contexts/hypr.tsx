@@ -2,11 +2,17 @@
 
 import React, { createContext, useContext } from "react";
 import { fetch } from "@tauri-apps/plugin-http";
+import { Channel } from "@tauri-apps/api/core";
 
 import type { EnhanceRequest, NangoIntegration } from "@/types/server";
-import { CalendarIntegration } from "@/types";
+import type { CalendarIntegration } from "@/types";
+import type {
+  DiarizationSubmitRequest,
+  DiarizationSubmitResponse,
+  DiarizationRetrieveRequest,
+  DiarizationRetrieveResponse,
+} from "@/types/server";
 import { commands } from "@/types/tauri";
-import { Channel } from "@tauri-apps/api/core";
 
 type Client = {
   listIntegrations: () => Promise<NangoIntegration[]>;
@@ -14,6 +20,12 @@ type Client = {
     type: Exclude<CalendarIntegration, "apple-calendar">,
   ) => string;
   enhance: (req: EnhanceRequest) => ReadableStream;
+  submitDiarization: (
+    req: DiarizationSubmitRequest,
+  ) => Promise<DiarizationSubmitResponse>;
+  retrieveDiarization: (
+    req: DiarizationRetrieveRequest,
+  ) => Promise<DiarizationRetrieveResponse>;
 };
 
 const HyprContext = createContext<{ client: Client }>({
@@ -51,6 +63,20 @@ export const HyprProvider: React.FC<{
     },
     getIntegrationURL: (type) => {
       return new URL(`/integrations?provider=${type}`, base).toString();
+    },
+    submitDiarization: async (req: DiarizationSubmitRequest) => {
+      return authFetch("/api/native/diarization/submit", {
+        method: "POST",
+        body: JSON.stringify(req),
+        headers: { "Content-Type": "application/json" },
+      }).then((res) => res.json());
+    },
+    retrieveDiarization: async (req: DiarizationRetrieveRequest) => {
+      return authFetch("/api/native/diarization/retrieve", {
+        method: "POST",
+        body: JSON.stringify(req),
+        headers: { "Content-Type": "application/json" },
+      }).then((res) => res.json());
     },
     enhance: (req: EnhanceRequest) => {
       const channel = new Channel<string>();

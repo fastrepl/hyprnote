@@ -11,7 +11,7 @@ pub fn request_from(
         model: "gpt-4o".to_string(),
         messages: vec![
             hypr_openai::ChatCompletionRequestSystemMessageArgs::default()
-                .content("You are a helpful assistant that only outputs HTML. No code block, no explanation.")
+                .content("You are a helpful assistant that only outputs Markdown. No code block, no explanation.")
                 .build()
                 .unwrap()
                 .into(),
@@ -58,22 +58,6 @@ mod tests {
         }
     }
 
-    fn input_1() -> Input {
-        let note = std::fs::read_to_string("data/1/note.md").unwrap();
-        let transcript = transcript_from_path("data/1/conversation.json");
-
-        Input {
-            template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
-        }
-    }
-
     async fn run_input(input: Input) {
         let openai = hypr_openai::OpenAIClient::builder()
             .api_base("https://api.openai.com/v1")
@@ -98,6 +82,54 @@ mod tests {
             .unwrap();
     }
 
+    fn input_1() -> Input {
+        let note = std::fs::read_to_string("data/1/note.md").unwrap();
+        let transcript = transcript_from_path("data/1/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_2() -> Input {
+        let note = std::fs::read_to_string("data/2/note.md").unwrap();
+        let transcript = transcript_from_path("data/2/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_3() -> Input {
+        let note = std::fs::read_to_string("data/3/note.md").unwrap();
+        let transcript = transcript_from_path("data/3/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
     #[test]
     fn test_enhance_format() {
         let ctx = crate::Context::from_serialize(&input_1()).unwrap();
@@ -110,5 +142,19 @@ mod tests {
     #[tokio::test]
     async fn test_enhance_run_1() {
         run_input(input_1()).await;
+    }
+
+    // cargo test test_enhance_run_2 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_2() {
+        run_input(input_2()).await;
+    }
+
+    // cargo test test_enhance_run_3 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_3() {
+        run_input(input_3()).await;
     }
 }

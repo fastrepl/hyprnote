@@ -11,12 +11,10 @@ Here is the note that the user wrote during the meeting:
 {{ editor }}
 ```
 
-Your job is to rewrite the above editor content, while adhering to the below template.
-Note that template is just a formatting guide, should not influence the content.
+Your job is to generate a summary of the transcript.
+Use the note to identify some of the key points that user think is important.
 
-```template
-{{ template | json_encode() }}
-```
+Keep in mind that both the transcript and the note are not perfect, and you should make the best out of them.
 
 Here is the user's profile:
 
@@ -25,19 +23,3 @@ Here is the user's profile:
 ```
 
 Output language: {{ config_general.language | render_language }}
-
-Note that template is always provided in English. You should translate headers or other formattings if needed.
-
-When rewriting the editor content, follow these rules:
-- Use only these HTML tags: "h2", "h3", "h4", "p", "ul", "ol", "li", "div", "em"
-- Preserve all important information from the original editor content:
-  - Any existing information must be kept (you may rewrite/paraphrase it)
-  - Mark preserved information with <em> tags
-- Heading requirements:
-  - If a heading contains text from the original content, wrap it with <em>
-  - Example: <h2><em>Original Heading</em></h2>
-- Balance <em> usage:
-  - No more than 50% of the total content should be wrapped in <em> tags
-  - This ensures emphasis remains meaningful
-
-Output: Provide only the rewritten HTML content.

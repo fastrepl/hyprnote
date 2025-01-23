@@ -9,5 +9,6 @@ CREATE TABLE sessions (
   raw_memo_html TEXT NOT NULL,
   enhanced_memo_html TEXT DEFAULT NULL,
   transcript TEXT DEFAULT NULL,
+  diarization TEXT NOT NULL,
   FOREIGN KEY (calendar_event_id) REFERENCES calendar_events(id)
 );

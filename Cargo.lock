@@ -3073,6 +3073,7 @@ dependencies = [
  "db-utils",
  "libsql",
  "nango",
+ "pyannote",
  "rand 0.8.5",
  "random_color",
  "serde",

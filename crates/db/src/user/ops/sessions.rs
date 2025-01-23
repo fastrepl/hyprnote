@@ -54,15 +54,17 @@ impl UserDatabase {
                     raw_memo_html,
                     enhanced_memo_html,
                     tags,
-                    transcript
-                ) VALUES (:id, :timestamp, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :tags, :transcript) 
+                    transcript,
+                    diarization
+                ) VALUES (:id, :timestamp, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :tags, :transcript, :diarization) 
                 ON CONFLICT(id) DO UPDATE SET
                     timestamp = :timestamp,
                     title = :title,
                     raw_memo_html = :raw_memo_html,
                     enhanced_memo_html = :enhanced_memo_html,
                     tags = :tags,
-                    transcript = :transcript
+                    transcript = :transcript,
+                    diarization = :diarization
                 RETURNING *",
                 libsql::named_params! {
                     ":id": libsql::Value::Text(session.id),
@@ -73,6 +75,7 @@ impl UserDatabase {
                     ":enhanced_memo_html": session.enhanced_memo_html.map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
                     ":tags": libsql::Value::Text(serde_json::to_string(&session.tags).unwrap()),
                     ":transcript": session.transcript.map_or(libsql::Value::Null, |v| libsql::Value::Text(serde_json::to_string(&v).unwrap())),
+                    ":diarization": libsql::Value::Text(serde_json::to_string(&session.diarization).unwrap()),
                 },
             ).await?;
 

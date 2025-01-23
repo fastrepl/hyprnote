@@ -3,11 +3,16 @@ name = "pyannote"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+local = []
+cloud = ["reqwest", "url"]
+
 [dependencies]
-reqwest = { workspace = true, features = ["json"] }
+reqwest = { workspace = true, features = ["json"], optional = true }
+url = { workspace = true, optional = true }
+
 serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true, features = ["derive"] }
-url = { workspace = true }
 
 [dev-dependencies]
 hypr-data = { path = "../../crates/data", package = "data" }

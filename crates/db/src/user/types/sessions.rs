@@ -14,6 +14,7 @@ pub struct Session {
     pub raw_memo_html: String,
     pub enhanced_memo_html: Option<String>,
     pub transcript: Option<Transcript>,
+    pub diarization: Vec<hypr_pyannote::SpeakerSegment>,
 }
 
 impl Session {
@@ -35,6 +36,10 @@ impl Session {
                 .get_str(9)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .ok(),
+            diarization: row
+                .get_str(10)
+                .map(|s| serde_json::from_str(s).unwrap())
+                .unwrap_or_default(),
         })
     }
 }
@@ -52,6 +57,7 @@ impl Default for Session {
             raw_memo_html: "".to_string(),
             enhanced_memo_html: None,
             transcript: None,
+            diarization: vec![],
         }
     }
 }

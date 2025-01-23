@@ -23,7 +23,6 @@ pub fn request_from(
     })
 }
 
-// cargo test -p prompt enhance::tests -- --include-ignored -- --nocapture
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -75,7 +74,7 @@ mod tests {
         let content = res.choices[0].message.content.clone().unwrap();
 
         bat::PrettyPrinter::new()
-            .language("html")
+            .language("markdown")
             .grid(true)
             .input_from_bytes(content.as_bytes())
             .print()
@@ -329,108 +328,35 @@ mod tests {
         assert!(!output.is_empty());
     }
 
-    // cargo test test_enhance_run_1 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_1() {
-        run_input(input_1()).await;
+    macro_rules! generate {
+        ( $( $test_name:ident => $input_expr:expr ),+ $(,)? ) => {
+            $(
+                #[ignore]
+                #[tokio::test]
+                async fn $test_name() {
+                    run_input($input_expr).await;
+                }
+            )+
+        }
     }
 
-    // cargo test test_enhance_run_2 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_2() {
-        run_input(input_2()).await;
-    }
-
-    // cargo test test_enhance_run_3 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_3() {
-        run_input(input_3()).await;
-    }
-
-    // cargo test test_enhance_run_4 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_4() {
-        run_input(input_4()).await;
-    }
-
-    // cargo test test_enhance_run_5 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_5() {
-        run_input(input_5()).await;
-    }
-
-    // cargo test test_enhance_run_6 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_6() {
-        run_input(input_6()).await;
-    }
-
-    // cargo test test_enhance_run_7 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_7() {
-        run_input(input_7()).await;
-    }
-
-    // cargo test test_enhance_run_8 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_8() {
-        run_input(input_8()).await;
-    }
-
-    // cargo test test_enhance_run_9 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_9() {
-        run_input(input_9()).await;
-    }
-
-    // cargo test test_enhance_run_10 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_10() {
-        run_input(input_10()).await;
-    }
-
-    // cargo test test_enhance_run_11 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_11() {
-        run_input(input_11()).await;
-    }
-
-    // cargo test test_enhance_run_12 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_12() {
-        run_input(input_12()).await;
-    }
-
-    // cargo test test_enhance_run_13 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_13() {
-        run_input(input_13()).await;
-    }
-
-    // cargo test test_enhance_run_14 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_14() {
-        run_input(input_14()).await;
-    }
-
-    // cargo test test_enhance_run_15 -p prompt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    async fn test_enhance_run_15() {
-        run_input(input_15()).await;
+    // cargo test -p prompt enhance::tests -- --include-ignored -- --nocapture
+    generate! {
+        // cargo test test_input_<N> -p prompt --  --ignored --nocapture
+        test_input_1 => input_1(),
+        test_input_2 => input_2(),
+        test_input_3 => input_3(),
+        test_input_4 => input_4(),
+        test_input_5 => input_5(),
+        test_input_6 => input_6(),
+        test_input_7 => input_7(),
+        test_input_8 => input_8(),
+        test_input_9 => input_9(),
+        test_input_10 => input_10(),
+        test_input_11 => input_11(),
+        test_input_12 => input_12(),
+        test_input_13 => input_13(),
+        test_input_14 => input_14(),
+        test_input_15 => input_15(),
     }
 }

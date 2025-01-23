@@ -130,6 +130,198 @@ mod tests {
         }
     }
 
+    fn input_4() -> Input {
+        let note = std::fs::read_to_string("data/4/note.md").unwrap();
+        let transcript = transcript_from_path("data/4/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_5() -> Input {
+        let note = std::fs::read_to_string("data/5/note.md").unwrap();
+        let transcript = transcript_from_path("data/5/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_6() -> Input {
+        let note = std::fs::read_to_string("data/6/note.md").unwrap();
+        let transcript = transcript_from_path("data/6/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_7() -> Input {
+        let note = std::fs::read_to_string("data/7/note.md").unwrap();
+        let transcript = transcript_from_path("data/7/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_8() -> Input {
+        let note = std::fs::read_to_string("data/8/note.md").unwrap();
+        let transcript = transcript_from_path("data/8/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_9() -> Input {
+        let note = std::fs::read_to_string("data/9/note.md").unwrap();
+        let transcript = transcript_from_path("data/9/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_10() -> Input {
+        let note = std::fs::read_to_string("data/10/note.md").unwrap();
+        let transcript = transcript_from_path("data/10/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_11() -> Input {
+        let note = std::fs::read_to_string("data/11/note.md").unwrap();
+        let transcript = transcript_from_path("data/11/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_12() -> Input {
+        let note = std::fs::read_to_string("data/12/note.md").unwrap();
+        let transcript = transcript_from_path("data/12/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_13() -> Input {
+        let note = std::fs::read_to_string("data/13/note.md").unwrap();
+        let transcript = transcript_from_path("data/13/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_14() -> Input {
+        let note = std::fs::read_to_string("data/14/note.md").unwrap();
+        let transcript = transcript_from_path("data/14/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_15() -> Input {
+        let note = std::fs::read_to_string("data/15/note.md").unwrap();
+        let transcript = transcript_from_path("data/15/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
     #[test]
     fn test_enhance_format() {
         let ctx = crate::Context::from_serialize(&input_1()).unwrap();
@@ -156,5 +348,89 @@ mod tests {
     #[tokio::test]
     async fn test_enhance_run_3() {
         run_input(input_3()).await;
+    }
+
+    // cargo test test_enhance_run_4 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_4() {
+        run_input(input_4()).await;
+    }
+
+    // cargo test test_enhance_run_5 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_5() {
+        run_input(input_5()).await;
+    }
+
+    // cargo test test_enhance_run_6 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_6() {
+        run_input(input_6()).await;
+    }
+
+    // cargo test test_enhance_run_7 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_7() {
+        run_input(input_7()).await;
+    }
+
+    // cargo test test_enhance_run_8 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_8() {
+        run_input(input_8()).await;
+    }
+
+    // cargo test test_enhance_run_9 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_9() {
+        run_input(input_9()).await;
+    }
+
+    // cargo test test_enhance_run_10 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_10() {
+        run_input(input_10()).await;
+    }
+
+    // cargo test test_enhance_run_11 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_11() {
+        run_input(input_11()).await;
+    }
+
+    // cargo test test_enhance_run_12 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_12() {
+        run_input(input_12()).await;
+    }
+
+    // cargo test test_enhance_run_13 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_13() {
+        run_input(input_13()).await;
+    }
+
+    // cargo test test_enhance_run_14 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_14() {
+        run_input(input_14()).await;
+    }
+
+    // cargo test test_enhance_run_15 -p prompt --  --ignored --nocapture
+    #[ignore]
+    #[tokio::test]
+    async fn test_enhance_run_15() {
+        run_input(input_15()).await;
     }
 }

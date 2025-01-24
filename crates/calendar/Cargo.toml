@@ -10,8 +10,6 @@ google = []
 outlook = []
 
 [dependencies]
-hypr_db_utils = { path = "../db-utils", package = "db-utils" }
-
 anyhow = { workspace = true }
 itertools = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

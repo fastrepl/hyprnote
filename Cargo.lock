@@ -1849,7 +1849,6 @@ dependencies = [
  "anyhow",
  "block2",
  "chrono",
- "db-utils",
  "google-calendar",
  "graph-rs-sdk",
  "itertools 0.14.0",
@@ -3077,7 +3076,6 @@ dependencies = [
  "anyhow",
  "calendar",
  "codes-iso-639",
- "db-utils",
  "libsql",
  "nango",
  "pyannote",
@@ -3090,14 +3088,6 @@ dependencies = [
  "time",
  "tokio",
  "uuid",
-]
-
-[[package]]
-name = "db-utils"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
 ]
 
 [[package]]

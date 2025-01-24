@@ -10,7 +10,6 @@ user = ["hypr_pyannote"]
 
 [dependencies]
 hypr_calendar = { path = "../calendar", package = "calendar", default-features = false }
-hypr_db_utils = { path = "../db-utils", package = "db-utils" }
 
 hypr_nango = { path = "../nango", package = "nango", optional = true }
 hypr_pyannote = { path = "../pyannote", package = "pyannote", optional = true }

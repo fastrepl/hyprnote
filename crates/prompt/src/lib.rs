@@ -43,8 +43,16 @@ fn render(tpl: Template, ctx: &tera::Context) -> Result<String, Error> {
         .map(|s| s.trim().to_string())
         .map_err(Error::Tera);
 
-    // #[cfg(debug_assertions)]
-    // println!("{:?}", &rendered);
+    #[cfg(debug_assertions)]
+    if std::env::var("DEBUG").unwrap_or_default() == "1" {
+        let txt = rendered.as_ref().unwrap();
+        bat::PrettyPrinter::new()
+            .language("markdown")
+            .grid(true)
+            .input_from_bytes(txt.as_bytes())
+            .print()
+            .unwrap();
+    }
 
     rendered
 }

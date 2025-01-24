@@ -81,9 +81,9 @@ mod tests {
             .unwrap();
     }
 
-    fn input_1() -> Input {
-        let note = std::fs::read_to_string("data/1/note.md").unwrap();
-        let transcript = transcript_from_path("data/1/conversation.json");
+    fn input_01() -> Input {
+        let note = std::fs::read_to_string("data/01/note.md").unwrap();
+        let transcript = transcript_from_path("data/01/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -97,9 +97,9 @@ mod tests {
         }
     }
 
-    fn input_2() -> Input {
-        let note = std::fs::read_to_string("data/2/note.md").unwrap();
-        let transcript = transcript_from_path("data/2/conversation.json");
+    fn input_02() -> Input {
+        let note = std::fs::read_to_string("data/02/note.md").unwrap();
+        let transcript = transcript_from_path("data/02/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -113,9 +113,9 @@ mod tests {
         }
     }
 
-    fn input_3() -> Input {
-        let note = std::fs::read_to_string("data/3/note.md").unwrap();
-        let transcript = transcript_from_path("data/3/conversation.json");
+    fn input_03() -> Input {
+        let note = std::fs::read_to_string("data/03/note.md").unwrap();
+        let transcript = transcript_from_path("data/03/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -129,9 +129,9 @@ mod tests {
         }
     }
 
-    fn input_4() -> Input {
-        let note = std::fs::read_to_string("data/4/note.md").unwrap();
-        let transcript = transcript_from_path("data/4/conversation.json");
+    fn input_04() -> Input {
+        let note = std::fs::read_to_string("data/04/note.md").unwrap();
+        let transcript = transcript_from_path("data/04/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -145,9 +145,9 @@ mod tests {
         }
     }
 
-    fn input_5() -> Input {
-        let note = std::fs::read_to_string("data/5/note.md").unwrap();
-        let transcript = transcript_from_path("data/5/conversation.json");
+    fn input_05() -> Input {
+        let note = std::fs::read_to_string("data/05/note.md").unwrap();
+        let transcript = transcript_from_path("data/05/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -161,9 +161,9 @@ mod tests {
         }
     }
 
-    fn input_6() -> Input {
-        let note = std::fs::read_to_string("data/6/note.md").unwrap();
-        let transcript = transcript_from_path("data/6/conversation.json");
+    fn input_06() -> Input {
+        let note = std::fs::read_to_string("data/06/note.md").unwrap();
+        let transcript = transcript_from_path("data/06/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -177,9 +177,9 @@ mod tests {
         }
     }
 
-    fn input_7() -> Input {
-        let note = std::fs::read_to_string("data/7/note.md").unwrap();
-        let transcript = transcript_from_path("data/7/conversation.json");
+    fn input_07() -> Input {
+        let note = std::fs::read_to_string("data/07/note.md").unwrap();
+        let transcript = transcript_from_path("data/07/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -193,9 +193,9 @@ mod tests {
         }
     }
 
-    fn input_8() -> Input {
-        let note = std::fs::read_to_string("data/8/note.md").unwrap();
-        let transcript = transcript_from_path("data/8/conversation.json");
+    fn input_08() -> Input {
+        let note = std::fs::read_to_string("data/08/note.md").unwrap();
+        let transcript = transcript_from_path("data/08/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -209,9 +209,9 @@ mod tests {
         }
     }
 
-    fn input_9() -> Input {
-        let note = std::fs::read_to_string("data/9/note.md").unwrap();
-        let transcript = transcript_from_path("data/9/conversation.json");
+    fn input_09() -> Input {
+        let note = std::fs::read_to_string("data/09/note.md").unwrap();
+        let transcript = transcript_from_path("data/09/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -322,7 +322,7 @@ mod tests {
     }
 
     fn input_16() -> Input {
-        let note = std::fs::read_to_string("data/16/note.md").unwrap();
+        let note = std::fs::read_to_string("data/empty.md").unwrap();
         let transcript = transcript_from_path("data/16/conversation.json");
 
         Input {
@@ -338,7 +338,7 @@ mod tests {
     }
 
     fn input_17() -> Input {
-        let note = std::fs::read_to_string("data/17/note.md").unwrap();
+        let note = std::fs::read_to_string("data/empty.md").unwrap();
         let transcript = transcript_from_path("data/17/conversation.json");
 
         Input {
@@ -354,7 +354,7 @@ mod tests {
     }
 
     fn input_18() -> Input {
-        let note = std::fs::read_to_string("data/18/note.md").unwrap();
+        let note = std::fs::read_to_string("data/empty.md").unwrap();
         let transcript = transcript_from_path("data/18/conversation.json");
 
         Input {
@@ -370,7 +370,7 @@ mod tests {
     }
 
     fn input_19() -> Input {
-        let note = std::fs::read_to_string("data/19/note.md").unwrap();
+        let note = std::fs::read_to_string("data/empty.md").unwrap();
         let transcript = transcript_from_path("data/19/conversation.json");
 
         Input {
@@ -383,30 +383,6 @@ mod tests {
             editor: markdown::to_html(&note),
             transcript,
         }
-    }
-
-    fn input_20() -> Input {
-        let note = std::fs::read_to_string("data/20/note.md").unwrap();
-        let transcript = transcript_from_path("data/20/conversation.json");
-
-        Input {
-            template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
-        }
-    }
-
-
-    #[test]
-    fn test_enhance_format() {
-        let ctx = crate::Context::from_serialize(&input_1()).unwrap();
-        let output = crate::render(crate::Template::Enhance, &ctx).unwrap();
-        assert!(!output.is_empty());
     }
 
     macro_rules! generate {
@@ -424,20 +400,24 @@ mod tests {
     // cargo test -p prompt enhance::tests -- --include-ignored
     generate! {
         // cargo test test_input_<N> -p prompt --  --ignored
-        test_input_01 => input_1(),
-        test_input_02 => input_2(),
-        test_input_03 => input_3(),
-        test_input_04 => input_4(),
-        test_input_05 => input_5(),
-        test_input_06 => input_6(),
-        test_input_07 => input_7(),
-        test_input_08 => input_8(),
-        test_input_09 => input_9(),
+        test_input_01 => input_01(),
+        test_input_02 => input_02(),
+        test_input_03 => input_03(),
+        test_input_04 => input_04(),
+        test_input_05 => input_05(),
+        test_input_06 => input_06(),
+        test_input_07 => input_07(),
+        test_input_08 => input_08(),
+        test_input_09 => input_09(),
         test_input_10 => input_10(),
         test_input_11 => input_11(),
         test_input_12 => input_12(),
         test_input_13 => input_13(),
         test_input_14 => input_14(),
         test_input_15 => input_15(),
+        test_input_16 => input_16(),
+        test_input_17 => input_17(),
+        test_input_18 => input_18(),
+        test_input_19 => input_19(),
     }
 }

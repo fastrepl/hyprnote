@@ -11,8 +11,9 @@ Here is the note that the user wrote during the meeting:
 {{ editor }}
 ```
 
-Your job is to generate a summary of the transcript.
+Your job is to generate a structured summary of the transcript. Only use single depth for headers.
 Use the note to identify some of the key points that user think is important.
+Do not generate title.
 
 Keep in mind that both the transcript and the note are not perfect, and you should make the best out of them.
 

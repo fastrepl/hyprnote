@@ -60,6 +60,8 @@ pub async fn handler(
                 if let Ok(html) = read_buffer.read() {
                     yield sse::Event::default().data(html);
                 }
+
+                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
                 break;
             }
 

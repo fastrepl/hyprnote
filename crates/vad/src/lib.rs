@@ -1,5 +1,3 @@
-// https://github.com/nkeenan38/voice_activity_detector/blob/main/src/vad.rs
-
 use hypr_onnx::{ndarray, ort};
 
 const MODEL: &[u8] = include_bytes!("../data/model.onnx");
@@ -47,12 +45,12 @@ impl VoiceActivityDetectorBuilder {
             return Err(Error::NotTrainedOnThisChunkSize);
         }
 
-        if sample_rate > (31.25 * chunk_size as f64) as i64 {
+        if sample_rate > (31.25 * chunk_size as f32) as i64 {
             return Err(Error::InvalidRatio);
         }
 
-        let h = ndarray::Array3::<f32>::zeros((2, 1, chunk_size));
-        let c = ndarray::Array3::<f32>::zeros((2, 1, chunk_size));
+        let h = ndarray::Array3::<f32>::zeros((2, 1, 64));
+        let c = ndarray::Array3::<f32>::zeros((2, 1, 64));
 
         let session = hypr_onnx::load_model(MODEL).unwrap();
 
@@ -79,6 +77,53 @@ impl VoiceActivityDetector {
     pub fn builder() -> VoiceActivityDetectorBuilder {
         VoiceActivityDetectorBuilder::default()
     }
+
+    // https://github.com/nkeenan38/voice_activity_detector/blob/fd6cb6285a8cb15c11a8b35b9a9b94d2cb2fd6a4/src/vad.rs#L39
+    pub fn predict<S, I>(&mut self, samples: I) -> f32
+    where
+        S: dasp_sample::ToSample<f32>,
+        I: IntoIterator<Item = S>,
+    {
+        let mut input = ndarray::Array2::<f32>::zeros((1, self.chunk_size));
+        for (i, sample) in samples.into_iter().take(self.chunk_size).enumerate() {
+            input[[0, i]] = sample.to_sample_();
+        }
+
+        let sample_rate = ndarray::arr1::<i64>(&[self.sample_rate]);
+
+        let inputs = ort::inputs![
+            "input" => input.view(),
+            "sr" => sample_rate.view(),
+            "h" => self.h.view(),
+            "c" => self.c.view(),
+        ]
+        .unwrap();
+
+        let outputs = self.session.run(inputs).unwrap();
+
+        let hn = outputs
+            .get("hn")
+            .unwrap()
+            .try_extract_tensor::<f32>()
+            .unwrap();
+        let cn = outputs
+            .get("cn")
+            .unwrap()
+            .try_extract_tensor::<f32>()
+            .unwrap();
+
+        self.h.assign(&hn.view());
+        self.c.assign(&cn.view());
+
+        let output = outputs
+            .get("output")
+            .unwrap()
+            .try_extract_tensor::<f32>()
+            .unwrap();
+        let probability = output.view()[[0, 0]];
+
+        probability
+    }
 }
 
 #[cfg(test)]
@@ -87,10 +132,14 @@ mod tests {
 
     #[test]
     fn test_vad() {
-        let _ = VoiceActivityDetector::builder()
+        let mut vad = VoiceActivityDetector::builder()
             .chunk_size(1024)
             .sample_rate(16000)
             .build()
             .unwrap();
+
+        assert!(vad.predict(vec![0.0; 512]) < 0.1);
+        assert!(vad.predict(vec![0.0; 1024]) < 0.1);
+        assert!(vad.predict(vec![0.0; 2048]) < 0.1);
     }
 }

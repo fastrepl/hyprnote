@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 ndarray = "0.16.1"
-ort = "2.0.0-rc.9"
+ort = "=2.0.0-rc.9"

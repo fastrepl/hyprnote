@@ -1,454 +1,454 @@
 {
-    "conversation": [
-        {
-            "speaker": "박현솔",
-            "start": 0,
-            "end": 58000,
-            "text": "라이너스는 노션에서 이제 리 AI 엔지니어로 좀 일하고 있는 분이고요."
-        },
-        {
-            "speaker": "박현솔",
-            "start": 58000,
-            "end": 116000,
-            "text": "좀 더 설명을 드리면 라이너스는 그 노션에서 QnA랑 오로필 그리고 AI 라이팅이라는 그 기능들 노션 아마 많이 사용해 보셔서 경험해 보셨을 텐데 저 기능들을 좀 개발을 했고요."
-        },
-        {
-            "speaker": "박현솔",
-            "start": 116000,
-            "end": 155000,
-            "text": "그다음에 AI 아웃풋 정확도 신뢰도 그리고 노션에서 AI 기능 앞으로 어떻게 개발을 발전시킬 건지 좀 이게 탑 5였고 그 외에도 사실 질문이 엄청 많았어요."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 155000,
-            "end": 234000,
-            "text": "아 오늘 이런 기회 주셔서 감사하고요. 제가 한국 사람이긴 한데 한국에서 3살부터 11살까지 한국에서 살았는데요."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 234000,
-            "end": 238000,
-            "text": "얘기하고 싶습니다."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 238000,
-            "end": 246000,
-            "text": "제가 sharing is not turned"
-        },
-        {
-            "speaker": "박현솔",
-            "start": 246000,
-            "end": 248000,
-            "text": "어 다시 해봐주시겠어요?"
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 248000,
-            "end": 253000,
-            "text": "아 네 됐어요. 이제"
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 253000,
-            "end": 326000,
-            "text": "제가 노션 시작하기 전부터 한 제가 대학 생활 할 때부터 사이 프로젝트를 되게 많이 했었어요."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 326000,
-            "end": 392000,
-            "text": "c 스테이지 스타업에서 많이 일을 했었고요. 주로 디벨럽먼트 하고 그다음에 2022년 1년 동안 이제 그 일을 그만두고 1년 동안 인디펜던트 리서치 하기로 어 생각해서 그 1년 동안은 뭐 논문 그 전에 제가 AI 에 대해서 아는 게 많이 없었어요."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 392000,
-            "end": 461000,
-            "text": "어떻게 AI를 적용해야 될지 어떻게 NLP를 적용해야 될지 그런 걸 많이 생각하고 있으니까 이제 가서 그런 일을 할 수 있을까 해서 로션에 가게 됐고요."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 461000,
-            "end": 534000,
-            "text": "어 이렇게 오토필도 만들었고 그다음에 최근에 작년 11월부터 QA라고 이제 노션에 있는 모든 인포메이션을 레그 시스템을 사용해서 question answering 할 수 있는 이런 제품이에요."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 534000,
-            "end": 603000,
-            "text": "그다음에 여기 지금 사진 사진을 좀 보여드리면은 재미있을 것 같아요."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 603000,
-            "end": 646000,
-            "text": "AI 팀 미팅에 사시네요 해서 그 저 매니저 이쪽에 아이 CEO CTO 사이먼 그다음에 여러 가지 프로덕트 매니저하고 프로젝트 매니저 여기 디자이너 여기 이렇게 앉아서 무슨 아마 QA QA 관련돼서 미팅 하고 있는 것 같은데 이렇게 팀은 이렇게 이렇게 생겼습니다."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 646000,
-            "end": 648000,
-            "text": "그리고 이렇게"
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 648000,
-            "end": 669000,
-            "text": "훑어가면서 말씀드리면 괜찮을 것 같아요. 그래서 노션에서 쓰는 이밸류에이션 테크닉은 이렇게 스펙트럼이 이렇게 있어요."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 669000,
-            "end": 703000,
-            "text": "이 제품을 만들다 보면은 모델이 처음 나왔을 때는 그 리서치 벤치막이 제일 많잖아요."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 703000,
-            "end": 729000,
-            "text": "So in evaluations there's the spectrum between research benchmarks and real production use."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 729000,
-            "end": 752000,
-            "text": "And so when notion goes to take any of these models and use them in a product we have to take models that we think might be really good in our use case and compare these models against real world use cases."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 752000,
-            "end": 786000,
-            "text": "we have to try to build a series of benchmarks or evaluations that test whether the Model is going to perform really well in the real world setting."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 786000,
-            "end": 825000,
-            "text": "After academic benchmarks we might try programmatic evaluations where we take output from a Model and have deterministic preprogrammed test tests like does this output include specific words specific syntax specific keywords is the output in the right language?"
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 825000,
-            "end": 858000,
-            "text": "Notion also invests heavily in human evaluations."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 858000,
-            "end": 890000,
-            "text": "So we have various metrics that we watch in production to see whether users are engaging with AI whether there are errors happening live."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 890000,
-            "end": 925000,
-            "text": "is that evaluations are evaluations and data are really the key to how to build really high quality AI products."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 925000,
-            "end": 962000,
-            "text": "about the ideal behavior of these models."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 962000,
-            "end": 985000,
-            "text": "And and then I might say oh what if we fine tune this Model on these summaries that I that I got from our data and then the designer might then say oh it didn't work for these inputs and so there's a lot of back and forth and what we're ultimately trying to do is to agree on a standard set of behaviors agree on what makes a good summary and what are some example demonstrations of summaries that we like and summaries that we don't like"
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 985000,
-            "end": 1019000,
-            "text": "and so between engineers and designers we're trying to agree on a common common description of the task that we want AI to perform."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1019000,
-            "end": 1040000,
-            "text": "match what notion users want to use notion for."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1040000,
-            "end": 1063000,
-            "text": "And so if notion wants to make a good summary Model we need to build our own data set and our own evaluations for what kinds of documents we expect our Model to be able to deal with."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1063000,
-            "end": 1094000,
-            "text": "And then we might say I might they might say we need to summarize meeting notes webpages these languages."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1094000,
-            "end": 1122000,
-            "text": "We start off by defining a use case."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1122000,
-            "end": 1147000,
-            "text": "the first thing we do is gather a bunch of inputs."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1147000,
-            "end": 1171000,
-            "text": "They might ask like what are documents that are written by this person?"
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1171000,
-            "end": 1203000,
-            "text": "we think are unexpected things that we want to still behave correctly for."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1203000,
-            "end": 1226000,
-            "text": "So we build a prototype we deploy it internally and then based on just internal usage among the 700 people that we have in the company we can collect all of the ways that the models fail and I'll I'll talk about that in a bit."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1226000,
-            "end": 1253000,
-            "text": "Iterating on the Model might involve prompting it might involve fine tuning the Model it might involve adding a second stage to a pipeline of a language Model."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1253000,
-            "end": 1281000,
-            "text": "matches what we feel like we would be proud to ship."
-        },
-        {
-            "speaker": "Attendees 4",
-            "start": 1281000,
-            "end": 1290000,
-            "text": "We could we do a quick Q A in the meantime or should we wait for that wait for questions until the end"
-        },
-        {
-            "speaker": "박현솔",
-            "start": 1290000,
-            "end": 1297000,
-            "text": "UM lines are you okay with people asking?"
-        },
-        {
-            "speaker": "Attendees 4",
-            "start": 1297000,
-            "end": 1318000,
-            "text": "So you said that after you've defined your use cases, your target use cases you try to come up with a data set that you would evaluate your models against."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1318000,
-            "end": 1325000,
-            "text": "Hm so you're curious about the initial process for gathering the first examples"
-        },
-        {
-            "speaker": "Attendees 4",
-            "start": 1325000,
-            "end": 1350000,
-            "text": "yeah um how you set up your initial data set and um how you determine whether the data set that you've collected will actually serve as a good proxy to the actual use cases within notion um because that's going to be the the the criteria that you or that's gonna be the measurement stick that you measure all your models with."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1350000,
-            "end": 1374000,
-            "text": "Yeah I'd say there are two main ways that we do this."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1374000,
-            "end": 1404000,
-            "text": "Um and this initial set doesn't have to perfectly represent the real world use case because the whole point of this loop in the middle is that based on the initial inputs we build something and then over time as we use it internally within the company and as you roll it out to the wider world we're going to progressively get more and more realistic data."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1404000,
-            "end": 1427000,
-            "text": "what what kinds of failure cases we can imagine the Model having."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1427000,
-            "end": 1456000,
-            "text": "taking a part of our existing data set of English Q A questions and answers finding documents like that in foreign languages and then translating questions into other languages but the initial data set doesn't."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1456000,
-            "end": 1490000,
-            "text": "So maybe I maybe I'll go into that once we have some prototype that we're using internally or we've rolled out externally to a small number of users we will collect bad output examples in a bunch of different ways."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1490000,
-            "end": 1515000,
-            "text": "and we'll log it all to one of our logging services that we have."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1515000,
-            "end": 1542000,
-            "text": "compared to what we thought people were going to use it for."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1542000,
-            "end": 1562000,
-            "text": "This is actually not very useful for us."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1562000,
-            "end": 1590000,
-            "text": "very few users actually bothered to click the thumbs up thumbs down buttons."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1590000,
-            "end": 1617000,
-            "text": "and try to give the Model intentionally unexpected inputs that we think might make the Model fail or we think might be really hard for the Model."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1617000,
-            "end": 1640000,
-            "text": "of all of these all of these techniques I think evaluation and logs are are the most important."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1640000,
-            "end": 1668000,
-            "text": "a bad output from the wild, from real production usage or from your internal testing and based on that single example fully reconstruct the pipeline that you were using in a fully debugget."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1668000,
-            "end": 1686000,
-            "text": "and then I can take that log bring it into my development environment, rerun it and test it on new prompts or new models until I can get the system to do the right thing in in that case."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1686000,
-            "end": 1709000,
-            "text": "So logging is really important."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1709000,
-            "end": 1735000,
-            "text": "a source of differentiation in AI is how good your Model is."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1735000,
-            "end": 1755000,
-            "text": "What are the right ways to break down the tasks so that it's easy for the AI?"
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1755000,
-            "end": 1775000,
-            "text": "the task and why it's difficult is if you frequently use your product and look at the outputs and try to understand why the Model messed up in a particular use case."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1775000,
-            "end": 1798000,
-            "text": "figure out what your interface is going to look like and what the functionality is going to be but also define the evaluation and define what your standard of a good output is as a part of the product spec."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1798000,
-            "end": 1829000,
-            "text": "a particular AI feature should perform one of the things I want to focus on is what do you define as a good output?"
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1829000,
-            "end": 1850000,
-            "text": "generative AI machine and language models than you would expect."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1850000,
-            "end": 1867000,
-            "text": "But for language models what we do much more often is we'll look at individual failure cases, individual examples and individual logs."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1867000,
-            "end": 1894000,
-            "text": "Evaluations unlike in academic research evaluations and data sets are not your source of truth."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1894000,
-            "end": 1920000,
-            "text": "full space of inputs that you really hope your system works well for."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1920000,
-            "end": 1943000,
-            "text": "when they start out is they may say we don't want to spend that much time evaluating inputs manually."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1943000,
-            "end": 1978000,
-            "text": "It's so that they can build up this understanding of the task so that they can understand how the models fail and what the Model's tendencies are for a particular task."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 1978000,
-            "end": 2000000,
-            "text": "The first way is you have a machine learning team that you repurpose into an AI or a language modeling team."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 2000000,
-            "end": 2001000,
-            "text": "data,"
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 2001000,
-            "end": 2031000,
-            "text": "focused on evaluations and focused on benchmarks and scoring well on benchmarks."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 2031000,
-            "end": 2060000,
-            "text": "an existing ML team you could take your existing engineers and have them learn or upskill on how to use the open AI API or other language Model Apis."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 2060000,
-            "end": 2089000,
-            "text": "And the strength that this kind of team has is that you're really, really familiar with how to understand your users and how to test in the real world and how your experiences."
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 2089000,
-            "end": 2126000,
-            "text": "have only the highest quality data points that we can gather and that we're confident that if an example is in our data set that it demonstrates a kind of a perfect ideal example of what a Model output should be."
-        },
-        {
-            "speaker": "박현솔",
-            "start": 2126000,
-            "end": 2129000,
-            "text": "Thank you so much for sharing your insights"
-        },
-        {
-            "speaker": "Linus Lee",
-            "start": 2129000,
-            "end": 2129000,
-            "text": "Of course 또 질문 있으시면 이메일이나 링 댄 트위터로도 연락해 주세요."
-        }
-    ]
+  "conversation": [
+    {
+      "speaker": "박현솔",
+      "start": 0,
+      "end": 58000,
+      "text": "라이너스는 노션에서 이제 리 AI 엔지니어로 좀 일하고 있는 분이고요."
+    },
+    {
+      "speaker": "박현솔",
+      "start": 58000,
+      "end": 116000,
+      "text": "좀 더 설명을 드리면 라이너스는 그 노션에서 QnA랑 오로필 그리고 AI 라이팅이라는 그 기능들 노션 아마 많이 사용해 보셔서 경험해 보셨을 텐데 저 기능들을 좀 개발을 했고요."
+    },
+    {
+      "speaker": "박현솔",
+      "start": 116000,
+      "end": 155000,
+      "text": "그다음에 AI 아웃풋 정확도 신뢰도 그리고 노션에서 AI 기능 앞으로 어떻게 개발을 발전시킬 건지 좀 이게 탑 5였고 그 외에도 사실 질문이 엄청 많았어요."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 155000,
+      "end": 234000,
+      "text": "아 오늘 이런 기회 주셔서 감사하고요. 제가 한국 사람이긴 한데 한국에서 3살부터 11살까지 한국에서 살았는데요."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 234000,
+      "end": 238000,
+      "text": "얘기하고 싶습니다."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 238000,
+      "end": 246000,
+      "text": "제가 sharing is not turned"
+    },
+    {
+      "speaker": "박현솔",
+      "start": 246000,
+      "end": 248000,
+      "text": "어 다시 해봐주시겠어요?"
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 248000,
+      "end": 253000,
+      "text": "아 네 됐어요. 이제"
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 253000,
+      "end": 326000,
+      "text": "제가 노션 시작하기 전부터 한 제가 대학 생활 할 때부터 사이 프로젝트를 되게 많이 했었어요."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 326000,
+      "end": 392000,
+      "text": "c 스테이지 스타업에서 많이 일을 했었고요. 주로 디벨럽먼트 하고 그다음에 2022년 1년 동안 이제 그 일을 그만두고 1년 동안 인디펜던트 리서치 하기로 어 생각해서 그 1년 동안은 뭐 논문 그 전에 제가 AI 에 대해서 아는 게 많이 없었어요."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 392000,
+      "end": 461000,
+      "text": "어떻게 AI를 적용해야 될지 어떻게 NLP를 적용해야 될지 그런 걸 많이 생각하고 있으니까 이제 가서 그런 일을 할 수 있을까 해서 로션에 가게 됐고요."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 461000,
+      "end": 534000,
+      "text": "어 이렇게 오토필도 만들었고 그다음에 최근에 작년 11월부터 QA라고 이제 노션에 있는 모든 인포메이션을 레그 시스템을 사용해서 question answering 할 수 있는 이런 제품이에요."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 534000,
+      "end": 603000,
+      "text": "그다음에 여기 지금 사진 사진을 좀 보여드리면은 재미있을 것 같아요."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 603000,
+      "end": 646000,
+      "text": "AI 팀 미팅에 사시네요 해서 그 저 매니저 이쪽에 아이 CEO CTO 사이먼 그다음에 여러 가지 프로덕트 매니저하고 프로젝트 매니저 여기 디자이너 여기 이렇게 앉아서 무슨 아마 QA QA 관련돼서 미팅 하고 있는 것 같은데 이렇게 팀은 이렇게 이렇게 생겼습니다."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 646000,
+      "end": 648000,
+      "text": "그리고 이렇게"
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 648000,
+      "end": 669000,
+      "text": "훑어가면서 말씀드리면 괜찮을 것 같아요. 그래서 노션에서 쓰는 이밸류에이션 테크닉은 이렇게 스펙트럼이 이렇게 있어요."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 669000,
+      "end": 703000,
+      "text": "이 제품을 만들다 보면은 모델이 처음 나왔을 때는 그 리서치 벤치막이 제일 많잖아요."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 703000,
+      "end": 729000,
+      "text": "So in evaluations there's the spectrum between research benchmarks and real production use."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 729000,
+      "end": 752000,
+      "text": "And so when notion goes to take any of these models and use them in a product we have to take models that we think might be really good in our use case and compare these models against real world use cases."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 752000,
+      "end": 786000,
+      "text": "we have to try to build a series of benchmarks or evaluations that test whether the Model is going to perform really well in the real world setting."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 786000,
+      "end": 825000,
+      "text": "After academic benchmarks we might try programmatic evaluations where we take output from a Model and have deterministic preprogrammed test tests like does this output include specific words specific syntax specific keywords is the output in the right language?"
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 825000,
+      "end": 858000,
+      "text": "Notion also invests heavily in human evaluations."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 858000,
+      "end": 890000,
+      "text": "So we have various metrics that we watch in production to see whether users are engaging with AI whether there are errors happening live."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 890000,
+      "end": 925000,
+      "text": "is that evaluations are evaluations and data are really the key to how to build really high quality AI products."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 925000,
+      "end": 962000,
+      "text": "about the ideal behavior of these models."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 962000,
+      "end": 985000,
+      "text": "And and then I might say oh what if we fine tune this Model on these summaries that I that I got from our data and then the designer might then say oh it didn't work for these inputs and so there's a lot of back and forth and what we're ultimately trying to do is to agree on a standard set of behaviors agree on what makes a good summary and what are some example demonstrations of summaries that we like and summaries that we don't like"
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 985000,
+      "end": 1019000,
+      "text": "and so between engineers and designers we're trying to agree on a common common description of the task that we want AI to perform."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1019000,
+      "end": 1040000,
+      "text": "match what notion users want to use notion for."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1040000,
+      "end": 1063000,
+      "text": "And so if notion wants to make a good summary Model we need to build our own data set and our own evaluations for what kinds of documents we expect our Model to be able to deal with."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1063000,
+      "end": 1094000,
+      "text": "And then we might say I might they might say we need to summarize meeting notes webpages these languages."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1094000,
+      "end": 1122000,
+      "text": "We start off by defining a use case."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1122000,
+      "end": 1147000,
+      "text": "the first thing we do is gather a bunch of inputs."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1147000,
+      "end": 1171000,
+      "text": "They might ask like what are documents that are written by this person?"
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1171000,
+      "end": 1203000,
+      "text": "we think are unexpected things that we want to still behave correctly for."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1203000,
+      "end": 1226000,
+      "text": "So we build a prototype we deploy it internally and then based on just internal usage among the 700 people that we have in the company we can collect all of the ways that the models fail and I'll I'll talk about that in a bit."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1226000,
+      "end": 1253000,
+      "text": "Iterating on the Model might involve prompting it might involve fine tuning the Model it might involve adding a second stage to a pipeline of a language Model."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1253000,
+      "end": 1281000,
+      "text": "matches what we feel like we would be proud to ship."
+    },
+    {
+      "speaker": "Attendees 4",
+      "start": 1281000,
+      "end": 1290000,
+      "text": "We could we do a quick Q A in the meantime or should we wait for that wait for questions until the end"
+    },
+    {
+      "speaker": "박현솔",
+      "start": 1290000,
+      "end": 1297000,
+      "text": "UM lines are you okay with people asking?"
+    },
+    {
+      "speaker": "Attendees 4",
+      "start": 1297000,
+      "end": 1318000,
+      "text": "So you said that after you've defined your use cases, your target use cases you try to come up with a data set that you would evaluate your models against."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1318000,
+      "end": 1325000,
+      "text": "Hm so you're curious about the initial process for gathering the first examples"
+    },
+    {
+      "speaker": "Attendees 4",
+      "start": 1325000,
+      "end": 1350000,
+      "text": "yeah um how you set up your initial data set and um how you determine whether the data set that you've collected will actually serve as a good proxy to the actual use cases within notion um because that's going to be the the the criteria that you or that's gonna be the measurement stick that you measure all your models with."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1350000,
+      "end": 1374000,
+      "text": "Yeah I'd say there are two main ways that we do this."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1374000,
+      "end": 1404000,
+      "text": "Um and this initial set doesn't have to perfectly represent the real world use case because the whole point of this loop in the middle is that based on the initial inputs we build something and then over time as we use it internally within the company and as you roll it out to the wider world we're going to progressively get more and more realistic data."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1404000,
+      "end": 1427000,
+      "text": "what what kinds of failure cases we can imagine the Model having."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1427000,
+      "end": 1456000,
+      "text": "taking a part of our existing data set of English Q A questions and answers finding documents like that in foreign languages and then translating questions into other languages but the initial data set doesn't."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1456000,
+      "end": 1490000,
+      "text": "So maybe I maybe I'll go into that once we have some prototype that we're using internally or we've rolled out externally to a small number of users we will collect bad output examples in a bunch of different ways."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1490000,
+      "end": 1515000,
+      "text": "and we'll log it all to one of our logging services that we have."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1515000,
+      "end": 1542000,
+      "text": "compared to what we thought people were going to use it for."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1542000,
+      "end": 1562000,
+      "text": "This is actually not very useful for us."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1562000,
+      "end": 1590000,
+      "text": "very few users actually bothered to click the thumbs up thumbs down buttons."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1590000,
+      "end": 1617000,
+      "text": "and try to give the Model intentionally unexpected inputs that we think might make the Model fail or we think might be really hard for the Model."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1617000,
+      "end": 1640000,
+      "text": "of all of these all of these techniques I think evaluation and logs are are the most important."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1640000,
+      "end": 1668000,
+      "text": "a bad output from the wild, from real production usage or from your internal testing and based on that single example fully reconstruct the pipeline that you were using in a fully debugget."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1668000,
+      "end": 1686000,
+      "text": "and then I can take that log bring it into my development environment, rerun it and test it on new prompts or new models until I can get the system to do the right thing in in that case."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1686000,
+      "end": 1709000,
+      "text": "So logging is really important."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1709000,
+      "end": 1735000,
+      "text": "a source of differentiation in AI is how good your Model is."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1735000,
+      "end": 1755000,
+      "text": "What are the right ways to break down the tasks so that it's easy for the AI?"
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1755000,
+      "end": 1775000,
+      "text": "the task and why it's difficult is if you frequently use your product and look at the outputs and try to understand why the Model messed up in a particular use case."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1775000,
+      "end": 1798000,
+      "text": "figure out what your interface is going to look like and what the functionality is going to be but also define the evaluation and define what your standard of a good output is as a part of the product spec."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1798000,
+      "end": 1829000,
+      "text": "a particular AI feature should perform one of the things I want to focus on is what do you define as a good output?"
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1829000,
+      "end": 1850000,
+      "text": "generative AI machine and language models than you would expect."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1850000,
+      "end": 1867000,
+      "text": "But for language models what we do much more often is we'll look at individual failure cases, individual examples and individual logs."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1867000,
+      "end": 1894000,
+      "text": "Evaluations unlike in academic research evaluations and data sets are not your source of truth."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1894000,
+      "end": 1920000,
+      "text": "full space of inputs that you really hope your system works well for."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1920000,
+      "end": 1943000,
+      "text": "when they start out is they may say we don't want to spend that much time evaluating inputs manually."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1943000,
+      "end": 1978000,
+      "text": "It's so that they can build up this understanding of the task so that they can understand how the models fail and what the Model's tendencies are for a particular task."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 1978000,
+      "end": 2000000,
+      "text": "The first way is you have a machine learning team that you repurpose into an AI or a language modeling team."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 2000000,
+      "end": 2001000,
+      "text": "data,"
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 2001000,
+      "end": 2031000,
+      "text": "focused on evaluations and focused on benchmarks and scoring well on benchmarks."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 2031000,
+      "end": 2060000,
+      "text": "an existing ML team you could take your existing engineers and have them learn or upskill on how to use the open AI API or other language Model Apis."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 2060000,
+      "end": 2089000,
+      "text": "And the strength that this kind of team has is that you're really, really familiar with how to understand your users and how to test in the real world and how your experiences."
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 2089000,
+      "end": 2126000,
+      "text": "have only the highest quality data points that we can gather and that we're confident that if an example is in our data set that it demonstrates a kind of a perfect ideal example of what a Model output should be."
+    },
+    {
+      "speaker": "박현솔",
+      "start": 2126000,
+      "end": 2129000,
+      "text": "Thank you so much for sharing your insights"
+    },
+    {
+      "speaker": "Linus Lee",
+      "start": 2129000,
+      "end": 2129000,
+      "text": "Of course 또 질문 있으시면 이메일이나 링 댄 트위터로도 연락해 주세요."
+    }
+  ]
 }

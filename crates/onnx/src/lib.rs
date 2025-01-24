@@ -3,6 +3,7 @@ use ort::{
     session::{builder::GraphOptimizationLevel, Session},
 };
 
+pub use ndarray;
 pub use ort;
 
 pub fn load_model(bytes: &[u8]) -> Result<Session> {

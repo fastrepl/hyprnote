@@ -7,7 +7,6 @@ edition = "2021"
 hypr-onnx = { path = "../onnx", package = "onnx" }
 
 anyhow = { workspace = true }
-ndarray = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 
 [dev-dependencies]

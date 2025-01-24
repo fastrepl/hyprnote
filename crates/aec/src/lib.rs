@@ -1,8 +1,10 @@
 use anyhow::Result;
-use ndarray::{Array1, Array2};
-use ndrustfft::{Complex, R2cFftHandler};
+// use ndrustfft::{Complex, R2cFftHandler};
 
-use hypr_onnx::ort::session::Session;
+use hypr_onnx::{
+    ndarray::{Array1, Array2},
+    ort::session::Session,
+};
 
 const MODEL_1_BYTES: &[u8] = include_bytes!("../data/model_1.onnx");
 const MODEL_2_BYTES: &[u8] = include_bytes!("../data/model_2.onnx");

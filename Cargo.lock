@@ -34,7 +34,6 @@ dependencies = [
  "anyhow",
  "approx",
  "hound",
- "ndarray",
  "ndrustfft",
  "onnx",
  "tokio",
@@ -3293,7 +3292,6 @@ dependencies = [
  "anyhow",
  "approx",
  "hound",
- "ndarray",
  "onnx",
  "reqwest 0.12.12",
  "tokio",
@@ -7301,6 +7299,7 @@ dependencies = [
 name = "onnx"
 version = "0.1.0"
 dependencies = [
+ "ndarray",
  "ort",
 ]
 

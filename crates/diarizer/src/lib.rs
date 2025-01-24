@@ -1,6 +1,9 @@
 use anyhow::Result;
-use hypr_onnx::ort::{session::Session, value::Value};
-use ndarray::Array3;
+
+use hypr_onnx::{
+    ndarray,
+    ort::{session::Session, value::Value},
+};
 
 mod math;
 
@@ -42,7 +45,7 @@ impl Diarizer {
     }
 
     pub fn run(&self, samples: &[f32]) -> Result<Vec<SpeakerSegment>> {
-        let input_array = Array3::from_shape_vec((1, 1, samples.len()), samples.to_vec())?;
+        let input_array = ndarray::Array3::from_shape_vec((1, 1, samples.len()), samples.to_vec())?;
         let input_tensor = Value::from_array(input_array.view())?;
         let inputs = vec![("input_values", input_tensor)];
 

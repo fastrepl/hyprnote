@@ -1,4 +1,4 @@
-use ndarray::{Array1, ArrayView1};
+use hypr_onnx::ndarray::{Array1, ArrayView1};
 
 pub fn softmax(x: ArrayView1<f32>) -> Array1<f32> {
     let max_val = x.fold(f32::NEG_INFINITY, |a, &b| a.max(b));

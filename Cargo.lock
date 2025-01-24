@@ -1706,8 +1706,9 @@ dependencies = [
 name = "buffer"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "markdown",
+ "mdast_util_to_markdown",
+ "thiserror 2.0.11",
 ]
 
 [[package]]
@@ -6354,8 +6355,7 @@ dependencies = [
 [[package]]
 name = "markdown"
 version = "1.0.0-alpha.21"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6491e6c702bf7e3b24e769d800746d5f2c06a6c6a2db7992612e0f429029e81"
+source = "git+https://github.com/wooorm/markdown-rs.git?rev=5c9eba146f06b2e0531a901cb586c0a877edb3ea#5c9eba146f06b2e0531a901cb586c0a877edb3ea"
 dependencies = [
  "unicode-id",
 ]
@@ -6410,6 +6410,15 @@ checksum = "d89e7ee0cfbedfc4da3340218492196241d89eefb6dab27de5df917a6d2e78cf"
 dependencies = [
  "cfg-if",
  "digest",
+]
+
+[[package]]
+name = "mdast_util_to_markdown"
+version = "0.0.0"
+source = "git+https://github.com/wooorm/markdown-rs.git?rev=5c9eba146f06b2e0531a901cb586c0a877edb3ea#5c9eba146f06b2e0531a901cb586c0a877edb3ea"
+dependencies = [
+ "markdown",
+ "regex",
 ]
 
 [[package]]

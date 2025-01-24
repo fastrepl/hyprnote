@@ -19,7 +19,6 @@ codes-iso-639 = "0.1.5"
 dotenvy = "0.15.7"
 dotenvy_macro = "0.15.7"
 itertools = "0.14.0"
-markdown = "1.0.0-alpha.21"
 schemars = "=1.0.0-alpha.17"
 sentry = "0.35.0"
 serde = "1"
@@ -33,6 +32,9 @@ thiserror = "2"
 time = "0.3.37"
 url = "2"
 uuid = "1.11.0"
+
+markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
+mdast_util_to_markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
 
 tracing = "0.1.41"
 tracing-opentelemetry = "0.28.0"

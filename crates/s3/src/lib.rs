@@ -183,6 +183,25 @@ impl<'a> UserClient<'a> {
         Ok(())
     }
 
+    pub async fn presigned_url_for_upload(&self, file_name: &str) -> Result<String, ApiError> {
+        let config = PresigningConfig::builder()
+            .expires_in(std::time::Duration::from_secs(60 * 30))
+            .build()
+            .unwrap();
+
+        let url = self
+            .s3
+            .put_object()
+            .bucket(&self.bucket)
+            .key(format!("{}/{}", self.folder(), file_name))
+            .presigned(config)
+            .await?
+            .uri()
+            .to_string();
+
+        Ok(url)
+    }
+
     pub async fn presigned_url_for_multipart_upload(
         &self,
         file_name: &str,

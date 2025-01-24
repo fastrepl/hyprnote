@@ -32,26 +32,13 @@ pub fn list_builtin_templates() -> Vec<hypr_db::user::Template> {
 
 #[tauri::command]
 #[specta::specta]
-pub async fn start_mic_session<'a>(
+pub async fn start_session<'a>(
     session: State<'_, tokio::sync::Mutex<SessionState>>,
     on_event: Channel<hypr_bridge::TranscribeOutputChunk>,
 ) -> Result<(), String> {
     {
         let mut s = session.lock().await;
-        s.start_mic(on_event).await;
-    }
-    Ok(())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn start_capture_session<'a>(
-    session: State<'_, tokio::sync::Mutex<SessionState>>,
-    on_event: Channel<hypr_bridge::TranscribeOutputChunk>,
-) -> Result<(), String> {
-    {
-        let mut s = session.lock().await;
-        s.start_capture(on_event).await;
+        s.start(on_event).await;
     }
     Ok(())
 }

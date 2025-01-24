@@ -9,8 +9,8 @@ mod mock;
 mod clova;
 pub use clova::ClovaClient;
 
-mod deep;
-pub use deep::DeepgramClient;
+mod deepgram;
+use crate::deepgram::DeepgramClient;
 
 #[allow(dead_code)]
 pub trait RealtimeSpeechToText<S, E> {

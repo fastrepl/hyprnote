@@ -23,7 +23,7 @@ pub fn argmax(x: ArrayView1<f32>) -> (f32, usize) {
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
-    use ndarray::Array1;
+    use hypr_onnx::ndarray::Array1;
 
     #[test]
     fn test_softmax() {

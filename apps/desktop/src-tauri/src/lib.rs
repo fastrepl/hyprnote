@@ -56,8 +56,7 @@ pub fn run() {
         .commands(tauri_specta::collect_commands![
             commands::get_env,
             commands::get_fingerprint,
-            commands::start_mic_session,
-            commands::start_capture_session,
+            commands::start_session,
             commands::stop_session,
             commands::start_playback,
             commands::stop_playback,

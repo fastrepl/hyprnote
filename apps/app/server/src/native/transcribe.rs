@@ -116,8 +116,8 @@ mod tests {
         tokio::spawn(axum::serve(listener, app()).into_future());
 
         let client = hypr_bridge::Client::builder()
-            .with_base(format!("http://localhost:{}", addr.port()))
-            .with_token("")
+            .api_base(format!("http://localhost:{}", addr.port()))
+            .api_key("")
             .build()
             .unwrap();
 

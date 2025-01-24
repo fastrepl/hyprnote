@@ -1,3 +1,4 @@
+mod deepgram;
 mod types;
 
 pub mod realtime;

@@ -20,12 +20,6 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
         E: Error + Send + Sync + 'static,
     {
-        let deepgram = deepgram::Deepgram::with_base_url_and_api_key(
-            "https://api.deepgram.com/v1",
-            &self.api_key,
-        )
-        .unwrap();
-
         let options = Options::builder()
             .model(Model::Nova2Meeting)
             .multichannel(false)
@@ -38,7 +32,8 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
             .keywords(self.keywords.iter().map(String::as_str))
             .build();
 
-        let deepgram_stream = deepgram
+        let deepgram_stream = self
+            .client
             .transcription()
             .stream_request_with_options(options)
             .keep_alive()

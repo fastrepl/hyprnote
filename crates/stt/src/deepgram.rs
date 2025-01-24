@@ -27,8 +27,14 @@ impl DeepgramClientBuilder {
             _ => panic!("Unsupported language: {:?}", self.language.unwrap()),
         };
 
+        let client = deepgram::Deepgram::with_base_url_and_api_key(
+            "https://api.deepgram.com/v1",
+            self.api_key.unwrap(),
+        )
+        .unwrap();
+
         DeepgramClient {
-            api_key: self.api_key.unwrap(),
+            client,
             language,
             keywords: self.keywords.unwrap_or_default(),
         }
@@ -37,7 +43,7 @@ impl DeepgramClientBuilder {
 
 #[derive(Debug, Clone)]
 pub struct DeepgramClient {
-    pub api_key: String,
+    pub client: deepgram::Deepgram,
     pub language: deepgram::common::options::Language,
     pub keywords: Vec<String>,
 }

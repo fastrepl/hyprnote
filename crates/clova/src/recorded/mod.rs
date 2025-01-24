@@ -1,6 +1,39 @@
+mod external_url;
+
 mod types;
 pub use types::*;
 
-pub struct ClovaClientBuilder {}
+#[derive(Debug, Default)]
+pub struct ClovaClientBuilder {
+    api_key: Option<String>,
+}
 
-pub struct ClovaClient {}
+impl ClovaClientBuilder {
+    pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
+        self.api_key = Some(api_key.into());
+        self
+    }
+
+    pub fn build(self) -> ClovaClient {
+        let mut headers = reqwest::header::HeaderMap::new();
+        let mut auth = reqwest::header::HeaderValue::from_str(&self.api_key.unwrap()).unwrap();
+        auth.set_sensitive(true);
+        headers.insert("X-CLOVA-API-KEY", auth);
+
+        let client = reqwest::Client::builder()
+            .default_headers(headers)
+            .build()
+            .unwrap();
+
+        ClovaClient {
+            api_base: "https://clovaspeech-gw.ncloud.com".parse().unwrap(),
+            client,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ClovaClient {
+    api_base: url::Url,
+    client: reqwest::Client,
+}

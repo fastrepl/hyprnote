@@ -2393,12 +2393,14 @@ dependencies = [
  "futures-core",
  "futures-util",
  "prost 0.13.4",
+ "reqwest 0.12.12",
  "serde",
  "serde_json",
  "thiserror 2.0.11",
  "tokio",
  "tonic 0.12.3",
  "tonic-build",
+ "url",
 ]
 
 [[package]]

@@ -17,6 +17,14 @@ pub enum Language {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub enum Completion {
+    #[serde(rename = "sync")]
+    Sync,
+    #[serde(rename = "async")]
+    Async,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Resonse {
     pub result: String,
     pub progress: u8,

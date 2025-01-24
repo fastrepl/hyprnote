@@ -20,3 +20,6 @@ tokio = { workspace = true }
 
 prost = "0.13.4"
 tonic = { version = "0.12.3", features = ["channel", "tls-native-roots"] }
+
+reqwest = { workspace = true, features = ["json"] }
+url = { workspace = true }

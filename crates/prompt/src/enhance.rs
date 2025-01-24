@@ -321,6 +321,87 @@ mod tests {
         }
     }
 
+    fn input_16() -> Input {
+        let note = std::fs::read_to_string("data/16/note.md").unwrap();
+        let transcript = transcript_from_path("data/16/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_17() -> Input {
+        let note = std::fs::read_to_string("data/17/note.md").unwrap();
+        let transcript = transcript_from_path("data/17/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_18() -> Input {
+        let note = std::fs::read_to_string("data/18/note.md").unwrap();
+        let transcript = transcript_from_path("data/18/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_19() -> Input {
+        let note = std::fs::read_to_string("data/19/note.md").unwrap();
+        let transcript = transcript_from_path("data/19/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+    fn input_20() -> Input {
+        let note = std::fs::read_to_string("data/20/note.md").unwrap();
+        let transcript = transcript_from_path("data/20/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
+
     #[test]
     fn test_enhance_format() {
         let ctx = crate::Context::from_serialize(&input_1()).unwrap();

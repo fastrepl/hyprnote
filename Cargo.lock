@@ -12449,7 +12449,10 @@ dependencies = [
 name = "vad"
 version = "0.1.0"
 dependencies = [
+ "dasp_sample",
+ "onnx",
  "serde",
+ "thiserror 2.0.11",
 ]
 
 [[package]]

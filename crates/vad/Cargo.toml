@@ -4,4 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+hypr-onnx = { path = "../onnx", package = "onnx" }
+
+thiserror = { workspace = true }
+dasp_sample = "0.11.0"
 serde = { workspace = true, features = ["derive"] }

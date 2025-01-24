@@ -8,6 +8,8 @@ local = []
 cloud = ["reqwest", "url"]
 
 [dependencies]
+hypr-stt = { path = "../../crates/stt", package = "stt" }
+
 reqwest = { workspace = true, features = ["json"], optional = true }
 url = { workspace = true, optional = true }
 

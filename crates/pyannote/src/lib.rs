@@ -1,13 +1,17 @@
 #[cfg(feature = "cloud")]
 pub mod cloud;
 
-#[cfg(not(feature = "local"))]
+#[cfg(feature = "local")]
 pub mod local;
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
-pub struct SpeakerSegment {
-    pub label: String,
-    pub confidence: Option<f32>,
-    pub start: f32,
-    pub end: f32,
+#[cfg(feature = "cloud")]
+impl From<crate::cloud::get_job::DiarizationSegment> for hypr_stt::SpeakerSegment {
+    fn from(segment: crate::cloud::get_job::DiarizationSegment) -> hypr_stt::SpeakerSegment {
+        hypr_stt::SpeakerSegment {
+            label: segment.speaker,
+            start: segment.start,
+            end: segment.end,
+            confidence: None,
+        }
+    }
 }

@@ -1,11 +1,9 @@
 use anyhow::Result;
-use std::path::PathBuf;
 
-use super::RecordedSpeechToText;
+use super::{RecordedSpeech, RecordedSpeechToText};
 
-// TODO: we need generic clova client
 impl RecordedSpeechToText for hypr_clova::realtime::Client {
-    fn transcribe(&self, _: PathBuf) -> Result<String> {
+    async fn transcribe(&self, _input: RecordedSpeech) -> Result<String> {
         todo!()
     }
 }

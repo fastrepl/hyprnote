@@ -3,6 +3,10 @@ name = "stt"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+realtime = []
+recorded = []
+
 [dependencies]
 hypr-clova = { path = "../clova", package = "clova" }
 
@@ -11,6 +15,7 @@ bytes = { workspace = true }
 codes-iso-639 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+specta = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 
 deepgram = { version = "0.6.4", features = ["listen"] }

@@ -1,12 +1,36 @@
 use anyhow::Result;
-use std::path::PathBuf;
 
-use super::RecordedSpeechToText;
+use deepgram::common::{
+    audio_source::AudioSource,
+    options::{Model, Options},
+};
+
+use super::{RecordedSpeech, RecordedSpeechToText};
 
 // https://github.com/deepgram/deepgram-rust-sdk/blob/73e5385/examples/transcription/rest/prerecorded_from_url.rs
 impl RecordedSpeechToText for crate::deepgram::DeepgramClient {
-    fn transcribe(&self, _: PathBuf) -> Result<String> {
-        // self.client.transcription().prerecorded(source, options)
-        todo!()
+    async fn transcribe(&self, _input: RecordedSpeech) -> Result<String> {
+        let source = AudioSource::from_url("123");
+        let options = Options::builder().model(Model::Nova2).build();
+
+        let response = self
+            .client
+            .transcription()
+            .prerecorded(source, &options)
+            .await
+            .unwrap();
+
+        let _result = response
+            .results
+            .channels
+            .first()
+            .unwrap()
+            .alternatives
+            .first()
+            .unwrap();
+
+        // let _words = result.words;
+
+        Ok("".to_string())
     }
 }

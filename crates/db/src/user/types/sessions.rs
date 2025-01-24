@@ -14,7 +14,7 @@ pub struct Session {
     pub raw_memo_html: String,
     pub enhanced_memo_html: Option<String>,
     pub transcript: Option<Transcript>,
-    pub diarization: Vec<hypr_pyannote::SpeakerSegment>,
+    pub diarization: Vec<hypr_stt::SpeakerSegment>,
 }
 
 impl Session {

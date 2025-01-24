@@ -17,7 +17,7 @@ hypr-openai = { path = "../../../crates/openai", package = "openai" }
 hypr-prompt = { path = "../../../crates/prompt", package = "prompt" }
 hypr-pyannote = { path = "../../../crates/pyannote", package = "pyannote", features = ["cloud"] }
 hypr-s3 = { path = "../../../crates/s3", package = "s3" }
-hypr-stt = { path = "../../../crates/stt", package = "stt" }
+hypr-stt = { path = "../../../crates/stt", package = "stt", features = ["realtime", "recorded"] }
 hypr-turso = { path = "../../../crates/turso", package = "turso" }
 
 async-stream = { workspace = true }

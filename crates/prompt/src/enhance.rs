@@ -340,18 +340,18 @@ mod tests {
         }
     }
 
-    // cargo test -p prompt enhance::tests -- --include-ignored -- --nocapture
+    // cargo test -p prompt enhance::tests -- --include-ignored
     generate! {
-        // cargo test test_input_<N> -p prompt --  --ignored --nocapture
-        test_input_1 => input_1(),
-        test_input_2 => input_2(),
-        test_input_3 => input_3(),
-        test_input_4 => input_4(),
-        test_input_5 => input_5(),
-        test_input_6 => input_6(),
-        test_input_7 => input_7(),
-        test_input_8 => input_8(),
-        test_input_9 => input_9(),
+        // cargo test test_input_<N> -p prompt --  --ignored
+        test_input_01 => input_1(),
+        test_input_02 => input_2(),
+        test_input_03 => input_3(),
+        test_input_04 => input_4(),
+        test_input_05 => input_5(),
+        test_input_06 => input_6(),
+        test_input_07 => input_7(),
+        test_input_08 => input_8(),
+        test_input_09 => input_9(),
         test_input_10 => input_10(),
         test_input_11 => input_11(),
         test_input_12 => input_12(),

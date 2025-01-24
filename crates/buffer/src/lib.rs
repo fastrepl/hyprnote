@@ -35,7 +35,7 @@ fn md_to_html(md: &str) -> Result<String, Error> {
         .map_err(|e| Error::MarkdownParseError(e.to_string()))?;
 
     convert_ordered_to_unordered(&mut ast);
-    set_heading_level_to_2(&mut ast);
+    set_heading_level_from(&mut ast, 2, false);
 
     let md = mdast_util_to_markdown::to_markdown_with_options(
         &ast,
@@ -60,16 +60,32 @@ fn convert_ordered_to_unordered(node: &mut markdown::mdast::Node) {
     }
 }
 
-fn set_heading_level_to_2(node: &mut markdown::mdast::Node) {
-    if let markdown::mdast::Node::Heading(heading) = node {
-        heading.depth = 2;
-    }
+fn set_heading_level_from(node: &mut markdown::mdast::Node, depth: u8, header_found: bool) -> bool {
+    let mut found_any_heading = header_found;
 
-    if let Some(children) = node.children_mut() {
-        for child in children {
-            set_heading_level_to_2(child);
+    if let markdown::mdast::Node::Heading(heading) = node {
+        found_any_heading = true;
+        heading.depth = depth;
+
+        if let Some(children) = node.children_mut() {
+            for child in children {
+                set_heading_level_from(child, depth + 1, found_any_heading);
+            }
+        }
+    } else {
+        if let Some(children) = node.children_mut() {
+            for child in children {
+                let child_found = set_heading_level_from(
+                    child,
+                    if found_any_heading { depth + 1 } else { depth },
+                    found_any_heading,
+                );
+                found_any_heading = found_any_heading || child_found;
+            }
         }
     }
+
+    found_any_heading
 }
 
 #[cfg(test)]
@@ -77,18 +93,37 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_simple() {
+    fn test_1() {
         let buffer = Buffer::new();
 
-        buffer.write("# Hello, ");
-        buffer.write("world!\n");
+        buffer.write("### Hello\n");
+        buffer.write("#### World\n\n");
         buffer.write("1. Hi\n");
         buffer.write("2. Bye!");
 
         let result = buffer.read().unwrap();
         assert_eq!(
             result,
-            "<h2>Hello, world!</h2>\n<ul>\n<li>Hi</li>\n<li>Bye!</li>\n</ul>\n"
+            "<h2>Hello</h2>\n<h3>World</h3>\n<ul>\n<li>Hi</li>\n<li>Bye!</li>\n</ul>\n"
+        );
+    }
+
+    #[test]
+    fn test_2() {
+        let buffer = Buffer::new();
+
+        buffer.write("hi\n");
+        buffer.write("### World\n\n");
+        buffer.write("1. Hi\n");
+        buffer.write("2. Bye!\n");
+        buffer.write("##### World\n\n");
+        buffer.write("##### World\n\n");
+        buffer.write("# World\n\n");
+
+        let result = buffer.read().unwrap();
+        assert_eq!(
+            result,
+            "<p>hi</p>\n<h2>World</h2>\n<ul>\n<li>Hi</li>\n<li>Bye!</li>\n</ul>\n<h3>World</h3>\n<h3>World</h3>\n<h3>World</h3>\n"
         );
     }
 }

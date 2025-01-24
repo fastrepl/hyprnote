@@ -22,7 +22,7 @@ pub async fn handler(
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .bytes_stream();
 
-    let write_buffer = std::sync::Arc::new(hypr_html::HtmlBuffer::new());
+    let write_buffer = std::sync::Arc::new(hypr_buffer::Buffer::new());
     let read_buffer = std::sync::Arc::clone(&write_buffer);
     let is_done_writer = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
     let is_done_reader = std::sync::Arc::clone(&is_done_writer);

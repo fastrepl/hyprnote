@@ -297,6 +297,7 @@ dependencies = [
  "axum 0.8.1",
  "axum-proxy",
  "bridge",
+ "buffer",
  "bytes",
  "calendar",
  "chrono",
@@ -306,7 +307,6 @@ dependencies = [
  "dotenv",
  "futures-core",
  "futures-util",
- "html",
  "nango",
  "openai",
  "prompt",
@@ -1701,6 +1701,14 @@ dependencies = [
  "memchr",
  "regex-automata",
  "serde",
+]
+
+[[package]]
+name = "buffer"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "markdown",
 ]
 
 [[package]]
@@ -4996,14 +5004,6 @@ name = "hound"
 version = "3.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "62adaabb884c94955b19907d60019f4e145d091c75345379e70d1ee696f7854f"
-
-[[package]]
-name = "html"
-version = "0.1.0"
-dependencies = [
- "thiserror 2.0.11",
- "tl",
-]
 
 [[package]]
 name = "html5ever"
@@ -11518,12 +11518,6 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
-
-[[package]]
-name = "tl"
-version = "0.7.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b130bd8a58c163224b44e217b4239ca7b927d82bf6cc2fea1fc561d15056e3f7"
 
 [[package]]
 name = "tokenizers"

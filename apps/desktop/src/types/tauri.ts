@@ -177,8 +177,15 @@ export type Session = {
   raw_memo_html: string;
   enhanced_memo_html: string | null;
   transcript: Transcript | null;
+  diarization: SpeakerSegment[];
 };
 export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo";
+export type SpeakerSegment = {
+  label: string;
+  confidence: number | null;
+  start: number;
+  end: number;
+};
 export type Template = {
   id: string;
   title: string;

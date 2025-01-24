@@ -72,7 +72,7 @@ export const createSessionStore = (session: Session) => {
         );
       };
 
-      commands.startMicSession(channel);
+      commands.startSession(channel);
       set({ channel, listening: true });
     },
     pause: () => {

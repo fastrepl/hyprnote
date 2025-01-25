@@ -25,13 +25,6 @@ pub enum Completion {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct Resonse {
-    pub result: String,
-    pub progress: u8,
-    pub segment: Vec<Segment>,
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Segment {
     pub start: u64,
     pub end: u64,

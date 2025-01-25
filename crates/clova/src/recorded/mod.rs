@@ -1,14 +1,20 @@
-mod external_url;
+mod local_file;
 
 mod types;
 pub use types::*;
 
 #[derive(Debug, Default)]
 pub struct ClovaClientBuilder {
+    api_base: Option<String>,
     api_key: Option<String>,
 }
 
 impl ClovaClientBuilder {
+    pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
+        self.api_base = Some(api_base.into());
+        self
+    }
+
     pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
         self.api_key = Some(api_key.into());
         self
@@ -26,7 +32,7 @@ impl ClovaClientBuilder {
             .unwrap();
 
         ClovaClient {
-            api_base: "https://clovaspeech-gw.ncloud.com".parse().unwrap(),
+            api_base: self.api_base.unwrap().parse().unwrap(),
             client,
         }
     }

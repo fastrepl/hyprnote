@@ -109,7 +109,7 @@ mod tests {
     }
 
     fn input_01() -> Input {
-        let note = std::fs::read_to_string("data/empty.md").unwrap();
+        let note = std::fs::read_to_string("data/01/note.md").unwrap();
         let transcript = transcript_from_path("data/01/conversation.json");
 
         Input {
@@ -125,7 +125,7 @@ mod tests {
     }
 
     fn input_02() -> Input {
-        let note = std::fs::read_to_string("data/empty.md").unwrap();
+        let note = std::fs::read_to_string("data/02/note.md").unwrap();
         let transcript = transcript_from_path("data/02/conversation.json");
 
         Input {
@@ -141,7 +141,7 @@ mod tests {
     }
 
     fn input_03() -> Input {
-        let note = std::fs::read_to_string("data/empty.md").unwrap();
+        let note = std::fs::read_to_string("data/03/note.md").unwrap();
         let transcript = transcript_from_path("data/03/conversation.json");
 
         Input {
@@ -173,7 +173,7 @@ mod tests {
     }
 
     fn input_05() -> Input {
-        let note = std::fs::read_to_string("data/empty.md").unwrap();
+        let note = std::fs::read_to_string("data/05/note.md").unwrap();
         let transcript = transcript_from_path("data/05/conversation.json");
 
         Input {
@@ -205,7 +205,7 @@ mod tests {
     }
 
     fn input_07() -> Input {
-        let note = std::fs::read_to_string("data/empty.md").unwrap();
+        let note = std::fs::read_to_string("data/07/note.md").unwrap();
         let transcript = transcript_from_path("data/07/conversation.json");
 
         Input {
@@ -333,7 +333,7 @@ mod tests {
     }
 
     fn input_15() -> Input {
-        let note = std::fs::read_to_string("data/empty.md").unwrap();
+        let note = std::fs::read_to_string("data/15/note.md").unwrap();
         let transcript = transcript_from_path("data/15/conversation.json");
 
         Input {

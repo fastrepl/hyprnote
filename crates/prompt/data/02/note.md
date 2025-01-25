@@ -1,68 +1,90 @@
-Linus Lee
-- Did a lot of side projects
-- Productivity => NLP. ML. 써서 어떻게 대량의 글을 더 빠르게 읽어서 도와줄까?
-- AI team 4명부터 함께
-- AI writer, autofill, Q&A => Notion AI
+UT 많이 함
+리소스 많이 들어가
 
-Agents
-Notion NY
+선제적 대응. 나중에 종종
+=> 어떤거? 실사례?
 
-Human eval.
-E2E product tests
+실험이 나가기 전에 ..
+성혜님과 그로스팀
 
-eval & data = key to high-quality AI products
+777 => 새롭게 출시
+매일 7가지 메뉴를 7900에
 
-**gather inputs**
+pmf 잘 맞고 리텐션 좋음
+모든 지표 굿
 
-1. build prototype internally
-2. collect failures
+어떻게 부스트?
+그래서 7800짜리 쿠폰 줬음
 
-doesn't need to perfectly represent
+당연히 잘도ㅒㅆ음. 근데 2-3주 지나니 리텐션 깨짐
 
-autofill -> a lot of employees used it for translations
+100원이 너무 강렬해서 무료배달이라는 가치를 인지 못함
 
-even Notion cannot generate enough thumbs up/down
+미리 UT 했더라면 ...
 
-applicactions:
-"your team needs to understadn the task the ai needs to perform, what are the dficulities"
+어떤 automated 된 형태가 있다고 하면?
+뭐가 가장 적합한 형태?
 
-whole datasets -=> ml -> clusters
+유티 -> 목적
 
-indvidual logs <- LM
+설계를 하고 고객 추출해서 리크루팅
+리크루팅 = 약속 잡기
 
-It pays off.
+한 7-8분 정도 함
 
-Engineers should look into the inputs.
+폰 스크리닝 => 몇번 핑퐁
 
-ML eng. -> AI or LLM
-evals should reflect users
+**되게 오래걸림**
 
-Upskill existing eng. ex) notion ai team
+10명 다 인사이트 x
+딱 만나서 이야기 -> 바로 암
 
-1. ai-native apps
-2. augmenting existing apps
+대표님 가끔 ut
+좋겠다
 
-**small amount of high-quality data**
-1. prototype to validate use case
+ut 다 준비하고 캘린더만 초대
+듣다가 쿨하게 퇴장
 
-openai hires enormous amount of people
-notion is on openai
+전화로 꼬치꼬치 캐물을 수 X
+되게 간략하게 말
 
+관악구 서비스인데 놀러갔다ㅏㄱ 쓴거
 
-1. interface to get things done ex. self-driving cars = get to destination, q&a
-2. interface that helps how the process is done ex. ferrari, writing with notion
+하루에 몰아서 하는게 편함
+퇴근 시간 아니면 점심 먹고 심심할 시간
 
+바로 날짜 박아야 함
 
-imge model space. -> wrap with buttons
-langchain is too complicated
+폰스크리닝으로 30퍼 정도 걸러짐
 
-**really good logging**
+리크루팅 1일, 테스팅은 3일 걸쳐서
 
-2-3~5 steps.
-no loops.
-labeling party. ㅋㅋㅋㅋ
-HCI is repetivie
+ㅇ일주일이면 실험 2개를 할 수 있어서 잘 못하게 됨
 
-prompting is hard. regardless of how skilled you are.
+선택해야 하는데 일주일을 다 쓸 수 없음
 
-textfields and searchbars seem to be just huge labor to users if it doesn't deliver good results. no matter what.
+실험해보자고 성혜님 설계 -> 하루동안
+
+수요잉 목요이 ut 진행
+사용성 이슈 없으면 바로 개발
+
+직접하는게 제일 마음 편
+
+모든걸 고나찰 x
+
+메인 진행 ai가 자동
+앱으로 진행
+
+ut -> 오퍼레이터, 타이핑 각각
+ai가 두 역할 다
+성혜 사은은 관찰만
+
+폰스크리닝 ->대체 가능?
+
+500명 문자 -> 아무 생각 없이 답변 -> 전화
+
+10명 정도 하면 대충 행동 패턴
+화면 x -> 속기록만
+
+월별 구독이 더 좋다
+같이 쓰면 좋겠다

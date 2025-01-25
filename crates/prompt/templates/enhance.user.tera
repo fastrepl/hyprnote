@@ -1,19 +1,14 @@
-Here is the transcript:
+My profile:
 ```
-{{ transcript | render_transcript }}
+{{ config_profile | json_encode() }}
 ```
 
-Here is the raw note:
+Raw Note:
 ```
 {{ editor }}
 ```
 
-Here are some key points when creating an enhanced note:
-- The output should be in {{ config_general.language | render_language }}
-- Professional terms are often in English. If there is no direct translation to {{ config_general.language | render_language }}, use the term in English.
-- 
-
-Here is the user's profile:
+Meeting Transcript:
 ```
-{{ config_profile | json_encode() }}
+{{ transcript | render_transcript }}
 ```

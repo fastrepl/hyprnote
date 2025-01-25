@@ -4,7 +4,10 @@ type Input = hypr_bridge::EnhanceRequest;
 pub fn request_from(
     input: &Input,
 ) -> Result<hypr_openai::CreateChatCompletionRequest, crate::Error> {
-    let system_prompt = crate::render(crate::Template::EnhanceSystem, &crate::Context::new())?;
+    let system_prompt = crate::render(
+        crate::Template::EnhanceSystem,
+        &crate::Context::from_serialize(input)?,
+    )?;
     let user_prompt = crate::render(
         crate::Template::EnhanceUser,
         &crate::Context::from_serialize(input)?,

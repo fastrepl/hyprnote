@@ -6,4 +6,6 @@ edition = "2021"
 [dependencies]
 async-openai = { version = "0.26.0", default-features = false }
 reqwest = { workspace = true, features = ["json"] }
+reqwest-middleware = { version = "0.4.0", features = ["json"] }
+reqwest-retry = "0.7.0"
 url = { workspace = true }

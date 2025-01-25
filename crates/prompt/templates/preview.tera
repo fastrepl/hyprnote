@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="https://cdn.twind.style"></script>
+  </head>
+  <body>
+    <nav class="p-4">
+      <a href="/" class="font-semibold text-lg hover:underline">Back</a>
+    </nav>
+    <div class="flex flex-row gap-4 p-2">
+      <div class="flex flex-col gap-2 w-1/2">
+        {% for message in request.messages %}
+          <div class="border rounded-md p-4">
+            <div class="font-bold mb-2">{{ message.role }}</div>
+            <div class="whitespace-pre-wrap">{{ message.content }}</div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="border rounded-md p-4">
+        <pre class="whitespace-pre-wrap">{{ response.choices[0].message.content }}</pre>
+      </div>
+    </div>
+  </body>
+</html>

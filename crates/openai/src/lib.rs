@@ -3,7 +3,7 @@ pub use async_openai::types::*;
 #[derive(Clone)]
 pub struct OpenAIClient {
     api_base: url::Url,
-    client: reqwest::Client,
+    client: reqwest_middleware::ClientWithMiddleware,
 }
 
 pub struct OpenAIClientBuilder {
@@ -31,10 +31,16 @@ impl OpenAIClientBuilder {
 
         headers.insert(reqwest::header::AUTHORIZATION, auth_value);
 
-        let client = reqwest::Client::builder()
+        let reqwest_client = reqwest::Client::builder()
             .default_headers(headers)
             .build()
             .unwrap();
+
+        let client = reqwest_middleware::ClientBuilder::new(reqwest_client)
+            .with(reqwest_retry::RetryTransientMiddleware::new_with_policy(
+                reqwest_retry::policies::ExponentialBackoff::builder().build_with_max_retries(4),
+            ))
+            .build();
 
         OpenAIClient {
             api_base: self.api_base.unwrap().parse().unwrap(),
@@ -54,7 +60,7 @@ impl OpenAIClient {
     pub async fn chat_completion(
         &self,
         req: &async_openai::types::CreateChatCompletionRequest,
-    ) -> Result<reqwest::Response, reqwest::Error> {
+    ) -> Result<reqwest::Response, reqwest_middleware::Error> {
         let mut url = self.api_base.clone();
         url.set_path("/v1/chat/completions");
 
@@ -69,6 +75,7 @@ impl OpenAIClient {
             .post(url)
             .header("Accept", accept)
             .json(&req)
+            .timeout(std::time::Duration::from_secs(30))
             .send()
             .await
     }

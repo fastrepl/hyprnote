@@ -57,7 +57,7 @@ mod tests {
         }
     }
 
-    async fn run_input(input: Input) -> Result<(), crate::Error> {
+    async fn run_input(label: impl std::fmt::Display, input: Input) {
         let openai = hypr_openai::OpenAIClient::builder()
             .api_base("https://api.openai.com/v1")
             .api_key(std::env::var("OPENAI_API_KEY").unwrap())
@@ -73,14 +73,11 @@ mod tests {
             .unwrap();
         let content = res.choices[0].message.content.clone().unwrap();
 
-        bat::PrettyPrinter::new()
-            .language("markdown")
-            .grid(true)
-            .input_from_bytes(content.as_bytes())
-            .print()
-            .unwrap();
-
-        Ok(())
+        let mut ctx = tera::Context::new();
+        ctx.insert("request", &req);
+        ctx.insert("response", &res);
+        let html = crate::render(crate::Template::Preview, &ctx).unwrap();
+        std::fs::write(format!("./out/{}.html", label), html).unwrap();
     }
 
     fn input_01() -> Input {
@@ -410,13 +407,13 @@ mod tests {
                 #[ignore]
                 #[tokio::test]
                 async fn $test_name() {
-                    run_input($input_expr).await;
+                    run_input(stringify!($test_name), $input_expr).await;
                 }
             )+
         }
     }
 
-    // cargo test -p prompt enhance::tests -- --include-ignored
+    // cargo test -p prompt enhance::tests -- --include-ignored --test-threads=4
     generate! {
         // cargo test test_input_<N> -p prompt --  --ignored
         test_input_01 => input_01(),

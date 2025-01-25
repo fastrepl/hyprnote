@@ -385,6 +385,22 @@ mod tests {
         }
     }
 
+    fn input_20() -> Input {
+        let note = std::fs::read_to_string("data/empty.md").unwrap();
+        let transcript = transcript_from_path("data/20/conversation.json");
+
+        Input {
+            template: hypr_template::auto(),
+            config_general: hypr_db::user::ConfigDataGeneral {
+                language: codes_iso_639::part_1::LanguageCode::Ko,
+                ..Default::default()
+            },
+            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            editor: markdown::to_html(&note),
+            transcript,
+        }
+    }
+
     macro_rules! generate {
         ( $( $test_name:ident => $input_expr:expr ),+ $(,)? ) => {
             $(
@@ -419,5 +435,6 @@ mod tests {
         test_input_17 => input_17(),
         test_input_18 => input_18(),
         test_input_19 => input_19(),
+        test_input_20 => input_20(),
     }
 }

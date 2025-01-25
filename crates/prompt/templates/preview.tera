@@ -3,20 +3,20 @@
   <head>
     <script src="https://cdn.twind.style"></script>
   </head>
-  <body class="h-screen flex flex-col">
+  <body class="h-screen flex flex-col overflow-hidden">
     <nav class="p-4">
       <a href="/" class="font-semibold text-lg hover:underline">Back</a>
     </nav>
-    <div class="flex-1 flex flex-row gap-4 p-2">
-      <div class="flex flex-col gap-2 w-1/2 max-h-screen overflow-hidden">
+    <div class="flex-1 flex flex-row gap-4 p-2 overflow-hidden bg-zinc-50">
+      <div class="flex flex-col gap-2 w-1/2 max-h-screen overflow-y-auto">
         {% for message in request.messages %}
-          <div class="border rounded-md p-4 overflow-y-auto">
-            <div class="font-bold mb-2">{{ message.role }}</div>
-            <div class="whitespace-pre-wrap overflow-y-auto overflow-x-hidden break-words">{{ message.content }}</div>
+          <div class="border rounded-md p-4 max-h-[480px] overflow-clip bg-white flex flex-col gap-2">
+            <div class="font-bold">{{ message.role }}</div>
+            <div class="flex-1 whitespace-pre-wrap overflow-x-hidden break-words overflow-y-auto">{{ message.content }}</div>
           </div>
         {% endfor %}
       </div>
-      <div class="border rounded-md p-4 w-1/2">
+      <div class="border rounded-md p-4 w-1/2 overflow-y-auto bg-white">
         <pre class="whitespace-pre-wrap">{{ response.choices[0].message.content }}</pre>
       </div>
     </div>

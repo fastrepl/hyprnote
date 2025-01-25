@@ -6,7 +6,7 @@ mod clova;
 mod deepgram;
 
 pub enum RecordedSpeech {
-    Path(std::path::PathBuf),
+    File(std::path::PathBuf),
 }
 
 #[allow(unused)]

@@ -1,7 +1,6 @@
 use futures_util::StreamExt;
 use tokio::io::AsyncWriteExt;
 
-// TODO: use VAD to auto route audios to new file?
 pub async fn save(
     stream: impl futures_core::Stream<Item = f32>,
     local_path: std::path::PathBuf,

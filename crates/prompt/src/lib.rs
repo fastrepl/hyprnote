@@ -26,14 +26,16 @@ pub enum Error {
 }
 
 pub enum Template {
-    Enhance,
+    EnhanceSystem,
+    EnhanceUser,
     Preview,
 }
 
 impl std::fmt::Display for Template {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Template::Enhance => write!(f, "enhance.tera"),
+            Template::EnhanceSystem => write!(f, "enhance.system.tera"),
+            Template::EnhanceUser => write!(f, "enhance.user.tera"),
             Template::Preview => write!(f, "preview.tera"),
         }
     }

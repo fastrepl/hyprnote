@@ -4,18 +4,25 @@ type Input = hypr_bridge::EnhanceRequest;
 pub fn request_from(
     input: &Input,
 ) -> Result<hypr_openai::CreateChatCompletionRequest, crate::Error> {
-    let ctx = crate::Context::from_serialize(input)?;
-    let prompt = crate::render(crate::Template::Enhance, &ctx)?;
+    let system_prompt = crate::render(crate::Template::EnhanceSystem, &crate::Context::new())?;
+    let user_prompt = crate::render(
+        crate::Template::EnhanceUser,
+        &crate::Context::from_serialize(input)?,
+    )?;
 
     Ok(hypr_openai::CreateChatCompletionRequest {
         model: "gpt-4o".to_string(),
         messages: vec![
             hypr_openai::ChatCompletionRequestSystemMessageArgs::default()
-                .content("You are a helpful assistant that only outputs Markdown. No code block, no explanation.")
+                .content(system_prompt)
                 .build()
                 .unwrap()
                 .into(),
-            hypr_openai::ChatCompletionRequestUserMessageArgs::default().content(prompt).build().unwrap().into(),
+            hypr_openai::ChatCompletionRequestUserMessageArgs::default()
+                .content(user_prompt)
+                .build()
+                .unwrap()
+                .into(),
         ],
         temperature: Some(0.1),
         stream: Some(false),
@@ -73,9 +80,10 @@ mod tests {
             )
             .build();
 
-        println!("{:?}", std::env::var("OPENAI_API_BASE"));
-        println!("{:?}", std::env::var("OPENAI_API_KEY"));
-
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
         let req = request_from(&input).unwrap();
         let res: hypr_openai::CreateChatCompletionResponse = openai
             .chat_completion(&req)
@@ -90,7 +98,11 @@ mod tests {
         ctx.insert("request", &req);
         ctx.insert("response", &res);
         let html = crate::render(crate::Template::Preview, &ctx).unwrap();
-        std::fs::write(format!("./out/{}.html", label), html).unwrap();
+        let path = format!("./out/{}/{}.html", label, now);
+        if let Some(parent) = std::path::Path::new(&path).parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(&path, html).unwrap();
     }
 
     fn input_01() -> Input {
@@ -416,7 +428,6 @@ mod tests {
     macro_rules! generate {
         ( $( $test_name:ident => $input_expr:expr ),+ $(,)? ) => {
             $(
-                #[ignore]
                 #[tokio::test]
                 async fn $test_name() {
                     run_input(stringify!($test_name), $input_expr).await;

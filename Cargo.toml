@@ -16,6 +16,7 @@ approx = "0.5.1"
 bytes = "1.9.0"
 chrono = "0.4.39"
 codes-iso-639 = "0.1.5"
+dotenv = "0.15.0"
 dotenvy = "0.15.7"
 dotenvy_macro = "0.15.7"
 itertools = "0.14.0"
@@ -32,7 +33,6 @@ thiserror = "2"
 time = "0.3.37"
 url = "2"
 uuid = "1.11.0"
-dotenv = "0.15.0"
 
 markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
 mdast_util_to_markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }

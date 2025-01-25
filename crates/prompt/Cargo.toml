@@ -10,12 +10,12 @@ hypr-openai = { path = "../../crates/openai", package = "openai" }
 hypr-template = { path = "../../crates/template", package = "template" }
 
 codes-iso-639 = { workspace = true }
+dotenv = { workspace = true }
 lazy_static = "1.5.0"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 tera = { version = "1", default-features = false }
 thiserror = { workspace = true }
-dotenv = { workspace = true }
 
 [dev-dependencies]
 markdown = { workspace = true }

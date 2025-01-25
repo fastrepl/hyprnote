@@ -1,5 +1,16 @@
 // https://api.ncloud-docs.com/docs/en/ai-application-service-clovaspeech-longsentence-externalurl
 
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct RequestParams {
+    pub language: Language,
+    pub completion: Completion,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct Resonse {
+    pub segment: Vec<Segment>,
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum Language {
     #[serde(rename = "ko-KR")]

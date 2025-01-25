@@ -29,7 +29,7 @@ impl RecordedSpeechToText for crate::deepgram::DeepgramClient {
             .first()
             .unwrap();
 
-        let _words = result.words.iter().map(|w| w.word);
+        let _words = result.words.iter().map(|w| w.word.clone());
 
         Ok("".to_string())
     }

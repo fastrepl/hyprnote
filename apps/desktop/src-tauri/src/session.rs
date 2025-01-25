@@ -15,6 +15,16 @@ pub struct SessionState {
 
 impl SessionState {
     pub fn new(bridge: hypr_bridge::Client) -> anyhow::Result<Self> {
+        let file = std::fs::File::create("test.ogg")?;
+        let encoder = vorbis_rs::VorbisEncoderBuilder::new(
+            std::num::NonZeroU32::new(16000).unwrap(),
+            std::num::NonZeroU8::new(1).unwrap(),
+            file,
+        )?
+        .build()?;
+
+        // encoder.encode_audio_block(audio_block)
+
         Ok(Self {
             bridge,
             handle: None,
@@ -35,6 +45,9 @@ impl SessionState {
             let source = hypr_audio::MicInput::default();
             source.stream().unwrap()
         };
+
+        // TOOD:
+        // NO transcript stream, do directly to
 
         // let stream = {
         //     // input is not 'Send'.

@@ -20,7 +20,7 @@ impl RecordedSpeechToText for crate::deepgram::DeepgramClient {
             .await
             .unwrap();
 
-        let _result = response
+        let result = response
             .results
             .channels
             .first()
@@ -29,7 +29,7 @@ impl RecordedSpeechToText for crate::deepgram::DeepgramClient {
             .first()
             .unwrap();
 
-        // let _words = result.words;
+        let _words = result.words.iter().map(|w| w.word);
 
         Ok("".to_string())
     }

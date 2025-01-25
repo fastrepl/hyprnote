@@ -1,26 +1,19 @@
-The user just finished a meeting.
-Here is the transcript(some of it might be incomplete):
-
-```transcript
+Here is the transcript:
+```
 {{ transcript | render_transcript }}
 ```
 
-Here is the note that the user wrote during the meeting:
-
-```editor
+Here is the raw note:
+```
 {{ editor }}
 ```
 
-Your job is to generate a structured summary of the transcript. Only use single depth for headers.
-Use the note to identify some of the key points that user think is important.
-Do not generate title.
-
-Keep in mind that both the transcript and the note are not perfect, and you should make the best out of them.
+Here are some key points when creating an enhanced note:
+- The output should be in {{ config_general.language | render_language }}
+- Professional terms are often in English. If there is no direct translation to {{ config_general.language | render_language }}, use the term in English.
+- 
 
 Here is the user's profile:
-
-```user
+```
 {{ config_profile | json_encode() }}
 ```
-
-Output language: {{ config_general.language | render_language }}

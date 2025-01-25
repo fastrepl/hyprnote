@@ -1,0 +1,11 @@
+[package]
+name = "manager"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror = { workspace = true }
+
+apalis = { workspace = true }
+apalis-sql = { workspace = true, features = ["sqlite"] }
+sqlx = { version = "0.8", features = ["sqlite", "runtime-tokio"] }

@@ -40,8 +40,9 @@ mdast_util_to_markdown = { git = "https://github.com/wooorm/markdown-rs.git", re
 tracing = "0.1.41"
 tracing-opentelemetry = "0.28.0"
 
-apalis = "0.6.3"
-apalis-cron = "0.6.3"
+apalis = "0.6.4"
+apalis-cron = "0.6.4"
+apalis-sql = "0.6.4"
 
 specta = "2.0.0-rc.20"
 specta-typescript = "0.0.7"

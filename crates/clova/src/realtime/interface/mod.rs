@@ -1,4 +1,3 @@
-#[rustfmt::skip]
 mod nest {
     include!("./com.nbp.cdncp.nest.grpc.proto.v1.rs");
 }

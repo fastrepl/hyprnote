@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [build-dependencies]
-dotenv = "0.15.0"
+dotenv = { workspace = true }
 
 [dependencies]
 hypr-analytics = { path = "../../../crates/analytics", package = "analytics" }
@@ -38,7 +38,7 @@ anyhow = { workspace = true }
 bytes = { workspace = true }
 chrono = { workspace = true }
 codes-iso-639 = { workspace = true }
-dotenv = "0.15.0"
+dotenv = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 time = { workspace = true }

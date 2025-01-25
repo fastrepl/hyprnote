@@ -32,6 +32,7 @@ thiserror = "2"
 time = "0.3.37"
 url = "2"
 uuid = "1.11.0"
+dotenv = "0.15.0"
 
 markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
 mdast_util_to_markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }

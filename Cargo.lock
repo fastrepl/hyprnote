@@ -7964,6 +7964,7 @@ dependencies = [
  "bridge",
  "codes-iso-639",
  "db",
+ "dotenv",
  "lazy_static",
  "markdown",
  "openai",

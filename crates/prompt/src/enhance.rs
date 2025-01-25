@@ -58,10 +58,23 @@ mod tests {
     }
 
     async fn run_input(label: impl std::fmt::Display, input: Input) {
+        dotenv::from_filename(".env.local").unwrap();
+
         let openai = hypr_openai::OpenAIClient::builder()
-            .api_base("https://api.openai.com/v1")
-            .api_key(std::env::var("OPENAI_API_KEY").unwrap())
+            .api_base(
+                std::env::var("OPENAI_API_BASE")
+                    .map_err(|_| "'OPENAI_API_BASE' not set")
+                    .unwrap(),
+            )
+            .api_key(
+                std::env::var("OPENAI_API_KEY")
+                    .map_err(|_| "'OPENAI_API_KEY' not set")
+                    .unwrap(),
+            )
             .build();
+
+        println!("{:?}", std::env::var("OPENAI_API_BASE"));
+        println!("{:?}", std::env::var("OPENAI_API_KEY"));
 
         let req = request_from(&input).unwrap();
         let res: hypr_openai::CreateChatCompletionResponse = openai
@@ -399,7 +412,6 @@ mod tests {
             transcript,
         }
     }
-
 
     macro_rules! generate {
         ( $( $test_name:ident => $input_expr:expr ),+ $(,)? ) => {

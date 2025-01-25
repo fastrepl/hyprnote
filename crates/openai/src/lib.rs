@@ -62,7 +62,10 @@ impl OpenAIClient {
         req: &async_openai::types::CreateChatCompletionRequest,
     ) -> Result<reqwest::Response, reqwest_middleware::Error> {
         let mut url = self.api_base.clone();
-        url.set_path("/v1/chat/completions");
+        url.path_segments_mut()
+            .unwrap()
+            .push("chat")
+            .push("completions");
 
         let stream = req.stream.unwrap_or(false);
         let accept = if stream {

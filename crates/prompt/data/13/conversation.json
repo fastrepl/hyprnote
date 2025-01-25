@@ -1,4 +1,6 @@
 {
+  "$schema": "../schema.json",
+  "language": "kr",
   "conversation": [
     {
       "speaker": "김미성",

@@ -2,6 +2,13 @@ use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, serde::rfc3339, OffsetDateTime};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
+pub struct SessionRawMemoHistory {
+    #[serde(with = "rfc3339")]
+    pub created_at: OffsetDateTime,
+    pub raw_memo_html: String,
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
 pub struct Session {
     pub id: String,
     #[serde(with = "rfc3339")]

@@ -2,7 +2,7 @@ use anyhow::Result;
 use time::format_description::well_known::Rfc3339;
 
 use super::UserDatabase;
-use crate::user::Session;
+use crate::user::{Session, SessionRawMemoHistory};
 
 impl UserDatabase {
     pub async fn get_session(&self, id: String) -> Result<Option<Session>> {
@@ -37,6 +37,27 @@ impl UserDatabase {
         let mut items = Vec::new();
         while let Some(row) = rows.next().await.unwrap() {
             let item = Session::from_row(&row)?;
+            items.push(item);
+        }
+        Ok(items)
+    }
+
+    pub async fn list_session_raw_memo_history(
+        &self,
+        session_id: String,
+    ) -> Result<Vec<SessionRawMemoHistory>> {
+        let mut rows = self
+            .conn
+            .query(
+                "SELECT * FROM sessions_raw_memo_history WHERE session_id = ?",
+                vec![session_id],
+            )
+            .await
+            .unwrap();
+
+        let mut items = Vec::new();
+        while let Some(row) = rows.next().await.unwrap() {
+            let item: SessionRawMemoHistory = libsql::de::from_row(&row)?;
             items.push(item);
         }
         Ok(items)
@@ -109,13 +130,14 @@ mod tests {
 
         let session = Session {
             title: "test".to_string(),
+            raw_memo_html: "raw_memo_html_1".to_string(),
             tags: vec!["test".to_string()],
             transcript: None,
             ..Session::default()
         };
 
-        let session = db.upsert_session(session).await.unwrap();
-        assert_eq!(session.raw_memo_html, "");
+        let mut session = db.upsert_session(session).await.unwrap();
+        assert_eq!(session.raw_memo_html, "raw_memo_html_1");
         assert_eq!(session.enhanced_memo_html, None);
         assert_eq!(session.title, "test");
         assert_eq!(session.tags, vec!["test".to_string()]);
@@ -123,5 +145,13 @@ mod tests {
 
         let sessions = db.list_sessions(Some("test")).await.unwrap();
         assert_eq!(sessions.len(), 1);
+
+        session.raw_memo_html = "raw_memo_html_2".to_string();
+        let session = db.upsert_session(session).await.unwrap();
+        assert_eq!(session.raw_memo_html, "raw_memo_html_2");
+
+        let history = db.list_session_raw_memo_history(session.id).await.unwrap();
+        assert_eq!(history.len(), 1);
+        assert_eq!(history[0].raw_memo_html, "raw_memo_html_1");
     }
 }

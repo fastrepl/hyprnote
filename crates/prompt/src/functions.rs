@@ -54,8 +54,11 @@ pub fn render_event_and_participants() -> impl tera::Function {
                 buffer.push_str(&format!("Event: {}\n", event.name));
             }
 
+            if participants.len() > 0 {
+                buffer.push_str("Participants:\n");
+            }
             for participant in participants {
-                buffer.push_str(&format!("Participant: {}\n", participant.name));
+                buffer.push_str(&format!("- {}\n", participant.name));
             }
 
             Ok(Value::String(buffer))

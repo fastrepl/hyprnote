@@ -34,7 +34,7 @@ pub fn duration(from: std::time::Duration, to: std::time::Duration) -> impl tera
             let end = transcripts.iter().map(|t| t.end).max().unwrap();
 
             let d = std::time::Duration::from_secs(end as u64 - start as u64);
-            Ok(d >= from && d <= to)
+            Ok(d >= from && d < to)
         },
     )
 }

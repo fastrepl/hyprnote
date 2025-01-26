@@ -24,8 +24,10 @@ lazy_static::lazy_static! {
         tera.register_tester("japanese", testers::language(codes_iso_639::part_1::LanguageCode::Ja));
         tera.register_tester("english", testers::language(codes_iso_639::part_1::LanguageCode::En));
 
-        tera.register_tester("short_meeting", testers::duration(Duration::from_secs(0), Duration::from_secs(60 * 10)));
-        tera.register_tester("long_meeting", testers::duration(Duration::from_secs(60 * 10), Duration::from_secs(INFINITY as u64)));
+        tera.register_tester("short_meeting", testers::duration(Duration::from_secs(0), Duration::from_secs(20 * 60 * 60)));
+        tera.register_tester("medium_meeting", testers::duration(Duration::from_secs(20 * 60 * 60), Duration::from_secs(40 * 60 * 60)));
+        tera.register_tester("long_meeting", testers::duration(Duration::from_secs(40 * 60 * 60), Duration::from_secs(90 * 60 * 60)));
+        tera.register_tester("brainstorming_meeting", testers::duration(Duration::from_secs(90 * 60 * 60), Duration::from_secs(INFINITY as u64)));
 
         tera.register_function("render_conversation", functions::render_conversation());
         tera.register_function("render_event_and_participants", functions::render_event_and_participants());

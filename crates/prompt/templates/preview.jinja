@@ -10,16 +10,14 @@
     <div class="flex-1 flex flex-row gap-4 p-2 overflow-hidden bg-zinc-50">
       <div class="flex flex-col gap-2 w-1/2 max-h-screen overflow-y-auto">
         {% for message in request.messages %}
-        <div
-          class="border rounded-md p-4 max-h-[480px] overflow-clip bg-white flex flex-col gap-2"
-        >
-          <div class="font-bold">{{ message.role }}</div>
           <div
-            class="flex-1 whitespace-pre-wrap overflow-x-hidden break-words overflow-y-auto"
+            class="border rounded-md p-4 max-h-[480px] overflow-clip bg-white flex flex-col gap-2"
           >
-            {{ message.content }}
+            <div class="font-bold">{{ message.role }}</div>
+            <pre
+              class="flex-1 whitespace-pre-wrap overflow-x-hidden break-words overflow-y-auto"
+            >{{ message.content }}</pre>
           </div>
-        </div>
         {% endfor %}
       </div>
       <div class="border rounded-md p-4 w-1/2 overflow-y-auto bg-white">

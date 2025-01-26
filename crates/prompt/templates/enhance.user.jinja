@@ -7,11 +7,11 @@ My profile:
 Raw Note:
 
 ```
-{{ editor }}
+{{ final_editor }}
 ```
 
 Meeting Transcript:
 
 ```
-{{ transcript | render_transcript }}
+{{ transcripts | json_encode() }}
 ```

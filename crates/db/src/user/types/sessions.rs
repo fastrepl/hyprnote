@@ -76,9 +76,9 @@ pub struct TranscriptBlock {
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
-pub struct DiarazationBlock {
-    pub start: f32,
-    pub end: f32,
+pub struct DiarizationBlock {
+    pub start: i32,
+    pub end: i32,
     pub label: String,
 }
 
@@ -89,5 +89,5 @@ pub struct ConversationChunk {
     pub local_audio_path: String,
     pub remote_audio_path: String,
     pub transcripts: Vec<TranscriptBlock>,
-    pub diarizations: Vec<DiarazationBlock>,
+    pub diarizations: Vec<DiarizationBlock>,
 }

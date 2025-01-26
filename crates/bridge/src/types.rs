@@ -19,7 +19,7 @@ pub struct EnhanceRequest {
     pub config_general: hypr_db::user::ConfigDataGeneral,
     pub config_profile: hypr_db::user::ConfigDataProfile,
     pub transcripts: Vec<hypr_db::user::TranscriptBlock>,
-    pub diarizations: Vec<hypr_db::user::DiarazationBlock>,
+    pub diarizations: Vec<hypr_db::user::DiarizationBlock>,
 }
 
 #[derive(thiserror::Error, Debug)]

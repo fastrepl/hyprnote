@@ -45,7 +45,7 @@ mod tests {
         pub text: String,
     }
 
-    fn transcript_from_path(p: impl AsRef<std::path::Path>) -> hypr_db::user::Transcript {
+    fn read_conversation(p: impl AsRef<std::path::Path>) -> Vec<ConversationItem> {
         let data = std::fs::read_to_string(p).unwrap();
         let value: serde_json::Value = serde_json::from_str(&data).unwrap();
         let conversation: Vec<ConversationItem> = value["conversation"]
@@ -55,16 +55,33 @@ mod tests {
             .map(|v| serde_json::from_value(v.clone()).unwrap())
             .collect();
 
-        hypr_db::user::Transcript {
-            blocks: conversation
-                .iter()
-                .map(|item| hypr_db::user::TranscriptBlock {
-                    start: item.start as i32,
-                    end: item.end as i32,
-                    text: item.text.clone(),
-                })
-                .collect(),
-        }
+        conversation
+    }
+
+    fn diarizations_from_path(p: &str) -> Vec<hypr_db::user::DiarizationBlock> {
+        let conversation = read_conversation(p);
+
+        conversation
+            .into_iter()
+            .map(|item| hypr_db::user::DiarizationBlock {
+                start: item.start as i32,
+                end: item.end as i32,
+                label: item.speaker.clone(),
+            })
+            .collect()
+    }
+
+    fn transcripts_from_path(p: &str) -> Vec<hypr_db::user::TranscriptBlock> {
+        let conversation = read_conversation(p);
+
+        conversation
+            .into_iter()
+            .map(|item| hypr_db::user::TranscriptBlock {
+                start: item.start as i32,
+                end: item.end as i32,
+                text: item.text.clone(),
+            })
+            .collect()
     }
 
     async fn run_input(label: impl std::fmt::Display, input: Input) {
@@ -87,6 +104,7 @@ mod tests {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_secs();
+
         let req = request_from(&input).unwrap();
         let res: hypr_openai::CreateChatCompletionResponse = openai
             .chat_completion(&req)
@@ -100,8 +118,10 @@ mod tests {
         let mut ctx = tera::Context::new();
         ctx.insert("request", &req);
         ctx.insert("response", &res);
+
         let html = crate::render(crate::Template::Preview, &ctx).unwrap();
         let path = format!("./out/{}/{}.html", label, now);
+
         if let Some(parent) = std::path::Path::new(&path).parent() {
             std::fs::create_dir_all(parent).unwrap();
         }
@@ -110,7 +130,8 @@ mod tests {
 
     fn input_01() -> Input {
         let note = std::fs::read_to_string("data/01/note.md").unwrap();
-        let transcript = transcript_from_path("data/01/conversation.json");
+        let transcripts = transcripts_from_path("data/01/conversation.json");
+        let diarizations = diarizations_from_path("data/01/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -121,14 +142,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_02() -> Input {
         let note = std::fs::read_to_string("data/02/note.md").unwrap();
-        let transcript = transcript_from_path("data/02/conversation.json");
+        let transcripts = transcripts_from_path("data/02/conversation.json");
+        let diarizations = diarizations_from_path("data/02/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -139,14 +161,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_03() -> Input {
         let note = std::fs::read_to_string("data/03/note.md").unwrap();
-        let transcript = transcript_from_path("data/03/conversation.json");
+        let transcripts = transcripts_from_path("data/03/conversation.json");
+        let diarizations = diarizations_from_path("data/03/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -157,14 +180,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_04() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/04/conversation.json");
+        let transcripts = transcripts_from_path("data/04/conversation.json");
+        let diarizations = diarizations_from_path("data/04/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -175,14 +199,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_05() -> Input {
         let note = std::fs::read_to_string("data/05/note.md").unwrap();
-        let transcript = transcript_from_path("data/05/conversation.json");
+        let transcripts = transcripts_from_path("data/05/conversation.json");
+        let diarizations = diarizations_from_path("data/05/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -193,14 +218,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_06() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/06/conversation.json");
+        let transcripts = transcripts_from_path("data/06/conversation.json");
+        let diarizations = diarizations_from_path("data/06/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -211,14 +237,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_07() -> Input {
         let note = std::fs::read_to_string("data/07/note.md").unwrap();
-        let transcript = transcript_from_path("data/07/conversation.json");
+        let transcripts = transcripts_from_path("data/07/conversation.json");
+        let diarizations = diarizations_from_path("data/07/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -229,14 +256,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_08() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/08/conversation.json");
+        let transcripts = transcripts_from_path("data/08/conversation.json");
+        let diarizations = diarizations_from_path("data/08/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -247,14 +275,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_09() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/09/conversation.json");
+        let transcripts = transcripts_from_path("data/09/conversation.json");
+        let diarizations = diarizations_from_path("data/09/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -265,14 +294,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_10() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/10/conversation.json");
+        let transcripts = transcripts_from_path("data/10/conversation.json");
+        let diarizations = diarizations_from_path("data/10/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -283,14 +313,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_11() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/11/conversation.json");
+        let transcripts = transcripts_from_path("data/11/conversation.json");
+        let diarizations = diarizations_from_path("data/11/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -301,14 +332,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_12() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/12/conversation.json");
+        let transcripts = transcripts_from_path("data/12/conversation.json");
+        let diarizations = diarizations_from_path("data/12/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -319,14 +351,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_13() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/13/conversation.json");
+        let transcripts = transcripts_from_path("data/13/conversation.json");
+        let diarizations = diarizations_from_path("data/13/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -337,14 +370,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_14() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/14/conversation.json");
+        let transcripts = transcripts_from_path("data/14/conversation.json");
+        let diarizations = diarizations_from_path("data/14/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -355,14 +389,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_15() -> Input {
         let note = std::fs::read_to_string("data/15/note.md").unwrap();
-        let transcript = transcript_from_path("data/15/conversation.json");
+        let transcripts = transcripts_from_path("data/15/conversation.json");
+        let diarizations = diarizations_from_path("data/15/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -373,14 +408,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_16() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/16/conversation.json");
+        let transcripts = transcripts_from_path("data/16/conversation.json");
+        let diarizations = diarizations_from_path("data/16/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -391,14 +427,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_17() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/17/conversation.json");
+        let transcripts = transcripts_from_path("data/17/conversation.json");
+        let diarizations = diarizations_from_path("data/17/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -409,14 +446,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_18() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/18/conversation.json");
+        let transcripts = transcripts_from_path("data/18/conversation.json");
+        let diarizations = diarizations_from_path("data/18/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -427,14 +465,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_19() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/19/conversation.json");
+        let transcripts = transcripts_from_path("data/19/conversation.json");
+        let diarizations = diarizations_from_path("data/19/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -445,14 +484,15 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
     fn input_20() -> Input {
         let note = std::fs::read_to_string("data/empty.md").unwrap();
-        let transcript = transcript_from_path("data/20/conversation.json");
+        let transcripts = transcripts_from_path("data/20/conversation.json");
+        let diarizations = diarizations_from_path("data/20/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -463,8 +503,8 @@ mod tests {
             config_profile: hypr_db::user::ConfigDataProfile::default(),
             final_editor: markdown::to_html(&note),
             preparation_editor: markdown::to_html(&note),
-            transcripts: vec![],
-            diarizations: vec![],
+            transcripts,
+            diarizations,
         }
     }
 
@@ -479,9 +519,9 @@ mod tests {
         }
     }
 
-    // cargo test -p prompt enhance::tests -- --include-ignored --test-threads=4
+    // cargo test -p prompt enhance::tests
     generate! {
-        // cargo test test_input_<N> -p prompt --  --ignored
+        // cargo test test_input_<N> -p prompt
         test_input_01 => input_01(),
         test_input_02 => input_02(),
         test_input_03 => input_03(),

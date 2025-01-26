@@ -1,14 +1,14 @@
 {
   "markdown": {
     "associations": [
-      "crates/prompt/templates/enhance.system.tera",
-      "crates/prompt/templates/enhance.user.tera"
+      "crates/prompt/templates/enhance.system.jinja",
+      "crates/prompt/templates/enhance.user.jinja"
     ]
   },
   "markup": {
     "associations": [
       "!**/*.html",
-      "crates/prompt/templates/preview.tera"
+      "crates/prompt/templates/preview.jinja"
     ]
   },
   "excludes": [

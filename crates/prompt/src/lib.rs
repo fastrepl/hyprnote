@@ -7,7 +7,7 @@ use tera::Tera;
 lazy_static::lazy_static! {
     pub static ref TEMPLATES: Tera = {
         let base = env!("CARGO_MANIFEST_DIR");
-        let mut tera = match Tera::new(format!("{}/templates/*.tera", base).as_str()) {
+        let mut tera = match Tera::new(format!("{}/templates/*.jinja", base).as_str()) {
             Ok(t) => t,
             Err(e) => panic!("{}", e),
         };
@@ -34,9 +34,9 @@ pub enum Template {
 impl std::fmt::Display for Template {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Template::EnhanceSystem => write!(f, "enhance.system.tera"),
-            Template::EnhanceUser => write!(f, "enhance.user.tera"),
-            Template::Preview => write!(f, "preview.tera"),
+            Template::EnhanceSystem => write!(f, "enhance.system.jinja"),
+            Template::EnhanceUser => write!(f, "enhance.user.jinja"),
+            Template::Preview => write!(f, "preview.jinja"),
         }
     }
 }

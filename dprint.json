@@ -1,4 +1,16 @@
 {
+  "markdown": {
+    "associations": [
+      "crates/prompt/templates/enhance.system.tera",
+      "crates/prompt/templates/enhance.user.tera"
+    ]
+  },
+  "markup": {
+    "associations": [
+      "!**/*.html",
+      "crates/prompt/templates/preview.tera"
+    ]
+  },
   "excludes": [
     ".venv",
     "nango",
@@ -21,6 +33,8 @@
     "https://plugins.dprint.dev/dockerfile-0.3.2.wasm",
     "https://plugins.dprint.dev/exec-0.5.1.json@492414e39dea4dccc07b4af796d2f4efdb89e84bae2bd4e1e924c0cc050855bf",
     "https://plugins.dprint.dev/ruff-0.3.9.wasm",
-    "https://plugins.dprint.dev/json-0.19.4.wasm"
+    "https://plugins.dprint.dev/json-0.19.4.wasm",
+    "https://plugins.dprint.dev/markdown-0.17.8.wasm",
+    "https://plugins.dprint.dev/g-plane/markup_fmt-v0.18.0.wasm"
   ]
 }

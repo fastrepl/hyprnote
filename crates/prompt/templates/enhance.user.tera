@@ -1,14 +1,17 @@
 My profile:
+
 ```
 {{ config_profile | json_encode() }}
 ```
 
 Raw Note:
+
 ```
 {{ editor }}
 ```
 
 Meeting Transcript:
+
 ```
 {{ transcript | render_transcript }}
 ```

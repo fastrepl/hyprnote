@@ -1,23 +1,33 @@
-use serde_json::{from_value, Value};
+use serde_json::Value;
 use std::collections::HashMap;
 
 use hypr_db::user::{DiarizationBlock, Event, Participant, TranscriptBlock};
 
+fn get_arg<T: serde::de::DeserializeOwned>(
+    args: &HashMap<String, Value>,
+    key: &str,
+) -> tera::Result<T> {
+    serde_json::from_value(
+        args.get(key)
+            .ok_or(tera::Error::msg(format!("'{}' is required", key)))?
+            .clone(),
+    )
+    .map_err(|e| tera::Error::msg(e.to_string()))
+}
+
 pub fn render_conversation() -> impl tera::Function {
     Box::new(
         move |args: &HashMap<String, Value>| -> tera::Result<Value> {
-            let transcripts: Vec<TranscriptBlock> = from_value(
-                args.get("transcripts")
-                    .ok_or(tera::Error::msg("'transcripts' is required"))?
-                    .clone(),
-            )?;
-            let diarizations: Vec<DiarizationBlock> = from_value(
-                args.get("diarizations")
-                    .ok_or(tera::Error::msg("'diarizations' is required"))?
-                    .clone(),
-            )?;
+            let transcripts: Vec<TranscriptBlock> = get_arg(args, "transcripts")?;
+            let diarizations: Vec<DiarizationBlock> = get_arg(args, "diarizations")?;
 
-            let conversation = transcripts
+            #[derive(serde::Serialize, serde::Deserialize)]
+            struct Item {
+                speaker: String,
+                transcript: TranscriptBlock,
+            }
+
+            let items = transcripts
                 .iter()
                 .map(|t| {
                     let diarization = diarizations
@@ -25,11 +35,27 @@ pub fn render_conversation() -> impl tera::Function {
                         .find(|d| d.start == t.start && d.end == t.end)
                         .unwrap();
 
-                    format!("[{}]: {}\n", diarization.label, t.text)
+                    Item {
+                        speaker: diarization.label.clone(),
+                        transcript: t.clone(),
+                    }
                 })
-                .collect::<String>();
+                .collect::<Vec<Item>>();
 
-            Ok(Value::String(conversation))
+            let mut ctx = tera::Context::new();
+            ctx.insert("items", &items);
+
+            let rendered = tera::Tera::one_off(
+                indoc::indoc! {"
+                    {%- for item in items -%}
+                        [{{ item.speaker }}]: {{ item.transcript.text }}
+                    {% endfor -%}
+                "},
+                &ctx,
+                false,
+            )?;
+
+            Ok(Value::String(rendered))
         },
     )
 }
@@ -37,31 +63,28 @@ pub fn render_conversation() -> impl tera::Function {
 pub fn render_event_and_participants() -> impl tera::Function {
     Box::new(
         move |args: &HashMap<String, Value>| -> tera::Result<Value> {
-            let event: Option<Event> = from_value(
-                args.get("event")
-                    .ok_or(tera::Error::msg("'event' is required"))?
-                    .clone(),
+            let event: Option<Event> = get_arg(args, "event")?;
+            let participants: Vec<Participant> = get_arg(args, "participants")?;
+
+            let mut ctx = tera::Context::new();
+            ctx.insert("event", &event);
+            ctx.insert("participants", &participants);
+
+            let rendered = tera::Tera::one_off(
+                indoc::indoc! {"
+                    {%- if event %}Event: {{ event.name }}{% endif -%}
+                    {%- if participants | length > 0 %}
+                    Participants:
+                    {%- for participant in participants %}
+                    - {{ participant.name }}
+                    {%- endfor -%}
+                    {% endif -%}
+                "},
+                &ctx,
+                false,
             )?;
-            let participants: Vec<Participant> = from_value(
-                args.get("participants")
-                    .ok_or(tera::Error::msg("'participants' is required"))?
-                    .clone(),
-            )?;
 
-            let mut buffer = String::new();
-
-            if let Some(event) = event {
-                buffer.push_str(&format!("Event: {}\n", event.name));
-            }
-
-            if participants.len() > 0 {
-                buffer.push_str("Participants:\n");
-            }
-            for participant in participants {
-                buffer.push_str(&format!("- {}\n", participant.name));
-            }
-
-            Ok(Value::String(buffer))
+            Ok(Value::String(rendered))
         },
     )
 }

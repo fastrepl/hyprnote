@@ -19,6 +19,7 @@ codes-iso-639 = "0.1.5"
 dotenv = "0.15.0"
 dotenvy = "0.15.7"
 dotenvy_macro = "0.15.7"
+indoc = "2"
 itertools = "0.14.0"
 schemars = "=1.0.0-alpha.17"
 sentry = "0.35.0"
@@ -32,7 +33,7 @@ testcontainers-modules = "0.11.5"
 thiserror = "2"
 time = "0.3.37"
 url = "2"
-uuid = "1.11.0"
+uuid = "1"
 
 markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
 mdast_util_to_markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }

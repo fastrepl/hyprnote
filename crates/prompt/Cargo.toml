@@ -11,6 +11,7 @@ hypr-template = { path = "../../crates/template", package = "template" }
 
 codes-iso-639 = { workspace = true }
 dotenv = { workspace = true }
+indoc = { workspace = true }
 lazy_static = "1.5.0"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

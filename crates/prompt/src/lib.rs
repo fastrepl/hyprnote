@@ -32,7 +32,7 @@ lazy_static::lazy_static! {
         tera.register_function("render_conversation", functions::render_conversation());
         tera.register_function("render_event_and_participants", functions::render_event_and_participants());
 
-        tera.autoescape_on(vec!["preview.jinja"]);
+        tera.autoescape_on(vec![]);
         tera
     };
 }

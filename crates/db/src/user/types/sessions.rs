@@ -20,8 +20,7 @@ pub struct Session {
     pub audio_remote_path: Option<String>,
     pub raw_memo_html: String,
     pub enhanced_memo_html: Option<String>,
-    pub transcript: Option<Transcript>,
-    pub diarization: Vec<hypr_stt::SpeakerSegment>,
+    pub conversations: Vec<ConversationChunk>,
 }
 
 impl Session {
@@ -39,12 +38,8 @@ impl Session {
                 .unwrap_or_default(),
             raw_memo_html: row.get(7).expect("raw_memo_html"),
             enhanced_memo_html: row.get(8).expect("enhanced_memo_html"),
-            transcript: row
+            conversations: row
                 .get_str(9)
-                .map(|s| serde_json::from_str(s).unwrap())
-                .ok(),
-            diarization: row
-                .get_str(10)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap_or_default(),
         })
@@ -63,11 +58,11 @@ impl Default for Session {
             audio_remote_path: None,
             raw_memo_html: "".to_string(),
             enhanced_memo_html: None,
-            transcript: None,
-            diarization: vec![],
+            conversations: vec![],
         }
     }
 }
+
 #[derive(Debug, Default, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
 pub struct Transcript {
     pub blocks: Vec<TranscriptBlock>,
@@ -80,37 +75,19 @@ pub struct TranscriptBlock {
     pub text: String,
 }
 
-impl Transcript {
-    #[cfg(debug_assertions)]
-    pub fn builder() -> TranscriptBuilder {
-        TranscriptBuilder::default()
-    }
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct DiarazationBlock {
+    pub start: f32,
+    pub end: f32,
+    pub label: String,
 }
 
-#[cfg(debug_assertions)]
-#[derive(Debug, Default)]
-pub struct TranscriptBuilder {
-    pub timestamp: i32,
-    pub blocks: Vec<TranscriptBlock>,
-}
-
-#[cfg(debug_assertions)]
-impl TranscriptBuilder {
-    pub fn text(mut self, text: impl Into<String>) -> Self {
-        let text = text.into();
-        let text_len = text.len() as i32;
-        self.blocks.push(TranscriptBlock {
-            start: self.timestamp,
-            end: self.timestamp + text_len,
-            text,
-        });
-        self.timestamp += text_len;
-        self
-    }
-
-    pub fn build(self) -> Transcript {
-        Transcript {
-            blocks: self.blocks,
-        }
-    }
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
+pub struct ConversationChunk {
+    pub start: time::OffsetDateTime,
+    pub end: time::OffsetDateTime,
+    pub local_audio_path: String,
+    pub remote_audio_path: String,
+    pub transcripts: Vec<TranscriptBlock>,
+    pub diarizations: Vec<DiarazationBlock>,
 }

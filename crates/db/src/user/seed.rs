@@ -70,13 +70,13 @@ pub async fn seed(db: &UserDatabase) -> anyhow::Result<()> {
         Session {
             title: "Session 1".to_string(),
             tags: vec!["test".to_string()],
-            transcript: None,
+            conversations: vec![],
             ..Session::default()
         },
         Session {
             title: "Session 2".to_string(),
             tags: vec!["test".to_string()],
-            transcript: None,
+            conversations: vec![],
             ..Session::default()
         },
     ];

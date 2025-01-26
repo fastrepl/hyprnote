@@ -4,14 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-local = []
+local = ["hypr-onnx"]
 cloud = ["reqwest", "url"]
 
 [dependencies]
-hypr-stt = { path = "../../crates/stt", package = "stt" }
-
+hypr-onnx = { path = "../onnx", package = "onnx", optional = true }
 reqwest = { workspace = true, features = ["json"], optional = true }
 url = { workspace = true, optional = true }
+
+anyhow = { workspace = true }
+thiserror = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true, features = ["derive"] }

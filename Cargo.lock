@@ -3248,18 +3248,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "339544cc9e2c4dc3fc7149fd630c5f22263a4fdf18a98afd0075784968b5cf00"
 
 [[package]]
-name = "diarizer"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "approx",
- "hound",
- "onnx",
- "reqwest 0.12.12",
- "tokio",
-]
-
-[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8269,11 +8257,13 @@ dependencies = [
 name = "pyannote"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "data",
+ "onnx",
  "reqwest 0.12.12",
  "serde",
  "specta",
- "stt",
+ "thiserror 2.0.11",
  "tokio",
  "url",
 ]

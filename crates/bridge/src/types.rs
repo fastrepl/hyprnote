@@ -13,11 +13,13 @@ pub struct TranscribeOutputChunk {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct EnhanceRequest {
-    pub editor: String,
+    pub final_editor: String,
+    pub preparation_editor: String,
+    pub template: hypr_db::user::Template,
     pub config_general: hypr_db::user::ConfigDataGeneral,
     pub config_profile: hypr_db::user::ConfigDataProfile,
-    pub transcript: hypr_db::user::Transcript,
-    pub template: hypr_db::user::Template,
+    pub transcripts: Vec<hypr_db::user::TranscriptBlock>,
+    pub diarizations: Vec<hypr_db::user::DiarazationBlock>,
 }
 
 #[derive(thiserror::Error, Debug)]

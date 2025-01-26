@@ -119,8 +119,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -135,8 +137,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -151,8 +155,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -167,8 +173,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -183,8 +191,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -199,8 +209,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -215,8 +227,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -231,8 +245,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -247,8 +263,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -263,8 +281,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -279,8 +299,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -295,8 +317,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -311,8 +335,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -327,8 +353,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -343,8 +371,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -359,8 +389,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -375,8 +407,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -391,8 +425,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -407,8 +443,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 
@@ -423,8 +461,10 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            editor: markdown::to_html(&note),
-            transcript,
+            final_editor: markdown::to_html(&note),
+            preparation_editor: markdown::to_html(&note),
+            transcripts: vec![],
+            diarizations: vec![],
         }
     }
 

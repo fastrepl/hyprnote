@@ -84,8 +84,7 @@ impl UserDatabase {
                     raw_memo_html = :raw_memo_html,
                     enhanced_memo_html = :enhanced_memo_html,
                     tags = :tags,
-                    transcript = :transcript,
-                    diarization = :diarization
+                    conversations = :conversations,
                 RETURNING *",
                 libsql::named_params! {
                     ":id": libsql::Value::Text(session.id),
@@ -95,8 +94,7 @@ impl UserDatabase {
                     ":raw_memo_html": libsql::Value::Text(session.raw_memo_html),
                     ":enhanced_memo_html": session.enhanced_memo_html.map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
                     ":tags": libsql::Value::Text(serde_json::to_string(&session.tags).unwrap()),
-                    ":transcript": session.transcript.map_or(libsql::Value::Null, |v| libsql::Value::Text(serde_json::to_string(&v).unwrap())),
-                    ":diarization": libsql::Value::Text(serde_json::to_string(&session.diarization).unwrap()),
+                    ":conversations": libsql::Value::Text(serde_json::to_string(&session.conversations).unwrap()),
                 },
             ).await?;
 
@@ -132,7 +130,7 @@ mod tests {
             title: "test".to_string(),
             raw_memo_html: "raw_memo_html_1".to_string(),
             tags: vec!["test".to_string()],
-            transcript: None,
+            conversations: vec![],
             ..Session::default()
         };
 
@@ -141,7 +139,7 @@ mod tests {
         assert_eq!(session.enhanced_memo_html, None);
         assert_eq!(session.title, "test");
         assert_eq!(session.tags, vec!["test".to_string()]);
-        assert_eq!(session.transcript, None);
+        assert_eq!(session.conversations, vec![]);
 
         let sessions = db.list_sessions(Some("test")).await.unwrap();
         assert_eq!(sessions.len(), 1);

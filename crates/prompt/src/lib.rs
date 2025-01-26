@@ -1,8 +1,14 @@
+mod filters;
+mod functions;
+mod testers;
+
 pub mod enhance;
-mod renderer;
 
 use tera::Context;
 use tera::Tera;
+
+use std::f64::INFINITY;
+use std::time::Duration;
 
 lazy_static::lazy_static! {
     pub static ref TEMPLATES: Tera = {
@@ -13,8 +19,17 @@ lazy_static::lazy_static! {
         };
 
         tera.autoescape_on(vec![]);
-        tera.register_filter("render_language", renderer::language());
-        tera.register_filter("render_transcript", renderer::transcript());
+
+        tera.register_tester("korean", testers::language(codes_iso_639::part_1::LanguageCode::Kr));
+        tera.register_tester("japanese", testers::language(codes_iso_639::part_1::LanguageCode::Ja));
+        tera.register_tester("english", testers::language(codes_iso_639::part_1::LanguageCode::En));
+        
+        tera.register_tester("short_meeting", testers::duration(Duration::from_secs(0), Duration::from_secs(60 * 10)));
+        tera.register_tester("long_meeting", testers::duration(Duration::from_secs(60 * 10), Duration::from_secs(INFINITY as u64)));
+
+        tera.register_filter("language", filters::language());
+        tera.register_function("render_conversation", functions::render_conversation());
+
         tera
     };
 }

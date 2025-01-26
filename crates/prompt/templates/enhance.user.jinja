@@ -13,5 +13,5 @@ Raw Note:
 Meeting Transcript:
 
 ```
-{{ transcripts | json_encode() }}
+{{ render_conversation(transcripts=transcripts, diarizations=diarizations) }}
 ```

@@ -20,5 +20,6 @@ thiserror = { workspace = true }
 time = { workspace = true }
 
 [dev-dependencies]
+bat = "0.25.0"
 markdown = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }

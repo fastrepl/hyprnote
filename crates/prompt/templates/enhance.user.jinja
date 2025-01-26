@@ -1,7 +1,11 @@
 My profile:
 
 ```
-{{ config_profile | json_encode() }}
+{%- if config_profile.company_name %}Company name: {{ config_profile.company_name }}{% endif %}
+{%- if config_profile.company_description %}Company description: {{ config_profile.company_description }}{% endif %}
+{%- if config_profile.full_name %}User full name: {{ config_profile.full_name }}{% endif %}
+{%- if config_profile.job_title %}User job title: {{ config_profile.job_title }}{% endif %}
+{%- if config_profile.linkedin_username %}User LinkedIn username: {{ config_profile.linkedin_username }}{% endif %}
 ```
 
 Notes written before the meeting:
@@ -19,7 +23,11 @@ Notes written during the meeting:
 Meeting Information:
 
 ```
-{{ render_event_and_participants(event=event, participants=participants) }}
+{% if event %}Event: {{ event.name }}{% endif %}
+{% if participants | length > 0 %}Participants:{% endif %}
+{%- for participant in participants %}
+- {{ participant.name }}
+{%- endfor %}
 ```
 
 Meeting Transcript:

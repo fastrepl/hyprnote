@@ -59,32 +59,3 @@ pub fn render_conversation() -> impl tera::Function {
         },
     )
 }
-
-pub fn render_event_and_participants() -> impl tera::Function {
-    Box::new(
-        move |args: &HashMap<String, Value>| -> tera::Result<Value> {
-            let event: Option<Event> = get_arg(args, "event")?;
-            let participants: Vec<Participant> = get_arg(args, "participants")?;
-
-            let mut ctx = tera::Context::new();
-            ctx.insert("event", &event);
-            ctx.insert("participants", &participants);
-
-            let rendered = tera::Tera::one_off(
-                indoc::indoc! {"
-                    {%- if event %}Event: {{ event.name }}{% endif -%}
-                    {%- if participants | length > 0 %}
-                    Participants:
-                    {%- for participant in participants %}
-                    - {{ participant.name }}
-                    {%- endfor -%}
-                    {% endif -%}
-                "},
-                &ctx,
-                false,
-            )?;
-
-            Ok(Value::String(rendered))
-        },
-    )
-}

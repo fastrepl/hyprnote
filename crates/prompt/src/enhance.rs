@@ -594,6 +594,39 @@ mod tests {
         }
     }
 
+    // cargo test test_prompt_for_input_1 -p prompt --  --ignored
+    #[ignore]
+    #[test]
+    fn test_prompt_for_input_1() {
+        let input = input_01();
+
+        let system_prompt = crate::render(
+            crate::Template::EnhanceSystem,
+            &crate::Context::from_serialize(&input).unwrap(),
+        )
+        .unwrap();
+
+        let user_prompt = crate::render(
+            crate::Template::EnhanceUser,
+            &crate::Context::from_serialize(&input).unwrap(),
+        )
+        .unwrap();
+
+        bat::PrettyPrinter::new()
+            .grid(true)
+            .language("markdown")
+            .input_from_bytes(system_prompt.as_bytes())
+            .print()
+            .unwrap();
+
+        bat::PrettyPrinter::new()
+            .grid(true)
+            .language("markdown")
+            .input_from_bytes(user_prompt.as_bytes())
+            .print()
+            .unwrap();
+    }
+
     macro_rules! generate {
         ( $( $test_name:ident => $input_expr:expr ),+ $(,)? ) => {
             $(

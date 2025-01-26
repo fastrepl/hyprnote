@@ -127,12 +127,25 @@ export type ConfigDataProfile = {
   linkedin_username: string | null;
 };
 export type ConfigKind = "general" | "profile";
+export type ConversationChunk = {
+  start: string;
+  end: string;
+  local_audio_path: string;
+  remote_audio_path: string;
+  transcripts: TranscriptBlock[];
+  diarizations: DiarizationBlock[];
+};
+export type DiarizationBlock = { start: number; end: number; label: string };
 export type EnhanceRequest = {
-  editor: string;
+  pre_meeting_editor: string;
+  in_meeting_editor: string;
+  template: Template;
   config_general: ConfigDataGeneral;
   config_profile: ConfigDataProfile;
-  transcript: Transcript;
-  template: Template;
+  event: Event | null;
+  participants: Participant[];
+  transcripts: TranscriptBlock[];
+  diarizations: DiarizationBlock[];
 };
 export type Event = {
   id: string;
@@ -171,16 +184,9 @@ export type Session = {
   audio_remote_path: string | null;
   raw_memo_html: string;
   enhanced_memo_html: string | null;
-  transcript: Transcript | null;
-  diarization: SpeakerSegment[];
+  conversations: ConversationChunk[];
 };
 export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo";
-export type SpeakerSegment = {
-  label: string;
-  confidence: number | null;
-  start: number;
-  end: number;
-};
 export type Template = {
   id: string;
   title: string;
@@ -189,7 +195,6 @@ export type Template = {
 };
 export type TemplateSection = { title: string; description: string };
 export type TranscribeOutputChunk = { text: string };
-export type Transcript = { blocks: TranscriptBlock[] };
 export type TranscriptBlock = { start: number; end: number; text: string };
 
 /** tauri-specta globals **/

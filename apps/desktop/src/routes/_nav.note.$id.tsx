@@ -122,11 +122,16 @@ function LeftPanel() {
   }, [store]);
 
   const enhance = useEnhance({
-    template: templates[0],
-    editor: store.session.raw_memo_html,
-    transcript: store.session.transcript ?? { blocks: [] },
     config_general: general,
     config_profile: profile,
+    template: templates[0],
+    // TODO
+    pre_meeting_editor: store.session.raw_memo_html,
+    in_meeting_editor: store.session.raw_memo_html,
+    transcripts: [],
+    diarizations: [],
+    event: null,
+    participants: [],
   });
 
   useEffect(() => {
@@ -221,7 +226,8 @@ function LeftPanel() {
             transition={{ duration: 0.2 }}
           >
             {store.listening ||
-            !store.session.transcript?.blocks.length ? null : store.session
+            // TODO
+            !store.session.conversations.length ? null : store.session
                 .enhanced_memo_html ? (
               <EnhanceControls showRaw={showRaw} setShowRaw={setShowRaw} />
             ) : (
@@ -244,10 +250,11 @@ function RightPanel() {
     <div className="flex h-full flex-col justify-end">
       <ScrollArea type="auto" className="flex-1 p-4">
         <div className="space-y-4 text-sm">
-          {session.transcript?.blocks.map((message, index) => (
+          {/* TODO */}
+          {[].map((message, index) => (
             <div className="mb-4" key={index}>
               <div className="rounded-lg bg-muted px-3 py-1 text-muted-foreground">
-                {message.text}
+                {/* {message.text} */}
               </div>
             </div>
           ))}

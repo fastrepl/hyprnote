@@ -37,18 +37,28 @@ pub fn render_conversation() -> impl tera::Function {
 pub fn render_event_and_participants() -> impl tera::Function {
     Box::new(
         move |args: &HashMap<String, Value>| -> tera::Result<Value> {
-            let _event: Option<Event> = from_value(
+            let event: Option<Event> = from_value(
                 args.get("event")
                     .ok_or(tera::Error::msg("'event' is required"))?
                     .clone(),
             )?;
-            let _participants: Vec<Participant> = from_value(
+            let participants: Vec<Participant> = from_value(
                 args.get("participants")
                     .ok_or(tera::Error::msg("'participants' is required"))?
                     .clone(),
             )?;
 
-            Ok(Value::String("".to_string()))
+            let mut buffer = String::new();
+
+            if let Some(event) = event {
+                buffer.push_str(&format!("Event: {}\n", event.name));
+            }
+
+            for participant in participants {
+                buffer.push_str(&format!("Participant: {}\n", participant.name));
+            }
+
+            Ok(Value::String(buffer))
         },
     )
 }

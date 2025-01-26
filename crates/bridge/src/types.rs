@@ -13,8 +13,8 @@ pub struct TranscribeOutputChunk {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct EnhanceRequest {
-    pub final_editor: String,
-    pub preparation_editor: String,
+    pub pre_meeting_editor: String,
+    pub in_meeting_editor: String,
     pub template: hypr_db::user::Template,
     pub config_general: hypr_db::user::ConfigDataGeneral,
     pub config_profile: hypr_db::user::ConfigDataProfile,

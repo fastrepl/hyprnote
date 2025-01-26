@@ -45,7 +45,7 @@ mod tests {
         pub text: String,
     }
 
-    const EMPTY_NOTE: String = String::from("");
+    const EMPTY_NOTE: &str = "";
 
     fn read_conversation(p: impl AsRef<std::path::Path>) -> Vec<ConversationItem> {
         let data = std::fs::read_to_string(p).unwrap();
@@ -82,6 +82,21 @@ mod tests {
                 start: item.start as i32,
                 end: item.end as i32,
                 text: item.text.clone(),
+            })
+            .collect()
+    }
+
+    fn participants_from_path(p: &str) -> Vec<hypr_db::user::Participant> {
+        let conversation = read_conversation(p);
+
+        conversation
+            .into_iter()
+            .map(|item| item.speaker)
+            .collect::<std::collections::HashSet<_>>()
+            .into_iter()
+            .map(|name| hypr_db::user::Participant {
+                name,
+                ..Default::default()
             })
             .collect()
     }
@@ -134,6 +149,7 @@ mod tests {
         let note = std::fs::read_to_string("data/01/note.md").unwrap();
         let transcripts = transcripts_from_path("data/01/conversation.json");
         let diarizations = diarizations_from_path("data/01/conversation.json");
+        let participants = participants_from_path("data/01/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -142,12 +158,21 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
-            event: None,
-            participants: vec![],
+            event: Some(hypr_db::user::Event {
+                id: "".to_string(),
+                tracking_id: "".to_string(),
+                calendar_id: "".to_string(),
+                note: "".to_string(),
+                start_date: time::OffsetDateTime::now_utc(),
+                end_date: time::OffsetDateTime::now_utc(),
+                google_event_url: None,
+                name: "금융 투자 미팅".to_string(),
+            }),
+            participants,
         }
     }
 
@@ -155,6 +180,7 @@ mod tests {
         let note = std::fs::read_to_string("data/02/note.md").unwrap();
         let transcripts = transcripts_from_path("data/02/conversation.json");
         let diarizations = diarizations_from_path("data/02/conversation.json");
+        let participants = participants_from_path("data/02/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -163,12 +189,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -176,6 +202,7 @@ mod tests {
         let note = std::fs::read_to_string("data/03/note.md").unwrap();
         let transcripts = transcripts_from_path("data/03/conversation.json");
         let diarizations = diarizations_from_path("data/03/conversation.json");
+        let participants = participants_from_path("data/03/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -184,12 +211,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -197,6 +224,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/04/conversation.json");
         let diarizations = diarizations_from_path("data/04/conversation.json");
+        let participants = participants_from_path("data/04/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -205,12 +233,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -218,6 +246,7 @@ mod tests {
         let note = std::fs::read_to_string("data/05/note.md").unwrap();
         let transcripts = transcripts_from_path("data/05/conversation.json");
         let diarizations = diarizations_from_path("data/05/conversation.json");
+        let participants = participants_from_path("data/05/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -226,12 +255,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -239,6 +268,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/06/conversation.json");
         let diarizations = diarizations_from_path("data/06/conversation.json");
+        let participants = participants_from_path("data/06/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -247,12 +277,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -260,6 +290,7 @@ mod tests {
         let note = std::fs::read_to_string("data/07/note.md").unwrap();
         let transcripts = transcripts_from_path("data/07/conversation.json");
         let diarizations = diarizations_from_path("data/07/conversation.json");
+        let participants = participants_from_path("data/07/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -268,12 +299,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -281,6 +312,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/08/conversation.json");
         let diarizations = diarizations_from_path("data/08/conversation.json");
+        let participants = participants_from_path("data/08/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -289,12 +321,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -302,6 +334,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/09/conversation.json");
         let diarizations = diarizations_from_path("data/09/conversation.json");
+        let participants = participants_from_path("data/09/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -310,12 +343,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -323,6 +356,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/10/conversation.json");
         let diarizations = diarizations_from_path("data/10/conversation.json");
+        let participants = participants_from_path("data/10/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -331,8 +365,8 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
@@ -344,6 +378,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/11/conversation.json");
         let diarizations = diarizations_from_path("data/11/conversation.json");
+        let participants = participants_from_path("data/11/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -352,12 +387,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -365,6 +400,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/12/conversation.json");
         let diarizations = diarizations_from_path("data/12/conversation.json");
+        let participants = participants_from_path("data/12/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -373,12 +409,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -386,6 +422,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/13/conversation.json");
         let diarizations = diarizations_from_path("data/13/conversation.json");
+        let participants = participants_from_path("data/13/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -394,12 +431,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -407,6 +444,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/14/conversation.json");
         let diarizations = diarizations_from_path("data/14/conversation.json");
+        let participants = participants_from_path("data/14/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -415,12 +453,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -428,6 +466,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/15/conversation.json");
         let diarizations = diarizations_from_path("data/15/conversation.json");
+        let participants = participants_from_path("data/15/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -436,12 +475,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -449,6 +488,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/16/conversation.json");
         let diarizations = diarizations_from_path("data/16/conversation.json");
+        let participants = participants_from_path("data/16/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -457,12 +497,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -470,6 +510,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/17/conversation.json");
         let diarizations = diarizations_from_path("data/17/conversation.json");
+        let participants = participants_from_path("data/17/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -478,12 +519,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -491,6 +532,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/18/conversation.json");
         let diarizations = diarizations_from_path("data/18/conversation.json");
+        let participants = participants_from_path("data/18/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -499,12 +541,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -512,6 +554,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/19/conversation.json");
         let diarizations = diarizations_from_path("data/19/conversation.json");
+        let participants = participants_from_path("data/19/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -520,8 +563,8 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
@@ -533,6 +576,7 @@ mod tests {
         let note = EMPTY_NOTE;
         let transcripts = transcripts_from_path("data/20/conversation.json");
         let diarizations = diarizations_from_path("data/20/conversation.json");
+        let participants = participants_from_path("data/20/conversation.json");
 
         Input {
             template: hypr_template::auto(),
@@ -541,12 +585,12 @@ mod tests {
                 ..Default::default()
             },
             config_profile: hypr_db::user::ConfigDataProfile::default(),
-            final_editor: markdown::to_html(&note),
-            preparation_editor: markdown::to_html(&EMPTY_NOTE),
+            in_meeting_editor: markdown::to_html(&note),
+            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 

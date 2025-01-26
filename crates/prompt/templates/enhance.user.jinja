@@ -4,10 +4,16 @@ My profile:
 {{ config_profile | json_encode() }}
 ```
 
-Raw Note:
+Notes written before the meeting:
 
 ```
-{{ final_editor }}
+{{ pre_meeting_editor }}
+```
+
+Notes written during the meeting:
+
+```
+{{ in_meeting_editor }}
 ```
 
 Meeting Information:

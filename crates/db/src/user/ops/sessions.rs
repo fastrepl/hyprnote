@@ -84,7 +84,7 @@ impl UserDatabase {
                     raw_memo_html = :raw_memo_html,
                     enhanced_memo_html = :enhanced_memo_html,
                     tags = :tags,
-                    conversations = :conversations,
+                    conversations = :conversations
                 RETURNING *",
                 libsql::named_params! {
                     ":id": libsql::Value::Text(session.id),

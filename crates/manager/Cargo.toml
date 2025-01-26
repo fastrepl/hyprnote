@@ -5,7 +5,11 @@ edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 
-apalis = { workspace = true }
+apalis = { workspace = true, features = ["retry"] }
 apalis-sql = { workspace = true, features = ["sqlite"] }
 sqlx = { version = "0.8", features = ["sqlite", "runtime-tokio"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }

@@ -18,6 +18,8 @@ pub struct EnhanceRequest {
     pub template: hypr_db::user::Template,
     pub config_general: hypr_db::user::ConfigDataGeneral,
     pub config_profile: hypr_db::user::ConfigDataProfile,
+    pub event: Option<hypr_db::user::Event>,
+    pub participants: Vec<hypr_db::user::Participant>,
     pub transcripts: Vec<hypr_db::user::TranscriptBlock>,
     pub diarizations: Vec<hypr_db::user::DiarizationBlock>,
 }

@@ -18,18 +18,19 @@ lazy_static::lazy_static! {
             Err(e) => panic!("{}", e),
         };
 
-        tera.autoescape_on(vec![]);
+        tera.register_filter("language", filters::language());
 
         tera.register_tester("korean", testers::language(codes_iso_639::part_1::LanguageCode::Kr));
         tera.register_tester("japanese", testers::language(codes_iso_639::part_1::LanguageCode::Ja));
         tera.register_tester("english", testers::language(codes_iso_639::part_1::LanguageCode::En));
-        
+
         tera.register_tester("short_meeting", testers::duration(Duration::from_secs(0), Duration::from_secs(60 * 10)));
         tera.register_tester("long_meeting", testers::duration(Duration::from_secs(60 * 10), Duration::from_secs(INFINITY as u64)));
 
-        tera.register_filter("language", filters::language());
         tera.register_function("render_conversation", functions::render_conversation());
+        tera.register_function("render_event_and_participants", functions::render_event_and_participants());
 
+        tera.autoescape_on(vec![]);
         tera
     };
 }

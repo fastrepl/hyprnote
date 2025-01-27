@@ -1,6 +1,6 @@
 use super::{RequestParams, Resonse};
 
-impl super::ClovaClient {
+impl super::Client {
     // https://api.ncloud-docs.com/docs/en/ai-application-service-clovaspeech-longsentence-local
     pub async fn transcribe_local_file(
         &self,

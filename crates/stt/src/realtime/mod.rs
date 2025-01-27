@@ -7,9 +7,8 @@ use std::error::Error;
 mod mock;
 
 mod clova;
-pub use clova::ClovaClient;
-
 mod deepgram;
+
 use crate::deepgram::DeepgramClient;
 
 #[allow(dead_code)]
@@ -58,7 +57,7 @@ impl ClientBuilder {
 #[derive(Debug)]
 pub enum MultiClient {
     Deepgram(DeepgramClient),
-    Clova(clova::ClovaClient),
+    Clova(hypr_clova::realtime::Client),
 }
 
 #[derive(Debug, Clone)]
@@ -80,7 +79,7 @@ impl Client {
     pub async fn for_language(&self, language: codes_iso_639::part_1::LanguageCode) -> MultiClient {
         match language {
             codes_iso_639::part_1::LanguageCode::Ko => {
-                let clova = ClovaClient::builder()
+                let clova = hypr_clova::realtime::Client::builder()
                     .api_key(&self.clova_api_key)
                     .keywords(vec!["하이퍼노트".to_string()])
                     .build()

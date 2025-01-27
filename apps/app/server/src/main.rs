@@ -58,7 +58,12 @@ fn main() {
         .build()
         .unwrap()
         .block_on(async {
-            let stt = hypr_stt::realtime::Client::builder()
+            let realtime_stt = hypr_stt::realtime::Client::builder()
+                .deepgram_api_key(get_env("DEEPGRAM_API_KEY"))
+                .clova_api_key(get_env("CLOVA_API_KEY"))
+                .build();
+
+            let recorded_stt = hypr_stt::recorded::Client::builder()
                 .deepgram_api_key(get_env("DEEPGRAM_API_KEY"))
                 .clova_api_key(get_env("CLOVA_API_KEY"))
                 .build();
@@ -117,7 +122,8 @@ fn main() {
 
             let state = state::AppState {
                 clerk: clerk.clone(),
-                stt,
+                realtime_stt,
+                recorded_stt,
                 turso,
                 admin_db,
                 nango,
@@ -151,7 +157,14 @@ fn main() {
                     post(native::enhance::handler)
                         .layer(TimeoutLayer::new(Duration::from_secs(20))),
                 )
-                .route("/transcribe", get(native::transcribe::handler))
+                .route(
+                    "/transcribe/realtime",
+                    get(native::transcribe::realtime::handler),
+                )
+                .route(
+                    "/transcribe/recorded",
+                    post(native::transcribe::recorded::handler),
+                )
                 .route("/user/integrations", get(native::user::list_integrations))
                 .route("/upload/create", post(native::upload::create_upload))
                 .route("/upload/complete", post(native::upload::complete_upload))

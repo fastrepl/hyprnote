@@ -10,14 +10,11 @@ use axum::{
 use bytes::Bytes;
 use futures_util::{SinkExt, StreamExt};
 
-use crate::state::STTState;
 use hypr_bridge::{TranscribeInputChunk, TranscribeOutputChunk};
 use hypr_stt::realtime::RealtimeSpeechToText;
 
-#[derive(Debug, serde::Deserialize)]
-pub struct Params {
-    language: codes_iso_639::part_1::LanguageCode,
-}
+use super::Params;
+use crate::state::STTState;
 
 pub async fn handler(
     Query(params): Query<Params>,
@@ -30,7 +27,7 @@ pub async fn handler(
 async fn websocket(socket: WebSocket, state: STTState, params: Params) {
     let (mut ws_sender, ws_receiver) = socket.split();
 
-    let mut stt = state.stt.for_language(params.language).await;
+    let mut stt = state.realtime_stt.for_language(params.language).await;
 
     // TODO: Use async_stream::try_stream!
     let input_stream = Box::pin(futures_util::stream::try_unfold(
@@ -99,7 +96,11 @@ mod tests {
         axum::Router::new()
             .route("/api/native/transcribe", axum::routing::get(handler))
             .with_state(STTState {
-                stt: hypr_stt::realtime::Client::builder()
+                realtime_stt: hypr_stt::realtime::Client::builder()
+                    .deepgram_api_key("".to_string())
+                    .clova_api_key("".to_string())
+                    .build(),
+                recorded_stt: hypr_stt::recorded::Client::builder()
                     .deepgram_api_key("".to_string())
                     .clova_api_key("".to_string())
                     .build(),

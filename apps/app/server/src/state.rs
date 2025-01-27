@@ -7,14 +7,14 @@ use hypr_nango::NangoClient;
 use hypr_openai::OpenAIClient;
 use hypr_pyannote::cloud::PyannoteClient;
 use hypr_s3::Client as S3Client;
-use hypr_stt::realtime::Client as STTClient;
 use hypr_turso::TursoClient;
 
 #[derive(Clone)]
 pub struct AppState {
     pub openai: OpenAIClient,
     pub clerk: Clerk,
-    pub stt: STTClient,
+    pub realtime_stt: hypr_stt::realtime::Client,
+    pub recorded_stt: hypr_stt::recorded::Client,
     pub admin_db: AdminDatabase,
     pub analytics: AnalyticsClient,
     pub turso: TursoClient,
@@ -33,7 +33,8 @@ pub struct WorkerState {
 
 #[derive(Clone)]
 pub struct STTState {
-    pub stt: hypr_stt::realtime::Client,
+    pub realtime_stt: hypr_stt::realtime::Client,
+    pub recorded_stt: hypr_stt::recorded::Client,
 }
 
 #[derive(Clone)]
@@ -51,7 +52,8 @@ pub struct AnalyticsState {
 impl FromRef<AppState> for STTState {
     fn from_ref(app_state: &AppState) -> STTState {
         STTState {
-            stt: app_state.stt.clone(),
+            realtime_stt: app_state.realtime_stt.clone(),
+            recorded_stt: app_state.recorded_stt.clone(),
         }
     }
 }

@@ -5,12 +5,12 @@ mod types;
 pub use types::*;
 
 #[derive(Debug, Default)]
-pub struct ClovaClientBuilder {
+pub struct ClientBuilder {
     api_base: Option<String>,
     api_key: Option<String>,
 }
 
-impl ClovaClientBuilder {
+impl ClientBuilder {
     pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
         self.api_base = Some(api_base.into());
         self
@@ -21,7 +21,7 @@ impl ClovaClientBuilder {
         self
     }
 
-    pub fn build(self) -> ClovaClient {
+    pub fn build(self) -> Client {
         let mut headers = reqwest::header::HeaderMap::new();
         let mut auth = reqwest::header::HeaderValue::from_str(&self.api_key.unwrap()).unwrap();
         auth.set_sensitive(true);
@@ -32,7 +32,7 @@ impl ClovaClientBuilder {
             .build()
             .unwrap();
 
-        ClovaClient {
+        Client {
             api_base: self.api_base.unwrap().parse().unwrap(),
             client,
         }
@@ -40,7 +40,13 @@ impl ClovaClientBuilder {
 }
 
 #[derive(Debug, Clone)]
-pub struct ClovaClient {
+pub struct Client {
     api_base: url::Url,
     client: reqwest::Client,
+}
+
+impl Client {
+    pub fn builder() -> ClientBuilder {
+        ClientBuilder::default()
+    }
 }

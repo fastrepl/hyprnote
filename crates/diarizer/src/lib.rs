@@ -41,7 +41,10 @@ impl Client {
         ClientBuilder::default()
     }
 
-    pub async fn from_audio(&self, audio_stream: impl Stream<Item = f32> + Send + Unpin + 'static) {
+    pub async fn from_audio(
+        &self,
+        audio_stream: impl hypr_audio::AsyncSource + Send + Unpin + 'static,
+    ) {
         let req = self.request.clone().into_client_request().unwrap();
 
         let (_ws_stream, _) = connect_async(req).await.unwrap();

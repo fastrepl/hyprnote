@@ -1,6 +1,17 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
+pub struct DiarizeInputChunk {
+    pub audio: Vec<u8>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
+pub struct DiarizeOutputChunk {
+    pub speaker_id: String,
+    pub confidence: f32,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
 pub struct TranscribeInputChunk {
     #[serde(with = "serde_bytes")]
     pub audio: Vec<u8>,

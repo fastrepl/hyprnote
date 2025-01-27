@@ -1,7 +1,9 @@
 pub mod enhance;
-pub mod transcribe;
-pub mod types;
+mod types;
+mod websocket;
+
 pub use types::*;
+pub use websocket::*;
 
 #[derive(Clone)]
 pub struct Client {

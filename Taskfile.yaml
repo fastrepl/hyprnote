@@ -20,8 +20,8 @@ tasks:
           secrets=$(grep -v '^#' .env.prod | grep '=' | sed 's/"/\\"/g' | tr '\n' ' ')
           fly secrets set $secrets -a hypr-server
 
-  scripts:init: POETRY_VIRTUALENVS_IN_PROJECT=true poetry install --no-cache --no-interaction --all-extras
-  scripts:run: poetry run python3 {{.CLI_ARGS}}
+  py:init: POETRY_VIRTUALENVS_IN_PROJECT=true poetry install --no-cache --no-interaction --all-extras
+  py:run: poetry run python3 {{.CLI_ARGS}}
 
   stripe: stripe listen --skip-verify --forward-to http://localhost:5000/webhook/stripe
   lago:

@@ -5,9 +5,13 @@ description = ""
 authors = ["yujonglee <yujonglee.dev@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.13"
+python = "^3.11"
 lago-python-client = "^1.16.1"
 python-dotenv = "^1.0.1"
+modal = "^0.72.51"
+fastapi = "^0.115.7"
+pydantic = "^2.10.6"
+reactivex = "^4.0.4"
 
 [build-system]
 requires = ["poetry-core"]

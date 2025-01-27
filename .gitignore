@@ -6,3 +6,4 @@ Secrets*.toml
 .env.local
 .env.prod
 .venv
+**/__pycache__/

@@ -23,7 +23,7 @@ async-stream = { workspace = true }
 futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
-tokio-tungstenite = { version = "0.26.0", features = ["native-tls-vendored"] }
+tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"] }
 
 [dev-dependencies]
 futures-channel = { workspace = true }

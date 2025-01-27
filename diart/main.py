@@ -2,6 +2,7 @@ import modal
 
 from pydantic import BaseModel
 from typing import Annotated
+import asyncio
 
 from fastapi import FastAPI, WebSocket, HTTPException, Query, Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -48,7 +49,7 @@ async def diarize(
     if credentials.credentials != os.getenv("HYPRNOTE_API_KEY"):
         raise HTTPException(status_code=401)
 
-    from diart import SpeakerDiarization
+    from diart import SpeakerDiarizationConfig, SpeakerDiarization
     from diart.sources import AudioSource
     from diart.inference import StreamingInference
 
@@ -59,10 +60,21 @@ async def diarize(
         def __init__(self, websocket: WebSocket):
             super().__init__("websocket_source", params.sample_rate)
             self.websocket = websocket
+            self.buffer = asyncio.Queue()
+
+        async def receive(self):
+            data = await self.websocket.receive_bytes()
+            self.buffer.put(data)
 
         def read(self):
-            data = self.websocket.receive_bytes()
+            try:
+                return self.buffer.get_nowait()
+            except asyncio.QueueEmpty:
+                return None
 
+    # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/sinks.py
+    # https://github.com/pyannote/pyannote-core/blob/develop/pyannote/core/annotation.py
+    # https://pyannote.github.io/pyannote-core/structure.html
     class Sender(Observer):
         def __init__(self, websocket: WebSocket):
             self.websocket = websocket
@@ -74,8 +86,10 @@ async def diarize(
     source = Source(websocket)
     sender = Sender(websocket)
 
-    pipeline = SpeakerDiarization()
-    inference = StreamingInference(pipeline, source)
+    # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/blocks/diarization.py
+    config = SpeakerDiarizationConfig(duration=5, step=1)
+    pipeline = SpeakerDiarization(config)
+    inference = StreamingInference(pipeline, source, show_progress=False)
     inference.attach_observers(sender)
 
     while True:

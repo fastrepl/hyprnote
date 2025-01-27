@@ -1,0 +1,13 @@
+[package]
+name = "diarizer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror = { workspace = true }
+url = { workspace = true }
+
+async-stream = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"] }

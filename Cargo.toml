@@ -11,6 +11,7 @@ reqwest = "0.12"
 tauri = "2.1.1"
 tokio = "1"
 tokio-stream = "0.1.17"
+tokio-tungstenite = "0.26.0"
 
 anyhow = "1"
 approx = "0.5.1"

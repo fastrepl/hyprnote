@@ -29,6 +29,9 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
 
     let mut stt = state.realtime_stt.for_language(params.language).await;
 
+    // let (tx, rx) = tokio::sync::broadcast::channel(32);
+    // We need to send to diarazier + stt
+
     // TODO: Use async_stream::try_stream!
     let input_stream = Box::pin(futures_util::stream::try_unfold(
         ws_receiver,
@@ -45,6 +48,8 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
             item
         },
     ));
+
+    // futures_util::try_join!()
 
     let task = async {
         match stt.transcribe(input_stream).await {

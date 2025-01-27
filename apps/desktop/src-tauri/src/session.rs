@@ -45,29 +45,29 @@ impl SessionState {
             sample_format: hound::SampleFormat::Int,
         };
 
-        let transcribe_client = hypr_bridge::Client::builder()
-            .api_base("http://localhost:8000")
-            .api_key("TODO")
-            .build()
-            .unwrap()
-            .transcribe()
-            .build();
+        // let transcribe_client = hypr_bridge::Client::builder()
+        //     .api_base("http://localhost:8000")
+        //     .api_key("TODO")
+        //     .build()
+        //     .unwrap()
+        //     .transcribe()
+        //     .language(codes_iso_639::part_1::LanguageCode::En)
+        //     .build();
 
-        // let path = app_dir.join(format!("{}.wav", session_id));
-        let path = "./test.wav";
-        let (_tx, rx) = tokio::sync::mpsc::channel(32);
+        let path = app_dir.join(format!("{}.wav", session_id));
+        // let (_tx, rx) = tokio::sync::mpsc::channel(32);
 
-        let _transcribe_handle = {
-            tokio::spawn(async move {
-                let input_stream = hypr_audio::ReceiverStreamSource::new(rx, 16000);
-                let transcript_stream = transcribe_client.from_audio(input_stream).await.unwrap();
-                futures_util::pin_mut!(transcript_stream);
+        // let _transcribe_handle = {
+        //     tokio::spawn(async move {
+        //         let input_stream = hypr_audio::ReceiverStreamSource::new(rx, 16000);
+        //         let transcript_stream = transcribe_client.from_audio(input_stream).await.unwrap();
+        //         futures_util::pin_mut!(transcript_stream);
 
-                while let Some(transcript) = transcript_stream.next().await {
-                    println!("Transcript: {:?}", transcript);
-                }
-            })
-        };
+        //         while let Some(transcript) = transcript_stream.next().await {
+        //             println!("Transcript: {:?}", transcript);
+        //         }
+        //     })
+        // };
 
         let handle: tauri::async_runtime::JoinHandle<()> =
             tauri::async_runtime::spawn(async move {
@@ -81,8 +81,8 @@ impl SessionState {
                     _ = async {
                         while let Some((mic_chunk, speaker_chunk)) = combined_stream.next().await {
                             let mixed = hypr_audio::mix(&mic_chunk, &speaker_chunk);
-                            println!("mixed: {:?}", mixed);
-                            for &sample in &mixed {
+
+                            for sample in mixed {
                                 writer.write_sample(sample.to_sample::<i16>()).unwrap();
                             }
                         }

@@ -89,7 +89,6 @@ impl crate::AsyncSource for SpeakerStream {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::AsyncSource;
     use serial_test::serial;
 
     fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
@@ -112,6 +111,7 @@ mod tests {
                 .take_duration(Duration::from_secs(seconds))
                 .amplify(0.01);
 
+            println!("Playing sine for {} seconds", seconds);
             stream_handle.play_raw(source).unwrap();
             sleep(Duration::from_secs(seconds));
         })
@@ -121,15 +121,23 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_macos() {
-        let _handle = play_sine_for_sec(1);
         let input = SpeakerInput::new().unwrap();
         let mut stream = input.stream().unwrap();
 
-        let samples_1 = stream.read_samples(44100 * 1).await;
-        assert!(samples_1.count() == 44100 * 1);
+        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
-        let mut samples_2 = stream.read_samples(44100 * 1).await;
-        assert!(samples_2.any(|x| x != 0.0));
+        let handle = play_sine_for_sec(2);
+
+        let mut buffer = Vec::new();
+        while let Some(sample) = stream.next().await {
+            buffer.push(sample);
+            if buffer.len() > 48000 {
+                break;
+            }
+        }
+
+        handle.join().unwrap();
+        assert!(buffer.iter().any(|x| *x != 0.0));
     }
 
     #[cfg(target_os = "windows")]

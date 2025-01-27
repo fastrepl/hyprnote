@@ -2,11 +2,13 @@ mod mic;
 mod processing;
 mod source;
 mod speaker;
+mod stream;
 
 pub use mic::*;
 pub use processing::*;
 pub use source::*;
 pub use speaker::*;
+pub use stream::*;
 
 pub use dasp::sample::Sample;
 

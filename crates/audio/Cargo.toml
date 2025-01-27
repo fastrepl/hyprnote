@@ -17,6 +17,7 @@ tokio = { workspace = true, features = ["rt", "macros"] }
 cpal = { workspace = true }
 dasp = { workspace = true, features = ["interpolate", "interpolate-linear"] }
 rodio = { workspace = true, features = ["wav", "hound", "vorbis"] }
+tokio-stream = { workspace = true }
 
 [dev-dependencies]
 rodio = "*"

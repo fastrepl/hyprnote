@@ -46,27 +46,26 @@ impl SessionState {
         };
 
         let transcribe_client = hypr_bridge::Client::builder()
-            .api_base("TODO")
+            .api_base("http://localhost:8000")
             .api_key("TODO")
             .build()
             .unwrap()
             .transcribe()
             .build();
 
-        let path = app_dir.join(format!("{}.wav", session_id));
+        // let path = app_dir.join(format!("{}.wav", session_id));
+        let path = "./test.wav";
+        let (_tx, rx) = tokio::sync::mpsc::channel(32);
 
-        // let (tx, rx) = tokio::sync::mpsc::channel(32);
-        // let tx = tx.clone();
-
-        let transcribe_handle = {
+        let _transcribe_handle = {
             tokio::spawn(async move {
-                // let stream = tokio_stream::wrappers::ReceiverStream::new(rx);
-                // // TODO: stream is not async stream, we need sample_rate implemented
-                // if let Ok(mut transcript_stream) = transcribe_client.from_audio(stream).await {
-                //     while let Some(transcript) = transcript_stream.next().await {
-                //         println!("Transcript: {:?}", transcript);
-                //     }
-                // }
+                let input_stream = hypr_audio::ReceiverStreamSource::new(rx, 16000);
+                let transcript_stream = transcribe_client.from_audio(input_stream).await.unwrap();
+                futures_util::pin_mut!(transcript_stream);
+
+                while let Some(transcript) = transcript_stream.next().await {
+                    println!("Transcript: {:?}", transcript);
+                }
             })
         };
 
@@ -76,18 +75,19 @@ impl SessionState {
 
                 let mut combined_stream = mic_stream.zip(speaker_stream);
 
+                // TODO: we're not receiving any mic stream after removing kalosm.
                 tokio::select! {
+                    _ = shutdown_rx => {}
                     _ = async {
                         while let Some((mic_chunk, speaker_chunk)) = combined_stream.next().await {
                             let mixed = hypr_audio::mix(&mic_chunk, &speaker_chunk);
-
+                            println!("mixed: {:?}", mixed);
                             for &sample in &mixed {
                                 writer.write_sample(sample.to_sample::<i16>()).unwrap();
                             }
                         }
                         let _ = writer.finalize();
                     } => {},
-                    _ = shutdown_rx => {}
                 }
             });
 

@@ -1,5 +1,5 @@
 use futures_util::StreamExt;
-use kalosm_sound::AsyncSource;
+use hypr_audio::AsyncSource;
 use hypr_audio::Sample;
 
 pub struct SessionState {
@@ -23,7 +23,7 @@ impl SessionState {
     ) -> anyhow::Result<()> {
         let mic_stream = {
             let source = hypr_audio::MicInput::default();
-            source.stream().unwrap()
+            source.stream()
         }
         .resample(16000)
         .chunks(1024);
@@ -70,8 +70,8 @@ impl SessionState {
             })
         };
 
-        let handle: tauri::async_runtime::JoinHandle<()> = tauri::async_runtime::spawn(
-            async move {
+        let handle: tauri::async_runtime::JoinHandle<()> =
+            tauri::async_runtime::spawn(async move {
                 let mut writer = hound::WavWriter::create(&path, spec).unwrap();
 
                 let mut combined_stream = mic_stream.zip(speaker_stream);
@@ -89,8 +89,7 @@ impl SessionState {
                     } => {},
                     _ = shutdown_rx => {}
                 }
-            },
-        );
+            });
 
         self.handle = Some(handle);
         Ok(())

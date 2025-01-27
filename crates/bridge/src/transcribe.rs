@@ -8,7 +8,7 @@ use tokio_tungstenite::{
 };
 
 use bytes::BufMut;
-use kalosm_sound::AsyncSource;
+use hypr_audio::AsyncSource;
 
 use crate::{TranscribeInputChunk, TranscribeOutputChunk};
 

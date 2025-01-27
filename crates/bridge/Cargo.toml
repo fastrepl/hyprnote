@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+hypr-audio = { path = "../../crates/audio", package = "audio" }
 hypr-db = { path = "../../crates/db", package = "db", features = ["user"] }
 
 anyhow = { workspace = true }
@@ -20,7 +21,6 @@ url = { workspace = true }
 
 async-stream = { workspace = true }
 futures-util = { workspace = true }
-kalosm-sound = { version = "0.3.5", default-features = false }
 reqwest = { workspace = true, features = ["json"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-tungstenite = { version = "0.26.0", features = ["native-tls-vendored"] }

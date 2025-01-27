@@ -125,7 +125,7 @@ mod tests {
     use anyhow::Result;
     use bytes::{BufMut, Bytes};
     use futures_util::StreamExt;
-    use kalosm_sound::AsyncSource;
+    use hypr_audio::AsyncSource;
 
     fn microphone_as_stream(
     ) -> impl Stream<Item = Result<Bytes, std::io::Error>> + Send + Unpin + 'static {

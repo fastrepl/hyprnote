@@ -7,7 +7,7 @@ mod macos;
 #[cfg(target_os = "windows")]
 mod windows;
 
-// https://github.com/floneum/floneum/blob/92129ec99aac446348f42bc6db326a6d1c2d99ae/interfaces/kalosm-sound/src/source/mic.rs#L41
+// https://github.com/floneum/floneum/blob/50afe10/interfaces/kalosm-sound/src/source/mic.rs#L41
 pub struct SpeakerInput {
     #[cfg(target_os = "macos")]
     inner: macos::SpeakerInput,
@@ -43,7 +43,7 @@ impl SpeakerInput {
     }
 }
 
-// https://github.com/floneum/floneum/blob/92129ec99aac446348f42bc6db326a6d1c2d99ae/interfaces/kalosm-sound/src/source/mic.rs#L140
+// https://github.com/floneum/floneum/blob/50afe10/interfaces/kalosm-sound/src/source/mic.rs#L140
 pub struct SpeakerStream {
     #[cfg(target_os = "macos")]
     inner: macos::SpeakerStream,
@@ -70,7 +70,7 @@ impl futures_core::Stream for SpeakerStream {
     }
 }
 
-impl kalosm_sound::AsyncSource for SpeakerStream {
+impl crate::AsyncSource for SpeakerStream {
     fn as_stream(&mut self) -> impl futures_core::Stream<Item = f32> + '_ {
         self
     }
@@ -89,7 +89,7 @@ impl kalosm_sound::AsyncSource for SpeakerStream {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use kalosm_sound::AsyncSource;
+    use crate::AsyncSource;
     use serial_test::serial;
 
     fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {

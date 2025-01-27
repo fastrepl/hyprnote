@@ -1,17 +1,17 @@
-// https://github.com/floneum/floneum/blob/50afe10/interfaces/kalosm-sound/src/source/mod.rs#L1
+// https://github.com/floneum/floneum/blob/50afe10/interfaces/kalosm-sound/src/source/mod.rs
 
 use dasp::interpolate::Interpolator as _;
-use futures_core::{Future, Stream};
-use futures_util::StreamExt;
-use rodio::buffer::SamplesBuffer;
-use std::time::Duration;
-
-// TODO: we need simple asuc source
-// we need to wrapper to
+use futures_core::Stream;
 
 pub trait AsyncSource {
     fn as_stream(&mut self) -> impl Stream<Item = f32> + '_;
     fn sample_rate(&self) -> u32;
+    fn resample(self, sample_rate: u32) -> ResampledAsyncSource<Self>
+    where
+        Self: Sized + Unpin,
+    {
+        ResampledAsyncSource::new(self, sample_rate)
+    }
 }
 
 pub struct ResampledAsyncSource<S: AsyncSource> {
@@ -58,10 +58,7 @@ impl<S: AsyncSource + Unpin> Stream for ResampledAsyncSource<S> {
                 })
         }
 
-        // Get the interpolated value
         let interpolated = myself.resampler.interpolate(myself.sample_position);
-
-        // Advance the sample position
         myself.sample_position += source_output_sample_ratio;
 
         std::task::Poll::Ready(Some(interpolated))

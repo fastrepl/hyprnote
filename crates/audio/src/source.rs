@@ -6,6 +6,9 @@ use futures_util::StreamExt;
 use rodio::buffer::SamplesBuffer;
 use std::time::Duration;
 
+// TODO: we need simple asuc source
+// we need to wrapper to
+
 pub trait AsyncSource {
     fn as_stream(&mut self) -> impl Stream<Item = f32> + '_;
     fn sample_rate(&self) -> u32;

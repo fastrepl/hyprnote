@@ -75,9 +75,8 @@ impl UserDatabase {
                     raw_memo_html,
                     enhanced_memo_html,
                     tags,
-                    transcript,
-                    diarization
-                ) VALUES (:id, :timestamp, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :tags, :transcript, :diarization) 
+                    conversations
+                ) VALUES (:id, :timestamp, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :tags, :conversations) 
                 ON CONFLICT(id) DO UPDATE SET
                     timestamp = :timestamp,
                     title = :title,

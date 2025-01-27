@@ -3116,6 +3116,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "host",
+ "hound",
  "kalosm-sound",
  "reqwest 0.12.12",
  "serde",
@@ -3145,7 +3146,9 @@ dependencies = [
  "thiserror 2.0.11",
  "time",
  "tokio",
+ "tokio-stream",
  "uuid",
+ "vad",
  "vorbis_rs",
 ]
 
@@ -12700,7 +12703,7 @@ dependencies = [
 name = "vad"
 version = "0.1.0"
 dependencies = [
- "dasp_sample",
+ "dasp",
  "onnx",
  "serde",
  "thiserror 2.0.11",

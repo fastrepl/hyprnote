@@ -1,15 +1,14 @@
-mod format;
 mod mic;
-mod mixer;
-mod silence;
+mod processing;
 mod source;
 mod speaker;
 
 pub use mic::*;
-pub use mixer::*;
-pub use silence::*;
+pub use processing::*;
 pub use source::*;
 pub use speaker::*;
+
+pub use dasp::sample::Sample;
 
 use anyhow::Result;
 use cpal::traits::{DeviceTrait, HostTrait};

@@ -1,85 +1,117 @@
 use futures_util::StreamExt;
-
-// client will aware of this session
-// but only need to know the status / stop,start it.
-// no need to receive data, so no channel.
-// BUT, since we do chunk/processing, than we might want to be aware of that though.
-// so session will combine two audio stream, store to file, periodic upload etc.
-
-// Also, we should be able to send Error through Channel
+use kalosm_sound::AsyncSource;
+use hypr_audio::Sample;
 
 pub struct SessionState {
-    bridge: hypr_bridge::Client,
     handle: Option<tauri::async_runtime::JoinHandle<()>>,
+    shutdown: Option<tokio::sync::oneshot::Sender<()>>,
 }
 
 impl SessionState {
-    pub fn new(bridge: hypr_bridge::Client) -> anyhow::Result<Self> {
-        let file = std::fs::File::create("test.ogg")?;
-        let encoder = vorbis_rs::VorbisEncoderBuilder::new(
-            std::num::NonZeroU32::new(16000).unwrap(),
-            std::num::NonZeroU8::new(1).unwrap(),
-            file,
-        )?
-        .build()?;
-
-        // encoder.encode_audio_block(audio_block)
-
+    pub fn new() -> anyhow::Result<Self> {
         Ok(Self {
-            bridge,
             handle: None,
+            shutdown: None,
         })
     }
 
-    // as we are accumulating audio, we should be able to have 3
-    // 1. local file (chunk or whole)
-    // 2. Diarazation result for that chunk
-    // 3. Transcript result for that chunk
-    // 4. (optional) VAD result for each channel, for that chunk.
-
     pub async fn start(
         &mut self,
-        channel: tauri::ipc::Channel<hypr_bridge::TranscribeOutputChunk>,
-    ) {
-        let stream = {
+        app_dir: std::path::PathBuf,
+        session_id: String,
+        _channel: tauri::ipc::Channel<Vec<f32>>,
+    ) -> anyhow::Result<()> {
+        let mic_stream = {
             let source = hypr_audio::MicInput::default();
             source.stream().unwrap()
+        }
+        .resample(16000)
+        .chunks(1024);
+
+        let speaker_stream = {
+            let source = hypr_audio::SpeakerInput::new().unwrap();
+            source.stream().unwrap()
+        }
+        .resample(16000)
+        .chunks(1024);
+
+        let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel();
+        self.shutdown = Some(shutdown_tx);
+
+        let spec = hound::WavSpec {
+            channels: 1,
+            sample_rate: 16000,
+            bits_per_sample: 16,
+            sample_format: hound::SampleFormat::Int,
         };
 
-        // TOOD:
-        // NO transcript stream, do directly to
-
-        // let stream = {
-        //     // input is not 'Send'.
-        //     let source = hypr_audio::SpeakerInput::new().unwrap();
-        //     source.stream().unwrap()
-        // };
-
-        let transcribe_client = self
-            .bridge
+        let transcribe_client = hypr_bridge::Client::builder()
+            .api_base("TODO")
+            .api_key("TODO")
+            .build()
+            .unwrap()
             .transcribe()
-            .language(codes_iso_639::part_1::LanguageCode::Ko)
             .build();
 
-        let transcript_stream = transcribe_client.from_audio(stream).await.unwrap();
+        let path = app_dir.join(format!("{}.wav", session_id));
 
-        let handle: tauri::async_runtime::JoinHandle<()> =
-            tauri::async_runtime::spawn(async move {
-                futures_util::pin_mut!(transcript_stream);
+        // let (tx, rx) = tokio::sync::mpsc::channel(32);
+        // let tx = tx.clone();
 
-                while let Some(transcript) = transcript_stream.next().await {
-                    if channel.send(transcript).is_err() {
-                        break;
-                    }
+        let transcribe_handle = {
+            tokio::spawn(async move {
+                // let stream = tokio_stream::wrappers::ReceiverStream::new(rx);
+                // // TODO: stream is not async stream, we need sample_rate implemented
+                // if let Ok(mut transcript_stream) = transcribe_client.from_audio(stream).await {
+                //     while let Some(transcript) = transcript_stream.next().await {
+                //         println!("Transcript: {:?}", transcript);
+                //     }
+                // }
+            })
+        };
+
+        let handle: tauri::async_runtime::JoinHandle<()> = tauri::async_runtime::spawn(
+            async move {
+                let mut writer = hound::WavWriter::create(&path, spec).unwrap();
+
+                let mut combined_stream = mic_stream.zip(speaker_stream);
+
+                tokio::select! {
+                    _ = async {
+                        while let Some((mic_chunk, speaker_chunk)) = combined_stream.next().await {
+                            let mixed = hypr_audio::mix(&mic_chunk, &speaker_chunk);
+
+                            for &sample in &mixed {
+                                writer.write_sample(sample.to_sample::<i16>()).unwrap();
+                            }
+                        }
+                        let _ = writer.finalize();
+                    } => {},
+                    _ = shutdown_rx => {}
                 }
-            });
+            },
+        );
 
         self.handle = Some(handle);
+        Ok(())
     }
 
     pub async fn stop(&mut self) {
+        if let Some(shutdown) = self.shutdown.take() {
+            let _ = shutdown.send(());
+        }
+
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
         if let Some(handle) = self.handle.take() {
             handle.abort();
         }
+
+        // TODO:
+        // upload... but we can not call stt direclty here.
+        // need to call use bridge to upload chu
+
+        self.handle = None;
+        self.shutdown = None;
     }
 }

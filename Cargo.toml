@@ -10,6 +10,7 @@ futures-util = "0.3.31"
 reqwest = "0.12"
 tauri = "2.1.1"
 tokio = "1"
+tokio-stream = "0.1.17"
 
 anyhow = "1"
 approx = "0.5.1"
@@ -53,6 +54,7 @@ tauri-specta = "2.0.0-rc.20"
 cpal = "0.15.3"
 hound = "3.5.1"
 rodio = "0.20.1"
+dasp = "0.11.0"
 
 [patch.crates-io]
 # This includes a currently-unreleased fix that ensures the audio stream is actually stopped and released on drop on macOS.

@@ -11,9 +11,7 @@ export const commands = {
   async getFingerprint(): Promise<string> {
     return await TAURI_INVOKE("get_fingerprint");
   },
-  async startSession(
-    onEvent: TAURI_CHANNEL<TranscribeOutputChunk>,
-  ): Promise<null> {
+  async startSession(onEvent: TAURI_CHANNEL<number[]>): Promise<null> {
     return await TAURI_INVOKE("start_session", { onEvent });
   },
   async stopSession(): Promise<null> {
@@ -194,7 +192,6 @@ export type Template = {
   sections: TemplateSection[];
 };
 export type TemplateSection = { title: string; description: string };
-export type TranscribeOutputChunk = { text: string };
 export type TranscriptBlock = { start: number; end: number; text: string };
 
 /** tauri-specta globals **/

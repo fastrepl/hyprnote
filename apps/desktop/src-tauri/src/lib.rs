@@ -149,7 +149,7 @@ pub fn run() {
                 });
 
                 app.manage(tokio::sync::Mutex::new(
-                    session::SessionState::new(bridge).unwrap(),
+                    session::SessionState::new().unwrap(),
                 ));
             }
 

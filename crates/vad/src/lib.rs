@@ -81,7 +81,7 @@ impl VoiceActivityDetector {
     // https://github.com/nkeenan38/voice_activity_detector/blob/fd6cb6285a8cb15c11a8b35b9a9b94d2cb2fd6a4/src/vad.rs#L39
     pub fn predict<S, I>(&mut self, samples: I) -> f32
     where
-        S: dasp_sample::ToSample<f32>,
+        S: dasp::sample::ToSample<f32>,
         I: IntoIterator<Item = S>,
     {
         let mut input = ndarray::Array2::<f32>::zeros((1, self.chunk_size));

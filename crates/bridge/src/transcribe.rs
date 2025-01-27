@@ -48,7 +48,7 @@ impl TranscribeClientBuilder {
             let language =
                 language.chars().next().unwrap().to_uppercase().to_string() + &language[1..];
 
-            url.set_path("/api/native/transcribe");
+            url.set_path("/api/native/transcribe/realtime");
             url.query_pairs_mut().append_pair("language", &language);
 
             if cfg!(debug_assertions) {

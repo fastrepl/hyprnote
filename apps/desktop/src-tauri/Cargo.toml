@@ -23,6 +23,7 @@ hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar", features = ["apple"] }
 hypr-db = { path = "../../../crates/db", package = "db", features = ["user"] }
 hypr-template = { path = "../../../crates/template", package = "template" }
+hypr-vad = { path = "../../../crates/vad", package = "vad" }
 hypr_host = { path = "../../../crates/host", package = "host" }
 
 tauri = { workspace = true, features = ["tray-icon", "image-png", "macos-private-api"] }
@@ -63,7 +64,10 @@ futures-util = { workspace = true }
 kalosm-sound = { version = "0.3.5", default-features = false }
 reqwest = { workspace = true, features = ["json", "stream"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
+tokio-stream.workspace = true
 
 apalis = { workspace = true }
 apalis-cron = { workspace = true }
+
+hound = { workspace = true }
 vorbis_rs = "0.5.5"

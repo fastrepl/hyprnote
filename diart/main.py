@@ -1,7 +1,7 @@
 import modal
 
 from pydantic import BaseModel
-from typing import Annotated
+from typing import Annotated, Union, Tuple
 import asyncio
 
 from fastapi import FastAPI, WebSocket, HTTPException, Query, Depends
@@ -38,6 +38,12 @@ class Params(BaseModel):
     sample_rate: int = 16000
 
 
+class DiarizationSegment(BaseModel):
+    speaker: str
+    start: float
+    end: float
+
+
 @web_app.websocket("/diarize")
 async def diarize(
     websocket: WebSocket,
@@ -49,11 +55,10 @@ async def diarize(
     if credentials.credentials != os.getenv("HYPRNOTE_API_KEY"):
         raise HTTPException(status_code=401)
 
+    from pyannote.core import Annotation
     from diart import SpeakerDiarizationConfig, SpeakerDiarization
     from diart.sources import AudioSource
     from diart.inference import StreamingInference
-
-    import reactivex as rx
     from reactivex.observer import Observer
 
     class Source(AudioSource):
@@ -78,9 +83,39 @@ async def diarize(
     class Sender(Observer):
         def __init__(self, websocket: WebSocket):
             self.websocket = websocket
+            self.patch_collar = 1
+            self._prediction = None
+            self._sent_segments = set()
 
-        def on_next(self, value):
-            self.websocket.send_bytes(value)
+        def _extract_prediction(self, value: Union[Tuple, Annotation]) -> Annotation:
+            if isinstance(value, tuple):
+                return value[0]
+            if isinstance(value, Annotation):
+                return value
+
+        def _process(self):
+            for segment, _track, label in self._prediction.itertracks(yield_label=True):
+                segment_key = (segment.start, segment.end, label)
+
+                if segment_key not in self._sent_segments:
+                    item = DiarizationSegment(
+                        start=segment.start,
+                        end=segment.end,
+                        speaker=label,
+                    )
+                    self._sent_segments.add(segment_key)
+                    self.websocket.send_json(item.model_dump_json())
+
+        def on_next(self, value: Union[Tuple, Annotation]):
+            prediction = self._extract_prediction(value)
+
+            if self._prediction is None:
+                self._prediction = prediction
+            else:
+                self._prediction.update(prediction)
+                self._prediction = self._prediction.support(self.patch_collar)
+
+            self._process(self._prediction)
 
     await websocket.accept()
     source = Source(websocket)

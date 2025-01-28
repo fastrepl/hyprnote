@@ -1,9 +1,9 @@
 use futures_util::Stream;
+use futures_util::StreamExt;
 use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 
 use super::{WebSocketClient, WebSocketIO};
 use crate::{DiarizeInputChunk, DiarizeOutputChunk};
-use hypr_audio::AsyncSource;
 
 #[derive(Default)]
 pub struct DiarizeClientBuilder {
@@ -36,6 +36,7 @@ impl DiarizeClientBuilder {
     }
 }
 
+#[derive(Clone)]
 pub struct DiarizeClient {
     request: ClientRequestBuilder,
 }
@@ -44,8 +45,10 @@ impl WebSocketIO for DiarizeClient {
     type Input = DiarizeInputChunk;
     type Output = DiarizeOutputChunk;
 
-    fn create_input(audio_chunk: Vec<u8>) -> Self::Input {
-        DiarizeInputChunk { audio: audio_chunk }
+    fn create_input(data: bytes::Bytes) -> Self::Input {
+        DiarizeInputChunk {
+            audio: data.to_vec(),
+        }
     }
 }
 
@@ -54,11 +57,19 @@ impl DiarizeClient {
         DiarizeClientBuilder::default()
     }
 
-    pub async fn from_audio(
+    pub async fn from_audio<S, E>(
         &self,
-        audio_stream: impl AsyncSource + Send + Unpin + 'static,
-    ) -> Result<impl Stream<Item = DiarizeOutputChunk>, crate::Error> {
+        stream: S,
+    ) -> Result<impl Stream<Item = DiarizeOutputChunk>, crate::Error>
+    where
+        S: Stream<Item = Result<bytes::Bytes, E>> + Send + Unpin + 'static,
+        E: std::error::Error + Send + Sync + 'static,
+    {
         let ws = WebSocketClient::new(self.request.clone());
-        ws.from_audio::<Self>(audio_stream).await
+
+        // TODO
+        let stream = stream.map(|item| item.unwrap());
+
+        ws.from_audio::<Self>(stream).await
     }
 }

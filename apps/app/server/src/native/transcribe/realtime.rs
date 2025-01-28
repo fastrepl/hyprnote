@@ -25,68 +25,81 @@ pub async fn handler(
 }
 
 async fn websocket(socket: WebSocket, state: STTState, params: Params) {
-    let (mut ws_sender, ws_receiver) = socket.split();
+    let (mut ws_sender, mut ws_receiver) = socket.split();
 
     let mut stt = state.realtime_stt.for_language(params.language).await;
 
-    // let (tx, rx) = tokio::sync::broadcast::channel(32);
-    // We need to send to diarazier + stt
+    let (tx, rx_transcribe) = tokio::sync::broadcast::channel::<Bytes>(16);
+    let rx_diarize = tx.subscribe();
 
-    // TODO: Use async_stream::try_stream!
-    let input_stream = Box::pin(futures_util::stream::try_unfold(
-        ws_receiver,
-        |mut ws_receiver| async move {
-            let item: Result<Option<(Bytes, _)>, axum::Error> = match ws_receiver.next().await {
-                Some(Ok(Message::Text(data))) => {
-                    let input: TranscribeInputChunk = serde_json::from_str(&data).unwrap();
-                    let audio = Bytes::from(input.audio);
-                    Ok(Some((audio, ws_receiver)))
-                }
-                _ => Ok(Some((Bytes::new(), ws_receiver))),
-            };
+    let ws_handler = tokio::spawn(async move {
+        while let Some(Ok(Message::Text(data))) = ws_receiver.next().await {
+            let input: TranscribeInputChunk = serde_json::from_str(&data).unwrap();
+            let audio = Bytes::from(input.audio);
 
-            item
+            if tx.send(audio).is_err() {
+                break;
+            }
+        }
+    });
+
+    let transcribe_stream = Box::pin(futures_util::stream::try_unfold(
+        rx_transcribe,
+        |mut rx| async move {
+            match rx.recv().await {
+                Ok(audio) => Ok::<Option<(Bytes, _)>, std::io::Error>(Some((audio, rx))),
+                Err(_) => Ok::<Option<(Bytes, _)>, std::io::Error>(None),
+            }
         },
     ));
 
-    // futures_util::try_join!()
+    let diarize_stream = Box::pin(futures_util::stream::try_unfold(
+        rx_diarize,
+        |mut rx| async move {
+            match rx.recv().await {
+                Ok(audio) => Ok::<Option<(Bytes, _)>, std::io::Error>(Some((audio, rx))),
+                Err(_) => Ok::<Option<(Bytes, _)>, std::io::Error>(None),
+            }
+        },
+    ));
 
     let task = async {
-        match stt.transcribe(input_stream).await {
-            Err(e) => eprintln!("transcription error: {:?}", e),
-            Ok(mut transcript_stream) => {
-                let mut last_activity = tokio::time::Instant::now();
+        let mut transcript_stream = stt.transcribe(transcribe_stream).await.unwrap();
+        let mut diarization_stream =
+            Box::pin(state.diarize.from_audio(diarize_stream).await.unwrap());
 
-                loop {
-                    tokio::select! {
-                        item = transcript_stream.next() => {
-                            match item {
-                                Some(Ok(result)) => {
-                                    last_activity = tokio::time::Instant::now();
-
-                                    let output = TranscribeOutputChunk { text: result.text };
-                                    let msg = Message::Text(serde_json::to_string(&output).unwrap().into());
-
-                                    if let Err(e) = ws_sender.send(msg).await {
-                                        eprintln!("websocket send error: {:?}", e);
-                                    }
-                                }
-                                _ => continue,
-                            }
+        loop {
+            tokio::select! {
+                result = transcript_stream.next() => {
+                    if let Some(result) = result {
+                        let output = TranscribeOutputChunk {
+                            text: result.unwrap().text,
+                        };
+                        let msg = Message::Text(serde_json::to_string(&output).unwrap().into());
+                        if ws_sender.send(msg).await.is_err() {
+                            break;
                         }
-
-                        _ = tokio::time::sleep(tokio::time::Duration::from_millis(500)) => {
-                            if last_activity.elapsed() >= tokio::time::Duration::from_secs(5) {
-                                break;
-                            }
-                        }
+                    } else {
+                        break;
                     }
                 }
+                result = diarization_stream.next() => {
+                    if let Some(output) = result {
+                        let msg = Message::Text(serde_json::to_string(&output).unwrap().into());
+                        if ws_sender.send(msg).await.is_err() {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                else => break,
             }
         }
     };
 
     task.await;
+    ws_handler.abort();
 }
 
 #[cfg(test)]
@@ -108,6 +121,10 @@ mod tests {
                 recorded_stt: hypr_stt::recorded::Client::builder()
                     .deepgram_api_key("".to_string())
                     .clova_api_key("".to_string())
+                    .build(),
+                diarize: hypr_bridge::diarize::DiarizeClient::builder()
+                    .api_base("".to_string())
+                    .api_key("".to_string())
                     .build(),
             })
     }

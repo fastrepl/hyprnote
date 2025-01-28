@@ -1,4 +1,6 @@
+use bytes::BufMut;
 use futures_util::Stream;
+use futures_util::StreamExt;
 use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 
 use super::{WebSocketClient, WebSocketIO};
@@ -63,6 +65,7 @@ impl TranscribeClientBuilder {
     }
 }
 
+#[derive(Clone)]
 pub struct TranscribeClient {
     request: ClientRequestBuilder,
 }
@@ -71,8 +74,10 @@ impl WebSocketIO for TranscribeClient {
     type Input = TranscribeInputChunk;
     type Output = TranscribeOutputChunk;
 
-    fn create_input(audio_chunk: Vec<u8>) -> Self::Input {
-        TranscribeInputChunk { audio: audio_chunk }
+    fn create_input(data: bytes::Bytes) -> Self::Input {
+        TranscribeInputChunk {
+            audio: data.to_vec(),
+        }
     }
 }
 
@@ -85,7 +90,16 @@ impl TranscribeClient {
         &self,
         audio_stream: impl AsyncSource + Send + Unpin + 'static,
     ) -> Result<impl Stream<Item = TranscribeOutputChunk>, crate::Error> {
+        let processed_stream = audio_stream.resample(16 * 1000).chunks(1024).map(|chunk| {
+            let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
+            for sample in chunk {
+                let scaled = (sample * 32767.0).clamp(-32768.0, 32767.0);
+                buf.put_i16_le(scaled as i16);
+            }
+            buf.freeze()
+        });
+
         let ws = WebSocketClient::new(self.request.clone());
-        ws.from_audio::<Self>(audio_stream).await
+        ws.from_audio::<Self>(processed_stream).await
     }
 }

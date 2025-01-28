@@ -1,7 +1,6 @@
 pub mod diarize;
 pub mod transcribe;
 
-use bytes::BufMut;
 use serde::{de::DeserializeOwned, Serialize};
 
 use futures_util::{SinkExt, Stream, StreamExt};
@@ -10,13 +9,11 @@ use tokio_tungstenite::{
     tungstenite::{client::IntoClientRequest, protocol::Message, ClientRequestBuilder},
 };
 
-use hypr_audio::AsyncSource;
-
 pub trait WebSocketIO: Send + 'static {
     type Input: Serialize + Send;
     type Output: DeserializeOwned;
 
-    fn create_input(audio_chunk: Vec<u8>) -> Self::Input;
+    fn create_input(data: bytes::Bytes) -> Self::Input;
 }
 
 pub struct WebSocketClient {
@@ -30,7 +27,7 @@ impl WebSocketClient {
 
     pub async fn from_audio<T: WebSocketIO>(
         &self,
-        audio_stream: impl AsyncSource + Send + Unpin + 'static,
+        mut audio_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
     ) -> Result<impl Stream<Item = T::Output>, crate::Error> {
         let req = self.request.clone().into_client_request().unwrap();
         let (ws_stream, _) = connect_async(req).await?;
@@ -38,17 +35,8 @@ impl WebSocketClient {
         let (done_tx, mut done_rx) = tokio::sync::oneshot::channel();
 
         let _send_task = tokio::spawn(async move {
-            let mut audio_stream = audio_stream.resample(16 * 1000).chunks(1024).map(|chunk| {
-                let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
-                for sample in chunk {
-                    let scaled = (sample * 32767.0).clamp(-32768.0, 32767.0);
-                    buf.put_i16_le(scaled as i16);
-                }
-                buf.freeze()
-            });
-
-            while let Some(audio) = audio_stream.next().await {
-                let input = T::create_input(audio.to_vec());
+            while let Some(data) = audio_stream.next().await {
+                let input = T::create_input(data);
                 let msg = Message::Text(serde_json::to_string(&input).unwrap().into());
                 if ws_sender.send(msg).await.is_err() {
                     break;

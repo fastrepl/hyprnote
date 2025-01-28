@@ -68,6 +68,11 @@ fn main() {
                 .clova_api_key(get_env("CLOVA_API_KEY"))
                 .build();
 
+            let diarize = hypr_bridge::diarize::DiarizeClient::builder()
+                .api_base(get_env("DIARIZE_API_BASE"))
+                .api_key(get_env("DIARIZE_API_KEY"))
+                .build();
+
             let admin_db = {
                 let conn = {
                     #[cfg(debug_assertions)]
@@ -124,6 +129,7 @@ fn main() {
                 clerk: clerk.clone(),
                 realtime_stt,
                 recorded_stt,
+                diarize,
                 turso,
                 admin_db,
                 nango,

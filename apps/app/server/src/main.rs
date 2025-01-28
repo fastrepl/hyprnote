@@ -10,6 +10,7 @@ use std::{
     path::Path,
     time::Duration,
 };
+use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _, Registry};
 
 use axum::{
     extract::FromRef,
@@ -45,19 +46,30 @@ fn main() {
         },
     ));
 
-    let turso = hypr_turso::TursoClient::builder()
-        .api_key(get_env("TURSO_API_KEY"))
-        .org_slug(get_env("TURSO_ORG_SLUG"))
-        .build();
-
-    let clerk_config = ClerkConfiguration::new(None, None, Some(get_env("CLERK_SECRET_KEY")), None);
-    let clerk = Clerk::new(clerk_config);
-
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .unwrap()
         .block_on(async {
+            let axiom_layer = tracing_axiom::builder("hyprnote-server")
+                .with_token(get_env("AXIOM_TOKEN"))
+                .unwrap()
+                .with_dataset(get_env("AXIOM_DATASET"))
+                .unwrap()
+                .build()
+                .unwrap();
+
+            Registry::default().with(axiom_layer).init();
+
+            let turso = hypr_turso::TursoClient::builder()
+                .api_key(get_env("TURSO_API_KEY"))
+                .org_slug(get_env("TURSO_ORG_SLUG"))
+                .build();
+
+            let clerk_config =
+                ClerkConfiguration::new(None, None, Some(get_env("CLERK_SECRET_KEY")), None);
+            let clerk = Clerk::new(clerk_config);
+
             let realtime_stt = hypr_stt::realtime::Client::builder()
                 .deepgram_api_key(get_env("DEEPGRAM_API_KEY"))
                 .clova_api_key(get_env("CLOVA_API_KEY"))

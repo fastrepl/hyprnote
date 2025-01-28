@@ -27,6 +27,7 @@
     "@radix-ui/react-switch": "^1.1.2",
     "@radix-ui/react-tabs": "^1.1.2",
     "@remixicon/react": "^4.6.0",
+    "@sentry/react": "^8.51.0",
     "@tanstack/react-query": "^5.65.0",
     "@tanstack/react-router": "^1.97.25",
     "@tanstack/react-table": "^8.20.6",
@@ -52,6 +53,7 @@
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.2",
     "tailwind-merge": "^2.6.0",
+    "tauri-plugin-sentry-api": "^0.4.1",
     "tippy.js": "^6.3.7",
     "zod": "^3.24.1",
     "zustand": "^5.0.3"

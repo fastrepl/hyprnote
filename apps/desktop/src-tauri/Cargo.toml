@@ -38,6 +38,7 @@ tauri-plugin-log = "2"
 tauri-plugin-notification = { version = "2", features = ["windows7-compat"] }
 tauri-plugin-os = "2"
 tauri-plugin-positioner = { version = "2", features = ["tray-icon"] }
+tauri-plugin-sentry = "0.4.1"
 tauri-plugin-shell = "2"
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 tauri-plugin-store = "2"

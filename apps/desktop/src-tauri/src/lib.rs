@@ -20,7 +20,19 @@ pub struct App {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let client = tauri_plugin_sentry::sentry::init((
+        option_env!("SENTRY_DSN").unwrap_or_default(),
+        tauri_plugin_sentry::sentry::ClientOptions {
+            release: tauri_plugin_sentry::sentry::release_name!(),
+            auto_session_tracking: true,
+            ..Default::default()
+        },
+    ));
+
+    let _guard = tauri_plugin_sentry::minidump::init(&client);
+
     let mut builder = tauri::Builder::default()
+        .plugin(tauri_plugin_sentry::init(&client))
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_positioner::init())

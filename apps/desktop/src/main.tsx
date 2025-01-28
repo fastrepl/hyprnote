@@ -62,6 +62,17 @@ declare module "@tanstack/react-router" {
   }
 }
 
+import * as Sentry from "@sentry/react";
+import { defaultOptions } from "tauri-plugin-sentry-api";
+
+// https://docs.sentry.io/platforms/javascript/guides/react/features/tanstack-router/
+Sentry.init({
+  ...defaultOptions,
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  integrations: [Sentry.tanstackRouterBrowserTracingIntegration(router)],
+  tracesSampleRate: 1.0,
+});
+
 function App() {
   const load = useTauriStore((state) => state.load);
   load().then(() => {});

@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
-import type { EnhanceRequest } from "@/types/server";
+import type { EnhanceRequest } from "@/types/server.gen";
 
 type EnhanceStatus = "idle" | "loading" | "error" | "success";
 

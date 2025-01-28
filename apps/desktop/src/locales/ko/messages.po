@@ -21,6 +21,20 @@ msgstr ""
 #~ msgid "{0} ~ {1}"
 #~ msgstr ""
 
+#. placeholder {0}: calendarAccess.data ? ( <span>Calendar access granted.</span> ) : ( <span> Calendar access not granted.{" "} <button onClick={handleRequestCalendarAccess}> This is required. </button> </span> )
+#. placeholder {1}: contactsAccess.data ? ( <span>Contacts access granted.</span> ) : ( <span> Contacts access not granted.{" "} <button onClick={handleRequestContactsAccess}> This is optional. </button> </span> )
+#: src/components/settings/calendar.tsx:226
+msgid "<0>{0}</0><1>{1}</1>"
+msgstr ""
+
+#: src/components/settings/billing.tsx:17
+msgid "Billing"
+msgstr ""
+
+#: src/components/settings/calendar.tsx:189
+msgid "Calendar connected. Hyprnote will periodically sync your calendar events."
+msgstr ""
+
 #: src/routes/login.tsx:63
 msgid "Get Started"
 msgstr ""
@@ -33,17 +47,21 @@ msgstr ""
 #~ msgid "home.newUser.tryDemo"
 #~ msgstr ""
 
-#: src/components/layout/NavBar.tsx:85
-#~ msgid "New Note"
-#~ msgstr ""
+#: src/components/settings/calendar.tsx:64
+msgid "Integrations"
+msgstr ""
+
+#: src/routes/_nav.tsx:80
+msgid "New Note"
+msgstr ""
 
 #: src/components/SearchModal.tsx:78
 #~ msgid "No results"
 #~ msgstr ""
 
 #: src/components/past-sessions.tsx:13
-msgid "Past Sessions"
-msgstr ""
+#~ msgid "Past Sessions"
+#~ msgstr ""
 
 #: src/components/home/PastNotes.tsx:16
 #~ msgid "Recent Notes"
@@ -53,11 +71,19 @@ msgstr ""
 #~ msgid "Search"
 #~ msgstr ""
 
+#: src/components/settings/billing.tsx:8
+msgid "Team"
+msgstr ""
+
+#: src/components/settings/calendar.tsx:194
+msgid "To connect your Calendar, you need to <0>authorize Hypr to access your calendar.</0>"
+msgstr ""
+
 #: src/components/home/PastNotes.tsx:28
 #~ msgid "Untitled"
 #~ msgstr ""
 
-#: src/components/upcoming-events.tsx:22
+#: src/components/upcoming-events.tsx:48
 msgid "Upcoming Events"
 msgstr ""
 

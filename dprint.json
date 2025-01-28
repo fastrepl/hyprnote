@@ -11,19 +11,36 @@
       "crates/prompt/templates/preview.jinja"
     ]
   },
+  "prettier": {
+    "associations": [
+      "**/*.js",
+      "**/*.ts",
+      "**/*.jsx",
+      "**/*.tsx"
+    ]
+  },
   "excludes": [
     ".venv",
     "nango",
     "lago",
     "lago-openapi",
     "**/*-lock.yaml",
-    "**/*-lock.json"
+    "**/*-lock.json",
+    "**/locales",
+    "**/*.gen.*",
+    "**/dist",
+    "**/target",
+    "**/public"
   ],
   "exec": {
     "cwd": "${configDir}",
     "commands": [{
       "command": "rustfmt --edition 2021",
       "exts": ["rs"]
+    }, {
+      "command": "swift-format format -i {{file_path}}",
+      "exts": ["swift"],
+      "stdin": false
     }]
   },
   "plugins": [
@@ -35,6 +52,7 @@
     "https://plugins.dprint.dev/ruff-0.3.9.wasm",
     "https://plugins.dprint.dev/json-0.19.4.wasm",
     "https://plugins.dprint.dev/markdown-0.17.8.wasm",
-    "https://plugins.dprint.dev/g-plane/markup_fmt-v0.18.0.wasm"
+    "https://plugins.dprint.dev/g-plane/markup_fmt-v0.18.0.wasm",
+    "https://plugins.dprint.dev/prettier-0.53.0.json@0d99b2a3836d0e3434826e678167524394b5e4a44b20af7278ba49c4508bd3d7"
   ]
 }

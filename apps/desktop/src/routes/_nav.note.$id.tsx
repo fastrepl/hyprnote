@@ -30,7 +30,7 @@ import {
   commands,
   type ConfigDataGeneral,
   type ConfigDataProfile,
-} from "@/types/tauri";
+} from "@/types/tauri.gen";
 import { SessionProvider, useSession } from "@/contexts";
 
 export const Route = createFileRoute("/_nav/note/$id")({

@@ -92,7 +92,7 @@ pub fn run() {
             specta_typescript::Typescript::default()
                 .header("// @ts-nocheck\n\n")
                 .formatter(specta_typescript::formatter::prettier),
-            "../src/types/tauri.ts",
+            "../src/types/tauri.gen.ts",
         )
         .unwrap();
 
@@ -180,12 +180,6 @@ pub fn run() {
                 .decorations(false)
                 .build()
                 .unwrap();
-
-            #[cfg(debug_assertions)]
-            {
-                let window = app.get_webview_window("main").unwrap();
-                window.open_devtools();
-            }
 
             Ok(())
         })

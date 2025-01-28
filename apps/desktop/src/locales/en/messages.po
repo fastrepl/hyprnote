@@ -21,6 +21,20 @@ msgstr ""
 #~ msgid "{0} ~ {1}"
 #~ msgstr "{0} ~ {1}"
 
+#. placeholder {0}: calendarAccess.data ? ( <span>Calendar access granted.</span> ) : ( <span> Calendar access not granted.{" "} <button onClick={handleRequestCalendarAccess}> This is required. </button> </span> )
+#. placeholder {1}: contactsAccess.data ? ( <span>Contacts access granted.</span> ) : ( <span> Contacts access not granted.{" "} <button onClick={handleRequestContactsAccess}> This is optional. </button> </span> )
+#: src/components/settings/calendar.tsx:226
+msgid "<0>{0}</0><1>{1}</1>"
+msgstr "<0>{0}</0><1>{1}</1>"
+
+#: src/components/settings/billing.tsx:17
+msgid "Billing"
+msgstr "Billing"
+
+#: src/components/settings/calendar.tsx:189
+msgid "Calendar connected. Hyprnote will periodically sync your calendar events."
+msgstr "Calendar connected. Hyprnote will periodically sync your calendar events."
+
 #: src/routes/login.tsx:63
 msgid "Get Started"
 msgstr "Get Started"
@@ -33,17 +47,21 @@ msgstr "Get Started"
 #~ msgid "home.newUser.tryDemo"
 #~ msgstr "home.newUser.tryDemo"
 
-#: src/components/layout/NavBar.tsx:85
-#~ msgid "New Note"
-#~ msgstr "New Note"
+#: src/components/settings/calendar.tsx:64
+msgid "Integrations"
+msgstr "Integrations"
+
+#: src/routes/_nav.tsx:80
+msgid "New Note"
+msgstr "New Note"
 
 #: src/components/SearchModal.tsx:78
 #~ msgid "No results"
 #~ msgstr "No results"
 
 #: src/components/past-sessions.tsx:13
-msgid "Past Sessions"
-msgstr "Past Sessions"
+#~ msgid "Past Sessions"
+#~ msgstr "Past Sessions"
 
 #: src/components/home/PastNotes.tsx:16
 #~ msgid "Recent Notes"
@@ -53,11 +71,19 @@ msgstr "Past Sessions"
 #~ msgid "Search"
 #~ msgstr "Search"
 
+#: src/components/settings/billing.tsx:8
+msgid "Team"
+msgstr "Team"
+
+#: src/components/settings/calendar.tsx:194
+msgid "To connect your Calendar, you need to <0>authorize Hypr to access your calendar.</0>"
+msgstr "To connect your Calendar, you need to <0>authorize Hypr to access your calendar.</0>"
+
 #: src/components/home/PastNotes.tsx:28
 #~ msgid "Untitled"
 #~ msgstr "Untitled"
 
-#: src/components/upcoming-events.tsx:22
+#: src/components/upcoming-events.tsx:48
 msgid "Upcoming Events"
 msgstr "Upcoming Events"
 

@@ -6,7 +6,7 @@ import {
   commands,
   type Session,
   type TranscribeOutputChunk,
-} from "@/types/tauri";
+} from "@/types/tauri.gen";
 
 type State = {
   channel: Channel<TranscribeOutputChunk> | null;

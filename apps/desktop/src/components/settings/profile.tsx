@@ -16,7 +16,7 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
-import { commands, type ConfigDataProfile } from "@/types/tauri";
+import { commands, type ConfigDataProfile } from "@/types/tauri.gen";
 
 const schema = z.object({
   fullName: z.string().min(2).max(50).optional(),

@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 
-import type { Session } from "@/types/tauri";
+import type { Session } from "@/types/tauri.gen";
 
 export const columns: ColumnDef<Session>[] = [
   {

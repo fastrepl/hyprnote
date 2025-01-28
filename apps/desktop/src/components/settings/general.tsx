@@ -23,7 +23,7 @@ import {
 import { Checkbox } from "@hypr/ui/components/ui/checkbox";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
-import { commands, type ConfigDataGeneral } from "@/types/tauri";
+import { commands, type ConfigDataGeneral } from "@/types/tauri.gen";
 
 const LANGUAGES = [
   {

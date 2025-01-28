@@ -5,7 +5,7 @@ import PastSessions from "@/components/past-sessions";
 import UpcomingEvents from "@/components/upcoming-events";
 import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
 
-import { commands } from "@/types/tauri";
+import { commands } from "@/types/tauri.gen";
 
 const queryOptions = () => ({
   queryKey: ["notes"],
@@ -23,14 +23,14 @@ const queryOptions = () => ({
 
 export const Route = createFileRoute("/_nav/")({
   component: Component,
-  beforeLoad: ({ context }) => {
-    if (!import.meta.env.PROD) {
-      return;
-    }
-    if (!context.auth?.isAuthenticated) {
-      throw redirect({ to: "/login" });
-    }
-  },
+  // beforeLoad: ({ context }) => {
+  //   if (!import.meta.env.PROD) {
+  //     return;
+  //   }
+  //   if (!context.auth?.isAuthenticated) {
+  //     throw redirect({ to: "/login" });
+  //   }
+  // },
 });
 
 function Component() {

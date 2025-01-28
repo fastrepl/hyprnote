@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 
-import { commands, type Session } from "@/types/tauri";
+import { commands, type Session } from "@/types/tauri.gen";
 
 const schema = z.object({
   eventId: z.string().optional(),
@@ -23,9 +23,7 @@ export const Route = createFileRoute("/note/new")({
         audio_local_path: null,
         audio_remote_path: null,
         enhanced_memo_html: null,
-        transcript: {
-          blocks: [],
-        },
+        conversations: [],
       });
     } catch (error) {
       console.error(error);

@@ -4,7 +4,7 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
 import { createSessionStore } from "@/stores/session";
-import type { Session } from "@/types/tauri";
+import type { Session } from "@/types/tauri.gen";
 
 const SessionContext = createContext<ReturnType<
   typeof createSessionStore

@@ -16,7 +16,7 @@ import {
 } from "@hypr/ui/components/ui/popover";
 import { Input } from "@hypr/ui/components/ui/input";
 
-import { type Participant } from "@/types/tauri";
+import { type Participant } from "@/types/tauri.gen";
 
 interface ParticipantSelectorProps {
   options: Participant[];

@@ -247,8 +247,8 @@ fn export_ts_types() -> anyhow::Result<()> {
         .bigint(specta_typescript::BigIntExportBehavior::Number);
 
     let base = env!("CARGO_MANIFEST_DIR");
-    let web_path = Path::new(base).join("../src/types/server.ts");
-    let native_path = Path::new(base).join("../../desktop/src/types/server.ts");
+    let web_path = Path::new(base).join("../src/types/server.gen.ts");
+    let native_path = Path::new(base).join("../../desktop/src/types/server.gen.ts");
 
     web_collection.export_to(language.clone(), web_path)?;
     native_collection.export_to(language, native_path)?;

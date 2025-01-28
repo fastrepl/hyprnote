@@ -22,7 +22,7 @@ import {
   AvatarFallback,
 } from "@hypr/ui/components/ui/avatar";
 
-import { commands, type Event, type Participant } from "@/types/tauri";
+import { commands, type Event, type Participant } from "@/types/tauri.gen";
 
 interface UpcomingEventsProps {
   events: Event[];

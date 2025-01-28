@@ -4,15 +4,15 @@ import React, { createContext, useContext } from "react";
 import { fetch } from "@tauri-apps/plugin-http";
 import { Channel } from "@tauri-apps/api/core";
 
-import type { EnhanceRequest, NangoIntegration } from "@/types/server";
+import type { EnhanceRequest, NangoIntegration } from "@/types/server.gen";
 import type { CalendarIntegration } from "@/types";
 import type {
   DiarizationSubmitRequest,
   DiarizationSubmitResponse,
   DiarizationRetrieveRequest,
   DiarizationRetrieveResponse,
-} from "@/types/server";
-import { commands } from "@/types/tauri";
+} from "@/types/server.gen";
+import { commands } from "@/types/tauri.gen";
 
 type Client = {
   listIntegrations: () => Promise<NangoIntegration[]>;

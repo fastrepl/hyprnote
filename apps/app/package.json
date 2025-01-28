@@ -8,34 +8,32 @@
     "dev": "vite --port=3001",
     "build": "vite build",
     "serve": "vite preview",
-    "start": "vite",
-    "format": "prettier --write ."
+    "start": "vite"
   },
   "devDependencies": {
-    "@tanstack/router-plugin": "^1.95.0",
+    "@tanstack/router-plugin": "^1.97.25",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "msw": "^2.7.0",
-    "postcss": "^8.4.49",
-    "prettier": "^3.4.2",
+    "postcss": "^8.5.1",
     "tailwindcss": "^3.4.17",
-    "vite": "^6.0.7"
+    "vite": "^6.0.11"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.21.0",
-    "@hypr/ui": "workspace:*",
+    "@clerk/clerk-react": "^5.22.7",
     "@hypr/tiptap": "workspace:*",
-    "@nangohq/frontend": "^0.48.1",
-    "@sentry/react": "^8.48.0",
-    "@tanstack/react-query": "^5.62.14",
-    "@tanstack/react-router": "^1.95.0",
-    "@tanstack/zod-adapter": "^1.95.0",
+    "@hypr/ui": "workspace:*",
+    "@nangohq/frontend": "^0.48.4",
+    "@sentry/react": "^8.51.0",
+    "@tanstack/react-query": "^5.65.0",
+    "@tanstack/react-router": "^1.97.25",
+    "@tanstack/zod-adapter": "^1.97.25",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.24.1",
-    "zustand": "^5.0.2"
+    "zustand": "^5.0.3"
   },
   "msw": {
     "workerDirectory": [

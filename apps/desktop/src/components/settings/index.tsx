@@ -43,7 +43,7 @@ import CalendarComponent from "./calendar";
 import TemplateComponent from "./template";
 import BillingComponent from "./billing";
 
-import { commands, type Template } from "@/types/tauri";
+import { commands, type Template } from "@/types/tauri.gen";
 
 const data = {
   nav: [

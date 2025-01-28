@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { EditIcon, GripVertical as HandleIcon } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 
-import type { Template } from "@/types/tauri";
+import type { Template } from "@/types/tauri.gen";
 
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";

@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { open } from "@tauri-apps/plugin-shell";
 import { Trans } from "@lingui/react/macro";
 
-import { commands } from "../types/tauri.ts";
+import { commands } from "../types/tauri.gen.ts";
 
 // import { AudioControls } from "../components/AudioControls";
 

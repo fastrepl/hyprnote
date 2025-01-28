@@ -1,5 +1,5 @@
 pub mod diarize;
-pub mod transcribe;
+pub mod listen;
 
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -30,8 +30,10 @@ impl WebSocketClient {
         mut audio_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
     ) -> Result<impl Stream<Item = T::Output>, crate::Error> {
         let req = self.request.clone().into_client_request().unwrap();
+
         let (ws_stream, _) = connect_async(req).await?;
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
+
         let (done_tx, mut done_rx) = tokio::sync::oneshot::channel();
 
         let _send_task = tokio::spawn(async move {

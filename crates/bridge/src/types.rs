@@ -1,14 +1,28 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
+pub enum ListenOutputChunk {
+    Transcribe(TranscribeOutputChunk),
+    Diarize(DiarizeOutputChunk),
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
+pub struct ListenInputChunk {
+    #[serde(with = "serde_bytes")]
+    pub audio: Vec<u8>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
 pub struct DiarizeInputChunk {
+    #[serde(with = "serde_bytes")]
     pub audio: Vec<u8>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
 pub struct DiarizeOutputChunk {
-    pub speaker_id: String,
-    pub confidence: f32,
+    pub speaker: String,
+    pub start: f32,
+    pub end: f32,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
@@ -19,7 +33,19 @@ pub struct TranscribeInputChunk {
 
 #[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
 pub struct TranscribeOutputChunk {
+    pub start: f32,
+    pub end: f32,
     pub text: String,
+}
+
+impl From<hypr_stt::realtime::StreamResponse> for TranscribeOutputChunk {
+    fn from(value: hypr_stt::realtime::StreamResponse) -> Self {
+        Self {
+            start: value.start as f32,
+            end: value.end as f32,
+            text: value.text,
+        }
+    }
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]

@@ -10,7 +10,7 @@ use axum::{
 use bytes::Bytes;
 use futures_util::{SinkExt, StreamExt};
 
-use hypr_bridge::{TranscribeInputChunk, TranscribeOutputChunk};
+use hypr_bridge::{ListenInputChunk, ListenOutputChunk, TranscribeOutputChunk};
 use hypr_stt::realtime::RealtimeSpeechToText;
 
 use super::Params;
@@ -34,7 +34,7 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
 
     let ws_handler = tokio::spawn(async move {
         while let Some(Ok(Message::Text(data))) = ws_receiver.next().await {
-            let input: TranscribeInputChunk = serde_json::from_str(&data).unwrap();
+            let input: ListenInputChunk = serde_json::from_str(&data).unwrap();
             let audio = Bytes::from(input.audio);
 
             if tx.send(audio).is_err() {
@@ -72,10 +72,9 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
             tokio::select! {
                 result = transcript_stream.next() => {
                     if let Some(result) = result {
-                        let output = TranscribeOutputChunk {
-                            text: result.unwrap().text,
-                        };
-                        let msg = Message::Text(serde_json::to_string(&output).unwrap().into());
+                        let data = ListenOutputChunk::Transcribe(result.unwrap().into());
+
+                        let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
                         if ws_sender.send(msg).await.is_err() {
                             break;
                         }
@@ -85,7 +84,8 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
                 }
                 result = diarization_stream.next() => {
                     if let Some(output) = result {
-                        let msg = Message::Text(serde_json::to_string(&output).unwrap().into());
+                        let data = ListenOutputChunk::Diarize(output);
+                        let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
                         if ws_sender.send(msg).await.is_err() {
                             break;
                         }

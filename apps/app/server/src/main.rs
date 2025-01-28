@@ -71,6 +71,7 @@ fn main() {
             let diarize = hypr_bridge::diarize::DiarizeClient::builder()
                 .api_base(get_env("DIARIZE_API_BASE"))
                 .api_key(get_env("DIARIZE_API_KEY"))
+                .sample_rate(16000)
                 .build();
 
             let admin_db = {
@@ -163,19 +164,11 @@ fn main() {
                     post(native::enhance::handler)
                         .layer(TimeoutLayer::new(Duration::from_secs(20))),
                 )
-                .route(
-                    "/transcribe/realtime",
-                    get(native::transcribe::realtime::handler),
-                )
-                .route(
-                    "/transcribe/recorded",
-                    post(native::transcribe::recorded::handler),
-                )
+                .route("/listen/realtime", get(native::listen::realtime::handler))
+                .route("/listen/recorded", post(native::listen::recorded::handler))
                 .route("/user/integrations", get(native::user::list_integrations))
                 .route("/upload/create", post(native::upload::create_upload))
-                .route("/upload/complete", post(native::upload::complete_upload))
-                .route("/diarization/submit", post(native::diarization::submit))
-                .route("/diarization/retrieve", post(native::diarization::retrieve));
+                .route("/upload/complete", post(native::upload::complete_upload));
             // .layer(
             //     tower::builder::ServiceBuilder::new()
             //         .layer(axum::middleware::from_fn_with_state(
@@ -237,10 +230,6 @@ fn export_ts_types() -> anyhow::Result<()> {
 
     native_collection.register::<hypr_nango::NangoIntegration>();
     native_collection.register::<hypr_bridge::EnhanceRequest>();
-    native_collection.register::<native::diarization::SubmitRequest>();
-    native_collection.register::<native::diarization::SubmitResponse>();
-    native_collection.register::<native::diarization::RetrieveRequest>();
-    native_collection.register::<native::diarization::RetrieveResponse>();
 
     let language = specta_typescript::Typescript::default()
         .header("// @ts-nocheck\n\n")

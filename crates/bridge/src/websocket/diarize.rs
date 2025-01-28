@@ -9,6 +9,7 @@ use crate::{DiarizeInputChunk, DiarizeOutputChunk};
 pub struct DiarizeClientBuilder {
     api_base: Option<String>,
     api_key: Option<String>,
+    sample_rate: Option<u32>,
 }
 
 impl DiarizeClientBuilder {
@@ -22,10 +23,18 @@ impl DiarizeClientBuilder {
         self
     }
 
+    pub fn sample_rate(mut self, sample_rate: u32) -> Self {
+        self.sample_rate = Some(sample_rate);
+        self
+    }
+
     pub fn build(self) -> DiarizeClient {
         let uri = {
             let mut url: url::Url = self.api_base.unwrap().parse().unwrap();
             url.set_path("/diarize");
+            url.query_pairs_mut()
+                .append_pair("sample_rate", &self.sample_rate.unwrap().to_string());
+
             url.to_string().parse().unwrap()
         };
 
@@ -67,7 +76,6 @@ impl DiarizeClient {
     {
         let ws = WebSocketClient::new(self.request.clone());
 
-        // TODO
         let stream = stream.map(|item| item.unwrap());
 
         ws.from_audio::<Self>(stream).await

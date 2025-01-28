@@ -4,17 +4,17 @@ use futures_util::StreamExt;
 use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 
 use super::{WebSocketClient, WebSocketIO};
-use crate::{TranscribeInputChunk, TranscribeOutputChunk};
+use crate::{DiarizeOutputChunk, TranscribeInputChunk, TranscribeOutputChunk};
 use hypr_audio::AsyncSource;
 
 #[derive(Default)]
-pub struct TranscribeClientBuilder {
+pub struct ListenClientBuilder {
     api_base: Option<String>,
     api_key: Option<String>,
     language: Option<codes_iso_639::part_1::LanguageCode>,
 }
 
-impl TranscribeClientBuilder {
+impl ListenClientBuilder {
     pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
         self.api_base = Some(api_base.into());
         self
@@ -30,7 +30,7 @@ impl TranscribeClientBuilder {
         self
     }
 
-    pub fn build(self) -> TranscribeClient {
+    pub fn build(self) -> ListenClient {
         let uri = {
             let mut url: url::Url = self.api_base.unwrap().parse().unwrap();
 
@@ -38,7 +38,7 @@ impl TranscribeClientBuilder {
             let language =
                 language.chars().next().unwrap().to_uppercase().to_string() + &language[1..];
 
-            url.set_path("/api/native/transcribe/realtime");
+            url.set_path("/api/native/listen/realtime");
             url.query_pairs_mut().append_pair("language", &language);
 
             if cfg!(debug_assertions) {
@@ -61,16 +61,16 @@ impl TranscribeClientBuilder {
             format!("Bearer {}", self.api_key.unwrap()),
         );
 
-        TranscribeClient { request }
+        ListenClient { request }
     }
 }
 
 #[derive(Clone)]
-pub struct TranscribeClient {
+pub struct ListenClient {
     request: ClientRequestBuilder,
 }
 
-impl WebSocketIO for TranscribeClient {
+impl WebSocketIO for ListenClient {
     type Input = TranscribeInputChunk;
     type Output = TranscribeOutputChunk;
 
@@ -81,9 +81,9 @@ impl WebSocketIO for TranscribeClient {
     }
 }
 
-impl TranscribeClient {
-    pub fn builder() -> TranscribeClientBuilder {
-        TranscribeClientBuilder::default()
+impl ListenClient {
+    pub fn builder() -> ListenClientBuilder {
+        ListenClientBuilder::default()
     }
 
     pub async fn from_audio(

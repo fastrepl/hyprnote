@@ -1672,6 +1672,7 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "specta",
+ "stt",
  "thiserror 2.0.11",
  "tokio",
  "tokio-tungstenite 0.26.1",
@@ -3039,19 +3040,6 @@ name = "deunicode"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "339544cc9e2c4dc3fc7149fd630c5f22263a4fdf18a98afd0075784968b5cf00"
-
-[[package]]
-name = "diarizer"
-version = "0.1.0"
-dependencies = [
- "async-stream",
- "audio 0.1.0",
- "futures-util",
- "thiserror 2.0.11",
- "tokio",
- "tokio-tungstenite 0.26.1",
- "url",
-]
 
 [[package]]
 name = "digest"

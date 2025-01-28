@@ -17,8 +17,8 @@ impl Client {
         ClientBuilder::default()
     }
 
-    pub fn transcribe(&self) -> transcribe::TranscribeClientBuilder {
-        transcribe::TranscribeClient::builder()
+    pub fn transcribe(&self) -> listen::ListenClientBuilder {
+        listen::ListenClient::builder()
             .api_base(self.api_base.clone())
             .api_key(self.api_key.clone())
     }

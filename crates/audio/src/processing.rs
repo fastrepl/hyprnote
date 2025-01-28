@@ -1,5 +1,6 @@
 use dasp::sample::{FromSample, ToSample};
 
+// https://github.com/RustAudio/rodio/blob/8fd0337/src/mixer.rs
 pub fn mix<T: ToSample<f32> + FromSample<f32> + Copy>(audio1: &[T], audio2: &[T]) -> Vec<T> {
     let len = audio1.len().min(audio2.len());
 

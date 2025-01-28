@@ -2,11 +2,10 @@ version: "3"
 dotenv: [".env.local"]
 tasks:
   fmt:js: pnpm -r format
-  fmt:swift: find crates -type f \( -name "*.swift" \) -not -path "*/\.build/*" | xargs swift-format format -i
   fmt:dprint: dprint fmt
   fmt:
     silent: true
-    deps: ["fmt:swift", "fmt:js", "fmt:dprint"]
+    deps: ["fmt:js", "fmt:dprint"]
 
   app:dev:
     cmds:

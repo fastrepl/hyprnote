@@ -48,18 +48,25 @@ pub fn run() {
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec![]),
-        ));
-    // .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-    //     ShowHyprWindow::MainWithoutDemo.show(app).unwrap();
-    // }));
+        ))
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            ShowHyprWindow::MainWithoutDemo.show(app).unwrap();
+        }));
 
-    // #[cfg(debug_assertions)]
     {
         builder = builder.plugin(
             tauri_plugin_log::Builder::new()
-                .target(tauri_plugin_log::Target::new(
-                    tauri_plugin_log::TargetKind::Stdout,
-                ))
+                .target({
+                    #[cfg(debug_assertions)]
+                    {
+                        tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout)
+                    }
+
+                    #[cfg(not(debug_assertions))]
+                    {
+                        tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::File)
+                    }
+                })
                 .build(),
         );
     }

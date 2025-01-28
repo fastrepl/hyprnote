@@ -3,6 +3,7 @@ use hypr_audio::Audio;
 pub enum AppSounds {
     StartRecording,
     StopRecording,
+    BGM,
 }
 
 impl AppSounds {
@@ -15,6 +16,7 @@ impl AppSounds {
         match self {
             AppSounds::StartRecording => include_bytes!("../sounds/start_recording.ogg"),
             AppSounds::StopRecording => include_bytes!("../sounds/stop_recording.ogg"),
+            AppSounds::BGM => include_bytes!("../sounds/bgm.mp3"),
         }
     }
 }

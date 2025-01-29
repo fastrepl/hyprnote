@@ -46,6 +46,17 @@ pub async fn run_input(
     std::fs::write(&path, html).unwrap();
 }
 
+pub fn print_prompt(prompt: impl Into<String>) {
+    let prompt = prompt.into();
+
+    bat::PrettyPrinter::new()
+        .grid(true)
+        .language("markdown")
+        .input_from_bytes(prompt.as_bytes())
+        .print()
+        .unwrap();
+}
+
 #[macro_export]
 macro_rules! generate_tests {
     ( $( $test_name:ident => $input_expr:expr ),+ $(,)? ) => {

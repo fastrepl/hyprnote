@@ -589,19 +589,8 @@ mod tests {
         )
         .unwrap();
 
-        bat::PrettyPrinter::new()
-            .grid(true)
-            .language("markdown")
-            .input_from_bytes(system_prompt.as_bytes())
-            .print()
-            .unwrap();
-
-        bat::PrettyPrinter::new()
-            .grid(true)
-            .language("markdown")
-            .input_from_bytes(user_prompt.as_bytes())
-            .print()
-            .unwrap();
+        crate::test_utils::print_prompt(system_prompt);
+        crate::test_utils::print_prompt(user_prompt);
     }
 
     // cargo test -p prompt enhance::tests

@@ -4,7 +4,7 @@ use futures_util::StreamExt;
 use std::convert::Infallible;
 
 use hypr_openai::CreateChatCompletionRequest;
-use hypr_prompt::enhance::OpenAIRequest;
+use hypr_prompt::OpenAIRequest;
 
 use crate::state::AppState;
 

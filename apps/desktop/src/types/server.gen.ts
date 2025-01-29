@@ -6,6 +6,10 @@ export type ConfigDataGeneral = { autostart: boolean; notifications: boolean; la
 
 export type ConfigDataProfile = { full_name: string | null; job_title: string | null; company_name: string | null; company_description: string | null; linkedin_username: string | null }
 
+export type CreateTitleRequest = { transcripts: TranscriptBlock[] }
+
+export type CreateTitleResponse = { title: string }
+
 export type DiarizationBlock = { start: number; end: number; label: string }
 
 export type EnhanceRequest = { pre_meeting_editor: string; in_meeting_editor: string; template: Template; config_general: ConfigDataGeneral; config_profile: ConfigDataProfile; event: Event | null; participants: Participant[]; transcripts: TranscriptBlock[]; diarizations: DiarizationBlock[] }

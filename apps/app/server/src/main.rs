@@ -176,6 +176,11 @@ fn main() {
                     post(native::enhance::handler)
                         .layer(TimeoutLayer::new(Duration::from_secs(20))),
                 )
+                .route(
+                    "/create_title",
+                    post(native::create_title::handler)
+                        .layer(TimeoutLayer::new(Duration::from_secs(10))),
+                )
                 .route("/listen/realtime", get(native::listen::realtime::handler))
                 .route("/listen/recorded", post(native::listen::recorded::handler))
                 .route("/user/integrations", get(native::user::list_integrations))
@@ -242,6 +247,8 @@ fn export_ts_types() -> anyhow::Result<()> {
 
     native_collection.register::<hypr_nango::NangoIntegration>();
     native_collection.register::<hypr_bridge::EnhanceRequest>();
+    native_collection.register::<hypr_bridge::CreateTitleRequest>();
+    native_collection.register::<hypr_bridge::CreateTitleResponse>();
 
     let language = specta_typescript::Typescript::default()
         .header("// @ts-nocheck\n\n")

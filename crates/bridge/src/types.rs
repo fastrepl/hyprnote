@@ -66,6 +66,11 @@ pub struct CreateTitleRequest {
     pub transcripts: Vec<hypr_db::user::TranscriptBlock>,
 }
 
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct CreateTitleResponse {
+    pub title: String,
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("unknown error")]

@@ -31,6 +31,7 @@ impl DiarizeClientBuilder {
     pub fn build(self) -> DiarizeClient {
         let uri = {
             let mut url: url::Url = self.api_base.unwrap().parse().unwrap();
+            url.set_scheme("wss").unwrap();
             url.set_path("/diarize");
             url.query_pairs_mut()
                 .append_pair("sample_rate", &self.sample_rate.unwrap().to_string());
@@ -79,5 +80,46 @@ impl DiarizeClient {
         let stream = stream.map(|item| item.unwrap());
 
         ws.from_audio::<Self>(stream).await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bytes::BufMut;
+    use std::time::Duration;
+    use tokio::time::timeout;
+
+    #[ignore]
+    #[tokio::test]
+    async fn test_diarize() {
+        let client = DiarizeClient::builder()
+            .api_base("https://fastrepl--hyprnote-diart-main-dev.modal.run")
+            .api_key("TODO")
+            .sample_rate(16000)
+            .build();
+
+        let path = env!("CARGO_MANIFEST_DIR");
+        let mut reader = hound::WavReader::open(format!("{}/data/audio.wav", path)).unwrap();
+
+        let mut sample_stream = async_stream::stream! {
+            for sample in reader.samples::<i16>() {
+                yield sample.unwrap();
+            }
+        };
+
+        let bytes_stream = Box::pin(sample_stream.chunks(1024).map(|chunk| {
+            let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
+            for sample in chunk {
+                buf.put_i16_le(sample);
+            }
+
+            Ok::<bytes::Bytes, std::io::Error>(buf.freeze())
+        }));
+
+        let mut diarize_stream = Box::pin(client.from_audio(bytes_stream).await.unwrap());
+        while let Some(item) = diarize_stream.next().await {
+            println!("{:?}", item);
+        }
     }
 }

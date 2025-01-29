@@ -1667,6 +1667,7 @@ dependencies = [
  "db",
  "futures-channel",
  "futures-util",
+ "hound",
  "reqwest 0.12.12",
  "schemars 1.0.0-alpha.17",
  "serde",

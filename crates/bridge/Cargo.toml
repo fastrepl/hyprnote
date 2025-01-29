@@ -27,5 +27,7 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"] }
 
 [dev-dependencies]
+async-stream = { workspace = true }
 futures-channel = { workspace = true }
+hound = { workspace = true }
 hypr-audio = { path = "../../crates/audio", package = "audio" }

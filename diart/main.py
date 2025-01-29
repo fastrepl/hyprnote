@@ -1,11 +1,41 @@
 import modal
+import numpy as np
 
 from pydantic import BaseModel
 from typing import Annotated, Union, Tuple
 import asyncio
+import queue
+import json
 
-from fastapi import FastAPI, WebSocket, HTTPException, Query, Depends
+from fastapi import (
+    FastAPI,
+    WebSocket,
+    HTTPException,
+    Query,
+    Depends,
+    WebSocketDisconnect,
+)
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+
+def get_logger():
+    import structlog
+    # from axiom_py import Client
+    # from axiom_py.structlog import AxiomProcessor
+
+    # axiom_client = Client()
+
+    structlog.configure(
+        processors=[
+            structlog.processors.add_log_level,
+            structlog.processors.TimeStamper(fmt="iso", key="_time"),
+            structlog.processors.JSONRenderer(),
+            # AxiomProcessor(axiom_client, "DATASET_NAME"),
+        ]
+    )
+
+    return structlog.get_logger()
+
 
 image = (
     modal.Image.micromamba(python_version="3.10")
@@ -17,7 +47,17 @@ image = (
         ],
         channels=["conda-forge", "defaults"],
     )
-    .pip_install(["diart", "fastapi", "pydantic", "reactivex"])
+    .pip_install(
+        [
+            "diart",
+            "fastapi",
+            "pydantic>=2.0",
+            "reactivex",
+            "axiom-py",
+            "structlog",
+            "huggingface-hub",
+        ]
+    )
 )
 
 
@@ -34,10 +74,6 @@ web_app = FastAPI()
 security = HTTPBearer()
 
 
-class Params(BaseModel):
-    sample_rate: int = 16000
-
-
 class DiarizationSegment(BaseModel):
     speaker: str
     start: float
@@ -47,13 +83,14 @@ class DiarizationSegment(BaseModel):
 @web_app.websocket("/diarize")
 async def diarize(
     websocket: WebSocket,
-    params: Annotated[Params, Query()],
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    # credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    sample_rate: int,
 ):
-    import os
+    logger = get_logger()
+    # import os
 
-    if credentials.credentials != os.getenv("HYPRNOTE_API_KEY"):
-        raise HTTPException(status_code=401)
+    # if credentials.credentials != os.getenv("HYPRNOTE_API_KEY"):
+    #     raise HTTPException(status_code=401)
 
     from pyannote.core import Annotation
     from diart import SpeakerDiarizationConfig, SpeakerDiarization
@@ -61,31 +98,54 @@ async def diarize(
     from diart.inference import StreamingInference
     from reactivex.observer import Observer
 
+    # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/sources.py
     class Source(AudioSource):
         def __init__(self, websocket: WebSocket):
-            super().__init__("websocket_source", params.sample_rate)
+            super().__init__("websocket_source", sample_rate)
             self.websocket = websocket
-            self.buffer = asyncio.Queue()
+            self.buffer = queue.Queue()
+            self.is_closed = False
+            self.loop = asyncio.get_event_loop()
 
         async def receive(self):
-            data = await self.websocket.receive_bytes()
-            self.buffer.put(data)
+            msg = await self.websocket.receive_text()
+            if msg is not None:
+                data = json.loads(msg)["audio"]
+                data = np.array(data, dtype=np.int16)
+                data = (data / 32768.0).astype(np.float32)
+                data = np.array(data, dtype=np.float32).reshape(1, -1)
+                self.buffer.put(data)
 
         def read(self):
-            try:
-                return self.buffer.get_nowait()
-            except asyncio.QueueEmpty:
-                return None
+            while not self.is_closed:
+                try:
+                    chunk = self.buffer.get(block=True, timeout=15)
+                    if chunk is not None:
+                        self.stream.on_next(chunk)
+                except Exception as e:
+                    logger.error(e)
+                    self.stream.on_error(e)
+                    break
+            self.stream.on_completed()
+
+        def close(self):
+            self.is_closed = True
+            asyncio.create_task(self.websocket.close())
 
     # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/sinks.py
     # https://github.com/pyannote/pyannote-core/blob/develop/pyannote/core/annotation.py
     # https://pyannote.github.io/pyannote-core/structure.html
     class Sender(Observer):
         def __init__(self, websocket: WebSocket):
+            super().__init__()
             self.websocket = websocket
             self.patch_collar = 1
             self._prediction = None
             self._sent_segments = set()
+            try:
+                self.loop = asyncio.get_running_loop()
+            except RuntimeError:
+                self.loop = asyncio.get_event_loop()
 
         def _extract_prediction(self, value: Union[Tuple, Annotation]) -> Annotation:
             if isinstance(value, tuple):
@@ -103,21 +163,34 @@ async def diarize(
                         end=segment.end,
                         speaker=label,
                     )
+                    print("item", item)
+
                     self._sent_segments.add(segment_key)
-                    self.websocket.send_json(item.model_dump_json())
+                    data = item.model_dump_json()
+
+                    try:
+                        asyncio.run_coroutine_threadsafe(
+                            self.websocket.send_text(data), self.loop
+                        )
+                    except Exception as e:
+                        logger.error(e)
 
         def on_next(self, value: Union[Tuple, Annotation]):
             prediction = self._extract_prediction(value)
 
-            if self._prediction is None:
-                self._prediction = prediction
-            else:
-                self._prediction.update(prediction)
+            try:
+                if self._prediction is None:
+                    self._prediction = prediction
+                else:
+                    self._prediction.update(prediction)
                 self._prediction = self._prediction.support(self.patch_collar)
+            except Exception as e:
+                logger.error(e)
 
-            self._process(self._prediction)
+            self._process()
 
     await websocket.accept()
+
     source = Source(websocket)
     sender = Sender(websocket)
 
@@ -126,9 +199,17 @@ async def diarize(
     pipeline = SpeakerDiarization(config)
     inference = StreamingInference(pipeline, source, show_progress=False)
     inference.attach_observers(sender)
+    asyncio.create_task(asyncio.to_thread(inference))
 
     while True:
-        await source.receive()
+        try:
+            await source.receive()
+        except WebSocketDisconnect:
+            logger.info("websocket_disconnected")
+            break
+        except Exception as e:
+            logger.error(e)
+            break
 
 
 @web_app.get("/health")
@@ -136,7 +217,7 @@ async def health():
     return {"status": "ok"}
 
 
-@app.function(allow_concurrent_inputs=10)
+@app.function(allow_concurrent_inputs=10, container_idle_timeout=30)
 @modal.asgi_app()
 def main():
     return web_app

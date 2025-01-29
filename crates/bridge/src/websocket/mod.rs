@@ -46,6 +46,8 @@ impl WebSocketClient {
             }
 
             let _ = ws_sender.send(Message::Close(None)).await;
+
+            tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
             let _ = done_tx.send(());
         });
 

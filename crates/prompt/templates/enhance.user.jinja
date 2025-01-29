@@ -1,4 +1,5 @@
 Meeting Information:
+
 ```
 {% if event %}Event: {{ event.name }}{% endif %}
 {% if participants | length > 0 %}Participants:{% endif %}
@@ -8,16 +9,19 @@ Meeting Information:
 ```
 
 Raw Note Before Meeting:
+
 ```
 {{ pre_meeting_editor }}
 ```
 
 Raw Note During Meeting:
+
 ```
 {{ in_meeting_editor }}
 ```
 
 Meeting Transcript:
+
 ```
 {{ render_conversation(transcripts=transcripts, diarizations=diarizations) }}
 ```

@@ -178,8 +178,16 @@ mod tests {
                 tracking_id: "".to_string(),
                 calendar_id: "".to_string(),
                 note: "".to_string(),
-                start_date: time::OffsetDateTime::from_unix_timestamp(1687236600).unwrap(), // 2024-06-20 13:30 KST
-                end_date: time::OffsetDateTime::from_unix_timestamp(1687243200).unwrap(),   // 2024-06-20 15:20 KST
+                start_date: time::OffsetDateTime::new_in_offset(
+                    time::Date::from_calendar_date(2024, time::Month::June, 20).unwrap(),
+                    time::Time::from_hms(13, 30, 0).unwrap(),
+                    time::UtcOffset::from_hms(9, 0, 0).unwrap(),
+                ),
+                end_date: time::OffsetDateTime::new_in_offset(
+                    time::Date::from_calendar_date(2024, time::Month::June, 20).unwrap(),
+                    time::Time::from_hms(15, 20, 0).unwrap(),
+                    time::UtcOffset::from_hms(9, 0, 0).unwrap(),
+                ),
                 google_event_url: None,
                 name: "이지스자산운용 박택영 팀장님 커피챗".to_string(),
             }),

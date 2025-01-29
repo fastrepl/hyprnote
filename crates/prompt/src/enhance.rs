@@ -47,6 +47,16 @@ mod tests {
 
     const EMPTY_NOTE: &str = "";
 
+    fn default_profile() -> hypr_db::user::ConfigDataProfile {
+        hypr_db::user::ConfigDataProfile {
+            full_name: Some("정지헌".to_string()),
+            job_title: Some("CEO".to_string()),
+            company_name: Some("파도".to_string()),
+            company_description: Some("증권정보업".to_string()),
+            linkedin_username: None,
+        }
+    }
+
     fn read_conversation(p: impl AsRef<std::path::Path>) -> Vec<ConversationItem> {
         let data = std::fs::read_to_string(p).unwrap();
         let value: serde_json::Value = serde_json::from_str(&data).unwrap();
@@ -146,7 +156,8 @@ mod tests {
     }
 
     fn input_01() -> Input {
-        let note = std::fs::read_to_string("data/01/note.md").unwrap();
+        let note_pre = std::fs::read_to_string("data/01/note_pre.md").unwrap();
+        let note_during = std::fs::read_to_string("data/01/note_during.md").unwrap();
         let transcripts = transcripts_from_path("data/01/conversation.json");
         let diarizations = diarizations_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/01/conversation.json");
@@ -157,9 +168,9 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
-            in_meeting_editor: markdown::to_html(&note),
-            pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
+            config_profile: default_profile(),
+            in_meeting_editor: markdown::to_html(&note_during),
+            pre_meeting_editor: markdown::to_html(&note_pre),
             transcripts,
             diarizations,
             event: Some(hypr_db::user::Event {
@@ -167,10 +178,10 @@ mod tests {
                 tracking_id: "".to_string(),
                 calendar_id: "".to_string(),
                 note: "".to_string(),
-                start_date: time::OffsetDateTime::now_utc(),
-                end_date: time::OffsetDateTime::now_utc(),
+                start_date: time::OffsetDateTime::from_unix_timestamp(1687236600).unwrap(), // 2024-06-20 13:30 KST
+                end_date: time::OffsetDateTime::from_unix_timestamp(1687243200).unwrap(),   // 2024-06-20 15:20 KST
                 google_event_url: None,
-                name: "금융 투자 미팅".to_string(),
+                name: "이지스자산운용 박택영 팀장님 커피챗".to_string(),
             }),
             participants,
         }
@@ -188,7 +199,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -210,7 +221,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -232,7 +243,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -254,7 +265,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -276,7 +287,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -298,7 +309,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -320,7 +331,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -342,7 +353,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -364,7 +375,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -386,7 +397,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -408,7 +419,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -430,7 +441,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -452,7 +463,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -474,7 +485,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -496,7 +507,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -518,7 +529,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -540,7 +551,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -562,7 +573,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,
@@ -584,7 +595,7 @@ mod tests {
                 language: codes_iso_639::part_1::LanguageCode::Ko,
                 ..Default::default()
             },
-            config_profile: hypr_db::user::ConfigDataProfile::default(),
+            config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             transcripts,

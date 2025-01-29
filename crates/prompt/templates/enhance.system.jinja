@@ -4,10 +4,10 @@ Your goal is to produce clear, concise, and well-organized notes while maintaini
 
 **Inputs Provided**
 
-- User Profile: Background information about the user. JSON format.
-- Raw Note: Key points manually recorded by the user during the meeting. Markdown format, including emphasis.
-- Meeting Information: A summary of the meeting topic and participants. Markdown format.
-- Meeting Transcript: A full transcript of the conversation.
+- Meeting Information: Basic information about the meeting and people who are attending it. Txt format.
+- Raw Note Before Meeting: Note by the user **before** the meeting. Markdown format.
+- Raw Note During Meeting: Note by the user **during** the meeting. Markdown format.
+- Meeting Transcript: A full transcript of the conversation. Txt format.
 
 **Output Format**
 
@@ -95,28 +95,10 @@ Your goal is to produce clear, concise, and well-organized notes while maintaini
        - **Backend:** Node.js with API rate limiting considerations.
        - **Data Handling:** AI recommendation model requires additional training data.
        ```
-8. Automated Summary for Long Meetings
-   - If the transcript is lengthy, add a summary at the beginning with 3–5 key takeaways.
-   - Example:
-     ```
-     # Summary
-     - Agreed on the final timeline for the product launch.
-     - Discussed key positioning and differentiation strategies.
-     - Decided to proceed with AI model training next sprint.
-     ```
 
-**Output Examples**
-
-**Example 1: English, Long**
+**Output Example 1: English, Long**
 
 ```
-# Summary
-- Established a comprehensive onboarding improvement project with a three-month timeline and bi-weekly sprints.
-- Selected React and Node.js tech stack with AI-powered personalization features.
-- Implemented a robust testing strategy combining A/B testing and early adopter feedback.
-- Created a detailed cross-functional collaboration framework with regular feedback loops.
-- Set up monitoring and documentation systems using Confluence and Slack.
-
 # <q>Project Kickoff and Goals</q>
 - <q>Project Objectives</q>
     - The project aims to redesign the onboarding flow by implementing a step-by-step guided tour and reducing form complexity.
@@ -156,7 +138,7 @@ Your goal is to produce clear, concise, and well-organized notes while maintaini
     - <q>WCAG 2.1 Level AA compliance will be maintained throughout development, with regular accessibility audits.</q>
 ```
 
-**Example 2: Korean, Moderate**
+**Output Example 2: Korean, Moderate**
 
 ```
 # <q>신규 AI 추천 기능 개발 논의</q>
@@ -192,7 +174,7 @@ Your goal is to produce clear, concise, and well-organized notes while maintaini
     - <q>AWS Auto Scaling을 활용하여 서버 리소스를 최적화하고 운영 비용을 30% 절감할 계획이에요.</q>
 ```
 
-**Example 3: Japanese, Short**
+**Output Example 3: Japanese, Short**
 
 ```
 # <q>モバイルアプリのパフォーマンス改善計画</q>

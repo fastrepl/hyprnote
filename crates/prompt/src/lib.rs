@@ -1,7 +1,11 @@
+#[cfg(test)]
+mod test_utils;
+
 mod filters;
 mod functions;
 mod testers;
 
+pub mod create_title;
 pub mod enhance;
 
 use tera::Context;
@@ -43,6 +47,8 @@ pub enum Error {
 }
 
 pub enum Template {
+    CreateTitleSystem,
+    CreateTitleUser,
     EnhanceSystem,
     EnhanceUser,
     Preview,
@@ -51,6 +57,8 @@ pub enum Template {
 impl std::fmt::Display for Template {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Template::CreateTitleSystem => write!(f, "create_title.system.jinja"),
+            Template::CreateTitleUser => write!(f, "create_title.user.jinja"),
             Template::EnhanceSystem => write!(f, "enhance.system.jinja"),
             Template::EnhanceUser => write!(f, "enhance.user.jinja"),
             Template::Preview => write!(f, "preview.jinja"),
@@ -63,4 +71,8 @@ fn render(tpl: Template, ctx: &tera::Context) -> Result<String, Error> {
         .render(&tpl.to_string(), ctx)
         .map(|s| s.trim().to_string())
         .map_err(Error::Tera)
+}
+
+pub trait OpenAIRequest {
+    fn as_openai_request(&self) -> Result<hypr_openai::CreateChatCompletionRequest, crate::Error>;
 }

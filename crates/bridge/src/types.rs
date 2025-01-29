@@ -61,6 +61,11 @@ pub struct EnhanceRequest {
     pub diarizations: Vec<hypr_db::user::DiarizationBlock>,
 }
 
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct CreateTitleRequest {
+    pub transcripts: Vec<hypr_db::user::TranscriptBlock>,
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("unknown error")]

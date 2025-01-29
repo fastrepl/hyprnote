@@ -4,6 +4,7 @@ use futures_util::StreamExt;
 use std::convert::Infallible;
 
 use hypr_openai::CreateChatCompletionRequest;
+use hypr_prompt::enhance::OpenAIRequest;
 
 use crate::state::AppState;
 
@@ -16,7 +17,7 @@ pub async fn handler(
         .openai
         .chat_completion(&CreateChatCompletionRequest {
             stream: Some(true),
-            ..hypr_prompt::enhance::request_from(&input).unwrap()
+            ..input.as_openai_request().unwrap()
         })
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?

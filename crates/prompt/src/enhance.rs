@@ -1,41 +1,42 @@
 #![allow(unused)]
 type Input = hypr_bridge::EnhanceRequest;
 
-pub fn request_from(
-    input: &Input,
-) -> Result<hypr_openai::CreateChatCompletionRequest, crate::Error> {
-    let system_prompt = crate::render(
-        crate::Template::EnhanceSystem,
-        &crate::Context::from_serialize(input)?,
-    )?;
-    let user_prompt = crate::render(
-        crate::Template::EnhanceUser,
-        &crate::Context::from_serialize(input)?,
-    )?;
+impl crate::OpenAIRequest for Input {
+    fn as_openai_request(&self) -> Result<hypr_openai::CreateChatCompletionRequest, crate::Error> {
+        let system_prompt = crate::render(
+            crate::Template::EnhanceSystem,
+            &crate::Context::from_serialize(self)?,
+        )?;
+        let user_prompt = crate::render(
+            crate::Template::EnhanceUser,
+            &crate::Context::from_serialize(self)?,
+        )?;
 
-    Ok(hypr_openai::CreateChatCompletionRequest {
-        model: "gpt-4o".to_string(),
-        messages: vec![
-            hypr_openai::ChatCompletionRequestSystemMessageArgs::default()
-                .content(system_prompt)
-                .build()
-                .unwrap()
-                .into(),
-            hypr_openai::ChatCompletionRequestUserMessageArgs::default()
-                .content(user_prompt)
-                .build()
-                .unwrap()
-                .into(),
-        ],
-        temperature: Some(0.1),
-        stream: Some(false),
-        ..Default::default()
-    })
+        Ok(hypr_openai::CreateChatCompletionRequest {
+            model: "gpt-4o".to_string(),
+            messages: vec![
+                hypr_openai::ChatCompletionRequestSystemMessageArgs::default()
+                    .content(system_prompt)
+                    .build()
+                    .unwrap()
+                    .into(),
+                hypr_openai::ChatCompletionRequestUserMessageArgs::default()
+                    .content(user_prompt)
+                    .build()
+                    .unwrap()
+                    .into(),
+            ],
+            temperature: Some(0.1),
+            stream: Some(false),
+            ..Default::default()
+        })
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{generate_tests, OpenAIRequest};
 
     #[derive(serde::Deserialize)]
     struct ConversationItem {
@@ -109,50 +110,6 @@ mod tests {
                 ..Default::default()
             })
             .collect()
-    }
-
-    async fn run_input(label: impl std::fmt::Display, input: Input) {
-        dotenv::from_filename(".env.local").unwrap();
-
-        let openai = hypr_openai::OpenAIClient::builder()
-            .api_base(
-                std::env::var("OPENAI_API_BASE")
-                    .map_err(|_| "'OPENAI_API_BASE' not set")
-                    .unwrap(),
-            )
-            .api_key(
-                std::env::var("OPENAI_API_KEY")
-                    .map_err(|_| "'OPENAI_API_KEY' not set")
-                    .unwrap(),
-            )
-            .build();
-
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-
-        let req = request_from(&input).unwrap();
-        let res: hypr_openai::CreateChatCompletionResponse = openai
-            .chat_completion(&req)
-            .await
-            .unwrap()
-            .json()
-            .await
-            .unwrap();
-        let content = res.choices[0].message.content.clone().unwrap();
-
-        let mut ctx = tera::Context::new();
-        ctx.insert("request", &req);
-        ctx.insert("response", &res);
-
-        let html = crate::render(crate::Template::Preview, &ctx).unwrap();
-        let path = format!("./out/{}/{}.html", label, now);
-
-        if let Some(parent) = std::path::Path::new(&path).parent() {
-            std::fs::create_dir_all(parent).unwrap();
-        }
-        std::fs::write(&path, html).unwrap();
     }
 
     fn input_01() -> Input {
@@ -614,7 +571,7 @@ mod tests {
         }
     }
 
-    // cargo test test_prompt_for_input_1 -p prompt --  --ignored
+    // cargo test  enhance::tests::test_prompt_for_input_1 -p prompt --  --ignored
     #[ignore]
     #[test]
     fn test_prompt_for_input_1() {
@@ -647,20 +604,9 @@ mod tests {
             .unwrap();
     }
 
-    macro_rules! generate {
-        ( $( $test_name:ident => $input_expr:expr ),+ $(,)? ) => {
-            $(
-                #[tokio::test]
-                async fn $test_name() {
-                    run_input(stringify!($test_name), $input_expr).await;
-                }
-            )+
-        }
-    }
-
     // cargo test -p prompt enhance::tests
-    generate! {
-        // cargo test test_input_<N> -p prompt
+    generate_tests! {
+        // cargo test enhance::tests::test_input_<NN> -p prompt
         test_input_01 => input_01(),
         test_input_02 => input_02(),
         test_input_03 => input_03(),

@@ -6,13 +6,11 @@ use cidre::{arc, av, cat, cf, core_audio as ca, ns, os};
 
 // https://github.com/yury/cidre/blob/7bc6c3a/cidre/examples/core-audio-record/main.rs
 // https://github.com/floneum/floneum/blob/50afe10/interfaces/kalosm-sound/src/source/mic.rs#L41
-#[cfg(target_os = "macos")]
 pub struct SpeakerInput {
     tap: ca::TapGuard,
     agg_desc: arc::Retained<cf::DictionaryOf<cf::String, cf::Type>>,
 }
 
-#[cfg(target_os = "macos")]
 pub struct SpeakerStream {
     receiver: std::pin::Pin<Box<dyn futures_core::Stream<Item = f32> + Send + Sync>>,
     #[allow(unused)]

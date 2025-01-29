@@ -38,9 +38,8 @@
       "command": "rustfmt --edition 2021",
       "exts": ["rs"]
     }, {
-      "command": "swift-format format -i {{file_path}}",
-      "exts": ["swift"],
-      "stdin": false
+      "command": "swift-format format",
+      "exts": ["swift"]
     }]
   },
   "plugins": [

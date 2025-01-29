@@ -10102,6 +10102,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "swift-rs"
+version = "1.0.7"
+source = "git+https://github.com/guillemcordoba/swift-rs?rev=01980f981bc642a6da382cc0788f18fdd4cde6df#01980f981bc642a6da382cc0788f18fdd4cde6df"
+dependencies = [
+ "base64 0.21.7",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "symphonia"
 version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10426,7 +10436,7 @@ dependencies = [
  "serde_repr",
  "serialize-to-javascript",
  "specta",
- "swift-rs",
+ "swift-rs 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "tauri-build",
  "tauri-macros",
  "tauri-runtime",
@@ -10665,7 +10675,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_repr",
- "swift-rs",
+ "swift-rs 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "tauri",
  "tauri-plugin",
  "thiserror 2.0.11",
@@ -10941,7 +10951,7 @@ dependencies = [
  "serde-untagged",
  "serde_json",
  "serde_with 3.12.0",
- "swift-rs",
+ "swift-rs 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror 2.0.11",
  "toml 0.8.19",
  "url",
@@ -10969,6 +10979,13 @@ dependencies = [
  "quick-xml 0.31.0",
  "windows 0.56.0",
  "windows-version",
+]
+
+[[package]]
+name = "tcc"
+version = "0.1.0"
+dependencies = [
+ "swift-rs 1.0.7 (git+https://github.com/guillemcordoba/swift-rs?rev=01980f981bc642a6da382cc0788f18fdd4cde6df)",
 ]
 
 [[package]]

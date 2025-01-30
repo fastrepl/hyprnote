@@ -34,7 +34,6 @@ tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-http = "2"
-tauri-plugin-log = "2"
 tauri-plugin-notification = { version = "2", features = ["windows7-compat"] }
 tauri-plugin-os = "2"
 tauri-plugin-positioner = { version = "2", features = ["tray-icon"] }
@@ -45,19 +44,25 @@ tauri-plugin-store = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-window-state = "2"
 
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+
 specta = { workspace = true }
 specta-typescript = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 anyhow = { workspace = true }
-bytes = { workspace = true }
-chrono = { workspace = true }
-codes-iso-639 = { workspace = true }
-dotenvy_macro = { workspace = true }
+thiserror = { workspace = true }
+
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-thiserror = { workspace = true }
+
+chrono = { workspace = true }
 time = { workspace = true }
+
+bytes = { workspace = true }
+codes-iso-639 = { workspace = true }
+dotenvy_macro = { workspace = true }
 uuid = { workspace = true }
 
 futures-core = { workspace = true }

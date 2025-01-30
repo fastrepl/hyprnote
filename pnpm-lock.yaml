@@ -147,9 +147,6 @@ importers:
       '@tauri-apps/plugin-http':
         specifier: ^2.3.0
         version: 2.3.0
-      '@tauri-apps/plugin-log':
-        specifier: ^2.2.1
-        version: 2.2.1
       '@tauri-apps/plugin-notification':
         specifier: ^2.2.1
         version: 2.2.1
@@ -2279,9 +2276,6 @@ packages:
 
   '@tauri-apps/plugin-http@2.3.0':
     resolution: {integrity: sha512-pigTvz+zzAqbIhCzRiR1GE98Jw7A03j2V+Eiexr9thBI8VfMiwFQMcbgON51xlwnVaI72LdbYKNajU84im8tlg==}
-
-  '@tauri-apps/plugin-log@2.2.1':
-    resolution: {integrity: sha512-bOz9w0hhlXLGLc1ZR37GqkXvTqkykl4A3GEKLjRIs0dq3n0BzLyoRDMPcpt7PdUHqaq6WISME+zEX2bqjSbJ2A==}
 
   '@tauri-apps/plugin-notification@2.2.1':
     resolution: {integrity: sha512-QF8Zod6XDhxD6xkD5nU/BjbOpJ6+3gxGCrVULOdLpvMuMSN2Z2IdObV/qgnrEJk1UamUCF1ClQUqNCbk4zTJNQ==}
@@ -6536,10 +6530,6 @@ snapshots:
       '@tauri-apps/api': 2.2.0
 
   '@tauri-apps/plugin-http@2.3.0':
-    dependencies:
-      '@tauri-apps/api': 2.2.0
-
-  '@tauri-apps/plugin-log@2.2.1':
     dependencies:
       '@tauri-apps/api': 2.2.0
 

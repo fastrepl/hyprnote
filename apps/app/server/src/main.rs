@@ -72,17 +72,16 @@ fn main() {
 
             Registry::default()
                 .with(
-                    tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-                        [
-                            &format!("{}=debug", env!("CARGO_CRATE_NAME")),
-                            "tower_http=debug",
-                            "axum::rejection=trace",
-                            "tungstenite=info",
-                            "tokio_tungstenite=info",
-                        ]
-                        .join(",")
-                        .into()
-                    }),
+                    tracing_subscriber::EnvFilter::from_default_env()
+                        .add_directive(
+                            format!("{}=debug", env!("CARGO_CRATE_NAME"))
+                                .parse()
+                                .unwrap(),
+                        )
+                        .add_directive("tower_http=debug".parse().unwrap())
+                        .add_directive("axum::rejection=trace".parse().unwrap())
+                        .add_directive("tungstenite=info".parse().unwrap())
+                        .add_directive("tokio_tungstenite=info".parse().unwrap()),
                 )
                 .with(layer)
                 .init();

@@ -20,6 +20,24 @@ pub struct App {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(debug_assertions)]
+    {
+        let writer = std::io::stderr;
+
+        tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::DEBUG)
+            .with_target(false)
+            .with_writer(writer)
+            .with_env_filter(
+                tracing_subscriber::EnvFilter::from_default_env().add_directive(
+                    format!("{}=debug", env!("CARGO_CRATE_NAME"))
+                        .parse()
+                        .unwrap(),
+                ),
+            )
+            .init();
+    }
+
     let client = tauri_plugin_sentry::sentry::init((
         option_env!("SENTRY_DSN").unwrap_or_default(),
         tauri_plugin_sentry::sentry::ClientOptions {
@@ -31,7 +49,7 @@ pub fn run() {
 
     let _guard = tauri_plugin_sentry::minidump::init(&client);
 
-    let mut builder = tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_sentry::init(&client))
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
@@ -52,24 +70,6 @@ pub fn run() {
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             ShowHyprWindow::MainWithoutDemo.show(app).unwrap();
         }));
-
-    {
-        builder = builder.plugin(
-            tauri_plugin_log::Builder::new()
-                .target({
-                    #[cfg(debug_assertions)]
-                    {
-                        tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout)
-                    }
-
-                    #[cfg(not(debug_assertions))]
-                    {
-                        tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::File)
-                    }
-                })
-                .build(),
-        );
-    }
 
     let specta_builder = tauri_specta::Builder::new()
         .commands(tauri_specta::collect_commands![

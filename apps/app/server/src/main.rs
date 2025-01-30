@@ -21,6 +21,7 @@ use axum::{
 use tower_http::{
     services::{ServeDir, ServeFile},
     timeout::TimeoutLayer,
+    trace::TraceLayer,
 };
 
 use clerk_rs::{
@@ -51,15 +52,40 @@ fn main() {
         .build()
         .unwrap()
         .block_on(async {
-            let axiom_layer = tracing_axiom::builder("hyprnote-server")
-                .with_token(get_env("AXIOM_TOKEN"))
-                .unwrap()
-                .with_dataset(get_env("AXIOM_DATASET"))
-                .unwrap()
-                .build()
-                .unwrap();
+            let layer = {
+                #[cfg(debug_assertions)]
+                {
+                    tracing_subscriber::fmt::layer()
+                }
 
-            Registry::default().with(axiom_layer).init();
+                #[cfg(not(debug_assertions))]
+                {
+                    tracing_axiom::builder("hyprnote-server")
+                        .with_token(get_env("AXIOM_TOKEN"))
+                        .unwrap()
+                        .with_dataset(get_env("AXIOM_DATASET"))
+                        .unwrap()
+                        .build()
+                        .unwrap()
+                }
+            };
+
+            Registry::default()
+                .with(
+                    tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                        [
+                            &format!("{}=debug", env!("CARGO_CRATE_NAME")),
+                            "tower_http=debug",
+                            "axum::rejection=trace",
+                            "tungstenite=info",
+                            "tokio_tungstenite=info",
+                        ]
+                        .join(",")
+                        .into()
+                    }),
+                )
+                .with(layer)
+                .init();
 
             let turso = hypr_turso::TursoClient::builder()
                 .api_key(get_env("TURSO_API_KEY"))
@@ -206,7 +232,8 @@ fn main() {
                 .nest("/api/native", native_router)
                 .nest("/api/web", web_router)
                 .nest("/webhook", webhook_router)
-                .with_state(state.clone());
+                .with_state(state.clone())
+                .layer(TraceLayer::new_for_http());
 
             {
                 router = router.fallback_service({

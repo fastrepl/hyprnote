@@ -10,7 +10,7 @@ use axum::{
 use bytes::Bytes;
 use futures_util::{SinkExt, StreamExt};
 
-use hypr_bridge::{ListenInputChunk, ListenOutputChunk, TranscribeOutputChunk};
+use hypr_bridge::{ListenInputChunk, ListenOutputChunk};
 use hypr_stt::realtime::RealtimeSpeechToText;
 
 use super::Params;
@@ -53,24 +53,25 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
         },
     ));
 
-    let diarize_stream = Box::pin(futures_util::stream::try_unfold(
-        rx_diarize,
-        |mut rx| async move {
-            match rx.recv().await {
-                Ok(audio) => Ok::<Option<(Bytes, _)>, std::io::Error>(Some((audio, rx))),
-                Err(_) => Ok::<Option<(Bytes, _)>, std::io::Error>(None),
-            }
-        },
-    ));
+    // let diarize_stream = Box::pin(futures_util::stream::try_unfold(
+    //     rx_diarize,
+    //     |mut rx| async move {
+    //         match rx.recv().await {
+    //             Ok(audio) => Ok::<Option<(Bytes, _)>, std::io::Error>(Some((audio, rx))),
+    //             Err(_) => Ok::<Option<(Bytes, _)>, std::io::Error>(None),
+    //         }
+    //     },
+    // ));
 
     let task = async {
         let mut transcript_stream = stt.transcribe(transcribe_stream).await.unwrap();
-        let mut diarization_stream =
-            Box::pin(state.diarize.from_audio(diarize_stream).await.unwrap());
+        // let mut diarization_stream =
+        //     Box::pin(state.diarize.from_audio(diarize_stream).await.unwrap());
 
         loop {
             tokio::select! {
                 result = transcript_stream.next() => {
+                    println!("result: {:?}", result);
                     if let Some(result) = result {
                         let data = ListenOutputChunk::Transcribe(result.unwrap().into());
 
@@ -82,17 +83,17 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
                         break;
                     }
                 }
-                result = diarization_stream.next() => {
-                    if let Some(output) = result {
-                        let data = ListenOutputChunk::Diarize(output);
-                        let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
-                        if ws_sender.send(msg).await.is_err() {
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
-                }
+                // result = diarization_stream.next() => {
+                //     if let Some(output) = result {
+                //         let data = ListenOutputChunk::Diarize(output);
+                //         let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
+                //         if ws_sender.send(msg).await.is_err() {
+                //             break;
+                //         }
+                //     } else {
+                //         break;
+                //     }
+                // }
                 else => break,
             }
         }

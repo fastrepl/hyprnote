@@ -21,19 +21,19 @@ hypr-stt = { path = "../../../crates/stt", package = "stt", features = ["realtim
 hypr-turso = { path = "../../../crates/turso", package = "turso" }
 
 async-stream = { workspace = true }
-axum = { version = "0.8.1", features = ["ws", "multipart"] }
-axum-proxy = "0.3.0"
-
 futures-core = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+axum = { version = "0.8.1", features = ["ws", "multipart", "tracing"] }
+axum-proxy = "0.3.0"
 tower = "0.5.2"
-tower-http = { version = "0.6.2", features = ["fs", "timeout"] }
+tower-http = { version = "0.6.2", features = ["fs", "timeout", "trace"] }
 
 sentry = { workspace = true }
 tracing = { workspace = true }
 tracing-axiom = "0.7.0"
-tracing-subscriber = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
 
 anyhow = { workspace = true }
 bytes = { workspace = true }

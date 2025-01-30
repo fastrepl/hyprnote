@@ -17,10 +17,16 @@ pub async fn handler(
             ..input.as_openai_request().unwrap()
         })
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .map_err(|e| {
+            tracing::error!("Error creating title: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?
         .json::<hypr_bridge::CreateTitleResponse>()
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|e| {
+            tracing::error!("Error creating title: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
     Ok(Json(response))
 }

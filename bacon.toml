@@ -1,6 +1,9 @@
 # https://dystroy.org/bacon/config/
 # https://github.com/Canop/bacon/blob/main/defaults/default-bacon.toml
 
+[keybindings]
+shift-g = "scroll-to-bottom"
+
 [jobs.app]
 command = [
   "cargo",

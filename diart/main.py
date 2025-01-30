@@ -2,10 +2,11 @@ import modal
 import numpy as np
 
 from pydantic import BaseModel
-from typing import Annotated, Union, Tuple
+from typing import Union, Tuple
 import asyncio
 import queue
 import json
+import os
 
 from fastapi import (
     FastAPI,
@@ -37,6 +38,12 @@ def get_logger():
     return structlog.get_logger()
 
 
+EMBEDDING_MODEL_REPO_ID = "nvidia/speakerverification_en_titanet_large"
+SEGMENTATION_MODEL_REPO_ID = "pyannote/segmentation-3.0"
+MODEL_DIR = "/cache"
+
+cache_volume = modal.Volume.from_name("hf-hub-cache", create_if_missing=True)
+
 image = (
     modal.Image.micromamba(python_version="3.10")
     .micromamba_install(
@@ -58,6 +65,7 @@ image = (
             "huggingface-hub",
         ]
     )
+    # .env({"HF_HUB_CACHE": MODEL_DIR})
 )
 
 
@@ -86,14 +94,14 @@ async def diarize(
     # credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
     sample_rate: int,
 ):
-    logger = get_logger()
-    # import os
-
     # if credentials.credentials != os.getenv("HYPRNOTE_API_KEY"):
     #     raise HTTPException(status_code=401)
 
+    logger = get_logger()
+
     from pyannote.core import Annotation
     from diart import SpeakerDiarizationConfig, SpeakerDiarization
+    from diart import models
     from diart.sources import AudioSource
     from diart.inference import StreamingInference
     from reactivex.observer import Observer
@@ -122,15 +130,17 @@ async def diarize(
                     chunk = self.buffer.get(block=True, timeout=15)
                     if chunk is not None:
                         self.stream.on_next(chunk)
+                except queue.Empty:
+                    self.stream.on_completed()
+                    break
                 except Exception as e:
                     logger.error(e)
                     self.stream.on_error(e)
                     break
-            self.stream.on_completed()
 
         def close(self):
             self.is_closed = True
-            asyncio.create_task(self.websocket.close())
+            self.stream.on_completed()
 
     # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/sinks.py
     # https://github.com/pyannote/pyannote-core/blob/develop/pyannote/core/annotation.py
@@ -142,10 +152,7 @@ async def diarize(
             self.patch_collar = 1
             self._prediction = None
             self._sent_segments = set()
-            try:
-                self.loop = asyncio.get_running_loop()
-            except RuntimeError:
-                self.loop = asyncio.get_event_loop()
+            self.loop = asyncio.get_running_loop()
 
         def _extract_prediction(self, value: Union[Tuple, Annotation]) -> Annotation:
             if isinstance(value, tuple):
@@ -168,12 +175,9 @@ async def diarize(
                     self._sent_segments.add(segment_key)
                     data = item.model_dump_json()
 
-                    try:
-                        asyncio.run_coroutine_threadsafe(
-                            self.websocket.send_text(data), self.loop
-                        )
-                    except Exception as e:
-                        logger.error(e)
+                    asyncio.run_coroutine_threadsafe(
+                        self.websocket.send_text(data), self.loop
+                    )
 
         def on_next(self, value: Union[Tuple, Annotation]):
             prediction = self._extract_prediction(value)
@@ -193,13 +197,32 @@ async def diarize(
 
     source = Source(websocket)
     sender = Sender(websocket)
+    # segmentation = models.SegmentationModel.from_pretrained(SEGMENTATION_MODEL_REPO_ID)
+    # embedding = models.EmbeddingModel.from_pretrained(EMBEDDING_MODEL_REPO_ID)
 
+    # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/console/serve.py
     # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/blocks/diarization.py
-    config = SpeakerDiarizationConfig(duration=5, step=1)
+    config = SpeakerDiarizationConfig(
+        # segmentation=segmentation,
+        # embedding=embedding,
+        duration=5,
+        step=1,
+    )
     pipeline = SpeakerDiarization(config)
-    inference = StreamingInference(pipeline, source, show_progress=False)
+    inference = StreamingInference(
+        pipeline,
+        source,
+        batch_size=1,
+        do_profile=True,
+        do_plot=False,
+        show_progress=False,
+    )
     inference.attach_observers(sender)
-    asyncio.create_task(asyncio.to_thread(inference))
+
+    async def run_inference():
+        await asyncio.to_thread(inference.__call__)
+
+    inference_task = asyncio.create_task(run_inference())
 
     while True:
         try:
@@ -211,13 +234,40 @@ async def diarize(
             logger.error(e)
             break
 
+    await inference_task
+
+    try:
+        await websocket.close()
+    except:
+        pass
+
 
 @web_app.get("/health")
 async def health():
     return {"status": "ok"}
 
 
-@app.function(allow_concurrent_inputs=10, container_idle_timeout=30)
+@app.function(
+    volumes={MODEL_DIR: cache_volume},
+    allow_concurrent_inputs=10,
+    container_idle_timeout=30,
+    # gpu="T4",
+)
 @modal.asgi_app()
 def main():
     return web_app
+
+
+# @app.function(volumes={MODEL_DIR: cache_volume})
+# def download_model():
+#     import huggingface_hub
+
+#     loc = huggingface_hub.snapshot_download(
+#         repo_id=EMBEDDING_MODEL_REPO_ID, token=os.getenv("HF_TOKEN")
+#     )
+#     print(f"Saved model to {loc}")
+
+#     loc = huggingface_hub.snapshot_download(
+#         repo_id=SEGMENTATION_MODEL_REPO_ID, token=os.getenv("HF_TOKEN")
+#     )
+#     print(f"Saved model to {loc}")

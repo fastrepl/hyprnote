@@ -14,6 +14,7 @@ pydantic = "^2.10.6"
 reactivex = "^4.0.4"
 axiom-py = "^0.8.1"
 structlog = "^25.1.0"
+huggingface-hub = "^0.28.0"
 
 [build-system]
 requires = ["poetry-core"]

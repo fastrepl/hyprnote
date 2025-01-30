@@ -114,12 +114,20 @@ mod tests {
                 buf.put_i16_le(sample);
             }
 
+            // TODO: current implementation close the connection once we send all
+            std::thread::sleep(Duration::from_millis(100));
+
             Ok::<bytes::Bytes, std::io::Error>(buf.freeze())
         }));
 
+        let mut results = Vec::<(u64, DiarizeOutputChunk)>::new();
+        let started = std::time::Instant::now();
+
         let mut diarize_stream = Box::pin(client.from_audio(bytes_stream).await.unwrap());
         while let Some(item) = diarize_stream.next().await {
-            println!("{:?}", item);
+            results.push((started.elapsed().as_secs(), item));
         }
+
+        println!("{:?}", results);
     }
 }

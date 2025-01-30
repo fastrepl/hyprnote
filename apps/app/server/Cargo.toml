@@ -15,7 +15,6 @@ hypr-db = { path = "../../../crates/db", package = "db", features = ["admin", "u
 hypr-nango = { path = "../../../crates/nango", package = "nango" }
 hypr-openai = { path = "../../../crates/openai", package = "openai" }
 hypr-prompt = { path = "../../../crates/prompt", package = "prompt" }
-hypr-pyannote = { path = "../../../crates/pyannote", package = "pyannote", features = ["cloud"] }
 hypr-s3 = { path = "../../../crates/s3", package = "s3" }
 hypr-stt = { path = "../../../crates/stt", package = "stt", features = ["realtime", "recorded"] }
 hypr-turso = { path = "../../../crates/turso", package = "turso" }
@@ -52,4 +51,6 @@ specta-util = { workspace = true }
 
 apalis = { workspace = true, features = ["sentry", "limit"] }
 apalis-cron = { workspace = true }
+
+async-stripe = { version = "0.39.1", default-features = false, features = ["runtime-tokio-hyper", "billing"] }
 clerk-rs = { git = "https://github.com/DarrenBaldwin07/clerk-rs", rev = "6f1d312", features = ["axum"] }

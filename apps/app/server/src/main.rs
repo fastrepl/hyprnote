@@ -159,10 +159,6 @@ fn main() {
                 .api_base(get_env("OPENAI_API_BASE"))
                 .build();
 
-            let pyannote = hypr_pyannote::cloud::PyannoteClient::builder()
-                .api_key(get_env("PYANNOTE_API_KEY"))
-                .build();
-
             let state = state::AppState {
                 clerk: clerk.clone(),
                 realtime_stt,
@@ -174,7 +170,6 @@ fn main() {
                 analytics,
                 s3,
                 openai,
-                pyannote,
             };
 
             let web_router = Router::new()

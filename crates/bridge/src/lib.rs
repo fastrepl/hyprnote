@@ -1,7 +1,9 @@
 pub mod enhance;
+mod timeline;
 mod types;
 mod websocket;
 
+pub use timeline::*;
 pub use types::*;
 pub use websocket::*;
 

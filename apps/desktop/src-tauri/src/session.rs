@@ -1,11 +1,14 @@
 use futures_util::StreamExt;
+
 use hypr_audio::AsyncSource;
 use hypr_audio::Sample;
+use hypr_bridge::Timeline;
 
 pub struct SessionState {
     audio_handle: Option<tauri::async_runtime::JoinHandle<()>>,
     transcript_handle: Option<tauri::async_runtime::JoinHandle<()>>,
     shutdown: Option<tokio::sync::oneshot::Sender<()>>,
+    timeline: Timeline,
 }
 
 impl SessionState {
@@ -14,6 +17,7 @@ impl SessionState {
             audio_handle: None,
             transcript_handle: None,
             shutdown: None,
+            timeline: Timeline::default(),
         })
     }
 

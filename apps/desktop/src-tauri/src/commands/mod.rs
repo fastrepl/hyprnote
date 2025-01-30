@@ -35,7 +35,7 @@ pub fn list_builtin_templates() -> Vec<hypr_db::user::Template> {
 pub async fn start_session<'a>(
     app_handle: tauri::AppHandle,
     session: State<'_, tokio::sync::Mutex<SessionState>>,
-    on_event: Channel<Vec<f32>>,
+    on_event: Channel<hypr_bridge::ListenOutputChunk>,
 ) -> Result<(), String> {
     let app_dir = app_handle.path().app_data_dir().unwrap();
     {

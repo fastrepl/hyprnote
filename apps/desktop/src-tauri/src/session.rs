@@ -21,7 +21,7 @@ impl SessionState {
         &mut self,
         app_dir: std::path::PathBuf,
         session_id: String,
-        channel: tauri::ipc::Channel<Vec<f32>>,
+        channel: tauri::ipc::Channel<hypr_bridge::ListenOutputChunk>,
     ) -> anyhow::Result<()> {
         let mut mic_stream = {
             let source = hypr_audio::MicInput::default();
@@ -61,12 +61,11 @@ impl SessionState {
                 .language(codes_iso_639::part_1::LanguageCode::En)
                 .build();
 
-            let transcript_stream = client.from_audio(ws_stream).await.unwrap();
-            futures_util::pin_mut!(transcript_stream);
+            let listen_stream = client.from_audio(ws_stream).await.unwrap();
+            futures_util::pin_mut!(listen_stream);
 
-            while let Some(transcript) = transcript_stream.next().await {
-                println!("Transcript: {:?}", transcript);
-                // channel.send(vec![]).await?;
+            while let Some(listen_output) = listen_stream.next().await {
+                channel.send(listen_output).unwrap();
             }
         });
 

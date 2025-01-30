@@ -11,7 +11,7 @@ export const commands = {
   async getFingerprint(): Promise<string> {
     return await TAURI_INVOKE("get_fingerprint");
   },
-  async startSession(onEvent: TAURI_CHANNEL<number[]>): Promise<null> {
+  async startSession(onEvent: TAURI_CHANNEL<ListenOutputChunk>): Promise<null> {
     return await TAURI_INVOKE("start_session", { onEvent });
   },
   async stopSession(): Promise<null> {
@@ -134,6 +134,11 @@ export type ConversationChunk = {
   diarizations: DiarizationBlock[];
 };
 export type DiarizationBlock = { start: number; end: number; label: string };
+export type DiarizeOutputChunk = {
+  speaker: string;
+  start: number;
+  end: number;
+};
 export type EnhanceRequest = {
   pre_meeting_editor: string;
   in_meeting_editor: string;
@@ -155,6 +160,9 @@ export type Event = {
   end_date: string;
   google_event_url: string | null;
 };
+export type ListenOutputChunk =
+  | { Transcribe: TranscribeOutputChunk }
+  | { Diarize: DiarizeOutputChunk };
 export type OSPermission =
   | "calendar"
   | "contacts"
@@ -192,6 +200,11 @@ export type Template = {
   sections: TemplateSection[];
 };
 export type TemplateSection = { title: string; description: string };
+export type TranscribeOutputChunk = {
+  start: number;
+  end: number;
+  text: string;
+};
 export type TranscriptBlock = { start: number; end: number; text: string };
 
 /** tauri-specta globals **/

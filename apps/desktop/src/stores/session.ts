@@ -2,7 +2,8 @@ import { createStore } from "zustand";
 import { create as mutate } from "mutative";
 import { Channel } from "@tauri-apps/api/core";
 
-import { commands, type Session } from "@/types/tauri.gen";
+import { commands } from "@/types/tauri.gen";
+import type { ListenOutputChunk, Session } from "@/types/tauri.gen";
 
 type State = {
   channel: Channel<any> | null;
@@ -51,7 +52,7 @@ export const createSessionStore = (session: Session) => {
       );
     },
     start: () => {
-      const channel = new Channel<any>();
+      const channel = new Channel<ListenOutputChunk>();
       channel.onmessage = (event) => {
         console.log(event);
       };

@@ -4,7 +4,7 @@ use futures_util::StreamExt;
 use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 
 use super::{WebSocketClient, WebSocketIO};
-use crate::{DiarizeOutputChunk, TranscribeInputChunk, TranscribeOutputChunk};
+use crate::{ListenInputChunk, ListenOutputChunk};
 use hypr_audio::AsyncSource;
 
 #[derive(Default)]
@@ -71,11 +71,11 @@ pub struct ListenClient {
 }
 
 impl WebSocketIO for ListenClient {
-    type Input = TranscribeInputChunk;
-    type Output = TranscribeOutputChunk;
+    type Input = ListenInputChunk;
+    type Output = ListenOutputChunk;
 
     fn create_input(data: bytes::Bytes) -> Self::Input {
-        TranscribeInputChunk {
+        ListenInputChunk {
             audio: data.to_vec(),
         }
     }
@@ -89,7 +89,7 @@ impl ListenClient {
     pub async fn from_audio(
         &self,
         audio_stream: impl AsyncSource + Send + Unpin + 'static,
-    ) -> Result<impl Stream<Item = TranscribeOutputChunk>, crate::Error> {
+    ) -> Result<impl Stream<Item = ListenOutputChunk>, crate::Error> {
         let processed_stream = audio_stream.resample(16 * 1000).chunks(1024).map(|chunk| {
             let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
             for sample in chunk {

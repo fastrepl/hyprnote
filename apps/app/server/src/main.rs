@@ -1,8 +1,9 @@
 mod middleware;
+mod nango;
 mod native;
 mod state;
+mod stripe;
 mod web;
-mod webhook;
 mod worker;
 
 use std::{
@@ -229,7 +230,9 @@ fn main() {
             //         .layer(axum::middleware::from_fn(middleware::attach_user_db)),
             // );
 
-            let webhook_router = Router::new().route("/nango", post(webhook::nango::handler));
+            let webhook_router = Router::new()
+                .route("/nango", post(nango::handler))
+                .route("/stripe", post(stripe::handler));
 
             let mut router = Router::new()
                 .route("/health", get(|| async { (StatusCode::OK, "OK") }))

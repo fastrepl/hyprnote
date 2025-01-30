@@ -52,5 +52,5 @@ specta-util = { workspace = true }
 apalis = { workspace = true, features = ["sentry", "limit"] }
 apalis-cron = { workspace = true }
 
-async-stripe = { version = "0.39.1", default-features = false, features = ["runtime-tokio-hyper", "billing"] }
+async-stripe = { version = "0.39.1", default-features = false, features = ["runtime-tokio-hyper", "webhook-events", "checkout", "connect"] }
 clerk-rs = { git = "https://github.com/DarrenBaldwin07/clerk-rs", rev = "6f1d312", features = ["axum"] }

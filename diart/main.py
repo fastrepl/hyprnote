@@ -119,7 +119,7 @@ async def diarize(
             msg = await self.websocket.receive_text()
             if msg is not None:
                 data = json.loads(msg)["audio"]
-                data = np.array(data, dtype=np.int16)
+                data = np.frombuffer(bytes(data), dtype=np.int16)
                 data = (data / 32768.0).astype(np.float32)
                 data = np.array(data, dtype=np.float32).reshape(1, -1)
                 self.buffer.put(data)
@@ -251,7 +251,7 @@ async def health():
     volumes={MODEL_DIR: cache_volume},
     allow_concurrent_inputs=10,
     container_idle_timeout=30,
-    # gpu="T4",
+    # gpu="A10G",
 )
 @modal.asgi_app()
 def main():

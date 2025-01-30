@@ -1,7 +1,7 @@
 use serde_json::Value;
 use std::collections::HashMap;
 
-use hypr_db::user::{DiarizationBlock, Event, Participant, TranscriptBlock};
+use hypr_db::user::{DiarizationBlock, TranscriptBlock};
 
 fn get_arg<T: serde::de::DeserializeOwned>(
     args: &HashMap<String, Value>,

@@ -71,6 +71,16 @@ pub struct CreateTitleResponse {
     pub title: String,
 }
 
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct PostprocessEnhanceRequest {
+    pub editor: String,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct PostprocessEnhanceResponse {
+    pub editor: String,
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("unknown error")]

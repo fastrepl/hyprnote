@@ -7,6 +7,7 @@ mod testers;
 
 pub mod create_title;
 pub mod enhance;
+pub mod postprocess_enhance;
 
 use tera::Context;
 use tera::Tera;
@@ -47,16 +48,20 @@ pub enum Error {
 }
 
 pub enum Template {
+    Preview,
     CreateTitleSystem,
     CreateTitleUser,
     EnhanceSystem,
     EnhanceUser,
-    Preview,
+    PostprocessEnhanceSystem,
+    PostprocessEnhanceUser,
 }
 
 impl std::fmt::Display for Template {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Template::PostprocessEnhanceSystem => write!(f, "postprocess_enhance.system.jinja"),
+            Template::PostprocessEnhanceUser => write!(f, "postprocess_enhance.user.jinja"),
             Template::CreateTitleSystem => write!(f, "create_title.system.jinja"),
             Template::CreateTitleUser => write!(f, "create_title.user.jinja"),
             Template::EnhanceSystem => write!(f, "enhance.system.jinja"),

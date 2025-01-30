@@ -206,6 +206,16 @@ fn main() {
                     post(native::create_title::handler)
                         .layer(TimeoutLayer::new(Duration::from_secs(10))),
                 )
+                .route(
+                    "/summarize_transcript",
+                    post(native::summarize_transcript::handler)
+                        .layer(TimeoutLayer::new(Duration::from_secs(10))),
+                )
+                .route(
+                    "/postprocess_enhance",
+                    post(native::postprocess_enhance::handler)
+                        .layer(TimeoutLayer::new(Duration::from_secs(10))),
+                )
                 .route("/listen/realtime", get(native::listen::realtime::handler))
                 .route("/listen/recorded", post(native::listen::recorded::handler))
                 .route("/user/integrations", get(native::user::list_integrations))

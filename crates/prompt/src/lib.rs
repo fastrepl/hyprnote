@@ -8,6 +8,7 @@ mod testers;
 pub mod create_title;
 pub mod enhance;
 pub mod postprocess_enhance;
+pub mod summarize_transcript;
 
 use tera::Context;
 use tera::Tera;
@@ -55,11 +56,15 @@ pub enum Template {
     EnhanceUser,
     PostprocessEnhanceSystem,
     PostprocessEnhanceUser,
+    SummarizeTranscriptSystem,
+    SummarizeTranscriptUser,
 }
 
 impl std::fmt::Display for Template {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Template::SummarizeTranscriptSystem => write!(f, "summarize_transcript.system.jinja"),
+            Template::SummarizeTranscriptUser => write!(f, "summarize_transcript.user.jinja"),
             Template::PostprocessEnhanceSystem => write!(f, "postprocess_enhance.system.jinja"),
             Template::PostprocessEnhanceUser => write!(f, "postprocess_enhance.user.jinja"),
             Template::CreateTitleSystem => write!(f, "create_title.system.jinja"),

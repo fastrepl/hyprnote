@@ -8,8 +8,8 @@ use crate::state::AppState;
 
 pub async fn handler(
     State(state): State<AppState>,
-    Json(input): Json<hypr_bridge::CreateTitleRequest>,
-) -> Result<Json<hypr_bridge::CreateTitleResponse>, StatusCode> {
+    Json(input): Json<hypr_bridge::SummarizeTranscriptRequest>,
+) -> Result<Json<hypr_bridge::SummarizeTranscriptResponse>, StatusCode> {
     let response = state
         .openai
         .chat_completion(&CreateChatCompletionRequest {
@@ -18,13 +18,13 @@ pub async fn handler(
         })
         .await
         .map_err(|e| {
-            tracing::error!("create_title: {}", e);
+            tracing::error!("summarize_transcript: {}", e);
             StatusCode::INTERNAL_SERVER_ERROR
         })?
         .json()
         .await
         .map_err(|e| {
-            tracing::error!("create_title: {}", e);
+            tracing::error!("summarize_transcript: {}", e);
             StatusCode::INTERNAL_SERVER_ERROR
         })?;
 

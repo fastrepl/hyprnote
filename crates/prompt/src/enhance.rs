@@ -1,4 +1,3 @@
-#![allow(unused)]
 type Input = hypr_bridge::EnhanceRequest;
 
 impl crate::OpenAIRequest for Input {

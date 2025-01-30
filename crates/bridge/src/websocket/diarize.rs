@@ -94,7 +94,7 @@ mod tests {
     #[tokio::test]
     async fn test_diarize() {
         let client = DiarizeClient::builder()
-            .api_base("https://fastrepl--hyprnote-diart-main-dev.modal.run")
+            .api_base("https://fastrepl--hyprnote-diart-server-serve-dev.modal.run")
             .api_key("TODO")
             .sample_rate(16000)
             .build();

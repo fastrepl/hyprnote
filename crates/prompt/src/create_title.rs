@@ -26,6 +26,23 @@ impl crate::OpenAIRequest for Input {
                     .unwrap()
                     .into(),
             ],
+            response_format: Some(hypr_openai::ResponseFormat::JsonSchema {
+                json_schema: hypr_openai::ResponseFormatJsonSchema {
+                    strict: Some(true),
+                    name: "title".to_string(),
+                    description: None,
+                    schema: Some(serde_json::json!({
+                        "type": "object",
+                        "properties": {
+                            "title": {
+                                "type": "string"
+                            }
+                        },
+                        "required": ["title"],
+                        "additionalProperties": false
+                    })),
+                },
+            }),
             temperature: Some(0.1),
             stream: Some(false),
             ..Default::default()

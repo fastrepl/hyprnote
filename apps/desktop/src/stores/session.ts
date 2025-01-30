@@ -2,14 +2,10 @@ import { createStore } from "zustand";
 import { create as mutate } from "mutative";
 import { Channel } from "@tauri-apps/api/core";
 
-import {
-  commands,
-  type Session,
-  type TranscribeOutputChunk,
-} from "@/types/tauri.gen";
+import { commands, type Session } from "@/types/tauri.gen";
 
 type State = {
-  channel: Channel<TranscribeOutputChunk> | null;
+  channel: Channel<any> | null;
   listening: boolean;
   session: Session;
 };
@@ -55,21 +51,9 @@ export const createSessionStore = (session: Session) => {
       );
     },
     start: () => {
-      const channel = new Channel<TranscribeOutputChunk>();
+      const channel = new Channel<any>();
       channel.onmessage = (event) => {
-        set((state) =>
-          mutate(state, (draft) => {
-            if (!draft.session.transcript) {
-              draft.session.transcript = { blocks: [] };
-            }
-
-            draft.session.transcript.blocks.push({
-              start: 0,
-              end: 0,
-              text: event.text,
-            });
-          }),
-        );
+        console.log(event);
       };
 
       commands.startSession(channel);

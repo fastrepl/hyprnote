@@ -2,11 +2,12 @@ import modal
 import numpy as np
 
 from pydantic import BaseModel
-from typing import Union, Tuple
+from typing import Union, Tuple, Any
 import asyncio
 import queue
 import json
 import os
+from pathlib import Path
 
 from fastapi import (
     FastAPI,
@@ -38,13 +39,19 @@ def get_logger():
     return structlog.get_logger()
 
 
-EMBEDDING_MODEL_REPO_ID = "nvidia/speakerverification_en_titanet_large"
+EMBEDDING_MODEL_REPO_ID = "pyannote/embedding"
 SEGMENTATION_MODEL_REPO_ID = "pyannote/segmentation-3.0"
-MODEL_DIR = "/cache"
+MODEL_DIR = Path("/cache")
 
 cache_volume = modal.Volume.from_name("hf-hub-cache", create_if_missing=True)
 
-image = (
+download_image = (
+    modal.Image.debian_slim()
+    .pip_install("huggingface_hub[hf_transfer]")
+    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
+)
+
+inference_image = (
     modal.Image.micromamba(python_version="3.10")
     .micromamba_install(
         [
@@ -65,51 +72,36 @@ image = (
             "huggingface-hub",
         ]
     )
-    # .env({"HF_HUB_CACHE": MODEL_DIR})
+    .env({"HF_HUB_CACHE": "/cache"})
 )
 
 
 app = modal.App(
     name="hyprnote-diart",
-    image=image,
     secrets=[
         modal.Secret.from_name("huggingface"),
         modal.Secret.from_name("hyprnote"),
     ],
 )
 
-web_app = FastAPI()
-security = HTTPBearer()
 
-
-class DiarizationSegment(BaseModel):
-    speaker: str
-    start: float
-    end: float
-
-
-@web_app.websocket("/diarize")
-async def diarize(
-    websocket: WebSocket,
-    # credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
-    sample_rate: int,
-):
-    # if credentials.credentials != os.getenv("HYPRNOTE_API_KEY"):
-    #     raise HTTPException(status_code=401)
-
-    logger = get_logger()
-
+with inference_image.imports():
+    from reactivex.observer import Observer
     from pyannote.core import Annotation
-    from diart import SpeakerDiarizationConfig, SpeakerDiarization
-    from diart import models
+
     from diart.sources import AudioSource
     from diart.inference import StreamingInference
-    from reactivex.observer import Observer
+
+    class DiarizationSegment(BaseModel):
+        speaker: str
+        start: float
+        end: float
 
     # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/sources.py
     class Source(AudioSource):
-        def __init__(self, websocket: WebSocket):
+        def __init__(self, logger: Any, websocket: WebSocket, sample_rate: int):
             super().__init__("websocket_source", sample_rate)
+            self.logger = logger
             self.websocket = websocket
             self.buffer = queue.Queue()
             self.is_closed = False
@@ -119,7 +111,7 @@ async def diarize(
             msg = await self.websocket.receive_text()
             if msg is not None:
                 data = json.loads(msg)["audio"]
-                data = np.array(data, dtype=np.int16)
+                data = np.frombuffer(bytes(data), dtype=np.int16)
                 data = (data / 32768.0).astype(np.float32)
                 data = np.array(data, dtype=np.float32).reshape(1, -1)
                 self.buffer.put(data)
@@ -134,7 +126,6 @@ async def diarize(
                     self.stream.on_completed()
                     break
                 except Exception as e:
-                    logger.error(e)
                     self.stream.on_error(e)
                     break
 
@@ -146,8 +137,9 @@ async def diarize(
     # https://github.com/pyannote/pyannote-core/blob/develop/pyannote/core/annotation.py
     # https://pyannote.github.io/pyannote-core/structure.html
     class Sender(Observer):
-        def __init__(self, websocket: WebSocket):
+        def __init__(self, logger: Any, websocket: WebSocket):
             super().__init__()
+            self.logger = logger
             self.websocket = websocket
             self.patch_collar = 1
             self._prediction = None
@@ -189,85 +181,112 @@ async def diarize(
                     self._prediction.update(prediction)
                 self._prediction = self._prediction.support(self.patch_collar)
             except Exception as e:
-                logger.error(e)
+                self.logger.error(e)
 
             self._process()
 
-    await websocket.accept()
 
-    source = Source(websocket)
-    sender = Sender(websocket)
-    # segmentation = models.SegmentationModel.from_pretrained(SEGMENTATION_MODEL_REPO_ID)
-    # embedding = models.EmbeddingModel.from_pretrained(EMBEDDING_MODEL_REPO_ID)
-
-    # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/console/serve.py
-    # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/blocks/diarization.py
-    config = SpeakerDiarizationConfig(
-        # segmentation=segmentation,
-        # embedding=embedding,
-        duration=5,
-        step=1,
-    )
-    pipeline = SpeakerDiarization(config)
-    inference = StreamingInference(
-        pipeline,
-        source,
-        batch_size=1,
-        do_profile=True,
-        do_plot=False,
-        show_progress=False,
-    )
-    inference.attach_observers(sender)
-
-    async def run_inference():
-        await asyncio.to_thread(inference.__call__)
-
-    inference_task = asyncio.create_task(run_inference())
-
-    while True:
-        try:
-            await source.receive()
-        except WebSocketDisconnect:
-            logger.info("websocket_disconnected")
-            break
-        except Exception as e:
-            logger.error(e)
-            break
-
-    await inference_task
-
-    try:
-        await websocket.close()
-    except:
-        pass
-
-
-@web_app.get("/health")
-async def health():
-    return {"status": "ok"}
-
-
-@app.function(
+@app.cls(
+    image=inference_image,
     volumes={MODEL_DIR: cache_volume},
     allow_concurrent_inputs=10,
     container_idle_timeout=30,
-    # gpu="T4",
+    enable_memory_snapshot=True,
 )
-@modal.asgi_app()
-def main():
-    return web_app
+class Server:
+    def __init__(self):
+        self.logger = get_logger()
+        self.web_app = FastAPI()
+        self.web_app.add_api_route("/", self.health)
+        self.web_app.add_api_websocket_route("/diarize", self.diarize)
+
+    @modal.enter()
+    def setup(self):
+        from diart import models
+        from diart import models, SpeakerDiarizationConfig, SpeakerDiarization
+
+        embedding = models.EmbeddingModel.from_pretrained(EMBEDDING_MODEL_REPO_ID)
+        segmentation = models.SegmentationModel.from_pretrained(
+            SEGMENTATION_MODEL_REPO_ID
+        )
+
+        # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/console/serve.py
+        # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/blocks/diarization.py
+        config = SpeakerDiarizationConfig(
+            segmentation=segmentation,
+            embedding=embedding,
+            duration=5,
+            step=1,
+        )
+        self.pipeline = SpeakerDiarization(config)
+
+    @modal.asgi_app()
+    def serve(self):
+        return self.web_app
+
+    async def health(self):
+        return {"status": "ok"}
+
+    async def diarize(self, websocket: WebSocket):
+        await websocket.accept()
+        self.logger.info("websocket_connected")
+
+        source = Source(
+            logger=self.logger,
+            websocket=websocket,
+            sample_rate=16000,
+        )
+        sender = Sender(
+            logger=self.logger,
+            websocket=websocket,
+        )
+
+        inference = StreamingInference(
+            self.pipeline,
+            source,
+            do_profile=False,
+            do_plot=False,
+            show_progress=False,
+        )
+        inference.attach_observers(sender)
+
+        async def run_inference():
+            await asyncio.to_thread(inference.__call__)
+
+        inference_task = asyncio.create_task(run_inference())
+
+        while True:
+            try:
+                await source.receive()
+            except WebSocketDisconnect:
+                self.logger.info("websocket_disconnected")
+                break
+            except Exception as e:
+                self.logger.error(e)
+                break
+
+        await inference_task
+
+        try:
+            await websocket.close()
+        except:
+            pass
 
 
-# @app.function(volumes={MODEL_DIR: cache_volume})
-# def download_model():
-#     import huggingface_hub
+@app.function(image=download_image, volumes={MODEL_DIR: cache_volume})
+def download_model():
+    from huggingface_hub import snapshot_download
 
-#     loc = huggingface_hub.snapshot_download(
-#         repo_id=EMBEDDING_MODEL_REPO_ID, token=os.getenv("HF_TOKEN")
-#     )
-#     print(f"Saved model to {loc}")
+    loc = snapshot_download(
+        repo_id=EMBEDDING_MODEL_REPO_ID,
+        local_dir=MODEL_DIR / EMBEDDING_MODEL_REPO_ID,
+        token=os.getenv("HF_TOKEN"),
+    )
+    print(f"Saved model to {loc}")
 
-#     loc = huggingface_hub.snapshot_download(
-#         repo_id=SEGMENTATION_MODEL_REPO_ID, token=os.getenv("HF_TOKEN")
-#     )
-#     print(f"Saved model to {loc}")
+    loc = snapshot_download(
+        repo_id=SEGMENTATION_MODEL_REPO_ID,
+        local_dir=MODEL_DIR / SEGMENTATION_MODEL_REPO_ID,
+        token=os.getenv("HF_TOKEN"),
+    )
+    print(f"Saved model to {loc}")

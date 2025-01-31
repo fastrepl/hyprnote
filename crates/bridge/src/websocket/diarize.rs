@@ -34,15 +34,15 @@ impl DiarizeClientBuilder {
             url.set_scheme("wss").unwrap();
             url.set_path("/diarize");
             url.query_pairs_mut()
-                .append_pair("sample_rate", &self.sample_rate.unwrap().to_string());
+                .append_pair("sample_rate", &self.sample_rate.unwrap().to_string())
+                .append_pair("token", &self.api_key.unwrap());
 
             url.to_string().parse().unwrap()
         };
 
-        let request = ClientRequestBuilder::new(uri)
-            .with_header("Authorization", format!("Bearer {}", self.api_key.unwrap()));
-
-        DiarizeClient { request }
+        DiarizeClient {
+            request: ClientRequestBuilder::new(uri),
+        }
     }
 }
 
@@ -94,7 +94,7 @@ mod tests {
     #[tokio::test]
     async fn test_diarize() {
         let client = DiarizeClient::builder()
-            .api_base("https://fastrepl--hyprnote-diart-server-serve-dev.modal.run")
+            .api_base("https://fastrepl--hyprnote-diart-server-serve.modal.run")
             .api_key("TODO")
             .sample_rate(16000)
             .build();
@@ -115,7 +115,7 @@ mod tests {
             }
 
             // TODO: current implementation close the connection once we send all
-            std::thread::sleep(Duration::from_millis(100));
+            std::thread::sleep(Duration::from_millis(10));
 
             Ok::<bytes::Bytes, std::io::Error>(buf.freeze())
         }));

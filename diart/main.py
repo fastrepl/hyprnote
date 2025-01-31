@@ -1,23 +1,19 @@
+import os
+import json
+import asyncio
+from pathlib import Path
+from typing import Union, Tuple, Any
+
 import modal
 import numpy as np
-
 from pydantic import BaseModel
-from typing import Union, Tuple, Any
-import asyncio
-import queue
-import json
-import os
-from pathlib import Path
-
 from fastapi import (
     FastAPI,
     WebSocket,
-    HTTPException,
     Query,
-    Depends,
     WebSocketDisconnect,
+    HTTPException,
 )
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 
 def get_logger():
@@ -39,7 +35,7 @@ def get_logger():
     return structlog.get_logger()
 
 
-EMBEDDING_MODEL_REPO_ID = "pyannote/embedding"
+EMBEDDING_MODEL_REPO_ID = "hbredin/wespeaker-voxceleb-resnet34-LM"
 SEGMENTATION_MODEL_REPO_ID = "pyannote/segmentation-3.0"
 MODEL_DIR = Path("/cache")
 
@@ -69,7 +65,7 @@ inference_image = (
             "reactivex",
             "axiom-py",
             "structlog",
-            "huggingface-hub",
+            "onnxruntime",
         ]
     )
     .env({"HF_HUB_CACHE": "/cache"})
@@ -94,43 +90,23 @@ with inference_image.imports():
 
     class DiarizationSegment(BaseModel):
         speaker: str
+        # second
         start: float
+        # second
         end: float
 
     # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/sources.py
     class Source(AudioSource):
-        def __init__(self, logger: Any, websocket: WebSocket, sample_rate: int):
+        def __init__(self, sample_rate: int):
             super().__init__("websocket_source", sample_rate)
-            self.logger = logger
-            self.websocket = websocket
-            self.buffer = queue.Queue()
-            self.is_closed = False
-            self.loop = asyncio.get_event_loop()
-
-        async def receive(self):
-            msg = await self.websocket.receive_text()
-            if msg is not None:
-                data = json.loads(msg)["audio"]
-                data = np.frombuffer(bytes(data), dtype=np.int16)
-                data = (data / 32768.0).astype(np.float32)
-                data = np.array(data, dtype=np.float32).reshape(1, -1)
-                self.buffer.put(data)
 
         def read(self):
-            while not self.is_closed:
-                try:
-                    chunk = self.buffer.get(block=True, timeout=15)
-                    if chunk is not None:
-                        self.stream.on_next(chunk)
-                except queue.Empty:
-                    self.stream.on_completed()
-                    break
-                except Exception as e:
-                    self.stream.on_error(e)
-                    break
+            pass
+
+        def write(self, data: np.ndarray):
+            self.stream.on_next(data)
 
         def close(self):
-            self.is_closed = True
             self.stream.on_completed()
 
     # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/sinks.py
@@ -141,7 +117,7 @@ with inference_image.imports():
             super().__init__()
             self.logger = logger
             self.websocket = websocket
-            self.patch_collar = 1
+            self.patch_collar = 0.5
             self._prediction = None
             self._sent_segments = set()
             self.loop = asyncio.get_running_loop()
@@ -162,7 +138,6 @@ with inference_image.imports():
                         end=segment.end,
                         speaker=label,
                     )
-                    print("item", item)
 
                     self._sent_segments.add(segment_key)
                     data = item.model_dump_json()
@@ -190,7 +165,7 @@ with inference_image.imports():
     image=inference_image,
     volumes={MODEL_DIR: cache_volume},
     allow_concurrent_inputs=10,
-    container_idle_timeout=30,
+    container_idle_timeout=60,
     enable_memory_snapshot=True,
 )
 class Server:
@@ -216,7 +191,7 @@ class Server:
             segmentation=segmentation,
             embedding=embedding,
             duration=5,
-            step=1,
+            step=0.5,
         )
         self.pipeline = SpeakerDiarization(config)
 
@@ -227,15 +202,19 @@ class Server:
     async def health(self):
         return {"status": "ok"}
 
-    async def diarize(self, websocket: WebSocket):
+    async def diarize(
+        self,
+        websocket: WebSocket,
+        token: str = Query(None),
+        sample_rate: int = Query(16000),
+    ):
+        if token != os.getenv("HYPRNOTE_API_KEY"):
+            raise HTTPException(status_code=401, detail="Unauthorized")
+
         await websocket.accept()
         self.logger.info("websocket_connected")
 
-        source = Source(
-            logger=self.logger,
-            websocket=websocket,
-            sample_rate=16000,
-        )
+        source = Source(sample_rate=sample_rate)
         sender = Sender(
             logger=self.logger,
             websocket=websocket,
@@ -257,7 +236,13 @@ class Server:
 
         while True:
             try:
-                await source.receive()
+                msg = await websocket.receive_text()
+                if msg is not None:
+                    data = json.loads(msg)["audio"]
+                    data = np.frombuffer(bytes(data), dtype=np.int16)
+                    data = (data / 32768.0).astype(np.float32)
+                    data = np.array(data, dtype=np.float32).reshape(1, -1)
+                    source.write(data)
             except WebSocketDisconnect:
                 self.logger.info("websocket_disconnected")
                 break
@@ -265,9 +250,9 @@ class Server:
                 self.logger.error(e)
                 break
 
-        await inference_task
-
         try:
+            source.close()
+            await inference_task
             await websocket.close()
         except:
             pass

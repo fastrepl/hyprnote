@@ -119,8 +119,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::io::Read;
-
     use super::*;
     use serial_test::serial;
 
@@ -128,6 +126,7 @@ mod tests {
     use bytes::{BufMut, Bytes};
     use futures_util::StreamExt;
     use hypr_audio::AsyncSource;
+    use std::io::Read;
 
     fn microphone_as_stream(
     ) -> impl Stream<Item = Result<Bytes, std::io::Error>> + Send + Unpin + 'static {
@@ -162,21 +161,23 @@ mod tests {
     fn stream_from_bytes(
         bytes: &[u8],
     ) -> impl Stream<Item = Result<Bytes, std::io::Error>> + Send + Unpin + 'static {
-        const CHUNK_SIZE: usize = 3200;
-        const DELAY_MS: u64 = 100;
+        const SAMPLE_RATE: usize = 16000;
+        const NUM_SAMPLES: usize = SAMPLE_RATE / 10;
+        const CHUNK_SIZE_BYTES: usize = NUM_SAMPLES * (16 / 8);
+        const DELAY_MS: usize = 1000 * (NUM_SAMPLES / SAMPLE_RATE);
 
         let bytes = bytes.to_vec();
 
         let stream = async_stream::stream! {
-            let mut buffer = vec![0u8; CHUNK_SIZE];
+            let mut buffer = vec![0u8; CHUNK_SIZE_BYTES];
             let mut cursor = std::io::Cursor::new(bytes);
 
             loop {
                 match cursor.read(&mut buffer) {
                     Ok(n) if n == 0 => break,
                     Ok(n) => {
-                        let chunk = Bytes::copy_from_slice(&buffer[..n]);
-                        tokio::time::sleep(tokio::time::Duration::from_millis(DELAY_MS)).await;
+                        let chunk = bytes::Bytes::copy_from_slice(&buffer[..n]);
+                        tokio::time::sleep(tokio::time::Duration::from_millis(DELAY_MS as u64)).await;
                         yield Ok(chunk);
                     }
                     Err(e) => yield Err(e),

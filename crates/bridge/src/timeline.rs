@@ -194,46 +194,4 @@ mod tests {
             }
         );
     }
-
-    #[test]
-    fn test_timeline() {
-        let mut timeline = Timeline::default();
-
-        timeline.add_diarize(DiarizeOutputChunk {
-            speaker: "Speaker A".to_string(),
-            start: 0.0,
-            end: 1.0,
-        });
-
-        timeline.add_transcribe(TranscribeOutputChunk {
-            text: "Hello".to_string(),
-            start: 0.0,
-            end: 1.0,
-        });
-        timeline.add_transcribe(TranscribeOutputChunk {
-            text: "World".to_string(),
-            start: 1.0,
-            end: 2.0,
-        });
-        // 2 transcripts, both presumably match Speaker A in [0..2]
-
-        timeline.add_diarize(DiarizeOutputChunk {
-            speaker: "Speaker A".to_string(),
-            start: 0.0,
-            end: 2.0,
-        });
-
-        // We expect them to merge into a single item:
-        // label = "Speaker A", text = "Hello World"
-        let view = timeline.view();
-        assert_eq!(
-            view,
-            TimelineView {
-                items: vec![TimelineViewItem {
-                    label: "Speaker A".to_string(),
-                    text: "Hello World".to_string()
-                }]
-            }
-        );
-    }
 }

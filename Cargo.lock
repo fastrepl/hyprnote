@@ -1626,6 +1626,7 @@ dependencies = [
  "audio 0.1.0",
  "bytes",
  "codes-iso-639",
+ "data",
  "db",
  "futures-channel",
  "futures-util",

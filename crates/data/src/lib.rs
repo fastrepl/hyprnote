@@ -12,3 +12,4 @@ macro_rules! include_wav {
 
 pub const KOREAN_CONVERSATION: &[u8] = include_wav!("../assets/korean.wav");
 pub const ENGLISH_CONVERSATION: &[u8] = include_wav!("../assets/english.wav");
+pub const DIART: &[u8] = include_wav!("../assets/diart.wav");

@@ -35,6 +35,8 @@ impl WebSocketClient {
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
 
         let (done_tx, mut done_rx) = tokio::sync::oneshot::channel();
+        let (send_complete_tx, send_complete_rx) = tokio::sync::oneshot::channel();
+        let (activity_tx, mut activity_rx) = tokio::sync::mpsc::channel(1);
 
         let _send_task = tokio::spawn(async move {
             while let Some(data) = audio_stream.next().await {
@@ -45,10 +47,22 @@ impl WebSocketClient {
                 }
             }
 
-            let _ = ws_sender.send(Message::Close(None)).await;
+            let _ = send_complete_tx.send(());
+        });
 
-            tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
-            let _ = done_tx.send(());
+        let _timeout_task = tokio::spawn(async move {
+            let _ = send_complete_rx.await;
+
+            let d = tokio::time::Duration::from_secs(10);
+            loop {
+                match tokio::time::timeout(d, activity_rx.recv()).await {
+                    Ok(Some(_)) => continue,
+                    Ok(None) | Err(_) => {
+                        let _ = done_tx.send(());
+                        break;
+                    }
+                }
+            }
         });
 
         let output_stream = async_stream::stream! {
@@ -58,6 +72,8 @@ impl WebSocketClient {
                     msg = ws_receiver.next() => {
                         match msg {
                             Some(Ok(msg)) => {
+                                let _ = activity_tx.send(());
+
                                 match msg {
                                     Message::Text(data) => yield serde_json::from_str::<T::Output>(&data).unwrap(),
                                     Message::Binary(_) => {},

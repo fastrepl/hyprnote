@@ -86,10 +86,39 @@ impl DiarizeClient {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bytes::BufMut;
-    use std::time::Duration;
-    use tokio::time::timeout;
+    use std::io::Read;
 
+    fn stream_from_bytes(
+        bytes: &[u8],
+    ) -> impl Stream<Item = Result<bytes::Bytes, std::io::Error>> + Send + Unpin + 'static {
+        const SAMPLE_RATE: usize = 16000;
+        const NUM_SAMPLES: usize = SAMPLE_RATE / 10;
+        const CHUNK_SIZE_BYTES: usize = NUM_SAMPLES * (16 / 8);
+        const DELAY_MS: usize = 1000 * (NUM_SAMPLES / SAMPLE_RATE);
+
+        let bytes = bytes.to_vec();
+
+        let stream = async_stream::stream! {
+            let mut buffer = vec![0u8; CHUNK_SIZE_BYTES];
+            let mut cursor = std::io::Cursor::new(bytes);
+
+            loop {
+                match cursor.read(&mut buffer) {
+                    Ok(n) if n == 0 => break,
+                    Ok(n) => {
+                        let chunk = bytes::Bytes::copy_from_slice(&buffer[..n]);
+                        tokio::time::sleep(tokio::time::Duration::from_millis(DELAY_MS as u64)).await;
+                        yield Ok(chunk);
+                    }
+                    Err(e) => yield Err(e),
+                }
+            }
+        };
+
+        Box::pin(stream)
+    }
+
+    // cargo test -p bridge test_diarize -- --ignored --nocapture
     #[ignore]
     #[tokio::test]
     async fn test_diarize() {
@@ -99,35 +128,11 @@ mod tests {
             .sample_rate(16000)
             .build();
 
-        let path = env!("CARGO_MANIFEST_DIR");
-        let mut reader = hound::WavReader::open(format!("{}/data/audio.wav", path)).unwrap();
+        let audio_stream = stream_from_bytes(hypr_data::DIART);
 
-        let mut sample_stream = async_stream::stream! {
-            for sample in reader.samples::<i16>() {
-                yield sample.unwrap();
-            }
-        };
-
-        let bytes_stream = Box::pin(sample_stream.chunks(1024).map(|chunk| {
-            let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
-            for sample in chunk {
-                buf.put_i16_le(sample);
-            }
-
-            // TODO: current implementation close the connection once we send all
-            std::thread::sleep(Duration::from_millis(10));
-
-            Ok::<bytes::Bytes, std::io::Error>(buf.freeze())
-        }));
-
-        let mut results = Vec::<(u64, DiarizeOutputChunk)>::new();
-        let started = std::time::Instant::now();
-
-        let mut diarize_stream = Box::pin(client.from_audio(bytes_stream).await.unwrap());
+        let mut diarize_stream = Box::pin(client.from_audio(audio_stream).await.unwrap());
         while let Some(item) = diarize_stream.next().await {
-            results.push((started.elapsed().as_secs(), item));
+            println!("{:?}", item);
         }
-
-        println!("{:?}", results);
     }
 }

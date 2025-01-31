@@ -268,7 +268,7 @@ function RightPanel() {
   ];
 
   return (
-    <Tabs defaultValue="transcript">
+    <Tabs defaultValue="transcript" className="p-1">
       <TabsList className="w-full">
         <TabsTrigger className="text-xs flex-1" value="transcript">
           Transcript
@@ -277,14 +277,15 @@ function RightPanel() {
           Summary
         </TabsTrigger>
       </TabsList>
+
       <TabsContent value="transcript">
         <div className="flex h-full flex-col justify-end">
-          <ScrollArea type="auto" className="flex-1 p-4">
+          <ScrollArea type="auto" className="flex-1 p-2">
             <div className="space-y-4 text-sm">
               {blocks.map((message, index) => (
-                <div className="mb-4" key={index}>
-                  <Avatar>
-                    <AvatarFallback>
+                <div className="flex flex-row gap-2" key={index}>
+                  <Avatar className="w-6 h-6">
+                    <AvatarFallback className="text-xs">
                       {message.speaker.slice(0, 2)}
                     </AvatarFallback>
                   </Avatar>
@@ -297,7 +298,14 @@ function RightPanel() {
           </ScrollArea>
         </div>
       </TabsContent>
-      <TabsContent value="summary">Change your password here.</TabsContent>
+
+      <TabsContent value="summary">
+        <div className="flex h-full flex-col justify-end">
+          <ScrollArea type="auto" className="flex-1 p-2">
+            123
+          </ScrollArea>
+        </div>
+      </TabsContent>
     </Tabs>
   );
 }

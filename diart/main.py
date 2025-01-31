@@ -90,10 +90,8 @@ with inference_image.imports():
 
     class DiarizationSegment(BaseModel):
         speaker: str
-        # second
-        start: float
-        # second
-        end: float
+        start: int
+        end: int
 
     # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/sources.py
     class Source(AudioSource):
@@ -130,16 +128,13 @@ with inference_image.imports():
 
         def _process(self):
             for segment, _track, label in self._prediction.itertracks(yield_label=True):
-                segment_key = (segment.start, segment.end, label)
+                (start, end) = (int(segment.start * 1000), int(segment.end * 1000))
+                segment_key = (start, end, label)
 
                 if segment_key not in self._sent_segments:
-                    item = DiarizationSegment(
-                        start=segment.start,
-                        end=segment.end,
-                        speaker=label,
-                    )
-
                     self._sent_segments.add(segment_key)
+
+                    item = DiarizationSegment(start=start, end=end, speaker=label)
                     data = item.model_dump_json()
 
                     asyncio.run_coroutine_threadsafe(

@@ -9,7 +9,7 @@ use deepgram::common::{
 use futures_core::Stream;
 use futures_util::StreamExt;
 
-use super::{RealtimeSpeechToText, StreamResponse};
+use super::{RealtimeSpeechToText, StreamResponse, StreamResponseWord};
 
 impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
     async fn transcribe(
@@ -28,7 +28,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
             .numerals(true)
             .language(self.language.clone())
             .filler_words(false)
-            .diarize(true)
+            .diarize(false)
             .keywords(self.keywords.iter().map(String::as_str))
             .build();
 
@@ -63,18 +63,20 @@ impl TryFrom<DeepgramStreamResponse> for StreamResponse {
 
                 // TODO: returning Err here break something
                 if data.words.is_empty() {
-                    return Ok(StreamResponse {
-                        text: "".to_string(),
-                        start: 0.0,
-                        end: 0.0,
-                    });
+                    return Ok(StreamResponse { words: vec![] });
                 }
 
-                let text = data.transcript.clone();
-                let start = data.words.first().unwrap().start;
-                let end = data.words.last().unwrap().end;
-
-                Ok(StreamResponse { text, start, end })
+                Ok(StreamResponse {
+                    words: data
+                        .words
+                        .iter()
+                        .map(|w| StreamResponseWord {
+                            text: w.punctuated_word.clone().unwrap_or(w.word.clone()),
+                            start: (w.start * 1000.0) as u64,
+                            end: (w.end * 1000.0) as u64,
+                        })
+                        .collect(),
+                })
             }
             DeepgramStreamResponse::SpeechStartedResponse { .. } => Ok(StreamResponse::default()),
             DeepgramStreamResponse::TerminalResponse { .. } => Ok(StreamResponse::default()),

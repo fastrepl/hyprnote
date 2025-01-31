@@ -1,16 +1,15 @@
 use intervaltree::IntervalTree;
-use ordered_float::OrderedFloat;
 
 use crate::{DiarizeOutputChunk, TranscribeOutputChunk};
 
 pub trait Interval {
-    fn start(&self) -> f32;
-    fn end(&self) -> f32;
+    fn start(&self) -> u64;
+    fn end(&self) -> u64;
 
-    fn overlaps<I: Interval>(&self, other: &I) -> Option<f32> {
+    fn overlaps<I: Interval>(&self, other: &I) -> Option<u64> {
         if self.start() < other.end() && self.end() > other.start() {
-            let overlap_start = f32::max(self.start(), other.start());
-            let overlap_end = f32::min(self.end(), other.end());
+            let overlap_start = std::cmp::max(self.start(), other.start());
+            let overlap_end = std::cmp::min(self.end(), other.end());
             Some(overlap_end - overlap_start)
         } else {
             None
@@ -19,19 +18,19 @@ pub trait Interval {
 }
 
 impl Interval for DiarizeOutputChunk {
-    fn start(&self) -> f32 {
+    fn start(&self) -> u64 {
         self.start
     }
-    fn end(&self) -> f32 {
+    fn end(&self) -> u64 {
         self.end
     }
 }
 
 impl Interval for TranscribeOutputChunk {
-    fn start(&self) -> f32 {
+    fn start(&self) -> u64 {
         self.start
     }
-    fn end(&self) -> f32 {
+    fn end(&self) -> u64 {
         self.end
     }
 }
@@ -58,8 +57,8 @@ pub struct TimelineView {
 
 #[derive(Debug, PartialEq)]
 pub struct TimelineViewItem {
-    start: f32,
-    end: f32,
+    start: u64,
+    end: u64,
     speaker: String,
     text: String,
 }
@@ -74,18 +73,16 @@ impl Timeline {
     }
 
     pub fn view(&self) -> TimelineView {
-        let tree: IntervalTree<OrderedFloat<f32>, String> =
-            IntervalTree::from_iter(self.diarizations.iter().map(|d| {
-                (
-                    OrderedFloat(d.start)..OrderedFloat(d.end),
-                    d.speaker.clone(),
-                )
-            }));
+        let tree: IntervalTree<u64, String> = IntervalTree::from_iter(
+            self.diarizations
+                .iter()
+                .map(|d| (d.start..d.end, d.speaker.clone())),
+        );
 
         let mut items: Vec<TimelineViewItem> = vec![];
 
         for transcript in self.transcripts.iter() {
-            let range = OrderedFloat(transcript.start - 0.1)..OrderedFloat(transcript.end + 0.1);
+            let range = transcript.start - 100..transcript.end + 100;
             let speaker: Vec<_> = tree.query(range).collect();
 
             if speaker.is_empty() {
@@ -96,14 +93,14 @@ impl Timeline {
                 .iter()
                 .max_by(|a, b| {
                     let a_overlap = {
-                        let overlap_start = f32::max(a.range.start.into(), transcript.start);
-                        let overlap_end = f32::min(a.range.end.into(), transcript.end);
-                        OrderedFloat(overlap_end - overlap_start)
+                        let overlap_start = std::cmp::max(a.range.start, transcript.start);
+                        let overlap_end = std::cmp::min(a.range.end, transcript.end);
+                        overlap_end - overlap_start
                     };
                     let b_overlap = {
-                        let overlap_start = f32::max(b.range.start.into(), transcript.start);
-                        let overlap_end = f32::min(b.range.end.into(), transcript.end);
-                        OrderedFloat(overlap_end - overlap_start)
+                        let overlap_start = std::cmp::max(b.range.start, transcript.start);
+                        let overlap_end = std::cmp::min(b.range.end, transcript.end);
+                        overlap_end - overlap_start
                     };
 
                     a_overlap.cmp(&b_overlap)
@@ -134,26 +131,26 @@ mod tests {
 
         timeline.add_transcribe(TranscribeOutputChunk {
             text: "Hello world".to_string(),
-            start: 0.0,
-            end: 2.0,
+            start: 0,
+            end: 2000,
         });
 
         timeline.add_transcribe(TranscribeOutputChunk {
             text: "Another sentence".to_string(),
-            start: 2.0,
-            end: 3.0,
+            start: 2000,
+            end: 3000,
         });
 
         timeline.add_diarize(DiarizeOutputChunk {
             speaker: "Speaker A".to_string(),
-            start: 0.0,
-            end: 1.5,
+            start: 0,
+            end: 1500,
         });
 
         timeline.add_diarize(DiarizeOutputChunk {
             speaker: "Speaker B".to_string(),
-            start: 1.5,
-            end: 3.0,
+            start: 1500,
+            end: 3000,
         });
 
         assert_eq!(
@@ -161,14 +158,14 @@ mod tests {
             TimelineView {
                 items: vec![
                     TimelineViewItem {
-                        start: 0.0,
-                        end: 2.0,
+                        start: 0,
+                        end: 2000,
                         speaker: "Speaker A".to_string(),
                         text: "Hello world".to_string()
                     },
                     TimelineViewItem {
-                        start: 2.0,
-                        end: 3.0,
+                        start: 2000,
+                        end: 3000,
                         speaker: "Speaker B".to_string(),
                         text: "Another sentence".to_string()
                     }

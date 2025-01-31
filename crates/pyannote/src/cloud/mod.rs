@@ -70,7 +70,7 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn test_diarization() {
-        let _ = hypr_data::ENGLISH_CONVERSATION_WAV;
+        let _ = hypr_data::english_1::AUDIO;
 
         let client = get_client();
         let res = client

@@ -145,6 +145,8 @@ pub fn run() {
         db
     });
 
+    // TODO: we should just own tokio runtime, and replace all tauri::async_runtime with tokio
+    // for ex, we have tokio::spawn in
     builder
         .invoke_handler({
             let handler = specta_builder.invoke_handler();

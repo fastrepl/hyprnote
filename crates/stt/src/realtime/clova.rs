@@ -4,7 +4,7 @@ use futures_core::Stream;
 use futures_util::{future, StreamExt};
 use std::error::Error;
 
-use super::{RealtimeSpeechToText, StreamResponse};
+use super::{RealtimeSpeechToText, StreamResponse, StreamResponseWord};
 
 pub use hypr_clova::realtime::interface as clova;
 
@@ -21,12 +21,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for hypr_clova::realtime::Client {
 
         let stream = transcription.filter_map(|item| {
             let item = match item {
-                Ok(clova::StreamResponse::TranscribeSuccess(r)) => Some(Ok(StreamResponse {
-                    text: r.transcription.text,
-                    start: r.transcription.start_timestamp as f64 / 1000.0,
-                    end: r.transcription.end_timestamp as f64 / 1000.0,
-                })),
-                Ok(_) => None,
+                Ok(response) => Some(StreamResponse::try_from(response)),
                 Err(e) => Some(Err(e.into())),
             };
 
@@ -34,5 +29,22 @@ impl<S, E> RealtimeSpeechToText<S, E> for hypr_clova::realtime::Client {
         });
 
         Ok(Box::from(Box::pin(stream)))
+    }
+}
+
+impl TryFrom<clova::StreamResponse> for StreamResponse {
+    type Error = anyhow::Error;
+
+    fn try_from(response: clova::StreamResponse) -> Result<Self, Self::Error> {
+        match response {
+            clova::StreamResponse::TranscribeSuccess(r) => Ok(StreamResponse {
+                words: vec![StreamResponseWord {
+                    text: r.transcription.text,
+                    start: r.transcription.start_timestamp,
+                    end: r.transcription.end_timestamp,
+                }],
+            }),
+            _ => anyhow::bail!("Unexpected response type"),
+        }
     }
 }

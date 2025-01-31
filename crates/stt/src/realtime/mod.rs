@@ -1,10 +1,8 @@
 use anyhow::Result;
 use bytes::Bytes;
 use futures_core::{Future, Stream};
+use serde::{Deserialize, Serialize};
 use std::error::Error;
-
-#[cfg(debug_assertions)]
-mod mock;
 
 mod clova;
 mod deepgram;
@@ -22,11 +20,16 @@ pub trait RealtimeSpeechToText<S, E> {
         E: Error + Send + Sync + 'static;
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Clone, Debug, Deserialize, Serialize, specta::Type)]
 pub struct StreamResponse {
+    pub words: Vec<StreamResponseWord>,
+}
+
+#[derive(Default, Clone, Debug, Deserialize, Serialize, specta::Type)]
+pub struct StreamResponseWord {
     pub text: String,
-    pub start: f64,
-    pub end: f64,
+    pub start: u64,
+    pub end: u64,
 }
 
 #[derive(Debug, Default)]
@@ -69,11 +72,6 @@ pub struct Client {
 impl Client {
     pub fn builder() -> ClientBuilder {
         ClientBuilder::default()
-    }
-
-    #[cfg(debug_assertions)]
-    pub fn for_mock(&self) -> mock::MockClient {
-        mock::MockClient::new()
     }
 
     pub async fn for_language(&self, language: codes_iso_639::part_1::LanguageCode) -> MultiClient {
@@ -188,27 +186,13 @@ mod tests {
         Box::pin(stream)
     }
 
-    // cargo test test_mock -p stt --  --ignored --nocapture
-    #[ignore]
-    #[tokio::test]
-    #[serial]
-    async fn test_mock() {
-        let audio_stream = microphone_as_stream();
-
-        let mut client = mock::MockClient::new();
-        let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
-
-        while let Some(result) = transcript_stream.next().await {
-            println!("mock: {:?}", result);
-        }
-    }
-
     // RUST_TEST_TIMEOUT=0 cargo test test_deepgram -p stt --  --ignored --nocapture
     #[ignore]
     #[tokio::test]
     #[serial]
     async fn test_deepgram() {
-        let audio_stream = stream_from_bytes(hypr_data::DIART);
+        let audio_stream = stream_from_bytes(hypr_data::english_2::AUDIO);
+        let mut out = std::fs::File::create(hypr_data::english_2::TRANSCRIPTION_PATH).unwrap();
 
         let mut client = DeepgramClient::builder()
             .api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
@@ -216,10 +200,14 @@ mod tests {
             .build();
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
-        let now = std::time::Instant::now();
+        let mut acc: Vec<StreamResponse> = vec![];
         while let Some(result) = transcript_stream.next().await {
-            println!("+{:5.2} | {:?}", now.elapsed().as_secs_f32(), result);
+            let data = result.unwrap();
+            println!("{:?}", data);
+            acc.push(data);
         }
+
+        serde_json::to_writer(&mut out, &acc).unwrap();
     }
 
     // RUST_TEST_TIMEOUT=0 cargo test test_clova -p stt --  --ignored --nocapture
@@ -227,7 +215,8 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_clova() {
-        let audio_stream = stream_from_bytes(hypr_data::KOREAN_CONVERSATION);
+        let audio_stream = stream_from_bytes(hypr_data::korean_1::AUDIO);
+        let mut out = std::fs::File::create(hypr_data::korean_1::TRANSCRIPTION_PATH).unwrap();
 
         let mut client = hypr_clova::realtime::Client::builder()
             .api_key(std::env::var("CLOVA_API_KEY").unwrap())
@@ -238,9 +227,13 @@ mod tests {
 
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
-        let now = std::time::Instant::now();
+        let mut acc: Vec<StreamResponse> = vec![];
         while let Some(result) = transcript_stream.next().await {
-            println!("+{:5.2} | {:?}", now.elapsed().as_secs_f32(), result);
+            let data = result.unwrap();
+            println!("{:?}", data);
+            acc.push(data);
         }
+
+        serde_json::to_writer(&mut out, &acc).unwrap();
     }
 }

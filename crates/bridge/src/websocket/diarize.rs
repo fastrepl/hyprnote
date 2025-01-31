@@ -122,18 +122,23 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn test_diarize() {
+        let audio_stream = stream_from_bytes(hypr_data::english_2::AUDIO);
+        let mut out = std::fs::File::create(hypr_data::english_2::DIARIZATION_PATH).unwrap();
+
         let client = DiarizeClient::builder()
             .api_base("https://fastrepl--hyprnote-diart-server-serve.modal.run")
             .api_key("TODO")
             .sample_rate(16000)
             .build();
 
-        let audio_stream = stream_from_bytes(hypr_data::KOREAN_CONVERSATION);
-
         let mut diarize_stream = Box::pin(client.from_audio(audio_stream).await.unwrap());
-        let now = std::time::Instant::now();
-        while let Some(item) = diarize_stream.next().await {
-            println!("+{:5.2} | {:?}", now.elapsed().as_secs_f32(), item);
+
+        let mut acc: Vec<DiarizeOutputChunk> = vec![];
+        while let Some(data) = diarize_stream.next().await {
+            println!("{:?}", data);
+            acc.push(data);
         }
+
+        serde_json::to_writer(&mut out, &acc).unwrap();
     }
 }

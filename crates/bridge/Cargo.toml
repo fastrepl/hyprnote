@@ -13,10 +13,8 @@ thiserror = { workspace = true }
 
 bytes = { workspace = true }
 codes-iso-639 = { workspace = true }
-url = { workspace = true }
-
 intervaltree = "0.2.7"
-ordered-float = "4.6.0"
+url = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }
 serde_bytes = { workspace = true }

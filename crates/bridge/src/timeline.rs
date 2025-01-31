@@ -1,3 +1,6 @@
+use intervaltree::IntervalTree;
+use ordered_float::OrderedFloat;
+
 use crate::{DiarizeOutputChunk, TranscribeOutputChunk};
 
 pub trait Interval {
@@ -33,10 +36,19 @@ impl Interval for TranscribeOutputChunk {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Clone)]
 pub struct Timeline {
     transcripts: Vec<TranscribeOutputChunk>,
     diarizations: Vec<DiarizeOutputChunk>,
+}
+
+impl Default for Timeline {
+    fn default() -> Self {
+        Self {
+            transcripts: Vec::new(),
+            diarizations: Vec::new(),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -46,8 +58,10 @@ pub struct TimelineView {
 
 #[derive(Debug, PartialEq)]
 pub struct TimelineViewItem {
-    pub label: String,
-    pub text: String,
+    start: f32,
+    end: f32,
+    speaker: String,
+    text: String,
 }
 
 impl Timeline {
@@ -60,90 +74,54 @@ impl Timeline {
     }
 
     pub fn view(&self) -> TimelineView {
-        let mut transcripts = self.transcripts.clone();
-        let mut diarizations = self.diarizations.clone();
+        let tree: IntervalTree<OrderedFloat<f32>, String> =
+            IntervalTree::from_iter(self.diarizations.iter().map(|d| {
+                (
+                    OrderedFloat(d.start)..OrderedFloat(d.end),
+                    d.speaker.clone(),
+                )
+            }));
 
-        transcripts.sort_by(|a, b| {
-            a.start
-                .partial_cmp(&b.start)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
-        diarizations.sort_by(|a, b| {
-            a.start
-                .partial_cmp(&b.start)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
+        let mut items: Vec<TimelineViewItem> = vec![];
 
-        let mut assigned = Vec::new();
-        for t in &transcripts {
-            let mut best_speaker = "Unknown".to_string();
-            let mut best_overlap = 0.0;
+        for transcript in self.transcripts.iter() {
+            let range = OrderedFloat(transcript.start - 0.1)..OrderedFloat(transcript.end + 0.1);
+            let speaker: Vec<_> = tree.query(range).collect();
 
-            for d in &diarizations {
-                if let Some(ov) = t.overlaps(d) {
-                    if ov > best_overlap {
-                        best_overlap = ov;
-                        best_speaker = d.speaker.clone();
-                    }
-                }
+            if speaker.is_empty() {
+                continue;
             }
 
-            assigned.push(TranscriptWithSpeaker {
-                start: t.start,
-                end: t.end,
-                speaker: best_speaker,
-                text: t.text.clone(),
+            let speaker = speaker
+                .iter()
+                .max_by(|a, b| {
+                    let a_overlap = {
+                        let overlap_start = f32::max(a.range.start.into(), transcript.start);
+                        let overlap_end = f32::min(a.range.end.into(), transcript.end);
+                        OrderedFloat(overlap_end - overlap_start)
+                    };
+                    let b_overlap = {
+                        let overlap_start = f32::max(b.range.start.into(), transcript.start);
+                        let overlap_end = f32::min(b.range.end.into(), transcript.end);
+                        OrderedFloat(overlap_end - overlap_start)
+                    };
+
+                    a_overlap.cmp(&b_overlap)
+                })
+                .unwrap()
+                .value
+                .clone();
+
+            items.push(TimelineViewItem {
+                start: transcript.start,
+                end: transcript.end,
+                speaker,
+                text: transcript.text.clone(),
             });
         }
 
-        let merged = merge_transcripts(assigned);
-
-        let items = merged
-            .into_iter()
-            .map(|m| TimelineViewItem {
-                label: m.speaker,
-                text: m.text,
-            })
-            .collect();
-
         TimelineView { items }
     }
-}
-
-#[derive(Debug, Clone)]
-struct TranscriptWithSpeaker {
-    start: f32,
-    end: f32,
-    speaker: String,
-    text: String,
-}
-
-fn merge_transcripts(mut tws: Vec<TranscriptWithSpeaker>) -> Vec<TranscriptWithSpeaker> {
-    if tws.is_empty() {
-        return tws;
-    }
-
-    let mut merged = Vec::new();
-    merged.push(tws[0].clone());
-
-    for i in 1..tws.len() {
-        let current = &tws[i];
-        let last = merged.last_mut().unwrap();
-
-        if last.speaker == current.speaker && (last.end - current.start).abs() < f32::EPSILON {
-            last.end = current.end;
-            last.text = {
-                if last.text.ends_with('.') {
-                    format!("{} {}", last.text, current.text).to_string()
-                } else {
-                    format!("{}{}", last.text, current.text).to_string()
-                }
-            };
-        } else {
-            merged.push(current.clone());
-        }
-    }
-    merged
 }
 
 #[cfg(test)]
@@ -183,11 +161,15 @@ mod tests {
             TimelineView {
                 items: vec![
                     TimelineViewItem {
-                        label: "Speaker A".to_string(),
+                        start: 0.0,
+                        end: 2.0,
+                        speaker: "Speaker A".to_string(),
                         text: "Hello world".to_string()
                     },
                     TimelineViewItem {
-                        label: "Speaker B".to_string(),
+                        start: 2.0,
+                        end: 3.0,
+                        speaker: "Speaker B".to_string(),
                         text: "Another sentence".to_string()
                     }
                 ]

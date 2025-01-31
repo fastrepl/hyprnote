@@ -128,12 +128,12 @@ mod tests {
             .sample_rate(16000)
             .build();
 
-        let audio_stream = stream_from_bytes(hypr_data::DIART);
+        let audio_stream = stream_from_bytes(hypr_data::KOREAN_CONVERSATION);
 
         let mut diarize_stream = Box::pin(client.from_audio(audio_stream).await.unwrap());
         let now = std::time::Instant::now();
         while let Some(item) = diarize_stream.next().await {
-            println!("+{} | {:?}", now.elapsed().as_secs_f32(), item);
+            println!("+{:5.2} | {:?}", now.elapsed().as_secs_f32(), item);
         }
     }
 }

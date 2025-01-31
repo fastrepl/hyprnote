@@ -218,7 +218,7 @@ mod tests {
 
         let now = std::time::Instant::now();
         while let Some(result) = transcript_stream.next().await {
-            println!("+{} | {:?}", now.elapsed().as_secs_f32(), result);
+            println!("+{:5.2} | {:?}", now.elapsed().as_secs_f32(), result);
         }
     }
 
@@ -240,7 +240,7 @@ mod tests {
 
         let now = std::time::Instant::now();
         while let Some(result) = transcript_stream.next().await {
-            println!("+{} | {:?}", now.elapsed().as_secs_f32(), result);
+            println!("+{:5.2} | {:?}", now.elapsed().as_secs_f32(), result);
         }
     }
 }

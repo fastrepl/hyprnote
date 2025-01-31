@@ -91,7 +91,6 @@ with inference_image.imports():
 
     from diart.sources import AudioSource
     from diart.inference import StreamingInference
-    from diart import models, SpeakerDiarizationConfig, SpeakerDiarization
 
     class DiarizationSegment(BaseModel):
         speaker: str
@@ -192,7 +191,7 @@ with inference_image.imports():
     volumes={MODEL_DIR: cache_volume},
     allow_concurrent_inputs=10,
     container_idle_timeout=30,
-    gpu="T4",
+    enable_memory_snapshot=True,
 )
 class Server:
     def __init__(self):
@@ -204,11 +203,22 @@ class Server:
     @modal.enter()
     def setup(self):
         from diart import models
+        from diart import models, SpeakerDiarizationConfig, SpeakerDiarization
 
-        self.segmentation = models.SegmentationModel.from_pretrained(
+        embedding = models.EmbeddingModel.from_pretrained(EMBEDDING_MODEL_REPO_ID)
+        segmentation = models.SegmentationModel.from_pretrained(
             SEGMENTATION_MODEL_REPO_ID
         )
-        self.embedding = models.EmbeddingModel.from_pretrained(EMBEDDING_MODEL_REPO_ID)
+
+        # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/console/serve.py
+        # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/blocks/diarization.py
+        config = SpeakerDiarizationConfig(
+            segmentation=segmentation,
+            embedding=embedding,
+            duration=5,
+            step=1,
+        )
+        self.pipeline = SpeakerDiarization(config)
 
     @modal.asgi_app()
     def serve(self):
@@ -219,6 +229,7 @@ class Server:
 
     async def diarize(self, websocket: WebSocket):
         await websocket.accept()
+        self.logger.info("websocket_connected")
 
         source = Source(
             logger=self.logger,
@@ -230,20 +241,10 @@ class Server:
             websocket=websocket,
         )
 
-        # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/console/serve.py
-        # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/blocks/diarization.py
-        config = SpeakerDiarizationConfig(
-            segmentation=self.segmentation,
-            embedding=self.embedding,
-            duration=5,
-            step=0.5,
-        )
-        pipeline = SpeakerDiarization(config)
         inference = StreamingInference(
-            pipeline,
+            self.pipeline,
             source,
-            batch_size=1,
-            do_profile=True,
+            do_profile=False,
             do_plot=False,
             show_progress=False,
         )

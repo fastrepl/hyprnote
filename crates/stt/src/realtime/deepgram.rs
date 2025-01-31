@@ -28,7 +28,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
             .numerals(true)
             .language(self.language.clone())
             .filler_words(false)
-            .diarize(false)
+            .diarize(true)
             .keywords(self.keywords.iter().map(String::as_str))
             .build();
 

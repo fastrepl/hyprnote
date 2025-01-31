@@ -164,7 +164,7 @@ mod tests {
         const SAMPLE_RATE: usize = 16000;
         const NUM_SAMPLES: usize = SAMPLE_RATE / 10;
         const CHUNK_SIZE_BYTES: usize = NUM_SAMPLES * (16 / 8);
-        const DELAY_MS: usize = 1000 * (NUM_SAMPLES / SAMPLE_RATE);
+        const DELAY_MS: usize = (1000 * NUM_SAMPLES) / SAMPLE_RATE;
 
         let bytes = bytes.to_vec();
 
@@ -203,12 +203,12 @@ mod tests {
         }
     }
 
-    // cargo test test_deepgram -p stt --  --ignored --nocapture
+    // RUST_TEST_TIMEOUT=0 cargo test test_deepgram -p stt --  --ignored --nocapture
     #[ignore]
     #[tokio::test]
     #[serial]
     async fn test_deepgram() {
-        let audio_stream = stream_from_bytes(hypr_data::ENGLISH_CONVERSATION);
+        let audio_stream = stream_from_bytes(hypr_data::DIART);
 
         let mut client = DeepgramClient::builder()
             .api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
@@ -216,12 +216,13 @@ mod tests {
             .build();
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
+        let now = std::time::Instant::now();
         while let Some(result) = transcript_stream.next().await {
-            println!("deepgram: {:?}", result);
+            println!("+{} | {:?}", now.elapsed().as_secs_f32(), result);
         }
     }
 
-    // cargo test test_clova -p stt --  --ignored --nocapture
+    // RUST_TEST_TIMEOUT=0 cargo test test_clova -p stt --  --ignored --nocapture
     #[ignore]
     #[tokio::test]
     #[serial]
@@ -237,8 +238,9 @@ mod tests {
 
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
+        let now = std::time::Instant::now();
         while let Some(result) = transcript_stream.next().await {
-            println!("clova: {:?}", result);
+            println!("+{} | {:?}", now.elapsed().as_secs_f32(), result);
         }
     }
 }

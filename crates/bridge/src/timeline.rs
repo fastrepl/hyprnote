@@ -196,10 +196,14 @@ mod tests {
     }
 
     #[test]
-    fn test_merging_transcripts() {
-        // If we have consecutive transcript chunks with the same best speaker
-        // and end == start, merge them.
+    fn test_timeline() {
         let mut timeline = Timeline::default();
+
+        timeline.add_diarize(DiarizeOutputChunk {
+            speaker: "Speaker A".to_string(),
+            start: 0.0,
+            end: 1.0,
+        });
 
         timeline.add_transcribe(TranscribeOutputChunk {
             text: "Hello".to_string(),

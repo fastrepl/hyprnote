@@ -76,10 +76,10 @@ impl TryFrom<DeepgramStreamResponse> for StreamResponse {
 
                 Ok(StreamResponse { text, start, end })
             }
-            e => {
-                eprintln!("deepgram response: {:?}", e);
-                Err(anyhow::anyhow!("no conversion defined"))
-            }
+            DeepgramStreamResponse::SpeechStartedResponse { .. } => Ok(StreamResponse::default()),
+            DeepgramStreamResponse::TerminalResponse { .. } => Ok(StreamResponse::default()),
+            DeepgramStreamResponse::UtteranceEndResponse { .. } => Ok(StreamResponse::default()),
+            _ => Err(anyhow::anyhow!("no conversion defined")),
         }
     }
 }

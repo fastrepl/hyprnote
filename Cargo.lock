@@ -10031,10 +10031,12 @@ name = "stt"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-stream",
  "audio 0.1.0",
  "bytes",
  "clova",
  "codes-iso-639",
+ "data",
  "deepgram",
  "futures-core",
  "futures-util",

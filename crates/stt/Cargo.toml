@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
+default = ["realtime", "recorded"]
 realtime = []
 recorded = []
 
@@ -25,6 +26,8 @@ tokio = { workspace = true }
 
 [dev-dependencies]
 hypr-audio = { path = "../audio", package = "audio" }
+hypr-data = { path = "../data", package = "data" }
 
+async-stream = { workspace = true }
 hound = { workspace = true }
 serial_test = { workspace = true }

@@ -22,7 +22,7 @@ pub trait RealtimeSpeechToText<S, E> {
         E: Error + Send + Sync + 'static;
 }
 
-#[derive(Debug)]
+#[derive(Default, Debug)]
 pub struct StreamResponse {
     pub text: String,
     pub start: f64,
@@ -119,6 +119,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::io::Read;
+
     use super::*;
     use serial_test::serial;
 
@@ -130,7 +132,7 @@ mod tests {
     fn microphone_as_stream(
     ) -> impl Stream<Item = Result<Bytes, std::io::Error>> + Send + Unpin + 'static {
         let source = hypr_audio::MicInput::default();
-        let stream = source.stream().unwrap().resample(16 * 1000).chunks(128);
+        let stream = source.stream().resample(16 * 1000).chunks(128);
 
         stream.map(|chunk| {
             let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
@@ -157,6 +159,34 @@ mod tests {
         })
     }
 
+    fn stream_from_bytes(
+        bytes: &[u8],
+    ) -> impl Stream<Item = Result<Bytes, std::io::Error>> + Send + Unpin + 'static {
+        const CHUNK_SIZE: usize = 3200;
+        const DELAY_MS: u64 = 100;
+
+        let bytes = bytes.to_vec();
+
+        let stream = async_stream::stream! {
+            let mut buffer = vec![0u8; CHUNK_SIZE];
+            let mut cursor = std::io::Cursor::new(bytes);
+
+            loop {
+                match cursor.read(&mut buffer) {
+                    Ok(n) if n == 0 => break,
+                    Ok(n) => {
+                        let chunk = Bytes::copy_from_slice(&buffer[..n]);
+                        tokio::time::sleep(tokio::time::Duration::from_millis(DELAY_MS)).await;
+                        yield Ok(chunk);
+                    }
+                    Err(e) => yield Err(e),
+                }
+            }
+        };
+
+        Box::pin(stream)
+    }
+
     // cargo test test_mock -p stt --  --ignored --nocapture
     #[ignore]
     #[tokio::test]
@@ -177,7 +207,7 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_deepgram() {
-        let audio_stream = microphone_as_stream();
+        let audio_stream = stream_from_bytes(hypr_data::ENGLISH_CONVERSATION);
 
         let mut client = DeepgramClient::builder()
             .api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
@@ -195,9 +225,9 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_clova() {
-        let audio_stream = microphone_as_stream();
+        let audio_stream = stream_from_bytes(hypr_data::KOREAN_CONVERSATION);
 
-        let mut client = ClovaClient::builder()
+        let mut client = hypr_clova::realtime::Client::builder()
             .api_key(std::env::var("CLOVA_API_KEY").unwrap())
             .keywords(vec!["Hyprnote".to_string()])
             .build()

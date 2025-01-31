@@ -1,4 +1,4 @@
-Meeting Information:
+# Meeting Information:
 
 ```
 {% if event %}Event: {{ event.name }}{% endif %}
@@ -8,19 +8,19 @@ Meeting Information:
 {%- endfor %}
 ```
 
-Pre-meeting Raw Note:
+# Pre-meeting Raw Note:
 
 ```
 {{ pre_meeting_editor }}
 ```
 
-In-meeting Raw Note:
+# In-meeting Raw Note:
 
 ```
 {{ in_meeting_editor }}
 ```
 
-Meeting Transcript:
+# Meeting Transcript:
 
 ```
 {{ render_conversation(transcripts=transcripts, diarizations=diarizations) }}

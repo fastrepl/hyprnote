@@ -11,17 +11,22 @@ description = "Hyprnote"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "fastnote_lib"
+name = "hyprnote_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
+
+[features]
+sim-english-1 = ["hypr-data"]
+sim-korean-1 = ["hypr-data"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+hypr-data = { path = "../../../crates/data", package = "data", optional = true }
+
 hypr-audio = { path = "../../../crates/audio", package = "audio" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar", features = ["apple"] }
-hypr-data = { path = "../../../crates/data", package = "data" }
 hypr-db = { path = "../../../crates/db", package = "db", features = ["user"] }
 hypr-template = { path = "../../../crates/template", package = "template" }
 hypr-vad = { path = "../../../crates/vad", package = "vad" }

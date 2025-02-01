@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    fastnote_lib::run()
+    hyprnote_lib::run()
 }

@@ -29,14 +29,22 @@ impl SessionState {
     ) -> anyhow::Result<()> {
         let mut audio_stream = {
             let input = {
-                #[cfg(not(debug_assertions))]
-                {
-                    hypr_audio::AudioInput::from_mic()
-                }
-
-                #[cfg(debug_assertions)]
+                #[cfg(all(debug_assertions, feature = "sim-english-1"))]
                 {
                     hypr_audio::AudioInput::from_recording(hypr_data::english_1::AUDIO.to_vec())
+                }
+
+                #[cfg(all(debug_assertions, feature = "sim-korean-1"))]
+                {
+                    hypr_audio::AudioInput::from_recording(hypr_data::korean_1::AUDIO.to_vec())
+                }
+
+                #[cfg(not(any(
+                    all(debug_assertions, feature = "sim-english-1"),
+                    all(debug_assertions, feature = "sim-korean-1")
+                )))]
+                {
+                    hypr_audio::AudioInput::from_mic()
                 }
             };
 

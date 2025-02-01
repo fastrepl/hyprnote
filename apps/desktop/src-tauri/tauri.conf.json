@@ -5,9 +5,9 @@
   "mainBinaryName": "Hypr",
   "identifier": "com.hyprnote.desktop",
   "build": {
-    "beforeDevCommand": "pnpm run dev",
+    "beforeDevCommand": "pnpm -F desktop dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "pnpm run build",
+    "beforeBuildCommand": "pnpm -F desktop build",
     "frontendDist": "../dist"
   },
   "app": {

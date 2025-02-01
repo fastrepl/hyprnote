@@ -718,6 +718,7 @@ dependencies = [
  "thiserror 2.0.11",
  "tokio",
  "tokio-stream",
+ "tracing",
  "windows 0.58.0",
 ]
 

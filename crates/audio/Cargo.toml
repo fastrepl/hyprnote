@@ -6,12 +6,14 @@ edition = "2021"
 [dependencies]
 anyhow = { workspace = true }
 thiserror = { workspace = true }
+tracing = { workspace = true }
+
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 
 futures-channel = { workspace = true }
 futures-core = { workspace = true }
 futures-util = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 
 cpal = { workspace = true }

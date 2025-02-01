@@ -53,7 +53,7 @@ impl ClientBuilder {
             transcription: Some(interface::Transcription {
                 language: interface::Language::Korean,
             }),
-            keyword_boosting: Some(vec!["하이퍼노트".to_string()].into()),
+            keyword_boosting: Some(self.keywords.unwrap_or_default().into()),
             semantic_epd: Some(interface::SemanticEpd {
                 skip_empty_text: Some(true),
                 use_word_epd: Some(true),

@@ -19,8 +19,10 @@ impl futures_core::Stream for ReceiverStreamSource {
         self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
+        use futures_util::StreamExt;
+
         let this = self.get_mut();
-        std::pin::Pin::new(&mut this.stream).poll_next(cx)
+        this.stream.poll_next_unpin(cx)
     }
 }
 

@@ -31,6 +31,11 @@ pub fn check_permission_status(permission: OSPermission) -> Option<bool> {
             OSPermission::Accessibility => None,
         }
     }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        None
+    }
 }
 
 #[tauri::command(async)]

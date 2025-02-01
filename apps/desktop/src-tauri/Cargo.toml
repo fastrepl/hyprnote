@@ -74,7 +74,7 @@ uuid = { workspace = true }
 futures-core = { workspace = true }
 futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["json", "stream"] }
-tokio = { workspace = true, features = ["rt", "macros"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-stream = { workspace = true }
 
 apalis = { workspace = true }

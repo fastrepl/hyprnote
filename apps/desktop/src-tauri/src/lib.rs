@@ -18,16 +18,15 @@ pub struct App {
     bridge: hypr_bridge::Client,
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
+#[tokio::main]
+pub async fn main() {
+    tauri::async_runtime::set(tokio::runtime::Handle::current());
+
     #[cfg(debug_assertions)]
     {
-        let writer = std::io::stderr;
-
         tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::DEBUG)
-            .with_target(false)
-            .with_writer(writer)
+            .with_file(true)
+            .with_line_number(true)
             .with_env_filter(
                 tracing_subscriber::EnvFilter::from_default_env().add_directive(
                     format!("{}=debug", env!("CARGO_CRATE_NAME"))
@@ -116,7 +115,7 @@ pub fn run() {
         )
         .unwrap();
 
-    let db = tauri::async_runtime::block_on(async {
+    let db = {
         let conn = {
             #[cfg(debug_assertions)]
             {
@@ -144,10 +143,8 @@ pub fn run() {
         hypr_db::user::seed(&db).await.unwrap();
 
         db
-    });
+    };
 
-    // TODO: we should just own tokio runtime, and replace all tauri::async_runtime with tokio
-    // for ex, we have tokio::spawn in
     builder
         .invoke_handler({
             let handler = specta_builder.invoke_handler();

@@ -1,5 +1,3 @@
-use hypr_audio::Audio;
-
 pub enum AppSounds {
     StartRecording,
     StopRecording,
@@ -9,7 +7,7 @@ pub enum AppSounds {
 impl AppSounds {
     pub fn play(&self) {
         let bytes = self.get_sound_bytes();
-        Audio::to_speaker(bytes);
+        hypr_audio::AudioOutput::to_speaker(bytes);
     }
 
     fn get_sound_bytes(&self) -> &'static [u8] {

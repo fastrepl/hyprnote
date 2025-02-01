@@ -27,19 +27,23 @@ impl SessionState {
         session_id: String,
         channel: tauri::ipc::Channel<hypr_bridge::ListenOutputChunk>,
     ) -> anyhow::Result<()> {
-        let mut mic_stream = {
-            let source = hypr_audio::MicInput::default();
-            source.stream()
+        let mut audio_stream = {
+            let input = {
+                #[cfg(not(debug_assertions))]
+                {
+                    hypr_audio::AudioInput::from_mic()
+                }
+
+                #[cfg(debug_assertions)]
+                {
+                    hypr_audio::AudioInput::from_recording(hypr_data::english_1::AUDIO.to_vec())
+                }
+            };
+
+            input.stream()
         }
         .resample(16000)
         .chunks(1024);
-
-        // let speaker_stream = {
-        //     let source = hypr_audio::SpeakerInput::new()?;
-        //     source.stream()?
-        // }
-        // .resample(16000)
-        // .chunks(1024);
 
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel();
         self.shutdown = Some(shutdown_tx);
@@ -75,15 +79,12 @@ impl SessionState {
 
         let audio_handle = tauri::async_runtime::spawn(async move {
             let mut writer = hound::WavWriter::create(&path, spec).unwrap();
-            // let mut combined_stream = mic_stream.zip(speaker_stream);
 
             tokio::select! {
                 _ = shutdown_rx => {}
                 _ = async {
-                    while let Some(mic_chunk) = mic_stream.next().await {
-                        // let mixed = hypr_audio::mix(&mic_chunk, &speaker_chunk);
-
-                        for sample in mic_chunk {
+                    while let Some(audio_chunk) = audio_stream.next().await {
+                        for sample in audio_chunk {
                             writer.write_sample(sample.to_sample::<i16>()).unwrap();
 
                             if let Err(e) = ws_tx.send(sample).await {

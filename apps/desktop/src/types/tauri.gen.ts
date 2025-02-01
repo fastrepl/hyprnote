@@ -136,8 +136,8 @@ export type ConversationChunk = {
 export type DiarizationBlock = { start: number; end: number; label: string };
 export type DiarizeOutputChunk = {
   speaker: string;
-  start: number;
-  end: number;
+  start: bigint;
+  end: bigint;
 };
 export type EnhanceRequest = {
   pre_meeting_editor: string;
@@ -161,7 +161,7 @@ export type Event = {
   google_event_url: string | null;
 };
 export type ListenOutputChunk =
-  | { Transcribe: TranscribeOutputChunk }
+  | { Transcribe: StreamResponse }
   | { Diarize: DiarizeOutputChunk };
 export type OSPermission =
   | "calendar"
@@ -193,6 +193,8 @@ export type Session = {
   conversations: ConversationChunk[];
 };
 export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo";
+export type StreamResponse = { words: StreamResponseWord[] };
+export type StreamResponseWord = { text: string; start: bigint; end: bigint };
 export type Template = {
   id: string;
   title: string;
@@ -200,11 +202,6 @@ export type Template = {
   sections: TemplateSection[];
 };
 export type TemplateSection = { title: string; description: string };
-export type TranscribeOutputChunk = {
-  start: number;
-  end: number;
-  text: string;
-};
 export type TranscriptBlock = { start: number; end: number; text: string };
 
 /** tauri-specta globals **/

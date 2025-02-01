@@ -110,7 +110,8 @@ pub fn run() {
         .export(
             specta_typescript::Typescript::default()
                 .header("// @ts-nocheck\n\n")
-                .formatter(specta_typescript::formatter::prettier),
+                .formatter(specta_typescript::formatter::prettier)
+                .bigint(specta_typescript::BigIntExportBehavior::BigInt),
             "../src/types/tauri.gen.ts",
         )
         .unwrap();

@@ -2955,6 +2955,7 @@ dependencies = [
  "calendar",
  "chrono",
  "codes-iso-639",
+ "data",
  "db",
  "dotenvy_macro",
  "futures-core",

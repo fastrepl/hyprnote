@@ -160,7 +160,7 @@ with inference_image.imports():
     image=inference_image,
     volumes={MODEL_DIR: cache_volume},
     allow_concurrent_inputs=10,
-    container_idle_timeout=60,
+    container_idle_timeout=1200,
     enable_memory_snapshot=True,
 )
 class Server:
@@ -204,7 +204,7 @@ class Server:
         sample_rate: int = Query(16000),
     ):
         if token != os.getenv("HYPRNOTE_API_KEY"):
-            raise HTTPException(status_code=401, detail="Unauthorized")
+            raise HTTPException(status_code=401)
 
         await websocket.accept()
         self.logger.info("websocket_connected")

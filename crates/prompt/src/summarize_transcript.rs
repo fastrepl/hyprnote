@@ -27,18 +27,28 @@ impl crate::OpenAIRequest for Input {
             ],
             response_format: Some(hypr_openai::ResponseFormat::JsonSchema {
                 json_schema: hypr_openai::ResponseFormatJsonSchema {
-                    strict: Some(true),
-                    name: "title".to_string(),
+                    name: "summarize_transcript".to_string(),
                     description: None,
-                    // TODO
+                    strict: Some(true),
                     schema: Some(serde_json::json!({
                         "type": "object",
                         "properties": {
-                            "title": {
-                                "type": "string"
+                            "blocks": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "points": {
+                                            "type": "array",
+                                            "items": { "type": "string" }
+                                        }
+                                    },
+                                    "required": ["points"],
+                                    "additionalProperties": false
+                                }
                             }
                         },
-                        "required": ["title"],
+                        "required": ["blocks"],
                         "additionalProperties": false
                     })),
                 },

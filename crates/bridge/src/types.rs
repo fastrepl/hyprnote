@@ -89,5 +89,10 @@ pub struct SummarizeTranscriptRequest {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct SummarizeTranscriptResponse {
-    pub summary: String,
+    pub blocks: Vec<SummarizeTranscriptBlock>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct SummarizeTranscriptBlock {
+    pub points: Vec<String>,
 }

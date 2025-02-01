@@ -6748,6 +6748,7 @@ dependencies = [
  "reqwest 0.12.12",
  "reqwest-middleware 0.4.0",
  "reqwest-retry 0.7.0",
+ "tracing",
  "url",
 ]
 

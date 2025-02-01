@@ -4,8 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+tracing = { workspace = true }
+url = { workspace = true }
+
 async-openai = { version = "0.27.2", default-features = false }
 reqwest = { workspace = true, features = ["json"] }
 reqwest-middleware = { version = "0.4.0", features = ["json"] }
 reqwest-retry = "0.7.0"
-url = { workspace = true }

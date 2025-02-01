@@ -28,14 +28,12 @@ impl crate::OpenAIRequest for Input {
             response_format: Some(hypr_openai::ResponseFormat::JsonSchema {
                 json_schema: hypr_openai::ResponseFormatJsonSchema {
                     strict: Some(true),
-                    name: "title".to_string(),
+                    name: "create_title".to_string(),
                     description: None,
                     schema: Some(serde_json::json!({
                         "type": "object",
                         "properties": {
-                            "title": {
-                                "type": "string"
-                            }
+                            "title": { "type": "string" }
                         },
                         "required": ["title"],
                         "additionalProperties": false

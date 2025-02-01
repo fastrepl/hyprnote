@@ -270,10 +270,10 @@ function RightPanel() {
   return (
     <Tabs defaultValue="transcript" className="p-1">
       <TabsList className="w-full">
-        <TabsTrigger className="text-xs flex-1" value="transcript">
+        <TabsTrigger className="flex-1 text-xs" value="transcript">
           Transcript
         </TabsTrigger>
-        <TabsTrigger className="text-xs flex-1" value="summary">
+        <TabsTrigger className="flex-1 text-xs" value="summary">
           Summary
         </TabsTrigger>
       </TabsList>
@@ -284,7 +284,7 @@ function RightPanel() {
             <div className="space-y-4 text-sm">
               {blocks.map((message, index) => (
                 <div className="flex flex-row gap-2" key={index}>
-                  <Avatar className="w-6 h-6">
+                  <Avatar className="h-6 w-6">
                     <AvatarFallback className="text-xs">
                       {message.speaker.slice(0, 2)}
                     </AvatarFallback>

@@ -20,6 +20,12 @@ export type NangoIntegration = "google-calendar" | "outlook-calendar"
 
 export type Participant = { id: string; name: string; email: string | null; color_hex: string }
 
+export type SummarizeTranscriptBlock = { points: string[] }
+
+export type SummarizeTranscriptRequest = { transcripts: TranscriptBlock[]; diarizations: DiarizationBlock[] }
+
+export type SummarizeTranscriptResponse = { blocks: SummarizeTranscriptBlock[] }
+
 export type Template = { id: string; title: string; description: string; sections: TemplateSection[] }
 
 export type TemplateSection = { title: string; description: string }

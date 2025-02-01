@@ -1,6 +1,6 @@
 pub use async_openai::types::*;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct OpenAIClient {
     api_base: url::Url,
     client: reqwest_middleware::ClientWithMiddleware,
@@ -57,6 +57,7 @@ impl OpenAIClient {
         }
     }
 
+    #[tracing::instrument]
     pub async fn chat_completion(
         &self,
         req: &async_openai::types::CreateChatCompletionRequest,

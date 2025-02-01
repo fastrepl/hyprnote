@@ -57,6 +57,8 @@ fn main() {
                 #[cfg(debug_assertions)]
                 {
                     tracing_subscriber::fmt::layer()
+                        .with_file(true)
+                        .with_line_number(true)
                 }
 
                 #[cfg(not(debug_assertions))]
@@ -283,6 +285,8 @@ fn export_ts_types() -> anyhow::Result<()> {
     native_collection.register::<hypr_bridge::EnhanceRequest>();
     native_collection.register::<hypr_bridge::CreateTitleRequest>();
     native_collection.register::<hypr_bridge::CreateTitleResponse>();
+    native_collection.register::<hypr_bridge::SummarizeTranscriptRequest>();
+    native_collection.register::<hypr_bridge::SummarizeTranscriptResponse>();
 
     let language = specta_typescript::Typescript::default()
         .header("// @ts-nocheck\n\n")

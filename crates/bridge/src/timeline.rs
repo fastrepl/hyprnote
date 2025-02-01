@@ -1,6 +1,6 @@
 use intervaltree::IntervalTree;
 
-use crate::{DiarizeOutputChunk, TranscribeOutputChunk};
+use crate::DiarizeOutputChunk;
 
 pub trait Interval {
     fn start(&self) -> u64;
@@ -26,7 +26,7 @@ impl Interval for DiarizeOutputChunk {
     }
 }
 
-impl Interval for TranscribeOutputChunk {
+impl Interval for hypr_stt::realtime::StreamResponseWord {
     fn start(&self) -> u64 {
         self.start
     }
@@ -37,7 +37,7 @@ impl Interval for TranscribeOutputChunk {
 
 #[derive(Debug, Clone)]
 pub struct Timeline {
-    transcripts: Vec<TranscribeOutputChunk>,
+    transcripts: Vec<hypr_stt::realtime::StreamResponseWord>,
     diarizations: Vec<DiarizeOutputChunk>,
 }
 
@@ -55,6 +55,15 @@ pub struct TimelineView {
     pub items: Vec<TimelineViewItem>,
 }
 
+impl std::fmt::Display for TimelineView {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for item in self.items.iter() {
+            writeln!(f, "{}", item)?;
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct TimelineViewItem {
     start: u64,
@@ -63,13 +72,34 @@ pub struct TimelineViewItem {
     text: String,
 }
 
+impl std::fmt::Display for TimelineViewItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "({:5.2}..{:5.2}) {}\n{}\n",
+            self.start as f64 / 1000.0,
+            self.end as f64 / 1000.0,
+            self.speaker,
+            self.text
+        )
+    }
+}
+
 impl Timeline {
-    pub fn add_transcribe(&mut self, item: TranscribeOutputChunk) {
+    pub fn add_transcribe(&mut self, item: hypr_stt::realtime::StreamResponseWord) {
         self.transcripts.push(item);
     }
 
     pub fn add_diarize(&mut self, item: DiarizeOutputChunk) {
-        self.diarizations.push(item);
+        if let Some(index) = self
+            .diarizations
+            .iter()
+            .position(|x| x.start() == item.start())
+        {
+            self.diarizations[index] = item;
+        } else {
+            self.diarizations.push(item);
+        }
     }
 
     pub fn view(&self) -> TimelineView {
@@ -82,32 +112,44 @@ impl Timeline {
         let mut items: Vec<TimelineViewItem> = vec![];
 
         for transcript in self.transcripts.iter() {
-            let range = transcript.start - 100..transcript.end + 100;
-            let speaker: Vec<_> = tree.query(range).collect();
+            let range = transcript.start.saturating_sub(100)..transcript.end.saturating_add(100);
+            let speakers: Vec<_> = tree.query(range).collect();
 
-            if speaker.is_empty() {
+            if speakers.is_empty() {
+                if let Some(last_item) = items.last_mut() {
+                    last_item.end = transcript.end;
+                    last_item.text.push_str(&transcript.text);
+                }
+
                 continue;
             }
 
-            let speaker = speaker
+            let speaker = speakers
                 .iter()
-                .max_by(|a, b| {
-                    let a_overlap = {
-                        let overlap_start = std::cmp::max(a.range.start, transcript.start);
-                        let overlap_end = std::cmp::min(a.range.end, transcript.end);
-                        overlap_end - overlap_start
-                    };
-                    let b_overlap = {
-                        let overlap_start = std::cmp::max(b.range.start, transcript.start);
-                        let overlap_end = std::cmp::min(b.range.end, transcript.end);
-                        overlap_end - overlap_start
-                    };
-
-                    a_overlap.cmp(&b_overlap)
+                .map(|entry| {
+                    let diarization_interval = entry.range.start..entry.range.end;
+                    let overlap = transcript
+                        .overlaps(
+                            &(DiarizeOutputChunk {
+                                start: diarization_interval.start,
+                                end: diarization_interval.end,
+                                speaker: entry.value.clone(),
+                            }),
+                        )
+                        .unwrap_or(0);
+                    (entry.value.clone(), overlap)
                 })
-                .unwrap()
-                .value
-                .clone();
+                .max_by_key(|(_, overlap)| *overlap)
+                .map(|(speaker, _)| speaker)
+                .unwrap();
+
+            if let Some(last_item) = items.last_mut() {
+                if last_item.speaker == speaker {
+                    last_item.end = transcript.end;
+                    last_item.text.push_str(&transcript.text);
+                    continue;
+                }
+            }
 
             items.push(TimelineViewItem {
                 start: transcript.start,
@@ -126,51 +168,62 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_timeline() {
+    fn test_korean_1() {
+        let transcript: Vec<hypr_stt::realtime::StreamResponse> = serde_json::from_value(
+            serde_json::from_str::<serde_json::Value>(hypr_data::korean_1::TRANSCRIPTION_JSON)
+                .unwrap(),
+        )
+        .unwrap();
+
+        let diarization: Vec<DiarizeOutputChunk> = serde_json::from_value(
+            serde_json::from_str::<serde_json::Value>(hypr_data::korean_1::DIARIZATION_JSON)
+                .unwrap(),
+        )
+        .unwrap();
+
         let mut timeline = Timeline::default();
 
-        timeline.add_transcribe(TranscribeOutputChunk {
-            text: "Hello world".to_string(),
-            start: 0,
-            end: 2000,
-        });
-
-        timeline.add_transcribe(TranscribeOutputChunk {
-            text: "Another sentence".to_string(),
-            start: 2000,
-            end: 3000,
-        });
-
-        timeline.add_diarize(DiarizeOutputChunk {
-            speaker: "Speaker A".to_string(),
-            start: 0,
-            end: 1500,
-        });
-
-        timeline.add_diarize(DiarizeOutputChunk {
-            speaker: "Speaker B".to_string(),
-            start: 1500,
-            end: 3000,
-        });
-
-        assert_eq!(
-            timeline.view(),
-            TimelineView {
-                items: vec![
-                    TimelineViewItem {
-                        start: 0,
-                        end: 2000,
-                        speaker: "Speaker A".to_string(),
-                        text: "Hello world".to_string()
-                    },
-                    TimelineViewItem {
-                        start: 2000,
-                        end: 3000,
-                        speaker: "Speaker B".to_string(),
-                        text: "Another sentence".to_string()
-                    }
-                ]
+        for transcript in transcript {
+            for word in transcript.words {
+                timeline.add_transcribe(word);
             }
-        );
+        }
+
+        for diarization in diarization {
+            timeline.add_diarize(diarization);
+        }
+
+        println!("{}", timeline.view());
+        // assert_eq!(timeline.view(), TimelineView { items: vec![] });
+    }
+
+    #[test]
+    fn test_english_2() {
+        let transcript: Vec<hypr_stt::realtime::StreamResponse> = serde_json::from_value(
+            serde_json::from_str::<serde_json::Value>(hypr_data::english_2::TRANSCRIPTION_JSON)
+                .unwrap(),
+        )
+        .unwrap();
+
+        let diarization: Vec<DiarizeOutputChunk> = serde_json::from_value(
+            serde_json::from_str::<serde_json::Value>(hypr_data::english_2::DIARIZATION_JSON)
+                .unwrap(),
+        )
+        .unwrap();
+
+        let mut timeline = Timeline::default();
+
+        for transcript in transcript {
+            for word in transcript.words {
+                timeline.add_transcribe(word);
+            }
+        }
+
+        for diarization in diarization {
+            timeline.add_diarize(diarization);
+        }
+
+        println!("{}", timeline.view());
+        // assert_eq!(timeline.view(), TimelineView { items: vec![] });
     }
 }

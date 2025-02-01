@@ -7,7 +7,7 @@ use deepgram::common::{
     stream_response::StreamResponse as DeepgramStreamResponse,
 };
 use futures_core::Stream;
-use futures_util::StreamExt;
+use futures_util::{future, StreamExt};
 
 use super::{RealtimeSpeechToText, StreamResponse, StreamResponseWord};
 
@@ -43,45 +43,51 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
             .stream(stream)
             .await?;
 
-        let transformed_stream = deepgram_stream.map(|result| {
-            result
-                .map_err(Into::into)
-                .and_then(|resp| StreamResponse::try_from(resp))
+        let transformed_stream = deepgram_stream.filter_map(|result| {
+            let item = match result {
+                Err(e) => Some(Err(e.into())),
+                Ok(resp) => match resp {
+                    DeepgramStreamResponse::TranscriptResponse { channel, .. } => {
+                        let data = channel.alternatives.first().unwrap();
+
+                        if data.words.is_empty() {
+                            None
+                        } else {
+                            let transcript = &data.transcript;
+                            let mut current_pos = 0;
+                            let mut words = Vec::with_capacity(data.words.len());
+
+                            for w in &data.words {
+                                let word_text = w.punctuated_word.as_ref().unwrap_or(&w.word);
+
+                                if let Some(found_pos) = transcript[current_pos..].find(word_text) {
+                                    let text = transcript
+                                        [current_pos..current_pos + found_pos + word_text.len()]
+                                        .to_string();
+
+                                    current_pos += found_pos + word_text.len();
+
+                                    words.push(StreamResponseWord {
+                                        text,
+                                        start: (w.start * 1000.0) as u64,
+                                        end: (w.end * 1000.0) as u64,
+                                    });
+                                }
+                            }
+
+                            Some(Ok(StreamResponse { words }))
+                        }
+                    }
+                    DeepgramStreamResponse::SpeechStartedResponse { .. }
+                    | DeepgramStreamResponse::TerminalResponse { .. }
+                    | DeepgramStreamResponse::UtteranceEndResponse { .. } => None,
+                    _ => None,
+                },
+            };
+
+            future::ready(item)
         });
 
         Ok(Box::from(Box::pin(transformed_stream)))
-    }
-}
-
-impl TryFrom<DeepgramStreamResponse> for StreamResponse {
-    type Error = anyhow::Error;
-
-    fn try_from(response: DeepgramStreamResponse) -> Result<Self, Self::Error> {
-        match response {
-            DeepgramStreamResponse::TranscriptResponse { channel, .. } => {
-                let data = channel.alternatives.first().unwrap();
-
-                // TODO: returning Err here break something
-                if data.words.is_empty() {
-                    return Ok(StreamResponse { words: vec![] });
-                }
-
-                Ok(StreamResponse {
-                    words: data
-                        .words
-                        .iter()
-                        .map(|w| StreamResponseWord {
-                            text: w.punctuated_word.clone().unwrap_or(w.word.clone()),
-                            start: (w.start * 1000.0) as u64,
-                            end: (w.end * 1000.0) as u64,
-                        })
-                        .collect(),
-                })
-            }
-            DeepgramStreamResponse::SpeechStartedResponse { .. } => Ok(StreamResponse::default()),
-            DeepgramStreamResponse::TerminalResponse { .. } => Ok(StreamResponse::default()),
-            DeepgramStreamResponse::UtteranceEndResponse { .. } => Ok(StreamResponse::default()),
-            _ => Err(anyhow::anyhow!("no conversion defined")),
-        }
     }
 }

@@ -3,11 +3,11 @@ type Input = hypr_bridge::PostprocessEnhanceRequest;
 impl crate::OpenAIRequest for Input {
     fn as_openai_request(&self) -> Result<hypr_openai::CreateChatCompletionRequest, crate::Error> {
         let system_prompt = crate::render(
-            crate::Template::CreateTitleSystem,
+            crate::Template::PostprocessEnhanceSystem,
             &crate::Context::from_serialize(self)?,
         )?;
         let user_prompt = crate::render(
-            crate::Template::CreateTitleUser,
+            crate::Template::PostprocessEnhanceUser,
             &crate::Context::from_serialize(self)?,
         )?;
 

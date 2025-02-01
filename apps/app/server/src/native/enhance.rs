@@ -1,4 +1,3 @@
-use anyhow::Result;
 use axum::{extract::State, http::StatusCode, response::sse, Json};
 use futures_util::StreamExt;
 use std::convert::Infallible;

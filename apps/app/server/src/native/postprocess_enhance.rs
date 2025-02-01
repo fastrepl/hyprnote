@@ -1,4 +1,3 @@
-use anyhow::Result;
 use axum::{extract::State, http::StatusCode, Json};
 
 use hypr_openai::CreateChatCompletionRequest;

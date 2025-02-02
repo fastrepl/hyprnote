@@ -76,8 +76,8 @@ mod tests {
         conversation
             .into_iter()
             .map(|item| hypr_db::user::DiarizationChunk {
-                start: item.start as i32,
-                end: item.end as i32,
+                start: item.start,
+                end: item.end,
                 speaker: item.speaker.clone(),
             })
             .collect()
@@ -89,8 +89,8 @@ mod tests {
         conversation
             .into_iter()
             .map(|item| hypr_db::user::TranscriptChunk {
-                start: item.start as i32,
-                end: item.end as i32,
+                start: item.start,
+                end: item.end,
                 text: item.text.clone(),
             })
             .collect()

@@ -2,7 +2,7 @@ use futures_util::StreamExt;
 use hypr_audio::AsyncSource;
 
 pub struct SessionState {
-    handle: Option<tauri::async_runtime::JoinHandle<()>>,
+    handle: Option<tokio::task::JoinHandle<()>>,
 }
 
 impl SessionState {
@@ -15,7 +15,7 @@ impl SessionState {
         bridge: hypr_bridge::Client,
         app_dir: std::path::PathBuf,
         session_id: String,
-        channel: tauri::ipc::Channel<hypr_bridge::ListenOutputChunk>,
+        channel: tauri::ipc::Channel<hypr_bridge::TimelineView>,
     ) -> anyhow::Result<()> {
         let mut audio_stream = {
             let input = {
@@ -49,14 +49,25 @@ impl SessionState {
 
         let listen_stream = listen_client.from_audio(audio_stream).await.unwrap();
 
-        let handle: tauri::async_runtime::JoinHandle<()> =
-            tauri::async_runtime::spawn(async move {
-                futures_util::pin_mut!(listen_stream);
+        let mut timeline = hypr_bridge::Timeline::default();
 
-                while let Some(result) = listen_stream.next().await {
-                    println!("result: {:?}", result);
+        let handle = tokio::spawn(async move {
+            futures_util::pin_mut!(listen_stream);
+
+            while let Some(result) = listen_stream.next().await {
+                match result {
+                    hypr_bridge::ListenOutputChunk::Transcribe(chunk) => {
+                        timeline.add_transcription(chunk);
+                    }
+                    hypr_bridge::ListenOutputChunk::Diarize(chunk) => {
+                        timeline.add_diarization(chunk);
+                    }
                 }
-            });
+
+                let view = timeline.view();
+                channel.send(view).unwrap();
+            }
+        });
 
         self.handle = Some(handle);
 

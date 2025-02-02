@@ -49,7 +49,7 @@ impl Default for Timeline {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct TimelineView {
     pub items: Vec<TimelineViewItem>,
 }
@@ -63,7 +63,7 @@ impl std::fmt::Display for TimelineView {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct TimelineViewItem {
     start: u64,
     end: u64,
@@ -85,11 +85,11 @@ impl std::fmt::Display for TimelineViewItem {
 }
 
 impl Timeline {
-    pub fn add_transcribe(&mut self, item: TranscribeOutputChunk) {
+    pub fn add_transcription(&mut self, item: TranscribeOutputChunk) {
         self.transcripts.push(item);
     }
 
-    pub fn add_diarize(&mut self, item: DiarizeOutputChunk) {
+    pub fn add_diarization(&mut self, item: DiarizeOutputChunk) {
         if let Some(index) = self
             .diarizations
             .iter()
@@ -177,11 +177,11 @@ mod tests {
         let mut timeline = Timeline::default();
 
         for t in transcripts {
-            timeline.add_transcribe(t);
+            timeline.add_transcription(t);
         }
 
         for d in diarizations {
-            timeline.add_diarize(d);
+            timeline.add_diarization(d);
         }
 
         println!("{}", timeline.view());
@@ -199,11 +199,11 @@ mod tests {
         let mut timeline = Timeline::default();
 
         for t in transcripts {
-            timeline.add_transcribe(t);
+            timeline.add_transcription(t);
         }
 
         for d in diarizations {
-            timeline.add_diarize(d);
+            timeline.add_diarization(d);
         }
 
         println!("{}", timeline.view());

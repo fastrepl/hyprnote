@@ -13,6 +13,7 @@ impl SessionState {
     pub async fn start(
         &mut self,
         bridge: hypr_bridge::Client,
+        language: codes_iso_639::part_1::LanguageCode,
         app_dir: std::path::PathBuf,
         session_id: String,
         channel: tauri::ipc::Channel<hypr_bridge::TimelineView>,
@@ -42,10 +43,7 @@ impl SessionState {
         }
         .resample(16000);
 
-        let listen_client = bridge
-            .listen()
-            .language(codes_iso_639::part_1::LanguageCode::En)
-            .build();
+        let listen_client = bridge.listen().language(language).build();
 
         let listen_stream = listen_client.from_audio(audio_stream).await.unwrap();
 

@@ -35,3 +35,4 @@ hypr-data = { path = "../../crates/data", package = "data" }
 async-stream = { workspace = true }
 futures-channel = { workspace = true }
 hound = { workspace = true }
+insta = "1.42.1"

@@ -248,25 +248,9 @@ function LeftPanel() {
 }
 
 function RightPanel() {
-  // const { listening, session } = useSession((s) => ({
-  //   listening: s.listening,
-  //   session: s.session,
-  // }));
-
-  const blocks = [
-    {
-      speaker: "Speaker 1",
-      text: "This is a test message",
-    },
-    {
-      speaker: "Speaker 2",
-      text: "This is a test message",
-    },
-    {
-      speaker: "Speaker 3",
-      text: "This is a test message. This is a test message. This is a test message.",
-    },
-  ];
+  const { timeline } = useSession((s) => ({
+    timeline: s.timeline,
+  }));
 
   return (
     <Tabs defaultValue="transcript" className="p-1">
@@ -283,15 +267,15 @@ function RightPanel() {
         <div className="flex h-full flex-col justify-end">
           <ScrollArea type="auto" className="flex-1 p-2">
             <div className="space-y-4 text-sm">
-              {blocks.map((message, index) => (
-                <div className="flex flex-row gap-2" key={index}>
+              {timeline.items.map(({ speaker, text, start, end }) => (
+                <div className="flex flex-row gap-2" key={`${start}-${end}`}>
                   <Avatar className="h-6 w-6">
                     <AvatarFallback className="text-xs">
-                      {message.speaker.slice(0, 2)}
+                      {speaker.slice(0, 2)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="rounded-lg bg-muted px-3 py-1 text-muted-foreground">
-                    {message.text}
+                    {text}
                   </div>
                 </div>
               ))}

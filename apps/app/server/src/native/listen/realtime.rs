@@ -68,50 +68,36 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
     ));
 
     let task = async {
-        let mut transcript_stream = stt.transcribe(transcribe_stream).await.unwrap();
-        let mut diarization_stream =
-            Box::pin(state.diarize.from_audio(diarize_stream).await.unwrap());
+        match stt.transcribe(transcribe_stream).await {
+            Err(e) => eprintln!("transcription error: {:?}", e),
+            Ok(mut transcript_stream) => {
+                let mut last_activity = tokio::time::Instant::now();
 
-        loop {
-            tokio::select! {
-                result = transcript_stream.next() => {
-                    if let Some(result) = result {
-                        if let Ok(res) = result {
-                            for word in res.words {
-                                let data = ListenOutputChunk::Transcribe(hypr_db::user::TranscriptChunk {
-                                    text: word.text,
-                                    start: word.start,
-                                    end: word.end,
-                                });
-
-                                let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
-                                if ws_sender.send(msg).await.is_err() {
-                                    break;
+                loop {
+                    tokio::select! {
+                        item = transcript_stream.next() => {
+                            match item {
+                                Some(Ok(result)) => {
+                                    last_activity = tokio::time::Instant::now();
+                                    println!("result: {:?}", result);
                                 }
+                                _ => continue,
                             }
                         }
-                    } else {
-                        break;
-                    }
-                }
-                result = diarization_stream.next() => {
-                    if let Some(output) = result {
-                        let data = ListenOutputChunk::Diarize(output);
-                        let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
-                        if ws_sender.send(msg).await.is_err() {
-                            break;
+
+                        _ = tokio::time::sleep(tokio::time::Duration::from_millis(500)) => {
+                            if last_activity.elapsed() >= tokio::time::Duration::from_secs(5) {
+                                break;
+                            }
                         }
-                    } else {
-                        break;
                     }
                 }
-                else => break,
             }
         }
     };
 
     task.await;
-    ws_handler.abort();
+    tracing::info!("task finished");
 }
 
 #[cfg(test)]

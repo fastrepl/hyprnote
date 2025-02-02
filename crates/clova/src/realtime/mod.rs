@@ -98,30 +98,16 @@ impl Client {
         let config_stream = futures_util::stream::once(async move { config_request });
 
         let audio_request_stream = stream.filter_map(|chunk| async {
-            if let Ok(chunk) = chunk {
-                Some(interface::NestRequest {
-                    r#type: interface::RequestType::Data.into(),
-                    part: Some(interface::nest_request::Part::Data(interface::NestData {
-                        chunk: chunk.into(),
-                        extra_contents: serde_json::to_string(
-                            &interface::RecognizeRequestExtra::default(),
-                        )
-                        .unwrap(),
-                    })),
-                })
-            } else {
-                Some(interface::NestRequest {
-                    r#type: interface::RequestType::Data.into(),
-                    part: Some(interface::nest_request::Part::Data(interface::NestData {
-                        chunk: vec![].into(),
-                        extra_contents: serde_json::to_string(&interface::RecognizeRequestExtra {
-                            ep_flag: Some(true),
-                            ..Default::default()
-                        })
-                        .unwrap(),
-                    })),
-                })
-            }
+            chunk.ok().map(|chunk| interface::NestRequest {
+                r#type: interface::RequestType::Data.into(),
+                part: Some(interface::nest_request::Part::Data(interface::NestData {
+                    chunk: chunk.into(),
+                    extra_contents: serde_json::to_string(
+                        &interface::RecognizeRequestExtra::default(),
+                    )
+                    .unwrap(),
+                })),
+            })
         });
 
         let response = self

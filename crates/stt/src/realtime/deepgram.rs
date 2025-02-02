@@ -78,8 +78,8 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
                             Some(Ok(StreamResponse { words }))
                         }
                     }
-                    DeepgramStreamResponse::SpeechStartedResponse { .. }
-                    | DeepgramStreamResponse::TerminalResponse { .. }
+                    DeepgramStreamResponse::TerminalResponse { .. }
+                    | DeepgramStreamResponse::SpeechStartedResponse { .. }
                     | DeepgramStreamResponse::UtteranceEndResponse { .. } => None,
                     _ => None,
                 },

@@ -181,12 +181,12 @@ impl futures_core::Stream for AudioStream {
                     let now = std::time::Instant::now();
                     let sample_duration = std::time::Duration::from_secs_f64(1.0 / 16000.0);
 
-                    let expected_time = last_sample_time.unwrap_or(now)
-                        + sample_duration.mul_f64(*position as f64 / 2.0);
-
-                    if now < expected_time {
-                        cx.waker().wake_by_ref();
-                        return Poll::Pending;
+                    if let Some(last_time) = last_sample_time {
+                        let next_sample_time = *last_time + sample_duration;
+                        if now < next_sample_time {
+                            cx.waker().wake_by_ref();
+                            return Poll::Pending;
+                        }
                     }
 
                     let bytes = [data[*position], data[*position + 1]];

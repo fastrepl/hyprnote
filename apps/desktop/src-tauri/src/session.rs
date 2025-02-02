@@ -17,27 +17,44 @@ impl SessionState {
         session_id: String,
         channel: tauri::ipc::Channel<hypr_bridge::ListenOutputChunk>,
     ) -> anyhow::Result<()> {
-        let stream = {
-            let input = hypr_audio::MicInput::default();
+        let mut audio_stream = {
+            let input = {
+                #[cfg(all(debug_assertions, feature = "sim-english-1"))]
+                {
+                    hypr_audio::AudioInput::from_recording(hypr_data::english_1::AUDIO.to_vec())
+                }
+
+                #[cfg(all(debug_assertions, feature = "sim-korean-1"))]
+                {
+                    hypr_audio::AudioInput::from_recording(hypr_data::korean_1::AUDIO.to_vec())
+                }
+
+                #[cfg(not(any(
+                    all(debug_assertions, feature = "sim-english-1"),
+                    all(debug_assertions, feature = "sim-korean-1")
+                )))]
+                {
+                    hypr_audio::MicInput::default()
+                }
+            };
+
             input.stream()
         }
         .resample(16000);
 
-        let transcribe_client = bridge
-            .transcribe()
+        let listen_client = bridge
+            .listen()
             .language(codes_iso_639::part_1::LanguageCode::En)
             .build();
 
-        let transcript_stream = transcribe_client.from_audio(stream).await.unwrap();
+        let listen_stream = listen_client.from_audio(audio_stream).await.unwrap();
 
         let handle: tauri::async_runtime::JoinHandle<()> =
             tauri::async_runtime::spawn(async move {
-                futures_util::pin_mut!(transcript_stream);
+                futures_util::pin_mut!(listen_stream);
 
-                while let Some(transcript) = transcript_stream.next().await {
-                    if channel.send(transcript).is_err() {
-                        break;
-                    }
+                while let Some(result) = listen_stream.next().await {
+                    println!("result: {:?}", result);
                 }
             });
 

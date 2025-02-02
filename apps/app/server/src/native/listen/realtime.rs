@@ -33,7 +33,7 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
 
     let mut stt = state.realtime_stt.for_language(params.language).await;
 
-    let (tx, rx_transcribe) = broadcast::channel::<Bytes>(256);
+    let (tx, rx_transcribe) = broadcast::channel::<Bytes>(512);
     let rx_diarize = tx.subscribe();
 
     let ws_handler = tokio::spawn(async move {

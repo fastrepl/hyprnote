@@ -33,7 +33,7 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
 
     let mut stt = state.realtime_stt.for_language(params.language).await;
 
-    let (tx, rx_transcribe) = broadcast::channel::<Bytes>(512);
+    let (tx, rx_transcribe) = broadcast::channel::<Bytes>(1024);
     let rx_diarize = tx.subscribe();
 
     let ws_handler = tokio::spawn(async move {
@@ -115,7 +115,7 @@ fn create_audio_stream(
 ) -> impl futures_util::Stream<Item = Result<Bytes, std::io::Error>> {
     futures_util::stream::try_unfold(rx, move |mut rx| async move {
         match rx.recv().await {
-            Ok(audio) => Ok(Some((audio.clone(), rx))),
+            Ok(audio) => Ok(Some((audio, rx))),
             Err(broadcast::error::RecvError::Closed) => Ok(None),
             Err(broadcast::error::RecvError::Lagged(n)) => {
                 tracing::warn!("audio_stream is lagging by {}", n);

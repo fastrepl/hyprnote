@@ -96,6 +96,7 @@ function LeftPanel() {
 
   const store = useSession((s) => ({
     session: s.session,
+    timeline: s.timeline,
     listening: s.listening,
     start: s.start,
     pause: s.pause,

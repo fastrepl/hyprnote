@@ -13,7 +13,7 @@ async getEnv(name: string) : Promise<string> {
 async getFingerprint() : Promise<string> {
     return await TAURI_INVOKE("get_fingerprint");
 },
-async startSession(onEvent: TAURI_CHANNEL<ListenOutputChunk>) : Promise<null> {
+async startSession(onEvent: TAURI_CHANNEL<TimelineView>) : Promise<null> {
     return await TAURI_INVOKE("start_session", { onEvent });
 },
 async stopSession() : Promise<null> {
@@ -110,7 +110,6 @@ export type ConversationChunk = { start: string; end: string; local_audio_path: 
 export type DiarizationChunk = { start: bigint; end: bigint; speaker: string }
 export type EnhanceRequest = { pre_meeting_editor: string; in_meeting_editor: string; template: Template; config_general: ConfigDataGeneral; config_profile: ConfigDataProfile; event: Event | null; participants: Participant[]; transcripts: TranscriptChunk[]; diarizations: DiarizationChunk[] }
 export type Event = { id: string; tracking_id: string; calendar_id: string; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null }
-export type ListenOutputChunk = { Transcribe: TranscriptChunk } | { Diarize: DiarizationChunk }
 export type OSPermission = "calendar" | "contacts" | "audioRecording" | "screenRecording" | "microphone" | "accessibility"
 export type Participant = { id: string; name: string; email: string | null; color_hex: string }
 export type ParticipantFilter = { Text: string } | { Event: string } | "All"
@@ -121,6 +120,8 @@ export type Session = { id: string; timestamp: string; calendar_event_id: string
 export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo"
 export type Template = { id: string; title: string; description: string; sections: TemplateSection[] }
 export type TemplateSection = { title: string; description: string }
+export type TimelineView = { items: TimelineViewItem[] }
+export type TimelineViewItem = { start: bigint; end: bigint; speaker: string; text: string }
 export type TranscriptChunk = { start: bigint; end: bigint; text: string }
 
 /** tauri-specta globals **/

@@ -3,12 +3,13 @@ import { create as mutate } from "mutative";
 import { Channel } from "@tauri-apps/api/core";
 
 import { commands } from "@/types/tauri.gen";
-import type { ListenOutputChunk, Session } from "@/types/tauri.gen";
+import type { TimelineView, Session } from "@/types/tauri.gen";
 
 type State = {
   channel: Channel<any> | null;
   listening: boolean;
   session: Session;
+  timeline: TimelineView;
 };
 
 type Actions = {
@@ -26,6 +27,7 @@ export const createSessionStore = (session: Session) => {
     session,
     listening: false,
     channel: null,
+    timeline: { items: [] },
     persistSession: async () => {
       const { session } = get();
       await commands.dbUpsertSession(session);
@@ -52,9 +54,13 @@ export const createSessionStore = (session: Session) => {
       );
     },
     start: () => {
-      const channel = new Channel<ListenOutputChunk>();
+      const channel = new Channel<TimelineView>();
       channel.onmessage = (event) => {
-        console.log(event);
+        set((state) =>
+          mutate(state, (draft) => {
+            draft.timeline = event;
+          }),
+        );
       };
 
       commands.startSession(channel);

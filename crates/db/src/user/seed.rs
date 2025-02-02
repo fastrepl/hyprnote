@@ -1,4 +1,4 @@
-use super::{Calendar, Event, Participant, Platform, Session, Transcript, UserDatabase};
+use super::{Calendar, Event, Participant, Platform, Session, UserDatabase};
 use time::Duration;
 
 pub async fn seed(db: &UserDatabase) -> anyhow::Result<()> {

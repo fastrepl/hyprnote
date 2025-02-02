@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 hypr-audio = { path = "../../crates/audio", package = "audio" }
 hypr-db = { path = "../../crates/db", package = "db", features = ["user"] }
-hypr-stt = { path = "../../crates/stt", package = "stt", features = ["realtime"] }
 
 anyhow = { workspace = true }
 thiserror = { workspace = true }

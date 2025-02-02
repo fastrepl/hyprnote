@@ -1,6 +1,5 @@
+use crate::{DiarizeOutputChunk, TranscribeOutputChunk};
 use intervaltree::IntervalTree;
-
-use crate::DiarizeOutputChunk;
 
 pub trait Interval {
     fn start(&self) -> u64;
@@ -26,7 +25,7 @@ impl Interval for DiarizeOutputChunk {
     }
 }
 
-impl Interval for hypr_stt::realtime::StreamResponseWord {
+impl Interval for TranscribeOutputChunk {
     fn start(&self) -> u64 {
         self.start
     }
@@ -37,7 +36,7 @@ impl Interval for hypr_stt::realtime::StreamResponseWord {
 
 #[derive(Debug, Clone)]
 pub struct Timeline {
-    transcripts: Vec<hypr_stt::realtime::StreamResponseWord>,
+    transcripts: Vec<TranscribeOutputChunk>,
     diarizations: Vec<DiarizeOutputChunk>,
 }
 
@@ -86,7 +85,7 @@ impl std::fmt::Display for TimelineViewItem {
 }
 
 impl Timeline {
-    pub fn add_transcribe(&mut self, item: hypr_stt::realtime::StreamResponseWord) {
+    pub fn add_transcribe(&mut self, item: TranscribeOutputChunk) {
         self.transcripts.push(item);
     }
 
@@ -130,7 +129,7 @@ impl Timeline {
                     let diarization_interval = entry.range.start..entry.range.end;
                     let overlap = transcript
                         .overlaps(
-                            &(DiarizeOutputChunk {
+                            &(hypr_db::user::DiarizationChunk {
                                 start: diarization_interval.start,
                                 end: diarization_interval.end,
                                 speaker: entry.value.clone(),
@@ -169,28 +168,20 @@ mod tests {
 
     #[test]
     fn test_korean_1() {
-        let transcript: Vec<hypr_stt::realtime::StreamResponse> = serde_json::from_value(
-            serde_json::from_str::<serde_json::Value>(hypr_data::korean_1::TRANSCRIPTION_JSON)
-                .unwrap(),
-        )
-        .unwrap();
+        let transcripts: Vec<TranscribeOutputChunk> =
+            serde_json::from_str(hypr_data::korean_1::TRANSCRIPTION_JSON).unwrap();
 
-        let diarization: Vec<DiarizeOutputChunk> = serde_json::from_value(
-            serde_json::from_str::<serde_json::Value>(hypr_data::korean_1::DIARIZATION_JSON)
-                .unwrap(),
-        )
-        .unwrap();
+        let diarizations: Vec<DiarizeOutputChunk> =
+            serde_json::from_str(hypr_data::korean_1::DIARIZATION_JSON).unwrap();
 
         let mut timeline = Timeline::default();
 
-        for transcript in transcript {
-            for word in transcript.words {
-                timeline.add_transcribe(word);
-            }
+        for t in transcripts {
+            timeline.add_transcribe(t);
         }
 
-        for diarization in diarization {
-            timeline.add_diarize(diarization);
+        for d in diarizations {
+            timeline.add_diarize(d);
         }
 
         println!("{}", timeline.view());
@@ -199,28 +190,20 @@ mod tests {
 
     #[test]
     fn test_english_2() {
-        let transcript: Vec<hypr_stt::realtime::StreamResponse> = serde_json::from_value(
-            serde_json::from_str::<serde_json::Value>(hypr_data::english_2::TRANSCRIPTION_JSON)
-                .unwrap(),
-        )
-        .unwrap();
+        let transcripts: Vec<TranscribeOutputChunk> =
+            serde_json::from_str(hypr_data::english_2::TRANSCRIPTION_JSON).unwrap();
 
-        let diarization: Vec<DiarizeOutputChunk> = serde_json::from_value(
-            serde_json::from_str::<serde_json::Value>(hypr_data::english_2::DIARIZATION_JSON)
-                .unwrap(),
-        )
-        .unwrap();
+        let diarizations: Vec<DiarizeOutputChunk> =
+            serde_json::from_str(hypr_data::english_2::DIARIZATION_JSON).unwrap();
 
         let mut timeline = Timeline::default();
 
-        for transcript in transcript {
-            for word in transcript.words {
-                timeline.add_transcribe(word);
-            }
+        for t in transcripts {
+            timeline.add_transcribe(t);
         }
 
-        for diarization in diarization {
-            timeline.add_diarize(diarization);
+        for d in diarizations {
+            timeline.add_diarize(d);
         }
 
         println!("{}", timeline.view());

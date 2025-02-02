@@ -42,11 +42,13 @@ impl WebSocketClient {
             while let Some(data) = audio_stream.next().await {
                 let input = T::create_input(data);
                 let msg = Message::Text(serde_json::to_string(&input).unwrap().into());
+
                 if ws_sender.send(msg).await.is_err() {
                     break;
                 }
             }
 
+            let _ = ws_sender.send(Message::Close(None)).await;
             let _ = send_complete_tx.send(());
         });
 
@@ -76,14 +78,11 @@ impl WebSocketClient {
 
                                 match msg {
                                     Message::Text(data) => yield serde_json::from_str::<T::Output>(&data).unwrap(),
-                                    Message::Binary(_) => {},
+                                    Message::Binary(_) | Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => continue,
                                     Message::Close(_) => break,
-                                    Message::Ping(_) => {},
-                                    Message::Pong(_) => {},
-                                    Message::Frame(_) => {},
                                 }
-                            }
-                            _ => break,
+                            },
+                            _ => continue,
                         }
                     }
                 }

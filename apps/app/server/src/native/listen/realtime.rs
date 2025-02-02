@@ -76,11 +76,19 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
             tokio::select! {
                 result = transcript_stream.next() => {
                     if let Some(result) = result {
-                        let data = ListenOutputChunk::Transcribe(result.unwrap().into());
+                        if let Ok(res) = result {
+                            for word in res.words {
+                                let data = ListenOutputChunk::Transcribe(hypr_db::user::TranscriptChunk {
+                                    text: word.text,
+                                    start: word.start,
+                                    end: word.end,
+                                });
 
-                        let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
-                        if ws_sender.send(msg).await.is_err() {
-                            break;
+                                let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
+                                if ws_sender.send(msg).await.is_err() {
+                                    break;
+                                }
+                            }
                         }
                     } else {
                         break;

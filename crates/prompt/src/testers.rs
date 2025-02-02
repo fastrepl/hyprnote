@@ -1,5 +1,6 @@
-use hypr_db::user::TranscriptBlock;
 use serde_json::{from_value, Value};
+
+use hypr_db::user::TranscriptChunk;
 
 pub fn language(lang: codes_iso_639::part_1::LanguageCode) -> impl tera::Test {
     Box::new(
@@ -28,7 +29,7 @@ pub fn duration(from: std::time::Duration, to: std::time::Duration) -> impl tera
                 return Err(tera::Error::msg("'value' is empty"));
             }
 
-            let transcripts: Vec<TranscriptBlock> = from_value(value.unwrap().clone())?;
+            let transcripts: Vec<TranscriptChunk> = from_value(value.unwrap().clone())?;
 
             let start = transcripts.iter().map(|t| t.start).min().unwrap();
             let end = transcripts.iter().map(|t| t.end).max().unwrap();

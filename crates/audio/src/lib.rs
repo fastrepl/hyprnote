@@ -1,11 +1,9 @@
 mod mic;
-mod processing;
 mod source;
 mod speaker;
 mod stream;
 
 pub use mic::*;
-pub use processing::*;
 pub use source::*;
 pub use speaker::*;
 pub use stream::*;
@@ -179,32 +177,22 @@ impl futures_core::Stream for AudioStream {
                 position,
                 last_sample_time,
             } => {
-                if *position == 0 {
-                    let bytes = data.clone().into_boxed_slice();
-                    let static_bytes = Box::leak(bytes);
-                    AudioOutput::to_speaker_raw(static_bytes);
-                }
-
                 if *position + 2 <= data.len() {
                     let now = std::time::Instant::now();
                     let sample_duration = std::time::Duration::from_secs_f64(1.0 / 16000.0);
 
-                    match last_sample_time {
-                        None => {
-                            *last_sample_time = Some(now);
-                        }
-                        Some(last_time) => {
-                            if now.duration_since(*last_time) < sample_duration {
-                                cx.waker().wake_by_ref();
-                                return Poll::Pending;
-                            }
-                            *last_sample_time = Some(now);
-                        }
+                    let expected_time = last_sample_time.unwrap_or(now)
+                        + sample_duration.mul_f64(*position as f64 / 2.0);
+
+                    if now < expected_time {
+                        cx.waker().wake_by_ref();
+                        return Poll::Pending;
                     }
 
                     let bytes = [data[*position], data[*position + 1]];
                     let sample = i16::from_le_bytes(bytes) as f32 / 32768.0;
                     *position += 2;
+                    *last_sample_time = Some(now);
                     Poll::Ready(Some(sample))
                 } else {
                     Poll::Ready(None)

@@ -6,6 +6,7 @@ mod events;
 mod permissions;
 mod session;
 mod tray;
+mod vars;
 mod windows;
 mod workers;
 
@@ -28,11 +29,9 @@ pub async fn main() {
             .with_file(true)
             .with_line_number(true)
             .with_env_filter(
-                tracing_subscriber::EnvFilter::from_default_env().add_directive(
-                    format!("{}=debug", env!("CARGO_CRATE_NAME"))
-                        .parse()
-                        .unwrap(),
-                ),
+                tracing_subscriber::EnvFilter::builder()
+                    .with_default_directive(tracing::Level::DEBUG.into())
+                    .from_env_lossy(),
             )
             .init();
     }
@@ -140,7 +139,9 @@ pub async fn main() {
         let db = hypr_db::user::UserDatabase::from(conn);
 
         #[cfg(debug_assertions)]
-        hypr_db::user::seed(&db).await.unwrap();
+        {
+            hypr_db::user::seed(&db).await.unwrap();
+        }
 
         db
     };
@@ -156,8 +157,8 @@ pub async fn main() {
 
             {
                 let bridge = hypr_bridge::Client::builder()
-                    .api_base("http://localhost:1234")
-                    .api_key("123")
+                    .api_base(vars::server_api_base())
+                    .api_key(vars::server_api_key())
                     .build()
                     .unwrap();
 
@@ -180,7 +181,8 @@ pub async fn main() {
 
             let worker_app = app.clone();
             let worker_db = db.clone();
-            tauri::async_runtime::spawn(async move {
+
+            tokio::spawn(async move {
                 let state = workers::WorkerState {
                     db: worker_db,
                     app: worker_app,

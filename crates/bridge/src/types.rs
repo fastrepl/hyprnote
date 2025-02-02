@@ -12,8 +12,8 @@ pub enum Error {
 
 #[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
 pub enum ListenOutputChunk {
-    Transcribe(hypr_stt::realtime::StreamResponse),
-    Diarize(DiarizeOutputChunk),
+    Transcribe(hypr_db::user::TranscriptChunk),
+    Diarize(hypr_db::user::DiarizationChunk),
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
@@ -22,31 +22,10 @@ pub struct ListenInputChunk {
     pub audio: Vec<u8>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
-pub struct DiarizeInputChunk {
-    #[serde(with = "serde_bytes")]
-    pub audio: Vec<u8>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
-pub struct DiarizeOutputChunk {
-    pub speaker: String,
-    pub start: u64,
-    pub end: u64,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
-pub struct TranscribeInputChunk {
-    #[serde(with = "serde_bytes")]
-    pub audio: Vec<u8>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]
-pub struct TranscribeOutputChunk {
-    pub start: u64,
-    pub end: u64,
-    pub text: String,
-}
+pub type DiarizeInputChunk = ListenInputChunk;
+pub type TranscribeInputChunk = ListenInputChunk;
+pub type DiarizeOutputChunk = hypr_db::user::DiarizationChunk;
+pub type TranscribeOutputChunk = hypr_db::user::TranscriptChunk;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct EnhanceRequest {
@@ -57,13 +36,13 @@ pub struct EnhanceRequest {
     pub config_profile: hypr_db::user::ConfigDataProfile,
     pub event: Option<hypr_db::user::Event>,
     pub participants: Vec<hypr_db::user::Participant>,
-    pub transcripts: Vec<hypr_db::user::TranscriptBlock>,
-    pub diarizations: Vec<hypr_db::user::DiarizationBlock>,
+    pub transcripts: Vec<hypr_db::user::TranscriptChunk>,
+    pub diarizations: Vec<hypr_db::user::DiarizationChunk>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct CreateTitleRequest {
-    pub transcripts: Vec<hypr_db::user::TranscriptBlock>,
+    pub transcripts: Vec<hypr_db::user::TranscriptChunk>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
@@ -83,16 +62,16 @@ pub struct PostprocessEnhanceResponse {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct SummarizeTranscriptRequest {
-    pub transcripts: Vec<hypr_db::user::TranscriptBlock>,
-    pub diarizations: Vec<hypr_db::user::DiarizationBlock>,
+    pub transcripts: Vec<hypr_db::user::TranscriptChunk>,
+    pub diarizations: Vec<hypr_db::user::DiarizationChunk>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct SummarizeTranscriptResponse {
-    pub blocks: Vec<SummarizeTranscriptBlock>,
+    pub blocks: Vec<SummarizeTranscriptChunk>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
-pub struct SummarizeTranscriptBlock {
+pub struct SummarizeTranscriptChunk {
     pub points: Vec<String>,
 }

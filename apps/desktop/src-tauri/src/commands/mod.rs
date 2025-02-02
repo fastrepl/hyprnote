@@ -33,14 +33,17 @@ pub fn list_builtin_templates() -> Vec<hypr_db::user::Template> {
 #[tauri::command]
 #[specta::specta]
 pub async fn start_session<'a>(
-    app_handle: tauri::AppHandle,
+    app: State<'_, crate::App>,
     session: State<'_, tokio::sync::Mutex<SessionState>>,
     on_event: Channel<hypr_bridge::ListenOutputChunk>,
 ) -> Result<(), String> {
-    let app_dir = app_handle.path().app_data_dir().unwrap();
+    let app_dir = app.handle.path().app_data_dir().unwrap();
     {
         let mut s = session.lock().await;
-        let _ = s.start(app_dir, "123".to_string(), on_event).await;
+
+        let _ = s
+            .start(app.bridge.clone(), app_dir, "123".to_string(), on_event)
+            .await;
     }
     Ok(())
 }

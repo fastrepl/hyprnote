@@ -6,13 +6,11 @@ edition = "2021"
 [features]
 default = []
 admin = ["hypr_nango"]
-user = ["hypr_stt"]
+user = []
 
 [dependencies]
 hypr_calendar = { path = "../calendar", package = "calendar", default-features = false }
-
 hypr_nango = { path = "../nango", package = "nango", optional = true }
-hypr_stt = { path = "../stt", package = "stt", default-features = false, optional = true }
 
 anyhow = { workspace = true }
 codes-iso-639 = { workspace = true }

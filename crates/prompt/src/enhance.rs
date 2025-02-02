@@ -70,25 +70,25 @@ mod tests {
         conversation
     }
 
-    fn diarizations_from_path(p: &str) -> Vec<hypr_db::user::DiarizationBlock> {
+    fn diarizations_from_path(p: &str) -> Vec<hypr_db::user::DiarizationChunk> {
         let conversation = read_conversation(p);
 
         conversation
             .into_iter()
-            .map(|item| hypr_db::user::DiarizationBlock {
+            .map(|item| hypr_db::user::DiarizationChunk {
                 start: item.start as i32,
                 end: item.end as i32,
-                label: item.speaker.clone(),
+                speaker: item.speaker.clone(),
             })
             .collect()
     }
 
-    fn transcripts_from_path(p: &str) -> Vec<hypr_db::user::TranscriptBlock> {
+    fn transcripts_from_path(p: &str) -> Vec<hypr_db::user::TranscriptChunk> {
         let conversation = read_conversation(p);
 
         conversation
             .into_iter()
-            .map(|item| hypr_db::user::TranscriptBlock {
+            .map(|item| hypr_db::user::TranscriptChunk {
                 start: item.start as i32,
                 end: item.end as i32,
                 text: item.text.clone(),

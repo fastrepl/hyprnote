@@ -64,22 +64,17 @@ impl Default for Session {
 }
 
 #[derive(Debug, Default, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
-pub struct Transcript {
-    pub blocks: Vec<TranscriptBlock>,
-}
-
-#[derive(Debug, Default, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
-pub struct TranscriptBlock {
-    pub start: i32,
-    pub end: i32,
+pub struct TranscriptChunk {
+    pub start: u64,
+    pub end: u64,
     pub text: String,
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
-pub struct DiarizationBlock {
-    pub start: i32,
-    pub end: i32,
-    pub label: String,
+pub struct DiarizationChunk {
+    pub start: u64,
+    pub end: u64,
+    pub speaker: String,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
@@ -88,6 +83,6 @@ pub struct ConversationChunk {
     pub end: time::OffsetDateTime,
     pub local_audio_path: String,
     pub remote_audio_path: String,
-    pub transcripts: Vec<TranscriptBlock>,
-    pub diarizations: Vec<DiarizationBlock>,
+    pub transcripts: Vec<TranscriptChunk>,
+    pub diarizations: Vec<DiarizationChunk>,
 }

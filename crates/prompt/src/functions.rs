@@ -1,7 +1,7 @@
 use serde_json::Value;
 use std::collections::HashMap;
 
-use hypr_db::user::{DiarizationBlock, TranscriptBlock};
+use hypr_db::user::{DiarizationChunk, TranscriptChunk};
 
 fn get_arg<T: serde::de::DeserializeOwned>(
     args: &HashMap<String, Value>,
@@ -18,13 +18,13 @@ fn get_arg<T: serde::de::DeserializeOwned>(
 pub fn render_conversation() -> impl tera::Function {
     Box::new(
         move |args: &HashMap<String, Value>| -> tera::Result<Value> {
-            let transcripts: Vec<TranscriptBlock> = get_arg(args, "transcripts")?;
-            let diarizations: Vec<DiarizationBlock> = get_arg(args, "diarizations")?;
+            let transcripts: Vec<TranscriptChunk> = get_arg(args, "transcripts")?;
+            let diarizations: Vec<DiarizationChunk> = get_arg(args, "diarizations")?;
 
             #[derive(serde::Serialize, serde::Deserialize)]
             struct Item {
                 speaker: String,
-                transcript: TranscriptBlock,
+                transcript: TranscriptChunk,
             }
 
             let items = transcripts
@@ -36,7 +36,7 @@ pub fn render_conversation() -> impl tera::Function {
                         .unwrap();
 
                     Item {
-                        speaker: diarization.label.clone(),
+                        speaker: diarization.speaker.clone(),
                         transcript: t.clone(),
                     }
                 })

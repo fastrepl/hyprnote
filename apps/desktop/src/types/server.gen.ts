@@ -6,13 +6,13 @@ export type ConfigDataGeneral = { autostart: boolean; notifications: boolean; la
 
 export type ConfigDataProfile = { full_name: string | null; job_title: string | null; company_name: string | null; company_description: string | null; linkedin_username: string | null }
 
-export type CreateTitleRequest = { transcripts: TranscriptBlock[] }
+export type CreateTitleRequest = { transcripts: TranscriptChunk[] }
 
 export type CreateTitleResponse = { title: string }
 
-export type DiarizationBlock = { start: number; end: number; label: string }
+export type DiarizationChunk = { start: number; end: number; speaker: string }
 
-export type EnhanceRequest = { pre_meeting_editor: string; in_meeting_editor: string; template: Template; config_general: ConfigDataGeneral; config_profile: ConfigDataProfile; event: Event | null; participants: Participant[]; transcripts: TranscriptBlock[]; diarizations: DiarizationBlock[] }
+export type EnhanceRequest = { pre_meeting_editor: string; in_meeting_editor: string; template: Template; config_general: ConfigDataGeneral; config_profile: ConfigDataProfile; event: Event | null; participants: Participant[]; transcripts: TranscriptChunk[]; diarizations: DiarizationChunk[] }
 
 export type Event = { id: string; tracking_id: string; calendar_id: string; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null }
 
@@ -20,15 +20,15 @@ export type NangoIntegration = "google-calendar" | "outlook-calendar"
 
 export type Participant = { id: string; name: string; email: string | null; color_hex: string }
 
-export type SummarizeTranscriptBlock = { points: string[] }
+export type SummarizeTranscriptChunk = { points: string[] }
 
-export type SummarizeTranscriptRequest = { transcripts: TranscriptBlock[]; diarizations: DiarizationBlock[] }
+export type SummarizeTranscriptRequest = { transcripts: TranscriptChunk[]; diarizations: DiarizationChunk[] }
 
-export type SummarizeTranscriptResponse = { blocks: SummarizeTranscriptBlock[] }
+export type SummarizeTranscriptResponse = { blocks: SummarizeTranscriptChunk[] }
 
 export type Template = { id: string; title: string; description: string; sections: TemplateSection[] }
 
 export type TemplateSection = { title: string; description: string }
 
-export type TranscriptBlock = { start: number; end: number; text: string }
+export type TranscriptChunk = { start: number; end: number; text: string }
 

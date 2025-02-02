@@ -5,8 +5,8 @@ use hypr_audio::Sample;
 use hypr_bridge::Timeline;
 
 pub struct SessionState {
-    audio_handle: Option<tauri::async_runtime::JoinHandle<()>>,
-    transcript_handle: Option<tauri::async_runtime::JoinHandle<()>>,
+    audio_handle: Option<tokio::task::JoinHandle<()>>,
+    transcript_handle: Option<tokio::task::JoinHandle<()>>,
     shutdown: Option<tokio::sync::oneshot::Sender<()>>,
     timeline: Timeline,
 }
@@ -23,6 +23,7 @@ impl SessionState {
 
     pub async fn start(
         &mut self,
+        bridge: hypr_bridge::Client,
         app_dir: std::path::PathBuf,
         session_id: String,
         channel: tauri::ipc::Channel<hypr_bridge::ListenOutputChunk>,
@@ -44,6 +45,7 @@ impl SessionState {
                     all(debug_assertions, feature = "sim-korean-1")
                 )))]
                 {
+                    println!("using mic");
                     hypr_audio::AudioInput::from_mic()
                 }
             };
@@ -66,13 +68,9 @@ impl SessionState {
 
         let (ws_tx, ws_rx) = tokio::sync::mpsc::channel(32);
 
-        let transcript_handle = tauri::async_runtime::spawn(async move {
+        let transcript_handle = tokio::spawn(async move {
             let ws_stream = hypr_audio::ReceiverStreamSource::new(ws_rx, 16000);
-            let client = hypr_bridge::Client::builder()
-                .api_base("http://localhost:1234")
-                .api_key("your_api_key")
-                .build()
-                .unwrap()
+            let client = bridge
                 .transcribe()
                 .language(codes_iso_639::part_1::LanguageCode::En)
                 .build();
@@ -85,7 +83,7 @@ impl SessionState {
             }
         });
 
-        let audio_handle = tauri::async_runtime::spawn(async move {
+        let audio_handle = tokio::spawn(async move {
             let mut writer = hound::WavWriter::create(&path, spec).unwrap();
 
             tokio::select! {

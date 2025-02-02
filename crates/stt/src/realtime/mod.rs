@@ -200,11 +200,18 @@ mod tests {
             .build();
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
-        let mut acc: Vec<StreamResponse> = vec![];
+        let mut acc: Vec<hypr_db::user::TranscriptChunk> = vec![];
         while let Some(result) = transcript_stream.next().await {
             let data = result.unwrap();
             println!("{:?}", data);
-            acc.push(data);
+
+            for word in data.words {
+                acc.push(hypr_db::user::TranscriptChunk {
+                    text: word.text,
+                    start: word.start,
+                    end: word.end,
+                });
+            }
         }
 
         serde_json::to_writer(&mut out, &acc).unwrap();
@@ -227,11 +234,18 @@ mod tests {
 
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
-        let mut acc: Vec<StreamResponse> = vec![];
+        let mut acc: Vec<hypr_db::user::TranscriptChunk> = vec![];
         while let Some(result) = transcript_stream.next().await {
             let data = result.unwrap();
             println!("{:?}", data);
-            acc.push(data);
+
+            for word in data.words {
+                acc.push(hypr_db::user::TranscriptChunk {
+                    text: word.text,
+                    start: word.start,
+                    end: word.end,
+                });
+            }
         }
 
         serde_json::to_writer(&mut out, &acc).unwrap();

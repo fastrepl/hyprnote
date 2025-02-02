@@ -4,19 +4,14 @@
 {% if event %}Event: {{ event.name }}{% endif %}
 {% if participants | length > 0 %}Participants:{% endif %}
 {%- for participant in participants %}
-- {{ participant.name }}{% if participant.name == config_profile.full_name %} (Me){% endif %}
+- {{ participant.name }}{% if participant.name == config_profile.full_name %} (this is me){% endif %}
 {%- endfor %}
 ```
 
-# Pre-meeting Raw Note:
+# Raw Note:
 
 ```
 {{ pre_meeting_editor }}
-```
-
-# In-meeting Raw Note:
-
-```
 {{ in_meeting_editor }}
 ```
 

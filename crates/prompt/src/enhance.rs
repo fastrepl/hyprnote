@@ -345,7 +345,7 @@ mod tests {
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 
@@ -438,7 +438,6 @@ mod tests {
     }
 
     fn input_15() -> Input {
-        // let note = EMPTY_NOTE;
         let note = std::fs::read_to_string("data/15/note.md").unwrap();
         let transcripts = transcripts_from_path("data/15/conversation.json");
         let diarizations = diarizations_from_path("data/15/conversation.json");
@@ -544,7 +543,7 @@ mod tests {
             transcripts,
             diarizations,
             event: None,
-            participants: vec![],
+            participants,
         }
     }
 

@@ -36,6 +36,10 @@ time = "0.3.37"
 url = "2"
 uuid = "1"
 
+prost = "0.13.4"
+tonic = "0.12.3"
+tonic-build = "0.12.3"
+
 sentry = "0.36.0"
 sentry-rust-minidump = "0.10.0"
 

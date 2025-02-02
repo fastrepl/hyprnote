@@ -1,0 +1,220 @@
+// https://github.com/vito-ai/openapi-grpc/blob/main/protos/vito-stt-client.proto
+
+syntax = "proto3";
+
+package online_decoder;
+
+option go_package = "github.com/vito-ai/go-genproto/stt;stt";
+option java_multiple_files = true;
+option java_outer_classname = "VitoProto";
+option java_package = "ai.vito.openapi.v1";
+
+// The greeting service definition.
+service OnlineDecoder {
+  // Sends multiple greetings
+  rpc Decode(stream DecoderRequest) returns (stream DecoderResponse) {}
+}
+
+// The request message containing the user's name and how many greetings
+// they want.
+message DecoderRequest {
+  // The streaming request, which is either a streaming config or audio content.
+  oneof streaming_request {
+    // Provides information to the recognizer that specifies how to process the
+    // request. The first `StreamingRecognizeRequest` message must contain a
+    // `streaming_config`  message.
+    DecoderConfig streaming_config = 1;
+
+    // The audio data to be recognized. Sequential chunks of audio data are sent
+    // in sequential `StreamingRecognizeRequest` messages. The first
+    // `StreamingRecognizeRequest` message must not contain `audio_content` data
+    // and all subsequent `StreamingRecognizeRequest` messages must contain
+    // `audio_content` data. The audio bytes must be encoded as specified in
+    // `RecognitionConfig`. Note: as with all bytes fields, proto buffers use a
+    // pure binary representation (not base64). See
+    // [content limits](https://cloud.google.com/speech-to-text/quotas#content).
+    bytes audio_content = 2;
+  }
+}
+
+// A response message containing a greeting
+message DecoderResponse {
+  // Indicates the type of speech event.
+  enum SpeechEventType {
+    // No speech event specified.
+    SPEECH_EVENT_UNSPECIFIED = 0;
+
+    // This event indicates that the server has detected the end of the user's
+    // speech utterance and expects no additional speech. Therefore, the server
+    // will not process additional audio (although it may subsequently return
+    // additional results). The client should stop sending additional audio
+    // data, half-close the gRPC connection, and wait for any additional results
+    // until the server closes the gRPC connection. This event is only sent if
+    // `single_utterance` was set to `true`, and is not used otherwise.
+    END_OF_SINGLE_UTTERANCE = 1;
+    START_OF_VAD = 2;
+    END_OF_VAD = 3;
+  }
+
+  bool error = 1;
+
+  // This repeated list contains zero or more results that
+  // correspond to consecutive portions of the audio currently being processed.
+  // It contains zero or one `is_final=true` result (the newly settled portion),
+  // followed by zero or more `is_final=false` results (the interim results).
+  repeated StreamingRecognitionResult results = 2;
+
+  // Indicates the type of speech event.
+  SpeechEventType speech_event_type = 4;
+}
+
+// A streaming speech recognition result corresponding to a portion of the audio
+// that is currently being processed.
+message StreamingRecognitionResult {
+  // May contain one or more recognition hypotheses (up to the
+  // maximum specified in `max_alternatives`).
+  // These alternatives are ordered in terms of accuracy, with the top (first)
+  // alternative being the most probable, as ranked by the recognizer.
+  repeated SpeechRecognitionAlternative alternatives = 1;
+
+  // If `false`, this `StreamingRecognitionResult` represents an
+  // interim result that may change. If `true`, this is the final time the
+  // speech service will return this particular `StreamingRecognitionResult`,
+  // the recognizer will not return any further hypotheses for this portion of
+  // the transcript and corresponding audio.
+  bool is_final = 2;
+
+  // An estimate of the likelihood that the recognizer will not
+  // change its guess about this interim result. Values range from 0.0
+  // (completely unstable) to 1.0 (completely stable).
+  // This field is only provided for interim results (`is_final=false`).
+  // The default of 0.0 is a sentinel value indicating `stability` was not set.
+  float stability = 3;
+
+  // duration of the audio.
+  int32 duration = 4;
+
+  // Time offset of the start of this result relative to the
+  // beginning of the audio.
+  int32 start_at = 5;
+}
+
+// Alternative hypotheses (a.k.a. n-best list).
+message SpeechRecognitionAlternative {
+  // Transcript text representing the words that the user spoke.
+  string text = 1;
+
+  // The confidence estimate between 0.0 and 1.0. A higher number
+  // indicates an estimated greater likelihood that the recognized words are
+  // correct. This field is set only for the top alternative of a non-streaming
+  // result or, of a streaming result where `is_final=true`.
+  // This field is not guaranteed to be accurate and users should not rely on it
+  // to be always provided.
+  // The default of 0.0 is a sentinel value indicating `confidence` was not set.
+  float confidence = 2;
+
+  // A list of word-specific information for each recognized word.
+  // Note: When `enable_speaker_diarization` is true, you will see all the words
+  // from the beginning of the audio.
+  repeated WordInfo words = 3;
+  // Word-specific information for recognized words.
+}
+
+message WordInfo {
+  // Time offset relative to the beginning of the audio,
+  // and corresponding to the start of the spoken word.
+  // This field is only set if `enable_word_time_offsets=true` and only
+  // in the top hypothesis.
+  // This is an experimental feature and the accuracy of the time offset can
+  // vary.
+  int64 start_at = 1;
+
+  // Time offset relative to the beginning of the audio,
+  // and corresponding to the end of the spoken word.
+  // This field is only set if `enable_word_time_offsets=true` and only
+  // in the top hypothesis.
+  // This is an experimental feature and the accuracy of the time offset can
+  // vary.
+  int64 duration = 2;
+
+  // The word corresponding to this set of information.
+  string text = 3;
+
+  // The confidence estimate between 0.0 and 1.0. A higher number
+  // indicates an estimated greater likelihood that the recognized words are
+  // correct. This field is set only for the top alternative of a non-streaming
+  // result or, of a streaming result where `is_final=true`.
+  // This field is not guaranteed to be accurate and users should not rely on it
+  // to be always provided.
+  // The default of 0.0 is a sentinel value indicating `confidence` was not set.
+  float confidence = 4;
+
+  // A distinct integer value is assigned for every speaker within
+  // the audio. This field specifies which one of those speakers was detected to
+  // have spoken this word. Value ranges from '1' to diarization_speaker_count.
+  // speaker_tag is set if enable_speaker_diarization = 'true' and only in the
+  // top alternative.
+  int32 speaker_tag = 5;
+}
+
+message DecoderConfig {
+  enum AudioEncoding {
+    // Not specified.
+    ENCODING_UNSPECIFIED = 0;
+
+    // Uncompressed 16-bit signed little-endian samples (Linear PCM).
+    LINEAR16 = 1;
+
+    WAV = 2;
+
+    // `FLAC` (Free Lossless Audio
+    // Codec) is the recommended encoding because it is
+    // lossless--therefore recognition is not compromised--and
+    // requires only about half the bandwidth of `LINEAR16`. `FLAC` stream
+    // encoding supports 16-bit and 24-bit samples, however, not all fields in
+    // `STREAMINFO` are supported.
+    FLAC = 3;
+
+    // 8-bit samples that compand 14-bit audio samples using G.711 PCMU/mu-law.
+    MULAW = 4;
+
+    ALAW = 5;
+
+    // Adaptive Multi-Rate Narrowband codec. `sample_rate_hertz` must be 8000.
+    AMR = 6;
+
+    // Adaptive Multi-Rate Wideband codec. `sample_rate_hertz` must be 16000.
+    AMR_WB = 7;
+
+    // Opus encoded audio frames in Ogg container
+    // ([OggOpus](https://wiki.xiph.org/OggOpus)).
+    // `sample_rate_hertz` must be one of 8000, 12000, 16000, 24000, or 48000.
+    OGG_OPUS = 8;
+
+    // Opus encoded audio frames without container
+    OPUS = 9;
+  }
+
+  int32 sample_rate = 1;
+  AudioEncoding encoding = 2;
+  // Model name: 'default' for Korean, 'sommers_ja' for Japanese
+  optional string model_name = 3;
+  optional bool use_itn = 5;
+  optional bool use_disfluency_filter = 13;
+  optional bool use_profanity_filter = 14;
+  optional RuntimeStreamConfig stream_config = 22;
+  repeated string keywords = 23;
+}
+
+message RuntimeStreamConfig {
+  // The default value for max_utter_duration is 12 seconds.
+  // This parameter sets the maximum length of a single utterance.
+  // If an utterance exceeds 12 seconds without any silence, it is divided into separate utterances.
+  optional int32 max_utter_duration = 1;
+
+  // The default value for epd_time is 0.5 seconds.
+  // If a silence period lasts for more than 0.5 seconds, the final STT result is returned.
+  // For voice bots, it is recommended to set a duration longer than 0.5 seconds.
+  // The recommended value range is between 0.5 and 1.0 seconds.
+  optional float epd_time = 3;
+}

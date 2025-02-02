@@ -11,6 +11,7 @@ recorded = []
 [dependencies]
 deepgram = { version = "0.6.4", features = ["listen"] }
 hypr-clova = { path = "../clova", package = "clova" }
+hypr-rtzr = { path = "../rtzr", package = "rtzr" }
 
 anyhow = { workspace = true }
 thiserror = { workspace = true }

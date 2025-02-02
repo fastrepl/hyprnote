@@ -51,8 +51,8 @@ impl ClientBuilder {
 
     pub fn build(self) -> Client {
         Client {
-            deepgram_api_key: self.deepgram_api_key.unwrap(),
-            clova_api_key: self.clova_api_key.unwrap(),
+            deepgram_api_key: self.deepgram_api_key,
+            clova_api_key: self.clova_api_key,
         }
     }
 }
@@ -65,8 +65,8 @@ pub enum MultiClient {
 
 #[derive(Debug, Clone)]
 pub struct Client {
-    pub deepgram_api_key: String,
-    pub clova_api_key: String,
+    pub deepgram_api_key: Option<String>,
+    pub clova_api_key: Option<String>,
 }
 
 impl Client {
@@ -78,7 +78,7 @@ impl Client {
         match language {
             codes_iso_639::part_1::LanguageCode::Ko => {
                 let clova = hypr_clova::realtime::Client::builder()
-                    .api_key(&self.clova_api_key)
+                    .api_key(self.clova_api_key.as_ref().unwrap())
                     .keywords(vec!["하이퍼노트".to_string()])
                     .build()
                     .await
@@ -87,7 +87,7 @@ impl Client {
             }
             codes_iso_639::part_1::LanguageCode::En => {
                 let deepgram = DeepgramClient::builder()
-                    .api_key(&self.deepgram_api_key)
+                    .api_key(self.deepgram_api_key.as_ref().unwrap())
                     .keywords(vec!["Hyprnote".to_string()])
                     .language(language)
                     .build();
@@ -194,10 +194,12 @@ mod tests {
         let audio_stream = stream_from_bytes(hypr_data::english_2::AUDIO);
         let mut out = std::fs::File::create(hypr_data::english_2::TRANSCRIPTION_PATH).unwrap();
 
-        let mut client = DeepgramClient::builder()
-            .api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
-            .language(codes_iso_639::part_1::LanguageCode::En)
-            .build();
+        let mut client = Client::builder()
+            .deepgram_api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
+            .build()
+            .for_language(codes_iso_639::part_1::LanguageCode::En)
+            .await;
+
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
         let mut acc: Vec<hypr_db::user::TranscriptChunk> = vec![];
@@ -225,12 +227,11 @@ mod tests {
         let audio_stream = stream_from_bytes(hypr_data::korean_1::AUDIO);
         let mut out = std::fs::File::create(hypr_data::korean_1::TRANSCRIPTION_PATH).unwrap();
 
-        let mut client = hypr_clova::realtime::Client::builder()
-            .api_key(std::env::var("CLOVA_API_KEY").unwrap())
-            .keywords(vec!["Hyprnote".to_string()])
+        let mut client = Client::builder()
+            .clova_api_key(std::env::var("CLOVA_API_KEY").unwrap())
             .build()
-            .await
-            .unwrap();
+            .for_language(codes_iso_639::part_1::LanguageCode::Ko)
+            .await;
 
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 

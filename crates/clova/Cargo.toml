@@ -3,6 +3,9 @@ name = "clova"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+generate = []
+
 [build-dependencies]
 tonic-build = { workspace = true }
 

@@ -1,24 +1,13 @@
 use futures_util::StreamExt;
-
 use hypr_audio::AsyncSource;
-use hypr_audio::Sample;
-use hypr_bridge::Timeline;
 
 pub struct SessionState {
-    audio_handle: Option<tokio::task::JoinHandle<()>>,
-    transcript_handle: Option<tokio::task::JoinHandle<()>>,
-    shutdown: Option<tokio::sync::oneshot::Sender<()>>,
-    timeline: Timeline,
+    handle: Option<tauri::async_runtime::JoinHandle<()>>,
 }
 
 impl SessionState {
     pub fn new() -> anyhow::Result<Self> {
-        Ok(Self {
-            audio_handle: None,
-            transcript_handle: None,
-            shutdown: None,
-            timeline: Timeline::default(),
-        })
+        Ok(Self { handle: None })
     }
 
     pub async fn start(
@@ -45,88 +34,37 @@ impl SessionState {
                     all(debug_assertions, feature = "sim-korean-1")
                 )))]
                 {
-                    println!("using mic");
-                    hypr_audio::AudioInput::from_mic()
+                    hypr_audio::MicInput::default()
                 }
             };
 
             input.stream()
         }
-        .resample(16000)
-        .chunks(1024);
+        .resample(16000);
 
-        let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel();
-        self.shutdown = Some(shutdown_tx);
+        let listen_client = bridge
+            .listen()
+            .language(codes_iso_639::part_1::LanguageCode::En)
+            .build();
 
-        let spec = hound::WavSpec {
-            channels: 1,
-            sample_rate: 16000,
-            bits_per_sample: 16,
-            sample_format: hound::SampleFormat::Int,
-        };
-        let path = app_dir.join(format!("{}.wav", session_id));
+        let listen_stream = listen_client.from_audio(audio_stream).await.unwrap();
 
-        let (ws_tx, ws_rx) = tokio::sync::mpsc::channel(32);
+        let handle: tauri::async_runtime::JoinHandle<()> =
+            tauri::async_runtime::spawn(async move {
+                futures_util::pin_mut!(listen_stream);
 
-        let transcript_handle = tokio::spawn(async move {
-            let ws_stream = hypr_audio::ReceiverStreamSource::new(ws_rx, 16000);
-            let client = bridge
-                .transcribe()
-                .language(codes_iso_639::part_1::LanguageCode::En)
-                .build();
+                while let Some(result) = listen_stream.next().await {
+                    println!("result: {:?}", result);
+                }
+            });
 
-            let listen_stream = client.from_audio(ws_stream).await.unwrap();
-            futures_util::pin_mut!(listen_stream);
+        self.handle = Some(handle);
 
-            while let Some(listen_output) = listen_stream.next().await {
-                channel.send(listen_output).unwrap();
-            }
-        });
-
-        let audio_handle = tokio::spawn(async move {
-            let mut writer = hound::WavWriter::create(&path, spec).unwrap();
-
-            tokio::select! {
-                _ = shutdown_rx => {}
-                _ = async {
-                    while let Some(audio_chunk) = audio_stream.next().await {
-                        for sample in audio_chunk {
-                            writer.write_sample(sample.to_sample::<i16>()).unwrap();
-
-                            if let Err(e) = ws_tx.send(sample).await {
-                                println!("Error sending sample: {e}");
-                                break;
-                            }
-                        }
-                    }
-                    let _ = writer.finalize();
-                    anyhow::Ok(())
-                } => {},
-            }
-        });
-
-        self.audio_handle = Some(audio_handle);
-        self.transcript_handle = Some(transcript_handle);
         Ok(())
     }
-
     pub async fn stop(&mut self) {
-        if let Some(shutdown) = self.shutdown.take() {
-            let _ = shutdown.send(());
-        }
-
-        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-
-        if let Some(handle) = self.audio_handle.take() {
+        if let Some(handle) = self.handle.take() {
             handle.abort();
         }
-
-        if let Some(handle) = self.transcript_handle.take() {
-            handle.abort();
-        }
-
-        self.audio_handle = None;
-        self.transcript_handle = None;
-        self.shutdown = None;
     }
 }

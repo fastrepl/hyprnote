@@ -9,8 +9,10 @@ use axum::{
 };
 use bytes::Bytes;
 use futures_util::{SinkExt, StreamExt};
+use tokio::sync::broadcast;
 
 use hypr_bridge::{ListenInputChunk, ListenOutputChunk};
+use hypr_db::user::TranscriptChunk;
 use hypr_stt::realtime::RealtimeSpeechToText;
 
 use super::Params;
@@ -31,7 +33,7 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
 
     let mut stt = state.realtime_stt.for_language(params.language).await;
 
-    let (tx, rx_transcribe) = tokio::sync::broadcast::channel::<Bytes>(16);
+    let (tx, rx_transcribe) = broadcast::channel::<Bytes>(512);
     let rx_diarize = tx.subscribe();
 
     let ws_handler = tokio::spawn(async move {
@@ -47,71 +49,80 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
         tracing::info!("websocket_disconnected");
     });
 
-    let transcribe_stream = Box::pin(futures_util::stream::try_unfold(
-        rx_transcribe,
-        |mut rx| async move {
-            match rx.recv().await {
-                Ok(audio) => Ok::<Option<(Bytes, _)>, std::io::Error>(Some((audio, rx))),
-                Err(_) => Ok::<Option<(Bytes, _)>, std::io::Error>(None),
-            }
-        },
-    ));
+    let audio_stream_for_transcribe = Box::pin(create_audio_stream(rx_transcribe));
+    let audio_stream_for_diarize = Box::pin(create_audio_stream(rx_diarize));
 
-    let diarize_stream = Box::pin(futures_util::stream::try_unfold(
-        rx_diarize,
-        |mut rx| async move {
-            match rx.recv().await {
-                Ok(audio) => Ok::<Option<(Bytes, _)>, std::io::Error>(Some((audio, rx))),
-                Err(_) => Ok::<Option<(Bytes, _)>, std::io::Error>(None),
-            }
-        },
-    ));
+    let mut transcript_stream = stt.transcribe(audio_stream_for_transcribe).await.unwrap();
+    let mut diarization_stream = Box::pin(
+        state
+            .diarize
+            .from_audio(audio_stream_for_diarize)
+            .await
+            .unwrap(),
+    );
 
     let task = async {
-        let mut transcript_stream = stt.transcribe(transcribe_stream).await.unwrap();
-        let mut diarization_stream =
-            Box::pin(state.diarize.from_audio(diarize_stream).await.unwrap());
+        let mut last_activity = tokio::time::Instant::now();
 
         loop {
             tokio::select! {
-                result = transcript_stream.next() => {
-                    if let Some(result) = result {
-                        if let Ok(res) = result {
-                            for word in res.words {
-                                let data = ListenOutputChunk::Transcribe(hypr_db::user::TranscriptChunk {
+                item = diarization_stream.next() => {
+                    last_activity = tokio::time::Instant::now();
+
+                    if let Some(result) = item {
+                        let data = ListenOutputChunk::Diarize(result);
+                        let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
+                        ws_sender.send(msg).await.unwrap();
+                    }
+                }
+
+                item = transcript_stream.next() => {
+                    match item {
+                        Some(Ok(result)) => {
+                            last_activity = tokio::time::Instant::now();
+
+                            for word in result.words {
+                                let data = ListenOutputChunk::Transcribe(TranscriptChunk{
                                     text: word.text,
                                     start: word.start,
                                     end: word.end,
                                 });
-
                                 let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
-                                if ws_sender.send(msg).await.is_err() {
-                                    break;
-                                }
+                                ws_sender.send(msg).await.unwrap();
                             }
                         }
-                    } else {
+                        _ => continue,
+                    }
+                }
+
+                _ = tokio::time::sleep(tokio::time::Duration::from_millis(500)) => {
+                    if last_activity.elapsed() >= tokio::time::Duration::from_secs(15) {
                         break;
                     }
                 }
-                result = diarization_stream.next() => {
-                    if let Some(output) = result {
-                        let data = ListenOutputChunk::Diarize(output);
-                        let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
-                        if ws_sender.send(msg).await.is_err() {
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
-                }
-                else => break,
             }
         }
     };
 
     task.await;
     ws_handler.abort();
+
+    tracing::info!("websocket_disconnected");
+}
+
+fn create_audio_stream(
+    rx: broadcast::Receiver<Bytes>,
+) -> impl futures_util::Stream<Item = Result<Bytes, std::io::Error>> {
+    futures_util::stream::try_unfold(rx, move |mut rx| async move {
+        match rx.recv().await {
+            Ok(audio) => Ok(Some((audio.clone(), rx))),
+            Err(broadcast::error::RecvError::Closed) => Ok(None),
+            Err(broadcast::error::RecvError::Lagged(n)) => {
+                tracing::warn!("audio_stream is lagging by {}", n);
+                Ok(Some((Bytes::new(), rx)))
+            }
+        }
+    })
 }
 
 #[cfg(test)]

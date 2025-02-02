@@ -1,2 +1,2 @@
 apps/app
-crates/prompt
+crates/*

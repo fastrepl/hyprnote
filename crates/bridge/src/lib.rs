@@ -1,4 +1,5 @@
 pub mod enhance;
+mod summarize_transcript;
 mod timeline;
 mod types;
 mod websocket;

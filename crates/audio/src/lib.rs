@@ -116,7 +116,6 @@ impl AudioInput {
             AudioSource::Recorded => AudioStream::Recorded {
                 data: self.data.as_ref().unwrap().clone(),
                 position: 0,
-                last_sample_time: None,
             },
         }
     }
@@ -136,7 +135,6 @@ pub enum AudioStream {
     Recorded {
         data: Vec<u8>,
         position: usize,
-        last_sample_time: Option<std::time::Instant>,
     },
 }
 
@@ -172,27 +170,13 @@ impl futures_core::Stream for AudioStream {
                 }
             }
             // assume pcm_s16le, without WAV header
-            AudioStream::Recorded {
-                data,
-                position,
-                last_sample_time,
-            } => {
+            AudioStream::Recorded { data, position } => {
                 if *position + 2 <= data.len() {
-                    let now = std::time::Instant::now();
-                    let sample_duration = std::time::Duration::from_secs_f64(1.0 / 16000.0);
-
-                    if let Some(last_time) = last_sample_time {
-                        let next_sample_time = *last_time + sample_duration;
-                        if now < next_sample_time {
-                            cx.waker().wake_by_ref();
-                            return Poll::Pending;
-                        }
-                    }
-
                     let bytes = [data[*position], data[*position + 1]];
                     let sample = i16::from_le_bytes(bytes) as f32 / 32768.0;
                     *position += 2;
-                    *last_sample_time = Some(now);
+
+                    std::thread::sleep(std::time::Duration::from_secs_f64(1.0 / 16000.0));
                     Poll::Ready(Some(sample))
                 } else {
                     Poll::Ready(None)

@@ -34,7 +34,7 @@ export default function SearchBar() {
           "w-[40%]",
           "flex flex-row items-center gap-2",
           "rounded-md border border-border px-2 py-2",
-          "bg-gray-100 hover:bg-gray-200",
+          "bg-neutral-100 hover:bg-neutral-200",
         ])}
         onClick={() => setOpen(true)}
       >

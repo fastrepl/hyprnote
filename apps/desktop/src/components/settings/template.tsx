@@ -111,7 +111,7 @@ function SectionsList({
       <div className="flex flex-col gap-4">
         {items.map((item) => (
           <Reorder.Item key={item.id} value={item}>
-            <div className="relative cursor-move bg-gray-50">
+            <div className="relative cursor-move bg-neutral-50">
               <button
                 className="absolute top-1/2 -translate-y-1/2 cursor-move opacity-50 hover:opacity-100"
                 onPointerDown={(e) => controls.start(e)}

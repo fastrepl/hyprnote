@@ -79,12 +79,12 @@ function App() {
 
   const auth = useAuth();
 
-  const coutext: Required<Context> = {
+  const context: Required<Context> = {
     auth,
     queryClient,
   };
 
-  return <RouterProvider router={router} context={coutext} />;
+  return <RouterProvider router={router} context={context} />;
 }
 
 const rootElement = document.getElementById("root")!;

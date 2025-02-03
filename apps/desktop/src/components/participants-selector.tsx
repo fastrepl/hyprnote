@@ -36,13 +36,13 @@ export default function ParticipantsSelector({
         <button
           role="combobox"
           aria-expanded={open}
-          className="flex flex-row items-center gap-2 rounded-md border border-border px-2 py-1"
+          className="flex flex-row items-center gap-2 rounded-md px-2 py-1 hover:bg-neutral-100"
         >
           <Speech size={14} />
           <span className="text-xs">Selected Event</span>
         </button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent className="p-0 shadow-lg" align="start">
         <Command className="w-full">
           <div className="relative border-b">
             <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />

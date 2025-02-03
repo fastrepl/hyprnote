@@ -178,7 +178,7 @@ function LeftPanel() {
         <button
           onClick={handleClickListen}
           className={clsx([
-            "relative rounded-lg border border-border p-2",
+            "relative rounded-lg border border-border p-2 hover:bg-neutral-100",
             store.listening ? "text-foreground/30" : "text-foreground/50",
             store.listening && "border-primary/30",
           ])}
@@ -194,13 +194,11 @@ function LeftPanel() {
 
       <div className="flex flex-row items-center gap-2 py-1">
         <SelectedEvent />
-        <div className="w-[200px]">
-          <ParticipantsSelector
-            options={[]}
-            selected={[]}
-            handleSelect={() => {}}
-          />
-        </div>
+        <ParticipantsSelector
+          options={[]}
+          selected={[]}
+          handleSelect={() => {}}
+        />
       </div>
 
       <ScrollArea

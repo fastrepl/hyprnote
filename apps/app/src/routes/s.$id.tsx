@@ -13,7 +13,7 @@ function RouteComponent() {
   const { data } = Route.useLoaderData();
 
   return (
-    <div className="h-screen w-screen p-8 bg-gray-200">
+    <div className="h-screen w-screen p-8 bg-neutral-200">
       <div dangerouslySetInnerHTML={{ __html: data }} />
     </div>
   );

@@ -105,7 +105,7 @@ export default function Calendar() {
             .map((calendar, i) => (
               <li
                 key={i}
-                className="flex flex-row justify-between rounded-md p-1 hover:bg-gray-50"
+                className="flex flex-row justify-between rounded-md p-1 hover:bg-neutral-50"
               >
                 <div className="flex flex-row items-center gap-1">
                   <span>- {calendar.name}</span>

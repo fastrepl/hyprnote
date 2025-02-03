@@ -68,7 +68,7 @@ function Component() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <div className="h-[600px] w-[400px] bg-gray-200 rounded-lg">
+      <div className="h-[600px] w-[400px] bg-neutral-200 rounded-lg">
         {isLoaded ? (
           <div>
             <span>Code: {code}</span>

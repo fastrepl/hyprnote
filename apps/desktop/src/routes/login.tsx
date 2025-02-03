@@ -4,7 +4,7 @@ import { Trans } from "@lingui/react/macro";
 
 import { commands } from "../types/tauri.gen.ts";
 
-// import { AudioControls } from "../components/AudioControls";
+// import { AudioControls } from "../components/audio-controls";
 
 import BlurFade from "@hypr/ui/components/ui/blur-fade";
 import RetroGrid from "@hypr/ui/components/ui/retro-grid";

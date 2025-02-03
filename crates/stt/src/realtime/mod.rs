@@ -191,8 +191,8 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_deepgram() {
-        let audio_stream = stream_from_bytes(hypr_data::english_2::AUDIO);
-        let mut out = std::fs::File::create(hypr_data::english_2::TRANSCRIPTION_PATH).unwrap();
+        let audio_stream = stream_from_bytes(hypr_data::english_1::AUDIO);
+        let mut out = std::fs::File::create(hypr_data::english_1::TRANSCRIPTION_PATH).unwrap();
 
         let mut client = Client::builder()
             .deepgram_api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())

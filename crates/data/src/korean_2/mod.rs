@@ -4,10 +4,10 @@ pub const TRANSCRIPTION_JSON: &str = include_str!("./transcription.json");
 
 pub const TRANSCRIPTION_PATH: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/src/korean_1/transcription.json"
+    "/src/korean_2/transcription.json"
 );
 
 pub const DIARIZATION_JSON: &str = include_str!("./diarization.json");
 
 pub const DIARIZATION_PATH: &str =
-    concat!(env!("CARGO_MANIFEST_DIR"), "/src/korean_1/diarization.json");
+    concat!(env!("CARGO_MANIFEST_DIR"), "/src/korean_2/diarization.json");

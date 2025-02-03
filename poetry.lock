@@ -1336,20 +1336,6 @@ files = [
 ]
 
 [[package]]
-name = "reactivex"
-version = "4.0.4"
-description = "ReactiveX (Rx) for Python"
-optional = false
-python-versions = ">=3.7,<4.0"
-files = [
-    {file = "reactivex-4.0.4-py3-none-any.whl", hash = "sha256:0004796c420bd9e68aad8e65627d85a8e13f293de76656165dffbcb3a0e3fb6a"},
-    {file = "reactivex-4.0.4.tar.gz", hash = "sha256:e912e6591022ab9176df8348a653fe8c8fa7a301f26f9931c9d8c78a650e04e8"},
-]
-
-[package.dependencies]
-typing-extensions = ">=4.1.1,<5.0.0"
-
-[[package]]
 name = "requests"
 version = "2.32.3"
 description = "Python HTTP for Humans."
@@ -1401,6 +1387,17 @@ pygments = ">=2.13.0,<3.0.0"
 
 [package.extras]
 jupyter = ["ipywidgets (>=7.5.1,<9)"]
+
+[[package]]
+name = "rx"
+version = "3.2.0"
+description = "Reactive Extensions (Rx) for Python"
+optional = false
+python-versions = ">=3.6.0"
+files = [
+    {file = "Rx-3.2.0-py3-none-any.whl", hash = "sha256:922c5f4edb3aa1beaa47bf61d65d5380011ff6adcd527f26377d05cb73ed8ec8"},
+    {file = "Rx-3.2.0.tar.gz", hash = "sha256:b657ca2b45aa485da2f7dcfd09fac2e554f7ac51ff3c2f8f2ff962ecd963d91c"},
+]
 
 [[package]]
 name = "shellingham"
@@ -1874,4 +1871,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "f9db15dedaa0986ebbb44f85af62610f9776737c60b6514a99b94c5a018af52a"
+content-hash = "e9ee0915c93b28000a7464479a37de79792f8a5b79700ff196110a1dd0819765"

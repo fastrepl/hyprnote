@@ -319,6 +319,180 @@ mod tests {
     }
 
     #[test]
+    fn test_korean_2() {
+        let transcripts: Vec<TranscribeOutputChunk> =
+            serde_json::from_str(hypr_data::korean_2::TRANSCRIPTION_JSON).unwrap();
+
+        let diarizations: Vec<DiarizeOutputChunk> =
+            serde_json::from_str(hypr_data::korean_2::DIARIZATION_JSON).unwrap();
+
+        let mut timeline = Timeline::default();
+
+        for t in transcripts {
+            timeline.add_transcription(t);
+        }
+
+        for d in diarizations {
+            timeline.add_diarization(d);
+        }
+
+        insta::assert_snapshot!(timeline.view().to_string(), @r###"
+        (000.89..004.60) speaker0
+        개인적인 질문인데요. 네 웃으시니까 이빨에 
+
+        (004.80..005.27) speaker1
+        투 
+
+        (005.27..005.60) speaker2
+        투스
+
+        (005.67..008.60) speaker0
+        잼이라고 하는 건가요 뭐 하시는 거예요. 
+
+        (009.31..010.20) speaker2
+        신기하네요. 
+
+        (011.67..012.20) speaker0
+        처음 봤어요. 
+
+        (012.80..013.30) speaker2
+        진짜요 
+
+        (013.60..014.60) speaker0
+        떼지나요. 이거 이렇게 하면 
+
+        (016.09..019.00) speaker2
+        이게 거의 저 1년 받을 가는데 아직 한 번도 안 떨어졌고 
+
+        (019.21..020.20) speaker0
+        양치할 때 안 떨어지나요. 
+
+        (020.80..021.40) speaker2
+        네 안 떨어져요. 
+
+        (021.69..022.94) speaker0
+        세게 안 닦아요. 
+
+        (023.20..024.12) speaker2
+        세게 닦아도 
+
+        (024.89..026.60) speaker1
+        안 닦아요. 그런데 이게 제가 
+
+        (026.83..027.60) speaker0
+        뜯으려고 해
+
+        (027.60..029.32) speaker2
+        봤는데 정말 안 떨어지더라고요. 
+
+        (029.61..033.40) speaker0
+        잘 됐네요. 시술이 잘 됐나 보네요. 이거 박는 거구나 이게 이빨에 
+
+        (034.09..036.00) speaker1
+        박으면 큰일 나고 치아이 걸레
+
+        (036.00..038.00) speaker2
+        지 그걸로 붙이더라고
+
+        (038.00..038.20) speaker1
+        요 
+
+        (039.60..041.72) speaker0
+        독자 여러분들께 제 미소 한 번만 보여주세요. 
+
+        (044.91..045.80) speaker1
+        이거 건데 보여요 
+
+        (046.03..046.60) speaker2
+        감사합니다. 
+
+        (046.85..047.00) speaker0
+        그거
+        "###);
+    }
+
+    #[test]
+    fn test_english_1() {
+        let transcripts: Vec<TranscribeOutputChunk> =
+            serde_json::from_str(hypr_data::english_1::TRANSCRIPTION_JSON).unwrap();
+
+        let diarizations: Vec<DiarizeOutputChunk> =
+            serde_json::from_str(hypr_data::english_1::DIARIZATION_JSON).unwrap();
+
+        let mut timeline = Timeline::default();
+
+        for t in transcripts {
+            timeline.add_transcription(t);
+        }
+
+        for d in diarizations {
+            timeline.add_diarization(d);
+        }
+
+        insta::assert_snapshot!(timeline.view().to_string(), @r###"
+        (003.42..005.50) speaker0
+        Maybe this is me talking to
+
+        (005.50..013.96) speaker1
+         the audience a little bit because I get these daysso many messages, advice on how to, like,learn stuff.  Okay?
+
+        (015.29..020.27) speaker1
+        Mythis this this is not me being mean.  I think this is quite profound, actually.
+
+        (021.20..023.04) speaker1
+        Is you should Google it.
+
+        (023.04..023.79) speaker2
+         Oh, yeah.
+
+        (024.48..046.00) speaker1
+        Like, 1 of thelike, skills that you should really acquire as an engineeras a researcher, as a thinker,like, 1 there's 22complementary skills, like 1 is with a blank sheet of paper with no Internetto think deeply,then the otheris to Google the crap out of the questions you have.
+
+        (046.00..067.22) speaker1
+         Like, that's actually askill.  I I don't know what people often talk about, but, like, doing research, like, pulling at thethread, like, looking up different words, going into, like,GitHub repositories with 2 stars,and, like, looking how they did stuff, like, looking at the code,or going on Twitter, seeing, like, there's little pockets of brilliant people that are, like,having discussions.
+
+        (067.84..072.61) speaker1
+         Like, if you'reneuroscientist, go into signal processing community.  If you're an AI
+
+        (074.61..090.67) speaker1
+        psychology community.  Like,switch communities, like, keep searching, searching, searching becauseit'sso much better to invest in, like,finding somebody else who already solved your problemthan than it is to try to solve the problem.
+
+        (090.99..099.09) speaker1
+        And because they've often invested years of their lifelike entire communities are probably already out there who have tried to solve your problem.
+
+        (099.26..100.24) speaker1
+        I think they're the
+
+        (100.30..109.78) speaker2
+         same thing. I thinkyou go try to solve the problem. And then in trying to solve the problem, if you'regood at solving problems, you'll stumble upon the person who solved it already.
+
+        (110.26..115.48) speaker1
+        Yeah.  But the stumbling isn't really important.  I I think that's thethat people should really put, especially in undergrad.
+
+        (116.61..121.86) speaker1
+        Like, search. If you ask me a question, how should I get started in deep learning, like, especially,
+
+        (124.12..133.35) speaker1
+        Like, that is just so Googleable.  Like,the whole point is you Google that,you get a 1000000 pagesand just start looking at them.
+
+        (134.31..144.43) speaker1
+        Yeah.  Start pulling at the threads, start exploring, start taking notes, startgetting advice from a 1000000 people that have already, like, spenttheir life answering that question, actually.
+
+        (144.97..151.49) speaker2
+        Well, yeah.  I mean, that's definitely also yeah.  When people, like, ask me things like that, I'm like, trust me. The top answer on Google is much, much better than anything I'm going to
+
+        (151.49..152.03) speaker0
+         tell you.
+
+        (152.43..152.93) speaker2
+        Right?
+
+        (153.47..153.97) speaker1
+         Yeah.
+        "###);
+    }
+
+    #[test]
     fn test_english_2() {
         let transcripts: Vec<TranscribeOutputChunk> =
             serde_json::from_str(hypr_data::english_2::TRANSCRIPTION_JSON).unwrap();
@@ -337,11 +511,14 @@ mod tests {
         }
 
         insta::assert_snapshot!(timeline.view().to_string(), @r###"
-        (007.80..012.55) speaker0
-        Hello?  Oh, hello.  I didn't know you were there.  Neither did I.  I hear that.  I thoughtyou know, I heard a beep.
+        (006.49..010.44) speaker0
+        Hello? Hello?  Oh, hello.  I didn't know you were there.  Neither did
 
-        (012.55..014.47) speaker0
-         This is Diane in New Jersey.  And
+        (010.44..011.67) speaker1
+         I.  I hear that.  I thought
+
+        (011.83..014.47) speaker0
+        you know, I heard a beep.  This is Diane in New Jersey.  And
 
         (014.47..017.63) speaker1
          I'mSheila in Texas, originally from Chicago.

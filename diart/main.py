@@ -18,17 +18,12 @@ from fastapi import (
 
 def get_logger():
     import structlog
-    # from axiom_py import Client
-    # from axiom_py.structlog import AxiomProcessor
-
-    # axiom_client = Client()
 
     structlog.configure(
         processors=[
             structlog.processors.add_log_level,
             structlog.processors.TimeStamper(fmt="iso", key="_time"),
             structlog.processors.JSONRenderer(),
-            # AxiomProcessor(axiom_client, "DATASET_NAME"),
         ]
     )
 
@@ -62,10 +57,9 @@ inference_image = (
             "diart",
             "fastapi",
             "pydantic>=2.0",
-            "reactivex",
-            "axiom-py",
             "structlog",
             "onnxruntime",
+            "rx",
         ]
     )
     .env({"HF_HUB_CACHE": "/cache"})
@@ -79,81 +73,6 @@ app = modal.App(
         modal.Secret.from_name("hyprnote"),
     ],
 )
-
-
-with inference_image.imports():
-    from reactivex.observer import Observer
-    from pyannote.core import Annotation
-
-    from diart.sources import AudioSource
-    from diart.inference import StreamingInference
-
-    class DiarizationSegment(BaseModel):
-        speaker: str
-        start: int
-        end: int
-
-    # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/sources.py
-    class Source(AudioSource):
-        def __init__(self, sample_rate: int):
-            super().__init__("websocket_source", sample_rate)
-
-        def read(self):
-            pass
-
-        def write(self, data: np.ndarray):
-            self.stream.on_next(data)
-
-        def close(self):
-            self.stream.on_completed()
-
-    # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/sinks.py
-    # https://github.com/pyannote/pyannote-core/blob/develop/pyannote/core/annotation.py
-    # https://pyannote.github.io/pyannote-core/structure.html
-    class Sender(Observer):
-        def __init__(self, logger: Any, websocket: WebSocket):
-            super().__init__()
-            self.logger = logger
-            self.websocket = websocket
-            self.patch_collar = 0.5
-            self._prediction = None
-            self._sent_segments = set()
-            self.loop = asyncio.get_running_loop()
-
-        def _extract_prediction(self, value: Union[Tuple, Annotation]) -> Annotation:
-            if isinstance(value, tuple):
-                return value[0]
-            if isinstance(value, Annotation):
-                return value
-
-        def _process(self):
-            for segment, _track, label in self._prediction.itertracks(yield_label=True):
-                (start, end) = (int(segment.start * 1000), int(segment.end * 1000))
-                segment_key = (start, end, label)
-
-                if segment_key not in self._sent_segments:
-                    self._sent_segments.add(segment_key)
-
-                    item = DiarizationSegment(start=start, end=end, speaker=label)
-                    data = item.model_dump_json()
-
-                    asyncio.run_coroutine_threadsafe(
-                        self.websocket.send_text(data), self.loop
-                    )
-
-        def on_next(self, value: Union[Tuple, Annotation]):
-            prediction = self._extract_prediction(value)
-
-            try:
-                if self._prediction is None:
-                    self._prediction = prediction
-                else:
-                    self._prediction.update(prediction)
-                self._prediction = self._prediction.support(self.patch_collar)
-            except Exception as e:
-                self.logger.error(e)
-
-            self._process()
 
 
 @app.cls(
@@ -186,8 +105,12 @@ class Server:
             segmentation=segmentation,
             embedding=embedding,
             duration=5,
-            step=0.5,
+            step=0.6,
+            tau_active=0.5,
+            rho_update=0.1,
+            delta_new=0.8,
         )
+        self.config = config
         self.pipeline = SpeakerDiarization(config)
 
     @modal.asgi_app()
@@ -202,6 +125,7 @@ class Server:
         websocket: WebSocket,
         token: str = Query(None),
         sample_rate: int = Query(16000),
+        max_speakers: int = Query(2),
     ):
         if token != os.getenv("HYPRNOTE_API_KEY"):
             raise HTTPException(status_code=401)
@@ -209,25 +133,84 @@ class Server:
         await websocket.accept()
         self.logger.info("websocket_connected")
 
-        source = Source(sample_rate=sample_rate)
-        sender = Sender(
-            logger=self.logger,
-            websocket=websocket,
+        import traceback
+        import rx.operators as ops
+        import diart.operators as dops
+        from diart.sources import AudioSource
+        from pyannote.core import (
+            Annotation,
+            SlidingWindowFeature,
+            SlidingWindow,
         )
 
-        inference = StreamingInference(
-            self.pipeline,
-            source,
-            do_profile=False,
-            do_plot=False,
-            show_progress=False,
+        # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/blocks/diarization.py#L153
+        self.pipeline._config.max_speakers = max_speakers
+        self.pipeline.reset()
+
+        class DiarizationSegment(BaseModel):
+            speaker: str
+            start: int
+            end: int
+
+        # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/sources.py
+        class SimpleSource(AudioSource):
+            def __init__(self, sample_rate: int):
+                super().__init__("simple_source", sample_rate)
+
+            def read(self):
+                pass
+
+            def write(self, data: np.ndarray):
+                self.stream.on_next(data)
+
+            def close(self):
+                self.stream.on_completed()
+
+        source = SimpleSource(sample_rate=sample_rate)
+
+        # https://gist.github.com/juanmc2005/ed6413e697e176cb36a149d8c40a3a5b#file-diart_whisper-py-L17
+        def concat(chunks, collar=0.05):
+            first_annotation = chunks[0][0]
+            first_waveform = chunks[0][1]
+            annotation = Annotation(uri=first_annotation.uri)
+            data = []
+            for ann, wav in chunks:
+                annotation.update(ann)
+                data.append(wav.data)
+            annotation = annotation.support(collar)
+            window = SlidingWindow(
+                first_waveform.sliding_window.duration,
+                first_waveform.sliding_window.step,
+                first_waveform.sliding_window.start,
+            )
+            data = np.concatenate(data, axis=0)
+            return annotation, SlidingWindowFeature(data, window)
+
+        # https://gist.github.com/juanmc2005/ed6413e697e176cb36a149d8c40a3a5b#file-diart_whisper-py-L162
+        stream = source.stream.pipe(
+            dops.rearrange_audio_stream(
+                duration=self.config.duration,
+                step=self.config.step,
+                sample_rate=self.config.sample_rate,
+            ),
+            ops.buffer_with_count(count=1),
+            ops.map(self.pipeline),
+            ops.map(concat),
         )
-        inference.attach_observers(sender)
 
-        async def run_inference():
-            await asyncio.to_thread(inference.__call__)
+        loop = asyncio.get_running_loop()
 
-        inference_task = asyncio.create_task(run_inference())
+        def handle_on_next(value: Tuple[Annotation, SlidingWindowFeature]):
+            annotation, _feature = value
+            for segment, _track, label in annotation.itertracks(yield_label=True):
+                (start, end) = (int(segment.start * 1000), int(segment.end * 1000))
+                segment = DiarizationSegment(start=start, end=end, speaker=label)
+                msg = segment.model_dump_json()
+                asyncio.run_coroutine_threadsafe(websocket.send_text(msg), loop)
+
+        subscription = stream.subscribe(
+            on_next=handle_on_next, on_error=lambda _: traceback.print_exc()
+        )
 
         while True:
             try:
@@ -246,8 +229,8 @@ class Server:
                 break
 
         try:
+            subscription.dispose()
             source.close()
-            await inference_task
             await websocket.close()
         except:
             pass
@@ -257,16 +240,16 @@ class Server:
 def download_model():
     from huggingface_hub import snapshot_download
 
-    loc = snapshot_download(
+    embedding_loc = snapshot_download(
         repo_id=EMBEDDING_MODEL_REPO_ID,
         local_dir=MODEL_DIR / EMBEDDING_MODEL_REPO_ID,
         token=os.getenv("HF_TOKEN"),
     )
-    print(f"Saved model to {loc}")
 
-    loc = snapshot_download(
+    segmentation_loc = snapshot_download(
         repo_id=SEGMENTATION_MODEL_REPO_ID,
         local_dir=MODEL_DIR / SEGMENTATION_MODEL_REPO_ID,
         token=os.getenv("HF_TOKEN"),
     )
-    print(f"Saved model to {loc}")
+
+    print(f"Saved model to {embedding_loc} and {segmentation_loc}")

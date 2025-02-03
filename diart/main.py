@@ -92,26 +92,11 @@ class Server:
     @modal.enter()
     def setup(self):
         from diart import models
-        from diart import models, SpeakerDiarizationConfig, SpeakerDiarization
 
-        embedding = models.EmbeddingModel.from_pretrained(EMBEDDING_MODEL_REPO_ID)
-        segmentation = models.SegmentationModel.from_pretrained(
+        self.embedding = models.EmbeddingModel.from_pretrained(EMBEDDING_MODEL_REPO_ID)
+        self.segmentation = models.SegmentationModel.from_pretrained(
             SEGMENTATION_MODEL_REPO_ID
         )
-
-        # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/console/serve.py
-        # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/blocks/diarization.py
-        config = SpeakerDiarizationConfig(
-            segmentation=segmentation,
-            embedding=embedding,
-            duration=5,
-            step=0.6,
-            tau_active=0.5,
-            rho_update=0.1,
-            delta_new=0.8,
-        )
-        self.config = config
-        self.pipeline = SpeakerDiarization(config)
 
     @modal.asgi_app()
     def serve(self):
@@ -127,14 +112,9 @@ class Server:
         sample_rate: int = Query(16000),
         max_speakers: int = Query(2),
     ):
-        if token != os.getenv("HYPRNOTE_API_KEY"):
-            raise HTTPException(status_code=401)
-
-        await websocket.accept()
-        self.logger.info("websocket_connected")
-
         import traceback
         import rx.operators as ops
+        from diart import SpeakerDiarizationConfig, SpeakerDiarization
         import diart.operators as dops
         from diart.sources import AudioSource
         from pyannote.core import (
@@ -143,9 +123,21 @@ class Server:
             SlidingWindow,
         )
 
+        if token != os.getenv("HYPRNOTE_API_KEY"):
+            raise HTTPException(status_code=401)
+
+        await websocket.accept()
+        self.logger.info("websocket_connected")
+
         # https://github.com/juanmc2005/diart/blob/e9dae1a/src/diart/blocks/diarization.py#L153
-        self.pipeline._config.max_speakers = max_speakers
-        self.pipeline.reset()
+        config = SpeakerDiarizationConfig(
+            segmentation=self.segmentation,
+            embedding=self.embedding,
+            duration=5,
+            latency=5,
+            step=0.5,
+        )
+        pipeline = SpeakerDiarization(config)
 
         class DiarizationSegment(BaseModel):
             speaker: str
@@ -189,12 +181,12 @@ class Server:
         # https://gist.github.com/juanmc2005/ed6413e697e176cb36a149d8c40a3a5b#file-diart_whisper-py-L162
         stream = source.stream.pipe(
             dops.rearrange_audio_stream(
-                duration=self.config.duration,
-                step=self.config.step,
-                sample_rate=self.config.sample_rate,
+                duration=config.duration,
+                step=config.step,
+                sample_rate=config.sample_rate,
             ),
             ops.buffer_with_count(count=1),
-            ops.map(self.pipeline),
+            ops.map(pipeline),
             ops.map(concat),
         )
 

@@ -38,7 +38,7 @@ pub async fn start_session<'a>(
     on_event: Channel<hypr_bridge::TimelineView>,
 ) -> Result<(), String> {
     let app_dir = app.handle.path().app_data_dir().unwrap();
-    let language = codes_iso_639::part_1::LanguageCode::En;
+    let language = codes_iso_639::part_1::LanguageCode::Ko;
 
     {
         let mut s = session.lock().await;

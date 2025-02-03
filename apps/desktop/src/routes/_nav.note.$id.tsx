@@ -271,7 +271,7 @@ function RightPanel() {
                 <div className="flex flex-row gap-2" key={`${start}-${end}`}>
                   <Avatar className="h-6 w-6">
                     <AvatarFallback className="text-xs">
-                      {speaker.slice(0, 2)}
+                      {speaker[speaker.length - 1]}
                     </AvatarFallback>
                   </Avatar>
                   <div className="rounded-lg bg-muted px-3 py-1 text-muted-foreground">

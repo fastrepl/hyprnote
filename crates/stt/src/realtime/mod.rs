@@ -224,8 +224,8 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_clova() {
-        let audio_stream = stream_from_bytes(hypr_data::korean_1::AUDIO);
-        let mut out = std::fs::File::create(hypr_data::korean_1::TRANSCRIPTION_PATH).unwrap();
+        let audio_stream = stream_from_bytes(hypr_data::korean_2::AUDIO);
+        let mut out = std::fs::File::create(hypr_data::korean_2::TRANSCRIPTION_PATH).unwrap();
 
         let mut client = Client::builder()
             .clova_api_key(std::env::var("CLOVA_API_KEY").unwrap())

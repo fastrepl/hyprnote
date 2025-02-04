@@ -109,10 +109,19 @@ impl AudioInput {
             AudioSource::RealtimeSpeaker => AudioStream::RealtimeSpeaker {
                 speaker: self.speaker.as_ref().unwrap().stream().unwrap(),
             },
-            AudioSource::RealTime => AudioStream::RealTime {
-                mic: self.mic.as_ref().unwrap().stream(),
-                speaker: self.speaker.as_ref().unwrap().stream().unwrap(),
-            },
+            AudioSource::RealTime => {
+                let mic_stream = self.mic.as_ref().unwrap().stream();
+                let speaker_stream = self.speaker.as_ref().unwrap().stream().unwrap();
+
+                let mic_sample_rate = mic_stream.sample_rate();
+                let speaker_sample_rate = speaker_stream.sample_rate();
+                let sample_rate = std::cmp::min(mic_sample_rate, speaker_sample_rate);
+
+                AudioStream::RealTime {
+                    mic: mic_stream.resample(sample_rate),
+                    speaker: speaker_stream.resample(sample_rate),
+                }
+            }
             AudioSource::Recorded => AudioStream::Recorded {
                 data: self.data.as_ref().unwrap().clone(),
                 position: 0,
@@ -123,8 +132,8 @@ impl AudioInput {
 
 pub enum AudioStream {
     RealTime {
-        mic: MicStream,
-        speaker: SpeakerStream,
+        mic: ResampledAsyncSource<MicStream>,
+        speaker: ResampledAsyncSource<SpeakerStream>,
     },
     RealtimeMic {
         mic: MicStream,
@@ -192,6 +201,11 @@ impl crate::AsyncSource for AudioStream {
     }
 
     fn sample_rate(&self) -> u32 {
-        16000
+        match self {
+            AudioStream::RealtimeMic { mic } => mic.sample_rate(),
+            AudioStream::RealtimeSpeaker { speaker } => speaker.sample_rate(),
+            AudioStream::RealTime { mic, .. } => mic.sample_rate(),
+            AudioStream::Recorded { .. } => 16000,
+        }
     }
 }

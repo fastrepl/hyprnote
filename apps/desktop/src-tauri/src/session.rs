@@ -24,7 +24,7 @@ impl SessionState {
         session_id: String,
         channel: tauri::ipc::Channel<SessionStatus>,
     ) -> anyhow::Result<()> {
-        let mut audio_stream = {
+        let audio_stream = {
             let input = {
                 #[cfg(all(debug_assertions, feature = "sim-english-1"))]
                 {
@@ -41,7 +41,7 @@ impl SessionState {
                     all(debug_assertions, feature = "sim-korean-1")
                 )))]
                 {
-                    hypr_audio::MicInput::default()
+                    hypr_audio::AudioInput::from_mic()
                 }
             };
 

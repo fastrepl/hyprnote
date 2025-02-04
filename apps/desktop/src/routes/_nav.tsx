@@ -10,6 +10,11 @@ import { Trans } from "@lingui/react/macro";
 import clsx from "clsx";
 
 import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
 
 import { useUI } from "@/stores/ui";
 import Controls from "@/components/controls";
@@ -21,10 +26,11 @@ export const Route = createFileRoute("/_nav")({
 
 function Component() {
   return (
-    <>
+    <div className="relative w-full h-full">
       <Header />
       <Outlet />
-    </>
+      <HelpButton />
+    </div>
   );
 }
 
@@ -62,11 +68,6 @@ function Header() {
           </button>
         )}
       </div>
-      {/* {!pathname.includes("onboarding") && (
-        <div className="flex flex-1 justify-center" data-tauri-drag-region>
-          <SearchBar />
-        </div>
-      )} */}
       <div className="mr-3 flex flex-row gap-2">
         <Button
           variant="outline"
@@ -82,6 +83,25 @@ function Header() {
         {pathname.includes("note") ? <PanelToggle /> : <SettingsDialog />}
       </div>
     </header>
+  );
+}
+
+function HelpButton() {
+  return (
+    <Popover>
+      <PopoverTrigger
+        className={clsx([
+          "absolute bottom-7 right-7",
+          "bg-gray-500 w-10 h-10",
+          "rounded-full",
+        ])}
+      >
+        @
+      </PopoverTrigger>
+      <PopoverContent align="end" side="top" className="mb-2">
+        Content here.
+      </PopoverContent>
+    </Popover>
   );
 }
 

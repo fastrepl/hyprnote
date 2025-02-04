@@ -38,7 +38,7 @@ function Component() {
         <Outlet />
       </CatchNotFound>
       <Suspense>
-        <TanStackRouterDevtools position="bottom-right" />
+        <TanStackRouterDevtools position="bottom-left" />
       </Suspense>
     </>
   );

@@ -7,7 +7,11 @@ use axum::{
     },
     response::IntoResponse,
 };
+
 use bytes::Bytes;
+use std::sync::atomic::Ordering;
+use std::sync::{atomic::AtomicU64, Arc};
+
 use futures_util::{SinkExt, StreamExt};
 use tokio::sync::broadcast;
 
@@ -33,11 +37,17 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
 
     let mut stt = state.realtime_stt.for_language(params.language).await;
 
+    let start_time = tokio::time::Instant::now();
+    let last_activity_receive = Arc::new(AtomicU64::new(0));
+    let last_activity_send = last_activity_receive.clone();
+
     let (tx, rx_transcribe) = broadcast::channel::<Bytes>(1024);
     let rx_diarize = tx.subscribe();
 
     let ws_handler = tokio::spawn(async move {
         while let Some(Ok(Message::Text(data))) = ws_receiver.next().await {
+            last_activity_receive.store(start_time.elapsed().as_secs(), Ordering::Relaxed);
+
             let input: ListenInputChunk = serde_json::from_str(&data).unwrap();
             let audio = Bytes::from(input.audio);
 
@@ -62,14 +72,12 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
     );
 
     let task = async {
-        let mut last_activity = tokio::time::Instant::now();
-
         loop {
             tokio::select! {
                 item = diarization_stream.next() => {
-                    last_activity = tokio::time::Instant::now();
-
                     if let Some(result) = item {
+                        last_activity_send.store(current_time, Ordering::Relaxed);
+
                         let data = ListenOutputChunk::Diarize(result);
                         let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
                         ws_sender.send(msg).await.unwrap();
@@ -79,7 +87,7 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
                 item = transcript_stream.next() => {
                     match item {
                         Some(Ok(result)) => {
-                            last_activity = tokio::time::Instant::now();
+                            last_activity_send.store(current_time, Ordering::Relaxed);
 
                             for word in result.words {
                                 let data = ListenOutputChunk::Transcribe(TranscriptChunk{
@@ -96,7 +104,11 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
                 }
 
                 _ = tokio::time::sleep(tokio::time::Duration::from_millis(500)) => {
-                    if last_activity.elapsed() >= tokio::time::Duration::from_secs(15) {
+                    let current_time = start_time.elapsed().as_secs();
+                    let last_activity = last_activity_send.load(Ordering::Relaxed);
+                    let idle_time = current_time.saturating_sub(last_activity);
+
+                    if idle_time >= 15 {
                         break;
                     }
                 }

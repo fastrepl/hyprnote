@@ -41,7 +41,7 @@ impl SessionState {
                     all(debug_assertions, feature = "sim-korean-1")
                 )))]
                 {
-                    hypr_audio::AudioInput::from_mic()
+                    hypr_audio::AudioInput::new()
                 }
             };
 

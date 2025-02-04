@@ -92,13 +92,15 @@ impl SpeakerInput {
 
             assert_eq!(ctx.format.common_format(), av::audio::CommonFormat::PcmF32);
 
-            // TODO: called `Option::unwrap()` on a `None` value
-            let view =
-                av::AudioPcmBuf::with_buf_list_no_copy(&ctx.format, input_data, None).unwrap();
-
-            if let Some(data) = view.data_f32_at(0) {
-                let samples = data.to_vec();
-                ctx.sender.start_send(samples).unwrap();
+            if let Some(view) =
+                av::AudioPcmBuf::with_buf_list_no_copy(&ctx.format, input_data, None)
+            {
+                if let Some(data) = view.data_f32_at(0) {
+                    let samples = data.to_vec();
+                    ctx.sender.start_send(samples).unwrap();
+                }
+            } else {
+                tracing::warn!("macos_speaker_empty_buffer");
             }
 
             os::Status::NO_ERR

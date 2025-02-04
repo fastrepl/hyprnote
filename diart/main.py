@@ -136,6 +136,7 @@ class Server:
             duration=5,
             latency=5,
             step=0.5,
+            max_speakers=max_speakers,
         )
         pipeline = SpeakerDiarization(config)
 

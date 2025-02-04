@@ -10,6 +10,7 @@ pub struct DiarizeClientBuilder {
     api_base: Option<String>,
     api_key: Option<String>,
     sample_rate: Option<u32>,
+    max_speakers: Option<u32>,
 }
 
 impl DiarizeClientBuilder {
@@ -28,6 +29,11 @@ impl DiarizeClientBuilder {
         self
     }
 
+    pub fn max_speakers(mut self, max_speakers: u32) -> Self {
+        self.max_speakers = Some(max_speakers);
+        self
+    }
+
     pub fn build(self) -> DiarizeClient {
         let uri = {
             let mut url: url::Url = self.api_base.unwrap().parse().unwrap();
@@ -35,7 +41,8 @@ impl DiarizeClientBuilder {
             url.set_path("/diarize");
             url.query_pairs_mut()
                 .append_pair("sample_rate", &self.sample_rate.unwrap().to_string())
-                .append_pair("token", &self.api_key.unwrap());
+                .append_pair("token", &self.api_key.unwrap())
+                .append_pair("max_speakers", &self.max_speakers.unwrap_or(2).to_string());
 
             url.to_string().parse().unwrap()
         };

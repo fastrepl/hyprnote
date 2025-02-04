@@ -1,12 +1,13 @@
-use serde::{Deserialize, Serialize};
+use crate::user_common_derives;
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
-pub struct Calendar {
-    pub id: String,
-    pub tracking_id: String,
-    pub platform: Platform,
-    pub name: String,
-    pub selected: bool,
+user_common_derives! {
+    pub struct Calendar {
+        pub id: String,
+        pub tracking_id: String,
+        pub platform: Platform,
+        pub name: String,
+        pub selected: bool
+    }
 }
 
 impl From<hypr_calendar::Calendar> for Calendar {
@@ -21,10 +22,11 @@ impl From<hypr_calendar::Calendar> for Calendar {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
-pub enum Platform {
-    Apple,
-    Google,
+user_common_derives! {
+    pub enum Platform {
+        Apple,
+        Google,
+    }
 }
 
 impl From<hypr_calendar::Platform> for Platform {

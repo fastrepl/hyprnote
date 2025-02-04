@@ -2780,6 +2780,7 @@ dependencies = [
  "nango",
  "rand 0.8.5",
  "random_color",
+ "schemars 1.0.0-alpha.17",
  "serde",
  "serde_json",
  "specta",

@@ -10,3 +10,11 @@ pub use types::*;
 mod seed;
 #[cfg(debug_assertions)]
 pub use seed::*;
+
+#[macro_export]
+macro_rules! user_common_derives {
+    ($item:item) => {
+        #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+        $item
+    };
+}

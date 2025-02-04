@@ -1,18 +1,20 @@
-use serde::{Deserialize, Serialize};
 use time::{serde::rfc3339, OffsetDateTime};
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
-pub struct Event {
-    pub id: String,
-    pub tracking_id: String,
-    pub calendar_id: String,
-    pub name: String,
-    pub note: String,
-    #[serde(with = "rfc3339")]
-    pub start_date: OffsetDateTime,
-    #[serde(with = "rfc3339")]
-    pub end_date: OffsetDateTime,
-    pub google_event_url: Option<String>,
+use crate::user_common_derives;
+
+user_common_derives! {
+    pub struct Event {
+        pub id: String,
+        pub tracking_id: String,
+        pub calendar_id: String,
+        pub name: String,
+        pub note: String,
+        #[serde(with = "rfc3339")]
+        pub start_date: OffsetDateTime,
+        #[serde(with = "rfc3339")]
+        pub end_date: OffsetDateTime,
+        pub google_event_url: Option<String>,
+    }
 }
 
 impl From<hypr_calendar::Event> for Event {
@@ -30,12 +32,13 @@ impl From<hypr_calendar::Event> for Event {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
-pub struct Participant {
-    pub id: String,
-    pub name: String,
-    pub email: Option<String>,
-    pub color_hex: String,
+user_common_derives! {
+    pub struct Participant {
+        pub id: String,
+        pub name: String,
+        pub email: Option<String>,
+        pub color_hex: String,
+    }
 }
 
 impl From<hypr_calendar::Participant> for Participant {
@@ -60,9 +63,10 @@ impl Default for Participant {
     }
 }
 
-#[derive(Serialize, Deserialize, specta::Type)]
-pub enum ParticipantFilter {
-    Text(String),
-    Event(String),
-    All,
+user_common_derives! {
+    pub enum ParticipantFilter {
+        Text(String),
+        Event(String),
+        All,
+    }
 }

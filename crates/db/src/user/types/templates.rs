@@ -1,17 +1,19 @@
-use serde::{Deserialize, Serialize};
+use crate::user_common_derives;
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-pub struct Template {
-    pub id: String,
-    pub title: String,
-    pub description: String,
-    pub sections: Vec<TemplateSection>,
+user_common_derives! {
+    pub struct Template {
+        pub id: String,
+        pub title: String,
+        pub description: String,
+        pub sections: Vec<TemplateSection>,
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-pub struct TemplateSection {
-    pub title: String,
-    pub description: String,
+user_common_derives! {
+    pub struct TemplateSection {
+        pub title: String,
+        pub description: String,
+    }
 }
 
 impl Template {

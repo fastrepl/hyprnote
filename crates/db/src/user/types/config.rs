@@ -1,32 +1,37 @@
-use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Debug, Clone, Serialize, Deserialize, strum::Display, strum::EnumString, specta::Type)]
-pub enum ConfigKind {
-    #[serde(rename = "general")]
-    #[strum(serialize = "general")]
-    General,
-    #[serde(rename = "profile")]
-    #[strum(serialize = "profile")]
-    Profile,
+use crate::user_common_derives;
+
+user_common_derives! {
+    #[derive(strum::Display, strum::EnumString)]
+    pub enum ConfigKind {
+        #[serde(rename = "general")]
+        #[strum(serialize = "general")]
+        General,
+        #[serde(rename = "profile")]
+        #[strum(serialize = "profile")]
+        Profile,
+    }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-#[serde(tag = "type")]
-pub enum Config {
-    #[serde(rename = "general")]
-    General { data: ConfigDataGeneral },
-    #[serde(rename = "profile")]
-    Profile { data: ConfigDataProfile },
+user_common_derives! {
+    #[serde(tag = "type")]
+    pub enum Config {
+        #[serde(rename = "general")]
+        General { data: ConfigDataGeneral },
+        #[serde(rename = "profile")]
+        Profile { data: ConfigDataProfile },
+    }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ConfigDataGeneral {
-    pub autostart: bool,
-    pub notifications: bool,
-    #[specta(type = String)]
-    pub language: codes_iso_639::part_1::LanguageCode,
-    pub context: String,
+user_common_derives! {
+    pub struct ConfigDataGeneral {
+        pub autostart: bool,
+        pub notifications: bool,
+        #[specta(type = String)]
+        pub language: codes_iso_639::part_1::LanguageCode,
+        pub context: String,
+    }
 }
 
 impl Default for ConfigDataGeneral {
@@ -40,13 +45,15 @@ impl Default for ConfigDataGeneral {
     }
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ConfigDataProfile {
-    pub full_name: Option<String>,
-    pub job_title: Option<String>,
-    pub company_name: Option<String>,
-    pub company_description: Option<String>,
-    pub linkedin_username: Option<String>,
+user_common_derives! {
+    #[derive(Default)]
+    pub struct ConfigDataProfile {
+        pub full_name: Option<String>,
+        pub job_title: Option<String>,
+        pub company_name: Option<String>,
+        pub company_description: Option<String>,
+        pub linkedin_username: Option<String>,
+    }
 }
 
 impl From<ConfigDataProfile> for Config {

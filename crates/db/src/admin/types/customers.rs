@@ -1,7 +1,8 @@
-use serde::{Deserialize, Serialize};
+use crate::admin_common_derives;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Customer {
-    pub id: String,
-    pub user_id: String,
+admin_common_derives! {
+    pub struct Customer {
+        pub id: String,
+        pub user_id: String,
+    }
 }

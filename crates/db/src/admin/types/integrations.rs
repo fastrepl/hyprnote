@@ -1,9 +1,10 @@
-use serde::{Deserialize, Serialize};
+use crate::admin_common_derives;
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct Integration {
-    pub id: String,
-    pub user_id: String,
-    pub nango_integration_id: hypr_nango::NangoIntegration,
-    pub nango_connection_id: String,
+admin_common_derives! {
+    pub struct Integration {
+        pub id: String,
+        pub user_id: String,
+        pub nango_integration_id: hypr_nango::NangoIntegration,
+        pub nango_connection_id: String,
+    }
 }

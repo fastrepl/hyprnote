@@ -12,17 +12,19 @@ user = []
 hypr_calendar = { path = "../calendar", package = "calendar", default-features = false }
 hypr_nango = { path = "../nango", package = "nango", optional = true }
 
-anyhow = { workspace = true }
-codes-iso-639 = { workspace = true }
-rand = "0.8.5"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
+
+schemars = { workspace = true }
+specta = { workspace = true, features = ["derive", "time", "serde_json"] }
+
+anyhow = { workspace = true }
+codes-iso-639 = { workspace = true }
+rand = "0.8.5"
+random_color = "1.0.0"
 time = { workspace = true, features = ["serde", "formatting", "parsing"] }
 uuid = { workspace = true, features = ["v4", "serde"] }
 
 libsql = { version = "0.6.0", features = [] }
 tokio = { workspace = true, features = ["rt", "macros"] }
-
-random_color = "1.0.0"
-specta = { workspace = true, features = ["derive", "time", "serde_json"] }

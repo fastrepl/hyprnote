@@ -1,26 +1,29 @@
-use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, serde::rfc3339, OffsetDateTime};
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
-pub struct SessionRawMemoHistory {
-    #[serde(with = "rfc3339")]
-    pub created_at: OffsetDateTime,
-    pub raw_memo_html: String,
+use crate::user_common_derives;
+
+user_common_derives! {
+    pub struct SessionRawMemoHistory {
+        #[serde(with = "rfc3339")]
+        pub created_at: OffsetDateTime,
+        pub raw_memo_html: String,
+    }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
-pub struct Session {
-    pub id: String,
-    #[serde(with = "rfc3339")]
-    pub timestamp: OffsetDateTime,
-    pub calendar_event_id: Option<String>,
-    pub title: String,
-    pub tags: Vec<String>,
-    pub audio_local_path: Option<String>,
-    pub audio_remote_path: Option<String>,
-    pub raw_memo_html: String,
-    pub enhanced_memo_html: Option<String>,
-    pub conversations: Vec<ConversationChunk>,
+user_common_derives! {
+    pub struct Session {
+        pub id: String,
+        #[serde(with = "rfc3339")]
+        pub timestamp: OffsetDateTime,
+        pub calendar_event_id: Option<String>,
+        pub title: String,
+        pub tags: Vec<String>,
+        pub audio_local_path: Option<String>,
+        pub audio_remote_path: Option<String>,
+        pub raw_memo_html: String,
+        pub enhanced_memo_html: Option<String>,
+        pub conversations: Vec<ConversationChunk>,
+    }
 }
 
 impl Session {
@@ -63,34 +66,38 @@ impl Default for Session {
     }
 }
 
-#[derive(Debug, Default, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
-pub struct TranscriptChunk {
-    pub start: u64,
-    pub end: u64,
-    pub text: String,
+user_common_derives! {
+    pub struct TranscriptChunk {
+        pub start: u64,
+        pub end: u64,
+        pub text: String,
+    }
 }
 
-#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
-pub struct DiarizationChunk {
-    pub start: u64,
-    pub end: u64,
-    pub speaker: String,
+user_common_derives! {
+    pub struct DiarizationChunk {
+        pub start: u64,
+        pub end: u64,
+        pub speaker: String,
+    }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ConversationChunk {
-    pub start: time::OffsetDateTime,
-    pub end: time::OffsetDateTime,
-    pub local_audio_path: String,
-    pub remote_audio_path: String,
-    pub transcripts: Vec<TranscriptChunk>,
-    pub diarizations: Vec<DiarizationChunk>,
+user_common_derives! {
+    pub struct ConversationChunk {
+        pub start: time::OffsetDateTime,
+        pub end: time::OffsetDateTime,
+        pub local_audio_path: String,
+        pub remote_audio_path: String,
+        pub transcripts: Vec<TranscriptChunk>,
+        pub diarizations: Vec<DiarizationChunk>,
+    }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
-pub enum GetSessionOption {
-    #[serde(rename = "id")]
-    Id(String),
-    #[serde(rename = "calendarEventId")]
-    CalendarEventId(String),
+user_common_derives! {
+    pub enum GetSessionOption {
+        #[serde(rename = "id")]
+        Id(String),
+        #[serde(rename = "calendarEventId")]
+        CalendarEventId(String),
+    }
 }

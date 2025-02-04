@@ -10,16 +10,12 @@ import { Trans } from "@lingui/react/macro";
 import clsx from "clsx";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@hypr/ui/components/ui/popover";
 
 import { useUI } from "@/stores/ui";
 import Controls from "@/components/controls";
 import SettingsDialog from "@/components/settings";
 import SearchBar from "@/components/search-bar";
+import { HyprAIButton } from "../components/hypr-ai-button";
 
 export const Route = createFileRoute("/_nav")({
   component: Component,
@@ -30,7 +26,7 @@ function Component() {
     <div className="relative h-full w-full">
       <Header />
       <Outlet />
-      <HelpButton />
+      <HyprAIButton />
     </div>
   );
 }
@@ -89,25 +85,6 @@ function Header() {
         {pathname.includes("note") ? <PanelToggle /> : <SettingsDialog />}
       </div>
     </header>
-  );
-}
-
-function HelpButton() {
-  return (
-    <Popover>
-      <PopoverTrigger
-        className={clsx([
-          "absolute bottom-7 right-7",
-          "h-10 w-10 bg-gray-500",
-          "rounded-full",
-        ])}
-      >
-        @
-      </PopoverTrigger>
-      <PopoverContent align="end" side="top" className="mb-2">
-        Content here.
-      </PopoverContent>
-    </Popover>
   );
 }
 

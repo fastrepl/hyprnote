@@ -5,7 +5,7 @@ import {
 } from "@hypr/ui/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 
-export default function SelectedEvent() {
+export default function EventChip() {
   return (
     <Popover>
       <PopoverTrigger>

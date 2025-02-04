@@ -26,8 +26,8 @@ import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import NoteEditor from "@hypr/tiptap/editor";
 import NoteRenderer from "@hypr/tiptap/renderer";
 
-import ParticipantsSelector from "@/components/participants-selector";
-import SelectedEvent from "@/components/selected-event";
+import ParticipantsChip from "@/components/participants-chip";
+import EventChip from "@/components/event-chip";
 import AudioIndicator from "@/components/audio-indicator";
 
 import { useUI } from "@/stores/ui";
@@ -193,12 +193,8 @@ function LeftPanel() {
       </div>
 
       <div className="flex flex-row items-center gap-2 py-1">
-        <SelectedEvent />
-        <ParticipantsSelector
-          options={[]}
-          selected={[]}
-          handleSelect={() => {}}
-        />
+        <EventChip />
+        <ParticipantsChip options={[]} selected={[]} handleSelect={() => {}} />
       </div>
 
       <ScrollArea

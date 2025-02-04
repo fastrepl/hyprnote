@@ -18,15 +18,13 @@ import { Input } from "@hypr/ui/components/ui/input";
 
 import { type Participant } from "@/types/tauri.gen";
 
-interface ParticipantSelectorProps {
+interface ParticipantsChipProps {
   options: Participant[];
   selected: Participant[];
   handleSelect: (participants: Participant[]) => void;
 }
 
-export default function ParticipantsSelector({
-  options,
-}: ParticipantSelectorProps) {
+export default function ParticipantsChip({ options }: ParticipantsChipProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 

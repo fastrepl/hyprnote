@@ -3,6 +3,7 @@ mod test_utils;
 
 mod filters;
 mod functions;
+mod tera_utils;
 mod testers;
 
 pub mod create_title;
@@ -35,7 +36,7 @@ lazy_static::lazy_static! {
         tera.register_tester("long_meeting", testers::duration(Duration::from_secs(40 * 60 * 60), Duration::from_secs(90 * 60 * 60)));
         tera.register_tester("brainstorming_meeting", testers::duration(Duration::from_secs(90 * 60 * 60), Duration::from_secs(INFINITY as u64)));
 
-        tera.register_function("render_conversation", functions::render_conversation());
+        tera.register_function("render_timeline_view", functions::render_timeline_view());
 
         tera.autoescape_on(vec![]);
         tera

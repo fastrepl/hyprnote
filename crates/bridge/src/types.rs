@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::TimelineView;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("unknown error")]
@@ -36,8 +38,7 @@ pub struct EnhanceRequest {
     pub config_profile: hypr_db::user::ConfigDataProfile,
     pub event: Option<hypr_db::user::Event>,
     pub participants: Vec<hypr_db::user::Participant>,
-    pub transcripts: Vec<hypr_db::user::TranscriptChunk>,
-    pub diarizations: Vec<hypr_db::user::DiarizationChunk>,
+    pub timeline_view: TimelineView,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]

@@ -58,9 +58,18 @@ impl Default for Timeline {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
+#[derive(Clone, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct TimelineView {
     pub items: Vec<TimelineViewItem>,
+}
+
+impl std::fmt::Debug for TimelineView {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for item in self.items.iter() {
+            writeln!(f, "{:?}", item)?;
+        }
+        Ok(())
+    }
 }
 
 impl std::fmt::Display for TimelineView {
@@ -72,15 +81,15 @@ impl std::fmt::Display for TimelineView {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
+#[derive(Clone, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct TimelineViewItem {
-    start: u64,
-    end: u64,
-    speaker: String,
-    text: String,
+    pub start: u64,
+    pub end: u64,
+    pub speaker: String,
+    pub text: String,
 }
 
-impl std::fmt::Display for TimelineViewItem {
+impl std::fmt::Debug for TimelineViewItem {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -90,6 +99,12 @@ impl std::fmt::Display for TimelineViewItem {
             self.speaker,
             self.text
         )
+    }
+}
+
+impl std::fmt::Display for TimelineViewItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}\n{}\n", self.speaker, self.text)
     }
 }
 

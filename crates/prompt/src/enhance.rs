@@ -37,14 +37,6 @@ mod tests {
     use super::*;
     use crate::{generate_tests, OpenAIRequest};
 
-    #[derive(serde::Deserialize)]
-    struct ConversationItem {
-        pub speaker: String,
-        pub start: u64,
-        pub end: u64,
-        pub text: String,
-    }
-
     const EMPTY_NOTE: &str = "";
 
     fn default_profile() -> hypr_db::user::ConfigDataProfile {
@@ -57,51 +49,26 @@ mod tests {
         }
     }
 
-    fn read_conversation(p: impl AsRef<std::path::Path>) -> Vec<ConversationItem> {
+    fn timeline_view_from_path(p: &str) -> hypr_bridge::TimelineView {
         let data = std::fs::read_to_string(p).unwrap();
         let value: serde_json::Value = serde_json::from_str(&data).unwrap();
-        let conversation: Vec<ConversationItem> = value["conversation"]
+        let items: Vec<hypr_bridge::TimelineViewItem> = value["conversation"]
             .as_array()
             .unwrap()
             .iter()
             .map(|v| serde_json::from_value(v.clone()).unwrap())
             .collect();
 
-        conversation
-    }
-
-    fn diarizations_from_path(p: &str) -> Vec<hypr_db::user::DiarizationChunk> {
-        let conversation = read_conversation(p);
-
-        conversation
-            .into_iter()
-            .map(|item| hypr_db::user::DiarizationChunk {
-                start: item.start,
-                end: item.end,
-                speaker: item.speaker.clone(),
-            })
-            .collect()
-    }
-
-    fn transcripts_from_path(p: &str) -> Vec<hypr_db::user::TranscriptChunk> {
-        let conversation = read_conversation(p);
-
-        conversation
-            .into_iter()
-            .map(|item| hypr_db::user::TranscriptChunk {
-                start: item.start,
-                end: item.end,
-                text: item.text.clone(),
-            })
-            .collect()
+        hypr_bridge::TimelineView { items }
     }
 
     fn participants_from_path(p: &str) -> Vec<hypr_db::user::Participant> {
-        let conversation = read_conversation(p);
+        let timeline_view = timeline_view_from_path(p);
 
-        conversation
-            .into_iter()
-            .map(|item| item.speaker)
+        timeline_view
+            .items
+            .iter()
+            .map(|item| item.speaker.clone())
             .collect::<std::collections::HashSet<_>>()
             .into_iter()
             .map(|name| hypr_db::user::Participant {
@@ -114,8 +81,7 @@ mod tests {
     fn input_01() -> Input {
         let note_pre = std::fs::read_to_string("data/01/note_pre.md").unwrap();
         let note_during = std::fs::read_to_string("data/01/note_during.md").unwrap();
-        let transcripts = transcripts_from_path("data/01/conversation.json");
-        let diarizations = diarizations_from_path("data/01/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/01/conversation.json");
 
         Input {
@@ -127,8 +93,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note_during),
             pre_meeting_editor: markdown::to_html(&note_pre),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: Some(hypr_db::user::Event {
                 id: "".to_string(),
                 tracking_id: "".to_string(),
@@ -153,8 +118,7 @@ mod tests {
 
     fn input_02() -> Input {
         let note = std::fs::read_to_string("data/02/note.md").unwrap();
-        let transcripts = transcripts_from_path("data/02/conversation.json");
-        let diarizations = diarizations_from_path("data/02/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/02/conversation.json");
 
         Input {
@@ -166,8 +130,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -175,8 +138,7 @@ mod tests {
 
     fn input_03() -> Input {
         let note = std::fs::read_to_string("data/03/note.md").unwrap();
-        let transcripts = transcripts_from_path("data/03/conversation.json");
-        let diarizations = diarizations_from_path("data/03/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/03/conversation.json");
 
         Input {
@@ -188,8 +150,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -197,8 +158,7 @@ mod tests {
 
     fn input_04() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/04/conversation.json");
-        let diarizations = diarizations_from_path("data/04/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/04/conversation.json");
 
         Input {
@@ -210,8 +170,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -219,8 +178,7 @@ mod tests {
 
     fn input_05() -> Input {
         let note = std::fs::read_to_string("data/05/note.md").unwrap();
-        let transcripts = transcripts_from_path("data/05/conversation.json");
-        let diarizations = diarizations_from_path("data/05/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/05/conversation.json");
 
         Input {
@@ -232,8 +190,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -241,8 +198,7 @@ mod tests {
 
     fn input_06() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/06/conversation.json");
-        let diarizations = diarizations_from_path("data/06/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/06/conversation.json");
 
         Input {
@@ -254,8 +210,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -263,8 +218,7 @@ mod tests {
 
     fn input_07() -> Input {
         let note = std::fs::read_to_string("data/07/note.md").unwrap();
-        let transcripts = transcripts_from_path("data/07/conversation.json");
-        let diarizations = diarizations_from_path("data/07/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/07/conversation.json");
 
         Input {
@@ -276,8 +230,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -285,8 +238,7 @@ mod tests {
 
     fn input_08() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/08/conversation.json");
-        let diarizations = diarizations_from_path("data/08/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/08/conversation.json");
 
         Input {
@@ -298,8 +250,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -307,8 +258,7 @@ mod tests {
 
     fn input_09() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/09/conversation.json");
-        let diarizations = diarizations_from_path("data/09/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/09/conversation.json");
 
         Input {
@@ -320,8 +270,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -329,8 +278,7 @@ mod tests {
 
     fn input_10() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/10/conversation.json");
-        let diarizations = diarizations_from_path("data/10/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/10/conversation.json");
 
         Input {
@@ -342,8 +290,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -351,8 +298,7 @@ mod tests {
 
     fn input_11() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/11/conversation.json");
-        let diarizations = diarizations_from_path("data/11/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/11/conversation.json");
 
         Input {
@@ -364,8 +310,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -373,8 +318,7 @@ mod tests {
 
     fn input_12() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/12/conversation.json");
-        let diarizations = diarizations_from_path("data/12/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/12/conversation.json");
 
         Input {
@@ -386,8 +330,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -395,8 +338,7 @@ mod tests {
 
     fn input_13() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/13/conversation.json");
-        let diarizations = diarizations_from_path("data/13/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/13/conversation.json");
 
         Input {
@@ -408,8 +350,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -417,8 +358,7 @@ mod tests {
 
     fn input_14() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/14/conversation.json");
-        let diarizations = diarizations_from_path("data/14/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/14/conversation.json");
 
         Input {
@@ -430,8 +370,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -439,8 +378,7 @@ mod tests {
 
     fn input_15() -> Input {
         let note = std::fs::read_to_string("data/15/note.md").unwrap();
-        let transcripts = transcripts_from_path("data/15/conversation.json");
-        let diarizations = diarizations_from_path("data/15/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/15/conversation.json");
 
         Input {
@@ -452,8 +390,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -461,8 +398,7 @@ mod tests {
 
     fn input_16() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/16/conversation.json");
-        let diarizations = diarizations_from_path("data/16/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/16/conversation.json");
 
         Input {
@@ -474,8 +410,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -483,8 +418,7 @@ mod tests {
 
     fn input_17() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/17/conversation.json");
-        let diarizations = diarizations_from_path("data/17/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/17/conversation.json");
 
         Input {
@@ -496,8 +430,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -505,8 +438,7 @@ mod tests {
 
     fn input_18() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/18/conversation.json");
-        let diarizations = diarizations_from_path("data/18/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/18/conversation.json");
 
         Input {
@@ -518,8 +450,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -527,8 +458,7 @@ mod tests {
 
     fn input_19() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/19/conversation.json");
-        let diarizations = diarizations_from_path("data/19/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/19/conversation.json");
 
         Input {
@@ -540,8 +470,7 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
@@ -549,8 +478,7 @@ mod tests {
 
     fn input_20() -> Input {
         let note = EMPTY_NOTE;
-        let transcripts = transcripts_from_path("data/20/conversation.json");
-        let diarizations = diarizations_from_path("data/20/conversation.json");
+        let timeline_view = timeline_view_from_path("data/01/conversation.json");
         let participants = participants_from_path("data/20/conversation.json");
 
         Input {
@@ -562,14 +490,13 @@ mod tests {
             config_profile: default_profile(),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
-            transcripts,
-            diarizations,
+            timeline_view,
             event: None,
             participants,
         }
     }
 
-    // cargo test  enhance::tests::test_prompt_for_input_1 -p prompt --  --ignored
+    // cargo test enhance::tests::test_prompt_for_input_1 -p prompt --  --ignored
     #[ignore]
     #[test]
     fn test_prompt_for_input_1() {

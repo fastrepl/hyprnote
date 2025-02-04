@@ -81,4 +81,3 @@ apalis = { workspace = true }
 apalis-cron = { workspace = true }
 
 hound = { workspace = true }
-vorbis_rs = "0.5.5"

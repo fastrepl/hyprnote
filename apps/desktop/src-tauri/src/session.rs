@@ -11,6 +11,8 @@ pub enum SessionStatus {
     Stopped,
 }
 
+const SAMPLE_RATE: u32 = 16000;
+
 impl SessionState {
     pub fn new() -> anyhow::Result<Self> {
         Ok(Self { handle: None })
@@ -47,11 +49,54 @@ impl SessionState {
 
             input.stream()
         }
-        .resample(16000);
+        .resample(SAMPLE_RATE);
+
+        let (backup_tx, mut backup_rx) =
+            tokio::sync::mpsc::channel::<f32>((SAMPLE_RATE as usize) * 2);
+        let (network_tx, network_rx) =
+            tokio::sync::mpsc::channel::<f32>((SAMPLE_RATE as usize) * 2);
+
+        tokio::spawn({
+            let mut audio_stream = audio_stream;
+            async move {
+                while let Some(chunk) = audio_stream.next().await {
+                    if let Err(e) = backup_tx.send(chunk).await {
+                        tracing::error!("Error sending chunk to backup: {:?}", e);
+                    }
+                    if let Err(e) = network_tx.send(chunk).await {
+                        tracing::error!("Error sending chunk to network: {:?}", e);
+                    }
+                }
+            }
+        });
+
+        tokio::spawn(async move {
+            let dir = app_dir.join(session_id);
+            std::fs::create_dir_all(&dir).unwrap();
+            let path = dir.join("audio.wav");
+
+            let mut wav = hound::WavWriter::create(
+                path,
+                hound::WavSpec {
+                    channels: 1,
+                    sample_rate: SAMPLE_RATE,
+                    bits_per_sample: 32,
+                    sample_format: hound::SampleFormat::Float,
+                },
+            )
+            .unwrap();
+
+            while let Some(sample) = backup_rx.recv().await {
+                if let Err(e) = wav.write_sample(sample) {
+                    eprintln!("Error writing sample to wav: {:?}", e);
+                }
+            }
+        });
 
         let listen_client = bridge.listen().language(language).build();
+        let stream = hypr_audio::ReceiverStreamSource::new(network_rx, SAMPLE_RATE);
 
-        let listen_stream = match listen_client.from_audio(audio_stream).await {
+        let listen_stream = match listen_client.from_audio(stream).await {
             Ok(stream) => stream,
             Err(e) => {
                 return Err(e.to_string());

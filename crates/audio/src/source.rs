@@ -1,5 +1,3 @@
-// https://github.com/floneum/floneum/blob/50afe10/interfaces/kalosm-sound/src/source/mod.rs
-
 use dasp::interpolate::Interpolator as _;
 use futures_core::Stream;
 
@@ -14,6 +12,7 @@ pub trait AsyncSource {
     }
 }
 
+// https://github.com/floneum/floneum/blob/50afe10/interfaces/kalosm-sound/src/source/mod.rs#L69
 pub struct ResampledAsyncSource<S: AsyncSource> {
     source: S,
     source_output_sample_ratio: f64,
@@ -35,6 +34,7 @@ impl<S: AsyncSource> ResampledAsyncSource<S> {
     }
 }
 
+// https://github.com/floneum/floneum/blob/50afe10/interfaces/kalosm-sound/src/source/mod.rs#L90
 impl<S: AsyncSource + Unpin> Stream for ResampledAsyncSource<S> {
     type Item = f32;
 

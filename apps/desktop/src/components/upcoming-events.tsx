@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Trans } from "@lingui/react/macro";
 import { Calendar, Clock, Users } from "lucide-react";
 
@@ -26,22 +26,9 @@ import { commands, type Event, type Participant } from "@/types/tauri.gen";
 
 interface UpcomingEventsProps {
   events: Event[];
-  handleClickEvent: (event: Event) => void;
 }
 
 export default function UpcomingEvents({ events }: UpcomingEventsProps) {
-  const navigate = useNavigate();
-
-  const handleClickEvent = useCallback(
-    (event: Event) => {
-      navigate({
-        to: "/note/new",
-        search: { eventId: event.id.toString() },
-      });
-    },
-    [navigate],
-  );
-
   return (
     <div className="flex flex-col gap-4 text-foreground">
       <h2 className="text-2xl font-semibold">
@@ -51,9 +38,7 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
         <CarouselContent>
           {events.map((event) => (
             <CarouselItem key={event.id} className="md:basis-1/2 lg:basis-1/3">
-              <div onClick={() => handleClickEvent(event)}>
-                <EventCard event={event} />
-              </div>
+              <EventCard event={event} />
             </CarouselItem>
           ))}
         </CarouselContent>
@@ -73,15 +58,37 @@ interface EventCardProps {
 }
 
 function EventCard({ event }: EventCardProps) {
-  const [participants, setParticipants] = useState<Participant[]>([]);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    commands.dbListParticipants({ Event: event.id }).then((participants) => {
-      setParticipants(participants);
-    });
-  }, []);
+  const participants = useQuery({
+    queryKey: ["event-participants", event.id],
+    queryFn: async () => commands.dbListParticipants({ Event: event.id }),
+  });
+
+  const session = useQuery({
+    queryKey: ["event-session", event.id],
+    queryFn: async () => commands.dbGetSession({ calendarEventId: event.id }),
+  });
+
+  const handleClick = () => {
+    if (!session.data) {
+      navigate({
+        to: "/note/new",
+        search: { eventId: event.id.toString() },
+      });
+    } else {
+      navigate({
+        to: "/note/$id",
+        params: { id: session.data!.id },
+      });
+    }
+  };
+
   return (
-    <Card className="h-full cursor-pointer transition-shadow hover:shadow-md">
+    <Card
+      onClick={handleClick}
+      className="h-full cursor-pointer transition-shadow hover:shadow-md"
+    >
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="truncate text-lg font-semibold">{event.name}</span>
@@ -110,7 +117,7 @@ function EventCard({ event }: EventCardProps) {
         <div className="flex items-center">
           <Users className="mr-2 h-4 w-4 text-muted-foreground" />
           <div className="flex -space-x-2">
-            {participants.map((participant: Participant) => (
+            {participants.data?.map((participant: Participant) => (
               <Avatar
                 key={participant.email}
                 className="h-6 w-6 border-2 border-background"

@@ -85,9 +85,13 @@ pub async fn db_upsert_participant(
 #[specta::specta]
 pub async fn db_get_session(
     state: State<'_, App>,
-    id: String,
+    option: hypr_db::user::GetSessionOption,
 ) -> Result<Option<hypr_db::user::Session>, String> {
-    let found = state.db.get_session(id).await.map_err(|e| e.to_string())?;
+    let found = state
+        .db
+        .get_session(option)
+        .await
+        .map_err(|e| e.to_string())?;
     Ok(found)
 }
 

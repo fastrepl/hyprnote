@@ -12,19 +12,21 @@ export const Route = createFileRoute("/note/new")({
   beforeLoad: async ({ search }) => {
     let session: Session | null = null;
 
+    const emptySession: Session = {
+      id: crypto.randomUUID() as string,
+      timestamp: new Date().toISOString(),
+      calendar_event_id: null,
+      title: "Untitled",
+      tags: [],
+      audio_local_path: null,
+      audio_remote_path: null,
+      raw_memo_html: "",
+      enhanced_memo_html: null,
+      conversations: [],
+    };
+
     try {
-      session = await commands.dbUpsertSession({
-        id: crypto.randomUUID() as string,
-        calendar_event_id: null,
-        title: "",
-        raw_memo_html: "",
-        timestamp: new Date().toISOString(),
-        tags: [],
-        audio_local_path: null,
-        audio_remote_path: null,
-        enhanced_memo_html: null,
-        conversations: [],
-      });
+      session = await commands.dbUpsertSession(emptySession);
     } catch (error) {
       console.error(error);
       throw redirect({ to: "/" });

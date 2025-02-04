@@ -2,15 +2,25 @@ use anyhow::Result;
 use time::format_description::well_known::Rfc3339;
 
 use super::UserDatabase;
-use crate::user::{Session, SessionRawMemoHistory};
+use crate::user::{GetSessionOption, Session, SessionRawMemoHistory};
 
 impl UserDatabase {
-    pub async fn get_session(&self, id: String) -> Result<Option<Session>> {
-        let mut rows = self
-            .conn
-            .query("SELECT * FROM sessions WHERE id = ?", vec![id])
-            .await
-            .unwrap();
+    pub async fn get_session(&self, option: GetSessionOption) -> Result<Option<Session>> {
+        let mut rows = match option {
+            GetSessionOption::Id(id) => self
+                .conn
+                .query("SELECT * FROM sessions WHERE id = ?", vec![id])
+                .await
+                .unwrap(),
+            GetSessionOption::CalendarEventId(id) => self
+                .conn
+                .query(
+                    "SELECT * FROM sessions WHERE calendar_event_id = ?",
+                    vec![id],
+                )
+                .await
+                .unwrap(),
+        };
 
         match rows.next().await? {
             None => Ok(None),
@@ -26,12 +36,19 @@ impl UserDatabase {
             Some(q) => self
                 .conn
                 .query(
-                    "SELECT * FROM sessions WHERE title LIKE ?",
+                    "SELECT * FROM sessions WHERE title LIKE ? ORDER BY timestamp DESC LIMIT 100",
                     vec![format!("%{}%", q)],
                 )
                 .await
                 .unwrap(),
-            None => self.conn.query("SELECT * FROM sessions", ()).await.unwrap(),
+            None => self
+                .conn
+                .query(
+                    "SELECT * FROM sessions ORDER BY timestamp DESC LIMIT 100",
+                    (),
+                )
+                .await
+                .unwrap(),
         };
 
         let mut items = Vec::new();

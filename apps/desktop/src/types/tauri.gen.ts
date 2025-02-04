@@ -61,8 +61,8 @@ async dbListParticipants(filter: ParticipantFilter) : Promise<Participant[]> {
 async dbUpsertParticipant(participant: Participant) : Promise<Participant> {
     return await TAURI_INVOKE("db_upsert_participant", { participant });
 },
-async dbGetSession(id: string) : Promise<Session | null> {
-    return await TAURI_INVOKE("db_get_session", { id });
+async dbGetSession(option: GetSessionOption) : Promise<Session | null> {
+    return await TAURI_INVOKE("db_get_session", { option });
 },
 async dbSetSessionEvent(sessionId: string, eventId: string) : Promise<null> {
     return await TAURI_INVOKE("db_set_session_event", { sessionId, eventId });
@@ -110,6 +110,7 @@ export type ConversationChunk = { start: string; end: string; local_audio_path: 
 export type DiarizationChunk = { start: bigint; end: bigint; speaker: string }
 export type EnhanceRequest = { pre_meeting_editor: string; in_meeting_editor: string; template: Template; config_general: ConfigDataGeneral; config_profile: ConfigDataProfile; event: Event | null; participants: Participant[]; transcripts: TranscriptChunk[]; diarizations: DiarizationChunk[] }
 export type Event = { id: string; tracking_id: string; calendar_id: string; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null }
+export type GetSessionOption = { id: string } | { calendarEventId: string }
 export type OSPermission = "calendar" | "contacts" | "audioRecording" | "screenRecording" | "microphone" | "accessibility"
 export type Participant = { id: string; name: string; email: string | null; color_hex: string }
 export type ParticipantFilter = { Text: string } | { Event: string } | "All"

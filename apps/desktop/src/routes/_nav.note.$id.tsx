@@ -47,7 +47,7 @@ export const Route = createFileRoute("/_nav/note/$id")({
       queryFn: async () => {
         const [session, profile, general, builtinTemplates, customTemplates] =
           await Promise.all([
-            commands.dbGetSession(id),
+            commands.dbGetSession({ id }),
             commands.dbGetConfig("profile"),
             commands.dbGetConfig("general"),
             commands.listBuiltinTemplates(),

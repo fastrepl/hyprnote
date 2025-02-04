@@ -86,3 +86,11 @@ pub struct ConversationChunk {
     pub transcripts: Vec<TranscriptChunk>,
     pub diarizations: Vec<DiarizationChunk>,
 }
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, specta::Type)]
+pub enum GetSessionOption {
+    #[serde(rename = "id")]
+    Id(String),
+    #[serde(rename = "calendarEventId")]
+    CalendarEventId(String),
+}

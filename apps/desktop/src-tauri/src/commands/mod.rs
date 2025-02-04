@@ -43,22 +43,32 @@ pub async fn start_session<'a>(
     on_event: Channel<SessionStatus>,
 ) -> Result<(), String> {
     let app_dir = app.handle.path().app_data_dir().unwrap();
-    let language = codes_iso_639::part_1::LanguageCode::Ko;
 
-    {
+    let config = app
+        .db
+        .get_config(hypr_db::user::ConfigKind::General)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let language = match config {
+        Some(hypr_db::user::Config::General { data }) => data.language,
+        _ => codes_iso_639::part_1::LanguageCode::En,
+    };
+
+    let ret = {
         let mut s = session.lock().await;
 
-        let _ = s
-            .start(
-                app.bridge.clone(),
-                language,
-                app_dir,
-                "123".to_string(),
-                on_event,
-            )
-            .await;
-    }
-    Ok(())
+        s.start(
+            app.bridge.clone(),
+            language,
+            app_dir,
+            "123".to_string(),
+            on_event,
+        )
+        .await
+    };
+
+    ret
 }
 
 #[tauri::command]

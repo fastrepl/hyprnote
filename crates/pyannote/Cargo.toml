@@ -20,4 +20,8 @@ specta = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
 hypr-data = { path = "../../crates/data", package = "data" }
+
+approx = { workspace = true }
+hound = { workspace = true }
+reqwest = { workspace = true, features = ["json"] }
 tokio = { workspace = true, features = ["rt", "macros"] }

@@ -7614,7 +7614,9 @@ name = "pyannote"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "approx",
  "data",
+ "hound",
  "onnx",
  "reqwest 0.12.12",
  "serde",

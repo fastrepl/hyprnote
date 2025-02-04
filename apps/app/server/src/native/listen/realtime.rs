@@ -46,7 +46,7 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
 
     let ws_handler = tokio::spawn(async move {
         while let Some(Ok(Message::Text(data))) = ws_receiver.next().await {
-            last_activity_receive.store(start_time.elapsed().as_secs(), Ordering::Relaxed);
+            last_activity_receive.store(start_time.elapsed().as_secs(), Ordering::SeqCst);
 
             let input: ListenInputChunk = serde_json::from_str(&data).unwrap();
             let audio = Bytes::from(input.audio);
@@ -73,6 +73,10 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
 
     let task = async {
         loop {
+            let current_time = start_time.elapsed().as_secs();
+            let last_activity = last_activity_send.load(Ordering::Relaxed);
+            let idle_time = current_time.saturating_sub(last_activity);
+
             tokio::select! {
                 item = diarization_stream.next() => {
                     if let Some(result) = item {
@@ -104,10 +108,6 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
                 }
 
                 _ = tokio::time::sleep(tokio::time::Duration::from_millis(500)) => {
-                    let current_time = start_time.elapsed().as_secs();
-                    let last_activity = last_activity_send.load(Ordering::Relaxed);
-                    let idle_time = current_time.saturating_sub(last_activity);
-
                     if idle_time >= 15 {
                         break;
                     }

@@ -23,7 +23,7 @@ impl SessionState {
         app_dir: std::path::PathBuf,
         session_id: String,
         channel: tauri::ipc::Channel<SessionStatus>,
-    ) -> anyhow::Result<()> {
+    ) -> Result<(), String> {
         let audio_stream = {
             let input = {
                 #[cfg(all(debug_assertions, feature = "sim-english-1"))]
@@ -51,7 +51,12 @@ impl SessionState {
 
         let listen_client = bridge.listen().language(language).build();
 
-        let listen_stream = listen_client.from_audio(audio_stream).await.unwrap();
+        let listen_stream = match listen_client.from_audio(audio_stream).await {
+            Ok(stream) => stream,
+            Err(e) => {
+                return Err(e.to_string());
+            }
+        };
 
         let mut timeline = hypr_bridge::Timeline::default();
 

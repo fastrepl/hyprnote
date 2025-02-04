@@ -19,6 +19,7 @@ import {
 import { useUI } from "@/stores/ui";
 import Controls from "@/components/controls";
 import SettingsDialog from "@/components/settings";
+import SearchBar from "@/components/search-bar";
 
 export const Route = createFileRoute("/_nav")({
   component: Component,
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/_nav")({
 
 function Component() {
   return (
-    <div className="relative w-full h-full">
+    <div className="relative h-full w-full">
       <Header />
       <Outlet />
       <HelpButton />
@@ -68,6 +69,11 @@ function Header() {
           </button>
         )}
       </div>
+      {!pathname.includes("onboarding") && (
+        <div className="flex flex-1 justify-center" data-tauri-drag-region>
+          <SearchBar />
+        </div>
+      )}
       <div className="mr-3 flex flex-row gap-2">
         <Button
           variant="outline"
@@ -92,7 +98,7 @@ function HelpButton() {
       <PopoverTrigger
         className={clsx([
           "absolute bottom-7 right-7",
-          "bg-gray-500 w-10 h-10",
+          "h-10 w-10 bg-gray-500",
           "rounded-full",
         ])}
       >

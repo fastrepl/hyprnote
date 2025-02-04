@@ -17,6 +17,7 @@ use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _
 use aide::{
     axum::{routing::get as api_get, ApiRouter},
     openapi::OpenApi,
+    scalar::Scalar,
 };
 use axum::{
     extract::FromRef,
@@ -248,6 +249,7 @@ fn main() {
 
             let mut router = ApiRouter::new()
                 .route("/openapi.json", get(openapi::handler))
+                .route("/scalar", Scalar::new("/openapi.json").axum_route())
                 .api_route("/health", api_get(|| async { (StatusCode::OK, "OK") }))
                 .nest("/api/native", native_router)
                 .nest("/api/web", web_router)
@@ -272,16 +274,15 @@ fn main() {
                 .await
                 .unwrap();
 
+            let service = router
+                .finish_api(&mut api)
+                .layer(Extension(api))
+                .into_make_service();
+
             let http = async {
-                axum::serve(
-                    listener,
-                    router
-                        .finish_api(&mut api)
-                        .layer(Extension(api))
-                        .into_make_service(),
-                )
-                .await
-                .map_err(|e| Error::new(ErrorKind::Interrupted, e))
+                axum::serve(listener, service)
+                    .await
+                    .map_err(|e| Error::new(ErrorKind::Interrupted, e))
             };
 
             let worker_state = WorkerState::from_ref(&state);

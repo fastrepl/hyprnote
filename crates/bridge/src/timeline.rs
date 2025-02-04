@@ -151,9 +151,12 @@ impl Timeline {
             let speakers: Vec<_> = tree.query(range).collect();
 
             if speakers.is_empty() {
-                if let Some(last_item) = items.last_mut() {
-                    last_item.merge(&transcript);
-                }
+                items.push(TimelineViewItem {
+                    start: transcript.start,
+                    end: transcript.end,
+                    speaker: "UNKNOWN?".to_string(),
+                    text: transcript.text.clone(),
+                });
 
                 continue;
             }
@@ -213,23 +216,28 @@ impl Timeline {
 mod tests {
     use super::*;
 
+    #[cfg(test)]
+    macro_rules! init_timeline {
+        ($module:ident) => {{
+            let transcripts: Vec<TranscribeOutputChunk> =
+                serde_json::from_str(hypr_data::$module::TRANSCRIPTION_JSON).unwrap();
+            let diarizations: Vec<DiarizeOutputChunk> =
+                serde_json::from_str(hypr_data::$module::DIARIZATION_JSON).unwrap();
+
+            let mut timeline = Timeline::default();
+            for t in transcripts {
+                timeline.add_transcription(t);
+            }
+            for d in diarizations {
+                timeline.add_diarization(d);
+            }
+            timeline
+        }};
+    }
+
     #[test]
     fn test_korean_1() {
-        let transcripts: Vec<TranscribeOutputChunk> =
-            serde_json::from_str(hypr_data::korean_1::TRANSCRIPTION_JSON).unwrap();
-
-        let diarizations: Vec<DiarizeOutputChunk> =
-            serde_json::from_str(hypr_data::korean_1::DIARIZATION_JSON).unwrap();
-
-        let mut timeline = Timeline::default();
-
-        for t in transcripts {
-            timeline.add_transcription(t);
-        }
-
-        for d in diarizations {
-            timeline.add_diarization(d);
-        }
+        let timeline = init_timeline!(korean_1);
 
         insta::assert_snapshot!(timeline.view().to_string(), @r###"
         (000.01..003.40) speaker0
@@ -313,28 +321,26 @@ mod tests {
         (278.00..280.98) speaker0
         가능하다면 14일 이내로 해주셔야 합니다. 
 
-        (281.67..286.80) speaker1
-        그러면 그렇게 해 주세요. 감사합니다. 수고하세요. 감사합니다. 이민영
+        (281.67..284.80) speaker1
+        그러면 그렇게 해 주세요. 감사합니다. 수고하
+
+        (284.80..285.00) UNKNOWN?
+        세요. 
+
+        (285.60..286.00) UNKNOWN?
+        감사
+
+        (286.00..286.20) UNKNOWN?
+        합니다. 
+
+        (286.40..286.80) UNKNOWN?
+        이민영
         "###);
     }
 
     #[test]
     fn test_korean_2() {
-        let transcripts: Vec<TranscribeOutputChunk> =
-            serde_json::from_str(hypr_data::korean_2::TRANSCRIPTION_JSON).unwrap();
-
-        let diarizations: Vec<DiarizeOutputChunk> =
-            serde_json::from_str(hypr_data::korean_2::DIARIZATION_JSON).unwrap();
-
-        let mut timeline = Timeline::default();
-
-        for t in transcripts {
-            timeline.add_transcription(t);
-        }
-
-        for d in diarizations {
-            timeline.add_diarization(d);
-        }
+        let timeline = init_timeline!(korean_2);
 
         insta::assert_snapshot!(timeline.view().to_string(), @r###"
         (000.89..004.60) speaker0
@@ -413,112 +419,72 @@ mod tests {
 
     #[test]
     fn test_english_1() {
-        let transcripts: Vec<TranscribeOutputChunk> =
-            serde_json::from_str(hypr_data::english_1::TRANSCRIPTION_JSON).unwrap();
-
-        let diarizations: Vec<DiarizeOutputChunk> =
-            serde_json::from_str(hypr_data::english_1::DIARIZATION_JSON).unwrap();
-
-        let mut timeline = Timeline::default();
-
-        for t in transcripts {
-            timeline.add_transcription(t);
-        }
-
-        for d in diarizations {
-            timeline.add_diarization(d);
-        }
+        let timeline = init_timeline!(english_1);
 
         insta::assert_snapshot!(timeline.view().to_string(), @r###"
-        (003.42..005.50) speaker0
-        Maybe this is me talking to
+        (003.42..013.46) speaker0
+        Maybe this is me talking to the audience a little bit because I get these daysso many messages, advice on how to, like,learn stuff.
 
-        (005.50..013.96) speaker1
-         the audience a little bit because I get these daysso many messages, advice on how to, like,learn stuff.  Okay?
+        (013.46..020.27) speaker0
+         Okay? Mythis this this is not me being mean.  I think this is quite profound, actually.
 
-        (015.29..020.27) speaker1
-        Mythis this this is not me being mean.  I think this is quite profound, actually.
+        (021.20..023.79) speaker0
+        Is you should Google it.  Oh, yeah.
 
-        (021.20..023.04) speaker1
-        Is you should Google it.
-
-        (023.04..023.79) speaker2
-         Oh, yeah.
-
-        (024.48..046.00) speaker1
+        (024.48..046.00) speaker0
         Like, 1 of thelike, skills that you should really acquire as an engineeras a researcher, as a thinker,like, 1 there's 22complementary skills, like 1 is with a blank sheet of paper with no Internetto think deeply,then the otheris to Google the crap out of the questions you have.
 
-        (046.00..067.22) speaker1
+        (046.00..067.22) speaker0
          Like, that's actually askill.  I I don't know what people often talk about, but, like, doing research, like, pulling at thethread, like, looking up different words, going into, like,GitHub repositories with 2 stars,and, like, looking how they did stuff, like, looking at the code,or going on Twitter, seeing, like, there's little pockets of brilliant people that are, like,having discussions.
 
-        (067.84..072.61) speaker1
+        (067.84..072.61) speaker0
          Like, if you'reneuroscientist, go into signal processing community.  If you're an AI
 
-        (074.61..090.67) speaker1
+        (074.61..090.67) speaker0
         psychology community.  Like,switch communities, like, keep searching, searching, searching becauseit'sso much better to invest in, like,finding somebody else who already solved your problemthan than it is to try to solve the problem.
 
-        (090.99..099.09) speaker1
+        (090.99..099.09) speaker0
         And because they've often invested years of their lifelike entire communities are probably already out there who have tried to solve your problem.
 
-        (099.26..100.24) speaker1
-        I think they're the
+        (099.26..109.78) speaker1
+        I think they're the same thing. I thinkyou go try to solve the problem. And then in trying to solve the problem, if you'regood at solving problems, you'll stumble upon the person who solved it already.
 
-        (100.30..109.78) speaker2
-         same thing. I thinkyou go try to solve the problem. And then in trying to solve the problem, if you'regood at solving problems, you'll stumble upon the person who solved it already.
-
-        (110.26..115.48) speaker1
+        (110.26..115.48) speaker0
         Yeah.  But the stumbling isn't really important.  I I think that's thethat people should really put, especially in undergrad.
 
-        (116.61..121.86) speaker1
+        (116.61..121.86) speaker0
         Like, search. If you ask me a question, how should I get started in deep learning, like, especially,
 
-        (124.12..133.35) speaker1
+        (124.12..133.35) speaker0
         Like, that is just so Googleable.  Like,the whole point is you Google that,you get a 1000000 pagesand just start looking at them.
 
-        (134.31..144.43) speaker1
+        (134.31..144.43) speaker0
         Yeah.  Start pulling at the threads, start exploring, start taking notes, startgetting advice from a 1000000 people that have already, like, spenttheir life answering that question, actually.
 
-        (144.97..151.49) speaker2
-        Well, yeah.  I mean, that's definitely also yeah.  When people, like, ask me things like that, I'm like, trust me. The top answer on Google is much, much better than anything I'm going to
+        (144.97..152.03) speaker1
+        Well, yeah.  I mean, that's definitely also yeah.  When people, like, ask me things like that, I'm like, trust me. The top answer on Google is much, much better than anything I'm going to tell you.
 
-        (151.49..152.03) speaker0
-         tell you.
-
-        (152.43..152.93) speaker2
+        (152.43..152.93) speaker1
         Right?
 
-        (153.47..153.97) speaker1
+        (153.47..153.97) speaker0
          Yeah.
         "###);
     }
 
     #[test]
     fn test_english_2() {
-        let transcripts: Vec<TranscribeOutputChunk> =
-            serde_json::from_str(hypr_data::english_2::TRANSCRIPTION_JSON).unwrap();
-
-        let diarizations: Vec<DiarizeOutputChunk> =
-            serde_json::from_str(hypr_data::english_2::DIARIZATION_JSON).unwrap();
-
-        let mut timeline = Timeline::default();
-
-        for t in transcripts {
-            timeline.add_transcription(t);
-        }
-
-        for d in diarizations {
-            timeline.add_diarization(d);
-        }
+        let timeline = init_timeline!(english_2);
 
         insta::assert_snapshot!(timeline.view().to_string(), @r###"
-        (006.49..010.44) speaker0
-        Hello? Hello?  Oh, hello.  I didn't know you were there.  Neither did
+        (006.49..010.04) speaker0
+        Hello? Hello?  Oh, hello.  I didn't know you were there.
 
-        (010.44..011.67) speaker1
-         I.  I hear that.  I thought
+        (010.04..011.00) speaker1
+         Neither did I.  I hear
 
-        (011.83..014.47) speaker0
-        you know, I heard a beep.  This is Diane in New Jersey.  And
+        (011.00..014.47) speaker0
+         that.  I thoughtyou know, I heard a beep.  This is Diane in New Jersey.  And
 
         (014.47..017.63) speaker1
          I'mSheila in Texas, originally from Chicago.
@@ -526,14 +492,68 @@ mod tests {
         (018.15..021.61) speaker0
         Oh, I'm originally from Chicago also.  I'm in New Jersey now, though.
 
-        (021.85..028.42) speaker1
-        Well, there isn't that much difference.  At least, you know, they allcall me a Yankee down here.  So what kind of thing?
+        (021.85..025.30) speaker1
+        Well, there isn't that much difference.  At least, you know, they
 
-        (028.42..028.50) speaker1
+        (025.30..025.62) UNKNOWN?
+         all
+
+        (025.78..026.02) UNKNOWN?
+        call
+
+        (026.02..026.18) UNKNOWN?
+         me
+
+        (026.18..026.26) UNKNOWN?
+         a
+
+        (026.26..026.76) UNKNOWN?
+         Yankee
+
+        (026.90..027.06) UNKNOWN?
+         down
+
+        (027.06..027.38) UNKNOWN?
+         here.
+
+        (027.38..027.62) UNKNOWN?
+         So
+
+        (027.62..028.02) UNKNOWN?
+         what
+
+        (028.02..028.10) UNKNOWN?
+         kind
+
+        (028.10..028.18) UNKNOWN?
+         of
+
+        (028.18..028.42) UNKNOWN?
+         thing?
+
+        (028.42..028.50) UNKNOWN?
          I
 
-        (028.50..030.00) speaker0
-         don't hear that in New Jersey now.
+        (028.50..028.66) UNKNOWN?
+         don't
+
+        (028.66..028.98) UNKNOWN?
+         hear
+
+        (028.98..029.06) UNKNOWN?
+         that
+
+        (029.06..029.22) UNKNOWN?
+         in
+
+        (029.22..029.38) UNKNOWN?
+         New
+
+        (029.38..029.62) UNKNOWN?
+         Jersey
+
+        (029.62..030.00) UNKNOWN?
+         now.
         "###);
     }
 }

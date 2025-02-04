@@ -66,7 +66,7 @@ mod tests {
         }
     }
 
-    // cargo test test_diarization -p pyannote --  --ignored --nocapture
+    // cargo test test_diarization -p pyannote --features cloud --  --ignored --nocapture
     #[ignore]
     #[tokio::test]
     async fn test_diarization() {
@@ -75,7 +75,7 @@ mod tests {
         let client = get_client();
         let res = client
             .submit_diarization_job(submit_diarization_job::Request {
-                url: "https://pub-b3736ee27dd54b7aa6bb39be9fcd398d.r2.dev/George%20Hotz%EF%BC%9A%20Comma.ai%2C%20OpenPilot%2C%20and%20Autonomous%20Vehicles%20%EF%BD%9C%20Lex%20Fridman%20Podcast%20%2331%20%5BiwcYp-XT7UI%5D.mp3".to_string(),
+                url: "https://pub-b3736ee27dd54b7aa6bb39be9fcd398d.r2.dev/audio.wav".to_string(),
                 webhook: None,
                 num_speakers: None,
                 confidence: None,
@@ -88,14 +88,14 @@ mod tests {
         }
     }
 
-    // cargo test test_get_job -p pyannote --  --ignored --nocapture
+    // cargo test test_get_job -p pyannote --features cloud --  --ignored --nocapture
     #[ignore]
     #[tokio::test]
     async fn test_get_job() {
         let client = get_client();
 
         let req = get_job::Request {
-            job_id: "54a2cfa1-b71d-4c77-abae-50bdd0a4f892".to_string(),
+            job_id: "b5360dac-9676-4cf2-836f-118312b207d9".to_string(),
         };
         let res = client.get_job(req).await.unwrap();
         println!("{:?}", res);

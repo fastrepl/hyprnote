@@ -84,7 +84,10 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
 
                         let data = ListenOutputChunk::Diarize(result);
                         let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
-                        ws_sender.send(msg).await.unwrap();
+
+                        if ws_sender.send(msg).await.is_err() {
+                            break;
+                        }
                     }
                 }
 
@@ -100,7 +103,10 @@ async fn websocket(socket: WebSocket, state: STTState, params: Params) {
                                     end: word.end,
                                 });
                                 let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
-                                ws_sender.send(msg).await.unwrap();
+
+                                if ws_sender.send(msg).await.is_err() {
+                                    break;
+                                }
                             }
                         }
                         _ => continue,

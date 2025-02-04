@@ -178,6 +178,11 @@ fn main() {
             let web_router = Router::new()
                 .route("/connect", post(web::connect::handler))
                 .route(
+                    "/session/{id}",
+                    get(web::session::handler)
+                        .layer(axum::middleware::from_fn(middleware::attach_user_db)),
+                )
+                .route(
                     "/integration/connection",
                     post(web::integration::create_connection).layer(
                         axum::middleware::from_fn_with_state(

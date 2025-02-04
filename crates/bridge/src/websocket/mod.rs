@@ -55,7 +55,7 @@ impl WebSocketClient {
         let _timeout_task = tokio::spawn(async move {
             let _ = send_complete_rx.await;
 
-            let d = tokio::time::Duration::from_secs(10);
+            let d = tokio::time::Duration::from_secs(5);
             loop {
                 match tokio::time::timeout(d, activity_rx.recv()).await {
                     Ok(Some(_)) => continue,

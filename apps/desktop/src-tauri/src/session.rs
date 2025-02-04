@@ -5,6 +5,12 @@ pub struct SessionState {
     handle: Option<tokio::task::JoinHandle<()>>,
 }
 
+#[derive(Debug, Clone, serde::Serialize, specta::Type)]
+pub enum SessionStatus {
+    Timeline(hypr_bridge::TimelineView),
+    Stopped,
+}
+
 impl SessionState {
     pub fn new() -> anyhow::Result<Self> {
         Ok(Self { handle: None })
@@ -16,7 +22,7 @@ impl SessionState {
         language: codes_iso_639::part_1::LanguageCode,
         app_dir: std::path::PathBuf,
         session_id: String,
-        channel: tauri::ipc::Channel<hypr_bridge::TimelineView>,
+        channel: tauri::ipc::Channel<SessionStatus>,
     ) -> anyhow::Result<()> {
         let mut audio_stream = {
             let input = {
@@ -63,8 +69,12 @@ impl SessionState {
                 }
 
                 let view = timeline.view();
-                channel.send(view).unwrap();
+                let out = SessionStatus::Timeline(view);
+                channel.send(out).unwrap();
             }
+
+            let out = SessionStatus::Stopped;
+            channel.send(out).unwrap();
         });
 
         self.handle = Some(handle);

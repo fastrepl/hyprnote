@@ -13,7 +13,7 @@ async getEnv(name: string) : Promise<string> {
 async getFingerprint() : Promise<string> {
     return await TAURI_INVOKE("get_fingerprint");
 },
-async startSession(onEvent: TAURI_CHANNEL<TimelineView>) : Promise<null> {
+async startSession(onEvent: TAURI_CHANNEL<SessionStatus>) : Promise<null> {
     return await TAURI_INVOKE("start_session", { onEvent });
 },
 async stopSession() : Promise<null> {
@@ -117,6 +117,7 @@ export type Platform = "Apple" | "Google"
 export type RecordingStarted = null
 export type RecordingStopped = { path: string }
 export type Session = { id: string; timestamp: string; calendar_event_id: string | null; title: string; tags: string[]; audio_local_path: string | null; audio_remote_path: string | null; raw_memo_html: string; enhanced_memo_html: string | null; conversations: ConversationChunk[] }
+export type SessionStatus = { Timeline: TimelineView } | "Stopped"
 export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo"
 export type Template = { id: string; title: string; description: string; sections: TemplateSection[] }
 export type TemplateSection = { title: string; description: string }

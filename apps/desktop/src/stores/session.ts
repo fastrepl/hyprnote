@@ -3,7 +3,7 @@ import { create as mutate } from "mutative";
 import { Channel } from "@tauri-apps/api/core";
 
 import { commands } from "@/types/tauri.gen";
-import type { TimelineView, Session } from "@/types/tauri.gen";
+import type { TimelineView, Session, SessionStatus } from "@/types/tauri.gen";
 
 type State = {
   channel: Channel<any> | null;
@@ -54,11 +54,15 @@ export const createSessionStore = (session: Session) => {
       );
     },
     start: () => {
-      const channel = new Channel<TimelineView>();
+      const channel = new Channel<SessionStatus>();
       channel.onmessage = (event) => {
         set((state) =>
           mutate(state, (draft) => {
-            draft.timeline = event;
+            if (event === "Stopped") {
+              draft.listening = false;
+            } else {
+              draft.timeline = event.Timeline;
+            }
           }),
         );
       };

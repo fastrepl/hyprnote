@@ -72,6 +72,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "aide"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d4787eac8d785c99d76058a086b151006f5a872bc8adea8364108a39a518ac2"
+dependencies = [
+ "aide-macros",
+ "axum 0.8.1",
+ "bytes",
+ "cfg-if",
+ "http 1.2.0",
+ "indexmap 2.7.1",
+ "schemars 0.8.21",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.11",
+ "tower-layer",
+ "tower-service",
+ "tracing",
+]
+
+[[package]]
+name = "aide-macros"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be8e0d4af7cc08353807aaf80722125a229bf2d67be7fe0b89163c648db3d223"
+dependencies = [
+ "darling",
+ "quote",
+ "syn 2.0.98",
+]
+
+[[package]]
 name = "alloc-no-stdlib"
 version = "2.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -260,6 +292,7 @@ dependencies = [
 name = "app"
 version = "0.1.0"
 dependencies = [
+ "aide",
  "analytics",
  "anyhow",
  "apalis",
@@ -283,6 +316,7 @@ dependencies = [
  "openai",
  "prompt",
  "s3",
+ "schemars 1.0.0-alpha.17",
  "sentry",
  "serde",
  "serde_json",
@@ -8600,6 +8634,7 @@ dependencies = [
  "chrono",
  "dyn-clone",
  "indexmap 1.9.3",
+ "indexmap 2.7.1",
  "schemars_derive 0.8.21",
  "serde",
  "serde_json",

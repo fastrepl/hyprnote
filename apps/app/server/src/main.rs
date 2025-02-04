@@ -1,6 +1,7 @@
 mod middleware;
 mod nango;
 mod native;
+mod openapi;
 mod state;
 mod stripe;
 mod web;
@@ -13,11 +14,15 @@ use std::{
 };
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _, Registry};
 
+use aide::{
+    axum::{routing::get as api_get, ApiRouter},
+    openapi::OpenApi,
+};
 use axum::{
     extract::FromRef,
     http::StatusCode,
     routing::{get, post},
-    Router,
+    Extension,
 };
 use tower_http::{
     services::{ServeDir, ServeFile},
@@ -175,7 +180,7 @@ fn main() {
                 openai,
             };
 
-            let web_router = Router::new()
+            let web_router = ApiRouter::new()
                 .route("/connect", post(web::connect::handler))
                 .route(
                     "/session/{id}",
@@ -198,7 +203,7 @@ fn main() {
                 ));
 
             #[allow(unused)]
-            let mut native_router = Router::new()
+            let mut native_router = ApiRouter::new()
                 .route(
                     "/enhance",
                     post(native::enhance::handler)
@@ -237,12 +242,13 @@ fn main() {
             //         .layer(axum::middleware::from_fn(middleware::attach_user_db)),
             // );
 
-            let webhook_router = Router::new()
+            let webhook_router = ApiRouter::new()
                 .route("/nango", post(nango::handler))
                 .route("/stripe", post(stripe::handler));
 
-            let mut router = Router::new()
-                .route("/health", get(|| async { (StatusCode::OK, "OK") }))
+            let mut router = ApiRouter::new()
+                .route("/openapi.json", get(openapi::handler))
+                .api_route("/health", api_get(|| async { (StatusCode::OK, "OK") }))
                 .nest("/api/native", native_router)
                 .nest("/api/web", web_router)
                 .nest("/webhook", webhook_router)
@@ -259,15 +265,23 @@ fn main() {
                 });
             }
 
+            let mut api = OpenApi::default();
+
             let port = std::env::var("PORT").unwrap_or("1234".to_string());
             let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port))
                 .await
                 .unwrap();
 
             let http = async {
-                axum::serve(listener, router)
-                    .await
-                    .map_err(|e| Error::new(ErrorKind::Interrupted, e))
+                axum::serve(
+                    listener,
+                    router
+                        .finish_api(&mut api)
+                        .layer(Extension(api))
+                        .into_make_service(),
+                )
+                .await
+                .map_err(|e| Error::new(ErrorKind::Interrupted, e))
             };
 
             let worker_state = WorkerState::from_ref(&state);

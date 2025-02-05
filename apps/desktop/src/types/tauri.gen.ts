@@ -142,8 +142,7 @@ export type EnhanceRequest = {
   config_profile: ConfigDataProfile;
   event: Event | null;
   participants: Participant[];
-  transcripts: TranscriptChunk[];
-  diarizations: DiarizationChunk[];
+  timeline_view: TimelineView;
 };
 export type Event = {
   id: string;

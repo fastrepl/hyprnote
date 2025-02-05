@@ -96,11 +96,11 @@ function EventCard({ event }: EventCardProps) {
       </CardHeader>
 
       <CardContent className="space-y-2">
-        <div className="flex items-center text-sm text-muted-foreground">
+        <div className="flex items-center text-sm text-neutral-400">
           <Calendar className="mr-2 h-4 w-4" />
           <span>{new Date(event.start_date).toLocaleDateString()}</span>
         </div>
-        <div className="flex items-center text-sm text-muted-foreground">
+        <div className="flex items-center text-sm text-neutral-400">
           <Clock className="mr-2 h-4 w-4" />
           <span>
             {new Date(event.start_date).toLocaleTimeString([], {
@@ -115,7 +115,7 @@ function EventCard({ event }: EventCardProps) {
           </span>
         </div>
         <div className="flex items-center">
-          <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+          <Users className="mr-2 h-4 w-4 text-neutral-400" />
           <div className="flex -space-x-2">
             {participants.data?.map((participant: Participant) => (
               <Avatar
@@ -131,9 +131,7 @@ function EventCard({ event }: EventCardProps) {
           </div>
         </div>
         {event.note && (
-          <p className="line-clamp-2 text-sm text-muted-foreground">
-            {event.note}
-          </p>
+          <p className="line-clamp-2 text-sm text-neutral-400">{event.note}</p>
         )}
       </CardContent>
     </Card>

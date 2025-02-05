@@ -38,6 +38,7 @@ import {
   type ConfigDataProfile,
 } from "@/types/tauri.gen";
 import { SessionProvider, useSession } from "@/contexts";
+import TagChips from "@/components/tag-chips";
 
 export const Route = createFileRoute("/_nav/note/$id")({
   component: Component,
@@ -132,11 +133,9 @@ function LeftPanel() {
     config_general: general,
     config_profile: profile,
     template: templates[0],
-    // TODO
     pre_meeting_editor: store.session.raw_memo_html,
     in_meeting_editor: store.session.raw_memo_html,
-    transcripts: [],
-    diarizations: [],
+    timeline_view: { items: [] },
     event: null,
     participants: [],
   });
@@ -192,9 +191,12 @@ function LeftPanel() {
         </button>
       </div>
 
-      <div className="flex flex-row items-center gap-2 py-1">
+      <div className="-mx-1.5 flex flex-row items-center py-1">
         <EventChip />
-        <ParticipantsChip options={[]} selected={[]} handleSelect={() => {}} />
+        <div className="mx-1 h-4 w-px bg-border" />
+        <ParticipantsChip />
+        <div className="mx-1 h-4 w-px bg-border" />
+        <TagChips />
       </div>
 
       <ScrollArea
@@ -268,7 +270,7 @@ function RightPanel() {
                       {speaker[speaker.length - 1]}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="rounded-lg bg-muted px-3 py-1 text-muted-foreground">
+                  <div className="rounded-lg bg-muted px-3 py-1 text-neutral-200">
                     {text}
                   </div>
                 </div>
@@ -321,7 +323,7 @@ function EnhanceControls({
           "h-9 rounded-l-xl border border-r-0 border-border px-3",
           "duration-400 transition-all ease-in-out",
           showRaw ? "bg-primary/20" : "bg-background",
-          showRaw ? "text-primary" : "text-muted-foreground",
+          showRaw ? "text-primary" : "text-neutral-200",
         ])}
       >
         <AlignLeft size={20} />
@@ -332,7 +334,7 @@ function EnhanceControls({
           "duration-400 transition-all ease-in-out",
           showRaw ? "px-3" : "pl-2 pr-1",
           !showRaw ? "bg-primary/20" : "bg-background",
-          !showRaw ? "text-primary" : "text-muted-foreground",
+          !showRaw ? "text-primary" : "text-neutral-200",
         ])}
       >
         <button onClick={() => setShowRaw(false)}>

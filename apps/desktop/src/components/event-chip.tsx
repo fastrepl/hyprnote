@@ -9,10 +9,9 @@ export default function EventChip() {
   return (
     <Popover>
       <PopoverTrigger>
-        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1 hover:bg-neutral-100">
-          {/* TODO: If this is a calendar event, show the Calendar icon. If not, hide it. */}
+        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100">
           <CalendarIcon size={14} />
-          <span className="text-xs">Selected Event</span>
+          <span className="text-xs">Jan 23</span>
         </div>
       </PopoverTrigger>
       <PopoverContent align="start" className="shadow-lg">

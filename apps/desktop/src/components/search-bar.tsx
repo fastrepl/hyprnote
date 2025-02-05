@@ -34,7 +34,7 @@ export default function SearchBar() {
         ])}
         onClick={() => setOpen(true)}
       >
-        <Search className="mr-2 h-4 w-4 text-muted-foreground" />
+        <Search className="mr-2 h-4 w-4 text-neutral-400" />
         <span className="text-xs text-gray-500">Search</span>
         <Shortcut />
       </button>

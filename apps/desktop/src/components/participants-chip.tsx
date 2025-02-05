@@ -1,77 +1,55 @@
-import { useState } from "react";
-import { Check, Speech, Search } from "lucide-react";
-import clsx from "clsx";
-
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@hypr/ui/components/ui/command";
+import { ChevronRight, Users2Icon } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@hypr/ui/components/ui/popover";
-import { Input } from "@hypr/ui/components/ui/input";
+import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
+import { mockParticipants } from "@/mocks/participants";
 
-import { type Participant } from "@/types/tauri.gen";
-
-interface ParticipantsChipProps {
-  options: Participant[];
-  selected: Participant[];
-  handleSelect: (participants: Participant[]) => void;
-}
-
-export default function ParticipantsChip({ options }: ParticipantsChipProps) {
-  const [open, setOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+export default function ParticipantsChip() {
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          role="combobox"
-          aria-expanded={open}
-          className="flex flex-row items-center gap-2 rounded-md px-2 py-1 hover:bg-neutral-100"
-        >
-          <Speech size={14} />
-          <span className="text-xs">Selected Event</span>
-        </button>
+    <Popover>
+      <PopoverTrigger>
+        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100">
+          <Users2Icon size={14} />
+          {mockParticipants.length > 2 && (
+            <span className="text-xs">
+              {mockParticipants[0].name} +{mockParticipants.length - 1}
+            </span>
+          )}
+        </div>
       </PopoverTrigger>
       <PopoverContent className="p-0 shadow-lg" align="start">
-        <Command className="w-full">
-          <div className="relative border-b">
-            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
-            <Input
-              placeholder="Search participants..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 rounded-b-none border-none pl-8 focus-visible:ring-0"
-            />
-          </div>
-          <CommandList>
-            <CommandEmpty>No participants found.</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.id}
-                  value={option.id}
-                  onSelect={() => {}}
+        <div className="space-y-1">
+          {mockParticipants.map((option) => (
+            <button
+              key={option.id}
+              className="flex w-full items-center justify-between rounded px-2 py-1.5 text-sm hover:bg-neutral-100"
+            >
+              <div className="flex items-center gap-2">
+                <Avatar
+                  className="h-6 w-6"
+                  style={{ backgroundColor: option.color_hex }}
                 >
-                  {option.name}
-                  <Check
-                    className={clsx(
-                      "ml-auto h-3 w-3",
-                      true ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
+                  <AvatarFallback className="text-xs">
+                    {getInitials(option.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <span>{option.name}</span>
+              </div>
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          ))}
+        </div>
       </PopoverContent>
     </Popover>
   );

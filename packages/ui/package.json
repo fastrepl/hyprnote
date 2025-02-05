@@ -12,17 +12,6 @@
     "./hooks/*": "./src/hooks/*.tsx",
     "./contexts/*": "./src/contexts/*.tsx"
   },
-  "devDependencies": {
-    "@types/react": "^18.3.1",
-    "autoprefixer": "^10.4.20",
-    "clsx": "^2.1.1",
-    "motion": "^11.15.0",
-    "postcss": "^8.4.49",
-    "react": "^18.3.1",
-    "tailwind-merge": "^2.6.0",
-    "tailwindcss": "^3.4.17",
-    "typescript": "~5.6.2"
-  },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.2",
@@ -46,5 +35,17 @@
     "react-resizable-panels": "^2.1.7",
     "sonner": "^1.7.1",
     "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "autoprefixer": "^10.4.20",
+    "clsx": "^2.1.1",
+    "motion": "^11.15.0",
+    "postcss": "^8.4.49",
+    "react": "^18.3.1",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "~5.6.2"
   }
 }

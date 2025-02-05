@@ -26,6 +26,8 @@
     "clsx": "^2.1.1"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5"
   }
 }

@@ -32,9 +32,7 @@ export function HyprAIButton() {
         ])}
       >
         <img
-          src={
-            isDynamic ? "/assets/harry_dynamic.gif" : "/assets/harry_static.png"
-          }
+          src={isDynamic ? "/assets/dynamic.gif" : "/assets/static.png"}
           alt="Help"
           className="size-14"
         />

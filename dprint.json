@@ -1,14 +1,12 @@
 {
   "markdown": {
     "associations": [
-      "crates/prompt/templates/enhance.system.jinja",
-      "crates/prompt/templates/enhance.user.jinja"
+      "**/*.jinja"
     ]
   },
   "markup": {
     "associations": [
-      "!**/*.html",
-      "crates/prompt/templates/preview.jinja"
+      "!**/*.jinja"
     ]
   },
   "prettier": {

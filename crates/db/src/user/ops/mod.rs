@@ -3,6 +3,8 @@ use crate::Connection;
 mod calendars;
 mod config;
 mod events;
+mod humans;
+mod organizations;
 mod sessions;
 mod templates;
 

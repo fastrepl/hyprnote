@@ -27,7 +27,7 @@ hypr-data = { path = "../../../crates/data", package = "data", optional = true }
 hypr-audio = { path = "../../../crates/audio", package = "audio" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar", features = ["apple"] }
-hypr-db = { path = "../../../crates/db", package = "db", features = ["user"] }
+hypr-db = { path = "../../../crates/db", package = "db", default-features = false, features = ["user"] }
 hypr-template = { path = "../../../crates/template", package = "template" }
 hypr-vad = { path = "../../../crates/vad", package = "vad" }
 hypr_host = { path = "../../../crates/host", package = "host" }

@@ -59,27 +59,6 @@ impl UserDatabase {
         Ok(items)
     }
 
-    pub async fn list_session_raw_memo_history(
-        &self,
-        session_id: String,
-    ) -> Result<Vec<SessionRawMemoHistory>> {
-        let mut rows = self
-            .conn
-            .query(
-                "SELECT * FROM sessions_raw_memo_history WHERE session_id = ?",
-                vec![session_id],
-            )
-            .await
-            .unwrap();
-
-        let mut items = Vec::new();
-        while let Some(row) = rows.next().await.unwrap() {
-            let item: SessionRawMemoHistory = libsql::de::from_row(&row)?;
-            items.push(item);
-        }
-        Ok(items)
-    }
-
     pub async fn upsert_session(&self, session: Session) -> Result<Session> {
         let mut rows = self
             .conn
@@ -163,9 +142,5 @@ mod tests {
         session.raw_memo_html = "raw_memo_html_2".to_string();
         let session = db.upsert_session(session).await.unwrap();
         assert_eq!(session.raw_memo_html, "raw_memo_html_2");
-
-        let history = db.list_session_raw_memo_history(session.id).await.unwrap();
-        assert_eq!(history.len(), 1);
-        assert_eq!(history[0].raw_memo_html, "raw_memo_html_1");
     }
 }

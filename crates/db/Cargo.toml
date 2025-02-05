@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = []
+default = ["admin", "user"]
 admin = ["hypr_nango"]
 user = []
 
@@ -20,6 +20,8 @@ schemars = { workspace = true }
 specta = { workspace = true, features = ["derive", "time", "serde_json"] }
 
 anyhow = { workspace = true }
+thiserror = { workspace = true }
+
 codes-iso-639 = { workspace = true }
 rand = "0.8.5"
 random_color = "1.0.0"

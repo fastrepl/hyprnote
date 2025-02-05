@@ -87,3 +87,11 @@ async fn migrate(conn: &Connection, migrations: Vec<impl AsRef<str>>) -> libsql:
 
     Ok(())
 }
+
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("libsql error: {0}")]
+    LibsqlError(#[from] libsql::Error),
+    #[error("serde::de error: {0}")]
+    DeError(#[from] serde::de::value::Error),
+}

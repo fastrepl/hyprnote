@@ -1,7 +1,6 @@
 mod audio;
 mod auth;
 mod commands;
-mod config;
 mod db;
 mod error;
 mod events;
@@ -73,13 +72,13 @@ pub async fn main() {
 
     let specta_builder = tauri_specta::Builder::new()
         .commands(tauri_specta::collect_commands![
-            commands::show_window,
             commands::run_enhance,
             commands::list_builtin_templates,
             permissions::open_permission_settings,
             permissions::check_permission_status,
             session::commands::start_session,
             session::commands::stop_session,
+            windows::commands::show_window,
             db::commands::upsert_session,
             db::commands::upsert_calendar,
             db::commands::list_calendars,

@@ -1,5 +1,4 @@
 use anyhow::Result;
-use time::format_description::well_known::Rfc3339;
 
 use super::AdminDatabase;
 use crate::admin::User;
@@ -32,7 +31,7 @@ impl AdminDatabase {
                 RETURNING *",
                 vec![
                     user.id,
-                    user.timestamp.format(&Rfc3339).unwrap(),
+                    user.timestamp.to_rfc3339(),
                     user.clerk_user_id,
                     user.turso_db_name,
                 ],
@@ -87,7 +86,7 @@ mod tests {
         let user = db
             .upsert_user(User {
                 id: uuid::Uuid::new_v4().to_string(),
-                timestamp: time::OffsetDateTime::now_utc(),
+                timestamp: chrono::Utc::now(),
                 clerk_org_id: None,
                 clerk_user_id: "21".to_string(),
                 turso_db_name: "12".to_string(),
@@ -114,7 +113,7 @@ mod tests {
         let user = db
             .upsert_user(User {
                 id: uuid::Uuid::new_v4().to_string(),
-                timestamp: time::OffsetDateTime::now_utc(),
+                timestamp: chrono::Utc::now(),
                 clerk_org_id: None,
                 clerk_user_id: "21".to_string(),
                 turso_db_name: "12".to_string(),
@@ -125,7 +124,7 @@ mod tests {
         let device = db
             .upsert_device(Device {
                 id: uuid::Uuid::new_v4().to_string(),
-                timestamp: time::OffsetDateTime::now_utc(),
+                timestamp: chrono::Utc::now(),
                 user_id: user.id.clone(),
                 fingerprint: "fingerprint".to_string(),
                 api_key: "key".to_string(),
@@ -143,7 +142,7 @@ mod tests {
         let user_1 = db
             .upsert_user(User {
                 id: uuid::Uuid::new_v4().to_string(),
-                timestamp: time::OffsetDateTime::now_utc(),
+                timestamp: chrono::Utc::now(),
                 clerk_org_id: None,
                 clerk_user_id: "21".to_string(),
                 turso_db_name: "12".to_string(),
@@ -154,7 +153,7 @@ mod tests {
         let device = db
             .upsert_device(Device {
                 id: uuid::Uuid::new_v4().to_string(),
-                timestamp: time::OffsetDateTime::now_utc(),
+                timestamp: chrono::Utc::now(),
                 user_id: user_1.id.clone(),
                 fingerprint: "fingerprint".to_string(),
                 api_key: "key".to_string(),

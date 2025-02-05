@@ -7,12 +7,6 @@ use crate::{windows::ShowHyprWindow, App};
 
 #[tauri::command]
 #[specta::specta]
-pub fn show_window(app: AppHandle, window: ShowHyprWindow) {
-    window.show(&app).unwrap();
-}
-
-#[tauri::command]
-#[specta::specta]
 pub fn list_builtin_templates() -> Vec<hypr_db::user::Template> {
     hypr_template::builtins()
 }

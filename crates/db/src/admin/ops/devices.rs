@@ -1,6 +1,5 @@
 use anyhow::Result;
 use rand::{distributions::Alphanumeric, Rng};
-use time::format_description::well_known::Rfc3339;
 
 use crate::admin::Device;
 
@@ -35,7 +34,7 @@ impl AdminDatabase {
                 RETURNING *",
                 vec![
                     device.id,
-                    device.timestamp.format(&Rfc3339).unwrap(),
+                    device.timestamp.to_rfc3339(),
                     device.user_id,
                     device.fingerprint,
                     generate_api_key(),
@@ -81,7 +80,7 @@ mod tests {
         let user = db
             .upsert_user(User {
                 id: uuid::Uuid::new_v4().to_string(),
-                timestamp: time::OffsetDateTime::now_utc(),
+                timestamp: chrono::Utc::now(),
                 clerk_org_id: None,
                 clerk_user_id: "21".to_string(),
                 turso_db_name: "12".to_string(),
@@ -92,7 +91,7 @@ mod tests {
         let device = db
             .upsert_device(Device {
                 id: uuid::Uuid::new_v4().to_string(),
-                timestamp: time::OffsetDateTime::now_utc(),
+                timestamp: chrono::Utc::now(),
                 user_id: user.id.clone(),
                 fingerprint: "fingerprint".to_string(),
                 api_key: "key".to_string(),

@@ -1795,6 +1795,7 @@ dependencies = [
  "anyhow",
  "block2 0.5.1",
  "chrono",
+ "chrono-tz 0.10.1",
  "google-calendar",
  "graph-rs-sdk",
  "itertools 0.14.0",
@@ -1804,8 +1805,7 @@ dependencies = [
  "objc2-foundation",
  "serde",
  "serde_json",
- "time",
- "time-tz",
+ "thiserror 2.0.11",
  "tokio",
 ]
 
@@ -1966,7 +1966,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93698b29de5e97ad0ae26447b344c482a7284c737d9ddc5f9e52b74a336671bb"
 dependencies = [
  "chrono",
- "chrono-tz-build",
+ "chrono-tz-build 0.3.0",
+ "phf 0.11.3",
+]
+
+[[package]]
+name = "chrono-tz"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c6ac4f2c0bf0f44e9161aec9675e1050aa4a530663c4a9e37e108fa948bca9f"
+dependencies = [
+ "chrono",
+ "chrono-tz-build 0.4.0",
  "phf 0.11.3",
 ]
 
@@ -1978,6 +1989,16 @@ checksum = "0c088aee841df9c3041febbb73934cfc39708749bf96dc827e3359cd39ef11b1"
 dependencies = [
  "parse-zoneinfo",
  "phf 0.11.3",
+ "phf_codegen 0.11.3",
+]
+
+[[package]]
+name = "chrono-tz-build"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e94fea34d77a245229e7746bd2beb786cd2a896f306ff491fb8cecb3074b10a7"
+dependencies = [
+ "parse-zoneinfo",
  "phf_codegen 0.11.3",
 ]
 
@@ -2794,6 +2815,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "calendar",
+ "chrono",
  "codes-iso-639",
  "libsql",
  "nango",
@@ -2805,7 +2827,6 @@ dependencies = [
  "specta",
  "strum 0.26.3",
  "thiserror 2.0.11",
- "time",
  "tokio",
  "uuid",
 ]
@@ -7574,6 +7595,7 @@ version = "0.1.0"
 dependencies = [
  "bat",
  "bridge",
+ "chrono",
  "codes-iso-639",
  "db",
  "dotenv",
@@ -7586,7 +7608,6 @@ dependencies = [
  "template",
  "tera",
  "thiserror 2.0.11",
- "time",
  "tokio",
 ]
 
@@ -8986,18 +9007,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde-xml-rs"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65162e9059be2f6a3421ebbb4fef3e74b7d9e7c60c50a0e292c6239f19f1edfa"
-dependencies = [
- "log",
- "serde",
- "thiserror 1.0.69",
- "xml-rs",
-]
-
-[[package]]
 name = "serde_bytes"
 version = "0.11.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9490,11 +9499,11 @@ version = "2.0.0-rc.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ccbb212565d2dc177bc15ecb7b039d66c4490da892436a4eee5b394d620c9bc"
 dependencies = [
+ "chrono",
  "paste",
  "serde_json",
  "specta-macros",
  "thiserror 1.0.69",
- "time",
 ]
 
 [[package]]
@@ -10625,7 +10634,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab9d851b45e865f178319da0abdbfe6acbc4328759ff18dafc3a41c16b4cd2ee"
 dependencies = [
  "chrono",
- "chrono-tz",
+ "chrono-tz 0.9.0",
  "globwalk",
  "humansize",
  "lazy_static",
@@ -10798,7 +10807,6 @@ checksum = "35e7868883861bd0e56d9ac6efcaaca0d6d5d82a2a7ec8209ff492c07cf37b21"
 dependencies = [
  "deranged",
  "itoa 1.0.14",
- "js-sys",
  "libc",
  "num-conv",
  "num_threads",
@@ -10822,22 +10830,6 @@ checksum = "2834e6017e3e5e4b9834939793b282bc03b37a3336245fa820e35e233e2a85de"
 dependencies = [
  "num-conv",
  "time-core",
-]
-
-[[package]]
-name = "time-tz"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "733bc522e97980eb421cbf381160ff225bd14262a48a739110f6653c6258d625"
-dependencies = [
- "cfg-if",
- "parse-zoneinfo",
- "phf 0.11.3",
- "phf_codegen 0.11.3",
- "serde",
- "serde-xml-rs",
- "time",
- "wasm-bindgen",
 ]
 
 [[package]]
@@ -12943,12 +12935,6 @@ dependencies = [
  "libc",
  "windows-sys 0.59.0",
 ]
-
-[[package]]
-name = "xml-rs"
-version = "0.8.25"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5b940ebc25896e71dd073bad2dbaa2abfe97b0a391415e22ad1326d9c54e3c4"
 
 [[package]]
 name = "xmlparser"

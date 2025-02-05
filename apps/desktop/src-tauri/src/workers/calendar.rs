@@ -58,14 +58,14 @@ async fn list_calendars() -> Result<Vec<hypr_calendar::Calendar>, String> {
 async fn list_events(
     calendar: hypr_calendar::Calendar,
 ) -> Result<Vec<hypr_calendar::Event>, String> {
-    let now = time::OffsetDateTime::now_utc();
+    let now = Utc::now();
 
     let mut events: Vec<hypr_calendar::Event> = Vec::new();
 
     let filter = hypr_calendar::EventFilter {
         calendars: vec![calendar],
-        from: now.checked_sub(time::Duration::days(30)).unwrap(),
-        to: now.checked_add(time::Duration::days(30)).unwrap(),
+        from: (now - chrono::Duration::days(30)),
+        to: (now + chrono::Duration::days(30)),
     };
 
     let apple_events = tauri::async_runtime::spawn_blocking(move || {

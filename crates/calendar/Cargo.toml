@@ -11,14 +11,18 @@ outlook = []
 
 [dependencies]
 anyhow = { workspace = true }
-itertools = { workspace = true }
+thiserror = { workspace = true }
+
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
+itertools = { workspace = true }
+
+chrono = { workspace = true }
+chrono-tz = { workspace = true }
+
 google-calendar = "0.7.0"
 graph-rs-sdk = "2.0.3"
-time = { workspace = true, features = ["formatting", "parsing", "serde"] }
-time-tz = "2.0.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 block2 = "0.5.1"

@@ -1,8 +1,7 @@
 use super::{Calendar, Event, Participant, Platform, Session, UserDatabase};
-use time::Duration;
 
 pub async fn seed(db: &UserDatabase) -> anyhow::Result<()> {
-    let now = time::OffsetDateTime::now_local().unwrap();
+    let now = chrono::Utc::now();
 
     let yujonglee = Participant {
         id: uuid::Uuid::new_v4().to_string(),
@@ -50,8 +49,8 @@ pub async fn seed(db: &UserDatabase) -> anyhow::Result<()> {
             calendar_id: calendars[0].id.clone(),
             name: "User Interview with Alex".to_string(),
             note: "Description 1".to_string(),
-            start_date: now - Duration::days(1) - Duration::hours(1),
-            end_date: now - Duration::days(1),
+            start_date: now - chrono::Duration::days(1) - chrono::Duration::hours(1),
+            end_date: now - chrono::Duration::days(1),
             google_event_url: None,
         },
         Event {
@@ -60,8 +59,8 @@ pub async fn seed(db: &UserDatabase) -> anyhow::Result<()> {
             calendar_id: calendars[0].id.clone(),
             name: "Event 2".to_string(),
             note: "Description 2".to_string(),
-            start_date: now + Duration::days(1) + Duration::hours(1),
-            end_date: now + Duration::days(1) + Duration::hours(2),
+            start_date: now + chrono::Duration::days(1) + chrono::Duration::hours(1),
+            end_date: now + chrono::Duration::days(1) + chrono::Duration::hours(2),
             google_event_url: None,
         },
     ];

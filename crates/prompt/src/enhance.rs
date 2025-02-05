@@ -99,16 +99,28 @@ mod tests {
                 tracking_id: "".to_string(),
                 calendar_id: "".to_string(),
                 note: "".to_string(),
-                start_date: time::OffsetDateTime::new_in_offset(
-                    time::Date::from_calendar_date(2024, time::Month::June, 20).unwrap(),
-                    time::Time::from_hms(13, 30, 0).unwrap(),
-                    time::UtcOffset::from_hms(9, 0, 0).unwrap(),
-                ),
-                end_date: time::OffsetDateTime::new_in_offset(
-                    time::Date::from_calendar_date(2024, time::Month::June, 20).unwrap(),
-                    time::Time::from_hms(15, 20, 0).unwrap(),
-                    time::UtcOffset::from_hms(9, 0, 0).unwrap(),
-                ),
+                start_date: {
+                    let local: chrono::DateTime<chrono::FixedOffset> =
+                        chrono::DateTime::from_naive_utc_and_offset(
+                            chrono::NaiveDateTime::new(
+                                chrono::NaiveDate::from_ymd_opt(2024, 6, 20).unwrap(),
+                                chrono::NaiveTime::from_hms_opt(13, 30, 0).unwrap(),
+                            ),
+                            chrono::offset::FixedOffset::east_opt(9 * 3600).unwrap(),
+                        );
+                    local.with_timezone(&chrono::Utc)
+                },
+                end_date: {
+                    let local: chrono::DateTime<chrono::FixedOffset> =
+                        chrono::DateTime::from_naive_utc_and_offset(
+                            chrono::NaiveDateTime::new(
+                                chrono::NaiveDate::from_ymd_opt(2024, 6, 20).unwrap(),
+                                chrono::NaiveTime::from_hms_opt(15, 20, 0).unwrap(),
+                            ),
+                            chrono::offset::FixedOffset::east_opt(9 * 3600).unwrap(),
+                        );
+                    local.with_timezone(&chrono::Utc)
+                },
                 google_event_url: None,
                 name: "이지스자산운용 박택영 팀장님 커피챗".to_string(),
             }),

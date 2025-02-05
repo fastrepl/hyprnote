@@ -29,6 +29,7 @@ user_common_derives! {
         pub autostart: bool,
         pub notifications: bool,
         #[specta(type = String)]
+        #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
         pub language: codes_iso_639::part_1::LanguageCode,
         pub context: String,
     }

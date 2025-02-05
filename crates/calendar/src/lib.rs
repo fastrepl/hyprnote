@@ -1,6 +1,6 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::future::Future;
-use time::OffsetDateTime;
 
 #[cfg(feature = "outlook")]
 pub mod outlook;
@@ -47,8 +47,8 @@ pub struct Event {
     pub name: String,
     pub note: String,
     pub participants: Vec<Participant>,
-    pub start_date: OffsetDateTime,
-    pub end_date: OffsetDateTime,
+    pub start_date: DateTime<Utc>,
+    pub end_date: DateTime<Utc>,
     pub google_event_url: Option<String>,
 }
 
@@ -60,8 +60,8 @@ pub struct Participant {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EventFilter {
-    pub from: OffsetDateTime,
-    pub to: OffsetDateTime,
+    pub from: DateTime<Utc>,
+    pub to: DateTime<Utc>,
     pub calendars: Vec<Calendar>,
 }
 

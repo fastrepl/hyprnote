@@ -1,4 +1,4 @@
-use time::{serde::rfc3339, OffsetDateTime};
+use chrono::{DateTime, Utc};
 
 use crate::user_common_derives;
 
@@ -9,10 +9,8 @@ user_common_derives! {
         pub calendar_id: String,
         pub name: String,
         pub note: String,
-        #[serde(with = "rfc3339")]
-        pub start_date: OffsetDateTime,
-        #[serde(with = "rfc3339")]
-        pub end_date: OffsetDateTime,
+        pub start_date: DateTime<Utc>,
+        pub end_date: DateTime<Utc>,
         pub google_event_url: Option<String>,
     }
 }

@@ -1,4 +1,6 @@
 use futures_util::StreamExt;
+
+use crate::audio::AppSounds;
 use hypr_audio::AsyncSource;
 
 pub struct SessionState {
@@ -129,12 +131,15 @@ impl SessionState {
 
         self.handle = Some(handle);
 
+        AppSounds::StartRecording.play();
         Ok(())
     }
     pub async fn stop(&mut self) {
         if let Some(handle) = self.handle.take() {
             handle.abort();
         }
+
+        AppSounds::StopRecording.play();
     }
 }
 

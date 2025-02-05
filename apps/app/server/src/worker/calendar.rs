@@ -43,12 +43,12 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
 
                 let gcal = hypr_calendar::google::Handle::new(c.access_token).await;
 
-                let now = time::OffsetDateTime::from_unix_timestamp(job.0.timestamp()).unwrap();
+                let now = DateTime::<Utc>::from_timestamp(job.0.timestamp(), 0).unwrap();
 
                 let filter = hypr_calendar::EventFilter {
                     calendars: vec![],
-                    from: now - time::Duration::days(1),
-                    to: now + time::Duration::days(1),
+                    from: now - chrono::Duration::days(1),
+                    to: now + chrono::Duration::days(1),
                 };
                 let events = gcal
                     .list_events(filter)

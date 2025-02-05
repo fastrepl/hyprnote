@@ -1,5 +1,3 @@
-use time::format_description::well_known::Rfc3339;
-
 use super::UserDatabase;
 use crate::user::{Event, Participant, ParticipantFilter};
 
@@ -159,8 +157,8 @@ impl UserDatabase {
                     ":calendar_id": event.calendar_id,
                     ":name": event.name,
                     ":note": event.note,
-                    ":start_date": event.start_date.format(&Rfc3339).unwrap(),
-                    ":end_date": event.end_date.format(&Rfc3339).unwrap(),
+                    ":start_date": event.start_date.to_rfc3339(),
+                    ":end_date": event.end_date.to_rfc3339(),
                     ":google_event_url": event.google_event_url,
                 },
             )
@@ -201,8 +199,8 @@ mod tests {
             calendar_id: calendar.id,
             name: "test".to_string(),
             note: "test".to_string(),
-            start_date: time::OffsetDateTime::now_utc(),
-            end_date: time::OffsetDateTime::now_utc(),
+            start_date: chrono::Utc::now(),
+            end_date: chrono::Utc::now(),
             google_event_url: None,
         };
 

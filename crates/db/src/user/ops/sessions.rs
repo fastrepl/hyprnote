@@ -1,5 +1,3 @@
-use time::format_description::well_known::Rfc3339;
-
 use super::UserDatabase;
 use crate::user::{GetSessionOption, Session};
 
@@ -85,7 +83,7 @@ impl UserDatabase {
                 RETURNING *",
                 libsql::named_params! {
                     ":id": libsql::Value::Text(session.id),
-                    ":timestamp": libsql::Value::Text(session.timestamp.format(&Rfc3339).unwrap()),
+                    ":timestamp": libsql::Value::Text(session.timestamp.to_rfc3339()),
                     ":calendar_event_id": session.calendar_event_id.map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
                     ":title": libsql::Value::Text(session.title),
                     ":raw_memo_html": libsql::Value::Text(session.raw_memo_html),

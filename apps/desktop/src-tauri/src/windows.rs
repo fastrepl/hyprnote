@@ -132,3 +132,14 @@ impl ShowHyprWindow {
         builder
     }
 }
+
+pub mod commands {
+    use crate::windows::ShowHyprWindow;
+    use tauri::{AppHandle, State};
+
+    #[tauri::command]
+    #[specta::specta]
+    pub fn show_window(app: AppHandle, window: ShowHyprWindow) {
+        window.show(&app).unwrap();
+    }
+}

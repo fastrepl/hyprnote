@@ -44,7 +44,7 @@ pub async fn handler(
         .admin_db
         .upsert_user(hypr_db::admin::User {
             id: uuid::Uuid::new_v4().to_string(),
-            timestamp: time::OffsetDateTime::now_utc(),
+            timestamp: chrono::Utc::now(),
             clerk_org_id: input.org_id,
             clerk_user_id,
             turso_db_name,
@@ -62,7 +62,7 @@ pub async fn handler(
         .upsert_device(hypr_db::admin::Device {
             id: uuid::Uuid::new_v4().to_string(),
             user_id: user.id,
-            timestamp: time::OffsetDateTime::now_utc(),
+            timestamp: chrono::Utc::now(),
             fingerprint: input.fingerprint,
             api_key: uuid::Uuid::new_v4().to_string(),
         })

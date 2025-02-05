@@ -1,12 +1,11 @@
-use time::{format_description::well_known::Rfc3339, serde::rfc3339, OffsetDateTime};
+use chrono::{DateTime, Utc};
 
 use crate::user_common_derives;
 
 user_common_derives! {
     pub struct Session {
         pub id: String,
-        #[serde(with = "rfc3339")]
-        pub timestamp: OffsetDateTime,
+        pub timestamp: DateTime<Utc>,
         pub calendar_event_id: Option<String>,
         pub title: String,
         pub tags: Vec<String>,
@@ -22,7 +21,12 @@ impl Session {
     pub fn from_row<'de>(row: &'de libsql::Row) -> Result<Self, serde::de::value::Error> {
         Ok(Self {
             id: row.get(0).expect("id"),
-            timestamp: OffsetDateTime::parse(row.get_str(1).expect("timestamp"), &Rfc3339).unwrap(),
+            timestamp: {
+                let str = row.get_str(1).expect("timestamp");
+                DateTime::parse_from_rfc3339(str)
+                    .unwrap()
+                    .with_timezone(&Utc)
+            },
             calendar_event_id: row.get(2).expect("calendar_event_id"),
             title: row.get(3).expect("title"),
             audio_local_path: row.get(4).expect("audio_local_path"),
@@ -45,7 +49,7 @@ impl Default for Session {
     fn default() -> Self {
         Session {
             id: uuid::Uuid::new_v4().to_string(),
-            timestamp: OffsetDateTime::now_utc(),
+            timestamp: Utc::now(),
             calendar_event_id: None,
             title: "".to_string(),
             tags: vec![],
@@ -76,8 +80,8 @@ user_common_derives! {
 
 user_common_derives! {
     pub struct ConversationChunk {
-        pub start: time::OffsetDateTime,
-        pub end: time::OffsetDateTime,
+        pub start: DateTime<Utc>,
+        pub end: DateTime<Utc>,
         pub local_audio_path: String,
         pub remote_audio_path: String,
         pub transcripts: Vec<TranscriptChunk>,

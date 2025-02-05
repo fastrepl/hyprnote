@@ -101,16 +101,10 @@ impl Handle {
 
     fn events_predicate(&self, filter: &EventFilter) -> Retained<NSPredicate> {
         let start_date = unsafe {
-            NSDate::initWithTimeIntervalSince1970(
-                NSDate::alloc(),
-                filter.from.unix_timestamp() as f64,
-            )
+            NSDate::initWithTimeIntervalSince1970(NSDate::alloc(), filter.from.timestamp() as f64)
         };
         let end_date = unsafe {
-            NSDate::initWithTimeIntervalSince1970(
-                NSDate::alloc(),
-                filter.to.unix_timestamp() as f64,
-            )
+            NSDate::initWithTimeIntervalSince1970(NSDate::alloc(), filter.to.timestamp() as f64)
         };
 
         let calendars = unsafe { self.event_store.calendars() };
@@ -246,18 +240,21 @@ impl CalendarSource for Handle {
     }
 }
 
-fn offset_date_time_from(date: Retained<NSDate>) -> time::OffsetDateTime {
+fn offset_date_time_from(date: Retained<NSDate>) -> chrono::DateTime<chrono::Utc> {
     let seconds = unsafe { date.timeIntervalSinceReferenceDate() };
 
-    let cocoa_reference = time::Date::from_calendar_date(2001, time::Month::January, 1)
-        .unwrap()
-        .with_hms(0, 0, 0)
-        .unwrap()
-        .assume_utc();
+    // Cocoa reference date is January 1, 2001, 00:00:00 UTC
+    let cocoa_reference: chrono::DateTime<chrono::Utc> =
+        chrono::DateTime::from_naive_utc_and_offset(
+            chrono::NaiveDateTime::new(
+                chrono::NaiveDate::from_ymd_opt(2001, 1, 1).unwrap(),
+                chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap(),
+            ),
+            chrono::Utc,
+        );
 
-    let unix_timestamp = seconds + cocoa_reference.unix_timestamp() as f64;
-
-    time::OffsetDateTime::from_unix_timestamp(unix_timestamp as i64).unwrap()
+    let unix_timestamp = seconds + cocoa_reference.timestamp() as f64;
+    chrono::DateTime::<chrono::Utc>::from_timestamp(unix_timestamp as i64, 0).unwrap()
 }
 
 #[cfg(test)]
@@ -268,9 +265,9 @@ mod tests {
     async fn test_time() {
         let now = unsafe { NSDate::new() };
         let now_from_nsdate = offset_date_time_from(now.to_owned());
-        let now_from_time = time::OffsetDateTime::now_utc();
-        let diff = (now_from_nsdate - now_from_time).abs();
-        assert!(diff.whole_seconds() < 1);
+        let now_from_chrono = chrono::Utc::now();
+        let diff = (now_from_nsdate - now_from_chrono).num_seconds().abs();
+        assert!(diff < 1);
     }
 
     #[tokio::test]
@@ -292,8 +289,8 @@ mod tests {
         let handle = Handle::new();
         let filter = EventFilter {
             calendars: vec![],
-            from: time::OffsetDateTime::now_utc() - time::Duration::days(100),
-            to: time::OffsetDateTime::now_utc() + time::Duration::days(100),
+            from: chrono::Utc::now() - chrono::Duration::days(100),
+            to: chrono::Utc::now() + chrono::Duration::days(100),
         };
 
         let events = handle.list_events(filter).await.unwrap();

@@ -23,8 +23,11 @@ impl From<hypr_calendar::Calendar> for Calendar {
 }
 
 user_common_derives! {
+    #[derive(strum::Display)]
     pub enum Platform {
+        #[strum(serialize = "Apple")]
         Apple,
+        #[strum(serialize = "Google")]
         Google,
     }
 }
@@ -34,15 +37,6 @@ impl From<hypr_calendar::Platform> for Platform {
         match platform {
             hypr_calendar::Platform::Apple => Platform::Apple,
             hypr_calendar::Platform::Google => Platform::Google,
-        }
-    }
-}
-
-impl std::fmt::Display for Platform {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Platform::Apple => write!(f, "Apple"),
-            Platform::Google => write!(f, "Google"),
         }
     }
 }

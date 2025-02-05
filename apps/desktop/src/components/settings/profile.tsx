@@ -34,7 +34,7 @@ export default function Profile() {
   const config = useQuery({
     queryKey: ["config", "profile"],
     queryFn: async () => {
-      const result = await commands.dbGetConfig("profile");
+      const result = await commands.getConfig("profile");
       if (result === null) {
         return null;
       }
@@ -63,7 +63,7 @@ export default function Profile() {
         linkedin_username: v.linkedinUserName ?? null,
       };
 
-      await commands.dbSetConfig({ type: "profile", data: config });
+      await commands.setConfig({ type: "profile", data: config });
     },
   });
 

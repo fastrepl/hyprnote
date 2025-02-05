@@ -62,12 +62,12 @@ function EventCard({ event }: EventCardProps) {
 
   const participants = useQuery({
     queryKey: ["event-participants", event.id],
-    queryFn: async () => commands.dbListParticipants({ Event: event.id }),
+    queryFn: async () => commands.listParticipants({ Event: event.id }),
   });
 
   const session = useQuery({
     queryKey: ["event-session", event.id],
-    queryFn: async () => commands.dbGetSession({ calendarEventId: event.id }),
+    queryFn: async () => commands.getSession({ calendarEventId: event.id }),
   });
 
   const handleClick = () => {

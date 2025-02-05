@@ -51,7 +51,7 @@ export default function General() {
   const config = useQuery({
     queryKey: ["config", "general"],
     queryFn: async () => {
-      const result = await commands.dbGetConfig("general");
+      const result = await commands.getConfig("general");
       if (result === null) {
         return null;
       }
@@ -78,7 +78,7 @@ export default function General() {
         context: v.context ?? "",
       };
 
-      await commands.dbSetConfig({ type: "general", data: config });
+      await commands.setConfig({ type: "general", data: config });
     },
   });
 

@@ -68,14 +68,14 @@ export default function SettingsDialog() {
     queryFn: async () => {
       const [builtin, custom] = await Promise.all([
         commands.listBuiltinTemplates(),
-        commands.dbListTemplates(),
+        commands.listTemplates(),
       ]);
       return { builtin, custom };
     },
   });
 
   const handleUpdateTemplate = (template: Template) => {
-    commands.dbUpsertTemplate(template);
+    commands.upsertTemplate(template);
   };
 
   useEffect(() => {

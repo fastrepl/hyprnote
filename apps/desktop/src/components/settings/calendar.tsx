@@ -34,7 +34,7 @@ export default function Calendar() {
   const calendars = useQuery({
     queryKey: ["settings", "calendars"],
     queryFn: async () => {
-      const calendars = await commands.dbListCalendars();
+      const calendars = await commands.listCalendars();
       return calendars;
     },
   });
@@ -51,7 +51,7 @@ export default function Calendar() {
         (calendar) => calendar.id === calendar_id,
       );
       if (calendar) {
-        commands.dbUpsertCalendar({ ...calendar, selected });
+        commands.upsertCalendar({ ...calendar, selected });
         queryClient.invalidateQueries({ queryKey: ["settings", "calendars"] });
       }
     },

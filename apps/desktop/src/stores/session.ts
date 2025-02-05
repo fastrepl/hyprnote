@@ -30,7 +30,7 @@ export const createSessionStore = (session: Session) => {
     timeline: { items: [] },
     persistSession: async () => {
       const { session } = get();
-      await commands.dbUpsertSession(session);
+      await commands.upsertSession(session);
     },
     updateTitle: (title: string) => {
       set((state) =>
@@ -80,7 +80,7 @@ export const createSessionStore = (session: Session) => {
           state.channel.onmessage = () => {};
         }
 
-        commands.dbUpsertSession(state.session);
+        commands.upsertSession(state.session);
         return state;
       });
     },

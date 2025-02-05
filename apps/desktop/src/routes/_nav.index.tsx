@@ -11,8 +11,8 @@ const queryOptions = () => ({
   queryKey: ["notes"],
   queryFn: async () => {
     const [sessions, events] = await Promise.all([
-      commands.dbListSessions(null),
-      commands.dbListEvents(),
+      commands.listSessions(null),
+      commands.listEvents(),
     ]);
     return {
       sessions,

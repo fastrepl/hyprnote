@@ -6,6 +6,7 @@
   },
   "markup": {
     "associations": [
+      "!**/*.html",
       "!**/*.jinja"
     ]
   },

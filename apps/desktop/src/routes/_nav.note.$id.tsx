@@ -48,11 +48,11 @@ export const Route = createFileRoute("/_nav/note/$id")({
       queryFn: async () => {
         const [session, profile, general, builtinTemplates, customTemplates] =
           await Promise.all([
-            commands.dbGetSession({ id }),
-            commands.dbGetConfig("profile"),
-            commands.dbGetConfig("general"),
+            commands.getSession({ id }),
+            commands.getConfig("profile"),
+            commands.getConfig("general"),
             commands.listBuiltinTemplates(),
-            commands.dbListTemplates(),
+            commands.listTemplates(),
           ]);
         if (!session) {
           throw redirect({ to: "/" });

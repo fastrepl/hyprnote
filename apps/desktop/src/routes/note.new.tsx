@@ -26,14 +26,14 @@ export const Route = createFileRoute("/note/new")({
     };
 
     try {
-      session = await commands.dbUpsertSession(emptySession);
+      session = await commands.upsertSession(emptySession);
     } catch (error) {
       console.error(error);
       throw redirect({ to: "/" });
     }
 
     if (search.eventId) {
-      commands.dbSetSessionEvent(session.id, search.eventId);
+      commands.setSessionEvent(session.id, search.eventId);
     }
 
     throw redirect({

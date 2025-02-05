@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { useLocation } from "@tanstack/react-router";
 
 interface Message {
   id: string;
@@ -63,6 +64,7 @@ export function HyprAIButton() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const { pathname } = useLocation();
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -218,7 +220,9 @@ export function HyprAIButton() {
                 </>
               ) : (
                 <>
-                  <div className="text-sm font-medium">Note Chat</div>
+                  <div className="text-sm font-medium">
+                    {pathname.includes("note") ? "Note Chat" : "Workspace Chat"}
+                  </div>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"

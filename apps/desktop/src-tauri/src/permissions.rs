@@ -1,8 +1,6 @@
 // https://github.com/CapSoftware/Cap/blob/5a9f72a076041a7095409fe7a2b0f303239698b1/apps/desktop/src-tauri/src/permissions.rs
 
-use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize, specta::Type)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum OSPermission {
     Calendar,
@@ -13,9 +11,10 @@ pub enum OSPermission {
     Accessibility,
 }
 
-#[tauri::command(async)]
+#[tauri::command]
 #[specta::specta]
-pub fn check_permission_status(permission: OSPermission) -> Option<bool> {
+#[tracing::instrument]
+pub async fn check_permission_status(permission: OSPermission) -> Option<bool> {
     #[cfg(target_os = "macos")]
     {
         match permission {
@@ -38,9 +37,10 @@ pub fn check_permission_status(permission: OSPermission) -> Option<bool> {
     }
 }
 
-#[tauri::command(async)]
+#[tauri::command]
 #[specta::specta]
-pub fn open_permission_settings(permission: OSPermission) {
+#[tracing::instrument]
+pub async fn open_permission_settings(permission: OSPermission) {
     #[cfg(target_os = "macos")]
     {
         use std::process::Command;

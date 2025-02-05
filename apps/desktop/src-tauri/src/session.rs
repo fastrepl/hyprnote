@@ -137,3 +137,58 @@ impl SessionState {
         }
     }
 }
+
+pub mod commands {
+    use anyhow::Result;
+    use tauri::{ipc::Channel, Manager, State};
+
+    use crate::session::{SessionState, SessionStatus};
+
+    #[tauri::command]
+    #[specta::specta]
+    pub async fn start_session<'a>(
+        app: State<'_, crate::App>,
+        session: State<'_, tokio::sync::Mutex<SessionState>>,
+        on_event: Channel<SessionStatus>,
+    ) -> Result<(), String> {
+        let app_dir = app.handle.path().app_data_dir().unwrap();
+
+        let config = app
+            .db
+            .get_config(hypr_db::user::ConfigKind::General)
+            .await
+            .map_err(|e| e.to_string())?;
+
+        let language = match config {
+            Some(hypr_db::user::Config::General { data }) => data.language,
+            _ => codes_iso_639::part_1::LanguageCode::En,
+        };
+
+        let ret = {
+            let mut s = session.lock().await;
+
+            s.start(
+                app.bridge.clone(),
+                language,
+                app_dir,
+                "123".to_string(),
+                on_event,
+            )
+            .await
+        };
+
+        ret
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    pub async fn stop_session(
+        session: State<'_, tokio::sync::Mutex<SessionState>>,
+    ) -> Result<(), String> {
+        {
+            let mut s = session.lock().await;
+            s.stop().await;
+        }
+        Ok(())
+    }
+}

@@ -2,6 +2,7 @@ mod audio;
 mod auth;
 mod commands;
 mod config;
+mod db;
 mod events;
 mod permissions;
 mod session;
@@ -71,31 +72,27 @@ pub async fn main() {
 
     let specta_builder = tauri_specta::Builder::new()
         .commands(tauri_specta::collect_commands![
-            commands::get_env,
-            commands::get_fingerprint,
-            commands::start_session,
-            commands::stop_session,
-            commands::start_playback,
-            commands::stop_playback,
             commands::show_window,
             commands::run_enhance,
             commands::list_builtin_templates,
             permissions::open_permission_settings,
             permissions::check_permission_status,
-            commands::db::db_upsert_session,
-            commands::db::db_upsert_calendar,
-            commands::db::db_list_calendars,
-            commands::db::db_list_events,
-            commands::db::db_list_sessions,
-            commands::db::db_list_participants,
-            commands::db::db_upsert_participant,
-            commands::db::db_get_session,
-            commands::db::db_set_session_event,
-            commands::db::db_list_templates,
-            commands::db::db_upsert_template,
-            commands::db::db_delete_template,
-            commands::db::db_get_config,
-            commands::db::db_set_config,
+            session::commands::start_session,
+            session::commands::stop_session,
+            db::commands::upsert_session,
+            db::commands::upsert_calendar,
+            db::commands::list_calendars,
+            db::commands::list_events,
+            db::commands::list_sessions,
+            db::commands::list_participants,
+            db::commands::upsert_participant,
+            db::commands::get_session,
+            db::commands::set_session_event,
+            db::commands::list_templates,
+            db::commands::upsert_template,
+            db::commands::delete_template,
+            db::commands::get_config,
+            db::commands::set_config,
         ])
         .events(tauri_specta::collect_events![
             events::RecordingStarted,

@@ -1,7 +1,6 @@
 use axum::{
     extract::{Extension, State},
     http::StatusCode,
-    response::IntoResponse,
     Json,
 };
 use serde::{Deserialize, Serialize};
@@ -9,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::state::AppState;
 use clerk_rs::validators::authorizer::ClerkJwt;
 
-#[derive(Debug, Deserialize, Serialize, specta::Type)]
+#[derive(Debug, Deserialize, Serialize, specta::Type, schemars::JsonSchema)]
 pub struct ConnectInput {
     code: String,
     fingerprint: String,
@@ -17,7 +16,7 @@ pub struct ConnectInput {
     user_id: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, specta::Type)]
+#[derive(Debug, Deserialize, Serialize, specta::Type, schemars::JsonSchema)]
 pub struct ConnectOutput {
     key: String,
 }
@@ -26,7 +25,7 @@ pub async fn handler(
     State(state): State<AppState>,
     Extension(jwt): Extension<ClerkJwt>,
     Json(input): Json<ConnectInput>,
-) -> impl IntoResponse {
+) -> Result<Json<ConnectOutput>, (StatusCode, String)> {
     let clerk_user_id = jwt.sub;
 
     let create_db_req = hypr_turso::CreateDatabaseRequestBuilder::new()
@@ -53,7 +52,9 @@ pub async fn handler(
         .await
     {
         Ok(user) => user,
-        Err(error) => return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string())),
+        Err(error) => {
+            return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string()));
+        }
     };
 
     let device = match state
@@ -68,7 +69,12 @@ pub async fn handler(
         .await
     {
         Ok(device) => device,
-        Err(error) => return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string())),
+        Err(error) => {
+            return Err::<Json<ConnectOutput>, (StatusCode, String)>((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                error.to_string(),
+            ));
+        }
     };
 
     Ok(Json(ConnectOutput {

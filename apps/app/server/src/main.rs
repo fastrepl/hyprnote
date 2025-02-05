@@ -15,7 +15,10 @@ use std::{
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _, Registry};
 
 use aide::{
-    axum::{routing::get as api_get, ApiRouter},
+    axum::{
+        routing::{get as api_get, post as api_post},
+        ApiRouter,
+    },
     openapi::OpenApi,
     scalar::Scalar,
 };
@@ -182,15 +185,15 @@ fn main() {
             };
 
             let web_router = ApiRouter::new()
-                .route("/connect", post(web::connect::handler))
+                .api_route("/connect", api_post(web::connect::handler))
                 .route(
                     "/session/{id}",
                     get(web::session::handler)
                         .layer(axum::middleware::from_fn(middleware::attach_user_db)),
                 )
-                .route(
+                .api_route(
                     "/integration/connection",
-                    post(web::integration::create_connection).layer(
+                    api_post(web::integration::create_connection).layer(
                         axum::middleware::from_fn_with_state(
                             AuthState::from_ref(&state),
                             middleware::attach_user_from_clerk,
@@ -276,8 +279,18 @@ fn main() {
 
             let service = router
                 .finish_api(&mut api)
-                .layer(Extension(api))
+                .layer(Extension(api.clone()))
                 .into_make_service();
+
+            #[cfg(debug_assertions)]
+            {
+                let base: std::path::PathBuf = env!("CARGO_MANIFEST_DIR").into();
+                std::fs::write(
+                    base.join("./openapi.gen.json"),
+                    serde_json::to_string_pretty(&api).unwrap(),
+                )
+                .unwrap();
+            }
 
             let http = async {
                 axum::serve(listener, service)

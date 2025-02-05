@@ -1,0 +1,220 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "",
+    "version": ""
+  },
+  "paths": {
+    "/health": {
+      "get": {}
+    },
+    "/api/web/connect": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/web/integration/connection": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NangoConnectSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NangoConnectSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ConnectInput": {
+        "type": "object",
+        "required": [
+          "code",
+          "fingerprint",
+          "user_id"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "fingerprint": {
+            "type": "string"
+          },
+          "org_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "user_id": {
+            "type": "string"
+          }
+        }
+      },
+      "ConnectOutput": {
+        "type": "object",
+        "required": [
+          "key"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        }
+      },
+      "NangoConnectSessionRequest": {
+        "type": "object",
+        "required": [
+          "allowed_integrations",
+          "end_user"
+        ],
+        "properties": {
+          "allowed_integrations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "end_user": {
+            "$ref": "#/components/schemas/NangoConnectSessionRequestUser"
+          },
+          "organization": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NangoConnectSessionRequestOrganization"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "NangoConnectSessionRequestOrganization": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "display_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "NangoConnectSessionRequestUser": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "display_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "NangoConnectSessionResponse": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "type": "object",
+                "required": [
+                  "expires_at",
+                  "token"
+                ],
+                "properties": {
+                  "expires_at": {
+                    "type": "string"
+                  },
+                  "token": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "error"
+            ],
+            "properties": {
+              "error": {
+                "type": "object",
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  }
+}

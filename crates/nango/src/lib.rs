@@ -1,16 +1,23 @@
 // https://docs.nango.dev/host/cloud#cloud-vs-self-hosting
 
-use serde::{Deserialize, Serialize};
+macro_rules! common_derives {
+    ($item:item) => {
+        #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, specta::Type, schemars::JsonSchema)]
+        $item
+    };
+}
 
 // https://docs.nango.dev/understand/concepts/integrations
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, strum::AsRefStr, specta::Type)]
-pub enum NangoIntegration {
-    #[serde(rename = "google-calendar")]
-    #[strum(serialize = "google-calendar")]
-    GoogleCalendar,
-    #[serde(rename = "outlook-calendar")]
-    #[strum(serialize = "outlook-calendar")]
-    OutlookCalendar,
+common_derives! {
+    #[derive(strum::AsRefStr)]
+    pub enum NangoIntegration {
+        #[serde(rename = "google-calendar")]
+        #[strum(serialize = "google-calendar")]
+        GoogleCalendar,
+        #[serde(rename = "outlook-calendar")]
+        #[strum(serialize = "outlook-calendar")]
+        OutlookCalendar,
+    }
 }
 
 impl TryFrom<String> for NangoIntegration {
@@ -46,88 +53,98 @@ pub struct NangoClient {
     api_base: url::Url,
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-pub struct NangoConnectSessionRequest {
-    pub end_user: NangoConnectSessionRequestUser,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub organization: Option<NangoConnectSessionRequestOrganization>,
-    pub allowed_integrations: Vec<String>,
+common_derives! {
+    pub struct NangoConnectSessionRequest {
+        pub end_user: NangoConnectSessionRequestUser,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub organization: Option<NangoConnectSessionRequestOrganization>,
+        pub allowed_integrations: Vec<String>,
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-pub struct NangoConnectSessionRequestUser {
-    pub id: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub display_name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub email: Option<String>,
+common_derives! {
+    pub struct NangoConnectSessionRequestUser {
+        pub id: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub display_name: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub email: Option<String>,
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-pub struct NangoConnectSessionRequestOrganization {
-    pub id: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub display_name: Option<String>,
+common_derives! {
+    pub struct NangoConnectSessionRequestOrganization {
+        pub id: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub display_name: Option<String>,
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-pub enum NangoConnectSessionResponse {
-    #[serde(rename = "data")]
-    Ok { token: String, expires_at: String },
-    #[serde(rename = "error")]
-    Error { code: String },
+common_derives! {
+    pub enum NangoConnectSessionResponse {
+        #[serde(rename = "data")]
+        Ok { token: String, expires_at: String },
+        #[serde(rename = "error")]
+        Error { code: String },
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-#[serde(untagged)]
-pub enum NangoGetConnectionResponse {
-    #[serde(rename = "data")]
-    Ok(NangoGetConnectionResponseData),
-    #[serde(rename = "error")]
-    Error { message: String },
+common_derives! {
+    #[serde(untagged)]
+    pub enum NangoGetConnectionResponse {
+        #[serde(rename = "data")]
+        Ok(NangoGetConnectionResponseData),
+        #[serde(rename = "error")]
+        Error { message: String },
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-pub struct NangoGetConnectionResponseData {
-    pub id: String,
-    pub connection_id: String,
-    pub provider_config_key: String,
-    pub provider: String,
-    pub created_at: String,
-    pub updated_at: String,
-    pub last_fetched_at: String,
-    pub credentials: NangoCredentials,
+common_derives! {
+    pub struct NangoGetConnectionResponseData {
+        pub id: String,
+        pub connection_id: String,
+        pub provider_config_key: String,
+        pub provider: String,
+        pub created_at: String,
+        pub updated_at: String,
+        pub last_fetched_at: String,
+        pub credentials: NangoCredentials,
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-#[serde(tag = "type")]
-pub enum NangoCredentials {
-    #[serde(rename = "OAUTH2")]
-    OAuth2(NangoCredentialsOAuth2),
+common_derives! {
+    #[serde(tag = "type")]
+    pub enum NangoCredentials {
+        #[serde(rename = "OAUTH2")]
+        OAuth2(NangoCredentialsOAuth2),
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-pub struct NangoCredentialsOAuth2 {
-    pub access_token: String,
+common_derives! {
+    pub struct NangoCredentialsOAuth2 {
+        pub access_token: String,
+    }
 }
 
 // https://docs.nango.dev/guides/getting-started/authorize-an-api-from-your-app#save-the-connection-id-backend
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-pub struct NangoConnectWebhook {
-    pub r#type: String,
-    pub operation: String,
-    #[serde(rename = "connectionId")]
-    pub connection_id: String,
-    #[serde(rename = "endUser")]
-    pub end_user: NangoConnectWebhookEndUser,
+common_derives! {
+    pub struct NangoConnectWebhook {
+        pub r#type: String,
+        pub operation: String,
+        #[serde(rename = "connectionId")]
+        pub connection_id: String,
+        #[serde(rename = "endUser")]
+        pub end_user: NangoConnectWebhookEndUser,
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-pub struct NangoConnectWebhookEndUser {
-    #[serde(rename = "endUserId")]
-    pub end_user_id: String,
-    #[serde(rename = "organizationId")]
-    pub organization_id: Option<String>,
+common_derives! {
+    pub struct NangoConnectWebhookEndUser {
+        #[serde(rename = "endUserId")]
+        pub end_user_id: String,
+        #[serde(rename = "organizationId")]
+        pub organization_id: Option<String>,
+    }
 }
 
 impl NangoClient {
@@ -238,7 +255,7 @@ impl<'a> NangoProxyBuilder<'a> {
     }
 
     // https://docs.nango.dev/reference/api/proxy/post
-    pub fn post<T: Serialize + ?Sized>(
+    pub fn post<T: serde::Serialize + ?Sized>(
         &self,
         path: impl std::fmt::Display,
         data: &T,

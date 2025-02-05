@@ -1,0 +1,13 @@
+{
+  "name": "@hypr/client",
+  "main": "generated/index.js",
+  "scripts": {
+    "generate": "openapi-ts -i ../../apps/app/server/openapi.gen.json -o ../../packages/client/generated -c @hey-api/client-fetch"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.64.1"
+  },
+  "dependencies": {
+    "@hey-api/client-fetch": "^0.8.0"
+  }
+}

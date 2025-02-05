@@ -3,6 +3,7 @@ mod auth;
 mod commands;
 mod config;
 mod db;
+mod error;
 mod events;
 mod permissions;
 mod session;

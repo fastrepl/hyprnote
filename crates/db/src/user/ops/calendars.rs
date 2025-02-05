@@ -1,10 +1,8 @@
-use anyhow::Result;
-
 use super::UserDatabase;
 use crate::user::Calendar;
 
 impl UserDatabase {
-    pub async fn list_calendars(&self) -> Result<Vec<Calendar>> {
+    pub async fn list_calendars(&self) -> Result<Vec<Calendar>, crate::Error> {
         let mut rows = self
             .conn
             .query("SELECT * FROM calendars", ())
@@ -19,7 +17,7 @@ impl UserDatabase {
         Ok(items)
     }
 
-    pub async fn upsert_calendar(&self, calendar: Calendar) -> Result<Calendar> {
+    pub async fn upsert_calendar(&self, calendar: Calendar) -> Result<Calendar, crate::Error> {
         let mut rows = self
             .conn
             .query(

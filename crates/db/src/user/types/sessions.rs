@@ -3,14 +3,6 @@ use time::{format_description::well_known::Rfc3339, serde::rfc3339, OffsetDateTi
 use crate::user_common_derives;
 
 user_common_derives! {
-    pub struct SessionRawMemoHistory {
-        #[serde(with = "rfc3339")]
-        pub created_at: OffsetDateTime,
-        pub raw_memo_html: String,
-    }
-}
-
-user_common_derives! {
     pub struct Session {
         pub id: String,
         #[serde(with = "rfc3339")]

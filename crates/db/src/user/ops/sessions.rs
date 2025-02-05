@@ -1,11 +1,13 @@
-use anyhow::Result;
 use time::format_description::well_known::Rfc3339;
 
 use super::UserDatabase;
-use crate::user::{GetSessionOption, Session, SessionRawMemoHistory};
+use crate::user::{GetSessionOption, Session};
 
 impl UserDatabase {
-    pub async fn get_session(&self, option: GetSessionOption) -> Result<Option<Session>> {
+    pub async fn get_session(
+        &self,
+        option: GetSessionOption,
+    ) -> Result<Option<Session>, crate::Error> {
         let mut rows = match option {
             GetSessionOption::Id(id) => self
                 .conn
@@ -31,7 +33,7 @@ impl UserDatabase {
         }
     }
 
-    pub async fn list_sessions(&self, search: Option<&str>) -> Result<Vec<Session>> {
+    pub async fn list_sessions(&self, search: Option<&str>) -> Result<Vec<Session>, crate::Error> {
         let mut rows = match search {
             Some(q) => self
                 .conn
@@ -59,7 +61,7 @@ impl UserDatabase {
         Ok(items)
     }
 
-    pub async fn upsert_session(&self, session: Session) -> Result<Session> {
+    pub async fn upsert_session(&self, session: Session) -> Result<Session, crate::Error> {
         let mut rows = self
             .conn
             .query(
@@ -98,7 +100,11 @@ impl UserDatabase {
         Ok(session)
     }
 
-    pub async fn session_set_event(&self, session_id: String, event_id: String) -> Result<()> {
+    pub async fn session_set_event(
+        &self,
+        session_id: String,
+        event_id: String,
+    ) -> Result<(), crate::Error> {
         self.conn
             .query(
                 "UPDATE sessions SET calendar_event_id = ? WHERE id = ?",

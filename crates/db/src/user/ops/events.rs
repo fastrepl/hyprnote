@@ -1,11 +1,10 @@
-use anyhow::Result;
 use time::format_description::well_known::Rfc3339;
 
 use super::UserDatabase;
 use crate::user::{Event, Participant, ParticipantFilter};
 
 impl UserDatabase {
-    pub async fn get_event(&self, id: String) -> Result<Event> {
+    pub async fn get_event(&self, id: String) -> Result<Event, crate::Error> {
         let mut rows = self
             .conn
             .query("SELECT * FROM calendar_events WHERE id = ?", vec![id])
@@ -16,7 +15,10 @@ impl UserDatabase {
         Ok(event)
     }
 
-    pub async fn list_participants(&self, filter: ParticipantFilter) -> Result<Vec<Participant>> {
+    pub async fn list_participants(
+        &self,
+        filter: ParticipantFilter,
+    ) -> Result<Vec<Participant>, crate::Error> {
         let mut rows = match filter {
             ParticipantFilter::Text(q) => {
                 self.conn
@@ -47,7 +49,7 @@ impl UserDatabase {
         Ok(items)
     }
 
-    pub async fn list_events(&self) -> Result<Vec<Event>> {
+    pub async fn list_events(&self) -> Result<Vec<Event>, crate::Error> {
         let mut rows = self
             .conn
             .query("SELECT * FROM calendar_events", ())
@@ -66,7 +68,7 @@ impl UserDatabase {
         &self,
         event_id: String,
         participant_ids: Vec<String>,
-    ) -> Result<()> {
+    ) -> Result<(), crate::Error> {
         self.conn
             .query(
                 "DELETE FROM event_participants WHERE event_id = ?",
@@ -86,7 +88,10 @@ impl UserDatabase {
         Ok(())
     }
 
-    pub async fn upsert_participant(&self, participant: Participant) -> Result<Participant> {
+    pub async fn upsert_participant(
+        &self,
+        participant: Participant,
+    ) -> Result<Participant, crate::Error> {
         let mut rows = self
             .conn
             .query(
@@ -119,7 +124,7 @@ impl UserDatabase {
         Ok(participant)
     }
 
-    pub async fn upsert_event(&self, event: Event) -> Result<Event> {
+    pub async fn upsert_event(&self, event: Event) -> Result<Event, crate::Error> {
         let mut rows = self
             .conn
             .query(

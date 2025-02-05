@@ -93,5 +93,7 @@ pub enum Error {
     #[error("libsql error: {0}")]
     LibsqlError(#[from] libsql::Error),
     #[error("serde::de error: {0}")]
-    DeError(#[from] serde::de::value::Error),
+    SerdeDeError(#[from] serde::de::value::Error),
+    #[error("serde_json error: {0}")]
+    SerdeJsonError(#[from] serde_json::Error),
 }

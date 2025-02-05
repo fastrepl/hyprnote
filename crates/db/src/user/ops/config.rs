@@ -1,10 +1,8 @@
-use anyhow::Result;
-
 use super::UserDatabase;
 use crate::user::{Config, ConfigKind};
 
 impl UserDatabase {
-    pub async fn get_config(&self, kind: ConfigKind) -> Result<Option<Config>> {
+    pub async fn get_config(&self, kind: ConfigKind) -> Result<Option<Config>, crate::Error> {
         let mut rows = self
             .conn
             .query(
@@ -19,7 +17,7 @@ impl UserDatabase {
         }
     }
 
-    pub async fn set_config(&self, config: Config) -> Result<()> {
+    pub async fn set_config(&self, config: Config) -> Result<(), crate::Error> {
         let (kind, data) = match config {
             Config::General { data } => (
                 ConfigKind::General.to_string(),

@@ -1,10 +1,8 @@
-use anyhow::Result;
-
 use super::UserDatabase;
 use crate::user::Template;
 
 impl UserDatabase {
-    pub async fn list_templates(&self) -> Result<Vec<Template>> {
+    pub async fn list_templates(&self) -> Result<Vec<Template>, crate::Error> {
         let mut rows = self.conn.query("SELECT * FROM templates", ()).await?;
         let mut items = Vec::new();
         while let Some(row) = rows.next().await.unwrap() {
@@ -14,7 +12,7 @@ impl UserDatabase {
         Ok(items)
     }
 
-    pub async fn upsert_template(&self, template: Template) -> Result<Template> {
+    pub async fn upsert_template(&self, template: Template) -> Result<Template, crate::Error> {
         let mut rows = self
             .conn
             .query(
@@ -47,7 +45,7 @@ impl UserDatabase {
         Ok(template)
     }
 
-    pub async fn delete_template(&self, id: String) -> Result<()> {
+    pub async fn delete_template(&self, id: String) -> Result<(), crate::Error> {
         self.conn
             .query("DELETE FROM templates WHERE id = ?", vec![id])
             .await?;

@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-
+import { useEffect, forwardRef } from "react";
 import {
   EditorContent,
   useEditor,
@@ -17,7 +16,7 @@ interface EditorProps {
   content: HTMLContent;
 }
 
-export default function Editor({ handleChange, content }: EditorProps) {
+const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(({ handleChange, content }, ref) => {
   const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
     if (!editor.isInitialized) {
       return;
@@ -49,9 +48,19 @@ export default function Editor({ handleChange, content }: EditorProps) {
     }
   }, [editor, content]);
 
+  useEffect(() => {
+    if (ref && typeof ref === 'object') {
+      ref.current = { editor };
+    }
+  }, [editor]);
+
   return (
     <div role="textbox" className={clsx(["relative h-full w-full"])}>
       <EditorContent className="h-full w-full" editor={editor} />
     </div>
   );
-}
+});
+
+Editor.displayName = "Editor";
+
+export default Editor;

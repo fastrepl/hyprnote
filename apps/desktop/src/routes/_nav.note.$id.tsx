@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, type ChangeEvent } from "react";
+import { useState, useCallback, useEffect, type ChangeEvent, useRef } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AlignLeft, Ear, EarOff, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -162,6 +162,9 @@ function LeftPanel() {
     store.updateTitle(e.target.value);
   }, []);
 
+  const editorRef = useRef<{ editor: any }>(null);
+  const rendererRef = useRef<{ editor: any }>(null);
+
   return (
     <div className="relative flex h-full flex-col p-8">
       <div className="flex flex-row items-center justify-between">
@@ -202,17 +205,26 @@ function LeftPanel() {
       <ScrollArea
         type="auto"
         className={clsx([
-          "h-[calc(100vh-240px)] pt-6",
+          "h-[calc(100vh-180px)] pt-6",
           enhance.status === "loading" ? "tiptap-animate" : "",
         ])}
+        onClick={() => {
+          if (showRaw) {
+            editorRef.current?.editor?.commands?.focus();
+          } else {
+            rendererRef.current?.editor?.commands?.focus();
+          }
+        }}
       >
         {showRaw ? (
           <NoteEditor
+            ref={editorRef}
             handleChange={handleChangeNote}
             content={store.session.raw_memo_html}
           />
         ) : (
           <NoteRenderer
+            ref={rendererRef}
             handleChange={handleChangeNote}
             content={store.session.enhanced_memo_html ?? ""}
           />

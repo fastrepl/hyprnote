@@ -34,6 +34,22 @@
         }
       }
     },
+    "/api/web/session/{id}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/web/integration/connection": {
       "post": {
         "requestBody": {
@@ -96,6 +112,68 @@
         "properties": {
           "key": {
             "type": "string"
+          }
+        }
+      },
+      "ConversationChunk": {
+        "type": "object",
+        "required": [
+          "diarizations",
+          "end",
+          "local_audio_path",
+          "remote_audio_path",
+          "start",
+          "transcripts"
+        ],
+        "properties": {
+          "diarizations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiarizationChunk"
+            }
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "local_audio_path": {
+            "type": "string"
+          },
+          "remote_audio_path": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "transcripts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TranscriptChunk"
+            }
+          }
+        }
+      },
+      "DiarizationChunk": {
+        "type": "object",
+        "required": [
+          "end",
+          "speaker",
+          "start"
+        ],
+        "properties": {
+          "end": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "speaker": {
+            "type": "string"
+          },
+          "start": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
           }
         }
       },
@@ -214,6 +292,91 @@
             "additionalProperties": false
           }
         ]
+      },
+      "Session": {
+        "type": "object",
+        "required": [
+          "conversations",
+          "id",
+          "raw_memo_html",
+          "tags",
+          "timestamp",
+          "title"
+        ],
+        "properties": {
+          "audio_local_path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "audio_remote_path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "calendar_event_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "conversations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConversationChunk"
+            }
+          },
+          "enhanced_memo_html": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "raw_memo_html": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "TranscriptChunk": {
+        "type": "object",
+        "required": [
+          "end",
+          "start",
+          "text"
+        ],
+        "properties": {
+          "end": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "start": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "text": {
+            "type": "string"
+          }
+        }
       }
     }
   }

@@ -186,9 +186,9 @@ fn main() {
 
             let web_router = ApiRouter::new()
                 .api_route("/connect", api_post(web::connect::handler))
-                .route(
+                .api_route(
                     "/session/{id}",
-                    get(web::session::handler)
+                    api_get(web::session::handler)
                         .layer(axum::middleware::from_fn(middleware::attach_user_db)),
                 )
                 .api_route(

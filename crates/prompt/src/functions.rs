@@ -2,7 +2,6 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 use crate::tera_utils::get_arg;
-use hypr_db::user::{DiarizationChunk, TranscriptChunk};
 
 pub fn render_timeline_view() -> impl tera::Function {
     Box::new(

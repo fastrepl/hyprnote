@@ -14,7 +14,15 @@ pub use seed::*;
 #[macro_export]
 macro_rules! user_common_derives {
     ($item:item) => {
-        #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+        #[derive(
+            Debug,
+            PartialEq,
+            Clone,
+            serde::Serialize,
+            serde::Deserialize,
+            specta::Type,
+            schemars::JsonSchema,
+        )]
         $item
     };
 }

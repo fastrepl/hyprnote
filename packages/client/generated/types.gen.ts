@@ -11,6 +11,21 @@ export type ConnectOutput = {
     key: string;
 };
 
+export type ConversationChunk = {
+    diarizations: Array<DiarizationChunk>;
+    end: string;
+    local_audio_path: string;
+    remote_audio_path: string;
+    start: string;
+    transcripts: Array<TranscriptChunk>;
+};
+
+export type DiarizationChunk = {
+    end: number;
+    speaker: string;
+    start: number;
+};
+
 export type NangoConnectSessionRequest = {
     allowed_integrations: Array<string>;
     end_user: NangoConnectSessionRequestUser;
@@ -39,6 +54,25 @@ export type NangoConnectSessionResponse = {
     };
 };
 
+export type Session = {
+    audio_local_path?: string | null;
+    audio_remote_path?: string | null;
+    calendar_event_id?: string | null;
+    conversations: Array<ConversationChunk>;
+    enhanced_memo_html?: string | null;
+    id: string;
+    raw_memo_html: string;
+    tags: Array<string>;
+    timestamp: string;
+    title: string;
+};
+
+export type TranscriptChunk = {
+    end: number;
+    start: number;
+    text: string;
+};
+
 export type GetHealthData = {
     body?: never;
     path?: never;
@@ -58,6 +92,19 @@ export type PostApiWebConnectResponses = {
 };
 
 export type PostApiWebConnectResponse = PostApiWebConnectResponses[keyof PostApiWebConnectResponses];
+
+export type GetApiWebSessionByIdData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/web/session/{id}';
+};
+
+export type GetApiWebSessionByIdResponses = {
+    200: Session;
+};
+
+export type GetApiWebSessionByIdResponse = GetApiWebSessionByIdResponses[keyof GetApiWebSessionByIdResponses];
 
 export type PostApiWebIntegrationConnectionData = {
     body: NangoConnectSessionRequest;

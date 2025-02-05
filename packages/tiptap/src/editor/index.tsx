@@ -16,50 +16,52 @@ interface EditorProps {
   content: HTMLContent;
 }
 
-const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(({ handleChange, content }, ref) => {
-  const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
-    if (!editor.isInitialized) {
-      return;
-    }
+const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
+  ({ handleChange, content }, ref) => {
+    const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
+      if (!editor.isInitialized) {
+        return;
+      }
 
-    handleChange(editor.getHTML());
-  };
+      handleChange(editor.getHTML());
+    };
 
-  const editor = useEditor({
-    extensions,
-    onUpdate,
-    editorProps: {
-      attributes: {
-        class: clsx([
-          "prose dark:prose-invert prose-md",
-          "prose-headings:text-gray-700 prose-p:text-gray-600",
-          "prose-p:my-1",
-          "prose-headings:font-medium",
-          "prose-em:not-italic prose-em:text-black prose-em:font-semibold",
-          "focus:outline-none focus:ring-0",
-        ]),
+    const editor = useEditor({
+      extensions,
+      onUpdate,
+      editorProps: {
+        attributes: {
+          class: clsx([
+            "prose dark:prose-invert prose-md",
+            "prose-headings:text-gray-700 prose-p:text-gray-600",
+            "prose-p:my-1",
+            "prose-headings:font-medium",
+            "prose-em:not-italic prose-em:text-black prose-em:font-semibold",
+            "focus:outline-none focus:ring-0 px-4",
+          ]),
+        },
       },
-    },
-  });
+    });
 
-  useEffect(() => {
-    if (editor && editor.isEmpty) {
-      editor.commands.setContent(content);
-    }
-  }, [editor, content]);
+    useEffect(() => {
+      if (editor && editor.isEmpty) {
+        editor.commands.setContent(content);
+      }
+    }, [editor, content]);
 
-  useEffect(() => {
-    if (ref && typeof ref === 'object') {
-      ref.current = { editor };
-    }
-  }, [editor]);
+    useEffect(() => {
+      if (ref && typeof ref === "object") {
+        ref.current = { editor };
+      }
+    }, [editor]);
 
-  return (
-    <div role="textbox" className={clsx(["relative h-full w-full"])}>
-      <EditorContent className="h-full w-full" editor={editor} />
-    </div>
-  );
-});
+    return (
+      <div role="textbox" className={clsx(["relative h-full w-full"])}>
+        <EditorContent className="h-full w-full" editor={editor} />
+      </div>
+    );
+  },
+);
 
 Editor.displayName = "Editor";
 

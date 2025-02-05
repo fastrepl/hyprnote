@@ -1,4 +1,10 @@
-import { useState, useCallback, useEffect, type ChangeEvent, useRef } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  type ChangeEvent,
+  useRef,
+} from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AlignLeft, Ear, EarOff, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -166,8 +172,8 @@ function LeftPanel() {
   const rendererRef = useRef<{ editor: any }>(null);
 
   return (
-    <div className="relative flex h-full flex-col p-8">
-      <div className="flex flex-row items-center justify-between">
+    <div className="relative flex h-full flex-col overflow-hidden">
+      <div className="flex flex-row items-center justify-between px-4 pt-6">
         <input
           type="text"
           onChange={handleTitleChange}
@@ -194,7 +200,7 @@ function LeftPanel() {
         </button>
       </div>
 
-      <div className="-mx-1.5 flex flex-row items-center py-1">
+      <div className="-mx-1.5 flex flex-row items-center px-4 pb-4 pt-1">
         <EventChip />
         <div className="mx-1 h-4 w-px bg-border" />
         <ParticipantsChip />
@@ -205,7 +211,7 @@ function LeftPanel() {
       <ScrollArea
         type="auto"
         className={clsx([
-          "h-[calc(100vh-180px)] pt-6",
+          "h-full",
           enhance.status === "loading" ? "tiptap-animate" : "",
         ])}
         onClick={() => {

@@ -1,10 +1,8 @@
-use anyhow::Result;
-
 use super::AdminDatabase;
 use crate::admin::User;
 
 impl AdminDatabase {
-    pub async fn list_users(&self) -> Result<Vec<User>> {
+    pub async fn list_users(&self) -> Result<Vec<User>, crate::Error> {
         let mut rows = self.conn.query("SELECT * FROM users", ()).await.unwrap();
         let mut users = Vec::new();
 
@@ -16,7 +14,7 @@ impl AdminDatabase {
         Ok(users)
     }
 
-    pub async fn upsert_user(&self, user: User) -> Result<User> {
+    pub async fn upsert_user(&self, user: User) -> Result<User, crate::Error> {
         let mut rows = self
             .conn
             .query(
@@ -43,7 +41,10 @@ impl AdminDatabase {
         Ok(user)
     }
 
-    pub async fn get_user_by_clerk_user_id(&self, clerk_user_id: impl AsRef<str>) -> Result<User> {
+    pub async fn get_user_by_clerk_user_id(
+        &self,
+        clerk_user_id: impl AsRef<str>,
+    ) -> Result<Option<User>, crate::Error> {
         let mut rows = self
             .conn
             .query(
@@ -52,12 +53,19 @@ impl AdminDatabase {
             )
             .await?;
 
-        let row = rows.next().await.unwrap().unwrap();
-        let user: User = libsql::de::from_row(&row).unwrap();
-        Ok(user)
+        match rows.next().await.unwrap() {
+            None => Ok(None),
+            Some(row) => {
+                let user: User = libsql::de::from_row(&row).unwrap();
+                Ok(Some(user))
+            }
+        }
     }
 
-    pub async fn get_user_by_device_api_key(&self, api_key: impl AsRef<str>) -> Result<User> {
+    pub async fn get_user_by_device_api_key(
+        &self,
+        api_key: impl AsRef<str>,
+    ) -> Result<Option<User>, crate::Error> {
         let mut rows = self
             .conn
             .query(
@@ -68,9 +76,13 @@ impl AdminDatabase {
             )
             .await?;
 
-        let row = rows.next().await.unwrap().unwrap();
-        let user: User = libsql::de::from_row(&row).unwrap();
-        Ok(user)
+        match rows.next().await.unwrap() {
+            None => Ok(None),
+            Some(row) => {
+                let user: User = libsql::de::from_row(&row).unwrap();
+                Ok(Some(user))
+            }
+        }
     }
 }
 
@@ -102,6 +114,7 @@ mod tests {
         let user = db
             .get_user_by_clerk_user_id("21".to_string())
             .await
+            .unwrap()
             .unwrap();
         assert_eq!(user.turso_db_name, "12".to_string());
     }
@@ -161,7 +174,11 @@ mod tests {
             .await
             .unwrap();
 
-        let user_2 = db.get_user_by_device_api_key(device.api_key).await.unwrap();
+        let user_2 = db
+            .get_user_by_device_api_key(device.api_key)
+            .await
+            .unwrap()
+            .unwrap();
 
         assert_eq!(user_1.id, user_2.id);
     }

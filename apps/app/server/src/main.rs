@@ -85,6 +85,7 @@ fn main() {
             Registry::default()
                 .with(
                     tracing_subscriber::EnvFilter::from_default_env()
+                        .add_directive("info".parse().unwrap())
                         .add_directive(
                             format!("{}=debug", env!("CARGO_CRATE_NAME"))
                                 .parse()
@@ -149,7 +150,14 @@ fn main() {
                 };
 
                 hypr_db::admin::migrate(&conn).await.unwrap();
-                hypr_db::admin::AdminDatabase::from(conn)
+                let db = hypr_db::admin::AdminDatabase::from(conn);
+
+                #[cfg(debug_assertions)]
+                {
+                    hypr_db::admin::seed(&db).await.unwrap();
+                }
+
+                db
             };
 
             let nango = hypr_nango::NangoClientBuilder::new()
@@ -206,8 +214,7 @@ fn main() {
                     true,
                 ));
 
-            #[allow(unused)]
-            let mut native_router = ApiRouter::new()
+            let native_router = ApiRouter::new()
                 .route(
                     "/enhance",
                     post(native::enhance::handler)
@@ -232,19 +239,15 @@ fn main() {
                 .route("/listen/recorded", post(native::listen::recorded::handler))
                 .route("/user/integrations", get(native::user::list_integrations))
                 .route("/upload/create", post(native::upload::create_upload))
-                .route("/upload/complete", post(native::upload::complete_upload));
-            // .layer(
-            //     tower::builder::ServiceBuilder::new()
-            //         .layer(axum::middleware::from_fn_with_state(
-            //             AuthState::from_ref(&state),
-            //             middleware::verify_api_key,
-            //         ))
-            //         .layer(axum::middleware::from_fn_with_state(
-            //             AnalyticsState::from_ref(&state),
-            //             middleware::send_analytics,
-            //         ))
-            //         .layer(axum::middleware::from_fn(middleware::attach_user_db)),
-            // );
+                .route("/upload/complete", post(native::upload::complete_upload))
+                .layer(
+                    tower::builder::ServiceBuilder::new()
+                        .layer(axum::middleware::from_fn_with_state(
+                            AuthState::from_ref(&state),
+                            middleware::verify_api_key,
+                        ))
+                        .layer(axum::middleware::from_fn(middleware::attach_user_db)),
+                );
 
             let webhook_router = ApiRouter::new()
                 .route("/nango", post(nango::handler))
@@ -308,10 +311,6 @@ fn export_ts_types() -> anyhow::Result<()> {
     let mut web_collection = specta_util::TypeCollection::default();
     let mut native_collection = specta_util::TypeCollection::default();
 
-    web_collection.register::<web::connect::ConnectInput>();
-    web_collection.register::<web::connect::ConnectOutput>();
-    web_collection.register::<web::integration::CreateSessionInput>();
-    web_collection.register::<web::integration::CreateSessionOutput>();
     web_collection.register::<hypr_nango::NangoIntegration>();
 
     native_collection.register::<hypr_nango::NangoIntegration>();

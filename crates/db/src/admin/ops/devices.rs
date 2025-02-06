@@ -1,12 +1,8 @@
-use anyhow::Result;
-use rand::{distributions::Alphanumeric, Rng};
-
+use super::AdminDatabase;
 use crate::admin::Device;
 
-use super::AdminDatabase;
-
 impl AdminDatabase {
-    pub async fn list_devices(&self) -> Result<Vec<Device>> {
+    pub async fn list_devices(&self) -> Result<Vec<Device>, crate::Error> {
         let mut rows = self.conn.query("SELECT * FROM devices", ()).await.unwrap();
         let mut devices = Vec::new();
 
@@ -18,7 +14,7 @@ impl AdminDatabase {
         Ok(devices)
     }
 
-    pub async fn upsert_device(&self, device: Device) -> Result<Device> {
+    pub async fn upsert_device(&self, device: Device) -> Result<Device, crate::Error> {
         let mut rows = self
             .conn
             .query(
@@ -37,7 +33,7 @@ impl AdminDatabase {
                     device.timestamp.to_rfc3339(),
                     device.user_id,
                     device.fingerprint,
-                    generate_api_key(),
+                    device.api_key,
                 ],
             )
             .await?;
@@ -47,7 +43,10 @@ impl AdminDatabase {
         Ok(device)
     }
 
-    pub async fn delete_device_with_api_key(&self, api_key: impl AsRef<str>) -> Result<()> {
+    pub async fn delete_device_with_api_key(
+        &self,
+        api_key: impl AsRef<str>,
+    ) -> Result<(), crate::Error> {
         self.conn
             .query(
                 "DELETE FROM devices WHERE api_key = ?",
@@ -56,16 +55,6 @@ impl AdminDatabase {
             .await?;
         Ok(())
     }
-}
-
-fn generate_api_key() -> String {
-    let key: String = rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(32)
-        .map(char::from)
-        .collect();
-
-    format!("hypr_{}", key)
 }
 
 #[cfg(test)]

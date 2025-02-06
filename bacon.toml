@@ -19,3 +19,6 @@ default_watch = false
 watch = [
   "apps/app/server",
 ]
+ignore = [
+  "**/*.gen.*",
+]

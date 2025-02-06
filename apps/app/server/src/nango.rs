@@ -20,7 +20,8 @@ pub async fn handler(
         .admin_db
         .get_user_by_clerk_user_id(clerk_user_id)
         .await
-        .map_err(|_| StatusCode::NOT_FOUND)?;
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::NOT_FOUND)?;
 
     let integration = hypr_db::admin::Integration {
         id: uuid::Uuid::new_v4().to_string(),

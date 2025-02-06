@@ -2819,7 +2819,6 @@ dependencies = [
  "codes-iso-639",
  "libsql",
  "nango",
- "rand 0.8.5",
  "random_color",
  "schemars",
  "serde",

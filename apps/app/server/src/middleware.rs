@@ -12,36 +12,35 @@ use crate::{
     state::{AnalyticsState, AuthState},
 };
 
+#[tracing::instrument(skip_all)]
 pub async fn verify_api_key(
     State(state): State<AuthState>,
     mut req: Request,
     next: middleware::Next,
 ) -> Result<Response, StatusCode> {
-    if cfg!(debug_assertions) {
-        return Ok(next.run(req).await);
-    }
-
     let auth_header = req
         .headers()
         .get(header::AUTHORIZATION)
         .and_then(|header| header.to_str().ok());
 
-    let api_key = if let Some(api_key) = auth_header {
-        api_key
+    let api_key = if let Some(v) = auth_header {
+        v.strip_prefix("Bearer ").unwrap_or(v)
     } else {
         return Err(StatusCode::UNAUTHORIZED);
     };
 
-    let user: hypr_db::admin::User = state
+    let user = state
         .admin_db
         .get_user_by_device_api_key(api_key)
         .await
-        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::UNAUTHORIZED)?;
 
     req.extensions_mut().insert(user);
     Ok(next.run(req).await)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn attach_user_from_clerk(
     State(state): State<AuthState>,
     Extension(jwt): Extension<ClerkJwt>,
@@ -54,24 +53,35 @@ pub async fn attach_user_from_clerk(
         .admin_db
         .get_user_by_clerk_user_id(clerk_user_id)
         .await
-        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::UNAUTHORIZED)?;
 
     req.extensions_mut().insert(user);
     Ok(next.run(req).await)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn attach_user_db(
     Extension(user): Extension<hypr_db::admin::User>,
     mut req: Request,
     next: middleware::Next,
 ) -> Result<Response, StatusCode> {
-    let token = get_env("TURSO_API_KEY");
-    let url = format!("{}-yujonglee.turso.io", user.turso_db_name);
-    let conn = hypr_db::ConnectionBuilder::new()
-        .remote(url, token)
-        .connect()
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let conn = {
+        #[cfg(debug_assertions)]
+        {
+            let token = get_env("TURSO_API_KEY");
+            let url = format!("{}-yujonglee.turso.io", user.turso_db_name);
+            hypr_db::ConnectionBuilder::new().remote(url, token)
+        }
+
+        #[cfg(not(debug_assertions))]
+        {
+            hypr_db::ConnectionBuilder::new().local()
+        }
+    }
+    .connect()
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     let db = hypr_db::user::UserDatabase::from(conn);
 
@@ -79,6 +89,7 @@ pub async fn attach_user_db(
     Ok(next.run(req).await)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn send_analytics(
     Extension(user): Extension<hypr_db::admin::User>,
     State(state): State<AnalyticsState>,

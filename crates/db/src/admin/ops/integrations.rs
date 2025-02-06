@@ -1,10 +1,11 @@
-use anyhow::Result;
-
 use super::AdminDatabase;
 use crate::admin::Integration;
 
 impl AdminDatabase {
-    pub async fn list_integrations(&self, user_id: impl AsRef<str>) -> Result<Vec<Integration>> {
+    pub async fn list_integrations(
+        &self,
+        user_id: impl AsRef<str>,
+    ) -> Result<Vec<Integration>, crate::Error> {
         let mut rows = self
             .conn
             .query(
@@ -21,7 +22,10 @@ impl AdminDatabase {
         Ok(items)
     }
 
-    pub async fn upsert_integration(&self, integration: Integration) -> Result<Integration> {
+    pub async fn upsert_integration(
+        &self,
+        integration: Integration,
+    ) -> Result<Integration, crate::Error> {
         let mut rows = self
             .conn
             .query(

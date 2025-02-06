@@ -1,6 +1,6 @@
 use super::{Calendar, Event, Participant, Platform, Session, UserDatabase};
 
-pub async fn seed(db: &UserDatabase) -> anyhow::Result<()> {
+pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
     let now = chrono::Utc::now();
 
     let yujonglee = Participant {

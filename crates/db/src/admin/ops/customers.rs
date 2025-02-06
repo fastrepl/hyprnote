@@ -1,10 +1,8 @@
-use anyhow::Result;
-
 use super::AdminDatabase;
 use crate::admin::{Customer, User};
 
 impl AdminDatabase {
-    pub async fn create_customer(&self, user: User) -> Result<Customer> {
+    pub async fn create_customer(&self, user: User) -> Result<Customer, crate::Error> {
         let mut rows = self
             .conn
             .query(
@@ -25,7 +23,10 @@ impl AdminDatabase {
         Ok(customer)
     }
 
-    pub async fn get_customer_by_user_id(&self, user_id: impl AsRef<str>) -> Result<Customer> {
+    pub async fn get_customer_by_user_id(
+        &self,
+        user_id: impl AsRef<str>,
+    ) -> Result<Customer, crate::Error> {
         let mut rows = self
             .conn
             .query(

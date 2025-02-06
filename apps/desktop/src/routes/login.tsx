@@ -12,13 +12,19 @@ import SparklesText from "@hypr/ui/components/ui/sparkles-text";
 import ShimmerButton from "@hypr/ui/components/ui/shimmer-button";
 import { Button } from "@hypr/ui/components/ui/button";
 
+import {
+  start as startOauth,
+  cancel as cancelOauth,
+} from "@fabianlars/tauri-plugin-oauth";
+import { useEffect } from "react";
+
 export const Route = createFileRoute("/login")({
   component: Component,
   loader: async () => {
-    const fingerprint = await commands.getFingerprint();
+    // const fingerprint = await commands.getFingerprint();
     return {
       code: window.crypto.randomUUID(),
-      fingerprint,
+      fingerprint: "",
     };
   },
   beforeLoad: () => {
@@ -37,6 +43,16 @@ function Component() {
     u.searchParams.set("f", fingerprint);
     open(u.toString());
   };
+
+  useEffect(() => {
+    let cleanup: (() => void) | undefined;
+
+    startOauth().then((port) => {
+      cleanup = () => cancelOauth(port);
+    });
+
+    return () => cleanup?.();
+  }, []);
 
   return (
     <div>

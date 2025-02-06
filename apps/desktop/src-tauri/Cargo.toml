@@ -42,6 +42,7 @@ tauri-plugin-fs = "2"
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-http = "2"
 tauri-plugin-notification = { version = "2", features = ["windows7-compat"] }
+tauri-plugin-oauth = "2"
 tauri-plugin-os = "2"
 tauri-plugin-positioner = { version = "2", features = ["tray-icon"] }
 tauri-plugin-sentry = "0.4.1"
@@ -49,7 +50,6 @@ tauri-plugin-shell = "2"
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 tauri-plugin-store = "2"
 tauri-plugin-updater = "2"
-tauri-plugin-window-state = "2.2.1"
 
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }

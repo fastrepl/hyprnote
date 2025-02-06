@@ -7,6 +7,7 @@ edition = "2021"
 default = ["realtime", "recorded"]
 realtime = []
 recorded = []
+local = ["candle-core", "candle-nn", "candle-transformers", "tokenizers"]
 
 [dependencies]
 deepgram = { version = "0.6.4", features = ["listen"] }
@@ -27,6 +28,11 @@ specta = { workspace = true, features = ["derive"] }
 futures-core = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true }
+
+candle-core = { workspace = true, optional = true }
+candle-nn = { workspace = true, optional = true }
+candle-transformers = { workspace = true, optional = true }
+tokenizers = { workspace = true, optional = true }
 
 [dev-dependencies]
 hypr-audio = { path = "../audio", package = "audio" }

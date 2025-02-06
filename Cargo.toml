@@ -35,6 +35,11 @@ thiserror = "2"
 time = "0.3.37"
 uuid = "1"
 
+candle-core = "0.8.2"
+candle-nn = "0.8.2"
+candle-transformers = "0.8.2"
+tokenizers = "0.21.0"
+
 chrono = "0.4.39"
 chrono-tz = "0.10.1"
 url = "2"

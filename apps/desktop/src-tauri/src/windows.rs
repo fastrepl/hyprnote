@@ -3,7 +3,6 @@ use tauri::{
     AppHandle, LogicalPosition, LogicalSize, Manager, WebviewUrl, WebviewWindow,
     WebviewWindowBuilder, Wry,
 };
-use tauri_plugin_decorum::WebviewWindowExt;
 
 #[derive(Clone, strum::EnumString, strum::Display)]
 pub enum HyprWindowId {
@@ -60,14 +59,6 @@ impl ShowHyprWindow {
             }
         };
 
-        window.create_overlay_titlebar().unwrap();
-        
-        #[cfg(target_os = "macos")]
-        {
-            window.make_transparent().unwrap();
-            window.set_traffic_lights_inset(12.0, 16.0).unwrap();
-        }
-
         let monitor = app.primary_monitor()?.unwrap();
         let display_width = (monitor.size().width as f64) / monitor.scale_factor();
         let display_height = (monitor.size().height as f64) / monitor.scale_factor();
@@ -114,7 +105,6 @@ impl ShowHyprWindow {
 
         let builder = WebviewWindow::builder(app, id.label(), WebviewUrl::App(url.into()))
             .title(id.title())
-            .accept_first_mouse(true)
             .hidden_title(true)
             .title_bar_style(tauri::TitleBarStyle::Overlay)
             .decorations(true)

@@ -54,10 +54,11 @@ impl SessionState {
         .resample(SAMPLE_RATE);
 
         let (backup_tx, mut backup_rx) =
-            tokio::sync::mpsc::channel::<f32>((SAMPLE_RATE as usize) * 2);
+            tokio::sync::mpsc::channel::<f32>((SAMPLE_RATE as usize) * 10);
         let (network_tx, network_rx) =
-            tokio::sync::mpsc::channel::<f32>((SAMPLE_RATE as usize) * 2);
+            tokio::sync::mpsc::channel::<f32>((SAMPLE_RATE as usize) * 10);
 
+        // TODO: this is keep errored when websocket it not even connected(failed)
         tokio::spawn({
             let mut audio_stream = audio_stream;
             async move {
@@ -76,6 +77,7 @@ impl SessionState {
             let dir = app_dir.join(session_id);
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join("audio.wav");
+            tracing::info!("path: {:?}", path);
 
             let mut wav = hound::WavWriter::create(
                 path,
@@ -122,6 +124,7 @@ impl SessionState {
 
                 let view = timeline.view();
                 let out = SessionStatus::Timeline(view);
+                tracing::info!("timeline: {:?}", out);
                 channel.send(out).unwrap();
             }
 

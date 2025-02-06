@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import clsx from "clsx";
 import { useLocation, useRouter } from "@tanstack/react-router";
@@ -29,24 +29,20 @@ export function Header() {
       ])}
       data-tauri-drag-region
     >
-      <div className="flex flex-row gap-2">
-        {!pathname.includes("onboarding") && (
-          <button
-            className="text-gray-600 hover:text-gray-900"
-            onClick={handleClickBack}
-          >
-            <ArrowLeft
-              size={16}
-              className={clsx(["opacity-0", pathname !== "/" && "opacity-100"])}
-            />
-          </button>
-        )}
+      <div
+        className="flex flex-1 flex-row gap-4 justify-center"
+        data-tauri-drag-region
+      >
+        <button
+          className="text-gray-600 hover:text-gray-900 disabled:opacity-0"
+          onClick={handleClickBack}
+          disabled={!history.canGoBack()}
+        >
+          <ArrowLeft size={14} />
+        </button>
+        <SearchBar />
       </div>
-      {!pathname.includes("onboarding") && (
-        <div className="flex flex-1 justify-center" data-tauri-drag-region>
-          <SearchBar />
-        </div>
-      )}
+
       <div className="mr-3 flex flex-row gap-2">
         <Button
           variant="outline"

@@ -4,8 +4,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@clerk/clerk-react";
 import Nango from "@nangohq/frontend";
 
-import { createNangoConnection } from "../client";
-import { NangoIntegration } from "../types";
+import { client, postApiWebIntegrationConnection } from "../client";
+import type { NangoIntegration } from "../types";
 
 const integrations: NangoIntegration[] = [
   "google-calendar",
@@ -37,18 +37,21 @@ function Component() {
         return;
       }
 
-      const res = await createNangoConnection({
-        end_user: { id: userId },
-        allowed_integrations: integrations as unknown as string[],
+      const res = await postApiWebIntegrationConnection({
+        client,
+        body: {
+          allowed_integrations: integrations,
+          end_user: { id: userId },
+        },
       });
 
-      if ("error" in res) {
+      if (res.error || !res.data || "error" in res.data) {
         setStep("error");
         return;
       }
 
       // https://docs.nango.dev/guides/authorize-an-api-from-your-app-with-custom-ui
-      new Nango({ connectSessionToken: res.data.token })
+      new Nango({ connectSessionToken: res.data.data.token })
         .auth(provider)
         .then((_) => {
           setStep("success");

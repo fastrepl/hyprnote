@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { useEffect } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-react";
 
-import type { ConnectInput, ConnectOutput } from "../types";
+import { client, postApiWebConnect, type ConnectInput } from "../client";
 
 const schema = z.object({
   c: z.string(),
@@ -24,22 +24,15 @@ function Component() {
   const navigate = useNavigate();
 
   const mutation = useMutation({
-    mutationFn: async (input: ConnectInput) => {
-      const response: ConnectOutput = await fetch("/api/web/connect", {
-        method: "POST",
-        body: JSON.stringify(input),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }).then((res) => res.json());
-
+    mutationFn: async (body: ConnectInput) => {
+      const response = await postApiWebConnect({ client, body });
       return response;
     },
   });
 
   useEffect(() => {
-    if (mutation.status === "success") {
-      const { key } = mutation.data;
+    if (mutation.status === "success" && mutation.data.data) {
+      const { key } = mutation.data.data;
       window.location.href = `hypr://callback/connect?k=${key}`;
     }
   }, [mutation.status]);
@@ -60,7 +53,7 @@ function Component() {
       <div className="flex flex-col items-center justify-center h-screen">
         <div>
           <p>No code provided</p>
-          <Link href="https://hyprnote.com">Go to Hyprnote</Link>
+          <a href="https://hyprnote.com">Go to Hyprnote</a>
         </div>
       </div>
     );

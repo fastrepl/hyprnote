@@ -1,8 +1,14 @@
 {
   "name": "@hypr/client",
-  "main": "generated/index.js",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./gen/types": "./generated/types.gen.ts",
+    "./gen/sdk": "./generated/sdk.gen.ts",
+    "./gen/client": "./generated/client.gen.ts"
+  },
   "scripts": {
-    "generate": "openapi-ts -i ../../apps/app/server/openapi.gen.json -o ../../packages/client/generated -c @hey-api/client-fetch"
+    "generate": "openapi-ts"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.64.1"

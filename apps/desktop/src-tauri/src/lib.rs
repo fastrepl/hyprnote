@@ -12,7 +12,7 @@ mod windows;
 mod workers;
 
 use tauri::{AppHandle, Manager, WindowEvent};
-use windows::{HyprWindowId, ShowHyprWindow};
+// use windows::{HyprWindowId, ShowHyprWindow};
 
 pub struct App {
     handle: AppHandle,
@@ -51,7 +51,7 @@ pub async fn main() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_sentry::init(&client))
         .plugin(tauri_plugin_os::init())
-        .plugin(tauri_plugin_window_state::Builder::default().build())
+        // .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())
@@ -65,10 +65,10 @@ pub async fn main() {
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec![]),
-        ))
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            ShowHyprWindow::MainWithoutDemo.show(app).unwrap();
-        }));
+        ));
+    // .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+    //     ShowHyprWindow::MainWithoutDemo.show(app).unwrap();
+    // }));
 
     let specta_builder = tauri_specta::Builder::new()
         .commands(tauri_specta::collect_commands![
@@ -191,11 +191,13 @@ pub async fn main() {
 
             tauri::WebviewWindowBuilder::new(&app, "main", tauri::WebviewUrl::default())
                 .title("Hyprnote")
-                .inner_size(800.0, 600.0)
+                .min_inner_size(400.0, 720.0)
+                .inner_size(1160.0, 720.0)
                 .accept_first_mouse(true)
                 .shadow(false)
-                .transparent(true)
-                .decorations(false)
+                .hidden_title(true)
+                .disable_drag_drop_handler()
+                .title_bar_style(tauri::TitleBarStyle::Overlay)
                 .build()
                 .unwrap();
 

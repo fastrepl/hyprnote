@@ -1,12 +1,13 @@
+import { useCallback } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
-import { useCallback } from "react";
-import { useLocation, useRouter } from "@tanstack/react-router";
 import clsx from "clsx";
-import { Button } from "@hypr/ui/components/ui/button";
-import Controls from "@/components/controls";
+import { useLocation, useRouter } from "@tanstack/react-router";
+
 import SettingsDialog from "@/components/settings";
 import SearchBar from "@/components/search-bar";
+
+import { Button } from "@hypr/ui/components/ui/button";
 
 export function Header() {
   const { history, navigate } = useRouter();
@@ -24,12 +25,11 @@ export function Header() {
     <header
       className={clsx([
         "flex w-full items-center justify-between",
-        "h-10 border-b border-border bg-secondary",
+        "h-10 border-b border-border",
       ])}
       data-tauri-drag-region
     >
       <div className="flex flex-row gap-2">
-        <Controls />
         {!pathname.includes("onboarding") && (
           <button
             className="text-gray-600 hover:text-gray-900"

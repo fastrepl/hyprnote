@@ -11,11 +11,10 @@ mod vars;
 mod windows;
 mod workers;
 
-use tauri::{AppHandle, Manager, WindowEvent};
-// use windows::{HyprWindowId, ShowHyprWindow};
+use tauri::Manager;
 
 pub struct App {
-    handle: AppHandle,
+    handle: tauri::AppHandle,
     db: hypr_db::user::UserDatabase,
     bridge: hypr_bridge::Client,
 }
@@ -51,7 +50,6 @@ pub async fn main() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_sentry::init(&client))
         .plugin(tauri_plugin_os::init())
-        // .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())
@@ -62,13 +60,14 @@ pub async fn main() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_decorum::init())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec![]),
-        ));
-    // .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-    //     ShowHyprWindow::MainWithoutDemo.show(app).unwrap();
-    // }));
+        ))
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            windows::ShowHyprWindow::MainWithoutDemo.show(app).unwrap();
+        }));
 
     let specta_builder = tauri_specta::Builder::new()
         .commands(tauri_specta::collect_commands![
@@ -188,18 +187,7 @@ pub async fn main() {
             });
 
             tray::create_tray(&app).unwrap();
-
-            tauri::WebviewWindowBuilder::new(&app, "main", tauri::WebviewUrl::default())
-                .title("Hyprnote")
-                .min_inner_size(400.0, 720.0)
-                .inner_size(1160.0, 720.0)
-                .accept_first_mouse(true)
-                .shadow(false)
-                .hidden_title(true)
-                .disable_drag_drop_handler()
-                .title_bar_style(tauri::TitleBarStyle::Overlay)
-                .build()
-                .unwrap();
+            windows::ShowHyprWindow::MainWithoutDemo.show(&app).unwrap();
 
             Ok(())
         })

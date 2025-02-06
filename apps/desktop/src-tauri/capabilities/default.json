@@ -3,6 +3,7 @@
   "identifier": "default",
   "description": "Capability for Hyprnote",
   "windows": ["*"],
+  "withGlobalTauri": true,
   "permissions": [
     "core:default",
     "positioner:default",
@@ -26,6 +27,12 @@
     "core:window:allow-maximize",
     "core:window:allow-close",
     "core:window:allow-show",
-    "core:window:allow-set-position"
+    "core:window:allow-center",
+    "core:window:allow-set-size",
+    "core:window:allow-set-focus",
+    "core:window:allow-set-position",
+    "core:window:allow-is-maximized",
+    "core:window:allow-toggle-maximize",
+    "decorum:allow-show-snap-overlay"
   ]
 }

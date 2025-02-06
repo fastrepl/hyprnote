@@ -3,32 +3,14 @@ use tauri::{
     AppHandle, LogicalPosition, LogicalSize, Manager, WebviewUrl, WebviewWindow,
     WebviewWindowBuilder, Wry,
 };
+use tauri_plugin_decorum::WebviewWindowExt;
 
-#[derive(Clone)]
+#[derive(Clone, strum::EnumString, strum::Display)]
 pub enum HyprWindowId {
+    #[strum(serialize = "demo")]
     Demo,
+    #[strum(serialize = "main")]
     Main,
-}
-
-impl std::str::FromStr for HyprWindowId {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "demo" => Self::Demo,
-            "main" => Self::Main,
-            _ => return Err(format!("unknown window label: {}", s)),
-        })
-    }
-}
-
-impl std::fmt::Display for HyprWindowId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Demo => write!(f, "demo"),
-            Self::Main => write!(f, "main"),
-        }
-    }
 }
 
 impl HyprWindowId {
@@ -70,13 +52,21 @@ impl ShowHyprWindow {
             Some(window) => window,
             None => {
                 let url = match self {
-                    Self::Demo => "/demo",
+                    Self::Demo => "/",
                     Self::MainWithDemo => "/",
                     Self::MainWithoutDemo => "/",
                 };
                 self.window_builder(app, url).build()?
             }
         };
+
+        window.create_overlay_titlebar().unwrap();
+        
+        #[cfg(target_os = "macos")]
+        {
+            window.make_transparent().unwrap();
+            window.set_traffic_lights_inset(12.0, 16.0).unwrap();
+        }
 
         let monitor = app.primary_monitor()?.unwrap();
         let display_width = (monitor.size().width as f64) / monitor.scale_factor();
@@ -125,9 +115,10 @@ impl ShowHyprWindow {
         let builder = WebviewWindow::builder(app, id.label(), WebviewUrl::App(url.into()))
             .title(id.title())
             .accept_first_mouse(true)
-            .shadow(false)
-            .transparent(true)
-            .decorations(false);
+            .hidden_title(true)
+            .title_bar_style(tauri::TitleBarStyle::Overlay)
+            .decorations(true)
+            .disable_drag_drop_handler();
 
         builder
     }
@@ -135,11 +126,10 @@ impl ShowHyprWindow {
 
 pub mod commands {
     use crate::windows::ShowHyprWindow;
-    use tauri::{AppHandle, State};
 
     #[tauri::command]
     #[specta::specta]
-    pub fn show_window(app: AppHandle, window: ShowHyprWindow) {
+    pub fn show_window(app: tauri::AppHandle, window: ShowHyprWindow) {
         window.show(&app).unwrap();
     }
 }

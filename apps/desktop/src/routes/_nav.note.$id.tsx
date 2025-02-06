@@ -180,7 +180,7 @@ function LeftPanel() {
           value={store.session.title}
           placeholder="Untitled meeting"
           className={clsx([
-            "border-none bg-transparent text-2xl font-bold caret-gray-300 focus:outline-none",
+            "w-full border-none bg-transparent text-2xl font-bold caret-gray-300 focus:outline-none",
           ])}
         />
         <button

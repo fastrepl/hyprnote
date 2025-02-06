@@ -5,7 +5,11 @@ import { zodValidator } from "@tanstack/zod-adapter";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-react";
 
-import { client, postApiWebConnect, type ConnectInput } from "../client";
+import {
+  client,
+  postApiWebConnectMutation,
+  type ConnectInput,
+} from "../client";
 
 const schema = z.object({
   c: z.string(),
@@ -24,15 +28,12 @@ function Component() {
   const navigate = useNavigate();
 
   const mutation = useMutation({
-    mutationFn: async (body: ConnectInput) => {
-      const response = await postApiWebConnect({ client, body });
-      return response;
-    },
+    ...postApiWebConnectMutation({ client }),
   });
 
   useEffect(() => {
-    if (mutation.status === "success" && mutation.data.data) {
-      const { key } = mutation.data.data;
+    if (mutation.status === "success") {
+      const { key } = mutation.data;
       window.location.href = `hypr://callback/connect?k=${key}`;
     }
   }, [mutation.status]);
@@ -88,7 +89,7 @@ function Component() {
           <button
             className="bg-blue-800 text-white p-1 rounded-md"
             disabled={mutation.status !== "idle"}
-            onClick={() => mutation.mutate(payload)}
+            onClick={() => mutation.mutate({ body: payload })}
           >
             Connect
           </button>

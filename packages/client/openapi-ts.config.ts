@@ -4,5 +4,9 @@ import { defaultPlugins } from "@hey-api/openapi-ts";
 export default defineConfig({
   input: "../../apps/app/server/openapi.gen.json",
   output: "./generated",
-  plugins: [...defaultPlugins, "@hey-api/client-fetch"],
+  plugins: [
+    ...defaultPlugins,
+    "@hey-api/client-fetch",
+    "@tanstack/react-query",
+  ],
 });

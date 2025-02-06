@@ -5,11 +5,11 @@ import { fetch } from "@tauri-apps/plugin-http";
 import { Channel } from "@tauri-apps/api/core";
 
 import type {
-  EnhanceRequest,
   NangoIntegration,
   CreateTitleRequest,
   CreateTitleResponse,
 } from "@/types/server.gen";
+import type { EnhanceRequest } from "@/types/tauri.gen";
 import type { CalendarIntegration } from "@/types";
 import { commands } from "@/types/tauri.gen";
 

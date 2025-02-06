@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@clerk/clerk-react";
 import Nango from "@nangohq/frontend";
+import { useMutation } from "@tanstack/react-query";
 
-import { client, postApiWebIntegrationConnection } from "../client";
+import { client, postApiWebIntegrationConnectionMutation } from "../client";
 import type { NangoIntegration } from "../types";
 
 const integrations: NangoIntegration[] = [
@@ -31,36 +32,51 @@ function Component() {
     throw navigate({ to: "/auth/sign-in" });
   }
 
+  const connectMutation = useMutation({
+    ...postApiWebIntegrationConnectionMutation({ client }),
+  });
+
   useEffect(() => {
-    (async () => {
-      if (step !== "idle" || !userId || !provider) {
-        return;
-      }
+    if (!userId) {
+      return;
+    }
 
-      const res = await postApiWebIntegrationConnection({
-        client,
-        body: {
-          allowed_integrations: integrations,
-          end_user: { id: userId },
-        },
-      });
+    connectMutation.mutate({
+      client,
+      body: {
+        allowed_integrations: integrations,
+        end_user: { id: userId },
+      },
+    });
+  }, [userId]);
 
-      if (res.error || !res.data || "error" in res.data) {
+  useEffect(() => {
+    if (
+      connectMutation.status === "error" ||
+      (connectMutation.data && "error" in connectMutation.data)
+    ) {
+      setStep("error");
+      return;
+    }
+
+    if (!connectMutation.data) {
+      return;
+    }
+
+    const {
+      data: { token: connectSessionToken },
+    } = connectMutation.data;
+
+    // https://docs.nango.dev/guides/authorize-an-api-from-your-app-with-custom-ui
+    new Nango({ connectSessionToken })
+      .auth(provider)
+      .then((_) => {
+        setStep("success");
+      })
+      .catch((_) => {
         setStep("error");
-        return;
-      }
-
-      // https://docs.nango.dev/guides/authorize-an-api-from-your-app-with-custom-ui
-      new Nango({ connectSessionToken: res.data.data.token })
-        .auth(provider)
-        .then((_) => {
-          setStep("success");
-        })
-        .catch((_) => {
-          setStep("error");
-        });
-    })();
-  }, [step, userId, provider]);
+      });
+  }, [connectMutation.status]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">

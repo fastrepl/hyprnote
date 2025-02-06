@@ -84,6 +84,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^3.10.0
         version: 3.10.0(react-hook-form@7.54.2(react@18.3.1))
+      '@hypr/client':
+        specifier: workspace:*
+        version: link:../../packages/client
       '@hypr/tiptap':
         specifier: workspace:*
         version: link:../../packages/tiptap
@@ -286,6 +289,9 @@ importers:
       '@hey-api/client-fetch':
         specifier: ^0.8.0
         version: 0.8.0
+      '@tanstack/react-query':
+        specifier: ^5.66.0
+        version: 5.66.0(react@18.3.1)
     devDependencies:
       '@hey-api/openapi-ts':
         specifier: ^0.64.1

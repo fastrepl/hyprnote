@@ -281,7 +281,17 @@ fn main() {
                 .unwrap();
 
             let service = router
-                .finish_api(&mut api)
+                .finish_api_with(&mut api, |api| {
+                    api.security_scheme(
+                        "bearer_token",
+                        aide::openapi::SecurityScheme::Http {
+                            scheme: "Bearer".to_string(),
+                            bearer_format: None,
+                            description: None,
+                            extensions: Default::default(),
+                        },
+                    )
+                })
                 .layer(Extension(api.clone()))
                 .into_make_service();
 

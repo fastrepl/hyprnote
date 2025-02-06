@@ -78,6 +78,12 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "bearer_token": {
+        "type": "http",
+        "scheme": "Bearer"
+      }
+    },
     "schemas": {
       "ConnectInput": {
         "type": "object",

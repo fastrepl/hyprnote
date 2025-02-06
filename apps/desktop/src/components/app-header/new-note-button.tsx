@@ -29,6 +29,7 @@ export function NewNoteButton() {
       size="sm"
       className={clsx([
         "h-7 px-2 text-xs",
+        "bg-white hover:bg-neutral-100",
         pathname === "/" ? "opacity-100" : "opacity-0",
       ])}
       onClick={handleClickNewNote}

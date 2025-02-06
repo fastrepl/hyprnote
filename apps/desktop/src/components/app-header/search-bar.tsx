@@ -32,12 +32,13 @@ export default function SearchBar() {
           "w-[40%]",
           "flex flex-row items-center gap-2",
           "rounded-md border border-border px-2 py-2",
-          "bg-neutral-100 hover:bg-neutral-200",
+          "bg-neutral-50 hover:bg-neutral-100",
+          "text-neutral-500 hover:text-neutral-600",
         ])}
         onClick={() => setOpen(true)}
       >
-        <Search className="mr-2 h-4 w-4 text-neutral-400" />
-        <span className="text-xs text-gray-500">Search</span>
+        <Search className="mr-2 h-4 w-4" />
+        <span className="text-xs">Search</span>
         <Shortcut />
       </button>
       <CommandDialog open={open} onOpenChange={setOpen}>

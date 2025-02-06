@@ -8,7 +8,7 @@ export const extensions = [
     code: false,
     codeBlock: false,
     heading: {
-      levels: [3],
+      levels: [1],
     },
   }),
   Typography,

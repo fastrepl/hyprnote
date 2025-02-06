@@ -2,22 +2,14 @@ import { type ReactNode, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   SettingsIcon,
-  Settings2Icon,
-  LayoutTemplateIcon,
-  CalendarIcon,
   UserIcon,
+  CalendarIcon,
+  FileTextIcon,
   CreditCardIcon,
-  ArrowLeftFromLineIcon,
+  ChevronLeftIcon,
+  Settings2Icon,
 } from "lucide-react";
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@hypr/ui/components/ui/breadcrumb";
 import {
   Dialog,
   DialogContent,
@@ -31,26 +23,26 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuButton,
   SidebarProvider,
 } from "@hypr/ui/components/ui/sidebar";
-import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
 
+import { commands, type Template } from "@/types/tauri.gen";
+import { Content } from "./components/breadcrumbs";
+import { TemplateList, TemplateContent } from "./templates";
 import GeneralComponent from "./general";
 import ProfileComponent from "./profile";
 import CalendarComponent from "./calendar";
 import TemplateComponent from "./template";
 import BillingComponent from "./billing";
 
-import { commands, type Template } from "@/types/tauri.gen";
-
 const data = {
   nav: [
     { name: "General", icon: SettingsIcon },
     { name: "Profile", icon: UserIcon },
     { name: "Calendar", icon: CalendarIcon },
-    { name: "Template", icon: LayoutTemplateIcon },
+    { name: "Templates", icon: FileTextIcon },
     { name: "Team & Billing", icon: CreditCardIcon },
   ],
 } as const;
@@ -62,6 +54,10 @@ export default function SettingsDialog() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<NavNames>(data.nav[3].name);
   const [templateIndex, setTemplateIndex] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
+    null,
+  );
 
   const templates = useQuery({
     queryKey: ["settings", "templates"],
@@ -70,7 +66,7 @@ export default function SettingsDialog() {
         commands.listBuiltinTemplates(),
         commands.listTemplates(),
       ]);
-      return { builtin, custom };
+      return { builtin: builtin || [], custom: custom || [] };
     },
   });
 
@@ -78,11 +74,16 @@ export default function SettingsDialog() {
     commands.upsertTemplate(template);
   };
 
+  const handleTemplateSelect = (template: Template, index: number) => {
+    setTemplateIndex(index);
+    setSelectedTemplate(template);
+  };
+
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === ",") {
         e.preventDefault();
-        setOpen(prev => !prev);
+        setOpen((prev) => !prev);
       }
     };
     document.addEventListener("keydown", down);
@@ -93,7 +94,7 @@ export default function SettingsDialog() {
     if (!open) {
       setActive(data.nav[0].name);
     }
-    if (active === "Template") {
+    if (active === "Templates") {
       setTemplateIndex(0);
     }
   }, [open, active]);
@@ -103,33 +104,34 @@ export default function SettingsDialog() {
       <SidebarProvider className="items-start">
         <Sidebar collapsible="none" className="hidden md:flex">
           <SidebarContent>
-            {active === "Template" ? (
-              <SidebarGroup>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        isActive={true}
-                        className="flex flex-row gap-2"
-                        onClick={() => setActive(data.nav[0].name)}
-                      >
-                        <ArrowLeftFromLineIcon />
-                        <span>Template</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    {templates.data?.custom.map((template, index) => (
-                      <SidebarMenuItem key={template.id}>
+            {active === "Templates" ? (
+              <>
+                <SidebarGroup>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
                         <SidebarMenuButton
-                          isActive={index === templateIndex}
-                          onClick={() => setTemplateIndex(index)}
+                          isActive={false}
+                          className="flex flex-row gap-2"
+                          onClick={() => setActive(data.nav[0].name)}
                         >
-                          {template.title}
+                          <ChevronLeftIcon className="h-4 w-4" />
+                          <span>Back to Settings</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+
+                <TemplateList
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  customTemplates={templates.data?.custom || []}
+                  builtinTemplates={templates.data?.builtin || []}
+                  selectedIndex={templateIndex}
+                  onTemplateSelect={handleTemplateSelect}
+                />
+              </>
             ) : (
               <SidebarGroup>
                 <SidebarGroupContent>
@@ -155,21 +157,24 @@ export default function SettingsDialog() {
           </SidebarContent>
         </Sidebar>
 
-        <Content title={active}>
+        <Content title={active} selectedTemplate={selectedTemplate}>
           {active === "Profile" ? (
             <ProfileComponent />
           ) : active === "General" ? (
             <GeneralComponent />
           ) : active === "Calendar" ? (
             <CalendarComponent />
-          ) : active === "Template" ? (
-            templates.data?.builtin && (
-              <TemplateComponent
-                disabled={true}
-                template={templates.data?.builtin[templateIndex]}
-                onTemplateUpdate={handleUpdateTemplate}
-              />
-            )
+          ) : active === "Templates" ? (
+            <TemplateContent>
+              {templates.data?.custom &&
+                templates.data.custom[templateIndex] && (
+                  <TemplateComponent
+                    disabled={false}
+                    template={templates.data.custom[templateIndex]}
+                    onTemplateUpdate={handleUpdateTemplate}
+                  />
+                )}
+            </TemplateContent>
           ) : active === "Team & Billing" ? (
             <BillingComponent />
           ) : null}
@@ -179,55 +184,23 @@ export default function SettingsDialog() {
   );
 }
 
-interface ContentProps {
-  title: string;
-  children: ReactNode;
-}
-
-function Content({ title, children }: ContentProps) {
-  return (
-    <main className="flex flex-1 flex-col overflow-hidden">
-      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-        <div className="flex items-center gap-2 px-4">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink>Settings</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{title}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-      </header>
-      <ScrollArea className="px-4" type="auto">
-        {children}
-      </ScrollArea>
-    </main>
-  );
-}
-
-function DialogWrapper({
-  open,
-  setOpen,
-  children,
-}: {
+interface DialogWrapperProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   children: ReactNode;
-}) {
+}
+
+function DialogWrapper({ open, setOpen, children }: DialogWrapperProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="text-gray-500 hover:text-gray-900">
-          <Settings2Icon size={16} />
+        <button className="flex h-8 w-8 items-center justify-center rounded-md border border-input bg-transparent p-0 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          <Settings2Icon className="h-4 w-4" />
+          <span className="sr-only">Settings</span>
         </button>
       </DialogTrigger>
-
-      <DialogContent className="h-full max-h-[700px] w-full max-w-[1000px] overflow-hidden p-0">
-        <DialogHeader className="hidden">
+      <DialogContent className="flex h-[80vh] max-w-4xl gap-0 overflow-clip p-0">
+        <DialogHeader className="sr-only">
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
         {children}

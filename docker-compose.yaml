@@ -1,17 +1,8 @@
 services:
-  server:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  cerbos:
+    image: ghcr.io/cerbos/cerbos:0.40.0
     ports:
-      - "5001:5000"
-    environment:
-      - PORT=5000
-    env_file:
-      - .env.local
-    depends_on:
-      minio:
-        condition: service_healthy
+      - "3592:3592"
   minio:
     image: minio/minio:RELEASE.2024-12-18T13-15-44Z
     ports:

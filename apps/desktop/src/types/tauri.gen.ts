@@ -25,6 +25,12 @@ async startSession(onEvent: TAURI_CHANNEL<SessionStatus>) : Promise<null> {
 async stopSession() : Promise<null> {
     return await TAURI_INVOKE("stop_session");
 },
+async startOauthServer() : Promise<number> {
+    return await TAURI_INVOKE("start_oauth_server");
+},
+async cancelOauthServer(port: number) : Promise<null> {
+    return await TAURI_INVOKE("cancel_oauth_server", { port });
+},
 async showWindow(window: ShowHyprWindow) : Promise<void> {
     await TAURI_INVOKE("show_window", { window });
 },

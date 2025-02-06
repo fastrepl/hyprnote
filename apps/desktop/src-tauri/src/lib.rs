@@ -78,6 +78,8 @@ pub async fn main() {
             permissions::check_permission_status,
             session::commands::start_session,
             session::commands::stop_session,
+            auth::commands::start_oauth_server,
+            auth::commands::cancel_oauth_server,
             windows::commands::show_window,
             db::commands::upsert_session,
             db::commands::upsert_calendar,

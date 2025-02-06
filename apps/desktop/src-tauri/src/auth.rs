@@ -32,3 +32,24 @@ impl AuthStore {
         serde_json::from_value(store).map_err(|e| e.to_string())
     }
 }
+
+pub mod commands {
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip_all)]
+    pub async fn start_oauth_server(_window: tauri::Window) -> Result<u16, String> {
+        let port = tauri_plugin_oauth::start(move |url| {
+            tracing::info!("Redirect URI: {}", url);
+        })
+        .map_err(|err| err.to_string())?;
+
+        Ok(port)
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip_all)]
+    pub async fn cancel_oauth_server(port: u16) -> Result<(), String> {
+        tauri_plugin_oauth::cancel(port).map_err(|err| err.to_string())
+    }
+}

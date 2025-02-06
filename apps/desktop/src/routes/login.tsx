@@ -1,4 +1,5 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import { open } from "@tauri-apps/plugin-shell";
 import { Trans } from "@lingui/react/macro";
 
@@ -12,24 +13,19 @@ import SparklesText from "@hypr/ui/components/ui/sparkles-text";
 import ShimmerButton from "@hypr/ui/components/ui/shimmer-button";
 import { Button } from "@hypr/ui/components/ui/button";
 
-import {
-  start as startOauth,
-  cancel as cancelOauth,
-} from "@fabianlars/tauri-plugin-oauth";
-import { useEffect } from "react";
-
 export const Route = createFileRoute("/login")({
   component: Component,
   loader: async () => {
+    // TODO
     // const fingerprint = await commands.getFingerprint();
     return {
       code: window.crypto.randomUUID(),
       fingerprint: "",
     };
   },
-  beforeLoad: () => {
-    throw redirect({ to: "/" });
-  },
+  // beforeLoad: () => {
+  //   throw redirect({ to: "/" });
+  // },
 });
 
 function Component() {
@@ -47,8 +43,10 @@ function Component() {
   useEffect(() => {
     let cleanup: (() => void) | undefined;
 
-    startOauth().then((port) => {
-      cleanup = () => cancelOauth(port);
+    commands.startOauthServer().then((port) => {
+      cleanup = () => {
+        commands.cancelOauthServer(port);
+      };
     });
 
     return () => cleanup?.();

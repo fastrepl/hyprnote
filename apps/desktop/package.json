@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@hypr/client": "workspace:*",
-    "@fabianlars/tauri-plugin-oauth": "2",
     "@hookform/resolvers": "^3.10.0",
     "@hypr/tiptap": "workspace:*",
     "@hypr/ui": "workspace:*",

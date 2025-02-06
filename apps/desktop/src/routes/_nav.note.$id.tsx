@@ -1,15 +1,8 @@
-import {
-  useState,
-  useCallback,
-  useEffect,
-  type ChangeEvent,
-  useRef,
-} from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { AlignLeft, Ear, EarOff, Zap } from "lucide-react";
+import { AlignLeft, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import clsx from "clsx";
-
 import {
   ResizableHandle,
   ResizablePanel,
@@ -28,14 +21,8 @@ import {
   TabsTrigger,
 } from "@hypr/ui/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
-
 import NoteEditor from "@hypr/tiptap/editor";
 import NoteRenderer from "@hypr/tiptap/renderer";
-
-import ParticipantsChip from "@/components/participants-chip";
-import EventChip from "@/components/event-chip";
-import AudioIndicator from "@/components/audio-indicator";
-
 import { useUI } from "@/stores/ui";
 import { useEnhance } from "@/utils/enhance";
 import {
@@ -44,7 +31,7 @@ import {
   type ConfigDataProfile,
 } from "@/types/tauri.gen";
 import { SessionProvider, useSession } from "@/contexts";
-import TagChips from "@/components/tag-chips";
+import { NoteHeader } from "@/components/note-header";
 
 export const Route = createFileRoute("/_nav/note/$id")({
   component: Component,
@@ -127,14 +114,6 @@ function LeftPanel() {
     [showRaw, store],
   );
 
-  const handleClickListen = useCallback(() => {
-    if (store.listening) {
-      store.pause();
-    } else {
-      store.start();
-    }
-  }, [store]);
-
   const enhance = useEnhance({
     config_general: general,
     config_profile: profile,
@@ -150,7 +129,7 @@ function LeftPanel() {
     if (!showRaw && !store.session.enhanced_memo_html) {
       enhance.submit();
     }
-  }, [showRaw, store.session.enhanced_memo_html]);
+  }, [showRaw, store.session.enhanced_memo_html, enhance]);
 
   useEffect(() => {
     if (enhance.data) {
@@ -164,50 +143,12 @@ function LeftPanel() {
     }
   }, [enhance.status]);
 
-  const handleTitleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    store.updateTitle(e.target.value);
-  }, []);
-
   const editorRef = useRef<{ editor: any }>(null);
   const rendererRef = useRef<{ editor: any }>(null);
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
-      <div className="flex flex-row items-center justify-between px-4 pt-6">
-        <input
-          type="text"
-          onChange={handleTitleChange}
-          value={store.session.title}
-          placeholder="Untitled meeting"
-          className={clsx([
-            "w-full border-none bg-transparent text-2xl font-bold caret-gray-300 focus:outline-none",
-          ])}
-        />
-        <button
-          onClick={handleClickListen}
-          className={clsx([
-            "relative rounded-lg border border-border p-2 hover:bg-neutral-100",
-            store.listening ? "text-foreground/30" : "text-foreground/50",
-            store.listening && "border-primary/30",
-          ])}
-        >
-          {store.listening ? <Ear size={20} /> : <EarOff size={20} />}
-          {store.listening && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <AudioIndicator amplitude={0.5} />
-            </div>
-          )}
-        </button>
-      </div>
-
-      <div className="-mx-1.5 flex flex-row items-center px-4 pb-4 pt-1">
-        <EventChip />
-        <div className="mx-1 h-4 w-px bg-border" />
-        <ParticipantsChip />
-        <div className="mx-1 h-4 w-px bg-border" />
-        <TagChips />
-      </div>
-
+      <NoteHeader />
       <ScrollArea
         type="auto"
         className={clsx([

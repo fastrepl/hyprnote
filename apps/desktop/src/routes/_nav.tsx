@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Outlet } from "@tanstack/react-router";
 
-import { Header } from "@/components/header";
+import { Header } from "@/components/app-header";
 import { HyprAIButton } from "../components/hypr-ai-button";
 
 export const Route = createFileRoute("/_nav")({

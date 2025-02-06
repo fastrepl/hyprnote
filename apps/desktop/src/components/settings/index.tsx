@@ -79,6 +79,17 @@ export default function SettingsDialog() {
   };
 
   useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === ",") {
+        e.preventDefault();
+        setOpen(prev => !prev);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
+  useEffect(() => {
     if (!open) {
       setActive(data.nav[0].name);
     }

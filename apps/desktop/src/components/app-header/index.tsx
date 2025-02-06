@@ -1,25 +1,18 @@
 import { useCallback } from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { Trans } from "@lingui/react/macro";
+import { ArrowLeft } from "lucide-react";
 import clsx from "clsx";
-import { useLocation, useRouter } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 
 import SettingsDialog from "@/components/settings";
-import SearchBar from "@/components/search-bar";
-
-import { Button } from "@hypr/ui/components/ui/button";
+import SearchBar from "@/components/app-header/search-bar";
+import { NewNoteButton } from "@/components/app-header/new-note-button";
 
 export function Header() {
-  const { history, navigate } = useRouter();
-  const { pathname } = useLocation();
+  const { history } = useRouter();
 
   const handleClickBack = useCallback(() => {
     history.back();
   }, [history]);
-
-  const handleClickNewNote = useCallback(() => {
-    navigate({ to: "/note/new" });
-  }, [navigate]);
 
   return (
     <header
@@ -30,7 +23,7 @@ export function Header() {
       data-tauri-drag-region
     >
       <div
-        className="flex flex-1 flex-row gap-4 justify-center"
+        className="flex flex-1 flex-row justify-center gap-4"
         data-tauri-drag-region
       >
         <button
@@ -44,17 +37,7 @@ export function Header() {
       </div>
 
       <div className="mr-3 flex flex-row gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className={clsx([
-            "h-7 px-2 text-xs",
-            pathname === "/" ? "opacity-100" : "opacity-0",
-          ])}
-          onClick={handleClickNewNote}
-        >
-          <Trans>New Note</Trans>
-        </Button>
+        <NewNoteButton />
         <SettingsDialog />
       </div>
     </header>

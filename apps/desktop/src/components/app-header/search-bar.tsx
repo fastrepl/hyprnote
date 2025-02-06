@@ -13,6 +13,7 @@ import {
 } from "@hypr/ui/components/ui/command";
 export default function SearchBar() {
   const [open, setOpen] = useState(false);
+
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -23,6 +24,7 @@ export default function SearchBar() {
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
+
   return (
     <>
       <button

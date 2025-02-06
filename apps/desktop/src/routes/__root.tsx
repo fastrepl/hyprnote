@@ -9,7 +9,10 @@ import {
 } from "@tanstack/react-router";
 
 import type { Context } from "../main";
-import { CatchNotFoundFallback, NotFoundComponent } from "@/components/control";
+import {
+  CatchNotFoundFallback,
+  NotFoundComponent,
+} from "@/components/app-header/control";
 
 export const Route = createRootRouteWithContext<Context>()({
   component: Component,

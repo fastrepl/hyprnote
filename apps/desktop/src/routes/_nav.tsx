@@ -10,9 +10,11 @@ export const Route = createFileRoute("/_nav")({
 
 function Component() {
   return (
-    <div className="relative h-full w-full">
+    <div className="relative flex h-full w-full flex-col">
       <Header />
-      <Outlet />
+      <div className="flex-1 overflow-hidden">
+        <Outlet />
+      </div>
       <HyprAIButton />
     </div>
   );

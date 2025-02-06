@@ -211,7 +211,7 @@ function LeftPanel() {
       <ScrollArea
         type="auto"
         className={clsx([
-          "h-full",
+          "h-full w-full",
           enhance.status === "loading" ? "tiptap-animate" : "",
         ])}
         onClick={() => {

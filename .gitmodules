@@ -1,9 +1,3 @@
-[submodule "lago"]
-	path = lago
-	url = https://github.com/getlago/lago.git
-[submodule "lago-openapi"]
-	path = lago-openapi
-	url = https://github.com/getlago/lago-openapi.git
 [submodule "nango"]
 	path = nango
 	url = https://github.com/NangoHQ/nango

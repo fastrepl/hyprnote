@@ -31,7 +31,11 @@ impl WebSocketClient {
     ) -> Result<impl Stream<Item = T::Output>, crate::Error> {
         let req = self.request.clone().into_client_request().unwrap();
 
-        let (ws_stream, _) = connect_async(req).await?;
+        tracing::info!("connect_async: {:?}", req.uri());
+
+        let (ws_stream, _) =
+            tokio::time::timeout(std::time::Duration::from_secs(30), connect_async(req)).await??;
+
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
 
         let (done_tx, mut done_rx) = tokio::sync::oneshot::channel();
@@ -43,10 +47,13 @@ impl WebSocketClient {
                 let input = T::create_input(data);
                 let msg = Message::Text(serde_json::to_string(&input).unwrap().into());
 
-                if ws_sender.send(msg).await.is_err() {
+                if let Err(e) = ws_sender.send(msg).await {
+                    tracing::error!("ws_send_failed: {:?}", e);
                     break;
                 }
             }
+
+            tracing::info!("audio_stream_done");
 
             let _ = ws_sender.send(Message::Close(None)).await;
             let _ = send_complete_tx.send(());

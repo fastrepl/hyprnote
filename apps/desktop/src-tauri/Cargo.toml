@@ -52,7 +52,7 @@ tauri-plugin-store = "2"
 tauri-plugin-updater = "2"
 
 tracing = { workspace = true }
-tracing-subscriber = { workspace = true, features = ["env-filter"] }
+tracing-subscriber = { workspace = true, features = ["env-filter", "chrono"] }
 
 specta = { workspace = true }
 specta-typescript = { workspace = true }

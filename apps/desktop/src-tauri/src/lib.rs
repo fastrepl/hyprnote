@@ -23,11 +23,11 @@ pub struct App {
 pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
-    #[cfg(debug_assertions)]
     {
         tracing_subscriber::fmt()
             .with_file(true)
             .with_line_number(true)
+            .with_timer(tracing_subscriber::fmt::time::ChronoLocal::rfc_3339())
             .with_env_filter(
                 tracing_subscriber::EnvFilter::builder()
                     .with_default_directive(tracing::Level::DEBUG.into())

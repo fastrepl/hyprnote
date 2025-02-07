@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS organizations (id TEXT PRIMARY KEY);

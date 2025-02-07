@@ -39,17 +39,6 @@ user_common_derives! {
     }
 }
 
-impl From<hypr_calendar::Participant> for Participant {
-    fn from(participant: hypr_calendar::Participant) -> Self {
-        Participant {
-            id: uuid::Uuid::new_v4().to_string(),
-            name: participant.name,
-            email: participant.email,
-            color_hex: random_color::RandomColor::new().to_hex(),
-        }
-    }
-}
-
 impl Default for Participant {
     fn default() -> Self {
         Participant {

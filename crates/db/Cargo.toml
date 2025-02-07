@@ -5,12 +5,14 @@ edition = "2021"
 
 [features]
 default = ["admin", "user"]
-admin = ["hypr_nango"]
+admin = ["hypr_nango", "async-stripe"]
 user = []
 
 [dependencies]
 hypr_calendar = { path = "../calendar", package = "calendar", default-features = false }
 hypr_nango = { path = "../nango", package = "nango", optional = true }
+
+async-stripe = { workspace = true, default-features = false, features = ["runtime-tokio-hyper"], optional = true }
 
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

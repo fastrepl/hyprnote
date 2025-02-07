@@ -29,7 +29,7 @@ export default function SearchBar() {
     <>
       <button
         className={clsx([
-          "w-[40%]",
+          "w-72",
           "flex flex-row items-center gap-2",
           "rounded-md border border-border px-2 py-2",
           "bg-neutral-50 hover:bg-neutral-100",

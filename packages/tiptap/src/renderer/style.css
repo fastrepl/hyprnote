@@ -25,7 +25,7 @@
 }
 
 .tiptap p.is-editor-empty:first-child::before {
-  color: var(--gray-4);
+  color: #d1d5db;
   content: attr(data-placeholder);
   float: left;
   height: 0;

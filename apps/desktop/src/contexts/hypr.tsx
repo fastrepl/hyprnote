@@ -11,7 +11,7 @@ import type {
 } from "@/types/server.gen";
 import type { EnhanceRequest } from "@/types/tauri.gen";
 import type { CalendarIntegration } from "@/types";
-import { commands } from "@/types/tauri.gen";
+import { commands, type EnhanceRequest } from "@/types/tauri.gen";
 
 type Client = {
   listIntegrations: () => Promise<NangoIntegration[]>;

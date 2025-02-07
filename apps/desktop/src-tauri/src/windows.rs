@@ -88,6 +88,7 @@ impl ShowHyprWindow {
                 window.set_maximizable(true)?;
                 window.set_minimizable(true)?;
                 window.set_size(LogicalSize::new(width.max(800.0), height.max(600.0)))?;
+                window.set_min_size(Some(LogicalSize::new(480.0, 360.0)))?;
                 window.center()?;
             }
         };

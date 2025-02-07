@@ -3,11 +3,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AlignLeft, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import clsx from "clsx";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@hypr/ui/components/ui/resizable";
 import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
 import {
   Popover,
@@ -23,7 +18,6 @@ import {
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import NoteEditor from "@hypr/tiptap/editor";
 import NoteRenderer from "@hypr/tiptap/renderer";
-import { useUI } from "@/stores/ui";
 import { useEnhance } from "@/utils/enhance";
 import {
   commands,
@@ -64,23 +58,10 @@ export const Route = createFileRoute("/_nav/note/$id")({
 
 function Component() {
   const { session } = Route.useLoaderData();
-  const { isPanelOpen } = useUI();
 
   return (
     <SessionProvider session={session}>
-      {isPanelOpen ? (
-        <ResizablePanelGroup direction="horizontal">
-          <ResizablePanel>
-            <LeftPanel />
-          </ResizablePanel>
-          <ResizableHandle withHandle className="w-1 bg-secondary" />
-          <ResizablePanel defaultSize={25} minSize={25} maxSize={40}>
-            <RightPanel />
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      ) : (
-        <LeftPanel />
-      )}
+      <LeftPanel />
     </SessionProvider>
   );
 }

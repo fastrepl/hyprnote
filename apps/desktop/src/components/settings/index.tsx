@@ -7,7 +7,6 @@ import {
   FileTextIcon,
   CreditCardIcon,
   ChevronLeftIcon,
-  Settings2Icon,
 } from "lucide-react";
 
 import {
@@ -194,8 +193,8 @@ function DialogWrapper({ open, setOpen, children }: DialogWrapperProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="flex h-8 w-8 items-center justify-center rounded-md border border-input bg-transparent p-0 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-          <Settings2Icon className="h-4 w-4" />
+        <button className="flex items-center justify-center rounded-md p-1 text-sm font-medium ring-offset-background transition-colors hover:bg-neutral-100">
+          <SettingsIcon className="h-4 w-4" />
           <span className="sr-only">Settings</span>
         </button>
       </DialogTrigger>

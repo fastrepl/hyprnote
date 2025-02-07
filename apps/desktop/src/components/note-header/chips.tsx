@@ -15,7 +15,7 @@ import { type Tag, mockTags } from "@/mocks/tags";
 
 export default function Chips() {
   return (
-    <div className="-mx-1.5 flex flex-row items-center px-4 pb-4 pt-1">
+    <div className="-mx-1.5 flex flex-row items-center px-8 pb-4 pt-1">
       <EventChip />
       <div className="mx-1 h-4 w-px bg-border" />
       <ParticipantsChip />

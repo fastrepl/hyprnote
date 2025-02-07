@@ -1,42 +1,32 @@
-import { useCallback } from "react";
-import { ArrowLeft } from "lucide-react";
 import clsx from "clsx";
-import { useRouter } from "@tanstack/react-router";
 
 import SettingsDialog from "@/components/settings";
 import SearchBar from "@/components/app-header/search-bar";
 import { NewNoteButton } from "@/components/app-header/new-note-button";
+import { BackButton } from "@/components/app-header/back-button";
 
-export function Header() {
-  const { history } = useRouter();
-
-  const handleClickBack = useCallback(() => {
-    history.back();
-  }, [history]);
-
+export default function Header() {
   return (
     <header
       className={clsx([
-        "flex w-full items-center justify-between",
-        "h-10 border-b border-border bg-secondary",
+        "flex w-full items-center",
+        "border-b border-border bg-secondary p-1 px-2",
       ])}
       data-tauri-drag-region
     >
-      <div
-        className="flex flex-1 flex-row justify-center gap-4"
-        data-tauri-drag-region
-      >
-        <button
-          className="text-gray-600 hover:text-gray-900 disabled:opacity-0"
-          onClick={handleClickBack}
-          disabled={!history.canGoBack()}
-        >
-          <ArrowLeft size={14} />
-        </button>
+      {/* TODO: This is a poor way for implementing just for macOS */}
+      <div className="w-32" data-tauri-drag-region>
+        <BackButton />
+      </div>
+
+      <div className="flex flex-1 justify-center" data-tauri-drag-region>
         <SearchBar />
       </div>
 
-      <div className="mr-3 flex flex-row gap-2">
+      <div
+        className="flex w-32 items-center justify-end gap-2"
+        data-tauri-drag-region
+      >
         <NewNoteButton />
         <SettingsDialog />
       </div>

@@ -9,7 +9,6 @@ import type {
   CreateTitleRequest,
   CreateTitleResponse,
 } from "@/types/server.gen";
-import type { EnhanceRequest } from "@/types/tauri.gen";
 import type { CalendarIntegration } from "@/types";
 import { commands, type EnhanceRequest } from "@/types/tauri.gen";
 

@@ -49,25 +49,29 @@ export default function Modal({
   return (
     <motion.div
       key="modal"
-      initial={{ width: 56, height: 56, opacity: 0 }}
+      initial={{ width: 56, height: 56, opacity: 0, y: 20 }}
       animate={{
         width: 420,
         height: "auto",
         opacity: 1,
+        y: 0,
         transition: {
-          width: { duration: 0.15, ease: "easeOut" },
-          height: { duration: 0.15, ease: "easeOut" },
-          opacity: { duration: 0.1, delay: 0.05 },
+          width: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+          height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+          opacity: { duration: 0.2 },
+          y: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
         },
       }}
       exit={{
         width: 56,
         height: 56,
         opacity: 0,
+        y: 20,
         transition: {
-          width: { duration: 0.15, ease: "easeIn" },
-          height: { duration: 0.15, ease: "easeIn" },
-          opacity: { duration: 0.1 },
+          width: { duration: 0.2, ease: [0.4, 0, 1, 1] },
+          height: { duration: 0.2, ease: [0.4, 0, 1, 1] },
+          opacity: { duration: 0.15 },
+          y: { duration: 0.2, ease: [0.4, 0, 1, 1] },
         },
       }}
       className="flex origin-bottom-right flex-col rounded-xl border bg-white shadow-2xl transition-[height] duration-200"

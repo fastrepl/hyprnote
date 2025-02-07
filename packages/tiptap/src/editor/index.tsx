@@ -42,7 +42,6 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
             "prose-p:my-1",
             "prose-headings:font-medium",
             "prose-h1:text-xl prose-h1:font-semibold prose-h1:mt-6 prose-h1:mb-2",
-            "prose-em:not-italic prose-em:text-black prose-em:font-semibold",
             "focus:outline-none focus:ring-0 px-8",
           ]),
         },
@@ -67,7 +66,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         <EditorContent className="h-full w-full" editor={editor} />
       </div>
     );
-  },
+  }
 );
 
 Editor.displayName = "Editor";

@@ -34,11 +34,11 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         attributes: {
           class: clsx([
             "prose dark:prose-invert prose-md",
-            "prose-headings:text-gray-700 prose-p:text-gray-600",
+            "prose-headings:text-gray-700 prose-p:text-black",
             "prose-p:my-1",
             "prose-headings:font-medium",
-            "prose-em:not-italic prose-em:text-black prose-em:font-semibold",
-            "focus:outline-none focus:ring-0 px-4",
+            "prose-h1:text-xl prose-h1:font-semibold prose-h1:mt-6 prose-h1:mb-2",
+            "focus:outline-none focus:ring-0 px-8",
           ]),
         },
       },
@@ -61,7 +61,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         <EditorContent className="h-full w-full" editor={editor} />
       </div>
     );
-  },
+  }
 );
 
 Editor.displayName = "Editor";

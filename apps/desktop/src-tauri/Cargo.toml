@@ -71,6 +71,7 @@ time = { workspace = true }
 bytes = { workspace = true }
 codes-iso-639 = { workspace = true }
 dotenvy_macro = { workspace = true }
+url = { workspace = true }
 uuid = { workspace = true }
 
 futures-core = { workspace = true }

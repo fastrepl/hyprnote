@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 import PastSessions from "@/components/past-sessions";
@@ -23,14 +23,17 @@ const queryOptions = () => ({
 
 export const Route = createFileRoute("/_nav/")({
   component: Component,
-  // beforeLoad: ({ context }) => {
-  //   if (!import.meta.env.PROD) {
-  //     return;
-  //   }
-  //   if (!context.auth?.isAuthenticated) {
-  //     throw redirect({ to: "/login" });
-  //   }
-  // },
+  beforeLoad: async ({ context }) => {
+    if (!import.meta.env.PROD) {
+      return;
+    }
+
+    const isAuthenticated = await context.auth?.isAuthenticated();
+
+    if (!isAuthenticated) {
+      throw redirect({ to: "/login" });
+    }
+  },
 });
 
 function Component() {

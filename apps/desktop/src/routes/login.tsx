@@ -8,9 +8,6 @@ import { message } from "@tauri-apps/plugin-dialog";
 import { commands } from "@/types/tauri.gen";
 import { baseUrl } from "@/client";
 
-import BlurFade from "@hypr/ui/components/ui/blur-fade";
-import RetroGrid from "@hypr/ui/components/ui/retro-grid";
-import SparklesText from "@hypr/ui/components/ui/sparkles-text";
 import ShimmerButton from "@hypr/ui/components/ui/shimmer-button";
 
 export const Route = createFileRoute("/login")({
@@ -23,13 +20,10 @@ export const Route = createFileRoute("/login")({
       fingerprint: "",
     };
   },
-  // beforeLoad: () => {
-  //   throw redirect({ to: "/" });
-  // },
 });
 
 function Component() {
-  const { code, fingerprint } = Route.useLoaderData();
+  const { code } = Route.useLoaderData();
 
   const [port, setPort] = useState<number | null>(null);
 
@@ -53,7 +47,7 @@ function Component() {
       const u = new URL(baseUrl);
       u.pathname = "/auth/connect";
       u.searchParams.set("c", code);
-      u.searchParams.set("f", fingerprint);
+      u.searchParams.set("f", "fingerprint");
       u.searchParams.set("p", port!.toString());
       return u.toString();
     },

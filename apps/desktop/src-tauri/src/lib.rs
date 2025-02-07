@@ -80,6 +80,7 @@ pub async fn main() {
             session::commands::stop_session,
             auth::commands::start_oauth_server,
             auth::commands::cancel_oauth_server,
+            auth::commands::is_authenticated,
             windows::commands::show_window,
             db::commands::upsert_session,
             db::commands::upsert_calendar,
@@ -152,16 +153,10 @@ pub async fn main() {
         })
         .setup(move |app| {
             let app = app.handle().clone();
+
             specta_builder.mount_events(&app);
 
-            if let Ok(Some(auth)) = auth::AuthStore::load(&app) {
-                tauri_plugin_sentry::sentry::configure_scope(|scope| {
-                    scope.set_user(Some(tauri_plugin_sentry::sentry::User {
-                        id: Some(auth.token),
-                        ..Default::default()
-                    }));
-                });
-            }
+            auth::AuthStore::load(&app).unwrap();
 
             {
                 let bridge = hypr_bridge::Client::builder()

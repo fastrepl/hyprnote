@@ -31,6 +31,9 @@ async startOauthServer() : Promise<number> {
 async cancelOauthServer(port: number) : Promise<null> {
     return await TAURI_INVOKE("cancel_oauth_server", { port });
 },
+async isAuthenticated() : Promise<boolean> {
+    return await TAURI_INVOKE("is_authenticated");
+},
 async showWindow(window: ShowHyprWindow) : Promise<void> {
     await TAURI_INVOKE("show_window", { window });
 },

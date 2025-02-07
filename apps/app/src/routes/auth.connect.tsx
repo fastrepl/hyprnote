@@ -14,6 +14,7 @@ import {
 const schema = z.object({
   c: z.string(),
   f: z.string(),
+  p: z.number(),
 });
 
 export const Route = createFileRoute("/auth/connect")({
@@ -22,21 +23,16 @@ export const Route = createFileRoute("/auth/connect")({
 });
 
 function Component() {
-  const search = Route.useSearch();
-  const { c: code, f: _fingerprint } = search;
+  const { c: code, f: _fingerprint, p: port } = Route.useSearch();
   const { isLoaded, userId, orgId } = useAuth();
   const navigate = useNavigate();
 
   const mutation = useMutation({
     ...postApiWebConnectMutation({ client }),
+    onSuccess({ key }, _variables, _context) {
+      window.open(`http://localhost:${port}?k=${key}`);
+    },
   });
-
-  useEffect(() => {
-    if (mutation.status === "success") {
-      const { key } = mutation.data;
-      window.location.href = `hypr://callback/connect?k=${key}`;
-    }
-  }, [mutation.status]);
 
   if (isLoaded && !userId) {
     throw navigate({ to: "/auth/sign-in" });
@@ -80,6 +76,7 @@ function Component() {
         ) : mutation.status === "error" ? (
           <div>
             <span>Error</span>
+            <pre>{JSON.stringify(mutation.error)}</pre>
           </div>
         ) : mutation.status === "pending" ? (
           <div>

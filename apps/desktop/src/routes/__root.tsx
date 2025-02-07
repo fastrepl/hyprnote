@@ -1,9 +1,7 @@
-import { lazy, Suspense, useEffect } from "react";
-import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
+import { lazy, Suspense } from "react";
 
 import {
   Outlet,
-  useNavigate,
   createRootRouteWithContext,
   CatchNotFound,
 } from "@tanstack/react-router";
@@ -20,21 +18,6 @@ export const Route = createRootRouteWithContext<Context>()({
 });
 
 function Component() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    onOpenUrl(([url]) => {
-      const link = new URL(url);
-
-      if (link.pathname === "/callback/connect") {
-        navigate({
-          to: "/callback/connect",
-          search: { k: link.searchParams.get("k") || "" },
-        });
-      }
-    });
-  }, []);
-
   return (
     <>
       <CatchNotFound fallback={(e) => <CatchNotFoundFallback error={e} />}>

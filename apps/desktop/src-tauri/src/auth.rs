@@ -6,41 +6,51 @@ use specta::Type;
 use tauri::{AppHandle, Runtime};
 use tauri_plugin_store::StoreExt;
 
-#[derive(Debug, Serialize, Deserialize, Type)]
+#[derive(Debug, Default, Serialize, Deserialize, Type)]
 pub struct AuthStore {
-    pub token: String,
+    pub token: Option<String>,
 }
 
 impl AuthStore {
-    pub fn load<R: Runtime>(app: &AppHandle<R>) -> Result<Option<Self>, String> {
+    pub fn load<R: Runtime>(app: &AppHandle<R>) -> Result<Self, String> {
         let Some(store) = app
             .store("store")
             .map(|s| s.get("auth"))
             .map_err(|e| e.to_string())?
         else {
-            return Ok(None);
+            return Ok(Self::default());
         };
 
         serde_json::from_value(store).map_err(|e| e.to_string())
     }
 
-    pub fn get<R: Runtime>(app: &AppHandle<R>) -> Result<Option<Self>, String> {
+    pub fn get<R: Runtime>(app: &AppHandle<R>) -> Result<Self, String> {
         let Some(Some(store)) = app.get_store("store").map(|s| s.get("auth")) else {
-            return Ok(None);
+            return Ok(Self::default());
         };
 
         serde_json::from_value(store).map_err(|e| e.to_string())
     }
 
-    pub fn set<R: Runtime>(app: &AppHandle<R>, auth: Self) -> Result<(), String> {
+    pub fn set<R: Runtime>(app: &AppHandle<R>, v: Self) -> Result<(), String> {
+        let new_auth = Self { token: v.token };
+
         app.store("store")
-            .map(|s| s.set("auth", serde_json::to_value(auth).unwrap()))
+            .map(|s| s.set("auth", serde_json::to_value(new_auth).unwrap()))
             .map_err(|e| e.to_string())
     }
 }
 
 pub mod commands {
     use crate::auth::AuthStore;
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip_all)]
+    pub fn is_authenticated(app: tauri::AppHandle) -> bool {
+        let auth = AuthStore::get(&app).unwrap_or_default();
+        auth.token.is_some()
+    }
 
     #[tauri::command]
     #[specta::specta]
@@ -71,14 +81,19 @@ pub mod commands {
                 ),
             },
             move |url| {
-                tracing::info!("oauth_callback: {}", url);
-                AuthStore::set(
-                    &app,
-                    AuthStore {
-                        token: url.to_string(),
-                    },
-                )
-                .unwrap();
+                tracing::info!("oauth_callback: url={}", url);
+
+                let parsed_url = url::Url::parse(&url).unwrap();
+                if let Some(key) = parsed_url
+                    .query_pairs()
+                    .find(|(k, _)| k == "k")
+                    .map(|(_, v)| v.to_string())
+                {
+                    tracing::info!("oauth_callback: key={}", &key);
+                    AuthStore::set(&app, AuthStore { token: Some(key) }).unwrap();
+                } else {
+                    tracing::error!("oauth_callback: key=None");
+                }
             },
         )
         .map_err(|err| err.to_string())?;

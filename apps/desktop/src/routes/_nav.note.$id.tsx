@@ -7,6 +7,16 @@ import {
 import { SessionProvider } from "@/contexts";
 import EditorArea from "@/components/note/editor";
 
+function Component() {
+  const { session } = Route.useLoaderData();
+
+  return (
+    <SessionProvider session={session}>
+      <EditorArea />
+    </SessionProvider>
+  );
+}
+
 export const Route = createFileRoute("/_nav/note/$id")({
   component: Component,
   loader: ({ context: { queryClient }, params: { id } }) => {
@@ -35,13 +45,3 @@ export const Route = createFileRoute("/_nav/note/$id")({
     });
   },
 });
-
-function Component() {
-  const { session } = Route.useLoaderData();
-
-  return (
-    <SessionProvider session={session}>
-      <EditorArea />
-    </SessionProvider>
-  );
-}

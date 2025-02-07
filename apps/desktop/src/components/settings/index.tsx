@@ -193,7 +193,7 @@ function DialogWrapper({ open, setOpen, children }: DialogWrapperProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="flex items-center justify-center rounded-md p-1 text-sm font-medium ring-offset-background transition-colors hover:bg-neutral-100">
+        <button className="flex items-center justify-center rounded-md p-1 text-sm font-medium ring-offset-background transition-colors duration-200 hover:bg-neutral-200">
           <SettingsIcon className="h-4 w-4" />
           <span className="sr-only">Settings</span>
         </button>

@@ -73,7 +73,7 @@ export default function EditorArea() {
   const rendererRef = useRef<{ editor: any }>(null);
 
   return (
-    <div className="relative flex h-full flex-col overflow-hidden">
+    <main className="relative flex h-full flex-col overflow-hidden">
       <NoteHeader />
       <ScrollArea
         type="auto"
@@ -123,6 +123,6 @@ export default function EditorArea() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </main>
   );
 }

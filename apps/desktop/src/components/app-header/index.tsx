@@ -10,7 +10,7 @@ export default function Header() {
     <header
       className={clsx([
         "flex w-full items-center",
-        "border-b border-border bg-secondary p-1 px-2",
+        "border-b border-border bg-neutral-100 p-1 px-2",
       ])}
       data-tauri-drag-region
     >

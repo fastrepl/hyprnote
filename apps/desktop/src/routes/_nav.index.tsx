@@ -1,11 +1,24 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-
 import PastSessions from "@/components/past-sessions";
 import UpcomingEvents from "@/components/upcoming-events";
 import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
-
 import { commands } from "@/types/tauri.gen";
+
+function Component() {
+  const {
+    data: { sessions, events },
+  } = useSuspenseQuery(queryOptions());
+
+  return (
+    <main className="flex h-full flex-col overflow-hidden">
+      <ScrollArea className="px-8 py-6">
+        <UpcomingEvents events={events} />
+        <PastSessions data={sessions} />
+      </ScrollArea>
+    </main>
+  );
+}
 
 const queryOptions = () => ({
   queryKey: ["notes"],
@@ -35,20 +48,3 @@ export const Route = createFileRoute("/_nav/")({
     }
   },
 });
-
-function Component() {
-  const {
-    data: { sessions, events },
-  } = useSuspenseQuery(queryOptions());
-
-  return (
-    <main>
-      <ScrollArea className="flex h-full w-full px-12 py-6">
-        <div className="mb-12 flex flex-col gap-8">
-          <UpcomingEvents events={events} />
-          <PastSessions data={sessions} />
-        </div>
-      </ScrollArea>
-    </main>
-  );
-}

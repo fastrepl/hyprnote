@@ -72,3 +72,13 @@ h6 {
 #__next {
   isolation: isolate;
 }
+
+html,
+body {
+  height: 100vh;
+  width: 100vw;
+  overflow-y: hidden;
+
+  user-select: none;
+  overscroll-behavior: none;
+}

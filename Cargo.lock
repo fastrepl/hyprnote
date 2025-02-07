@@ -854,9 +854,9 @@ dependencies = [
 
 [[package]]
 name = "aws-sdk-s3"
-version = "1.73.0"
+version = "1.74.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3978e0a211bdc5cddecfd91fb468665a662a27fbdaef39ddf36a2a18fef12cb4"
+checksum = "f551566d462b47c3e49b330f1b86e69e7dc6e4d4efb1959e28c5c82d22e79f7c"
 dependencies = [
  "aws-credential-types",
  "aws-runtime",
@@ -2174,7 +2174,7 @@ dependencies = [
  "axum 0.8.1",
  "axum-extra",
  "futures-util",
- "jsonwebtoken 9.3.0",
+ "jsonwebtoken 9.3.1",
  "regex",
  "reqwest 0.12.12",
  "serde",
@@ -4489,7 +4489,7 @@ dependencies = [
  "dyn-clone",
  "graph-error",
  "http 1.2.0",
- "jsonwebtoken 9.3.0",
+ "jsonwebtoken 9.3.1",
  "parking_lot 0.12.3",
  "percent-encoding",
  "remain",
@@ -4514,7 +4514,7 @@ dependencies = [
  "handlebars",
  "http 1.2.0",
  "http-serde",
- "jsonwebtoken 9.3.0",
+ "jsonwebtoken 9.3.1",
  "reqwest 0.12.12",
  "ring 0.17.8",
  "serde",
@@ -4566,7 +4566,7 @@ dependencies = [
  "graph-error",
  "hex",
  "http 1.2.0",
- "jsonwebtoken 9.3.0",
+ "jsonwebtoken 9.3.1",
  "lazy_static",
  "reqwest 0.12.12",
  "serde",
@@ -5709,11 +5709,11 @@ dependencies = [
 
 [[package]]
 name = "jsonwebtoken"
-version = "9.3.0"
+version = "9.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9ae10193d25051e74945f1ea2d0b42e03cc3b890f7e4cc5faa44997d808193f"
+checksum = "5a87cc7a48537badeae96744432de36f4be2b4a34a05a5ef32e9dd8a1c169dde"
 dependencies = [
- "base64 0.21.7",
+ "base64 0.22.1",
  "js-sys",
  "pem 3.0.4",
  "ring 0.17.8",
@@ -7130,9 +7130,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.20.2"
+version = "1.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1261fe7e33c73b354eab43b1273a57c8f967d0391e80353e51f764ac02cf6775"
+checksum = "945462a4b81e43c4e3ba96bd7b49d834c6f61198356aa858733bc4acf3cbe62e"
 
 [[package]]
 name = "onig"

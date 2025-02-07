@@ -9,7 +9,10 @@ interface HistoryViewProps {
   onChatSelect: () => void;
 }
 
-export default function HistoryView({ chatHistory, onChatSelect }: HistoryViewProps) {
+export default function HistoryView({
+  chatHistory,
+  onChatSelect,
+}: HistoryViewProps) {
   return (
     <div className="flex-1 overflow-y-auto p-4">
       <div className="mb-6">
@@ -35,7 +38,13 @@ export default function HistoryView({ chatHistory, onChatSelect }: HistoryViewPr
   );
 }
 
-function ChatHistoryItem({ chat, onClick }: { chat: ChatItem; onClick: () => void }) {
+function ChatHistoryItem({
+  chat,
+  onClick,
+}: {
+  chat: ChatItem;
+  onClick: () => void;
+}) {
   return (
     <button
       className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-neutral-100"

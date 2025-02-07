@@ -13,8 +13,8 @@ thiserror = { workspace = true }
 bytes = { workspace = true }
 codes-iso-639 = { workspace = true }
 intervaltree = "0.2.7"
-url = { workspace = true }
 tracing = { workspace = true }
+url = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }
 serde_bytes = { workspace = true }

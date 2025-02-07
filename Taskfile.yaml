@@ -23,14 +23,4 @@ tasks:
   py:run: poetry run python3 {{.CLI_ARGS}}
 
   stripe: stripe listen --skip-verify --forward-to http://localhost:5000/webhook/stripe
-  lago:
-    env:
-      LAGO_RSA_PRIVATE_KEY:
-        sh: openssl genrsa 2048 | base64
-    cmds:
-      - docker compose -f lago/docker-compose.yml up -d api
-      - docker compose -f lago/docker-compose.yml exec api rails db:create
-      - sleep 3
-      - docker compose -f lago/docker-compose.yml exec api rails db:migrate
-      - sleep 3
-      - docker compose -f lago/docker-compose.yml up -d front
+  bacon: bacon {{.CLI_ARGS}}

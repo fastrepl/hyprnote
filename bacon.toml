@@ -4,7 +4,7 @@
 [keybindings]
 shift-g = "scroll-to-bottom"
 
-[jobs.app]
+[jobs.app-backend]
 command = [
   "cargo",
   "run",
@@ -18,6 +18,25 @@ on_change_strategy = "kill_then_restart"
 default_watch = false
 watch = [
   "apps/app/server",
+]
+ignore = [
+  "**/*.gen.*",
+]
+
+[jobs.app-frontend]
+command = [
+  "pnpm",
+  "-F",
+  "app",
+  "build",
+]
+need_stdout = true
+allow_warnings = true
+background = false
+on_change_strategy = "kill_then_restart"
+default_watch = false
+watch = [
+  "apps/app/src",
 ]
 ignore = [
   "**/*.gen.*",

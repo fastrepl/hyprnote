@@ -6,10 +6,11 @@ RUN corepack enable
 
 FROM web-base AS web-builder
 ARG VITE_CLERK_PUBLISHABLE_KEY
+ARG VITE_SENTRY_DSN
 COPY . /app
 WORKDIR /app
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-RUN VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY pnpm --filter @hypr/app build
+RUN VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY VITE_SENTRY_DSN=$VITE_SENTRY_DSN pnpm --filter @hypr/app build
 
 FROM rust:1.83.0 AS rust-builder
 WORKDIR /app

@@ -34,7 +34,7 @@ impl WebSocketClient {
         tracing::info!("connect_async: {:?}", req.uri());
 
         let (ws_stream, _) =
-            tokio::time::timeout(std::time::Duration::from_secs(30), connect_async(req)).await??;
+            tokio::time::timeout(std::time::Duration::from_secs(25), connect_async(req)).await??;
 
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
 

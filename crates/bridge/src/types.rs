@@ -10,6 +10,8 @@ pub enum Error {
     Connection(#[from] tokio_tungstenite::tungstenite::Error),
     #[error("reqwest error")]
     Reqwest(#[from] reqwest::Error),
+    #[error("timeout error")]
+    Timeout(#[from] tokio::time::error::Elapsed),
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, specta::Type)]

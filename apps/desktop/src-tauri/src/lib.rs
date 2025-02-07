@@ -154,6 +154,15 @@ pub async fn main() {
             let app = app.handle().clone();
             specta_builder.mount_events(&app);
 
+            if let Ok(Some(auth)) = auth::AuthStore::load(&app) {
+                tauri_plugin_sentry::sentry::configure_scope(|scope| {
+                    scope.set_user(Some(tauri_plugin_sentry::sentry::User {
+                        id: Some(auth.token),
+                        ..Default::default()
+                    }));
+                });
+            }
+
             {
                 let bridge = hypr_bridge::Client::builder()
                     .api_base(vars::server_api_base())

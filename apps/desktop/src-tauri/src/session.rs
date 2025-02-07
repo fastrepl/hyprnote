@@ -77,7 +77,6 @@ impl SessionState {
             let dir = app_dir.join(session_id);
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join("audio.wav");
-            tracing::info!("path: {:?}", path);
 
             let mut wav = hound::WavWriter::create(
                 path,
@@ -124,7 +123,6 @@ impl SessionState {
 
                 let view = timeline.view();
                 let out = SessionStatus::Timeline(view);
-                tracing::info!("timeline: {:?}", out);
                 channel.send(out).unwrap();
             }
 

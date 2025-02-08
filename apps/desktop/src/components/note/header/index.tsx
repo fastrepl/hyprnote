@@ -21,7 +21,7 @@ export function NoteHeader() {
 
   return (
     <>
-      <div className="flex flex-row items-center justify-between px-8 pt-6">
+      <div className="flex flex-row items-center justify-between pl-8 pr-4 pt-6">
         <TitleInput value={store.session.title} onChange={handleTitleChange} />
         <ListenButton
           isListening={store.listening}

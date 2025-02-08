@@ -1,6 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, Users } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -85,26 +84,23 @@ export function EventCard({ event }: EventCardProps) {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center text-sm">
-            <Calendar className="mr-2 h-4 w-4 text-neutral-400" />
-            <span>
-              {new Date(event.start_date).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
-          </div>
+        <div className="flex items-center gap-2 text-sm">
+          <span>
+            {new Date(event.start_date).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
           <span className={getEventStatusClass(event)}>
             {formatRemainingTime(new Date(event.start_date))}
           </span>
         </div>
 
         <div className="flex items-center">
-          <Users className="mr-2 h-4 w-4 text-neutral-400" />
-          <span className="text-sm text-neutral-600">
-            {participants.data?.map((p) => p.name).join(", ") ||
-              "No participants"}
+          <span className="truncate text-sm text-neutral-600">
+            {participants.data?.length
+              ? participants.data.map((p) => p.name).join(", ")
+              : "No participants"}
           </span>
         </div>
       </CardContent>

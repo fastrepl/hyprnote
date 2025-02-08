@@ -48,16 +48,14 @@ export default function ListenButton({
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        {button}
-      </PopoverTrigger>
-      <PopoverContent className="w-64" align="end">
-        <div className="flex flex-col gap-3 py-1">
+      <PopoverTrigger asChild>{button}</PopoverTrigger>
+      <PopoverContent className="w-fit" align="end">
+        <div className="flex flex-col items-center gap-3 py-1">
           <div className="text-sm font-medium">Is your meeting over?</div>
           <div className="flex justify-end gap-2">
             <button
               onClick={onStop}
-              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary/90"
+              className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-500"
             >
               Yes, stop recording
             </button>

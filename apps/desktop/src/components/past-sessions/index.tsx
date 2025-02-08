@@ -1,35 +1,18 @@
-import { useCallback } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import type { Session } from "@/types/tauri.gen";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
+import SessionList from "./session-list";
 import { Trans } from "@lingui/react/macro";
 
-export default function PastSessions({ data }: { data: Session[] }) {
-  const navigate = useNavigate();
+interface PastSessionsProps {
+  data: Session[];
+}
 
-  const handleClickRow = useCallback(
-    (session: Session) => {
-      navigate({
-        to: "/note/$id",
-        params: {
-          id: session.id,
-        },
-      });
-    },
-    [navigate],
-  );
-
+export default function PastSessions({ data }: PastSessionsProps) {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 pb-6 text-foreground">
-      <h2 className="text-2xl font-semibold">
+    <div className="mx-auto w-full max-w-3xl pb-24">
+      <h2 className="mb-4 text-2xl font-semibold">
         <Trans>Past Notes</Trans>
       </h2>
-      <DataTable
-        data={data}
-        columns={columns}
-        handleClickRow={handleClickRow}
-      />
+      <SessionList data={data} />
     </div>
   );
 }

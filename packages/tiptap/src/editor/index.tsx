@@ -82,7 +82,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         <EditorContent editor={editor} />
       </div>
     );
-  }
+  },
 );
 
 Editor.displayName = "Editor";

@@ -55,7 +55,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         <EditorContent className="h-full w-full" editor={editor} />
       </div>
     );
-  }
+  },
 );
 
 Editor.displayName = "Editor";

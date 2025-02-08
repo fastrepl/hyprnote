@@ -1,16 +1,11 @@
 import { lazy, Suspense } from "react";
-
 import {
   Outlet,
   createRootRouteWithContext,
   CatchNotFound,
 } from "@tanstack/react-router";
-
 import type { Context } from "../main";
-import {
-  CatchNotFoundFallback,
-  NotFoundComponent,
-} from "@/components/app-header/control";
+import { CatchNotFoundFallback, NotFoundComponent } from "@/components/control";
 
 export const Route = createRootRouteWithContext<Context>()({
   component: Component,

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { Session, Participant } from "@/types/tauri.gen";
 import { commands } from "@/types/tauri.gen";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
+import { format, isThisYear } from "date-fns";
 
 export const columns: ColumnDef<Session>[] = [
   {
@@ -15,7 +16,10 @@ export const columns: ColumnDef<Session>[] = [
     cell: ({ row }) => {
       const timestamp = parseFloat(row.getValue("timestamp"));
       const date = new Date(timestamp);
-      return <span>{date.toLocaleString()}</span>;
+      const formattedDate = isThisYear(date)
+        ? format(date, "MMM d (EEE), h:mm a")
+        : format(date, "MMM d (EEE), h:mm a, yyyy");
+      return <span>{formattedDate}</span>;
     },
   },
   {
@@ -38,8 +42,8 @@ export const columns: ColumnDef<Session>[] = [
       if (participants.length === 0) return <span>Loading...</span>;
 
       return (
-        <div className="flex flex-wrap items-center gap-2">
-          {participants.map((participant) => (
+        <div className="flex items-center gap-2">
+          {participants.slice(0, 3).map((participant) => (
             <div
               key={participant.id}
               className="inline-flex items-center gap-1 rounded-full border px-1.5 py-1 text-xs"
@@ -58,6 +62,11 @@ export const columns: ColumnDef<Session>[] = [
               {participant.name}
             </div>
           ))}
+          {participants.length > 3 && (
+            <div className="inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-neutral-100 px-2 py-1 text-xs text-neutral-500">
+              +{participants.length - 3} more
+            </div>
+          )}
         </div>
       );
     },

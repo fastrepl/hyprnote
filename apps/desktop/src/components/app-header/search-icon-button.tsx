@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import clsx from "clsx";
 import { SearchIcon } from "lucide-react";
 import {
   CommandDialog,
@@ -9,10 +8,9 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-  CommandShortcut,
 } from "@hypr/ui/components/ui/command";
 
-export default function SearchBar() {
+export default function SearchIconButton() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -29,19 +27,13 @@ export default function SearchBar() {
   return (
     <>
       <button
-        className={clsx([
-          "w-72",
-          "hidden flex-row items-center gap-2 sm:flex",
-          "rounded-md border border-border px-2 py-2",
-          "bg-transparent transition-colors duration-200 hover:bg-white",
-          "text-neutral-500 hover:text-neutral-600",
-        ])}
+        className="block flex items-center justify-center rounded-md p-1 text-sm font-medium ring-offset-background transition-colors duration-200 hover:bg-neutral-200 sm:hidden"
         onClick={() => setOpen(true)}
       >
-        <SearchIcon className="mr-2 h-4 w-4" />
-        <span className="text-xs">Search</span>
-        <Shortcut />
+        <SearchIcon className="h-4 w-4" />
+        <span className="sr-only">Search</span>
       </button>
+
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>
@@ -61,7 +53,4 @@ export default function SearchBar() {
       </CommandDialog>
     </>
   );
-}
-function Shortcut() {
-  return <CommandShortcut>⌘K</CommandShortcut>;
 }

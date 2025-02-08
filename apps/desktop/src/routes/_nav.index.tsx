@@ -12,7 +12,7 @@ function Component() {
 
   return (
     <main className="flex h-full flex-col overflow-hidden">
-      <ScrollArea className="px-8 py-6">
+      <ScrollArea className="px-8">
         <UpcomingEvents events={events} />
         <PastSessions data={sessions} />
       </ScrollArea>

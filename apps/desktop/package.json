@@ -14,8 +14,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@hypr/client": "workspace:*",
     "@hookform/resolvers": "^3.10.0",
+    "@hypr/client": "workspace:*",
     "@hypr/tiptap": "workspace:*",
     "@hypr/ui": "workspace:*",
     "@lingui/core": "^5.2.0",
@@ -44,6 +44,7 @@
     "@tauri-apps/plugin-store": "^2.2.0",
     "@tauri-apps/plugin-updater": "^2.5.0",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.469.0",
     "motion": "^11.18.2",
     "mutative": "^1.1.0",

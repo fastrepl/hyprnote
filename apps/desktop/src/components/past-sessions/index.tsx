@@ -21,7 +21,7 @@ export default function PastSessions({ data }: { data: Session[] }) {
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 text-foreground">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 pb-6 text-foreground">
       <h2 className="text-2xl font-semibold">
         <Trans>Past Notes</Trans>
       </h2>

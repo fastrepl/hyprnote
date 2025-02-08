@@ -7,42 +7,42 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
         id: uuid::Uuid::new_v4().to_string(),
         name: "Yujong Lee".to_string(),
         email: Some("yujonglee@hyprnote.com".to_string()),
-        color_hex: random_color::RandomColor::new().to_hex(),
+        color_hex: "#E5E5E5".to_string(),
     };
 
     let bobby = Participant {
         id: uuid::Uuid::new_v4().to_string(),
         name: "Bobby Min".to_string(),
         email: Some("bobby.min@krewcapital.com".to_string()),
-        color_hex: random_color::RandomColor::new().to_hex(),
+        color_hex: "#E5E5E5".to_string(),
     };
 
     let minjae = Participant {
         id: uuid::Uuid::new_v4().to_string(),
         name: "Minjae Song".to_string(),
         email: Some("minjae.song@krewcapital.com".to_string()),
-        color_hex: random_color::RandomColor::new().to_hex(),
+        color_hex: "#E5E5E5".to_string(),
     };
 
     let john = Participant {
         id: uuid::Uuid::new_v4().to_string(),
         name: "John Jeong".to_string(),
         email: Some("john@hyprnote.com".to_string()),
-        color_hex: random_color::RandomColor::new().to_hex(),
+        color_hex: "#E5E5E5".to_string(),
     };
 
     let alex = Participant {
         id: uuid::Uuid::new_v4().to_string(),
         name: "Alex Karp".to_string(),
         email: Some("alex@hyprnote.com".to_string()),
-        color_hex: random_color::RandomColor::new().to_hex(),
+        color_hex: "#E5E5E5".to_string(),
     };
 
     let jenny = Participant {
         id: uuid::Uuid::new_v4().to_string(),
         name: "Jenny Park".to_string(),
         email: None,
-        color_hex: random_color::RandomColor::new().to_hex(),
+        color_hex: "#E5E5E5".to_string(),
     };
 
     let participants = vec![yujong, bobby, minjae, john, alex, jenny];

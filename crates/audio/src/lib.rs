@@ -9,6 +9,7 @@ pub use speaker::*;
 pub use stream::*;
 
 pub use dasp::sample::Sample;
+use futures_util::StreamExt;
 
 pub struct AudioOutput {}
 
@@ -110,17 +111,17 @@ impl AudioInput {
                 speaker: self.speaker.take().unwrap().stream().unwrap(),
             },
             AudioSource::RealTime => {
-                let mic_stream = self.mic.take().unwrap().stream();
-                let speaker_stream = self.speaker.take().unwrap().stream().unwrap();
+                let mic_stream = self.mic.take().unwrap().stream().resample(16000);
+                let speaker_stream = self
+                    .speaker
+                    .take()
+                    .unwrap()
+                    .stream()
+                    .unwrap()
+                    .resample(16000);
+                let combined = mic_stream.zip(speaker_stream);
 
-                let mic_sample_rate = mic_stream.sample_rate();
-                let speaker_sample_rate = speaker_stream.sample_rate();
-                let sample_rate = std::cmp::min(mic_sample_rate, speaker_sample_rate);
-
-                AudioStream::RealTime {
-                    mic: mic_stream.resample(sample_rate),
-                    speaker: speaker_stream.resample(sample_rate),
-                }
+                AudioStream::RealTime { combined }
             }
             AudioSource::Recorded => AudioStream::Recorded {
                 data: self.data.as_ref().unwrap().clone(),
@@ -132,8 +133,10 @@ impl AudioInput {
 
 pub enum AudioStream {
     RealTime {
-        mic: ResampledAsyncSource<MicStream>,
-        speaker: ResampledAsyncSource<SpeakerStream>,
+        combined: futures_util::stream::Zip<
+            ResampledAsyncSource<MicStream>,
+            ResampledAsyncSource<SpeakerStream>,
+        >,
     },
     RealtimeMic {
         mic: MicStream,
@@ -160,24 +163,11 @@ impl futures_core::Stream for AudioStream {
         match &mut *self {
             AudioStream::RealtimeMic { mic } => mic.poll_next_unpin(cx),
             AudioStream::RealtimeSpeaker { speaker } => speaker.poll_next_unpin(cx),
-            AudioStream::RealTime { mic, speaker } => {
-                match (mic.poll_next_unpin(cx), speaker.poll_next_unpin(cx)) {
-                    (Poll::Ready(Some(mic)), Poll::Ready(Some(speaker))) => {
-                        let mixed = if mic.abs() < 1e-6 {
-                            speaker
-                        } else if speaker.abs() < 1e-6 {
-                            mic
-                        } else {
-                            (mic + speaker) * 0.7071
-                        };
-                        Poll::Ready(Some(mixed))
-                    }
-                    (Poll::Ready(Some(mic)), _) => Poll::Ready(Some(mic)),
-                    (_, Poll::Ready(Some(speaker))) => Poll::Ready(Some(speaker)),
-                    (Poll::Ready(None), Poll::Ready(None)) => Poll::Ready(None),
-                    _ => Poll::Pending,
-                }
-            }
+            AudioStream::RealTime { combined } => match combined.poll_next_unpin(cx) {
+                Poll::Ready(Some((mic, speaker))) => Poll::Ready(Some((mic + speaker) * 0.7)),
+                Poll::Ready(None) => Poll::Ready(None),
+                Poll::Pending => Poll::Pending,
+            },
             // assume pcm_s16le, without WAV header
             AudioStream::Recorded { data, position } => {
                 if *position + 2 <= data.len() {
@@ -204,7 +194,7 @@ impl crate::AsyncSource for AudioStream {
         match self {
             AudioStream::RealtimeMic { mic } => mic.sample_rate(),
             AudioStream::RealtimeSpeaker { speaker } => speaker.sample_rate(),
-            AudioStream::RealTime { mic, .. } => mic.sample_rate(),
+            AudioStream::RealTime { combined } => combined.get_ref().0.sample_rate(),
             AudioStream::Recorded { .. } => 16000,
         }
     }

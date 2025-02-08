@@ -75,12 +75,10 @@ export default function EditorArea() {
   return (
     <main className="relative flex h-full flex-col overflow-hidden">
       <NoteHeader />
+
       <ScrollArea
         type="auto"
-        className={clsx([
-          "h-full w-full",
-          enhance.status === "loading" ? "tiptap-animate" : "",
-        ])}
+        className={clsx([enhance.status === "loading" ? "tiptap-animate" : ""])}
         onClick={() => {
           if (showRaw) {
             editorRef.current?.editor?.commands?.focus();

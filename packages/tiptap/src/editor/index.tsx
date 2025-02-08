@@ -1,3 +1,5 @@
+import "../styles/tiptap.css";
+
 import { useEffect, forwardRef } from "react";
 import {
   EditorContent,
@@ -6,8 +8,8 @@ import {
   type Editor as TiptapEditor,
 } from "@tiptap/react";
 import clsx from "clsx";
-
 import * as shared from "../shared";
+import { editorStyle } from "../shared/editorStyle";
 
 export const extensions = [...shared.extensions];
 
@@ -36,14 +38,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       onUpdate,
       editorProps: {
         attributes: {
-          class: clsx([
-            "prose dark:prose-invert prose-md",
-            "prose-headings:text-gray-700 prose-p:text-black",
-            "prose-p:my-1",
-            "prose-headings:font-medium",
-            "prose-h1:text-xl prose-h1:font-semibold prose-h1:mt-6 prose-h1:mb-2",
-            "focus:outline-none focus:ring-0 px-8",
-          ]),
+          class: clsx(editorStyle),
         },
       },
       autofocus: true,
@@ -61,12 +56,30 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       }
     }, [editor]);
 
+    useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Backspace" && editor?.state.selection.empty) {
+          e.preventDefault();
+        }
+      };
+
+      if (editor) {
+        editor.view.dom.addEventListener("keydown", handleKeyDown);
+      }
+
+      return () => {
+        if (editor) {
+          editor.view.dom.removeEventListener("keydown", handleKeyDown);
+        }
+      };
+    }, [editor]);
+
     return (
-      <div role="textbox" className={clsx(["relative h-full w-full"])}>
-        <EditorContent className="h-full w-full" editor={editor} />
+      <div role="textbox">
+        <EditorContent editor={editor} />
       </div>
     );
-  },
+  }
 );
 
 Editor.displayName = "Editor";

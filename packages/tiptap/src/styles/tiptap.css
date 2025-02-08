@@ -1,0 +1,31 @@
+.tiptap-animate
+  :is(h1, h2, h3, h4, h5, h6, p, ul, ol, blockquote, pre, hr):not(
+    .tiptap-no-animate
+  ) {
+  animation: show 500ms linear forwards;
+}
+
+@keyframes show {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tiptap {
+  :first-child {
+    margin-top: 0;
+  }
+
+  p.is-editor-empty:first-child::before {
+    color: #d1d5db;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+}

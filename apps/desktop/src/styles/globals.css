@@ -73,6 +73,9 @@ h6 {
   isolation: isolate;
 }
 
+/* https://github.com/gitbutlerapp/gitbutler/blob/master/apps/desktop/src/styles/styles.css */
+
+/* 10. Prevent scrolling */
 html,
 body {
   height: 100vh;

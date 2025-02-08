@@ -59,7 +59,10 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Backspace" && editor?.state.selection.empty) {
-          e.preventDefault();
+          const isAtStart = editor.state.selection.$head.pos === 0;
+          if (isAtStart) {
+            e.preventDefault();
+          }
         }
       };
 

@@ -28,4 +28,6 @@
     height: 0;
     pointer-events: none;
   }
+
+  padding-bottom: 1rem;
 }

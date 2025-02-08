@@ -22,7 +22,7 @@ chrono = { workspace = true }
 chrono-tz = { workspace = true }
 
 google-calendar = "0.7.0"
-graph-rs-sdk = "2.0.3"
+graph-rs-sdk = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 block2 = "0.5.1"

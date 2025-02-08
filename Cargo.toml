@@ -49,6 +49,7 @@ tonic = "0.12.3"
 tonic-build = "0.12.3"
 
 async-stripe = { version = "0.39.1", default-features = false }
+graph-rs-sdk = "2.0.3"
 
 sentry = "0.36.0"
 sentry-rust-minidump = "0.10.0"

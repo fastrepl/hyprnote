@@ -12,6 +12,8 @@ hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr-buffer = { path = "../../../crates/buffer", package = "buffer" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar", features = ["google", "outlook"] }
 hypr-db = { path = "../../../crates/db", package = "db", features = ["admin", "user"] }
+hypr-export = { path = "../../../crates/export", package = "export" }
+hypr-messenger = { path = "../../../crates/messenger", package = "messenger" }
 hypr-nango = { path = "../../../crates/nango", package = "nango" }
 hypr-openai = { path = "../../../crates/openai", package = "openai" }
 hypr-prompt = { path = "../../../crates/prompt", package = "prompt" }

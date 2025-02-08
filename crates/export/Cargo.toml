@@ -1,0 +1,8 @@
+[package]
+name = "export"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { workspace = true }
+notion-client = "1.0.5"

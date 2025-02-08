@@ -15,19 +15,28 @@
     transform: translateY(0);
   }
 }
-
 .tiptap {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  padding-bottom: 1rem;
+  hyphens: auto;
+
   :first-child {
     margin-top: 0;
   }
 
-  p.is-editor-empty:first-child::before {
-    color: #d1d5db;
-    content: attr(data-placeholder);
-    float: left;
-    height: 0;
-    pointer-events: none;
-  }
+  p {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 
-  padding-bottom: 1rem;
+    &.is-editor-empty:first-child::before {
+      color: #d1d5db;
+      content: attr(data-placeholder);
+      float: left;
+      height: 0;
+      pointer-events: none;
+    }
+  }
 }

@@ -30,13 +30,13 @@ impl SpeakerInput {
     }
 
     #[cfg(any(target_os = "macos", target_os = "windows"))]
-    pub fn stream(&self) -> Result<SpeakerStream> {
+    pub fn stream(self) -> Result<SpeakerStream> {
         let inner = self.inner.stream();
         Ok(SpeakerStream { inner })
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-    pub fn stream(&self) -> Result<SpeakerStream> {
+    pub fn stream(self) -> Result<SpeakerStream> {
         Err(anyhow::anyhow!(
             "'SpeakerInput::stream' is not supported on this platform"
         ))

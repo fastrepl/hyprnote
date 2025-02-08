@@ -13,10 +13,10 @@ pub struct SpeakerInput {
 
 pub struct SpeakerStream {
     receiver: std::pin::Pin<Box<dyn futures_core::Stream<Item = f32> + Send + Sync>>,
-    #[allow(unused)]
-    device: ca::hardware::StartedDevice<ca::AggregateDevice>,
-    _ctx: Box<Ctx>,
     stream_desc: cat::AudioBasicStreamDesc,
+    _device: ca::hardware::StartedDevice<ca::AggregateDevice>,
+    _ctx: Box<Ctx>,
+    _tap: ca::TapGuard,
 }
 
 impl SpeakerStream {
@@ -113,7 +113,7 @@ impl SpeakerInput {
         Ok(started_device)
     }
 
-    pub fn stream(&self) -> SpeakerStream {
+    pub fn stream(self) -> SpeakerStream {
         let asbd = self.tap.asbd().unwrap();
         let format = av::AudioFormat::with_asbd(&asbd).unwrap();
 
@@ -125,9 +125,10 @@ impl SpeakerInput {
 
         SpeakerStream {
             receiver: Box::pin(receiver),
-            device,
-            _ctx: ctx,
             stream_desc: asbd,
+            _device: device,
+            _ctx: ctx,
+            _tap: self.tap,
         }
     }
 }

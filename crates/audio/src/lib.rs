@@ -101,17 +101,17 @@ impl AudioInput {
         }
     }
 
-    pub fn stream(&self) -> AudioStream {
+    pub fn stream(&mut self) -> AudioStream {
         match &self.source {
             AudioSource::RealtimeMic => AudioStream::RealtimeMic {
                 mic: self.mic.as_ref().unwrap().stream(),
             },
             AudioSource::RealtimeSpeaker => AudioStream::RealtimeSpeaker {
-                speaker: self.speaker.as_ref().unwrap().stream().unwrap(),
+                speaker: self.speaker.take().unwrap().stream().unwrap(),
             },
             AudioSource::RealTime => {
-                let mic_stream = self.mic.as_ref().unwrap().stream();
-                let speaker_stream = self.speaker.as_ref().unwrap().stream().unwrap();
+                let mic_stream = self.mic.take().unwrap().stream();
+                let speaker_stream = self.speaker.take().unwrap().stream().unwrap();
 
                 let mic_sample_rate = mic_stream.sample_rate();
                 let speaker_sample_rate = speaker_stream.sample_rate();

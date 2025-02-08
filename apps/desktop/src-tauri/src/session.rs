@@ -29,7 +29,7 @@ impl SessionState {
         channel: tauri::ipc::Channel<SessionStatus>,
     ) -> Result<(), String> {
         let audio_stream = {
-            let input = {
+            let mut input = {
                 #[cfg(all(debug_assertions, feature = "sim-english-1"))]
                 {
                     hypr_audio::AudioInput::from_recording(hypr_data::english_1::AUDIO.to_vec())

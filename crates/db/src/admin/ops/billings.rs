@@ -36,7 +36,7 @@ impl AdminDatabase {
 
     pub async fn update_stripe_customer(
         &self,
-        customer: stripe::Customer,
+        customer: &stripe::Customer,
     ) -> Result<Option<Billing>, crate::Error> {
         let mut rows = self
             .conn
@@ -46,7 +46,7 @@ impl AdminDatabase {
                     WHERE json_extract(stripe_customer, '$.id') = ?
                 RETURNING *",
                 vec![
-                    libsql::Value::Text(serde_json::to_string(&customer)?),
+                    libsql::Value::Text(serde_json::to_string(customer)?),
                     libsql::Value::Text(customer.id.to_string()),
                 ],
             )
@@ -64,7 +64,7 @@ impl AdminDatabase {
     pub async fn update_stripe_subscription(
         &self,
         customer_id: impl Into<String>,
-        subscription: stripe::Subscription,
+        subscription: &stripe::Subscription,
     ) -> Result<Option<Billing>, crate::Error> {
         let mut rows = self
             .conn
@@ -74,7 +74,7 @@ impl AdminDatabase {
                     WHERE json_extract(stripe_customer, '$.id') = ?
                 RETURNING *",
                 vec![
-                    libsql::Value::Text(serde_json::to_string(&subscription)?),
+                    libsql::Value::Text(serde_json::to_string(subscription)?),
                     libsql::Value::Text(customer_id.into()),
                 ],
             )
@@ -100,7 +100,7 @@ mod tests {
         let db = setup_db().await;
 
         let user = db
-            .update_stripe_customer(stripe::Customer::default())
+            .update_stripe_customer(&stripe::Customer::default())
             .await
             .unwrap();
     }
@@ -110,7 +110,7 @@ mod tests {
         let db = setup_db().await;
 
         let subscription = db
-            .update_stripe_subscription("TODO", stripe::Subscription::default())
+            .update_stripe_subscription("TODO", &stripe::Subscription::default())
             .await
             .unwrap();
     }

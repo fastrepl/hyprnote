@@ -1,10 +1,12 @@
 use axum::{
     body::Body,
-    extract::FromRequest,
+    extract::{FromRequest, State},
     http::{Request, StatusCode},
     response::{IntoResponse, Response},
 };
-use stripe::{Event, EventType};
+use stripe::{Event, EventObject, EventType};
+
+use crate::state::AppState;
 
 // https://github.com/arlyon/async-stripe/blob/c71a7eb/examples/webhook-axum.rs
 pub struct StripeEvent(Event);
@@ -34,11 +36,51 @@ where
     }
 }
 
-pub async fn handler(StripeEvent(event): StripeEvent) -> impl IntoResponse {
+// https://github.com/t3dotgg/stripe-recommendations
+pub async fn handler(
+    State(state): State<AppState>,
+    StripeEvent(event): StripeEvent,
+) -> impl IntoResponse {
     match event.type_ {
-        EventType::CheckoutSessionCompleted => {}
-        EventType::SubscriptionScheduleCanceled => {}
-        _ => {}
+        EventType::CheckoutSessionCompleted
+        | EventType::CustomerSubscriptionCreated
+        | EventType::CustomerSubscriptionUpdated
+        | EventType::CustomerSubscriptionDeleted
+        | EventType::CustomerSubscriptionPaused
+        | EventType::CustomerSubscriptionResumed
+        | EventType::CustomerSubscriptionPendingUpdateApplied
+        | EventType::CustomerSubscriptionPendingUpdateExpired
+        | EventType::CustomerSubscriptionTrialWillEnd
+        | EventType::InvoicePaid
+        | EventType::InvoicePaymentFailed
+        | EventType::InvoicePaymentActionRequired
+        | EventType::InvoiceUpcoming
+        | EventType::InvoiceMarkedUncollectible
+        | EventType::InvoicePaymentSucceeded
+        | EventType::PaymentIntentSucceeded
+        | EventType::PaymentIntentPaymentFailed
+        | EventType::PaymentIntentCanceled => {
+            if let Err(e) = match &event.data.object {
+                EventObject::Customer(customer) => {
+                    state.admin_db.update_stripe_customer(customer).await
+                }
+                EventObject::Subscription(subscription) => {
+                    state
+                        .admin_db
+                        .update_stripe_subscription(
+                            subscription.customer.id().to_string(),
+                            subscription,
+                        )
+                        .await
+                }
+                _ => Ok(None),
+            } {
+                tracing::error!("stripe_webhook: {:?}", e);
+            }
+        }
+        _ => {
+            tracing::debug!("stripe_webhook_unhandled: {:?}", event);
+        }
     }
 
     StatusCode::OK

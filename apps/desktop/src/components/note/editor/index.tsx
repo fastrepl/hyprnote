@@ -78,7 +78,10 @@ export default function EditorArea() {
 
       <ScrollArea
         type="auto"
-        className={clsx([enhance.status === "loading" ? "tiptap-animate" : ""])}
+        className={clsx([
+          "h-full",
+          enhance.status === "loading" ? "tiptap-animate" : "",
+        ])}
         onClick={() => {
           if (showRaw) {
             editorRef.current?.editor?.commands?.focus();

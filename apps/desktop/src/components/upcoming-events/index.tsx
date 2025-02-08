@@ -15,7 +15,7 @@ interface UpcomingEventsProps {
 
 export default function UpcomingEvents({ events }: UpcomingEventsProps) {
   return (
-    <div className="mx-auto mb-8 flex w-full max-w-3xl flex-col gap-4 pt-12 text-foreground">
+    <div className="container mx-auto mb-8 flex flex-col gap-4 pt-12 text-foreground">
       <h2 className="text-2xl font-semibold">
         <Trans>Upcoming</Trans>
       </h2>

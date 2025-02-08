@@ -1,7 +1,6 @@
 use crate::Connection;
 
 mod billings;
-mod customers;
 mod devices;
 mod integrations;
 mod organizations;

@@ -47,22 +47,38 @@ pub async fn attach_user_from_clerk(
     mut req: Request,
     next: middleware::Next,
 ) -> Result<Response, StatusCode> {
+    // https://clerk.com/docs/backend-requests/resources/session-tokens
     let clerk_user_id = jwt.sub;
+    let clerk_org = jwt.org;
 
-    let user = state
-        .admin_db
-        .get_user_by_clerk_user_id(clerk_user_id)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::UNAUTHORIZED)?;
+    if let Some(active_org) = clerk_org {
+        let org = state
+            .admin_db
+            .get_organization_by_clerk_org_id(&active_org.id)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+            .ok_or(StatusCode::UNAUTHORIZED)?;
 
-    req.extensions_mut().insert(user);
+        req.extensions_mut().insert(org);
+    }
+
+    {
+        let user = state
+            .admin_db
+            .get_user_by_clerk_user_id(clerk_user_id)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+            .ok_or(StatusCode::UNAUTHORIZED)?;
+
+        req.extensions_mut().insert(user);
+    }
+
     Ok(next.run(req).await)
 }
 
 #[tracing::instrument(skip_all)]
 pub async fn attach_user_db(
-    Extension(user): Extension<hypr_db::admin::User>,
+    Extension(org): Extension<hypr_db::admin::Organization>,
     mut req: Request,
     next: middleware::Next,
 ) -> Result<Response, StatusCode> {
@@ -70,7 +86,7 @@ pub async fn attach_user_db(
         #[cfg(debug_assertions)]
         {
             let token = get_env("TURSO_API_KEY");
-            let url = format!("{}-yujonglee.turso.io", user.turso_db_name);
+            let url = format!("{}-yujonglee.turso.io", org.turso_db_name);
             hypr_db::ConnectionBuilder::new().remote(url, token)
         }
 

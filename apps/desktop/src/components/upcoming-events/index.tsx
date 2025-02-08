@@ -1,4 +1,5 @@
 import { Trans } from "@lingui/react/macro";
+import { type Event } from "@/types/tauri.gen";
 import {
   Carousel,
   CarouselContent,
@@ -6,19 +7,15 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@hypr/ui/components/ui/carousel";
-import { type Event } from "@/types/tauri.gen";
-import { EventCard } from "@/components/upcoming-events/event-card";
+import { EventCard } from "./event-card";
 
-interface UpcomingEventsProps {
-  events: Event[];
-}
-
-export default function UpcomingEvents({ events }: UpcomingEventsProps) {
+export default function UpcomingEvents({ events }: { events: Event[] }) {
   return (
-    <div className="container mx-auto mb-8 flex flex-col gap-4 pt-12 text-foreground">
-      <h2 className="text-2xl font-semibold">
+    <div className="mb-8 space-y-4 pt-12">
+      <h2 className="text-lg font-semibold">
         <Trans>Upcoming</Trans>
       </h2>
+
       <Carousel>
         <CarouselContent className="px-2">
           {events.map((event) => (

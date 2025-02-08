@@ -27,24 +27,24 @@ export function TemplateList({
   onTemplateSelect,
 }: TemplateListProps) {
   return (
-    <SidebarGroup>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          <div className="px-2">
-            <div className="relative">
-              <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <input
-                placeholder="Search templates..."
-                className="w-full rounded-md border border-input bg-transparent px-8 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-              />
-            </div>
-          </div>
+    <>
+      <div className="sticky top-0 border-b bg-background p-4">
+        <div className="relative">
+          <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <input
+            placeholder="Search templates..."
+            className="w-full rounded-md border border-input bg-transparent px-8 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+        </div>
+      </div>
 
-          {customTemplates && customTemplates.length > 0 && (
-            <div className="px-2 py-1">
-              <h3 className="mb-2 px-2 text-lg font-semibold">My Templates</h3>
+      {customTemplates && customTemplates.length > 0 && (
+        <SidebarGroup>
+          <h3 className="px-6 py-2 text-sm font-medium text-muted-foreground">My Templates</h3>
+          <SidebarGroupContent>
+            <SidebarMenu>
               {customTemplates
                 .filter((template) =>
                   template?.title
@@ -61,13 +61,15 @@ export function TemplateList({
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
-            </div>
-          )}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      )}
 
-          <div className="px-2 py-1">
-            <h3 className="mb-2 px-2 text-lg font-semibold">
-              Hypernote Templates
-            </h3>
+      <SidebarGroup>
+        <h3 className="px-6 py-2 text-sm font-medium text-muted-foreground">Official Templates</h3>
+        <SidebarGroupContent>
+          <SidebarMenu>
             {builtinTemplates
               .filter((template) =>
                 template?.title
@@ -85,10 +87,10 @@ export function TemplateList({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-          </div>
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </>
   );
 }
 

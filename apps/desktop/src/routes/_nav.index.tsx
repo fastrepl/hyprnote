@@ -11,10 +11,12 @@ function Component() {
   } = useSuspenseQuery(queryOptions());
 
   return (
-    <main className="flex h-full flex-col overflow-hidden">
+    <main className="flex h-full flex-col overflow-hidden bg-white">
       <ScrollArea className="px-8">
-        <UpcomingEvents events={events} />
-        <PastSessions data={sessions} />
+        <div className="mx-auto max-w-3xl">
+          <UpcomingEvents events={events} />
+          <PastSessions data={sessions} />
+        </div>
       </ScrollArea>
     </main>
   );

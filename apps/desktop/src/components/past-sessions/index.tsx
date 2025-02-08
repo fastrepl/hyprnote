@@ -8,10 +8,11 @@ interface PastSessionsProps {
 
 export default function PastSessions({ data }: PastSessionsProps) {
   return (
-    <div className="mx-auto w-full max-w-3xl pb-24">
-      <h2 className="mb-4 text-2xl font-semibold">
+    <div className="pb-24">
+      <h2 className="mb-4 text-lg font-semibold">
         <Trans>Past Notes</Trans>
       </h2>
+
       <SessionList data={data} />
     </div>
   );

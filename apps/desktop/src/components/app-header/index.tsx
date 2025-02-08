@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import SettingsDialog from "@/components/settings";
+import SettingsDialog from "@/components/settings-dialog";
 import SearchBar from "@/components/app-header/search-bar";
 import { NewNoteButton } from "@/components/app-header/new-note-button";
 import { BackButton } from "@/components/app-header/back-button";

@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SettingsIcon } from "lucide-react";
 import {
@@ -8,14 +8,14 @@ import {
 } from "@hypr/ui/components/ui/dialog";
 import { SidebarProvider } from "@hypr/ui/components/ui/sidebar";
 import { commands, type Template } from "@/types/tauri.gen";
-import { Content } from "./components/breadcrumbs";
-import { TemplateContent } from "./templates";
-import GeneralComponent from "./general";
-import ProfileComponent from "./profile";
-import CalendarComponent from "./calendar";
-import TemplateComponent from "./template";
-import BillingComponent from "./billing";
-import { SettingsSidebar, type NavNames } from "./components/sidebar";
+import { DialogView } from "./views";
+import { TemplateContent } from "./components/template-list";
+import GeneralComponent from "./views/general";
+import CalendarComponent from "./views/calendar";
+import TemplateComponent from "./views/template";
+import BillingComponent from "./views/billing";
+import { SettingsSidebar } from "./sidebar";
+import type { NavNames } from "./types";
 
 export default function SettingsDialog() {
   const [open, setOpen] = useState(false);
@@ -67,54 +67,6 @@ export default function SettingsDialog() {
   }, [open, active]);
 
   return (
-    <DialogWrapper open={open} setOpen={setOpen}>
-      <SidebarProvider className="items-start">
-        <SettingsSidebar
-          active={active}
-          setActive={setActive}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          customTemplates={templates.data?.custom || []}
-          builtinTemplates={templates.data?.builtin || []}
-          templateIndex={templateIndex}
-          onTemplateSelect={handleTemplateSelect}
-        />
-
-        <Content title={active} selectedTemplate={selectedTemplate}>
-          {active === "Profile" ? (
-            <ProfileComponent />
-          ) : active === "General" ? (
-            <GeneralComponent />
-          ) : active === "Calendar" ? (
-            <CalendarComponent />
-          ) : active === "Templates" ? (
-            <TemplateContent>
-              {templates.data?.custom &&
-                templates.data.custom[templateIndex] && (
-                  <TemplateComponent
-                    disabled={false}
-                    template={templates.data.custom[templateIndex]}
-                    onTemplateUpdate={handleUpdateTemplate}
-                  />
-                )}
-            </TemplateContent>
-          ) : active === "Team & Billing" ? (
-            <BillingComponent />
-          ) : null}
-        </Content>
-      </SidebarProvider>
-    </DialogWrapper>
-  );
-}
-
-interface DialogWrapperProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  children: ReactNode;
-}
-
-function DialogWrapper({ open, setOpen, children }: DialogWrapperProps) {
-  return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button className="flex items-center justify-center rounded-md p-1 text-sm font-medium ring-offset-background transition-colors duration-200 hover:bg-neutral-200">
@@ -122,8 +74,41 @@ function DialogWrapper({ open, setOpen, children }: DialogWrapperProps) {
           <span className="sr-only">Settings</span>
         </button>
       </DialogTrigger>
-      <DialogContent className="flex h-[80vh] max-w-4xl gap-0 overflow-clip p-0">
-        {children}
+
+      <DialogContent className="flex h-[calc(100vh-96px)] w-[calc(100vw-96px)] gap-0 overflow-clip p-0">
+        <SidebarProvider>
+          <SettingsSidebar
+            active={active}
+            setActive={setActive}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            customTemplates={templates.data?.custom || []}
+            builtinTemplates={templates.data?.builtin || []}
+            templateIndex={templateIndex}
+            onTemplateSelect={handleTemplateSelect}
+          />
+
+          <DialogView title={active} selectedTemplate={selectedTemplate}>
+            {active === "General" ? (
+              <GeneralComponent />
+            ) : active === "Calendar" ? (
+              <CalendarComponent />
+            ) : active === "Templates" ? (
+              <TemplateContent>
+                {templates.data?.custom &&
+                  templates.data.custom[templateIndex] && (
+                    <TemplateComponent
+                      disabled={false}
+                      template={templates.data.custom[templateIndex]}
+                      onTemplateUpdate={handleUpdateTemplate}
+                    />
+                  )}
+              </TemplateContent>
+            ) : active === "Team & Billing" ? (
+              <BillingComponent />
+            ) : null}
+          </DialogView>
+        </SidebarProvider>
       </DialogContent>
     </Dialog>
   );

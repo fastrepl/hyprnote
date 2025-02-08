@@ -1,0 +1,11 @@
+[package]
+name = "notion"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hypr-db = { path = "../db", package = "db", default-features = false, features = ["user"] }
+
+anyhow = { workspace = true }
+notion-client = "1.0.5"
+strum = { workspace = true, features = ["derive"] }

@@ -1,8 +1,0 @@
-[package]
-name = "messenger"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-graph-rs-sdk = { workspace = true }
-slack-morphism = { version = "2.9", features = ["axum"] }

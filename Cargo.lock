@@ -316,11 +316,10 @@ dependencies = [
  "codes-iso-639",
  "db",
  "dotenv",
- "export",
  "futures-core",
  "futures-util",
- "messenger",
  "nango",
+ "notion",
  "openai",
  "prompt",
  "s3",
@@ -328,6 +327,7 @@ dependencies = [
  "sentry",
  "serde",
  "serde_json",
+ "slack",
  "specta",
  "specta-typescript",
  "specta-util",
@@ -3688,14 +3688,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "export"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "notion-client",
-]
-
-[[package]]
 name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6353,14 +6345,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "messenger"
-version = "0.1.0"
-dependencies = [
- "graph-rs-sdk",
- "slack-morphism",
-]
-
-[[package]]
 name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6724,6 +6708,16 @@ dependencies = [
  "serde",
  "tauri-winrt-notification",
  "zbus",
+]
+
+[[package]]
+name = "notion"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "db",
+ "notion-client",
+ "strum 0.26.3",
 ]
 
 [[package]]
@@ -10169,6 +10163,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f92a496fb766b417c996b9c5e57daf2f7ad3b0bebe1ccfca4856390e3d3bb67"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "slack"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "db",
+ "slack-morphism",
+ "url",
 ]
 
 [[package]]

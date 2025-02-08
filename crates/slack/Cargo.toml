@@ -1,0 +1,11 @@
+[package]
+name = "slack"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hypr-db = { path = "../db", package = "db", default-features = false, features = ["user"] }
+
+anyhow = { workspace = true }
+slack-morphism = { version = "2.9", features = ["axum"] }
+url = { workspace = true }

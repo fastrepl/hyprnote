@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import { useNavigate } from "@tanstack/react-router";
-
 import type { Session } from "@/types/tauri.gen";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";

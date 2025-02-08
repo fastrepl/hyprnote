@@ -1,62 +1,19 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Trans } from "@lingui/react/macro";
-import { Calendar, Clock, Users } from "lucide-react";
-
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@hypr/ui/components/ui/carousel";
+import { Calendar, Users } from "lucide-react";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
 } from "@hypr/ui/components/ui/card";
-import {
-  Avatar,
-  AvatarImage,
-  AvatarFallback,
-} from "@hypr/ui/components/ui/avatar";
-
-import { commands, type Event, type Participant } from "@/types/tauri.gen";
-
-interface UpcomingEventsProps {
-  events: Event[];
-}
-
-export default function UpcomingEvents({ events }: UpcomingEventsProps) {
-  return (
-    <div className="mx-auto mb-8 flex w-full max-w-3xl flex-col gap-4 text-foreground">
-      <h2 className="text-2xl font-semibold">
-        <Trans>Upcoming</Trans>
-      </h2>
-      <Carousel>
-        <CarouselContent className="px-2">
-          {events.map((event) => (
-            <CarouselItem
-              key={event.id}
-              className="sm:basis-1/2 xl:basis-1/3 2xl:basis-1/4"
-            >
-              <EventCard event={event} />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious className="absolute left-0 top-1/2 z-10 hover:bg-secondary/90" />
-        <CarouselNext className="absolute right-0 top-1/2 z-10 hover:bg-secondary/90" />
-      </Carousel>
-    </div>
-  );
-}
+import { commands, type Event } from "@/types/tauri.gen";
 
 interface EventCardProps {
   event: Event;
 }
 
-function EventCard({ event }: EventCardProps) {
+export function EventCard({ event }: EventCardProps) {
   const navigate = useNavigate();
 
   const participants = useQuery({
@@ -92,7 +49,7 @@ function EventCard({ event }: EventCardProps) {
 
   const getEventStatusClass = (event: Event) => {
     return isEventInProgress(event)
-      ? "rounded-full bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-500 animate-pulse"
+      ? "rounded-full bg-red-500/20 px-2 py-0.5 text-xs font-medium text-red-600 shadow-sm shadow-red-500/20 animate-[pulse_1.5s_ease-in-out_infinite]"
       : "rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary";
   };
 
@@ -145,19 +102,10 @@ function EventCard({ event }: EventCardProps) {
 
         <div className="flex items-center">
           <Users className="mr-2 h-4 w-4 text-neutral-400" />
-          <div className="flex -space-x-2">
-            {participants.data?.map((participant: Participant) => (
-              <Avatar
-                key={participant.email}
-                className="h-6 w-6 border-2 border-background"
-              >
-                <AvatarImage
-                  src={`https://api.dicebear.com/6.x/initials/svg?seed=${participant.name}`}
-                />
-                <AvatarFallback>{participant.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-            ))}
-          </div>
+          <span className="text-sm text-neutral-600">
+            {participants.data?.map((p) => p.name).join(", ") ||
+              "No participants"}
+          </span>
         </div>
       </CardContent>
     </Card>

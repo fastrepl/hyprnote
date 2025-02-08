@@ -32,7 +32,7 @@ export default function MessageInput({
     <form onSubmit={onSubmit}>
       <div className="relative mx-4 mb-4 flex flex-col gap-3">
         {messages.length === 0 && (
-          <div className="flex flex-wrap gap-2 px-1">
+          <div className="flex flex-wrap gap-2">
             {["List action items", "Write follow-up email", "List Q&A"].map(
               (action) => (
                 <button

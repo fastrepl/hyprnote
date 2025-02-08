@@ -62,7 +62,7 @@ export function DataTable<TData, TValue>({
                 className="cursor-pointer hover:bg-neutral-50"
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell key={cell.id} className="h-12 py-2">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

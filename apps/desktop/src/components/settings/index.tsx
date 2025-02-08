@@ -1,57 +1,25 @@
 import { type ReactNode, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  SettingsIcon,
-  UserIcon,
-  CalendarIcon,
-  FileTextIcon,
-  CreditCardIcon,
-  ChevronLeftIcon,
-} from "lucide-react";
-
+import { SettingsIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from "@hypr/ui/components/ui/dialog";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarProvider,
-} from "@hypr/ui/components/ui/sidebar";
-
+import { SidebarProvider } from "@hypr/ui/components/ui/sidebar";
 import { commands, type Template } from "@/types/tauri.gen";
 import { Content } from "./components/breadcrumbs";
-import { TemplateList, TemplateContent } from "./templates";
+import { TemplateContent } from "./templates";
 import GeneralComponent from "./general";
 import ProfileComponent from "./profile";
 import CalendarComponent from "./calendar";
 import TemplateComponent from "./template";
 import BillingComponent from "./billing";
-
-const data = {
-  nav: [
-    { name: "General", icon: SettingsIcon },
-    { name: "Profile", icon: UserIcon },
-    { name: "Calendar", icon: CalendarIcon },
-    { name: "Templates", icon: FileTextIcon },
-    { name: "Team & Billing", icon: CreditCardIcon },
-  ],
-} as const;
-
-type NavItem = (typeof data.nav)[number];
-type NavNames = NavItem["name"];
+import { SettingsSidebar, type NavNames } from "./components/sidebar";
 
 export default function SettingsDialog() {
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState<NavNames>(data.nav[3].name);
+  const [active, setActive] = useState<NavNames>("General");
   const [templateIndex, setTemplateIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
@@ -91,7 +59,7 @@ export default function SettingsDialog() {
 
   useEffect(() => {
     if (!open) {
-      setActive(data.nav[0].name);
+      setActive("General");
     }
     if (active === "Templates") {
       setTemplateIndex(0);
@@ -101,60 +69,16 @@ export default function SettingsDialog() {
   return (
     <DialogWrapper open={open} setOpen={setOpen}>
       <SidebarProvider className="items-start">
-        <Sidebar collapsible="none" className="hidden md:flex">
-          <SidebarContent>
-            {active === "Templates" ? (
-              <>
-                <SidebarGroup>
-                  <SidebarGroupContent>
-                    <SidebarMenu>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton
-                          isActive={false}
-                          className="flex flex-row gap-2"
-                          onClick={() => setActive(data.nav[0].name)}
-                        >
-                          <ChevronLeftIcon className="h-4 w-4" />
-                          <span>Back to Settings</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-
-                <TemplateList
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  customTemplates={templates.data?.custom || []}
-                  builtinTemplates={templates.data?.builtin || []}
-                  selectedIndex={templateIndex}
-                  onTemplateSelect={handleTemplateSelect}
-                />
-              </>
-            ) : (
-              <SidebarGroup>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {data.nav.map((item) => (
-                      <SidebarMenuItem key={item.name}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={item.name === active}
-                          onClick={() => setActive(item.name)}
-                        >
-                          <div>
-                            <item.icon />
-                            <span>{item.name}</span>
-                          </div>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            )}
-          </SidebarContent>
-        </Sidebar>
+        <SettingsSidebar
+          active={active}
+          setActive={setActive}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          customTemplates={templates.data?.custom || []}
+          builtinTemplates={templates.data?.builtin || []}
+          templateIndex={templateIndex}
+          onTemplateSelect={handleTemplateSelect}
+        />
 
         <Content title={active} selectedTemplate={selectedTemplate}>
           {active === "Profile" ? (
@@ -199,9 +123,6 @@ function DialogWrapper({ open, setOpen, children }: DialogWrapperProps) {
         </button>
       </DialogTrigger>
       <DialogContent className="flex h-[80vh] max-w-4xl gap-0 overflow-clip p-0">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Settings</DialogTitle>
-        </DialogHeader>
         {children}
       </DialogContent>
     </Dialog>

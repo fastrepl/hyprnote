@@ -77,7 +77,7 @@ export default function Modal({
       className="flex origin-bottom-right flex-col rounded-xl border bg-white shadow-2xl transition-[height] duration-200"
       style={{
         maxHeight: "80vh",
-        minHeight: 400,
+        minHeight: 240,
       }}
     >
       <Header

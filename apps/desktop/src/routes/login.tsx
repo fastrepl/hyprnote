@@ -4,11 +4,9 @@ import { open } from "@tauri-apps/plugin-shell";
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { message } from "@tauri-apps/plugin-dialog";
-
 import { commands } from "@/types/tauri.gen";
 import { baseUrl } from "@/client";
-
-import ShimmerButton from "@hypr/ui/components/ui/shimmer-button";
+import PushableButton from "@hypr/ui/components/ui/pushable-button";
 
 export const Route = createFileRoute("/login")({
   component: Component,
@@ -62,8 +60,8 @@ function Component() {
   };
 
   return (
-    <ShimmerButton onClick={handleSignIn}>
+    <PushableButton onClick={handleSignIn}>
       <Trans>Get Started</Trans>
-    </ShimmerButton>
+    </PushableButton>
   );
 }

@@ -3,35 +3,49 @@ use super::{Calendar, Event, Participant, Platform, Session, UserDatabase};
 pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
     let now = chrono::Utc::now();
 
-    let yujonglee = Participant {
+    let yujong = Participant {
         id: uuid::Uuid::new_v4().to_string(),
         name: "Yujong Lee".to_string(),
         email: Some("yujonglee@hyprnote.com".to_string()),
         color_hex: random_color::RandomColor::new().to_hex(),
     };
 
+    let bobby = Participant {
+        id: uuid::Uuid::new_v4().to_string(),
+        name: "Bobby Min".to_string(),
+        email: Some("bobby.min@krewcapital.com".to_string()),
+        color_hex: random_color::RandomColor::new().to_hex(),
+    };
+
+    let minjae = Participant {
+        id: uuid::Uuid::new_v4().to_string(),
+        name: "Minjae Song".to_string(),
+        email: Some("minjae.song@krewcapital.com".to_string()),
+        color_hex: random_color::RandomColor::new().to_hex(),
+    };
+
     let john = Participant {
         id: uuid::Uuid::new_v4().to_string(),
-        name: "John".to_string(),
+        name: "John Jeong".to_string(),
         email: Some("john@hyprnote.com".to_string()),
         color_hex: random_color::RandomColor::new().to_hex(),
     };
 
     let alex = Participant {
         id: uuid::Uuid::new_v4().to_string(),
-        name: "Alex".to_string(),
+        name: "Alex Karp".to_string(),
         email: Some("alex@hyprnote.com".to_string()),
         color_hex: random_color::RandomColor::new().to_hex(),
     };
 
     let jenny = Participant {
         id: uuid::Uuid::new_v4().to_string(),
-        name: "Jenny".to_string(),
+        name: "Jenny Park".to_string(),
         email: None,
         color_hex: random_color::RandomColor::new().to_hex(),
     };
 
-    let participants = vec![yujonglee, john, alex, jenny];
+    let participants = vec![yujong, bobby, minjae, john, alex, jenny];
     let participant_ids: Vec<String> = participants.iter().map(|p| p.id.clone()).collect();
 
     let calendars = vec![Calendar {
@@ -57,8 +71,18 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
             id: uuid::Uuid::new_v4().to_string(),
             tracking_id: "event_2".to_string(),
             calendar_id: calendars[0].id.clone(),
-            name: "Event 2".to_string(),
+            name: "Seed round pitch - Krew Capital".to_string(),
             note: "Description 2".to_string(),
+            start_date: now + chrono::Duration::days(1) + chrono::Duration::hours(1),
+            end_date: now + chrono::Duration::days(1) + chrono::Duration::hours(2),
+            google_event_url: None,
+        },
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            tracking_id: "event_3".to_string(),
+            calendar_id: calendars[0].id.clone(),
+            name: "Event 3".to_string(),
+            note: "Description 3".to_string(),
             start_date: now + chrono::Duration::days(1) + chrono::Duration::hours(1),
             end_date: now + chrono::Duration::days(1) + chrono::Duration::hours(2),
             google_event_url: None,

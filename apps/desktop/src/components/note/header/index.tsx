@@ -19,21 +19,14 @@ export function NoteHeader() {
     store.persistSession();
   };
 
-  const handleClickListen = () => {
-    if (store.listening) {
-      store.pause();
-    } else {
-      store.start();
-    }
-  };
-
   return (
     <>
       <div className="flex flex-row items-center justify-between px-8 pt-6">
         <TitleInput value={store.session.title} onChange={handleTitleChange} />
         <ListenButton
           isListening={store.listening}
-          onClick={handleClickListen}
+          onClick={store.start}
+          onStop={store.pause}
         />
       </div>
       <Chips />

@@ -6,7 +6,10 @@ interface LiveSummaryToastProps {
   onClose: () => void;
 }
 
-export default function LiveSummaryToast({ summary, onClose }: LiveSummaryToastProps) {
+export default function LiveSummaryToast({
+  summary,
+  onClose,
+}: LiveSummaryToastProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {

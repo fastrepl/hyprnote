@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
-import { Message } from "./types";
+import type { Message } from "@/types";
+import { useLocation } from "@tanstack/react-router";
 import Header from "./header";
 import HistoryView from "./history-view";
 import MessageView from "./message-view";
@@ -44,6 +45,8 @@ export default function Modal({
   onKeyDown,
   onQuickAction,
 }: ModalProps) {
+  const { pathname } = useLocation();
+
   return (
     <motion.div
       key="modal"
@@ -79,6 +82,7 @@ export default function Modal({
       }}
     >
       <Header
+        title={pathname.includes("note") ? "Note Chat" : "Workspace Chat"}
         showHistory={showHistory}
         onBackClick={onBackClick}
         onNewChat={onNewChat}
@@ -100,6 +104,11 @@ export default function Modal({
             inputValue={inputValue}
             isLoading={isLoading}
             inputRef={inputRef}
+            quickActions={
+              pathname.includes("note")
+                ? ["List action items", "Write follow-up email", "List Q&A"]
+                : ["List action items", "Recap last meeting", "Summarize today"]
+            }
             onSubmit={onSubmit}
             onInputChange={onInputChange}
             onKeyDown={onKeyDown}

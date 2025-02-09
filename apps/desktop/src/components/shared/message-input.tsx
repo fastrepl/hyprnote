@@ -12,6 +12,7 @@ interface MessageInputProps {
   inputValue: string;
   isLoading: boolean;
   inputRef: React.RefObject<HTMLTextAreaElement>;
+  quickActions: string[];
   onSubmit: (e: React.FormEvent) => void;
   onInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
@@ -23,6 +24,7 @@ export default function MessageInput({
   inputValue,
   isLoading,
   inputRef,
+  quickActions,
   onSubmit,
   onInputChange,
   onKeyDown,
@@ -33,18 +35,16 @@ export default function MessageInput({
       <div className="relative mx-4 mb-4 flex flex-col gap-3">
         {messages.length === 0 && (
           <div className="flex flex-wrap gap-1">
-            {["List action items", "Recap last meeting", "Summarize today"].map(
-              (action) => (
-                <button
-                  key={action}
-                  type="button"
-                  onClick={() => onQuickAction(action)}
-                  className="rounded-lg bg-neutral-100 px-3 py-1.5 text-xs text-neutral-900 hover:bg-neutral-200"
-                >
-                  {action}
-                </button>
-              ),
-            )}
+            {quickActions.map((action) => (
+              <button
+                key={action}
+                type="button"
+                onClick={() => onQuickAction(action)}
+                className="rounded-lg bg-neutral-100 px-3 py-1.5 text-xs text-neutral-900 hover:bg-neutral-200"
+              >
+                {action}
+              </button>
+            ))}
           </div>
         )}
 

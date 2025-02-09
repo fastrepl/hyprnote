@@ -1,17 +1,12 @@
 import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import TriggerButton from "./trigger-button";
-import Modal from "./modal";
+import TriggerButton from "@/components/shared/trigger-button";
+import { useAITrigger } from "@/hooks/use-ai-trigger";
+import type { Message } from "@/types";
+import Modal from "./shared/modal";
 
-interface Message {
-  id: string;
-  text: string;
-  sender: "user" | "assistant";
-}
-
-export default function WorkspaceAI() {
-  const [isDynamic, setIsDynamic] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+export default function WorkspaceAIButton() {
+  const { isDynamic, isOpen, setIsOpen, handleOpen } = useAITrigger();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -28,20 +23,6 @@ export default function WorkspaceAI() {
     { id: "5", title: "New chat", time: "12/31/2024" },
     { id: "6", title: "계약 양도 가능성", time: "12/05/2024" },
   ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsDynamic(true);
-
-      const timeout = setTimeout(() => {
-        setIsDynamic(false);
-      }, 1625);
-
-      return () => clearTimeout(timeout);
-    }, 6625);
-
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const textarea = inputRef.current;
@@ -120,10 +101,7 @@ export default function WorkspaceAI() {
     <div className="fixed bottom-4 right-4 z-50">
       <AnimatePresence mode="wait">
         {!isOpen ? (
-          <TriggerButton
-            isDynamic={isDynamic}
-            onClick={() => setIsOpen(true)}
-          />
+          <TriggerButton isDynamic={isDynamic} onClick={handleOpen} />
         ) : (
           <Modal
             showHistory={showHistory}

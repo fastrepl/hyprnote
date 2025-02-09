@@ -1,27 +1,32 @@
 import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import TriggerButton from "./trigger-button";
-import Modal from "./modal";
+import TriggerButton from "@/components/shared/trigger-button";
 import LiveSummaryToast from "./live-summary-toast";
+import { useAITrigger } from "@/hooks/use-ai-trigger";
+import Modal from "./shared/modal";
+import type { Message } from "@/types";
+import { useSession } from "@/contexts";
 
-interface Message {
-  id: string;
-  text: string;
-  sender: "user" | "assistant";
-}
-
-interface NoteAIProps {
-  isListening: boolean;
-}
-
-export default function NoteAI({ isListening }: NoteAIProps) {
-  const [isDynamic, setIsDynamic] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+export default function NoteAIButton() {
+  const { isDynamic, isOpen, setIsOpen, handleOpen } = useAITrigger();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [liveSummary, setLiveSummary] = useState("");
+  const [showToast, setShowToast] = useState(true);
+
+  const store = useSession((s) => ({
+    session: s.session,
+    timeline: s.timeline,
+    listening: s.listening,
+    start: s.start,
+    pause: s.pause,
+    updateTitle: s.updateTitle,
+    updateRawNote: s.updateRawNote,
+    updateEnhancedNote: s.updateEnhancedNote,
+    persistSession: s.persistSession,
+  }));
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
@@ -34,20 +39,6 @@ export default function NoteAI({ isListening }: NoteAIProps) {
     { id: "5", title: "New chat", time: "12/31/2024" },
     { id: "6", title: "계약 양도 가능성", time: "12/05/2024" },
   ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsDynamic(true);
-
-      const timeout = setTimeout(() => {
-        setIsDynamic(false);
-      }, 1625);
-
-      return () => clearTimeout(timeout);
-    }, 6625);
-
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const textarea = inputRef.current;
@@ -70,24 +61,7 @@ export default function NoteAI({ isListening }: NoteAIProps) {
   }, [messages, isLoading]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // mod+J to toggle
-      if ((e.metaKey || e.ctrlKey) && e.key === "j") {
-        e.preventDefault();
-        setIsOpen((prev) => !prev);
-      }
-      // esc to close
-      if (e.key === "Escape" && isOpen) {
-        setIsOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isListening) {
+    if (store.listening) {
       const interval = setInterval(() => {
         // Simulate getting new summary every 5 seconds
         setLiveSummary("This is a new live summary of the current session...");
@@ -95,7 +69,7 @@ export default function NoteAI({ isListening }: NoteAIProps) {
 
       return () => clearInterval(interval);
     }
-  }, [isListening]);
+  }, [store.listening, store.timeline]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,12 +110,23 @@ export default function NoteAI({ isListening }: NoteAIProps) {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       <AnimatePresence mode="wait">
-        {isListening ? (
-          <LiveSummaryToast summary={liveSummary} />
+        {store.listening && showToast ? (
+          <LiveSummaryToast 
+            summary={liveSummary} 
+            onClose={() => {
+              setShowToast(false);
+            }}
+          />
         ) : !isOpen ? (
-          <TriggerButton
-            isDynamic={isDynamic}
-            onClick={() => setIsOpen(true)}
+          <TriggerButton 
+            isDynamic={isDynamic} 
+            onClick={() => {
+              if (store.listening) {
+                setShowToast(true);
+              } else {
+                handleOpen();
+              }
+            }} 
           />
         ) : (
           <Modal

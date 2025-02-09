@@ -6,18 +6,16 @@ import {
 } from "@/types/tauri.gen";
 import { SessionProvider } from "@/contexts";
 import EditorArea from "@/components/note/editor";
-import NoteAI from "@/components/note-ai";
-import { useState } from "react";
+import NoteAIButton from "@/components/note-ai-button";
 
 function Component() {
   const { session } = Route.useLoaderData();
-  const [isListening, setIsListening] = useState(false);
 
   return (
     <SessionProvider session={session}>
       <div className="relative flex h-full flex-col overflow-hidden">
         <EditorArea />
-        <NoteAI isListening={isListening} />
+        <NoteAIButton />
       </div>
     </SessionProvider>
   );

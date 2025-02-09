@@ -1,6 +1,7 @@
 import { HistoryIcon, PlusCircleIcon, XIcon } from "lucide-react";
 
 interface HeaderProps {
+  title: string;
   showHistory: boolean;
   onBackClick: () => void;
   onNewChat: () => void;
@@ -9,6 +10,7 @@ interface HeaderProps {
 }
 
 export default function Header({
+  title,
   showHistory,
   onBackClick,
   onNewChat,
@@ -55,7 +57,7 @@ export default function Header({
 
   return (
     <div className="flex items-center justify-between px-4 py-2">
-      <div className="text-sm font-medium">Workspace Chat</div>
+      <div className="text-sm font-medium">{title}</div>
       <div className="flex items-center gap-2">
         <button
           type="button"

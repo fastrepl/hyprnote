@@ -4,7 +4,7 @@ import PastSessions from "@/components/past-sessions";
 import UpcomingEvents from "@/components/upcoming-events";
 import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
 import { commands } from "@/types/tauri.gen";
-import WorkspaceAI from "@/components/workspace-ai";
+import WorkspaceAIButton from "@/components/workspace-ai-button";
 
 function Component() {
   const {
@@ -20,7 +20,7 @@ function Component() {
         </div>
       </ScrollArea>
 
-      <WorkspaceAI />
+      <WorkspaceAIButton />
     </main>
   );
 }

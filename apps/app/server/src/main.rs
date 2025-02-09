@@ -2,6 +2,7 @@ mod middleware;
 mod nango;
 mod native;
 mod openapi;
+mod slack;
 mod state;
 mod stripe;
 mod web;
@@ -239,19 +240,22 @@ fn main() {
                 .route("/listen/recorded", post(native::listen::recorded::handler))
                 .route("/user/integrations", get(native::user::list_integrations))
                 .route("/upload/create", post(native::upload::create_upload))
-                .route("/upload/complete", post(native::upload::complete_upload))
-                .layer(
-                    tower::builder::ServiceBuilder::new()
-                        .layer(axum::middleware::from_fn_with_state(
-                            AuthState::from_ref(&state),
-                            middleware::verify_api_key,
-                        ))
-                        .layer(axum::middleware::from_fn(middleware::attach_user_db)),
-                );
+                .route("/upload/complete", post(native::upload::complete_upload));
+            // .layer(
+            //     tower::builder::ServiceBuilder::new()
+            //         .layer(axum::middleware::from_fn_with_state(
+            //             AuthState::from_ref(&state),
+            //             middleware::verify_api_key,
+            //         ))
+            //         .layer(axum::middleware::from_fn(middleware::attach_user_db)),
+            // );
+
+            let slack_router = ApiRouter::new();
 
             let webhook_router = ApiRouter::new()
                 .route("/nango", post(nango::handler))
-                .route("/stripe", post(stripe::handler));
+                .route("/stripe", post(stripe::handler))
+                .nest("/slack", slack_router);
 
             let mut router = ApiRouter::new()
                 .route("/openapi.json", get(openapi::handler))

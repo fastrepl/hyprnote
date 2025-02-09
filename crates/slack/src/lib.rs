@@ -1,4 +1,4 @@
-pub use slack_morphism::axum_support;
+pub use slack_morphism;
 use slack_morphism::prelude::*;
 
 pub struct Client {

@@ -1,8 +1,8 @@
 import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "@tanstack/react-router";
 import TriggerButton from "./trigger-button";
 import Modal from "./modal";
+import LiveSummaryToast from "./live-summary-toast";
 
 interface Message {
   id: string;
@@ -10,14 +10,18 @@ interface Message {
   sender: "user" | "assistant";
 }
 
-export default function HyprAIButton() {
+interface NoteAIProps {
+  isListening: boolean;
+}
+
+export default function NoteAI({ isListening }: NoteAIProps) {
   const [isDynamic, setIsDynamic] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const { pathname } = useLocation();
+  const [liveSummary, setLiveSummary] = useState("");
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
@@ -82,6 +86,17 @@ export default function HyprAIButton() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isListening) {
+      const interval = setInterval(() => {
+        // Simulate getting new summary every 5 seconds
+        setLiveSummary("This is a new live summary of the current session...");
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [isListening]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
@@ -121,7 +136,9 @@ export default function HyprAIButton() {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       <AnimatePresence mode="wait">
-        {!isOpen ? (
+        {isListening ? (
+          <LiveSummaryToast summary={liveSummary} />
+        ) : !isOpen ? (
           <TriggerButton
             isDynamic={isDynamic}
             onClick={() => setIsOpen(true)}
@@ -129,7 +146,6 @@ export default function HyprAIButton() {
         ) : (
           <Modal
             showHistory={showHistory}
-            pathname={pathname}
             messages={messages}
             inputValue={inputValue}
             isLoading={isLoading}

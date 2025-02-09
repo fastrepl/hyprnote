@@ -31,7 +31,7 @@ export function TemplateView({
 }: TemplateViewProps) {
   return (
     <>
-      <SidebarHeader className="border-b px-4 py-2">
+      <SidebarHeader className="border-b py-2">
         <SidebarMenuButton
           isActive={false}
           className="flex flex-row items-center gap-2"

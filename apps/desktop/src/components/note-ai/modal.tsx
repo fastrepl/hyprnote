@@ -7,7 +7,6 @@ import MessageInput from "./message-input";
 
 interface ModalProps {
   showHistory: boolean;
-  pathname: string;
   messages: Message[];
   inputValue: string;
   isLoading: boolean;
@@ -28,7 +27,6 @@ interface ModalProps {
 
 export default function Modal({
   showHistory,
-  pathname,
   messages,
   inputValue,
   isLoading,
@@ -82,7 +80,6 @@ export default function Modal({
     >
       <Header
         showHistory={showHistory}
-        pathname={pathname}
         onBackClick={onBackClick}
         onNewChat={onNewChat}
         onHistoryClick={onHistoryClick}

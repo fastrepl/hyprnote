@@ -4,6 +4,7 @@ import PastSessions from "@/components/past-sessions";
 import UpcomingEvents from "@/components/upcoming-events";
 import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
 import { commands } from "@/types/tauri.gen";
+import WorkspaceAI from "@/components/workspace-ai";
 
 function Component() {
   const {
@@ -11,13 +12,15 @@ function Component() {
   } = useSuspenseQuery(queryOptions());
 
   return (
-    <main className="flex h-full flex-col overflow-hidden bg-white">
+    <main className="relative flex h-full flex-col overflow-hidden bg-white">
       <ScrollArea className="px-8">
         <div className="mx-auto max-w-3xl">
           <UpcomingEvents events={events} />
           <PastSessions data={sessions} />
         </div>
       </ScrollArea>
+
+      <WorkspaceAI />
     </main>
   );
 }

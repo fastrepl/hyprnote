@@ -9,7 +9,6 @@ pub use speaker::*;
 pub use stream::*;
 
 pub use dasp::sample::Sample;
-use futures_util::StreamExt;
 
 pub struct AudioOutput {}
 
@@ -28,31 +27,9 @@ impl AudioOutput {
             }
         });
     }
-
-    pub fn to_speaker_raw(bytes: &'static [u8]) {
-        use rodio::{OutputStream, Sink};
-
-        std::thread::spawn(move || {
-            if let Ok((_, stream)) = OutputStream::try_default() {
-                let source = rodio::buffer::SamplesBuffer::new(
-                    1,
-                    16000,
-                    bytes
-                        .chunks_exact(2)
-                        .map(|chunk| i16::from_le_bytes([chunk[0], chunk[1]]) as f32 / 32768.0)
-                        .collect::<Vec<f32>>(),
-                );
-
-                let sink = Sink::try_new(&stream).unwrap();
-                sink.append(source);
-                sink.sleep_until_end();
-            }
-        });
-    }
 }
 
 pub enum AudioSource {
-    RealTime,
     RealtimeMic,
     RealtimeSpeaker,
     Recorded,
@@ -66,15 +43,6 @@ pub struct AudioInput {
 }
 
 impl AudioInput {
-    pub fn new() -> Self {
-        Self {
-            source: AudioSource::RealTime,
-            mic: Some(MicInput::default()),
-            speaker: Some(SpeakerInput::new().unwrap()),
-            data: None,
-        }
-    }
-
     pub fn from_mic() -> Self {
         Self {
             source: AudioSource::RealtimeMic,
@@ -110,19 +78,6 @@ impl AudioInput {
             AudioSource::RealtimeSpeaker => AudioStream::RealtimeSpeaker {
                 speaker: self.speaker.take().unwrap().stream().unwrap(),
             },
-            AudioSource::RealTime => {
-                let mic_stream = self.mic.take().unwrap().stream().resample(16000);
-                let speaker_stream = self
-                    .speaker
-                    .take()
-                    .unwrap()
-                    .stream()
-                    .unwrap()
-                    .resample(16000);
-                let combined = mic_stream.zip(speaker_stream);
-
-                AudioStream::RealTime { combined }
-            }
             AudioSource::Recorded => AudioStream::Recorded {
                 data: self.data.as_ref().unwrap().clone(),
                 position: 0,
@@ -132,22 +87,9 @@ impl AudioInput {
 }
 
 pub enum AudioStream {
-    RealTime {
-        combined: futures_util::stream::Zip<
-            ResampledAsyncSource<MicStream>,
-            ResampledAsyncSource<SpeakerStream>,
-        >,
-    },
-    RealtimeMic {
-        mic: MicStream,
-    },
-    RealtimeSpeaker {
-        speaker: SpeakerStream,
-    },
-    Recorded {
-        data: Vec<u8>,
-        position: usize,
-    },
+    RealtimeMic { mic: MicStream },
+    RealtimeSpeaker { speaker: SpeakerStream },
+    Recorded { data: Vec<u8>, position: usize },
 }
 
 impl futures_core::Stream for AudioStream {
@@ -163,11 +105,6 @@ impl futures_core::Stream for AudioStream {
         match &mut *self {
             AudioStream::RealtimeMic { mic } => mic.poll_next_unpin(cx),
             AudioStream::RealtimeSpeaker { speaker } => speaker.poll_next_unpin(cx),
-            AudioStream::RealTime { combined } => match combined.poll_next_unpin(cx) {
-                Poll::Ready(Some((mic, speaker))) => Poll::Ready(Some((mic + speaker) * 0.7)),
-                Poll::Ready(None) => Poll::Ready(None),
-                Poll::Pending => Poll::Pending,
-            },
             // assume pcm_s16le, without WAV header
             AudioStream::Recorded { data, position } => {
                 if *position + 2 <= data.len() {
@@ -194,7 +131,6 @@ impl crate::AsyncSource for AudioStream {
         match self {
             AudioStream::RealtimeMic { mic } => mic.sample_rate(),
             AudioStream::RealtimeSpeaker { speaker } => speaker.sample_rate(),
-            AudioStream::RealTime { combined } => combined.get_ref().0.sample_rate(),
             AudioStream::Recorded { .. } => 16000,
         }
     }

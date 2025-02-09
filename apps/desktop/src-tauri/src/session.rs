@@ -1,10 +1,11 @@
 use futures_util::StreamExt;
+use tokio::sync::mpsc;
 
-use crate::audio::AppSounds;
 use hypr_audio::AsyncSource;
 
 pub struct SessionState {
-    handle: Option<tokio::task::JoinHandle<()>>,
+    mic_stream_handle: Option<tokio::task::JoinHandle<()>>,
+    speaker_stream_handle: Option<tokio::task::JoinHandle<()>>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, specta::Type)]
@@ -17,7 +18,10 @@ const SAMPLE_RATE: u32 = 16000;
 
 impl SessionState {
     pub fn new() -> anyhow::Result<Self> {
-        Ok(Self { handle: None })
+        Ok(Self {
+            mic_stream_handle: None,
+            speaker_stream_handle: None,
+        })
     }
 
     pub async fn start(
@@ -28,50 +32,41 @@ impl SessionState {
         session_id: String,
         channel: tauri::ipc::Channel<SessionStatus>,
     ) -> Result<(), String> {
-        let audio_stream = {
-            let mut input = {
-                #[cfg(all(debug_assertions, feature = "sim-english-1"))]
-                {
-                    hypr_audio::AudioInput::from_recording(hypr_data::english_1::AUDIO.to_vec())
-                }
+        let mic_sample_stream = hypr_audio::AudioInput::from_mic().stream();
+        let mic_sample_rate = mic_sample_stream.sample_rate();
 
-                #[cfg(all(debug_assertions, feature = "sim-korean-1"))]
-                {
-                    hypr_audio::AudioInput::from_recording(hypr_data::korean_1::AUDIO.to_vec())
-                }
+        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
 
-                #[cfg(not(any(
-                    all(debug_assertions, feature = "sim-english-1"),
-                    all(debug_assertions, feature = "sim-korean-1")
-                )))]
-                {
-                    hypr_audio::AudioInput::new()
-                }
-            };
+        let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);
 
-            input.stream()
-        }
-        .resample(SAMPLE_RATE);
+        let mut speaker_stream = speaker_sample_stream
+            .resample_from_to(mic_sample_rate, SAMPLE_RATE)
+            .chunks(1024);
 
-        let (backup_tx, mut backup_rx) =
-            tokio::sync::mpsc::channel::<f32>((SAMPLE_RATE as usize) * 10);
-        let (network_tx, network_rx) =
-            tokio::sync::mpsc::channel::<f32>((SAMPLE_RATE as usize) * 10);
+        let (mic_tx, mut mic_rx) = mpsc::unbounded_channel::<Vec<f32>>();
+        let (speaker_tx, mut speaker_rx) = mpsc::unbounded_channel::<Vec<f32>>();
 
-        // TODO: this is keep errored when websocket it not even connected(failed)
-        tokio::spawn({
-            let mut audio_stream = audio_stream;
+        self.mic_stream_handle = Some(tokio::spawn({
             async move {
-                while let Some(chunk) = audio_stream.next().await {
-                    if let Err(e) = backup_tx.send(chunk).await {
-                        tracing::error!("Error sending chunk to backup: {:?}", e);
-                    }
-                    if let Err(e) = network_tx.send(chunk).await {
-                        tracing::error!("Error sending chunk to network: {:?}", e);
+                while let Some(chunk) = mic_stream.next().await {
+                    if let Err(e) = mic_tx.send(chunk) {
+                        tracing::error!("mic_tx_send_error: {:?}", e);
+                        break;
                     }
                 }
             }
-        });
+        }));
+
+        self.speaker_stream_handle = Some(tokio::spawn({
+            async move {
+                while let Some(chunk) = speaker_stream.next().await {
+                    if let Err(e) = speaker_tx.send(chunk) {
+                        tracing::error!("speaker_tx_send_error: {:?}", e);
+                        break;
+                    }
+                }
+            }
+        }));
 
         tokio::spawn(async move {
             let dir = app_dir.join(session_id);
@@ -89,58 +84,35 @@ impl SessionState {
             )
             .unwrap();
 
-            while let Some(sample) = backup_rx.recv().await {
-                if let Err(e) = wav.write_sample(sample) {
-                    eprintln!("Error writing sample to wav: {:?}", e);
+            while let (Some(mic_chunk), Some(speaker_chunk)) =
+                (mic_rx.recv().await, speaker_rx.recv().await)
+            {
+                let mixed: Vec<f32> = mic_chunk
+                    .into_iter()
+                    .zip(speaker_chunk.into_iter())
+                    .map(|(a, b)| (a + b).clamp(-1.0, 1.0))
+                    .collect();
+
+                for &sample in &mixed {
+                    wav.write_sample(sample).unwrap();
                 }
             }
+
+            wav.finalize().unwrap();
         });
 
-        let listen_client = bridge.listen().language(language).build();
-        let stream = hypr_audio::ReceiverStreamSource::new(network_rx, SAMPLE_RATE);
-
-        let listen_stream = match listen_client.from_audio(stream).await {
-            Ok(stream) => stream,
-            Err(e) => {
-                return Err(e.to_string());
-            }
-        };
-
-        let mut timeline = hypr_bridge::Timeline::default();
-
-        let handle = tokio::spawn(async move {
-            futures_util::pin_mut!(listen_stream);
-
-            while let Some(result) = listen_stream.next().await {
-                match result {
-                    hypr_bridge::ListenOutputChunk::Transcribe(chunk) => {
-                        timeline.add_transcription(chunk);
-                    }
-                    hypr_bridge::ListenOutputChunk::Diarize(chunk) => {
-                        timeline.add_diarization(chunk);
-                    }
-                }
-
-                let view = timeline.view();
-                let out = SessionStatus::Timeline(view);
-                channel.send(out).unwrap();
-            }
-
-            let out = SessionStatus::Stopped;
-            channel.send(out).unwrap();
-        });
-
-        self.handle = Some(handle);
-
-        AppSounds::StartRecording.play();
         Ok(())
     }
-    pub async fn stop(&mut self) {
-        if let Some(handle) = self.handle.take() {
-            handle.abort();
-        }
 
-        AppSounds::StopRecording.play();
+    pub async fn stop(&mut self) {
+        if let Some(handle) = self.mic_stream_handle.take() {
+            handle.abort();
+            let _ = handle.await;
+        }
+        if let Some(handle) = self.speaker_stream_handle.take() {
+            handle.abort();
+            let _ = handle.await;
+        }
     }
 }
 
@@ -148,7 +120,10 @@ pub mod commands {
     use anyhow::Result;
     use tauri::{ipc::Channel, Manager, State};
 
-    use crate::session::{SessionState, SessionStatus};
+    use crate::{
+        audio::AppSounds,
+        session::{SessionState, SessionStatus},
+    };
 
     #[tauri::command]
     #[specta::specta]
@@ -183,6 +158,7 @@ pub mod commands {
             .await
         };
 
+        AppSounds::StartRecording.play();
         ret
     }
 
@@ -195,6 +171,7 @@ pub mod commands {
             let mut s = session.lock().await;
             s.stop().await;
         }
+        AppSounds::StopRecording.play();
         Ok(())
     }
 }

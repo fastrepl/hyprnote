@@ -36,6 +36,12 @@ impl SpeakerInput {
         let output_device = ca::System::default_output_device()?;
         let output_uid = output_device.uid()?;
 
+        tracing::info!(
+            name = ?output_device.name().unwrap().to_string(),
+            sample_rate = ?output_device.actual_sample_rate().unwrap(),
+            "output_device"
+        );
+
         let sub_device = cf::DictionaryOf::with_keys_values(
             &[ca::sub_device_keys::uid()],
             &[output_uid.as_type_ref()],

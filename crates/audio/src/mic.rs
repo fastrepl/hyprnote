@@ -30,6 +30,12 @@ impl Default for MicInput {
         let device = host.default_input_device().unwrap();
         let config = device.default_input_config().unwrap();
 
+        tracing::info!(
+            name = ?device.name().unwrap().to_string(),
+            sample_rate = ?config.sample_rate().0,
+            "input_device"
+        );
+
         Self {
             host,
             device,

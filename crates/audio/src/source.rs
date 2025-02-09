@@ -1,14 +1,23 @@
-use dasp::interpolate::Interpolator as _;
+use dasp::interpolate::{linear::Linear, Interpolator as _};
 use futures_core::Stream;
 
 pub trait AsyncSource {
     fn as_stream(&mut self) -> impl Stream<Item = f32> + '_;
     fn sample_rate(&self) -> u32;
-    fn resample(self, sample_rate: u32) -> ResampledAsyncSource<Self>
+    fn resample(self, to: u32) -> ResampledAsyncSource<Self>
     where
         Self: Sized + Unpin,
     {
-        ResampledAsyncSource::new(self, sample_rate)
+        tracing::info!(from = ?self.sample_rate(), to = ?to, "resampling");
+        ResampledAsyncSource::new(self, to)
+    }
+
+    fn resample_from_to(self, from: u32, to: u32) -> ResampledAsyncSource<Self>
+    where
+        Self: Sized + Unpin,
+    {
+        tracing::info!(from = ?from, to = ?to, "resampling");
+        ResampledAsyncSource::new_from_to(self, from, to)
     }
 }
 
@@ -18,18 +27,24 @@ pub struct ResampledAsyncSource<S: AsyncSource> {
     source_output_sample_ratio: f64,
     sample_position: f64,
     sample_rate: u32,
-    resampler: dasp::interpolate::linear::Linear<f32>,
+    resampler: Linear<f32>,
 }
 
 impl<S: AsyncSource> ResampledAsyncSource<S> {
     fn new(source: S, sample_rate: u32) -> Self {
-        let source_output_sample_ratio = source.sample_rate() as f64 / sample_rate as f64;
+        let (from, to) = (source.sample_rate(), sample_rate);
+        Self::new_from_to(source, from, to)
+    }
+
+    // TODO: escape hatch, since sample rate of output device is wrong when device like Airpod is connected
+    fn new_from_to(source: S, from: u32, to: u32) -> Self {
+        let source_output_sample_ratio = from as f64 / to as f64;
         Self {
             source,
             source_output_sample_ratio,
             sample_position: source_output_sample_ratio,
-            sample_rate,
-            resampler: dasp::interpolate::linear::Linear::new(0.0, 0.0),
+            sample_rate: to,
+            resampler: Linear::new(0.0, 0.0),
         }
     }
 }

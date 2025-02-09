@@ -1,13 +1,7 @@
 import { type ReactNode } from "react";
-import { SearchIcon } from "lucide-react";
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from "@hypr/ui/components/ui/sidebar";
+import { BookmarkIcon, SearchIcon, ZapIcon } from "lucide-react";
 import type { Template } from "@/types/tauri.gen";
+import { cn } from "@hypr/ui/lib/utils";
 
 interface TemplateListProps {
   searchQuery: string;
@@ -28,12 +22,12 @@ export function TemplateList({
 }: TemplateListProps) {
   return (
     <>
-      <div className="sticky top-0 border-b bg-background p-4">
+      <div className="sticky top-0 bg-background p-2">
         <div className="relative">
-          <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-neutral-400" />
           <input
             placeholder="Search templates..."
-            className="w-full rounded-md border border-input bg-transparent px-8 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="w-full bg-transparent px-8 py-2 text-sm text-foreground placeholder:text-neutral-400 focus:outline-none"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
           />
@@ -41,12 +35,13 @@ export function TemplateList({
       </div>
 
       {customTemplates && customTemplates.length > 0 && (
-        <SidebarGroup>
-          <h3 className="px-6 py-2 text-sm font-medium text-muted-foreground">
+        <section className="p-2">
+          <h3 className="flex items-center gap-2 p-2 text-sm font-semibold text-neutral-700">
+            <BookmarkIcon className="h-4 w-4" />
             My Templates
           </h3>
-          <SidebarGroupContent>
-            <SidebarMenu>
+          <nav className="mt-2 rounded-md bg-neutral-50 p-2">
+            <ul>
               {customTemplates
                 .filter((template) =>
                   template?.title
@@ -54,26 +49,33 @@ export function TemplateList({
                     .includes(searchQuery.toLowerCase()),
                 )
                 .map((template, index) => (
-                  <SidebarMenuItem key={template.id || index}>
-                    <SidebarMenuButton
-                      isActive={index === selectedIndex}
+                  <li key={template.id || index}>
+                    <button
                       onClick={() => onTemplateSelect(template, index)}
+                      className={cn(
+                        "flex w-full items-center gap-2 rounded-md p-2",
+                        "text-sm font-medium",
+                        index === selectedIndex
+                          ? "bg-neutral-200 text-neutral-600"
+                          : "hover:bg-neutral-100 hover:text-neutral-800",
+                      )}
                     >
                       {template.title || "Untitled Template"}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                    </button>
+                  </li>
                 ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+            </ul>
+          </nav>
+        </section>
       )}
 
-      <SidebarGroup>
-        <h3 className="px-6 py-2 text-sm font-medium text-muted-foreground">
+      <section className="p-2">
+        <h3 className="flex items-center gap-2 p-2 text-sm font-semibold text-neutral-700">
+          <ZapIcon className="h-4 w-4" />
           Official Templates
         </h3>
-        <SidebarGroupContent>
-          <SidebarMenu>
+        <nav className="mt-2 rounded-md bg-neutral-50 p-2">
+          <ul>
             {builtinTemplates
               .filter((template) =>
                 template?.title
@@ -81,19 +83,22 @@ export function TemplateList({
                   .includes(searchQuery.toLowerCase()),
               )
               .map((template, index) => (
-                <SidebarMenuItem key={template.id || index}>
-                  <SidebarMenuButton
-                    isActive={false}
+                <li key={template.id || index}>
+                  <button
                     onClick={() => {}}
-                    className="text-muted-foreground"
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-md p-2",
+                      "text-sm font-medium text-neutral-600",
+                      "hover:bg-neutral-100 hover:text-neutral-800",
+                    )}
                   >
                     {template.title || "Untitled Template"}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                  </button>
+                </li>
               ))}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
+          </ul>
+        </nav>
+      </section>
     </>
   );
 }

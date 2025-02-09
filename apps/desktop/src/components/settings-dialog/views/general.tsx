@@ -20,10 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@hypr/ui/components/ui/select";
-import { Checkbox } from "@hypr/ui/components/ui/checkbox";
+import { Switch } from "@hypr/ui/components/ui/switch";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
 import { commands, type ConfigDataGeneral } from "@/types/tauri.gen";
+import { Trans } from "@lingui/react/macro";
 
 const LANGUAGES = [
   {
@@ -38,9 +39,8 @@ const LANGUAGES = [
 
 const schema = z.object({
   autostart: z.boolean().optional(),
-  notifications: z.boolean().optional(),
   language: z.enum(["En", "Ko"]).optional(),
-  context: z.string().max(2000).optional(),
+  jargons: z.string().max(2000).optional(),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -63,9 +63,8 @@ export default function General() {
     resolver: zodResolver(schema),
     values: {
       autostart: config.data?.autostart ?? false,
-      notifications: config.data?.notifications ?? false,
       language: (config.data?.language ?? "En") as "En" | "Ko",
-      context: config.data?.context ?? "",
+      jargons: config.data?.jargons ?? "",
     },
   });
 
@@ -73,9 +72,8 @@ export default function General() {
     mutationFn: async (v: Schema) => {
       const config: ConfigDataGeneral = {
         autostart: v.autostart ?? true,
-        notifications: v.notifications ?? true,
         language: v.language ?? "En",
-        context: v.context ?? "",
+        jargons: v.jargons ?? "",
       };
 
       await commands.setConfig({ type: "general", data: config });
@@ -98,7 +96,7 @@ export default function General() {
   return (
     <div>
       <Form {...form}>
-        <form className="mb-4 flex flex-col gap-8">
+        <form className="space-y-6">
           <FormField
             control={form.control}
             name="autostart"
@@ -113,29 +111,7 @@ export default function General() {
                 </div>
 
                 <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="notifications"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div>
-                  <FormLabel>Meeting notifications</FormLabel>
-                  <FormDescription>
-                    Hyprnote will notify you when a meeting is starting.
-                  </FormDescription>
-                </div>
-
-                <FormControl>
-                  <Checkbox
+                  <Switch
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
@@ -152,13 +128,13 @@ export default function General() {
                 <div>
                   <FormLabel>Language</FormLabel>
                   <FormDescription>
-                    You can manage email addresses in your{" "}
+                    Select your preferred language for the application.
                   </FormDescription>
                 </div>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger className="max-w-[100px]">
-                      <SelectValue placeholder="Select a verified email to display" />
+                      <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -176,24 +152,26 @@ export default function General() {
 
           <FormField
             control={form.control}
-            name="context"
+            name="jargons"
             render={({ field }) => (
               <FormItem>
                 <div>
-                  <FormLabel>Context</FormLabel>
+                  <FormLabel>
+                    <Trans>Jargons</Trans>
+                  </FormLabel>
                   <FormDescription>
-                    You can add context to your notes to help you get started
-                    with your meetings. your meetings.
+                    Hyprnote takes these into account when transcribing. It
+                    already knows the names and companies of people in your
+                    meeting. Comma separate words.
                   </FormDescription>
                 </div>
                 <FormControl>
                   <Textarea
-                    placeholder="Tell us a little bit about yourself"
+                    placeholder="ex. Blitz Meeting, Canary, Philo, PaC, ..."
                     className="resize-none"
                     {...field}
                   />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}

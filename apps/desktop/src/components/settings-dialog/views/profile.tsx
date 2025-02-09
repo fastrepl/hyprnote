@@ -28,7 +28,7 @@ const schema = z.object({
 
 type Schema = z.infer<typeof schema>;
 
-export default function Profile() {
+export default function ProfileComponent() {
   const queryClient = useQueryClient();
 
   const config = useQuery({
@@ -88,7 +88,7 @@ export default function Profile() {
             control={form.control}
             name="fullName"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="max-w-sm">
                 <FormLabel>Username</FormLabel>
                 <FormControl>
                   <Input placeholder="Your Name" {...field} />
@@ -102,7 +102,7 @@ export default function Profile() {
             control={form.control}
             name="jobTitle"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="max-w-sm">
                 <FormLabel>Job Title</FormLabel>
                 <FormControl>
                   <Input {...field} />
@@ -116,7 +116,7 @@ export default function Profile() {
             control={form.control}
             name="companyName"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="max-w-sm">
                 <div>
                   <FormLabel>Company Name</FormLabel>
                   <FormDescription>
@@ -135,7 +135,7 @@ export default function Profile() {
             control={form.control}
             name="companyDescription"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="max-w-lg">
                 <div>
                   <FormLabel>Company Description</FormLabel>
                   <FormDescription>
@@ -147,6 +147,34 @@ export default function Profile() {
                     placeholder="Add a few words about your company."
                     {...field}
                   />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="linkedinUserName"
+            render={({ field }) => (
+              <FormItem className="max-w-sm">
+                <div>
+                  <FormLabel>LinkedIn Username</FormLabel>
+                  <FormDescription>
+                    Your LinkedIn username (the part after linkedin.com/in/)
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <div className="flex">
+                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-sm text-muted-foreground">
+                      linkedin.com/in/
+                    </span>
+                    <Input
+                      className="rounded-l-none"
+                      placeholder="username"
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

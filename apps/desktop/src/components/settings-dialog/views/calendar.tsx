@@ -58,23 +58,18 @@ export default function Calendar() {
   });
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h2 className="mb-1 font-semibold">
-          <Trans>Integrations</Trans>
-        </h2>
-        <ul className="flex flex-col px-1">
-          {supportedIntegrations.map((type) => (
-            <li key={type}>
-              <Integration type={type} />
-            </li>
-          ))}
-        </ul>
-      </div>
+    <div>
+      <h3 className="text-sm font-medium">Calendars</h3>
+      <ul className="flex flex-col px-1">
+        {supportedIntegrations.map((type) => (
+          <li key={type}>
+            <Integration type={type} />
+          </li>
+        ))}
+      </ul>
 
-      <div>
+      <div className="mt-6">
         <div className="flex flex-row items-center gap-4">
-          <h2 className="mb-2 font-semibold">Selected</h2>
           <Select
             value="new"
             onValueChange={(id) =>

@@ -1,14 +1,9 @@
 import { type Template } from "@/types/tauri.gen";
-import { ChevronLeftIcon } from "lucide-react";
-import {
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarMenuButton,
-} from "@hypr/ui/components/ui/sidebar";
+import { ChevronLeftIcon, FilePlusIcon } from "lucide-react";
 import { TemplateList } from "../components/template-list";
 import { type NavNames } from "../types";
 import { data } from "../constants";
+import { cn } from "@hypr/ui/lib/utils";
 
 export interface TemplateViewProps {
   searchQuery: string;
@@ -30,19 +25,22 @@ export function TemplateView({
   setActive,
 }: TemplateViewProps) {
   return (
-    <>
-      <SidebarHeader className="border-b py-2">
-        <SidebarMenuButton
-          isActive={false}
-          className="flex flex-row items-center gap-2"
-          onClick={() => setActive(data.nav[0].name)}
-        >
-          <ChevronLeftIcon className="h-4 w-4" />
-          <span>Back to Settings</span>
-        </SidebarMenuButton>
-      </SidebarHeader>
+    <div className="flex h-full flex-col justify-between">
+      <div className="flex-1 overflow-auto">
+        <header className="border-b p-2">
+          <button
+            onClick={() => setActive(data.nav[0].name)}
+            className={cn(
+              "flex w-full flex-row items-center gap-2 rounded-md p-2",
+              "text-sm font-medium text-muted-foreground",
+              "hover:bg-muted/50 hover:text-foreground",
+            )}
+          >
+            <ChevronLeftIcon className="h-4 w-4" />
+            <span>Back to Settings</span>
+          </button>
+        </header>
 
-      <SidebarContent>
         <TemplateList
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}
@@ -51,19 +49,24 @@ export function TemplateView({
           selectedIndex={templateIndex}
           onTemplateSelect={onTemplateSelect}
         />
-      </SidebarContent>
+      </div>
 
-      <SidebarFooter className="border-t p-4">
-        <SidebarMenuButton
-          isActive={false}
-          className="w-full justify-center"
+      <footer className="mt-auto border-t p-2">
+        <button
+          className={cn(
+            "flex w-full items-center gap-2 rounded-md p-2",
+            "text-sm font-medium",
+            "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+            "justify-center md:justify-start",
+          )}
           onClick={() => {
             /* TODO: Create template handler */
           }}
         >
-          Create Template
-        </SidebarMenuButton>
-      </SidebarFooter>
-    </>
+          <FilePlusIcon className="h-4 w-4" />
+          <span className="hidden md:inline-block">Create Template</span>
+        </button>
+      </footer>
+    </div>
   );
 }

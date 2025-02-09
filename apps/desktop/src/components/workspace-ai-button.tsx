@@ -98,7 +98,7 @@ export default function WorkspaceAIButton() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-10">
       <AnimatePresence mode="wait">
         {!isOpen ? (
           <TriggerButton isDynamic={isDynamic} onClick={handleOpen} />

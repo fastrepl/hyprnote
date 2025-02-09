@@ -4,7 +4,6 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@hypr/ui/components/ui/breadcrumb";
 import type { Template } from "@/types/tauri.gen";
@@ -33,20 +32,20 @@ export function DialogView({
               <BreadcrumbLink>{title}</BreadcrumbLink>
             </BreadcrumbItem>
             {title === "Templates" && selectedTemplate && (
-              <BreadcrumbList>
+              <>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>
+                  <BreadcrumbLink>
                     {selectedTemplate.title || "Untitled Template"}
-                  </BreadcrumbPage>
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
-              </BreadcrumbList>
+              </>
             )}
           </BreadcrumbList>
         </Breadcrumb>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">{children}</div>
+      <div className="flex-1 overflow-y-auto px-4 py-6">{children}</div>
     </main>
   );
 }

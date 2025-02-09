@@ -42,7 +42,9 @@ export function TemplateList({
 
       {customTemplates && customTemplates.length > 0 && (
         <SidebarGroup>
-          <h3 className="px-6 py-2 text-sm font-medium text-muted-foreground">My Templates</h3>
+          <h3 className="px-6 py-2 text-sm font-medium text-muted-foreground">
+            My Templates
+          </h3>
           <SidebarGroupContent>
             <SidebarMenu>
               {customTemplates
@@ -67,7 +69,9 @@ export function TemplateList({
       )}
 
       <SidebarGroup>
-        <h3 className="px-6 py-2 text-sm font-medium text-muted-foreground">Official Templates</h3>
+        <h3 className="px-6 py-2 text-sm font-medium text-muted-foreground">
+          Official Templates
+        </h3>
         <SidebarGroupContent>
           <SidebarMenu>
             {builtinTemplates

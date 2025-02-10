@@ -8,6 +8,7 @@ use tauri_plugin_store::StoreExt;
 
 #[derive(Debug, Default, Serialize, Deserialize, Type)]
 pub struct AuthStore {
+    pub user_id: Option<String>,
     pub token: Option<String>,
 }
 
@@ -33,7 +34,10 @@ impl AuthStore {
     }
 
     pub fn set<R: Runtime>(app: &AppHandle<R>, v: Self) -> Result<(), String> {
-        let new_auth = Self { token: v.token };
+        let new_auth = Self {
+            user_id: v.user_id,
+            token: v.token,
+        };
 
         app.store("store")
             .map(|s| s.set("auth", serde_json::to_value(new_auth).unwrap()))
@@ -81,18 +85,35 @@ pub mod commands {
                 ),
             },
             move |url| {
-                tracing::info!("oauth_callback: url={}", url);
-
                 let parsed_url = url::Url::parse(&url).unwrap();
-                if let Some(key) = parsed_url
-                    .query_pairs()
+                let query_pairs: Vec<_> = parsed_url.query_pairs().collect();
+
+                let token = query_pairs
+                    .iter()
                     .find(|(k, _)| k == "k")
-                    .map(|(_, v)| v.to_string())
-                {
-                    tracing::info!("oauth_callback: key={}", &key);
-                    AuthStore::set(&app, AuthStore { token: Some(key) }).unwrap();
+                    .map(|(_, v)| v.to_string());
+
+                let user_id = query_pairs
+                    .iter()
+                    .find(|(k, _)| k == "u")
+                    .map(|(_, v)| v.to_string());
+
+                tracing::info!(
+                    url = ?url,
+                    token = ?token,
+                    user_id = ?user_id,
+                    "oauth_callback"
+                );
+
+                if let (Some(token), Some(user_id)) = (token, user_id) {
+                    let auth = AuthStore {
+                        token: Some(token),
+                        user_id: Some(user_id),
+                    };
+
+                    AuthStore::set(&app, auth).unwrap();
                 } else {
-                    tracing::error!("oauth_callback: key=None");
+                    tracing::error!("oauth_callback: Missing token or user_id");
                 }
             },
         )

@@ -8,6 +8,7 @@ export type ConnectInput = {
 };
 
 export type ConnectOutput = {
+    human_id: string;
     key: string;
 };
 
@@ -80,7 +81,6 @@ export type Session = {
     enhanced_memo_html?: string | null;
     id: string;
     raw_memo_html: string;
-    tags: Array<string>;
     timestamp: string;
     title: string;
 };

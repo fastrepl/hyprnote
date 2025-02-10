@@ -19,6 +19,7 @@ pub struct ConnectInput {
 #[derive(Debug, Deserialize, Serialize, specta::Type, schemars::JsonSchema)]
 pub struct ConnectOutput {
     key: String,
+    human_id: String,
 }
 
 pub async fn handler(
@@ -44,6 +45,7 @@ pub async fn handler(
         .admin_db
         .upsert_user(hypr_db::admin::User {
             id: uuid::Uuid::new_v4().to_string(),
+            human_id: uuid::Uuid::new_v4().to_string(),
             timestamp: chrono::Utc::now(),
             clerk_org_id: input.org_id,
             clerk_user_id,
@@ -57,11 +59,14 @@ pub async fn handler(
         }
     };
 
+    let user_id = user.id;
+    let human_id = user.human_id;
+
     let device = match state
         .admin_db
         .upsert_device(hypr_db::admin::Device {
             id: uuid::Uuid::new_v4().to_string(),
-            user_id: user.id,
+            user_id,
             timestamp: chrono::Utc::now(),
             fingerprint: input.fingerprint,
             api_key: uuid::Uuid::new_v4().to_string(),
@@ -79,5 +84,6 @@ pub async fn handler(
 
     Ok(Json(ConnectOutput {
         key: device.api_key,
+        human_id,
     }))
 }

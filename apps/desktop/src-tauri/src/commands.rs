@@ -1,9 +1,5 @@
-use anyhow::Result;
-
 use futures_util::StreamExt;
-use tauri::{ipc::Channel, AppHandle, State};
-
-use crate::{windows::ShowHyprWindow, App};
+use tauri::{ipc::Channel, State};
 
 #[tauri::command]
 #[specta::specta]
@@ -14,7 +10,7 @@ pub fn list_builtin_templates() -> Vec<hypr_db::user::Template> {
 #[tauri::command]
 #[specta::specta]
 pub async fn run_enhance<'a>(
-    app: State<'a, App>,
+    app: State<'a, crate::App>,
     req: hypr_bridge::EnhanceRequest,
     on_event: Channel<String>,
 ) -> Result<(), String> {

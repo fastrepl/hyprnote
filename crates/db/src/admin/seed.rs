@@ -3,6 +3,7 @@ use super::{AdminDatabase, Device, User};
 pub async fn seed(db: &AdminDatabase) -> Result<(), crate::Error> {
     let user = User {
         id: uuid::Uuid::new_v4().to_string(),
+        human_id: uuid::Uuid::new_v4().to_string(),
         timestamp: chrono::Utc::now(),
         clerk_org_id: Some("org_1".to_string()),
         clerk_user_id: "user_1".to_string(),

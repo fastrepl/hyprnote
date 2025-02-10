@@ -1,5 +1,6 @@
 CREATE TABLE users (
   id TEXT PRIMARY KEY NOT NULL,
+  human_id TEXT NOT NULL,
   timestamp TEXT NOT NULL,
   clerk_org_id TEXT DEFAULT NULL,
   clerk_user_id TEXT NOT NULL UNIQUE,

@@ -19,15 +19,17 @@ impl AdminDatabase {
             .query(
                 "INSERT INTO users (
                     id,
+                    human_id,
                     timestamp,
                     clerk_user_id,
                     turso_db_name
-                ) VALUES (?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT (clerk_user_id) DO UPDATE SET
                     turso_db_name = excluded.turso_db_name
                 RETURNING *",
                 vec![
                     user.id,
+                    user.human_id,
                     user.timestamp.to_rfc3339(),
                     user.clerk_user_id,
                     user.turso_db_name,
@@ -97,6 +99,7 @@ mod tests {
         let user = db
             .upsert_user(User {
                 id: uuid::Uuid::new_v4().to_string(),
+                human_id: uuid::Uuid::new_v4().to_string(),
                 timestamp: chrono::Utc::now(),
                 clerk_org_id: None,
                 clerk_user_id: "21".to_string(),
@@ -125,6 +128,7 @@ mod tests {
         let user = db
             .upsert_user(User {
                 id: uuid::Uuid::new_v4().to_string(),
+                human_id: uuid::Uuid::new_v4().to_string(),
                 timestamp: chrono::Utc::now(),
                 clerk_org_id: None,
                 clerk_user_id: "21".to_string(),
@@ -154,6 +158,7 @@ mod tests {
         let user_1 = db
             .upsert_user(User {
                 id: uuid::Uuid::new_v4().to_string(),
+                human_id: uuid::Uuid::new_v4().to_string(),
                 timestamp: chrono::Utc::now(),
                 clerk_org_id: None,
                 clerk_user_id: "21".to_string(),

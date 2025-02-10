@@ -8,6 +8,10 @@ mod humans_ops;
 mod humans_types;
 mod sessions_ops;
 mod sessions_types;
+mod tags_ops;
+mod tags_types;
+mod templates_ops;
+mod templates_types;
 
 #[allow(unused)]
 pub use calendars_ops::*;
@@ -29,6 +33,14 @@ pub use humans_types::*;
 pub use sessions_ops::*;
 #[allow(unused)]
 pub use sessions_types::*;
+#[allow(unused)]
+pub use tags_ops::*;
+#[allow(unused)]
+pub use tags_types::*;
+#[allow(unused)]
+pub use templates_ops::*;
+#[allow(unused)]
+pub use templates_types::*;
 
 #[cfg(debug_assertions)]
 mod seed;
@@ -63,7 +75,7 @@ impl UserDatabase {
 }
 
 // Append only. Do not reorder.
-const MIGRATIONS: [&str; 8] = [
+const MIGRATIONS: [&str; 9] = [
     include_str!("./calendars_migration.sql"),
     include_str!("./configs_migration.sql"),
     include_str!("./events_participants_migration.sql"),
@@ -72,6 +84,7 @@ const MIGRATIONS: [&str; 8] = [
     include_str!("./organizations_migration.sql"),
     include_str!("./sessions_migration.sql"),
     include_str!("./templates_migration.sql"),
+    include_str!("./tags_migration.sql"),
 ];
 
 pub async fn migrate(conn: &crate::Connection) -> libsql::Result<()> {

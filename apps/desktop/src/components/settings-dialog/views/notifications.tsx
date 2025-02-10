@@ -14,11 +14,11 @@ import {
 } from "@hypr/ui/components/ui/form";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
-import { commands, type ConfigDataGeneral } from "@/types";
+import { commands, type ConfigDataNotifications } from "@/types";
 
 const schema = z.object({
   before: z.boolean().optional(),
-  detection: z.boolean().optional(),
+  auto: z.boolean().optional(),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -33,7 +33,7 @@ export default function NotificationsComponent() {
       if (result === null) {
         return null;
       }
-      return result.data as ConfigDataGeneral;
+      return result.data as ConfigDataNotifcations;
     },
   });
 
@@ -41,15 +41,15 @@ export default function NotificationsComponent() {
     resolver: zodResolver(schema),
     values: {
       before: config.data?.before ?? false,
-      detection: config.data?.detection ?? false,
+      auto: config.data?.auto ?? false,
     },
   });
 
   const mutation = useMutation({
     mutationFn: async (v: Schema) => {
-      const config: ConfigDataGeneral = {
+      const config: ConfigDataNotifcations = {
         before: true,
-        detection: true,
+        auto: true,
       };
 
       await commands.setConfig({ type: "notifications", data: config });
@@ -97,7 +97,7 @@ export default function NotificationsComponent() {
 
           <FormField
             control={form.control}
-            name="detection"
+            name="auto"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
                 <div>

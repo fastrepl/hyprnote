@@ -63,7 +63,8 @@ export default function General() {
     resolver: zodResolver(schema),
     values: {
       autostart: config.data?.autostart ?? false,
-      language: (config.data?.language ?? "En") as "En" | "Ko",
+      displayLanguage: (config.data?.displayLanguage ?? "En") as "En" | "Ko",
+      speechLanguage: (config.data?.speechLanguage ?? "En") as "En" | "Ko",
       jargons: config.data?.jargons ?? "",
     },
   });

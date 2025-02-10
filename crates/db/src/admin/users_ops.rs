@@ -17,22 +17,17 @@ impl AdminDatabase {
         let mut rows = self
             .conn
             .query(
-                "INSERT INTO users (
+                "INSERT OR REPLACE INTO users (
                     id,
                     human_id,
                     timestamp,
-                    clerk_user_id,
-                    turso_db_name
-                ) VALUES (?, ?, ?, ?, ?)
-                ON CONFLICT (clerk_user_id) DO UPDATE SET
-                    turso_db_name = excluded.turso_db_name
-                RETURNING *",
+                    clerk_user_id
+                ) VALUES (?, ?, ?, ?) RETURNING *",
                 vec![
                     user.id,
                     user.human_id,
                     user.timestamp.to_rfc3339(),
                     user.clerk_user_id,
-                    user.turso_db_name,
                 ],
             )
             .await?;
@@ -101,9 +96,7 @@ mod tests {
                 id: uuid::Uuid::new_v4().to_string(),
                 human_id: uuid::Uuid::new_v4().to_string(),
                 timestamp: chrono::Utc::now(),
-                clerk_org_id: None,
                 clerk_user_id: "21".to_string(),
-                turso_db_name: "12".to_string(),
             })
             .await
             .unwrap();
@@ -111,14 +104,12 @@ mod tests {
 
         let users = db.list_users().await.unwrap();
         assert_eq!(users.len(), 1);
-        assert_eq!(users[0].turso_db_name, "12".to_string());
 
         let user = db
             .get_user_by_clerk_user_id("21".to_string())
             .await
             .unwrap()
             .unwrap();
-        assert_eq!(user.turso_db_name, "12".to_string());
     }
 
     #[tokio::test]
@@ -130,9 +121,7 @@ mod tests {
                 id: uuid::Uuid::new_v4().to_string(),
                 human_id: uuid::Uuid::new_v4().to_string(),
                 timestamp: chrono::Utc::now(),
-                clerk_org_id: None,
                 clerk_user_id: "21".to_string(),
-                turso_db_name: "12".to_string(),
             })
             .await
             .unwrap();
@@ -160,9 +149,7 @@ mod tests {
                 id: uuid::Uuid::new_v4().to_string(),
                 human_id: uuid::Uuid::new_v4().to_string(),
                 timestamp: chrono::Utc::now(),
-                clerk_org_id: None,
                 clerk_user_id: "21".to_string(),
-                turso_db_name: "12".to_string(),
             })
             .await
             .unwrap();

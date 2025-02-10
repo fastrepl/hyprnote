@@ -68,10 +68,9 @@ mod tests {
         let user = db
             .upsert_user(User {
                 id: uuid::Uuid::new_v4().to_string(),
+                human_id: uuid::Uuid::new_v4().to_string(),
                 timestamp: chrono::Utc::now(),
-                clerk_org_id: None,
                 clerk_user_id: "21".to_string(),
-                turso_db_name: "12".to_string(),
             })
             .await
             .unwrap();

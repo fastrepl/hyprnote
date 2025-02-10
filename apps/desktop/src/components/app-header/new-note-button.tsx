@@ -31,7 +31,8 @@ export function NewNoteButton() {
         size="sm"
         className={clsx([
           "h-7 px-2 text-xs",
-          "bg-white transition-colors duration-200 hover:bg-primary hover:text-white",
+          "bg-transparent transition-colors duration-200 hover:bg-white",
+          "text-neutral-500 hover:text-neutral-600",
           pathname === "/" ? "opacity-100" : "opacity-0",
           "hidden sm:block",
         ])}

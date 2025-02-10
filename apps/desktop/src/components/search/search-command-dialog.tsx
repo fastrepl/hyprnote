@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -7,16 +8,26 @@ import {
   CommandList,
   CommandSeparator,
 } from "@hypr/ui/components/ui/command";
+import { useSearchStore } from "@/stores/use-search-store";
 
-interface SearchCommandDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+export function SearchCommandDialog() {
+  const { isOpen, toggle } = useSearchStore();
 
-export function SearchCommandDialog({ open, onOpenChange }: SearchCommandDialogProps) {
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        toggle();
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, [toggle]);
+
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Type a command or search..." />
+    <CommandDialog open={isOpen} onOpenChange={toggle}>
+      <CommandInput autoFocus placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Suggestions">

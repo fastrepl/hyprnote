@@ -20,6 +20,7 @@ pub struct AppState {
     pub turso: TursoClient,
     pub nango: NangoClient,
     pub s3: S3Client,
+    pub stripe: stripe::Client,
 }
 
 #[derive(Clone)]

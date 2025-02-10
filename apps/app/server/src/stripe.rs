@@ -1,10 +1,12 @@
+use std::str::FromStr;
+
 use axum::{
     body::Body,
     extract::{FromRequest, State},
     http::{Request, StatusCode},
     response::{IntoResponse, Response},
 };
-use stripe::{Event, EventObject, EventType};
+use stripe::{CustomerId, Event, EventObject, EventType, Expandable, Object};
 
 use crate::state::AppState;
 
@@ -37,6 +39,7 @@ where
 }
 
 // https://github.com/t3dotgg/stripe-recommendations
+// https://docs.stripe.com/api/events/types
 pub async fn handler(
     State(state): State<AppState>,
     StripeEvent(event): StripeEvent,
@@ -60,22 +63,68 @@ pub async fn handler(
         | EventType::PaymentIntentSucceeded
         | EventType::PaymentIntentPaymentFailed
         | EventType::PaymentIntentCanceled => {
-            if let Err(e) = match &event.data.object {
-                EventObject::Customer(customer) => {
-                    state.admin_db.update_stripe_customer(customer).await
-                }
-                EventObject::Subscription(subscription) => {
-                    state
-                        .admin_db
-                        .update_stripe_subscription(
-                            subscription.customer.id().to_string(),
-                            subscription,
+            let stripe_customer_id: Option<String> =
+                match &event.data.object {
+                    EventObject::CheckoutSession(checkout_session) => checkout_session
+                        .customer
+                        .as_ref()
+                        .map(|customer| match customer {
+                            Expandable::Id(id) => id.to_string(),
+                            Expandable::Object(customer_obj) => customer_obj.id().to_string(),
+                        }),
+                    EventObject::Subscription(subscription) => {
+                        Some(subscription.customer.id().to_string())
+                    }
+                    EventObject::Customer(customer) => Some(customer.id().to_string()),
+                    EventObject::Invoice(invoice) => {
+                        invoice.customer.as_ref().map(|customer| match customer {
+                            Expandable::Id(id) => id.to_string(),
+                            Expandable::Object(customer_obj) => customer_obj.id().to_string(),
+                        })
+                    }
+                    EventObject::PaymentIntent(payment_intent) => payment_intent
+                        .customer
+                        .as_ref()
+                        .map(|customer| match customer {
+                            Expandable::Id(id) => id.to_string(),
+                            Expandable::Object(customer_obj) => customer_obj.id().to_string(),
+                        }),
+
+                    _ => None,
+                };
+
+            // TODO: do this with background worker with concurrency limit
+            if let Some(stripe_customer_id) = stripe_customer_id {
+                tokio::spawn({
+                    let stripe_client = state.stripe.clone();
+                    let admin_db = state.admin_db.clone();
+
+                    async move {
+                        let customer = stripe::Customer::retrieve(
+                            &stripe_client,
+                            CustomerId::from_str(&stripe_customer_id).as_ref().unwrap(),
+                            &["subscriptions"],
                         )
                         .await
-                }
-                _ => Ok(None),
-            } {
-                tracing::error!("stripe_webhook: {:?}", e);
+                        .unwrap();
+
+                        let customer_id = customer.id().to_string();
+
+                        if let Err(e) = admin_db.update_stripe_customer(&customer).await {
+                            tracing::error!("stripe_customer_update_failed: {:?}", e);
+                        }
+
+                        let subscriptions = customer.subscriptions.unwrap_or_default();
+                        let subscription = subscriptions.data.first();
+
+                        if let Err(e) = admin_db
+                            .update_stripe_subscription(customer_id, subscription)
+                            .await
+                        {
+                            tracing::error!("stripe_subscription_update_failed: {:?}", e);
+                        }
+                    }
+                });
             }
         }
         _ => {

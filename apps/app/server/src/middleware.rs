@@ -1,3 +1,5 @@
+use std::{future::Future, pin::Pin};
+
 use axum::{
     extract::{Request, State},
     http::{header, StatusCode},
@@ -120,4 +122,28 @@ pub async fn send_analytics(
     let _ = state.analytics.event(payload).await;
 
     Ok(next.run(req).await)
+}
+
+pub fn check_membership(
+    _membership: String,
+) -> impl Fn(
+    State<AuthState>,
+    Extension<hypr_db::admin::User>,
+    Request,
+    middleware::Next,
+) -> Pin<Box<dyn Future<Output = Result<Response, StatusCode>> + Send>>
+       + Clone {
+    move |State(_state): State<AuthState>,
+          Extension(_user): Extension<hypr_db::admin::User>,
+          req: Request,
+          next: middleware::Next| {
+        Box::pin(async move {
+            // TODO
+            if false {
+                return Err(StatusCode::PAYMENT_REQUIRED);
+            }
+            
+            Ok(next.run(req).await)
+        })
+    }
 }

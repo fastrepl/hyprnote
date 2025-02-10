@@ -4,7 +4,8 @@ mod native;
 mod openapi;
 mod slack;
 mod state;
-mod stripe;
+#[path = "stripe.rs"]
+mod stripe_webhook;
 mod web;
 mod worker;
 
@@ -180,6 +181,8 @@ fn main() {
                 .api_base(get_env("OPENAI_API_BASE"))
                 .build();
 
+            let stripe_client = stripe::Client::new(get_env("STRIPE_SECRET_KEY"));
+
             let state = state::AppState {
                 clerk: clerk.clone(),
                 realtime_stt,
@@ -191,6 +194,7 @@ fn main() {
                 analytics,
                 s3,
                 openai,
+                stripe: stripe_client,
             };
 
             let web_router = ApiRouter::new()
@@ -219,7 +223,11 @@ fn main() {
                 .route(
                     "/enhance",
                     post(native::enhance::handler)
-                        .layer(TimeoutLayer::new(Duration::from_secs(20))),
+                        .layer(TimeoutLayer::new(Duration::from_secs(20)))
+                        .layer(axum::middleware::from_fn_with_state(
+                            AuthState::from_ref(&state),
+                            middleware::check_membership("pro".to_string()),
+                        )),
                 )
                 .route(
                     "/create_title",
@@ -254,7 +262,7 @@ fn main() {
 
             let webhook_router = ApiRouter::new()
                 .route("/nango", post(nango::handler))
-                .route("/stripe", post(stripe::handler))
+                .route("/stripe", post(stripe_webhook::handler))
                 .nest("/slack", slack_router);
 
             let mut router = ApiRouter::new()

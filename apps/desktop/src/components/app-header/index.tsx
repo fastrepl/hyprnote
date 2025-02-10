@@ -1,11 +1,10 @@
 import clsx from "clsx";
 import SettingsDialog from "@/components/settings-dialog";
-import SearchBar from "@/components/app-header/search-bar";
 import { NewNoteButton } from "@/components/app-header/new-note-button";
 import { BackButton } from "@/components/app-header/back-button";
 import { type OsType, type as getOsType } from "@tauri-apps/plugin-os";
 import { useEffect, useState } from "react";
-import SearchIconButton from "./search-icon-button";
+import { SearchShortcutListener, SearchBar, SearchIconButton } from "../search";
 
 export default function Header() {
   const [osType, setOsType] = useState<OsType>("macos");
@@ -36,6 +35,7 @@ export default function Header() {
         {osType === "macos" && <BackButton />}
       </div>
 
+      <SearchShortcutListener />
       <SearchBar />
 
       <div

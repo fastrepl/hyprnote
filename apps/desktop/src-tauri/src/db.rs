@@ -2,7 +2,6 @@ pub mod commands {
     use tauri::State;
 
     use crate::App;
-    use hypr_db::user::ParticipantFilter;
 
     #[tauri::command]
     #[specta::specta]
@@ -75,21 +74,11 @@ pub mod commands {
     #[tauri::command]
     #[specta::specta]
     #[tracing::instrument(skip(state))]
-    pub async fn list_participants(
-        state: State<'_, App>,
-        filter: ParticipantFilter,
-    ) -> Result<Vec<hypr_db::user::Participant>, ()> {
-        Ok(state.db.list_participants(filter).await.unwrap())
-    }
-
-    #[tauri::command]
-    #[specta::specta]
-    #[tracing::instrument(skip(state))]
     pub async fn upsert_participant(
         state: State<'_, App>,
-        participant: hypr_db::user::Participant,
-    ) -> Result<hypr_db::user::Participant, ()> {
-        Ok(state.db.upsert_participant(participant).await.unwrap())
+        participant: hypr_db::user::Human,
+    ) -> Result<hypr_db::user::Human, ()> {
+        Ok(participant)
     }
 
     #[tauri::command]
@@ -126,22 +115,15 @@ pub mod commands {
     #[tauri::command]
     #[specta::specta]
     #[tracing::instrument(skip(state))]
-    pub async fn get_config(
-        state: State<'_, App>,
-        kind: hypr_db::user::ConfigKind,
-    ) -> Result<hypr_db::user::Config, ()> {
-        let found = state.db.get_config(kind.clone()).await.unwrap();
-
-        match (found, kind) {
-            (None, hypr_db::user::ConfigKind::Profile) => {
-                Ok(hypr_db::user::ConfigDataProfile::default().into())
-            }
-            (None, hypr_db::user::ConfigKind::General) => {
-                Ok(hypr_db::user::ConfigDataGeneral::default().into())
-            }
-            (Some(config), hypr_db::user::ConfigKind::Profile) => Ok(config),
-            (Some(config), hypr_db::user::ConfigKind::General) => Ok(config),
-        }
+    pub async fn get_config(state: State<'_, App>) -> Result<hypr_db::user::Config, String> {
+        let user_id = &state.user_id;
+        let config = state
+            .db
+            .get_config(user_id)
+            .await
+            .map_err(|e| e.to_string())?
+            .unwrap_or_default();
+        Ok(config)
     }
 
     #[tauri::command]
@@ -151,6 +133,7 @@ pub mod commands {
         state: State<'_, App>,
         config: hypr_db::user::Config,
     ) -> Result<(), ()> {
-        Ok(state.db.set_config(config).await.unwrap())
+        let user_id = &state.user_id;
+        Ok(state.db.set_config(user_id, config).await.unwrap())
     }
 }

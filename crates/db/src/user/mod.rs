@@ -6,6 +6,8 @@ mod events_ops;
 mod events_types;
 mod humans_ops;
 mod humans_types;
+mod organizations_ops;
+mod organizations_types;
 mod sessions_ops;
 mod sessions_types;
 mod tags_ops;
@@ -29,6 +31,10 @@ pub use events_types::*;
 pub use humans_ops::*;
 #[allow(unused)]
 pub use humans_types::*;
+#[allow(unused)]
+pub use organizations_ops::*;
+#[allow(unused)]
+pub use organizations_types::*;
 #[allow(unused)]
 pub use sessions_ops::*;
 #[allow(unused)]

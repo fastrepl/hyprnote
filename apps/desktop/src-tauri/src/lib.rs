@@ -2,7 +2,6 @@ mod audio;
 mod auth;
 mod commands;
 mod db;
-mod error;
 mod events;
 mod permissions;
 mod session;
@@ -17,6 +16,7 @@ pub struct App {
     handle: tauri::AppHandle,
     db: hypr_db::user::UserDatabase,
     bridge: hypr_bridge::Client,
+    user_id: String,
 }
 
 #[tokio::main]
@@ -87,7 +87,6 @@ pub async fn main() {
             db::commands::list_calendars,
             db::commands::list_events,
             db::commands::list_sessions,
-            db::commands::list_participants,
             db::commands::upsert_participant,
             db::commands::get_session,
             db::commands::set_session_event,
@@ -166,6 +165,8 @@ pub async fn main() {
                     .unwrap();
 
                 app.manage(App {
+                    // TODO
+                    user_id: "human_id".to_string(),
                     handle: app.clone(),
                     db: db.clone(),
                     bridge: bridge.clone(),

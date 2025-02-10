@@ -45,10 +45,9 @@ common_derives! {
         pub pre_meeting_editor: String,
         pub in_meeting_editor: String,
         pub template: hypr_db::user::Template,
-        pub config_general: hypr_db::user::ConfigDataGeneral,
-        pub config_profile: hypr_db::user::ConfigDataProfile,
+        pub config: hypr_db::user::Config,
         pub event: Option<hypr_db::user::Event>,
-        pub participants: Vec<hypr_db::user::Participant>,
+        pub participants: Vec<hypr_db::user::Human>,
         pub timeline_view: TimelineView,
     }
 }

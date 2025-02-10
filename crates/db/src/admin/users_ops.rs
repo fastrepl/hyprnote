@@ -19,12 +19,14 @@ impl AdminDatabase {
             .query(
                 "INSERT OR REPLACE INTO users (
                     id,
+                    organization_id,
                     human_id,
                     timestamp,
                     clerk_user_id
-                ) VALUES (?, ?, ?, ?) RETURNING *",
+                ) VALUES (?, ?, ?, ?, ?) RETURNING *",
                 vec![
                     user.id,
+                    user.organization_id,
                     user.human_id,
                     user.timestamp.to_rfc3339(),
                     user.clerk_user_id,
@@ -85,15 +87,25 @@ impl AdminDatabase {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::admin::{tests::setup_db, Device};
+    use crate::admin::{tests::setup_db, Device, Organization};
 
     #[tokio::test]
     async fn test_create_list_get_user() {
         let db = setup_db().await;
 
+        let org = db
+            .upsert_organization(Organization {
+                id: uuid::Uuid::new_v4().to_string(),
+                turso_db_name: "yujonglee".to_string(),
+                clerk_org_id: Some("org_1".to_string()),
+            })
+            .await
+            .unwrap();
+
         let user = db
             .upsert_user(User {
                 id: uuid::Uuid::new_v4().to_string(),
+                organization_id: org.id.clone(),
                 human_id: uuid::Uuid::new_v4().to_string(),
                 timestamp: chrono::Utc::now(),
                 clerk_user_id: "21".to_string(),
@@ -116,9 +128,19 @@ mod tests {
     async fn test_create_list_get_device() {
         let db = setup_db().await;
 
+        let org = db
+            .upsert_organization(Organization {
+                id: uuid::Uuid::new_v4().to_string(),
+                turso_db_name: "yujonglee".to_string(),
+                clerk_org_id: Some("org_1".to_string()),
+            })
+            .await
+            .unwrap();
+
         let user = db
             .upsert_user(User {
                 id: uuid::Uuid::new_v4().to_string(),
+                organization_id: org.id.clone(),
                 human_id: uuid::Uuid::new_v4().to_string(),
                 timestamp: chrono::Utc::now(),
                 clerk_user_id: "21".to_string(),
@@ -144,9 +166,19 @@ mod tests {
     async fn test_get_user_by_device_api_key() {
         let db = setup_db().await;
 
+        let org = db
+            .upsert_organization(Organization {
+                id: uuid::Uuid::new_v4().to_string(),
+                turso_db_name: "yujonglee".to_string(),
+                clerk_org_id: Some("org_1".to_string()),
+            })
+            .await
+            .unwrap();
+
         let user_1 = db
             .upsert_user(User {
                 id: uuid::Uuid::new_v4().to_string(),
+                organization_id: org.id.clone(),
                 human_id: uuid::Uuid::new_v4().to_string(),
                 timestamp: chrono::Utc::now(),
                 clerk_user_id: "21".to_string(),

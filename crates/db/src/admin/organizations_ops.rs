@@ -4,7 +4,7 @@ impl AdminDatabase {
     pub async fn upsert_organization(
         &self,
         organization: Organization,
-    ) -> Result<Option<Organization>, crate::Error> {
+    ) -> Result<Organization, crate::Error> {
         let mut rows = self
             .conn
             .query(
@@ -24,43 +24,51 @@ impl AdminDatabase {
             )
             .await?;
 
-        match rows.next().await? {
-            None => Ok(None),
-            Some(row) => {
-                let org: Organization = libsql::de::from_row(&row).unwrap();
-                Ok(Some(org))
-            }
-        }
+        let row = rows.next().await?.unwrap();
+        let org: Organization = libsql::de::from_row(&row).unwrap();
+        Ok(org)
     }
 
-    pub async fn get_organization_by_clerk_org_id(
+    pub async fn list_organizations_by_user_id(
         &self,
-        clerk_org_id: &str,
-    ) -> Result<Option<Organization>, crate::Error> {
-        let mut rows = self
+        user_id: impl Into<String>,
+    ) -> Result<Vec<Organization>, crate::Error> {
+        let rows = self
             .conn
             .query(
-                "SELECT * FROM organizations WHERE clerk_org_id = ?",
-                vec![clerk_org_id],
+                "SELECT o.* FROM organizations o
+                 INNER JOIN users u ON u.organization_id = o.id
+                 WHERE u.clerk_user_id = ?",
+                vec![user_id.into()],
             )
             .await?;
 
-        match rows.next().await.unwrap() {
-            None => Ok(None),
-            Some(row) => {
-                let org: Organization = libsql::de::from_row(&row).unwrap();
-                Ok(Some(org))
-            }
+        let mut organizations = Vec::new();
+        let mut rows = rows;
+        while let Some(row) = rows.next().await? {
+            let org: Organization = libsql::de::from_row(&row).unwrap();
+            organizations.push(org);
         }
+
+        Ok(organizations)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::admin::tests::setup_db;
+    use crate::admin::{tests::setup_db, Organization};
 
     #[tokio::test]
-    async fn test_get_organization_by_clerk_org_id() {
-        let _db = setup_db().await;
+    async fn test_organizations() {
+        let db = setup_db().await;
+
+        let org = Organization {
+            id: uuid::Uuid::new_v4().to_string(),
+            turso_db_name: "yujonglee".to_string(),
+            clerk_org_id: Some("org_1".to_string()),
+        };
+
+        let org = db.upsert_organization(org).await.unwrap();
+        assert_eq!(org.clerk_org_id, Some("org_1".to_string()));
     }
 }

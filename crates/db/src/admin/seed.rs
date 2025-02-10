@@ -9,6 +9,7 @@ pub async fn seed(db: &AdminDatabase) -> Result<(), crate::Error> {
 
     let user = User {
         id: uuid::Uuid::new_v4().to_string(),
+        organization_id: org.id.clone(),
         human_id: uuid::Uuid::new_v4().to_string(),
         timestamp: chrono::Utc::now(),
         clerk_user_id: "user_1".to_string(),

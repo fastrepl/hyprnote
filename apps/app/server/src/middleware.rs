@@ -51,29 +51,28 @@ pub async fn attach_user_from_clerk(
 ) -> Result<Response, StatusCode> {
     // https://clerk.com/docs/backend-requests/resources/session-tokens
     let clerk_user_id = jwt.sub;
-    let clerk_org = jwt.org;
+    let clerk_org_id = jwt.org.map(|o| o.id);
 
-    if let Some(active_org) = clerk_org {
-        let org = state
-            .admin_db
-            .get_organization_by_clerk_org_id(&active_org.id)
-            .await
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-            .ok_or(StatusCode::UNAUTHORIZED)?;
+    let user = state
+        .admin_db
+        .get_user_by_clerk_user_id(clerk_user_id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::UNAUTHORIZED)?;
 
-        req.extensions_mut().insert(org);
-    }
+    let orgs = state
+        .admin_db
+        .list_organizations_by_user_id(user.id.clone())
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    {
-        let user = state
-            .admin_db
-            .get_user_by_clerk_user_id(clerk_user_id)
-            .await
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-            .ok_or(StatusCode::UNAUTHORIZED)?;
+    let org = orgs
+        .into_iter()
+        .find(|org| org.clerk_org_id == clerk_org_id)
+        .ok_or(StatusCode::UNPROCESSABLE_ENTITY)?;
 
-        req.extensions_mut().insert(user);
-    }
+    req.extensions_mut().insert(org);
+    req.extensions_mut().insert(user);
 
     Ok(next.run(req).await)
 }

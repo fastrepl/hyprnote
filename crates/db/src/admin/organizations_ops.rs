@@ -1,6 +1,17 @@
 use super::{AdminDatabase, Organization};
 
 impl AdminDatabase {
+    pub async fn list_organizations(&self) -> Result<Vec<Organization>, crate::Error> {
+        let mut rows = self.conn.query("SELECT * FROM organizations", ()).await?;
+
+        let mut items = Vec::new();
+        while let Some(row) = rows.next().await? {
+            let item: Organization = libsql::de::from_row(&row).unwrap();
+            items.push(item);
+        }
+        Ok(items)
+    }
+
     pub async fn upsert_organization(
         &self,
         organization: Organization,
@@ -27,6 +38,67 @@ impl AdminDatabase {
         let row = rows.next().await?.unwrap();
         let org: Organization = libsql::de::from_row(&row).unwrap();
         Ok(org)
+    }
+
+    pub async fn get_organization_by_id(
+        &self,
+        id: impl Into<String>,
+    ) -> Result<Option<Organization>, crate::Error> {
+        let mut rows = self
+            .conn
+            .query("SELECT * FROM organizations WHERE id = ?", vec![id.into()])
+            .await?;
+        match rows.next().await? {
+            None => Ok(None),
+            Some(row) => {
+                let org: Organization = libsql::de::from_row(&row).unwrap();
+                Ok(Some(org))
+            }
+        }
+    }
+
+    pub async fn get_organization_by_clerk_org_id(
+        &self,
+        clerk_org_id: impl Into<String>,
+    ) -> Result<Option<Organization>, crate::Error> {
+        let mut rows = self
+            .conn
+            .query(
+                "SELECT * FROM organizations WHERE clerk_org_id = ?",
+                vec![clerk_org_id.into()],
+            )
+            .await?;
+
+        match rows.next().await? {
+            None => Ok(None),
+            Some(row) => {
+                let org: Organization = libsql::de::from_row(&row).unwrap();
+                Ok(Some(org))
+            }
+        }
+    }
+
+    pub async fn get_organization_by_clerk_user_id(
+        &self,
+        clerk_user_id: impl Into<String>,
+    ) -> Result<Option<Organization>, crate::Error> {
+        let mut rows = self
+            .conn
+            .query(
+                "SELECT o.* FROM organizations o
+                 INNER JOIN users u ON u.organization_id = o.id
+                 WHERE u.clerk_user_id = ? AND o.clerk_org_id IS NULL",
+                vec![clerk_user_id.into()],
+            )
+            .await?;
+
+        match rows.next().await? {
+            None => Ok(None),
+            Some(row) => {
+                let org: Organization = libsql::de::from_row(&row).unwrap();
+                Ok(Some(org))
+            }
+        }
     }
 
     pub async fn list_organizations_by_user_id(

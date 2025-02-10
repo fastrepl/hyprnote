@@ -1,10 +1,10 @@
 use super::{Event, Human, UserDatabase};
 
 impl UserDatabase {
-    pub async fn get_event(&self, id: String) -> Result<Event, crate::Error> {
+    pub async fn get_event(&self, id: impl Into<String>) -> Result<Event, crate::Error> {
         let mut rows = self
             .conn
-            .query("SELECT * FROM events WHERE id = ?", vec![id])
+            .query("SELECT * FROM events WHERE id = ?", vec![id.into()])
             .await?;
 
         let row = rows.next().await?.unwrap();

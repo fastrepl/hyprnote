@@ -84,7 +84,7 @@ impl UserDatabase {
 const MIGRATIONS: [&str; 9] = [
     include_str!("./calendars_migration.sql"),
     include_str!("./configs_migration.sql"),
-    include_str!("./events_participants_migration.sql"),
+    include_str!("./event_participants_migration.sql"),
     include_str!("./events_migration.sql"),
     include_str!("./humans_migration.sql"),
     include_str!("./organizations_migration.sql"),

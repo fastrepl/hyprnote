@@ -42,7 +42,6 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
     };
 
     let participants = vec![yujong, bobby, minjae, john, alex, jenny];
-    let participant_ids: Vec<String> = participants.iter().map(|p| p.id.clone()).collect();
 
     let calendars = vec![Calendar {
         id: uuid::Uuid::new_v4().to_string(),
@@ -98,23 +97,23 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
         },
     ];
 
-    // TODO
+    for calendar in calendars {
+        let _ = db.upsert_calendar(calendar).await.unwrap();
+    }
 
-    // for calendar in calendars {
-    //     let _ = db.upsert_calendar(calendar).await.unwrap();
-    // }
-    // for participant in participants {
-    //     let _ = db.add_participant(participant).await.unwrap();
-    // }
-    // for event in events {
-    //     let _ = db.upsert_event(event.clone()).await.unwrap();
-    //     db.event_set_participants(event.id.clone(), participant_ids.clone())
-    //         .await
-    //         .unwrap();
-    // }
-    // for session in sessions {
-    //     let _ = db.upsert_session(session).await.unwrap();
-    // }
+    for event in events {
+        let _ = db.upsert_event(event.clone()).await.unwrap();
+        for participant in participants.iter() {
+            let _ = db
+                .add_participant(event.id.clone(), participant.id.clone())
+                .await
+                .unwrap();
+        }
+    }
+
+    for session in sessions {
+        let _ = db.upsert_session(session).await.unwrap();
+    }
 
     Ok(())
 }

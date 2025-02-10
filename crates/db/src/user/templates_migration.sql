@@ -1,4 +1,4 @@
-CREATE TABLE templates (
+CREATE TABLE IF NOT EXISTS templates (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT NOT NULL,

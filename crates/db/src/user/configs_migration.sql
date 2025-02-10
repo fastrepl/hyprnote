@@ -1,4 +1,4 @@
-CREATE TABLE configs (
+CREATE TABLE IF NOT EXISTS configs (
   user_id TEXT NOT NULL,
   general TEXT NOT NULL,
   notification TEXT NOT NULL,

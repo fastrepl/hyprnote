@@ -1,4 +1,4 @@
-CREATE TABLE sessions (
+CREATE TABLE IF NOT EXISTS sessions (
   id TEXT PRIMARY KEY,
   timestamp TEXT NOT NULL,
   calendar_event_id TEXT DEFAULT NULL,

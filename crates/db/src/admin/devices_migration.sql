@@ -1,4 +1,4 @@
-CREATE TABLE devices (
+CREATE TABLE IF NOT EXISTS devices (
   id TEXT PRIMARY KEY NOT NULL,
   timestamp TEXT NOT NULL,
   user_id TEXT NOT NULL,

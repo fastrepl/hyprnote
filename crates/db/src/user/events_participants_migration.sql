@@ -1,4 +1,4 @@
-CREATE TABLE events_participants (
+CREATE TABLE IF NOT EXISTS events_participants (
   event_id TEXT NOT NULL,
   human_id TEXT NOT NULL,
   PRIMARY KEY (event_id, human_id),

@@ -1,4 +1,4 @@
-CREATE TABLE calendars (
+CREATE TABLE IF NOT EXISTS calendars (
   id TEXT PRIMARY KEY,
   tracking_id TEXT NOT NULL UNIQUE,
   platform TEXT NOT NULL,

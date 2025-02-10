@@ -1,4 +1,4 @@
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS events (
   id TEXT PRIMARY KEY,
   tracking_id TEXT NOT NULL UNIQUE,
   calendar_id TEXT NOT NULL,

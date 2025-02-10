@@ -1,4 +1,4 @@
-CREATE TABLE humans (
+CREATE TABLE IF NOT EXISTS humans (
   id TEXT PRIMARY KEY,
   organization_id TEXT DEFAULT NULL,
   is_user BOOLEAN NOT NULL,

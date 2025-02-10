@@ -1,4 +1,4 @@
-CREATE TABLE integrations (
+CREATE TABLE IF NOT EXISTS integrations (
   id TEXT PRIMARY KEY NOT NULL,
   user_id TEXT NOT NULL,
   nango_integration_id TEXT NOT NULL,

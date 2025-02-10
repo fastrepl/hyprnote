@@ -14,7 +14,7 @@ import {
 } from "@hypr/ui/components/ui/form";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
-import { commands, type ConfigDataNotifications } from "@/types";
+import { commands, type Config, type ConfigNotification } from "@/types";
 
 const schema = z.object({
   before: z.boolean().optional(),

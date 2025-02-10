@@ -16,7 +16,7 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
-import { commands, type ConfigDataProfile } from "@/types";
+import { commands, type Human } from "@/types";
 
 const schema = z.object({
   fullName: z.string().min(2).max(50).optional(),
@@ -34,11 +34,11 @@ export default function ProfileComponent() {
   const config = useQuery({
     queryKey: ["config", "profile"],
     queryFn: async () => {
-      const result = await commands.getConfig("profile");
-      if (result === null) {
-        return null;
-      }
-      return result.data as ConfigDataProfile;
+      const [human, organization] = await Promise.all([
+        commands.getSelfHuman(),
+        commands.getSelfOrganization(),
+      ]);
+      return { human, organization };
     },
   });
 

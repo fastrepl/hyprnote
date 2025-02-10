@@ -52,9 +52,6 @@ async listEvents() : Promise<Event[]> {
 async listSessions(search: string | null) : Promise<Session[]> {
     return await TAURI_INVOKE("list_sessions", { search });
 },
-async upsertParticipant(participant: Human) : Promise<Human> {
-    return await TAURI_INVOKE("upsert_participant", { participant });
-},
 async getSession(option: SessionFilter) : Promise<Session | null> {
     return await TAURI_INVOKE("get_session", { option });
 },
@@ -75,6 +72,18 @@ async getConfig() : Promise<Config> {
 },
 async setConfig(config: Config) : Promise<null> {
     return await TAURI_INVOKE("set_config", { config });
+},
+async upsertHuman(human: Human) : Promise<Human> {
+    return await TAURI_INVOKE("upsert_human", { human });
+},
+async getSelfHuman() : Promise<Human> {
+    return await TAURI_INVOKE("get_self_human");
+},
+async getSelfOrganization() : Promise<Organization> {
+    return await TAURI_INVOKE("get_self_organization");
+},
+async upsertOrganization(organization: Organization) : Promise<Organization> {
+    return await TAURI_INVOKE("upsert_organization", { organization });
 }
 }
 
@@ -105,6 +114,7 @@ export type EnhanceRequest = { pre_meeting_editor: string; in_meeting_editor: st
 export type Event = { id: string; tracking_id: string; calendar_id: string; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null }
 export type Human = { id: string; organization_id: string | null; is_user: boolean; full_name: string | null; email: string | null; job_title: string | null; linkedin_username: string | null }
 export type OSPermission = "calendar" | "contacts" | "audioRecording" | "screenRecording" | "microphone" | "accessibility"
+export type Organization = { id: string; name: string; description: string | null }
 export type Platform = "Apple" | "Google"
 export type RecordingStarted = null
 export type RecordingStopped = { path: string }

@@ -74,16 +74,6 @@ pub mod commands {
     #[tauri::command]
     #[specta::specta]
     #[tracing::instrument(skip(state))]
-    pub async fn upsert_participant(
-        state: State<'_, App>,
-        participant: hypr_db::user::Human,
-    ) -> Result<hypr_db::user::Human, ()> {
-        Ok(participant)
-    }
-
-    #[tauri::command]
-    #[specta::specta]
-    #[tracing::instrument(skip(state))]
     pub async fn get_session(
         state: State<'_, App>,
         option: hypr_db::user::SessionFilter,
@@ -135,5 +125,63 @@ pub mod commands {
     ) -> Result<(), ()> {
         let user_id = &state.user_id;
         Ok(state.db.set_config(user_id, config).await.unwrap())
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
+    pub async fn get_self_human(state: State<'_, App>) -> Result<hypr_db::user::Human, String> {
+        let user_id = &state.user_id;
+        let human = state
+            .db
+            .get_human(user_id)
+            .await
+            .map_err(|e| e.to_string())?;
+        Ok(human)
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
+    pub async fn upsert_human(
+        state: State<'_, App>,
+        human: hypr_db::user::Human,
+    ) -> Result<hypr_db::user::Human, String> {
+        Ok(state
+            .db
+            .upsert_human(human)
+            .await
+            .map_err(|e| e.to_string())?)
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
+    pub async fn get_self_organization(
+        state: State<'_, App>,
+    ) -> Result<hypr_db::user::Organization, String> {
+        let user_id = &state.user_id;
+        let organization = state
+            .db
+            .get_organization_by_user_id(user_id)
+            .await
+            .map_err(|e| e.to_string())?
+            .ok_or("Organization not found".to_string())?;
+
+        Ok(organization)
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
+    pub async fn upsert_organization(
+        state: State<'_, App>,
+        organization: hypr_db::user::Organization,
+    ) -> Result<hypr_db::user::Organization, String> {
+        Ok(state
+            .db
+            .upsert_organization(organization)
+            .await
+            .map_err(|e| e.to_string())?)
     }
 }

@@ -87,7 +87,6 @@ pub async fn main() {
             db::commands::list_calendars,
             db::commands::list_events,
             db::commands::list_sessions,
-            db::commands::upsert_participant,
             db::commands::get_session,
             db::commands::set_session_event,
             db::commands::list_templates,
@@ -95,6 +94,10 @@ pub async fn main() {
             db::commands::delete_template,
             db::commands::get_config,
             db::commands::set_config,
+            db::commands::upsert_human,
+            db::commands::get_self_human,
+            db::commands::get_self_organization,
+            db::commands::upsert_organization,
         ])
         .events(tauri_specta::collect_events![
             events::RecordingStarted,

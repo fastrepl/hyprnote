@@ -23,7 +23,7 @@ import {
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { Badge } from "@hypr/ui/components/ui/badge";
 
-import { commands, type ConfigDataGeneral } from "@/types";
+import { commands, type Config, type ConfigGeneral } from "@/types";
 import { Trans } from "@lingui/react/macro";
 import { cn } from "@/utils";
 

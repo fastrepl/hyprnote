@@ -20,6 +20,13 @@ impl UserDatabase {
         Ok(tag)
     }
 
+    pub async fn delete_tag(&self, tag_id: impl Into<String>) -> Result<(), crate::Error> {
+        self.conn
+            .query("DELETE FROM tags WHERE id = ?", vec![tag_id.into()])
+            .await?;
+        Ok(())
+    }
+
     pub async fn list_tags(&self) -> Result<Vec<Tag>, crate::Error> {
         let mut rows = self.conn.query("SELECT * FROM tags", ()).await?;
 

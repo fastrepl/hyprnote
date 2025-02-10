@@ -97,7 +97,7 @@ pub mod commands {
     #[tracing::instrument(skip(state))]
     pub async fn get_session(
         state: State<'_, App>,
-        option: hypr_db::user::GetSessionOption,
+        option: hypr_db::user::SessionFilter,
     ) -> Result<Option<hypr_db::user::Session>, String> {
         let found = state
             .db

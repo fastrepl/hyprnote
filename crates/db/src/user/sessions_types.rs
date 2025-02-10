@@ -8,7 +8,6 @@ user_common_derives! {
         pub timestamp: DateTime<Utc>,
         pub calendar_event_id: Option<String>,
         pub title: String,
-        pub tags: Vec<String>,
         pub audio_local_path: Option<String>,
         pub audio_remote_path: Option<String>,
         pub raw_memo_html: String,
@@ -31,14 +30,10 @@ impl Session {
             title: row.get(3).expect("title"),
             audio_local_path: row.get(4).expect("audio_local_path"),
             audio_remote_path: row.get(5).expect("audio_remote_path"),
-            tags: row
-                .get_str(6)
-                .map(|s| serde_json::from_str(s).unwrap())
-                .unwrap_or_default(),
-            raw_memo_html: row.get(7).expect("raw_memo_html"),
-            enhanced_memo_html: row.get(8).expect("enhanced_memo_html"),
+            raw_memo_html: row.get(6).expect("raw_memo_html"),
+            enhanced_memo_html: row.get(7).expect("enhanced_memo_html"),
             conversations: row
-                .get_str(9)
+                .get_str(8)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap_or_default(),
         })
@@ -52,7 +47,6 @@ impl Default for Session {
             timestamp: Utc::now(),
             calendar_event_id: None,
             title: "".to_string(),
-            tags: vec![],
             audio_local_path: None,
             audio_remote_path: None,
             raw_memo_html: "".to_string(),
@@ -90,10 +84,12 @@ user_common_derives! {
 }
 
 user_common_derives! {
-    pub enum GetSessionOption {
+    pub enum SessionFilter {
         #[serde(rename = "id")]
         Id(String),
         #[serde(rename = "calendarEventId")]
         CalendarEventId(String),
+        #[serde(rename = "tagId")]
+        TagId(String),
     }
 }

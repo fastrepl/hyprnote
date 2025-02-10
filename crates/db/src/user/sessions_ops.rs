@@ -1,21 +1,29 @@
 use super::UserDatabase;
-use crate::user::{GetSessionOption, Session};
+use crate::user::{Session, SessionFilter};
 
 impl UserDatabase {
     pub async fn get_session(
         &self,
-        option: GetSessionOption,
+        option: SessionFilter,
     ) -> Result<Option<Session>, crate::Error> {
         let mut rows = match option {
-            GetSessionOption::Id(id) => self
+            SessionFilter::Id(id) => self
                 .conn
                 .query("SELECT * FROM sessions WHERE id = ?", vec![id])
                 .await
                 .unwrap(),
-            GetSessionOption::CalendarEventId(id) => self
+            SessionFilter::CalendarEventId(id) => self
                 .conn
                 .query(
                     "SELECT * FROM sessions WHERE calendar_event_id = ?",
+                    vec![id],
+                )
+                .await
+                .unwrap(),
+            SessionFilter::TagId(id) => self
+                .conn
+                .query(
+                    "SELECT * FROM sessions WHERE id IN (SELECT session_id FROM tags WHERE id = ?)",
                     vec![id],
                 )
                 .await
@@ -70,15 +78,13 @@ impl UserDatabase {
                     title,
                     raw_memo_html,
                     enhanced_memo_html,
-                    tags,
                     conversations
-                ) VALUES (:id, :timestamp, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :tags, :conversations) 
+                ) VALUES (:id, :timestamp, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :conversations) 
                 ON CONFLICT(id) DO UPDATE SET
                     timestamp = :timestamp,
                     title = :title,
                     raw_memo_html = :raw_memo_html,
                     enhanced_memo_html = :enhanced_memo_html,
-                    tags = :tags,
                     conversations = :conversations
                 RETURNING *",
                 libsql::named_params! {
@@ -88,7 +94,6 @@ impl UserDatabase {
                     ":title": libsql::Value::Text(session.title),
                     ":raw_memo_html": libsql::Value::Text(session.raw_memo_html),
                     ":enhanced_memo_html": session.enhanced_memo_html.map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
-                    ":tags": libsql::Value::Text(serde_json::to_string(&session.tags).unwrap()),
                     ":conversations": libsql::Value::Text(serde_json::to_string(&session.conversations).unwrap()),
                 },
             ).await?;
@@ -127,7 +132,6 @@ mod tests {
         let session = Session {
             title: "test".to_string(),
             raw_memo_html: "raw_memo_html_1".to_string(),
-            tags: vec!["test".to_string()],
             conversations: vec![],
             ..Session::default()
         };
@@ -136,7 +140,6 @@ mod tests {
         assert_eq!(session.raw_memo_html, "raw_memo_html_1");
         assert_eq!(session.enhanced_memo_html, None);
         assert_eq!(session.title, "test");
-        assert_eq!(session.tags, vec!["test".to_string()]);
         assert_eq!(session.conversations, vec![]);
 
         let sessions = db.list_sessions(Some("test")).await.unwrap();

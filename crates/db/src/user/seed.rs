@@ -88,13 +88,11 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
     let sessions = vec![
         Session {
             title: "Session 1".to_string(),
-            tags: vec!["test".to_string()],
             conversations: vec![],
             ..Session::default()
         },
         Session {
             title: "Session 2".to_string(),
-            tags: vec!["test".to_string()],
             conversations: vec![],
             ..Session::default()
         },

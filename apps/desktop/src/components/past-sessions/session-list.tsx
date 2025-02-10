@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import type { Session, Participant } from "@/types/tauri.gen";
-import { commands } from "@/types/tauri.gen";
+import type { Session, Participant } from "@/types";
+import { commands } from "@/types";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { format, isThisYear } from "date-fns";
 

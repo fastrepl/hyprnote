@@ -1,4 +1,4 @@
-import { type Participant } from "@/types/tauri.gen";
+import { type Participant } from "@/types";
 
 export const mockParticipants: Participant[] = [
   {

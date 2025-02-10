@@ -3,7 +3,7 @@ import {
   commands,
   type ConfigDataGeneral,
   type ConfigDataProfile,
-} from "@/types/tauri.gen";
+} from "@/types";
 import { SessionProvider } from "@/contexts";
 import EditorArea from "@/components/note/editor";
 import NoteAIButton from "@/components/note-ai-button";

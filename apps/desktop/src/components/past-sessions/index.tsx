@@ -1,4 +1,4 @@
-import type { Session } from "@/types/tauri.gen";
+import type { Session } from "@/types";
 import SessionList from "./session-list";
 import { Trans } from "@lingui/react/macro";
 

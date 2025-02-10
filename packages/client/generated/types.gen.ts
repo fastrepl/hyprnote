@@ -20,11 +20,21 @@ export type ConversationChunk = {
     transcripts: Array<TranscriptChunk>;
 };
 
+export type CreateTitleRequest = {
+    transcripts: Array<TranscriptChunk>;
+};
+
+export type CreateTitleResponse = {
+    title: string;
+};
+
 export type DiarizationChunk = {
     end: number;
     speaker: string;
     start: number;
 };
+
+export type Membership = 'Trial' | 'Basic' | 'Pro';
 
 export type NangoConnectSessionRequest = {
     allowed_integrations: Array<string>;
@@ -54,6 +64,14 @@ export type NangoConnectSessionResponse = {
     };
 };
 
+export type PostprocessEnhanceRequest = {
+    editor: string;
+};
+
+export type PostprocessEnhanceResponse = {
+    editor: string;
+};
+
 export type Session = {
     audio_local_path?: string | null;
     audio_remote_path?: string | null;
@@ -65,6 +83,23 @@ export type Session = {
     tags: Array<string>;
     timestamp: string;
     title: string;
+};
+
+export type Subscription = {
+    membership: Membership;
+};
+
+export type SummarizeTranscriptChunk = {
+    points: Array<string>;
+};
+
+export type SummarizeTranscriptRequest = {
+    diarizations: Array<DiarizationChunk>;
+    transcripts: Array<TranscriptChunk>;
+};
+
+export type SummarizeTranscriptResponse = {
+    blocks: Array<SummarizeTranscriptChunk>;
 };
 
 export type TranscriptChunk = {
@@ -79,6 +114,58 @@ export type GetHealthData = {
     query?: never;
     url: '/health';
 };
+
+export type PostApiNativeCreateTitleData = {
+    body: CreateTitleRequest;
+    path?: never;
+    query?: never;
+    url: '/api/native/create_title';
+};
+
+export type PostApiNativeCreateTitleResponses = {
+    200: CreateTitleResponse;
+};
+
+export type PostApiNativeCreateTitleResponse = PostApiNativeCreateTitleResponses[keyof PostApiNativeCreateTitleResponses];
+
+export type PostApiNativeSummarizeTranscriptData = {
+    body: SummarizeTranscriptRequest;
+    path?: never;
+    query?: never;
+    url: '/api/native/summarize_transcript';
+};
+
+export type PostApiNativeSummarizeTranscriptResponses = {
+    200: SummarizeTranscriptResponse;
+};
+
+export type PostApiNativeSummarizeTranscriptResponse = PostApiNativeSummarizeTranscriptResponses[keyof PostApiNativeSummarizeTranscriptResponses];
+
+export type PostApiNativePostprocessEnhanceData = {
+    body: PostprocessEnhanceRequest;
+    path?: never;
+    query?: never;
+    url: '/api/native/postprocess_enhance';
+};
+
+export type PostApiNativePostprocessEnhanceResponses = {
+    200: PostprocessEnhanceResponse;
+};
+
+export type PostApiNativePostprocessEnhanceResponse = PostApiNativePostprocessEnhanceResponses[keyof PostApiNativePostprocessEnhanceResponses];
+
+export type GetApiNativeSubscriptionData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/native/subscription';
+};
+
+export type GetApiNativeSubscriptionResponses = {
+    200: Subscription;
+};
+
+export type GetApiNativeSubscriptionResponse = GetApiNativeSubscriptionResponses[keyof GetApiNativeSubscriptionResponses];
 
 export type PostApiWebConnectData = {
     body: ConnectInput;
@@ -118,6 +205,19 @@ export type PostApiWebIntegrationConnectionResponses = {
 };
 
 export type PostApiWebIntegrationConnectionResponse = PostApiWebIntegrationConnectionResponses[keyof PostApiWebIntegrationConnectionResponses];
+
+export type GetApiWebSubscriptionData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/web/subscription';
+};
+
+export type GetApiWebSubscriptionResponses = {
+    200: Subscription;
+};
+
+export type GetApiWebSubscriptionResponse = GetApiWebSubscriptionResponses[keyof GetApiWebSubscriptionResponses];
 
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});

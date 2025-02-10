@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import PastSessions from "@/components/past-sessions";
 import UpcomingEvents from "@/components/upcoming-events";
 import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
-import { commands } from "@/types/tauri.gen";
+import { commands } from "@/types";
 import WorkspaceAIButton from "@/components/workspace-ai-button";
 
 function Component() {

@@ -2,8 +2,8 @@ import { createStore } from "zustand";
 import { create as mutate } from "mutative";
 import { Channel } from "@tauri-apps/api/core";
 
-import { commands } from "@/types/tauri.gen";
-import type { TimelineView, Session, SessionStatus } from "@/types/tauri.gen";
+import { commands } from "@/types";
+import type { TimelineView, Session, SessionStatus } from "@/types";
 
 type State = {
   channel: Channel<any> | null;

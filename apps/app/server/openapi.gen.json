@@ -8,6 +8,100 @@
     "/health": {
       "get": {}
     },
+    "/api/native/create_title": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTitleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTitleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/native/summarize_transcript": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SummarizeTranscriptRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummarizeTranscriptResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/native/postprocess_enhance": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostprocessEnhanceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostprocessEnhanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/native/subscription": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/web/connect": {
       "post": {
         "requestBody": {
@@ -69,6 +163,22 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/NangoConnectSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/web/subscription": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
                 }
               }
             }
@@ -160,6 +270,31 @@
           }
         }
       },
+      "CreateTitleRequest": {
+        "type": "object",
+        "required": [
+          "transcripts"
+        ],
+        "properties": {
+          "transcripts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TranscriptChunk"
+            }
+          }
+        }
+      },
+      "CreateTitleResponse": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          }
+        }
+      },
       "DiarizationChunk": {
         "type": "object",
         "required": [
@@ -182,6 +317,14 @@
             "minimum": 0.0
           }
         }
+      },
+      "Membership": {
+        "type": "string",
+        "enum": [
+          "Trial",
+          "Basic",
+          "Pro"
+        ]
       },
       "NangoConnectSessionRequest": {
         "type": "object",
@@ -299,6 +442,28 @@
           }
         ]
       },
+      "PostprocessEnhanceRequest": {
+        "type": "object",
+        "required": [
+          "editor"
+        ],
+        "properties": {
+          "editor": {
+            "type": "string"
+          }
+        }
+      },
+      "PostprocessEnhanceResponse": {
+        "type": "object",
+        "required": [
+          "editor"
+        ],
+        "properties": {
+          "editor": {
+            "type": "string"
+          }
+        }
+      },
       "Session": {
         "type": "object",
         "required": [
@@ -358,6 +523,66 @@
           },
           "title": {
             "type": "string"
+          }
+        }
+      },
+      "Subscription": {
+        "type": "object",
+        "required": [
+          "membership"
+        ],
+        "properties": {
+          "membership": {
+            "$ref": "#/components/schemas/Membership"
+          }
+        }
+      },
+      "SummarizeTranscriptChunk": {
+        "type": "object",
+        "required": [
+          "points"
+        ],
+        "properties": {
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "SummarizeTranscriptRequest": {
+        "type": "object",
+        "required": [
+          "diarizations",
+          "transcripts"
+        ],
+        "properties": {
+          "diarizations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiarizationChunk"
+            }
+          },
+          "transcripts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TranscriptChunk"
+            }
+          }
+        }
+      },
+      "SummarizeTranscriptResponse": {
+        "type": "object",
+        "required": [
+          "blocks"
+        ],
+        "properties": {
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SummarizeTranscriptChunk"
+            }
           }
         }
       },

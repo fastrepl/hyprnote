@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, CircleCheck } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import { commands } from "@/types/tauri.gen";
+import { commands } from "@/types";
 
 const STEPS = ["permissions"] as const;
 

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 
-import { commands, type Session } from "@/types/tauri.gen";
+import { commands, type Session } from "@/types";
 
 const schema = z.object({
   eventId: z.string().optional(),

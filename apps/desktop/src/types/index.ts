@@ -1,3 +1,6 @@
+export * from "./server.gen";
+export * from "./tauri.gen";
+
 import type { NangoIntegration } from "./server.gen";
 
 export type CalendarIntegration =

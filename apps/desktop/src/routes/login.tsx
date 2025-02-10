@@ -4,7 +4,7 @@ import { open } from "@tauri-apps/plugin-shell";
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { message } from "@tauri-apps/plugin-dialog";
-import { commands } from "@/types/tauri.gen";
+import { commands } from "@/types";
 import { baseUrl } from "@/client";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 

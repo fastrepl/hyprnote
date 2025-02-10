@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SettingsIcon } from "lucide-react";
-import { commands, type Template } from "@/types/tauri.gen";
+import { commands, type Template } from "@/types";
 import { DialogView } from "./views";
 import { TemplateContent } from "./components/template-list";
 import GeneralComponent from "./views/general";

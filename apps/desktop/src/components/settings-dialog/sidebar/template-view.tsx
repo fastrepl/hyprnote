@@ -1,4 +1,4 @@
-import { type Template } from "@/types/tauri.gen";
+import { type Template } from "@/types";
 import { ChevronLeftIcon, FilePlusIcon } from "lucide-react";
 import { TemplateList } from "../components/template-list";
 import { type NavNames } from "../types";

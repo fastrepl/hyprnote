@@ -20,7 +20,7 @@ import {
 } from "@hypr/ui/components/ui/select";
 
 import { useHypr } from "@/contexts";
-import { type Calendar, commands } from "@/types/tauri.gen";
+import { type Calendar, commands } from "@/types";
 import type { CalendarIntegration } from "@/types";
 
 const supportedIntegrations: CalendarIntegration[] = [

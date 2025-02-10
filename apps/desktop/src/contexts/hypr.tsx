@@ -8,9 +8,9 @@ import type {
   NangoIntegration,
   CreateTitleRequest,
   CreateTitleResponse,
-} from "@/types/server.gen";
+} from "@/types";
 import type { CalendarIntegration } from "@/types";
-import { commands, type EnhanceRequest } from "@/types/tauri.gen";
+import { commands, type EnhanceRequest } from "@/types";
 
 type Client = {
   listIntegrations: () => Promise<NangoIntegration[]>;

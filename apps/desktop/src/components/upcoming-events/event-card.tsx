@@ -6,7 +6,7 @@ import {
   CardTitle,
   CardContent,
 } from "@hypr/ui/components/ui/card";
-import { commands, type Event } from "@/types/tauri.gen";
+import { commands, type Event } from "@/types";
 
 interface EventCardProps {
   event: Event;

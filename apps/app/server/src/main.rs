@@ -232,19 +232,19 @@ fn main() {
                             middleware::check_membership("pro".to_string()),
                         )),
                 )
-                .route(
+                .api_route(
                     "/create_title",
-                    post(native::create_title::handler)
+                    api_post(native::create_title::handler)
                         .layer(TimeoutLayer::new(Duration::from_secs(10))),
                 )
-                .route(
+                .api_route(
                     "/summarize_transcript",
-                    post(native::summarize_transcript::handler)
+                    api_post(native::summarize_transcript::handler)
                         .layer(TimeoutLayer::new(Duration::from_secs(10))),
                 )
-                .route(
+                .api_route(
                     "/postprocess_enhance",
-                    post(native::postprocess_enhance::handler)
+                    api_post(native::postprocess_enhance::handler)
                         .layer(TimeoutLayer::new(Duration::from_secs(10))),
                 )
                 .route("/listen/realtime", get(native::listen::realtime::handler))
@@ -338,13 +338,7 @@ fn export_ts_types() -> anyhow::Result<()> {
     let mut native_collection = specta_util::TypeCollection::default();
 
     web_collection.register::<hypr_nango::NangoIntegration>();
-
     native_collection.register::<hypr_nango::NangoIntegration>();
-    native_collection.register::<hypr_bridge::EnhanceRequest>();
-    native_collection.register::<hypr_bridge::CreateTitleRequest>();
-    native_collection.register::<hypr_bridge::CreateTitleResponse>();
-    native_collection.register::<hypr_bridge::SummarizeTranscriptRequest>();
-    native_collection.register::<hypr_bridge::SummarizeTranscriptResponse>();
 
     let language = specta_typescript::Typescript::default()
         .header("// @ts-nocheck\n\n")

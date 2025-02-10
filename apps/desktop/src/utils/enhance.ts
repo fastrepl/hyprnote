@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
-import type { EnhanceRequest } from "@/types/tauri.gen";
+import type { EnhanceRequest } from "@/types";
 
 type EnhanceStatus = "idle" | "loading" | "error" | "success";
 

@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 
-import { commands } from "@/types/tauri.gen";
+import { commands } from "@/types";
 
 export interface AuthContext {
   isAuthenticated(): Promise<boolean>;

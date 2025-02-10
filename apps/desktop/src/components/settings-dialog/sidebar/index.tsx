@@ -1,4 +1,4 @@
-import { type Template } from "@/types/tauri.gen";
+import { type Template } from "@/types";
 import { type NavNames } from "../types";
 import { TemplateView } from "./template-view";
 import { SettingsView } from "./settings-view";

@@ -14,7 +14,7 @@ import {
 } from "@hypr/ui/components/ui/form";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
-import { commands, type ConfigDataGeneral } from "@/types/tauri.gen";
+import { commands, type ConfigDataGeneral } from "@/types";
 
 const schema = z.object({
   before: z.boolean().optional(),

@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { type Event } from "@/types/tauri.gen";
+import { type Event } from "@/types";
 import {
   Carousel,
   CarouselContent,

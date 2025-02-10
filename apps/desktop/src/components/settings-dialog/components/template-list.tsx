@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { BookmarkIcon, SearchIcon, ZapIcon } from "lucide-react";
-import type { Template } from "@/types/tauri.gen";
+import type { Template } from "@/types";
 import { cn } from "@hypr/ui/lib/utils";
 
 interface TemplateListProps {

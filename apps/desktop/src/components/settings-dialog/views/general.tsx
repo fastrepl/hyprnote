@@ -23,7 +23,7 @@ import {
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
-import { commands, type ConfigDataGeneral } from "@/types/tauri.gen";
+import { commands, type ConfigDataGeneral } from "@/types";
 import { Trans } from "@lingui/react/macro";
 
 const LANGUAGES = [

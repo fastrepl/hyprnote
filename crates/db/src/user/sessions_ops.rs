@@ -1,5 +1,4 @@
-use super::UserDatabase;
-use crate::user::{Session, SessionFilter};
+use super::{Session, SessionFilter, UserDatabase};
 
 impl UserDatabase {
     pub async fn get_session(

@@ -1,5 +1,4 @@
-use super::UserDatabase;
-use crate::user::Calendar;
+use super::{Calendar, UserDatabase};
 
 impl UserDatabase {
     pub async fn list_calendars(&self) -> Result<Vec<Calendar>, crate::Error> {

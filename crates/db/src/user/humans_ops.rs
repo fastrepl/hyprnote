@@ -1,5 +1,4 @@
-use super::UserDatabase;
-use crate::user::Human;
+use super::{Human, UserDatabase};
 
 impl UserDatabase {
     pub async fn upsert_human(&self, human: Human) -> Result<Human, crate::Error> {

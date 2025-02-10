@@ -1,5 +1,4 @@
-use super::UserDatabase;
-use crate::user::Template;
+use super::{Template, UserDatabase};
 
 impl UserDatabase {
     pub async fn list_templates(&self) -> Result<Vec<Template>, crate::Error> {

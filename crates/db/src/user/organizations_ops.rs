@@ -1,5 +1,4 @@
-use super::UserDatabase;
-use crate::user::Organization;
+use super::{Organization, UserDatabase};
 
 impl UserDatabase {
     pub async fn list_organizations(&self) -> Result<Vec<Organization>, crate::Error> {

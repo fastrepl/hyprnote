@@ -1,5 +1,4 @@
-use super::UserDatabase;
-use crate::user::Config;
+use super::{Config, UserDatabase};
 
 impl UserDatabase {
     pub async fn get_config(

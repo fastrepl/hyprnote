@@ -1,5 +1,4 @@
-use super::UserDatabase;
-use crate::user::{Event, Human};
+use super::{Event, Human, UserDatabase};
 
 impl UserDatabase {
     pub async fn get_event(&self, id: String) -> Result<Event, crate::Error> {

@@ -1,7 +1,7 @@
 use super::{AdminDatabase, Billing};
 
 impl AdminDatabase {
-    pub async fn create_default_billing(
+    pub async fn create_empty_billing(
         &self,
         organization_id: impl Into<String>,
     ) -> Result<Option<Billing>, crate::Error> {

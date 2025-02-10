@@ -6,37 +6,37 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
     let yujong = Human {
         id: uuid::Uuid::new_v4().to_string(),
         is_user: true,
-        name: Some("Yujong Lee".to_string()),
+        full_name: Some("Yujong Lee".to_string()),
         email: Some("yujonglee@hyprnote.com".to_string()),
         ..Human::default()
     };
 
     let bobby = Human {
-        name: Some("Bobby Min".to_string()),
+        full_name: Some("Bobby Min".to_string()),
         email: Some("bobby.min@krewcapital.com".to_string()),
         ..Human::default()
     };
 
     let minjae = Human {
-        name: Some("Minjae Song".to_string()),
+        full_name: Some("Minjae Song".to_string()),
         email: Some("minjae.song@krewcapital.com".to_string()),
         ..Human::default()
     };
 
     let john = Human {
-        name: Some("John Jeong".to_string()),
+        full_name: Some("John Jeong".to_string()),
         email: Some("john@hyprnote.com".to_string()),
         ..Human::default()
     };
 
     let alex = Human {
-        name: Some("Alex Karp".to_string()),
+        full_name: Some("Alex Karp".to_string()),
         email: Some("alex@hyprnote.com".to_string()),
         ..Human::default()
     };
 
     let jenny = Human {
-        name: Some("Jenny Park".to_string()),
+        full_name: Some("Jenny Park".to_string()),
         email: Some("jenny@hyprnote.com".to_string()),
         ..Human::default()
     };

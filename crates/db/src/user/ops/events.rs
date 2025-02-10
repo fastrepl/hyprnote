@@ -13,79 +13,6 @@ impl UserDatabase {
         Ok(event)
     }
 
-    pub async fn list_participants(
-        &self,
-        event_id: impl Into<String>,
-    ) -> Result<Vec<Human>, crate::Error> {
-        let mut rows = self
-            .conn
-            .query(
-                "SELECT h.* 
-                FROM humans h 
-                JOIN event_participants ep ON h.id = ep.human_id
-                WHERE ep.event_id = ?",
-                vec![event_id.into()],
-            )
-            .await?;
-
-        let mut items = Vec::new();
-        while let Some(row) = rows.next().await.unwrap() {
-            let item: Human = libsql::de::from_row(&row)?;
-            items.push(item);
-        }
-        Ok(items)
-    }
-
-    pub async fn list_events(&self) -> Result<Vec<Event>, crate::Error> {
-        let mut rows = self.conn.query("SELECT * FROM events", ()).await.unwrap();
-
-        let mut items = Vec::new();
-        while let Some(row) = rows.next().await.unwrap() {
-            let item: Event = libsql::de::from_row(&row)?;
-            items.push(item);
-        }
-        Ok(items)
-    }
-
-    pub async fn event_set_participants(
-        &self,
-        event_id: String,
-        participant_ids: Vec<String>,
-    ) -> Result<(), crate::Error> {
-        self.conn
-            .query(
-                "DELETE FROM event_participants WHERE event_id = ?",
-                vec![event_id.clone()],
-            )
-            .await?;
-
-        for participant_id in participant_ids {
-            self.conn
-                .query(
-                    "INSERT INTO event_participants (event_id, participant_id) VALUES (?, ?)",
-                    vec![event_id.clone(), participant_id],
-                )
-                .await?;
-        }
-
-        Ok(())
-    }
-
-    pub async fn add_participant(
-        &self,
-        event_id: impl Into<String>,
-        human_id: impl Into<String>,
-    ) -> Result<(), crate::Error> {
-        self.conn
-            .query(
-                "INSERT INTO event_participants (event_id, human_id) VALUES (?, ?)",
-                vec![event_id.into(), human_id.into()],
-            )
-            .await?;
-
-        Ok(())
-    }
-
     pub async fn upsert_event(&self, event: Event) -> Result<Event, crate::Error> {
         let mut rows = self
             .conn
@@ -131,6 +58,70 @@ impl UserDatabase {
         let row = rows.next().await?.unwrap();
         let event: Event = libsql::de::from_row(&row)?;
         Ok(event)
+    }
+
+    pub async fn list_events(&self) -> Result<Vec<Event>, crate::Error> {
+        let mut rows = self.conn.query("SELECT * FROM events", ()).await.unwrap();
+
+        let mut items = Vec::new();
+        while let Some(row) = rows.next().await.unwrap() {
+            let item: Event = libsql::de::from_row(&row)?;
+            items.push(item);
+        }
+        Ok(items)
+    }
+
+    pub async fn list_participants(
+        &self,
+        event_id: impl Into<String>,
+    ) -> Result<Vec<Human>, crate::Error> {
+        let mut rows = self
+            .conn
+            .query(
+                "SELECT h.* 
+                FROM humans h 
+                JOIN event_participants ep ON h.id = ep.human_id
+                WHERE ep.event_id = ?",
+                vec![event_id.into()],
+            )
+            .await?;
+
+        let mut items = Vec::new();
+        while let Some(row) = rows.next().await.unwrap() {
+            let item: Human = libsql::de::from_row(&row)?;
+            items.push(item);
+        }
+        Ok(items)
+    }
+
+    pub async fn add_participant(
+        &self,
+        event_id: impl Into<String>,
+        human_id: impl Into<String>,
+    ) -> Result<(), crate::Error> {
+        self.conn
+            .query(
+                "INSERT OR IGNORE INTO event_participants (event_id, human_id) VALUES (?, ?)",
+                (event_id.into(), human_id.into()),
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn remove_participant(
+        &self,
+        event_id: impl Into<String>,
+        human_id: impl Into<String>,
+    ) -> Result<(), crate::Error> {
+        self.conn
+            .query(
+                "DELETE FROM event_participants WHERE event_id = ? AND human_id = ?",
+                (event_id.into(), human_id.into()),
+            )
+            .await?;
+
+        Ok(())
     }
 }
 

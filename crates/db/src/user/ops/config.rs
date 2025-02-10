@@ -32,13 +32,11 @@ impl UserDatabase {
             .execute(
                 "INSERT OR REPLACE INTO configs (
                     user_id,
-                    profile,
                     general,
                     notification
-                ) VALUES (?, ?, ?, ?)",
+                ) VALUES (?, ?, ?)",
                 vec![
                     user_id.into(),
-                    serde_json::to_string(&config.profile)?,
                     serde_json::to_string(&config.general)?,
                     serde_json::to_string(&config.notification)?,
                 ],
@@ -50,7 +48,7 @@ impl UserDatabase {
 
 #[cfg(test)]
 mod tests {
-    use crate::user::{ops::tests::setup_db, Config, ConfigGeneral, ConfigProfile};
+    use crate::user::{ops::tests::setup_db, Config, ConfigGeneral};
 
     #[tokio::test]
     async fn test_config() {
@@ -61,6 +59,5 @@ mod tests {
         // db.set_config(Config::default()).await.unwrap();
         // let config = db.get_config().await.unwrap().unwrap();
         // assert_eq!(config.general, ConfigGeneral::default());
-        // assert_eq!(config.profile, ConfigProfile::default());
     }
 }

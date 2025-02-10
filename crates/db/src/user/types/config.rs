@@ -4,8 +4,6 @@ user_common_derives! {
     #[derive(Default)]
     pub struct Config {
         pub general: ConfigGeneral,
-        // TODO: we do not need this. this info should be modeled as Human.
-        pub profile: ConfigProfile,
         pub notification: ConfigNotification,
     }
 }
@@ -17,12 +15,8 @@ impl Config {
                 .get_str(1)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap_or_default(),
-            profile: row
-                .get_str(2)
-                .map(|s| serde_json::from_str(s).unwrap())
-                .unwrap_or_default(),
             notification: row
-                .get_str(3)
+                .get_str(2)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap_or_default(),
         })
@@ -39,6 +33,7 @@ user_common_derives! {
         #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
         pub display_language: codes_iso_639::part_1::LanguageCode,
         pub jargons: Vec<String>,
+        pub tags: Vec<String>,
     }
 }
 
@@ -49,18 +44,8 @@ impl Default for ConfigGeneral {
             spoken_language: codes_iso_639::part_1::LanguageCode::Ko,
             display_language: codes_iso_639::part_1::LanguageCode::Ko,
             jargons: vec![],
+            tags: vec![],
         }
-    }
-}
-
-user_common_derives! {
-    #[derive(Default)]
-    pub struct ConfigProfile {
-        pub full_name: Option<String>,
-        pub job_title: Option<String>,
-        pub company_name: Option<String>,
-        pub company_description: Option<String>,
-        pub linkedin_username: Option<String>,
     }
 }
 

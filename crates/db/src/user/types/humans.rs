@@ -5,10 +5,10 @@ user_common_derives! {
         pub id: String,
         pub organization_id: Option<String>,
         pub is_user: bool,
-        pub name: Option<String>,
+        pub full_name: Option<String>,
         pub email: Option<String>,
         pub job_title: Option<String>,
-        pub linkedin_url: Option<String>,
+        pub linkedin_username: Option<String>,
     }
 }
 
@@ -18,10 +18,10 @@ impl Default for Human {
             id: uuid::Uuid::new_v4().to_string(),
             organization_id: None,
             is_user: false,
-            name: None,
+            full_name: None,
             email: None,
             job_title: None,
-            linkedin_url: None,
+            linkedin_username: None,
         }
     }
 }
@@ -32,10 +32,10 @@ impl From<hypr_calendar::Participant> for Human {
             id: uuid::Uuid::new_v4().to_string(),
             organization_id: None,
             is_user: false,
-            name: Some(participant.name),
+            full_name: Some(participant.name),
             email: participant.email,
             job_title: None,
-            linkedin_url: None,
+            linkedin_username: None,
         }
     }
 }

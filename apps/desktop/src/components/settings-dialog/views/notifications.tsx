@@ -38,7 +38,7 @@ export default function NotificationsComponent() {
     resolver: zodResolver(schema),
     values: {
       before: config.data?.notification.before ?? true,
-      detection: config.data?.notification.auto ?? true,
+      auto: config.data?.notification.auto ?? true,
     },
   });
 
@@ -46,7 +46,7 @@ export default function NotificationsComponent() {
     mutationFn: async (v: Schema) => {
       const newNotification: ConfigNotification = {
         before: v.before ?? true,
-        auto: v.detection ?? true,
+        auto: v.auto ?? true,
       };
 
       await commands.setConfig({

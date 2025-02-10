@@ -109,7 +109,7 @@ recordingStopped: "recording-stopped"
 
 export type Calendar = { id: string; tracking_id: string; platform: Platform; name: string; selected: boolean }
 export type Config = { general: ConfigGeneral; notification: ConfigNotification }
-export type ConfigGeneral = { autostart: boolean; spoken_language: string; display_language: string; jargons: string[]; tags: string[] }
+export type ConfigGeneral = { autostart: boolean; speech_language: string; display_language: string; jargons: string[]; tags: string[] }
 export type ConfigNotification = { before: boolean; auto: boolean }
 export type ConversationChunk = { start: string; end: string; local_audio_path: string; remote_audio_path: string; transcripts: TranscriptChunk[]; diarizations: DiarizationChunk[] }
 export type DiarizationChunk = { start: bigint; end: bigint; speaker: string }

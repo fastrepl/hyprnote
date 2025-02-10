@@ -28,7 +28,7 @@ user_common_derives! {
         pub autostart: bool,
         #[specta(type = String)]
         #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
-        pub spoken_language: codes_iso_639::part_1::LanguageCode,
+        pub speech_language: codes_iso_639::part_1::LanguageCode,
         #[specta(type = String)]
         #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
         pub display_language: codes_iso_639::part_1::LanguageCode,
@@ -41,7 +41,7 @@ impl Default for ConfigGeneral {
     fn default() -> Self {
         Self {
             autostart: true,
-            spoken_language: codes_iso_639::part_1::LanguageCode::Ko,
+            speech_language: codes_iso_639::part_1::LanguageCode::Ko,
             display_language: codes_iso_639::part_1::LanguageCode::Ko,
             jargons: vec![],
             tags: vec![],

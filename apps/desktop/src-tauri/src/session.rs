@@ -142,7 +142,7 @@ pub mod commands {
             .map_err(|e| e.to_string())?;
 
         let language = match config {
-            Some(hypr_db::user::Config { general, .. }) => general.spoken_language,
+            Some(hypr_db::user::Config { general, .. }) => general.speech_language,
             _ => codes_iso_639::part_1::LanguageCode::En,
         };
 

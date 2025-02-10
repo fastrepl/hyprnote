@@ -40,8 +40,9 @@ const LANGUAGES = [
 
 const schema = z.object({
   autostart: z.boolean().optional(),
-  language: z.enum(["En", "Ko"]).optional(),
-  jargons: z.array(z.string()),
+  displayLanguage: z.enum(["En", "Ko"]).optional(),
+  speechLanguage: z.enum(["En", "Ko"]).optional(),
+  jargons: z.string(),
   tags: z.array(z.string()),
 });
 
@@ -139,8 +140,13 @@ export default function General() {
     resolver: zodResolver(schema),
     values: {
       autostart: config.data?.general.autostart ?? false,
-      language: (config.data?.general.spoken_language ?? "En") as "En" | "Ko",
-      jargons: config.data?.general.jargons ?? [],
+      displayLanguage: (config.data?.general.display_language ?? "En") as
+        | "En"
+        | "Ko",
+      speechLanguage: (config.data?.general.speech_language ?? "En") as
+        | "En"
+        | "Ko",
+      jargons: (config.data?.general.jargons ?? []).join(", "),
       tags: config.data?.general.tags ?? [],
     },
   });
@@ -149,9 +155,9 @@ export default function General() {
     mutationFn: async (v: Schema) => {
       const nextGeneral: ConfigGeneral = {
         autostart: v.autostart ?? true,
-        spoken_language: v.language ?? "En",
-        display_language: v.language ?? "En",
-        jargons: v.jargons ?? [],
+        speech_language: v.speechLanguage ?? "En",
+        display_language: v.displayLanguage ?? "En",
+        jargons: v.jargons.split(",").map((jargon) => jargon.trim()),
         tags: [],
       };
 

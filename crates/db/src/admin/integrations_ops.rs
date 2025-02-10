@@ -1,5 +1,4 @@
-use super::AdminDatabase;
-use crate::admin::Integration;
+use super::{AdminDatabase, Integration};
 
 impl AdminDatabase {
     pub async fn list_integrations(
@@ -55,10 +54,8 @@ impl AdminDatabase {
 
 #[cfg(test)]
 mod tests {
+    use crate::admin::{tests::setup_db, Integration, User};
     use hypr_nango::NangoIntegration;
-
-    use super::*;
-    use crate::admin::{ops::tests::setup_db, User};
 
     #[tokio::test]
     async fn test_integrations() {

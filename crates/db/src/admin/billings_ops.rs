@@ -1,5 +1,4 @@
-use super::AdminDatabase;
-use crate::admin::Billing;
+use super::{AdminDatabase, Billing};
 
 impl AdminDatabase {
     pub async fn create_default_billing(
@@ -94,8 +93,7 @@ impl AdminDatabase {
 
 #[cfg(test)]
 mod tests {
-    use super::AdminDatabase;
-    use crate::admin::{ops::tests::setup_db, User};
+    use crate::admin::tests::setup_db;
 
     #[tokio::test]
     async fn test_update_stripe_customer() {

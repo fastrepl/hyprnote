@@ -57,7 +57,7 @@ impl UserDatabase {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::user::{ops::tests::setup_db, Platform};
+    use crate::user::{tests::setup_db, Platform};
 
     #[tokio::test]
     async fn test_calendars() {

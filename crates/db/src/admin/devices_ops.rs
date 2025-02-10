@@ -1,5 +1,4 @@
-use super::AdminDatabase;
-use crate::admin::Device;
+use super::{AdminDatabase, Device};
 
 impl AdminDatabase {
     pub async fn list_devices(&self) -> Result<Vec<Device>, crate::Error> {
@@ -60,7 +59,7 @@ impl AdminDatabase {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::admin::{ops::tests::setup_db, User};
+    use crate::admin::{tests::setup_db, User};
 
     #[tokio::test]
     async fn test_devices() {

@@ -17,7 +17,7 @@ impl UserDatabase {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::user::{ops::tests::setup_db, Organization};
+    use crate::user::{tests::setup_db, Organization};
 
     #[tokio::test]
     async fn test_list_organizations() {

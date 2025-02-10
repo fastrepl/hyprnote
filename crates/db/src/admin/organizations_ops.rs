@@ -1,5 +1,4 @@
-use super::AdminDatabase;
-use crate::admin::Organization;
+use super::{AdminDatabase, Organization};
 
 impl AdminDatabase {
     pub async fn upsert_organization(
@@ -58,8 +57,7 @@ impl AdminDatabase {
 
 #[cfg(test)]
 mod tests {
-    use super::AdminDatabase;
-    use crate::admin::{ops::tests::setup_db, Organization};
+    use crate::admin::tests::setup_db;
 
     #[tokio::test]
     async fn test_get_organization_by_clerk_org_id() {

@@ -115,8 +115,7 @@ impl UserDatabase {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::user::ops::tests::setup_db;
+    use crate::user::{tests::setup_db, Session};
 
     #[tokio::test]
     async fn test_sessions() {

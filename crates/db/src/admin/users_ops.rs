@@ -1,5 +1,4 @@
-use super::AdminDatabase;
-use crate::admin::User;
+use super::{AdminDatabase, User};
 
 impl AdminDatabase {
     pub async fn list_users(&self) -> Result<Vec<User>, crate::Error> {
@@ -89,7 +88,7 @@ impl AdminDatabase {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::admin::{ops::tests::setup_db, Device};
+    use crate::admin::{tests::setup_db, Device};
 
     #[tokio::test]
     async fn test_create_list_get_user() {

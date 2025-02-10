@@ -1,8 +1,10 @@
-CREATE TABLE integrations (
-  id TEXT PRIMARY KEY NOT NULL,
-  timestamp TEXT NOT NULL,
-  user_id TEXT NOT NULL,
-  nango_integration_id TEXT NOT NULL,
-  nango_connection_id TEXT NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+CREATE TABLE humans (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT DEFAULT NULL,
+  is_user BOOLEAN NOT NULL,
+  name TEXT DEFAULT NULL,
+  email TEXT DEFAULT NULL,
+  job_title TEXT DEFAULT NULL,
+  linkedin_url TEXT DEFAULT NULL,
+  FOREIGN KEY (organization_id) REFERENCES organizations (id)
 );

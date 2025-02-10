@@ -1,11 +1,11 @@
 use super::UserDatabase;
-use crate::user::{Event, Participant, ParticipantFilter};
+use crate::user::{Event, Human};
 
 impl UserDatabase {
     pub async fn get_event(&self, id: String) -> Result<Event, crate::Error> {
         let mut rows = self
             .conn
-            .query("SELECT * FROM calendar_events WHERE id = ?", vec![id])
+            .query("SELECT * FROM events WHERE id = ?", vec![id])
             .await?;
 
         let row = rows.next().await?.unwrap();
@@ -15,44 +15,29 @@ impl UserDatabase {
 
     pub async fn list_participants(
         &self,
-        filter: ParticipantFilter,
-    ) -> Result<Vec<Participant>, crate::Error> {
-        let mut rows = match filter {
-            ParticipantFilter::Text(q) => {
-                self.conn
-                    .query(
-                        "SELECT * FROM participants WHERE name LIKE ? OR email LIKE ?",
-                        vec![format!("%{}%", q), format!("%{}%", q)],
-                    )
-                    .await?
-            }
-            ParticipantFilter::Event(e) => {
-                self.conn
-                    .query(
-                        "SELECT p.* FROM participants p
-                         JOIN event_participants ep ON p.id = ep.participant_id
-                         WHERE ep.event_id = ?",
-                        vec![e],
-                    )
-                    .await?
-            }
-            ParticipantFilter::All => self.conn.query("SELECT * FROM participants", ()).await?,
-        };
+        event_id: impl Into<String>,
+    ) -> Result<Vec<Human>, crate::Error> {
+        let mut rows = self
+            .conn
+            .query(
+                "SELECT h.* 
+                FROM humans h 
+                JOIN event_participants ep ON h.id = ep.human_id
+                WHERE ep.event_id = ?",
+                vec![event_id.into()],
+            )
+            .await?;
 
         let mut items = Vec::new();
         while let Some(row) = rows.next().await.unwrap() {
-            let item: Participant = libsql::de::from_row(&row)?;
+            let item: Human = libsql::de::from_row(&row)?;
             items.push(item);
         }
         Ok(items)
     }
 
     pub async fn list_events(&self) -> Result<Vec<Event>, crate::Error> {
-        let mut rows = self
-            .conn
-            .query("SELECT * FROM calendar_events", ())
-            .await
-            .unwrap();
+        let mut rows = self.conn.query("SELECT * FROM events", ()).await.unwrap();
 
         let mut items = Vec::new();
         while let Some(row) = rows.next().await.unwrap() {
@@ -86,47 +71,26 @@ impl UserDatabase {
         Ok(())
     }
 
-    pub async fn upsert_participant(
+    pub async fn add_participant(
         &self,
-        participant: Participant,
-    ) -> Result<Participant, crate::Error> {
-        let mut rows = self
-            .conn
+        event_id: impl Into<String>,
+        human_id: impl Into<String>,
+    ) -> Result<(), crate::Error> {
+        self.conn
             .query(
-                "INSERT INTO participants (
-                    id,
-                    name,
-                    email,
-                    color_hex
-                ) VALUES (
-                    :id,
-                    :name,
-                    :email,
-                    :color_hex
-                ) ON CONFLICT(id) DO UPDATE SET
-                    name = :name,
-                    email = :email,
-                    color_hex = :color_hex
-                RETURNING *",
-                libsql::named_params! {
-                    ":id": participant.id,
-                    ":name": participant.name,
-                    ":email": participant.email,
-                    ":color_hex": participant.color_hex,
-                },
+                "INSERT INTO event_participants (event_id, human_id) VALUES (?, ?)",
+                vec![event_id.into(), human_id.into()],
             )
             .await?;
 
-        let row = rows.next().await?.unwrap();
-        let participant: Participant = libsql::de::from_row(&row)?;
-        Ok(participant)
+        Ok(())
     }
 
     pub async fn upsert_event(&self, event: Event) -> Result<Event, crate::Error> {
         let mut rows = self
             .conn
             .query(
-                "INSERT INTO calendar_events (
+                "INSERT INTO events (
                     id,
                     tracking_id,
                     calendar_id,
@@ -210,37 +174,5 @@ mod tests {
 
         let events = db.list_events().await.unwrap();
         assert_eq!(events.len(), 1);
-    }
-
-    #[tokio::test]
-    async fn test_participants() {
-        let db = setup_db().await;
-
-        let participants = db.list_participants(ParticipantFilter::All).await.unwrap();
-        assert_eq!(participants.len(), 0);
-
-        let participant = Participant {
-            name: "test".to_string(),
-            email: Some("test@test.com".to_string()),
-            ..Participant::default()
-        };
-
-        let p = db.upsert_participant(participant).await.unwrap();
-        assert_eq!(p.name, "test");
-
-        let participants = db.list_participants(ParticipantFilter::All).await.unwrap();
-        assert_eq!(participants.len(), 1);
-
-        let participants = db
-            .list_participants(ParticipantFilter::Text("test".to_string()))
-            .await
-            .unwrap();
-        assert_eq!(participants.len(), 1);
-
-        let participants = db
-            .list_participants(ParticipantFilter::Text("somethingnotindb".to_string()))
-            .await
-            .unwrap();
-        assert_eq!(participants.len(), 0);
     }
 }

@@ -1,48 +1,44 @@
-use super::{Calendar, Event, Participant, Platform, Session, UserDatabase};
+use super::{Calendar, Event, Human, Platform, Session, UserDatabase};
 
 pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
     let now = chrono::Utc::now();
 
-    let yujong = Participant {
+    let yujong = Human {
         id: uuid::Uuid::new_v4().to_string(),
-        name: "Yujong Lee".to_string(),
+        is_user: true,
+        name: Some("Yujong Lee".to_string()),
         email: Some("yujonglee@hyprnote.com".to_string()),
-        color_hex: "#E5E5E5".to_string(),
+        ..Human::default()
     };
 
-    let bobby = Participant {
-        id: uuid::Uuid::new_v4().to_string(),
-        name: "Bobby Min".to_string(),
+    let bobby = Human {
+        name: Some("Bobby Min".to_string()),
         email: Some("bobby.min@krewcapital.com".to_string()),
-        color_hex: "#E5E5E5".to_string(),
+        ..Human::default()
     };
 
-    let minjae = Participant {
-        id: uuid::Uuid::new_v4().to_string(),
-        name: "Minjae Song".to_string(),
+    let minjae = Human {
+        name: Some("Minjae Song".to_string()),
         email: Some("minjae.song@krewcapital.com".to_string()),
-        color_hex: "#E5E5E5".to_string(),
+        ..Human::default()
     };
 
-    let john = Participant {
-        id: uuid::Uuid::new_v4().to_string(),
-        name: "John Jeong".to_string(),
+    let john = Human {
+        name: Some("John Jeong".to_string()),
         email: Some("john@hyprnote.com".to_string()),
-        color_hex: "#E5E5E5".to_string(),
+        ..Human::default()
     };
 
-    let alex = Participant {
-        id: uuid::Uuid::new_v4().to_string(),
-        name: "Alex Karp".to_string(),
+    let alex = Human {
+        name: Some("Alex Karp".to_string()),
         email: Some("alex@hyprnote.com".to_string()),
-        color_hex: "#E5E5E5".to_string(),
+        ..Human::default()
     };
 
-    let jenny = Participant {
-        id: uuid::Uuid::new_v4().to_string(),
-        name: "Jenny Park".to_string(),
-        email: None,
-        color_hex: "#E5E5E5".to_string(),
+    let jenny = Human {
+        name: Some("Jenny Park".to_string()),
+        email: Some("jenny@hyprnote.com".to_string()),
+        ..Human::default()
     };
 
     let participants = vec![yujong, bobby, minjae, john, alex, jenny];
@@ -104,21 +100,23 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
         },
     ];
 
-    for calendar in calendars {
-        let _ = db.upsert_calendar(calendar).await.unwrap();
-    }
-    for participant in participants {
-        let _ = db.upsert_participant(participant).await.unwrap();
-    }
-    for event in events {
-        let _ = db.upsert_event(event.clone()).await.unwrap();
-        db.event_set_participants(event.id.clone(), participant_ids.clone())
-            .await
-            .unwrap();
-    }
-    for session in sessions {
-        let _ = db.upsert_session(session).await.unwrap();
-    }
+    // TODO
+
+    // for calendar in calendars {
+    //     let _ = db.upsert_calendar(calendar).await.unwrap();
+    // }
+    // for participant in participants {
+    //     let _ = db.add_participant(participant).await.unwrap();
+    // }
+    // for event in events {
+    //     let _ = db.upsert_event(event.clone()).await.unwrap();
+    //     db.event_set_participants(event.id.clone(), participant_ids.clone())
+    //         .await
+    //         .unwrap();
+    // }
+    // for session in sessions {
+    //     let _ = db.upsert_session(session).await.unwrap();
+    // }
 
     Ok(())
 }

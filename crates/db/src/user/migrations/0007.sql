@@ -1,4 +1,7 @@
-CREATE TABLE configs (
-  kind TEXT NOT NULL UNIQUE,
-  data TEXT NOT NULL
+CREATE TABLE organizations (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  linkedin_url TEXT DEFAULT NULL,
+  website_url TEXT DEFAULT NULL,
+  description TEXT DEFAULT NULL
 );

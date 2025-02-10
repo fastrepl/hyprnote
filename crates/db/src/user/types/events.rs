@@ -29,31 +29,3 @@ impl From<hypr_calendar::Event> for Event {
         }
     }
 }
-
-user_common_derives! {
-    pub struct Participant {
-        pub id: String,
-        pub name: String,
-        pub email: Option<String>,
-        pub color_hex: String,
-    }
-}
-
-impl Default for Participant {
-    fn default() -> Self {
-        Participant {
-            id: uuid::Uuid::new_v4().to_string(),
-            name: "Unknown".to_string(),
-            email: None,
-            color_hex: random_color::RandomColor::new().to_hex(),
-        }
-    }
-}
-
-user_common_derives! {
-    pub enum ParticipantFilter {
-        Text(String),
-        Event(String),
-        All,
-    }
-}

@@ -4,11 +4,25 @@ user_common_derives! {
     pub struct Human {
         pub id: String,
         pub organization_id: Option<String>,
-        pub role: Option<String>,
         pub is_user: bool,
-        pub name: String,
+        pub name: Option<String>,
         pub email: Option<String>,
-        pub color_hex: String,
+        pub job_title: Option<String>,
+        pub linkedin_url: Option<String>,
+    }
+}
+
+impl Default for Human {
+    fn default() -> Self {
+        Self {
+            id: uuid::Uuid::new_v4().to_string(),
+            organization_id: None,
+            is_user: false,
+            name: None,
+            email: None,
+            job_title: None,
+            linkedin_url: None,
+        }
     }
 }
 
@@ -17,11 +31,11 @@ impl From<hypr_calendar::Participant> for Human {
         Human {
             id: uuid::Uuid::new_v4().to_string(),
             organization_id: None,
-            role: None,
             is_user: false,
-            name: participant.name,
+            name: Some(participant.name),
             email: participant.email,
-            color_hex: random_color::RandomColor::new().to_hex(),
+            job_title: None,
+            linkedin_url: None,
         }
     }
 }

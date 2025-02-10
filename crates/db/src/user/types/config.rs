@@ -1,54 +1,61 @@
-use std::str::FromStr;
-
 use crate::user_common_derives;
 
 user_common_derives! {
-    #[derive(strum::Display, strum::EnumString)]
-    pub enum ConfigKind {
-        #[serde(rename = "general")]
-        #[strum(serialize = "general")]
-        General,
-        #[serde(rename = "profile")]
-        #[strum(serialize = "profile")]
-        Profile,
+    #[derive(Default)]
+    pub struct Config {
+        pub general: ConfigGeneral,
+        // TODO: we do not need this. this info should be modeled as Human.
+        pub profile: ConfigProfile,
+        pub notification: ConfigNotification,
+    }
+}
+
+impl Config {
+    pub fn from_row<'de>(row: &'de libsql::Row) -> Result<Self, serde::de::value::Error> {
+        Ok(Self {
+            general: row
+                .get_str(1)
+                .map(|s| serde_json::from_str(s).unwrap())
+                .unwrap_or_default(),
+            profile: row
+                .get_str(2)
+                .map(|s| serde_json::from_str(s).unwrap())
+                .unwrap_or_default(),
+            notification: row
+                .get_str(3)
+                .map(|s| serde_json::from_str(s).unwrap())
+                .unwrap_or_default(),
+        })
     }
 }
 
 user_common_derives! {
-    #[serde(tag = "type")]
-    pub enum Config {
-        #[serde(rename = "general")]
-        General { data: ConfigDataGeneral },
-        #[serde(rename = "profile")]
-        Profile { data: ConfigDataProfile },
-    }
-}
-
-user_common_derives! {
-    pub struct ConfigDataGeneral {
+    pub struct ConfigGeneral {
         pub autostart: bool,
-        pub notifications: bool,
         #[specta(type = String)]
         #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
-        pub language: codes_iso_639::part_1::LanguageCode,
-        pub context: String,
+        pub spoken_language: codes_iso_639::part_1::LanguageCode,
+        #[specta(type = String)]
+        #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
+        pub display_language: codes_iso_639::part_1::LanguageCode,
+        pub jargons: Vec<String>,
     }
 }
 
-impl Default for ConfigDataGeneral {
+impl Default for ConfigGeneral {
     fn default() -> Self {
         Self {
             autostart: true,
-            notifications: true,
-            language: codes_iso_639::part_1::LanguageCode::En,
-            context: "".to_string(),
+            spoken_language: codes_iso_639::part_1::LanguageCode::Ko,
+            display_language: codes_iso_639::part_1::LanguageCode::Ko,
+            jargons: vec![],
         }
     }
 }
 
 user_common_derives! {
     #[derive(Default)]
-    pub struct ConfigDataProfile {
+    pub struct ConfigProfile {
         pub full_name: Option<String>,
         pub job_title: Option<String>,
         pub company_name: Option<String>,
@@ -57,30 +64,18 @@ user_common_derives! {
     }
 }
 
-impl From<ConfigDataProfile> for Config {
-    fn from(data: ConfigDataProfile) -> Self {
-        Self::Profile { data }
+user_common_derives! {
+    pub struct ConfigNotification {
+        pub before: bool,
+        pub auto: bool
     }
 }
 
-impl From<ConfigDataGeneral> for Config {
-    fn from(data: ConfigDataGeneral) -> Self {
-        Self::General { data }
-    }
-}
-
-impl Config {
-    pub fn from_row<'de>(row: &'de libsql::Row) -> Result<Self, serde::de::value::Error> {
-        let kind = ConfigKind::from_str(row.get_str(0).expect("kind")).unwrap();
-        let data = row.get_str(1).expect("data");
-
-        match kind {
-            ConfigKind::General => Ok(Config::General {
-                data: serde_json::from_str(data).unwrap(),
-            }),
-            ConfigKind::Profile => Ok(Config::Profile {
-                data: serde_json::from_str(data).unwrap(),
-            }),
+impl Default for ConfigNotification {
+    fn default() -> Self {
+        Self {
+            before: true,
+            auto: true,
         }
     }
 }

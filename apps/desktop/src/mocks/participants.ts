@@ -1,34 +1,49 @@
-import { type Participant } from "@/types";
+import { type Human } from "@/types";
 
-export const mockParticipants: Participant[] = [
+export const mockParticipants: Human[] = [
   {
     id: "1",
-    name: "John Doe",
+    organization_id: null,
+    is_user: false,
+    full_name: "John Doe",
     email: "john.doe@example.com",
-    color_hex: "#FF5733",
+    job_title: null,
+    linkedin_username: null,
   },
   {
     id: "2",
-    name: "Jane Smith",
+    organization_id: null,
+    is_user: false,
+    full_name: "Jane Smith",
     email: "jane.smith@example.com",
-    color_hex: "#33FF57",
+    job_title: null,
+    linkedin_username: null,
   },
   {
     id: "3",
-    name: "Bob Johnson",
+    organization_id: null,
+    is_user: false,
+    full_name: "Bob Johnson",
     email: "bob.johnson@example.com",
-    color_hex: "#3357FF",
+    job_title: null,
+    linkedin_username: null,
   },
   {
     id: "4",
-    name: "Alice Brown",
+    organization_id: null,
+    is_user: false,
+    full_name: "Alice Brown",
     email: "alice.brown@example.com",
-    color_hex: "#FF33F6",
+    job_title: null,
+    linkedin_username: null,
   },
   {
     id: "5",
-    name: "Charlie Wilson",
+    organization_id: null,
+    is_user: false,
+    full_name: "Charlie Wilson",
     email: "charlie.wilson@example.com",
-    color_hex: "#33FFF6",
+    job_title: null,
+    linkedin_username: null,
   },
 ];

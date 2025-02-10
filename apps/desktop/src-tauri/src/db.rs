@@ -13,6 +13,20 @@ pub mod commands {
     #[tauri::command]
     #[specta::specta]
     #[tracing::instrument(skip(state))]
+    pub async fn list_participants(
+        state: State<'_, App>,
+        event_id: String,
+    ) -> Result<Vec<hypr_db::user::Human>, String> {
+        Ok(state
+            .db
+            .list_participants(event_id)
+            .await
+            .map_err(|e| e.to_string())?)
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
     pub async fn upsert_calendar(
         state: State<'_, App>,
         calendar: hypr_db::user::Calendar,

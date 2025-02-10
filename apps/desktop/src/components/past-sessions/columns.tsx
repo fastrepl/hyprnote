@@ -1,9 +1,9 @@
-import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import type { Session, Participant } from "@/types";
-import { commands } from "@/types";
-import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
+import { ColumnDef } from "@tanstack/react-table";
 import { format, isThisYear } from "date-fns";
+
+import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
+import { commands, type Session, type Human } from "@/types";
 
 export const columns: ColumnDef<Session>[] = [
   {
@@ -26,20 +26,24 @@ export const columns: ColumnDef<Session>[] = [
     id: "participants",
     header: "Participants",
     cell: ({ row }) => {
-      const [participants, setParticipants] = useState<Participant[]>([]);
+      const [participants, setParticipants] = useState<Human[]>([]);
       const session = row.original;
 
       useEffect(() => {
         if (session.calendar_event_id) {
           commands
-            .listParticipants({ Event: session.calendar_event_id })
+            .listParticipants(session.calendar_event_id)
             .then(setParticipants)
             .catch(console.error);
         }
       }, [session.calendar_event_id]);
 
-      if (!session.calendar_event_id) return <span>-</span>;
-      if (participants.length === 0) return <span>Loading...</span>;
+      if (!session.calendar_event_id) {
+        return null;
+      }
+      if (participants.length === 0) {
+        return <span>Loading...</span>;
+      }
 
       return (
         <div className="flex items-center gap-2">
@@ -48,18 +52,16 @@ export const columns: ColumnDef<Session>[] = [
               key={participant.id}
               className="inline-flex items-center gap-1 rounded-full border px-1.5 py-1 text-xs"
               style={{
-                backgroundColor: `${participant.color_hex}20`,
-                borderColor: participant.color_hex,
+                backgroundColor: "gray",
+                borderColor: "black",
               }}
             >
               <Avatar className="h-5 w-5">
-                <AvatarFallback
-                  style={{ backgroundColor: participant.color_hex }}
-                >
-                  {participant.name.charAt(0).toUpperCase()}
+                <AvatarFallback style={{ backgroundColor: "gray" }}>
+                  {participant.full_name?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              {participant.name}
+              {participant.full_name}
             </div>
           ))}
           {participants.length > 3 && (

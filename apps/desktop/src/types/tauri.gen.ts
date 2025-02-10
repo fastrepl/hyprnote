@@ -84,6 +84,9 @@ async getSelfOrganization() : Promise<Organization> {
 },
 async upsertOrganization(organization: Organization) : Promise<Organization> {
     return await TAURI_INVOKE("upsert_organization", { organization });
+},
+async listParticipants(eventId: string) : Promise<Human[]> {
+    return await TAURI_INVOKE("list_participants", { eventId });
 }
 }
 

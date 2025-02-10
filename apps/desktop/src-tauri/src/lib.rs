@@ -98,6 +98,7 @@ pub async fn main() {
             db::commands::get_self_human,
             db::commands::get_self_organization,
             db::commands::upsert_organization,
+            db::commands::list_participants,
         ])
         .events(tauri_specta::collect_events![
             events::RecordingStarted,

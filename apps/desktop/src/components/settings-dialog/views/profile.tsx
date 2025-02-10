@@ -16,7 +16,7 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
-import { commands, type Human } from "@/types";
+import { commands, Organization, type Human } from "@/types";
 
 const schema = z.object({
   fullName: z.string().min(2).max(50).optional(),
@@ -45,25 +45,35 @@ export default function ProfileComponent() {
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     defaultValues: {
-      fullName: config.data?.full_name ?? undefined,
-      jobTitle: config.data?.job_title ?? undefined,
-      companyName: config.data?.company_name ?? undefined,
-      companyDescription: config.data?.company_description ?? undefined,
-      linkedinUserName: config.data?.linkedin_username ?? undefined,
+      fullName: config.data?.human.full_name ?? undefined,
+      jobTitle: config.data?.human.job_title ?? undefined,
+      companyName: config.data?.organization.name ?? undefined,
+      companyDescription: config.data?.organization.description ?? undefined,
+      linkedinUserName: config.data?.human.linkedin_username ?? undefined,
     },
   });
 
   const mutation = useMutation({
     mutationFn: async (v: Schema) => {
-      const config: ConfigDataProfile = {
+      const newHuman: Human = {
+        id: config.data?.human.id ?? crypto.randomUUID(),
+        organization_id: config.data?.organization.id ?? null,
+        is_user: true,
         full_name: v.fullName ?? null,
         job_title: v.jobTitle ?? null,
-        company_name: v.companyName ?? null,
-        company_description: v.companyDescription ?? null,
         linkedin_username: v.linkedinUserName ?? null,
+        email: config.data?.human.email ?? "",
       };
 
-      await commands.setConfig({ type: "profile", data: config });
+      const newOrganization: Organization = {
+        ...(config.data?.organization ?? {}),
+        id: config.data?.organization.id ?? crypto.randomUUID(),
+        name: v.companyName ?? "",
+        description: v.companyDescription ?? "",
+      };
+
+      await commands.upsertHuman(newHuman);
+      await commands.upsertOrganization(newOrganization);
     },
   });
 

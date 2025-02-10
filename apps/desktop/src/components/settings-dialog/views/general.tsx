@@ -23,7 +23,7 @@ import {
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { Badge } from "@hypr/ui/components/ui/badge";
 
-import { commands, type Config, type ConfigGeneral } from "@/types";
+import { commands, type ConfigGeneral } from "@/types";
 import { Trans } from "@lingui/react/macro";
 import { cn } from "@/utils";
 
@@ -40,9 +40,9 @@ const LANGUAGES = [
 
 const schema = z.object({
   autostart: z.boolean().optional(),
-  displayLanguage: z.enum(["En", "Ko"]).optional(),
-  speechLanguage: z.enum(["En", "Ko"]).optional(),
-  jargons: z.string().optional(),
+  language: z.enum(["En", "Ko"]).optional(),
+  jargons: z.array(z.string()),
+  tags: z.array(z.string()),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -130,34 +130,38 @@ export default function General() {
   const config = useQuery({
     queryKey: ["config", "general"],
     queryFn: async () => {
-      const result = await commands.getConfig("general");
-      if (result === null) {
-        return null;
-      }
-      return result.data as ConfigDataGeneral;
+      const result = await commands.getConfig();
+      return result;
     },
   });
 
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     values: {
-      autostart: config.data?.autostart ?? false,
-      displayLanguage: (config.data?.displayLanguage ?? "En") as "En" | "Ko",
-      speechLanguage: (config.data?.speechLanguage ?? "En") as "En" | "Ko",
-      jargons: config.data?.jargons ?? "",
+      autostart: config.data?.general.autostart ?? false,
+      language: (config.data?.general.spoken_language ?? "En") as "En" | "Ko",
+      jargons: config.data?.general.jargons ?? [],
+      tags: config.data?.general.tags ?? [],
     },
   });
 
   const mutation = useMutation({
     mutationFn: async (v: Schema) => {
-      const config: ConfigDataGeneral = {
+      const nextGeneral: ConfigGeneral = {
         autostart: v.autostart ?? true,
-        displayLanguage: v.displayLanguage ?? "En",
-        speechLanguage: v.speechLanguage ?? "En",
-        jargons: v.jargons ?? "",
+        spoken_language: v.language ?? "En",
+        display_language: v.language ?? "En",
+        jargons: v.jargons ?? [],
+        tags: [],
       };
 
-      await commands.setConfig({ type: "general", data: config });
+      await commands.setConfig({
+        general: nextGeneral,
+        notification: config.data?.notification ?? {
+          before: true,
+          auto: true,
+        },
+      });
     },
   });
 

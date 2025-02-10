@@ -11,7 +11,7 @@ import { Route } from "@/routes/_nav.note.$id";
 import { NoteHeader } from "../header";
 
 export default function EditorArea() {
-  const { templates, profile, general } = Route.useLoaderData();
+  const { templates, config } = Route.useLoaderData();
 
   const store = useSession((s) => ({
     session: s.session,
@@ -40,8 +40,7 @@ export default function EditorArea() {
   );
 
   const enhance = useEnhance({
-    config_general: general,
-    config_profile: profile,
+    config,
     template: templates[0],
     pre_meeting_editor: store.session.raw_memo_html,
     in_meeting_editor: store.session.raw_memo_html,

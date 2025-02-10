@@ -1,13 +1,18 @@
+import { useState } from "react";
+import {
+  Check,
+  TagIcon,
+  ChevronRight,
+  Users2Icon,
+  CalendarIcon,
+} from "lucide-react";
+
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@hypr/ui/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { useState } from "react";
-import { Check, TagIcon } from "lucide-react";
 import { Input } from "@hypr/ui/components/ui/input";
-import { ChevronRight, Users2Icon } from "lucide-react";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 
 import { mockParticipants } from "@/mocks/participants";
@@ -65,7 +70,7 @@ export function ParticipantsChip() {
           <Users2Icon size={14} />
           {mockParticipants.length > 2 && (
             <span className="text-xs">
-              {mockParticipants[0].name} +{mockParticipants.length - 1}
+              {mockParticipants[0].full_name} + {mockParticipants.length - 1}
             </span>
           )}
         </div>
@@ -78,15 +83,12 @@ export function ParticipantsChip() {
               className="flex w-full items-center justify-between rounded px-2 py-1.5 text-sm hover:bg-neutral-100"
             >
               <div className="flex items-center gap-2">
-                <Avatar
-                  className="h-6 w-6"
-                  style={{ backgroundColor: option.color_hex }}
-                >
+                <Avatar className="h-6 w-6" style={{ backgroundColor: "gray" }}>
                   <AvatarFallback className="text-xs">
-                    {getInitials(option.name)}
+                    {getInitials(option.full_name ?? "UNKNOWN")}
                   </AvatarFallback>
                 </Avatar>
-                <span>{option.name}</span>
+                <span>{option.full_name}</span>
               </div>
               <ChevronRight className="h-4 w-4" />
             </button>

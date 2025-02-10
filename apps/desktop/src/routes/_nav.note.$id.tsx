@@ -1,9 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import {
-  commands,
-  type ConfigDataGeneral,
-  type ConfigDataProfile,
-} from "@/types";
+import { commands, type Config } from "@/types";
 import { SessionProvider } from "@/contexts";
 import EditorArea from "@/components/note/editor";
 import NoteAIButton from "@/components/note-ai-button";
@@ -27,11 +23,10 @@ export const Route = createFileRoute("/_nav/note/$id")({
     return queryClient.fetchQuery({
       queryKey: ["note", { id }],
       queryFn: async () => {
-        const [session, profile, general, builtinTemplates, customTemplates] =
+        const [session, config, builtinTemplates, customTemplates] =
           await Promise.all([
             commands.getSession({ id }),
-            commands.getConfig("profile"),
-            commands.getConfig("general"),
+            commands.getConfig(),
             commands.listBuiltinTemplates(),
             commands.listTemplates(),
           ]);
@@ -41,8 +36,7 @@ export const Route = createFileRoute("/_nav/note/$id")({
 
         return {
           session,
-          profile: profile?.data as ConfigDataProfile,
-          general: general?.data as ConfigDataGeneral,
+          config: config as Config,
           templates: [...builtinTemplates, ...customTemplates],
         };
       },

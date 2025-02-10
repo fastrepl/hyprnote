@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import clsx from "clsx";
-import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
 import NoteEditor from "@hypr/tiptap/editor";
 import NoteRenderer from "@hypr/tiptap/renderer";
 import { useEnhance } from "@/utils/enhance";
@@ -76,10 +75,9 @@ export default function EditorArea() {
     <main className="relative flex h-full flex-col overflow-hidden">
       <NoteHeader />
 
-      <ScrollArea
-        type="auto"
+      <div
         className={clsx([
-          "h-full",
+          "h-full overflow-y-auto",
           enhance.status === "loading" ? "tiptap-animate" : "",
         ])}
         onClick={() => {
@@ -103,7 +101,7 @@ export default function EditorArea() {
             content={store.session.enhanced_memo_html ?? ""}
           />
         )}
-      </ScrollArea>
+      </div>
 
       <AnimatePresence>
         {!store.listening && (

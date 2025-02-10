@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, MoreVertical, Trash2 } from "lucide-react";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -16,6 +16,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@hypr/ui/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@hypr/ui/components/ui/dropdown-menu";
 import { Trans } from "@lingui/react/macro";
 
 type Member = {
@@ -60,14 +66,19 @@ export default function TeamComponent() {
     );
   }, [searchQuery]);
 
+  const handleDelete = (member: Member) => {
+    // TODO: Implement delete functionality
+    console.log("Delete member:", member);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
+    <div>
+      <div className="mb-4 flex items-center gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Type to search..."
-            className="pl-8"
+            className="max-w-60 pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -78,8 +89,8 @@ export default function TeamComponent() {
         </Button>
       </div>
 
-      <div className="rounded-lg border bg-card">
-        <div className="grid grid-cols-2 gap-4 border-b px-6 py-3 text-sm text-muted-foreground">
+      <div className="overflow-clip rounded-lg border bg-card">
+        <div className="grid grid-cols-2 gap-4 border-b bg-neutral-50 px-6 py-3 text-sm font-bold text-neutral-700">
           <div>
             <Trans>User</Trans>
           </div>
@@ -109,7 +120,7 @@ export default function TeamComponent() {
                   </div>
                 </div>
               </div>
-              <div>
+              <div className="flex items-center justify-between">
                 <Select defaultValue={member.role}>
                   <SelectTrigger className="w-[140px]">
                     <SelectValue />
@@ -126,6 +137,26 @@ export default function TeamComponent() {
                     </SelectItem>
                   </SelectContent>
                 </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={() => handleDelete(member)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      <Trans>Delete</Trans>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           ))}

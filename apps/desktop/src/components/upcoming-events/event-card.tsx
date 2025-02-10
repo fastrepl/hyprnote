@@ -6,6 +6,7 @@ import {
   CardTitle,
   CardContent,
 } from "@hypr/ui/components/ui/card";
+import { Badge } from "@hypr/ui/components/ui/badge";
 import { commands, type Event } from "@/types";
 
 interface EventCardProps {
@@ -91,9 +92,9 @@ export function EventCard({ event }: EventCardProps) {
               minute: "2-digit",
             })}
           </span>
-          <span className={getEventStatusClass(event)}>
+          <Badge variant="outline" className={getEventStatusClass(event)}>
             {formatRemainingTime(new Date(event.start_date))}
-          </span>
+          </Badge>
         </div>
 
         <div className="flex items-center">

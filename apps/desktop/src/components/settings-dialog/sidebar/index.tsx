@@ -51,6 +51,7 @@ export function SettingsSidebar({
             templateIndex={templateIndex}
             onTemplateSelect={onTemplateSelect}
             setActive={setActive}
+            selectedTemplate={null}
           />
         ) : (
           <SettingsView active={active} setActive={setActive} />

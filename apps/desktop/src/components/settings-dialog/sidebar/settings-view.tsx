@@ -19,12 +19,12 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
                 <button
                   onClick={() => setActive(item.name)}
                   className={cn(
-                    "flex w-full items-center gap-2 rounded-md p-2",
-                    "text-sm font-medium",
+                    "flex w-full items-center gap-2 rounded-lg p-2 text-sm",
+                    "text-neutral-600",
+                    "hover:bg-neutral-100",
                     item.name === active
-                      ? "bg-muted text-foreground"
-                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-                    "justify-center md:justify-start",
+                      ? "bg-neutral-200 font-bold text-neutral-700"
+                      : "",
                   )}
                 >
                   <item.icon className="h-4 w-4" />
@@ -40,12 +40,12 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
         <button
           onClick={() => setActive("Profile")}
           className={cn(
-            "flex w-full items-center gap-2 rounded-md p-2",
-            "text-sm font-medium",
+            "flex w-full items-center gap-2 rounded-lg p-2 text-sm",
+            "text-neutral-600",
+            "hover:bg-neutral-100",
             active === "Profile"
-              ? "bg-muted text-foreground"
-              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-            "justify-center md:justify-start",
+              ? "bg-neutral-200 font-bold text-neutral-700"
+              : "",
           )}
         >
           <UserIcon className="h-4 w-4" />

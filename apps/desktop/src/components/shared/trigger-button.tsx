@@ -15,7 +15,7 @@ export default function TriggerButton({
       key="button"
       onClick={onClick}
       className={cn(
-        "flex items-center justify-center overflow-clip rounded-full border bg-yellow-100 p-1 shadow-2xl transition-transform hover:scale-105",
+        "flex items-center justify-center overflow-clip rounded-full border bg-neutral-50 p-1 shadow-2xl transition-transform hover:scale-105 hover:bg-neutral-100",
       )}
       exit={{ scale: 0, opacity: 0 }}
       transition={{ duration: 0.15 }}

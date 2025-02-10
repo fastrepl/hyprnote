@@ -1,6 +1,5 @@
 import { useSession } from "@/contexts";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
-import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
 import {
   Tabs,
   TabsList,
@@ -26,7 +25,7 @@ export default function RightPanel() {
 
       <TabsContent value="transcript">
         <div className="flex h-full flex-col justify-end">
-          <ScrollArea type="auto" className="flex-1 p-2">
+          <div className="flex-1 overflow-y-auto p-2">
             <div className="space-y-4 text-sm">
               {timeline.items.map(({ speaker, text, start, end }) => (
                 <div className="flex flex-row gap-2" key={`${start}-${end}`}>
@@ -41,15 +40,13 @@ export default function RightPanel() {
                 </div>
               ))}
             </div>
-          </ScrollArea>
+          </div>
         </div>
       </TabsContent>
 
       <TabsContent value="summary">
         <div className="flex h-full flex-col justify-end">
-          <ScrollArea type="auto" className="flex-1 p-2">
-            123
-          </ScrollArea>
+          <div className="flex-1 overflow-y-auto p-2">123</div>
         </div>
       </TabsContent>
     </Tabs>

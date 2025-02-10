@@ -2,7 +2,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import PastSessions from "@/components/past-sessions";
 import UpcomingEvents from "@/components/upcoming-events";
-import { ScrollArea } from "@hypr/ui/components/ui/scroll-area";
 import { commands } from "@/types";
 import WorkspaceAIButton from "@/components/workspace-ai-button";
 
@@ -13,12 +12,12 @@ function Component() {
 
   return (
     <main className="relative flex h-full flex-col overflow-hidden bg-white">
-      <ScrollArea className="px-8">
+      <div className="overflow-y-auto px-8">
         <div className="mx-auto max-w-3xl">
           <UpcomingEvents events={events} />
           <PastSessions data={sessions} />
         </div>
-      </ScrollArea>
+      </div>
 
       <WorkspaceAIButton />
     </main>

@@ -13,6 +13,7 @@ export interface TemplateViewProps {
   templateIndex: number;
   onTemplateSelect: (template: Template, index: number) => void;
   setActive: (name: NavNames) => void;
+  selectedTemplate: Template | null;
 }
 
 export function TemplateView({
@@ -23,6 +24,7 @@ export function TemplateView({
   templateIndex,
   onTemplateSelect,
   setActive,
+  selectedTemplate,
 }: TemplateViewProps) {
   return (
     <div className="flex h-full flex-col justify-between">
@@ -31,9 +33,9 @@ export function TemplateView({
           <button
             onClick={() => setActive(data.nav[0].name)}
             className={cn(
-              "flex w-full flex-row items-center gap-2 rounded-md p-2",
-              "text-sm font-medium text-muted-foreground",
-              "hover:bg-muted/50 hover:text-foreground",
+              "flex w-full items-center gap-2 rounded-lg p-2 text-sm",
+              "text-neutral-600",
+              "hover:bg-neutral-100",
             )}
           >
             <ChevronLeftIcon className="h-4 w-4" />
@@ -48,16 +50,16 @@ export function TemplateView({
           builtinTemplates={builtinTemplates}
           selectedIndex={templateIndex}
           onTemplateSelect={onTemplateSelect}
+          selectedTemplate={selectedTemplate}
         />
       </div>
 
       <footer className="mt-auto border-t p-2">
         <button
           className={cn(
-            "flex w-full items-center gap-2 rounded-md p-2",
-            "text-sm font-medium",
-            "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-            "justify-center md:justify-start",
+            "flex w-full items-center gap-2 rounded-lg p-2 text-sm",
+            "text-neutral-600",
+            "hover:bg-neutral-100",
           )}
           onClick={() => {
             /* TODO: Create template handler */

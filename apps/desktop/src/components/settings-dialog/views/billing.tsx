@@ -111,7 +111,14 @@ export default function Billing({ currentPlan, trialDaysLeft }: BillingProps) {
           {pricingPlans.map((plan) => (
             <Card key={plan.name} className="flex flex-col">
               <CardHeader>
-                <CardTitle>{plan.name}</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>{plan.name}</CardTitle>
+                  {plan.name === "Pro" && (
+                    <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+                      Best
+                    </span>
+                  )}
+                </div>
                 <CardDescription>{plan.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">

@@ -10,6 +10,7 @@ interface TemplateListProps {
   builtinTemplates: Template[];
   selectedIndex: number;
   onTemplateSelect: (template: Template, index: number) => void;
+  selectedTemplate: Template | null;
 }
 
 export function TemplateList({
@@ -19,6 +20,7 @@ export function TemplateList({
   builtinTemplates,
   selectedIndex,
   onTemplateSelect,
+  selectedTemplate,
 }: TemplateListProps) {
   return (
     <>
@@ -51,13 +53,14 @@ export function TemplateList({
                 .map((template, index) => (
                   <li key={template.id || index}>
                     <button
+                      key={template.id}
                       onClick={() => onTemplateSelect(template, index)}
                       className={cn(
-                        "flex w-full items-center gap-2 rounded-md p-2",
-                        "text-sm font-medium",
-                        index === selectedIndex
-                          ? "bg-neutral-200 text-neutral-600"
-                          : "hover:bg-neutral-100 hover:text-neutral-800",
+                        "flex w-full items-center gap-2 rounded-lg p-2 text-sm",
+                        "text-neutral-600",
+                        "hover:bg-neutral-100",
+                        selectedTemplate?.id === template.id &&
+                          "bg-neutral-200 font-bold text-neutral-700",
                       )}
                     >
                       {template.title || "Untitled Template"}
@@ -85,11 +88,14 @@ export function TemplateList({
               .map((template, index) => (
                 <li key={template.id || index}>
                   <button
-                    onClick={() => {}}
+                    key={template.id}
+                    onClick={() => onTemplateSelect(template, index)}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-md p-2",
-                      "text-sm font-medium text-neutral-600",
-                      "hover:bg-neutral-100 hover:text-neutral-800",
+                      "flex w-full items-center gap-2 rounded-lg p-2 text-sm",
+                      "text-neutral-600",
+                      "hover:bg-neutral-100",
+                      selectedTemplate?.id === template.id &&
+                        "bg-neutral-200 font-bold text-neutral-700",
                     )}
                   >
                     {template.title || "Untitled Template"}

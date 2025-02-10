@@ -24,7 +24,7 @@ export default function MessageView({
     <div className="flex-1 overflow-y-auto p-4" ref={messageContainerRef}>
       {messages.length === 0 ? (
         <div className="space-y-2">
-          <div className="w-fit overflow-clip rounded-full border bg-yellow-100 p-1">
+          <div className="w-fit overflow-clip rounded-full border bg-neutral-50 p-1">
             <img
               src={isDynamic ? "/assets/dynamic.gif" : "/assets/static.png"}
               alt="AI Assistant"

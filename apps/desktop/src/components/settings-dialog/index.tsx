@@ -6,6 +6,7 @@ import { DialogView } from "./views";
 import { TemplateContent } from "./components/template-list";
 import GeneralComponent from "./views/general";
 import CalendarComponent from "./views/calendar";
+import TagsComponent from "./views/tags";
 import TemplateComponent from "./views/template";
 import BillingComponent from "./views/billing";
 import NotificationsComponent from "./views/notifications";
@@ -110,13 +111,10 @@ export default function SettingsDialog() {
           />
 
           <DialogView title={active} selectedTemplate={selectedTemplate}>
-            {active === "General" ? (
-              <GeneralComponent />
-            ) : active === "Calendar" ? (
-              <CalendarComponent />
-            ) : active === "Notifications" ? (
-              <NotificationsComponent />
-            ) : active === "Templates" ? (
+            {active === "General" && <GeneralComponent />}
+            {active === "Calendar" && <CalendarComponent />}
+            {active === "Notifications" && <NotificationsComponent />}
+            {active === "Templates" && (
               <TemplateContent>
                 {templates.data?.custom &&
                   templates.data.custom[templateIndex] && (
@@ -127,13 +125,11 @@ export default function SettingsDialog() {
                     />
                   )}
               </TemplateContent>
-            ) : active === "Team" ? (
-              <TeamComponent />
-            ) : active === "Billing" ? (
-              <BillingComponent />
-            ) : active === "Profile" ? (
-              <ProfileComponent />
-            ) : null}
+            )}
+            {active === "Tags" && <TagsComponent />}
+            {active === "Team" && <TeamComponent />}
+            {active === "Billing" && <BillingComponent />}
+            {active === "Profile" && <ProfileComponent />}
           </DialogView>
         </div>
       </div>

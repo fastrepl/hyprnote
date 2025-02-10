@@ -16,13 +16,10 @@ export default function UpcomingEvents({ events }: { events: Event[] }) {
         <Trans>Upcoming</Trans>
       </h2>
 
-      <Carousel>
+      <Carousel className="-ml-2">
         <CarouselContent className="px-2">
           {events.map((event) => (
-            <CarouselItem
-              key={event.id}
-              className="sm:basis-1/2 xl:basis-1/3 2xl:basis-1/4"
-            >
+            <CarouselItem key={event.id} className="sm:basis-1/2 xl:basis-1/3">
               <EventCard event={event} />
             </CarouselItem>
           ))}

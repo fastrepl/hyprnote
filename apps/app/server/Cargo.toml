@@ -44,11 +44,13 @@ bytes = { workspace = true }
 chrono = { workspace = true }
 codes-iso-639 = { workspace = true }
 dotenv = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
 time = { workspace = true }
 url = { workspace = true }
 uuid = { workspace = true }
+
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
 
 specta = { workspace = true }
 specta-typescript = { workspace = true }

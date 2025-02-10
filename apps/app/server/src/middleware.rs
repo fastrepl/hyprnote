@@ -142,7 +142,7 @@ pub fn check_membership(
             if false {
                 return Err(StatusCode::PAYMENT_REQUIRED);
             }
-            
+
             Ok(next.run(req).await)
         })
     }

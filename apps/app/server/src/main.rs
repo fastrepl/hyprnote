@@ -1,3 +1,4 @@
+mod common;
 mod middleware;
 mod nango;
 mod native;
@@ -6,6 +7,7 @@ mod slack;
 mod state;
 #[path = "stripe.rs"]
 mod stripe_webhook;
+mod types;
 mod web;
 mod worker;
 
@@ -213,6 +215,7 @@ fn main() {
                         ),
                     ),
                 )
+                .api_route("/subscription", api_get(common::subscription::handler))
                 .layer(ClerkLayer::new(
                     MemoryCacheJwksProvider::new(clerk),
                     None,
@@ -248,7 +251,8 @@ fn main() {
                 .route("/listen/recorded", post(native::listen::recorded::handler))
                 .route("/user/integrations", get(native::user::list_integrations))
                 .route("/upload/create", post(native::upload::create_upload))
-                .route("/upload/complete", post(native::upload::complete_upload));
+                .route("/upload/complete", post(native::upload::complete_upload))
+                .api_route("/subscription", api_get(common::subscription::handler));
             // .layer(
             //     tower::builder::ServiceBuilder::new()
             //         .layer(axum::middleware::from_fn_with_state(

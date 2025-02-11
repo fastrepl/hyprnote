@@ -1,10 +1,10 @@
-use crate::{Client, Error, SummarizeTranscriptRequest, SummarizeTranscriptResponse};
+use crate::{Client, Error, LiveSummaryRequest, LiveSummaryResponse};
 
 impl Client {
-    pub async fn summarize_transcript(
+    pub async fn live_summary(
         &self,
-        req: SummarizeTranscriptRequest,
-    ) -> Result<SummarizeTranscriptResponse, Error> {
+        req: LiveSummaryRequest,
+    ) -> Result<LiveSummaryResponse, Error> {
         let mut url = self.api_base.clone();
         url.set_path("/api/native/summarize");
 

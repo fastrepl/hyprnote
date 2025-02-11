@@ -1,13 +1,13 @@
-type Input = hypr_bridge::SummarizeTranscriptRequest;
+type Input = hypr_bridge::LiveSummaryRequest;
 
 impl crate::OpenAIRequest for Input {
     fn as_openai_request(&self) -> Result<hypr_openai::CreateChatCompletionRequest, crate::Error> {
         let system_prompt = crate::render(
-            crate::Template::SummarizeTranscriptSystem,
+            crate::Template::LiveSummarySystem,
             &crate::Context::from_serialize(self)?,
         )?;
         let user_prompt = crate::render(
-            crate::Template::SummarizeTranscriptUser,
+            crate::Template::LiveSummaryUser,
             &crate::Context::from_serialize(self)?,
         )?;
 
@@ -27,7 +27,7 @@ impl crate::OpenAIRequest for Input {
             ],
             response_format: Some(hypr_openai::ResponseFormat::JsonSchema {
                 json_schema: hypr_openai::ResponseFormatJsonSchema {
-                    name: "summarize_transcript".to_string(),
+                    name: "live_summary".to_string(),
                     description: None,
                     strict: Some(true),
                     schema: Some(serde_json::json!({
@@ -57,5 +57,46 @@ impl crate::OpenAIRequest for Input {
             stream: Some(false),
             ..Default::default()
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{generate_tests, test_utils::default_config_with_language};
+
+    fn input_01() -> Input {
+        Input {
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::En),
+            timeline_view: hypr_bridge::TimelineView { items: vec![] },
+        }
+    }
+
+    // cargo test live_summary::tests::test_prompt_for_input_1 -p prompt --  --ignored
+    #[ignore]
+    #[test]
+    fn test_prompt_for_input_1() {
+        let input = input_01();
+
+        let system_prompt = crate::render(
+            crate::Template::LiveSummarySystem,
+            &crate::Context::from_serialize(&input).unwrap(),
+        )
+        .unwrap();
+
+        let user_prompt = crate::render(
+            crate::Template::LiveSummaryUser,
+            &crate::Context::from_serialize(&input).unwrap(),
+        )
+        .unwrap();
+
+        crate::test_utils::print_prompt(system_prompt);
+        crate::test_utils::print_prompt(user_prompt);
+    }
+
+    // cargo test -p prompt live_summary::tests
+    generate_tests! {
+        // cargo test live_summary::tests::test_input_<NN> -p prompt
+        test_input_01 => input_01(),
     }
 }

@@ -50,11 +50,12 @@ impl crate::OpenAIRequest for Input {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{generate_tests, OpenAIRequest};
+    use crate::{generate_tests, test_utils::default_config_with_language};
 
     fn input_01() -> Input {
         Input {
-            transcripts: vec![],
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::En),
+            timeline_view: hypr_bridge::TimelineView { items: vec![] },
         }
     }
 

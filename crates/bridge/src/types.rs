@@ -54,7 +54,8 @@ common_derives! {
 
 common_derives! {
     pub struct CreateTitleRequest {
-        pub transcripts: Vec<hypr_db::user::TranscriptChunk>,
+        pub config: hypr_db::user::Config,
+        pub timeline_view: TimelineView,
     }
 }
 
@@ -77,14 +78,14 @@ common_derives! {
 }
 
 common_derives! {
-    pub struct SummarizeTranscriptRequest {
-        pub transcripts: Vec<hypr_db::user::TranscriptChunk>,
-        pub diarizations: Vec<hypr_db::user::DiarizationChunk>,
+    pub struct LiveSummaryRequest {
+        pub config: hypr_db::user::Config,
+        pub timeline_view: TimelineView,
     }
 }
 
 common_derives! {
-    pub struct SummarizeTranscriptResponse {
+    pub struct LiveSummaryResponse {
         pub blocks: Vec<SummarizeTranscriptChunk>,
     }
 }

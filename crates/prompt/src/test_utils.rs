@@ -1,3 +1,18 @@
+pub fn default_config_with_language(
+    language: codes_iso_639::part_1::LanguageCode,
+) -> hypr_db::user::Config {
+    hypr_db::user::Config {
+        id: "".to_string(),
+        user_id: "".to_string(),
+        general: hypr_db::user::ConfigGeneral {
+            speech_language: language,
+            display_language: language,
+            ..Default::default()
+        },
+        notification: hypr_db::user::ConfigNotification::default(),
+    }
+}
+
 pub async fn run_input(
     group_label: impl std::fmt::Display,
     test_label: impl std::fmt::Display,

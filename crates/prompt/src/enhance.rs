@@ -35,7 +35,7 @@ impl crate::OpenAIRequest for Input {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{generate_tests, OpenAIRequest};
+    use crate::{generate_tests, test_utils::default_config_with_language};
 
     const EMPTY_NOTE: &str = "";
 
@@ -49,21 +49,6 @@ mod tests {
     //         linkedin_username: None,
     //     }
     // }
-
-    fn default_config_with_language(
-        language: codes_iso_639::part_1::LanguageCode,
-    ) -> hypr_db::user::Config {
-        hypr_db::user::Config {
-            id: "".to_string(),
-            user_id: "".to_string(),
-            general: hypr_db::user::ConfigGeneral {
-                speech_language: language,
-                display_language: language,
-                ..Default::default()
-            },
-            notification: hypr_db::user::ConfigNotification::default(),
-        }
-    }
 
     fn timeline_view_from_path(p: &str) -> hypr_bridge::TimelineView {
         let data = std::fs::read_to_string(p).unwrap();

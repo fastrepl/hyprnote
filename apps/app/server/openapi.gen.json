@@ -75,7 +75,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SummarizeTranscriptRequest"
+                "$ref": "#/components/schemas/LiveSummaryRequest"
               }
             }
           },
@@ -87,7 +87,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SummarizeTranscriptResponse"
+                  "$ref": "#/components/schemas/LiveSummaryResponse"
                 }
               }
             }
@@ -562,7 +562,7 @@
           }
         }
       },
-      "SummarizeTranscriptRequest": {
+      "LiveSummaryRequest": {
         "type": "object",
         "required": [
           "diarizations",
@@ -583,7 +583,7 @@
           }
         }
       },
-      "SummarizeTranscriptResponse": {
+      "LiveSummaryResponse": {
         "type": "object",
         "required": [
           "blocks"

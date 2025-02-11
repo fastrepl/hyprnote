@@ -7,8 +7,8 @@ use crate::state::AppState;
 
 pub async fn handler(
     State(state): State<AppState>,
-    Json(input): Json<hypr_bridge::SummarizeTranscriptRequest>,
-) -> Result<Json<hypr_bridge::SummarizeTranscriptResponse>, (StatusCode, String)> {
+    Json(input): Json<hypr_bridge::LiveSummaryRequest>,
+) -> Result<Json<hypr_bridge::LiveSummaryResponse>, (StatusCode, String)> {
     let response = state
         .openai
         .chat_completion(&CreateChatCompletionRequest {

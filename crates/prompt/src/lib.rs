@@ -57,15 +57,15 @@ pub enum Template {
     EnhanceUser,
     PostprocessEnhanceSystem,
     PostprocessEnhanceUser,
-    SummarizeTranscriptSystem,
-    SummarizeTranscriptUser,
+    LiveSummarySystem,
+    LiveSummaryUser,
 }
 
 impl std::fmt::Display for Template {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Template::SummarizeTranscriptSystem => write!(f, "summarize_transcript.system.jinja"),
-            Template::SummarizeTranscriptUser => write!(f, "summarize_transcript.user.jinja"),
+            Template::LiveSummarySystem => write!(f, "live_summary.system.jinja"),
+            Template::LiveSummaryUser => write!(f, "live_summary.user.jinja"),
             Template::PostprocessEnhanceSystem => write!(f, "postprocess_enhance.system.jinja"),
             Template::PostprocessEnhanceUser => write!(f, "postprocess_enhance.user.jinja"),
             Template::CreateTitleSystem => write!(f, "create_title.system.jinja"),

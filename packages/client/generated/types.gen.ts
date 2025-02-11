@@ -96,12 +96,12 @@ export type SummarizeTranscriptChunk = {
     points: Array<string>;
 };
 
-export type SummarizeTranscriptRequest = {
+export type LiveSummaryRequest = {
     diarizations: Array<DiarizationChunk>;
     transcripts: Array<TranscriptChunk>;
 };
 
-export type SummarizeTranscriptResponse = {
+export type LiveSummaryResponse = {
     blocks: Array<SummarizeTranscriptChunk>;
 };
 
@@ -158,14 +158,14 @@ export type PostApiNativeCreateTitleResponses = {
 export type PostApiNativeCreateTitleResponse = PostApiNativeCreateTitleResponses[keyof PostApiNativeCreateTitleResponses];
 
 export type PostApiNativeLiveSummaryData = {
-    body: SummarizeTranscriptRequest;
+    body: LiveSummaryRequest;
     path?: never;
     query?: never;
     url: '/api/native/live_summary';
 };
 
 export type PostApiNativeLiveSummaryResponses = {
-    200: SummarizeTranscriptResponse;
+    200: LiveSummaryResponse;
 };
 
 export type PostApiNativeLiveSummaryResponse = PostApiNativeLiveSummaryResponses[keyof PostApiNativeLiveSummaryResponses];

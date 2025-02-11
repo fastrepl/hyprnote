@@ -1,38 +1,68 @@
+import { useEffect, useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+
+import { client, postApiNativeLiveSummaryOptions } from "@/client";
+import { commands } from "@/types";
 
 interface LiveSummaryToastProps {
-  summary: string;
   onClose: () => void;
 }
 
-export default function LiveSummaryToast({
-  summary,
-  onClose,
-}: LiveSummaryToastProps) {
+const DEFAULT_INTERVAL = 20 * 1000;
+
+export default function LiveSummaryToast({ onClose }: LiveSummaryToastProps) {
   const [progress, setProgress] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const config = useQuery({
+    queryKey: ["config"],
+    queryFn: () => commands.getConfig(),
+  });
+
+  const summary = useQuery({
+    enabled: !!config.data,
+    refetchInterval: DEFAULT_INTERVAL,
+    staleTime: 0,
+    gcTime: 0,
+    ...postApiNativeLiveSummaryOptions({
+      client,
+      body: {
+        config: config.data!,
+        timeline_view: {
+          items: [],
+        },
+      },
+    }),
+  });
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 50);
+    if (summary.isFetching) {
+      setProgress(0);
+      intervalRef.current = setInterval(() => {
+        setProgress((prev) => {
+          const next = prev + 100 / (DEFAULT_INTERVAL / 1000);
+          return Math.min(next, 100);
+        });
+      }, 1000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    }
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [summary.isFetching]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose();
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, []);
+    if (summary.status === "success") {
+      setProgress(100);
+    }
+  }, [summary.status]);
 
   return (
     <motion.div
@@ -98,7 +128,9 @@ export default function LiveSummaryToast({
             </svg>
           </button>
         </div>
-        <div className="text-sm text-neutral-700">{summary}</div>
+        <div className="text-sm text-neutral-700">
+          {JSON.stringify(summary.data)}
+        </div>
       </div>
     </motion.div>
   );

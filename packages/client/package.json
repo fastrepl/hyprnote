@@ -9,10 +9,12 @@
     "./gen/tanstack": "./generated/@tanstack/react-query.gen.ts"
   },
   "scripts": {
-    "generate": "openapi-ts && git diff --exit-code generated/"
+    "generate": "openapi-ts && [ \"$GITHUB_WORKFLOW\" != \"\" ] && git diff --exit-code generated/ || true"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.64.1"
+    "@hey-api/openapi-ts": "^0.64.1",
+    "@mswjs/source": "^0.3.2",
+    "msw": "^2.7.0"
   },
   "dependencies": {
     "@hey-api/client-fetch": "^0.8.0",

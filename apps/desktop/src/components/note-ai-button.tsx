@@ -13,7 +13,6 @@ export default function NoteAIButton() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [liveSummary, setLiveSummary] = useState("");
   const [showToast, setShowToast] = useState(true);
 
   const store = useSession((s) => ({
@@ -60,17 +59,6 @@ export default function NoteAIButton() {
     }
   }, [messages, isLoading]);
 
-  useEffect(() => {
-    if (store.listening) {
-      const interval = setInterval(() => {
-        // Simulate getting new summary every 5 seconds
-        setLiveSummary("This is a new live summary of the current session...");
-      }, 5000);
-
-      return () => clearInterval(interval);
-    }
-  }, [store.listening, store.timeline]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
@@ -112,7 +100,6 @@ export default function NoteAIButton() {
       <AnimatePresence mode="wait">
         {store.listening && showToast ? (
           <LiveSummaryToast
-            summary={liveSummary}
             onClose={() => {
               setShowToast(false);
             }}

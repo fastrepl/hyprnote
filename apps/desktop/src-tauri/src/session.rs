@@ -43,13 +43,14 @@ impl SessionState {
             .resample_from_to(mic_sample_rate, SAMPLE_RATE)
             .chunks(1024);
 
-        let (mic_tx, mut mic_rx) = mpsc::unbounded_channel::<Vec<f32>>();
-        let (speaker_tx, mut speaker_rx) = mpsc::unbounded_channel::<Vec<f32>>();
+        let (mic_tx, mut mic_rx) = mpsc::channel::<Vec<f32>>((SAMPLE_RATE as usize) * 60 * 10);
+        let (speaker_tx, mut speaker_rx) =
+            mpsc::channel::<Vec<f32>>((SAMPLE_RATE as usize) * 60 * 10);
 
         self.mic_stream_handle = Some(tokio::spawn({
             async move {
                 while let Some(chunk) = mic_stream.next().await {
-                    if let Err(e) = mic_tx.send(chunk) {
+                    if let Err(e) = mic_tx.send(chunk).await {
                         tracing::error!("mic_tx_send_error: {:?}", e);
                         break;
                     }
@@ -60,7 +61,7 @@ impl SessionState {
         self.speaker_stream_handle = Some(tokio::spawn({
             async move {
                 while let Some(chunk) = speaker_stream.next().await {
-                    if let Err(e) = speaker_tx.send(chunk) {
+                    if let Err(e) = speaker_tx.send(chunk).await {
                         tracing::error!("speaker_tx_send_error: {:?}", e);
                         break;
                     }

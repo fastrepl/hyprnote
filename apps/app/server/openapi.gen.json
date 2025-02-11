@@ -198,6 +198,79 @@
       }
     },
     "schemas": {
+      "Config": {
+        "type": "object",
+        "required": [
+          "general",
+          "id",
+          "notification",
+          "user_id"
+        ],
+        "properties": {
+          "general": {
+            "$ref": "#/components/schemas/ConfigGeneral"
+          },
+          "id": {
+            "type": "string"
+          },
+          "notification": {
+            "$ref": "#/components/schemas/ConfigNotification"
+          },
+          "user_id": {
+            "type": "string"
+          }
+        }
+      },
+      "ConfigGeneral": {
+        "type": "object",
+        "required": [
+          "autostart",
+          "display_language",
+          "jargons",
+          "speech_language",
+          "tags"
+        ],
+        "properties": {
+          "autostart": {
+            "type": "boolean"
+          },
+          "display_language": {
+            "type": "string",
+            "pattern": "^[a-zA-Z]{2}$"
+          },
+          "jargons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "speech_language": {
+            "type": "string",
+            "pattern": "^[a-zA-Z]{2}$"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ConfigNotification": {
+        "type": "object",
+        "required": [
+          "auto",
+          "before"
+        ],
+        "properties": {
+          "auto": {
+            "type": "boolean"
+          },
+          "before": {
+            "type": "boolean"
+          }
+        }
+      },
       "ConnectInput": {
         "type": "object",
         "required": [
@@ -280,14 +353,15 @@
       "CreateTitleRequest": {
         "type": "object",
         "required": [
-          "transcripts"
+          "config",
+          "timeline_view"
         ],
         "properties": {
-          "transcripts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TranscriptChunk"
-            }
+          "config": {
+            "$ref": "#/components/schemas/Config"
+          },
+          "timeline_view": {
+            "$ref": "#/components/schemas/TimelineView"
           }
         }
       },
@@ -322,6 +396,35 @@
             "type": "integer",
             "format": "uint64",
             "minimum": 0.0
+          }
+        }
+      },
+      "LiveSummaryRequest": {
+        "type": "object",
+        "required": [
+          "config",
+          "timeline_view"
+        ],
+        "properties": {
+          "config": {
+            "$ref": "#/components/schemas/Config"
+          },
+          "timeline_view": {
+            "$ref": "#/components/schemas/TimelineView"
+          }
+        }
+      },
+      "LiveSummaryResponse": {
+        "type": "object",
+        "required": [
+          "blocks"
+        ],
+        "properties": {
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SummarizeTranscriptChunk"
+            }
           }
         }
       },
@@ -562,38 +665,44 @@
           }
         }
       },
-      "LiveSummaryRequest": {
+      "TimelineView": {
         "type": "object",
         "required": [
-          "diarizations",
-          "transcripts"
+          "items"
         ],
         "properties": {
-          "diarizations": {
+          "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/DiarizationChunk"
-            }
-          },
-          "transcripts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TranscriptChunk"
+              "$ref": "#/components/schemas/TimelineViewItem"
             }
           }
         }
       },
-      "LiveSummaryResponse": {
+      "TimelineViewItem": {
         "type": "object",
         "required": [
-          "blocks"
+          "end",
+          "speaker",
+          "start",
+          "text"
         ],
         "properties": {
-          "blocks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SummarizeTranscriptChunk"
-            }
+          "end": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "speaker": {
+            "type": "string"
+          },
+          "start": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "text": {
+            "type": "string"
           }
         }
       },

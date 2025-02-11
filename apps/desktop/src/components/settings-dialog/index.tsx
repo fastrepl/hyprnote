@@ -3,11 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { SettingsIcon } from "lucide-react";
 import { commands, type Template } from "@/types";
 import { DialogView } from "./views";
-import { TemplateContent } from "./components/template-list";
 import GeneralComponent from "./views/general";
 import CalendarComponent from "./views/calendar";
 import TagsComponent from "./views/tags";
-import TemplateComponent from "./views/template";
+import TemplateEditor from "./views/template";
 import BillingComponent from "./views/billing";
 import NotificationsComponent from "./views/notifications";
 import TeamComponent from "./views/team";
@@ -19,7 +18,6 @@ import ProfileComponent from "./views/profile";
 export default function SettingsDialog() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<NavNames | "Profile">("General");
-  const [templateIndex, setTemplateIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
     null,
@@ -37,11 +35,22 @@ export default function SettingsDialog() {
   });
 
   const handleUpdateTemplate = (template: Template) => {
+    if (!template.tags) {
+      template.tags = [];
+    }
     commands.upsertTemplate(template);
+    templates.refetch();
   };
 
-  const handleTemplateSelect = (template: Template, index: number) => {
-    setTemplateIndex(index);
+  const handleCreateTemplate = (template: Template) => {
+    if (!template.tags) {
+      template.tags = [];
+    }
+    commands.upsertTemplate(template);
+    templates.refetch();
+  };
+
+  const handleTemplateSelect = (template: Template) => {
     setSelectedTemplate(template);
   };
 
@@ -62,9 +71,6 @@ export default function SettingsDialog() {
   useEffect(() => {
     if (!open) {
       setActive("General");
-    }
-    if (active === "Templates") {
-      setTemplateIndex(0);
     }
   }, [open, active]);
 
@@ -104,25 +110,23 @@ export default function SettingsDialog() {
                 onSearchChange={setSearchQuery}
                 customTemplates={templates.data?.custom || []}
                 builtinTemplates={templates.data?.builtin || []}
-                templateIndex={templateIndex}
                 onTemplateSelect={handleTemplateSelect}
+                onCreateTemplate={handleCreateTemplate}
               />
 
               <DialogView title={active} selectedTemplate={selectedTemplate}>
                 {active === "General" && <GeneralComponent />}
                 {active === "Calendar" && <CalendarComponent />}
                 {active === "Notifications" && <NotificationsComponent />}
-                {active === "Templates" && (
-                  <TemplateContent>
-                    {templates.data?.custom &&
-                      templates.data.custom[templateIndex] && (
-                        <TemplateComponent
-                          disabled={false}
-                          template={templates.data.custom[templateIndex]}
-                          onTemplateUpdate={handleUpdateTemplate}
-                        />
-                      )}
-                  </TemplateContent>
+                {active === "Templates" && selectedTemplate && (
+                  <TemplateEditor
+                    disabled={false}
+                    template={selectedTemplate}
+                    onTemplateUpdate={handleUpdateTemplate}
+                    isCreator={
+                      selectedTemplate.creator_id === "current_user_id"
+                    } // TODO: Replace with actual user ID check
+                  />
                 )}
                 {active === "Tags" && <TagsComponent />}
                 {active === "Team" && <TeamComponent />}

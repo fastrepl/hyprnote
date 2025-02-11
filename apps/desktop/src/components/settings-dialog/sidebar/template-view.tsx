@@ -10,8 +10,8 @@ export interface TemplateViewProps {
   onSearchChange: (query: string) => void;
   customTemplates: Template[];
   builtinTemplates: Template[];
-  templateIndex: number;
-  onTemplateSelect: (template: Template, index: number) => void;
+  onTemplateSelect: (template: Template) => void;
+  onCreateTemplate: (template: Template) => void;
   setActive: (name: NavNames) => void;
   selectedTemplate: Template | null;
 }
@@ -21,8 +21,8 @@ export function TemplateView({
   onSearchChange,
   customTemplates,
   builtinTemplates,
-  templateIndex,
   onTemplateSelect,
+  onCreateTemplate,
   setActive,
   selectedTemplate,
 }: TemplateViewProps) {
@@ -48,7 +48,6 @@ export function TemplateView({
           onSearchChange={onSearchChange}
           customTemplates={customTemplates}
           builtinTemplates={builtinTemplates}
-          selectedIndex={templateIndex}
           onTemplateSelect={onTemplateSelect}
           selectedTemplate={selectedTemplate}
         />
@@ -62,7 +61,17 @@ export function TemplateView({
             "hover:bg-neutral-100",
           )}
           onClick={() => {
-            /* TODO: Create template handler */
+            const newTemplate: Template = {
+              id: crypto.randomUUID(),
+              title: "Untitled Template",
+              description: "",
+              tags: [],
+              sections: [],
+              creator_id: "current_user_id", // This should match the actual user ID
+            };
+            onCreateTemplate(newTemplate);
+            onTemplateSelect(newTemplate);
+            setActive("Templates");
           }}
         >
           <FilePlusIcon className="h-4 w-4" />

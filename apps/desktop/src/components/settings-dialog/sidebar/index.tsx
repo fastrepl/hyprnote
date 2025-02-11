@@ -11,8 +11,8 @@ interface SettingsSidebarProps {
   onSearchChange: (query: string) => void;
   customTemplates: Template[];
   builtinTemplates: Template[];
-  templateIndex: number;
-  onTemplateSelect: (template: Template, index: number) => void;
+  onTemplateSelect: (template: Template) => void;
+  onCreateTemplate: (template: Template) => void;
 }
 
 export function SettingsSidebar({
@@ -22,8 +22,8 @@ export function SettingsSidebar({
   onSearchChange,
   customTemplates,
   builtinTemplates,
-  templateIndex,
   onTemplateSelect,
+  onCreateTemplate,
 }: SettingsSidebarProps) {
   return (
     <aside
@@ -48,8 +48,8 @@ export function SettingsSidebar({
             onSearchChange={onSearchChange}
             customTemplates={customTemplates}
             builtinTemplates={builtinTemplates}
-            templateIndex={templateIndex}
             onTemplateSelect={onTemplateSelect}
+            onCreateTemplate={onCreateTemplate}
             setActive={setActive}
             selectedTemplate={null}
           />

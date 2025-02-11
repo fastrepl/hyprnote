@@ -29,14 +29,10 @@ function ParticipantList({ eventId }: { eventId: string }) {
       {participants.slice(0, 3).map((participant) => (
         <div
           key={participant.id}
-          className="inline-flex items-center gap-1 rounded-full border px-1.5 py-1 text-xs"
-          style={{
-            backgroundColor: `${participant.color_hex}20`,
-            borderColor: participant.color_hex,
-          }}
+          className="inline-flex items-center gap-1 rounded-full border bg-neutral-100 px-1.5 py-1 text-xs font-medium"
         >
           <Avatar className="h-5 w-5">
-            <AvatarFallback style={{ backgroundColor: participant.color_hex }}>
+            <AvatarFallback className="bg-neutral-200 font-semibold">
               {participant.name.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>

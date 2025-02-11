@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { BookmarkIcon, SearchIcon, ZapIcon } from "lucide-react";
+import { SearchIcon, ZapIcon, TagIcon, HeartIcon } from "lucide-react";
 import type { Template } from "@/types";
 import { cn } from "@hypr/ui/lib/utils";
 
@@ -8,8 +8,7 @@ interface TemplateListProps {
   onSearchChange: (query: string) => void;
   customTemplates: Template[];
   builtinTemplates: Template[];
-  selectedIndex: number;
-  onTemplateSelect: (template: Template, index: number) => void;
+  onTemplateSelect: (template: Template) => void;
   selectedTemplate: Template | null;
 }
 
@@ -18,10 +17,18 @@ export function TemplateList({
   onSearchChange,
   customTemplates,
   builtinTemplates,
-  selectedIndex,
   onTemplateSelect,
   selectedTemplate,
 }: TemplateListProps) {
+  const filterTemplate = (template: Template, query: string) => {
+    const searchLower = query.toLowerCase();
+    return (
+      template.title?.toLowerCase().includes(searchLower) ||
+      template.description?.toLowerCase().includes(searchLower) ||
+      template.tags?.some((tag) => tag.toLowerCase().includes(searchLower))
+    );
+  };
+
   return (
     <>
       <div className="sticky top-0 bg-background p-2">
@@ -39,31 +46,33 @@ export function TemplateList({
       {customTemplates && customTemplates.length > 0 && (
         <section className="p-2">
           <h3 className="flex items-center gap-2 p-2 text-sm font-semibold text-neutral-700">
-            <BookmarkIcon className="h-4 w-4" />
+            <HeartIcon className="h-4 w-4" />
             My Templates
           </h3>
           <nav className="mt-2 rounded-md bg-neutral-50 p-2">
             <ul>
               {customTemplates
-                .filter((template) =>
-                  template?.title
-                    ?.toLowerCase()
-                    .includes(searchQuery.toLowerCase()),
-                )
-                .map((template, index) => (
-                  <li key={template.id || index}>
+                .filter((template) => filterTemplate(template, searchQuery))
+                .map((template) => (
+                  <li key={template.id}>
                     <button
-                      key={template.id}
-                      onClick={() => onTemplateSelect(template, index)}
+                      onClick={() => onTemplateSelect(template)}
                       className={cn(
-                        "flex w-full items-center gap-2 rounded-lg p-2 text-sm",
+                        "flex w-full flex-col gap-1 rounded-lg p-2 text-sm",
                         "text-neutral-600",
                         "hover:bg-neutral-100",
-                        selectedTemplate?.id === template.id &&
-                          "bg-neutral-200 font-bold text-neutral-700",
+                        selectedTemplate?.id === template.id
+                          ? "bg-neutral-200 font-bold text-neutral-700"
+                          : "",
                       )}
                     >
-                      {template.title || "Untitled Template"}
+                      <span>{template.title || "Untitled Template"}</span>
+                      {template.tags && template.tags.length > 0 && (
+                        <div className="flex items-center gap-1 text-xs text-neutral-500">
+                          <TagIcon className="h-3 w-3" />
+                          <span>{template.tags.join(", ")}</span>
+                        </div>
+                      )}
                     </button>
                   </li>
                 ))}
@@ -80,25 +89,27 @@ export function TemplateList({
         <nav className="mt-2 rounded-md bg-neutral-50 p-2">
           <ul>
             {builtinTemplates
-              .filter((template) =>
-                template?.title
-                  ?.toLowerCase()
-                  .includes(searchQuery.toLowerCase()),
-              )
-              .map((template, index) => (
-                <li key={template.id || index}>
+              .filter((template) => filterTemplate(template, searchQuery))
+              .map((template) => (
+                <li key={template.id}>
                   <button
-                    key={template.id}
-                    onClick={() => onTemplateSelect(template, index)}
+                    onClick={() => onTemplateSelect(template)}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-lg p-2 text-sm",
+                      "flex w-full flex-col gap-1 rounded-lg p-2 text-sm",
                       "text-neutral-600",
                       "hover:bg-neutral-100",
-                      selectedTemplate?.id === template.id &&
-                        "bg-neutral-200 font-bold text-neutral-700",
+                      selectedTemplate?.id === template.id
+                        ? "bg-neutral-200 font-bold text-neutral-700"
+                        : "",
                     )}
                   >
-                    {template.title || "Untitled Template"}
+                    <span>{template.title || "Untitled Template"}</span>
+                    {template.tags && template.tags.length > 0 && (
+                      <div className="flex items-center gap-1 text-xs text-neutral-500">
+                        <TagIcon className="h-3 w-3" />
+                        <span>{template.tags.join(", ")}</span>
+                      </div>
+                    )}
                   </button>
                 </li>
               ))}
@@ -114,9 +125,5 @@ interface TemplateContentProps {
 }
 
 export function TemplateContent({ children }: TemplateContentProps) {
-  return (
-    <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-auto">{children}</div>
-    </div>
-  );
+  return <div className="flex-1 overflow-y-auto p-6">{children}</div>;
 }

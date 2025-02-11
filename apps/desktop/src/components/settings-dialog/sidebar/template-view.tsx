@@ -63,11 +63,11 @@ export function TemplateView({
           onClick={() => {
             const newTemplate: Template = {
               id: crypto.randomUUID(),
+              user_id: "current_user_id", // This should match the actual user ID
               title: "Untitled Template",
               description: "",
               tags: [],
               sections: [],
-              creator_id: "current_user_id", // This should match the actual user ID
             };
             onCreateTemplate(newTemplate);
             onTemplateSelect(newTemplate);

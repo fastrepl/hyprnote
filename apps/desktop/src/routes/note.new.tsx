@@ -14,6 +14,7 @@ export const Route = createFileRoute("/note/new")({
 
     const emptySession: Session = {
       id: crypto.randomUUID() as string,
+      user_id: "current_user_id", // TODO
       timestamp: new Date().toISOString(),
       calendar_event_id: null,
       title: "Untitled",

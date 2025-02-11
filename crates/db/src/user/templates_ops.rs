@@ -30,17 +30,20 @@ impl UserDatabase {
                     user_id,
                     title,
                     description,
-                    sections
+                    sections,
+                    tags
                 ) VALUES (
                     :id,
                     :user_id,
                     :title,
                     :description,
-                    :sections
+                    :sections,
+                    :tags
                 ) ON CONFLICT(id) DO UPDATE SET
                     title = :title,
                     description = :description,
-                    sections = :sections
+                    sections = :sections,
+                    tags = :tags
                 RETURNING *",
                 libsql::named_params! {
                     ":id": template.id,
@@ -48,6 +51,7 @@ impl UserDatabase {
                     ":title": template.title,
                     ":description": template.description,
                     ":sections": serde_json::to_string(&template.sections).unwrap(),
+                    ":tags": serde_json::to_string(&template.tags).unwrap(),
                 },
             )
             .await?;
@@ -91,6 +95,7 @@ mod tests {
                 title: "test".to_string(),
                 description: "test".to_string(),
                 sections: vec![],
+                tags: vec![],
             })
             .await
             .unwrap();

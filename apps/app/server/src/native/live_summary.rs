@@ -8,7 +8,7 @@ use crate::state::AppState;
 pub async fn handler(
     State(state): State<AppState>,
     Json(input): Json<hypr_bridge::SummarizeTranscriptRequest>,
-) -> Result<Json<hypr_bridge::SummarizeTranscriptResponse>, StatusCode> {
+) -> Result<Json<hypr_bridge::SummarizeTranscriptResponse>, (StatusCode, String)> {
     let response = state
         .openai
         .chat_completion(&CreateChatCompletionRequest {
@@ -16,16 +16,10 @@ pub async fn handler(
             ..input.as_openai_request().unwrap()
         })
         .await
-        .map_err(|e| {
-            tracing::error!("summarize_transcript: {}", e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
         .json()
         .await
-        .map_err(|e| {
-            tracing::error!("summarize_transcript: {}", e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     Ok(Json(response))
 }

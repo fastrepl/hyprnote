@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS templates (
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   sections TEXT NOT NULL,
+  tags TEXT NOT NULL,
   FOREIGN KEY (user_id) REFERENCES humans(id)
 );

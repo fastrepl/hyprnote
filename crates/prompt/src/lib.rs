@@ -8,8 +8,8 @@ mod testers;
 
 pub mod create_title;
 pub mod enhance;
+pub mod live_summary;
 pub mod postprocess_enhance;
-pub mod summarize_transcript;
 
 use tera::Context;
 use tera::Tera;

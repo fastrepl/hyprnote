@@ -12,7 +12,7 @@ impl crate::OpenAIRequest for Input {
         )?;
 
         Ok(hypr_openai::CreateChatCompletionRequest {
-            model: "gpt-4o".to_string(),
+            model: "meta-llama/llama-3.3-70b-instruct:nitro".to_string(),
             messages: vec![
                 hypr_openai::ChatCompletionRequestSystemMessageArgs::default()
                     .content(system_prompt)

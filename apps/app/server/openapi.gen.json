@@ -69,7 +69,7 @@
         }
       }
     },
-    "/api/native/summarize_transcript": {
+    "/api/native/live_summary": {
       "post": {
         "requestBody": {
           "content": {

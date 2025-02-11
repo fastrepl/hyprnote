@@ -5,6 +5,7 @@ pub fn auto() -> hypr_db::user::Template {
         title: "Auto template".to_string(),
         description: "No specific format specified. Just use the available information to write structured content.".to_string(),
         sections: vec![],
+        tags: vec![],
     }
 }
 
@@ -28,6 +29,7 @@ pub fn standup() -> hypr_db::user::Template {
                 description: "- Mention obstacles preventing progress.\n- Identify who can help or next steps for resolution.".to_string(),
             },
         ],
+        tags: vec![],
     }
 }
 
@@ -55,6 +57,7 @@ pub fn kickoff() -> hypr_db::user::Template {
                 description: "- Assign ownership for each aspect of the project.\n- Include contact points for follow-ups.".to_string(),
             },
         ],
+        tags: vec![],
     }
 }
 

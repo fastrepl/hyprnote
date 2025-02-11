@@ -35,17 +35,11 @@ export default function SettingsDialog() {
   });
 
   const handleUpdateTemplate = (template: Template) => {
-    if (!template.tags) {
-      template.tags = [];
-    }
     commands.upsertTemplate(template);
     templates.refetch();
   };
 
   const handleCreateTemplate = (template: Template) => {
-    if (!template.tags) {
-      template.tags = [];
-    }
     commands.upsertTemplate(template);
     templates.refetch();
   };
@@ -124,8 +118,9 @@ export default function SettingsDialog() {
                     template={selectedTemplate}
                     onTemplateUpdate={handleUpdateTemplate}
                     isCreator={
-                      selectedTemplate.creator_id === "current_user_id"
-                    } // TODO: Replace with actual user ID check
+                      // TODO: Replace with actual user ID check
+                      selectedTemplate.user_id === "current_user_id"
+                    }
                   />
                 )}
                 {active === "Tags" && <TagsComponent />}

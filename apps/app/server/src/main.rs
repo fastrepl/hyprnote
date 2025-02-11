@@ -232,8 +232,8 @@ fn main() {
                         .layer(TimeoutLayer::new(Duration::from_secs(10))),
                 )
                 .api_route(
-                    "/summarize_transcript",
-                    api_post(native::summarize_transcript::handler)
+                    "/live_summary",
+                    api_post(native::live_summary::handler)
                         .layer(TimeoutLayer::new(Duration::from_secs(10))),
                 )
                 .api_route(

@@ -157,18 +157,18 @@ export type PostApiNativeCreateTitleResponses = {
 
 export type PostApiNativeCreateTitleResponse = PostApiNativeCreateTitleResponses[keyof PostApiNativeCreateTitleResponses];
 
-export type PostApiNativeSummarizeTranscriptData = {
+export type PostApiNativeLiveSummaryData = {
     body: SummarizeTranscriptRequest;
     path?: never;
     query?: never;
-    url: '/api/native/summarize_transcript';
+    url: '/api/native/live_summary';
 };
 
-export type PostApiNativeSummarizeTranscriptResponses = {
+export type PostApiNativeLiveSummaryResponses = {
     200: SummarizeTranscriptResponse;
 };
 
-export type PostApiNativeSummarizeTranscriptResponse = PostApiNativeSummarizeTranscriptResponses[keyof PostApiNativeSummarizeTranscriptResponses];
+export type PostApiNativeLiveSummaryResponse = PostApiNativeLiveSummaryResponses[keyof PostApiNativeLiveSummaryResponses];
 
 export type PostApiNativePostprocessEnhanceData = {
     body: PostprocessEnhanceRequest;

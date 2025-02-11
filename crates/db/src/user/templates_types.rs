@@ -7,6 +7,7 @@ user_common_derives! {
         pub title: String,
         pub description: String,
         pub sections: Vec<TemplateSection>,
+        pub tags: Vec<String>,
     }
 }
 
@@ -26,6 +27,10 @@ impl Template {
             description: row.get(3).expect("description"),
             sections: row
                 .get_str(4)
+                .map(|s| serde_json::from_str(s).unwrap())
+                .unwrap_or_default(),
+            tags: row
+                .get_str(5)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap_or_default(),
         })

@@ -6,6 +6,7 @@ use hypr_audio::AsyncSource;
 pub struct SessionState {
     mic_stream_handle: Option<tokio::task::JoinHandle<()>>,
     speaker_stream_handle: Option<tokio::task::JoinHandle<()>>,
+    listen_stream_handle: Option<tokio::task::JoinHandle<()>>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, specta::Type)]
@@ -21,6 +22,7 @@ impl SessionState {
         Ok(Self {
             mic_stream_handle: None,
             speaker_stream_handle: None,
+            listen_stream_handle: None,
         })
     }
 
@@ -46,6 +48,7 @@ impl SessionState {
         let (mic_tx, mut mic_rx) = mpsc::channel::<Vec<f32>>((SAMPLE_RATE as usize) * 60 * 10);
         let (speaker_tx, mut speaker_rx) =
             mpsc::channel::<Vec<f32>>((SAMPLE_RATE as usize) * 60 * 10);
+        let (mixed_tx, mixed_rx) = mpsc::channel::<f32>((SAMPLE_RATE as usize) * 60 * 10);
 
         self.mic_stream_handle = Some(tokio::spawn({
             async move {
@@ -96,11 +99,40 @@ impl SessionState {
 
                 for &sample in &mixed {
                     wav.write_sample(sample).unwrap();
+                    mixed_tx.send(sample).await.unwrap();
                 }
             }
 
             wav.finalize().unwrap();
         });
+
+        let listen_client = bridge.listen().language(language).build();
+        let audio_stream = hypr_audio::ReceiverStreamSource::new(mixed_rx, SAMPLE_RATE);
+        let listen_stream = listen_client.from_audio(audio_stream).await.unwrap();
+
+        let mut timeline = hypr_bridge::Timeline::default();
+
+        self.listen_stream_handle = Some(tokio::spawn(async move {
+            futures_util::pin_mut!(listen_stream);
+
+            while let Some(result) = listen_stream.next().await {
+                match result {
+                    hypr_bridge::ListenOutputChunk::Transcribe(chunk) => {
+                        timeline.add_transcription(chunk);
+                    }
+                    hypr_bridge::ListenOutputChunk::Diarize(chunk) => {
+                        timeline.add_diarization(chunk);
+                    }
+                }
+
+                let view = timeline.view();
+                let out = SessionStatus::Timeline(view);
+                channel.send(out).unwrap();
+            }
+
+            let out = SessionStatus::Stopped;
+            channel.send(out).unwrap();
+        }));
 
         Ok(())
     }
@@ -111,6 +143,10 @@ impl SessionState {
             let _ = handle.await;
         }
         if let Some(handle) = self.speaker_stream_handle.take() {
+            handle.abort();
+            let _ = handle.await;
+        }
+        if let Some(handle) = self.listen_stream_handle.take() {
             handle.abort();
             let _ = handle.await;
         }

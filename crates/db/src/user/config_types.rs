@@ -23,7 +23,7 @@ impl Config {
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap_or_default(),
             notification: row
-                .get_str(2)
+                .get_str(3)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap_or_default(),
         })

@@ -363,7 +363,8 @@
           "timeline_view": {
             "$ref": "#/components/schemas/TimelineView"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "CreateTitleResponse": {
         "type": "object",
@@ -374,7 +375,8 @@
           "title": {
             "type": "string"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "DiarizationChunk": {
         "type": "object",
@@ -412,7 +414,8 @@
           "timeline_view": {
             "$ref": "#/components/schemas/TimelineView"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "LiveSummaryResponse": {
         "type": "object",
@@ -426,7 +429,8 @@
               "$ref": "#/components/schemas/SummarizeTranscriptChunk"
             }
           }
-        }
+        },
+        "additionalProperties": false
       },
       "Membership": {
         "type": "string",
@@ -568,7 +572,8 @@
           "editor": {
             "type": "string"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "PostprocessEnhanceResponse": {
         "type": "object",
@@ -579,7 +584,8 @@
           "editor": {
             "type": "string"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "Session": {
         "type": "object",
@@ -663,7 +669,8 @@
               "type": "string"
             }
           }
-        }
+        },
+        "additionalProperties": false
       },
       "TimelineView": {
         "type": "object",
@@ -677,7 +684,8 @@
               "$ref": "#/components/schemas/TimelineViewItem"
             }
           }
-        }
+        },
+        "additionalProperties": false
       },
       "TimelineViewItem": {
         "type": "object",
@@ -704,7 +712,8 @@
           "text": {
             "type": "string"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "TranscriptChunk": {
         "type": "object",

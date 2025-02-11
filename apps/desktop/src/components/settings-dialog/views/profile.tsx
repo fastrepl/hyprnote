@@ -16,7 +16,7 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
-import { commands, Organization, type Human } from "@/types";
+import { commands, type Organization, type Human } from "@/types";
 
 const schema = z.object({
   fullName: z.string().min(2).max(50).optional(),
@@ -55,25 +55,33 @@ export default function ProfileComponent() {
 
   const mutation = useMutation({
     mutationFn: async (v: Schema) => {
+      if (!config.data) {
+        console.error("cannot mutate profile because it is not loaded");
+        return;
+      }
+
       const newHuman: Human = {
-        id: config.data?.human.id ?? crypto.randomUUID(),
-        organization_id: config.data?.organization.id ?? null,
+        id: config.data.human.id,
+        organization_id: config.data.organization.id,
         is_user: true,
         full_name: v.fullName ?? null,
         job_title: v.jobTitle ?? null,
         linkedin_username: v.linkedinUserName ?? null,
-        email: config.data?.human.email ?? "",
+        email: config.data.human.email,
       };
 
       const newOrganization: Organization = {
-        ...(config.data?.organization ?? {}),
-        id: config.data?.organization.id ?? crypto.randomUUID(),
+        ...config.data.organization,
         name: v.companyName ?? "",
         description: v.companyDescription ?? "",
       };
 
-      await commands.upsertHuman(newHuman);
-      await commands.upsertOrganization(newOrganization);
+      try {
+        await commands.upsertHuman(newHuman);
+        await commands.upsertOrganization(newOrganization);
+      } catch (error) {
+        console.error("error upserting human or organization", error);
+      }
     },
   });
 

@@ -1,3 +1,7 @@
+use codes_iso_639::part_1::LanguageCode;
+use serde::Deserialize;
+use std::str::FromStr;
+
 use crate::user_common_derives;
 
 user_common_derives! {
@@ -29,10 +33,12 @@ user_common_derives! {
         pub autostart: bool,
         #[specta(type = String)]
         #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
-        pub speech_language: codes_iso_639::part_1::LanguageCode,
+        #[serde(serialize_with = "serialize_language_code", deserialize_with = "deserialize_language_code")]
+        pub speech_language: LanguageCode,
         #[specta(type = String)]
         #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
-        pub display_language: codes_iso_639::part_1::LanguageCode,
+        #[serde(serialize_with = "serialize_language_code", deserialize_with = "deserialize_language_code")]
+        pub display_language: LanguageCode,
         pub jargons: Vec<String>,
         pub tags: Vec<String>,
     }
@@ -42,8 +48,8 @@ impl Default for ConfigGeneral {
     fn default() -> Self {
         Self {
             autostart: true,
-            speech_language: codes_iso_639::part_1::LanguageCode::Ko,
-            display_language: codes_iso_639::part_1::LanguageCode::Ko,
+            speech_language: LanguageCode::Ko,
+            display_language: LanguageCode::Ko,
             jargons: vec![],
             tags: vec![],
         }
@@ -64,4 +70,18 @@ impl Default for ConfigNotification {
             auto: true,
         }
     }
+}
+
+fn serialize_language_code<S: serde::Serializer>(
+    code: &LanguageCode,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    serializer.serialize_str(code.code())
+}
+
+fn deserialize_language_code<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<LanguageCode, D::Error> {
+    let s = String::deserialize(deserializer)?;
+    LanguageCode::from_str(&s).map_err(serde::de::Error::custom)
 }

@@ -3,6 +3,7 @@ import { forwardRef, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 
 import {
   Form,
@@ -27,21 +28,13 @@ import { commands, type ConfigGeneral } from "@/types";
 import { Trans } from "@lingui/react/macro";
 import { cn } from "@/utils";
 
-const LANGUAGES = [
-  {
-    display: "English",
-    value: "En",
-  },
-  {
-    display: "한국어",
-    value: "Ko",
-  },
-] as const;
+type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
+const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = ["en", "ko"];
 
 const schema = z.object({
   autostart: z.boolean().optional(),
-  displayLanguage: z.enum(["En", "Ko"]).optional(),
-  speechLanguage: z.enum(["En", "Ko"]).optional(),
+  displayLanguage: z.enum(SUPPORTED_LANGUAGES as [string, ...string[]]),
+  speechLanguage: z.enum(SUPPORTED_LANGUAGES as [string, ...string[]]),
   jargons: z.string(),
   tags: z.array(z.string()),
 });
@@ -132,6 +125,7 @@ export default function General() {
     queryKey: ["config", "general"],
     queryFn: async () => {
       const result = await commands.getConfig();
+      console.log(result);
       return result;
     },
   });
@@ -140,12 +134,10 @@ export default function General() {
     resolver: zodResolver(schema),
     values: {
       autostart: config.data?.general.autostart ?? false,
-      displayLanguage: (config.data?.general.display_language ?? "En") as
-        | "En"
-        | "Ko",
-      speechLanguage: (config.data?.general.speech_language ?? "En") as
-        | "En"
-        | "Ko",
+      displayLanguage: (config.data?.general.display_language ??
+        "en") as ISO_639_1_CODE,
+      speechLanguage: (config.data?.general.speech_language ??
+        "en") as ISO_639_1_CODE,
       jargons: (config.data?.general.jargons ?? []).join(", "),
       tags: config.data?.general.tags ?? [],
     },
@@ -153,21 +145,26 @@ export default function General() {
 
   const mutation = useMutation({
     mutationFn: async (v: Schema) => {
+      console.log(config.data);
+      if (!config.data) {
+        console.error("cannot mutate config because it is not loaded");
+        return;
+      }
+
       const nextGeneral: ConfigGeneral = {
         autostart: v.autostart ?? true,
-        speech_language: v.speechLanguage ?? "En",
-        display_language: v.displayLanguage ?? "En",
+        speech_language: (v.speechLanguage ?? "en") as ISO_639_1_CODE,
+        display_language: (v.displayLanguage ?? "en") as ISO_639_1_CODE,
         jargons: v.jargons.split(",").map((jargon) => jargon.trim()),
         tags: [],
       };
 
+      console.log(nextGeneral);
+
       await commands.setConfig({
-        user_id: config.data?.user_id!,
+        user_id: config.data.user_id,
         general: nextGeneral,
-        notification: config.data?.notification ?? {
-          before: true,
-          auto: true,
-        },
+        notification: config.data.notification,
       });
     },
   });
@@ -231,9 +228,9 @@ export default function General() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {LANGUAGES.map((language) => (
-                      <SelectItem key={language.value} value={language.value}>
-                        {language.display}
+                    {SUPPORTED_LANGUAGES.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {LANGUAGES_ISO_639_1[code].nativeName}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -261,9 +258,9 @@ export default function General() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {LANGUAGES.map((language) => (
-                      <SelectItem key={language.value} value={language.value}>
-                        {language.display}
+                    {SUPPORTED_LANGUAGES.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {LANGUAGES_ISO_639_1[code].nativeName}
                       </SelectItem>
                     ))}
                   </SelectContent>

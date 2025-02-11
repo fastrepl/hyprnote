@@ -39,13 +39,29 @@ mod tests {
 
     const EMPTY_NOTE: &str = "";
 
-    fn default_profile() -> hypr_db::user::ConfigDataProfile {
-        hypr_db::user::ConfigDataProfile {
-            full_name: Some("정지헌".to_string()),
-            job_title: Some("CEO".to_string()),
-            company_name: Some("파도".to_string()),
-            company_description: Some("증권정보업".to_string()),
-            linkedin_username: None,
+    // TODO
+    // fn default_profile() -> hypr_db::user::ConfigDataProfile {
+    //     hypr_db::user::ConfigDataProfile {
+    //         full_name: Some("정지헌".to_string()),
+    //         job_title: Some("CEO".to_string()),
+    //         company_name: Some("파도".to_string()),
+    //         company_description: Some("증권정보업".to_string()),
+    //         linkedin_username: None,
+    //     }
+    // }
+
+    fn default_config_with_language(
+        language: codes_iso_639::part_1::LanguageCode,
+    ) -> hypr_db::user::Config {
+        hypr_db::user::Config {
+            id: "".to_string(),
+            user_id: "".to_string(),
+            general: hypr_db::user::ConfigGeneral {
+                speech_language: language,
+                display_language: language,
+                ..Default::default()
+            },
+            notification: hypr_db::user::ConfigNotification::default(),
         }
     }
 
@@ -62,7 +78,7 @@ mod tests {
         hypr_bridge::TimelineView { items }
     }
 
-    fn participants_from_path(p: &str) -> Vec<hypr_db::user::Participant> {
+    fn participants_from_path(p: &str) -> Vec<hypr_db::user::Human> {
         let timeline_view = timeline_view_from_path(p);
 
         timeline_view
@@ -71,8 +87,8 @@ mod tests {
             .map(|item| item.speaker.clone())
             .collect::<std::collections::HashSet<_>>()
             .into_iter()
-            .map(|name| hypr_db::user::Participant {
-                name,
+            .map(|name| hypr_db::user::Human {
+                full_name: Some(name),
                 ..Default::default()
             })
             .collect()
@@ -86,16 +102,13 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note_during),
             pre_meeting_editor: markdown::to_html(&note_pre),
             timeline_view,
             event: Some(hypr_db::user::Event {
                 id: "".to_string(),
+                user_id: "".to_string(),
                 tracking_id: "".to_string(),
                 calendar_id: "".to_string(),
                 note: "".to_string(),
@@ -135,11 +148,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -155,11 +164,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -175,11 +180,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -195,11 +196,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -215,11 +212,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -235,11 +228,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -255,11 +244,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -275,11 +260,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -295,11 +276,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -315,11 +292,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -335,11 +308,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -355,11 +324,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -375,11 +340,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -395,11 +356,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -415,11 +372,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -435,11 +388,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -455,11 +404,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -475,11 +420,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,
@@ -495,11 +436,7 @@ mod tests {
 
         Input {
             template: hypr_template::auto(),
-            config_general: hypr_db::user::ConfigDataGeneral {
-                language: codes_iso_639::part_1::LanguageCode::Ko,
-                ..Default::default()
-            },
-            config_profile: default_profile(),
+            config: default_config_with_language(codes_iso_639::part_1::LanguageCode::Ko),
             in_meeting_editor: markdown::to_html(&note),
             pre_meeting_editor: markdown::to_html(EMPTY_NOTE),
             timeline_view,

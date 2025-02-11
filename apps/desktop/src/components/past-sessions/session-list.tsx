@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import type { Session, Participant } from "@/types";
+import type { Session, Human } from "@/types";
 import { commands } from "@/types";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { format, isThisYear } from "date-fns";
@@ -10,12 +10,12 @@ interface SessionListProps {
 }
 
 function ParticipantList({ eventId }: { eventId: string }) {
-  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [participants, setParticipants] = useState<Human[]>([]);
 
   useEffect(() => {
     if (eventId) {
       commands
-        .listParticipants({ Event: eventId })
+        .listParticipants(eventId)
         .then(setParticipants)
         .catch(console.error);
     }
@@ -33,10 +33,10 @@ function ParticipantList({ eventId }: { eventId: string }) {
         >
           <Avatar className="h-5 w-5">
             <AvatarFallback className="bg-neutral-200 font-semibold">
-              {participant.name.charAt(0).toUpperCase()}
+              {participant.full_name?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          {participant.name}
+          {participant.full_name}
         </div>
       ))}
       {participants.length > 3 && (

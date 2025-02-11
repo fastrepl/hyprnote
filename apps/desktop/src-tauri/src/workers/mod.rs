@@ -10,7 +10,7 @@ mod notification;
 #[derive(Clone)]
 pub struct WorkerState {
     pub db: UserDatabase,
-    pub app: tauri::AppHandle,
+    pub user_id: String,
 }
 
 fn err_from(e: impl Into<String>) -> Error {

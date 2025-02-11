@@ -2,13 +2,26 @@ pub mod commands {
     use tauri::State;
 
     use crate::App;
-    use hypr_db::user::ParticipantFilter;
 
     #[tauri::command]
     #[specta::specta]
     #[tracing::instrument(skip(state))]
     pub async fn list_calendars(state: State<'_, App>) -> Result<Vec<hypr_db::user::Calendar>, ()> {
         Ok(state.db.list_calendars().await.unwrap())
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
+    pub async fn list_participants(
+        state: State<'_, App>,
+        event_id: String,
+    ) -> Result<Vec<hypr_db::user::Human>, String> {
+        Ok(state
+            .db
+            .list_participants(event_id)
+            .await
+            .map_err(|e| e.to_string())?)
     }
 
     #[tauri::command]
@@ -35,7 +48,8 @@ pub mod commands {
     #[specta::specta]
     #[tracing::instrument(skip(state))]
     pub async fn list_templates(state: State<'_, App>) -> Result<Vec<hypr_db::user::Template>, ()> {
-        Ok(state.db.list_templates().await.unwrap())
+        let user_id = &state.user_id;
+        Ok(state.db.list_templates(user_id).await.unwrap())
     }
 
     #[tauri::command]
@@ -75,29 +89,9 @@ pub mod commands {
     #[tauri::command]
     #[specta::specta]
     #[tracing::instrument(skip(state))]
-    pub async fn list_participants(
-        state: State<'_, App>,
-        filter: ParticipantFilter,
-    ) -> Result<Vec<hypr_db::user::Participant>, ()> {
-        Ok(state.db.list_participants(filter).await.unwrap())
-    }
-
-    #[tauri::command]
-    #[specta::specta]
-    #[tracing::instrument(skip(state))]
-    pub async fn upsert_participant(
-        state: State<'_, App>,
-        participant: hypr_db::user::Participant,
-    ) -> Result<hypr_db::user::Participant, ()> {
-        Ok(state.db.upsert_participant(participant).await.unwrap())
-    }
-
-    #[tauri::command]
-    #[specta::specta]
-    #[tracing::instrument(skip(state))]
     pub async fn get_session(
         state: State<'_, App>,
-        option: hypr_db::user::GetSessionOption,
+        option: hypr_db::user::SessionFilter,
     ) -> Result<Option<hypr_db::user::Session>, String> {
         let found = state
             .db
@@ -126,21 +120,25 @@ pub mod commands {
     #[tauri::command]
     #[specta::specta]
     #[tracing::instrument(skip(state))]
-    pub async fn get_config(
-        state: State<'_, App>,
-        kind: hypr_db::user::ConfigKind,
-    ) -> Result<hypr_db::user::Config, ()> {
-        let found = state.db.get_config(kind.clone()).await.unwrap();
+    pub async fn get_config(state: State<'_, App>) -> Result<hypr_db::user::Config, String> {
+        let user_id = &state.user_id;
+        let config = state
+            .db
+            .get_config(user_id)
+            .await
+            .map_err(|e| e.to_string())?;
 
-        match (found, kind) {
-            (None, hypr_db::user::ConfigKind::Profile) => {
-                Ok(hypr_db::user::ConfigDataProfile::default().into())
+        match config {
+            Some(config) => Ok(config),
+            None => {
+                let config = hypr_db::user::Config {
+                    id: uuid::Uuid::new_v4().to_string(),
+                    user_id: user_id.to_string(),
+                    general: hypr_db::user::ConfigGeneral::default(),
+                    notification: hypr_db::user::ConfigNotification::default(),
+                };
+                Ok(config)
             }
-            (None, hypr_db::user::ConfigKind::General) => {
-                Ok(hypr_db::user::ConfigDataGeneral::default().into())
-            }
-            (Some(config), hypr_db::user::ConfigKind::Profile) => Ok(config),
-            (Some(config), hypr_db::user::ConfigKind::General) => Ok(config),
         }
     }
 
@@ -150,7 +148,69 @@ pub mod commands {
     pub async fn set_config(
         state: State<'_, App>,
         config: hypr_db::user::Config,
-    ) -> Result<(), ()> {
-        Ok(state.db.set_config(config).await.unwrap())
+    ) -> Result<(), String> {
+        Ok(state
+            .db
+            .set_config(config)
+            .await
+            .map_err(|e| e.to_string())?)
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
+    pub async fn get_self_human(state: State<'_, App>) -> Result<hypr_db::user::Human, String> {
+        let user_id = &state.user_id;
+        let human = state
+            .db
+            .get_human(user_id)
+            .await
+            .map_err(|e| e.to_string())?;
+        Ok(human)
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
+    pub async fn upsert_human(
+        state: State<'_, App>,
+        human: hypr_db::user::Human,
+    ) -> Result<hypr_db::user::Human, String> {
+        Ok(state
+            .db
+            .upsert_human(human)
+            .await
+            .map_err(|e| e.to_string())?)
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
+    pub async fn get_self_organization(
+        state: State<'_, App>,
+    ) -> Result<hypr_db::user::Organization, String> {
+        let user_id = &state.user_id;
+        let organization = state
+            .db
+            .get_organization_by_user_id(user_id)
+            .await
+            .map_err(|e| e.to_string())?
+            .ok_or("Organization not found".to_string())?;
+
+        Ok(organization)
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
+    pub async fn upsert_organization(
+        state: State<'_, App>,
+        organization: hypr_db::user::Organization,
+    ) -> Result<hypr_db::user::Organization, String> {
+        Ok(state
+            .db
+            .upsert_organization(organization)
+            .await
+            .map_err(|e| e.to_string())?)
     }
 }

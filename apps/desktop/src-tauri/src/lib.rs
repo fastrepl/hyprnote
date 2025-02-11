@@ -2,7 +2,6 @@ mod audio;
 mod auth;
 mod commands;
 mod db;
-mod error;
 mod events;
 mod permissions;
 mod session;
@@ -17,6 +16,7 @@ pub struct App {
     handle: tauri::AppHandle,
     db: hypr_db::user::UserDatabase,
     bridge: hypr_bridge::Client,
+    user_id: String,
 }
 
 #[tokio::main]
@@ -87,8 +87,6 @@ pub async fn main() {
             db::commands::list_calendars,
             db::commands::list_events,
             db::commands::list_sessions,
-            db::commands::list_participants,
-            db::commands::upsert_participant,
             db::commands::get_session,
             db::commands::set_session_event,
             db::commands::list_templates,
@@ -96,6 +94,11 @@ pub async fn main() {
             db::commands::delete_template,
             db::commands::get_config,
             db::commands::set_config,
+            db::commands::upsert_human,
+            db::commands::get_self_human,
+            db::commands::get_self_organization,
+            db::commands::upsert_organization,
+            db::commands::list_participants,
         ])
         .events(tauri_specta::collect_events![
             events::RecordingStarted,
@@ -146,6 +149,27 @@ pub async fn main() {
         db
     };
 
+    // TODO
+    let user_id = {
+        #[cfg(debug_assertions)]
+        {
+            db.list_humans()
+                .await
+                .unwrap()
+                .iter()
+                .find(|h| h.is_user)
+                .unwrap()
+                .id
+                .clone()
+        }
+
+        #[cfg(not(debug_assertions))]
+        {
+            // TODO
+            "human_id".to_string()
+        }
+    };
+
     builder
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
@@ -166,6 +190,7 @@ pub async fn main() {
                     .unwrap();
 
                 app.manage(App {
+                    user_id: user_id.clone(),
                     handle: app.clone(),
                     db: db.clone(),
                     bridge: bridge.clone(),
@@ -182,13 +207,12 @@ pub async fn main() {
                 let _ = autostart_manager.enable().unwrap();
             }
 
-            let worker_app = app.clone();
             let worker_db = db.clone();
 
             tokio::spawn(async move {
                 let state = workers::WorkerState {
                     db: worker_db,
-                    app: worker_app,
+                    user_id: user_id.clone(),
                 };
                 let _m = workers::monitor(state).await.unwrap();
             });

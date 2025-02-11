@@ -1,12 +1,7 @@
 import { useState, useMemo } from "react";
-import {
-  Search,
-  Plus,
-  Tag as TagIcon,
-  MoreVertical,
-  Check,
-  Trash2,
-} from "lucide-react";
+import { Search, Plus, MoreVertical, Check, Trash2 } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
+
 import { Input } from "@hypr/ui/components/ui/input";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -22,7 +17,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
-import { Trans } from "@lingui/react/macro";
 
 type Tag = {
   id: string;

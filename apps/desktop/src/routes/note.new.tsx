@@ -17,7 +17,6 @@ export const Route = createFileRoute("/note/new")({
       timestamp: new Date().toISOString(),
       calendar_event_id: null,
       title: "Untitled",
-      tags: [],
       audio_local_path: null,
       audio_remote_path: null,
       raw_memo_html: "",

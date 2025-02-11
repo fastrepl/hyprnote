@@ -134,14 +134,15 @@ pub mod commands {
     ) -> Result<(), String> {
         let app_dir = app.handle.path().app_data_dir().unwrap();
 
+        let user_id = &app.user_id;
         let config = app
             .db
-            .get_config(hypr_db::user::ConfigKind::General)
+            .get_config(user_id)
             .await
             .map_err(|e| e.to_string())?;
 
         let language = match config {
-            Some(hypr_db::user::Config::General { data }) => data.language,
+            Some(hypr_db::user::Config { general, .. }) => general.speech_language,
             _ => codes_iso_639::part_1::LanguageCode::En,
         };
 

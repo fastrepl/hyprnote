@@ -3012,7 +3012,6 @@ dependencies = [
  "codes-iso-639",
  "libsql",
  "nango",
- "random_color",
  "schemars",
  "serde",
  "serde_json",
@@ -5545,12 +5544,6 @@ dependencies = [
  "unicode-width 0.2.0",
  "web-time",
 ]
-
-[[package]]
-name = "indoc"
-version = "2.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b248f5224d1d606005e02c97f5aa4e88eeb230488bcc03bc9ca4d7991399f2b5"
 
 [[package]]
 name = "infer"
@@ -8215,7 +8208,6 @@ dependencies = [
  "codes-iso-639",
  "db",
  "dotenv",
- "indoc",
  "lazy_static",
  "markdown",
  "openai",
@@ -8561,15 +8553,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "16abd0c1b639e9eb4d7c50c0b8100b0d0f849be2349829c740fe8e6eb4816429"
 dependencies = [
  "rand_core 0.5.1",
-]
-
-[[package]]
-name = "random_color"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38803f546aaf7a3bd5af56b139d7b432d3eb43318bf4a91342eff8a125b4fe06"
-dependencies = [
- "rand 0.8.5",
 ]
 
 [[package]]

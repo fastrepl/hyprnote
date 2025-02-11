@@ -1,4 +1,0 @@
-CREATE TABLE configs (
-  kind TEXT NOT NULL UNIQUE,
-  data TEXT NOT NULL
-);

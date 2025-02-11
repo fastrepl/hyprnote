@@ -4,13 +4,12 @@ import React, { createContext, useContext } from "react";
 import { fetch } from "@tauri-apps/plugin-http";
 import { Channel } from "@tauri-apps/api/core";
 
-import type {
-  NangoIntegration,
-  CreateTitleRequest,
-  CreateTitleResponse,
+import {
+  commands,
+  type NangoIntegration,
+  type EnhanceRequest,
+  type CalendarIntegration,
 } from "@/types";
-import type { CalendarIntegration } from "@/types";
-import { commands, type EnhanceRequest } from "@/types";
 
 type Client = {
   listIntegrations: () => Promise<NangoIntegration[]>;
@@ -18,7 +17,6 @@ type Client = {
     type: Exclude<CalendarIntegration, "apple-calendar">,
   ) => string;
   enhance: (req: EnhanceRequest) => ReadableStream;
-  createTitle: (req: CreateTitleRequest) => Promise<CreateTitleResponse>;
 };
 
 const HyprContext = createContext<{ client: Client }>({
@@ -56,13 +54,6 @@ export const HyprProvider: React.FC<{
     },
     getIntegrationURL: (type) => {
       return new URL(`/integrations?provider=${type}`, base).toString();
-    },
-    createTitle: async (req: CreateTitleRequest) => {
-      return authFetch("/api/native/create_title", {
-        method: "POST",
-        body: JSON.stringify(req),
-        headers: { "Content-Type": "application/json" },
-      }).then((res) => res.json());
     },
     enhance: (req: EnhanceRequest) => {
       const channel = new Channel<string>();

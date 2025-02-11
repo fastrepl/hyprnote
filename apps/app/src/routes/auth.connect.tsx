@@ -29,8 +29,8 @@ function Component() {
 
   const mutation = useMutation({
     ...postApiWebConnectMutation({ client }),
-    onSuccess({ key }, _variables, _context) {
-      window.open(`http://localhost:${port}?k=${key}`);
+    onSuccess({ key, human_id }, _variables, _context) {
+      window.open(`http://localhost:${port}?k=${key}&u=${human_id}`);
     },
   });
 

@@ -2,7 +2,15 @@
 
 macro_rules! common_derives {
     ($item:item) => {
-        #[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize, specta::Type, schemars::JsonSchema)]
+        #[derive(
+            Debug,
+            PartialEq,
+            Clone,
+            serde::Serialize,
+            serde::Deserialize,
+            specta::Type,
+            schemars::JsonSchema,
+        )]
         $item
     };
 }

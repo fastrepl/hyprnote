@@ -18,7 +18,7 @@ export function EventCard({ event }: EventCardProps) {
 
   const participants = useQuery({
     queryKey: ["event-participants", event.id],
-    queryFn: async () => commands.listParticipants({ Event: event.id }),
+    queryFn: async () => commands.listParticipants(event.id),
   });
 
   const session = useQuery({
@@ -100,7 +100,7 @@ export function EventCard({ event }: EventCardProps) {
         <div className="flex items-center">
           <span className="truncate text-sm text-neutral-600">
             {participants.data?.length
-              ? participants.data.map((p) => p.name).join(", ")
+              ? participants.data.map((p) => p.full_name).join(", ")
               : "No participants"}
           </span>
         </div>

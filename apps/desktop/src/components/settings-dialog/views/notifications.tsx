@@ -14,7 +14,7 @@ import {
 } from "@hypr/ui/components/ui/form";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
-import { commands, type ConfigDataNotifications } from "@/types";
+import { commands, type ConfigNotification } from "@/types";
 
 const schema = z.object({
   before: z.boolean().optional(),
@@ -29,32 +29,42 @@ export default function NotificationsComponent() {
   const config = useQuery({
     queryKey: ["config", "notifications"],
     queryFn: async () => {
-      const result = await commands.getConfig("notifications");
-      if (result === null) {
-        return null;
-      }
-      return result.data as ConfigDataNotifcations;
+      const result = await commands.getConfig();
+      return result;
     },
   });
 
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     values: {
-      before: config.data?.before ?? false,
-      auto: config.data?.auto ?? false,
+      before: config.data?.notification.before ?? true,
+      auto: config.data?.notification.auto ?? true,
     },
   });
 
   const mutation = useMutation({
     mutationFn: async (v: Schema) => {
-      const config: ConfigDataNotifcations = {
-        before: true,
-        auto: true,
+      const newNotification: ConfigNotification = {
+        before: v.before ?? true,
+        auto: v.auto ?? true,
       };
 
-      await commands.setConfig({ type: "notifications", data: config });
+      if (!config.data) {
+        console.error("cannot mutate config because it is not loaded");
+        return;
+      }
+
+      try {
+        await commands.setConfig({
+          ...config.data,
+          notification: newNotification,
+        });
+      } catch (e) {
+        console.error(e);
+      }
     },
   });
+
   useEffect(() => {
     if (mutation.status === "success") {
       queryClient.invalidateQueries({ queryKey: ["config", "notifications"] });

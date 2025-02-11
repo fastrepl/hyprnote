@@ -16,7 +16,7 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
-import { commands, type ConfigDataProfile } from "@/types";
+import { commands, type Organization, type Human } from "@/types";
 
 const schema = z.object({
   fullName: z.string().min(2).max(50).optional(),
@@ -34,36 +34,51 @@ export default function ProfileComponent() {
   const config = useQuery({
     queryKey: ["config", "profile"],
     queryFn: async () => {
-      const result = await commands.getConfig("profile");
-      if (result === null) {
-        return null;
-      }
-      return result.data as ConfigDataProfile;
+      const [human, organization] = await Promise.all([
+        commands.getSelfHuman(),
+        commands.getSelfOrganization(),
+      ]);
+      return { human, organization };
     },
   });
 
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     defaultValues: {
-      fullName: config.data?.full_name ?? undefined,
-      jobTitle: config.data?.job_title ?? undefined,
-      companyName: config.data?.company_name ?? undefined,
-      companyDescription: config.data?.company_description ?? undefined,
-      linkedinUserName: config.data?.linkedin_username ?? undefined,
+      fullName: config.data?.human.full_name ?? undefined,
+      jobTitle: config.data?.human.job_title ?? undefined,
+      companyName: config.data?.organization.name ?? undefined,
+      companyDescription: config.data?.organization.description ?? undefined,
+      linkedinUserName: config.data?.human.linkedin_username ?? undefined,
     },
   });
 
   const mutation = useMutation({
     mutationFn: async (v: Schema) => {
-      const config: ConfigDataProfile = {
+      if (!config.data) {
+        console.error("cannot mutate profile because it is not loaded");
+        return;
+      }
+
+      const newHuman: Human = {
+        ...config.data.human,
         full_name: v.fullName ?? null,
         job_title: v.jobTitle ?? null,
-        company_name: v.companyName ?? null,
-        company_description: v.companyDescription ?? null,
         linkedin_username: v.linkedinUserName ?? null,
       };
 
-      await commands.setConfig({ type: "profile", data: config });
+      const newOrganization: Organization = {
+        ...config.data.organization,
+        name: v.companyName ?? "",
+        description: v.companyDescription ?? "",
+      };
+
+      try {
+        await commands.upsertHuman(newHuman);
+        await commands.upsertOrganization(newOrganization);
+      } catch (error) {
+        console.error("error upserting human or organization", error);
+      }
     },
   });
 

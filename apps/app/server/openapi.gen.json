@@ -223,9 +223,13 @@
       "ConnectOutput": {
         "type": "object",
         "required": [
+          "human_id",
           "key"
         ],
         "properties": {
+          "human_id": {
+            "type": "string"
+          },
           "key": {
             "type": "string"
           }
@@ -470,7 +474,6 @@
           "conversations",
           "id",
           "raw_memo_html",
-          "tags",
           "timestamp",
           "title"
         ],
@@ -510,12 +513,6 @@
           },
           "raw_memo_html": {
             "type": "string"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "timestamp": {
             "type": "string",

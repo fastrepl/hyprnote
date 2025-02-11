@@ -1,0 +1,77 @@
+use super::{Config, UserDatabase};
+
+impl UserDatabase {
+    pub async fn get_config(
+        &self,
+        user_id: impl Into<String>,
+    ) -> Result<Option<Config>, crate::Error> {
+        let mut rows = self
+            .conn
+            .query(
+                "SELECT * FROM configs WHERE user_id = ?",
+                vec![user_id.into()],
+            )
+            .await?;
+
+        match rows.next().await? {
+            None => Ok(None),
+            Some(row) => {
+                let config = Config::from_row(&row)?;
+                Ok(Some(config))
+            }
+        }
+    }
+
+    pub async fn set_config(&self, config: Config) -> Result<(), crate::Error> {
+        self.conn
+            .execute(
+                "INSERT OR REPLACE INTO configs (
+                    id,
+                    user_id,
+                    general,
+                    notification
+                ) VALUES (?, ?, ?, ?)",
+                vec![
+                    config.id.clone().into(),
+                    config.user_id.clone().into(),
+                    serde_json::to_string(&config.general)?,
+                    serde_json::to_string(&config.notification)?,
+                ],
+            )
+            .await?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::user::{tests::setup_db, Config, ConfigGeneral, ConfigNotification, Human};
+
+    #[tokio::test]
+    async fn test_config() {
+        let db = setup_db().await;
+
+        let human = db
+            .upsert_human(Human {
+                full_name: Some("yujonglee".to_string()),
+                ..Human::default()
+            })
+            .await
+            .unwrap();
+
+        db.set_config(Config {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: human.id.clone(),
+            general: ConfigGeneral::default(),
+            notification: ConfigNotification {
+                before: false,
+                ..ConfigNotification::default()
+            },
+        })
+        .await
+        .unwrap();
+
+        let config = db.get_config(human.id).await.unwrap().unwrap();
+        assert_eq!(config.notification.before, false);
+    }
+}

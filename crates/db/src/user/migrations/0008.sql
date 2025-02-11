@@ -1,1 +1,0 @@
-CREATE TABLE organizations (id TEXT PRIMARY KEY, name TEXT NOT NULL);

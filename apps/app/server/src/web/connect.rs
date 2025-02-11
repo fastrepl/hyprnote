@@ -19,6 +19,7 @@ pub struct ConnectInput {
 #[derive(Debug, Deserialize, Serialize, specta::Type, schemars::JsonSchema)]
 pub struct ConnectOutput {
     key: String,
+    human_id: String,
 }
 
 pub async fn handler(
@@ -27,41 +28,83 @@ pub async fn handler(
     Json(input): Json<ConnectInput>,
 ) -> Result<Json<ConnectOutput>, (StatusCode, String)> {
     let clerk_user_id = jwt.sub;
+    let clerk_org_id = jwt.org.map(|o| o.id);
 
-    let create_db_req = hypr_turso::CreateDatabaseRequestBuilder::new()
-        .with_name(uuid::Uuid::new_v4().to_string())
-        .build();
+    let existing_org = {
+        let db = state.admin_db.clone();
 
-    let turso_db_name = match state.turso.create_database(create_db_req).await {
-        Ok(hypr_turso::DatabaseResponse::Ok { database }) => database.name,
-        Ok(hypr_turso::DatabaseResponse::Error { error }) => {
-            return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string()))
+        if let Some(clerk_org_id) = &clerk_org_id {
+            db.get_organization_by_clerk_org_id(clerk_org_id).await
+        } else {
+            db.get_organization_by_clerk_user_id(&clerk_user_id).await
         }
-        Err(error) => return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string())),
-    };
+    }
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    let user = match state
-        .admin_db
-        .upsert_user(hypr_db::admin::User {
-            id: uuid::Uuid::new_v4().to_string(),
-            timestamp: chrono::Utc::now(),
-            clerk_org_id: input.org_id,
-            clerk_user_id,
-            turso_db_name,
-        })
-        .await
-    {
-        Ok(user) => user,
-        Err(error) => {
-            return Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string()));
+    let org = {
+        if existing_org.is_some() {
+            Ok(existing_org.clone().unwrap())
+        } else {
+            let db = state.admin_db.clone();
+            db.upsert_organization(hypr_db::admin::Organization {
+                id: uuid::Uuid::new_v4().to_string(),
+                turso_db_name: uuid::Uuid::new_v4().to_string(),
+                clerk_org_id,
+            })
+            .await
         }
-    };
+    }
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let existing_user = {
+        let db = state.admin_db.clone();
+        db.get_user_by_clerk_user_id(&clerk_user_id).await
+    }
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let user = {
+        if let Some(u) = existing_user {
+            Ok(u)
+        } else {
+            let db = state.admin_db.clone();
+            db.upsert_user(hypr_db::admin::User {
+                id: uuid::Uuid::new_v4().to_string(),
+                human_id: uuid::Uuid::new_v4().to_string(),
+                organization_id: org.id,
+                timestamp: chrono::Utc::now(),
+                clerk_user_id,
+            })
+            .await
+        }
+    }
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let _ = {
+        if existing_org.is_none() {
+            let create_db_req = hypr_turso::CreateDatabaseRequestBuilder::new()
+                .with_name(org.turso_db_name)
+                .build();
+
+            match state.turso.create_database(create_db_req).await {
+                Ok(hypr_turso::DatabaseResponse::Error { error }) => {
+                    Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string()))
+                }
+                Err(error) => Err((StatusCode::INTERNAL_SERVER_ERROR, error.to_string())),
+                Ok(hypr_turso::DatabaseResponse::Ok { database }) => Ok(database.name),
+            }
+        } else {
+            Ok(existing_org.unwrap().turso_db_name)
+        }
+    }?;
+
+    let user_id = user.id;
+    let human_id = user.human_id;
 
     let device = match state
         .admin_db
         .upsert_device(hypr_db::admin::Device {
             id: uuid::Uuid::new_v4().to_string(),
-            user_id: user.id,
+            user_id,
             timestamp: chrono::Utc::now(),
             fingerprint: input.fingerprint,
             api_key: uuid::Uuid::new_v4().to_string(),
@@ -79,5 +122,6 @@ pub async fn handler(
 
     Ok(Json(ConnectOutput {
         key: device.api_key,
+        human_id,
     }))
 }

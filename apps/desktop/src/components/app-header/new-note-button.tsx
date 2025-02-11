@@ -41,7 +41,7 @@ export function NewNoteButton() {
         <Trans>New Note</Trans>
       </Button>
       <button
-        className="block items-center justify-center rounded-md p-1 text-sm font-medium ring-offset-background transition-colors duration-200 hover:bg-neutral-200 sm:hidden"
+        className="block items-center justify-center rounded-md p-1 text-sm font-medium text-neutral-600 ring-offset-background transition-colors duration-200 hover:bg-neutral-200 sm:hidden"
         onClick={handleClickNewNote}
       >
         <PenIcon className="size-4" />

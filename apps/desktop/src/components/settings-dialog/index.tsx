@@ -72,7 +72,7 @@ export default function SettingsDialog() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center justify-center rounded-md p-1 text-sm font-medium ring-offset-background transition-colors duration-200 hover:bg-neutral-200"
+        className="flex items-center justify-center rounded-md p-1 text-sm font-medium text-neutral-600 ring-offset-background transition-colors duration-200 hover:bg-neutral-200"
         aria-label="Settings"
       >
         <SettingsIcon className="h-4 w-4" />

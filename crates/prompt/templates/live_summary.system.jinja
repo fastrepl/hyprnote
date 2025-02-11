@@ -12,22 +12,30 @@ Follow these steps:
 3. Summarize each important point into a clear, concise bullet point.
 4. Format the bullet points as a list of strings.
 
+# Input Provided by the user:
+
+- Partial Meeting Transcript (txt)
+
+# Output Structure:
+
+```
+{
+    "points": string[]
+}
+```
+
 Example:
 
 ```
 {
-    "blocks": [
-        {
-            "points": [
-                "Q3 roadmap finalized",
-                "Team focus shifted to AI integration",
-                "John: R&D budget increased by 15%",
-                "Sarah: New UX designer to be hired by month-end",
-                "Peggie: v2.0 beta testing scheduled for August",
-                "Tim: Customer feedback survey launching next week",
-                "Team to discuss AI-native workspace products"
-            ]
-        }
+    "points": [
+        "Q3 roadmap finalized",
+        "Team focus shifted to AI integration",
+        "John: R&D budget increased by 15%",
+        "Sarah: New UX designer to be hired by month-end",
+        "Peggie: v2.0 beta testing scheduled for August",
+        "Tim: Customer feedback survey launching next week",
+        "Team to discuss AI-native workspace products"
     ]
 }
 ```

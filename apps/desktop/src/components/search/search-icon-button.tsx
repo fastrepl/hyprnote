@@ -6,7 +6,7 @@ export function SearchIconButton() {
 
   return (
     <button
-      className="flex items-center justify-center rounded-md p-1 text-sm font-medium ring-offset-background transition-colors duration-200 hover:bg-neutral-200 sm:hidden"
+      className="flex items-center justify-center rounded-md p-1 text-sm font-medium text-neutral-600 ring-offset-background transition-colors duration-200 hover:bg-neutral-200 sm:hidden"
       onClick={open}
     >
       <SearchIcon className="h-4 w-4" />

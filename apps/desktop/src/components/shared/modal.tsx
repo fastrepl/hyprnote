@@ -85,7 +85,7 @@ export default function Modal({
             quickActions={
               pathname.includes("note")
                 ? ["List action items", "Write follow-up email", "List Q&A"]
-                : ["List action items", "Recap last meeting", "Summarize today"]
+                : ["What should I do?", "Recap last meeting", "Summarize today"]
             }
             onSubmit={onSubmit}
             onInputChange={onInputChange}

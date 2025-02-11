@@ -24,8 +24,8 @@ export default function UpcomingEvents({ events }: { events: Event[] }) {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="absolute left-0 top-1/2 z-10 hover:bg-secondary/90" />
-        <CarouselNext className="absolute right-0 top-1/2 z-10 hover:bg-secondary/90" />
+        <CarouselPrevious className="absolute left-0 top-1/2 z-10 hover:bg-neutral-50" />
+        <CarouselNext className="absolute right-0 top-1/2 z-10 hover:bg-neutral-50" />
       </Carousel>
     </div>
   );

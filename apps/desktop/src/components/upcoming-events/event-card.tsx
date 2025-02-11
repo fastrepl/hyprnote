@@ -50,7 +50,7 @@ export function EventCard({ event }: EventCardProps) {
   const getEventStatusClass = (event: Event) => {
     return isEventInProgress(event)
       ? "rounded-full bg-red-500/20 px-2 py-0.5 text-xs font-medium text-red-600 shadow-sm shadow-red-500/20 animate-[pulse_1.5s_ease-in-out_infinite]"
-      : "rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary";
+      : "rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600";
   };
 
   function formatRemainingTime(date: Date): string {

@@ -1,7 +1,11 @@
 type Input = hypr_bridge::LiveSummaryRequest;
+type Output = hypr_bridge::LiveSummaryResponse;
 
 impl crate::OpenAIRequest for Input {
     fn as_openai_request(&self) -> Result<hypr_openai::CreateChatCompletionRequest, crate::Error> {
+        let schema = schemars::schema_for!(Output);
+        let schema_value = serde_json::to_value(&schema)?;
+
         let system_prompt = crate::render(
             crate::Template::LiveSummarySystem,
             &crate::Context::from_serialize(self)?,
@@ -30,27 +34,7 @@ impl crate::OpenAIRequest for Input {
                     name: "live_summary".to_string(),
                     description: None,
                     strict: Some(true),
-                    schema: Some(serde_json::json!({
-                        "type": "object",
-                        "properties": {
-                            "blocks": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "points": {
-                                            "type": "array",
-                                            "items": { "type": "string" }
-                                        }
-                                    },
-                                    "required": ["points"],
-                                    "additionalProperties": false
-                                }
-                            }
-                        },
-                        "required": ["blocks"],
-                        "additionalProperties": false
-                    })),
+                    schema: Some(schema_value),
                 },
             }),
             temperature: Some(0.1),

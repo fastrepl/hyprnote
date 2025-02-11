@@ -5,6 +5,7 @@ macro_rules! common_derives {
         #[derive(
             Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type, schemars::JsonSchema,
         )]
+        #[schemars(deny_unknown_fields)]
         $item
     };
 }

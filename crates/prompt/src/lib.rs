@@ -45,8 +45,10 @@ lazy_static::lazy_static! {
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Tera error: {0}")]
+    #[error("tera error: {0}")]
     Tera(#[from] tera::Error),
+    #[error("serde_json error: {0}")]
+    SerdeJson(#[from] serde_json::Error),
 }
 
 pub enum Template {

@@ -16,6 +16,7 @@ chrono = { workspace = true }
 codes-iso-639 = { workspace = true }
 dotenv = { workspace = true }
 lazy_static = "1.5.0"
+schemars = { workspace = true }
 tera = { version = "1", default-features = false }
 thiserror = { workspace = true }
 

@@ -1,7 +1,11 @@
 type Input = hypr_bridge::CreateTitleRequest;
+type Output = hypr_bridge::CreateTitleResponse;
 
 impl crate::OpenAIRequest for Input {
     fn as_openai_request(&self) -> Result<hypr_openai::CreateChatCompletionRequest, crate::Error> {
+        let schema = schemars::schema_for!(Output);
+        let schema_value = serde_json::to_value(&schema)?;
+
         let system_prompt = crate::render(
             crate::Template::CreateTitleSystem,
             &crate::Context::from_serialize(self)?,
@@ -30,14 +34,7 @@ impl crate::OpenAIRequest for Input {
                     strict: Some(true),
                     name: "create_title".to_string(),
                     description: None,
-                    schema: Some(serde_json::json!({
-                        "type": "object",
-                        "properties": {
-                            "title": { "type": "string" }
-                        },
-                        "required": ["title"],
-                        "additionalProperties": false
-                    })),
+                    schema: Some(schema_value),
                 },
             }),
             temperature: Some(0.1),

@@ -8211,6 +8211,7 @@ dependencies = [
  "lazy_static",
  "markdown",
  "openai",
+ "schemars",
  "serde",
  "serde_json",
  "template",

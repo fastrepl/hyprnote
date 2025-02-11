@@ -1,6 +1,6 @@
-import { motion } from "motion/react";
 import type { Message } from "@/types";
 import { useLocation } from "@tanstack/react-router";
+import { motion } from "motion/react";
 import Header from "./header";
 import HistoryView from "./history-view";
 import MessageView from "./message-view";
@@ -49,33 +49,11 @@ export default function Modal({
 
   return (
     <motion.div
-      key="modal"
-      initial={{ width: 56, height: 56, opacity: 0, y: 20 }}
-      animate={{
-        width: 420,
-        height: "auto",
-        opacity: 1,
-        y: 0,
-        transition: {
-          width: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
-          height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
-          opacity: { duration: 0.2 },
-          y: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
-        },
-      }}
-      exit={{
-        width: 56,
-        height: 56,
-        opacity: 0,
-        y: 20,
-        transition: {
-          width: { duration: 0.2, ease: [0.4, 0, 1, 1] },
-          height: { duration: 0.2, ease: [0.4, 0, 1, 1] },
-          opacity: { duration: 0.15 },
-          y: { duration: 0.2, ease: [0.4, 0, 1, 1] },
-        },
-      }}
-      className="flex origin-bottom-right flex-col rounded-xl border bg-white shadow-2xl transition-[height] duration-200"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      transition={{ duration: 0.2 }}
+      className="animate-fade-in flex origin-bottom-right flex-col rounded-xl border bg-white shadow-2xl"
       style={{
         maxHeight: "80vh",
         minHeight: 240,

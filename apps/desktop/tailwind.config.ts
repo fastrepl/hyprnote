@@ -1,7 +1,9 @@
 import type { Config } from "tailwindcss";
 import UI from "@hypr/ui/tailwind.config";
 import Tiptap from "@hypr/tiptap/editor/tailwind.config";
+import typography from "@tailwindcss/typography";
 
+/** @type {import('tailwindcss').Config} */
 const config = {
   ...UI,
   content: [
@@ -10,7 +12,12 @@ const config = {
     "src/**/*.{js,ts,jsx,tsx}",
     "index.html",
   ],
-  plugins: [...UI.plugins, require("@tailwindcss/typography")],
+  theme: {
+    extend: {
+      ...UI.theme?.extend,
+    },
+  },
+  plugins: [...UI.plugins, typography],
 } satisfies Config;
 
 export default config;

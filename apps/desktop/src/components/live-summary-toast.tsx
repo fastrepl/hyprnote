@@ -16,25 +16,30 @@ export default function LiveSummaryToast({
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
-          return 0;
+          clearInterval(interval);
+          return prev;
         }
         return prev + 1;
       });
-    }, 100);
+    }, 50);
 
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <motion.div
-      key="live-summary"
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{
-        duration: 0.15,
-        ease: "easeOut",
-      }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      transition={{ duration: 0.2 }}
       className="relative flex w-[420px] flex-col overflow-hidden rounded-xl border bg-white shadow-2xl"
     >
       <div className="flex flex-1 flex-col p-4">

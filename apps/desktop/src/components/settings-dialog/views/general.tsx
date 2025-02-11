@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
+import { Trans } from "@lingui/react/macro";
 
 import {
   Form,
@@ -25,7 +26,6 @@ import { Switch } from "@hypr/ui/components/ui/switch";
 import { Badge } from "@hypr/ui/components/ui/badge";
 
 import { commands, type ConfigGeneral } from "@/types";
-import { Trans } from "@lingui/react/macro";
 import { cn } from "@/utils";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
@@ -125,7 +125,6 @@ export default function General() {
     queryKey: ["config", "general"],
     queryFn: async () => {
       const result = await commands.getConfig();
-      console.log(result);
       return result;
     },
   });
@@ -134,10 +133,8 @@ export default function General() {
     resolver: zodResolver(schema),
     values: {
       autostart: config.data?.general.autostart ?? false,
-      displayLanguage: (config.data?.general.display_language ??
-        "en") as ISO_639_1_CODE,
-      speechLanguage: (config.data?.general.speech_language ??
-        "en") as ISO_639_1_CODE,
+      displayLanguage: config.data?.general.display_language ?? "en",
+      speechLanguage: config.data?.general.speech_language ?? "en",
       jargons: (config.data?.general.jargons ?? []).join(", "),
       tags: config.data?.general.tags ?? [],
     },
@@ -145,7 +142,6 @@ export default function General() {
 
   const mutation = useMutation({
     mutationFn: async (v: Schema) => {
-      console.log(config.data);
       if (!config.data) {
         console.error("cannot mutate config because it is not loaded");
         return;
@@ -153,19 +149,20 @@ export default function General() {
 
       const nextGeneral: ConfigGeneral = {
         autostart: v.autostart ?? true,
-        speech_language: (v.speechLanguage ?? "en") as ISO_639_1_CODE,
-        display_language: (v.displayLanguage ?? "en") as ISO_639_1_CODE,
+        speech_language: v.speechLanguage,
+        display_language: v.displayLanguage,
         jargons: v.jargons.split(",").map((jargon) => jargon.trim()),
-        tags: [],
+        tags: v.tags,
       };
 
-      console.log(nextGeneral);
-
-      await commands.setConfig({
-        user_id: config.data.user_id,
-        general: nextGeneral,
-        notification: config.data.notification,
-      });
+      try {
+        await commands.setConfig({
+          ...config.data,
+          general: nextGeneral,
+        });
+      } catch (e) {
+        console.error(e);
+      }
     },
   });
 

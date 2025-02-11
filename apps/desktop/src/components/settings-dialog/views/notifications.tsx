@@ -54,11 +54,14 @@ export default function NotificationsComponent() {
         return;
       }
 
-      await commands.setConfig({
-        user_id: config.data.user_id,
-        general: config.data.general,
-        notification: newNotification,
-      });
+      try {
+        await commands.setConfig({
+          ...config.data,
+          notification: newNotification,
+        });
+      } catch (e) {
+        console.error(e);
+      }
     },
   });
 

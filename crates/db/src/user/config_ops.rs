@@ -26,12 +26,14 @@ impl UserDatabase {
         self.conn
             .execute(
                 "INSERT OR REPLACE INTO configs (
+                    id,
                     user_id,
                     general,
                     notification
-                ) VALUES (?, ?, ?)",
+                ) VALUES (?, ?, ?, ?)",
                 vec![
-                    config.user_id.into(),
+                    config.id.clone().into(),
+                    config.user_id.clone().into(),
                     serde_json::to_string(&config.general)?,
                     serde_json::to_string(&config.notification)?,
                 ],
@@ -58,14 +60,18 @@ mod tests {
             .unwrap();
 
         db.set_config(Config {
+            id: uuid::Uuid::new_v4().to_string(),
             user_id: human.id.clone(),
             general: ConfigGeneral::default(),
-            notification: ConfigNotification::default(),
+            notification: ConfigNotification {
+                before: false,
+                ..ConfigNotification::default()
+            },
         })
         .await
         .unwrap();
 
         let config = db.get_config(human.id).await.unwrap().unwrap();
-        assert_eq!(config.general, ConfigGeneral::default());
+        assert_eq!(config.notification.before, false);
     }
 }

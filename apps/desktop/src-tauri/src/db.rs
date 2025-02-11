@@ -132,6 +132,7 @@ pub mod commands {
             Some(config) => Ok(config),
             None => {
                 let config = hypr_db::user::Config {
+                    id: uuid::Uuid::new_v4().to_string(),
                     user_id: user_id.to_string(),
                     general: hypr_db::user::ConfigGeneral::default(),
                     notification: hypr_db::user::ConfigNotification::default(),
@@ -148,7 +149,6 @@ pub mod commands {
         state: State<'_, App>,
         config: hypr_db::user::Config,
     ) -> Result<(), String> {
-        let user_id = &state.user_id;
         Ok(state
             .db
             .set_config(config)

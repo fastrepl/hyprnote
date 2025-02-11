@@ -61,13 +61,10 @@ export default function ProfileComponent() {
       }
 
       const newHuman: Human = {
-        id: config.data.human.id,
-        organization_id: config.data.organization.id,
-        is_user: true,
+        ...config.data.human,
         full_name: v.fullName ?? null,
         job_title: v.jobTitle ?? null,
         linkedin_username: v.linkedinUserName ?? null,
-        email: config.data.human.email,
       };
 
       const newOrganization: Organization = {

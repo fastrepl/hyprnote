@@ -1,15 +1,19 @@
 use super::{Event, Human, UserDatabase};
 
 impl UserDatabase {
-    pub async fn get_event(&self, id: impl Into<String>) -> Result<Event, crate::Error> {
+    pub async fn get_event(&self, id: impl Into<String>) -> Result<Option<Event>, crate::Error> {
         let mut rows = self
             .conn
             .query("SELECT * FROM events WHERE id = ?", vec![id.into()])
             .await?;
 
-        let row = rows.next().await?.unwrap();
-        let event: Event = libsql::de::from_row(&row)?;
-        Ok(event)
+        match rows.next().await? {
+            None => Ok(None),
+            Some(row) => {
+                let event: Event = libsql::de::from_row(&row)?;
+                Ok(Some(event))
+            }
+        }
     }
 
     pub async fn upsert_event(&self, event: Event) -> Result<Event, crate::Error> {

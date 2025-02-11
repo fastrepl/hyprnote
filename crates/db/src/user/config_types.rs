@@ -6,6 +6,7 @@ use crate::user_common_derives;
 
 user_common_derives! {
     pub struct Config {
+        pub id: String,
         pub user_id: String,
         pub general: ConfigGeneral,
         pub notification: ConfigNotification,
@@ -15,9 +16,10 @@ user_common_derives! {
 impl Config {
     pub fn from_row<'de>(row: &'de libsql::Row) -> Result<Self, serde::de::value::Error> {
         Ok(Self {
-            user_id: row.get(0).expect("user_id"),
+            id: row.get(0).expect("id"),
+            user_id: row.get(1).expect("user_id"),
             general: row
-                .get_str(1)
+                .get_str(2)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap_or_default(),
             notification: row

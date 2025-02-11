@@ -149,6 +149,27 @@ pub async fn main() {
         db
     };
 
+    // TODO
+    let user_id = {
+        #[cfg(debug_assertions)]
+        {
+            db.list_humans()
+                .await
+                .unwrap()
+                .iter()
+                .find(|h| h.is_user)
+                .unwrap()
+                .id
+                .clone()
+        }
+
+        #[cfg(not(debug_assertions))]
+        {
+            // TODO
+            "human_id".to_string()
+        }
+    };
+
     builder
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
@@ -156,9 +177,6 @@ pub async fn main() {
         })
         .setup(move |app| {
             let app = app.handle().clone();
-
-            // TODO
-            let user_id = "human_id".to_string();
 
             specta_builder.mount_events(&app);
 

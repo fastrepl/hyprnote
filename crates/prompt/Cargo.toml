@@ -15,7 +15,6 @@ serde_json = { workspace = true }
 chrono = { workspace = true }
 codes-iso-639 = { workspace = true }
 dotenv = { workspace = true }
-indoc = { workspace = true }
 lazy_static = "1.5.0"
 tera = { version = "1", default-features = false }
 thiserror = { workspace = true }

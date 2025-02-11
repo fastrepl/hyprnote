@@ -79,8 +79,21 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
                     hypr_db::user::UserDatabase::from(conn)
                 };
 
-                for event in events {
-                    let _ = user_db.upsert_event(event.into()).await;
+                for e in events {
+                    // TODO
+
+                    // let event = hypr_db::user::Event {
+                    //     id: uuid::Uuid::new_v4().to_string(),
+                    //     tracking_id: e.id.clone(),
+                    //     user_id: user_id.clone(),
+                    //     calendar_id: calendar.id.clone(),
+                    //     name: e.name.clone(),
+                    //     note: e.note.clone(),
+                    //     start_date: e.start_date,
+                    //     end_date: e.end_date,
+                    //     google_event_url: None,
+                    // };
+                    // let _ = user_db.upsert_event(event).await;
                 }
             }
         }

@@ -221,6 +221,10 @@ fn main() {
                 ));
 
             let native_router = ApiRouter::new()
+                .route(
+                    "/chat/completions",
+                    post(native::openai::handler).layer(TimeoutLayer::new(Duration::from_secs(10))),
+                )
                 .api_route(
                     "/user/integrations",
                     api_get(native::user::list_integrations),

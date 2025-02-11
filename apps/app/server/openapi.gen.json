@@ -8,6 +8,41 @@
     "/health": {
       "get": {}
     },
+    "/api/native/user/integrations": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NangoIntegration"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/native/subscription": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/native/create_title": {
       "post": {
         "requestBody": {
@@ -86,22 +121,6 @@
         }
       }
     },
-    "/api/native/subscription": {
-      "get": {
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Subscription"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/web/connect": {
       "post": {
         "requestBody": {
@@ -163,22 +182,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/NangoConnectSessionResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/web/subscription": {
-      "get": {
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Subscription"
                 }
               }
             }
@@ -446,6 +449,13 @@
           }
         ]
       },
+      "NangoIntegration": {
+        "type": "string",
+        "enum": [
+          "google-calendar",
+          "outlook-calendar"
+        ]
+      },
       "PostprocessEnhanceRequest": {
         "type": "object",
         "required": [
@@ -475,7 +485,8 @@
           "id",
           "raw_memo_html",
           "timestamp",
-          "title"
+          "title",
+          "user_id"
         ],
         "properties": {
           "audio_local_path": {
@@ -519,6 +530,9 @@
             "format": "date-time"
           },
           "title": {
+            "type": "string"
+          },
+          "user_id": {
             "type": "string"
           }
         }

@@ -1,4 +1,3 @@
-mod common;
 mod middleware;
 mod nango;
 mod native;
@@ -215,7 +214,6 @@ fn main() {
                         ),
                     ),
                 )
-                .api_route("/subscription", api_get(common::subscription::handler))
                 .layer(ClerkLayer::new(
                     MemoryCacheJwksProvider::new(clerk),
                     None,
@@ -223,15 +221,11 @@ fn main() {
                 ));
 
             let native_router = ApiRouter::new()
-                .route(
-                    "/enhance",
-                    post(native::enhance::handler)
-                        .layer(TimeoutLayer::new(Duration::from_secs(20)))
-                        .layer(axum::middleware::from_fn_with_state(
-                            AuthState::from_ref(&state),
-                            middleware::check_membership("pro".to_string()),
-                        )),
+                .api_route(
+                    "/user/integrations",
+                    api_get(native::user::list_integrations),
                 )
+                .api_route("/subscription", api_get(native::subscription::handler))
                 .api_route(
                     "/create_title",
                     api_post(native::create_title::handler)
@@ -247,12 +241,17 @@ fn main() {
                     api_post(native::postprocess_enhance::handler)
                         .layer(TimeoutLayer::new(Duration::from_secs(10))),
                 )
+                .route(
+                    "/enhance",
+                    post(native::enhance::handler)
+                        .layer(TimeoutLayer::new(Duration::from_secs(20)))
+                        .layer(axum::middleware::from_fn_with_state(
+                            AuthState::from_ref(&state),
+                            middleware::check_membership("pro".to_string()),
+                        )),
+                )
                 .route("/listen/realtime", get(native::listen::realtime::handler))
-                .route("/listen/recorded", post(native::listen::recorded::handler))
-                .route("/user/integrations", get(native::user::list_integrations))
-                .route("/upload/create", post(native::upload::create_upload))
-                .route("/upload/complete", post(native::upload::complete_upload))
-                .api_route("/subscription", api_get(common::subscription::handler));
+                .route("/listen/recorded", post(native::listen::recorded::handler));
             // .layer(
             //     tower::builder::ServiceBuilder::new()
             //         .layer(axum::middleware::from_fn_with_state(

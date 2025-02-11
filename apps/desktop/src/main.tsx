@@ -10,7 +10,7 @@ import { routeTree } from "./routeTree.gen";
 
 import { ThemeProvider } from "@hypr/ui/contexts/theme";
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
-import { WindowProvider, HyprProvider } from "./contexts";
+import { WindowProvider } from "./contexts";
 import { useTauriStore } from "./stores/tauri";
 import { AuthContext, AuthProvider, useAuth } from "./auth";
 
@@ -92,21 +92,19 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <CatchBoundary getResetKey={() => "error"} errorComponent={ErrorComponent}>
-      <HyprProvider>
-        <TooltipProvider delayDuration={700} skipDelayDuration={300}>
-          <ThemeProvider defaultTheme="light">
-            <WindowProvider>
-              <QueryClientProvider client={queryClient}>
-                <AuthProvider>
-                  <I18nProvider i18n={i18n}>
-                    <App />
-                  </I18nProvider>
-                </AuthProvider>
-              </QueryClientProvider>
-            </WindowProvider>
-          </ThemeProvider>
-        </TooltipProvider>
-      </HyprProvider>
+      <TooltipProvider delayDuration={700} skipDelayDuration={300}>
+        <ThemeProvider defaultTheme="light">
+          <WindowProvider>
+            <QueryClientProvider client={queryClient}>
+              <AuthProvider>
+                <I18nProvider i18n={i18n}>
+                  <App />
+                </I18nProvider>
+              </AuthProvider>
+            </QueryClientProvider>
+          </WindowProvider>
+        </ThemeProvider>
+      </TooltipProvider>
     </CatchBoundary>,
   );
 }

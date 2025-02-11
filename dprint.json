@@ -29,7 +29,8 @@
     "**/*.gen.*",
     "**/dist",
     "**/target",
-    "**/public"
+    "**/public",
+    "**/generated/**"
   ],
   "exec": {
     "cwd": "${configDir}",

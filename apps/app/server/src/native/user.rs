@@ -1,11 +1,12 @@
-use axum::{extract::State, http::StatusCode, response::IntoResponse, Extension, Json};
+use axum::{extract::State, http::StatusCode, Extension, Json};
+use hypr_nango::NangoIntegration;
 
 use crate::state::AppState;
 
 pub async fn list_integrations(
     State(state): State<AppState>,
     Extension(user): Extension<hypr_db::admin::User>,
-) -> Result<impl IntoResponse, StatusCode> {
+) -> Result<Json<Vec<NangoIntegration>>, StatusCode> {
     let integrations = state
         .admin_db
         .list_integrations(user.id)

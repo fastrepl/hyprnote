@@ -65,6 +65,8 @@ export type NangoConnectSessionResponse = {
     };
 };
 
+export type NangoIntegration = 'google-calendar' | 'outlook-calendar';
+
 export type PostprocessEnhanceRequest = {
     editor: string;
 };
@@ -83,6 +85,7 @@ export type Session = {
     raw_memo_html: string;
     timestamp: string;
     title: string;
+    user_id: string;
 };
 
 export type Subscription = {
@@ -114,6 +117,32 @@ export type GetHealthData = {
     query?: never;
     url: '/health';
 };
+
+export type GetApiNativeUserIntegrationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/native/user/integrations';
+};
+
+export type GetApiNativeUserIntegrationsResponses = {
+    200: Array<NangoIntegration>;
+};
+
+export type GetApiNativeUserIntegrationsResponse = GetApiNativeUserIntegrationsResponses[keyof GetApiNativeUserIntegrationsResponses];
+
+export type GetApiNativeSubscriptionData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/native/subscription';
+};
+
+export type GetApiNativeSubscriptionResponses = {
+    200: Subscription;
+};
+
+export type GetApiNativeSubscriptionResponse = GetApiNativeSubscriptionResponses[keyof GetApiNativeSubscriptionResponses];
 
 export type PostApiNativeCreateTitleData = {
     body: CreateTitleRequest;
@@ -154,19 +183,6 @@ export type PostApiNativePostprocessEnhanceResponses = {
 
 export type PostApiNativePostprocessEnhanceResponse = PostApiNativePostprocessEnhanceResponses[keyof PostApiNativePostprocessEnhanceResponses];
 
-export type GetApiNativeSubscriptionData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/native/subscription';
-};
-
-export type GetApiNativeSubscriptionResponses = {
-    200: Subscription;
-};
-
-export type GetApiNativeSubscriptionResponse = GetApiNativeSubscriptionResponses[keyof GetApiNativeSubscriptionResponses];
-
 export type PostApiWebConnectData = {
     body: ConnectInput;
     path?: never;
@@ -205,19 +221,6 @@ export type PostApiWebIntegrationConnectionResponses = {
 };
 
 export type PostApiWebIntegrationConnectionResponse = PostApiWebIntegrationConnectionResponses[keyof PostApiWebIntegrationConnectionResponses];
-
-export type GetApiWebSubscriptionData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/web/subscription';
-};
-
-export type GetApiWebSubscriptionResponses = {
-    200: Subscription;
-};
-
-export type GetApiWebSubscriptionResponse = GetApiWebSubscriptionResponses[keyof GetApiWebSubscriptionResponses];
 
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});

@@ -19,9 +19,12 @@ import {
   SelectValue,
 } from "@hypr/ui/components/ui/select";
 
-import { useHypr } from "@/contexts";
-import { type Calendar, commands } from "@/types";
-import type { CalendarIntegration } from "@/types";
+import { commands, type Calendar, type CalendarIntegration } from "@/types";
+import {
+  client,
+  getApiNativeUserIntegrationsOptions,
+  getIntegrationURL,
+} from "@/client";
 
 const supportedIntegrations: CalendarIntegration[] = [
   "apple-calendar",
@@ -166,13 +169,8 @@ function OauthCalendarIntegrationDetails({
 }: {
   type: Exclude<CalendarIntegration, "apple-calendar">;
 }) {
-  const { client } = useHypr();
   const integrations = useQuery({
-    queryKey: ["settings", "integration"],
-    queryFn: async () => {
-      const integrations = await client.listIntegrations();
-      return integrations;
-    },
+    ...getApiNativeUserIntegrationsOptions({ client }),
   });
 
   const integration = integrations.data?.find((i) => i === type);
@@ -188,7 +186,7 @@ function OauthCalendarIntegrationDetails({
         ) : (
           <Trans>
             To connect your Calendar, you need to{" "}
-            <a href={client.getIntegrationURL(type)} className="underline">
+            <a href={getIntegrationURL(type)} className="underline">
               authorize Hypr to access your calendar.
             </a>
           </Trans>

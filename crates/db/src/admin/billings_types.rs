@@ -4,7 +4,9 @@ admin_common_derives! {
     pub struct Billing {
         pub id: String,
         pub organization_id: String,
+        #[schemars(skip)]
         pub stripe_subscription: Option<stripe::Subscription>,
+        #[schemars(skip)]
         pub stripe_customer: Option<stripe::Customer>,
     }
 }

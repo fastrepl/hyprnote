@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
-import { useHypr } from "@/contexts";
 import type { EnhanceRequest } from "@/types";
+import { enhance } from "@/client";
 
 type EnhanceStatus = "idle" | "loading" | "error" | "success";
 
@@ -10,7 +10,6 @@ export function useEnhance(input: EnhanceRequest) {
   const [status, setStatus] = useState<EnhanceStatus>("idle");
   const [error, setError] = useState<undefined | Error>(undefined);
 
-  const { client } = useHypr();
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const stop = useCallback(() => {
@@ -32,7 +31,7 @@ export function useEnhance(input: EnhanceRequest) {
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
-      const stream = client.enhance(input);
+      const stream = enhance(input);
       const reader = stream.getReader();
       const decoder = new TextDecoder();
 

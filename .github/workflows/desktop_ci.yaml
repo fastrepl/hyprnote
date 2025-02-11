@@ -22,6 +22,7 @@ jobs:
           version: 9.15.0
       - run: pnpm install
       - run: pnpm -F desktop build
+      - run: pnpm -F client generate
       - run: pnpm -F desktop lingui:compile
       - run: |
           sudo apt-get update

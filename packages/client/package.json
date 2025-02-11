@@ -9,7 +9,7 @@
     "./gen/tanstack": "./generated/@tanstack/react-query.gen.ts"
   },
   "scripts": {
-    "generate": "openapi-ts"
+    "generate": "openapi-ts && git diff --exit-code generated/"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.64.1"

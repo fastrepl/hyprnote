@@ -70,32 +70,33 @@ impl UserDatabase {
         let mut rows = self
             .conn
             .query(
-                "INSERT INTO sessions (
+                "INSERT OR REPLACE INTO sessions (
                     id,
+                    user_id,
                     timestamp,
                     calendar_event_id,
                     title,
                     raw_memo_html,
                     enhanced_memo_html,
                     conversations
-                ) VALUES (:id, :timestamp, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :conversations) 
-                ON CONFLICT(id) DO UPDATE SET
-                    timestamp = :timestamp,
-                    title = :title,
-                    raw_memo_html = :raw_memo_html,
-                    enhanced_memo_html = :enhanced_memo_html,
-                    conversations = :conversations
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 RETURNING *",
-                libsql::named_params! {
-                    ":id": libsql::Value::Text(session.id),
-                    ":timestamp": libsql::Value::Text(session.timestamp.to_rfc3339()),
-                    ":calendar_event_id": session.calendar_event_id.map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
-                    ":title": libsql::Value::Text(session.title),
-                    ":raw_memo_html": libsql::Value::Text(session.raw_memo_html),
-                    ":enhanced_memo_html": session.enhanced_memo_html.map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
-                    ":conversations": libsql::Value::Text(serde_json::to_string(&session.conversations).unwrap()),
-                },
-            ).await?;
+                vec![
+                    libsql::Value::Text(session.id),
+                    libsql::Value::Text(session.user_id),
+                    libsql::Value::Text(session.timestamp.to_rfc3339()),
+                    session
+                        .calendar_event_id
+                        .map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
+                    libsql::Value::Text(session.title),
+                    libsql::Value::Text(session.raw_memo_html),
+                    session
+                        .enhanced_memo_html
+                        .map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
+                    libsql::Value::Text(serde_json::to_string(&session.conversations).unwrap()),
+                ],
+            )
+            .await?;
 
         let row = rows.next().await?.unwrap();
         let session = Session::from_row(&row)?;
@@ -119,7 +120,7 @@ impl UserDatabase {
 
 #[cfg(test)]
 mod tests {
-    use crate::user::{tests::setup_db, Session};
+    use crate::user::{tests::setup_db, Human, Session};
 
     #[tokio::test]
     async fn test_sessions() {
@@ -128,11 +129,25 @@ mod tests {
         let sessions = db.list_sessions(None).await.unwrap();
         assert_eq!(sessions.len(), 0);
 
+        let user = db
+            .upsert_human(Human {
+                full_name: Some("John Doe".to_string()),
+                ..Human::default()
+            })
+            .await
+            .unwrap();
+
         let session = Session {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            timestamp: chrono::Utc::now(),
+            calendar_event_id: None,
             title: "test".to_string(),
             raw_memo_html: "raw_memo_html_1".to_string(),
             conversations: vec![],
-            ..Session::default()
+            audio_local_path: None,
+            audio_remote_path: None,
+            enhanced_memo_html: None,
         };
 
         let mut session = db.upsert_session(session).await.unwrap();

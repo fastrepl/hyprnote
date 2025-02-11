@@ -41,7 +41,14 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
         ..Human::default()
     };
 
-    let participants = vec![yujong, bobby, minjae, john, alex, jenny];
+    let participants = vec![
+        yujong.clone(),
+        bobby.clone(),
+        minjae.clone(),
+        john.clone(),
+        alex.clone(),
+        jenny.clone(),
+    ];
 
     let calendars = vec![Calendar {
         id: uuid::Uuid::new_v4().to_string(),
@@ -86,33 +93,50 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
 
     let sessions = vec![
         Session {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: yujong.clone().id,
             title: "Session 1".to_string(),
+            timestamp: now,
+            calendar_event_id: Some(events[0].id.clone()),
+            audio_local_path: None,
+            audio_remote_path: None,
+            raw_memo_html: "".to_string(),
+            enhanced_memo_html: None,
             conversations: vec![],
-            ..Session::default()
         },
         Session {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: yujong.clone().id,
             title: "Session 2".to_string(),
+            timestamp: now + chrono::Duration::days(1),
+            calendar_event_id: Some(events[1].id.clone()),
+            audio_local_path: None,
+            audio_remote_path: None,
+            raw_memo_html: "".to_string(),
+            enhanced_memo_html: None,
             conversations: vec![],
-            ..Session::default()
         },
     ];
 
+    for participant in participants.clone() {
+        let _ = db.upsert_human(participant).await?;
+    }
+
     for calendar in calendars {
-        let _ = db.upsert_calendar(calendar).await.unwrap();
+        let _ = db.upsert_calendar(calendar).await?;
     }
 
     for event in events {
-        let _ = db.upsert_event(event.clone()).await.unwrap();
+        let _ = db.upsert_event(event.clone()).await?;
         for participant in participants.iter() {
             let _ = db
                 .add_participant(event.id.clone(), participant.id.clone())
-                .await
-                .unwrap();
+                .await?;
         }
     }
 
     for session in sessions {
-        let _ = db.upsert_session(session).await.unwrap();
+        let _ = db.upsert_session(session).await?;
     }
 
     Ok(())

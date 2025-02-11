@@ -61,6 +61,7 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
     let events = vec![
         Event {
             id: uuid::Uuid::new_v4().to_string(),
+            user_id: yujong.clone().id,
             tracking_id: "event_1".to_string(),
             calendar_id: calendars[0].id.clone(),
             name: "User Interview with Alex".to_string(),
@@ -71,6 +72,7 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
         },
         Event {
             id: uuid::Uuid::new_v4().to_string(),
+            user_id: yujong.clone().id,
             tracking_id: "event_2".to_string(),
             calendar_id: calendars[0].id.clone(),
             name: "Seed round pitch - Krew Capital".to_string(),
@@ -81,6 +83,7 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
         },
         Event {
             id: uuid::Uuid::new_v4().to_string(),
+            user_id: yujong.clone().id,
             tracking_id: "event_3".to_string(),
             calendar_id: calendars[0].id.clone(),
             name: "Event 3".to_string(),

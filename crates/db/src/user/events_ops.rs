@@ -18,6 +18,7 @@ impl UserDatabase {
             .query(
                 "INSERT INTO events (
                     id,
+                    user_id,
                     tracking_id,
                     calendar_id,
                     name,
@@ -27,6 +28,7 @@ impl UserDatabase {
                     google_event_url
                 ) VALUES (
                     :id,
+                    :user_id,
                     :tracking_id,
                     :calendar_id,
                     :name,
@@ -43,6 +45,7 @@ impl UserDatabase {
                 RETURNING *",
                 libsql::named_params! {
                     ":id": event.id,
+                    ":user_id": event.user_id,
                     ":tracking_id": event.tracking_id,
                     ":calendar_id": event.calendar_id,
                     ":name": event.name,
@@ -147,8 +150,17 @@ mod tests {
         let calendar = db.upsert_calendar(calendar.clone()).await.unwrap();
         assert_eq!(calendar.tracking_id, "calendar_test");
 
+        let human = db
+            .upsert_human(Human {
+                full_name: Some("yujonglee".to_string()),
+                ..Human::default()
+            })
+            .await
+            .unwrap();
+
         let event = Event {
             id: uuid::Uuid::new_v4().to_string(),
+            user_id: human.id,
             tracking_id: "event_test".to_string(),
             calendar_id: calendar.id,
             name: "test".to_string(),

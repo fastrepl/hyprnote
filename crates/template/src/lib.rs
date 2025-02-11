@@ -1,6 +1,7 @@
 pub fn auto() -> hypr_db::user::Template {
     hypr_db::user::Template {
         id: "0".to_string(),
+        user_id: "0".to_string(),
         title: "Auto template".to_string(),
         description: "No specific format specified. Just use the available information to write structured content.".to_string(),
         sections: vec![],
@@ -10,6 +11,7 @@ pub fn auto() -> hypr_db::user::Template {
 pub fn standup() -> hypr_db::user::Template {
     hypr_db::user::Template {
         id: "1".to_string(),
+        user_id: "1".to_string(),
         title: "Standup".to_string(),
         description: "Share updates, highlight roadblocks, and align priorities for the day".to_string(),
         sections: vec![
@@ -32,6 +34,7 @@ pub fn standup() -> hypr_db::user::Template {
 pub fn kickoff() -> hypr_db::user::Template {
     hypr_db::user::Template {
         id: "2".to_string(),
+        user_id: "2".to_string(),
         title: "Kickoff".to_string(),
         description: "Align stakeholders and set the tone for a new project or initiative".to_string(),
         sections: vec![

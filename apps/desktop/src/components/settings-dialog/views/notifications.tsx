@@ -49,13 +49,19 @@ export default function NotificationsComponent() {
         auto: v.auto ?? true,
       };
 
+      if (!config.data) {
+        console.error("cannot mutate config because it is not loaded");
+        return;
+      }
+
       await commands.setConfig({
-        // TODO
-        general: config.data?.general!,
+        user_id: config.data.user_id,
+        general: config.data.general,
         notification: newNotification,
       });
     },
   });
+
   useEffect(() => {
     if (mutation.status === "success") {
       queryClient.invalidateQueries({ queryKey: ["config", "notifications"] });

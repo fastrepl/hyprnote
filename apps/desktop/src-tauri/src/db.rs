@@ -48,7 +48,8 @@ pub mod commands {
     #[specta::specta]
     #[tracing::instrument(skip(state))]
     pub async fn list_templates(state: State<'_, App>) -> Result<Vec<hypr_db::user::Template>, ()> {
-        Ok(state.db.list_templates().await.unwrap())
+        let user_id = &state.user_id;
+        Ok(state.db.list_templates(user_id).await.unwrap())
     }
 
     #[tauri::command]

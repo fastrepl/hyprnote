@@ -125,9 +125,19 @@ pub mod commands {
             .db
             .get_config(user_id)
             .await
-            .map_err(|e| e.to_string())?
-            .unwrap_or_default();
-        Ok(config)
+            .map_err(|e| e.to_string())?;
+
+        match config {
+            Some(config) => Ok(config),
+            None => {
+                let config = hypr_db::user::Config {
+                    user_id: user_id.to_string(),
+                    general: hypr_db::user::ConfigGeneral::default(),
+                    notification: hypr_db::user::ConfigNotification::default(),
+                };
+                Ok(config)
+            }
+        }
     }
 
     #[tauri::command]
@@ -136,9 +146,13 @@ pub mod commands {
     pub async fn set_config(
         state: State<'_, App>,
         config: hypr_db::user::Config,
-    ) -> Result<(), ()> {
+    ) -> Result<(), String> {
         let user_id = &state.user_id;
-        Ok(state.db.set_config(user_id, config).await.unwrap())
+        Ok(state
+            .db
+            .set_config(config)
+            .await
+            .map_err(|e| e.to_string())?)
     }
 
     #[tauri::command]

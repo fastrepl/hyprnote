@@ -16,17 +16,13 @@ impl UserDatabase {
         match rows.next().await? {
             None => Ok(None),
             Some(row) => {
-                let config = libsql::de::from_row(&row)?;
+                let config = Config::from_row(&row)?;
                 Ok(Some(config))
             }
         }
     }
 
-    pub async fn set_config(
-        &self,
-        user_id: impl Into<String>,
-        config: Config,
-    ) -> Result<(), crate::Error> {
+    pub async fn set_config(&self, config: Config) -> Result<(), crate::Error> {
         self.conn
             .execute(
                 "INSERT OR REPLACE INTO configs (
@@ -35,7 +31,7 @@ impl UserDatabase {
                     notification
                 ) VALUES (?, ?, ?)",
                 vec![
-                    user_id.into(),
+                    config.user_id.into(),
                     serde_json::to_string(&config.general)?,
                     serde_json::to_string(&config.notification)?,
                 ],
@@ -47,16 +43,29 @@ impl UserDatabase {
 
 #[cfg(test)]
 mod tests {
-    use crate::user::{tests::setup_db, Config, ConfigGeneral};
+    use crate::user::{tests::setup_db, Config, ConfigGeneral, ConfigNotification, Human};
 
     #[tokio::test]
     async fn test_config() {
-        let _db = setup_db().await;
+        let db = setup_db().await;
 
-        // TODO: need user
+        let human = db
+            .upsert_human(Human {
+                full_name: Some("yujonglee".to_string()),
+                ..Human::default()
+            })
+            .await
+            .unwrap();
 
-        // db.set_config(Config::default()).await.unwrap();
-        // let config = db.get_config().await.unwrap().unwrap();
-        // assert_eq!(config.general, ConfigGeneral::default());
+        db.set_config(Config {
+            user_id: human.id.clone(),
+            general: ConfigGeneral::default(),
+            notification: ConfigNotification::default(),
+        })
+        .await
+        .unwrap();
+
+        let config = db.get_config(human.id).await.unwrap().unwrap();
+        assert_eq!(config.general, ConfigGeneral::default());
     }
 }

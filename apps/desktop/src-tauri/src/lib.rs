@@ -157,6 +157,9 @@ pub async fn main() {
         .setup(move |app| {
             let app = app.handle().clone();
 
+            // TODO
+            let user_id = "human_id".to_string();
+
             specta_builder.mount_events(&app);
 
             auth::AuthStore::load(&app).unwrap();
@@ -169,8 +172,7 @@ pub async fn main() {
                     .unwrap();
 
                 app.manage(App {
-                    // TODO
-                    user_id: "human_id".to_string(),
+                    user_id: user_id.clone(),
                     handle: app.clone(),
                     db: db.clone(),
                     bridge: bridge.clone(),
@@ -187,13 +189,12 @@ pub async fn main() {
                 let _ = autostart_manager.enable().unwrap();
             }
 
-            let worker_app = app.clone();
             let worker_db = db.clone();
 
             tokio::spawn(async move {
                 let state = workers::WorkerState {
                     db: worker_db,
-                    app: worker_app,
+                    user_id: user_id.clone(),
                 };
                 let _m = workers::monitor(state).await.unwrap();
             });

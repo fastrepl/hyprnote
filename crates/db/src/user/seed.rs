@@ -52,6 +52,7 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
 
     let calendars = vec![Calendar {
         id: uuid::Uuid::new_v4().to_string(),
+        user_id: yujong.clone().id,
         tracking_id: "calendar_1".to_string(),
         name: "Work".to_string(),
         platform: Platform::Apple,

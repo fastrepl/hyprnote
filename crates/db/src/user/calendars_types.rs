@@ -4,21 +4,10 @@ user_common_derives! {
     pub struct Calendar {
         pub id: String,
         pub tracking_id: String,
+        pub user_id: String,
         pub platform: Platform,
         pub name: String,
         pub selected: bool
-    }
-}
-
-impl From<hypr_calendar::Calendar> for Calendar {
-    fn from(calendar: hypr_calendar::Calendar) -> Self {
-        Calendar {
-            id: uuid::Uuid::new_v4().to_string(),
-            tracking_id: calendar.id,
-            platform: calendar.platform.into(),
-            name: calendar.name,
-            selected: false,
-        }
     }
 }
 

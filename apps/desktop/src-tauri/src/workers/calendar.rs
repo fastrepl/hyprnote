@@ -1,9 +1,9 @@
-use apalis::prelude::Data;
+use apalis::prelude::{Data, Error};
 use chrono::{DateTime, Utc};
 
 use hypr_calendar::CalendarSource;
 
-use super::WorkerState;
+use super::{err_from, WorkerState};
 
 #[allow(unused)]
 #[derive(Default, Debug, Clone)]
@@ -15,7 +15,7 @@ impl From<DateTime<Utc>> for Job {
     }
 }
 
-pub async fn perform(_job: Job, ctx: Data<WorkerState>) {
+pub async fn perform(_job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
     let calendar_access = tauri::async_runtime::spawn_blocking(|| {
         let handle = hypr_calendar::apple::Handle::new();
         handle.calendar_access_status()
@@ -24,21 +24,53 @@ pub async fn perform(_job: Job, ctx: Data<WorkerState>) {
     .unwrap_or(false);
 
     if !calendar_access {
-        return;
+        return Err(err_from("calendar_access_denied"));
     }
 
+    let user_id = ctx.user_id.clone();
     let calendars = list_calendars().await.unwrap_or(vec![]);
+
     for calendar in calendars {
         let _ = ctx
             .db
-            .upsert_calendar(calendar.clone().into())
+            .upsert_calendar(hypr_db::user::Calendar {
+                id: uuid::Uuid::new_v4().to_string(),
+                tracking_id: calendar.id.clone(),
+                user_id: user_id.clone(),
+                name: calendar.name.clone(),
+                platform: calendar.platform.clone().into(),
+                selected: false,
+            })
             .await
             .unwrap();
-        let events = list_events(calendar).await.unwrap_or(vec![]);
+
+        let events: Vec<hypr_db::user::Event> = list_events(calendar.clone())
+            .await
+            .unwrap_or(vec![])
+            .iter()
+            .map(|e| hypr_db::user::Event {
+                id: uuid::Uuid::new_v4().to_string(),
+                tracking_id: e.id.clone(),
+                user_id: user_id.clone(),
+                calendar_id: calendar.id.clone(),
+                name: e.name.clone(),
+                note: e.note.clone(),
+                start_date: e.start_date,
+                end_date: e.end_date,
+                google_event_url: None,
+            })
+            .collect();
+
         for event in events {
-            let _ = ctx.db.upsert_event(event.into()).await.unwrap();
+            let _ = ctx
+                .db
+                .upsert_event(event.into())
+                .await
+                .map_err(|e| err_from(e.to_string()))?;
         }
     }
+
+    Ok(())
 }
 async fn list_calendars() -> Result<Vec<hypr_calendar::Calendar>, String> {
     let mut calendars: Vec<hypr_calendar::Calendar> = Vec::new();

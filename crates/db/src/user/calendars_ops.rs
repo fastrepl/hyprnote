@@ -23,12 +23,14 @@ impl UserDatabase {
                 "INSERT INTO calendars (
                     id,
                     tracking_id,
+                    user_id,
                     name,
                     platform,
                     selected
                 ) VALUES (
                     :id,
                     :tracking_id,
+                    :user_id,
                     :name,
                     :platform,
                     :selected
@@ -40,6 +42,7 @@ impl UserDatabase {
                 libsql::named_params! {
                     ":id": calendar.id,
                     ":tracking_id": calendar.tracking_id,
+                    ":user_id": calendar.user_id,
                     ":name": calendar.name,
                     ":platform": calendar.platform.to_string(),
                     ":selected": calendar.selected,
@@ -56,7 +59,7 @@ impl UserDatabase {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::user::{tests::setup_db, Platform};
+    use crate::user::{tests::setup_db, Calendar, Human, Platform};
 
     #[tokio::test]
     async fn test_calendars() {
@@ -65,9 +68,18 @@ mod tests {
         let calendars = db.list_calendars().await.unwrap();
         assert_eq!(calendars.len(), 0);
 
+        let human = db
+            .upsert_human(Human {
+                full_name: Some("yujonglee".to_string()),
+                ..Human::default()
+            })
+            .await
+            .unwrap();
+
         let input_1 = Calendar {
             id: uuid::Uuid::new_v4().to_string(),
             tracking_id: "test".to_string(),
+            user_id: human.id,
             name: "test".to_string(),
             platform: Platform::Google,
             selected: false,

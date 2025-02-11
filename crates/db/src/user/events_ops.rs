@@ -139,9 +139,18 @@ mod tests {
         let events = db.list_events().await.unwrap();
         assert_eq!(events.len(), 0);
 
+        let human = db
+            .upsert_human(Human {
+                full_name: Some("yujonglee".to_string()),
+                ..Human::default()
+            })
+            .await
+            .unwrap();
+
         let calendar = Calendar {
             id: uuid::Uuid::new_v4().to_string(),
             tracking_id: "calendar_test".to_string(),
+            user_id: human.id,
             name: "test".to_string(),
             platform: Platform::Google,
             selected: false,

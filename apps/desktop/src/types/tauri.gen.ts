@@ -107,21 +107,21 @@ recordingStopped: "recording-stopped"
 
 /** user-defined types **/
 
-export type Calendar = { id: string; tracking_id: string; platform: Platform; name: string; selected: boolean }
-export type Config = { general: ConfigGeneral; notification: ConfigNotification }
+export type Calendar = { id: string; tracking_id: string; user_id: string; platform: Platform; name: string; selected: boolean }
+export type Config = { user_id: string; general: ConfigGeneral; notification: ConfigNotification }
 export type ConfigGeneral = { autostart: boolean; speech_language: string; display_language: string; jargons: string[]; tags: string[] }
 export type ConfigNotification = { before: boolean; auto: boolean }
 export type ConversationChunk = { start: string; end: string; local_audio_path: string; remote_audio_path: string; transcripts: TranscriptChunk[]; diarizations: DiarizationChunk[] }
 export type DiarizationChunk = { start: bigint; end: bigint; speaker: string }
 export type EnhanceRequest = { pre_meeting_editor: string; in_meeting_editor: string; template: Template; config: Config; event: Event | null; participants: Human[]; timeline_view: TimelineView }
-export type Event = { id: string; tracking_id: string; calendar_id: string; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null }
+export type Event = { id: string; user_id: string; tracking_id: string; calendar_id: string; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null }
 export type Human = { id: string; organization_id: string | null; is_user: boolean; full_name: string | null; email: string | null; job_title: string | null; linkedin_username: string | null }
 export type OSPermission = "calendar" | "contacts" | "audioRecording" | "screenRecording" | "microphone" | "accessibility"
 export type Organization = { id: string; name: string; description: string | null }
 export type Platform = "Apple" | "Google"
 export type RecordingStarted = null
 export type RecordingStopped = { path: string }
-export type Session = { id: string; timestamp: string; calendar_event_id: string | null; title: string; audio_local_path: string | null; audio_remote_path: string | null; raw_memo_html: string; enhanced_memo_html: string | null; conversations: ConversationChunk[] }
+export type Session = { id: string; user_id: string; timestamp: string; calendar_event_id: string | null; title: string; audio_local_path: string | null; audio_remote_path: string | null; raw_memo_html: string; enhanced_memo_html: string | null; conversations: ConversationChunk[] }
 export type SessionFilter = { id: string } | { calendarEventId: string } | { tagId: string }
 export type SessionStatus = { Timeline: TimelineView } | "Stopped"
 export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo"

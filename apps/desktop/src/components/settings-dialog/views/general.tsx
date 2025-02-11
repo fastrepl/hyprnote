@@ -162,6 +162,7 @@ export default function General() {
       };
 
       await commands.setConfig({
+        user_id: config.data?.user_id!,
         general: nextGeneral,
         notification: config.data?.notification ?? {
           before: true,

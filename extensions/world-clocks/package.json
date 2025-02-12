@@ -1,0 +1,14 @@
+{
+  "name": "@hypr/extension-world-clocks",
+  "version": "1.0.0",
+  "license": "MIT",
+  "keywords": [],
+  "description": "World Clocks",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "react-clock": "^5.1.0"
+  }
+}

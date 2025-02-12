@@ -170,12 +170,13 @@ function Summary({
   }
 
   return (
-    <div className="text-sm text-neutral-700">
+    <div className="space-y-4 text-sm text-neutral-700">
       {summary.blocks.map((block, index) => (
-        <div key={index}>
+        <div key={index} className="space-y-2">
           {block.points.map((point, index) => (
-            <div key={index}>
-              <div className="text-neutral-900">{point}</div>
+            <div key={index} className="flex items-start gap-2">
+              <div className="mt-1.5 size-1.5 shrink-0 rounded-full bg-neutral-300" />
+              <div className="text-neutral-900 leading-normal">{point}</div>
             </div>
           ))}
         </div>

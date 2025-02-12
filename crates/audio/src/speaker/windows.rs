@@ -22,7 +22,7 @@ impl SpeakerStream {
     }
 }
 
-impl Stream for SpeakerStream {
+impl futures_core::Stream for SpeakerStream {
     type Item = f32;
 
     fn poll_next(

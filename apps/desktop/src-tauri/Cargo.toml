@@ -44,6 +44,7 @@ tauri-plugin-http = "2"
 tauri-plugin-oauth = "2"
 tauri-plugin-os = "2"
 tauri-plugin-positioner = { version = "2", features = ["tray-icon"] }
+tauri-plugin-process = "2"
 tauri-plugin-sentry = "0.4.1"
 tauri-plugin-shell = "2"
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }

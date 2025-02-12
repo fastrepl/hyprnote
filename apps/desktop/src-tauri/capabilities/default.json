@@ -6,19 +6,6 @@
   "withGlobalTauri": true,
   "permissions": [
     "core:default",
-    "positioner:default",
-    "fs:default",
-    "store:default",
-    "shell:allow-open",
-    "sentry:default",
-    {
-      "identifier": "http:default",
-      "allow": [
-        { "url": "http://localhost:*" },
-        { "url": "http://127.0.0.1:*" },
-        { "url": "https://app.hyprnote.com/*" }
-      ]
-    },
     "core:window:default",
     "core:window:allow-start-dragging",
     "core:window:allow-set-fullscreen",
@@ -32,8 +19,25 @@
     "core:window:allow-set-position",
     "core:window:allow-is-maximized",
     "core:window:allow-toggle-maximize",
+    "dialog:default",
+    "updater:default",
+    "process:default",
+    "process:allow-restart",
+    "positioner:default",
+    "fs:default",
+    "store:default",
+    "shell:allow-open",
+    "sentry:default",
     "decorum:allow-show-snap-overlay",
     "oauth:allow-start",
-    "oauth:allow-cancel"
+    "oauth:allow-cancel",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "http://localhost:*" },
+        { "url": "http://127.0.0.1:*" },
+        { "url": "https://app.hyprnote.com/*" }
+      ]
+    }
   ]
 }

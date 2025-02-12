@@ -1,5 +1,10 @@
 import { useCallback } from "react";
-import { CopyIcon, TrashIcon, HeartIcon, EditIcon } from "lucide-react";
+import {
+  CopyIcon,
+  TrashIcon,
+  EditIcon,
+  MoreHorizontalIcon,
+} from "lucide-react";
 
 import type { Template } from "@/types";
 
@@ -7,6 +12,12 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { SectionsList } from "../components/template-sections";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@hypr/ui/components/ui/dropdown-menu";
 
 interface TemplateEditorProps {
   disabled: boolean;
@@ -50,48 +61,44 @@ export default function TemplateEditor({
     // TODO: Implement delete functionality
   }, []);
 
-  const handleLike = useCallback(() => {
-    // TODO: Implement like functionality
-  }, []);
-
   return (
-    <div className="flex flex-col gap-6">
+    <div className="space-y-6">
       <div className="flex flex-col gap-4 border-b pb-4">
         <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <Input
-              disabled={disabled}
-              value={template.title}
-              onChange={handleChangeTitle}
-              className="text-lg font-semibold"
-              placeholder="Template Title"
-            />
-          </div>
-          <div className="flex gap-2">
-            {isCreator ? (
-              <>
-                <Button variant="outline" size="sm" onClick={handleDuplicate}>
+          <Input
+            disabled={disabled}
+            value={template.title}
+            onChange={handleChangeTitle}
+            className="rounded-none border-0 p-0 !text-2xl font-semibold focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            placeholder="Untitled Template"
+          />
+
+          {isCreator ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <MoreHorizontalIcon className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={handleDuplicate}>
                   <CopyIcon className="mr-2 h-4 w-4" />
                   Duplicate
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleDelete}>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDelete}>
                   <TrashIcon className="mr-2 h-4 w-4" />
                   Delete
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outline" size="sm" onClick={handleDuplicate}>
-                  <EditIcon className="mr-2 h-4 w-4" />
-                  Edit a Copy
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleLike}>
-                  <HeartIcon className="mr-2 h-4 w-4" />
-                  Like
-                </Button>
-              </>
-            )}
-          </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <button
+              onClick={handleDuplicate}
+              className="rounded-md p-2 hover:bg-neutral-100"
+            >
+              <EditIcon className="h-4 w-4" />
+            </button>
+          )}
         </div>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div>Creator: John Doe</div>

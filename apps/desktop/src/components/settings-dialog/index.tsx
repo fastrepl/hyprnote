@@ -36,6 +36,7 @@ export default function SettingsDialog() {
 
   const handleUpdateTemplate = (template: Template) => {
     commands.upsertTemplate(template);
+    setSelectedTemplate(template);
     templates.refetch();
   };
 

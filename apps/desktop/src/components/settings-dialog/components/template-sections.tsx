@@ -49,11 +49,11 @@ export function SectionsList({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col">
       <Reorder.Group values={items} onReorder={handleReorder}>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
           {items.map((item) => (
-            <Reorder.Item key={item.id} value={item}>
+            <Reorder.Item key={item.id} value={item} className="mb-4">
               <div className="relative cursor-move bg-neutral-50">
                 <button
                   className="absolute left-2 top-1/2 -translate-y-1/2 cursor-move opacity-50 hover:opacity-100"
@@ -113,13 +113,13 @@ export function SectionItem({ disabled, item, onChange }: SectionItemProps) {
         disabled={disabled}
         value={item.title}
         onChange={handleChangeTitle}
-        placeholder="Section Title"
+        placeholder="Enter a section title"
       />
       <Textarea
         disabled={disabled}
         value={item.description}
         onChange={handleChangeDescription}
-        placeholder="Section Description"
+        placeholder="Describe the content and purpose of this section"
       />
     </div>
   );

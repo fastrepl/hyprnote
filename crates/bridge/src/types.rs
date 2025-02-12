@@ -1,3 +1,6 @@
+use crate::TimelineView;
+
+#[macro_export]
 macro_rules! common_derives {
     ($item:item) => {
         #[derive(
@@ -92,20 +95,5 @@ common_derives! {
 common_derives! {
     pub struct SummarizeTranscriptChunk {
         pub points: Vec<String>,
-    }
-}
-
-common_derives! {
-    pub struct TimelineView {
-        pub items: Vec<TimelineViewItem>,
-    }
-}
-
-common_derives! {
-    pub struct TimelineViewItem {
-        pub start: u64,
-        pub end: u64,
-        pub speaker: String,
-        pub text: String,
     }
 }

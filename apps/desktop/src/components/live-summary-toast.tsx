@@ -35,7 +35,7 @@ export default function LiveSummaryToast({ onClose }: LiveSummaryToastProps) {
         return null;
       }
 
-      const timeline_view = await commands.getTimeline();
+      const timeline_view = await commands.getTimeline({ last_n_seconds: 30 });
 
       const { data } = await postApiNativeLiveSummary({
         client,

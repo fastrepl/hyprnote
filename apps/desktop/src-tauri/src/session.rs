@@ -162,7 +162,9 @@ impl SessionState {
                     }
 
                     channel
-                        .send(SessionStatus::TimelineView(timeline.view()))
+                        .send(SessionStatus::TimelineView(
+                            timeline.view(hypr_bridge::TimelineFilter::default()),
+                        ))
                         .unwrap();
                 }
 
@@ -205,11 +207,12 @@ pub mod commands {
     #[specta::specta]
     pub async fn get_timeline(
         session: State<'_, tokio::sync::Mutex<SessionState>>,
+        filter: hypr_bridge::TimelineFilter,
     ) -> Result<hypr_bridge::TimelineView, String> {
         let s = session.lock().await;
         let timeline = s.timeline.as_ref().unwrap().clone();
         let timeline = timeline.lock().await;
-        Ok(timeline.view())
+        Ok(timeline.view(filter))
     }
 
     #[tauri::command]

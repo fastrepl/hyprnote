@@ -1,6 +1,6 @@
 use intervaltree::IntervalTree;
 
-use crate::{DiarizeOutputChunk, TimelineView, TimelineViewItem, TranscribeOutputChunk};
+use crate::{common_derives, DiarizeOutputChunk, TranscribeOutputChunk};
 
 pub trait Interval {
     fn start(&self) -> u64;
@@ -44,10 +44,35 @@ impl Interval for std::ops::Range<u64> {
     }
 }
 
-#[derive(Debug, Default, Clone)]
-pub struct Timeline {
-    transcripts: Vec<TranscribeOutputChunk>,
-    diarizations: Vec<DiarizeOutputChunk>,
+common_derives! {
+    #[derive(Default)]
+    pub struct Timeline {
+        transcripts: Vec<TranscribeOutputChunk>,
+        diarizations: Vec<DiarizeOutputChunk>,
+    }
+}
+
+common_derives! {
+    #[derive(Default)]
+    pub struct TimelineView {
+        pub items: Vec<TimelineViewItem>,
+    }
+}
+
+common_derives! {
+    pub struct TimelineViewItem {
+        pub start: u64,
+        pub end: u64,
+        pub speaker: String,
+        pub text: String,
+    }
+}
+
+common_derives! {
+    #[derive(Default)]
+    pub struct TimelineFilter {
+        pub last_n_seconds: Option<u64>,
+    }
 }
 
 impl std::fmt::Display for TimelineView {
@@ -109,7 +134,7 @@ impl Timeline {
         }
     }
 
-    pub fn view(&self) -> TimelineView {
+    pub fn view(&self, filter: TimelineFilter) -> TimelineView {
         let tree: IntervalTree<u64, String> = IntervalTree::from_iter(
             self.diarizations
                 .iter()
@@ -118,7 +143,14 @@ impl Timeline {
 
         let mut items: Vec<TimelineViewItem> = vec![];
 
-        for transcript in self.transcripts.iter() {
+        let max_end = self.transcripts.iter().map(|t| t.end).max().unwrap_or(0);
+        let filtered_transcripts = self.transcripts.iter().filter(|t| {
+            filter
+                .last_n_seconds
+                .map_or(true, |n| t.end >= max_end.saturating_sub(n * 1000))
+        });
+
+        for transcript in filtered_transcripts {
             let range = transcript.start.saturating_sub(100)..transcript.end.saturating_add(100);
             let speakers: Vec<_> = tree.query(range).collect();
 
@@ -211,7 +243,7 @@ mod tests {
     fn test_korean_1() {
         let timeline = init_timeline!(korean_1);
 
-        insta::assert_snapshot!(timeline.view().to_string(), @r###"
+        insta::assert_snapshot!(timeline.view(TimelineFilter::default()).to_string(), @r###"
         speaker0
         기관스터디 이민영 상담원입니다. 무엇을 도와드릴까요 
 
@@ -314,7 +346,7 @@ mod tests {
     fn test_korean_2() {
         let timeline = init_timeline!(korean_2);
 
-        insta::assert_snapshot!(timeline.view().to_string(), @r###"
+        insta::assert_snapshot!(timeline.view(TimelineFilter::default()).to_string(), @r###"
         speaker0
         개인적인 질문인데요. 네 웃으시니까 이빨에 
 
@@ -393,7 +425,7 @@ mod tests {
     fn test_english_1() {
         let timeline = init_timeline!(english_1);
 
-        insta::assert_snapshot!(timeline.view().to_string(), @r###"
+        insta::assert_snapshot!(timeline.view(TimelineFilter::default()).to_string(), @r###"
         speaker0
         Maybe this is me talking to the audience a little bit because I get these daysso many messages, advice on how to, like,learn stuff.
 
@@ -448,7 +480,7 @@ mod tests {
     fn test_english_2() {
         let timeline = init_timeline!(english_2);
 
-        insta::assert_snapshot!(timeline.view().to_string(), @r###"
+        insta::assert_snapshot!(timeline.view(TimelineFilter::default()).to_string(), @r###"
         speaker0
         Hello? Hello?  Oh, hello.  I didn't know you were there.
 

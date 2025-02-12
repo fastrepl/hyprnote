@@ -25,8 +25,8 @@ async startSession(onEvent: TAURI_CHANNEL<SessionStatus>) : Promise<null> {
 async stopSession() : Promise<null> {
     return await TAURI_INVOKE("stop_session");
 },
-async getTimeline() : Promise<TimelineView> {
-    return await TAURI_INVOKE("get_timeline");
+async getTimeline(filter: TimelineFilter) : Promise<TimelineView> {
+    return await TAURI_INVOKE("get_timeline", { filter });
 },
 async startOauthServer() : Promise<number> {
     return await TAURI_INVOKE("start_oauth_server");
@@ -130,6 +130,7 @@ export type SessionStatus = "Stopped" | { TimelineView: TimelineView }
 export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo"
 export type Template = { id: string; user_id: string; title: string; description: string; sections: TemplateSection[]; tags: string[] }
 export type TemplateSection = { title: string; description: string }
+export type TimelineFilter = { last_n_seconds: number | null }
 export type TimelineView = { items: TimelineViewItem[] }
 export type TimelineViewItem = { start: number; end: number; speaker: string; text: string }
 export type TranscriptChunk = { start: number; end: number; text: string }

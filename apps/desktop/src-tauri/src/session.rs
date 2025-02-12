@@ -14,6 +14,7 @@ pub struct SessionState {
 #[derive(Debug, Clone, serde::Serialize, specta::Type)]
 pub enum SessionStatus {
     Stopped,
+    TimelineView(hypr_bridge::TimelineView),
 }
 
 const SAMPLE_RATE: u32 = 16000;
@@ -134,6 +135,10 @@ impl SessionState {
                             timeline.add_diarization(chunk);
                         }
                     }
+
+                    channel
+                        .send(SessionStatus::TimelineView(timeline.view()))
+                        .unwrap();
                 }
 
                 channel.send(SessionStatus::Stopped).unwrap();

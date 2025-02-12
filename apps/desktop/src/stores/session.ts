@@ -61,7 +61,7 @@ export const createSessionStore = (session: Session) => {
             if (event === "Stopped") {
               draft.listening = false;
             } else {
-              draft.timeline = event.Timeline;
+              draft.timeline = event.TimelineView;
             }
           }),
         );

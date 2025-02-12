@@ -28,17 +28,15 @@ export default function ListenButton({
     <button
       onClick={handleClick}
       className={clsx([
-        "relative rounded-lg border border-border p-2 hover:bg-neutral-100",
-        isListening ? "text-foreground/30" : "text-foreground/50",
+        "flex items-center gap-2 rounded-lg border border-border bg-primary p-2 transition-all hover:scale-95",
+        isListening
+          ? "text-white hover:bg-primary/80"
+          : "text-primary hover:bg-primary/20",
         isListening && "border-primary/30",
       ])}
     >
       {isListening ? <Ear size={20} /> : <EarOff size={20} />}
-      {isListening && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <AudioIndicator />
-        </div>
-      )}
+      {isListening && <AudioIndicator />}
     </button>
   );
 

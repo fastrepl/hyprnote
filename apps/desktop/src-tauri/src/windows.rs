@@ -104,13 +104,14 @@ impl ShowHyprWindow {
 
         let mut builder = WebviewWindow::builder(app, id.label(), WebviewUrl::App(url.into()))
             .title(id.title())
-            .hidden_title(true)
             .decorations(true)
             .disable_drag_drop_handler();
 
         #[cfg(target_os = "macos")]
         {
-            builder = builder.title_bar_style(tauri::TitleBarStyle::Overlay);
+            builder = builder
+                .hidden_title(true)
+                .title_bar_style(tauri::TitleBarStyle::Overlay);
         }
 
         builder

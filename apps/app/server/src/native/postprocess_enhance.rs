@@ -8,24 +8,32 @@ use crate::state::AppState;
 pub async fn handler(
     State(state): State<AppState>,
     Json(input): Json<hypr_bridge::PostprocessEnhanceRequest>,
-) -> Result<Json<hypr_bridge::PostprocessEnhanceResponse>, StatusCode> {
-    let response = state
+) -> Result<Json<hypr_bridge::PostprocessEnhanceResponse>, (StatusCode, String)> {
+    let req = CreateChatCompletionRequest {
+        stream: Some(false),
+        ..input.as_openai_request().unwrap()
+    };
+
+    let res: hypr_openai::CreateChatCompletionResponse = state
         .openai
-        .chat_completion(&CreateChatCompletionRequest {
-            stream: Some(false),
-            ..input.as_openai_request().unwrap()
-        })
+        .chat_completion(&req)
         .await
-        .map_err(|e| {
-            tracing::error!("postprocess_enhance: {}", e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
         .json()
         .await
-        .map_err(|e| {
-            tracing::error!("postprocess_enhance: {}", e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    Ok(Json(response))
+    let content = res
+        .choices
+        .first()
+        .unwrap()
+        .message
+        .content
+        .as_ref()
+        .unwrap();
+
+    let output: hypr_bridge::PostprocessEnhanceResponse = serde_json::from_str(content)
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    Ok(Json(output))
 }

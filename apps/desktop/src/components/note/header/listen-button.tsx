@@ -36,7 +36,7 @@ export default function ListenButton({
       {isListening ? <Ear size={20} /> : <EarOff size={20} />}
       {isListening && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <AudioIndicator amplitude={0.5} />
+          <AudioIndicator />
         </div>
       )}
     </button>

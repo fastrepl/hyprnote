@@ -15,6 +15,7 @@ pub struct SessionState {
 #[derive(Debug, Clone, serde::Serialize, specta::Type)]
 pub enum SessionStatus {
     Stopped,
+    Audio(u16, u16),
     TimelineView(hypr_bridge::TimelineView),
 }
 
@@ -102,6 +103,7 @@ impl SessionState {
             }
         }));
 
+        let channel_for_amplitude = channel.clone();
         tokio::spawn(async move {
             let dir = app_dir.join(session_id);
             std::fs::create_dir_all(&dir).unwrap();
@@ -121,6 +123,13 @@ impl SessionState {
             while let (Some(mic_chunk), Some(speaker_chunk)) =
                 (mic_rx.recv().await, speaker_rx.recv().await)
             {
+                let mic_amplitude = get_amplitude(&mic_chunk);
+                let speaker_amplitude = get_amplitude(&speaker_chunk);
+
+                channel_for_amplitude
+                    .send(SessionStatus::Audio(mic_amplitude, speaker_amplitude))
+                    .unwrap();
+
                 let mixed: Vec<f32> = mic_chunk
                     .into_iter()
                     .zip(speaker_chunk.into_iter())
@@ -192,6 +201,15 @@ impl SessionState {
             let _ = handle.await;
         }
     }
+}
+
+fn get_amplitude(chunk: &[f32]) -> u16 {
+    (chunk
+        .iter()
+        .map(|&x| x.abs())
+        .max_by(|a, b| a.partial_cmp(b).unwrap())
+        .unwrap_or(0.0)
+        * 100.0) as u16
 }
 
 pub mod commands {

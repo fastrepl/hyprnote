@@ -1,11 +1,17 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 
-interface AudioIndicatorProps {
-  amplitude?: number;
-}
+import { useSession } from "@/contexts";
 
-export default function AudioIndicator({ amplitude = 0 }: AudioIndicatorProps) {
+export default function AudioIndicator() {
+  const { mic, speaker } = useSession((state) => state.amplitude);
+  const [amplitude, setAmplitude] = useState(0);
+
+  useEffect(() => {
+    const sample = Math.max(mic, speaker) / 10;
+    setAmplitude(Math.min(sample, 1));
+  }, [mic, speaker]);
+
   const [multipliers, setMultipliers] = useState([0.4, 1, 0.6]);
 
   useEffect(() => {

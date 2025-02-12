@@ -10,6 +10,7 @@ type State = {
   listening: boolean;
   session: Session;
   timeline: TimelineView;
+  amplitude: { mic: number; speaker: number };
 };
 
 type Actions = {
@@ -28,6 +29,7 @@ export const createSessionStore = (session: Session) => {
     listening: false,
     channel: null,
     timeline: { items: [] },
+    amplitude: { mic: 0, speaker: 0 },
     persistSession: async () => {
       const { session } = get();
       await commands.upsertSession(session);
@@ -60,8 +62,13 @@ export const createSessionStore = (session: Session) => {
           mutate(state, (draft) => {
             if (event === "Stopped") {
               draft.listening = false;
-            } else {
+            } else if ("TimelineView" in event) {
               draft.timeline = event.TimelineView;
+            } else if ("Audio" in event) {
+              draft.amplitude = {
+                mic: event.Audio[0],
+                speaker: event.Audio[1],
+              };
             }
           }),
         );

@@ -27,6 +27,23 @@ impl AudioOutput {
             }
         });
     }
+
+    pub fn silence() -> std::sync::mpsc::Sender<()> {
+        use rodio::{source::Zero, OutputStream, Sink};
+        let (tx, rx) = std::sync::mpsc::channel();
+
+        std::thread::spawn(move || {
+            if let Ok((_, stream)) = OutputStream::try_default() {
+                let sink = Sink::try_new(&stream).unwrap();
+                sink.append(Zero::<f32>::new(1, 16000));
+
+                let _ = rx.recv();
+                sink.stop();
+            }
+        });
+
+        tx
+    }
 }
 
 pub enum AudioSource {

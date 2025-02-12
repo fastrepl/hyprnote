@@ -9,6 +9,7 @@ pub struct SessionState {
     mic_stream_handle: Option<tokio::task::JoinHandle<()>>,
     speaker_stream_handle: Option<tokio::task::JoinHandle<()>>,
     listen_stream_handle: Option<tokio::task::JoinHandle<()>>,
+    silence_stream_tx: Option<std::sync::mpsc::Sender<()>>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, specta::Type)]
@@ -26,6 +27,7 @@ impl SessionState {
             mic_stream_handle: None,
             speaker_stream_handle: None,
             listen_stream_handle: None,
+            silence_stream_tx: None,
         })
     }
 
@@ -37,11 +39,32 @@ impl SessionState {
         session_id: String,
         channel: tauri::ipc::Channel<SessionStatus>,
     ) -> Result<(), String> {
-        let mic_sample_stream = hypr_audio::AudioInput::from_mic().stream();
-        let mic_sample_rate = mic_sample_stream.sample_rate();
+        let mic_sample_stream = {
+            let mut input = {
+                #[cfg(all(debug_assertions, feature = "sim-english-1"))]
+                {
+                    hypr_audio::AudioInput::from_recording(hypr_data::english_1::AUDIO.to_vec())
+                }
 
+                #[cfg(all(debug_assertions, feature = "sim-korean-1"))]
+                {
+                    hypr_audio::AudioInput::from_recording(hypr_data::korean_1::AUDIO.to_vec())
+                }
+
+                #[cfg(not(any(
+                    all(debug_assertions, feature = "sim-english-1"),
+                    all(debug_assertions, feature = "sim-korean-1")
+                )))]
+                {
+                    hypr_audio::AudioInput::from_mic()
+                }
+            };
+
+            input.stream()
+        };
         let speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
 
+        let mic_sample_rate = mic_sample_stream.sample_rate();
         let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);
 
         let mut speaker_stream = speaker_sample_stream
@@ -54,6 +77,8 @@ impl SessionState {
         let (mic_tx, mut mic_rx) = mpsc::channel::<Vec<f32>>(chunk_buffer_size);
         let (speaker_tx, mut speaker_rx) = mpsc::channel::<Vec<f32>>(chunk_buffer_size);
         let (mixed_tx, mixed_rx) = mpsc::channel::<f32>(sample_buffer_size);
+
+        self.silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
 
         self.mic_stream_handle = Some(tokio::spawn({
             async move {
@@ -149,6 +174,9 @@ impl SessionState {
     }
 
     pub async fn stop(&mut self) {
+        if let Some(tx) = self.silence_stream_tx.take() {
+            let _ = tx.send(());
+        }
         if let Some(handle) = self.mic_stream_handle.take() {
             handle.abort();
             let _ = handle.await;

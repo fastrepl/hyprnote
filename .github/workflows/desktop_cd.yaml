@@ -9,8 +9,6 @@ concurrency:
   cancel-in-progress: true
 env:
   CN_APPLICATION: "fastrepl/hyprnote"
-permissions:
-  contents: write
 jobs:
   draft:
     if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
@@ -25,6 +23,8 @@ jobs:
   build:
     if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
     needs: draft
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -42,11 +42,18 @@ jobs:
       - uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./.github/actions/apple_cert
+        id: cert-setup
+        with:
+          apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
+          apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
       - run: |
           rustup toolchain install stable --profile minimal --no-self-update
           rustup target add aarch64-apple-darwin x86_64-apple-darwin
       - uses: tauri-apps/tauri-action@v0
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
@@ -55,6 +62,7 @@ jobs:
           prerelease: true
           tagName: desktop_v__VERSION__
           releaseName: "Desktop v__VERSION__"
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: crabnebula-dev/cloud-release@v0
         with:
           command: release upload ${{ env.CN_APPLICATION }} --framework tauri

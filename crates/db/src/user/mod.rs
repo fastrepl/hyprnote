@@ -106,7 +106,7 @@ mod tests {
     };
 
     pub async fn setup_db() -> UserDatabase {
-        let conn = ConnectionBuilder::new()
+        let conn = ConnectionBuilder::default()
             .local(":memory:")
             .connect()
             .await

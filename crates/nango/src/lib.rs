@@ -49,7 +49,7 @@ impl From<NangoIntegration> for String {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct NangoClientBuilder {
     api_key: Option<String>,
     api_base: Option<String>,
@@ -211,12 +211,6 @@ pub struct NangoProxyBuilder<'a> {
 }
 
 impl NangoClientBuilder {
-    pub fn new() -> Self {
-        NangoClientBuilder {
-            api_base: None,
-            api_key: None,
-        }
-    }
 
     pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
         self.api_base = Some(api_base.into());
@@ -250,7 +244,7 @@ impl NangoClientBuilder {
     }
 }
 
-impl<'a> NangoProxyBuilder<'a> {
+impl NangoProxyBuilder<'_> {
     // https://docs.nango.dev/reference/api/proxy/get
     pub fn get(&self, path: impl std::fmt::Display) -> reqwest::RequestBuilder {
         let url = make_proxy_url(&self.nango.api_base, path);
@@ -315,7 +309,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_non_proxy() {
-        let nango_client = NangoClientBuilder::new()
+        let nango_client = NangoClientBuilder::default()
             .api_base("https://api.nango.dev")
             .api_key("de9c36c9-33dc-4ebf-b006-153d458583ea")
             .build();
@@ -336,7 +330,7 @@ mod tests {
 
     #[test]
     fn test_proxy() {
-        let nango_client = NangoClientBuilder::new()
+        let nango_client = NangoClientBuilder::default()
             .api_base("https://api.nango.dev")
             .api_key("api_key")
             .build();

@@ -81,7 +81,7 @@ pub async fn handler(
 
     let _ = {
         if existing_org.is_none() {
-            let create_db_req = hypr_turso::CreateDatabaseRequestBuilder::new()
+            let create_db_req = hypr_turso::CreateDatabaseRequestBuilder::default()
                 .with_name(org.turso_db_name)
                 .build();
 

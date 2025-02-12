@@ -14,7 +14,7 @@ user_common_derives! {
 }
 
 impl Config {
-    pub fn from_row<'de>(row: &'de libsql::Row) -> Result<Self, serde::de::value::Error> {
+    pub fn from_row(row: &libsql::Row) -> Result<Self, serde::de::value::Error> {
         Ok(Self {
             id: row.get(0).expect("id"),
             user_id: row.get(1).expect("user_id"),

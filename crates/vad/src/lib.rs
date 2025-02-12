@@ -37,11 +37,11 @@ impl VoiceActivityDetectorBuilder {
             return Err(Error::NotTrainedOnThisSampleRate);
         }
 
-        if sample_rate == 16000 && !vec![512, 768, 1024].contains(&chunk_size) {
+        if sample_rate == 16000 && ![512, 768, 1024].contains(&chunk_size) {
             return Err(Error::NotTrainedOnThisChunkSize);
         }
 
-        if sample_rate == 8000 && !vec![256, 512, 768].contains(&chunk_size) {
+        if sample_rate == 8000 && ![256, 512, 768].contains(&chunk_size) {
             return Err(Error::NotTrainedOnThisChunkSize);
         }
 

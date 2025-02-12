@@ -4,7 +4,6 @@
 use anyhow::Result;
 
 use crate::{Calendar, CalendarSource, Event, EventFilter, Participant, Platform};
-use chrono::{TimeZone, Utc};
 
 pub struct Handle {
     client: google_calendar::Client,
@@ -74,16 +73,18 @@ impl CalendarSource for Handle {
                             .unwrap()
                             .and_hms_opt(0, 0, 0)
                             .unwrap()
-                            .and_local_timezone(Utc)
+                            .and_local_timezone(chrono::Local)
                             .unwrap()
+                            .into()
                     });
                     let end = end.date_time.unwrap_or_else(|| {
                         end.date
                             .unwrap()
                             .and_hms_opt(0, 0, 0)
                             .unwrap()
-                            .and_local_timezone(Utc)
+                            .and_local_timezone(chrono::Local)
                             .unwrap()
+                            .into()
                     });
 
                     let participants = event

@@ -131,7 +131,7 @@ fn main() {
                 let conn = {
                     #[cfg(debug_assertions)]
                     {
-                        hypr_db::ConnectionBuilder::new()
+                        hypr_db::ConnectionBuilder::default()
                             .local(":memory:")
                             .connect()
                             .await
@@ -144,7 +144,7 @@ fn main() {
                         let url = turso.db_url(&name);
                         let token = turso.generate_db_token(&name).await.unwrap();
 
-                        hypr_db::ConnectionBuilder::new()
+                        hypr_db::ConnectionBuilder::default()
                             .remote(url, token)
                             .connect()
                             .await
@@ -163,7 +163,7 @@ fn main() {
                 db
             };
 
-            let nango = hypr_nango::NangoClientBuilder::new()
+            let nango = hypr_nango::NangoClientBuilder::default()
                 .api_base(get_env("NANGO_API_BASE"))
                 .api_key(get_env("NANGO_API_KEY"))
                 .build();
@@ -357,5 +357,5 @@ fn export_ts_types() -> anyhow::Result<()> {
 }
 
 fn get_env(key: &str) -> String {
-    std::env::var(key).expect(&format!("env: '{}' is not set", key))
+    std::env::var(key).unwrap_or_else(|_| panic!("env: '{}' is not set", key))
 }

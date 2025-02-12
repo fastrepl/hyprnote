@@ -64,7 +64,7 @@ pub async fn perform(_job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
         for event in events {
             let _ = ctx
                 .db
-                .upsert_event(event.into())
+                .upsert_event(event)
                 .await
                 .map_err(|e| err_from(e.to_string()))?;
         }
@@ -77,7 +77,7 @@ async fn list_calendars() -> Result<Vec<hypr_calendar::Calendar>, String> {
 
     let apple_calendars = tauri::async_runtime::spawn_blocking(|| {
         let handle = hypr_calendar::apple::Handle::new();
-        tauri::async_runtime::block_on(handle.list_calendars()).unwrap_or(vec![])
+        tauri::async_runtime::block_on(handle.list_calendars()).unwrap_or_default()
     })
     .await
     .map_err(|e| e.to_string())?;
@@ -102,7 +102,7 @@ async fn list_events(
 
     let apple_events = tauri::async_runtime::spawn_blocking(move || {
         let handle = hypr_calendar::apple::Handle::new();
-        tauri::async_runtime::block_on(handle.list_events(filter)).unwrap_or(vec![])
+        tauri::async_runtime::block_on(handle.list_events(filter)).unwrap_or_default()
     })
     .await
     .map_err(|e| e.to_string())?;

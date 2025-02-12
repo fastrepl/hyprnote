@@ -20,6 +20,7 @@ pub struct Handle {
     contacts_access_granted: bool,
 }
 
+#[allow(clippy::new_without_default)]
 impl Handle {
     pub fn new() -> Self {
         let event_store = unsafe { EKEventStore::new() };
@@ -116,16 +117,14 @@ impl Handle {
             })
             .collect();
 
-        let predicate = unsafe {
+        unsafe {
             self.event_store
                 .predicateForEventsWithStartDate_endDate_calendars(
                     &start_date,
                     &end_date,
                     Some(&calendars),
                 )
-        };
-
-        predicate
+        }
     }
 }
 

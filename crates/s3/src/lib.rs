@@ -107,7 +107,7 @@ impl Client {
         ClientBuilder::new()
     }
 
-    pub fn for_user<'a>(&'a self, user_id: impl Into<String>) -> UserClient<'a> {
+    pub fn for_user(&self, user_id: impl Into<String>) -> UserClient<'_> {
         UserClient {
             client: self,
             user_id: user_id.into(),
@@ -129,7 +129,7 @@ impl Client {
     }
 }
 
-impl<'a> Deref for UserClient<'a> {
+impl Deref for UserClient<'_> {
     type Target = Client;
 
     fn deref(&self) -> &Self::Target {

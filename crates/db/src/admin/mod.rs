@@ -76,7 +76,7 @@ mod tests {
     };
 
     pub async fn setup_db() -> AdminDatabase {
-        let conn = ConnectionBuilder::new()
+        let conn = ConnectionBuilder::default()
             .local(":memory:")
             .connect()
             .await

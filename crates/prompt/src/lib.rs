@@ -14,7 +14,6 @@ pub mod postprocess_enhance;
 use tera::Context;
 use tera::Tera;
 
-use std::f64::INFINITY;
 use std::time::Duration;
 
 lazy_static::lazy_static! {
@@ -34,7 +33,7 @@ lazy_static::lazy_static! {
         tera.register_tester("short_meeting", testers::duration(Duration::from_secs(0), Duration::from_secs(20 * 60 * 60)));
         tera.register_tester("medium_meeting", testers::duration(Duration::from_secs(20 * 60 * 60), Duration::from_secs(40 * 60 * 60)));
         tera.register_tester("long_meeting", testers::duration(Duration::from_secs(40 * 60 * 60), Duration::from_secs(90 * 60 * 60)));
-        tera.register_tester("brainstorming_meeting", testers::duration(Duration::from_secs(90 * 60 * 60), Duration::from_secs(INFINITY as u64)));
+        tera.register_tester("brainstorming_meeting", testers::duration(Duration::from_secs(90 * 60 * 60), Duration::from_secs(f64::INFINITY as u64)));
 
         tera.register_function("render_timeline_view", functions::render_timeline_view());
 

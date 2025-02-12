@@ -10,7 +10,7 @@ pub struct Request {
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 #[serde(untagged)]
 pub enum Response {
-    Ok { wallet: Wallet },
+    Ok { wallet: Box<Wallet> },
     Error { status: u16, error: String },
 }
 

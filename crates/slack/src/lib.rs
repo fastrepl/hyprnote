@@ -21,8 +21,7 @@ impl SlackMessageTemplate for SessionMessage {
                 some_into(SlackImageBlock::new(
                     "https://www.gstatic.com/webp/gallery3/2_webp_ll.png"
                         .parse::<url::Url>()
-                        .unwrap()
-                        .into(),
+                        .unwrap(),
                     "Test Image".into()
                 )),
                 some_into(SlackHeaderBlock::new(pt!("Simple header"))),

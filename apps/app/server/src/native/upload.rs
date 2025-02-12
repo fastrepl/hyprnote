@@ -50,7 +50,8 @@ pub async fn complete_upload(
     Json(input): Json<CompleteUploadRequest>,
 ) -> Result<impl IntoResponse, StatusCode> {
     let user_s3 = state.s3.for_user(user.id);
-    let _result = user_s3
+
+    user_s3
         .complete_multipart_upload(&input.file_name, &input.upload_id, input.etags)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;

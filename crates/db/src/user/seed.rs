@@ -133,8 +133,7 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
     for event in events {
         let _ = db.upsert_event(event.clone()).await?;
         for participant in participants.iter() {
-            let _ = db
-                .add_participant(event.id.clone(), participant.id.clone())
+            db.add_participant(event.id.clone(), participant.id.clone())
                 .await?;
         }
     }

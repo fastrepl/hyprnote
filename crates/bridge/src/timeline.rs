@@ -44,19 +44,10 @@ impl Interval for std::ops::Range<u64> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Timeline {
     transcripts: Vec<TranscribeOutputChunk>,
     diarizations: Vec<DiarizeOutputChunk>,
-}
-
-impl Default for Timeline {
-    fn default() -> Self {
-        Self {
-            transcripts: Vec::new(),
-            diarizations: Vec::new(),
-        }
-    }
 }
 
 impl std::fmt::Display for TimelineView {

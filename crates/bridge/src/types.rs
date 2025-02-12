@@ -1,5 +1,3 @@
-use serde_bytes;
-
 macro_rules! common_derives {
     ($item:item) => {
         #[derive(

@@ -13,7 +13,7 @@ pub struct Request {
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 #[serde(untagged)]
 pub enum Response {
-    Ok { event: Event },
+    Ok { event: Box<Event> },
     Error { status: u16, message: String },
 }
 

@@ -21,7 +21,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for hypr_clova::realtime::Client {
 
         let stream = transcription.filter_map(|item| {
             let item = match item {
-                Err(e) => Some(Err(e.into())),
+                Err(e) => Some(Err(e)),
                 Ok(response) => match response {
                     clova::StreamResponse::TranscribeFailure(_) => {
                         Some(Err(anyhow::anyhow!("Clova transcription failed")))

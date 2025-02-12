@@ -87,12 +87,12 @@ impl UserDatabase {
                     libsql::Value::Text(session.timestamp.to_rfc3339()),
                     session
                         .calendar_event_id
-                        .map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
+                        .map_or(libsql::Value::Null, libsql::Value::Text),
                     libsql::Value::Text(session.title),
                     libsql::Value::Text(session.raw_memo_html),
                     session
                         .enhanced_memo_html
-                        .map_or(libsql::Value::Null, |v| libsql::Value::Text(v)),
+                        .map_or(libsql::Value::Null, libsql::Value::Text),
                     libsql::Value::Text(serde_json::to_string(&session.conversations).unwrap()),
                 ],
             )

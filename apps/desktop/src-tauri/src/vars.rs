@@ -2,8 +2,7 @@ pub fn server_api_base() -> String {
     if cfg!(debug_assertions) {
         "http://localhost:1234".to_string()
     } else {
-        "http://localhost:1234".to_string()
-        // "https://app.hyprnote.com".to_string()
+        "https://app.hyprnote.com".to_string()
     }
 }
 

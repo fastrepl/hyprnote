@@ -33,17 +33,12 @@ impl ConnectionConfig {
     }
 }
 
+#[derive(Default)]
 pub struct ConnectionBuilder {
     config: ConnectionConfig,
 }
 
 impl ConnectionBuilder {
-    pub fn new() -> Self {
-        Self {
-            config: ConnectionConfig::default(),
-        }
-    }
-
     pub fn local(mut self, path: impl AsRef<std::path::Path>) -> Self {
         self.config.local_path = Some(path.as_ref().to_owned());
         self

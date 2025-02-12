@@ -6,8 +6,10 @@ pub mod commands {
     #[tauri::command]
     #[specta::specta]
     #[tracing::instrument(skip(state))]
-    pub async fn list_calendars(state: State<'_, App>) -> Result<Vec<hypr_db::user::Calendar>, ()> {
-        Ok(state.db.list_calendars().await.unwrap())
+    pub async fn list_calendars(
+        state: State<'_, App>,
+    ) -> Result<Vec<hypr_db::user::Calendar>, String> {
+        state.db.list_calendars().await.map_err(|e| e.to_string())
     }
 
     #[tauri::command]
@@ -17,11 +19,11 @@ pub mod commands {
         state: State<'_, App>,
         event_id: String,
     ) -> Result<Vec<hypr_db::user::Human>, String> {
-        Ok(state
+        state
             .db
             .list_participants(event_id)
             .await
-            .map_err(|e| e.to_string())?)
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
@@ -30,8 +32,12 @@ pub mod commands {
     pub async fn upsert_calendar(
         state: State<'_, App>,
         calendar: hypr_db::user::Calendar,
-    ) -> Result<hypr_db::user::Calendar, ()> {
-        Ok(state.db.upsert_calendar(calendar).await.unwrap())
+    ) -> Result<hypr_db::user::Calendar, String> {
+        state
+            .db
+            .upsert_calendar(calendar)
+            .await
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
@@ -40,16 +46,26 @@ pub mod commands {
     pub async fn upsert_session(
         state: State<'_, App>,
         session: hypr_db::user::Session,
-    ) -> Result<hypr_db::user::Session, ()> {
-        Ok(state.db.upsert_session(session).await.unwrap())
+    ) -> Result<hypr_db::user::Session, String> {
+        state
+            .db
+            .upsert_session(session)
+            .await
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
     #[specta::specta]
     #[tracing::instrument(skip(state))]
-    pub async fn list_templates(state: State<'_, App>) -> Result<Vec<hypr_db::user::Template>, ()> {
+    pub async fn list_templates(
+        state: State<'_, App>,
+    ) -> Result<Vec<hypr_db::user::Template>, String> {
         let user_id = &state.user_id;
-        Ok(state.db.list_templates(user_id).await.unwrap())
+        state
+            .db
+            .list_templates(user_id)
+            .await
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
@@ -58,22 +74,30 @@ pub mod commands {
     pub async fn upsert_template(
         state: State<'_, App>,
         template: hypr_db::user::Template,
-    ) -> Result<hypr_db::user::Template, ()> {
-        Ok(state.db.upsert_template(template).await.unwrap())
+    ) -> Result<hypr_db::user::Template, String> {
+        state
+            .db
+            .upsert_template(template)
+            .await
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
     #[specta::specta]
     #[tracing::instrument(skip(state))]
-    pub async fn delete_template(state: State<'_, App>, id: String) -> Result<(), ()> {
-        Ok(state.db.delete_template(id).await.unwrap())
+    pub async fn delete_template(state: State<'_, App>, id: String) -> Result<(), String> {
+        state
+            .db
+            .delete_template(id)
+            .await
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
     #[specta::specta]
     #[tracing::instrument(skip(state))]
-    pub async fn list_events(state: State<'_, App>) -> Result<Vec<hypr_db::user::Event>, ()> {
-        Ok(state.db.list_events().await.unwrap())
+    pub async fn list_events(state: State<'_, App>) -> Result<Vec<hypr_db::user::Event>, String> {
+        state.db.list_events().await.map_err(|e| e.to_string())
     }
 
     #[tauri::command]
@@ -82,8 +106,12 @@ pub mod commands {
     pub async fn list_sessions(
         state: State<'_, App>,
         search: Option<&str>,
-    ) -> Result<Vec<hypr_db::user::Session>, ()> {
-        Ok(state.db.list_sessions(search).await.unwrap())
+    ) -> Result<Vec<hypr_db::user::Session>, String> {
+        state
+            .db
+            .list_sessions(search)
+            .await
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
@@ -93,12 +121,11 @@ pub mod commands {
         state: State<'_, App>,
         option: hypr_db::user::SessionFilter,
     ) -> Result<Option<hypr_db::user::Session>, String> {
-        let found = state
+        state
             .db
             .get_session(option)
             .await
-            .map_err(|e| e.to_string())?;
-        Ok(found)
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
@@ -109,12 +136,11 @@ pub mod commands {
         session_id: String,
         event_id: String,
     ) -> Result<(), String> {
-        let _ = state
+        state
             .db
             .session_set_event(session_id, event_id)
             .await
-            .map_err(|e| e.to_string())?;
-        Ok(())
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
@@ -149,11 +175,7 @@ pub mod commands {
         state: State<'_, App>,
         config: hypr_db::user::Config,
     ) -> Result<(), String> {
-        Ok(state
-            .db
-            .set_config(config)
-            .await
-            .map_err(|e| e.to_string())?)
+        state.db.set_config(config).await.map_err(|e| e.to_string())
     }
 
     #[tauri::command]
@@ -176,11 +198,11 @@ pub mod commands {
         state: State<'_, App>,
         human: hypr_db::user::Human,
     ) -> Result<hypr_db::user::Human, String> {
-        Ok(state
+        state
             .db
             .upsert_human(human)
             .await
-            .map_err(|e| e.to_string())?)
+            .map_err(|e| e.to_string())
     }
 
     #[tauri::command]
@@ -207,10 +229,10 @@ pub mod commands {
         state: State<'_, App>,
         organization: hypr_db::user::Organization,
     ) -> Result<hypr_db::user::Organization, String> {
-        Ok(state
+        state
             .db
             .upsert_organization(organization)
             .await
-            .map_err(|e| e.to_string())?)
+            .map_err(|e| e.to_string())
     }
 }

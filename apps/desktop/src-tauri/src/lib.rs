@@ -54,7 +54,6 @@ pub async fn main() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_oauth::init())
-        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
@@ -122,7 +121,7 @@ pub async fn main() {
         let conn = {
             #[cfg(debug_assertions)]
             {
-                hypr_db::ConnectionBuilder::new()
+                hypr_db::ConnectionBuilder::default()
                     .local(":memory:")
                     .connect()
                     .await
@@ -131,7 +130,7 @@ pub async fn main() {
 
             #[cfg(not(debug_assertions))]
             {
-                hypr_db::ConnectionBuilder::new()
+                hypr_db::ConnectionBuilder::default()
                     .local(":memory:")
                     .connect()
                     .await
@@ -205,7 +204,7 @@ pub async fn main() {
             {
                 use tauri_plugin_autostart::ManagerExt;
                 let autostart_manager = app.autolaunch();
-                let _ = autostart_manager.enable().unwrap();
+                autostart_manager.enable().unwrap();
             }
 
             let worker_db = db.clone();
@@ -215,7 +214,7 @@ pub async fn main() {
                     db: worker_db,
                     user_id: user_id.clone(),
                 };
-                let _m = workers::monitor(state).await.unwrap();
+                workers::monitor(state).await.unwrap();
             });
 
             tray::create_tray(&app).unwrap();

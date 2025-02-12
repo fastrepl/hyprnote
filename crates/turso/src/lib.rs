@@ -8,6 +8,7 @@ pub struct TursoClient {
     pub org_slug: String,
 }
 
+#[derive(Default)]
 pub struct CreateDatabaseRequestBuilder {
     pub name: Option<String>,
     pub is_schema: Option<bool>,
@@ -23,14 +24,6 @@ pub struct CreateDatabaseRequest {
 }
 
 impl CreateDatabaseRequestBuilder {
-    pub fn new() -> Self {
-        Self {
-            name: None,
-            is_schema: None,
-            schema: None,
-        }
-    }
-
     pub fn build(self) -> CreateDatabaseRequest {
         // `_` is invalid
         CreateDatabaseRequest {
@@ -261,7 +254,7 @@ mod tests {
     async fn test_create_database() {
         let client = get_client();
 
-        let req = CreateDatabaseRequestBuilder::new()
+        let req = CreateDatabaseRequestBuilder::default()
             .with_name("test")
             .build();
         let res = client.create_database(req).await;

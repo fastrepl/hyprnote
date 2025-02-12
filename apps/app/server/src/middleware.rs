@@ -88,12 +88,12 @@ pub async fn attach_user_db(
         {
             let token = get_env("TURSO_API_KEY");
             let url = format!("{}-yujonglee.turso.io", org.turso_db_name);
-            hypr_db::ConnectionBuilder::new().remote(url, token)
+            hypr_db::ConnectionBuilder::default().remote(url, token)
         }
 
         #[cfg(not(debug_assertions))]
         {
-            hypr_db::ConnectionBuilder::new().local()
+            hypr_db::ConnectionBuilder::default().local()
         }
     }
     .connect()

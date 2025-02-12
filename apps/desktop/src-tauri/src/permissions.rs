@@ -52,37 +52,49 @@ pub async fn open_permission_settings(permission: OSPermission) {
                         "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars",
                     )
                     .spawn()
-                    .expect("Failed to open Calendar settings");
+                    .expect("Failed to open Calendar settings")
+                    .wait()
+                    .expect("Failed to wait for Calendar settings to open");
             }
             OSPermission::Contacts => {
                 Command::new("open")
                     .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Contacts")
                     .spawn()
-                    .expect("Failed to open Contacts settings");
+                    .expect("Failed to open Contacts settings")
+                    .wait()
+                    .expect("Failed to wait for Contacts settings to open");
             }
             OSPermission::AudioRecording => {
                 Command::new("open")
                     .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_AudioCapture")
                     .spawn()
-                    .expect("Failed to open Audio Recording settings");
+                    .expect("Failed to open Audio Recording settings")
+                    .wait()
+                    .expect("Failed to wait for Audio Recording settings to open");
             }
             OSPermission::ScreenRecording => {
                 Command::new("open")
                     .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")
                     .spawn()
-                    .expect("Failed to open Screen Recording settings");
+                    .expect("Failed to open Screen Recording settings")
+                    .wait()
+                    .expect("Failed to wait for Screen Recording settings to open");
             }
             OSPermission::Microphone => {
                 Command::new("open")
                     .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")
                     .spawn()
-                    .expect("Failed to open Microphone settings");
+                    .expect("Failed to open Microphone settings")
+                    .wait()
+                    .expect("Failed to wait for Microphone settings to open");
             }
             OSPermission::Accessibility => {
                 Command::new("open")
                     .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
                     .spawn()
-                    .expect("Failed to open Accessibility settings");
+                    .expect("Failed to open Accessibility settings")
+                    .wait()
+                    .expect("Failed to wait for Accessibility settings to open");
             }
         }
     }

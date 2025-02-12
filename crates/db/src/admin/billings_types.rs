@@ -12,7 +12,7 @@ admin_common_derives! {
 }
 
 impl Billing {
-    pub fn from_row<'de>(row: &'de libsql::Row) -> Result<Self, serde::de::value::Error> {
+    pub fn from_row(row: &libsql::Row) -> Result<Self, serde::de::value::Error> {
         Ok(Self {
             id: row.get(0).expect("id"),
             organization_id: row.get(1).expect("organization_id"),

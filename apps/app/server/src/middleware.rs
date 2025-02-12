@@ -79,21 +79,21 @@ pub async fn attach_user_from_clerk(
 
 #[tracing::instrument(skip_all)]
 pub async fn attach_user_db(
-    Extension(org): Extension<hypr_db::admin::Organization>,
+    #[allow(unused)] Extension(org): Extension<hypr_db::admin::Organization>,
     mut req: Request,
     next: middleware::Next,
 ) -> Result<Response, StatusCode> {
     let conn = {
         #[cfg(debug_assertions)]
         {
-            let token = get_env("TURSO_API_KEY");
-            let url = format!("{}-yujonglee.turso.io", org.turso_db_name);
-            hypr_db::ConnectionBuilder::default().remote(url, token)
+            hypr_db::ConnectionBuilder::default().local(":memory:")
         }
 
         #[cfg(not(debug_assertions))]
         {
-            hypr_db::ConnectionBuilder::default().local()
+            let token = get_env("TURSO_API_KEY");
+            let url = format!("{}-yujonglee.turso.io", org.turso_db_name);
+            hypr_db::ConnectionBuilder::default().remote(url, token)
         }
     }
     .connect()

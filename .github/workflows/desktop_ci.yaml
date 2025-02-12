@@ -1,3 +1,4 @@
+# https://github.com/tauri-apps/tauri-action/blob/3013cac/examples/test-build-only.yml
 on:
   push:
     branches:
@@ -12,51 +13,39 @@ on:
       - apps/desktop/**
       - crates/**
 jobs:
-  linux:
-    runs-on: blacksmith-4vcpu-ubuntu-2204
+  ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "macos-latest"
+            args: "--target aarch64-apple-darwin"
+          - platform: "macos-latest"
+            args: "--target x86_64-apple-darwin"
+          - platform: "ubuntu-22.04"
+            args: ""
+          - platform: "windows-latest"
+            args: ""
+
+    runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
-      - uses: useblacksmith/rust-cache@v3
       - uses: pnpm/action-setup@v4
         with:
           version: 9.15.0
-      - run: pnpm install
-      - run: pnpm -F desktop build
-      - run: pnpm -F client generate
-      - run: pnpm -F desktop lingui:compile
-      - run: |
+      - uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - if: matrix.platform == 'ubuntu-22.04'
+        run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-      - uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - run: rustup toolchain install stable --profile minimal --no-self-update
-      - run: sudo apt-get update && sudo apt-get install -y libasound2-dev pkg-config
-      - uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - run: cargo build -p desktop
-  macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
       - run: pnpm install
-      - run: pnpm -F desktop build
-      - run: pnpm -F client generate
-      - run: pnpm -F desktop lingui:compile
-      - run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-      - uses: arduino/setup-protoc@v3
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - run: rustup toolchain install stable --profile minimal --no-self-update
-      - run: sudo apt-get update && sudo apt-get install -y libasound2-dev pkg-config
-      - uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - run: cargo build -p desktop
+          args: ${{ matrix.args }}

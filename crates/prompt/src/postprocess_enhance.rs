@@ -25,9 +25,6 @@ impl crate::OpenAIRequest for Input {
                     .unwrap()
                     .into(),
             ],
-            prediction: Some(hypr_openai::PredictionContent::Content(
-                hypr_openai::PredictionContentContent::Text(self.editor.clone()),
-            )),
             temperature: Some(0.1),
             stream: Some(false),
             ..Default::default()

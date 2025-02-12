@@ -2,7 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 
-import { client, postApiNativeLiveSummary } from "@/client";
+import {
+  client,
+  LiveSummaryResponse,
+  postApiNativeLiveSummary,
+} from "@/client";
 import { commands } from "@/types";
 
 interface LiveSummaryToastProps {
@@ -99,28 +103,9 @@ export default function LiveSummaryToast({ onClose }: LiveSummaryToastProps) {
             Live Summary
           </div>
           <div className="relative ml-auto size-4">
-            <svg className="size-4" viewBox="0 0 24 24">
-              <circle
-                className="stroke-neutral-200"
-                cx="12"
-                cy="12"
-                r="10"
-                fill="none"
-                strokeWidth="2.5"
-              />
-              <motion.circle
-                className="stroke-blue-500"
-                cx="12"
-                cy="12"
-                r="10"
-                fill="none"
-                strokeWidth="2.5"
-                strokeDasharray="62.83"
-                strokeDashoffset={62.83 - (progress / 100) * 62.83}
-                strokeLinecap="round"
-                transform="rotate(-90 12 12)"
-              />
-            </svg>
+            <button onClick={refetchSummary}>
+              <ProgressCircle progress={progress} />
+            </button>
           </div>
           <button
             onClick={onClose}
@@ -142,10 +127,59 @@ export default function LiveSummaryToast({ onClose }: LiveSummaryToastProps) {
             </svg>
           </button>
         </div>
-        <div className="text-sm text-neutral-700">
-          {JSON.stringify(summary.data)}
-        </div>
+        <Summary summary={summary.data} />
       </div>
     </motion.div>
+  );
+}
+
+function ProgressCircle({ progress }: { progress: number }) {
+  return (
+    <svg className="size-4" viewBox="0 0 24 24">
+      <circle
+        className="stroke-neutral-200"
+        cx="12"
+        cy="12"
+        r="10"
+        fill="none"
+        strokeWidth="2.5"
+      />
+      <motion.circle
+        className="stroke-blue-500"
+        cx="12"
+        cy="12"
+        r="10"
+        fill="none"
+        strokeWidth="2.5"
+        strokeDasharray="62.83"
+        strokeDashoffset={62.83 - (progress / 100) * 62.83}
+        strokeLinecap="round"
+        transform="rotate(-90 12 12)"
+      />
+    </svg>
+  );
+}
+
+function Summary({
+  summary,
+}: {
+  summary: LiveSummaryResponse | null | undefined;
+}) {
+  if (!summary) {
+    return null;
+  }
+
+  return (
+    <div className="text-sm text-neutral-700">
+      {summary.blocks.map((block, index) => (
+        <div key={index}>
+          {block.points.map((point, index) => (
+            <div key={index}>
+              <div className="text-neutral-900">{point}</div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }

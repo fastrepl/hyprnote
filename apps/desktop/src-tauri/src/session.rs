@@ -47,10 +47,12 @@ impl SessionState {
             .resample_from_to(mic_sample_rate, SAMPLE_RATE)
             .chunks(1024);
 
-        let (mic_tx, mut mic_rx) = mpsc::channel::<Vec<f32>>((SAMPLE_RATE as usize) * 60 * 10);
-        let (speaker_tx, mut speaker_rx) =
-            mpsc::channel::<Vec<f32>>((SAMPLE_RATE as usize) * 60 * 10);
-        let (mixed_tx, mixed_rx) = mpsc::channel::<f32>((SAMPLE_RATE as usize) * 60 * 10);
+        let chunk_buffer_size: usize = 1024;
+        let sample_buffer_size = (SAMPLE_RATE as usize) * 60 * 10;
+
+        let (mic_tx, mut mic_rx) = mpsc::channel::<Vec<f32>>(chunk_buffer_size);
+        let (speaker_tx, mut speaker_rx) = mpsc::channel::<Vec<f32>>(chunk_buffer_size);
+        let (mixed_tx, mixed_rx) = mpsc::channel::<f32>(sample_buffer_size);
 
         self.mic_stream_handle = Some(tokio::spawn({
             async move {

@@ -52,12 +52,13 @@ jobs:
         with:
           args: ${{ matrix.args }}
           projectPath: ./apps/desktop
-          prerelease: false
+          prerelease: true
+          tagName: desktop_v__VERSION__
+          releaseName: "Desktop v__VERSION__"
       - uses: crabnebula-dev/cloud-release@v0
         with:
           command: release upload ${{ env.CN_APPLICATION }} --framework tauri
           api-key: ${{ secrets.CN_API_KEY }}
-          path: ./apps/desktop/src-tauri
   publish:
     if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
     needs: build

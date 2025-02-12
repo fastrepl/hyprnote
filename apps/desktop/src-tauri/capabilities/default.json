@@ -10,7 +10,6 @@
     "fs:default",
     "store:default",
     "shell:allow-open",
-    "notification:default",
     "sentry:default",
     {
       "identifier": "http:default",

@@ -1,9 +1,11 @@
 use futures_util::StreamExt;
-use tokio::sync::mpsc;
+use std::sync::Arc;
+use tokio::sync::{mpsc, Mutex};
 
 use hypr_audio::AsyncSource;
 
 pub struct SessionState {
+    timeline: Option<Arc<Mutex<hypr_bridge::Timeline>>>,
     mic_stream_handle: Option<tokio::task::JoinHandle<()>>,
     speaker_stream_handle: Option<tokio::task::JoinHandle<()>>,
     listen_stream_handle: Option<tokio::task::JoinHandle<()>>,
@@ -11,7 +13,6 @@ pub struct SessionState {
 
 #[derive(Debug, Clone, serde::Serialize, specta::Type)]
 pub enum SessionStatus {
-    Timeline(hypr_bridge::TimelineView),
     Stopped,
 }
 
@@ -20,6 +21,7 @@ const SAMPLE_RATE: u32 = 16000;
 impl SessionState {
     pub fn new() -> anyhow::Result<Self> {
         Ok(Self {
+            timeline: None,
             mic_stream_handle: None,
             speaker_stream_handle: None,
             listen_stream_handle: None,
@@ -106,32 +108,34 @@ impl SessionState {
             wav.finalize().unwrap();
         });
 
+        let timeline = Arc::new(Mutex::new(hypr_bridge::Timeline::default()));
+        self.timeline = Some(timeline.clone());
+
         let listen_client = bridge.listen().language(language).build();
         let audio_stream = hypr_audio::ReceiverStreamSource::new(mixed_rx, SAMPLE_RATE);
         let listen_stream = listen_client.from_audio(audio_stream).await.unwrap();
 
-        let mut timeline = hypr_bridge::Timeline::default();
+        self.listen_stream_handle = Some(tokio::spawn({
+            let timeline = timeline.clone();
 
-        self.listen_stream_handle = Some(tokio::spawn(async move {
-            futures_util::pin_mut!(listen_stream);
+            async move {
+                futures_util::pin_mut!(listen_stream);
 
-            while let Some(result) = listen_stream.next().await {
-                match result {
-                    hypr_bridge::ListenOutputChunk::Transcribe(chunk) => {
-                        timeline.add_transcription(chunk);
-                    }
-                    hypr_bridge::ListenOutputChunk::Diarize(chunk) => {
-                        timeline.add_diarization(chunk);
+                while let Some(result) = listen_stream.next().await {
+                    let mut timeline = timeline.lock().await;
+
+                    match result {
+                        hypr_bridge::ListenOutputChunk::Transcribe(chunk) => {
+                            timeline.add_transcription(chunk);
+                        }
+                        hypr_bridge::ListenOutputChunk::Diarize(chunk) => {
+                            timeline.add_diarization(chunk);
+                        }
                     }
                 }
 
-                let view = timeline.view();
-                let out = SessionStatus::Timeline(view);
-                channel.send(out).unwrap();
+                channel.send(SessionStatus::Stopped).unwrap();
             }
-
-            let out = SessionStatus::Stopped;
-            channel.send(out).unwrap();
         }));
 
         Ok(())
@@ -161,6 +165,17 @@ pub mod commands {
         audio::AppSounds,
         session::{SessionState, SessionStatus},
     };
+
+    #[tauri::command]
+    #[specta::specta]
+    pub async fn get_timeline(
+        session: State<'_, tokio::sync::Mutex<SessionState>>,
+    ) -> Result<hypr_bridge::TimelineView, String> {
+        let s = session.lock().await;
+        let timeline = s.timeline.as_ref().unwrap().clone();
+        let timeline = timeline.lock().await;
+        Ok(timeline.view())
+    }
 
     #[tauri::command]
     #[specta::specta]

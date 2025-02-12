@@ -2,14 +2,14 @@ import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 
-import { client, postApiNativeLiveSummaryOptions } from "@/client";
+import { client, postApiNativeLiveSummary } from "@/client";
 import { commands } from "@/types";
 
 interface LiveSummaryToastProps {
   onClose: () => void;
 }
 
-const DEFAULT_INTERVAL = 20 * 1000;
+const DEFAULT_INTERVAL = 10 * 1000;
 
 export default function LiveSummaryToast({ onClose }: LiveSummaryToastProps) {
   const [progress, setProgress] = useState(0);
@@ -21,20 +21,34 @@ export default function LiveSummaryToast({ onClose }: LiveSummaryToastProps) {
   });
 
   const summary = useQuery({
+    queryKey: ["summary"],
     enabled: !!config.data,
     refetchInterval: DEFAULT_INTERVAL,
     staleTime: 0,
     gcTime: 0,
-    ...postApiNativeLiveSummaryOptions({
-      client,
-      body: {
-        config: config.data!,
-        timeline_view: {
-          items: [],
+    queryFn: async ({ signal }) => {
+      if (!config.data) {
+        return null;
+      }
+
+      const timeline_view = await commands.getTimeline();
+
+      const { data } = await postApiNativeLiveSummary({
+        client,
+        body: {
+          config: config.data,
+          timeline_view,
         },
-      },
-    }),
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
   });
+
+  const refetchSummary = async () => {
+    await summary.refetch();
+  };
 
   useEffect(() => {
     if (summary.isFetching) {

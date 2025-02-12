@@ -78,6 +78,7 @@ pub async fn main() {
             permissions::check_permission_status,
             session::commands::start_session,
             session::commands::stop_session,
+            session::commands::get_timeline,
             auth::commands::start_oauth_server,
             auth::commands::cancel_oauth_server,
             auth::commands::is_authenticated,
@@ -112,7 +113,7 @@ pub async fn main() {
             specta_typescript::Typescript::default()
                 .header("// @ts-nocheck\n\n")
                 .formatter(specta_typescript::formatter::prettier)
-                .bigint(specta_typescript::BigIntExportBehavior::BigInt),
+                .bigint(specta_typescript::BigIntExportBehavior::Number),
             "../src/types/tauri.gen.ts",
         )
         .unwrap();

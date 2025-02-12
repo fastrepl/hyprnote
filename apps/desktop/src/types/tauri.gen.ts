@@ -25,6 +25,9 @@ async startSession(onEvent: TAURI_CHANNEL<SessionStatus>) : Promise<null> {
 async stopSession() : Promise<null> {
     return await TAURI_INVOKE("stop_session");
 },
+async getTimeline() : Promise<TimelineView> {
+    return await TAURI_INVOKE("get_timeline");
+},
 async startOauthServer() : Promise<number> {
     return await TAURI_INVOKE("start_oauth_server");
 },
@@ -112,7 +115,7 @@ export type Config = { id: string; user_id: string; general: ConfigGeneral; noti
 export type ConfigGeneral = { autostart: boolean; speech_language: string; display_language: string; jargons: string[]; tags: string[] }
 export type ConfigNotification = { before: boolean; auto: boolean }
 export type ConversationChunk = { start: string; end: string; local_audio_path: string; remote_audio_path: string; transcripts: TranscriptChunk[]; diarizations: DiarizationChunk[] }
-export type DiarizationChunk = { start: bigint; end: bigint; speaker: string }
+export type DiarizationChunk = { start: number; end: number; speaker: string }
 export type EnhanceRequest = { pre_meeting_editor: string; in_meeting_editor: string; template: Template; config: Config; event: Event | null; participants: Human[]; timeline_view: TimelineView }
 export type Event = { id: string; user_id: string; tracking_id: string; calendar_id: string; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null }
 export type Human = { id: string; organization_id: string | null; is_user: boolean; full_name: string | null; email: string | null; job_title: string | null; linkedin_username: string | null }
@@ -123,13 +126,13 @@ export type RecordingStarted = null
 export type RecordingStopped = { path: string }
 export type Session = { id: string; user_id: string; timestamp: string; calendar_event_id: string | null; title: string; audio_local_path: string | null; audio_remote_path: string | null; raw_memo_html: string; enhanced_memo_html: string | null; conversations: ConversationChunk[] }
 export type SessionFilter = { id: string } | { calendarEventId: string } | { tagId: string }
-export type SessionStatus = { Timeline: TimelineView } | "Stopped"
+export type SessionStatus = "Stopped"
 export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo"
 export type Template = { id: string; user_id: string; title: string; description: string; sections: TemplateSection[]; tags: string[] }
 export type TemplateSection = { title: string; description: string }
 export type TimelineView = { items: TimelineViewItem[] }
-export type TimelineViewItem = { start: bigint; end: bigint; speaker: string; text: string }
-export type TranscriptChunk = { start: bigint; end: bigint; text: string }
+export type TimelineViewItem = { start: number; end: number; speaker: string; text: string }
+export type TranscriptChunk = { start: number; end: number; text: string }
 
 /** tauri-specta globals **/
 

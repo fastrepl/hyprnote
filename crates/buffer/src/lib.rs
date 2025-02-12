@@ -16,13 +16,15 @@ pub struct Buffer {
     content: Mutex<String>,
 }
 
-impl Buffer {
-    pub fn new() -> Self {
-        Self {
+impl Default for Buffer {
+    fn default() -> Self {
+        Buffer {
             content: Mutex::new(String::new()),
         }
     }
+}
 
+impl Buffer {
     pub fn write(&self, s: &str) {
         let mut content = self.content.lock().unwrap();
         content.push_str(s);
@@ -30,13 +32,17 @@ impl Buffer {
 
     pub fn read(&self) -> Result<String, Error> {
         let content = self.content.lock().unwrap();
-        let md = md_to_md(&content)?;
-        md_to_html(&md)
+        opinionated_md_to_html(content.as_str())
     }
 }
 
-fn md_to_md(text: &str) -> Result<String, Error> {
-    let mut ast = markdown::to_mdast(text, &markdown::ParseOptions::default())
+pub fn opinionated_md_to_html(text: impl AsRef<str>) -> Result<String, Error> {
+    let md = md_to_md(text)?;
+    md_to_html(&md)
+}
+
+fn md_to_md(text: impl AsRef<str>) -> Result<String, Error> {
+    let mut ast = markdown::to_mdast(text.as_ref(), &markdown::ParseOptions::default())
         .map_err(|e| Error::MarkdownParseError(e.to_string()))?;
 
     convert_ordered_to_unordered(&mut ast);
@@ -95,16 +101,14 @@ fn set_heading_level_from(node: &mut markdown::mdast::Node, depth: u8, header_fo
                 set_heading_level_from(child, depth + 1, found_any_heading);
             }
         }
-    } else {
-        if let Some(children) = node.children_mut() {
-            for child in children {
-                let child_found = set_heading_level_from(
-                    child,
-                    if found_any_heading { depth + 1 } else { depth },
-                    found_any_heading,
-                );
-                found_any_heading = found_any_heading || child_found;
-            }
+    } else if let Some(children) = node.children_mut() {
+        for child in children {
+            let child_found = set_heading_level_from(
+                child,
+                if found_any_heading { depth + 1 } else { depth },
+                found_any_heading,
+            );
+            found_any_heading = found_any_heading || child_found;
         }
     }
 

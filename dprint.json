@@ -13,10 +13,7 @@
   },
   "prettier": {
     "associations": [
-      "**/*.js",
-      "**/*.ts",
-      "**/*.jsx",
-      "**/*.tsx"
+      "**/*.{js,ts,jsx,tsx,mjs,mts}"
     ]
   },
   "excludes": [

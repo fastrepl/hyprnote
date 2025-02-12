@@ -1,7 +1,8 @@
 {
   "markdown": {
     "associations": [
-      "**/*.jinja"
+      "**/*.jinja",
+      "apps/docs/src/**/*.md"
     ]
   },
   "markup": {

@@ -9,8 +9,8 @@ pub fn list_builtin_templates() -> Vec<hypr_db::user::Template> {
 
 #[tauri::command]
 #[specta::specta]
-pub async fn run_enhance<'a>(
-    app: State<'a, crate::App>,
+pub async fn run_enhance(
+    app: State<'_, crate::App>,
     req: hypr_bridge::EnhanceRequest,
     on_event: Channel<String>,
 ) -> Result<(), String> {

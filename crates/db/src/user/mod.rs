@@ -1,5 +1,9 @@
 mod calendars_ops;
 mod calendars_types;
+mod chat_groups_ops;
+mod chat_groups_types;
+mod chat_messages_ops;
+mod chat_messages_types;
 mod config_ops;
 mod config_types;
 mod events_ops;
@@ -21,6 +25,14 @@ mod templates_types;
 pub use calendars_ops::*;
 #[allow(unused)]
 pub use calendars_types::*;
+#[allow(unused)]
+pub use chat_groups_ops::*;
+#[allow(unused)]
+pub use chat_groups_types::*;
+#[allow(unused)]
+pub use chat_messages_ops::*;
+#[allow(unused)]
+pub use chat_messages_types::*;
 #[allow(unused)]
 pub use config_ops::*;
 #[allow(unused)]

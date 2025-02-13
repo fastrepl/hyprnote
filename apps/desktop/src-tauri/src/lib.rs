@@ -2,11 +2,11 @@ mod audio;
 mod auth;
 mod commands;
 mod db;
-mod events;
 mod permissions;
 mod session;
+mod store;
 mod tray;
-mod vars;
+mod vault;
 mod windows;
 mod workers;
 
@@ -17,6 +17,7 @@ pub struct App {
     db: hypr_db::user::UserDatabase,
     bridge: hypr_bridge::Client,
     user_id: String,
+    vault: vault::Vault,
 }
 
 #[tokio::main]
@@ -101,10 +102,6 @@ pub async fn main() {
             db::commands::upsert_organization,
             db::commands::list_participants,
         ])
-        .events(tauri_specta::collect_events![
-            events::RecordingStarted,
-            events::RecordingStopped,
-        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw);
 
     #[cfg(debug_assertions)]
@@ -117,6 +114,11 @@ pub async fn main() {
             "../src/types/tauri.gen.ts",
         )
         .unwrap();
+
+    // TODO
+    let user_id = "human_id".to_string();
+
+    let vault = vault::Vault::new();
 
     let db = {
         let conn = {
@@ -131,11 +133,19 @@ pub async fn main() {
 
             #[cfg(not(debug_assertions))]
             {
-                hypr_db::ConnectionBuilder::default()
-                    .local(":memory:")
-                    .connect()
-                    .await
-                    .unwrap()
+                if let Ok(token) = vault.get(vault::Key::RemoteServerToken) {
+                    hypr_db::ConnectionBuilder::default()
+                        .remote("TODO", token)
+                        .connect()
+                        .await
+                        .unwrap()
+                } else {
+                    hypr_db::ConnectionBuilder::default()
+                        .local(":memory:")
+                        .connect()
+                        .await
+                        .unwrap()
+                }
             }
         };
 
@@ -150,27 +160,6 @@ pub async fn main() {
         db
     };
 
-    // TODO
-    let user_id = {
-        #[cfg(debug_assertions)]
-        {
-            db.list_humans()
-                .await
-                .unwrap()
-                .iter()
-                .find(|h| h.is_user)
-                .unwrap()
-                .id
-                .clone()
-        }
-
-        #[cfg(not(debug_assertions))]
-        {
-            // TODO
-            "human_id".to_string()
-        }
-    };
-
     builder
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
@@ -181,12 +170,22 @@ pub async fn main() {
 
             specta_builder.mount_events(&app);
 
-            auth::AuthStore::load(&app).unwrap();
+            store::UserStore::load(&app).unwrap();
+
+            let server_api_base = if cfg!(debug_assertions) {
+                "http://localhost:1234".to_string()
+            } else {
+                "https://app.hyprnote.com".to_string()
+            };
+
+            let server_api_key = vault
+                .get(vault::Key::RemoteServerToken)
+                .unwrap_or("123".to_string());
 
             {
                 let bridge = hypr_bridge::Client::builder()
-                    .api_base(vars::server_api_base())
-                    .api_key(vars::server_api_key())
+                    .api_base(server_api_base)
+                    .api_key(server_api_key)
                     .build()
                     .unwrap();
 
@@ -195,6 +194,7 @@ pub async fn main() {
                     handle: app.clone(),
                     db: db.clone(),
                     bridge: bridge.clone(),
+                    vault,
                 });
 
                 app.manage(tokio::sync::Mutex::new(

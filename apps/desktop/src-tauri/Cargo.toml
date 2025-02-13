@@ -84,3 +84,4 @@ apalis = { workspace = true }
 apalis-cron = { workspace = true }
 
 hound = { workspace = true }
+keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }

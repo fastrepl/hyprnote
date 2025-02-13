@@ -96,13 +96,6 @@ async listParticipants(eventId: string) : Promise<Human[]> {
 /** user-defined events **/
 
 
-export const events = __makeEvents__<{
-recordingStarted: RecordingStarted,
-recordingStopped: RecordingStopped
-}>({
-recordingStarted: "recording-started",
-recordingStopped: "recording-stopped"
-})
 
 /** user-defined constants **/
 
@@ -122,12 +115,11 @@ export type Human = { id: string; organization_id: string | null; is_user: boole
 export type OSPermission = "calendar" | "contacts" | "audioRecording" | "screenRecording" | "microphone" | "accessibility"
 export type Organization = { id: string; name: string; description: string | null }
 export type Platform = "Apple" | "Google"
-export type RecordingStarted = null
-export type RecordingStopped = { path: string }
 export type Session = { id: string; user_id: string; timestamp: string; calendar_event_id: string | null; title: string; audio_local_path: string | null; audio_remote_path: string | null; raw_memo_html: string; enhanced_memo_html: string | null; conversations: ConversationChunk[] }
 export type SessionFilter = { id: string } | { calendarEventId: string } | { tagId: string }
 export type SessionStatus = "Stopped" | { Audio: [number, number] } | { TimelineView: TimelineView }
 export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo"
+export type TAURI_CHANNEL<TSend> = null
 export type Template = { id: string; user_id: string; title: string; description: string; sections: TemplateSection[]; tags: string[] }
 export type TemplateSection = { title: string; description: string }
 export type TimelineFilter = { last_n_seconds: number | null }

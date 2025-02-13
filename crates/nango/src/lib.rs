@@ -211,7 +211,6 @@ pub struct NangoProxyBuilder<'a> {
 }
 
 impl NangoClientBuilder {
-
     pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
         self.api_base = Some(api_base.into());
         self

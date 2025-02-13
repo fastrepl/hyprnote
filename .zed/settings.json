@@ -1,9 +1,5 @@
 {
-  "file_scan_exclusions": [
-    "nango",
-    "lago",
-    "lago-openapi"
-  ],
+  "file_scan_exclusions": [],
   "formatter": "language_server",
   "lsp": {
     "rust-analyzer": {

@@ -2263,7 +2263,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-util",
- "prost 0.13.4",
+ "prost 0.13.5",
  "reqwest 0.12.12",
  "serde",
  "serde_json",
@@ -2801,9 +2801,9 @@ dependencies = [
 
 [[package]]
 name = "csv-core"
-version = "0.1.11"
+version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5efa2b3d7902f4b634a20cae3c9c4e6209dc4779feb6863329607560143efa70"
+checksum = "7d02f3b0da4c6504f86e9cd789d8dbafab48c2321be74e9987593de5a894d93d"
 dependencies = [
  "memchr",
 ]
@@ -3790,9 +3790,9 @@ dependencies = [
 
 [[package]]
 name = "fixedbitset"
-version = "0.4.2"
+version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ce7134b9999ecaf8bcd65542e436736ef32ddca1b3e06094cb6ec5755203b80"
+checksum = "1d674e81391d1e1ab681a28d99df07927c6d4aa5b027d7da16ba32d1d21ecd99"
 
 [[package]]
 name = "flate2"
@@ -7737,9 +7737,9 @@ dependencies = [
 
 [[package]]
 name = "petgraph"
-version = "0.6.5"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4c5cc86750666a3ed20bdaf5ca2a0344f9c67674cae0515bec2da16fbaa47db"
+checksum = "3672b37090dbd86368a4145bc067582552b29c27377cad4e0a306c97f9bd7772"
 dependencies = [
  "fixedbitset",
  "indexmap 2.7.1",
@@ -8173,28 +8173,28 @@ dependencies = [
 
 [[package]]
 name = "prost"
-version = "0.13.4"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c0fef6c4230e4ccf618a35c59d7ede15dea37de8427500f50aff708806e42ec"
+checksum = "2796faa41db3ec313a31f7624d9286acf277b52de526150b7e69f3debf891ee5"
 dependencies = [
  "bytes",
- "prost-derive 0.13.4",
+ "prost-derive 0.13.5",
 ]
 
 [[package]]
 name = "prost-build"
-version = "0.13.4"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0f3e5beed80eb580c68e2c600937ac2c4eedabdfd5ef1e5b7ea4f3fba84497b"
+checksum = "be769465445e8c1474e9c5dac2018218498557af32d9ed057325ec9a41ae81bf"
 dependencies = [
  "heck 0.5.0",
- "itertools 0.13.0",
+ "itertools 0.14.0",
  "log",
  "multimap",
  "once_cell",
  "petgraph",
  "prettyplease",
- "prost 0.13.4",
+ "prost 0.13.5",
  "prost-types",
  "regex",
  "syn 2.0.98",
@@ -8216,12 +8216,12 @@ dependencies = [
 
 [[package]]
 name = "prost-derive"
-version = "0.13.4"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "157c5a9d7ea5c2ed2d9fb8f495b64759f7816c7eaea54ba3978f0d63000162e3"
+checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
- "itertools 0.13.0",
+ "itertools 0.14.0",
  "proc-macro2",
  "quote",
  "syn 2.0.98",
@@ -8229,11 +8229,11 @@ dependencies = [
 
 [[package]]
 name = "prost-types"
-version = "0.13.4"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc2f1e56baa61e93533aebc21af4d2134b70f66275e0fcdf3cbe43d77ff7e8fc"
+checksum = "52c2c1bf36ddb1a1c396b3601a3cec27c2462e45f07c386894ec3ccf5332bd16"
 dependencies = [
- "prost 0.13.4",
+ "prost 0.13.5",
 ]
 
 [[package]]
@@ -9036,7 +9036,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-util",
- "prost 0.13.4",
+ "prost 0.13.5",
  "reqwest 0.12.12",
  "serde",
  "serde_json",
@@ -11970,7 +11970,7 @@ dependencies = [
  "hyper-util",
  "percent-encoding",
  "pin-project",
- "prost 0.13.4",
+ "prost 0.13.5",
  "rustls-native-certs 0.8.1",
  "rustls-pemfile 2.2.0",
  "socket2",
@@ -13062,9 +13062,9 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "window-vibrancy"
-version = "0.5.2"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ea403deff7b51fff19e261330f71608ff2cdef5721d72b64180bb95be7c4150"
+checksum = "831ad7678290beae36be6f9fad9234139c7f00f3b536347de7745621716be82d"
 dependencies = [
  "objc2",
  "objc2-app-kit",

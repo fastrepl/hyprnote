@@ -44,7 +44,7 @@
         "https://cdn.crabnebula.app/update/fastrepl/hyprnote/{{target}}-{{arch}}/{{current_version}}"
       ],
       "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDY3NUMyMzg1NkExMjFDOTgKUldTWUhCSnFoU05jWjN2SGpRbUsyUVN3eTc0a2NVVmNzUVNzUE9McW5RK3RqYmNadmxvY29ha3EK"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDkxOUFGMDdBNUYzNjhBM0UKUldRK2lqWmZldkNha1RhMmlPSWJneG9SSGgxdktMUEdUdmtCZ1pMMDlMbUZmNElTRTkrOXRNWFAK"
     }
   }
 }

@@ -1,14 +1,16 @@
 [workspace]
 resolver = "2"
-members = ["apps/app/server", "apps/desktop/src-tauri", "crates/*"]
+members = ["apps/app/server", "apps/desktop/src-tauri", "crates/*", "plugins/*"]
 
 [workspace.dependencies]
+tauri = "2.1.1"
+tauri-plugin = "2.0.3"
+
 async-stream = "0.3.6"
 futures-channel = "0.3.31"
 futures-core = "0.3.31"
 futures-util = "0.3.31"
 reqwest = "0.12"
-tauri = "2.1.1"
 tokio = "1"
 tokio-stream = "0.1.17"
 tokio-tungstenite = "0.26.0"

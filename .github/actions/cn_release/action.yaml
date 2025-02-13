@@ -1,0 +1,20 @@
+inputs:
+  cmd:
+    required: true
+    type: string
+  app:
+    required: true
+  key:
+    required: true
+  channel:
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - uses: crabnebula-dev/cloud-release@v0
+      with:
+        command: >-
+          release ${{ inputs.cmd }} ${{ inputs.app }}
+          --framework tauri${{ inputs.channel != '' && format(' --channel {0}', inputs.channel) || '' }}
+        api-key: ${{ inputs.key }}

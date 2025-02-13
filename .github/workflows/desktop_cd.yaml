@@ -15,11 +15,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: create draft release
-        uses: crabnebula-dev/cloud-release@v0
+      - uses: ./.github/actions/cn_release
         with:
-          command: release draft ${{ env.CN_APPLICATION }} --framework tauri
-          api-key: ${{ secrets.CN_API_KEY }}
+          cmd: draft
+          app: ${{ env.CN_APPLICATION }}
+          key: ${{ secrets.CN_API_KEY }}
   build:
     if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
     needs: draft
@@ -34,23 +34,19 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+      - run: |
+          rustup toolchain install stable --profile minimal --no-self-update
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
       - uses: Swatinem/rust-cache@v2
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
-      - run: pnpm install
+      - uses: ./.github/actions/pnpm_install
       - uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/apple_cert
-        id: cert-setup
         with:
           apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
           apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
-      - run: |
-          rustup toolchain install stable --profile minimal --no-self-update
-          rustup target add aarch64-apple-darwin x86_64-apple-darwin
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -63,17 +59,19 @@ jobs:
           APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-      - uses: crabnebula-dev/cloud-release@v0
+      - uses: ./.github/actions/cn_release_publish
         with:
-          command: release upload ${{ env.CN_APPLICATION }} --framework tauri
-          api-key: ${{ secrets.CN_API_KEY }}
+          cmd: upload
+          app: ${{ env.CN_APPLICATION }}
+          key: ${{ secrets.CN_API_KEY }}
   publish:
     if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
     needs: build
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: crabnebula-dev/cloud-release@v0
+      - uses: ./.github/actions/cn_release_publish
         with:
-          command: release publish ${{ env.CN_APPLICATION }} --framework tauri
-          api-key: ${{ secrets.CN_API_KEY }}
+          cmd: publish
+          app: ${{ env.CN_APPLICATION }}
+          key: ${{ secrets.CN_API_KEY }}

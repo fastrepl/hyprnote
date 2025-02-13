@@ -18,6 +18,8 @@ export default function WorkspaceAIButton() {
     queryFn: () => commands.listChatGroups(userId),
   });
 
+  console.log(_chatGroups);
+
   const { isDynamic, isOpen, setIsOpen, handleOpen } = useAITrigger();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");

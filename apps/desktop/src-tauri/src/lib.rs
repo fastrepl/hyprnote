@@ -102,6 +102,10 @@ pub async fn main() {
             db::commands::get_self_organization,
             db::commands::upsert_organization,
             db::commands::list_participants,
+            db::commands::list_chat_groups,
+            db::commands::list_chat_messages,
+            db::commands::create_chat_group,
+            db::commands::upsert_chat_message,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw);
 
@@ -134,6 +138,7 @@ pub async fn main() {
 
             let db = tokio::task::block_in_place(|| {
                 tokio::runtime::Handle::current().block_on(async move {
+                    #[allow(unused)]
                     let vault = vault_for_db;
 
                     let conn = {

@@ -1,4 +1,7 @@
-use super::{Calendar, Event, Human, Platform, Session, UserDatabase};
+use super::{
+    Calendar, ChatGroup, ChatMessage, ChatMessageRole, Event, Human, Platform, Session,
+    UserDatabase,
+};
 
 pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
     let now = chrono::Utc::now();
@@ -140,6 +143,27 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
 
     for session in sessions {
         let _ = db.upsert_session(session).await?;
+    }
+
+    {
+        let chat_group_1 = ChatGroup {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: yujong.clone().id,
+            name: Some("Chat Group 1".to_string()),
+            created_at: now,
+        };
+
+        let _ = db.create_chat_group(chat_group_1.clone()).await?;
+
+        let chat_message_1 = ChatMessage {
+            id: uuid::Uuid::new_v4().to_string(),
+            group_id: chat_group_1.id.clone(),
+            role: ChatMessageRole::User,
+            content: "Hello, how are you?".to_string(),
+            created_at: now,
+        };
+
+        let _ = db.upsert_chat_message(chat_message_1).await?;
     }
 
     Ok(())

@@ -1,6 +1,7 @@
-import type { Message } from "@/types";
 import { useLocation } from "@tanstack/react-router";
 import { motion } from "motion/react";
+
+import type { Message } from "@/types";
 import Header from "./header";
 import HistoryView from "./history-view";
 import MessageView from "./message-view";

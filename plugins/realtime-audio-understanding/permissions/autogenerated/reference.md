@@ -2,7 +2,8 @@
 
 Default permissions for the plugin
 
-- `allow-ping`
+- `allow-start_session`
+- `allow-stop_session`
 
 ## Permission Table
 

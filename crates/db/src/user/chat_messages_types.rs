@@ -3,9 +3,7 @@ use crate::user_common_derives;
 user_common_derives! {
     #[derive(strum::EnumString, strum::Display)]
     pub enum ChatMessageRole {
-        #[strum(serialize = "user")]
         User,
-        #[strum(serialize = "assistant")]
         Assistant,
     }
 }

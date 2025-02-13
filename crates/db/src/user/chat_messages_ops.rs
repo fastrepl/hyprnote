@@ -14,7 +14,8 @@ impl UserDatabase {
                     created_at,
                     role,
                     content
-                ) VALUES (?, ?, ?, ?, ?)",
+                ) VALUES (?, ?, ?, ?, ?)
+                RETURNING *",
                 vec![
                     message.id,
                     message.group_id,
@@ -37,7 +38,9 @@ impl UserDatabase {
         let mut rows = self
             .conn
             .query(
-                "SELECT * FROM chat_messages WHERE group_id = ?",
+                "SELECT * FROM chat_messages 
+                WHERE group_id = ? 
+                ORDER BY created_at ASC",
                 vec![group_id.into()],
             )
             .await?;

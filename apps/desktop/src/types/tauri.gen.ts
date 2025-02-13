@@ -93,6 +93,18 @@ async upsertOrganization(organization: Organization) : Promise<Organization> {
 },
 async listParticipants(eventId: string) : Promise<Human[]> {
     return await TAURI_INVOKE("list_participants", { eventId });
+},
+async listChatGroups(userId: string) : Promise<ChatGroup[]> {
+    return await TAURI_INVOKE("list_chat_groups", { userId });
+},
+async listChatMessages(groupId: string) : Promise<ChatMessage[]> {
+    return await TAURI_INVOKE("list_chat_messages", { groupId });
+},
+async createChatGroup(group: ChatGroup) : Promise<ChatGroup> {
+    return await TAURI_INVOKE("create_chat_group", { group });
+},
+async upsertChatMessage(message: ChatMessage) : Promise<ChatMessage> {
+    return await TAURI_INVOKE("upsert_chat_message", { message });
 }
 }
 
@@ -107,6 +119,9 @@ async listParticipants(eventId: string) : Promise<Human[]> {
 /** user-defined types **/
 
 export type Calendar = { id: string; tracking_id: string; user_id: string; platform: Platform; name: string; selected: boolean }
+export type ChatGroup = { id: string; user_id: string; name: string; created_at: string }
+export type ChatMessage = { id: string; group_id: string; created_at: string; role: ChatMessageRole; content: string }
+export type ChatMessageRole = "User" | "Assistant"
 export type Config = { id: string; user_id: string; general: ConfigGeneral; notification: ConfigNotification }
 export type ConfigGeneral = { autostart: boolean; speech_language: string; display_language: string; jargons: string[]; tags: string[] }
 export type ConfigNotification = { before: boolean; auto: boolean }

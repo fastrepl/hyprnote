@@ -1,13 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
+import { useQuery } from "@tanstack/react-query";
 
+import { useHypr } from "@/contexts/hypr";
 import TriggerButton from "@/components/shared/trigger-button";
 import { useAITrigger } from "@/hooks/use-ai-trigger";
-import type { Message } from "@/types";
+import { commands, type Message } from "@/types";
 
 import Modal from "./shared/modal";
 
 export default function WorkspaceAIButton() {
+  const { userId } = useHypr();
+
+  const _chatGroups = useQuery({
+    enabled: !!userId,
+    queryKey: ["chatGroups"],
+    queryFn: () => commands.listChatGroups(userId),
+  });
+
   const { isDynamic, isOpen, setIsOpen, handleOpen } = useAITrigger();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");

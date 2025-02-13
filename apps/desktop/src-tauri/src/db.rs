@@ -235,4 +235,60 @@ pub mod commands {
             .await
             .map_err(|e| e.to_string())
     }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
+    pub async fn list_chat_groups(
+        state: State<'_, App>,
+        user_id: String,
+    ) -> Result<Vec<hypr_db::user::ChatGroup>, String> {
+        state
+            .db
+            .list_chat_groups(user_id)
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
+    pub async fn list_chat_messages(
+        state: State<'_, App>,
+        group_id: String,
+    ) -> Result<Vec<hypr_db::user::ChatMessage>, String> {
+        state
+            .db
+            .list_chat_messages(group_id)
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
+    pub async fn create_chat_group(
+        state: State<'_, App>,
+        group: hypr_db::user::ChatGroup,
+    ) -> Result<hypr_db::user::ChatGroup, String> {
+        state
+            .db
+            .create_chat_group(group)
+            .await
+            .map_err(|e| e.to_string())
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    #[tracing::instrument(skip(state))]
+    pub async fn upsert_chat_message(
+        state: State<'_, App>,
+        message: hypr_db::user::ChatMessage,
+    ) -> Result<hypr_db::user::ChatMessage, String> {
+        state
+            .db
+            .upsert_chat_message(message)
+            .await
+            .map_err(|e| e.to_string())
+    }
 }

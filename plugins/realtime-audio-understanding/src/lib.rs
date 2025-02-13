@@ -24,7 +24,7 @@ impl<R: Runtime, T: Manager<R>> crate::HyprRealtimeAudioUnderstandingExt<R> for 
 }
 
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
-    Builder::new("hypr-realtime-audio-understanding")
+    Builder::new("plugin-realtime-audio-understanding")
         .invoke_handler(tauri::generate_handler![
             commands::start_session,
             commands::stop_session

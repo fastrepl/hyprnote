@@ -5,8 +5,22 @@ impl UserDatabase {
         let mut rows = self
             .conn
             .query(
-                "INSERT INTO chat_groups (id, user_id, created_at) VALUES (?, ?, ?)",
-                vec![group.id, group.user_id, group.created_at.to_rfc3339()],
+                "INSERT INTO chat_groups (
+                    id,
+                    user_id,
+                    name,
+                    created_at
+                ) VALUES (?, ?, ?, ?)
+                RETURNING *",
+                vec![
+                    libsql::Value::Text(group.id),
+                    libsql::Value::Text(group.user_id),
+                    group
+                        .name
+                        .map(libsql::Value::Text)
+                        .unwrap_or(libsql::Value::Null),
+                    libsql::Value::Text(group.created_at.to_rfc3339()),
+                ],
             )
             .await?;
 
@@ -22,7 +36,9 @@ impl UserDatabase {
         let mut rows = self
             .conn
             .query(
-                "SELECT * FROM chat_groups WHERE user_id = ?",
+                "SELECT * FROM chat_groups 
+                WHERE user_id = ? 
+                ORDER BY created_at DESC",
                 vec![user_id.into()],
             )
             .await?;

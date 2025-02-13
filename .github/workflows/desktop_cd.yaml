@@ -9,6 +9,7 @@ concurrency:
   cancel-in-progress: true
 env:
   CN_APPLICATION: "fastrepl/hyprnote"
+  RELEASE_CHANNEL: ${{ endsWith(github.event.release.tag_name, 'nightly') && 'nightly' || '' }}
 jobs:
   draft:
     if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
@@ -20,6 +21,7 @@ jobs:
           cmd: draft
           app: ${{ env.CN_APPLICATION }}
           key: ${{ secrets.CN_API_KEY }}
+          channel: ${{ env.RELEASE_CHANNEL }}
   build:
     if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
     needs: draft
@@ -59,19 +61,21 @@ jobs:
           APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-      - uses: ./.github/actions/cn_release_publish
+      - uses: ./.github/actions/cn_release
         with:
           cmd: upload
           app: ${{ env.CN_APPLICATION }}
           key: ${{ secrets.CN_API_KEY }}
+          channel: ${{ env.RELEASE_CHANNEL }}
   publish:
     if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
     needs: build
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/cn_release_publish
+      - uses: ./.github/actions/cn_release
         with:
           cmd: publish
           app: ${{ env.CN_APPLICATION }}
           key: ${{ secrets.CN_API_KEY }}
+          channel: ${{ env.RELEASE_CHANNEL }}

@@ -4,6 +4,8 @@ mod config_ops;
 mod config_types;
 mod events_ops;
 mod events_types;
+mod extensions_ops;
+mod extensions_types;
 mod humans_ops;
 mod humans_types;
 mod organizations_ops;
@@ -27,6 +29,10 @@ pub use config_types::*;
 pub use events_ops::*;
 #[allow(unused)]
 pub use events_types::*;
+#[allow(unused)]
+pub use extensions_ops::*;
+#[allow(unused)]
+pub use extensions_types::*;
 #[allow(unused)]
 pub use humans_ops::*;
 #[allow(unused)]

@@ -130,9 +130,12 @@ pub async fn main() {
             let user_id = "human_id".to_string();
 
             let vault = vault::Vault::new();
+            let vault_for_db = vault.clone();
 
             let db = tokio::task::block_in_place(|| {
                 tokio::runtime::Handle::current().block_on(async move {
+                    let vault = vault_for_db;
+
                     let conn = {
                         #[cfg(debug_assertions)]
                         {

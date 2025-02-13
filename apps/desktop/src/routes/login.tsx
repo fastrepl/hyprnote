@@ -62,7 +62,7 @@ function Component() {
 
   return (
     <main className="flex h-screen flex-col items-center justify-center gap-6">
-      <h1 className="text-4xl font-bold font-racing-sans">Hyprnote</h1>
+      <h1 className="text-4xl font-bold font-racing-sans text-white">Hyprnote</h1>
 
       <PushableButton onClick={handleSignIn}>
         <Trans>Get Started</Trans>

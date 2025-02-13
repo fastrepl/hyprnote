@@ -1,13 +1,18 @@
-use tauri::{command, AppHandle, Runtime};
+use tauri::{command, ipc::Channel, AppHandle, Runtime};
 
-use crate::models::*;
 use crate::HyprRealtimeAudioUnderstandingExt;
 use crate::Result;
 
 #[command]
-pub(crate) async fn ping<R: Runtime>(
+pub(crate) async fn start_session<R: Runtime>(
     app: AppHandle<R>,
-    payload: PingRequest,
-) -> Result<PingResponse> {
-    app.hypr_realtime_audio_understanding().ping(payload)
+    channel: Channel<String>,
+) -> Result<()> {
+    app.hypr_realtime_audio_understanding()
+        .start_session(channel)
+}
+
+#[command]
+pub(crate) async fn stop_session<R: Runtime>(app: AppHandle<R>) -> Result<()> {
+    app.hypr_realtime_audio_understanding().stop_session()
 }

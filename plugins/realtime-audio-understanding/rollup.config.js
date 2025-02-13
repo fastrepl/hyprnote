@@ -1,6 +1,9 @@
+// https://github.com/tauri-apps/plugins-workspace/blob/v2/shared/rollup.config.js
+
 import { readFileSync } from "fs";
 import { join } from "path";
 import { cwd } from "process";
+
 import typescript from "@rollup/plugin-typescript";
 
 const pkg = JSON.parse(readFileSync(join(cwd(), "package.json"), "utf8"));

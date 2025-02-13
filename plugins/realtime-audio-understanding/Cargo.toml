@@ -9,6 +9,9 @@ links = "plugin-realtime-audio-understanding"
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
 
+hypr-audio = { path = "../../crates/audio", package = "audio" }
+hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
+
 [dependencies]
 serde = { workspace = true }
 tauri = { workspace = true }

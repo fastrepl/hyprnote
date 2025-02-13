@@ -1,7 +1,5 @@
 use serde::de::DeserializeOwned;
-use tauri::{plugin::PluginApi, AppHandle, Runtime};
-
-use crate::models::*;
+use tauri::{ipc::Channel, plugin::PluginApi, AppHandle, Runtime};
 
 pub fn init<R: Runtime, C: DeserializeOwned>(
     app: &AppHandle<R>,
@@ -10,13 +8,15 @@ pub fn init<R: Runtime, C: DeserializeOwned>(
     Ok(HyprRealtimeAudioUnderstanding(app.clone()))
 }
 
-/// Access to the hypr-realtime-audio-understanding APIs.
 pub struct HyprRealtimeAudioUnderstanding<R: Runtime>(AppHandle<R>);
 
 impl<R: Runtime> HyprRealtimeAudioUnderstanding<R> {
-    pub fn ping(&self, payload: PingRequest) -> crate::Result<PingResponse> {
-        Ok(PingResponse {
-            value: payload.value,
-        })
+    pub fn start_session(&self, channel: Channel<String>) -> crate::Result<()> {
+        channel.send(String::from("ping")).unwrap();
+        Ok(())
+    }
+
+    pub fn stop_session(&self) -> crate::Result<()> {
+        Ok(())
     }
 }

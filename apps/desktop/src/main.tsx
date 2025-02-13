@@ -11,8 +11,7 @@ import { routeTree } from "./routeTree.gen";
 import { ThemeProvider } from "@hypr/ui/contexts/theme";
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 import { WindowProvider } from "./contexts";
-import { useTauriStore } from "./stores/tauri";
-import { AuthContext, AuthProvider, useAuth } from "./auth";
+import { HyprProvider } from "./contexts/hypr";
 
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
@@ -29,7 +28,6 @@ import "./styles/globals.css";
 import "@hypr/ui/globals.css";
 
 export type Context = {
-  auth?: AuthContext;
   queryClient: QueryClient;
 };
 
@@ -45,7 +43,6 @@ const queryClient = new QueryClient({
 const router = createRouter({
   routeTree,
   context: {
-    auth: undefined,
     queryClient,
   },
   defaultPreload: "intent",
@@ -73,13 +70,7 @@ Sentry.init({
 });
 
 function App() {
-  const load = useTauriStore((state) => state.load);
-  load().then(() => {});
-
-  const auth = useAuth();
-
   const context: Required<Context> = {
-    auth,
     queryClient,
   };
 
@@ -96,11 +87,11 @@ if (!rootElement.innerHTML) {
         <ThemeProvider defaultTheme="light">
           <WindowProvider>
             <QueryClientProvider client={queryClient}>
-              <AuthProvider>
-                <I18nProvider i18n={i18n}>
+              <I18nProvider i18n={i18n}>
+                <HyprProvider>
                   <App />
-                </I18nProvider>
-              </AuthProvider>
+                </HyprProvider>
+              </I18nProvider>
             </QueryClientProvider>
           </WindowProvider>
         </ThemeProvider>

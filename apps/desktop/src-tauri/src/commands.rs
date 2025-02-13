@@ -3,6 +3,12 @@ use tauri::{ipc::Channel, State};
 
 #[tauri::command]
 #[specta::specta]
+pub fn get_user_id(app: State<'_, crate::App>) -> String {
+    app.user_id.clone()
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn list_builtin_templates() -> Vec<hypr_db::user::Template> {
     hypr_template::builtins()
 }

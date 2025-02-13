@@ -12,9 +12,11 @@ export const Route = createFileRoute("/note/new")({
   beforeLoad: async ({ search }) => {
     let session: Session | null = null;
 
+    const userId = await commands.getUserId();
+
     const emptySession: Session = {
       id: crypto.randomUUID() as string,
-      user_id: "current_user_id", // TODO
+      user_id: userId,
       timestamp: new Date().toISOString(),
       calendar_event_id: null,
       title: "Untitled",

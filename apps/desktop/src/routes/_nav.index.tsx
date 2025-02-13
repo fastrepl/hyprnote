@@ -40,12 +40,12 @@ const queryOptions = () => ({
 
 export const Route = createFileRoute("/_nav/")({
   component: Component,
-  beforeLoad: async ({ context }) => {
+  beforeLoad: async () => {
     if (!import.meta.env.PROD) {
       return;
     }
 
-    const isAuthenticated = await context.auth?.isAuthenticated();
+    const isAuthenticated = await commands.isAuthenticated();
 
     if (!isAuthenticated) {
       throw redirect({ to: "/login" });

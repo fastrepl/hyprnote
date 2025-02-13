@@ -73,6 +73,7 @@ pub async fn main() {
 
     let specta_builder = tauri_specta::Builder::new()
         .commands(tauri_specta::collect_commands![
+            commands::get_user_id,
             commands::run_enhance,
             commands::list_builtin_templates,
             permissions::open_permission_settings,
@@ -115,51 +116,6 @@ pub async fn main() {
         )
         .unwrap();
 
-    // TODO
-    let user_id = "human_id".to_string();
-
-    let vault = vault::Vault::new();
-
-    let db = {
-        let conn = {
-            #[cfg(debug_assertions)]
-            {
-                hypr_db::ConnectionBuilder::default()
-                    .local(":memory:")
-                    .connect()
-                    .await
-                    .unwrap()
-            }
-
-            #[cfg(not(debug_assertions))]
-            {
-                if let Ok(token) = vault.get(vault::Key::RemoteServerToken) {
-                    hypr_db::ConnectionBuilder::default()
-                        .remote("TODO", token)
-                        .connect()
-                        .await
-                        .unwrap()
-                } else {
-                    hypr_db::ConnectionBuilder::default()
-                        .local(":memory:")
-                        .connect()
-                        .await
-                        .unwrap()
-                }
-            }
-        };
-
-        hypr_db::user::migrate(&conn).await.unwrap();
-        let db = hypr_db::user::UserDatabase::from(conn);
-
-        #[cfg(debug_assertions)]
-        {
-            hypr_db::user::seed(&db).await.unwrap();
-        }
-
-        db
-    };
-
     builder
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
@@ -169,8 +125,53 @@ pub async fn main() {
             let app = app.handle().clone();
 
             specta_builder.mount_events(&app);
-
             store::UserStore::load(&app).unwrap();
+
+            let user_id = "human_id".to_string();
+
+            let vault = vault::Vault::new();
+
+            let db = tokio::task::block_in_place(|| {
+                tokio::runtime::Handle::current().block_on(async move {
+                    let conn = {
+                        #[cfg(debug_assertions)]
+                        {
+                            hypr_db::ConnectionBuilder::default()
+                                .local(":memory:")
+                                .connect()
+                                .await
+                                .unwrap()
+                        }
+
+                        #[cfg(not(debug_assertions))]
+                        {
+                            if let Ok(token) = vault.get(vault::Key::RemoteDatabase) {
+                                hypr_db::ConnectionBuilder::default()
+                                    .remote("TODO", token)
+                                    .connect()
+                                    .await
+                                    .unwrap()
+                            } else {
+                                hypr_db::ConnectionBuilder::default()
+                                    .local(":memory:")
+                                    .connect()
+                                    .await
+                                    .unwrap()
+                            }
+                        }
+                    };
+
+                    hypr_db::user::migrate(&conn).await.unwrap();
+                    let db = hypr_db::user::UserDatabase::from(conn);
+
+                    #[cfg(debug_assertions)]
+                    {
+                        hypr_db::user::seed(&db).await.unwrap();
+                    }
+
+                    db
+                })
+            });
 
             let server_api_base = if cfg!(debug_assertions) {
                 "http://localhost:1234".to_string()
@@ -179,7 +180,7 @@ pub async fn main() {
             };
 
             let server_api_key = vault
-                .get(vault::Key::RemoteServerToken)
+                .get(vault::Key::RemoteServer)
                 .unwrap_or("123".to_string());
 
             {
@@ -208,11 +209,9 @@ pub async fn main() {
                 autostart_manager.enable().unwrap();
             }
 
-            let worker_db = db.clone();
-
             tokio::spawn(async move {
                 let state = workers::WorkerState {
-                    db: worker_db,
+                    db,
                     user_id: user_id.clone(),
                 };
                 workers::monitor(state).await.unwrap();

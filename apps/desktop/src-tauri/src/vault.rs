@@ -5,10 +5,10 @@ pub struct Vault {
 
 #[derive(Debug, strum::AsRefStr)]
 pub enum Key {
-    #[strum(serialize = "remote_database_token")]
-    RemoteDatabaseToken,
-    #[strum(serialize = "remote_server_token")]
-    RemoteServerToken,
+    #[strum(serialize = "remote_database")]
+    RemoteDatabase,
+    #[strum(serialize = "remote_server")]
+    RemoteServer,
 }
 
 impl Vault {

@@ -7,6 +7,9 @@
 
 
 export const commands = {
+async getUserId() : Promise<string> {
+    return await TAURI_INVOKE("get_user_id");
+},
 async runEnhance(req: EnhanceRequest, onEvent: TAURI_CHANNEL<string>) : Promise<null> {
     return await TAURI_INVOKE("run_enhance", { req, onEvent });
 },

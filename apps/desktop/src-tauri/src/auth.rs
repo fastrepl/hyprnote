@@ -68,9 +68,7 @@ pub mod commands {
                         user_id: Some(user_id),
                     };
 
-                    vault
-                        .set(crate::vault::Key::RemoteServerToken, token)
-                        .unwrap();
+                    vault.set(crate::vault::Key::RemoteServer, token).unwrap();
 
                     UserStore::set(&app_handle, auth).unwrap();
                 } else {

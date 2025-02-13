@@ -1,5 +1,5 @@
 {
-  "name": "@hypr/client",
+  "name": "@hypr/obsidian",
   "main": "./index.ts",
   "exports": {
     ".": "./index.ts",
@@ -9,12 +9,11 @@
     "./gen/tanstack": "./generated/@tanstack/react-query.gen.ts"
   },
   "scripts": {
+    "spec": "curl -o ./openapi.yaml https://raw.githubusercontent.com/coddingtonbear/obsidian-local-rest-api/refs/heads/main/docs/openapi.yaml",
     "generate": "openapi-ts && [ \"$GITHUB_WORKFLOW\" != \"\" ] && git diff --exit-code generated/ || true"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.64.3",
-    "@mswjs/source": "^0.3.2",
-    "msw": "^2.7.0"
+    "@hey-api/openapi-ts": "^0.64.3"
   },
   "dependencies": {
     "@hey-api/client-fetch": "^0.8.1",

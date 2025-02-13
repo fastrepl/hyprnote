@@ -1,8 +1,10 @@
-import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence } from "motion/react";
+
 import TriggerButton from "@/components/shared/trigger-button";
 import { useAITrigger } from "@/hooks/use-ai-trigger";
 import type { Message } from "@/types";
+
 import Modal from "./shared/modal";
 
 export default function WorkspaceAIButton() {

@@ -1,5 +1,14 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@hypr/ui/components/ui/carousel";
 import {
   Card,
   CardHeader,
@@ -7,13 +16,37 @@ import {
   CardContent,
 } from "@hypr/ui/components/ui/card";
 import { Badge } from "@hypr/ui/components/ui/badge";
+
 import { commands, type Event } from "@/types";
 
-interface EventCardProps {
-  event: Event;
+export default function UpcomingEvents() {
+  const data = useQuery({
+    queryKey: ["events"],
+    queryFn: () => commands.listEvents(),
+  });
+
+  return (
+    <div className="mb-8 space-y-4 pt-12">
+      <h2 className="text-lg font-semibold">
+        <Trans>Upcoming</Trans>
+      </h2>
+
+      <Carousel className="-ml-2">
+        <CarouselContent className="px-2">
+          {data.data?.map((event) => (
+            <CarouselItem key={event.id} className="sm:basis-1/2 xl:basis-1/3">
+              <EventCard event={event} />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselPrevious className="absolute left-0 top-1/2 z-10 hover:bg-neutral-50" />
+        <CarouselNext className="absolute right-0 top-1/2 z-10 hover:bg-neutral-50" />
+      </Carousel>
+    </div>
+  );
 }
 
-export function EventCard({ event }: EventCardProps) {
+function EventCard({ event }: { event: Event }) {
   const navigate = useNavigate();
 
   const participants = useQuery({

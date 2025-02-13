@@ -1,5 +1,6 @@
 # https://github.com/tauri-apps/tauri-action/blob/3013cac/examples/publish-to-auto-release-universal-macos-app-with-signing-certificate.yml#L40-L61
 # https://docs.github.com/en/actions/use-cases-and-examples/deploying/installing-an-apple-certificate-on-macos-runners-for-xcode-development
+# https://developer.apple.com/help/account/reference/certificate-types/
 
 name: "Setup Apple Certificate"
 description: "Import and verify Apple Developer Certificate for code signing"

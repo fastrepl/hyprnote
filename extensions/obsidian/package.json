@@ -1,0 +1,14 @@
+{
+  "name": "@hypr/extension-obsidian",
+  "version": "1.0.0",
+  "license": "MIT",
+  "keywords": [],
+  "description": "Obsidian",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@hypr/obsidian": "workspace:*"
+  }
+}

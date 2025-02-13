@@ -7,6 +7,7 @@ import { message } from "@tauri-apps/plugin-dialog";
 import { commands } from "@/types";
 import { baseUrl } from "@/client";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
+import { Particles } from "@hypr/ui/components/ui/particles";
 
 export const Route = createFileRoute("/login")({
   component: Component,
@@ -60,8 +61,20 @@ function Component() {
   };
 
   return (
-    <PushableButton onClick={handleSignIn}>
-      <Trans>Get Started</Trans>
-    </PushableButton>
+    <main className="flex h-screen flex-col items-center justify-center gap-6">
+      <h1 className="text-4xl font-bold font-racing-sans">Hyprnote</h1>
+
+      <PushableButton onClick={handleSignIn}>
+        <Trans>Get Started</Trans>
+      </PushableButton>
+
+      <Particles
+        className="absolute inset-0 z-0"
+        quantity={100}
+        ease={80}
+        color={"#000000"}
+        refresh
+      />
+    </main>
   );
 }

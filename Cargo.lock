@@ -11182,6 +11182,8 @@ dependencies = [
 name = "tauri-plugin-listener"
 version = "0.1.0"
 dependencies = [
+ "audio 0.1.0",
+ "bridge",
  "serde",
  "tauri",
  "tauri-plugin",

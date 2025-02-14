@@ -305,6 +305,26 @@
           "const": "deny-ping"
         },
         {
+          "description": "Enables the start_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-start-session"
+        },
+        {
+          "description": "Denies the start_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-start-session"
+        },
+        {
+          "description": "Enables the stop_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-stop-session"
+        },
+        {
+          "description": "Denies the stop_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-stop-session"
+        },
+        {
           "description": "Default permissions for the plugin",
           "type": "string",
           "const": "default"

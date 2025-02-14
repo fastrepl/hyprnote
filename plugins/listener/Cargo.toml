@@ -3,15 +3,18 @@ name = "tauri-plugin-listener"
 version = "0.1.0"
 authors = ["You"]
 edition = "2021"
-exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules"]
+exclude = ["/dist-js", "/guest-js", "/node_modules"]
 links = "tauri-plugin-listener"
 rust-version = "1.77.2"
 description = ""
 
-[dependencies]
-serde = "1.0"
-tauri = { version = "2.2.4" }
-thiserror = "2"
-
 [build-dependencies]
-tauri-plugin = { version = "2.0.3", features = ["build"] }
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[dependencies]
+hypr-audio = { path = "../../crates/audio", package = "audio" }
+hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
+
+serde = { workspace = true }
+tauri = { workspace = true }
+thiserror = { workspace = true }

@@ -1,0 +1,17 @@
+[package]
+name = "tauri-plugin-sse"
+version = "0.1.0"
+authors = ["You"]
+edition = "2021"
+exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules"]
+links = "tauri-plugin-sse"
+rust-version = "1.77.2"
+description = ""
+
+[dependencies]
+serde = "1.0"
+tauri = { path = ".././apps/desktop/crates/tauri" }
+thiserror = "2"
+
+[build-dependencies]
+tauri-plugin = { path = ".././apps/desktop/crates/tauri-plugin", features = ["build"] }

@@ -9,6 +9,6 @@
     "noImplicitAny": true,
     "noEmit": true
   },
-  "include": ["guest-js/*.ts"],
-  "exclude": ["dist-js", "node_modules"]
+  "include": ["./generated/bindings.ts"],
+  "exclude": ["node_modules"]
 }

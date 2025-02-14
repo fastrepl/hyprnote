@@ -11,10 +11,23 @@ description = ""
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
 
+[dev-dependencies]
+specta-typescript = { workspace = true }
+
 [dependencies]
 hypr-audio = { path = "../../crates/audio", package = "audio" }
 hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
 
-serde = { workspace = true }
 tauri = { workspace = true }
+tracing = { workspace = true }
+
+serde = { workspace = true }
+specta = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 thiserror = { workspace = true }
+
+futures-util = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+
+hound = { workspace = true }

@@ -8042,18 +8042,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "plugin-realtime-audio-understanding"
-version = "0.1.0"
-dependencies = [
- "audio 0.1.0",
- "bridge",
- "serde",
- "tauri",
- "tauri-plugin",
- "thiserror 2.0.11",
-]
-
-[[package]]
 name = "png"
 version = "0.17.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11188,6 +11176,16 @@ dependencies = [
  "tokio",
  "url",
  "urlpattern",
+]
+
+[[package]]
+name = "tauri-plugin-listener"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.11",
 ]
 
 [[package]]

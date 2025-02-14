@@ -1,7 +1,7 @@
 {
-  "name": "@hypr/plugin-realtime-audio-understanding",
+  "name": "@hypr/plugin-listener",
   "version": "0.1.0",
-  "author": "yujonglee <yujonglee.dev@gmail.com>",
+  "author": "You",
   "description": "",
   "type": "module",
   "types": "./dist-js/index.d.ts",

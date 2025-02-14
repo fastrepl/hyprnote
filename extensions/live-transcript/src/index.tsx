@@ -1,5 +1,3 @@
-import { fetch } from "@hypr/fetch";
-
 export default function View() {
   return (
     <div>

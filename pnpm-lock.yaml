@@ -316,27 +316,30 @@ importers:
 
   extensions/live-summary:
     dependencies:
-      '@hypr/fetch':
+      '@hypr/plugin-listener':
         specifier: workspace:*
-        version: link:../../packages/fetch
-      '@hypr/plugin-realtime-audio-understanding':
-        specifier: workspace:*
-        version: link:../../plugins/realtime-audio-understanding
+        version: link:../../plugins/listener
       '@tanstack/react-query':
         specifier: ^5.66.0
         version: 5.66.0(react@18.3.1)
+      '@tauri-apps/api':
+        specifier: ^2.2.0
+        version: 2.2.0
+      '@tauri-apps/plugin-http':
+        specifier: ^2.3.0
+        version: 2.3.0
 
   extensions/live-transcript:
     dependencies:
-      '@hypr/fetch':
+      '@hypr/plugin-listener':
         specifier: workspace:*
-        version: link:../../packages/fetch
-      '@hypr/plugin-realtime-audio-understanding':
-        specifier: workspace:*
-        version: link:../../plugins/realtime-audio-understanding
+        version: link:../../plugins/listener
       '@tanstack/react-query':
         specifier: ^5.66.0
         version: 5.66.0(react@18.3.1)
+      '@tauri-apps/api':
+        specifier: ^2.2.0
+        version: 2.2.0
 
   extensions/obsidian:
     dependencies:
@@ -546,7 +549,7 @@ importers:
         specifier: ~5.6.2
         version: 5.6.3
 
-  plugins/realtime-audio-understanding:
+  plugins/listener:
     dependencies:
       '@tauri-apps/api':
         specifier: '>=2.0.0-beta.6'

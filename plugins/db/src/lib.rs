@@ -49,13 +49,31 @@ pub fn init(user_id: impl Into<String>) -> tauri::plugin::TauriPlugin<Wry> {
         .setup(|app, _api| {
             let db = tokio::task::block_in_place(|| {
                 tokio::runtime::Handle::current().block_on(async move {
-                    let conn = hypr_db::ConnectionBuilder::default()
-                        .local(":memory:")
-                        .connect()
-                        .await
-                        .unwrap();
+                    let conn = {
+                        #[cfg(debug_assertions)]
+                        {
+                            hypr_db::ConnectionBuilder::default().local(":memory:")
+                        }
 
-                    hypr_db::user::UserDatabase::from(conn)
+                        #[cfg(not(debug_assertions))]
+                        {
+                            hypr_db::ConnectionBuilder::default().local(":memory:")
+                        }
+                    }
+                    .connect()
+                    .await
+                    .unwrap();
+
+                    hypr_db::user::migrate(&conn).await.unwrap();
+
+                    let db = hypr_db::user::UserDatabase::from(conn);
+
+                    #[cfg(debug_assertions)]
+                    {
+                        hypr_db::user::seed(&db).await.unwrap();
+                    }
+
+                    db
                 })
             });
 

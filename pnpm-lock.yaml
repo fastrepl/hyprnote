@@ -322,6 +322,9 @@ importers:
       '@hypr/plugin-realtime-audio-understanding':
         specifier: workspace:*
         version: link:../../plugins/realtime-audio-understanding
+      '@tanstack/react-query':
+        specifier: ^5.66.0
+        version: 5.66.0(react@18.3.1)
 
   extensions/live-transcript:
     dependencies:
@@ -331,6 +334,9 @@ importers:
       '@hypr/plugin-realtime-audio-understanding':
         specifier: workspace:*
         version: link:../../plugins/realtime-audio-understanding
+      '@tanstack/react-query':
+        specifier: ^5.66.0
+        version: 5.66.0(react@18.3.1)
 
   extensions/obsidian:
     dependencies:

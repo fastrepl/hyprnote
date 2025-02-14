@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hypr/plugin-realtime-audio-understanding": "workspace:*",
-    "@hypr/fetch": "workspace:*"
+    "@hypr/fetch": "workspace:*",
+    "@tanstack/react-query": "^5.66.0"
   }
 }

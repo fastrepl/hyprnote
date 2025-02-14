@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-list-participants"
+description = "Enables the list_participants command without any pre-configured scope."
+commands.allow = ["list_participants"]
+
+[[permission]]
+identifier = "deny-list-participants"
+description = "Denies the list_participants command without any pre-configured scope."
+commands.deny = ["list_participants"]

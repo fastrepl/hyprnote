@@ -1,48 +1,83 @@
-use tauri::{
-    plugin::{Builder, TauriPlugin},
-    Manager, Runtime,
-};
-
-pub use models::*;
-
-#[cfg(desktop)]
-mod desktop;
-#[cfg(mobile)]
-mod mobile;
+use tauri::{Manager, Wry};
 
 mod commands;
 mod error;
-mod models;
 
 pub use error::{Error, Result};
 
-#[cfg(desktop)]
-use desktop::Db;
-#[cfg(mobile)]
-use mobile::Db;
-
-/// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the db APIs.
-pub trait DbExt<R: Runtime> {
-    fn db(&self) -> &Db<R>;
+pub struct State {
+    user_id: String,
+    db: hypr_db::user::UserDatabase,
 }
 
-impl<R: Runtime, T: Manager<R>> crate::DbExt<R> for T {
-    fn db(&self) -> &Db<R> {
-        self.state::<Db<R>>().inner()
-    }
-}
+const PLUGIN_NAME: &str = "db";
 
-/// Initializes the plugin.
-pub fn init<R: Runtime>() -> TauriPlugin<R> {
-    Builder::new("db")
-        .invoke_handler(tauri::generate_handler![commands::ping])
-        .setup(|app, api| {
-            #[cfg(mobile)]
-            let db = mobile::init(app, api)?;
-            #[cfg(desktop)]
-            let db = desktop::init(app, api)?;
-            app.manage(db);
+fn specta_builder() -> tauri_specta::Builder<Wry> {
+    tauri_specta::Builder::<Wry>::new()
+        .plugin_name(PLUGIN_NAME)
+        .commands(tauri_specta::collect_commands![
+            commands::list_calendars,
+            commands::list_participants,
+            commands::upsert_calendar,
+            commands::upsert_session,
+            commands::list_templates,
+            commands::upsert_template,
+            commands::delete_template,
+            commands::list_events,
+            commands::list_sessions,
+            commands::get_session,
+            commands::set_session_event,
+            commands::get_config,
+            commands::set_config,
+            commands::get_self_human,
+            commands::upsert_human,
+            commands::get_self_organization,
+            commands::upsert_organization,
+            commands::list_chat_groups,
+            commands::list_chat_messages,
+            commands::create_chat_group,
+            commands::upsert_chat_message
+        ])
+}
+pub fn init(user_id: impl Into<String>) -> tauri::plugin::TauriPlugin<Wry> {
+    let user_id = user_id.into();
+    let builder = specta_builder();
+
+    tauri::plugin::Builder::new(PLUGIN_NAME)
+        .invoke_handler(builder.invoke_handler())
+        .setup(|app, _api| {
+            let db = tokio::task::block_in_place(|| {
+                tokio::runtime::Handle::current().block_on(async move {
+                    let conn = hypr_db::ConnectionBuilder::default()
+                        .local(":memory:")
+                        .connect()
+                        .await
+                        .unwrap();
+
+                    hypr_db::user::UserDatabase::from(conn)
+                })
+            });
+
+            app.manage(State { user_id, db });
             Ok(())
         })
         .build()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn export_types() {
+        specta_builder()
+            .export(
+                specta_typescript::Typescript::default()
+                    .header("// @ts-nocheck\n\n")
+                    .formatter(specta_typescript::formatter::prettier)
+                    .bigint(specta_typescript::BigIntExportBehavior::Number),
+                "./generated/bindings.ts",
+            )
+            .unwrap()
+    }
 }

@@ -1,3 +1,25 @@
 [default]
 description = "Default permissions for the plugin"
-permissions = ["allow-ping"]
+permissions = [
+  "allow-list-calendars",
+  "allow-list-participants",
+  "allow-upsert-calendar",
+  "allow-upsert-session",
+  "allow-list-templates",
+  "allow-upsert-template",
+  "allow-delete-template",
+  "allow-list-events",
+  "allow-list-sessions",
+  "allow-get-session",
+  "allow-set-session-event",
+  "allow-get-config",
+  "allow-set-config",
+  "allow-get-self-human",
+  "allow-upsert-human",
+  "allow-get-self-organization",
+  "allow-upsert-organization",
+  "allow-list-chat-groups",
+  "allow-list-chat-messages",
+  "allow-create-chat-group",
+  "allow-upsert-chat-message",
+]

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-upsert-template"
+description = "Enables the upsert_template command without any pre-configured scope."
+commands.allow = ["upsert_template"]
+
+[[permission]]
+identifier = "deny-upsert-template"
+description = "Denies the upsert_template command without any pre-configured scope."
+commands.deny = ["upsert_template"]

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-create-chat-group"
+description = "Enables the create_chat_group command without any pre-configured scope."
+commands.allow = ["create_chat_group"]
+
+[[permission]]
+identifier = "deny-create-chat-group"
+description = "Denies the create_chat_group command without any pre-configured scope."
+commands.deny = ["create_chat_group"]

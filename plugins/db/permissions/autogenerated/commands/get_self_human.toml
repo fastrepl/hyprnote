@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-self-human"
+description = "Enables the get_self_human command without any pre-configured scope."
+commands.allow = ["get_self_human"]
+
+[[permission]]
+identifier = "deny-get-self-human"
+description = "Denies the get_self_human command without any pre-configured scope."
+commands.deny = ["get_self_human"]

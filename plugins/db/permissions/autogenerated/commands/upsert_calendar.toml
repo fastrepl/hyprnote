@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-upsert-calendar"
+description = "Enables the upsert_calendar command without any pre-configured scope."
+commands.allow = ["upsert_calendar"]
+
+[[permission]]
+identifier = "deny-upsert-calendar"
+description = "Denies the upsert_calendar command without any pre-configured scope."
+commands.deny = ["upsert_calendar"]

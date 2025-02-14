@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Hyprnote Nightly",
+  "mainBinaryName": "Hyprnote Nightly",
+  "identifier": "com.hyprnote.nightly",
+  "plugins": {
+    "updater": {
+      "active": true
+    }
+  }
+}

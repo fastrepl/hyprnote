@@ -10,6 +10,7 @@ concurrency:
 env:
   CN_APPLICATION: "fastrepl/hyprnote"
   RELEASE_CHANNEL: ${{ endsWith(github.event.release.tag_name, 'nightly') && 'nightly' || '' }}
+  TAURI_CONF_PATH: ${{ endsWith(github.event.release.tag_name, 'nightly') && './apps/desktop/src-tauri/tauri.conf.nightly.json' || './apps/desktop/src-tauri/tauri.conf.prod.json' }}
 jobs:
   draft:
     if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
@@ -32,7 +33,7 @@ jobs:
       matrix:
         include:
           - platform: "macos-latest"
-            args: "--target universal-apple-darwin"
+            target: "universal-apple-darwin"
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -61,6 +62,8 @@ jobs:
           APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          args: --config ${{ env.TAURI_CONF_PATH }} --target ${{ matrix.target }}
       - uses: ./.github/actions/cn_release
         with:
           cmd: upload

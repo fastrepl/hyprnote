@@ -19,11 +19,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest"
-            args: "--target universal-apple-darwin"
+          - platform: "ubuntu-22.04"
+            args: ""
+          # - platform: "macos-latest"
+          #   args: "--target universal-apple-darwin"
           # - platform: "windows-latest"
-          #   args: ""
-          # - platform: "ubuntu-22.04"
           #   args: ""
 
     runs-on: ${{ matrix.platform }}

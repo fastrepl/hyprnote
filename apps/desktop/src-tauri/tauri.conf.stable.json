@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Hyprnote",
+  "mainBinaryName": "Hyprnote",
+  "identifier": "com.hyprnote.stable",
+  "plugins": {
+    "updater": {
+      "active": true
+    }
+  }
+}

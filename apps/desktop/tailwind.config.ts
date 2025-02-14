@@ -16,7 +16,7 @@ const config = {
     extend: {
       ...UI.theme?.extend,
       fontFamily: {
-        'racing-sans': ['"Racing Sans One"', 'cursive'],
+        "racing-sans": ['"Racing Sans One"', "cursive"],
       },
     },
   },

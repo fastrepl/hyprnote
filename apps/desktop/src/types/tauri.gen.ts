@@ -119,7 +119,7 @@ async upsertChatMessage(message: ChatMessage) : Promise<ChatMessage> {
 /** user-defined types **/
 
 export type Calendar = { id: string; tracking_id: string; user_id: string; platform: Platform; name: string; selected: boolean }
-export type ChatGroup = { id: string; user_id: string; name: string; created_at: string }
+export type ChatGroup = { id: string; user_id: string; name: string | null; created_at: string }
 export type ChatMessage = { id: string; group_id: string; created_at: string; role: ChatMessageRole; content: string }
 export type ChatMessageRole = "User" | "Assistant"
 export type Config = { id: string; user_id: string; general: ConfigGeneral; notification: ConfigNotification }

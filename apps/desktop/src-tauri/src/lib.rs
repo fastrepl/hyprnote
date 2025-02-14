@@ -133,7 +133,8 @@ pub async fn main() {
 
             let user_id = "human_id".to_string();
 
-            let vault = vault::Vault::new();
+            let identifier = app.config().identifier.clone();
+            let vault = vault::Vault::new(identifier);
             let vault_for_db = vault.clone();
 
             let db = tokio::task::block_in_place(|| {

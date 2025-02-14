@@ -14,10 +14,8 @@ pub enum Key {
 }
 
 impl Vault {
-    pub fn new() -> Self {
-        Self {
-            service: "com.hyprnote.desktop".to_string(),
-        }
+    pub fn new(service: String) -> Self {
+        Self { service }
     }
 
     pub fn get(&self, key: Key) -> Result<String, keyring::Error> {

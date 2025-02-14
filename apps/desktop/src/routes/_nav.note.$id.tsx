@@ -1,9 +1,10 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { commands as dbCommands } from "@hypr/plugin-db";
+
 import { commands, type Config } from "@/types";
 import { SessionProvider } from "@/contexts";
 import EditorArea from "@/components/note/editor";
 import NoteAIButton from "@/components/note-ai-button";
-
 function Component() {
   const { session } = Route.useLoaderData();
 
@@ -25,10 +26,10 @@ export const Route = createFileRoute("/_nav/note/$id")({
       queryFn: async () => {
         const [session, config, builtinTemplates, customTemplates] =
           await Promise.all([
-            commands.getSession({ id }),
-            commands.getConfig(),
+            dbCommands.getSession({ id }),
+            dbCommands.getConfig(),
             commands.listBuiltinTemplates(),
-            commands.listTemplates(),
+            dbCommands.listTemplates(),
           ]);
         if (!session) {
           throw redirect({ to: "/" });

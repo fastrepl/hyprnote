@@ -16,7 +16,8 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
-import { commands, type Organization, type Human } from "@/types";
+import { type Human } from "@/types";
+import { commands as dbCommands, type Organization } from "@hypr/plugin-db";
 
 const schema = z.object({
   fullName: z.string().min(2).max(50).optional(),
@@ -35,8 +36,8 @@ export default function ProfileComponent() {
     queryKey: ["config", "profile"],
     queryFn: async () => {
       const [human, organization] = await Promise.all([
-        commands.getSelfHuman(),
-        commands.getSelfOrganization(),
+        dbCommands.getSelfHuman(),
+        dbCommands.getSelfOrganization(),
       ]);
       return { human, organization };
     },
@@ -74,8 +75,8 @@ export default function ProfileComponent() {
       };
 
       try {
-        await commands.upsertHuman(newHuman);
-        await commands.upsertOrganization(newOrganization);
+        await dbCommands.upsertHuman(newHuman);
+        await dbCommands.upsertOrganization(newOrganization);
       } catch (error) {
         console.error("error upserting human or organization", error);
       }

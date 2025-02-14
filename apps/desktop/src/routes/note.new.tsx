@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
-
-import { commands, type Session } from "@/types";
+import { commands as dbCommands, type Session } from "@hypr/plugin-db";
+import { commands } from "@/types";
 
 const schema = z.object({
   eventId: z.string().optional(),
@@ -28,14 +28,14 @@ export const Route = createFileRoute("/note/new")({
     };
 
     try {
-      session = await commands.upsertSession(emptySession);
+      session = await dbCommands.upsertSession(emptySession);
     } catch (error) {
       console.error(error);
       throw redirect({ to: "/" });
     }
 
     if (search.eventId) {
-      commands.setSessionEvent(session.id, search.eventId);
+      dbCommands.setSessionEvent(session.id, search.eventId);
     }
 
     throw redirect({

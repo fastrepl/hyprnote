@@ -7,29 +7,14 @@
 
 
 export const commands = {
-async startSession(onEvent: TAURI_CHANNEL<SessionEvent>) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|start_session", { onEvent }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async startSession(onEvent: TAURI_CHANNEL<SessionEvent>) : Promise<null> {
+    return await TAURI_INVOKE("plugin:listener|start_session", { onEvent });
 },
-async stopSession() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|stop_session") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async stopSession() : Promise<null> {
+    return await TAURI_INVOKE("plugin:listener|stop_session");
 },
-async getSessionStatus() : Promise<Result<SessionStatus, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|get_session_status") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async getSessionStatus() : Promise<SessionStatus> {
+    return await TAURI_INVOKE("plugin:listener|get_session_status");
 }
 }
 

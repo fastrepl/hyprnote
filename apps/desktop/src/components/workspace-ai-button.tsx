@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
+import { commands as dbCommands } from "@hypr/plugin-db";
 
 import { useHypr } from "@/contexts/hypr";
 import TriggerButton from "@/components/shared/trigger-button";
 import { useAITrigger } from "@/hooks/use-ai-trigger";
-import { commands, type Message } from "@/types";
+import { type Message } from "@/types";
 
 import Modal from "./shared/modal";
 
@@ -15,7 +16,7 @@ export default function WorkspaceAIButton() {
   const _chatGroups = useQuery({
     enabled: !!userId,
     queryKey: ["chatGroups"],
-    queryFn: () => commands.listChatGroups(userId),
+    queryFn: () => dbCommands.listChatGroups(userId),
   });
 
   console.log(_chatGroups);

@@ -7,173 +7,68 @@
 
 
 export const commands = {
-async listCalendars() : Promise<Result<Calendar[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|list_calendars") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async listCalendars() : Promise<Calendar[]> {
+    return await TAURI_INVOKE("plugin:db|list_calendars");
 },
-async listParticipants(eventId: string) : Promise<Result<Human[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|list_participants", { eventId }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async listParticipants(eventId: string) : Promise<Human[]> {
+    return await TAURI_INVOKE("plugin:db|list_participants", { eventId });
 },
-async upsertCalendar(calendar: Calendar) : Promise<Result<Calendar, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|upsert_calendar", { calendar }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async upsertCalendar(calendar: Calendar) : Promise<Calendar> {
+    return await TAURI_INVOKE("plugin:db|upsert_calendar", { calendar });
 },
-async upsertSession(session: Session) : Promise<Result<Session, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|upsert_session", { session }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async upsertSession(session: Session) : Promise<Session> {
+    return await TAURI_INVOKE("plugin:db|upsert_session", { session });
 },
-async listTemplates() : Promise<Result<Template[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|list_templates") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async listTemplates() : Promise<Template[]> {
+    return await TAURI_INVOKE("plugin:db|list_templates");
 },
-async upsertTemplate(template: Template) : Promise<Result<Template, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|upsert_template", { template }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async upsertTemplate(template: Template) : Promise<Template> {
+    return await TAURI_INVOKE("plugin:db|upsert_template", { template });
 },
-async deleteTemplate(id: string) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|delete_template", { id }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async deleteTemplate(id: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:db|delete_template", { id });
 },
-async listEvents() : Promise<Result<Event[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|list_events") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async listEvents() : Promise<Event[]> {
+    return await TAURI_INVOKE("plugin:db|list_events");
 },
-async listSessions(search: string | null) : Promise<Result<Session[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|list_sessions", { search }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async listSessions(search: string | null) : Promise<Session[]> {
+    return await TAURI_INVOKE("plugin:db|list_sessions", { search });
 },
-async getSession(option: SessionFilter) : Promise<Result<Session | null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|get_session", { option }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async getSession(option: SessionFilter) : Promise<Session | null> {
+    return await TAURI_INVOKE("plugin:db|get_session", { option });
 },
-async setSessionEvent(sessionId: string, eventId: string) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|set_session_event", { sessionId, eventId }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async setSessionEvent(sessionId: string, eventId: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:db|set_session_event", { sessionId, eventId });
 },
-async getConfig() : Promise<Result<Config, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|get_config") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async getConfig() : Promise<Config> {
+    return await TAURI_INVOKE("plugin:db|get_config");
 },
-async setConfig(config: Config) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|set_config", { config }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async setConfig(config: Config) : Promise<null> {
+    return await TAURI_INVOKE("plugin:db|set_config", { config });
 },
-async getSelfHuman() : Promise<Result<Human, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|get_self_human") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async getSelfHuman() : Promise<Human> {
+    return await TAURI_INVOKE("plugin:db|get_self_human");
 },
-async upsertHuman(human: Human) : Promise<Result<Human, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|upsert_human", { human }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async upsertHuman(human: Human) : Promise<Human> {
+    return await TAURI_INVOKE("plugin:db|upsert_human", { human });
 },
-async getSelfOrganization() : Promise<Result<Organization, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|get_self_organization") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async getSelfOrganization() : Promise<Organization> {
+    return await TAURI_INVOKE("plugin:db|get_self_organization");
 },
-async upsertOrganization(organization: Organization) : Promise<Result<Organization, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|upsert_organization", { organization }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async upsertOrganization(organization: Organization) : Promise<Organization> {
+    return await TAURI_INVOKE("plugin:db|upsert_organization", { organization });
 },
-async listChatGroups(userId: string) : Promise<Result<ChatGroup[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|list_chat_groups", { userId }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async listChatGroups(userId: string) : Promise<ChatGroup[]> {
+    return await TAURI_INVOKE("plugin:db|list_chat_groups", { userId });
 },
-async listChatMessages(groupId: string) : Promise<Result<ChatMessage[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|list_chat_messages", { groupId }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async listChatMessages(groupId: string) : Promise<ChatMessage[]> {
+    return await TAURI_INVOKE("plugin:db|list_chat_messages", { groupId });
 },
-async createChatGroup(group: ChatGroup) : Promise<Result<ChatGroup, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|create_chat_group", { group }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async createChatGroup(group: ChatGroup) : Promise<ChatGroup> {
+    return await TAURI_INVOKE("plugin:db|create_chat_group", { group });
 },
-async upsertChatMessage(message: ChatMessage) : Promise<Result<ChatMessage, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|upsert_chat_message", { message }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async upsertChatMessage(message: ChatMessage) : Promise<ChatMessage> {
+    return await TAURI_INVOKE("plugin:db|upsert_chat_message", { message });
 }
 }
 

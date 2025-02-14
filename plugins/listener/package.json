@@ -3,6 +3,6 @@
   "private": true,
   "main": "./generated/bindings.ts",
   "scripts": {
-    "codegen": "cargo test"
+    "codegen": "cargo test -p tauri-plugin-listener"
   }
 }

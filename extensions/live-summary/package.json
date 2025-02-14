@@ -3,15 +3,21 @@
   "version": "1.0.0",
   "license": "MIT",
   "keywords": [],
-  "description": "Obsidian",
+  "description": "Live summary",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@hypr/client": "workspace:*",
+    "@hypr/plugin-listener": "workspace:*",
+    "@hypr/plugin-db": "workspace:*",
     "@tanstack/react-query": "^5.66.0",
     "@tauri-apps/api": "^2.2.0",
     "@tauri-apps/plugin-http": "^2.3.0",
-    "@hypr/plugin-listener": "workspace:*"
+    "motion": "^12.4.2"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
   }
 }

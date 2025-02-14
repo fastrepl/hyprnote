@@ -38,6 +38,7 @@ fn specta_builder() -> tauri_specta::Builder<Wry> {
             commands::create_chat_group,
             commands::upsert_chat_message
         ])
+        .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 pub fn init(user_id: impl Into<String>) -> tauri::plugin::TauriPlugin<Wry> {
     let user_id = user_id.into();

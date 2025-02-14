@@ -14,7 +14,8 @@ import {
 } from "@hypr/ui/components/ui/form";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
-import { commands, type ConfigNotification } from "@/types";
+import { type ConfigNotification } from "@/types";
+import { commands as dbCommands } from "@hypr/plugin-db";
 
 const schema = z.object({
   before: z.boolean().optional(),
@@ -29,7 +30,7 @@ export default function NotificationsComponent() {
   const config = useQuery({
     queryKey: ["config", "notifications"],
     queryFn: async () => {
-      const result = await commands.getConfig();
+      const result = await dbCommands.getConfig();
       return result;
     },
   });
@@ -55,7 +56,7 @@ export default function NotificationsComponent() {
       }
 
       try {
-        await commands.setConfig({
+        await dbCommands.setConfig({
           ...config.data,
           notification: newNotification,
         });

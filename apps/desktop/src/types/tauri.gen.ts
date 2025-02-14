@@ -22,15 +22,6 @@ async openPermissionSettings(permission: OSPermission) : Promise<void> {
 async checkPermissionStatus(permission: OSPermission) : Promise<boolean | null> {
     return await TAURI_INVOKE("check_permission_status", { permission });
 },
-async startSession(onEvent: TAURI_CHANNEL<SessionStatus>) : Promise<null> {
-    return await TAURI_INVOKE("start_session", { onEvent });
-},
-async stopSession() : Promise<null> {
-    return await TAURI_INVOKE("stop_session");
-},
-async getTimeline(filter: TimelineFilter) : Promise<TimelineView> {
-    return await TAURI_INVOKE("get_timeline", { filter });
-},
 async startOauthServer() : Promise<number> {
     return await TAURI_INVOKE("start_oauth_server");
 },
@@ -42,69 +33,6 @@ async isAuthenticated() : Promise<boolean> {
 },
 async showWindow(window: ShowHyprWindow) : Promise<void> {
     await TAURI_INVOKE("show_window", { window });
-},
-async upsertSession(session: Session) : Promise<Session> {
-    return await TAURI_INVOKE("upsert_session", { session });
-},
-async upsertCalendar(calendar: Calendar) : Promise<Calendar> {
-    return await TAURI_INVOKE("upsert_calendar", { calendar });
-},
-async listCalendars() : Promise<Calendar[]> {
-    return await TAURI_INVOKE("list_calendars");
-},
-async listEvents() : Promise<Event[]> {
-    return await TAURI_INVOKE("list_events");
-},
-async listSessions(search: string | null) : Promise<Session[]> {
-    return await TAURI_INVOKE("list_sessions", { search });
-},
-async getSession(option: SessionFilter) : Promise<Session | null> {
-    return await TAURI_INVOKE("get_session", { option });
-},
-async setSessionEvent(sessionId: string, eventId: string) : Promise<null> {
-    return await TAURI_INVOKE("set_session_event", { sessionId, eventId });
-},
-async listTemplates() : Promise<Template[]> {
-    return await TAURI_INVOKE("list_templates");
-},
-async upsertTemplate(template: Template) : Promise<Template> {
-    return await TAURI_INVOKE("upsert_template", { template });
-},
-async deleteTemplate(id: string) : Promise<null> {
-    return await TAURI_INVOKE("delete_template", { id });
-},
-async getConfig() : Promise<Config> {
-    return await TAURI_INVOKE("get_config");
-},
-async setConfig(config: Config) : Promise<null> {
-    return await TAURI_INVOKE("set_config", { config });
-},
-async upsertHuman(human: Human) : Promise<Human> {
-    return await TAURI_INVOKE("upsert_human", { human });
-},
-async getSelfHuman() : Promise<Human> {
-    return await TAURI_INVOKE("get_self_human");
-},
-async getSelfOrganization() : Promise<Organization> {
-    return await TAURI_INVOKE("get_self_organization");
-},
-async upsertOrganization(organization: Organization) : Promise<Organization> {
-    return await TAURI_INVOKE("upsert_organization", { organization });
-},
-async listParticipants(eventId: string) : Promise<Human[]> {
-    return await TAURI_INVOKE("list_participants", { eventId });
-},
-async listChatGroups(userId: string) : Promise<ChatGroup[]> {
-    return await TAURI_INVOKE("list_chat_groups", { userId });
-},
-async listChatMessages(groupId: string) : Promise<ChatMessage[]> {
-    return await TAURI_INVOKE("list_chat_messages", { groupId });
-},
-async createChatGroup(group: ChatGroup) : Promise<ChatGroup> {
-    return await TAURI_INVOKE("create_chat_group", { group });
-},
-async upsertChatMessage(message: ChatMessage) : Promise<ChatMessage> {
-    return await TAURI_INVOKE("upsert_chat_message", { message });
 }
 }
 
@@ -118,32 +46,19 @@ async upsertChatMessage(message: ChatMessage) : Promise<ChatMessage> {
 
 /** user-defined types **/
 
-export type Calendar = { id: string; tracking_id: string; user_id: string; platform: Platform; name: string; selected: boolean }
-export type ChatGroup = { id: string; user_id: string; name: string | null; created_at: string }
-export type ChatMessage = { id: string; group_id: string; created_at: string; role: ChatMessageRole; content: string }
-export type ChatMessageRole = "User" | "Assistant"
 export type Config = { id: string; user_id: string; general: ConfigGeneral; notification: ConfigNotification }
 export type ConfigGeneral = { autostart: boolean; speech_language: string; display_language: string; jargons: string[]; tags: string[] }
 export type ConfigNotification = { before: boolean; auto: boolean }
-export type ConversationChunk = { start: string; end: string; local_audio_path: string; remote_audio_path: string; transcripts: TranscriptChunk[]; diarizations: DiarizationChunk[] }
-export type DiarizationChunk = { start: number; end: number; speaker: string }
 export type EnhanceRequest = { pre_meeting_editor: string; in_meeting_editor: string; template: Template; config: Config; event: Event | null; participants: Human[]; timeline_view: TimelineView }
 export type Event = { id: string; user_id: string; tracking_id: string; calendar_id: string; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null }
 export type Human = { id: string; organization_id: string | null; is_user: boolean; full_name: string | null; email: string | null; job_title: string | null; linkedin_username: string | null }
 export type OSPermission = "calendar" | "contacts" | "audioRecording" | "screenRecording" | "microphone" | "accessibility"
-export type Organization = { id: string; name: string; description: string | null }
-export type Platform = "Apple" | "Google"
-export type Session = { id: string; user_id: string; timestamp: string; calendar_event_id: string | null; title: string; audio_local_path: string | null; audio_remote_path: string | null; raw_memo_html: string; enhanced_memo_html: string | null; conversations: ConversationChunk[] }
-export type SessionFilter = { id: string } | { calendarEventId: string } | { tagId: string }
-export type SessionStatus = "Stopped" | { Audio: [number, number] } | { TimelineView: TimelineView }
 export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo"
 export type TAURI_CHANNEL<TSend> = null
 export type Template = { id: string; user_id: string; title: string; description: string; sections: TemplateSection[]; tags: string[] }
 export type TemplateSection = { title: string; description: string }
-export type TimelineFilter = { last_n_seconds: number | null }
 export type TimelineView = { items: TimelineViewItem[] }
 export type TimelineViewItem = { start: number; end: number; speaker: string; text: string }
-export type TranscriptChunk = { start: number; end: number; text: string }
 
 /** tauri-specta globals **/
 

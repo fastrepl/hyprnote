@@ -7,7 +7,7 @@ pub use error::{Error, Result};
 
 const PLUGIN_NAME: &str = "listener";
 
-fn specta_builder() -> tauri_specta::Builder<Wry> {
+fn make_specta_builder() -> tauri_specta::Builder<Wry> {
     tauri_specta::Builder::<Wry>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
@@ -15,12 +15,14 @@ fn specta_builder() -> tauri_specta::Builder<Wry> {
             session::commands::stop_session,
             session::commands::get_session_status,
         ])
+        .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
+
 pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
-    let builder = specta_builder();
+    let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
-        .invoke_handler(builder.invoke_handler())
+        .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
             app.manage(tokio::sync::Mutex::new(session::SessionState::default()));
             Ok(())
@@ -34,7 +36,7 @@ mod test {
 
     #[test]
     fn export_types() {
-        specta_builder()
+        make_specta_builder()
             .export(
                 specta_typescript::Typescript::default()
                     .header("// @ts-nocheck\n\n")

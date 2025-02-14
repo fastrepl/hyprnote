@@ -87,18 +87,9 @@ importers:
       '@hypr/client':
         specifier: workspace:*
         version: link:../../packages/client
-      '@hypr/extension-live-summary':
+      '@hypr/extensions':
         specifier: workspace:*
-        version: link:../../extensions/live-summary
-      '@hypr/extension-live-transcript':
-        specifier: workspace:*
-        version: link:../../extensions/live-transcript
-      '@hypr/extension-obsidian':
-        specifier: workspace:*
-        version: link:../../extensions/obsidian
-      '@hypr/extension-world-clocks':
-        specifier: workspace:*
-        version: link:../../extensions/world-clocks
+        version: link:../../extensions/extensions
       '@hypr/plugin-db':
         specifier: workspace:*
         version: link:../../plugins/db
@@ -319,6 +310,8 @@ importers:
       sharp:
         specifier: ^0.32.5
         version: 0.32.6
+
+  extensions/extensions: {}
 
   extensions/live-summary:
     dependencies:
@@ -5093,7 +5086,6 @@ packages:
 
   libsql@0.4.7:
     resolution: {integrity: sha512-T9eIRCs6b0J1SHKYIvD8+KCJMcWZ900iZyxdnSCdqxN12Z1ijzT+jY5nrk72Jw4B0HGzms2NgpryArlJqvc3Lw==}
-    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@3.1.3:

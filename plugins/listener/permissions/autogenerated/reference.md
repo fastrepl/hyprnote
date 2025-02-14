@@ -2,7 +2,9 @@
 
 Default permissions for the plugin
 
-- `allow-ping`
+- `allow-get-session-status`
+- `allow-start-session`
+- `allow-stop-session`
 
 ## Permission Table
 
@@ -12,6 +14,32 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`listener:allow-get-session-status`
+
+</td>
+<td>
+
+Enables the get_session_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-get-session-status`
+
+</td>
+<td>
+
+Denies the get_session_status command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>

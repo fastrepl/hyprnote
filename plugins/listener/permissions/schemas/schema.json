@@ -295,6 +295,16 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the get_session_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-session-status"
+        },
+        {
+          "description": "Denies the get_session_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-session-status"
+        },
+        {
           "description": "Enables the ping command without any pre-configured scope.",
           "type": "string",
           "const": "allow-ping"

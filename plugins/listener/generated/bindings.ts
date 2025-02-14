@@ -7,7 +7,7 @@
 
 
 export const commands = {
-async startSession(onEvent: TAURI_CHANNEL<SessionStatus>) : Promise<Result<null, string>> {
+async startSession(onEvent: TAURI_CHANNEL<SessionEvent>) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:listener|start_session", { onEvent }) };
 } catch (e) {
@@ -18,6 +18,14 @@ async startSession(onEvent: TAURI_CHANNEL<SessionStatus>) : Promise<Result<null,
 async stopSession() : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:listener|stop_session") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getSessionStatus() : Promise<Result<SessionStatus, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|get_session_status") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -35,7 +43,8 @@ async stopSession() : Promise<Result<null, string>> {
 
 /** user-defined types **/
 
-export type SessionStatus = "Stopped" | { Audio: [number, number] } | { TimelineView: TimelineView }
+export type SessionEvent = "Stopped" | { Audio: [number, number] } | { TimelineView: TimelineView }
+export type SessionStatus = "Idle" | "Processing" | { Error: string }
 export type TAURI_CHANNEL<TSend> = null
 export type TimelineView = { items: TimelineViewItem[] }
 export type TimelineViewItem = { start: number; end: number; speaker: string; text: string }

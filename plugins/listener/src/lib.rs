@@ -1,10 +1,7 @@
-use tauri::{
-    plugin::{Builder, TauriPlugin},
-    Manager, Wry,
-};
+use tauri::{Manager, Wry};
 
-mod commands;
 mod error;
+mod session;
 
 pub use error::{Error, Result};
 
@@ -14,17 +11,18 @@ fn specta_builder() -> tauri_specta::Builder<Wry> {
     tauri_specta::Builder::<Wry>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::start_session::<Wry>,
-            commands::stop_session
+            session::commands::start_session::<Wry>,
+            session::commands::stop_session,
+            session::commands::get_session_status,
         ])
 }
-pub fn init() -> TauriPlugin<Wry> {
+pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
     let builder = specta_builder();
 
-    Builder::new(PLUGIN_NAME)
+    tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(builder.invoke_handler())
         .setup(|app, _api| {
-            app.manage(tokio::sync::Mutex::new(commands::SessionState::new()?));
+            app.manage(tokio::sync::Mutex::new(session::SessionState::default()));
             Ok(())
         })
         .build()
@@ -44,6 +42,6 @@ mod test {
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
                 "./generated/bindings.ts",
             )
-            .expect("failed to export specta types");
+            .unwrap()
     }
 }

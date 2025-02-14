@@ -1,5 +1,3 @@
-use tauri::{ipc::Channel, Manager, State};
-
 use futures_util::StreamExt;
 use std::sync::Arc;
 use tokio::sync::{mpsc, Mutex};
@@ -7,6 +5,7 @@ use tokio::sync::{mpsc, Mutex};
 use hypr_audio::AsyncSource;
 
 pub struct SessionState {
+    status: SessionStatus,
     timeline: Option<Arc<Mutex<hypr_bridge::Timeline>>>,
     mic_stream_handle: Option<tokio::task::JoinHandle<()>>,
     speaker_stream_handle: Option<tokio::task::JoinHandle<()>>,
@@ -15,57 +14,48 @@ pub struct SessionState {
 }
 
 #[derive(Debug, Clone, serde::Serialize, specta::Type)]
-pub enum SessionStatus {
+pub enum SessionEvent {
     Stopped,
     Audio(u16, u16),
     TimelineView(hypr_bridge::TimelineView),
 }
 
+#[derive(Debug, Clone, serde::Serialize, specta::Type)]
+pub enum SessionStatus {
+    Idle,
+    Processing,
+    Error(String),
+}
+
 const SAMPLE_RATE: u32 = 16000;
 
-impl SessionState {
-    pub fn new() -> Result<Self, crate::Error> {
-        Ok(Self {
+impl Default for SessionState {
+    fn default() -> Self {
+        Self {
+            status: SessionStatus::Idle,
             timeline: None,
             mic_stream_handle: None,
             speaker_stream_handle: None,
             listen_stream_handle: None,
             silence_stream_tx: None,
-        })
+        }
     }
+}
 
+impl SessionState {
     pub async fn start(
         &mut self,
         bridge: hypr_bridge::Client,
         language: hypr_bridge::LanguageCode,
         app_dir: std::path::PathBuf,
         session_id: String,
-        channel: tauri::ipc::Channel<SessionStatus>,
+        channel: tauri::ipc::Channel<SessionEvent>,
     ) -> Result<(), crate::Error> {
         let mic_sample_stream = {
             let mut input = hypr_audio::AudioInput::from_mic();
-            // {
-            //     #[cfg(all(debug_assertions, feature = "sim-english-1"))]
-            //     {
-            //         hypr_audio::AudioInput::from_recording(hypr_data::english_1::AUDIO.to_vec())
-            //     }
-
-            //     #[cfg(all(debug_assertions, feature = "sim-korean-1"))]
-            //     {
-            //         hypr_audio::AudioInput::from_recording(hypr_data::korean_1::AUDIO.to_vec())
-            //     }
-
-            //     #[cfg(not(any(
-            //         all(debug_assertions, feature = "sim-english-1"),
-            //         all(debug_assertions, feature = "sim-korean-1")
-            //     )))]
-            //     {
-            //         hypr_audio::AudioInput::from_mic()
-            //     }
-            // };
-
             input.stream()
         };
+
         let speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
 
         let mic_sample_rate = mic_sample_stream.sample_rate();
@@ -130,7 +120,7 @@ impl SessionState {
                 let speaker_amplitude = get_amplitude(&speaker_chunk);
 
                 channel_for_amplitude
-                    .send(SessionStatus::Audio(mic_amplitude, speaker_amplitude))
+                    .send(SessionEvent::Audio(mic_amplitude, speaker_amplitude))
                     .unwrap();
 
                 let mixed: Vec<f32> = mic_chunk
@@ -174,13 +164,13 @@ impl SessionState {
                     }
 
                     channel
-                        .send(SessionStatus::TimelineView(
+                        .send(SessionEvent::TimelineView(
                             timeline.view(hypr_bridge::TimelineFilter::default()),
                         ))
                         .unwrap();
                 }
 
-                channel.send(SessionStatus::Stopped).unwrap();
+                channel.send(SessionEvent::Stopped).unwrap();
             }
         }));
 
@@ -215,43 +205,57 @@ fn get_amplitude(chunk: &[f32]) -> u16 {
         * 100.0) as u16
 }
 
-#[tauri::command]
-#[specta::specta]
-pub async fn start_session<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    session: State<'_, tokio::sync::Mutex<SessionState>>,
-    on_event: Channel<SessionStatus>,
-) -> Result<(), String> {
-    let app_dir = app.path().app_data_dir().unwrap();
+pub mod commands {
+    use super::{SessionEvent, SessionState, SessionStatus};
+    use tauri::{ipc::Channel, Manager, State};
 
-    let bridge = hypr_bridge::Client::builder()
-        .api_base("http://localhost:1234".to_string())
-        .api_key("123".to_string())
-        .build()
-        .unwrap();
-
-    let language = hypr_bridge::LanguageCode::En;
-
-    let ret = {
-        let mut s = session.lock().await;
-
-        s.start(bridge, language, app_dir, "123".to_string(), on_event)
-            .await
-    };
-
-    // AppSounds::StartRecording.play();
-    ret.map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn stop_session(
-    session: State<'_, tokio::sync::Mutex<SessionState>>,
-) -> Result<(), String> {
-    {
-        let mut s = session.lock().await;
-        s.stop().await;
+    #[tauri::command]
+    #[specta::specta]
+    pub async fn get_session_status(
+        session: State<'_, tokio::sync::Mutex<SessionState>>,
+    ) -> Result<SessionStatus, String> {
+        let s = session.lock().await;
+        Ok(s.status.clone())
     }
-    // AppSounds::StopRecording.play();
-    Ok(())
+
+    #[tauri::command]
+    #[specta::specta]
+    pub async fn start_session<R: tauri::Runtime>(
+        app: tauri::AppHandle<R>,
+        session: State<'_, tokio::sync::Mutex<SessionState>>,
+        on_event: Channel<SessionEvent>,
+    ) -> Result<(), String> {
+        let app_dir = app.path().app_data_dir().unwrap();
+
+        let bridge = hypr_bridge::Client::builder()
+            .api_base("http://localhost:1234".to_string())
+            .api_key("123".to_string())
+            .build()
+            .unwrap();
+
+        let language = hypr_bridge::LanguageCode::En;
+
+        let ret = {
+            let mut s = session.lock().await;
+
+            s.start(bridge, language, app_dir, "123".to_string(), on_event)
+                .await
+        };
+
+        // AppSounds::StartRecording.play();
+        ret.map_err(|e| e.to_string())
+    }
+
+    #[tauri::command]
+    #[specta::specta]
+    pub async fn stop_session(
+        session: State<'_, tokio::sync::Mutex<SessionState>>,
+    ) -> Result<(), String> {
+        {
+            let mut s = session.lock().await;
+            s.stop().await;
+        }
+        // AppSounds::StopRecording.play();
+        Ok(())
+    }
 }

@@ -305,6 +305,16 @@
           "const": "deny-get-session-status"
         },
         {
+          "description": "Enables the get_session_timeline command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-session-timeline"
+        },
+        {
+          "description": "Denies the get_session_timeline command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-session-timeline"
+        },
+        {
           "description": "Enables the ping command without any pre-configured scope.",
           "type": "string",
           "const": "allow-ping"

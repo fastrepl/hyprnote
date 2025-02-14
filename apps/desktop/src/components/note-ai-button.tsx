@@ -1,11 +1,12 @@
 import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import TriggerButton from "@/components/shared/trigger-button";
-import LiveSummaryToast from "./live-summary-toast";
 import { useAITrigger } from "@/hooks/use-ai-trigger";
 import Modal from "./shared/modal";
 import type { Message } from "@/types";
 import { useSession } from "@/contexts";
+
+import LiveSummaryToast from "@hypr/extension-live-summary";
 
 export default function NoteAIButton() {
   const { isDynamic, isOpen, setIsOpen, handleOpen } = useAITrigger();

@@ -7,14 +7,17 @@
 
 
 export const commands = {
+async getSessionStatus() : Promise<SessionStatus> {
+    return await TAURI_INVOKE("plugin:listener|get_session_status");
+},
+async getSessionTimeline(filter: TimelineFilter) : Promise<TimelineView> {
+    return await TAURI_INVOKE("plugin:listener|get_session_timeline", { filter });
+},
 async startSession(onEvent: TAURI_CHANNEL<SessionEvent>) : Promise<null> {
     return await TAURI_INVOKE("plugin:listener|start_session", { onEvent });
 },
 async stopSession() : Promise<null> {
     return await TAURI_INVOKE("plugin:listener|stop_session");
-},
-async getSessionStatus() : Promise<SessionStatus> {
-    return await TAURI_INVOKE("plugin:listener|get_session_status");
 }
 }
 
@@ -31,6 +34,7 @@ async getSessionStatus() : Promise<SessionStatus> {
 export type SessionEvent = "Stopped" | { Audio: [number, number] } | { TimelineView: TimelineView }
 export type SessionStatus = "Idle" | "Processing" | { Error: string }
 export type TAURI_CHANNEL<TSend> = null
+export type TimelineFilter = { last_n_seconds: number | null }
 export type TimelineView = { items: TimelineViewItem[] }
 export type TimelineViewItem = { start: number; end: number; speaker: string; text: string }
 

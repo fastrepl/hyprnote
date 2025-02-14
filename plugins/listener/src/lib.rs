@@ -11,9 +11,10 @@ fn make_specta_builder() -> tauri_specta::Builder<Wry> {
     tauri_specta::Builder::<Wry>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            session::commands::get_session_status,
+            session::commands::get_session_timeline,
             session::commands::start_session::<Wry>,
             session::commands::stop_session,
-            session::commands::get_session_status,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

@@ -1,13 +1,11 @@
 {
   "name": "@hypr/extension-live-summary",
   "version": "1.0.0",
+  "private": true,
   "license": "MIT",
-  "keywords": [],
-  "description": "Live summary",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "type": "module",
+  "main": "./src/index.tsx",
+  "types": "./src/index.tsx",
   "dependencies": {
     "@hypr/client": "workspace:*",
     "@hypr/plugin-listener": "workspace:*",

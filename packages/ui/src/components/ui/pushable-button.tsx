@@ -12,7 +12,7 @@ export default function PushableButton({
   ...props
 }: PushableButtonProps) {
   return (
-    <button className={`pushable ${className || ""}`} {...props}>
+    <button className={`pushable cursor-pointer ${className || ""}`} {...props}>
       <span className="front">{children}</span>
     </button>
   );

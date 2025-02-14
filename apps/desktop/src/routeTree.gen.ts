@@ -11,15 +11,20 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as OnboardingImport } from './routes/onboarding'
 import { Route as LoginImport } from './routes/login'
 import { Route as NavImport } from './routes/_nav'
 import { Route as NavIndexImport } from './routes/_nav.index'
 import { Route as NoteNewImport } from './routes/note.new'
-import { Route as NavOnboardingImport } from './routes/_nav.onboarding'
-import { Route as NavOnboardingIndexImport } from './routes/_nav.onboarding.index'
 import { Route as NavNoteIdImport } from './routes/_nav.note.$id'
 
 // Create/Update Routes
+
+const OnboardingRoute = OnboardingImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const LoginRoute = LoginImport.update({
   id: '/login',
@@ -42,18 +47,6 @@ const NoteNewRoute = NoteNewImport.update({
   id: '/note/new',
   path: '/note/new',
   getParentRoute: () => rootRoute,
-} as any)
-
-const NavOnboardingRoute = NavOnboardingImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => NavRoute,
-} as any)
-
-const NavOnboardingIndexRoute = NavOnboardingIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => NavOnboardingRoute,
 } as any)
 
 const NavNoteIdRoute = NavNoteIdImport.update({
@@ -80,12 +73,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
-    '/_nav/onboarding': {
-      id: '/_nav/onboarding'
+    '/onboarding': {
+      id: '/onboarding'
       path: '/onboarding'
       fullPath: '/onboarding'
-      preLoaderRoute: typeof NavOnboardingImport
-      parentRoute: typeof NavImport
+      preLoaderRoute: typeof OnboardingImport
+      parentRoute: typeof rootRoute
     }
     '/note/new': {
       id: '/note/new'
@@ -108,38 +101,17 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NavNoteIdImport
       parentRoute: typeof NavImport
     }
-    '/_nav/onboarding/': {
-      id: '/_nav/onboarding/'
-      path: '/'
-      fullPath: '/onboarding/'
-      preLoaderRoute: typeof NavOnboardingIndexImport
-      parentRoute: typeof NavOnboardingImport
-    }
   }
 }
 
 // Create and export the route tree
 
-interface NavOnboardingRouteChildren {
-  NavOnboardingIndexRoute: typeof NavOnboardingIndexRoute
-}
-
-const NavOnboardingRouteChildren: NavOnboardingRouteChildren = {
-  NavOnboardingIndexRoute: NavOnboardingIndexRoute,
-}
-
-const NavOnboardingRouteWithChildren = NavOnboardingRoute._addFileChildren(
-  NavOnboardingRouteChildren,
-)
-
 interface NavRouteChildren {
-  NavOnboardingRoute: typeof NavOnboardingRouteWithChildren
   NavIndexRoute: typeof NavIndexRoute
   NavNoteIdRoute: typeof NavNoteIdRoute
 }
 
 const NavRouteChildren: NavRouteChildren = {
-  NavOnboardingRoute: NavOnboardingRouteWithChildren,
   NavIndexRoute: NavIndexRoute,
   NavNoteIdRoute: NavNoteIdRoute,
 }
@@ -149,65 +121,57 @@ const NavRouteWithChildren = NavRoute._addFileChildren(NavRouteChildren)
 export interface FileRoutesByFullPath {
   '': typeof NavRouteWithChildren
   '/login': typeof LoginRoute
-  '/onboarding': typeof NavOnboardingRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
   '/note/new': typeof NoteNewRoute
   '/': typeof NavIndexRoute
   '/note/$id': typeof NavNoteIdRoute
-  '/onboarding/': typeof NavOnboardingIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/note/new': typeof NoteNewRoute
   '/': typeof NavIndexRoute
   '/note/$id': typeof NavNoteIdRoute
-  '/onboarding': typeof NavOnboardingIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_nav': typeof NavRouteWithChildren
   '/login': typeof LoginRoute
-  '/_nav/onboarding': typeof NavOnboardingRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
   '/note/new': typeof NoteNewRoute
   '/_nav/': typeof NavIndexRoute
   '/_nav/note/$id': typeof NavNoteIdRoute
-  '/_nav/onboarding/': typeof NavOnboardingIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | ''
-    | '/login'
-    | '/onboarding'
-    | '/note/new'
-    | '/'
-    | '/note/$id'
-    | '/onboarding/'
+  fullPaths: '' | '/login' | '/onboarding' | '/note/new' | '/' | '/note/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/note/new' | '/' | '/note/$id' | '/onboarding'
+  to: '/login' | '/onboarding' | '/note/new' | '/' | '/note/$id'
   id:
     | '__root__'
     | '/_nav'
     | '/login'
-    | '/_nav/onboarding'
+    | '/onboarding'
     | '/note/new'
     | '/_nav/'
     | '/_nav/note/$id'
-    | '/_nav/onboarding/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   NavRoute: typeof NavRouteWithChildren
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
   NoteNewRoute: typeof NoteNewRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   NavRoute: NavRouteWithChildren,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
   NoteNewRoute: NoteNewRoute,
 }
 
@@ -223,13 +187,13 @@ export const routeTree = rootRoute
       "children": [
         "/_nav",
         "/login",
+        "/onboarding",
         "/note/new"
       ]
     },
     "/_nav": {
       "filePath": "_nav.tsx",
       "children": [
-        "/_nav/onboarding",
         "/_nav/",
         "/_nav/note/$id"
       ]
@@ -237,12 +201,8 @@ export const routeTree = rootRoute
     "/login": {
       "filePath": "login.tsx"
     },
-    "/_nav/onboarding": {
-      "filePath": "_nav.onboarding.tsx",
-      "parent": "/_nav",
-      "children": [
-        "/_nav/onboarding/"
-      ]
+    "/onboarding": {
+      "filePath": "onboarding.tsx"
     },
     "/note/new": {
       "filePath": "note.new.tsx"
@@ -254,10 +214,6 @@ export const routeTree = rootRoute
     "/_nav/note/$id": {
       "filePath": "_nav.note.$id.tsx",
       "parent": "/_nav"
-    },
-    "/_nav/onboarding/": {
-      "filePath": "_nav.onboarding.index.tsx",
-      "parent": "/_nav/onboarding"
     }
   }
 }

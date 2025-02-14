@@ -1,9 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-
 import PastSessions from "@/components/past-sessions";
 import UpcomingEvents from "@/components/upcoming-events";
 import WorkspaceAIButton from "@/components/workspace-ai-button";
-
 import { commands } from "@/types";
 
 function Component() {

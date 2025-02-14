@@ -1,0 +1,13 @@
+{
+  "name": "@hypr/fetch",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.2.0",
+    "@tauri-apps/plugin-http": "^2.3.0"
+  }
+}

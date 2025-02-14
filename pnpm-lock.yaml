@@ -87,15 +87,18 @@ importers:
       '@hypr/client':
         specifier: workspace:*
         version: link:../../packages/client
+      '@hypr/extension-live-summary':
+        specifier: workspace:*
+        version: link:../../extensions/live-summary
+      '@hypr/extension-live-transcript':
+        specifier: workspace:*
+        version: link:../../extensions/live-transcript
       '@hypr/extension-obsidian':
         specifier: workspace:*
         version: link:../../extensions/obsidian
       '@hypr/extension-world-clocks':
         specifier: workspace:*
         version: link:../../extensions/world-clocks
-      '@hypr/plugin-realtime-audio-understanding':
-        specifier: workspace:*
-        version: link:../../plugins/realtime-audio-understanding
       '@hypr/tiptap':
         specifier: workspace:*
         version: link:../../packages/tiptap
@@ -311,6 +314,24 @@ importers:
         specifier: ^0.32.5
         version: 0.32.6
 
+  extensions/live-summary:
+    dependencies:
+      '@hypr/fetch':
+        specifier: workspace:*
+        version: link:../../packages/fetch
+      '@hypr/plugin-realtime-audio-understanding':
+        specifier: workspace:*
+        version: link:../../plugins/realtime-audio-understanding
+
+  extensions/live-transcript:
+    dependencies:
+      '@hypr/fetch':
+        specifier: workspace:*
+        version: link:../../packages/fetch
+      '@hypr/plugin-realtime-audio-understanding':
+        specifier: workspace:*
+        version: link:../../plugins/realtime-audio-understanding
+
   extensions/obsidian:
     dependencies:
       '@hypr/obsidian':
@@ -335,6 +356,15 @@ importers:
       '@hey-api/openapi-ts':
         specifier: ^0.64.3
         version: 0.64.3(magicast@0.3.5)(typescript@5.7.3)
+
+  packages/fetch:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.2.0
+        version: 2.2.0
+      '@tauri-apps/plugin-http':
+        specifier: ^2.3.0
+        version: 2.3.0
 
   packages/obsidian:
     dependencies:

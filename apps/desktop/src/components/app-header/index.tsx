@@ -12,7 +12,7 @@ export default function Header() {
   useEffect(() => {
     async function fetchOsType() {
       try {
-        const os = await getOsType(); // Returns "Linux", "Windows_NT", "Darwin"
+        const os = getOsType(); // Returns "Linux", "Windows_NT", "Darwin"
         setOsType(os);
       } catch (error) {
         console.error("Failed to get OS type:", error);

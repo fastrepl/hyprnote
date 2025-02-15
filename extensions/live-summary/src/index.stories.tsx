@@ -2,6 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
+import { mockIPC } from "@tauri-apps/api/mocks";
+
+import { LiveSummaryResponse } from "@hypr/client/gen/types";
 import component from "./index";
 
 const queryClient = new QueryClient();
@@ -21,16 +24,32 @@ export const Main: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get("http://localhost:3000/api/users", () => {
-          return HttpResponse.json({ id: 1, name: "John Doe" });
+        http.post("http://localhost:1234/api/native/live_summary", () => {
+          const res = {
+            blocks: [
+              {
+                points: ["first point", "second point"],
+              },
+            ],
+          } satisfies LiveSummaryResponse;
+
+          return HttpResponse.json(res);
         }),
       ],
     },
   },
   decorators: [
-    (Story) => (
-      <QueryClientProvider client={queryClient}>{Story()}</QueryClientProvider>
-    ),
+    (Story) => {
+      mockIPC((_cmd, _args) => {
+        return {};
+      });
+
+      return (
+        <QueryClientProvider client={queryClient}>
+          {Story()}
+        </QueryClientProvider>
+      );
+    },
   ],
   args: {
     onClose: () => {},

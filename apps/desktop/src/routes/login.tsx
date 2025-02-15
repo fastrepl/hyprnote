@@ -8,7 +8,9 @@ import { commands } from "@/types";
 import { baseUrl } from "@/client";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { Particles } from "@hypr/ui/components/ui/particles";
+import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 import clsx from "clsx";
+import { PlayPauseButton } from "@/components/PlayPauseButton";
 
 export const Route = createFileRoute("/login")({
   component: Component,
@@ -64,23 +66,35 @@ function Component() {
     <main className="relative flex h-screen flex-col items-center justify-center overflow-auto p-4">
       <header
         className={clsx([
-          "absolute left-0 right-0 top-0 z-10",
+          "absolute left-0 right-0 top-0 z-10 min-h-11 px-2",
           "flex w-full items-center justify-between",
           "bg-transparent",
-          "min-h-11",
         ])}
         data-tauri-drag-region
-      />
+      >
+        <div /> {/* Empty div for spacing */}
+        <PlayPauseButton />
+      </header>
 
       <div className="z-10 flex w-full flex-col items-center justify-center">
         <div className="flex flex-col items-center">
-          <h1 className="mb-4 font-racing-sans text-6xl font-bold md:text-7xl lg:text-8xl">
+          <TextAnimate
+            animation="blurIn"
+            as="h1"
+            once
+            className="mb-4 font-racing-sans text-6xl font-bold md:text-7xl lg:text-8xl"
+          >
             Hyprnote
-          </h1>
+          </TextAnimate>
 
-          <p className="mb-12 text-center text-lg font-medium text-neutral-600 md:text-xl lg:text-2xl">
+          <TextAnimate
+            animation="slideUp"
+            by="word"
+            once
+            className="mb-12 text-center text-lg font-medium text-neutral-600 md:text-xl lg:text-2xl"
+          >
             AI Meeting Notepad that keeps you in flow
-          </p>
+          </TextAnimate>
 
           <PushableButton onClick={handleSignIn} className="mb-4 w-full">
             <Trans>Get Started</Trans>

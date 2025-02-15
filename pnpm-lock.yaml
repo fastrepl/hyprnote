@@ -339,6 +339,10 @@ importers:
       react:
         specifier: ^18.3.1
         version: 18.3.1
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.18
+        version: 18.3.18
 
   extensions/live-transcript:
     dependencies:
@@ -363,6 +367,10 @@ importers:
       react:
         specifier: ^18.3.1
         version: 18.3.1
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.18
+        version: 18.3.18
 
   extensions/obsidian:
     dependencies:

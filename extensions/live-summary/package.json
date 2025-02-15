@@ -15,6 +15,9 @@
     "@tauri-apps/plugin-http": "^2.3.0",
     "motion": "^12.4.2"
   },
+  "devDependencies": {
+    "@types/react": "^18.3.18"
+  },
   "peerDependencies": {
     "react": "^18.3.1"
   }

@@ -1,7 +1,6 @@
 {
   "$schema": "../config.schema.json",
-  "version": "1.0.0",
-  "default": true,
+  "default_enabled": false,
   "name": "World Clocks",
   "description": "A list of clocks from around the world",
   "tags": []

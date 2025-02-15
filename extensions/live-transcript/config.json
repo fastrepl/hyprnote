@@ -1,8 +1,9 @@
 {
   "$schema": "../config.schema.json",
-  "version": "1.0.0",
-  "default": true,
+  "default_enabled": false,
+  "id": "live-transcript",
   "name": "Live Transcript",
   "description": "A live transcript of the current session",
-  "tags": []
+  "tags": [],
+  "config_schema": ""
 }

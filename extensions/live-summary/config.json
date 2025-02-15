@@ -1,5 +1,9 @@
 {
   "$schema": "../config.schema.json",
-  "version": "1.0.0",
-  "default": true
+  "default_enabled": true,
+  "id": "live-summary",
+  "name": "Live Summary",
+  "description": "A live summary of the current session",
+  "tags": [],
+  "config_schema": ""
 }

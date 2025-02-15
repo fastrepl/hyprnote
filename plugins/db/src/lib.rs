@@ -1,13 +1,15 @@
 use tauri::{Manager, Wry};
+use tokio::sync::Mutex;
 
 mod commands;
 mod error;
 
 pub use error::{Error, Result};
 
+#[derive(Default)]
 pub struct State {
-    user_id: String,
-    db: hypr_db::user::UserDatabase,
+    user_id: Option<String>,
+    db: Option<hypr_db::user::UserDatabase>,
 }
 
 const PLUGIN_NAME: &str = "db";
@@ -40,47 +42,60 @@ fn specta_builder() -> tauri_specta::Builder<Wry> {
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
-pub fn init(user_id: impl Into<String>) -> tauri::plugin::TauriPlugin<Wry> {
-    let user_id = user_id.into();
+pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
     let builder = specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(builder.invoke_handler())
         .setup(|app, _api| {
-            let db = tokio::task::block_in_place(|| {
-                tokio::runtime::Handle::current().block_on(async move {
-                    let conn = {
-                        #[cfg(debug_assertions)]
-                        {
-                            hypr_db::ConnectionBuilder::default().local(":memory:")
-                        }
-
-                        #[cfg(not(debug_assertions))]
-                        {
-                            hypr_db::ConnectionBuilder::default().local(":memory:")
-                        }
-                    }
-                    .connect()
-                    .await
-                    .unwrap();
-
-                    hypr_db::user::migrate(&conn).await.unwrap();
-
-                    let db = hypr_db::user::UserDatabase::from(conn);
-
-                    #[cfg(debug_assertions)]
-                    {
-                        hypr_db::user::seed(&db).await.unwrap();
-                    }
-
-                    db
-                })
-            });
-
-            app.manage(State { user_id, db });
+            app.manage(Mutex::new(State::default()));
             Ok(())
         })
         .build()
+}
+
+pub trait DatabaseExtentionExt<R: tauri::Runtime> {
+    fn db_connect(&self, user_id: String) -> Result<()>;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabaseExtentionExt<R> for T {
+    fn db_connect(&self, user_id: String) -> Result<()> {
+        tokio::task::block_in_place(|| {
+            tokio::runtime::Handle::current().block_on(async move {
+                let conn = {
+                    #[cfg(debug_assertions)]
+                    {
+                        hypr_db::ConnectionBuilder::default().local(":memory:")
+                    }
+
+                    #[cfg(not(debug_assertions))]
+                    {
+                        hypr_db::ConnectionBuilder::default().local(":memory:")
+                    }
+                }
+                .connect()
+                .await
+                .unwrap();
+
+                hypr_db::user::migrate(&conn).await.unwrap();
+
+                let db = hypr_db::user::UserDatabase::from(conn);
+
+                #[cfg(debug_assertions)]
+                {
+                    hypr_db::user::seed(&db).await.unwrap();
+                }
+
+                let state = self.state::<Mutex<State>>();
+                let mut state = state.lock().await;
+
+                state.user_id = Some(user_id);
+                state.db = Some(db);
+            })
+        });
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]

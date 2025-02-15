@@ -3,7 +3,12 @@ use serde::{ser::Serializer, Serialize};
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, thiserror::Error)]
-pub enum Error {}
+pub enum Error {
+    #[error("db is None")]
+    NoneDB,
+    #[error("user is None")]
+    NoneUser,
+}
 
 impl Serialize for Error {
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>

@@ -9,6 +9,7 @@ mod windows;
 mod workers;
 
 use tauri::Manager;
+use tauri_plugin_db::DatabaseExtentionExt;
 
 pub struct App {
     handle: tauri::AppHandle,
@@ -47,7 +48,7 @@ pub async fn main() {
 
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_listener::init())
-        .plugin(tauri_plugin_db::init("TODO: user_id"))
+        .plugin(tauri_plugin_db::init())
         .plugin(tauri_plugin_template::init())
         .plugin(tauri_plugin_sentry::init(&client))
         .plugin(tauri_plugin_os::init())
@@ -86,6 +87,8 @@ pub async fn main() {
 
             // TODO
             let user_id = "human_id".to_string();
+
+            app.db_connect(user_id.clone()).unwrap();
 
             let identifier = app.config().identifier.clone();
             let vault = vault::Vault::new(identifier);

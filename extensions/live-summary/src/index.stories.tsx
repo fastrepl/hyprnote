@@ -12,9 +12,6 @@ const queryClient = new QueryClient();
 const meta = {
   title: "Extensions/Live Summary",
   component,
-  parameters: {
-    layout: "fullscreen",
-  },
 } satisfies Meta<typeof component>;
 
 export default meta;

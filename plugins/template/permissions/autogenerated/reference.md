@@ -1,0 +1,67 @@
+## Default Permission
+
+Default permissions for the plugin
+
+- `allow-render`
+
+## Permission Table
+
+<table>
+<tr>
+<th>Identifier</th>
+<th>Description</th>
+</tr>
+
+
+<tr>
+<td>
+
+`template:allow-ping`
+
+</td>
+<td>
+
+Enables the ping command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`template:deny-ping`
+
+</td>
+<td>
+
+Denies the ping command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`template:allow-render`
+
+</td>
+<td>
+
+Enables the render command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`template:deny-render`
+
+</td>
+<td>
+
+Denies the render command without any pre-configured scope.
+
+</td>
+</tr>
+</table>

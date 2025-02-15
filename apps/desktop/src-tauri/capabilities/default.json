@@ -33,6 +33,7 @@
     "oauth:allow-cancel",
     "listener:default",
     "db:default",
+    "template:default",
     {
       "identifier": "http:default",
       "allow": [

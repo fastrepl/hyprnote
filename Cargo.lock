@@ -3247,6 +3247,7 @@ dependencies = [
  "tauri-plugin-shell",
  "tauri-plugin-single-instance",
  "tauri-plugin-store",
+ "tauri-plugin-template",
  "tauri-plugin-updater",
  "tauri-specta",
  "template",
@@ -11343,6 +11344,22 @@ dependencies = [
  "thiserror 2.0.11",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "tauri-plugin-template"
+version = "0.1.0"
+dependencies = [
+ "codes-iso-639",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "tera",
+ "thiserror 2.0.11",
 ]
 
 [[package]]

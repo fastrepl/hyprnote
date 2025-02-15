@@ -25,7 +25,8 @@
     "**/dist",
     "**/target",
     "**/public",
-    "**/generated/**"
+    "**/generated/**",
+    "**/permissions/**"
   ],
   "exec": {
     "cwd": "${configDir}",

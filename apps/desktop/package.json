@@ -19,6 +19,7 @@
     "@hypr/client": "workspace:*",
     "@hypr/plugin-db": "workspace:*",
     "@hypr/plugin-listener": "workspace:*",
+    "@hypr/plugin-template": "workspace:*",
     "@hypr/extensions": "workspace:*",
     "@hypr/tiptap": "workspace:*",
     "@hypr/ui": "workspace:*",

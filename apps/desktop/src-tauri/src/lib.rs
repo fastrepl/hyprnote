@@ -48,6 +48,7 @@ pub async fn main() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_db::init("TODO: user_id"))
+        .plugin(tauri_plugin_template::init())
         .plugin(tauri_plugin_sentry::init(&client))
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_positioner::init())

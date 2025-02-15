@@ -5,6 +5,7 @@ import UI from "@hypr/ui/tailwind.config";
 import Tiptap from "@hypr/tiptap/editor/tailwind.config";
 
 import ExtensionLiveSummary from "@hypr/extension-live-summary/tailwind.config";
+import ExtensionLiveTranscript from "@hypr/extension-live-transcript/tailwind.config";
 
 const config = {
   ...UI,
@@ -12,6 +13,7 @@ const config = {
     ...UI.content,
     ...Tiptap.content,
     ...ExtensionLiveSummary.content,
+    ...ExtensionLiveTranscript.content,
     "src/**/*.{js,ts,jsx,tsx}",
     "index.html",
   ],

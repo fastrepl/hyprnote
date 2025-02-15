@@ -295,6 +295,26 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the get_session_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-session-status"
+        },
+        {
+          "description": "Denies the get_session_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-session-status"
+        },
+        {
+          "description": "Enables the get_session_timeline command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-session-timeline"
+        },
+        {
+          "description": "Denies the get_session_timeline command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-session-timeline"
+        },
+        {
           "description": "Enables the ping command without any pre-configured scope.",
           "type": "string",
           "const": "allow-ping"
@@ -303,6 +323,26 @@
           "description": "Denies the ping command without any pre-configured scope.",
           "type": "string",
           "const": "deny-ping"
+        },
+        {
+          "description": "Enables the start_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-start-session"
+        },
+        {
+          "description": "Denies the start_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-start-session"
+        },
+        {
+          "description": "Enables the stop_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-stop-session"
+        },
+        {
+          "description": "Denies the stop_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-stop-session"
         },
         {
           "description": "Default permissions for the plugin",

@@ -3,14 +3,17 @@ import { ask } from "@tauri-apps/plugin-dialog";
 import { relaunch } from "@tauri-apps/plugin-process";
 
 export async function checkForAppUpdates() {
-  const update = await check();
+  if (process.env.NODE_ENV === "development") {
+    return;
+  }
 
+  const update = await check();
   if (update?.available) {
     const yes = await ask(
       `
-Update to ${update.version} is available!
-Release notes: ${update.body}
-        `,
+  Update to ${update.version} is available!
+  Release notes: ${update.body}
+          `,
       {
         title: "Update Now!",
         kind: "info",
@@ -18,7 +21,6 @@ Release notes: ${update.body}
         cancelLabel: "Cancel",
       },
     );
-
     if (yes) {
       await update.downloadAndInstall();
       await relaunch();

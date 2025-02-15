@@ -32,6 +32,7 @@ use axum::{
     Extension,
 };
 use tower_http::{
+    cors::{self, CorsLayer},
     services::{ServeDir, ServeFile},
     timeout::TimeoutLayer,
     trace::TraceLayer,
@@ -281,6 +282,15 @@ fn main() {
                 .nest("/webhook", webhook_router)
                 .with_state(state.clone())
                 .layer(TraceLayer::new_for_http());
+
+            {
+                router = router.layer(
+                    CorsLayer::new()
+                        .allow_origin(cors::Any)
+                        .allow_methods(cors::Any)
+                        .allow_headers(cors::Any),
+                );
+            }
 
             {
                 router = router.fallback_service({

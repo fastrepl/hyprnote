@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-config"
+description = "Enables the get_config command without any pre-configured scope."
+commands.allow = ["get_config"]
+
+[[permission]]
+identifier = "deny-get-config"
+description = "Denies the get_config command without any pre-configured scope."
+commands.deny = ["get_config"]

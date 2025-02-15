@@ -2,9 +2,12 @@ import { createStore } from "zustand";
 import { create as mutate } from "mutative";
 import { Channel } from "@tauri-apps/api/core";
 
-import { commands } from "@/types";
-import type { TimelineView, Session, SessionStatus } from "@/types";
-
+import { type TimelineView } from "@/types";
+import {
+  commands as listenerCommands,
+  type SessionEvent,
+} from "@hypr/plugin-listener";
+import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 type State = {
   channel: Channel<any> | null;
   listening: boolean;
@@ -32,7 +35,7 @@ export const createSessionStore = (session: Session) => {
     amplitude: { mic: 0, speaker: 0 },
     persistSession: async () => {
       const { session } = get();
-      await commands.upsertSession(session);
+      await dbCommands.upsertSession(session);
     },
     updateTitle: (title: string) => {
       set((state) =>
@@ -56,7 +59,8 @@ export const createSessionStore = (session: Session) => {
       );
     },
     start: () => {
-      const channel = new Channel<SessionStatus>();
+      console.log("start: create channel");
+      const channel = new Channel<SessionEvent>();
       channel.onmessage = (event) => {
         set((state) =>
           mutate(state, (draft) => {
@@ -74,11 +78,22 @@ export const createSessionStore = (session: Session) => {
         );
       };
 
-      commands.startSession(channel);
+      console.log("start: listenerCommands");
+      try {
+        listenerCommands.startSession(channel).then((r) => {
+          console.log("start: listenerCommands", r);
+        });
+      } catch (error) {
+        console.error("failed to start session", error);
+      }
       set({ channel, listening: true });
     },
     pause: () => {
-      commands.stopSession();
+      try {
+        listenerCommands.stopSession();
+      } catch (error) {
+        console.error(error);
+      }
       set({ channel: null, listening: false });
     },
     destroy: () => {
@@ -87,7 +102,7 @@ export const createSessionStore = (session: Session) => {
           state.channel.onmessage = () => {};
         }
 
-        commands.upsertSession(state.session);
+        dbCommands.upsertSession(state.session);
         return state;
       });
     },

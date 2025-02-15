@@ -19,7 +19,8 @@ import {
   SelectValue,
 } from "@hypr/ui/components/ui/select";
 
-import { commands, type Calendar, type CalendarIntegration } from "@/types";
+import { commands, type CalendarIntegration } from "@/types";
+import { commands as dbCommands, type Calendar } from "@hypr/plugin-db";
 import {
   client,
   getApiNativeUserIntegrationsOptions,
@@ -37,7 +38,7 @@ export default function Calendar() {
   const calendars = useQuery({
     queryKey: ["settings", "calendars"],
     queryFn: async () => {
-      const calendars = await commands.listCalendars();
+      const calendars = await dbCommands.listCalendars();
       return calendars;
     },
   });
@@ -54,7 +55,7 @@ export default function Calendar() {
         (calendar) => calendar.id === calendar_id,
       );
       if (calendar) {
-        commands.upsertCalendar({ ...calendar, selected });
+        dbCommands.upsertCalendar({ ...calendar, selected });
         queryClient.invalidateQueries({ queryKey: ["settings", "calendars"] });
       }
     },

@@ -5,12 +5,13 @@ import { useNavigate } from "@tanstack/react-router";
 import { format, isThisYear } from "date-fns";
 
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
-import { commands, type Session, type Human } from "@/types";
+import { type Human } from "@/types";
+import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 
 export default function PastSessions() {
   const data = useQuery({
     queryKey: ["sessions"],
-    queryFn: () => commands.listSessions(null),
+    queryFn: () => dbCommands.listSessions(null),
   });
 
   return (
@@ -71,7 +72,7 @@ function ParticipantList({ eventId }: { eventId: string }) {
 
   useEffect(() => {
     if (eventId) {
-      commands
+      dbCommands
         .listParticipants(eventId)
         .then(setParticipants)
         .catch(console.error);

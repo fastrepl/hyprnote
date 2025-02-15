@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-list-chat-messages"
+description = "Enables the list_chat_messages command without any pre-configured scope."
+commands.allow = ["list_chat_messages"]
+
+[[permission]]
+identifier = "deny-list-chat-messages"
+description = "Denies the list_chat_messages command without any pre-configured scope."
+commands.deny = ["list_chat_messages"]

@@ -3231,12 +3231,14 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-autostart",
  "tauri-plugin-clipboard-manager",
+ "tauri-plugin-db",
  "tauri-plugin-decorum",
  "tauri-plugin-deep-link",
  "tauri-plugin-dialog",
  "tauri-plugin-fs",
  "tauri-plugin-global-shortcut",
  "tauri-plugin-http",
+ "tauri-plugin-listener",
  "tauri-plugin-oauth",
  "tauri-plugin-os",
  "tauri-plugin-positioner",
@@ -11064,6 +11066,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-db"
+version = "0.1.0"
+dependencies = [
+ "db",
+ "serde",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.11",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "tauri-plugin-decorum"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11182,10 +11202,20 @@ dependencies = [
 name = "tauri-plugin-listener"
 version = "0.1.0"
 dependencies = [
+ "audio 0.1.0",
+ "bridge",
+ "futures-util",
+ "hound",
  "serde",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
  "tauri",
  "tauri-plugin",
+ "tauri-specta",
  "thiserror 2.0.11",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

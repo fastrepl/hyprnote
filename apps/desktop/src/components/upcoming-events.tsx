@@ -17,12 +17,13 @@ import {
 } from "@hypr/ui/components/ui/card";
 import { Badge } from "@hypr/ui/components/ui/badge";
 
-import { commands, type Event } from "@/types";
+import { type Event } from "@/types";
+import { commands as dbCommands } from "@hypr/plugin-db";
 
 export default function UpcomingEvents() {
   const data = useQuery({
     queryKey: ["events"],
-    queryFn: () => commands.listEvents(),
+    queryFn: () => dbCommands.listEvents(),
   });
 
   return (
@@ -51,12 +52,12 @@ function EventCard({ event }: { event: Event }) {
 
   const participants = useQuery({
     queryKey: ["event-participants", event.id],
-    queryFn: async () => commands.listParticipants(event.id),
+    queryFn: async () => dbCommands.listParticipants(event.id),
   });
 
   const session = useQuery({
     queryKey: ["event-session", event.id],
-    queryFn: async () => commands.getSession({ calendarEventId: event.id }),
+    queryFn: async () => dbCommands.getSession({ calendarEventId: event.id }),
   });
 
   const handleClick = () => {

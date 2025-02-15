@@ -1,11 +1,14 @@
 import { AnimatePresence } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import TriggerButton from "@/components/shared/trigger-button";
-import LiveSummaryToast from "./live-summary-toast";
 import { useAITrigger } from "@/hooks/use-ai-trigger";
 import Modal from "./shared/modal";
 import type { Message } from "@/types";
 import { useSession } from "@/contexts";
+
+import { extensions } from "@hypr/extensions";
+
+const LiveSummaryToast = lazy(() => extensions.liveSummary());
 
 export default function NoteAIButton() {
   const { isDynamic, isOpen, setIsOpen, handleOpen } = useAITrigger();
@@ -99,11 +102,13 @@ export default function NoteAIButton() {
     <div className="fixed bottom-4 right-4 z-10">
       <AnimatePresence mode="wait">
         {store.listening && showToast ? (
-          <LiveSummaryToast
-            onClose={() => {
-              setShowToast(false);
-            }}
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <LiveSummaryToast
+              onClose={() => {
+                setShowToast(false);
+              }}
+            />
+          </Suspense>
         ) : !isOpen ? (
           <TriggerButton
             isDynamic={isDynamic}

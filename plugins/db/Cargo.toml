@@ -1,0 +1,30 @@
+[package]
+name = "tauri-plugin-db"
+version = "0.1.0"
+authors = ["You"]
+edition = "2021"
+exclude = ["/dist-js", "/guest-js", "/node_modules"]
+links = "tauri-plugin-db"
+rust-version = "1.77.2"
+description = ""
+
+[build-dependencies]
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+specta-typescript = { workspace = true }
+
+[dependencies]
+hypr-db = { path = "../../crates/db", package = "db", features = ["user"] }
+
+tauri = { workspace = true }
+tracing = { workspace = true }
+
+serde = { workspace = true }
+specta = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

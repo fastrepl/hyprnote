@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SettingsIcon } from "lucide-react";
-import { commands, type Template } from "@/types";
+import { cn } from "@hypr/ui/lib/utils";
+
 import { DialogView } from "./views";
 import GeneralComponent from "./views/general";
 import CalendarComponent from "./views/calendar";
@@ -10,10 +11,12 @@ import TemplateEditor from "./views/template";
 import BillingComponent from "./views/billing";
 import NotificationsComponent from "./views/notifications";
 import TeamComponent from "./views/team";
-import { SettingsSidebar } from "./sidebar";
-import type { NavNames } from "./types";
-import { cn } from "@hypr/ui/lib/utils";
 import ProfileComponent from "./views/profile";
+import { SettingsSidebar } from "./sidebar";
+
+import type { NavNames } from "./types";
+import { commands, type Template } from "@/types";
+import { commands as dbCommands } from "@hypr/plugin-db";
 
 export default function SettingsDialog() {
   const [open, setOpen] = useState(false);
@@ -28,20 +31,20 @@ export default function SettingsDialog() {
     queryFn: async () => {
       const [builtin, custom] = await Promise.all([
         commands.listBuiltinTemplates(),
-        commands.listTemplates(),
+        dbCommands.listTemplates(),
       ]);
       return { builtin: builtin || [], custom: custom || [] };
     },
   });
 
   const handleUpdateTemplate = (template: Template) => {
-    commands.upsertTemplate(template);
+    dbCommands.upsertTemplate(template);
     setSelectedTemplate(template);
     templates.refetch();
   };
 
   const handleCreateTemplate = (template: Template) => {
-    commands.upsertTemplate(template);
+    dbCommands.upsertTemplate(template);
     templates.refetch();
   };
 

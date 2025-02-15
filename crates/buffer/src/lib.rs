@@ -121,7 +121,7 @@ mod tests {
 
     #[test]
     fn test_1() {
-        let buffer = Buffer::new();
+        let buffer = Buffer::default();
 
         buffer.write("### Hello\n");
         buffer.write("#### World\n\n");
@@ -137,7 +137,7 @@ mod tests {
 
     #[test]
     fn test_2() {
-        let buffer = Buffer::new();
+        let buffer = Buffer::default();
 
         buffer.write("hi\n");
         buffer.write("### World\n\n");
@@ -156,7 +156,7 @@ mod tests {
 
     #[test]
     fn test_3() {
-        let buffer = Buffer::new();
+        let buffer = Buffer::default();
 
         buffer.write("hi\n");
         buffer.write("<q>quote</q>\n\n");
@@ -168,7 +168,7 @@ mod tests {
 
     #[test]
     fn test_4() {
-        let buffer = Buffer::new();
+        let buffer = Buffer::default();
 
         buffer.write("hi\n");
         buffer.write("<q>quote");

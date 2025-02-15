@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { Trans } from "@lingui/react/macro";
+import { cn } from "@/utils";
 
 import {
   Form,
@@ -25,8 +26,8 @@ import {
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { Badge } from "@hypr/ui/components/ui/badge";
 
-import { commands, type ConfigGeneral } from "@/types";
-import { cn } from "@/utils";
+import { type ConfigGeneral } from "@/types";
+import { commands as dbCommands } from "@hypr/plugin-db";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
 const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = ["en", "ko"];
@@ -124,7 +125,7 @@ export default function General() {
   const config = useQuery({
     queryKey: ["config", "general"],
     queryFn: async () => {
-      const result = await commands.getConfig();
+      const result = await dbCommands.getConfig();
       return result;
     },
   });
@@ -156,7 +157,7 @@ export default function General() {
       };
 
       try {
-        await commands.setConfig({
+        await dbCommands.setConfig({
           ...config.data,
           general: nextGeneral,
         });

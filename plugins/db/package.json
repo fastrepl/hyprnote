@@ -1,0 +1,11 @@
+{
+  "name": "@hypr/plugin-db",
+  "private": true,
+  "main": "./generated/bindings.ts",
+  "scripts": {
+    "codegen": "cargo test -p tauri-plugin-db"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.2.0"
+  }
+}

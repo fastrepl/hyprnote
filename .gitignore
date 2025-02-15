@@ -7,3 +7,5 @@ Secrets*.toml
 .env.prod
 .venv
 **/__pycache__/
+
+*storybook.log

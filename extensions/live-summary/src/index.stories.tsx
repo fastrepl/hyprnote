@@ -5,9 +5,19 @@ import { http, HttpResponse } from "msw";
 import { mockIPC } from "@tauri-apps/api/mocks";
 
 import { LiveSummaryResponse } from "@hypr/client/gen/types";
+import { createConfig, createClient } from "@hypr/client";
+
 import component from "./index";
 
 const queryClient = new QueryClient();
+
+const client = createClient(
+  createConfig({
+    fetch,
+    auth: () => "123",
+    baseUrl: "http://localhost:1234",
+  }),
+);
 
 const meta = {
   title: "Extensions/Live Summary",
@@ -49,6 +59,7 @@ export const Main: Story = {
     },
   ],
   args: {
+    client,
     onClose: () => {},
   },
 };

@@ -1,10 +1,13 @@
-import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence } from "motion/react";
+
 import TriggerButton from "@/components/shared/trigger-button";
 import { useAITrigger } from "@/hooks/use-ai-trigger";
-import Modal from "./shared/modal";
 import type { Message } from "@/types";
 import { useSession } from "@/contexts";
+import { client } from "@/client";
+
+import Modal from "./shared/modal";
 
 import LiveSummaryToast from "@hypr/extension-live-summary";
 
@@ -101,6 +104,7 @@ export default function NoteAIButton() {
       <AnimatePresence mode="wait">
         {store.listening && showToast ? (
           <LiveSummaryToast
+            client={client}
             onClose={() => {
               setShowToast(false);
             }}

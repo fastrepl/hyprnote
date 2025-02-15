@@ -99,8 +99,7 @@ mod tests {
     async fn test_update_stripe_customer() {
         let db = setup_db().await;
 
-        let user = db
-            .update_stripe_customer(&stripe::Customer::default())
+        db.update_stripe_customer(&stripe::Customer::default())
             .await
             .unwrap();
     }
@@ -109,8 +108,7 @@ mod tests {
     async fn test_update_stripe_subscription() {
         let db = setup_db().await;
 
-        let subscription = db
-            .update_stripe_subscription("TODO", Some(&stripe::Subscription::default()))
+        db.update_stripe_subscription("TODO", Some(&stripe::Subscription::default()))
             .await
             .unwrap();
     }

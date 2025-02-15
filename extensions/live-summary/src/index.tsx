@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 
-import { createClient, createConfig } from "@hypr/client";
+import { type Client } from "@hypr/client";
 import { LiveSummaryResponse } from "@hypr/client/gen/types";
 export { postApiNativeLiveSummaryOptions } from "@hypr/client/gen/tanstack";
 
@@ -10,22 +10,17 @@ import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { postApiNativeLiveSummary } from "@hypr/client/gen/sdk";
 
-// TODO
-const client = createClient(
-  createConfig({
-    fetch,
-    auth: () => "123",
-    baseUrl: "http://localhost:1234",
-  }),
-);
-
 interface LiveSummaryToastProps {
+  client: Client;
   onClose: () => void;
 }
 
 const DEFAULT_INTERVAL = 10 * 1000;
 
-export default function LiveSummaryToast({ onClose }: LiveSummaryToastProps) {
+export default function LiveSummaryToast({
+  onClose,
+  client,
+}: LiveSummaryToastProps) {
   const [progress, setProgress] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 

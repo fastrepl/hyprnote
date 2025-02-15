@@ -106,7 +106,7 @@ export default function LiveSummaryToast({ onClose }: LiveSummaryToastProps) {
         <div className="mb-2 flex items-center gap-2">
           <div className="w-fit overflow-clip rounded-full border bg-yellow-100 p-1">
             <img
-              src="/assets/dynamic.gif"
+              src="/live-summary-icon-dynamic.gif"
               alt="AI Assistant"
               className="size-6"
             />

@@ -27,6 +27,8 @@ i18n.activate("en");
 import "./styles/globals.css";
 import "@hypr/ui/globals.css";
 
+import "@hypr/extension-live-summary/globals.css";
+
 export type Context = {
   queryClient: QueryClient;
 };

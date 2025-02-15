@@ -1,6 +1,0 @@
-{
-  "name": "@hypr/extensions",
-  "private": true,
-  "main": "./index.ts",
-  "types": "./index.ts"
-}

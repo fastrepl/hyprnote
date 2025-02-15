@@ -4,11 +4,13 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "main": "./src/index.tsx",
-  "types": "./src/index.tsx",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./globals.css": "./src/globals.css",
+    "./tailwind.config": "./tailwind.config.ts"
+  },
   "scripts": {
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "preview": "storybook dev -p 6006"
   },
   "dependencies": {
     "@hypr/client": "workspace:*",
@@ -25,9 +27,11 @@
     "@storybook/react": "^8.5.6",
     "@storybook/react-vite": "^8.5.6",
     "@types/react": "^18.3.18",
+    "autoprefixer": "^10.4.20",
     "msw": "^2.7.0",
     "msw-storybook-addon": "^2.0.4",
-    "storybook": "^8.5.6"
+    "storybook": "^8.5.6",
+    "tailwindcss": "^3.4.17"
   },
   "peerDependencies": {
     "react": "^18.3.1"

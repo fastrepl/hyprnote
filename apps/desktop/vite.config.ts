@@ -4,6 +4,7 @@ import { defineConfig, type UserConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import { lingui } from "@lingui/vite-plugin";
+import { DynamicPublicDirectory } from "vite-multiple-assets";
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -14,7 +15,21 @@ export default defineConfig(async () => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  publicDir: "",
   plugins: [
+    DynamicPublicDirectory(["public/**/*"], { cwd: __dirname }),
+    DynamicPublicDirectory(
+      [
+        {
+          input: "*/assets/**",
+          output: "/",
+          flatten: true,
+        },
+      ],
+      {
+        cwd: path.resolve(__dirname, "../../extensions"),
+      },
+    ),
     lingui(),
     react({
       babel: {

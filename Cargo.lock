@@ -10559,9 +10559,6 @@ dependencies = [
  "async-stream",
  "audio 0.1.0",
  "bytes",
- "candle-core",
- "candle-nn",
- "candle-transformers",
  "clova",
  "codes-iso-639",
  "data",
@@ -10576,8 +10573,8 @@ dependencies = [
  "serial_test",
  "specta",
  "thiserror 2.0.11",
- "tokenizers",
  "tokio",
+ "whisper",
 ]
 
 [[package]]
@@ -13148,6 +13145,19 @@ dependencies = [
  "home",
  "once_cell",
  "rustix",
+]
+
+[[package]]
+name = "whisper"
+version = "0.1.0"
+dependencies = [
+ "candle-core",
+ "candle-nn",
+ "candle-transformers",
+ "codes-iso-639",
+ "serde",
+ "serde_json",
+ "tokenizers",
 ]
 
 [[package]]

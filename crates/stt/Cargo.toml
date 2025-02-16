@@ -4,16 +4,17 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["realtime", "recorded"]
+default = ["realtime", "recorded", "local"]
 realtime = []
 recorded = []
-local = ["candle-core", "candle-nn", "candle-transformers", "tokenizers"]
+local = ["hypr-whisper"]
 
 [dependencies]
 deepgram = { version = "0.6.4", features = ["listen"] }
 hypr-clova = { path = "../clova", package = "clova" }
 hypr-db = { path = "../db", package = "db", default-features = false, features = ["user"] }
 hypr-rtzr = { path = "../rtzr", package = "rtzr" }
+hypr-whisper = { path = "../whisper", package = "whisper", optional = true }
 
 anyhow = { workspace = true }
 thiserror = { workspace = true }
@@ -28,11 +29,6 @@ specta = { workspace = true, features = ["derive"] }
 futures-core = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true }
-
-candle-core = { workspace = true, optional = true }
-candle-nn = { workspace = true, optional = true }
-candle-transformers = { workspace = true, optional = true }
-tokenizers = { workspace = true, optional = true }
 
 [dev-dependencies]
 hypr-audio = { path = "../audio", package = "audio" }

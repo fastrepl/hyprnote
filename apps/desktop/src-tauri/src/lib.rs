@@ -9,7 +9,6 @@ mod windows;
 mod workers;
 
 use tauri::Manager;
-use tauri_plugin_db::DatabaseExtentionExt;
 
 pub struct App {
     handle: tauri::AppHandle,
@@ -85,14 +84,20 @@ pub async fn main() {
             specta_builder.mount_events(&app);
             store::UserStore::load(&app).unwrap();
 
-            // TODO
-            let user_id = "human_id".to_string();
+            let user_id = {
+                use tauri_plugin_db::DatabaseExtentionExt;
 
-            app.db_connect(user_id.clone()).unwrap();
+                if let Some(user_id) = store::UserStore::get(&app).unwrap().user_id {
+                    app.db_set_user_id(user_id.clone()).unwrap();
+                    user_id
+                } else {
+                    let user_id = app.db_create_new_user().unwrap();
+                    user_id
+                }
+            };
 
             let identifier = app.config().identifier.clone();
             let vault = vault::Vault::new(identifier);
-            let vault_for_db = vault.clone();
 
             let server_api_base = if cfg!(debug_assertions) {
                 "http://localhost:1234".to_string()

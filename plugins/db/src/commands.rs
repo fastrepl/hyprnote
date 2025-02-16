@@ -8,14 +8,7 @@ pub async fn list_calendars(
 ) -> Result<Vec<hypr_db::user::Calendar>, String> {
     let state = state.lock().await;
 
-    state
-        .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
-        .list_calendars()
-        .await
-        .map_err(|e| e.to_string())
+    state.db.list_calendars().await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -29,9 +22,6 @@ pub async fn list_participants(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .list_participants(event_id)
         .await
         .map_err(|e| e.to_string())
@@ -48,9 +38,6 @@ pub async fn upsert_calendar(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .upsert_calendar(calendar)
         .await
         .map_err(|e| e.to_string())
@@ -67,9 +54,6 @@ pub async fn upsert_session(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .upsert_session(session)
         .await
         .map_err(|e| e.to_string())
@@ -91,9 +75,6 @@ pub async fn list_templates(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .list_templates(user_id)
         .await
         .map_err(|e| e.to_string())
@@ -110,9 +91,6 @@ pub async fn upsert_template(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .upsert_template(template)
         .await
         .map_err(|e| e.to_string())
@@ -126,9 +104,6 @@ pub async fn delete_template(state: tauri::State<'_, DBState>, id: String) -> Re
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .delete_template(id)
         .await
         .map_err(|e| e.to_string())
@@ -142,14 +117,7 @@ pub async fn list_events(
 ) -> Result<Vec<hypr_db::user::Event>, String> {
     let state = state.lock().await;
 
-    state
-        .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
-        .list_events()
-        .await
-        .map_err(|e| e.to_string())
+    state.db.list_events().await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -163,9 +131,6 @@ pub async fn list_sessions(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .list_sessions(search)
         .await
         .map_err(|e| e.to_string())
@@ -182,9 +147,6 @@ pub async fn get_session(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .get_session(option)
         .await
         .map_err(|e| e.to_string())
@@ -202,9 +164,6 @@ pub async fn set_session_event(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .session_set_event(session_id, event_id)
         .await
         .map_err(|e| e.to_string())
@@ -224,9 +183,6 @@ pub async fn get_config(state: tauri::State<'_, DBState>) -> Result<hypr_db::use
 
     let config = state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .get_config(user_id)
         .await
         .map_err(|e| e.to_string())?;
@@ -254,14 +210,7 @@ pub async fn set_config(
 ) -> Result<(), String> {
     let state = state.lock().await;
 
-    state
-        .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
-        .set_config(config)
-        .await
-        .map_err(|e| e.to_string())
+    state.db.set_config(config).await.map_err(|e| e.to_string())
 }
 #[tauri::command]
 #[specta::specta]
@@ -279,9 +228,6 @@ pub async fn get_self_human(
 
     let human = state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .get_human(user_id)
         .await
         .map_err(|e| e.to_string())?;
@@ -300,9 +246,6 @@ pub async fn upsert_human(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .upsert_human(human)
         .await
         .map_err(|e| e.to_string())
@@ -324,9 +267,6 @@ pub async fn get_self_organization(
 
     let organization = state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .get_organization_by_user_id(user_id)
         .await
         .map_err(|e| e.to_string())?
@@ -346,9 +286,6 @@ pub async fn upsert_organization(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .upsert_organization(organization)
         .await
         .map_err(|e| e.to_string())
@@ -365,9 +302,6 @@ pub async fn list_chat_groups(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .list_chat_groups(user_id)
         .await
         .map_err(|e| e.to_string())
@@ -384,9 +318,6 @@ pub async fn list_chat_messages(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .list_chat_messages(group_id)
         .await
         .map_err(|e| e.to_string())
@@ -403,9 +334,6 @@ pub async fn create_chat_group(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .create_chat_group(group)
         .await
         .map_err(|e| e.to_string())
@@ -422,9 +350,6 @@ pub async fn upsert_chat_message(
 
     state
         .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDB)
-        .map_err(|e| e.to_string())?
         .upsert_chat_message(message)
         .await
         .map_err(|e| e.to_string())

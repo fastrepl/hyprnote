@@ -6,10 +6,10 @@ mod error;
 
 pub use error::{Error, Result};
 
-#[derive(Default)]
+#[derive(Clone)]
 pub struct State {
     user_id: Option<String>,
-    db: Option<hypr_db::user::UserDatabase>,
+    db: hypr_db::user::UserDatabase,
 }
 
 const PLUGIN_NAME: &str = "db";
@@ -48,49 +48,69 @@ pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(builder.invoke_handler())
         .setup(|app, _api| {
-            app.manage(Mutex::new(State::default()));
+            let db = tokio::task::block_in_place(|| {
+                tokio::runtime::Handle::current().block_on(async move {
+                    let conn = hypr_db::ConnectionBuilder::default()
+                        .local(":memory:")
+                        .connect()
+                        .await
+                        .unwrap();
+
+                    hypr_db::user::migrate(&conn).await.unwrap();
+
+                    let db = hypr_db::user::UserDatabase::from(conn);
+
+                    #[cfg(debug_assertions)]
+                    {
+                        hypr_db::user::seed(&db).await.unwrap();
+                    }
+
+                    db
+                })
+            });
+
+            app.manage(Mutex::new(State { user_id: None, db }));
             Ok(())
         })
         .build()
 }
 
 pub trait DatabaseExtentionExt<R: tauri::Runtime> {
-    fn db_connect(&self, user_id: String) -> Result<()>;
+    fn db_create_new_user(&self) -> Result<String>;
+    fn db_set_user_id(&self, user_id: String) -> Result<()>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabaseExtentionExt<R> for T {
-    fn db_connect(&self, user_id: String) -> Result<()> {
+    fn db_create_new_user(&self) -> Result<String> {
+        let user_id = tokio::task::block_in_place(|| {
+            tokio::runtime::Handle::current().block_on(async move {
+                let state = self.state::<Mutex<State>>();
+                let mut state = state.lock().await;
+
+                let human = state
+                    .db
+                    .upsert_human(hypr_db::user::Human {
+                        is_user: true,
+                        ..Default::default()
+                    })
+                    .await
+                    .unwrap();
+
+                state.user_id = Some(human.id.clone());
+                human.id
+            })
+        });
+
+        Ok(user_id)
+    }
+
+    fn db_set_user_id(&self, user_id: String) -> Result<()> {
         tokio::task::block_in_place(|| {
             tokio::runtime::Handle::current().block_on(async move {
-                let conn = {
-                    #[cfg(debug_assertions)]
-                    {
-                        hypr_db::ConnectionBuilder::default().local(":memory:")
-                    }
-
-                    #[cfg(not(debug_assertions))]
-                    {
-                        hypr_db::ConnectionBuilder::default().local(":memory:")
-                    }
-                }
-                .connect()
-                .await
-                .unwrap();
-
-                hypr_db::user::migrate(&conn).await.unwrap();
-
-                let db = hypr_db::user::UserDatabase::from(conn);
-
-                #[cfg(debug_assertions)]
-                {
-                    hypr_db::user::seed(&db).await.unwrap();
-                }
-
                 let state = self.state::<Mutex<State>>();
                 let mut state = state.lock().await;
 
                 state.user_id = Some(user_id);
-                state.db = Some(db);
             })
         });
 

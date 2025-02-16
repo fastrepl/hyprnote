@@ -1,9 +1,10 @@
-import { type Template } from "@/types";
+import { commands, type Template } from "@/types";
 import { ChevronLeftIcon, FilePlusIcon } from "lucide-react";
 import { TemplateList } from "../components/template-list";
 import { type NavNames } from "../types";
 import { data } from "../constants";
 import { cn } from "@hypr/ui/lib/utils";
+import { useHypr } from "@/contexts/hypr";
 
 export interface TemplateViewProps {
   searchQuery: string;
@@ -26,6 +27,8 @@ export function TemplateView({
   setActive,
   selectedTemplate,
 }: TemplateViewProps) {
+  const { userId } = useHypr();
+
   return (
     <div className="flex h-full flex-col justify-between">
       <div className="flex-1 overflow-auto">
@@ -63,7 +66,7 @@ export function TemplateView({
           onClick={() => {
             const newTemplate: Template = {
               id: crypto.randomUUID(),
-              user_id: "current_user_id", // This should match the actual user ID
+              user_id: userId,
               title: "Untitled Template",
               description: "",
               tags: [],

@@ -4,8 +4,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("db is None")]
-    NoneDB,
     #[error("user is None")]
     NoneUser,
 }

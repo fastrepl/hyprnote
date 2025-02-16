@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@hypr/client": "workspace:*",
-    "@tanstack/router-plugin": "^1.102.6",
+    "@tanstack/router-plugin": "^1.105.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
@@ -23,14 +23,14 @@
     "vite": "^6.1.0"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.22.12",
+    "@clerk/clerk-react": "^5.22.13",
     "@hypr/tiptap": "workspace:*",
     "@hypr/ui": "workspace:*",
     "@nangohq/frontend": "^0.48.4",
     "@sentry/react": "^8.55.0",
     "@tanstack/react-query": "^5.66.0",
-    "@tanstack/react-router": "^1.102.5",
-    "@tanstack/zod-adapter": "^1.102.5",
+    "@tanstack/react-router": "^1.105.0",
+    "@tanstack/zod-adapter": "^1.105.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.24.2",

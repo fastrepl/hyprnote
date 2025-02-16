@@ -66,10 +66,9 @@ apalis = "0.6.4"
 apalis-cron = "0.6.4"
 apalis-sql = "0.6.4"
 
-specta = "2.0.0-rc.20"
-specta-typescript = "0.0.7"
-specta-util = "0.0.7"
-tauri-specta = "2.0.0-rc.20"
+specta = "2.0.0-rc.21"
+specta-typescript = "0.0.9"
+tauri-specta = "2.0.0-rc.21"
 
 cpal = "0.15.3"
 dasp = "0.11.0"

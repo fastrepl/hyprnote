@@ -164,7 +164,8 @@ mod tests {
                     .clova_api_key("".to_string())
                     .build(),
                 diarize: hypr_bridge::diarize::DiarizeClient::builder()
-                    .api_base("".to_string())
+                    .sample_rate(16000)
+                    .api_base("http://localhost:3000".to_string())
                     .api_key("".to_string())
                     .build(),
             })

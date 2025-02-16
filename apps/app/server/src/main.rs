@@ -12,7 +12,6 @@ mod worker;
 
 use std::{
     io::{Error, ErrorKind},
-    path::Path,
     time::Duration,
 };
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _, Registry};
@@ -49,9 +48,6 @@ use state::{AuthState, WorkerState};
 fn main() {
     #[cfg(debug_assertions)]
     dotenv::from_filename(".env.local").unwrap();
-
-    #[cfg(debug_assertions)]
-    export_ts_types().unwrap();
 
     let _guard = sentry::init((
         get_env("SENTRY_DSN"),
@@ -347,25 +343,33 @@ fn main() {
 }
 
 fn export_ts_types() -> anyhow::Result<()> {
-    let mut web_collection = specta_util::TypeCollection::default();
-    let mut native_collection = specta_util::TypeCollection::default();
-
-    web_collection.register::<hypr_nango::NangoIntegration>();
-    native_collection.register::<hypr_nango::NangoIntegration>();
-
-    let language = specta_typescript::Typescript::default()
-        .header("// @ts-nocheck\n\n")
-        .bigint(specta_typescript::BigIntExportBehavior::Number);
-
-    let base = env!("CARGO_MANIFEST_DIR");
-    let web_path = Path::new(base).join("../src/types/server.gen.ts");
-    let native_path = Path::new(base).join("../../desktop/src/types/server.gen.ts");
-
-    web_collection.export_to(language.clone(), web_path)?;
-    native_collection.export_to(language, native_path)?;
     Ok(())
 }
 
 fn get_env(key: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| panic!("env: '{}' is not set", key))
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_export_ts_types() -> anyhow::Result<()> {
+        let mut web_collection = specta::TypeCollection::default();
+        let mut native_collection = specta::TypeCollection::default();
+
+        web_collection.register::<hypr_nango::NangoIntegration>();
+        native_collection.register::<hypr_nango::NangoIntegration>();
+
+        let language = specta_typescript::Typescript::default()
+            .header("// @ts-nocheck\n\n")
+            .bigint(specta_typescript::BigIntExportBehavior::Number);
+
+        let base = env!("CARGO_MANIFEST_DIR");
+        let web_path = std::path::Path::new(base).join("../src/types/server.gen.ts");
+        let native_path = std::path::Path::new(base).join("../../desktop/src/types/server.gen.ts");
+
+        language.export_to(web_path, &web_collection)?;
+        language.export_to(native_path, &native_collection)?;
+        Ok(())
+    }
 }

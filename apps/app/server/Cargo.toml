@@ -54,7 +54,6 @@ strum = { workspace = true, features = ["derive"] }
 
 specta = { workspace = true }
 specta-typescript = { workspace = true }
-specta-util = { workspace = true }
 
 apalis = { workspace = true, features = ["sentry", "limit"] }
 apalis-cron = { workspace = true }

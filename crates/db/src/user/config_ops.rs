@@ -29,13 +29,15 @@ impl UserDatabase {
                     id,
                     user_id,
                     general,
-                    notification
-                ) VALUES (?, ?, ?, ?)",
+                    notification,
+                    ai
+                ) VALUES (?, ?, ?, ?, ?)",
                 vec![
                     config.id.clone().into(),
                     config.user_id.clone().into(),
                     serde_json::to_string(&config.general)?,
                     serde_json::to_string(&config.notification)?,
+                    serde_json::to_string(&config.ai)?,
                 ],
             )
             .await?;
@@ -67,6 +69,7 @@ mod tests {
                 before: false,
                 ..ConfigNotification::default()
             },
+            ai: ConfigAI::default(),
         })
         .await
         .unwrap();

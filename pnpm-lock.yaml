@@ -96,6 +96,9 @@ importers:
       '@hypr/extension-obsidian':
         specifier: workspace:*
         version: link:../../extensions/obsidian
+      '@hypr/extension-world-clocks':
+        specifier: workspace:^
+        version: link:../../extensions/world-clocks
       '@hypr/plugin-db':
         specifier: workspace:*
         version: link:../../plugins/db
@@ -444,9 +447,37 @@ importers:
 
   extensions/world-clocks:
     dependencies:
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
       react-clock:
         specifier: ^5.1.0
         version: 5.1.0(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+    devDependencies:
+      '@storybook/addon-essentials':
+        specifier: ^8.5.6
+        version: 8.5.6(@types/react@18.3.18)(storybook@8.5.6(prettier@3.5.0))
+      '@storybook/addon-interactions':
+        specifier: ^8.5.6
+        version: 8.5.6(storybook@8.5.6(prettier@3.5.0))
+      '@storybook/react':
+        specifier: ^8.5.6
+        version: 8.5.6(@storybook/test@8.5.6(storybook@8.5.6(prettier@3.5.0)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(storybook@8.5.6(prettier@3.5.0))(typescript@5.7.3)
+      '@storybook/react-vite':
+        specifier: ^8.5.6
+        version: 8.5.6(@storybook/test@8.5.6(storybook@8.5.6(prettier@3.5.0)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.34.6)(storybook@8.5.6(prettier@3.5.0))(typescript@5.7.3)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(tsx@4.19.2)(yaml@2.7.0))
+      '@types/react':
+        specifier: ^18.3.18
+        version: 18.3.18
+      autoprefixer:
+        specifier: ^10.4.20
+        version: 10.4.20(postcss@8.5.2)
+      storybook:
+        specifier: ^8.5.6
+        version: 8.5.6(prettier@3.5.0)
+      tailwindcss:
+        specifier: ^3.4.17
+        version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.6)(@types/node@22.13.1)(typescript@5.7.3))
 
   packages/client:
     dependencies:
@@ -5505,6 +5536,7 @@ packages:
 
   libsql@0.4.7:
     resolution: {integrity: sha512-T9eIRCs6b0J1SHKYIvD8+KCJMcWZ900iZyxdnSCdqxN12Z1ijzT+jY5nrk72Jw4B0HGzms2NgpryArlJqvc3Lw==}
+    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@3.1.3:

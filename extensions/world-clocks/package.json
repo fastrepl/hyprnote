@@ -1,14 +1,31 @@
 {
   "name": "@hypr/extension-world-clocks",
   "version": "1.0.0",
+  "private": true,
   "license": "MIT",
-  "keywords": [],
-  "description": "World Clocks",
-  "main": "index.js",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./globals.css": "./src/globals.css",
+    "./tailwind.config": "./tailwind.config.ts"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "preview": "storybook dev -p 6006"
   },
   "dependencies": {
     "react-clock": "^5.1.0"
+  },
+  "devDependencies": {
+    "@storybook/addon-essentials": "^8.5.6",
+    "@storybook/addon-interactions": "^8.5.6",
+    "@storybook/react": "^8.5.6",
+    "@storybook/react-vite": "^8.5.6",
+    "@types/react": "^18.3.18",
+    "autoprefixer": "^10.4.20",
+    "storybook": "^8.5.6",
+    "tailwindcss": "^3.4.17"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
   }
 }

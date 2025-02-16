@@ -6,6 +6,7 @@ import Tiptap from "@hypr/tiptap/editor/tailwind.config";
 
 import ExtensionLiveSummary from "@hypr/extension-live-summary/tailwind.config";
 import ExtensionLiveTranscript from "@hypr/extension-live-transcript/tailwind.config";
+import ExtensionWorldClocks from "@hypr/extension-world-clocks/tailwind.config";
 
 const config = {
   ...UI,
@@ -14,6 +15,7 @@ const config = {
     ...Tiptap.content,
     ...ExtensionLiveSummary.content,
     ...ExtensionLiveTranscript.content,
+    ...ExtensionWorldClocks.content,
     "src/**/*.{js,ts,jsx,tsx}",
     "index.html",
   ],

@@ -20,6 +20,7 @@
     "@hypr/extension-live-summary": "workspace:*",
     "@hypr/extension-live-transcript": "workspace:*",
     "@hypr/extension-obsidian": "workspace:*",
+    "@hypr/extension-world-clocks": "workspace:*",
     "@hypr/plugin-db": "workspace:*",
     "@hypr/plugin-listener": "workspace:*",
     "@hypr/plugin-template": "workspace:*",

@@ -35,7 +35,7 @@ export const Main: Story = {
           const res = {
             blocks: [
               {
-                points: ["first point", "second point"],
+                points: ["first point", "second point", "third point"],
               },
             ],
           } satisfies LiveSummaryResponse;

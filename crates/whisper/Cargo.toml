@@ -4,11 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-candle-core = { workspace = true, optional = true }
-candle-nn = { workspace = true, optional = true }
-candle-transformers = { workspace = true, optional = true }
-tokenizers = { workspace = true, optional = true }
-
 codes-iso-639 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

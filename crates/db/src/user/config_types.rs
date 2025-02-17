@@ -10,6 +10,7 @@ user_common_derives! {
         pub user_id: String,
         pub general: ConfigGeneral,
         pub notification: ConfigNotification,
+        pub ai: ConfigAI,
     }
 }
 
@@ -24,6 +25,10 @@ impl Config {
                 .unwrap_or_default(),
             notification: row
                 .get_str(3)
+                .map(|s| serde_json::from_str(s).unwrap())
+                .unwrap_or_default(),
+            ai: row
+                .get_str(4)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap_or_default(),
         })
@@ -71,6 +76,14 @@ impl Default for ConfigNotification {
             before: true,
             auto: true,
         }
+    }
+}
+
+user_common_derives! {
+    #[derive(Default)]
+    pub struct ConfigAI {
+        pub api_base: Option<String>,
+        pub api_key: Option<String>,
     }
 }
 

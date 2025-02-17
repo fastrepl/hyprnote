@@ -122,14 +122,13 @@ impl Model {
     }
 
     // https://github.com/huggingface/candle/blob/fd7f724/candle-examples/examples/quantized/main.rs
-    pub fn generate(
-        mut self,
+    pub fn generate<'a>(
+        &'a mut self,
         request: CreateChatCompletionRequest,
-    ) -> impl futures_core::Stream<Item = anyhow::Result<String>> {
+    ) -> impl futures_core::Stream<Item = anyhow::Result<String>> + 'a {
         async_stream::try_stream! {
             let eos_token = self.name.eos_token();
             let eos_token_id = self.tokenizer.token_to_id(&eos_token).unwrap();
-
             let mut tos = TokenOutputStream::new(self.tokenizer.clone());
 
             let prompt = self.name.apply_chat_template(&request);
@@ -139,17 +138,12 @@ impl Model {
             let seed = 299792458;
             let mut logits_processor = LogitsProcessor::from_sampling(seed, Sampling::ArgMax);
 
-            let input = Tensor::new(prompt_tokens.as_slice(), &self.device)?.unsqueeze(0)?;
-            let logits = self.model.forward(&input, 0)?;
-            let logits = logits.squeeze(0)?;
-            let mut next_token = logits_processor.sample(&logits)?;
+            let mut input = Tensor::new(prompt_tokens.as_slice(), &self.device)?.unsqueeze(0)?;
 
             for index in 0..request.max_completion_tokens.unwrap_or(500) {
-                let input = Tensor::new(&[next_token], &self.device)?.unsqueeze(0)?;
                 let logits = self.model.forward(&input, prompt_tokens.len() + index as usize)?;
                 let logits = logits.squeeze(0)?;
-
-                next_token = logits_processor.sample(&logits)?;
+                let next_token = logits_processor.sample(&logits)?;
 
                 if let Some(t) = tos.next_token(next_token)? {
                     yield t.to_string();
@@ -158,6 +152,8 @@ impl Model {
                 if next_token == eos_token_id {
                     break;
                 }
+
+                input = Tensor::new(&[next_token], &self.device)?.unsqueeze(0)?;
             }
 
             if let Some(rest) = tos.decode_rest().map_err(candle_core::Error::msg)? {
@@ -175,7 +171,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate() {
-        let model = Model::new().unwrap();
+        let mut model = Model::new().unwrap();
 
         let stream = model.generate(CreateChatCompletionRequest {
             messages: vec![ChatCompletionRequestUserMessageArgs::default()
@@ -187,8 +183,10 @@ mod tests {
         });
 
         pin_mut!(stream);
-        while let Some(Ok(token)) = stream.next().await {
-            print!("{token}");
-        }
+        let res = stream
+            .map(|r| r.unwrap_or_default())
+            .collect::<String>()
+            .await;
+        assert!(res.contains("Seoul"));
     }
 }

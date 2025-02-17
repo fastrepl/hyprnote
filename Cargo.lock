@@ -11471,6 +11471,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "hf-hub",
+ "reqwest 0.12.12",
  "serde",
  "specta",
  "specta-typescript",
@@ -11481,6 +11482,7 @@ dependencies = [
  "tokenizers",
  "tokio",
  "tracing",
+ "uuid",
 ]
 
 [[package]]

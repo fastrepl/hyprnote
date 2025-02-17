@@ -12,6 +12,7 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
+reqwest = { workspace = true, features = ["json", "stream"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
@@ -19,6 +20,7 @@ tracing = { workspace = true }
 
 anyhow = { workspace = true }
 thiserror = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }
 
 serde = { workspace = true }
 specta = { workspace = true }

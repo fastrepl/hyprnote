@@ -1,4 +1,4 @@
-import { commands, type Template } from "@/types";
+import { type Template } from "@/types";
 import { ChevronLeftIcon, FilePlusIcon } from "lucide-react";
 import { TemplateList } from "../components/template-list";
 import { type NavNames } from "../types";

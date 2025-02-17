@@ -195,6 +195,7 @@ pub async fn get_config(state: tauri::State<'_, DBState>) -> Result<hypr_db::use
                 user_id: user_id.to_string(),
                 general: hypr_db::user::ConfigGeneral::default(),
                 notification: hypr_db::user::ConfigNotification::default(),
+                ai: hypr_db::user::ConfigAI::default(),
             };
             Ok(config)
         }

@@ -1,14 +1,5 @@
 {
-  "compilerOptions": {
-    "target": "es2021",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "skipLibCheck": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "noImplicitAny": true,
-    "noEmit": true
-  },
-  "include": ["./generated/bindings.ts"],
+  "extends": "../tsconfig.base.json",
+  "include": ["./generated/*.ts"],
   "exclude": ["node_modules"]
 }

@@ -26,10 +26,9 @@ futures-core = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
-axum = { version = "0.8.1", features = ["ws", "multipart", "tracing"] }
-axum-proxy = "0.3.0"
-tower = "0.5.2"
-tower-http = { version = "0.6.2", features = ["fs", "cors", "timeout", "trace"] }
+axum = { workspace = true, features = ["ws", "multipart", "tracing"] }
+tower = { workspace = true }
+tower-http = { workspace = true, features = ["fs", "cors", "timeout", "trace"] }
 
 aide = { version = "0.14.0", features = ["axum", "macros", "scalar", "axum-json"] }
 schemars = { workspace = true }

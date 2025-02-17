@@ -1,50 +1,56 @@
 use super::SupportedModel;
-use async_openai::types::{
-    ChatCompletionRequestMessage, ChatCompletionRequestSystemMessageContent,
-    ChatCompletionRequestUserMessageContent, CreateChatCompletionRequest,
-};
+use async_openai::types::CreateChatCompletionRequest;
+use minijinja::Environment;
 
-impl SupportedModel {
-    pub fn apply_chat_template(&self, request: &CreateChatCompletionRequest) -> String {
-        let mut prompt = String::new();
+pub struct Engine {
+    env: Environment<'static>,
+}
 
-        match self {
-            // https://huggingface.co/NousResearch/Hermes-3-Llama-3.2-3B#prompt-format
-            SupportedModel::Llama32_3b => {
-                for message in &request.messages {
-                    match message {
-                        ChatCompletionRequestMessage::System(msg) => {
-                            prompt.push_str("<|im_start|>system\n");
-                            if let ChatCompletionRequestSystemMessageContent::Text(text) =
-                                &msg.content
-                            {
-                                prompt.push_str(text);
-                            }
-                            prompt.push_str("<|im_end|>\n");
-                        }
-                        ChatCompletionRequestMessage::User(msg) => {
-                            prompt.push_str("<|im_start|>user\n");
-                            if let ChatCompletionRequestUserMessageContent::Text(text) =
-                                &msg.content
-                            {
-                                prompt.push_str(text)
-                            }
-                            prompt.push_str("<|im_end|>\n");
-                        }
-                        _ => {}
-                    }
-                }
+#[derive(strum::EnumString, strum::AsRefStr, strum::Display)]
+pub enum Template {
+    #[strum(serialize = "llama32_3b")]
+    Llama32_3b,
+}
 
-                prompt.push_str("<|im_start|>assistant\n");
-            }
+impl From<SupportedModel> for Template {
+    fn from(value: SupportedModel) -> Self {
+        match value {
+            SupportedModel::Llama32_3b => Template::Llama32_3b,
         }
+    }
+}
 
-        prompt
+impl Engine {
+    pub fn new() -> Self {
+        let mut env = Environment::new();
+
+        // https://huggingface.co/NousResearch/Hermes-3-Llama-3.2-3B#prompt-format
+        let llama32_3b_template = r#"{% if response_format and response_format.type == "json_schema" %}{% set has_system = false %}{% for message in messages %}{% if message.role == "system" %}{% set has_system = true %}<|im_start|>system
+{{ message.content }}
+Here's the json schema you must adhere to:
+<schema>
+{{ response_format.json_schema.schema }}
+</schema><|im_end|>
+{% endif %}{% endfor %}{% if not has_system %}<|im_start|>system
+You are a helpful assistant that answers in JSON. Here's the json schema you must adhere to:
+<schema>
+{{ response_format.json_schema.schema }}
+</schema><|im_end|>
+{% endif %}{% endif %}{% for message in messages %}{% if message.role == "user" %}<|im_start|>user
+{{ message.content }}<|im_end|>
+{% elif message.role == "assistant" %}<|im_start|>assistant
+{{ message.content }}<|im_end|>
+{% endif %}{% endfor %}<|im_start|>assistant
+"#;
+
+        env.add_template(Template::Llama32_3b.as_ref(), llama32_3b_template)
+            .unwrap();
+
+        Self { env }
     }
 
-    pub fn eos_token(&self) -> String {
-        match self {
-            SupportedModel::Llama32_3b => "<|im_end|>".to_string(),
-        }
+    pub fn render(&self, template: Template, request: &CreateChatCompletionRequest) -> String {
+        let template = self.env.get_template(template.as_ref()).unwrap();
+        template.render(request).unwrap()
     }
 }

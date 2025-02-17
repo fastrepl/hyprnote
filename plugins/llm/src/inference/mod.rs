@@ -15,6 +15,7 @@ pub struct Model {
     device: Device,
     model: ModelWeights,
     tokenizer: Tokenizer,
+    template: template::Engine,
 }
 
 struct Config {
@@ -24,6 +25,7 @@ struct Config {
     pub tokenizer_filename: String,
 }
 
+#[derive(Clone)]
 pub enum SupportedModel {
     // https://huggingface.co/NousResearch/Hermes-3-Llama-3.2-3B
     Llama32_3b,
@@ -73,6 +75,7 @@ impl Model {
             device,
             model,
             tokenizer,
+            template: template::Engine::new(),
         })
     }
 
@@ -82,11 +85,12 @@ impl Model {
         request: CreateChatCompletionRequest,
     ) -> impl futures_core::Stream<Item = anyhow::Result<String>> + 'a {
         async_stream::try_stream! {
-            let eos_token = self.name.eos_token();
+            // TODO: tokenizer.json has eos_token field
+            let eos_token = "<|im_end|>";
             let eos_token_id = self.tokenizer.token_to_id(&eos_token).unwrap();
             let mut tos = TokenOutputStream::new(self.tokenizer.clone());
 
-            let prompt = self.name.apply_chat_template(&request);
+            let prompt = self.template.render(self.name.clone().into(), &request);
             let tokens = tos.tokenizer().encode(prompt, true).unwrap();
             let prompt_tokens = tokens.get_ids().to_vec();
 
@@ -121,11 +125,14 @@ impl Model {
 #[cfg(test)]
 mod tests {
     use super::Model;
-    use async_openai::types::{ChatCompletionRequestUserMessageArgs, CreateChatCompletionRequest};
+    use async_openai::types::{
+        ChatCompletionRequestUserMessageArgs, CreateChatCompletionRequest, ResponseFormat,
+        ResponseFormatJsonSchema,
+    };
     use futures_util::{pin_mut, StreamExt};
 
     #[tokio::test]
-    async fn test_generate() {
+    async fn test_simple() {
         let mut model = Model::new().unwrap();
 
         let stream = model.generate(CreateChatCompletionRequest {
@@ -142,6 +149,42 @@ mod tests {
             .map(|r| r.unwrap_or_default())
             .collect::<String>()
             .await;
+        assert!(res.contains("Seoul"));
+    }
+
+    #[tokio::test]
+    async fn test_structured_output() {
+        let mut model = Model::new().unwrap();
+
+        let stream = model.generate(CreateChatCompletionRequest {
+            messages: vec![ChatCompletionRequestUserMessageArgs::default()
+                .content("What is the capital of South Korea?")
+                .build()
+                .unwrap()
+                .into()],
+            response_format: Some(ResponseFormat::JsonSchema {
+                json_schema: ResponseFormatJsonSchema {
+                    strict: Some(true),
+                    name: "capital".to_string(),
+                    description: None,
+                    schema: Some(serde_json::json!({
+                        "type": "object",
+                        "properties": { "capital": { "type": "string" } },
+                        "required": ["capital"],
+                        "additionalProperties": false,
+                    })),
+                },
+            }),
+            ..Default::default()
+        });
+
+        pin_mut!(stream);
+        let res = stream
+            .map(|r| r.unwrap_or_default())
+            .collect::<String>()
+            .await;
+
+        println!("{}", res);
         assert!(res.contains("Seoul"));
     }
 }

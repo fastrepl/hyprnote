@@ -13,7 +13,10 @@ pub async fn stop_server(state: tauri::State<'_, crate::SharedState>) -> Result<
 
 #[tauri::command]
 #[specta::specta]
-pub async fn load_model(state: tauri::State<'_, crate::SharedState>) -> Result<(), String> {
+pub async fn load_model(
+    state: tauri::State<'_, crate::SharedState>,
+    _on_progress: tauri::ipc::Channel<u8>,
+) -> Result<(), String> {
     let mut state = state.lock().await;
     state.model = Some(crate::inference::Model::new().map_err(|e| e.to_string())?);
     Ok(())

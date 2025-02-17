@@ -7,8 +7,8 @@
 
 
 export const commands = {
-async loadModel() : Promise<null> {
-    return await TAURI_INVOKE("plugin:llm|load_model");
+async loadModel(onProgress: TAURI_CHANNEL<number>) : Promise<null> {
+    return await TAURI_INVOKE("plugin:llm|load_model", { onProgress });
 },
 async unloadModel() : Promise<null> {
     return await TAURI_INVOKE("plugin:llm|unload_model");
@@ -28,7 +28,7 @@ async stopServer() : Promise<null> {
 
 /** user-defined types **/
 
-
+export type TAURI_CHANNEL<TSend> = null
 
 /** tauri-specta globals **/
 

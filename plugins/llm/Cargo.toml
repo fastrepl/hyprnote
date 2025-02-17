@@ -16,10 +16,11 @@ reqwest = { workspace = true, features = ["json", "stream"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
-tracing = { workspace = true }
-
 anyhow = { workspace = true }
 thiserror = { workspace = true }
+tracing = { workspace = true }
+
+minijinja = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 
 serde = { workspace = true }

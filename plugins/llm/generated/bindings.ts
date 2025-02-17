@@ -7,8 +7,14 @@
 
 
 export const commands = {
-async ping(payload: string) : Promise<string> {
-    return await TAURI_INVOKE("plugin:llm|ping", { payload });
+async loadModel() : Promise<null> {
+    return await TAURI_INVOKE("plugin:llm|load_model");
+},
+async unloadModel() : Promise<null> {
+    return await TAURI_INVOKE("plugin:llm|unload_model");
+},
+async stopServer() : Promise<null> {
+    return await TAURI_INVOKE("plugin:llm|stop_server");
 }
 }
 

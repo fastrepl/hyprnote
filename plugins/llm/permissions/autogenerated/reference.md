@@ -2,7 +2,9 @@
 
 Default permissions for the plugin
 
-- `allow-ping`
+- `allow-stop_server`
+- `allow-load_model`
+- `allow-unload_model`
 
 ## Permission Table
 
@@ -12,6 +14,32 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`llm:allow-load-model`
+
+</td>
+<td>
+
+Enables the load_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`llm:deny-load-model`
+
+</td>
+<td>
+
+Denies the load_model command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>
@@ -35,6 +63,58 @@ Enables the ping command without any pre-configured scope.
 <td>
 
 Denies the ping command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`llm:allow-stop-server`
+
+</td>
+<td>
+
+Enables the stop_server command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`llm:deny-stop-server`
+
+</td>
+<td>
+
+Denies the stop_server command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`llm:allow-unload-model`
+
+</td>
+<td>
+
+Enables the unload_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`llm:deny-unload-model`
+
+</td>
+<td>
+
+Denies the unload_model command without any pre-configured scope.
 
 </td>
 </tr>

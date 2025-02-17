@@ -295,6 +295,16 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the load_model command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-load-model"
+        },
+        {
+          "description": "Denies the load_model command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-load-model"
+        },
+        {
           "description": "Enables the ping command without any pre-configured scope.",
           "type": "string",
           "const": "allow-ping"
@@ -303,6 +313,26 @@
           "description": "Denies the ping command without any pre-configured scope.",
           "type": "string",
           "const": "deny-ping"
+        },
+        {
+          "description": "Enables the stop_server command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-stop-server"
+        },
+        {
+          "description": "Denies the stop_server command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-stop-server"
+        },
+        {
+          "description": "Enables the unload_model command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-unload-model"
+        },
+        {
+          "description": "Denies the unload_model command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-unload-model"
         },
         {
           "description": "Default permissions for the plugin",

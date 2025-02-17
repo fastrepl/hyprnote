@@ -1,5 +1,6 @@
 use axum::{
     extract::State as AxumState,
+    http::StatusCode,
     response::{sse, IntoResponse, Json, Response},
     routing::{get, post},
     Router,
@@ -89,6 +90,13 @@ async fn chat_completions(
         object: "chat.completion".to_string(),
         usage: None,
     };
+
+    {
+        let state = state.lock().await;
+        if state.model.is_none() {
+            return StatusCode::SERVICE_UNAVAILABLE.into_response();
+        }
+    }
 
     if request.stream.unwrap_or(false) {
         let output_stream = async_stream::stream! {

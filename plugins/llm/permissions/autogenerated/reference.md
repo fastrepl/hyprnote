@@ -2,9 +2,9 @@
 
 Default permissions for the plugin
 
-- `allow-stop_server`
-- `allow-load_model`
-- `allow-unload_model`
+- `allow-stop-server`
+- `allow-load-model`
+- `allow-unload-model`
 
 ## Permission Table
 

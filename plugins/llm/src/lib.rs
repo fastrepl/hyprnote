@@ -42,6 +42,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
                     let mut state = state.lock().await;
                     state.api_base = format!("http://{}", handle.addr);
                     state.server = Some(handle);
+                    tracing::info!(api_base = state.api_base, "llm_server_started");
                 });
             });
 

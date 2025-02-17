@@ -6,38 +6,106 @@ use candle_transformers::generation::{LogitsProcessor, Sampling};
 use candle_transformers::models::quantized_llama::ModelWeights;
 use tokenizers::Tokenizer;
 
+use async_openai::types::{
+    ChatCompletionRequestMessage, ChatCompletionRequestSystemMessageContent,
+    ChatCompletionRequestUserMessageContent, CreateChatCompletionRequest,
+};
+
 pub struct Model {
+    name: SupportedModel,
     device: Device,
     model: ModelWeights,
     tokenizer: Tokenizer,
 }
 
+struct Config {
+    pub model_repo: String,
+    pub model_filename: String,
+    pub tokenizer_repo: String,
+    pub tokenizer_filename: String,
+}
+
+enum SupportedModel {
+    Llama32_3b,
+}
+
+impl Into<Config> for SupportedModel {
+    fn into(self) -> Config {
+        match self {
+            SupportedModel::Llama32_3b => Config {
+                model_repo: "NousResearch/Hermes-3-Llama-3.2-3B-GGUF".to_string(),
+                model_filename: "Hermes-3-Llama-3.2-3B.Q4_K_M.gguf".to_string(),
+                tokenizer_repo: "NousResearch/Hermes-3-Llama-3.2-3B".to_string(),
+                tokenizer_filename: "tokenizer.json".to_string(),
+            },
+        }
+    }
+}
+
+impl SupportedModel {
+    fn apply_chat_template(&self, request: &CreateChatCompletionRequest) -> String {
+        let mut prompt = String::new();
+
+        match self {
+            // https://huggingface.co/NousResearch/Hermes-3-Llama-3.2-3B#prompt-format
+            SupportedModel::Llama32_3b => {
+                for message in &request.messages {
+                    match message {
+                        ChatCompletionRequestMessage::System(msg) => {
+                            prompt.push_str("<|im_start|>system\n");
+                            if let ChatCompletionRequestSystemMessageContent::Text(text) =
+                                &msg.content
+                            {
+                                prompt.push_str(text);
+                            }
+                            prompt.push_str("<|im_end|>\n");
+                        }
+                        ChatCompletionRequestMessage::User(msg) => {
+                            prompt.push_str("<|im_start|>user\n");
+                            if let ChatCompletionRequestUserMessageContent::Text(text) =
+                                &msg.content
+                            {
+                                prompt.push_str(text)
+                            }
+                            prompt.push_str("<|im_end|>\n");
+                        }
+                        _ => {}
+                    }
+                }
+
+                prompt.push_str("<|im_start|>assistant\n");
+            }
+        }
+
+        prompt
+    }
+
+    fn eos_token(&self) -> String {
+        match self {
+            SupportedModel::Llama32_3b => "<|im_end|>".to_string(),
+        }
+    }
+}
+
 impl Model {
     pub fn new() -> anyhow::Result<Self> {
-        candle_core::cuda::set_gemm_reduced_precision_f16(true);
-        candle_core::cuda::set_gemm_reduced_precision_bf16(true);
-
         let device = if metal_is_available() {
             Device::new_metal(0)
         } else {
             Ok(Device::Cpu)
         }?;
 
-        let (model_repo, model_filename) = (
-            "NousResearch/Hermes-3-Llama-3.2-3B-GGUF",
-            "Hermes-3-Llama-3.2-3B.Q4_K_M.gguf",
-        );
-
-        let (tokenizer_repo, tokenizer_filename) =
-            ("NousResearch/Hermes-3-Llama-3.2-3B", "tokenizer.json");
+        let config: Config = SupportedModel::Llama32_3b.into();
 
         let api = hf_hub::api::sync::Api::new()?;
 
         let tokenizer_path = api
-            .model(tokenizer_repo.to_string())
-            .get(tokenizer_filename)?;
+            .model(config.tokenizer_repo.clone())
+            .get(&config.tokenizer_filename)?;
 
-        let model_path = api.model(model_repo.to_string()).get(model_filename)?;
+        let model_path = api
+            .model(config.model_repo.clone())
+            .get(&config.model_filename)?;
 
         let mut file = std::fs::File::open(&model_path)?;
         let model = gguf_file::Content::read(&mut file).map_err(|e| e.with_path(&model_path))?;
@@ -46,57 +114,81 @@ impl Model {
         let tokenizer = Tokenizer::from_file(tokenizer_path).unwrap();
 
         Ok(Self {
+            name: SupportedModel::Llama32_3b,
             device,
             model,
             tokenizer,
         })
     }
 
-    pub fn generate(&mut self, prompt: &str) -> anyhow::Result<()> {
-        let mut tos = TokenOutputStream::new(self.tokenizer.clone());
-        let tokens = tos.tokenizer().encode(prompt, true).unwrap();
-        let prompt_tokens = tokens.get_ids().to_vec();
+    // https://github.com/huggingface/candle/blob/fd7f724/candle-examples/examples/quantized/main.rs
+    pub fn generate(
+        mut self,
+        request: CreateChatCompletionRequest,
+    ) -> impl futures_core::Stream<Item = anyhow::Result<String>> {
+        async_stream::try_stream! {
+            let eos_token = self.name.eos_token();
+            let eos_token_id = self.tokenizer.token_to_id(&eos_token).unwrap();
 
-        let mut logits_processor = LogitsProcessor::from_sampling(299792458, Sampling::ArgMax);
+            let mut tos = TokenOutputStream::new(self.tokenizer.clone());
 
-        let input = Tensor::new(prompt_tokens.as_slice(), &self.device)?.unsqueeze(0)?;
-        let logits = self.model.forward(&input, 0)?;
-        let logits = logits.squeeze(0)?;
-        let mut next_token = logits_processor.sample(&logits)?;
+            let prompt = self.name.apply_chat_template(&request);
+            let tokens = tos.tokenizer().encode(prompt, true).unwrap();
+            let prompt_tokens = tokens.get_ids().to_vec();
 
-        let mut all_tokens = vec![next_token];
-        let sample_len = 100;
+            let seed = 299792458;
+            let mut logits_processor = LogitsProcessor::from_sampling(seed, Sampling::ArgMax);
 
-        for index in 0..sample_len {
-            let input = Tensor::new(&[next_token], &self.device)?.unsqueeze(0)?;
-            let logits = self.model.forward(&input, prompt_tokens.len() + index)?;
+            let input = Tensor::new(prompt_tokens.as_slice(), &self.device)?.unsqueeze(0)?;
+            let logits = self.model.forward(&input, 0)?;
             let logits = logits.squeeze(0)?;
+            let mut next_token = logits_processor.sample(&logits)?;
 
-            next_token = logits_processor.sample(&logits)?;
-            all_tokens.push(next_token);
+            for index in 0..request.max_completion_tokens.unwrap_or(500) {
+                let input = Tensor::new(&[next_token], &self.device)?.unsqueeze(0)?;
+                let logits = self.model.forward(&input, prompt_tokens.len() + index as usize)?;
+                let logits = logits.squeeze(0)?;
 
-            if let Some(t) = tos.next_token(next_token)? {
-                print!("{t}");
+                next_token = logits_processor.sample(&logits)?;
+
+                if let Some(t) = tos.next_token(next_token)? {
+                    yield t.to_string();
+                }
+
+                if next_token == eos_token_id {
+                    break;
+                }
+            }
+
+            if let Some(rest) = tos.decode_rest().map_err(candle_core::Error::msg)? {
+                yield rest.to_string();
             }
         }
-
-        if let Some(rest) = tos.decode_rest().map_err(candle_core::Error::msg)? {
-            print!("{rest}");
-        }
-
-        Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::Model;
+    use async_openai::types::{ChatCompletionRequestUserMessageArgs, CreateChatCompletionRequest};
+    use futures_util::{pin_mut, StreamExt};
 
-    #[test]
-    fn test_generate() {
-        let mut model = Model::new().unwrap();
-        model
-            .generate("What is the capital of South Korea?")
-            .unwrap();
+    #[tokio::test]
+    async fn test_generate() {
+        let model = Model::new().unwrap();
+
+        let stream = model.generate(CreateChatCompletionRequest {
+            messages: vec![ChatCompletionRequestUserMessageArgs::default()
+                .content("What is the capital of South Korea?")
+                .build()
+                .unwrap()
+                .into()],
+            ..Default::default()
+        });
+
+        pin_mut!(stream);
+        while let Some(Ok(token)) = stream.next().await {
+            print!("{token}");
+        }
     }
 }

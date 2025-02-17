@@ -11462,11 +11462,13 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-openai",
+ "async-stream",
  "axum 0.8.1",
  "candle-core",
  "candle-examples",
  "candle-nn",
  "candle-transformers",
+ "futures-core",
  "futures-util",
  "hf-hub",
  "serde",

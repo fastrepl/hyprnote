@@ -63,8 +63,8 @@ async fn chat_completions(
     AxumState(state): AxumState<Arc<Mutex<State>>>,
     Json(payload): Json<CreateChatCompletionRequest>,
 ) -> Result<Json<CreateChatCompletionResponse>, String> {
-    let mut state = state.lock().await;
-    let _res = state.model.as_mut().unwrap().generate("hello");
+    // let mut state = state.lock().await;
+    // let _res = state.model.as_mut().unwrap().generate("hello");
 
     let res = CreateChatCompletionResponse {
         id: "cmpl-123".to_string(),

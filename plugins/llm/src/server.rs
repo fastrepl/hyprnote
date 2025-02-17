@@ -1,6 +1,5 @@
 use axum::{
     extract::State as AxumState,
-    http::StatusCode,
     response::{sse, IntoResponse, Json, Response},
     routing::{get, post},
     Router,
@@ -8,17 +7,11 @@ use axum::{
 use std::net::{Ipv4Addr, SocketAddr};
 
 use futures_util::{pin_mut, StreamExt};
-use std::sync::Arc;
-use tokio::sync::Mutex;
 
 use async_openai::types::{
     ChatChoice, ChatCompletionResponseMessage, CreateChatCompletionRequest,
     CreateChatCompletionResponse, Role,
 };
-
-struct State {
-    model: Option<crate::inference::Model>,
-}
 
 #[derive(Clone)]
 pub struct ServerHandle {
@@ -32,15 +25,11 @@ impl ServerHandle {
     }
 }
 
-pub async fn run_server() -> anyhow::Result<ServerHandle> {
-    let state = Arc::new(Mutex::new(State { model: None }));
-
+pub async fn run_server(state: crate::SharedState) -> anyhow::Result<ServerHandle> {
     let app = Router::new()
         .route("/chat/completions", post(chat_completions))
-        .route("/load", get(load_model))
-        .route("/unload", get(unload_model))
         .route("/health", get(health))
-        .with_state(state.clone());
+        .with_state(state);
 
     let listener =
         tokio::net::TcpListener::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, 0))).await?;
@@ -66,31 +55,8 @@ pub async fn run_server() -> anyhow::Result<ServerHandle> {
     Ok(server_handle)
 }
 
-async fn load_model(
-    AxumState(state): AxumState<Arc<Mutex<State>>>,
-) -> Result<StatusCode, StatusCode> {
-    let mut state = state.lock().await;
-
-    if state.model.is_some() {
-        return Ok(StatusCode::OK);
-    }
-
-    let model = crate::inference::Model::new().map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    state.model = Some(model);
-
-    Ok(StatusCode::OK)
-}
-
-async fn unload_model(
-    AxumState(state): AxumState<Arc<Mutex<State>>>,
-) -> Result<StatusCode, StatusCode> {
-    let mut state = state.lock().await;
-    state.model = None;
-    Ok(StatusCode::OK)
-}
-
 async fn chat_completions(
-    AxumState(state): AxumState<Arc<Mutex<State>>>,
+    AxumState(state): AxumState<crate::SharedState>,
     Json(request): Json<CreateChatCompletionRequest>,
 ) -> Response {
     #[allow(deprecated)]
@@ -141,10 +107,6 @@ async fn chat_completions(
         sse::Sse::new(output_stream).into_response()
     } else {
         let mut state = state.lock().await;
-
-        if state.model.is_none() {
-            return StatusCode::SERVICE_UNAVAILABLE.into_response();
-        }
 
         let res = state
             .model
@@ -198,14 +160,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_chat_completions_non_streaming() {
-        let server = run_server().await.unwrap();
-        let client = reqwest::Client::new();
+        let state = crate::SharedState::default();
+        {
+            let mut state = state.lock().await;
+            state.model = Some(crate::inference::Model::new().unwrap());
+        }
 
-        let _ = client
-            .get(format!("http://{}/load", server.addr))
-            .send()
-            .await
-            .unwrap();
+        let server = run_server(state).await.unwrap();
+        let client = reqwest::Client::new();
 
         let response = client
             .post(format!("http://{}/chat/completions", server.addr))
@@ -228,14 +190,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_chat_completions_streaming() {
-        let server = run_server().await.unwrap();
-        let client = reqwest::Client::new();
+        let state = crate::SharedState::default();
+        {
+            let mut state = state.lock().await;
+            state.model = Some(crate::inference::Model::new().unwrap());
+        }
 
-        let _ = client
-            .get(format!("http://{}/load", server.addr))
-            .send()
-            .await
-            .unwrap();
+        let server = run_server(state).await.unwrap();
+        let client = reqwest::Client::new();
 
         let response = client
             .post(format!("http://{}/chat/completions", server.addr))

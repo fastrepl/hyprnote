@@ -1,5 +1,4 @@
 use tauri::{Manager, Wry};
-use tokio::sync::Mutex;
 
 mod commands;
 mod error;
@@ -10,35 +9,43 @@ pub use error::{Error, Result};
 
 const PLUGIN_NAME: &str = "llm";
 
+type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
+
 #[derive(Default)]
 pub struct State {
     pub api_base: String,
+    pub model: Option<crate::inference::Model>,
+    pub server: Option<crate::server::ServerHandle>,
 }
 
 fn make_specta_builder() -> tauri_specta::Builder<Wry> {
     tauri_specta::Builder::<Wry>::new()
         .plugin_name(PLUGIN_NAME)
-        .commands(tauri_specta::collect_commands![commands::ping::<Wry>])
+        .commands(tauri_specta::collect_commands![
+            commands::load_model,
+            commands::unload_model,
+            commands::stop_server,
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
 pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
     let specta_builder = make_specta_builder();
+    let state = SharedState::default();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            app.manage(Mutex::new(State::default()));
+            tokio::task::block_in_place(|| {
+                tokio::runtime::Handle::current().block_on(async {
+                    let handle = server::run_server(state.clone()).await.unwrap();
+                    let mut state = state.lock().await;
+                    state.api_base = format!("http://{}", handle.addr);
+                    state.server = Some(handle);
+                });
+            });
 
-            let handle = tokio::task::block_in_place(|| {
-                tokio::runtime::Handle::current().block_on(server::run_server())
-            })?;
-
-            let state = State {
-                api_base: format!("http://{}", handle.addr),
-            };
-
-            app.manage(Mutex::new(state));
+            app.manage(state);
             Ok(())
         })
         .build()

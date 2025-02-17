@@ -1,7 +1,7 @@
-use axum::response::IntoResponse;
 use axum::{
     extract::State as AxumState,
-    response::Json,
+    http::StatusCode,
+    response::{sse, IntoResponse, Json, Response},
     routing::{get, post},
     Router,
 };
@@ -33,11 +33,12 @@ impl ServerHandle {
 }
 
 pub async fn run_server() -> anyhow::Result<ServerHandle> {
-    let model = crate::inference::Model::new()?;
-    let state = Arc::new(Mutex::new(State { model: Some(model) }));
+    let state = Arc::new(Mutex::new(State { model: None }));
 
     let app = Router::new()
         .route("/chat/completions", post(chat_completions))
+        .route("/load", get(load_model))
+        .route("/unload", get(unload_model))
         .route("/health", get(health))
         .with_state(state.clone());
 
@@ -65,17 +66,33 @@ pub async fn run_server() -> anyhow::Result<ServerHandle> {
     Ok(server_handle)
 }
 
-async fn chat_completions(
+async fn load_model(
     AxumState(state): AxumState<Arc<Mutex<State>>>,
-    Json(payload): Json<CreateChatCompletionRequest>,
-) -> Result<Json<CreateChatCompletionResponse>, String> {
+) -> Result<StatusCode, StatusCode> {
     let mut state = state.lock().await;
 
-    let stream = state.model.as_mut().unwrap().generate(payload.clone());
-    pin_mut!(stream);
+    if state.model.is_some() {
+        return Ok(StatusCode::OK);
+    }
 
-    let res = stream.map(|r| r.unwrap()).collect::<String>().await;
+    let model = crate::inference::Model::new().map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    state.model = Some(model);
 
+    Ok(StatusCode::OK)
+}
+
+async fn unload_model(
+    AxumState(state): AxumState<Arc<Mutex<State>>>,
+) -> Result<StatusCode, StatusCode> {
+    let mut state = state.lock().await;
+    state.model = None;
+    Ok(StatusCode::OK)
+}
+
+async fn chat_completions(
+    AxumState(state): AxumState<Arc<Mutex<State>>>,
+    Json(request): Json<CreateChatCompletionRequest>,
+) -> Response {
     #[allow(deprecated)]
     let empty_message = ChatCompletionResponseMessage {
         content: None,
@@ -86,31 +103,71 @@ async fn chat_completions(
         function_call: None,
     };
 
-    let created = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
+    let empty_choice = ChatChoice {
+        message: empty_message.clone(),
+        index: 0,
+        finish_reason: None,
+        logprobs: None,
+    };
 
-    let res = CreateChatCompletionResponse {
+    let empty_response = CreateChatCompletionResponse {
         id: uuid::Uuid::new_v4().to_string(),
-        choices: vec![ChatChoice {
-            message: ChatCompletionResponseMessage {
-                content: Some(res),
-                ..empty_message
-            },
-            index: 0,
-            finish_reason: None,
-            logprobs: None,
-        }],
-        created: created as u32,
-        model: payload.model,
+        choices: vec![],
+        created: std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as u32,
+        model: request.model.clone(),
         service_tier: None,
         system_fingerprint: None,
         object: "chat.completion".to_string(),
         usage: None,
     };
 
-    Ok(Json(res))
+    if request.stream.unwrap_or(false) {
+        let output_stream = async_stream::stream! {
+            let mut state = state.lock().await;
+
+            let stream = state.model.as_mut().unwrap().generate(request.clone());
+            pin_mut!(stream);
+
+            while let Some(chunk) = stream.next().await {
+                if let Ok(content) = chunk {
+                    yield Ok::<_, std::convert::Infallible>(sse::Event::default().data(content));
+                }
+            }
+        };
+
+        sse::Sse::new(output_stream).into_response()
+    } else {
+        let mut state = state.lock().await;
+
+        if state.model.is_none() {
+            return StatusCode::SERVICE_UNAVAILABLE.into_response();
+        }
+
+        let res = state
+            .model
+            .as_mut()
+            .unwrap()
+            .generate(request.clone())
+            .map(|r| r.unwrap())
+            .collect::<String>()
+            .await;
+
+        let res = CreateChatCompletionResponse {
+            choices: vec![ChatChoice {
+                message: ChatCompletionResponseMessage {
+                    content: Some(res),
+                    ..empty_message
+                },
+                ..empty_choice
+            }],
+            ..empty_response
+        };
+
+        Json(res).into_response()
+    }
 }
 
 async fn health() -> impl IntoResponse {
@@ -124,25 +181,37 @@ mod tests {
         ChatCompletionRequestMessage, ChatCompletionRequestUserMessageArgs,
         CreateChatCompletionRequest, CreateChatCompletionResponse,
     };
+    use futures_util::StreamExt;
+
+    fn shared_request() -> CreateChatCompletionRequest {
+        CreateChatCompletionRequest {
+            messages: vec![ChatCompletionRequestMessage::User(
+                ChatCompletionRequestUserMessageArgs::default()
+                    .content("What is the capital of South Korea?")
+                    .build()
+                    .unwrap()
+                    .into(),
+            )],
+            ..Default::default()
+        }
+    }
 
     #[tokio::test]
-    async fn test_chat_completions() {
+    async fn test_chat_completions_non_streaming() {
         let server = run_server().await.unwrap();
-
-        let url = format!("http://{}/chat/completions", server.addr);
         let client = reqwest::Client::new();
 
+        let _ = client
+            .get(format!("http://{}/load", server.addr))
+            .send()
+            .await
+            .unwrap();
+
         let response = client
-            .post(url)
+            .post(format!("http://{}/chat/completions", server.addr))
             .json(&CreateChatCompletionRequest {
-                messages: vec![ChatCompletionRequestMessage::User(
-                    ChatCompletionRequestUserMessageArgs::default()
-                        .content("What is the capital of South Korea?")
-                        .build()
-                        .unwrap()
-                        .into(),
-                )],
-                ..Default::default()
+                stream: Some(false),
+                ..shared_request()
             })
             .send()
             .await
@@ -152,8 +221,39 @@ mod tests {
             .json::<CreateChatCompletionResponse>()
             .await
             .unwrap();
-        
+
         let content = data.choices[0].message.content.clone().unwrap();
+        assert!(content.contains("Seoul"));
+    }
+
+    #[tokio::test]
+    async fn test_chat_completions_streaming() {
+        let server = run_server().await.unwrap();
+        let client = reqwest::Client::new();
+
+        let _ = client
+            .get(format!("http://{}/load", server.addr))
+            .send()
+            .await
+            .unwrap();
+
+        let response = client
+            .post(format!("http://{}/chat/completions", server.addr))
+            .json(&CreateChatCompletionRequest {
+                stream: Some(true),
+                ..shared_request()
+            })
+            .send()
+            .await
+            .unwrap();
+
+        let mut chunks = Vec::new();
+        let mut stream = response.bytes_stream();
+        while let Some(Ok(chunk)) = stream.next().await {
+            chunks.push(chunk);
+        }
+
+        let content = String::from_utf8(chunks.concat()).unwrap();
         assert!(content.contains("Seoul"));
     }
 }

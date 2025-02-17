@@ -56,6 +56,7 @@ prost = "0.13.4"
 tonic = "0.12.3"
 tonic-build = "0.12.3"
 
+async-openai = { version = "0.27.2", default-features = false }
 async-stripe = { version = "0.39.1", default-features = false }
 graph-rs-sdk = "2.0.3"
 

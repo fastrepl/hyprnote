@@ -12,8 +12,7 @@ const PLUGIN_NAME: &str = "llm";
 
 #[derive(Default)]
 pub struct State {
-    pub loaded: bool,
-    pub api_base: Option<String>,
+    pub api_base: String,
 }
 
 fn make_specta_builder() -> tauri_specta::Builder<Wry> {
@@ -30,6 +29,16 @@ pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
             app.manage(Mutex::new(State::default()));
+
+            let handle = tokio::task::block_in_place(|| {
+                tokio::runtime::Handle::current().block_on(server::run_server())
+            })?;
+
+            let state = State {
+                api_base: format!("http://{}", handle.addr),
+            };
+
+            app.manage(Mutex::new(state));
             Ok(())
         })
         .build()

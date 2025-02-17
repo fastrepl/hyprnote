@@ -11461,6 +11461,7 @@ name = "tauri-plugin-llm"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-openai",
  "axum 0.8.1",
  "candle-core",
  "candle-examples",

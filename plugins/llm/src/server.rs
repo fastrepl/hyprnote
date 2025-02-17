@@ -1,38 +1,84 @@
-use crate::State;
-use axum::{extract::State as AxumState, response::Json, routing::get, Router};
-use std::net::SocketAddr;
+use axum::response::IntoResponse;
+use axum::{
+    extract::State as AxumState,
+    response::Json,
+    routing::{get, post},
+    Router,
+};
+use std::net::{Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-type SharedState = Arc<Mutex<State>>;
+use async_openai::types::{CreateChatCompletionRequest, CreateChatCompletionResponse};
 
-pub async fn run_server(state: SharedState) -> anyhow::Result<()> {
-    // Build router with routes
-    // let app = Router::new()
-    //     .route("/health", get(health_check))
-    //     .with_state(state.clone());
-
-    // // Bind to localhost on a random port
-    // let addr = SocketAddr::from(([127, 0, 0, 1], 0));
-    // let listener = tokio::net::TcpListener::bind(addr).await?;
-    // let server_addr = listener.local_addr()?;
-
-    // // Store the server address in state
-    // {
-    //     let mut state = state.lock().await;
-    //     state.server_addr = Some(server_addr);
-    // }
-
-    // tracing::info!("LLM server listening on {}", server_addr);
-
-    // // Start the server
-    // axum::serve(listener, app).await?;
-
-    Ok(())
+struct State {
+    model: Option<crate::inference::Model>,
 }
 
-// Health check endpoint
-async fn health_check(AxumState(state): AxumState<SharedState>) -> Json<String> {
-    let state = state.lock().await;
-    Json(format!("status: ok, loaded: {}", state.loaded))
+#[derive(Clone)]
+pub struct ServerHandle {
+    pub addr: SocketAddr,
+    shutdown: tokio::sync::watch::Sender<()>,
+}
+
+impl ServerHandle {
+    pub fn shutdown(self) -> Result<(), tokio::sync::watch::error::SendError<()>> {
+        self.shutdown.send(())
+    }
+}
+
+pub async fn run_server() -> anyhow::Result<ServerHandle> {
+    let state = Arc::new(Mutex::new(State { model: None }));
+
+    let app = Router::new()
+        .route("/chat/completions", post(chat_completions))
+        .route("/health", get(health))
+        .with_state(state.clone());
+
+    let listener =
+        tokio::net::TcpListener::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, 0))).await?;
+
+    let server_addr = listener.local_addr()?;
+
+    let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
+
+    let server_handle = ServerHandle {
+        addr: server_addr,
+        shutdown: shutdown_tx,
+    };
+
+    tokio::spawn(async move {
+        axum::serve(listener, app)
+            .with_graceful_shutdown(async move {
+                shutdown_rx.changed().await.ok();
+            })
+            .await
+            .unwrap();
+    });
+
+    Ok(server_handle)
+}
+
+async fn chat_completions(
+    AxumState(state): AxumState<Arc<Mutex<State>>>,
+    Json(payload): Json<CreateChatCompletionRequest>,
+) -> Result<Json<CreateChatCompletionResponse>, String> {
+    let mut state = state.lock().await;
+    let _res = state.model.as_mut().unwrap().generate("hello");
+
+    let res = CreateChatCompletionResponse {
+        id: "cmpl-123".to_string(),
+        object: "chat.completion".to_string(),
+        created: 1713423423,
+        model: "gpt-3.5-turbo".to_string(),
+        choices: vec![],
+        usage: None,
+        service_tier: None,
+        system_fingerprint: None,
+    };
+    Ok(Json(res))
+}
+
+async fn health() -> impl IntoResponse {
+    "ok"
 }

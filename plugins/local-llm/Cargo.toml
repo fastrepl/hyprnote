@@ -21,27 +21,21 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 
-minijinja = { workspace = true }
-uuid = { workspace = true, features = ["v4"] }
-
 serde = { workspace = true }
 specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 tauri = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+uuid = { workspace = true, features = ["v4"] }
 
 async-openai = { workspace = true }
 axum = { workspace = true }
 
-async-stream = { workspace = true }
-tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
-
 futures-core = { workspace = true }
 futures-util = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
-candle-core = { workspace = true, features = ["metal"] }
-candle-examples = { workspace = true }
-candle-nn = { workspace = true, features = ["metal"] }
-candle-transformers = { workspace = true }
-hf-hub = { workspace = true, features = ["tokio"] }
-tokenizers = { workspace = true }
+kalosm-common = { workspace = true }
+kalosm-llama = { workspace = true, features = ["metal"] }
+kalosm-model-types = { workspace = true }
+kalosm-streams = { workspace = true }

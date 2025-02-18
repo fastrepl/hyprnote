@@ -1924,27 +1924,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "candle-examples"
-version = "0.8.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49e4cf4e1b7d92d78793b8a7b6c458f71c0924ed766acb1e61066c1674918353"
-dependencies = [
- "anyhow",
- "candle-core",
- "candle-nn",
- "candle-transformers",
- "csv",
- "hf-hub 0.4.1",
- "image",
- "num-traits",
- "rayon",
- "safetensors",
- "serde",
- "serde_json",
- "tokenizers 0.19.1",
-]
-
-[[package]]
 name = "candle-metal-kernels"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5159,28 +5138,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hf-hub"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "112fa2f6ad4ab815b9e1b938b4b1e437032d055e2f92ed10fd6ab2e62d02c6b6"
-dependencies = [
- "dirs 5.0.1",
- "futures",
- "http 1.2.0",
- "indicatif",
- "log",
- "native-tls",
- "num_cpus",
- "rand 0.8.5",
- "reqwest 0.12.12",
- "serde",
- "serde_json",
- "thiserror 2.0.11",
- "tokio",
- "ureq",
-]
-
-[[package]]
 name = "hmac"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5774,8 +5731,6 @@ dependencies = [
  "num-traits",
  "png",
  "tiff",
- "zune-core",
- "zune-jpeg",
 ]
 
 [[package]]
@@ -6081,7 +6036,7 @@ dependencies = [
  "candle-core",
  "candle-nn",
  "dirs 5.0.1",
- "hf-hub 0.3.2",
+ "hf-hub",
  "httpdate",
  "kalosm-model-types",
  "metal 0.29.0",
@@ -6097,15 +6052,43 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5bba0d2b436350af68041fb23a79f85079a22724fa475912d503961250edc92"
 dependencies = [
+ "anyhow",
  "async-lock",
  "futures-channel",
  "futures-util",
  "kalosm-model-types",
  "kalosm-sample",
+ "llm-samplers",
  "lru",
  "rand 0.8.5",
  "serde",
  "thiserror 2.0.11",
+ "tracing",
+]
+
+[[package]]
+name = "kalosm-llama"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "111e59a49693f0f2bdadc12b88b572df7d2707cd7b61a6f4b4d9f6e4601be4f4"
+dependencies = [
+ "candle-core",
+ "candle-nn",
+ "candle-transformers",
+ "half",
+ "kalosm-common",
+ "kalosm-language-model",
+ "kalosm-model-types",
+ "kalosm-sample",
+ "llm-samplers",
+ "minijinja",
+ "minijinja-contrib",
+ "rand 0.8.5",
+ "rayon",
+ "safetensors",
+ "thiserror 2.0.11",
+ "tokenizers",
+ "tokio",
  "tracing",
 ]
 
@@ -6165,6 +6148,17 @@ dependencies = [
  "tokio",
  "tracing",
  "voice_activity_detector",
+]
+
+[[package]]
+name = "kalosm-streams"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f7ff10dbf8960f211ee1ae532196edca9479b21ef1490c5bbd1b300e15398a64"
+dependencies = [
+ "futures-channel",
+ "futures-util",
+ "pin-project-lite",
 ]
 
 [[package]]
@@ -6522,6 +6516,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4ce301924b7887e9d637144fdade93f9dfff9b60981d4ac161db09720d39aa5"
 
 [[package]]
+name = "llm-samplers"
+version = "0.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e85df656cd89e7702cb56171d75aa77c7bec828af7d2054d9987c34411cf896"
+dependencies = [
+ "anyhow",
+ "num-traits",
+ "rand 0.8.5",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "lock_api"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6703,6 +6709,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "memo-map"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "38d1115007560874e373613744c6fba374c17688327a71c1476d1a5954cc857b"
+
+[[package]]
 name = "memoffset"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6832,6 +6844,19 @@ version = "2.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cff7b8df5e85e30b87c2b0b3f58ba3a87b68e133738bf512a7713769326dbca9"
 dependencies = [
+ "memo-map",
+ "self_cell",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "minijinja-contrib"
+version = "2.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7ac3e47a9006ed0500425a092c9f8b2e56d10f8aeec8ce870c5e8a7c6ef2d7c3"
+dependencies = [
+ "minijinja",
  "serde",
 ]
 
@@ -9825,7 +9850,7 @@ dependencies = [
  "flate2",
  "futures-channel",
  "futures-util",
- "hf-hub 0.3.2",
+ "hf-hub",
  "hound",
  "kalosm-common",
  "kalosm-language-model",
@@ -9835,7 +9860,7 @@ dependencies = [
  "rodio 0.20.1",
  "serde_json",
  "thiserror 2.0.11",
- "tokenizers 0.21.0",
+ "tokenizers",
  "tracing",
 ]
 
@@ -10057,6 +10082,12 @@ dependencies = [
  "smallvec",
  "thin-slice",
 ]
+
+[[package]]
+name = "self_cell"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2fdfc24bc566f839a2da4c4295b82db7d25a24253867d5c64355abb5799bdbe"
 
 [[package]]
 name = "semver"
@@ -11699,16 +11730,13 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-openai",
- "async-stream",
  "axum 0.8.1",
- "candle-core",
- "candle-examples",
- "candle-nn",
- "candle-transformers",
  "futures-core",
  "futures-util",
- "hf-hub 0.4.1",
- "minijinja",
+ "kalosm-common",
+ "kalosm-llama",
+ "kalosm-model-types",
+ "kalosm-streams",
  "reqwest 0.12.12",
  "serde",
  "serde_json",
@@ -11719,7 +11747,6 @@ dependencies = [
  "tauri-plugin",
  "tauri-specta",
  "thiserror 2.0.11",
- "tokenizers 0.19.1",
  "tokio",
  "tracing",
  "uuid",
@@ -12326,38 +12353,6 @@ name = "tl"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b130bd8a58c163224b44e217b4239ca7b927d82bf6cc2fea1fc561d15056e3f7"
-
-[[package]]
-name = "tokenizers"
-version = "0.19.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e500fad1dd3af3d626327e6a3fe5050e664a6eaa4708b8ca92f1794aaf73e6fd"
-dependencies = [
- "aho-corasick",
- "derive_builder",
- "esaxx-rs",
- "getrandom 0.2.15",
- "indicatif",
- "itertools 0.12.1",
- "lazy_static",
- "log",
- "macro_rules_attribute",
- "monostate",
- "onig",
- "paste",
- "rand 0.8.5",
- "rayon",
- "rayon-cond",
- "regex",
- "regex-syntax 0.8.5",
- "serde",
- "serde_json",
- "spm_precompiled",
- "thiserror 1.0.69",
- "unicode-normalization-alignments",
- "unicode-segmentation",
- "unicode_categories",
-]
 
 [[package]]
 name = "tokenizers"
@@ -14812,21 +14807,6 @@ dependencies = [
  "indexmap 2.7.1",
  "memchr",
  "thiserror 2.0.11",
-]
-
-[[package]]
-name = "zune-core"
-version = "0.4.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f423a2c17029964870cfaabb1f13dfab7d092a62a29a89264f4d36990ca414a"
-
-[[package]]
-name = "zune-jpeg"
-version = "0.4.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99a5bab8d7dedf81405c4bb1f2b83ea057643d9cb28778cea9eecddeedd2e028"
-dependencies = [
- "zune-core",
 ]
 
 [[package]]

@@ -2,7 +2,7 @@ use tauri::{Manager, Wry};
 
 mod commands;
 mod error;
-mod inference;
+mod model;
 mod server;
 
 pub use error::{Error, Result};
@@ -14,7 +14,7 @@ type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 #[derive(Default)]
 pub struct State {
     pub api_base: String,
-    pub model: Option<crate::inference::Model>,
+    pub model: Option<kalosm_llama::Llama>,
     pub server: Option<crate::server::ServerHandle>,
 }
 
@@ -22,7 +22,7 @@ fn make_specta_builder() -> tauri_specta::Builder<Wry> {
     tauri_specta::Builder::<Wry>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::load_model,
+            commands::load_model::<Wry>,
             commands::unload_model,
             commands::stop_server,
         ])

@@ -5,13 +5,16 @@ use axum::{
     routing::{get, post},
     Router,
 };
+use futures_util::StreamExt;
 use std::net::{Ipv4Addr, SocketAddr};
 
-use futures_util::{pin_mut, StreamExt};
+use kalosm_llama::prelude::*;
+use kalosm_streams::text_stream::TextStream;
 
 use async_openai::types::{
-    ChatChoice, ChatCompletionResponseMessage, CreateChatCompletionRequest,
-    CreateChatCompletionResponse, Role,
+    ChatChoice, ChatCompletionRequestMessage, ChatCompletionRequestSystemMessageContent,
+    ChatCompletionRequestUserMessageContent, ChatCompletionResponseMessage,
+    CreateChatCompletionRequest, CreateChatCompletionResponse, Role,
 };
 
 #[derive(Clone)]
@@ -28,8 +31,8 @@ impl ServerHandle {
 
 pub async fn run_server(state: crate::SharedState) -> anyhow::Result<ServerHandle> {
     let app = Router::new()
-        .route("/chat/completions", post(chat_completions))
         .route("/health", get(health))
+        .route("/chat/completions", post(chat_completions))
         .with_state(state);
 
     let listener =
@@ -54,6 +57,10 @@ pub async fn run_server(state: crate::SharedState) -> anyhow::Result<ServerHandl
     });
 
     Ok(server_handle)
+}
+
+async fn health() -> impl IntoResponse {
+    "ok"
 }
 
 async fn chat_completions(
@@ -91,44 +98,26 @@ async fn chat_completions(
         usage: None,
     };
 
-    {
-        let state = state.lock().await;
-        if state.model.is_none() {
-            return StatusCode::SERVICE_UNAVAILABLE.into_response();
-        }
-    }
+    let state = state.lock().await;
+
+    let model = match &state.model {
+        Some(model) => model,
+        None => return StatusCode::SERVICE_UNAVAILABLE.into_response(),
+    };
 
     if request.stream.unwrap_or(false) {
-        let output_stream = async_stream::stream! {
-            let mut state = state.lock().await;
+        let stream = build_response(model, &request)
+            .words()
+            .map(|word| Ok::<_, std::convert::Infallible>(sse::Event::default().data(word)));
 
-            let stream = state.model.as_mut().unwrap().generate(request.clone());
-            pin_mut!(stream);
-
-            while let Some(chunk) = stream.next().await {
-                if let Ok(content) = chunk {
-                    yield Ok::<_, std::convert::Infallible>(sse::Event::default().data(content));
-                }
-            }
-        };
-
-        sse::Sse::new(output_stream).into_response()
+        sse::Sse::new(stream).into_response()
     } else {
-        let mut state = state.lock().await;
-
-        let res = state
-            .model
-            .as_mut()
-            .unwrap()
-            .generate(request.clone())
-            .map(|r| r.unwrap())
-            .collect::<String>()
-            .await;
+        let completion = build_response(model, &request).all_text().await;
 
         let res = CreateChatCompletionResponse {
             choices: vec![ChatChoice {
                 message: ChatCompletionResponseMessage {
-                    content: Some(res),
+                    content: Some(completion),
                     ..empty_message
                 },
                 ..empty_choice
@@ -140,8 +129,53 @@ async fn chat_completions(
     }
 }
 
-async fn health() -> impl IntoResponse {
-    "ok"
+fn build_response(
+    model: &Llama,
+    request: &CreateChatCompletionRequest,
+) -> ChatResponseBuilder<'static, Llama> {
+    fn extract_text_content(message: &ChatCompletionRequestMessage) -> Option<&String> {
+        match message {
+            ChatCompletionRequestMessage::System(msg) => {
+                if let ChatCompletionRequestSystemMessageContent::Text(text) = &msg.content {
+                    Some(text)
+                } else {
+                    None
+                }
+            }
+            ChatCompletionRequestMessage::User(msg) => {
+                if let ChatCompletionRequestUserMessageContent::Text(text) = &msg.content {
+                    Some(text)
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
+    let system_message_content = request
+        .messages
+        .iter()
+        .find(|msg| matches!(msg, ChatCompletionRequestMessage::System(_)))
+        .and_then(extract_text_content);
+
+    let user_message_content = request
+        .messages
+        .iter()
+        .find(|msg| matches!(msg, ChatCompletionRequestMessage::User(_)))
+        .and_then(extract_text_content)
+        .unwrap();
+
+    let mut chat = model.chat();
+
+    if let Some(system_message_content) = system_message_content {
+        chat = chat.with_system_prompt(system_message_content);
+    }
+
+    chat.into_add_message(ChatMessage::new(
+        MessageType::UserMessage,
+        user_message_content,
+    ))
 }
 
 #[cfg(test)]
@@ -171,7 +205,13 @@ mod tests {
         let state = crate::SharedState::default();
         {
             let mut state = state.lock().await;
-            state.model = Some(crate::inference::Model::new().unwrap());
+            state.model = Some(
+                kalosm_llama::Llama::builder()
+                    .with_source(kalosm_llama::LlamaSource::llama_3_2_3b_chat())
+                    .build()
+                    .await
+                    .unwrap(),
+            );
         }
 
         let server = run_server(state).await.unwrap();
@@ -201,7 +241,13 @@ mod tests {
         let state = crate::SharedState::default();
         {
             let mut state = state.lock().await;
-            state.model = Some(crate::inference::Model::new().unwrap());
+            state.model = Some(
+                kalosm_llama::Llama::builder()
+                    .with_source(kalosm_llama::LlamaSource::llama_3_2_3b_chat())
+                    .build()
+                    .await
+                    .unwrap(),
+            );
         }
 
         let server = run_server(state).await.unwrap();

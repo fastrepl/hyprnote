@@ -732,16 +732,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
+name = "atty"
+version = "0.2.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9b39be18770d11421cdb1b9947a45dd3f37e93092cbf377614828a319d5fee8"
+dependencies = [
+ "hermit-abi 0.1.19",
+ "libc",
+ "winapi",
+]
+
+[[package]]
 name = "audio"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "cidre",
- "cpal",
- "dasp",
  "futures-channel",
  "futures-core",
  "futures-util",
+ "kalosm-sound",
  "rodio 0.20.1",
  "serde",
  "serde_json",
@@ -1437,7 +1447,7 @@ dependencies = [
  "bincode",
  "bugreport",
  "bytesize",
- "clap",
+ "clap 4.5.29",
  "clircle",
  "console",
  "content_inspector",
@@ -1924,14 +1934,14 @@ dependencies = [
  "candle-nn",
  "candle-transformers",
  "csv",
- "hf-hub",
+ "hf-hub 0.4.1",
  "image",
  "num-traits",
  "rayon",
  "safetensors",
  "serde",
  "serde_json",
- "tokenizers",
+ "tokenizers 0.19.1",
 ]
 
 [[package]]
@@ -2030,7 +2040,7 @@ version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fce8dd7fcfcbf3a0a87d8f515194b49d6135acab73e18bd380d1d93bb1a15eb"
 dependencies = [
- "clap",
+ "clap 4.5.29",
  "heck 0.4.1",
  "indexmap 2.7.1",
  "log",
@@ -2204,6 +2214,22 @@ dependencies = [
 
 [[package]]
 name = "clap"
+version = "3.2.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ea181bf566f71cb9a5d17a59e1871af638180a18fb0035c92ae62b705207123"
+dependencies = [
+ "atty",
+ "bitflags 1.3.2",
+ "clap_lex 0.2.4",
+ "indexmap 1.9.3",
+ "once_cell",
+ "strsim 0.10.0",
+ "termcolor",
+ "textwrap",
+]
+
+[[package]]
+name = "clap"
 version = "4.5.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8acebd8ad879283633b343856142139f2da2317c96b05b4dd6181c61e2480184"
@@ -2220,8 +2246,8 @@ checksum = "f6ba32cbda51c7e1dfd49acc1457ba1a7dec5b64fe360e828acb13ca8dc9c2f9"
 dependencies = [
  "anstream",
  "anstyle",
- "clap_lex",
- "strsim",
+ "clap_lex 0.7.4",
+ "strsim 0.11.1",
  "terminal_size",
 ]
 
@@ -2235,6 +2261,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.98",
+]
+
+[[package]]
+name = "clap_lex"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2850f2f5a82cbf437dd5af4d49848fbdfc27c157c3d010345776f952765261c5"
+dependencies = [
+ "os_str_bytes",
 ]
 
 [[package]]
@@ -2275,7 +2310,7 @@ name = "cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "clap",
+ "clap 4.5.29",
  "db",
  "serde",
  "serde_json",
@@ -2894,7 +2929,7 @@ dependencies = [
  "ident_case",
  "proc-macro2",
  "quote",
- "strsim",
+ "strsim 0.11.1",
  "syn 2.0.98",
 ]
 
@@ -5080,6 +5115,15 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "hermit-abi"
+version = "0.1.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "hermit-abi"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d231dfb89cfffdbc30e7fc41579ed6066ad03abda9e567ccafae602b97ec5024"
@@ -5095,6 +5139,23 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
+name = "hf-hub"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b780635574b3d92f036890d8373433d6f9fc7abb320ee42a5c25897fc8ed732"
+dependencies = [
+ "dirs 5.0.1",
+ "indicatif",
+ "log",
+ "native-tls",
+ "rand 0.8.5",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "ureq",
+]
 
 [[package]]
 name = "hf-hub"
@@ -6011,6 +6072,100 @@ dependencies = [
 ]
 
 [[package]]
+name = "kalosm-common"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de2ac5de83e059366d74ab199a7b25a181c05109e4752186569ba1cf1ea8e68d"
+dependencies = [
+ "candle-core",
+ "candle-nn",
+ "dirs 5.0.1",
+ "hf-hub 0.3.2",
+ "httpdate",
+ "kalosm-model-types",
+ "reqwest 0.11.27",
+ "thiserror 2.0.11",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "kalosm-language-model"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5bba0d2b436350af68041fb23a79f85079a22724fa475912d503961250edc92"
+dependencies = [
+ "async-lock",
+ "futures-channel",
+ "futures-util",
+ "kalosm-model-types",
+ "kalosm-sample",
+ "lru",
+ "rand 0.8.5",
+ "serde",
+ "thiserror 2.0.11",
+ "tracing",
+]
+
+[[package]]
+name = "kalosm-model-types"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b6ea4f7cc50877612c89f3c0f7b5286d08724562234ce2329f6c53415436e74"
+dependencies = [
+ "indicatif",
+]
+
+[[package]]
+name = "kalosm-parse-macro"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e682884c2244005ace2724483e9c72fb28bf776c4bb959ab2f79353cbc57e6aa"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.98",
+]
+
+[[package]]
+name = "kalosm-sample"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25a19027883cf3da3a2f304e89ccabd7e1c2304d3260dd07281bbdc6ad5279f5"
+dependencies = [
+ "kalosm-parse-macro",
+ "regex-automata 0.4.9",
+]
+
+[[package]]
+name = "kalosm-sound"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "092ff07207d3efc1575e7e46d806e78394bb61f98edb0c237b410c6beb4ef7da"
+dependencies = [
+ "byteorder",
+ "candle-core",
+ "candle-nn",
+ "candle-transformers",
+ "cpal",
+ "dasp",
+ "futures-channel",
+ "futures-core",
+ "futures-util",
+ "hound",
+ "nnnoiseless",
+ "ort",
+ "ort-sys",
+ "rand 0.8.5",
+ "rodio 0.20.1",
+ "rwhisper",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "voice_activity_detector",
+]
+
+[[package]]
 name = "keyboard-types"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6807,6 +6962,19 @@ dependencies = [
 
 [[package]]
 name = "ndarray"
+version = "0.15.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "adb12d4e967ec485a5f71c6311fe28158e9d6f4bc4a447b474184d0f91a8fa32"
+dependencies = [
+ "matrixmultiply",
+ "num-complex",
+ "num-integer",
+ "num-traits",
+ "rawpointer",
+]
+
+[[package]]
+name = "ndarray"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "882ed72dce9365842bf196bdeedf5055305f11fc8c03dee7bb0194a6cad34841"
@@ -6880,7 +7048,7 @@ version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e9cc4cfdd8779ba7316470317200f796391887fbec0815f9074db4ba75dc1c4"
 dependencies = [
- "ndarray",
+ "ndarray 0.16.1",
  "num-traits",
  "realfft",
  "rustdct",
@@ -6916,6 +7084,22 @@ dependencies = [
  "cfg_aliases 0.2.1",
  "libc",
  "memoffset",
+]
+
+[[package]]
+name = "nnnoiseless"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23d377ce2fb579ed5c14cfa0d39e70849030fdf673d6d1a764cadb2dfbb02a50"
+dependencies = [
+ "anyhow",
+ "clap 3.2.25",
+ "dasp",
+ "dasp_interpolate",
+ "dasp_ring_buffer",
+ "hound",
+ "once_cell",
+ "rustfft",
 ]
 
 [[package]]
@@ -7499,7 +7683,7 @@ dependencies = [
 name = "onnx"
 version = "0.1.0"
 dependencies = [
- "ndarray",
+ "ndarray 0.15.6",
  "ort",
 ]
 
@@ -7732,21 +7916,24 @@ dependencies = [
 
 [[package]]
 name = "ort"
-version = "2.0.0-rc.9"
+version = "2.0.0-rc.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52afb44b6b0cffa9bf45e4d37e5a4935b0334a51570658e279e9e3e6cf324aa5"
+checksum = "86d83095ae3c1258738d70ae7a06195c94d966a8e546f0d3609dc90885fb61f5"
 dependencies = [
  "half",
- "ndarray",
+ "js-sys",
+ "ndarray 0.15.6",
  "ort-sys",
+ "thiserror 1.0.69",
  "tracing",
+ "web-sys",
 ]
 
 [[package]]
 name = "ort-sys"
-version = "2.0.0-rc.9"
+version = "2.0.0-rc.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c41d7757331aef2d04b9cb09b45583a59217628beaf91895b7e76187b6e8c088"
+checksum = "0f2f6427193c808010b126bef45ebd33f8dee43770223a1200f84d3734d6c656"
 dependencies = [
  "flate2",
  "pkg-config",
@@ -7775,6 +7962,12 @@ dependencies = [
  "libc",
  "windows-sys 0.59.0",
 ]
+
+[[package]]
+name = "os_str_bytes"
+version = "6.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2355d85b9a3786f481747ced0e0ff2ba35213a1f9bd406ed906554d7af805a1"
 
 [[package]]
 name = "osakit"
@@ -9617,6 +9810,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "rwhisper"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b43523d249243d720cf210344293098c7fcf2f8fb69a15a515eea6017fbe528b"
+dependencies = [
+ "byteorder",
+ "candle-core",
+ "candle-nn",
+ "candle-transformers",
+ "cpal",
+ "flate2",
+ "futures-channel",
+ "futures-util",
+ "hf-hub 0.3.2",
+ "hound",
+ "kalosm-common",
+ "kalosm-language-model",
+ "kalosm-model-types",
+ "rand 0.8.5",
+ "rayon",
+ "rodio 0.20.1",
+ "serde_json",
+ "thiserror 2.0.11",
+ "tokenizers 0.21.0",
+ "tracing",
+]
+
+[[package]]
 name = "ryu"
 version = "1.0.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10715,6 +10936,12 @@ dependencies = [
 
 [[package]]
 name = "strsim"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
+
+[[package]]
+name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
@@ -10809,7 +11036,6 @@ dependencies = [
  "specta",
  "thiserror 2.0.11",
  "tokio",
- "whisper",
 ]
 
 [[package]]
@@ -11479,7 +11705,7 @@ dependencies = [
  "candle-transformers",
  "futures-core",
  "futures-util",
- "hf-hub",
+ "hf-hub 0.4.1",
  "minijinja",
  "reqwest 0.12.12",
  "serde",
@@ -11491,7 +11717,7 @@ dependencies = [
  "tauri-plugin",
  "tauri-specta",
  "thiserror 2.0.11",
- "tokenizers",
+ "tokenizers 0.19.1",
  "tokio",
  "tracing",
  "uuid",
@@ -11936,6 +12162,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "textwrap"
+version = "0.16.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23d434d3f8967a09480fb04132ebe0a3e088c173e6d0ee7897abbdf4eab0f8b9"
+
+[[package]]
 name = "thin-slice"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -12080,6 +12312,38 @@ name = "tokenizers"
 version = "0.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e500fad1dd3af3d626327e6a3fe5050e664a6eaa4708b8ca92f1794aaf73e6fd"
+dependencies = [
+ "aho-corasick",
+ "derive_builder",
+ "esaxx-rs",
+ "getrandom 0.2.15",
+ "indicatif",
+ "itertools 0.12.1",
+ "lazy_static",
+ "log",
+ "macro_rules_attribute",
+ "monostate",
+ "onig",
+ "paste",
+ "rand 0.8.5",
+ "rayon",
+ "rayon-cond",
+ "regex",
+ "regex-syntax 0.8.5",
+ "serde",
+ "serde_json",
+ "spm_precompiled",
+ "thiserror 1.0.69",
+ "unicode-normalization-alignments",
+ "unicode-segmentation",
+ "unicode_categories",
+]
+
+[[package]]
+name = "tokenizers"
+version = "0.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9ecededfed68a69bc657e486510089e255e53c3d38cc7d4d59c8742668ca2cae"
 dependencies = [
  "aho-corasick",
  "derive_builder",
@@ -12734,6 +12998,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "typed-builder"
+version = "0.18.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77739c880e00693faef3d65ea3aad725f196da38b22fdc7ea6ded6e1ce4d3add"
+dependencies = [
+ "typed-builder-macro",
+]
+
+[[package]]
+name = "typed-builder-macro"
+version = "0.18.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1f718dfaf347dcb5b983bfc87608144b0bad87970aebcbea5ce44d2a30c08e63"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.98",
+]
+
+[[package]]
 name = "typeid"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -13088,6 +13372,20 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "voice_activity_detector"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "83c59bade37f522e92ce257d0b3c889c8739b4dec00aac79ea4775cfd9afd10d"
+dependencies = [
+ "futures",
+ "ndarray 0.15.6",
+ "ort",
+ "pin-project",
+ "thiserror 1.0.69",
+ "typed-builder",
+]
 
 [[package]]
 name = "vsimd"
@@ -13451,15 +13749,6 @@ dependencies = [
  "home",
  "once_cell",
  "rustix",
-]
-
-[[package]]
-name = "whisper"
-version = "0.1.0"
-dependencies = [
- "codes-iso-639",
- "serde",
- "serde_json",
 ]
 
 [[package]]

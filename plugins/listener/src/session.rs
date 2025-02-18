@@ -2,7 +2,7 @@ use futures_util::StreamExt;
 use std::sync::Arc;
 use tokio::sync::{mpsc, Mutex};
 
-use hypr_audio::AsyncSource;
+use hypr_audio::{AsyncSource, AsyncSourceTranscribeExt};
 
 pub struct SessionState {
     status: SessionStatus,
@@ -55,15 +55,12 @@ impl SessionState {
             let mut input = hypr_audio::AudioInput::from_mic();
             input.stream()
         };
-
-        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
-
         let mic_sample_rate = mic_sample_stream.sample_rate();
         let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);
 
-        let mut speaker_stream = speaker_sample_stream
-            .resample_from_to(mic_sample_rate, SAMPLE_RATE)
-            .chunks(1024);
+        let speaker_sample_stream =
+            hypr_audio::AudioInput::from_speaker(Some(mic_sample_rate)).stream();
+        let mut speaker_stream = speaker_sample_stream.resample(SAMPLE_RATE).chunks(1024);
 
         let chunk_buffer_size: usize = 1024;
         let sample_buffer_size = (SAMPLE_RATE as usize) * 60 * 10;

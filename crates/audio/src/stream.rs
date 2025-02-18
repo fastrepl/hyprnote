@@ -12,21 +12,7 @@ impl ReceiverStreamSource {
     }
 }
 
-impl futures_core::Stream for ReceiverStreamSource {
-    type Item = f32;
-
-    fn poll_next(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Option<Self::Item>> {
-        use futures_util::StreamExt;
-
-        let this = self.get_mut();
-        this.stream.poll_next_unpin(cx)
-    }
-}
-
-impl crate::AsyncSource for ReceiverStreamSource {
+impl kalosm_sound::AsyncSource for ReceiverStreamSource {
     fn as_stream(&mut self) -> impl futures_core::Stream<Item = f32> + '_ {
         &mut self.stream
     }

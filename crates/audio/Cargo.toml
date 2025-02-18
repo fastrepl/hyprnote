@@ -16,14 +16,10 @@ futures-core = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 
-cpal = { workspace = true }
-dasp = { workspace = true, features = ["interpolate", "interpolate-linear"] }
 rodio = { workspace = true, features = ["wav", "hound", "vorbis"] }
 tokio-stream = { workspace = true }
 
-[dev-dependencies]
-rodio = "*"
-serial_test = { workspace = true }
+kalosm-sound = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies.cidre]
 git = "https://github.com/yury/cidre"
@@ -33,3 +29,7 @@ features = ["av"]
 [target.'cfg(target_os = "windows")'.dependencies.windows]
 version = "0.58.0"
 features = ["Win32_Foundation", "Win32_System_Com"]
+
+[dev-dependencies]
+rodio = "*"
+serial_test = { workspace = true }

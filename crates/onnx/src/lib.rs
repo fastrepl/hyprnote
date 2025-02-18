@@ -1,7 +1,4 @@
-use ort::{
-    error::Result,
-    session::{builder::GraphOptimizationLevel, Session},
-};
+use ort::{GraphOptimizationLevel, Result, Session};
 
 pub use ndarray;
 pub use ort;

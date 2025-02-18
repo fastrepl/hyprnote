@@ -1,7 +1,7 @@
 pub struct SpeakerInput {}
 
 impl SpeakerInput {
-    pub fn new() -> Self {
+    pub fn new(_sample_rate_override: Option<u32>) -> Self {
         Self {}
     }
 

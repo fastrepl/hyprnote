@@ -34,7 +34,8 @@ hypr_host = { path = "../../../crates/host", package = "host" }
 
 tauri-plugin-db = { path = "../../../plugins/db" }
 tauri-plugin-listener = { path = "../../../plugins/listener" }
-tauri-plugin-llm = { path = "../../../plugins/llm" }
+tauri-plugin-local-llm = { path = "../../../plugins/local-llm" }
+tauri-plugin-local-stt = { path = "../../../plugins/local-stt" }
 tauri-plugin-template = { path = "../../../plugins/template" }
 
 tauri = { workspace = true, features = ["tray-icon", "image-png", "macos-private-api"] }

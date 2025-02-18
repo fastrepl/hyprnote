@@ -295,16 +295,6 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the ping command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-ping"
-        },
-        {
-          "description": "Denies the ping command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-ping"
-        },
-        {
           "description": "Enables the render command without any pre-configured scope.",
           "type": "string",
           "const": "allow-render"

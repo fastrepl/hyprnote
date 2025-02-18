@@ -41,13 +41,6 @@ axum = "0.8.1"
 tower = "0.5.2"
 tower-http = "0.6.2"
 
-candle-core = "0.8.3"
-candle-examples = "0.8.3"
-candle-nn = "0.8.3"
-candle-transformers = "0.8.3"
-hf-hub = "0.4.1"
-tokenizers = "0.19.1"
-
 chrono = "0.4.39"
 chrono-tz = "0.10.1"
 url = "2"
@@ -82,6 +75,13 @@ cpal = "0.15.3"
 dasp = "0.11.0"
 hound = "3.5.1"
 rodio = "0.20.1"
+
+kalosm-common = "0.4.0"
+kalosm-llama = "0.4.0"
+kalosm-model-types = "0.4.0"
+kalosm-sound = "0.4.0"
+kalosm-streams = "0.4.0"
+rwhisper = "0.4.0"
 
 [patch.crates-io]
 # This includes a currently-unreleased fix that ensures the audio stream is actually stopped and released on drop on macOS.

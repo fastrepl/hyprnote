@@ -7,14 +7,13 @@ edition = "2021"
 default = ["realtime", "recorded", "local"]
 realtime = []
 recorded = []
-local = ["hypr-whisper"]
+local = []
 
 [dependencies]
 deepgram = { version = "0.6.4", features = ["listen"] }
 hypr-clova = { path = "../clova", package = "clova" }
 hypr-db = { path = "../db", package = "db", default-features = false, features = ["user"] }
 hypr-rtzr = { path = "../rtzr", package = "rtzr" }
-hypr-whisper = { path = "../whisper", package = "whisper", optional = true }
 
 anyhow = { workspace = true }
 thiserror = { workspace = true }

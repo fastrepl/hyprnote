@@ -3,7 +3,7 @@ mod math;
 use anyhow::Result;
 use hypr_onnx::{
     ndarray,
-    ort::{session::Session, value::Value},
+    ort::{Session, Value},
 };
 
 pub struct Diarizer {

@@ -4,11 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-local = ["hypr-onnx"]
+local = ["hypr-onnx", "knf-rs"]
 cloud = ["reqwest", "url"]
 
 [dependencies]
 hypr-onnx = { path = "../onnx", package = "onnx", optional = true }
+knf-rs = { version = "0.2.9", optional = true }
+
 reqwest = { workspace = true, features = ["json"], optional = true }
 url = { workspace = true, optional = true }
 

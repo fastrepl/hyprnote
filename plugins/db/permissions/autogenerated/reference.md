@@ -374,32 +374,6 @@ Denies the list_templates command without any pre-configured scope.
 <tr>
 <td>
 
-`db:allow-ping`
-
-</td>
-<td>
-
-Enables the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-ping`
-
-</td>
-<td>
-
-Denies the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `db:allow-set-config`
 
 </td>

@@ -3,7 +3,7 @@ use anyhow::Result;
 
 use hypr_onnx::{
     ndarray::{Array1, Array2},
-    ort::session::Session,
+    ort::Session,
 };
 
 const MODEL_1_BYTES: &[u8] = include_bytes!("../data/model_1.onnx");

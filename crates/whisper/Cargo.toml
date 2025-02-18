@@ -1,9 +1,0 @@
-[package]
-name = "whisper"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-codes-iso-639 = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }

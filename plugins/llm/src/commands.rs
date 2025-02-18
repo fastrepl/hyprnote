@@ -1,5 +1,6 @@
 #[tauri::command]
 #[specta::specta]
+#[tracing::instrument(skip_all)]
 pub async fn stop_server(state: tauri::State<'_, crate::SharedState>) -> Result<(), String> {
     let mut state = state.lock().await;
 
@@ -13,6 +14,7 @@ pub async fn stop_server(state: tauri::State<'_, crate::SharedState>) -> Result<
 
 #[tauri::command]
 #[specta::specta]
+#[tracing::instrument(skip_all)]
 pub async fn load_model(
     state: tauri::State<'_, crate::SharedState>,
     _on_progress: tauri::ipc::Channel<u8>,

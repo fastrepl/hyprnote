@@ -6083,6 +6083,7 @@ dependencies = [
  "hf-hub 0.3.2",
  "httpdate",
  "kalosm-model-types",
+ "metal 0.29.0",
  "reqwest 0.11.27",
  "thiserror 2.0.11",
  "tokio",
@@ -11721,6 +11722,23 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "tauri-plugin-local-stt"
+version = "0.1.0"
+dependencies = [
+ "rwhisper",
+ "serde",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.11",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

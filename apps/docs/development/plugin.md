@@ -1,7 +1,6 @@
-# Plugins
+# Plugin Development
 
-https://v2.tauri.app/develop/plugins
-https://v2.tauri.app/develop/plugins/#naming-convention
+## Creating a plugin
 
 If you want to create a plugin for `listener`, you can use the following command:
 
@@ -10,3 +9,7 @@ npx @tauri-apps/cli plugin new listener \
 --no-example \
 --directory ./plugins/listener
 ```
+
+## Resources
+
+- [Tauri Official Documentation](https://v2.tauri.app/develop/plugins)

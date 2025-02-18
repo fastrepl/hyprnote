@@ -1,19 +1,13 @@
 {
   "name": "@hypr/docs",
-  "type": "module",
-  "version": "0.0.1",
+  "private": true,
   "scripts": {
-    "dev": "astro dev",
-    "start": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
   },
-  "dependencies": {
-    "@astrojs/cloudflare": "^12.2.1",
-    "@astrojs/db": "^0.14.6",
-    "@astrojs/starlight": "^0.31.1",
-    "astro": "^5.1.5",
-    "sharp": "^0.32.5"
+  "devDependencies": {
+    "vitepress": "^1.6.3",
+    "vue": "^3.5.13"
   }
 }

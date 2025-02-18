@@ -3,23 +3,20 @@
 layout: home
 
 hero:
-  name: "Hyprnote Docs"
-  text: "Hyprnote Docs"
-  tagline: My great project tagline
+  name: "Hyprnote"
+  tagline: Hackable AI notepad for meetings
   actions:
     - theme: brand
       text: Quickstart
       link: /quickstart
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: Extensions
+      link: /extensions
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: Open source & Local first
+    details: Data stays on your device. Free forever.
+  - title: Extensible
+    details: Build your own extensions.
 ---
 

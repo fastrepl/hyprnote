@@ -7,6 +7,10 @@
     "preview": "vitepress preview"
   },
   "devDependencies": {
+    "@iconify-json/heroicons": "^1.2.2",
+    "@unocss/preset-icons": "^66.0.0",
+    "@unocss/preset-wind3": "^66.0.0",
+    "unocss": "^66.0.0",
     "vite-plugin-posthog": "^2.1.0",
     "vitepress": "2.0.0-alpha.2",
     "vue": "^3.5.13"

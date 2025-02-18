@@ -105,9 +105,12 @@ importers:
       '@hypr/plugin-listener':
         specifier: workspace:*
         version: link:../../plugins/listener
-      '@hypr/plugin-llm':
+      '@hypr/plugin-local-llm':
         specifier: workspace:*
-        version: link:../../plugins/llm
+        version: link:../../plugins/local-llm
+      '@hypr/plugin-local-stt':
+        specifier: workspace:*
+        version: link:../../plugins/local-stt
       '@hypr/plugin-template':
         specifier: workspace:*
         version: link:../../plugins/template
@@ -698,7 +701,13 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
 
-  plugins/llm:
+  plugins/local-llm:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: '>=2.0.0-beta.6'
+        version: 2.2.0
+
+  plugins/local-stt:
     dependencies:
       '@tauri-apps/api':
         specifier: '>=2.0.0-beta.6'
@@ -5754,7 +5763,6 @@ packages:
 
   libsql@0.4.7:
     resolution: {integrity: sha512-T9eIRCs6b0J1SHKYIvD8+KCJMcWZ900iZyxdnSCdqxN12Z1ijzT+jY5nrk72Jw4B0HGzms2NgpryArlJqvc3Lw==}
-    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@3.1.3:

@@ -7,7 +7,7 @@ mod server;
 
 pub use error::{Error, Result};
 
-const PLUGIN_NAME: &str = "llm";
+const PLUGIN_NAME: &str = "local-llm";
 
 type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 

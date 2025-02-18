@@ -34,7 +34,8 @@
     "listener:default",
     "db:default",
     "template:default",
-    "llm:default",
+    "local-llm:default",
+    "local-stt:default",
     {
       "identifier": "http:default",
       "allow": [

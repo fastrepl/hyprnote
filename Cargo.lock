@@ -3295,7 +3295,8 @@ dependencies = [
  "tauri-plugin-global-shortcut",
  "tauri-plugin-http",
  "tauri-plugin-listener",
- "tauri-plugin-llm",
+ "tauri-plugin-local-llm",
+ "tauri-plugin-local-stt",
  "tauri-plugin-oauth",
  "tauri-plugin-os",
  "tauri-plugin-positioner",
@@ -11693,7 +11694,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-llm"
+name = "tauri-plugin-local-llm"
 version = "0.1.0"
 dependencies = [
  "anyhow",

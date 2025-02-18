@@ -1,9 +1,9 @@
 {
-  "name": "@hypr/plugin-llm",
+  "name": "@hypr/plugin-local-llm",
   "private": true,
   "main": "./generated/bindings.ts",
   "scripts": {
-    "codegen": "cargo test -p tauri-plugin-llm"
+    "codegen": "cargo test -p tauri-plugin-local-llm"
   },
   "dependencies": {
     "@tauri-apps/api": ">=2.0.0-beta.6"

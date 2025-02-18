@@ -2,7 +2,8 @@
 
 Default permissions for the plugin
 
-- `allow-ping`
+- `allow-load-model`
+- `allow-unload-model`
 
 ## Permission Table
 

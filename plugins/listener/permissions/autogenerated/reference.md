@@ -71,32 +71,6 @@ Denies the get_session_timeline command without any pre-configured scope.
 <tr>
 <td>
 
-`listener:allow-ping`
-
-</td>
-<td>
-
-Enables the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:deny-ping`
-
-</td>
-<td>
-
-Denies the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `listener:allow-start-session`
 
 </td>

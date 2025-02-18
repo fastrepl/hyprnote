@@ -8,13 +8,13 @@
 
 export const commands = {
 async loadModel(onProgress: TAURI_CHANNEL<number>) : Promise<null> {
-    return await TAURI_INVOKE("plugin:llm|load_model", { onProgress });
+    return await TAURI_INVOKE("plugin:local-llm|load_model", { onProgress });
 },
 async unloadModel() : Promise<null> {
-    return await TAURI_INVOKE("plugin:llm|unload_model");
+    return await TAURI_INVOKE("plugin:local-llm|unload_model");
 },
 async stopServer() : Promise<null> {
-    return await TAURI_INVOKE("plugin:llm|stop_server");
+    return await TAURI_INVOKE("plugin:local-llm|stop_server");
 }
 }
 

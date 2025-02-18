@@ -3766,6 +3766,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "eyre"
+version = "0.6.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7cd915d99f24784cdc19fd37ef22b97e3ff0ae756c7e492e9fbfe897d61e2aec"
+dependencies = [
+ "indenter",
+ "once_cell",
+]
+
+[[package]]
 name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5734,6 +5744,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "indenter"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce23b50ad8242c51a442f3ff322d56b02f08852c77e4c0b4d3fd684abc89c683"
+
+[[package]]
 name = "indexmap"
 version = "1.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6184,6 +6200,27 @@ dependencies = [
  "security-framework 2.11.1",
  "security-framework 3.2.0",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "knf-rs"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "342e12f10c01b856e5f9f8fc2bb7fbc6aa85c84eaa3d4636ad6786fcb3c8b9f8"
+dependencies = [
+ "eyre",
+ "knf-rs-sys",
+ "ndarray 0.16.1",
+]
+
+[[package]]
+name = "knf-rs-sys"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "796636ff383658023a3cd4dca321be53966afdf155041807895d573fb476d831"
+dependencies = [
+ "bindgen 0.69.5",
+ "cmake",
 ]
 
 [[package]]
@@ -8805,6 +8842,7 @@ dependencies = [
  "approx",
  "data",
  "hound",
+ "knf-rs",
  "onnx",
  "reqwest 0.12.12",
  "serde",

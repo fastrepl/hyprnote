@@ -1,8 +1,8 @@
 pub fn model_builder(
-    app_dir: std::path::PathBuf,
+    data_dir: std::path::PathBuf,
     source: kalosm_llama::LlamaSource,
 ) -> kalosm_llama::LlamaBuilder {
-    let cache = kalosm_common::Cache::new(app_dir.join("cache"));
+    let cache = kalosm_common::Cache::new(data_dir);
 
     kalosm_llama::LlamaBuilder::default()
         .with_flash_attn(true)
@@ -14,8 +14,12 @@ pub fn make_progress_handler(
 ) -> impl FnMut(kalosm_model_types::ModelLoadingProgress) {
     move |progress| {
         let percentage = match progress {
-            kalosm_model_types::ModelLoadingProgress::Downloading { .. } => 0,
-            kalosm_model_types::ModelLoadingProgress::Loading { .. } => 100,
+            kalosm_model_types::ModelLoadingProgress::Downloading { progress, .. } => {
+                ((progress.progress as f32 / progress.size as f32) * 80.0) as u8
+            }
+            kalosm_model_types::ModelLoadingProgress::Loading { progress } => {
+                (80.0 + progress * 20.0) as u8
+            }
         };
         let _ = on_progress.send(percentage);
     }

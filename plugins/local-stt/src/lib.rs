@@ -2,6 +2,7 @@ use tauri::{Manager, Wry};
 
 mod commands;
 mod error;
+mod model;
 
 pub use error::{Error, Result};
 

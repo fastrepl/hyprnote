@@ -8,13 +8,13 @@ pub async fn load_model<R: tauri::Runtime>(
     state: tauri::State<'_, crate::SharedState>,
     on_progress: tauri::ipc::Channel<u8>,
 ) -> Result<(), String> {
-    let app_dir = app.path().app_data_dir().unwrap();
+    let data_dir = app.path().app_data_dir().unwrap();
 
     {
         let mut state = state.lock().await;
 
         let model =
-            crate::model::model_builder(app_dir, kalosm_llama::LlamaSource::llama_3_2_3b_chat())
+            crate::model::model_builder(data_dir, kalosm_llama::LlamaSource::llama_3_2_3b_chat())
                 .build_with_loading_handler(crate::model::make_progress_handler(on_progress))
                 .await
                 .map_err(|e| e.to_string())?;

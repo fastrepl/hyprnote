@@ -205,6 +205,7 @@ fn get_amplitude(chunk: &[f32]) -> u16 {
 pub mod commands {
     use super::{SessionEvent, SessionState, SessionStatus};
     use tauri::{ipc::Channel, Manager, State};
+    use tauri_plugin_local_stt::LocalSttExt;
 
     #[tauri::command]
     #[specta::specta]
@@ -234,6 +235,10 @@ pub mod commands {
         session: State<'_, tokio::sync::Mutex<SessionState>>,
         on_event: Channel<SessionEvent>,
     ) -> Result<(), String> {
+        println!("start_session");
+        let local_stt = app.local_stt_state();
+        println!("start_session2");
+
         let app_dir = app.path().app_data_dir().unwrap();
 
         let bridge = hypr_bridge::Client::builder()

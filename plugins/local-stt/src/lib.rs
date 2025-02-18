@@ -15,6 +15,16 @@ pub struct State {
 
 const PLUGIN_NAME: &str = "local-stt";
 
+pub trait LocalSttExt<R: tauri::Runtime> {
+    fn local_stt_state(&self) -> &SharedState;
+}
+
+impl<R: tauri::Runtime, T: Manager<R>> crate::LocalSttExt<R> for T {
+    fn local_stt_state(&self) -> &SharedState {
+        self.state::<SharedState>().inner()
+    }
+}
+
 fn make_specta_builder() -> tauri_specta::Builder<Wry> {
     tauri_specta::Builder::<Wry>::new()
         .plugin_name(PLUGIN_NAME)

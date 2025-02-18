@@ -17,6 +17,7 @@ specta-typescript = { workspace = true }
 [dependencies]
 hypr-audio = { path = "../../crates/audio", package = "audio" }
 hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
+tauri-plugin-local-stt = { path = "../local-stt" }
 
 tauri = { workspace = true }
 tracing = { workspace = true }

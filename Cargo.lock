@@ -11729,6 +11729,7 @@ dependencies = [
 name = "tauri-plugin-local-stt"
 version = "0.1.0"
 dependencies = [
+ "kalosm-common",
  "rwhisper",
  "serde",
  "specta",

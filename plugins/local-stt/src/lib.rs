@@ -5,18 +5,20 @@ mod error;
 
 pub use error::{Error, Result};
 
-const PLUGIN_NAME: &str = "local-stt";
+type SharedState = std::sync::Mutex<State>;
 
 #[derive(Default)]
 pub struct State {
     pub model: Option<rwhisper::Whisper>,
 }
 
+const PLUGIN_NAME: &str = "local-stt";
+
 fn make_specta_builder() -> tauri_specta::Builder<Wry> {
     tauri_specta::Builder::<Wry>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::load_model,
+            commands::load_model::<Wry>,
             commands::unload_model
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
@@ -24,12 +26,11 @@ fn make_specta_builder() -> tauri_specta::Builder<Wry> {
 
 pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
     let specta_builder = make_specta_builder();
-    let state = State::default();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            app.manage(state);
+            app.manage(SharedState::default());
             Ok(())
         })
         .build()

@@ -83,6 +83,7 @@ dasp = "0.11.0"
 hound = "3.5.1"
 rodio = "0.20.1"
 
+kalosm-common = "0.4.0"
 kalosm-language = "0.4.0"
 kalosm-llama = "0.4.0"
 kalosm-sound = "0.4.0"

@@ -11,7 +11,7 @@ pub async fn load_model<R: tauri::Runtime>(
     let data_dir = app.path().app_data_dir().unwrap();
 
     let model = crate::model::model_builder(data_dir)
-        .with_source(rwhisper::WhisperSource::Tiny)
+        .with_source(rwhisper::WhisperSource::QuantizedLargeV3Turbo)
         .build_with_loading_handler(crate::model::make_progress_handler(on_progress))
         .await
         .map_err(|e| e.to_string())?;

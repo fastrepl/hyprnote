@@ -316,6 +316,12 @@ importers:
 
   apps/docs:
     dependencies:
+      '@tanstack/vue-table':
+        specifier: ^8.21.2
+        version: 8.21.2(vue@3.5.13(typescript@5.7.3))
+      floating-vue:
+        specifier: ^5.2.2
+        version: 5.2.2(vue@3.5.13(typescript@5.7.3))
       posthog-js:
         specifier: ^1.219.3
         version: 1.219.3
@@ -1469,6 +1475,9 @@ packages:
 
   '@floating-ui/core@1.6.9':
     resolution: {integrity: sha512-uMXCuQ3BItDUbAMhIXw7UPXRfAlOAvZzdK9BWpE60MCn+Svt3aLn9jsPTi/WNGlRUu2uI0v5S7JiIUsbsvh3fw==}
+
+  '@floating-ui/dom@1.1.1':
+    resolution: {integrity: sha512-TpIO93+DIujg3g7SykEAGZMDtbJRrmnYRCNYSjJlvIbGhBjRSNTLVbNeDQBrzy9qDgUbiWdc7KA0uZHZ2tJmiw==}
 
   '@floating-ui/dom@1.6.13':
     resolution: {integrity: sha512-umqzocjDgNRGTuO7Q8CU32dkHkECqI8ZdMZ5Swb6QAM0t5rnlrN3lGo1hdpscRd3WS8T6DKYK4ephgIH9iRh3w==}
@@ -3282,6 +3291,12 @@ packages:
     resolution: {integrity: sha512-XvX8bfdo4CYiCW+ItVdBfCorh3PwQFqYqd7ll+XKWiWOJpqUGIG7VlziVavARZpUySiY2VBlHadiUYS7jhgjRg==}
     engines: {node: '>=12'}
 
+  '@tanstack/vue-table@8.21.2':
+    resolution: {integrity: sha512-KBgOWxha/x4m1EdhVWxOpqHb661UjqAxzPcmXR3QiA7aShZ547x19Gw0UJX9we+m+tVcPuLRZ61JsYW47QZFfQ==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      vue: '>=3.2'
+
   '@tanstack/zod-adapter@1.105.0':
     resolution: {integrity: sha512-LX9d3zsWZIpdA0KGoPiGdpDGmerwattoELuwWqoNIU9XgdzUAhAmpDPGd3HRcRHEX3H2Gv7fOWAHvRYCsVIn8w==}
     engines: {node: '>=12'}
@@ -4641,6 +4656,15 @@ packages:
 
   flatted@3.3.2:
     resolution: {integrity: sha512-AiwGJM8YcNOaobumgtng+6NHuOqC3A7MixFeDafM3X9cIUM+xUXoS5Vfgf+OihAYe20fxqNM9yPBXJzRtZ/4eA==}
+
+  floating-vue@5.2.2:
+    resolution: {integrity: sha512-afW+h2CFafo+7Y9Lvw/xsqjaQlKLdJV7h1fCHfcYQ1C4SVMlu7OAekqWgu5d4SgvkBVU0pVpLlVsrSTBURFRkg==}
+    peerDependencies:
+      '@nuxt/kit': ^3.2.0
+      vue: ^3.2.0
+    peerDependenciesMeta:
+      '@nuxt/kit':
+        optional: true
 
   focus-trap@7.6.4:
     resolution: {integrity: sha512-xx560wGBk7seZ6y933idtjJQc1l+ck+pI3sKvhKozdBV1dRZoKhkW5xoCaFv9tQiX5RH1xfSxjuNu6g+lmN/gw==}
@@ -6702,6 +6726,11 @@ packages:
     peerDependencies:
       vue: ^3.4.37
 
+  vue-resize@2.0.0-alpha.1:
+    resolution: {integrity: sha512-7+iqOueLU7uc9NrMfrzbG8hwMqchfVfSzpVlCMeJQe4pyibqyoifDNbKTZvwxZKDvGkB+PdFeKvnGZMoEb8esg==}
+    peerDependencies:
+      vue: ^3.0.0
+
   vue@3.5.13:
     resolution: {integrity: sha512-wmeiSMxkZCSc+PM2w2VRsOYAZC8GdipNFRTsLSfodVqI9mbejKeXEGr8SckuLnrQPGe3oJN5c3K0vpoU9q/wCQ==}
     peerDependencies:
@@ -7443,6 +7472,10 @@ snapshots:
   '@floating-ui/core@1.6.9':
     dependencies:
       '@floating-ui/utils': 0.2.9
+
+  '@floating-ui/dom@1.1.1':
+    dependencies:
+      '@floating-ui/core': 1.6.9
 
   '@floating-ui/dom@1.6.13':
     dependencies:
@@ -9320,6 +9353,11 @@ snapshots:
 
   '@tanstack/virtual-file-routes@1.99.0': {}
 
+  '@tanstack/vue-table@8.21.2(vue@3.5.13(typescript@5.7.3))':
+    dependencies:
+      '@tanstack/table-core': 8.21.2
+      vue: 3.5.13(typescript@5.7.3)
+
   '@tanstack/zod-adapter@1.105.0(@tanstack/react-router@1.105.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(zod@3.24.2)':
     dependencies:
       '@tanstack/react-router': 1.105.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -11018,6 +11056,12 @@ snapshots:
       keyv: 4.5.4
 
   flatted@3.3.2: {}
+
+  floating-vue@5.2.2(vue@3.5.13(typescript@5.7.3)):
+    dependencies:
+      '@floating-ui/dom': 1.1.1
+      vue: 3.5.13(typescript@5.7.3)
+      vue-resize: 2.0.0-alpha.1(vue@3.5.13(typescript@5.7.3))
 
   focus-trap@7.6.4:
     dependencies:
@@ -13324,6 +13368,10 @@ snapshots:
       - yaml
 
   vue-flow-layout@0.1.1(vue@3.5.13(typescript@5.7.3)):
+    dependencies:
+      vue: 3.5.13(typescript@5.7.3)
+
+  vue-resize@2.0.0-alpha.1(vue@3.5.13(typescript@5.7.3)):
     dependencies:
       vue: 3.5.13(typescript@5.7.3)
 

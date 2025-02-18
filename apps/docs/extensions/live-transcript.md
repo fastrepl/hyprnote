@@ -2,6 +2,9 @@
 title: Live Transcript
 description: Show a live transcript during the meeting
 source: https://github.com/fastrepl/hypr/tree/main/extensions/live-transcript
+implemented: true
+default: true
+cloudOnly: false
 plugins:
   - listener
   - db

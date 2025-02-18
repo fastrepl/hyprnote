@@ -1,11 +1,7 @@
 <script setup>
-import { data as extensions } from '../data/extensions.data'
+import { data } from "../data/extensions.data.mts";
 </script>
 
 # Extensions
 
-<ul>
-  <li v-for="extension in extensions">
-    <a :href="extension.url">{{ extension.frontmatter.title }}</a>
-  </li>
-</ul>
+<ExtensionsTable :data />

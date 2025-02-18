@@ -1,11 +1,7 @@
 <script setup>
-import { data as plugins } from '../data/plugins.data'
+import { data } from "../data/plugins.data.mts";
 </script>
 
 # Plugins
 
-<ul>
-  <li v-for="plugin in plugins">
-    <a :href="plugin.url">{{ plugin.frontmatter.title }}</a>
-  </li>
-</ul>
+<PluginsTable :data />

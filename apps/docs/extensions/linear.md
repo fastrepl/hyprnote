@@ -2,6 +2,9 @@
 title: Linear
 description: Create a linear issue from the meeting
 source: https://github.com/fastrepl/hypr/tree/main/extensions/linear
+implemented: false
+default: false
+cloudOnly: true
 plugins:
   - listener
   - db

@@ -16,6 +16,8 @@
     "vue": "^3.5.13"
   },
   "dependencies": {
+    "@tanstack/vue-table": "^8.21.2",
+    "floating-vue": "^5.2.2",
     "posthog-js": "^1.219.3"
   }
 }

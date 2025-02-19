@@ -99,6 +99,9 @@ importers:
       '@hypr/extension-world-clocks':
         specifier: workspace:*
         version: link:../../extensions/world-clocks
+      '@hypr/plugin-apple-calendar':
+        specifier: workspace:^
+        version: link:../../plugins/apple-calendar
       '@hypr/plugin-db':
         specifier: workspace:*
         version: link:../../plugins/db
@@ -713,6 +716,12 @@ importers:
       typescript:
         specifier: ~5.6.2
         version: 5.6.3
+
+  plugins/apple-calendar:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: '>=2.0.0-beta.6'
+        version: 2.2.0
 
   plugins/db:
     dependencies:

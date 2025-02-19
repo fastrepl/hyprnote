@@ -36,6 +36,7 @@
     "template:default",
     "local-llm:default",
     "local-stt:default",
+    "apple-calendar:default",
     {
       "identifier": "http:default",
       "allow": [

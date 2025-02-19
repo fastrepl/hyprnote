@@ -14,7 +14,7 @@ pub struct State {
 
 const PLUGIN_NAME: &str = "db";
 
-fn specta_builder() -> tauri_specta::Builder<Wry> {
+fn make_specta_builder() -> tauri_specta::Builder<Wry> {
     tauri_specta::Builder::<Wry>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
@@ -43,10 +43,10 @@ fn specta_builder() -> tauri_specta::Builder<Wry> {
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
-    let builder = specta_builder();
+    let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
-        .invoke_handler(builder.invoke_handler())
+        .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
             let db = tokio::task::block_in_place(|| {
                 tokio::runtime::Handle::current().block_on(async move {

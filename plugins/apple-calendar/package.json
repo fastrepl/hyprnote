@@ -1,0 +1,11 @@
+{
+  "name": "@hypr/plugin-apple-calendar",
+  "private": true,
+  "main": "./generated/bindings.ts",
+  "scripts": {
+    "codegen": "cargo test -p tauri-plugin-apple-calendar"
+  },
+  "dependencies": {
+    "@tauri-apps/api": ">=2.0.0-beta.6"
+  }
+}

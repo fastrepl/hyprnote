@@ -48,6 +48,7 @@ pub async fn main() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_db::init())
+        .plugin(tauri_plugin_apple_calendar::init())
         .plugin(tauri_plugin_template::init())
         .plugin(tauri_plugin_local_llm::init())
         .plugin(tauri_plugin_local_stt::init())

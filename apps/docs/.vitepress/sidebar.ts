@@ -29,6 +29,7 @@ const plugins: DefaultTheme.SidebarItem = {
         { text: "Listener", link: "/plugins/listener" },
         { text: "Local LLM", link: "/plugins/local-llm" },
         { text: "Local STT", link: "/plugins/local-stt" },
+        { text: "Apple Calendar", link: "/plugins/apple-calendar" },
       ],
       collapsed: true,
     },

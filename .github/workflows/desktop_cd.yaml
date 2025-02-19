@@ -10,7 +10,7 @@ concurrency:
 env:
   CN_APPLICATION: "fastrepl/hyprnote"
   RELEASE_CHANNEL: ${{ endsWith(github.event.release.tag_name, 'nightly') && 'nightly' || '' }}
-  TAURI_CONF_PATH: ${{ endsWith(github.event.release.tag_name, 'nightly') && './apps/desktop/src-tauri/tauri.conf.nightly.json' || './apps/desktop/src-tauri/tauri.conf.prod.json' }}
+  TAURI_CONF_PATH: ${{ endsWith(github.event.release.tag_name, 'nightly') && './apps/desktop/src-tauri/tauri.conf.nightly.json' || './apps/desktop/src-tauri/tauri.conf.stable.json' }}
 jobs:
   draft:
     if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
@@ -33,13 +33,14 @@ jobs:
       matrix:
         include:
           - platform: "macos-latest"
-            args: "--target universal-apple-darwin --config ${{ env.TAURI_CONF_PATH }}"
+            args: "--target universal-apple-darwin"
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
       - run: |
           rustup toolchain install stable --profile minimal --no-self-update
           rustup target add aarch64-apple-darwin x86_64-apple-darwin
+      - run: echo "FINAL_ARGS=${{ matrix.args }} --config ${{ env.TAURI_CONF_PATH }}" >> $GITHUB_ENV
       - uses: Swatinem/rust-cache@v2
       - uses: ./.github/actions/pnpm_install
       - uses: arduino/setup-protoc@v3
@@ -63,7 +64,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          args: ${{ matrix.args }}
+          args: ${{ env.FINAL_ARGS }}
       - uses: ./.github/actions/cn_release
         with:
           cmd: upload

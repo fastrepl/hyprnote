@@ -9,6 +9,7 @@ import PluginsTable from "../components/PluginsTable.vue";
 import ExtensionTags from "../components/ExtensionTags.vue";
 import PluginLink from "../components/PluginLink.vue";
 import PluginBindingLink from "../components/PluginBindingLink.vue";
+import Contributors from "../components/Contributors.vue";
 
 /** @type {import('vitepress').Theme} */
 export default {
@@ -20,5 +21,6 @@ export default {
     app.component("PluginsTable", PluginsTable);
     app.component("PluginLink", PluginLink);
     app.component("PluginBindingLink", PluginBindingLink);
+    app.component("Contributors", Contributors);
   },
 };

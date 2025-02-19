@@ -13,7 +13,8 @@
     "unocss": "^66.0.0",
     "vite-plugin-posthog": "^2.1.0",
     "vitepress": "2.0.0-alpha.2",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "zod": "^3.24.2"
   },
   "dependencies": {
     "@tanstack/vue-table": "^8.21.2",

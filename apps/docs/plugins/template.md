@@ -1,17 +1,18 @@
 ---
 title: Template
 description: Template plugin
-package: "@hypr/plugin-template"
-bindings: https://github.com/fastrepl/hypr/blob/main/plugins/template/generated/bindings.ts
+id: template
 ---
 
 # {{ $frontmatter.title }}
 
 **{{ $frontmatter.description }}**
 
+Powered by [minijinja](https://docs.rs/minijinja/latest/minijinja/).
 
 ## Reference
 
 <ul>
-  <li><a :href="$frontmatter.bindings"><code>{{ $frontmatter.package }}</code> Typescript API</a></li>
+  <li><PluginBindingLink :id="$frontmatter.id" /></li>
+  <li><a :href="`https://github.com/fastrepl/hypr/tree/main/plugins/template/src`">Additional template filters and functions</a></li>
 </ul>

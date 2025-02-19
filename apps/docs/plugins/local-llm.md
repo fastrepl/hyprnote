@@ -1,8 +1,7 @@
 ---
 title: Local LLM
 description: Local LLM plugin
-package: "@hypr/plugin-local-llm"
-bindings: https://github.com/fastrepl/hypr/blob/main/plugins/local-llm/generated/bindings.ts
+id: local-llm
 ---
 
 # {{ $frontmatter.title }}
@@ -13,5 +12,5 @@ bindings: https://github.com/fastrepl/hypr/blob/main/plugins/local-llm/generated
 ## Reference
 
 <ul>
-  <li><a :href="$frontmatter.bindings"><code>{{ $frontmatter.package }}</code> Typescript API</a></li>
+  <li><PluginBindingLink :id="$frontmatter.id" /></li>
 </ul>

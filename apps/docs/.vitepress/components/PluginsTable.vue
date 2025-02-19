@@ -3,19 +3,16 @@ import { h, withDirectives } from "vue";
 import { vTooltip as tooltip } from "floating-vue";
 import { createColumnHelper } from "@tanstack/vue-table";
 
+import type { PluginFrontmatter } from "../types";
 import BaseTable from "./BaseTable.vue";
 
-const props = defineProps<{
-  data: Array<{
-    url: string;
-    frontmatter: {
-      title: string;
-      description: string;
-    };
-  }>;
-}>();
+type Row = {
+  url: string;
+  frontmatter: PluginFrontmatter;
+};
 
-const columnHelper = createColumnHelper<any>();
+const props = defineProps<{ data: Row[] }>();
+const columnHelper = createColumnHelper<Row>();
 
 const columns = [
   columnHelper.accessor("frontmatter.title", {

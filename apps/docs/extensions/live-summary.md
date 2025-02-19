@@ -14,11 +14,11 @@ plugins:
 
 **{{ $frontmatter.description }}**
 
+<ExtensionTags :frontmatter="$frontmatter" />
+
 ## Reference
 
 <ul>
   <li><a :href="$frontmatter.source">Github source</a></li>
-  <li v-for="plugin in $frontmatter.plugins">
-    <a :href="`/plugins/${plugin}`"><code>Plugin</code> {{ plugin }}</a>
-  </li>
+  <li v-for="plugin in $frontmatter.plugins"><PluginLink :plugin /></li>
 </ul>

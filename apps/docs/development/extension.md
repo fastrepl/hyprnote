@@ -14,8 +14,16 @@ We use `MSW` for network calls, and `@tauri-apps/api/mocks` for Tauri commands.
 
 ## Assets
 
+### Where to store
+
+```lua
+<EXTENSION_FOLDER>/assets/<ASSET_NAME>
+```
+
+### How to use
+
 Follow this naming convention for assets:
 
-```bash
-/<EXTENSION_NAME>/assets/<EXTENSION_NAME>-<ASSET_NAME>.<ASSET_TYPE>
+```html
+<img src="/<EXTENSION_NAME>/assets/<EXTENSION_NAME>-<ASSET_NAME>" />
 ```

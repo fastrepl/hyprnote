@@ -1,9 +1,7 @@
-# Contributing
+## Setup
 
-## Feedback
-
-- [Github Discussions](https://github.com/fastrepl/hypr/discussions)
-
-## Development
-
-Refer to the [CONTRIBUTING.md](https://github.com/fastrepl/hypr/blob/main/CONTRIBUTING.md) file in the root of the repository.
+```bash
+git clone https://github.com/fastrepl/hypr.git
+cd hypr
+pnpm install && pnpm -F desktop tauri dev
+```

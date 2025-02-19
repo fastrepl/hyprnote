@@ -3,6 +3,7 @@ import { vitePostHog } from "vite-plugin-posthog";
 import unocss from "unocss/vite";
 
 import sidebar from "./sidebar";
+import { extensionFrontmatterSchema, pluginFrontmatterSchema } from "./types";
 
 // https://vitepress.dev/reference/site-config
 const vitepressConfig: Parameters<typeof defineConfig>[0] = {
@@ -29,7 +30,6 @@ const vitepressConfig: Parameters<typeof defineConfig>[0] = {
       text: "Edit this page on GitHub",
     },
     nav: [
-      { text: "Blog", link: "https://github.com/fastrepl/hypr" },
       {
         text: "v0.0.1",
         items: [
@@ -43,6 +43,15 @@ const vitepressConfig: Parameters<typeof defineConfig>[0] = {
       { icon: "discord", link: "https://discord.gg/fastrepl" },
     ],
     sidebar,
+  },
+  transformPageData(pageData, ctx) {
+    if (/^extensions\/(?!index\.md)[^/]+/.test(pageData.relativePath)) {
+      extensionFrontmatterSchema.parse(pageData.frontmatter);
+    }
+    if (/^plugins\/(?!index\.md)[^/]+/.test(pageData.relativePath)) {
+      pluginFrontmatterSchema.parse(pageData.frontmatter);
+    }
+    return pageData;
   },
 };
 

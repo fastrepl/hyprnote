@@ -8,7 +8,7 @@ export default function AudioIndicator() {
   const [heights, setHeights] = useState([0, 0, 0]);
 
   useEffect(() => {
-    const sample = Math.max(mic, speaker) / 10;
+    const sample = Math.max(mic, speaker) / 5;
     setAmplitude(Math.min(sample, 1));
   }, [mic, speaker]);
 
@@ -18,27 +18,39 @@ export default function AudioIndicator() {
       return;
     }
 
-    // Update heights every 100ms for animation
+    let prevHeights = heights;
+    const damping = 0.8; // Controls how quickly the oscillation settles
+    const springStrength = 0.3; // Controls how bouncy the animation is
+
     const interval = setInterval(() => {
-      // Center line height is proportional to amplitude with some randomness
-      const maxHeight = Math.min(24, Math.max(4, amplitude * 24));
-      const centerHeight = maxHeight * (0.7 + Math.random() * 0.3); // Random between 70-100% of max
+      const maxHeight = Math.min(16, Math.max(4, amplitude * 16));
+      const targetCenterHeight = maxHeight * (0.8 + Math.random() * 0.2);
+      const targetSideHeight = Math.min(
+        targetCenterHeight,
+        targetCenterHeight * (0.5 + Math.random() * 0.5),
+      );
 
-      // Side lines have identical heights, not exceeding center
-      const sideHeight = Math.min(centerHeight, Math.random() * centerHeight);
+      // Apply spring physics
+      const newHeights = prevHeights.map((prev, i) => {
+        const target = i === 1 ? targetCenterHeight : targetSideHeight;
+        const velocity = (target - prev) * springStrength;
+        const newHeight = prev + velocity * damping;
+        return newHeight;
+      });
 
-      setHeights([sideHeight, centerHeight, sideHeight]);
-    }, 100);
+      setHeights(newHeights);
+      prevHeights = newHeights;
+    }, 50); // Increased animation frequency for smoother motion
 
     return () => clearInterval(interval);
   }, [amplitude]);
 
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex h-4 items-center gap-0.5">
       {heights.map((height, i) => (
         <div
           key={i}
-          className="w-1 rounded-full bg-white transition-all duration-100"
+          className="w-0.5 rounded-full bg-white transition-all duration-[400ms] ease-out"
           style={{ height: `${height}px` }}
         />
       ))}

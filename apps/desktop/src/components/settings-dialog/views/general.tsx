@@ -240,36 +240,6 @@ export default function General() {
 
           <FormField
             control={form.control}
-            name="speechLanguage"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div>
-                  <FormLabel>Speech language</FormLabel>
-                  <FormDescription>
-                    This is the language you speak or listen to.
-                  </FormDescription>
-                </div>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="max-w-[100px]">
-                      <SelectValue placeholder="Select language" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {SUPPORTED_LANGUAGES.map((code) => (
-                      <SelectItem key={code} value={code}>
-                        {LANGUAGES_ISO_639_1[code].nativeName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="jargons"
             render={({ field }) => (
               <FormItem>

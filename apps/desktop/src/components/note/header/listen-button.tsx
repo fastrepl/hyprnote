@@ -28,10 +28,10 @@ export default function ListenButton({
     <button
       onClick={handleClick}
       className={clsx([
-        "flex items-center gap-2 rounded-lg border border-border bg-primary p-2 transition-all hover:scale-95",
+        "flex items-center gap-2 rounded-lg border border-border p-2 transition-all hover:scale-95",
         isListening
-          ? "text-white hover:bg-primary/80"
-          : "text-primary hover:bg-primary/20",
+          ? "bg-primary text-white hover:bg-primary/80"
+          : "bg-white text-primary hover:bg-primary/20",
         isListening && "border-primary/30",
       ])}
     >

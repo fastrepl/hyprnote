@@ -3,7 +3,7 @@ name = "tauri-plugin-apple-calendar"
 version = "0.1.0"
 authors = ["You"]
 edition = "2021"
-exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules"]
+exclude = ["./generated"]
 links = "tauri-plugin-apple-calendar"
 rust-version = "1.77.2"
 description = ""
@@ -15,12 +15,22 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
+tauri-plugin-db = { path = "../db" }
+
+hypr-calendar = { path = "../../crates/calendar", package = "calendar", features = ["apple"] }
+hypr-db = { path = "../../crates/db", package = "db" }
+
+tauri = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true, features = ["serde_json"] }
 
+chrono = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
+uuid = { workspace = true }
 
-tauri = { workspace = true }
-tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+apalis = { workspace = true }
+apalis-cron = { workspace = true }

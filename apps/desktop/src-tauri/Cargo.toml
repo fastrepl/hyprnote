@@ -21,18 +21,19 @@ sim-korean-1 = ["hypr-data"]
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
-[dependencies]
-hypr-data = { path = "../../../crates/data", package = "data", optional = true }
+[target.'cfg(target_os = "macos")'.dependencies]
+tauri-plugin-apple-calendar = { path = "../../../plugins/apple-calendar" }
 
+[dependencies]
 hypr-audio = { path = "../../../crates/audio", package = "audio" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar", features = ["apple"] }
+hypr-data = { path = "../../../crates/data", package = "data", optional = true }
 hypr-db = { path = "../../../crates/db", package = "db", default-features = false, features = ["user"] }
 hypr-template = { path = "../../../crates/template", package = "template" }
 hypr-vad = { path = "../../../crates/vad", package = "vad" }
 hypr_host = { path = "../../../crates/host", package = "host" }
 
-tauri-plugin-apple-calendar = { path = "../../../plugins/apple-calendar" }
 tauri-plugin-db = { path = "../../../plugins/db" }
 tauri-plugin-listener = { path = "../../../plugins/listener" }
 tauri-plugin-local-llm = { path = "../../../plugins/local-llm" }
@@ -86,9 +87,6 @@ futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["json", "stream"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-stream = { workspace = true }
-
-apalis = { workspace = true }
-apalis-cron = { workspace = true }
 
 hound = { workspace = true }
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }

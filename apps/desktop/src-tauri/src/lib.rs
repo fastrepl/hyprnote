@@ -6,7 +6,6 @@ mod store;
 mod tray;
 mod vault;
 mod windows;
-mod workers;
 
 use tauri::Manager;
 
@@ -45,10 +44,9 @@ pub async fn main() {
 
     let _guard = tauri_plugin_sentry::minidump::init(&client);
 
-    let builder = tauri::Builder::default()
+    let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_db::init())
-        .plugin(tauri_plugin_apple_calendar::init())
         .plugin(tauri_plugin_template::init())
         .plugin(tauri_plugin_local_llm::init())
         .plugin(tauri_plugin_local_stt::init())
@@ -73,6 +71,11 @@ pub async fn main() {
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             windows::ShowHyprWindow::MainWithoutDemo.show(app).unwrap();
         }));
+
+    #[cfg(target_os = "macos")]
+    {
+        builder = builder.plugin(tauri_plugin_apple_calendar::init());
+    }
 
     let specta_builder = make_specta_builder();
 

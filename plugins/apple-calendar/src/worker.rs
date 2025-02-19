@@ -1,13 +1,18 @@
-use apalis::prelude::{Data, Error};
+use apalis::prelude::{Data, Error, WorkerBuilder, WorkerFactoryFn};
 use chrono::{DateTime, Utc};
+use std::str::FromStr;
 
 use hypr_calendar::CalendarSource;
-
-use super::{err_from, WorkerState};
 
 #[allow(unused)]
 #[derive(Default, Debug, Clone)]
 pub struct Job(DateTime<Utc>);
+
+#[derive(Clone)]
+pub struct WorkerState {
+    pub db: hypr_db::user::UserDatabase,
+    pub user_id: String,
+}
 
 impl From<DateTime<Utc>> for Job {
     fn from(t: DateTime<Utc>) -> Self {
@@ -110,4 +115,26 @@ async fn list_events(
     events.extend(apple_events);
 
     Ok(events)
+}
+
+fn err_from(e: impl Into<String>) -> Error {
+    Error::Failed(std::sync::Arc::new(Box::new(std::io::Error::new(
+        std::io::ErrorKind::Other,
+        e.into(),
+    ))))
+}
+
+pub async fn monitor(state: WorkerState) -> Result<(), std::io::Error> {
+    let schedule = apalis_cron::Schedule::from_str("*/10 * * * * *").unwrap();
+    apalis::prelude::Monitor::new()
+        .register({
+            WorkerBuilder::new("calendar")
+                .data(state)
+                .backend(apalis_cron::CronStream::new(schedule))
+                .build_fn(perform)
+        })
+        .run()
+        .await?;
+
+    Ok(())
 }

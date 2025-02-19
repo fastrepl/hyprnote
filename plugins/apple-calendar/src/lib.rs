@@ -2,6 +2,7 @@ use tauri::{Manager, Wry};
 
 mod commands;
 mod error;
+mod worker;
 
 pub use error::{Error, Result};
 pub struct State {}

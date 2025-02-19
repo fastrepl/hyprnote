@@ -3240,8 +3240,6 @@ name = "desktop"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "apalis",
- "apalis-cron",
  "audio 0.1.0",
  "bridge",
  "bytes",
@@ -11586,15 +11584,22 @@ dependencies = [
 name = "tauri-plugin-apple-calendar"
 version = "0.1.0"
 dependencies = [
+ "apalis",
+ "apalis-cron",
+ "calendar",
+ "chrono",
+ "db",
  "serde",
  "serde_json",
  "specta",
  "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-db",
  "tauri-specta",
  "thiserror 2.0.11",
  "tracing",
+ "uuid",
 ]
 
 [[package]]

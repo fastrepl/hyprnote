@@ -18,7 +18,8 @@ const vitepressConfig: Parameters<typeof defineConfig>[0] = {
         hostUrl: "https://us.i.posthog.com",
         isCheckingForDevMode: false,
         config: {
-          person_profiles: "identified_only",
+          autocapture: true,
+          person_profiles: "never",
         },
       }),
     ],
@@ -31,10 +32,16 @@ const vitepressConfig: Parameters<typeof defineConfig>[0] = {
     },
     nav: [
       {
-        text: "v0.0.1",
+        text: "Download",
         items: [
-          { text: "v0.0.1", link: "https://github.com/fastrepl/hypr" },
-          { text: "v0.0.2-nightly", link: "https://github.com/fastrepl/hypr" },
+          {
+            text: "Stable",
+            link: "https://cdn.crabnebula.app/download/fastrepl/hyprnote/latest/platform/dmg-aarch64",
+          },
+          {
+            text: "Nightly",
+            link: "https://cdn.crabnebula.app/download/fastrepl/hyprnote/latest/platform/dmg-aarch64?channel=nightly",
+          },
         ],
       },
     ],

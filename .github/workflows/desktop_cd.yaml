@@ -33,7 +33,7 @@ jobs:
       matrix:
         include:
           - platform: "macos-latest"
-            target: "universal-apple-darwin"
+            args: "--target universal-apple-darwin --config ${{ env.TAURI_CONF_PATH }}"
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -63,7 +63,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          args: --config ${{ env.TAURI_CONF_PATH }} --target ${{ matrix.target }}
+          args: ${{ matrix.args }}
       - uses: ./.github/actions/cn_release
         with:
           cmd: upload

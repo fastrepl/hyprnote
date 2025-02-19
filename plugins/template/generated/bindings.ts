@@ -7,7 +7,7 @@
 
 
 export const commands = {
-async render(name: string, ctx: Partial<{ [key in string]: string }>) : Promise<string> {
+async render(name: string, ctx: JsonValue) : Promise<string> {
     return await TAURI_INVOKE("plugin:template|render", { name, ctx });
 },
 async registerTemplate(name: string, template: string) : Promise<null> {
@@ -25,7 +25,7 @@ async registerTemplate(name: string, template: string) : Promise<null> {
 
 /** user-defined types **/
 
-
+export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 
 /** tauri-specta globals **/
 

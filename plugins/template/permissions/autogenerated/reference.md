@@ -3,6 +3,7 @@
 Default permissions for the plugin
 
 - `allow-render`
+- `allow-register-template`
 
 ## Permission Table
 

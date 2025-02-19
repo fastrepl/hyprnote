@@ -295,6 +295,16 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the register_template command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-register-template"
+        },
+        {
+          "description": "Denies the register_template command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-register-template"
+        },
+        {
           "description": "Enables the render command without any pre-configured scope.",
           "type": "string",
           "const": "allow-render"

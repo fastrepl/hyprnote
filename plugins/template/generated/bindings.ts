@@ -7,8 +7,11 @@
 
 
 export const commands = {
-async render(tpl: string, ctx: string) : Promise<string> {
-    return await TAURI_INVOKE("plugin:template|render", { tpl, ctx });
+async render(name: string, ctx: Partial<{ [key in string]: string }>) : Promise<string> {
+    return await TAURI_INVOKE("plugin:template|render", { name, ctx });
+},
+async registerTemplate(name: string, template: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:template|register_template", { name, template });
 }
 }
 

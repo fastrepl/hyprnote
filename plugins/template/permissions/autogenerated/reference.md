@@ -16,6 +16,32 @@ Default permissions for the plugin
 <tr>
 <td>
 
+`template:allow-register-template`
+
+</td>
+<td>
+
+Enables the register_template command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`template:deny-register-template`
+
+</td>
+<td>
+
+Denies the register_template command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `template:allow-render`
 
 </td>

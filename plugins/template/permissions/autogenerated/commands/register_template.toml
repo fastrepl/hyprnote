@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-register-template"
+description = "Enables the register_template command without any pre-configured scope."
+commands.allow = ["register_template"]
+
+[[permission]]
+identifier = "deny-register-template"
+description = "Denies the register_template command without any pre-configured scope."
+commands.deny = ["register_template"]

@@ -17,10 +17,14 @@ specta-typescript = { workspace = true }
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
+specta = { workspace = true }
 
 codes-iso-639 = { workspace = true }
-specta = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
 tauri = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
-tera = { version = "1", default-features = false }
-thiserror = { workspace = true }
+
+minijinja = { version = "2.7.0", features = ["preserve_order"] }
+minijinja-contrib = { version = "2.7.0", features = ["pycompat"] }

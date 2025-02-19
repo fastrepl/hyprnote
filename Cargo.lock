@@ -6881,6 +6881,7 @@ version = "2.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cff7b8df5e85e30b87c2b0b3f58ba3a87b68e133738bf512a7713769326dbca9"
 dependencies = [
+ "indexmap 2.7.1",
  "memo-map",
  "self_cell",
  "serde",
@@ -11941,6 +11942,8 @@ name = "tauri-plugin-template"
 version = "0.1.0"
 dependencies = [
  "codes-iso-639",
+ "minijinja",
+ "minijinja-contrib",
  "serde",
  "serde_json",
  "specta",
@@ -11948,8 +11951,8 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-specta",
- "tera",
  "thiserror 2.0.11",
+ "tracing",
 ]
 
 [[package]]

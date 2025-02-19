@@ -1,6 +1,6 @@
 ---
 title: Template
-description: Template plugin
+description: Template engine for LLM prompting
 id: template
 ---
 
@@ -8,7 +8,7 @@ id: template
 
 **{{ $frontmatter.description }}**
 
-Powered by [minijinja](https://docs.rs/minijinja/latest/minijinja/).
+Powered by [minijinja](https://docs.rs/minijinja/latest/minijinja/), with [preserve_order](https://docs.rs/minijinja/latest/minijinja/index.html#optional-features) and [pycompat](https://docs.rs/minijinja-contrib/latest/minijinja_contrib/pycompat/fn.unknown_method_callback.html) enabled.
 
 ## Reference
 

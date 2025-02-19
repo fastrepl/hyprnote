@@ -1,6 +1,7 @@
 {
   "name": "@hypr/plugin-template",
   "private": true,
+  "main": "./generated/bindings.ts",
   "scripts": {
     "codegen": "cargo test -p tauri-plugin-template"
   },

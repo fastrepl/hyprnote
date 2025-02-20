@@ -7,29 +7,30 @@ pub use error::{Error, Result};
 
 const PLUGIN_NAME: &str = "chat-completion";
 
+// NOTE: template name must match js/index.ts
 pub const TEMPLATES: &[(&str, &str)] = &[
     (
-        "create_title.system",
+        "chat-completion:create-title-system",
         include_str!("../templates/create_title.system.jinja"),
     ),
     (
-        "create_title.user",
+        "chat-completion:create-title-user",
         include_str!("../templates/create_title.user.jinja"),
     ),
     (
-        "enhance.system",
+        "chat-completion:enhance-system",
         include_str!("../templates/enhance.system.jinja"),
     ),
     (
-        "enhance.user",
+        "chat-completion:enhance-user",
         include_str!("../templates/enhance.user.jinja"),
     ),
     (
-        "postprocess_enhance.system",
+        "chat-completion:postprocess-enhance-system",
         include_str!("../templates/postprocess_enhance.system.jinja"),
     ),
     (
-        "postprocess_enhance.user",
+        "chat-completion:postprocess-enhance-user",
         include_str!("../templates/postprocess_enhance.user.jinja"),
     ),
 ];
@@ -37,7 +38,10 @@ pub const TEMPLATES: &[(&str, &str)] = &[
 fn make_specta_builder() -> tauri_specta::Builder<Wry> {
     tauri_specta::Builder::<Wry>::new()
         .plugin_name(PLUGIN_NAME)
-        .commands(tauri_specta::collect_commands![])
+        .commands(tauri_specta::collect_commands![
+            commands::create_title,
+            commands::enhance,
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
@@ -69,7 +73,7 @@ mod test {
                     .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./generated/bindings.ts",
+                "./js/bindings.gen.ts",
             )
             .unwrap()
     }

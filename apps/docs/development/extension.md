@@ -1,5 +1,9 @@
 # Extension Development
 
+## Interface
+
+All extension should **default-export** [Extension](https://github.com/hyprnote/hypr/blob/main/extensions/types.ts) interface.
+
 ## Preview
 
 ### Storybook

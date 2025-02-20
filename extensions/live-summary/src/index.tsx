@@ -26,7 +26,7 @@ const TEMPLATE_LIVE_SUMMARY_USER = "live-summary-user";
 
 const DEFAULT_INTERVAL = 10 * 1000;
 
-export const extension: Extension = {
+const extension: Extension = {
   init: async () => {
     await Promise.all([
       templateCommands.registerTemplate(
@@ -240,3 +240,5 @@ function Summary({
     </div>
   );
 }
+
+export default extension;

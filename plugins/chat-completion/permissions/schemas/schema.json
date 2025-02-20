@@ -295,6 +295,26 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the create_title command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-create-title"
+        },
+        {
+          "description": "Denies the create_title command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-create-title"
+        },
+        {
+          "description": "Enables the enhance command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-enhance"
+        },
+        {
+          "description": "Denies the enhance command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-enhance"
+        },
+        {
           "description": "Enables the ping command without any pre-configured scope.",
           "type": "string",
           "const": "allow-ping"

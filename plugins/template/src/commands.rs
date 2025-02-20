@@ -1,35 +1,23 @@
-type MutableState = crate::Mutex<crate::State>;
+use crate::TemplatePluginExt;
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(state, ctx))]
-pub async fn render(
-    state: tauri::State<'_, MutableState>,
+#[tracing::instrument(skip(app))]
+pub async fn render<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
     name: String,
     ctx: serde_json::Map<String, serde_json::Value>,
 ) -> Result<String, String> {
-    let s = state.lock().unwrap();
-    let tpl = s.env.get_template(&name).map_err(|e| e.to_string())?;
-    let rendered = tpl.render(&ctx).map_err(|e| e.to_string())?;
-    Ok(rendered)
+    app.render(name, ctx)
 }
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(state))]
-pub async fn register_template(
-    state: tauri::State<'_, MutableState>,
+#[tracing::instrument(skip(app))]
+pub async fn register_template<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
     name: String,
     template: String,
 ) -> Result<(), String> {
-    let mut s = state.lock().unwrap();
-
-    s.env
-        .add_template(
-            Box::leak(name.into_boxed_str()),
-            Box::leak(template.into_boxed_str()),
-        )
-        .map_err(|e| e.to_string())?;
-
-    Ok(())
+    app.register_template(name, template)
 }

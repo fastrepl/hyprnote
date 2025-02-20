@@ -79,12 +79,12 @@ pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
         .build()
 }
 
-pub trait DatabaseExtentionExt<R: tauri::Runtime> {
+pub trait DatabasePluginExt<R: tauri::Runtime> {
     fn db_create_new_user(&self) -> Result<String>;
     fn db_set_user_id(&self, user_id: String) -> Result<()>;
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabaseExtentionExt<R> for T {
+impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabasePluginExt<R> for T {
     fn db_create_new_user(&self) -> Result<String> {
         let user_id = tokio::task::block_in_place(|| {
             tokio::runtime::Handle::current().block_on(async move {

@@ -47,6 +47,7 @@ pub async fn main() {
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_db::init())
+        .plugin(tauri_plugin_chat_completion::init())
         .plugin(tauri_plugin_template::init())
         .plugin(tauri_plugin_local_llm::init())
         .plugin(tauri_plugin_local_stt::init())
@@ -91,7 +92,7 @@ pub async fn main() {
             store::UserStore::load(&app).unwrap();
 
             let user_id = {
-                use tauri_plugin_db::DatabaseExtentionExt;
+                use tauri_plugin_db::DatabasePluginExt;
 
                 if let Some(user_id) = store::UserStore::get(&app).unwrap().user_id {
                     app.db_set_user_id(user_id.clone()).unwrap();

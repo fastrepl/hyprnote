@@ -31,6 +31,7 @@ const plugins: DefaultTheme.SidebarItem = {
         { text: "Local LLM", link: "/plugins/local-llm" },
         { text: "Local STT", link: "/plugins/local-stt" },
         { text: "Apple Calendar", link: "/plugins/apple-calendar" },
+        { text: "Chat Completion", link: "/plugins/chat-completion" },
       ].sort((a, b) => a.text.localeCompare(b.text)),
       collapsed: true,
     },

@@ -3,17 +3,25 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 
 import { type Client } from "@hypr/client";
-import { LiveSummaryResponse } from "@hypr/client/gen/types";
-export { postApiNativeLiveSummaryOptions } from "@hypr/client/gen/tanstack";
+export { postApiNativeChatCompletionsOptions } from "@hypr/client/gen/tanstack";
 
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { postApiNativeLiveSummary } from "@hypr/client/gen/sdk";
+import { postApiNativeChatCompletions } from "@hypr/client/gen/sdk";
+
+import systemTemplate from "./system.jinja?raw";
+import { commands as templateCommands } from "@hypr/plugin-template";
 
 interface LiveSummaryToastProps {
   client: Client;
   onClose: () => void;
 }
+
+export const extension: Extension = {
+  init: async () => {
+    templateCommands.registerTemplate("todo", systemTemplate);
+  },
+};
 
 const DEFAULT_INTERVAL = 10 * 1000;
 
@@ -44,11 +52,12 @@ export default function LiveSummaryToast({
         last_n_seconds: 30,
       });
 
-      const { data } = await postApiNativeLiveSummary({
+      const { data } = await postApiNativeChatCompletions({
         client,
         body: {
-          config: config.data,
-          timeline_view,
+          // TODO
+          model: "gpt-4o-mini",
+          messages: [],
         },
         signal,
         throwOnError: true,
@@ -170,7 +179,8 @@ function ProgressCircle({ progress }: { progress: number }) {
 function Summary({
   summary,
 }: {
-  summary: LiveSummaryResponse | null | undefined;
+  // TODO
+  summary: any | null | undefined;
 }) {
   if (!summary) {
     return null;
@@ -178,9 +188,9 @@ function Summary({
 
   return (
     <div className="space-y-4 text-sm text-neutral-700">
-      {summary.blocks.map((block, index) => (
+      {summary.blocks.map((block: any, index: number) => (
         <div key={index} className="space-y-2">
-          {block.points.map((point, index) => (
+          {block.points.map((point: any, index: number) => (
             <div key={index} className="flex items-start gap-2">
               <div className="mt-1.5 size-1.5 shrink-0 rounded-full bg-neutral-300" />
               <div className="text-neutral-900 leading-normal">{point}</div>

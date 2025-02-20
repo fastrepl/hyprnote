@@ -22,6 +22,20 @@ pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
+            let user_id = app
+                .state::<tauri_plugin_db::ManagedState>()
+                .lock()
+                .unwrap()
+                .user_id
+                .as_ref()
+                .unwrap()
+                .clone();
+            let db = app.state::<hypr_db::user::UserDatabase>().inner().clone();
+
+            tokio::runtime::Handle::current().spawn(async move {
+                worker::monitor(worker::WorkerState { db, user_id }).await;
+            });
+
             app.manage(State {});
             Ok(())
         })

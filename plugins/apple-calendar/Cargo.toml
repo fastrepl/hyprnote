@@ -34,3 +34,4 @@ uuid = { workspace = true }
 
 apalis = { workspace = true }
 apalis-cron = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread"] }

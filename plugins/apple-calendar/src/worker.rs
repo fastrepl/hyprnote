@@ -77,6 +77,7 @@ pub async fn perform(_job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
 
     Ok(())
 }
+
 async fn list_calendars() -> Result<Vec<hypr_calendar::Calendar>, String> {
     let mut calendars: Vec<hypr_calendar::Calendar> = Vec::new();
 
@@ -126,6 +127,7 @@ fn err_from(e: impl Into<String>) -> Error {
 
 pub async fn monitor(state: WorkerState) -> Result<(), std::io::Error> {
     let schedule = apalis_cron::Schedule::from_str("*/10 * * * * *").unwrap();
+
     apalis::prelude::Monitor::new()
         .register({
             WorkerBuilder::new("calendar")

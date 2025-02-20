@@ -235,9 +235,8 @@ pub mod commands {
         session: State<'_, tokio::sync::Mutex<SessionState>>,
         on_event: Channel<SessionEvent>,
     ) -> Result<(), String> {
-        println!("start_session");
-        let local_stt = app.local_stt_state();
-        println!("start_session2");
+        let local_stt = app.state::<tauri_plugin_local_stt::SharedState>();
+        let _model = local_stt.lock().unwrap().model.clone();
 
         let app_dir = app.path().app_data_dir().unwrap();
 

@@ -7,8 +7,17 @@
 
 
 export const commands = {
-async ping(payload: string) : Promise<string> {
-    return await TAURI_INVOKE("plugin:apple-calendar|ping", { payload });
+async calendarAccessStatus() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:apple-calendar|calendar_access_status");
+},
+async contactsAccessStatus() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:apple-calendar|contacts_access_status");
+},
+async requestCalendarAccess() : Promise<void> {
+    await TAURI_INVOKE("plugin:apple-calendar|request_calendar_access");
+},
+async requestContactsAccess() : Promise<void> {
+    await TAURI_INVOKE("plugin:apple-calendar|request_contacts_access");
 }
 }
 

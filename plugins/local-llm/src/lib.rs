@@ -18,16 +18,6 @@ pub struct State {
     pub server: Option<crate::server::ServerHandle>,
 }
 
-pub trait LocalLlmExt<R: tauri::Runtime> {
-    fn local_llm_state(&self) -> &SharedState;
-}
-
-impl<R: tauri::Runtime, T: Manager<R>> crate::LocalLlmExt<R> for T {
-    fn local_llm_state(&self) -> &SharedState {
-        self.state::<SharedState>().inner()
-    }
-}
-
 fn make_specta_builder() -> tauri_specta::Builder<Wry> {
     tauri_specta::Builder::<Wry>::new()
         .plugin_name(PLUGIN_NAME)

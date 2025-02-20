@@ -295,14 +295,44 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the ping command without any pre-configured scope.",
+          "description": "Enables the calendar_access_status command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-ping"
+          "const": "allow-calendar-access-status"
         },
         {
-          "description": "Denies the ping command without any pre-configured scope.",
+          "description": "Denies the calendar_access_status command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-ping"
+          "const": "deny-calendar-access-status"
+        },
+        {
+          "description": "Enables the contacts_access_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-contacts-access-status"
+        },
+        {
+          "description": "Denies the contacts_access_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-contacts-access-status"
+        },
+        {
+          "description": "Enables the request_calendar_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-request-calendar-access"
+        },
+        {
+          "description": "Denies the request_calendar_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-request-calendar-access"
+        },
+        {
+          "description": "Enables the request_contacts_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-request-contacts-access"
+        },
+        {
+          "description": "Denies the request_contacts_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-request-contacts-access"
         },
         {
           "description": "Default permissions for the plugin",

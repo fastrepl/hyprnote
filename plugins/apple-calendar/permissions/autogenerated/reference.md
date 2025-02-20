@@ -2,7 +2,10 @@
 
 Default permissions for the plugin
 
-- `allow-ping`
+- `allow-calendar_access_status`
+- `allow-contacts_access_status`
+- `allow-request_calendar_access`
+- `allow-request_contacts_access`
 
 ## Permission Table
 
@@ -16,12 +19,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`apple-calendar:allow-ping`
+`apple-calendar:allow-calendar-access-status`
 
 </td>
 <td>
 
-Enables the ping command without any pre-configured scope.
+Enables the calendar_access_status command without any pre-configured scope.
 
 </td>
 </tr>
@@ -29,12 +32,90 @@ Enables the ping command without any pre-configured scope.
 <tr>
 <td>
 
-`apple-calendar:deny-ping`
+`apple-calendar:deny-calendar-access-status`
 
 </td>
 <td>
 
-Denies the ping command without any pre-configured scope.
+Denies the calendar_access_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:allow-contacts-access-status`
+
+</td>
+<td>
+
+Enables the contacts_access_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-contacts-access-status`
+
+</td>
+<td>
+
+Denies the contacts_access_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:allow-request-calendar-access`
+
+</td>
+<td>
+
+Enables the request_calendar_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-request-calendar-access`
+
+</td>
+<td>
+
+Denies the request_calendar_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:allow-request-contacts-access`
+
+</td>
+<td>
+
+Enables the request_contacts_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-request-contacts-access`
+
+</td>
+<td>
+
+Denies the request_contacts_access command without any pre-configured scope.
 
 </td>
 </tr>

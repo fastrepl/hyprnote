@@ -6,7 +6,7 @@ mod model;
 
 pub use error::{Error, Result};
 
-type SharedState = std::sync::Mutex<State>;
+pub type SharedState = std::sync::Mutex<State>;
 
 #[derive(Default)]
 pub struct State {

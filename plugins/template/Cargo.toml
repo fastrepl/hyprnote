@@ -26,5 +26,5 @@ tracing = { workspace = true }
 tauri = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
-minijinja = { version = "2.7.0", features = ["preserve_order"] }
+minijinja = { version = "2.7.0", features = ["preserve_order", "json"] }
 minijinja-contrib = { version = "2.7.0", features = ["pycompat"] }

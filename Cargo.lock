@@ -3172,7 +3172,6 @@ dependencies = [
  "tauri-plugin-template",
  "tauri-plugin-updater",
  "tauri-specta",
- "template",
  "thiserror 2.0.11",
  "time",
  "tokio",
@@ -11858,13 +11857,6 @@ dependencies = [
  "once_cell",
  "rustix",
  "windows-sys 0.59.0",
-]
-
-[[package]]
-name = "template"
-version = "0.1.0"
-dependencies = [
- "db",
 ]
 
 [[package]]

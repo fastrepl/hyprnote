@@ -150,7 +150,6 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
         .commands(tauri_specta::collect_commands![
             commands::get_user_id,
             commands::run_enhance,
-            commands::list_builtin_templates,
             permissions::open_permission_settings,
             permissions::check_permission_status,
             auth::commands::start_oauth_server,

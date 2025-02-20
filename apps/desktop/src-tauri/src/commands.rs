@@ -9,12 +9,6 @@ pub fn get_user_id(app: State<'_, crate::App>) -> String {
 
 #[tauri::command]
 #[specta::specta]
-pub fn list_builtin_templates() -> Vec<hypr_db::user::Template> {
-    hypr_template::builtins()
-}
-
-#[tauri::command]
-#[specta::specta]
 pub async fn run_enhance(
     app: State<'_, crate::App>,
     req: hypr_bridge::EnhanceRequest,

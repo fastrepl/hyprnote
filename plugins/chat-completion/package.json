@@ -1,5 +1,5 @@
 {
-  "name": "tauri-plugin-chat-completion-api",
+  "name": "@hypr/plugin-chat-completion-api",
   "version": "0.1.0",
   "author": "You",
   "description": "",

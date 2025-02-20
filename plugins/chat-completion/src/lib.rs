@@ -1,48 +1,40 @@
-use tauri::{
-    plugin::{Builder, TauriPlugin},
-    Manager, Runtime,
-};
-
-pub use models::*;
-
-#[cfg(desktop)]
-mod desktop;
-#[cfg(mobile)]
-mod mobile;
+use tauri::Wry;
 
 mod commands;
 mod error;
-mod models;
 
 pub use error::{Error, Result};
 
-#[cfg(desktop)]
-use desktop::ChatCompletion;
-#[cfg(mobile)]
-use mobile::ChatCompletion;
-
-/// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the chat-completion APIs.
-pub trait ChatCompletionExt<R: Runtime> {
-    fn chat_completion(&self) -> &ChatCompletion<R>;
+const PLUGIN_NAME: &str = "chat-completion";
+fn make_specta_builder() -> tauri_specta::Builder<Wry> {
+    tauri_specta::Builder::<Wry>::new()
+        .plugin_name(PLUGIN_NAME)
+        .commands(tauri_specta::collect_commands![])
+        .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
-impl<R: Runtime, T: Manager<R>> crate::ChatCompletionExt<R> for T {
-    fn chat_completion(&self) -> &ChatCompletion<R> {
-        self.state::<ChatCompletion<R>>().inner()
-    }
-}
+pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
+    let specta_builder = make_specta_builder();
 
-/// Initializes the plugin.
-pub fn init<R: Runtime>() -> TauriPlugin<R> {
-    Builder::new("chat-completion")
-        .invoke_handler(tauri::generate_handler![commands::ping])
-        .setup(|app, api| {
-            #[cfg(mobile)]
-            let chat_completion = mobile::init(app, api)?;
-            #[cfg(desktop)]
-            let chat_completion = desktop::init(app, api)?;
-            app.manage(chat_completion);
-            Ok(())
-        })
+    tauri::plugin::Builder::new(PLUGIN_NAME)
+        .invoke_handler(specta_builder.invoke_handler())
         .build()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn export_types() {
+        make_specta_builder()
+            .export(
+                specta_typescript::Typescript::default()
+                    .header("// @ts-nocheck\n\n")
+                    .formatter(specta_typescript::formatter::prettier)
+                    .bigint(specta_typescript::BigIntExportBehavior::Number),
+                "./generated/bindings.ts",
+            )
+            .unwrap()
+    }
 }

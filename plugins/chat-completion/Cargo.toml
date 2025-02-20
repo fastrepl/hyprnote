@@ -8,10 +8,19 @@ links = "tauri-plugin-chat-completion"
 rust-version = "1.77.2"
 description = ""
 
-[dependencies]
-serde = "1.0"
-tauri = { version = "2.2.4" }
-thiserror = "2"
-
 [build-dependencies]
-tauri-plugin = { version = "2.0.3", features = ["build"] }
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+specta-typescript = { workspace = true }
+
+[dependencies]
+tauri = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+specta = { workspace = true, features = ["serde_json"] }
+thiserror = { workspace = true }
+
+tracing = { workspace = true }

@@ -2,10 +2,10 @@
 
 Default permissions for the plugin
 
-- `allow-calendar_access_status`
-- `allow-contacts_access_status`
-- `allow-request_calendar_access`
-- `allow-request_contacts_access`
+- `allow-calendar-access-status`
+- `allow-contacts-access-status`
+- `allow-request-calendar-access`
+- `allow-request-contacts-access`
 
 ## Permission Table
 

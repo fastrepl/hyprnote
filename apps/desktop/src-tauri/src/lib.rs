@@ -136,14 +136,6 @@ pub async fn main() {
                 autostart_manager.enable().unwrap();
             }
 
-            // tokio::spawn(async move {
-            //     let state = workers::WorkerState {
-            //         db,
-            //         user_id: user_id.clone(),
-            //     };
-            //     workers::monitor(state).await.unwrap();
-            // });
-
             tray::create_tray(&app).unwrap();
             windows::ShowHyprWindow::MainWithoutDemo.show(&app).unwrap();
 

@@ -3,32 +3,48 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 
 import { type Client } from "@hypr/client";
-export { postApiNativeChatCompletionsOptions } from "@hypr/client/gen/tanstack";
-
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as templateCommands } from "@hypr/plugin-template";
+
 import { postApiNativeChatCompletions } from "@hypr/client/gen/sdk";
+import type { CreateChatCompletionRequest } from "@hypr/client/gen/types";
+
+import type { Extension } from "../../types";
+import { liveSummaryResponseJsonSchema } from "./types";
 
 import systemTemplate from "./system.jinja?raw";
-import { commands as templateCommands } from "@hypr/plugin-template";
+import userTemplate from "./user.jinja?raw";
 
 interface LiveSummaryToastProps {
   client: Client;
   onClose: () => void;
 }
 
-export const extension: Extension = {
-  init: async () => {
-    templateCommands.registerTemplate("todo", systemTemplate);
-  },
-};
+const TEMPLATE_LIVE_SUMMARY_SYSTEM = "live-summary-system";
+const TEMPLATE_LIVE_SUMMARY_USER = "live-summary-user";
 
 const DEFAULT_INTERVAL = 10 * 1000;
 
-export default function LiveSummaryToast({
-  onClose,
-  client,
-}: LiveSummaryToastProps) {
+export const extension: Extension = {
+  init: async () => {
+    await Promise.all([
+      templateCommands.registerTemplate(
+        TEMPLATE_LIVE_SUMMARY_SYSTEM,
+        systemTemplate,
+      ),
+      templateCommands.registerTemplate(
+        TEMPLATE_LIVE_SUMMARY_USER,
+        userTemplate,
+      ),
+    ]);
+  },
+  modal: (client, onClose) => {
+    return <LiveSummaryToast client={client} onClose={onClose} />;
+  },
+};
+
+function LiveSummaryToast({ onClose, client }: LiveSummaryToastProps) {
   const [progress, setProgress] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -38,7 +54,7 @@ export default function LiveSummaryToast({
   });
 
   const summary = useQuery({
-    queryKey: ["summary"],
+    queryKey: ["live-summary", "run"],
     enabled: !!config.data,
     refetchInterval: DEFAULT_INTERVAL,
     staleTime: 0,
@@ -52,13 +68,36 @@ export default function LiveSummaryToast({
         last_n_seconds: 30,
       });
 
+      const systemMessageContent = await templateCommands.render(
+        TEMPLATE_LIVE_SUMMARY_SYSTEM,
+        {},
+      );
+
+      const userMessageContent = await templateCommands.render(
+        TEMPLATE_LIVE_SUMMARY_USER,
+        {},
+      );
+
+      const body: CreateChatCompletionRequest = {
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemMessageContent },
+          { role: "user", content: userMessageContent },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "live_summary",
+            schema: liveSummaryResponseJsonSchema,
+          },
+        },
+        temperature: 0,
+        max_tokens: 300,
+      };
+
       const { data } = await postApiNativeChatCompletions({
         client,
-        body: {
-          // TODO
-          model: "gpt-4o-mini",
-          messages: [],
-        },
+        body,
         signal,
         throwOnError: true,
       });

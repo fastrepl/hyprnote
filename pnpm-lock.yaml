@@ -389,6 +389,12 @@ importers:
       react:
         specifier: ^18.3.1
         version: 18.3.1
+      zod:
+        specifier: ^3.24.2
+        version: 3.24.2
+      zod-to-json-schema:
+        specifier: ^3.24.1
+        version: 3.24.1(zod@3.24.2)
     devDependencies:
       '@storybook/addon-essentials':
         specifier: ^8.5.6
@@ -728,6 +734,25 @@ importers:
       '@tauri-apps/api':
         specifier: '>=2.0.0-beta.6'
         version: 2.2.0
+
+  plugins/chat-completion:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: '>=2.0.0-beta.6'
+        version: 2.2.0
+    devDependencies:
+      '@rollup/plugin-typescript':
+        specifier: ^11.1.6
+        version: 11.1.6(rollup@4.34.8)(tslib@2.8.1)(typescript@5.7.3)
+      rollup:
+        specifier: ^4.9.6
+        version: 4.34.8
+      tslib:
+        specifier: ^2.6.2
+        version: 2.8.1
+      typescript:
+        specifier: ^5.3.3
+        version: 5.7.3
 
   plugins/db:
     dependencies:
@@ -7007,6 +7032,11 @@ packages:
     resolution: {integrity: sha512-cYVsTjKl8b+FrnidjibDWskAv7UKOfcwaVZdp/it9n1s9fU3IkgDbhdIRKCW4JDsAlECJY0ytoVPT3sK6kideA==}
     engines: {node: '>=18'}
 
+  zod-to-json-schema@3.24.1:
+    resolution: {integrity: sha512-3h08nf3Vw3Wl3PK+q3ow/lIil81IT2Oa7YpQyUUDsEWbXveMesdfK1xBd2RhCkynwZndAxixji/7SYJJowr62w==}
+    peerDependencies:
+      zod: ^3.24.1
+
   zod@3.24.1:
     resolution: {integrity: sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==}
 
@@ -8994,6 +9024,15 @@ snapshots:
       typescript: 5.7.3
     optionalDependencies:
       rollup: 4.34.6
+      tslib: 2.8.1
+
+  '@rollup/plugin-typescript@11.1.6(rollup@4.34.8)(tslib@2.8.1)(typescript@5.7.3)':
+    dependencies:
+      '@rollup/pluginutils': 5.1.4(rollup@4.34.8)
+      resolve: 1.22.10
+      typescript: 5.7.3
+    optionalDependencies:
+      rollup: 4.34.8
       tslib: 2.8.1
 
   '@rollup/pluginutils@5.1.4(rollup@4.34.6)':
@@ -13853,6 +13892,10 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   yoctocolors-cjs@2.1.2: {}
+
+  zod-to-json-schema@3.24.1(zod@3.24.2):
+    dependencies:
+      zod: 3.24.2
 
   zod@3.24.1: {}
 

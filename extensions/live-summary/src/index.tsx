@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 
 import { type Client } from "@hypr/client";
-import { commands as listenerCommands } from "@hypr/plugin-listener";
+// import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as templateCommands } from "@hypr/plugin-template";
 
@@ -64,9 +64,9 @@ function LiveSummaryToast({ onClose, client }: LiveSummaryToastProps) {
         return null;
       }
 
-      const timeline_view = await listenerCommands.getSessionTimeline({
-        last_n_seconds: 30,
-      });
+      // const timeline_view = await listenerCommands.getSessionTimeline({
+      //   last_n_seconds: 30,
+      // });
 
       const systemMessageContent = await templateCommands.render(
         TEMPLATE_LIVE_SUMMARY_SYSTEM,

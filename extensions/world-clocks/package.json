@@ -10,6 +10,7 @@
     "./tailwind.config": "./tailwind.config.ts"
   },
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "preview": "storybook dev -p 6006"
   },
   "dependencies": {

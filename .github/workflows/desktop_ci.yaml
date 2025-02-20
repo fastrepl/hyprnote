@@ -29,14 +29,15 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+      - uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - run: rustup toolchain install stable --profile minimal --no-self-update
       - if: matrix.platform == 'macos-latest'
         run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
       - uses: Swatinem/rust-cache@v2
       - uses: ./.github/actions/pnpm_install
-      - uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: pnpm -r typecheck
       - if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update

@@ -11,7 +11,7 @@
     "format": "prettier --write .",
     "lingui:extract": "lingui extract",
     "lingui:compile": "lingui compile --typescript",
-    "lint": "eslint ."
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

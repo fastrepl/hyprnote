@@ -1,9 +1,6 @@
 use tauri::Wry;
 
 mod commands;
-mod error;
-
-pub use error::{Error, Result};
 
 const PLUGIN_NAME: &str = "chat-completion";
 

@@ -10,7 +10,7 @@ const sourceLink = computed(() => {
 });
 
 const bindingLink = computed(() => {
-  return `https://github.com/fastrepl/hypr/blob/main/plugins/${props.id}/generated/bindings.ts`;
+  return `https://github.com/fastrepl/hypr/blob/main/plugins/${props.id}/js/bindings.gen.ts`;
 });
 
 const packageName = computed(() => {

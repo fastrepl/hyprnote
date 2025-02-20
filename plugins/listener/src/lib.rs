@@ -43,7 +43,7 @@ mod test {
                     .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./generated/bindings.ts",
+                "./js/bindings.gen.ts",
             )
             .unwrap()
     }

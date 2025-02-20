@@ -7,7 +7,12 @@
 
 
 export const commands = {
-
+async createTitle(payload: string) : Promise<string> {
+    return await TAURI_INVOKE("plugin:chat-completion|create_title", { payload });
+},
+async enhance(payload: string) : Promise<string> {
+    return await TAURI_INVOKE("plugin:chat-completion|enhance", { payload });
+}
 }
 
 /** user-defined events **/

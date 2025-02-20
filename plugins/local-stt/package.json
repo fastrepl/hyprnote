@@ -1,11 +1,11 @@
 {
   "name": "@hypr/plugin-local-stt",
   "private": true,
-  "main": "./generated/bindings.ts",
+  "main": "./js/bindings.gen.ts",
   "scripts": {
     "codegen": "cargo test -p tauri-plugin-local-stt"
   },
   "dependencies": {
-    "@tauri-apps/api": ">=2.0.0-beta.6"
+    "@tauri-apps/api": "^2.2.0"
   }
 }

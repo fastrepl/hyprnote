@@ -27,6 +27,7 @@
     "@hypr/plugin-local-llm": "workspace:*",
     "@hypr/plugin-local-stt": "workspace:*",
     "@hypr/plugin-template": "workspace:*",
+    "@hypr/plugin-chat-completion": "workspace:*",
     "@hypr/tiptap": "workspace:*",
     "@hypr/ui": "workspace:*",
     "@lingui/core": "^5.2.0",

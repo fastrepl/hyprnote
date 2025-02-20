@@ -4,9 +4,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { mockIPC } from "@tauri-apps/api/mocks";
 
-import { LiveSummaryResponse } from "@hypr/client/gen/types";
 import { createConfig, createClient } from "@hypr/client";
 
+import type { LiveSummaryResponse } from "./types";
 import component from "./index";
 
 const queryClient = new QueryClient();

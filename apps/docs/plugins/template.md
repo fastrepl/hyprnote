@@ -12,9 +12,12 @@ Powered by [minijinja](https://docs.rs/minijinja/latest/minijinja/), with [prese
 
 ## Usage
 
+Note that template should be registered before rendering. Usually, it is extension's responsibility to do so.
+
 ```typescript
 import { commands as templateCommands } from "@hypr/plugin-template";
-const rendered = await templateCommands.rendered(name, data);
+await templateCommands.registerTemplate("<TEMPLATE_NAME>", "<TEMPLATE_CONTENT>");
+const rendered = await templateCommands.render("<TEMPLATE_NAME>", {});
 ```
 
 ## Resources

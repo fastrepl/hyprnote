@@ -1,15 +1,16 @@
+use std::sync::Mutex;
 use tauri::{Manager, Wry};
-use tokio::sync::Mutex;
 
 mod commands;
 mod error;
 
 pub use error::{Error, Result};
 
-#[derive(Clone)]
+pub type ManagedState = Mutex<State>;
+
+#[derive(Default)]
 pub struct State {
-    user_id: Option<String>,
-    db: hypr_db::user::UserDatabase,
+    pub user_id: Option<String>,
 }
 
 const PLUGIN_NAME: &str = "db";
@@ -42,6 +43,7 @@ fn make_specta_builder() -> tauri_specta::Builder<Wry> {
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
+
 pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
     let specta_builder = make_specta_builder();
 
@@ -69,7 +71,9 @@ pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
                 })
             });
 
-            app.manage(Mutex::new(State { user_id: None, db }));
+            app.manage(db);
+            app.manage(ManagedState::default());
+
             Ok(())
         })
         .build()
@@ -84,11 +88,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabaseExtentionExt<R> for
     fn db_create_new_user(&self) -> Result<String> {
         let user_id = tokio::task::block_in_place(|| {
             tokio::runtime::Handle::current().block_on(async move {
-                let state = self.state::<Mutex<State>>();
-                let mut state = state.lock().await;
+                let db = self.state::<hypr_db::user::UserDatabase>();
 
-                let human = state
-                    .db
+                let human = db
                     .upsert_human(hypr_db::user::Human {
                         is_user: true,
                         ..Default::default()
@@ -96,7 +98,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabaseExtentionExt<R> for
                     .await
                     .unwrap();
 
-                state.user_id = Some(human.id.clone());
+                let state = self.state::<ManagedState>();
+                let mut s = state.lock().unwrap();
+
+                s.user_id = Some(human.id.clone());
                 human.id
             })
         });
@@ -105,14 +110,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabaseExtentionExt<R> for
     }
 
     fn db_set_user_id(&self, user_id: String) -> Result<()> {
-        tokio::task::block_in_place(|| {
-            tokio::runtime::Handle::current().block_on(async move {
-                let state = self.state::<Mutex<State>>();
-                let mut state = state.lock().await;
-
-                state.user_id = Some(user_id);
-            })
-        });
+        let state = self.state::<ManagedState>();
+        let mut s = state.lock().unwrap();
+        s.user_id = Some(user_id);
 
         Ok(())
     }
@@ -124,7 +124,7 @@ mod test {
 
     #[test]
     fn export_types() {
-        specta_builder()
+        make_specta_builder()
             .export(
                 specta_typescript::Typescript::default()
                     .header("// @ts-nocheck\n\n")

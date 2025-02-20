@@ -26,7 +26,7 @@
     "@clerk/clerk-react": "^5.22.13",
     "@hypr/tiptap": "workspace:*",
     "@hypr/ui": "workspace:*",
-    "@nangohq/frontend": "^0.48.4",
+    "@nangohq/frontend": "^0.51.0",
     "@sentry/react": "^8.55.0",
     "@tanstack/react-query": "^5.66.0",
     "@tanstack/react-router": "^1.105.0",

@@ -1,42 +1,34 @@
 use std::future::Future;
 use std::sync::Arc;
-use tokio::sync::{mpsc, Mutex};
 
 use futures_util::StreamExt;
 use hypr_audio::AsyncSource;
+use tokio::sync::{mpsc, Mutex};
 
-#[derive(Debug, Clone, serde::Serialize, specta::Type)]
-pub enum SessionEvent {
-    Stopped,
-    Audio(u16, u16),
-    TimelineView(hypr_bridge::TimelineView),
-}
-
-#[derive(Debug, Clone, serde::Serialize, specta::Type)]
-pub enum SessionStatus {
-    Idle,
-    Processing,
-    Error(String),
-}
+use crate::SessionEvent;
 
 const SAMPLE_RATE: u32 = 16000;
 
-fn get_amplitude(chunk: &[f32]) -> u16 {
-    (chunk
-        .iter()
-        .map(|&x| x.abs())
-        .max_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap_or(0.0)
-        * 100.0) as u16
-}
-
 pub trait ListenerPluginExt<R: tauri::Runtime> {
+    fn subscribe(
+        &self,
+        channel: tauri::ipc::Channel<SessionEvent>,
+    ) -> impl Future<Output = Result<(), String>>;
     fn get_timeline(&self) -> impl Future<Output = Result<hypr_bridge::TimelineView, String>>;
-    fn start_session(&self) -> impl Future<Output = Result<(), String>>;
+    fn start_session(&self) -> impl Future<Output = Result<String, String>>;
     fn stop_session(&self) -> impl Future<Output = Result<(), String>>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
+    #[tracing::instrument(skip_all)]
+    async fn subscribe(&self, channel: tauri::ipc::Channel<SessionEvent>) -> Result<(), String> {
+        let state = self.state::<crate::SharedState>();
+        let s = state.lock().await;
+
+        s.channels.lock().await.push(channel);
+        Ok(())
+    }
+
     #[tracing::instrument(skip_all)]
     async fn get_timeline(&self) -> Result<hypr_bridge::TimelineView, String> {
         let state = self.state::<crate::SharedState>();
@@ -54,7 +46,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn start_session(&self) -> Result<(), String> {
+    async fn start_session(&self) -> Result<String, String> {
         let state = self.state::<crate::SharedState>();
         let mut s = state.lock().await;
 
@@ -132,8 +124,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
             while let (Some(mic_chunk), Some(speaker_chunk)) =
                 (mic_rx.recv().await, speaker_rx.recv().await)
             {
-                let mic_amplitude = get_amplitude(&mic_chunk);
-                let speaker_amplitude = get_amplitude(&speaker_chunk);
+                let _ = crate::SessionEventAudioAmplitude::from((&mic_chunk, &speaker_chunk));
 
                 // channel_for_amplitude
                 //     .send(SessionEvent::Audio(mic_amplitude, speaker_amplitude))
@@ -193,7 +184,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
             }
         }));
 
-        Ok(())
+        Ok(session_id.to_string())
     }
 
     #[tracing::instrument(skip_all)]
@@ -216,6 +207,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
             handle.abort();
             let _ = handle.await;
         }
+
+        s.channels.lock().await.clear();
 
         Ok(())
     }

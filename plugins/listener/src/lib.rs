@@ -5,9 +5,11 @@ use tokio::sync::Mutex;
 
 mod commands;
 mod error;
+mod events;
 mod ext;
 
 pub use error::{Error, Result};
+pub use events::*;
 pub use ext::ListenerPluginExt;
 
 const PLUGIN_NAME: &str = "listener";
@@ -21,6 +23,7 @@ pub struct State {
     speaker_stream_handle: Option<tokio::task::JoinHandle<()>>,
     listen_stream_handle: Option<tokio::task::JoinHandle<()>>,
     silence_stream_tx: Option<std::sync::mpsc::Sender<()>>,
+    channels: Arc<Mutex<Vec<tauri::ipc::Channel<SessionEvent>>>>,
 }
 
 fn make_specta_builder() -> tauri_specta::Builder<Wry> {
@@ -28,6 +31,7 @@ fn make_specta_builder() -> tauri_specta::Builder<Wry> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::get_timeline::<Wry>,
+            commands::subscribe::<Wry>,
             commands::start_session::<Wry>,
             commands::stop_session::<Wry>,
         ])

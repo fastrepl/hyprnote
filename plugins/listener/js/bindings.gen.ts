@@ -10,7 +10,10 @@ export const commands = {
 async getTimeline() : Promise<TimelineView> {
     return await TAURI_INVOKE("plugin:listener|get_timeline");
 },
-async startSession() : Promise<null> {
+async subscribe(channel: TAURI_CHANNEL<SessionEvent>) : Promise<null> {
+    return await TAURI_INVOKE("plugin:listener|subscribe", { channel });
+},
+async startSession() : Promise<string> {
     return await TAURI_INVOKE("plugin:listener|start_session");
 },
 async stopSession() : Promise<null> {
@@ -28,6 +31,8 @@ async stopSession() : Promise<null> {
 
 /** user-defined types **/
 
+export type SessionEvent = "Stopped" | { Audio: [number, number] } | { TimelineView: TimelineView }
+export type TAURI_CHANNEL<TSend> = null
 export type TimelineView = { items: TimelineViewItem[] }
 export type TimelineViewItem = { start: number; end: number; speaker: string; text: string }
 

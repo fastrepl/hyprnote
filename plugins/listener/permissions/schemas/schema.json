@@ -325,6 +325,16 @@
           "const": "deny-stop-session"
         },
         {
+          "description": "Enables the subscribe command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-subscribe"
+        },
+        {
+          "description": "Denies the subscribe command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-subscribe"
+        },
+        {
           "description": "Default permissions for the plugin",
           "type": "string",
           "const": "default"

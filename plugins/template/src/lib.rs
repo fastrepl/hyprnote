@@ -3,8 +3,13 @@ use tauri::{Manager, Wry};
 
 mod commands;
 mod engine;
+mod ext;
+
+pub use ext::TemplatePluginExt;
 
 const PLUGIN_NAME: &str = "template";
+
+pub type ManagedState = Mutex<State>;
 
 pub struct State {
     env: minijinja::Environment<'static>,
@@ -18,8 +23,8 @@ impl Default for State {
     }
 }
 
-fn make_specta_builder() -> tauri_specta::Builder<Wry> {
-    tauri_specta::Builder::new()
+fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
+    tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::render::<Wry>,
@@ -28,7 +33,7 @@ fn make_specta_builder() -> tauri_specta::Builder<Wry> {
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
-pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
+pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
@@ -42,55 +47,13 @@ pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
         .build()
 }
 
-pub trait TemplatePluginExt<R: tauri::Runtime> {
-    fn render(
-        &self,
-        name: impl AsRef<str>,
-        ctx: serde_json::Map<String, serde_json::Value>,
-    ) -> Result<String, String>;
-    fn register_template(
-        &self,
-        name: impl Into<String>,
-        template: impl Into<String>,
-    ) -> Result<(), String>;
-}
-
-impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::TemplatePluginExt<R> for T {
-    fn render(
-        &self,
-        name: impl AsRef<str>,
-        ctx: serde_json::Map<String, serde_json::Value>,
-    ) -> Result<String, String> {
-        let state = self.state::<Mutex<State>>();
-        let s = state.lock().unwrap();
-        let tpl = s
-            .env
-            .get_template(name.as_ref())
-            .map_err(|e| e.to_string())?;
-        tpl.render(&ctx).map_err(|e| e.to_string())
-    }
-
-    fn register_template(
-        &self,
-        name: impl Into<String>,
-        template: impl Into<String>,
-    ) -> Result<(), String> {
-        let state = self.state::<Mutex<State>>();
-        let mut state = state.lock().unwrap();
-        state
-            .env
-            .add_template_owned(name.into(), template.into())
-            .map_err(|e| e.to_string())
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn export_types() {
-        make_specta_builder()
+        make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
                     .header("// @ts-nocheck\n\n")
@@ -99,5 +62,17 @@ mod test {
                 "./js/bindings.gen.ts",
             )
             .unwrap()
+    }
+
+    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
+        builder
+            .plugin(init())
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap()
+    }
+
+    #[test]
+    fn test_template() {
+        let _app = create_app(tauri::test::mock_builder());
     }
 }

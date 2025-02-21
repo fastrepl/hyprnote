@@ -8,8 +8,8 @@ pub use model::*;
 
 const PLUGIN_NAME: &str = "utils";
 
-fn make_specta_builder() -> tauri_specta::Builder<Wry> {
-    tauri_specta::Builder::new()
+fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
+    tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::opinionated_md_to_html::<Wry>,
@@ -18,7 +18,7 @@ fn make_specta_builder() -> tauri_specta::Builder<Wry> {
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
-pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
+pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
@@ -32,7 +32,7 @@ mod test {
 
     #[test]
     fn export_types() {
-        make_specta_builder()
+        make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
                     .header("// @ts-nocheck\n\n")
@@ -41,5 +41,17 @@ mod test {
                 "./js/bindings.gen.ts",
             )
             .unwrap()
+    }
+
+    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
+        builder
+            .plugin(init())
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap()
+    }
+
+    #[test]
+    fn test_misc() {
+        let _app = create_app(tauri::test::mock_builder());
     }
 }

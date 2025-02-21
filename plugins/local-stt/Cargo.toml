@@ -17,7 +17,7 @@ specta-typescript = { workspace = true }
 [dependencies]
 hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
 
-tauri = { workspace = true }
+tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 anyhow = { workspace = true }

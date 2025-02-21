@@ -2,7 +2,6 @@ use crate::TemplatePluginExt;
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(app))]
 pub async fn render<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     name: String,
@@ -13,7 +12,6 @@ pub async fn render<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(app))]
 pub async fn register_template<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     name: String,

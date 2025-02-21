@@ -1,12 +1,13 @@
 use std::sync::Mutex;
-
-use tauri::{Manager, Wry};
+use tauri::Manager;
 
 mod commands;
 mod error;
+mod ext;
 mod worker;
 
 pub use error::{Error, Result};
+pub use ext::AppleCalendarPluginExt;
 
 pub type ManagedState = Mutex<State>;
 
@@ -17,28 +18,8 @@ pub struct State {
 
 const PLUGIN_NAME: &str = "apple-calendar";
 
-pub trait AppleCalendarExt<R: tauri::Runtime> {
-    fn start_worker(&self, user_id: impl Into<String>) -> Result<()>;
-}
-
-impl<R: tauri::Runtime, T: Manager<R>> crate::AppleCalendarExt<R> for T {
-    fn start_worker(&self, user_id: impl Into<String>) -> Result<()> {
-        let db = self.state::<hypr_db::user::UserDatabase>().inner().clone();
-        let user_id = user_id.into();
-
-        let state = self.state::<ManagedState>();
-        let mut s = state.lock().unwrap();
-
-        s.worker_handle = Some(tokio::runtime::Handle::current().spawn(async move {
-            let _ = worker::monitor(worker::WorkerState { db, user_id }).await;
-        }));
-
-        Ok(())
-    }
-}
-
-fn make_specta_builder() -> tauri_specta::Builder<Wry> {
-    tauri_specta::Builder::<Wry>::new()
+fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
+    tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::calendar_access_status,
@@ -49,7 +30,7 @@ fn make_specta_builder() -> tauri_specta::Builder<Wry> {
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
-pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
+pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
@@ -67,7 +48,7 @@ mod test {
 
     #[test]
     fn export_types() {
-        make_specta_builder()
+        make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
                     .header("// @ts-nocheck\n\n")
@@ -76,5 +57,17 @@ mod test {
                 "./js/bindings.gen.ts",
             )
             .unwrap()
+    }
+
+    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
+        builder
+            .plugin(init())
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap()
+    }
+
+    #[test]
+    fn test_apple_calendar() {
+        let _app = create_app(tauri::test::mock_builder());
     }
 }

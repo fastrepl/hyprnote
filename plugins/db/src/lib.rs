@@ -1,10 +1,12 @@
 use std::sync::Mutex;
-use tauri::{Manager, Wry};
+use tauri::Manager;
 
 mod commands;
 mod error;
+mod ext;
 
 pub use error::{Error, Result};
+pub use ext::DatabasePluginExt;
 
 pub type ManagedState = Mutex<State>;
 
@@ -15,8 +17,8 @@ pub struct State {
 
 const PLUGIN_NAME: &str = "db";
 
-fn make_specta_builder() -> tauri_specta::Builder<Wry> {
-    tauri_specta::Builder::<Wry>::new()
+fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
+    tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::list_calendars,
@@ -44,7 +46,7 @@ fn make_specta_builder() -> tauri_specta::Builder<Wry> {
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
-pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
+pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
@@ -79,52 +81,13 @@ pub fn init() -> tauri::plugin::TauriPlugin<Wry> {
         .build()
 }
 
-pub trait DatabasePluginExt<R: tauri::Runtime> {
-    fn db_create_new_user(&self) -> Result<String>;
-    fn db_set_user_id(&self, user_id: String) -> Result<()>;
-}
-
-impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabasePluginExt<R> for T {
-    fn db_create_new_user(&self) -> Result<String> {
-        let user_id = tokio::task::block_in_place(|| {
-            tokio::runtime::Handle::current().block_on(async move {
-                let db = self.state::<hypr_db::user::UserDatabase>();
-
-                let human = db
-                    .upsert_human(hypr_db::user::Human {
-                        is_user: true,
-                        ..Default::default()
-                    })
-                    .await
-                    .unwrap();
-
-                let state = self.state::<ManagedState>();
-                let mut s = state.lock().unwrap();
-
-                s.user_id = Some(human.id.clone());
-                human.id
-            })
-        });
-
-        Ok(user_id)
-    }
-
-    fn db_set_user_id(&self, user_id: String) -> Result<()> {
-        let state = self.state::<ManagedState>();
-        let mut s = state.lock().unwrap();
-        s.user_id = Some(user_id);
-
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn export_types() {
-        make_specta_builder()
+        make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
                     .header("// @ts-nocheck\n\n")
@@ -133,5 +96,17 @@ mod test {
                 "./js/bindings.gen.ts",
             )
             .unwrap()
+    }
+
+    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
+        builder
+            .plugin(init())
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap()
+    }
+
+    #[test]
+    fn test_db() {
+        let _app = create_app(tauri::test::mock_builder());
     }
 }

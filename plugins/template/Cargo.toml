@@ -23,7 +23,7 @@ codes-iso-639 = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 
-tauri = { workspace = true }
+tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 minijinja = { version = "2.7.0", features = ["loader", "preserve_order", "json"] }

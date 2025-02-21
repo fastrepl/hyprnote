@@ -19,7 +19,7 @@ hypr-audio = { path = "../../crates/audio", package = "audio" }
 hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
 hypr-db = { path = "../../crates/db", package = "db", default-features = false, features = ["user"] }
 
-tauri = { workspace = true, features = ["specta"] }
+tauri = { workspace = true, features = ["specta", "test"] }
 tracing = { workspace = true }
 
 serde = { workspace = true }

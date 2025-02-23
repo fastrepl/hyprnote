@@ -3148,6 +3148,7 @@ dependencies = [
  "tauri-plugin-sentry",
  "tauri-plugin-shell",
  "tauri-plugin-single-instance",
+ "tauri-plugin-sse",
  "tauri-plugin-store",
  "tauri-plugin-template",
  "tauri-plugin-updater",
@@ -11680,8 +11681,12 @@ version = "0.1.0"
 dependencies = [
  "reqwest 0.12.12",
  "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-specta",
  "thiserror 2.0.11",
 ]
 

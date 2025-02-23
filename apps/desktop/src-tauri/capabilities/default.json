@@ -38,6 +38,7 @@
     "local-stt:default",
     "apple-calendar:default",
     "misc:default",
+    "sse:default",
     {
       "identifier": "http:default",
       "allow": [

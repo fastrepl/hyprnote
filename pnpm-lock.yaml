@@ -564,6 +564,9 @@ importers:
       '@hypr/client':
         specifier: workspace:^
         version: link:../../packages/client
+      '@hypr/plugin-sse':
+        specifier: workspace:^
+        version: link:../../plugins/sse
       '@tauri-apps/plugin-http':
         specifier: ^2.3.0
         version: 2.3.0
@@ -832,6 +835,12 @@ importers:
         version: 2.2.0
 
   plugins/misc:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.2.0
+        version: 2.2.0
+
+  plugins/sse:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.2.0

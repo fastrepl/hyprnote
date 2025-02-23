@@ -11,8 +11,15 @@ description = ""
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
 
+[dev-dependencies]
+specta-typescript = { workspace = true }
+
 [dependencies]
+specta = { workspace = true }
+tauri = { workspace = true, features = ["test"] }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
 reqwest = { workspace = true, features = ["stream"] }
 serde = { workspace = true }
-tauri = { workspace = true }
+serde_json = { workspace = true }
 thiserror = { workspace = true }

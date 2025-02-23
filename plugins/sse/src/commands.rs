@@ -1,13 +1,28 @@
-use tauri::{command, AppHandle, Runtime};
+use reqwest::header::{HeaderMap, HeaderName};
 
-use crate::models::*;
-use crate::Result;
-use crate::SseExt;
+#[derive(Debug, specta::Type, serde::Deserialize)]
+pub struct Request {
+    method: String,
+    url: String,
+    headers: std::collections::HashMap<String, String>,
+    body: Vec<u8>,
+}
 
-#[command]
-pub(crate) async fn ping<R: Runtime>(
-    app: AppHandle<R>,
-    payload: PingRequest,
-) -> Result<PingResponse> {
-    app.sse().ping(payload)
+#[tauri::command]
+#[specta::specta]
+pub async fn fetch<R: tauri::Runtime>(
+    req: Request,
+    state: tauri::State<'_, crate::State>,
+    _window: tauri::Window<R>,
+) -> Result<String, String> {
+    let _request_id = state
+        .counter
+        .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+
+    let _method = req
+        .method
+        .parse::<reqwest::Method>()
+        .map_err(|e| e.to_string())?;
+
+    Ok("Hello, world!".to_string())
 }

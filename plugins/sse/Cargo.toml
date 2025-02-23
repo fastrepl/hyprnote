@@ -13,12 +13,15 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 specta-typescript = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [dependencies]
 specta = { workspace = true }
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
+bytes = { workspace = true }
+futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["stream"] }
 serde = { workspace = true }
 serde_json = { workspace = true }

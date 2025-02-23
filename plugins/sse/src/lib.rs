@@ -1,7 +1,12 @@
 use tauri::Manager;
 
 mod commands;
-mod events;
+mod ext;
+mod types;
+
+pub use ext::*;
+pub use types::*;
+
 const PLUGIN_NAME: &str = "sse";
 
 #[derive(Default)]
@@ -13,7 +18,7 @@ pub struct State {
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
-        .events(tauri_specta::collect_events![events::ServerSentEvent])
+        .events(tauri_specta::collect_events![types::ServerSentEvent])
         .commands(tauri_specta::collect_commands![
             commands::fetch::<tauri::Wry>
         ])
@@ -35,7 +40,10 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
 #[cfg(test)]
 mod test {
-    use tauri::Listener;
+    use std::sync::{Arc, Mutex};
+    use std::time::Duration;
+    use tauri_specta::Event;
+    use tokio::time::timeout;
 
     use super::*;
 
@@ -59,12 +67,8 @@ mod test {
             .unwrap()
     }
 
-    #[test]
-    fn test_sse() {
-        let app = create_app(tauri::test::mock_builder());
-
-        app.listen_any("TODO", |event| {
-            println!("event: {:?}", event);
-        });
+    #[tokio::test]
+    async fn test_sse() {
+        let _app = create_app(tauri::test::mock_builder());
     }
 }

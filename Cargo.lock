@@ -11679,6 +11679,8 @@ dependencies = [
 name = "tauri-plugin-sse"
 version = "0.1.0"
 dependencies = [
+ "bytes",
+ "futures-util",
  "reqwest 0.12.12",
  "serde",
  "serde_json",
@@ -11688,6 +11690,7 @@ dependencies = [
  "tauri-plugin",
  "tauri-specta",
  "thiserror 2.0.11",
+ "tokio",
 ]
 
 [[package]]

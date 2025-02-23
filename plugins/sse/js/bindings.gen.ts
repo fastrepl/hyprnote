@@ -7,8 +7,8 @@
 
 
 export const commands = {
-async fetch() : Promise<string> {
-    return await TAURI_INVOKE("plugin:sse|fetch");
+async fetch(req: Request) : Promise<Response> {
+    return await TAURI_INVOKE("plugin:sse|fetch", { req });
 }
 }
 
@@ -27,7 +27,9 @@ serverSentEvent: "plugin:sse:server-sent-event"
 
 /** user-defined types **/
 
-export type ServerSentEvent = { data: string }
+export type Request = { method: string; url: string; headers: Partial<{ [key in string]: string }>; body: number[] }
+export type Response = { requestId: number; status: number; headers: Partial<{ [key in string]: string }> }
+export type ServerSentEvent = { requestId: number; chunk: number[] | null }
 
 /** tauri-specta globals **/
 

@@ -1,0 +1,18 @@
+[package]
+name = "tauri-plugin-sse"
+version = "0.1.0"
+authors = ["You"]
+edition = "2021"
+exclude = ["/js"]
+links = "tauri-plugin-sse"
+rust-version = "1.77.2"
+description = ""
+
+[build-dependencies]
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[dependencies]
+reqwest = { workspace = true, features = ["stream"] }
+serde = { workspace = true }
+tauri = { workspace = true }
+thiserror = { workspace = true }

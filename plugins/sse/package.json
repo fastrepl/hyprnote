@@ -1,0 +1,11 @@
+{
+  "name": "@hypr/plugin-sse",
+  "private": true,
+  "main": "./js/index.ts",
+  "scripts": {
+    "codegen": "cargo test -p tauri-plugin-sse"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.2.0"
+  }
+}

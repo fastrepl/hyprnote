@@ -2,7 +2,8 @@ import { z } from "zod";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
-import { commands } from "@/types";
+
+import { commands as authCommands } from "@hypr/plugin-auth";
 
 const schema = z.object({
   eventId: z.string().optional(),
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/note/new")({
   beforeLoad: async ({ search }) => {
     let session: Session | null = null;
 
-    const userId = await commands.getUserId();
+    const userId = await authCommands.getFromVault("userId");
 
     const emptySession: Session = {
       id: crypto.randomUUID() as string,

@@ -1,4 +1,3 @@
-mod commands;
 mod permissions;
 
 use tauri::Manager;
@@ -131,7 +130,6 @@ pub async fn main() {
 fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
     tauri_specta::Builder::<tauri::Wry>::new()
         .commands(tauri_specta::collect_commands![
-            commands::get_user_id,
             permissions::open_permission_settings,
             permissions::check_permission_status,
         ])

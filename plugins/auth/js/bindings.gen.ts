@@ -31,7 +31,7 @@ async getFromVault(key: Key) : Promise<string> {
 
 /** user-defined types **/
 
-export type Key = "UserId" | "AccountId" | "RemoteDatabase" | "RemoteServer"
+export type Key = "userId" | "accountId" | "remoteDatabase" | "remoteServer"
 export type RequestParams = { c: string; f: string; p: number }
 
 /** tauri-specta globals **/

@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
-
-import { commands } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+
+import { commands as authCommands } from "@hypr/plugin-auth";
 
 export interface HyprContext {
   userId: string;
@@ -12,7 +12,7 @@ const HyprContext = createContext<HyprContext | null>(null);
 export function HyprProvider({ children }: { children: React.ReactNode }) {
   const userId = useQuery({
     queryKey: ["userId"],
-    queryFn: () => commands.getUserId(),
+    queryFn: () => authCommands.getFromVault("userId"),
   });
 
   if (userId.status === "pending") {

@@ -7,15 +7,19 @@ pub struct Vault {
 pub enum Key {
     #[allow(dead_code)]
     #[strum(serialize = "user_id")]
+    #[specta(rename = "userId")]
     UserId,
     #[allow(dead_code)]
     #[strum(serialize = "account_id")]
+    #[specta(rename = "accountId")]
     AccountId,
     #[allow(dead_code)]
     #[strum(serialize = "remote_database")]
+    #[specta(rename = "remoteDatabase")]
     RemoteDatabase,
     #[allow(dead_code)]
     #[strum(serialize = "remote_server")]
+    #[specta(rename = "remoteServer")]
     RemoteServer,
 }
 

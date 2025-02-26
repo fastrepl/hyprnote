@@ -13,10 +13,10 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as OnboardingImport } from './routes/onboarding'
 import { Route as LoginImport } from './routes/login'
-import { Route as NavImport } from './routes/_nav'
-import { Route as NavIndexImport } from './routes/_nav.index'
+import { Route as AppImport } from './routes/app'
+import { Route as AppIndexImport } from './routes/app.index'
 import { Route as NoteNewImport } from './routes/note.new'
-import { Route as NavNoteIdImport } from './routes/_nav.note.$id'
+import { Route as AppNoteIdImport } from './routes/app.note.$id'
 
 // Create/Update Routes
 
@@ -32,15 +32,16 @@ const LoginRoute = LoginImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const NavRoute = NavImport.update({
-  id: '/_nav',
+const AppRoute = AppImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRoute,
 } as any)
 
-const NavIndexRoute = NavIndexImport.update({
+const AppIndexRoute = AppIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => NavRoute,
+  getParentRoute: () => AppRoute,
 } as any)
 
 const NoteNewRoute = NoteNewImport.update({
@@ -49,21 +50,21 @@ const NoteNewRoute = NoteNewImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const NavNoteIdRoute = NavNoteIdImport.update({
+const AppNoteIdRoute = AppNoteIdImport.update({
   id: '/note/$id',
   path: '/note/$id',
-  getParentRoute: () => NavRoute,
+  getParentRoute: () => AppRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_nav': {
-      id: '/_nav'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof NavImport
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppImport
       parentRoute: typeof rootRoute
     }
     '/login': {
@@ -87,89 +88,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NoteNewImport
       parentRoute: typeof rootRoute
     }
-    '/_nav/': {
-      id: '/_nav/'
+    '/app/': {
+      id: '/app/'
       path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof NavIndexImport
-      parentRoute: typeof NavImport
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexImport
+      parentRoute: typeof AppImport
     }
-    '/_nav/note/$id': {
-      id: '/_nav/note/$id'
+    '/app/note/$id': {
+      id: '/app/note/$id'
       path: '/note/$id'
-      fullPath: '/note/$id'
-      preLoaderRoute: typeof NavNoteIdImport
-      parentRoute: typeof NavImport
+      fullPath: '/app/note/$id'
+      preLoaderRoute: typeof AppNoteIdImport
+      parentRoute: typeof AppImport
     }
   }
 }
 
 // Create and export the route tree
 
-interface NavRouteChildren {
-  NavIndexRoute: typeof NavIndexRoute
-  NavNoteIdRoute: typeof NavNoteIdRoute
+interface AppRouteChildren {
+  AppIndexRoute: typeof AppIndexRoute
+  AppNoteIdRoute: typeof AppNoteIdRoute
 }
 
-const NavRouteChildren: NavRouteChildren = {
-  NavIndexRoute: NavIndexRoute,
-  NavNoteIdRoute: NavNoteIdRoute,
+const AppRouteChildren: AppRouteChildren = {
+  AppIndexRoute: AppIndexRoute,
+  AppNoteIdRoute: AppNoteIdRoute,
 }
 
-const NavRouteWithChildren = NavRoute._addFileChildren(NavRouteChildren)
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 export interface FileRoutesByFullPath {
-  '': typeof NavRouteWithChildren
+  '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/note/new': typeof NoteNewRoute
-  '/': typeof NavIndexRoute
-  '/note/$id': typeof NavNoteIdRoute
+  '/app/': typeof AppIndexRoute
+  '/app/note/$id': typeof AppNoteIdRoute
 }
 
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/note/new': typeof NoteNewRoute
-  '/': typeof NavIndexRoute
-  '/note/$id': typeof NavNoteIdRoute
+  '/app': typeof AppIndexRoute
+  '/app/note/$id': typeof AppNoteIdRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/_nav': typeof NavRouteWithChildren
+  '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/note/new': typeof NoteNewRoute
-  '/_nav/': typeof NavIndexRoute
-  '/_nav/note/$id': typeof NavNoteIdRoute
+  '/app/': typeof AppIndexRoute
+  '/app/note/$id': typeof AppNoteIdRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/login' | '/onboarding' | '/note/new' | '/' | '/note/$id'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/onboarding' | '/note/new' | '/' | '/note/$id'
-  id:
-    | '__root__'
-    | '/_nav'
+  fullPaths:
+    | '/app'
     | '/login'
     | '/onboarding'
     | '/note/new'
-    | '/_nav/'
-    | '/_nav/note/$id'
+    | '/app/'
+    | '/app/note/$id'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/login' | '/onboarding' | '/note/new' | '/app' | '/app/note/$id'
+  id:
+    | '__root__'
+    | '/app'
+    | '/login'
+    | '/onboarding'
+    | '/note/new'
+    | '/app/'
+    | '/app/note/$id'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  NavRoute: typeof NavRouteWithChildren
+  AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   NoteNewRoute: typeof NoteNewRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  NavRoute: NavRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   NoteNewRoute: NoteNewRoute,
@@ -185,17 +192,17 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/_nav",
+        "/app",
         "/login",
         "/onboarding",
         "/note/new"
       ]
     },
-    "/_nav": {
-      "filePath": "_nav.tsx",
+    "/app": {
+      "filePath": "app.tsx",
       "children": [
-        "/_nav/",
-        "/_nav/note/$id"
+        "/app/",
+        "/app/note/$id"
       ]
     },
     "/login": {
@@ -207,13 +214,13 @@ export const routeTree = rootRoute
     "/note/new": {
       "filePath": "note.new.tsx"
     },
-    "/_nav/": {
-      "filePath": "_nav.index.tsx",
-      "parent": "/_nav"
+    "/app/": {
+      "filePath": "app.index.tsx",
+      "parent": "/app"
     },
-    "/_nav/note/$id": {
-      "filePath": "_nav.note.$id.tsx",
-      "parent": "/_nav"
+    "/app/note/$id": {
+      "filePath": "app.note.$id.tsx",
+      "parent": "/app"
     }
   }
 }

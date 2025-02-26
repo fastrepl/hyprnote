@@ -10,7 +10,6 @@ import { routeTree } from "./routeTree.gen";
 
 import { ThemeProvider } from "@hypr/ui/contexts/theme";
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
-import { HyprProvider } from "./contexts/hypr";
 
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
@@ -88,10 +87,8 @@ if (!rootElement.innerHTML) {
         <ThemeProvider defaultTheme="light">
           <QueryClientProvider client={queryClient}>
             <I18nProvider i18n={i18n}>
-              <HyprProvider>
-                <App />
-                <Toaster position="top-center" />
-              </HyprProvider>
+              <App />
+              <Toaster position="top-center" />
             </I18nProvider>
           </QueryClientProvider>
         </ThemeProvider>

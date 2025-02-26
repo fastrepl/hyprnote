@@ -20,8 +20,6 @@ import { Button } from "@hypr/ui/components/ui/button";
 export const Route = createFileRoute("/login")({
   component: Component,
   loader: async () => {
-    // TODO
-    // const fingerprint = await commands.getFingerprint();
     return {
       code: window.crypto.randomUUID(),
       fingerprint: "",

@@ -51,9 +51,9 @@ impl ShowHyprWindow {
             Some(window) => window,
             None => {
                 let url = match self {
-                    Self::Demo => "/",
-                    Self::MainWithDemo => "/",
-                    Self::MainWithoutDemo => "/",
+                    Self::Demo => "/demo",
+                    Self::MainWithDemo => "/demo",
+                    Self::MainWithoutDemo => "/app",
                 };
                 self.window_builder(app, url).build()?
             }

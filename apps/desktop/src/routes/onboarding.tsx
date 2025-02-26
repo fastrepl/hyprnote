@@ -1,13 +1,15 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MicIcon, Volume2Icon } from "lucide-react";
-import { type OsType, type as getOsType } from "@tauri-apps/plugin-os";
-import { commands } from "@/types";
-import { useEffect, useState } from "react";
-import { Particles } from "@hypr/ui/components/ui/particles";
-import clsx from "clsx";
-import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { Trans } from "@lingui/react/macro";
+import clsx from "clsx";
+
+import { type OsType, type as getOsType } from "@tauri-apps/plugin-os";
+
+import { commands } from "@/types";
+import { Particles } from "@hypr/ui/components/ui/particles";
+import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import ShimmerButton from "@hypr/ui/components/ui/shimmer-button";
 
 export const Route = createFileRoute("/onboarding")({
@@ -131,7 +133,7 @@ function Component() {
             {micPermission.data && capturePermission.data && (
               <PushableButton
                 onClick={() => {
-                  navigate({ to: "/" });
+                  navigate({ to: "/app" });
                 }}
                 className="mb-4"
                 disabled={!micPermission.data || !capturePermission.data}

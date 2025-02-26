@@ -11,7 +11,7 @@ const NotFound = () => {
     <div className="flex h-full w-full items-center justify-center">
       <div className="flex flex-col items-center justify-center gap-2">
         <p>Oops! Nothing here.</p>
-        <Link to="/">
+        <Link to="/app">
           <Button variant="outline">Go to home</Button>
         </Link>
       </div>
@@ -28,11 +28,12 @@ export const NotFoundComponent: NotFoundRouteComponent = (_props) => {
 };
 
 export const ErrorComponent: ErrorRouteComponent = (props) => {
+  console.log("error", props);
   return (
     <div className="flex h-full w-full items-center justify-center">
       <p>Error</p>
       <pre>{JSON.stringify(props.error, null, 2)}</pre>
-      <Link to="/">Go to home</Link>
+      <Link to="/app">Go to home</Link>
     </div>
   );
 };

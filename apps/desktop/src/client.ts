@@ -7,7 +7,6 @@ import { fetch } from "@hypr/utils";
 import { Channel } from "@tauri-apps/api/core";
 
 import { NangoIntegration } from "@/types";
-import { commands as authCommands } from "@hypr/plugin-auth";
 
 export const baseUrl = import.meta.env.DEV
   ? "http://localhost:1234"
@@ -17,7 +16,7 @@ export const client = createClient(
   createConfig({
     fetch,
     auth: async () => {
-      const _token = await authCommands.getFromVault("remoteServer");
+      // const _token = await authCommands.getFromVault("remoteServer");
       return "123";
     },
     baseUrl,

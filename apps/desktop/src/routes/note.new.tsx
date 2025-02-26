@@ -13,7 +13,8 @@ export const Route = createFileRoute("/note/new")({
   beforeLoad: async ({ search }) => {
     let session: Session | null = null;
 
-    const userId = await authCommands.getFromVault("userId");
+    // TODO: HyprContext already have this
+    const userId = (await authCommands.getFromVault("userId")) ?? "";
 
     const emptySession: Session = {
       id: crypto.randomUUID() as string,
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/note/new")({
       session = await dbCommands.upsertSession(emptySession);
     } catch (error) {
       console.error(error);
-      throw redirect({ to: "/" });
+      throw redirect({ to: "/app" });
     }
 
     if (search.eventId) {
@@ -40,7 +41,7 @@ export const Route = createFileRoute("/note/new")({
     }
 
     throw redirect({
-      to: "/note/$id",
+      to: "/app/note/$id",
       params: { id: session.id },
     });
   },

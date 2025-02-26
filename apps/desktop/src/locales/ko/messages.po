@@ -13,30 +13,98 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/components/home/PastNotes.tsx:32
-#~ msgid "{0}"
-#~ msgstr ""
+#. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
+#: src/components/settings-panel/views/calendar.tsx:189
+msgid "{0}"
+msgstr ""
 
 #: src/components/note/NoteHeader.tsx:52
 #~ msgid "{0} ~ {1}"
 #~ msgstr ""
 
-#. placeholder {0}: calendarAccess.data ? ( <span>Calendar access granted.</span> ) : ( <span> Calendar access not granted.{" "} <button onClick={handleRequestCalendarAccess}> This is required. </button> </span> )
-#. placeholder {1}: contactsAccess.data ? ( <span>Contacts access granted.</span> ) : ( <span> Contacts access not granted.{" "} <button onClick={handleRequestContactsAccess}> This is optional. </button> </span> )
 #: src/components/settings/calendar.tsx:226
-msgid "<0>{0}</0><1>{1}</1>"
+#~ msgid "<0>{0}</0><1>{1}</1>"
+#~ msgstr ""
+
+#: src/components/settings-panel/views/calendar.tsx:256
+#: src/components/settings-panel/views/calendar.tsx:290
+msgid "Access granted"
+msgstr ""
+
+#: src/components/settings-panel/views/team.tsx:88
+msgid "Add members"
+msgstr ""
+
+#: src/components/settings-panel/views/tags.tsx:196
+msgid "Add new tag"
+msgstr ""
+
+#: src/components/settings-panel/views/tags.tsx:92
+#: src/components/settings-panel/views/tags.tsx:236
+msgid "Add tag"
+msgstr ""
+
+#: src/components/settings-panel/views/team.tsx:133
+#: src/components/settings-panel/views/team.tsx:221
+msgid "Admin"
 msgstr ""
 
 #: src/components/settings/billing.tsx:17
-msgid "Billing"
+#~ msgid "Billing"
+#~ msgstr ""
+
+#: src/components/settings-panel/views/calendar.tsx:252
+msgid "Calendar Access"
+msgstr ""
+
+#: src/components/settings-panel/views/calendar.tsx:197
+msgid "Calendar connected"
 msgstr ""
 
 #: src/components/settings/calendar.tsx:189
-msgid "Calendar connected. Hyprnote will periodically sync your calendar events."
+#~ msgid "Calendar connected. Hyprnote will periodically sync your calendar events."
+#~ msgstr ""
+
+#: src/components/settings-panel/views/tags.tsx:226
+msgid "Cancel"
 msgstr ""
 
-#: src/routes/login.tsx:63
+#: src/components/settings-panel/views/calendar.tsx:212
+msgid "Connect"
+msgstr ""
+
+#: src/components/settings-panel/views/calendar.tsx:199
+msgid "Connect to sync your meetings"
+msgstr ""
+
+#: src/components/settings-panel/views/calendar.tsx:286
+msgid "Contacts Access"
+msgstr ""
+
+#: src/routes/onboarding.tsx:141
+msgid "Continue"
+msgstr ""
+
+#: src/components/settings-panel/views/tags.tsx:199
+msgid "Create a new tag to help organize and categorize your notes."
+msgstr ""
+
+#: src/components/settings-panel/views/team.tsx:156
+#: src/components/settings-panel/views/tags.tsx:172
+msgid "Delete"
+msgstr ""
+
+#: src/components/settings-panel/views/team.tsx:193
+msgid "Email addresses"
+msgstr ""
+
+#: src/routes/login.tsx:109
 msgid "Get Started"
+msgstr ""
+
+#: src/components/settings-panel/views/calendar.tsx:272
+#: src/components/settings-panel/views/calendar.tsx:306
+msgid "Grant Access"
 msgstr ""
 
 #: src/components/home/NewUserBanner.tsx:12
@@ -48,16 +116,58 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/calendar.tsx:64
-msgid "Integrations"
+#~ msgid "Integrations"
+#~ msgstr ""
+
+#: src/components/settings-panel/views/team.tsx:180
+msgid "Invite members"
 msgstr ""
 
-#: src/routes/_nav.tsx:80
+#: src/components/settings-panel/views/general.tsx:168
+msgid "Jargons"
+msgstr ""
+
+#: src/components/settings-panel/views/billing.tsx:188
+msgid "Learn more about our pricing plans"
+msgstr ""
+
+#: src/components/settings-panel/views/team.tsx:136
+#: src/components/settings-panel/views/team.tsx:224
+msgid "Member"
+msgstr ""
+
+#: src/components/toolbar/new-note-button.tsx:45
 msgid "New Note"
+msgstr ""
+
+#: src/components/settings-panel/views/team.tsx:166
+msgid "No members found"
 msgstr ""
 
 #: src/components/SearchModal.tsx:78
 #~ msgid "No results"
 #~ msgstr ""
+
+#: src/components/settings-panel/views/tags.tsx:182
+msgid "No tags found"
+msgstr ""
+
+#: src/components/settings-panel/views/tags.tsx:102
+msgid "Notes"
+msgstr ""
+
+#: src/components/settings-panel/views/calendar.tsx:292
+msgid "Optional for participant suggestions"
+msgstr ""
+
+#: src/components/settings-panel/views/team.tsx:130
+#: src/components/settings-panel/views/team.tsx:218
+msgid "Owner"
+msgstr ""
+
+#: src/components/past-sessions.tsx:39
+msgid "Past Notes"
+msgstr ""
 
 #: src/components/past-sessions.tsx:13
 #~ msgid "Past Sessions"
@@ -67,26 +177,67 @@ msgstr ""
 #~ msgid "Recent Notes"
 #~ msgstr ""
 
+#: src/components/settings-panel/views/calendar.tsx:258
+msgid "Required for syncing calendar events"
+msgstr ""
+
+#: src/components/settings-panel/views/team.tsx:98
+#: src/components/settings-panel/views/team.tsx:205
+msgid "Role"
+msgstr ""
+
 #: src/components/SearchModal.tsx:72
 #~ msgid "Search"
 #~ msgstr ""
 
+#: src/components/settings-panel/views/team.tsx:232
+msgid "Send invite"
+msgstr ""
+
+#: src/routes/login.tsx:140
+msgid "Skip to use locally"
+msgstr ""
+
+#: src/components/settings-panel/views/tags.tsx:99
+msgid "Tag"
+msgstr ""
+
+#: src/components/settings-panel/views/tags.tsx:208
+msgid "Tag name"
+msgstr ""
+
 #: src/components/settings/billing.tsx:8
-msgid "Team"
+#~ msgid "Team"
+#~ msgstr ""
+
+#: src/components/settings-panel/views/billing.tsx:100
+msgid "There's a plan for everyone"
 msgstr ""
 
 #: src/components/settings/calendar.tsx:194
-msgid "To connect your Calendar, you need to <0>authorize Hypr to access your calendar.</0>"
+#~ msgid "To connect your Calendar, you need to <0>authorize Hypr to access your calendar.</0>"
+#~ msgstr ""
+
+#: src/components/settings-panel/views/team.tsx:183
+msgid "Type or paste in emails below, separated by commas. Your workspace will be billed by members."
 msgstr ""
 
 #: src/components/home/PastNotes.tsx:28
 #~ msgid "Untitled"
 #~ msgstr ""
 
+#: src/components/upcoming-events.tsx:30
+msgid "Upcoming"
+msgstr ""
+
 #: src/components/upcoming-events.tsx:48
-msgid "Upcoming Events"
+#~ msgid "Upcoming Events"
+#~ msgstr ""
+
+#: src/components/settings-panel/views/team.tsx:95
+msgid "User"
 msgstr ""
 
 #: src/routes/login.tsx:52
-msgid "Welcome to"
-msgstr ""
+#~ msgid "Welcome to"
+#~ msgstr ""

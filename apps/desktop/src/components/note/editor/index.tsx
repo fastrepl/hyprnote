@@ -13,13 +13,13 @@ import { useEnhance } from "@/utils/enhance";
 import { useSession } from "@/contexts";
 import { EnhanceControls } from "./enhanced-controls";
 import { EnhanceOnlyButton } from "./enhanced-only-button";
-import { Route } from "@/routes/_nav.note.$id";
+import { Route } from "@/routes/app.note.$id";
 import { NoteHeader } from "../header";
 
 export default function EditorArea() {
   const { templates, config } = Route.useLoaderData();
 
-  const _enhanceMutation = useMutation({
+  useMutation({
     mutationFn: async () => {
       const provider = await modelProvider();
       const { text, textStream } = streamText({

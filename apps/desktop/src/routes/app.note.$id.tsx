@@ -14,14 +14,13 @@ function Component() {
         <div className="h-full flex-1">
           <EditorArea />
         </div>
-
         <RightPanel />
       </main>
     </SessionProvider>
   );
 }
 
-export const Route = createFileRoute("/_nav/note/$id")({
+export const Route = createFileRoute("/app/note/$id")({
   component: Component,
   loader: ({ context: { queryClient }, params: { id } }) => {
     return queryClient.fetchQuery({
@@ -33,7 +32,7 @@ export const Route = createFileRoute("/_nav/note/$id")({
           dbCommands.listTemplates(),
         ]);
         if (!session) {
-          throw redirect({ to: "/" });
+          throw redirect({ to: "/app" });
         }
 
         return {

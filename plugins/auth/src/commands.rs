@@ -26,6 +26,6 @@ pub fn reset_vault<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), St
 pub fn get_from_vault<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     key: Key,
-) -> Result<String, String> {
+) -> Result<Option<String>, String> {
     app.get_from_vault(key)
 }

@@ -25,7 +25,7 @@ pub trait AuthPluginExt<R: tauri::Runtime> {
     fn start_oauth_server(&self) -> Result<u16, String>;
     fn stop_oauth_server(&self, port: u16) -> Result<(), String>;
     fn reset_vault(&self) -> Result<(), String>;
-    fn get_from_vault(&self, key: Key) -> Result<String, String>;
+    fn get_from_vault(&self, key: Key) -> Result<Option<String>, String>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
@@ -68,7 +68,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
         vault.clear().map_err(|err| err.to_string())
     }
 
-    fn get_from_vault(&self, key: Key) -> Result<String, String> {
+    fn get_from_vault(&self, key: Key) -> Result<Option<String>, String> {
         let vault = self.state::<Vault>();
         vault.get(key).map_err(|err| err.to_string())
     }

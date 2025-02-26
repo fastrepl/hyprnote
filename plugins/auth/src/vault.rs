@@ -5,20 +5,20 @@ pub struct Vault {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, strum::AsRefStr, specta::Type)]
 pub enum Key {
-    #[allow(dead_code)]
-    #[strum(serialize = "user_id")]
+    #[strum(serialize = "userId")]
+    #[serde(rename = "userId")]
     #[specta(rename = "userId")]
     UserId,
-    #[allow(dead_code)]
-    #[strum(serialize = "account_id")]
+    #[strum(serialize = "accountId")]
+    #[serde(rename = "accountId")]
     #[specta(rename = "accountId")]
     AccountId,
-    #[allow(dead_code)]
-    #[strum(serialize = "remote_database")]
+    #[strum(serialize = "remoteDatabase")]
+    #[serde(rename = "remoteDatabase")]
     #[specta(rename = "remoteDatabase")]
     RemoteDatabase,
-    #[allow(dead_code)]
-    #[strum(serialize = "remote_server")]
+    #[strum(serialize = "remoteServer")]
+    #[serde(rename = "remoteServer")]
     #[specta(rename = "remoteServer")]
     RemoteServer,
 }
@@ -30,9 +30,13 @@ impl Vault {
         }
     }
 
-    pub fn get(&self, key: Key) -> Result<String, keyring::Error> {
+    pub fn get(&self, key: Key) -> Result<Option<String>, keyring::Error> {
         let entry = keyring::Entry::new(&self.service, key.as_ref()).unwrap();
-        entry.get_password()
+        match entry.get_password() {
+            Ok(v) => Ok(Some(v)),
+            Err(keyring::Error::NoEntry) => Ok(None),
+            Err(e) => Err(e),
+        }
     }
 
     pub fn set(&self, key: Key, value: impl AsRef<str>) -> Result<(), keyring::Error> {

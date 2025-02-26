@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { Trans } from "@lingui/react/macro";
+import { relaunch } from "@tauri-apps/plugin-process";
 
 import {
   Form,
@@ -25,6 +26,7 @@ import {
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { Input } from "@hypr/ui/components/ui/input";
 import { type ConfigGeneral, commands as dbCommands } from "@hypr/plugin-db";
+import { commands as authCommands } from "@hypr/plugin-auth";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
 const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = ["en", "ko"];
@@ -99,6 +101,13 @@ export default function General() {
     );
     return () => subscription.unsubscribe();
   }, [mutation]);
+
+  const reset = useMutation({
+    mutationFn: async () => {
+      await authCommands.resetVault();
+      await relaunch();
+    },
+  });
 
   return (
     <div>
@@ -186,6 +195,15 @@ export default function General() {
           />
         </form>
       </Form>
+
+      <div className="mt-4">
+        <button
+          className="p-2 bg-gray-200 rounded-md"
+          onClick={() => reset.mutate()}
+        >
+          Reset
+        </button>
+      </div>
     </div>
   );
 }

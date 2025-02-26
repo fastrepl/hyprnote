@@ -1,9 +1,12 @@
-use crate::{vault::Key, AuthPluginExt};
+use crate::{vault::Key, AuthEvent, AuthPluginExt};
 
 #[tauri::command]
 #[specta::specta]
-pub fn start_oauth_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<u16, String> {
-    app.start_oauth_server()
+pub fn start_oauth_server<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    channel: tauri::ipc::Channel<AuthEvent>,
+) -> Result<u16, String> {
+    app.start_oauth_server(channel)
 }
 
 #[tauri::command]

@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { open } from "@tauri-apps/plugin-shell";
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
+
+import { open } from "@tauri-apps/plugin-shell";
 import { message } from "@tauri-apps/plugin-dialog";
+import { Channel } from "@tauri-apps/api/core";
+
 import clsx from "clsx";
+import { Trans } from "@lingui/react/macro";
 import { Play, Pause } from "lucide-react";
 
 import {
   commands as authCommands,
+  type AuthEvent,
   type RequestParams,
 } from "@hypr/plugin-auth";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
@@ -31,12 +35,18 @@ export const Route = createFileRoute("/login")({
 
 function Component() {
   const { code } = Route.useLoaderData();
+  const navigate = useNavigate();
+
   const [port, setPort] = useState<number | null>(null);
+  const [status, setStatus] = useState<AuthEvent | "Idle">("Idle");
 
   useEffect(() => {
     let cleanup: (() => void) | undefined;
 
-    authCommands.startOauthServer().then((port) => {
+    const channel = new Channel<AuthEvent>();
+    channel.onmessage = setStatus;
+
+    authCommands.startOauthServer(channel).then((port) => {
       setPort(port);
       cleanup = () => {
         authCommands.stopOauthServer(port);
@@ -45,6 +55,18 @@ function Component() {
 
     return () => cleanup?.();
   }, []);
+
+  useEffect(() => {
+    if (status === "Success") {
+      navigate({ to: "/onboarding" });
+      return;
+    }
+
+    if (status === "Error") {
+      message("Error occurred while authenticating!");
+      return;
+    }
+  }, [status]);
 
   const url = useQuery({
     queryKey: ["oauth-url", port],

@@ -7,8 +7,8 @@
 
 
 export const commands = {
-async startOauthServer() : Promise<number> {
-    return await TAURI_INVOKE("plugin:auth|start_oauth_server");
+async startOauthServer(channel: TAURI_CHANNEL<AuthEvent>) : Promise<number> {
+    return await TAURI_INVOKE("plugin:auth|start_oauth_server", { channel });
 },
 async stopOauthServer(port: number) : Promise<null> {
     return await TAURI_INVOKE("plugin:auth|stop_oauth_server", { port });
@@ -31,8 +31,10 @@ async getFromVault(key: Key) : Promise<string | null> {
 
 /** user-defined types **/
 
+export type AuthEvent = "Success" | "Error"
 export type Key = "userId" | "accountId" | "remoteDatabase" | "remoteServer"
 export type RequestParams = { c: string; f: string; p: number }
+export type TAURI_CHANNEL<TSend> = null
 
 /** tauri-specta globals **/
 

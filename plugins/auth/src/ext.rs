@@ -1,3 +1,5 @@
+use tauri::ipc::Channel;
+
 use crate::{
     vault::{Key, Vault},
     CALLBACK_TEMPLATE_KEY,
@@ -21,15 +23,21 @@ pub struct ResponseParams {
     pub user_id: String,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+pub enum AuthEvent {
+    Success,
+    Error,
+}
+
 pub trait AuthPluginExt<R: tauri::Runtime> {
-    fn start_oauth_server(&self) -> Result<u16, String>;
+    fn start_oauth_server(&self, channel: Channel<AuthEvent>) -> Result<u16, String>;
     fn stop_oauth_server(&self, port: u16) -> Result<(), String>;
     fn reset_vault(&self) -> Result<(), String>;
     fn get_from_vault(&self, key: Key) -> Result<Option<String>, String>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
-    fn start_oauth_server(&self) -> Result<u16, String> {
+    fn start_oauth_server(&self, channel: Channel<AuthEvent>) -> Result<u16, String> {
         let env = self.state::<minijinja::Environment>().inner().clone();
         let vault = self.state::<Vault>().inner().clone();
 
@@ -58,9 +66,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
                         tracing::info!(params = ?params, "auth_callback");
                         vault.set(Key::RemoteServer, params.token).unwrap();
                         vault.set(Key::UserId, params.user_id).unwrap();
+                        channel.send(AuthEvent::Success).unwrap();
                     }
                     Err(err) => {
                         tracing::error!(error = ?err, url = ?u, "failed_to_parse_callback_params");
+                        channel.send(AuthEvent::Error).unwrap();
                     }
                 }
             },

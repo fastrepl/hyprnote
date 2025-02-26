@@ -2,7 +2,8 @@
 
 Default permissions for the plugin
 
-- `allow-ping`
+- `allow-start-oauth-server`
+- `allow-cancel-oauth-server`
 
 ## Permission Table
 

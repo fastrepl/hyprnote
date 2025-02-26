@@ -35,6 +35,7 @@ const plugins: DefaultTheme.SidebarItem = {
         { text: "Apple Calendar", link: "/plugins/apple-calendar" },
         { text: "Miscellaneous", link: "/plugins/misc" },
         { text: "Windows", link: "/plugins/windows" },
+        { text: "Auth", link: "/plugins/auth" },
         { text: "Sound Effects", link: "/plugins/sfx" },
       ].sort((a, b) => a.text.localeCompare(b.text)),
       collapsed: true,

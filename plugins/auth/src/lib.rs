@@ -26,7 +26,14 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
             let vault = vault::Vault::new(SERVICE_NAME);
+
+            let mut env = minijinja::Environment::new();
+            env.add_template("callback", include_str!("../templates/callback.jinja"))
+                .unwrap();
+
             app.manage(vault);
+            app.manage(env);
+
             Ok(())
         })
         .build()

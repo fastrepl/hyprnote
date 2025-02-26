@@ -8,31 +8,18 @@ pub trait AuthPluginExt<R: tauri::Runtime> {
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
     fn start_oauth_server(&self) -> Result<u16, String> {
+        let env = self.state::<minijinja::Environment>().inner().clone();
         let vault = self.state::<Vault>().inner().clone();
+
+        let response = env
+            .render_str("callback", &serde_json::Map::new())
+            .unwrap()
+            .into();
 
         let port = tauri_plugin_oauth::start_with_config(
             tauri_plugin_oauth::OauthConfig {
                 ports: None,
-                response: Some(
-                    r#"
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Hyprnote</title>
-        <script src="https://cdn.twind.style" crossorigin></script>
-    </head>
-    <body class="bg-gray-100 flex items-center justify-center min-h-screen">
-        <div class="bg-white p-8 rounded-lg shadow-lg text-center">
-            <h1 class="text-2xl font-bold text-gray-800 mb-4">Authentication Successful</h1>
-            <p class="text-gray-600">Please go back to the app.</p>
-        </div>
-    </body>
-</html>"#
-                        .trim()
-                        .into(),
-                ),
+                response: Some(response),
             },
             move |url| {
                 let parsed_url = url::Url::parse(&url).unwrap();

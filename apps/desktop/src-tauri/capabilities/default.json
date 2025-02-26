@@ -29,8 +29,6 @@
     "shell:allow-open",
     "sentry:default",
     "decorum:allow-show-snap-overlay",
-    "oauth:allow-start",
-    "oauth:allow-cancel",
     "listener:default",
     "db:default",
     "template:default",
@@ -42,6 +40,7 @@
     "connector:default",
     "sfx:default",
     "windows:default",
+    "auth:default",
     {
       "identifier": "http:default",
       "allow": [

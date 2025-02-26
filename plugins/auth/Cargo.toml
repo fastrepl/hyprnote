@@ -1,10 +1,10 @@
 [package]
-name = "tauri-plugin-connector"
+name = "tauri-plugin-auth"
 version = "0.1.0"
 authors = ["You"]
 edition = "2021"
 exclude = ["/js", "/node_modules"]
-links = "tauri-plugin-connector"
+links = "tauri-plugin-auth"
 rust-version = "1.77.2"
 description = ""
 
@@ -15,15 +15,13 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
-tauri-plugin-local-llm = { path = "../local-llm" }
-tauri-plugin-local-stt = { path = "../local-stt" }
-
 tauri = { workspace = true, features = ["test"] }
+tauri-plugin-oauth = "2"
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
+keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
 tracing = { workspace = true }
-
-pinger = { git = "https://github.com/orf/gping", package = "pinger" }

@@ -1,9 +1,7 @@
-mod auth;
 mod commands;
 mod permissions;
 mod store;
 mod tray;
-mod vault;
 
 use tauri::Manager;
 use tauri_plugin_windows::{ShowHyprWindow, WindowsPluginExt};
@@ -11,7 +9,6 @@ use tauri_plugin_windows::{ShowHyprWindow, WindowsPluginExt};
 pub struct App {
     handle: tauri::AppHandle,
     user_id: String,
-    vault: vault::Vault,
 }
 
 #[tokio::main]
@@ -59,7 +56,7 @@ pub async fn main() {
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_oauth::init())
+        .plugin(tauri_plugin_auth::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
@@ -115,7 +112,6 @@ pub async fn main() {
             };
 
             let identifier = app.config().identifier.clone();
-            let vault = vault::Vault::new(identifier);
 
             let server_api_base = if cfg!(debug_assertions) {
                 "http://localhost:1234".to_string()
@@ -123,14 +119,9 @@ pub async fn main() {
                 "https://app.hyprnote.com".to_string()
             };
 
-            let server_api_key = vault
-                .get(vault::Key::RemoteServer)
-                .unwrap_or("123".to_string());
-
             app.manage(App {
                 user_id: user_id.clone(),
                 handle: app.clone(),
-                vault,
             });
 
             {
@@ -154,9 +145,6 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::get_user_id,
             permissions::open_permission_settings,
             permissions::check_permission_status,
-            auth::commands::start_oauth_server,
-            auth::commands::cancel_oauth_server,
-            auth::commands::is_authenticated,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

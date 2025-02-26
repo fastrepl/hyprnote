@@ -105,6 +105,9 @@ importers:
       '@hypr/plugin-apple-calendar':
         specifier: workspace:^
         version: link:../../plugins/apple-calendar
+      '@hypr/plugin-auth':
+        specifier: workspace:^
+        version: link:../../plugins/auth
       '@hypr/plugin-db':
         specifier: workspace:^
         version: link:../../plugins/db
@@ -962,6 +965,12 @@ importers:
         version: 4.1.45(react@18.3.1)(zod@3.24.2)
 
   plugins/apple-calendar:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.2.0
+        version: 2.2.0
+
+  plugins/auth:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.2.0

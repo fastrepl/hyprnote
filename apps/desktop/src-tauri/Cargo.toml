@@ -32,6 +32,7 @@ hypr-db = { path = "../../../crates/db", package = "db", default-features = fals
 hypr-vad = { path = "../../../crates/vad", package = "vad" }
 hypr_host = { path = "../../../crates/host", package = "host" }
 
+tauri-plugin-auth = { path = "../../../plugins/auth" }
 tauri-plugin-connector = { path = "../../../plugins/connector" }
 tauri-plugin-db = { path = "../../../plugins/db" }
 tauri-plugin-listener = { path = "../../../plugins/listener" }
@@ -52,7 +53,6 @@ tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-http = "2"
-tauri-plugin-oauth = "2"
 tauri-plugin-os = "2"
 tauri-plugin-positioner = { version = "2", features = ["tray-icon"] }
 tauri-plugin-process = "2"
@@ -92,4 +92,3 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-stream = { workspace = true }
 
 hound = { workspace = true }
-keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }

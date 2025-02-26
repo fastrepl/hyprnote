@@ -60,6 +60,7 @@ sentry-rust-minidump = "0.10.0"
 markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
 mdast_util_to_markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
 minijinja = "2.7.0"
+minijinja-contrib = "2.7.0"
 
 tracing = "0.1.41"
 tracing-subscriber = "0.3.19"

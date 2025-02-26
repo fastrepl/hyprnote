@@ -3100,7 +3100,6 @@ dependencies = [
  "futures-util",
  "host",
  "hound",
- "keyring",
  "reqwest 0.12.12",
  "serde",
  "serde_json",
@@ -3110,6 +3109,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-apple-calendar",
+ "tauri-plugin-auth",
  "tauri-plugin-autostart",
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-connector",
@@ -3124,7 +3124,6 @@ dependencies = [
  "tauri-plugin-local-llm",
  "tauri-plugin-local-stt",
  "tauri-plugin-misc",
- "tauri-plugin-oauth",
  "tauri-plugin-os",
  "tauri-plugin-positioner",
  "tauri-plugin-process",
@@ -11357,6 +11356,23 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "tauri-plugin-auth"
+version = "0.1.0"
+dependencies = [
+ "keyring",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-oauth",
+ "tauri-specta",
+ "tracing",
 ]
 
 [[package]]

@@ -22,6 +22,7 @@
     "@hypr/extension-transcript": "workspace:^",
     "@hypr/extension-world-clocks": "workspace:^",
     "@hypr/plugin-apple-calendar": "workspace:^",
+    "@hypr/plugin-auth": "workspace:^",
     "@hypr/plugin-db": "workspace:^",
     "@hypr/plugin-listener": "workspace:^",
     "@hypr/plugin-local-llm": "workspace:^",

@@ -14,8 +14,10 @@ pub enum Key {
 }
 
 impl Vault {
-    pub fn new(service: String) -> Self {
-        Self { service }
+    pub fn new(service: impl Into<String>) -> Self {
+        Self {
+            service: service.into(),
+        }
     }
 
     pub fn get(&self, key: Key) -> Result<String, keyring::Error> {

@@ -295,14 +295,24 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the ping command without any pre-configured scope.",
+          "description": "Enables the cancel_oauth_server command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-ping"
+          "const": "allow-cancel-oauth-server"
         },
         {
-          "description": "Denies the ping command without any pre-configured scope.",
+          "description": "Denies the cancel_oauth_server command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-ping"
+          "const": "deny-cancel-oauth-server"
+        },
+        {
+          "description": "Enables the start_oauth_server command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-start-oauth-server"
+        },
+        {
+          "description": "Denies the start_oauth_server command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-start-oauth-server"
         },
         {
           "description": "Default permissions for the plugin",

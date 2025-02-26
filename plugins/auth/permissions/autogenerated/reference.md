@@ -16,12 +16,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`auth:allow-ping`
+`auth:allow-cancel-oauth-server`
 
 </td>
 <td>
 
-Enables the ping command without any pre-configured scope.
+Enables the cancel_oauth_server command without any pre-configured scope.
 
 </td>
 </tr>
@@ -29,12 +29,38 @@ Enables the ping command without any pre-configured scope.
 <tr>
 <td>
 
-`auth:deny-ping`
+`auth:deny-cancel-oauth-server`
 
 </td>
 <td>
 
-Denies the ping command without any pre-configured scope.
+Denies the cancel_oauth_server command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`auth:allow-start-oauth-server`
+
+</td>
+<td>
+
+Enables the start_oauth_server command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`auth:deny-start-oauth-server`
+
+</td>
+<td>
+
+Denies the start_oauth_server command without any pre-configured scope.
 
 </td>
 </tr>

@@ -6,6 +6,12 @@ pub struct Vault {
 #[derive(Debug, strum::AsRefStr)]
 pub enum Key {
     #[allow(dead_code)]
+    #[strum(serialize = "user_id")]
+    UserId,
+    #[allow(dead_code)]
+    #[strum(serialize = "account_id")]
+    AccountId,
+    #[allow(dead_code)]
     #[strum(serialize = "remote_database")]
     RemoteDatabase,
     #[allow(dead_code)]

@@ -11363,6 +11363,7 @@ name = "tauri-plugin-auth"
 version = "0.1.0"
 dependencies = [
  "keyring",
+ "minijinja",
  "serde",
  "serde_json",
  "specta",
@@ -11373,6 +11374,7 @@ dependencies = [
  "tauri-plugin-oauth",
  "tauri-specta",
  "tracing",
+ "url",
 ]
 
 [[package]]

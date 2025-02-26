@@ -1,8 +1,5 @@
-const COMMANDS: &[&str] = &["ping"];
+const COMMANDS: &[&str] = &["start_oauth_server", "cancel_oauth_server"];
 
 fn main() {
-    tauri_plugin::Builder::new(COMMANDS)
-        .android_path("android")
-        .ios_path("ios")
-        .build();
+    tauri_plugin::Builder::new(COMMANDS).build();
 }

@@ -12,7 +12,10 @@ const SERVICE_NAME: &str = "hyprnote";
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
-        .commands(tauri_specta::collect_commands![])
+        .commands(tauri_specta::collect_commands![
+            commands::start_oauth_server::<tauri::Wry>,
+            commands::cancel_oauth_server::<tauri::Wry>,
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 

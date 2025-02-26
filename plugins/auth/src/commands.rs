@@ -1,8 +1,17 @@
+use crate::AuthPluginExt;
+
 #[tauri::command]
 #[specta::specta]
-pub async fn ping<R: tauri::Runtime>(
+pub async fn start_oauth_server<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    payload: String,
-) -> Result<String, String> {
-    Ok(payload)
+) -> Result<u16, String> {
+    app.start_oauth_server()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn cancel_oauth_server<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<(), String> {
+    app.cancel_oauth_server()
 }

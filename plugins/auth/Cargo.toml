@@ -20,8 +20,11 @@ tauri-plugin-oauth = "2"
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
+minijinja = { workspace = true }
+
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 tracing = { workspace = true }
+url = { workspace = true }

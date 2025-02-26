@@ -30,7 +30,6 @@ export const Route = createFileRoute("/login")({
 });
 
 function Component() {
-  const navigate = useNavigate();
   const { code } = Route.useLoaderData();
   const [port, setPort] = useState<number | null>(null);
 
@@ -111,36 +110,9 @@ function Component() {
             <Trans>Get Started</Trans>
           </PushableButton>
 
-          <p className="text-xs text-neutral-400">
-            By proceeding, I agree to the{" "}
-            <a
-              href="https://hyprnote.com/docs/terms"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="decoration-dotted hover:underline"
-            >
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a
-              href="https://hyprnote.com/docs/privacy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="decoration-dotted hover:underline"
-            >
-              Privacy Policy
-            </a>
-          </p>
+          <TOS />
 
-          <Button
-            variant="ghost"
-            className="mt-8"
-            onClick={() => {
-              navigate({ to: "/onboarding" });
-            }}
-          >
-            <Trans>Skip to use locally</Trans>
-          </Button>
+          <SkipToUseLocally />
         </div>
       </div>
 
@@ -152,6 +124,47 @@ function Component() {
         refresh
       />
     </main>
+  );
+}
+
+function TOS() {
+  return (
+    <p className="text-xs text-neutral-400">
+      By proceeding, I agree to the{" "}
+      <a
+        href="https://hyprnote.com/docs/terms"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="decoration-dotted hover:underline"
+      >
+        Terms of Service
+      </a>{" "}
+      and{" "}
+      <a
+        href="https://hyprnote.com/docs/privacy"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="decoration-dotted hover:underline"
+      >
+        Privacy Policy
+      </a>
+    </p>
+  );
+}
+
+function SkipToUseLocally() {
+  const navigate = useNavigate();
+
+  return (
+    <Button
+      variant="ghost"
+      className="mt-8"
+      onClick={() => {
+        navigate({ to: "/onboarding" });
+      }}
+    >
+      <Trans>Skip to use locally</Trans>
+    </Button>
   );
 }
 

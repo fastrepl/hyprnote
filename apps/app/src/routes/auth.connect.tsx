@@ -1,7 +1,6 @@
 import { z } from "zod";
-import { useEffect } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-react";
 
@@ -11,7 +10,7 @@ import {
   type ConnectInput,
 } from "../client";
 
-const schema = z.object({
+export const schema = z.object({
   c: z.string(),
   f: z.string(),
   p: z.number(),
@@ -23,9 +22,11 @@ export const Route = createFileRoute("/auth/connect")({
 });
 
 function Component() {
-  const { c: code, f: _fingerprint, p: port } = Route.useSearch();
-  const { isLoaded, userId, orgId } = useAuth();
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const { isLoaded, userId, orgId } = useAuth();
+
+  const { c: code, f: _fingerprint, p: port } = search;
 
   const mutation = useMutation({
     ...postApiWebConnectMutation({ client }),
@@ -35,7 +36,7 @@ function Component() {
   });
 
   if (isLoaded && !userId) {
-    throw navigate({ to: "/auth/sign-in" });
+    throw navigate({ to: "/auth/sign-in", search });
   }
 
   const payload: ConnectInput = {

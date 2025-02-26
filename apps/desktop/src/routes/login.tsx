@@ -4,17 +4,19 @@ import { open } from "@tauri-apps/plugin-shell";
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { message } from "@tauri-apps/plugin-dialog";
+import clsx from "clsx";
+import { Play, Pause } from "lucide-react";
+
 import {
   commands as authCommands,
   type RequestParams,
 } from "@hypr/plugin-auth";
-import clsx from "clsx";
+import { commands as sfxCommands } from "@hypr/plugin-sfx";
 
 import { baseUrl } from "@/client";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { Particles } from "@hypr/ui/components/ui/particles";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
-import { PlayPauseButton } from "@/components/PlayPauseButton";
 import { Button } from "@hypr/ui/components/ui/button";
 
 export const Route = createFileRoute("/login")({
@@ -150,5 +152,30 @@ function Component() {
         refresh
       />
     </main>
+  );
+}
+
+function PlayPauseButton() {
+  const [isPlaying, setIsPlaying] = useState(true);
+
+  useEffect(() => {
+    if (isPlaying) {
+      sfxCommands.play("BGM");
+    } else {
+      sfxCommands.stop("BGM");
+    }
+  }, [isPlaying]);
+
+  return (
+    <button
+      className="rounded-full p-2 transition-colors hover:bg-neutral-100"
+      onClick={() => setIsPlaying(!isPlaying)}
+    >
+      {isPlaying ? (
+        <Pause className="h-4 w-4 text-neutral-600" />
+      ) : (
+        <Play className="h-4 w-4 text-neutral-600" />
+      )}
+    </button>
   );
 }

@@ -27,7 +27,6 @@ import {
 import { Users2 } from "lucide-react";
 
 export default function PastSessions() {
-  console.log("past sessions");
   const data = useQuery({
     queryKey: ["sessions"],
     queryFn: () => dbCommands.listSessions(null),

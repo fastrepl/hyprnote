@@ -11383,6 +11383,7 @@ dependencies = [
  "tauri-plugin-oauth",
  "tauri-specta",
  "tracing",
+ "url",
 ]
 
 [[package]]

@@ -7,11 +7,17 @@
 
 
 export const commands = {
-async startOauthServer() : Promise<number> {
+async startOauthServer() : Promise<null> {
     return await TAURI_INVOKE("plugin:auth|start_oauth_server");
 },
-async cancelOauthServer() : Promise<null> {
-    return await TAURI_INVOKE("plugin:auth|cancel_oauth_server");
+async stopOauthServer() : Promise<null> {
+    return await TAURI_INVOKE("plugin:auth|stop_oauth_server");
+},
+async resetVault() : Promise<null> {
+    return await TAURI_INVOKE("plugin:auth|reset_vault");
+},
+async getFromVault(key: Key) : Promise<string> {
+    return await TAURI_INVOKE("plugin:auth|get_from_vault", { key });
 }
 }
 
@@ -25,7 +31,7 @@ async cancelOauthServer() : Promise<null> {
 
 /** user-defined types **/
 
-
+export type Key = "UserId" | "AccountId" | "RemoteDatabase" | "RemoteServer"
 
 /** tauri-specta globals **/
 

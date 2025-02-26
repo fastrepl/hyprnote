@@ -9,12 +9,24 @@ pub use ext::*;
 const PLUGIN_NAME: &str = "auth";
 const SERVICE_NAME: &str = "hyprnote";
 
+pub const CALLBACK_TEMPLATE_KEY: &str = "callback";
+const CALLBACK_TEMPLATE_VALUE: &str = include_str!("../templates/callback.jinja");
+
+pub type SharedState = std::sync::Mutex<State>;
+
+#[derive(Default)]
+pub struct State {
+    oauth_server_port: Option<u16>,
+}
+
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::start_oauth_server::<tauri::Wry>,
-            commands::cancel_oauth_server::<tauri::Wry>,
+            commands::stop_oauth_server::<tauri::Wry>,
+            commands::reset_vault::<tauri::Wry>,
+            commands::get_from_vault::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
@@ -28,11 +40,12 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             let vault = vault::Vault::new(SERVICE_NAME);
 
             let mut env = minijinja::Environment::new();
-            env.add_template("callback", include_str!("../templates/callback.jinja"))
+            env.add_template(CALLBACK_TEMPLATE_KEY, CALLBACK_TEMPLATE_VALUE)
                 .unwrap();
 
             app.manage(vault);
             app.manage(env);
+            app.manage(SharedState::default());
 
             Ok(())
         })

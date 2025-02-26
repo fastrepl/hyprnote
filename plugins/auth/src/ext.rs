@@ -1,18 +1,30 @@
-use crate::vault::{Key, Vault};
+use crate::{
+    vault::{Key, Vault},
+    SharedState, CALLBACK_TEMPLATE_KEY,
+};
+
+#[derive(Debug, serde::Deserialize)]
+pub struct CallbackParams {
+    #[serde(rename = "k")]
+    pub token: String,
+    #[serde(rename = "u")]
+    pub user_id: String,
+}
 
 pub trait AuthPluginExt<R: tauri::Runtime> {
-    fn start_oauth_server(&self) -> Result<u16, String>;
-    fn cancel_oauth_server(&self) -> Result<(), String>;
-    fn get_from_vault(&self, key: &str) -> Result<String, String>;
+    fn start_oauth_server(&self) -> Result<(), String>;
+    fn stop_oauth_server(&self) -> Result<(), String>;
+    fn reset_vault(&self) -> Result<(), String>;
+    fn get_from_vault(&self, key: Key) -> Result<String, String>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
-    fn start_oauth_server(&self) -> Result<u16, String> {
+    fn start_oauth_server(&self) -> Result<(), String> {
         let env = self.state::<minijinja::Environment>().inner().clone();
         let vault = self.state::<Vault>().inner().clone();
 
         let response = env
-            .render_str("callback", &serde_json::Map::new())
+            .render_str(CALLBACK_TEMPLATE_KEY, &serde_json::Map::new())
             .unwrap()
             .into();
 
@@ -21,45 +33,49 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
                 ports: None,
                 response: Some(response),
             },
-            move |url| {
-                let parsed_url = url::Url::parse(&url).unwrap();
-                let query_pairs: Vec<_> = parsed_url.query_pairs().collect();
-
-                let token = query_pairs
-                    .iter()
-                    .find(|(k, _)| k == "k")
-                    .map(|(_, v)| v.to_string());
-
-                let user_id = query_pairs
-                    .iter()
-                    .find(|(k, _)| k == "u")
-                    .map(|(_, v)| v.to_string());
-
-                tracing::info!(
-                    url = ?url,
-                    token = ?token,
-                    user_id = ?user_id,
-                    "oauth_callback"
-                );
-
-                if let (Some(token), Some(user_id)) = (token, user_id) {
-                    vault.set(Key::RemoteServer, token).unwrap();
-                    vault.set(Key::UserId, user_id).unwrap();
-                } else {
-                    tracing::error!("oauth_callback: Missing token or user_id");
+            move |url| match serde_qs::from_str::<CallbackParams>(&url) {
+                Ok(params) => {
+                    tracing::info!(params = ?params, "auth_callback");
+                    vault.set(Key::RemoteServer, params.token).unwrap();
+                    vault.set(Key::UserId, params.user_id).unwrap();
+                }
+                Err(err) => {
+                    tracing::error!("failed_to_parse_callback_params: {}", err);
                 }
             },
         )
         .map_err(|err| err.to_string())?;
 
-        Ok(port)
-    }
+        {
+            let state = self.state::<SharedState>();
+            let mut s = state.lock().unwrap();
+            s.oauth_server_port = Some(port);
+        }
 
-    fn cancel_oauth_server(&self) -> Result<(), String> {
         Ok(())
     }
 
-    fn get_from_vault(&self, key: &str) -> Result<String, String> {
-        todo!()
+    fn stop_oauth_server(&self) -> Result<(), String> {
+        let port = {
+            let state = self.state::<SharedState>();
+            let mut s = state.lock().unwrap();
+            s.oauth_server_port.take()
+        };
+
+        if let Some(port) = port {
+            tauri_plugin_oauth::cancel(port).map_err(|err| err.to_string())?;
+        }
+
+        Ok(())
+    }
+
+    fn reset_vault(&self) -> Result<(), String> {
+        let vault = self.state::<Vault>();
+        vault.clear().map_err(|err| err.to_string())
+    }
+
+    fn get_from_vault(&self, key: Key) -> Result<String, String> {
+        let vault = self.state::<Vault>();
+        vault.get(key).map_err(|err| err.to_string())
     }
 }

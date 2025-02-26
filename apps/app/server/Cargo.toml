@@ -43,7 +43,6 @@ bytes = { workspace = true }
 chrono = { workspace = true }
 codes-iso-639 = { workspace = true }
 dotenv = { workspace = true }
-time = { workspace = true }
 url = { workspace = true }
 uuid = { workspace = true }
 

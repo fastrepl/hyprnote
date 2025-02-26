@@ -328,7 +328,6 @@ dependencies = [
  "specta-typescript",
  "strum 0.26.3",
  "stt",
- "time",
  "tokio",
  "tower 0.5.2",
  "tower-http 0.6.2",
@@ -3138,7 +3137,6 @@ dependencies = [
  "tauri-plugin-windows",
  "tauri-specta",
  "thiserror 2.0.11",
- "time",
  "tokio",
  "tokio-stream",
  "tracing",
@@ -10202,6 +10200,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_qs"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd34f36fe4c5ba9654417139a9b3a20d2e1de6012ee678ad14d240c22c78d8d6"
+dependencies = [
+ "percent-encoding",
+ "serde",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "serde_repr"
 version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11366,6 +11375,7 @@ dependencies = [
  "minijinja",
  "serde",
  "serde_json",
+ "serde_qs 0.13.0",
  "specta",
  "specta-typescript",
  "strum 0.26.3",
@@ -11374,7 +11384,6 @@ dependencies = [
  "tauri-plugin-oauth",
  "tauri-specta",
  "tracing",
- "url",
 ]
 
 [[package]]

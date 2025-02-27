@@ -45,11 +45,11 @@ macro_rules! admin_common_derives {
 
 #[derive(Clone)]
 pub struct AdminDatabase {
-    conn: crate::Connection,
+    conn: libsql::Connection,
 }
 
 impl AdminDatabase {
-    pub fn from(conn: crate::Connection) -> Self {
+    pub fn from(conn: libsql::Connection) -> Self {
         Self { conn }
     }
 }
@@ -63,7 +63,7 @@ const MIGRATIONS: [&str; 5] = [
     include_str!("./users_migration.sql"),
 ];
 
-pub async fn migrate(conn: &crate::Connection) -> libsql::Result<()> {
+pub async fn migrate(conn: &libsql::Connection) -> libsql::Result<()> {
     crate::migrate(conn, MIGRATIONS.to_vec()).await
 }
 

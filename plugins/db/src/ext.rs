@@ -1,9 +1,27 @@
+use tauri::Manager;
+
 pub trait DatabasePluginExt<R: tauri::Runtime> {
+    fn local_db_path(&self) -> String;
     fn db_create_new_user(&self) -> Result<String, String>;
     fn db_set_user_id(&self, user_id: String) -> Result<(), String>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabasePluginExt<R> for T {
+    fn local_db_path(&self) -> String {
+        if cfg!(debug_assertions) {
+            ":memory:".to_string()
+        } else {
+            let app = self.app_handle();
+            app.path()
+                .app_data_dir()
+                .unwrap()
+                .join("db.sqlite")
+                .to_str()
+                .unwrap()
+                .into()
+        }
+    }
+
     fn db_create_new_user(&self) -> Result<String, String> {
         let user_id = tokio::task::block_in_place(|| {
             tokio::runtime::Handle::current().block_on(async move {

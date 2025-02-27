@@ -55,7 +55,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             let db = tokio::task::block_in_place(|| {
                 tokio::runtime::Handle::current().block_on(async move {
                     let conn = hypr_db::ConnectionBuilder::default()
-                        .local(":memory:")
+                        .local(app.local_db_path())
                         .connect()
                         .await
                         .unwrap();

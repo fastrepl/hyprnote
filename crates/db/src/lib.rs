@@ -4,8 +4,6 @@ pub mod admin;
 #[cfg(feature = "user")]
 pub mod user;
 
-pub type Connection = libsql::Connection;
-
 #[derive(Debug, Default)]
 struct ConnectionConfig {
     local_path: Option<std::path::PathBuf>,
@@ -13,7 +11,7 @@ struct ConnectionConfig {
 }
 
 impl ConnectionConfig {
-    pub async fn connect(&self) -> anyhow::Result<Connection> {
+    pub async fn connect(&self) -> anyhow::Result<libsql::Connection> {
         let db = match (self.local_path.clone(), self.remote_config.clone()) {
             (Some(path), None) => libsql::Builder::new_local(path).build().await?,
             (None, Some((url, token))) => libsql::Builder::new_remote(url, token).build().await?,
@@ -49,13 +47,16 @@ impl ConnectionBuilder {
         self
     }
 
-    pub async fn connect(self) -> anyhow::Result<Connection> {
+    pub async fn connect(self) -> anyhow::Result<libsql::Connection> {
         let conn = self.config.connect().await?;
         Ok(conn)
     }
 }
 
-async fn migrate(conn: &Connection, migrations: Vec<impl AsRef<str>>) -> libsql::Result<()> {
+async fn migrate(
+    conn: &libsql::Connection,
+    migrations: Vec<impl AsRef<str>>,
+) -> libsql::Result<()> {
     let current_version: i32 = conn
         .query("PRAGMA user_version", ())
         .await?

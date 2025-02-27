@@ -89,11 +89,11 @@ macro_rules! user_common_derives {
 
 #[derive(Clone)]
 pub struct UserDatabase {
-    pub conn: crate::Connection,
+    pub conn: libsql::Connection,
 }
 
 impl UserDatabase {
-    pub fn from(conn: crate::Connection) -> Self {
+    pub fn from(conn: libsql::Connection) -> Self {
         Self { conn }
     }
 }
@@ -114,7 +114,7 @@ const MIGRATIONS: [&str; 12] = [
     include_str!("./extension_mappings_migration.sql"),
 ];
 
-pub async fn migrate(conn: &crate::Connection) -> libsql::Result<()> {
+pub async fn migrate(conn: &libsql::Connection) -> libsql::Result<()> {
     crate::migrate(conn, MIGRATIONS.to_vec()).await
 }
 

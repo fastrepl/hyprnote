@@ -130,8 +130,10 @@ fn main() {
                     {
                         hypr_db::DatabaseBaseBuilder::default()
                             .local(":memory:")
-                            .connect()
+                            .build()
                             .await
+                            .unwrap()
+                            .connect()
                             .unwrap()
                     }
 
@@ -143,8 +145,10 @@ fn main() {
 
                         hypr_db::DatabaseBaseBuilder::default()
                             .remote(url, token)
-                            .connect()
+                            .build()
                             .await
+                            .unwrap()
+                            .connect()
                             .unwrap()
                     }
                 };

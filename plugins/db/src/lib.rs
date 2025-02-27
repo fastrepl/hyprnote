@@ -56,8 +56,10 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
                 tokio::runtime::Handle::current().block_on(async move {
                     let conn = hypr_db::DatabaseBaseBuilder::default()
                         .local(app.local_db_path())
-                        .connect()
+                        .build()
                         .await
+                        .unwrap()
+                        .connect()
                         .unwrap();
 
                     hypr_db::user::migrate(&conn).await.unwrap();

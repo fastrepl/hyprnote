@@ -129,8 +129,10 @@ mod tests {
     pub async fn setup_db() -> UserDatabase {
         let conn = DatabaseBaseBuilder::default()
             .local(":memory:")
-            .connect()
+            .build()
             .await
+            .unwrap()
+            .connect()
             .unwrap();
 
         migrate(&conn).await.unwrap();

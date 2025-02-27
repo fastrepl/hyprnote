@@ -78,8 +78,10 @@ mod tests {
     pub async fn setup_db() -> AdminDatabase {
         let conn = DatabaseBaseBuilder::default()
             .local(":memory:")
-            .connect()
+            .build()
             .await
+            .unwrap()
+            .connect()
             .unwrap();
 
         migrate(&conn).await.unwrap();

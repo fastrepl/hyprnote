@@ -93,8 +93,10 @@ pub async fn attach_user_db(
             hypr_db::DatabaseBaseBuilder::default().remote(url, token)
         }
     }
-    .connect()
+    .build()
     .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    .connect()
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     let db = hypr_db::user::UserDatabase::from(conn);

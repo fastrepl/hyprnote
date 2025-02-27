@@ -10,27 +10,6 @@ struct DatabaseBaseConfig {
     remote_config: Option<(String, String)>,
 }
 
-impl DatabaseBaseConfig {
-    pub async fn connect(&self) -> Result<libsql::Connection, crate::Error> {
-        let db = match (self.local_path.clone(), self.remote_config.clone()) {
-            (Some(path), None) => libsql::Builder::new_local(path).build().await?,
-            (None, Some((url, token))) => libsql::Builder::new_remote(url, token).build().await?,
-            (Some(path), Some((url, token))) => {
-                libsql::Builder::new_remote_replica(path, url, token)
-                    .sync_interval(std::time::Duration::from_secs(300))
-                    .build()
-                    .await?
-            }
-            (None, None) => Err(crate::Error::InvalidDatabaseConfig(
-                "either '.local()' or '.remote()' must be called".to_string(),
-            ))?,
-        };
-
-        let conn = db.connect()?;
-        Ok(conn)
-    }
-}
-
 #[derive(Default)]
 pub struct DatabaseBaseBuilder {
     config: DatabaseBaseConfig,
@@ -47,9 +26,22 @@ impl DatabaseBaseBuilder {
         self
     }
 
-    pub async fn connect(self) -> Result<libsql::Connection, crate::Error> {
-        let conn = self.config.connect().await?;
-        Ok(conn)
+    pub async fn build(self) -> Result<libsql::Database, crate::Error> {
+        let db = match (self.config.local_path, self.config.remote_config) {
+            (Some(path), None) => libsql::Builder::new_local(path).build().await?,
+            (None, Some((url, token))) => libsql::Builder::new_remote(url, token).build().await?,
+            (Some(path), Some((url, token))) => {
+                libsql::Builder::new_remote_replica(path, url, token)
+                    .sync_interval(std::time::Duration::from_secs(300))
+                    .build()
+                    .await?
+            }
+            (None, None) => Err(crate::Error::InvalidDatabaseConfig(
+                "either '.local()' or '.remote()' must be called".to_string(),
+            ))?,
+        };
+
+        Ok(db)
     }
 }
 

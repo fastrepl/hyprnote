@@ -46,7 +46,6 @@ interface WidgetProps {
 const Widget = ({
   width = "340px",
   height = "340px",
-  onMaximize,
   children,
   className,
   style,

@@ -6,7 +6,7 @@ import { schema as connectSchema } from "./auth.connect";
 import { createURL } from "../utils";
 
 export const Route = createFileRoute("/auth/sign-up")({
-  validateSearch: zodValidator(connectSchema.optional()),
+  validateSearch: zodValidator(connectSchema.optional().catch(undefined)),
   component: Component,
 });
 

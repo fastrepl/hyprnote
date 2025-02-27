@@ -29,7 +29,7 @@ function Component() {
   const [step, setStep] = useState<"idle" | "success" | "error">("idle");
 
   if (isLoaded && !userId) {
-    throw navigate({ to: "/auth/sign-in" });
+    throw navigate({ to: "/auth/sign-in", search: undefined });
   }
 
   const connectMutation = useMutation({

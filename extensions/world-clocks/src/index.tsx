@@ -4,7 +4,7 @@ const extension: Extension = {
   init: async () => {
     console.log("WorldClocks init");
   },
-  panelTwoByTwo: () => <div>WorldClocks</div>,
+  twoByTwo: () => <div>WorldClocks</div>,
 };
 
 export default extension;

@@ -8,13 +8,13 @@
 
 export const commands = {
 async getFingerprint() : Promise<string> {
-    return await TAURI_INVOKE("plugin:utils|get_fingerprint");
+    return await TAURI_INVOKE("plugin:misc|get_fingerprint");
 },
 async opinionatedMdToHtml(text: string) : Promise<string> {
-    return await TAURI_INVOKE("plugin:utils|opinionated_md_to_html", { text });
+    return await TAURI_INVOKE("plugin:misc|opinionated_md_to_html", { text });
 },
 async listTemplateNames() : Promise<TemplateName[]> {
-    return await TAURI_INVOKE("plugin:utils|list_template_names");
+    return await TAURI_INVOKE("plugin:misc|list_template_names");
 }
 }
 

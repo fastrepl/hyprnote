@@ -104,8 +104,13 @@ export default function General() {
 
   const reset = useMutation({
     mutationFn: async () => {
-      await authCommands.resetVault();
-      await relaunch();
+      try {
+        await authCommands.resetVault();
+      } catch (e) {
+        console.error(e);
+      } finally {
+        await relaunch();
+      }
     },
   });
 

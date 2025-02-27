@@ -54,7 +54,11 @@ impl Vault {
 
         for key in keys {
             let entry = keyring::Entry::new(&self.service, key.as_ref()).unwrap();
-            entry.delete_credential()?;
+
+            match entry.delete_credential() {
+                Ok(_) | Err(keyring::Error::NoEntry) => (),
+                Err(e) => return Err(e),
+            }
         }
 
         Ok(())

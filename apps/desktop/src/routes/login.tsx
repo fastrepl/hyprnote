@@ -60,6 +60,7 @@ function Component() {
 
   useEffect(() => {
     if (status === "Success") {
+      // TODO: if status is success, app will start restarting. so we can not navigate here.
       navigate({ to: "/onboarding" });
       return;
     }

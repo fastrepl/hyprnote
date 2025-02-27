@@ -6,6 +6,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error("user is None")]
     NoneUser,
+    #[error("database is None")]
+    NoneDatabase,
 }
 
 impl Serialize for Error {

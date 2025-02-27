@@ -1,4 +1,9 @@
+use tauri::Manager;
 use tauri_plugin_windows::{ShowHyprWindow, WindowsPluginExt};
+
+struct State {
+    pub user_id: Option<String>,
+}
 
 #[tokio::main]
 pub async fn main() {
@@ -86,19 +91,36 @@ pub async fn main() {
                 }
             }
 
-            // TODO:
-            // we should list all situation we need to support, and then finialize db plugin interface
-            let _user_id = {
-                use tauri_plugin_auth::{AuthPluginExt, Key};
+            {
+                let user_id = {
+                    use tauri_plugin_auth::{AuthPluginExt, Key};
+
+                    if let Ok(Some(user_id)) = app.get_from_vault(Key::UserId) {
+                        Some(user_id)
+                    } else {
+                        None
+                    }
+                };
+
+                app.manage(State { user_id });
+            }
+
+            {
                 use tauri_plugin_db::DatabasePluginExt;
 
-                if let Ok(Some(user_id)) = app.get_from_vault(Key::UserId) {
-                    app.db_set_user_id(user_id.clone()).unwrap();
-                    user_id
-                } else {
-                    app.db_create_new_user().unwrap()
-                }
-            };
+                let local_db_path = app.local_db_path();
+                let db = tokio::task::block_in_place(|| {
+                    tokio::runtime::Handle::current().block_on(async move {
+                        hypr_db::DatabaseBaseBuilder::default()
+                            .local(local_db_path)
+                            .build()
+                            .await
+                            .unwrap()
+                    })
+                });
+
+                app.attach_libsql_db(db).unwrap();
+            }
 
             {
                 use tauri_plugin_autostart::ManagerExt;

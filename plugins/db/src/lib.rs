@@ -13,6 +13,8 @@ pub type ManagedState = Mutex<State>;
 #[derive(Default)]
 pub struct State {
     pub user_id: Option<String>,
+    pub libsql_db: Option<hypr_db::Database>,
+    pub db: Option<hypr_db::user::UserDatabase>,
 }
 
 const PLUGIN_NAME: &str = "db";
@@ -52,32 +54,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let db = tokio::task::block_in_place(|| {
-                tokio::runtime::Handle::current().block_on(async move {
-                    let conn = hypr_db::DatabaseBaseBuilder::default()
-                        .local(app.local_db_path())
-                        .build()
-                        .await
-                        .unwrap()
-                        .connect()
-                        .unwrap();
-
-                    hypr_db::user::migrate(&conn).await.unwrap();
-
-                    let db = hypr_db::user::UserDatabase::from(conn);
-
-                    #[cfg(debug_assertions)]
-                    {
-                        hypr_db::user::seed(&db).await.unwrap();
-                    }
-
-                    db
-                })
-            });
-
-            app.manage(db);
             app.manage(ManagedState::default());
-
             Ok(())
         })
         .build()

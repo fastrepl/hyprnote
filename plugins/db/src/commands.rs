@@ -1,19 +1,33 @@
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn list_calendars(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
 ) -> Result<Vec<hypr_db::user::Calendar>, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.list_calendars().await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn list_participants(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     event_id: String,
 ) -> Result<Vec<hypr_db::user::Human>, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.list_participants(event_id)
         .await
         .map_err(|e| e.to_string())
@@ -21,11 +35,18 @@ pub async fn list_participants(
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn upsert_calendar(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     calendar: hypr_db::user::Calendar,
 ) -> Result<hypr_db::user::Calendar, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.upsert_calendar(calendar)
         .await
         .map_err(|e| e.to_string())
@@ -33,29 +54,42 @@ pub async fn upsert_calendar(
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn upsert_session(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     session: hypr_db::user::Session,
 ) -> Result<hypr_db::user::Session, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.upsert_session(session).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db, state))]
+#[tracing::instrument(skip(state))]
 pub async fn list_templates(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
     state: tauri::State<'_, crate::ManagedState>,
 ) -> Result<Vec<hypr_db::user::Template>, String> {
-    let user_id = {
-        let state = state.lock().unwrap();
+    let (db, user_id) = {
+        let s = state.lock().unwrap();
 
-        state
+        let db =
+            s.db.clone()
+                .ok_or(crate::Error::NoneDatabase)
+                .map_err(|e| e.to_string())?;
+
+        let user_id = s
             .user_id
             .clone()
             .ok_or(crate::Error::NoneUser)
-            .map_err(|e| e.to_string())?
+            .map_err(|e| e.to_string())?;
+
+        (db, user_id)
     };
 
     db.list_templates(user_id).await.map_err(|e| e.to_string())
@@ -63,11 +97,18 @@ pub async fn list_templates(
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn upsert_template(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     template: hypr_db::user::Template,
 ) -> Result<hypr_db::user::Template, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.upsert_template(template)
         .await
         .map_err(|e| e.to_string())
@@ -75,51 +116,84 @@ pub async fn upsert_template(
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn delete_template(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     id: String,
 ) -> Result<(), String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.delete_template(id).await.map_err(|e| e.to_string())
 }
-
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn list_events(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
 ) -> Result<Vec<hypr_db::user::Event>, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.list_events().await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn list_sessions(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     search: Option<&str>,
 ) -> Result<Vec<hypr_db::user::Session>, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.list_sessions(search).await.map_err(|e| e.to_string())
 }
-
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn get_session(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     option: hypr_db::user::SessionFilter,
 ) -> Result<Option<hypr_db::user::Session>, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.get_session(option).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn set_session_event(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     session_id: String,
     event_id: String,
 ) -> Result<(), String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.session_set_event(session_id, event_id)
         .await
         .map_err(|e| e.to_string())
@@ -127,19 +201,25 @@ pub async fn set_session_event(
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db, state))]
+#[tracing::instrument(skip(state))]
 pub async fn get_config(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
     state: tauri::State<'_, crate::ManagedState>,
 ) -> Result<hypr_db::user::Config, String> {
-    let user_id = {
-        let state = state.lock().unwrap();
+    let (db, user_id) = {
+        let s = state.lock().unwrap();
 
-        state
+        let db =
+            s.db.clone()
+                .ok_or(crate::Error::NoneDatabase)
+                .map_err(|e| e.to_string())?;
+
+        let user_id = s
             .user_id
             .clone()
             .ok_or(crate::Error::NoneUser)
-            .map_err(|e| e.to_string())?
+            .map_err(|e| e.to_string())?;
+
+        (db, user_id)
     };
 
     let config = db.get_config(&user_id).await.map_err(|e| e.to_string())?;
@@ -161,29 +241,43 @@ pub async fn get_config(
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn set_config(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     config: hypr_db::user::Config,
 ) -> Result<(), String> {
+    let db = {
+        let s = state.lock().unwrap();
+
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.set_config(config).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db, state))]
+#[tracing::instrument(skip(state))]
 pub async fn get_self_human(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
     state: tauri::State<'_, crate::ManagedState>,
 ) -> Result<hypr_db::user::Human, String> {
-    let user_id = {
-        let state = state.lock().unwrap();
+    let (db, user_id) = {
+        let s = state.lock().unwrap();
 
-        state
+        let db =
+            s.db.clone()
+                .ok_or(crate::Error::NoneDatabase)
+                .map_err(|e| e.to_string())?;
+
+        let user_id = s
             .user_id
             .clone()
             .ok_or(crate::Error::NoneUser)
-            .map_err(|e| e.to_string())?
+            .map_err(|e| e.to_string())?;
+
+        (db, user_id)
     };
 
     let human = db.get_human(user_id).await.map_err(|e| e.to_string())?;
@@ -192,29 +286,41 @@ pub async fn get_self_human(
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn upsert_human(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     human: hypr_db::user::Human,
 ) -> Result<hypr_db::user::Human, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.upsert_human(human).await.map_err(|e| e.to_string())
 }
-
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db, state))]
+#[tracing::instrument(skip(state))]
 pub async fn get_self_organization(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
     state: tauri::State<'_, crate::ManagedState>,
 ) -> Result<hypr_db::user::Organization, String> {
-    let user_id = {
-        let state = state.lock().unwrap();
+    let (db, user_id) = {
+        let s = state.lock().unwrap();
 
-        state
+        let db =
+            s.db.clone()
+                .ok_or(crate::Error::NoneDatabase)
+                .map_err(|e| e.to_string())?;
+
+        let user_id = s
             .user_id
             .clone()
             .ok_or(crate::Error::NoneUser)
-            .map_err(|e| e.to_string())?
+            .map_err(|e| e.to_string())?;
+
+        (db, user_id)
     };
 
     let organization = db
@@ -228,11 +334,18 @@ pub async fn get_self_organization(
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn upsert_organization(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     organization: hypr_db::user::Organization,
 ) -> Result<hypr_db::user::Organization, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.upsert_organization(organization)
         .await
         .map_err(|e| e.to_string())
@@ -240,11 +353,18 @@ pub async fn upsert_organization(
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn list_chat_groups(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     user_id: String,
 ) -> Result<Vec<hypr_db::user::ChatGroup>, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.list_chat_groups(user_id)
         .await
         .map_err(|e| e.to_string())
@@ -252,11 +372,18 @@ pub async fn list_chat_groups(
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn list_chat_messages(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     group_id: String,
 ) -> Result<Vec<hypr_db::user::ChatMessage>, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.list_chat_messages(group_id)
         .await
         .map_err(|e| e.to_string())
@@ -264,21 +391,35 @@ pub async fn list_chat_messages(
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn create_chat_group(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     group: hypr_db::user::ChatGroup,
 ) -> Result<hypr_db::user::ChatGroup, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.create_chat_group(group).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(db))]
+#[tracing::instrument(skip(state))]
 pub async fn upsert_chat_message(
-    db: tauri::State<'_, hypr_db::user::UserDatabase>,
+    state: tauri::State<'_, crate::ManagedState>,
     message: hypr_db::user::ChatMessage,
 ) -> Result<hypr_db::user::ChatMessage, String> {
+    let db = {
+        let s = state.lock().unwrap();
+        s.db.clone()
+            .ok_or(crate::Error::NoneDatabase)
+            .map_err(|e| e.to_string())?
+    };
+
     db.upsert_chat_message(message)
         .await
         .map_err(|e| e.to_string())

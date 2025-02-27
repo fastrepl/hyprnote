@@ -4,6 +4,8 @@ pub mod admin;
 #[cfg(feature = "user")]
 pub mod user;
 
+pub use libsql::{Connection, Database};
+
 #[derive(Debug, Default)]
 struct DatabaseBaseConfig {
     local_path: Option<std::path::PathBuf>,

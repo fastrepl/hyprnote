@@ -64,8 +64,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
                 match search {
                     Ok(params) => {
                         tracing::info!(params = ?params, "auth_callback");
-                        vault.set(Key::RemoteServer, params.token).unwrap();
-                        vault.set(Key::UserId, params.user_id).unwrap();
+
+                        // TODO
+                        for (key, value) in [
+                            (Key::UserId, params.user_id),
+                            (Key::AccountId, "TODO".to_string()),
+                            (Key::RemoteServer, params.token),
+                            (Key::RemoteDatabase, "TODO".to_string()),
+                        ] {
+                            vault.set(key, value).unwrap();
+                        }
+
                         channel.send(AuthEvent::Success).unwrap();
                     }
                     Err(err) => {

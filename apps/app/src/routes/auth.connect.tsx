@@ -7,10 +7,10 @@ import { useAuth } from "@clerk/clerk-react";
 import {
   client,
   postApiWebConnectMutation,
-  type ConnectInput,
+  type RequestParams,
+  type ResponseParams,
 } from "../client";
 
-import type { RequestParams } from "@hypr/plugin-auth";
 import { assert, type TypeEqualityGuard } from "../utils";
 
 export const schema = z.object({
@@ -31,12 +31,20 @@ function Component() {
   const search = Route.useSearch();
   const { isLoaded, userId, orgId } = useAuth();
 
-  const { c: code, f: _fingerprint, p: port } = search;
+  const { c: code, f: fingerprint, p: port } = search;
 
   const mutation = useMutation({
     ...postApiWebConnectMutation({ client }),
-    onSuccess({ key, human_id }, _variables, _context) {
-      window.open(`http://localhost:${port}?k=${key}&u=${human_id}`);
+    onSuccess({ ui, ai, st, dt }, _variables, _context) {
+      const url = new URL(`http://localhost:${port}`);
+
+      const params: ResponseParams = { ui, ai, st, dt };
+      url.searchParams.set("ui", params.ui);
+      url.searchParams.set("ai", params.ai);
+      url.searchParams.set("st", params.st);
+      url.searchParams.set("dt", params.dt);
+
+      window.open(url.toString());
     },
   });
 
@@ -44,11 +52,10 @@ function Component() {
     throw navigate({ to: "/auth/sign-in", search });
   }
 
-  const payload: ConnectInput = {
-    code,
-    fingerprint: _fingerprint,
-    org_id: orgId ?? null,
-    user_id: userId!,
+  const payload: RequestParams = {
+    c: code,
+    f: fingerprint,
+    p: port,
   };
 
   if (!code) {

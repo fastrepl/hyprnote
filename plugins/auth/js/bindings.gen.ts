@@ -34,6 +34,7 @@ async getFromVault(key: Key) : Promise<string | null> {
 export type AuthEvent = "Success" | "Error"
 export type Key = "user-id" | "account-id" | "remote-database" | "remote-server"
 export type RequestParams = { c: string; f: string; p: number }
+export type ResponseParams = { ui: string; ai: string; st: string; dt: string }
 export type TAURI_CHANNEL<TSend> = null
 
 /** tauri-specta globals **/

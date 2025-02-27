@@ -63,7 +63,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ConnectInput"
+                "$ref": "#/components/schemas/RequestParams"
               }
             }
           },
@@ -75,7 +75,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ConnectOutput"
+                  "$ref": "#/components/schemas/ResponseParams"
                 }
               }
             }
@@ -786,46 +786,6 @@
           "function"
         ]
       },
-      "ConnectInput": {
-        "type": "object",
-        "required": [
-          "code",
-          "fingerprint",
-          "user_id"
-        ],
-        "properties": {
-          "code": {
-            "type": "string"
-          },
-          "fingerprint": {
-            "type": "string"
-          },
-          "org_id": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "user_id": {
-            "type": "string"
-          }
-        }
-      },
-      "ConnectOutput": {
-        "type": "object",
-        "required": [
-          "human_id",
-          "key"
-        ],
-        "properties": {
-          "human_id": {
-            "type": "string"
-          },
-          "key": {
-            "type": "string"
-          }
-        }
-      },
       "ConversationChunk": {
         "type": "object",
         "required": [
@@ -1452,6 +1412,27 @@
           "high"
         ]
       },
+      "RequestParams": {
+        "type": "object",
+        "required": [
+          "c",
+          "f",
+          "p"
+        ],
+        "properties": {
+          "c": {
+            "type": "string"
+          },
+          "f": {
+            "type": "string"
+          },
+          "p": {
+            "type": "integer",
+            "format": "uint16",
+            "minimum": 0.0
+          }
+        }
+      },
       "ResponseFormat": {
         "oneOf": [
           {
@@ -1531,6 +1512,29 @@
               "boolean",
               "null"
             ]
+          }
+        }
+      },
+      "ResponseParams": {
+        "type": "object",
+        "required": [
+          "ai",
+          "dt",
+          "st",
+          "ui"
+        ],
+        "properties": {
+          "ai": {
+            "type": "string"
+          },
+          "dt": {
+            "type": "string"
+          },
+          "st": {
+            "type": "string"
+          },
+          "ui": {
+            "type": "string"
           }
         }
       },

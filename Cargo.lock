@@ -328,6 +328,7 @@ dependencies = [
  "specta-typescript",
  "strum 0.26.3",
  "stt",
+ "tauri-plugin-auth",
  "tokio",
  "tower 0.5.2",
  "tower-http 0.6.2",
@@ -11371,6 +11372,7 @@ version = "0.1.0"
 dependencies = [
  "keyring",
  "minijinja",
+ "schemars",
  "serde",
  "serde_json",
  "serde_qs 0.13.0",

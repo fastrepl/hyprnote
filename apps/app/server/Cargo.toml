@@ -7,6 +7,8 @@ edition = "2021"
 dotenv = { workspace = true }
 
 [dependencies]
+tauri-plugin-auth = { path = "../../../plugins/auth" }
+
 hypr-analytics = { path = "../../../crates/analytics", package = "analytics" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr-buffer = { path = "../../../crates/buffer", package = "buffer" }

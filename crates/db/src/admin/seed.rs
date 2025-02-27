@@ -1,7 +1,7 @@
-use super::{AdminDatabase, Device, Organization, User};
+use super::{Account, AdminDatabase, Device, User};
 
 pub async fn seed(db: &AdminDatabase) -> Result<(), crate::Error> {
-    let org = Organization {
+    let account = Account {
         id: uuid::Uuid::new_v4().to_string(),
         turso_db_name: "yujonglee".to_string(),
         clerk_org_id: Some("org_1".to_string()),
@@ -9,7 +9,7 @@ pub async fn seed(db: &AdminDatabase) -> Result<(), crate::Error> {
 
     let user = User {
         id: uuid::Uuid::new_v4().to_string(),
-        organization_id: org.id.clone(),
+        account_id: account.id.clone(),
         human_id: uuid::Uuid::new_v4().to_string(),
         timestamp: chrono::Utc::now(),
         clerk_user_id: "user_1".to_string(),
@@ -23,7 +23,7 @@ pub async fn seed(db: &AdminDatabase) -> Result<(), crate::Error> {
         fingerprint: "TODO".to_string(),
     };
 
-    db.upsert_organization(org).await?;
+    db.upsert_account(account).await?;
     db.upsert_user(user).await?;
     db.upsert_device(device).await?;
     Ok(())

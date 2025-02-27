@@ -59,14 +59,14 @@ impl AdminDatabase {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::admin::{tests::setup_db, Organization, User};
+    use crate::admin::{tests::setup_db, Account, User};
 
     #[tokio::test]
     async fn test_devices() {
         let db = setup_db().await;
 
-        let org = db
-            .upsert_organization(Organization {
+        let account = db
+            .upsert_account(Account {
                 id: uuid::Uuid::new_v4().to_string(),
                 turso_db_name: "yujonglee".to_string(),
                 clerk_org_id: Some("org_1".to_string()),
@@ -77,7 +77,7 @@ mod tests {
         let user = db
             .upsert_user(User {
                 id: uuid::Uuid::new_v4().to_string(),
-                organization_id: org.id.clone(),
+                account_id: account.id.clone(),
                 human_id: uuid::Uuid::new_v4().to_string(),
                 timestamp: chrono::Utc::now(),
                 clerk_user_id: "21".to_string(),

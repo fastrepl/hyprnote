@@ -228,18 +228,6 @@ export type ChatCompletionToolChoiceOption = 'none' | 'auto' | 'required' | {
 
 export type ChatCompletionToolType = 'function';
 
-export type ConnectInput = {
-    code: string;
-    fingerprint: string;
-    org_id?: string | null;
-    user_id: string;
-};
-
-export type ConnectOutput = {
-    human_id: string;
-    key: string;
-};
-
 export type ConversationChunk = {
     diarizations: Array<DiarizationChunk>;
     end: string;
@@ -519,6 +507,12 @@ export type PredictionContentContent = string | Array<ChatCompletionRequestMessa
 
 export type ReasoningEffort = 'low' | 'medium' | 'high';
 
+export type RequestParams = {
+    c: string;
+    f: string;
+    p: number;
+};
+
 export type ResponseFormat = {
     type: 'text';
 } | {
@@ -545,6 +539,13 @@ export type ResponseFormatJsonSchema = {
      * Whether to enable strict schema adherence when generating the output. If set to true, the model will always follow the exact schema defined in the `schema` field. Only a subset of JSON Schema is supported when `strict` is `true`. To learn more, read the [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
      */
     strict?: boolean | null;
+};
+
+export type ResponseParams = {
+    ai: string;
+    dt: string;
+    st: string;
+    ui: string;
 };
 
 export type ServiceTier = 'auto' | 'default';
@@ -615,14 +616,14 @@ export type GetApiNativeSubscriptionResponses = {
 export type GetApiNativeSubscriptionResponse = GetApiNativeSubscriptionResponses[keyof GetApiNativeSubscriptionResponses];
 
 export type PostApiWebConnectData = {
-    body: ConnectInput;
+    body: RequestParams;
     path?: never;
     query?: never;
     url: '/api/web/connect';
 };
 
 export type PostApiWebConnectResponses = {
-    200: ConnectOutput;
+    200: ResponseParams;
 };
 
 export type PostApiWebConnectResponse = PostApiWebConnectResponses[keyof PostApiWebConnectResponses];

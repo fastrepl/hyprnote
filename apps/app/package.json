@@ -12,7 +12,6 @@
   },
   "devDependencies": {
     "@hypr/client": "workspace:^",
-    "@hypr/plugin-auth": "workspace:^",
     "@tanstack/router-plugin": "^1.106.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",

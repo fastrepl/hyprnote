@@ -5,7 +5,7 @@ use crate::{
     CALLBACK_TEMPLATE_KEY,
 };
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type, schemars::JsonSchema)]
 pub struct RequestParams {
     #[serde(rename = "c")]
     pub code: String,
@@ -15,12 +15,16 @@ pub struct RequestParams {
     pub port: u16,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type, schemars::JsonSchema)]
 pub struct ResponseParams {
-    #[serde(rename = "k")]
-    pub token: String,
-    #[serde(rename = "u")]
+    #[serde(rename = "ui")]
     pub user_id: String,
+    #[serde(rename = "ai")]
+    pub account_id: String,
+    #[serde(rename = "st")]
+    pub server_token: String,
+    #[serde(rename = "dt")]
+    pub database_token: String,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
@@ -65,12 +69,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
                     Ok(params) => {
                         tracing::info!(params = ?params, "auth_callback");
 
-                        // TODO
                         for (key, value) in [
                             (Key::UserId, params.user_id),
-                            (Key::AccountId, "TODO".to_string()),
-                            (Key::RemoteServer, params.token),
-                            (Key::RemoteDatabase, "TODO".to_string()),
+                            (Key::AccountId, params.account_id),
+                            (Key::RemoteServer, params.server_token),
+                            (Key::RemoteDatabase, params.database_token),
                         ] {
                             vault.set(key, value).unwrap();
                         }

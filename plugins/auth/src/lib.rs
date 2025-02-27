@@ -23,6 +23,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::get_from_vault::<tauri::Wry>,
         ])
         .typ::<RequestParams>()
+        .typ::<ResponseParams>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 

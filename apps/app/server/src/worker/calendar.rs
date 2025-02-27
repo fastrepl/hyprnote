@@ -57,17 +57,17 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
                     .map_err(|e| err_from(e.to_string()))?;
 
                 let user_db = {
-                    let org = ctx
+                    let account = ctx
                         .admin_db
-                        .get_organization_by_id(&user.organization_id)
+                        .get_account_by_id(&user.account_id)
                         .await
                         .map_err(|e| err_from(e.to_string()))?
                         .unwrap();
 
-                    let url = ctx.turso.db_url(&org.turso_db_name);
+                    let url = ctx.turso.db_url(&account.turso_db_name);
                     let token = ctx
                         .turso
-                        .generate_db_token(&org.turso_db_name)
+                        .generate_db_token(&account.turso_db_name)
                         .await
                         .map_err(|e| err_from(e.to_string()))?;
 

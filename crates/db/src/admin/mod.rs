@@ -1,14 +1,18 @@
+mod accounts_ops;
+mod accounts_types;
 mod billings_ops;
 mod billings_types;
 mod devices_ops;
 mod devices_types;
 mod integrations_ops;
 mod integrations_types;
-mod organizations_ops;
-mod organizations_types;
 mod users_ops;
 mod users_types;
 
+#[allow(unused)]
+pub use accounts_ops::*;
+#[allow(unused)]
+pub use accounts_types::*;
 #[allow(unused)]
 pub use billings_ops::*;
 #[allow(unused)]
@@ -21,10 +25,6 @@ pub use devices_types::*;
 pub use integrations_ops::*;
 #[allow(unused)]
 pub use integrations_types::*;
-#[allow(unused)]
-pub use organizations_ops::*;
-#[allow(unused)]
-pub use organizations_types::*;
 #[allow(unused)]
 pub use users_ops::*;
 #[allow(unused)]
@@ -59,7 +59,7 @@ const MIGRATIONS: [&str; 5] = [
     include_str!("./billings_migration.sql"),
     include_str!("./devices_migration.sql"),
     include_str!("./integrations_migration.sql"),
-    include_str!("./organizations_migration.sql"),
+    include_str!("./accounts_migration.sql"),
     include_str!("./users_migration.sql"),
 ];
 

@@ -7,7 +7,7 @@ use crate::{
 
 pub async fn handler(
     State(_state): State<AppState>,
-    Extension(_org): Extension<hypr_db::admin::Organization>,
+    Extension(_org): Extension<hypr_db::admin::Account>,
 ) -> Result<Json<Subscription>, StatusCode> {
     Ok(Json(Subscription {
         membership: Membership::Trial,

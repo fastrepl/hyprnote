@@ -5,13 +5,13 @@ pub mod admin;
 pub mod user;
 
 #[derive(Debug, Default)]
-struct ConnectionConfig {
+struct DatabaseBaseConfig {
     local_path: Option<std::path::PathBuf>,
     remote_config: Option<(String, String)>,
 }
 
-impl ConnectionConfig {
-    pub async fn connect(&self) -> anyhow::Result<libsql::Connection> {
+impl DatabaseBaseConfig {
+    pub async fn connect(&self) -> Result<libsql::Connection, crate::Error> {
         let db = match (self.local_path.clone(), self.remote_config.clone()) {
             (Some(path), None) => libsql::Builder::new_local(path).build().await?,
             (None, Some((url, token))) => libsql::Builder::new_remote(url, token).build().await?,
@@ -21,9 +21,9 @@ impl ConnectionConfig {
                     .build()
                     .await?
             }
-            (None, None) => {
-                anyhow::bail!("either '.local()' or '.remote()' must be called")
-            }
+            (None, None) => Err(crate::Error::InvalidDatabaseConfig(
+                "either '.local()' or '.remote()' must be called".to_string(),
+            ))?,
         };
 
         let conn = db.connect()?;
@@ -32,11 +32,11 @@ impl ConnectionConfig {
 }
 
 #[derive(Default)]
-pub struct ConnectionBuilder {
-    config: ConnectionConfig,
+pub struct DatabaseBaseBuilder {
+    config: DatabaseBaseConfig,
 }
 
-impl ConnectionBuilder {
+impl DatabaseBaseBuilder {
     pub fn local(mut self, path: impl AsRef<std::path::Path>) -> Self {
         self.config.local_path = Some(path.as_ref().to_owned());
         self
@@ -47,7 +47,7 @@ impl ConnectionBuilder {
         self
     }
 
-    pub async fn connect(self) -> anyhow::Result<libsql::Connection> {
+    pub async fn connect(self) -> Result<libsql::Connection, crate::Error> {
         let conn = self.config.connect().await?;
         Ok(conn)
     }
@@ -92,4 +92,6 @@ pub enum Error {
     SerdeDeError(#[from] serde::de::value::Error),
     #[error("serde_json error: {0}")]
     SerdeJsonError(#[from] serde_json::Error),
+    #[error("invalid database config: {0}")]
+    InvalidDatabaseConfig(String),
 }

@@ -128,7 +128,7 @@ fn main() {
                 let conn = {
                     #[cfg(debug_assertions)]
                     {
-                        hypr_db::ConnectionBuilder::default()
+                        hypr_db::DatabaseBaseBuilder::default()
                             .local(":memory:")
                             .connect()
                             .await
@@ -141,7 +141,7 @@ fn main() {
                         let url = turso.db_url(&name);
                         let token = turso.generate_db_token(&name).await.unwrap();
 
-                        hypr_db::ConnectionBuilder::default()
+                        hypr_db::DatabaseBaseBuilder::default()
                             .remote(url, token)
                             .connect()
                             .await

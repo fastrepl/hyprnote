@@ -123,11 +123,11 @@ mod tests {
     use super::UserDatabase;
     use crate::{
         user::{migrate, seed},
-        ConnectionBuilder,
+        DatabaseBaseBuilder,
     };
 
     pub async fn setup_db() -> UserDatabase {
-        let conn = ConnectionBuilder::default()
+        let conn = DatabaseBaseBuilder::default()
             .local(":memory:")
             .connect()
             .await

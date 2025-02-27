@@ -72,11 +72,11 @@ mod tests {
     use super::AdminDatabase;
     use crate::{
         admin::{migrate, seed},
-        ConnectionBuilder,
+        DatabaseBaseBuilder,
     };
 
     pub async fn setup_db() -> AdminDatabase {
-        let conn = ConnectionBuilder::default()
+        let conn = DatabaseBaseBuilder::default()
             .local(":memory:")
             .connect()
             .await

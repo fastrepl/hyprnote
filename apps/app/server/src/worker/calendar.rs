@@ -71,7 +71,7 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
                         .await
                         .map_err(|e| err_from(e.to_string()))?;
 
-                    let conn = hypr_db::ConnectionBuilder::default()
+                    let conn = hypr_db::DatabaseBaseBuilder::default()
                         .remote(url, token)
                         .connect()
                         .await

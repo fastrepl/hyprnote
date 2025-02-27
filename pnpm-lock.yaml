@@ -48,6 +48,9 @@ importers:
       '@hypr/client':
         specifier: workspace:^
         version: link:../../packages/client
+      '@hypr/plugin-auth':
+        specifier: workspace:^
+        version: link:../../plugins/auth
       '@tanstack/router-plugin':
         specifier: ^1.106.0
         version: 1.106.0(@tanstack/react-router@1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(vite@6.1.1(@types/node@22.13.5)(jiti@2.4.2)(tsx@4.19.3)(yaml@2.7.0))

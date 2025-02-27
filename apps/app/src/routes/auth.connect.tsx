@@ -10,11 +10,16 @@ import {
   type ConnectInput,
 } from "../client";
 
+import type { RequestParams } from "@hypr/plugin-auth";
+import { assert, type TypeEqualityGuard } from "../utils";
+
 export const schema = z.object({
   c: z.string(),
   f: z.string(),
   p: z.number(),
 });
+
+assert<TypeEqualityGuard<z.infer<typeof schema>, RequestParams>>();
 
 export const Route = createFileRoute("/auth/connect")({
   validateSearch: zodValidator(schema),

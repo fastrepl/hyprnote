@@ -4,7 +4,7 @@ import {
   WidgetOneByOne,
   WidgetTwoByOne,
   WidgetTwoByTwo,
-  WidgetFullSizeModal,
+  WidgetFullSize,
 } from "@hypr/ui/components/ui/widgets";
 
 export interface Extension {
@@ -18,5 +18,5 @@ export interface Widget {
     | typeof WidgetOneByOne
     | typeof WidgetTwoByOne
     | typeof WidgetTwoByTwo
-    | typeof WidgetFullSizeModal;
+    | typeof WidgetFullSize;
 }

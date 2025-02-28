@@ -86,7 +86,7 @@ const WidgetTwoByOne = (props: Omit<WidgetProps, "width" | "height">) => (
   <Widget width="340px" height="160px" {...props} />
 );
 
-const WidgetFullSizeModal = ({
+const WidgetFullSize = ({
   onMinimize,
   ...props
 }: Omit<WidgetProps, "width" | "height" | "onMaximize"> & {
@@ -97,7 +97,7 @@ export {
   Widget,
   WidgetOneByOne,
   WidgetTwoByOne,
-  WidgetFullSizeModal,
+  WidgetFullSize,
   WidgetHeader,
   WidgetTwoByTwo,
 };

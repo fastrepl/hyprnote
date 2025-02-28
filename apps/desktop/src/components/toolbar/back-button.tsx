@@ -3,6 +3,8 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter, useLocation } from "@tanstack/react-router";
 import { Button } from "@hypr/ui/components/ui/button";
 
+import type { RoutePath } from "@/types";
+
 export function BackButton() {
   const { history } = useRouter();
   const { pathname } = useLocation();
@@ -11,7 +13,8 @@ export function BackButton() {
     history.back();
   }, [history]);
 
-  const showBackButton = pathname.includes("note");
+  const checker = ("/app/note/$id" satisfies RoutePath).slice(0, 9);
+  const showBackButton = pathname.includes(checker);
 
   if (!showBackButton) {
     return null;

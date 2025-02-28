@@ -1,7 +1,10 @@
-import { SearchIcon } from "lucide-react";
-import { CommandShortcut } from "@hypr/ui/components/ui/command";
 import clsx from "clsx";
-import { useSearchStore } from "../../stores/use-search-store";
+import { SearchIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { type as getOsType } from "@tauri-apps/plugin-os";
+
+import { CommandShortcut } from "@hypr/ui/components/ui/command";
+import { useSearchStore } from "@/stores/use-search-store";
 
 export function SearchBar() {
   const { open } = useSearchStore();
@@ -26,5 +29,16 @@ export function SearchBar() {
 }
 
 function Shortcut() {
-  return <CommandShortcut>⌘K</CommandShortcut>;
+  const osType = useQuery({
+    queryKey: ["osType"],
+    queryFn: async () => {
+      return getOsType();
+    },
+  });
+
+  if (osType.data === "macos") {
+    return <CommandShortcut>⌘K</CommandShortcut>;
+  }
+
+  return <CommandShortcut>Ctrl+K</CommandShortcut>;
 }

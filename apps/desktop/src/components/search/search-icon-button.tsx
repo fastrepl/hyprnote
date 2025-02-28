@@ -1,6 +1,7 @@
 import { SearchIcon } from "lucide-react";
 import { Button } from "@hypr/ui/components/ui/button";
-import { useSearchStore } from "../../stores/use-search-store";
+
+import { useSearchStore } from "@/stores/use-search-store";
 
 export function SearchIconButton() {
   const { open } = useSearchStore();

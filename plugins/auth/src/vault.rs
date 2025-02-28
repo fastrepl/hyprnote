@@ -25,6 +25,30 @@ pub enum VaultKey {
     RemoteServer,
 }
 
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
+pub struct VaultData {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub remote_database: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub remote_server: Option<String>,
+}
+
+impl VaultData {
+    pub fn get(&self, key: VaultKey) -> Option<String> {
+        match key {
+            VaultKey::RemoteDatabase => self.remote_database.clone(),
+            VaultKey::RemoteServer => self.remote_server.clone(),
+        }
+    }
+
+    pub fn set(&mut self, key: VaultKey, value: impl Into<String>) {
+        match key {
+            VaultKey::RemoteDatabase => self.remote_database = Some(value.into()),
+            VaultKey::RemoteServer => self.remote_server = Some(value.into()),
+        }
+    }
+}
+
 impl Vault {
     pub fn init(&self, account_id: impl AsRef<str>) -> Result<(), crate::Error> {
         let entry = keyring::Entry::new("hyprnote", account_id.as_ref()).unwrap();
@@ -32,22 +56,33 @@ impl Vault {
         Ok(())
     }
 
-    pub fn get(&self, _key: VaultKey) -> Result<Option<String>, crate::Error> {
+    pub fn get(&self, key: VaultKey) -> Result<Option<String>, crate::Error> {
         let guard = self.entry.lock().unwrap();
         let entry = guard.as_ref().ok_or(crate::Error::VaultNotInitialized)?;
 
-        match entry.get_password() {
-            Ok(v) => Ok(Some(v)),
-            Err(keyring::Error::NoEntry) => Ok(None),
+        let v: VaultData = match entry.get_password() {
+            Ok(v) => Ok::<_, crate::Error>(serde_json::from_str(&v).unwrap_or_default()),
+            Err(keyring::Error::NoEntry) => Ok::<_, crate::Error>(Default::default()),
             Err(e) => Err(e.into()),
-        }
+        }?;
+
+        Ok(v.get(key))
     }
 
-    pub fn set(&self, _key: VaultKey, value: impl AsRef<str>) -> Result<(), crate::Error> {
+    pub fn set(&self, key: VaultKey, value: impl Into<String>) -> Result<(), crate::Error> {
         let guard = self.entry.lock().unwrap();
         let entry = guard.as_ref().ok_or(crate::Error::VaultNotInitialized)?;
 
-        entry.set_password(value.as_ref()).map_err(Into::into)
+        let mut v: VaultData = match entry.get_password() {
+            Ok(v) => Ok::<_, crate::Error>(serde_json::from_str(&v).unwrap_or_default()),
+            Err(keyring::Error::NoEntry) => Ok::<_, crate::Error>(Default::default()),
+            Err(e) => Err(e.into()),
+        }?;
+        v.set(key, value);
+
+        entry
+            .set_password(&serde_json::to_string(&v).unwrap_or_default())
+            .map_err(Into::into)
     }
 
     pub fn clear(&self) -> Result<(), crate::Error> {

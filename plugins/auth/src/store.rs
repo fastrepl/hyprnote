@@ -1,6 +1,6 @@
 use tauri_plugin_store::StoreExt;
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, strum::Display, specta::Type)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, strum::AsRefStr, specta::Type)]
 pub enum StoreKey {
     #[strum(serialize = "auth-user-id")]
     #[serde(rename = "auth-user-id")]

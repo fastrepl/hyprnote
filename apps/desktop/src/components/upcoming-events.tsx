@@ -1,6 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+
 import {
   Carousel,
   CarouselContent,

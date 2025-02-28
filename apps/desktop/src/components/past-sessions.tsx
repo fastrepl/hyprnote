@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+
+import { Trans } from "@lingui/react/macro";
+import { Users2 } from "lucide-react";
 import {
   format,
   isThisYear,
@@ -11,12 +13,8 @@ import {
   differenceInCalendarDays,
   startOfToday,
 } from "date-fns";
+
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
-import {
-  commands as dbCommands,
-  type Human,
-  type Session,
-} from "@hypr/plugin-db";
 import {
   Card,
   CardContent,
@@ -24,7 +22,11 @@ import {
   CardDescription,
   CardHeader,
 } from "@hypr/ui/components/ui/card";
-import { Users2 } from "lucide-react";
+import {
+  commands as dbCommands,
+  type Human,
+  type Session,
+} from "@hypr/plugin-db";
 
 export default function PastSessions() {
   const data = useQuery({

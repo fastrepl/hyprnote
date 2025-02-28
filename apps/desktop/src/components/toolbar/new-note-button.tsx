@@ -2,9 +2,10 @@ import { useCallback } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLocation, useRouter } from "@tanstack/react-router";
 import clsx from "clsx";
-import { Button } from "@hypr/ui/components/ui/button";
 import { PenIcon } from "lucide-react";
 import { useHotkeys } from "react-hotkeys-hook";
+
+import { Button } from "@hypr/ui/components/ui/button";
 import {
   Tooltip,
   TooltipTrigger,

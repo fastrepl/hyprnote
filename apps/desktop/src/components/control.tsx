@@ -28,7 +28,6 @@ export const NotFoundComponent: NotFoundRouteComponent = (_props) => {
 };
 
 export const ErrorComponent: ErrorRouteComponent = (props) => {
-  console.log("error", props);
   return (
     <div className="flex h-full w-full items-center justify-center">
       <p>Error</p>

@@ -24,7 +24,7 @@ export const Route = createFileRoute("/app/note/$id")({
   component: Component,
   loader: ({ context: { queryClient }, params: { id } }) => {
     return queryClient.fetchQuery({
-      queryKey: ["note", { id }],
+      queryKey: ["note", id],
       queryFn: async () => {
         const [session, config, customTemplates] = await Promise.all([
           dbCommands.getSession({ id }),

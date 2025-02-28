@@ -30,7 +30,7 @@ function Component() {
 
   const osType = useQuery({
     queryKey: ["osType"],
-    queryFn: async (): Promise<OsType> => {
+    queryFn: async () => {
       return getOsType();
     },
   });

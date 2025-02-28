@@ -11,7 +11,7 @@ export function BackButton() {
     history.back();
   }, [history]);
 
-  const showBackButton = pathname.startsWith("/note");
+  const showBackButton = pathname.includes("note");
 
   if (!showBackButton) {
     return null;

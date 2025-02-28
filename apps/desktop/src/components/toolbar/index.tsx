@@ -1,26 +1,21 @@
 import clsx from "clsx";
+import { useQuery } from "@tanstack/react-query";
+
 import SettingsPanel from "@/components/settings-panel";
 import { NewNoteButton } from "@/components/toolbar/new-note-button";
 import { BackButton } from "@/components/toolbar/back-button";
-import { type OsType, type as getOsType } from "@tauri-apps/plugin-os";
-import { useEffect, useState } from "react";
+import { type as getOsType } from "@tauri-apps/plugin-os";
+
 import { SearchBar, SearchIconButton, SearchPalette } from "../search";
 import { RightSidePanelButton } from "./right-side-panel-button";
 
 export default function Toolbar() {
-  const [osType, setOsType] = useState<OsType>("macos");
-
-  useEffect(() => {
-    async function fetchOsType() {
-      try {
-        const os = getOsType(); // Returns "Linux", "Windows_NT", "Darwin"
-        setOsType(os);
-      } catch (error) {
-        console.error("Failed to get OS type:", error);
-      }
-    }
-    fetchOsType();
-  }, []);
+  const osType = useQuery({
+    queryKey: ["osType"],
+    queryFn: async () => {
+      return getOsType();
+    },
+  });
 
   return (
     <>
@@ -32,9 +27,9 @@ export default function Toolbar() {
         ])}
         data-tauri-drag-region
       >
-        {/* TODO: This is a poor way for implementing just for macOS */}
+        {/* TODO */}
         <div className="w-40" data-tauri-drag-region>
-          {osType === "macos" && <BackButton />}
+          {osType.data === "macos" && <BackButton />}
         </div>
 
         <SearchBar />

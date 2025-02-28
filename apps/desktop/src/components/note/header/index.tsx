@@ -1,40 +1,46 @@
 import { type ChangeEvent } from "react";
+
+import { useSession } from "@/contexts";
+import { useOngoingSession } from "@/contexts/ongoing-session";
+
 import TitleInput from "./title-input";
 import ListenButton from "./listen-button";
 import Chips from "./chips";
-import { useSession } from "@/contexts";
 
 interface NoteHeaderProps {
   onNavigateToEditor?: () => void;
 }
 
 export function NoteHeader({ onNavigateToEditor }: NoteHeaderProps) {
-  const store = useSession((s) => ({
-    session: s.session,
+  const ongoingSessionStore = useOngoingSession((s) => ({
     listening: s.listening,
     start: s.start,
     pause: s.pause,
+  }));
+
+  const sessionStore = useSession((s) => ({
+    session: s.session,
     updateTitle: s.updateTitle,
     persistSession: s.persistSession,
   }));
 
   const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    store.updateTitle(e.target.value);
-    store.persistSession();
+    sessionStore.updateTitle(e.target.value);
+    sessionStore.persistSession();
   };
 
   return (
     <>
       <div className="flex flex-row items-center justify-between pl-8 pr-4 pt-6">
         <TitleInput
-          value={store.session.title}
+          value={sessionStore.session.title}
           onChange={handleTitleChange}
           onNavigateToEditor={onNavigateToEditor}
         />
         <ListenButton
-          isListening={store.listening}
-          onClick={store.start}
-          onStop={store.pause}
+          isListening={ongoingSessionStore.listening}
+          onClick={ongoingSessionStore.start}
+          onStop={ongoingSessionStore.pause}
         />
       </div>
       <Chips />

@@ -10,7 +10,7 @@
     "./tailwind.config": "./tailwind.config.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npx tsc --noEmit",
     "preview": "storybook dev -p 6006",
     "build": "storybook build -o ../../apps/storybook/storybook-static/dino-game"
   },
@@ -19,20 +19,19 @@
     "@hypr/ui": "workspace:^"
   },
   "devDependencies": {
-    "@storybook/addon-essentials": "^8.5.6",
-    "@storybook/addon-interactions": "^8.5.6",
-    "@storybook/react": "^8.5.6",
-    "@storybook/react-vite": "^8.5.6",
+    "@storybook/addon-essentials": "^8.6.2",
+    "@storybook/addon-interactions": "^8.6.2",
+    "@storybook/react": "^8.6.2",
+    "@storybook/react-vite": "^8.6.2",
     "@types/node": "^22.13.5",
     "@types/react": "^18.3.18",
     "autoprefixer": "^10.4.20",
-    "msw": "^2.7.0",
+    "msw": "^2.7.3",
     "msw-storybook-addon": "^2.0.4",
-    "storybook": "^8.5.6",
-    "tailwindcss": "^3.4.17"
-  },
-  "peerDependencies": {
-    "react": "^18.3.1"
+    "storybook": "^8.6.2",
+    "tailwindcss": "^3.4.17",
+    "react": "^19",
+    "react-dom": "^19"
   },
   "msw": {
     "workerDirectory": [

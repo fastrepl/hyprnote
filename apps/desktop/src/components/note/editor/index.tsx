@@ -10,6 +10,8 @@ import NoteRenderer from "@hypr/tiptap/renderer";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 
 import { useSession } from "@/contexts";
+import { useOngoingSession } from "@/contexts/ongoing-session";
+
 import { EnhanceControls } from "./enhanced-controls";
 import { EnhanceOnlyButton } from "./enhanced-only-button";
 import { NoteHeader } from "../header";
@@ -39,16 +41,15 @@ export default function EditorArea() {
     },
   });
 
-  const store = useSession((s) => ({
+  const sessionStore = useSession((s) => ({
     session: s.session,
-    timeline: s.timeline,
-    listening: s.listening,
-    start: s.start,
-    pause: s.pause,
-    updateTitle: s.updateTitle,
     updateRawNote: s.updateRawNote,
     updateEnhancedNote: s.updateEnhancedNote,
     persistSession: s.persistSession,
+  }));
+
+  const ongoingSessionStore = useOngoingSession((s) => ({
+    listening: s.listening,
   }));
 
   const [showRaw, setShowRaw] = useState(true);
@@ -56,30 +57,30 @@ export default function EditorArea() {
   const handleChangeNote = useCallback(
     (content: string) => {
       if (showRaw) {
-        store.updateRawNote(content);
-        store.persistSession();
+        sessionStore.updateRawNote(content);
+        sessionStore.persistSession();
       } else {
-        store.updateEnhancedNote(content);
+        sessionStore.updateEnhancedNote(content);
       }
     },
-    [showRaw, store],
+    [showRaw, sessionStore],
   );
 
   useEffect(() => {
-    if (!showRaw && !store.session.enhanced_memo_html) {
+    if (!showRaw && !sessionStore.session.enhanced_memo_html) {
       enhance.mutate();
     }
-  }, [showRaw, store.session.enhanced_memo_html, enhance]);
+  }, [showRaw, sessionStore.session.enhanced_memo_html, enhance]);
 
   useEffect(() => {
     if (enhance.data) {
-      store.updateEnhancedNote(enhance.data);
+      sessionStore.updateEnhancedNote(enhance.data);
     }
   }, [enhance.data]);
 
   useEffect(() => {
     if (enhance.status === "success" || enhance.status === "pending") {
-      store.persistSession();
+      sessionStore.persistSession();
     }
   }, [enhance.status]);
 
@@ -115,19 +116,19 @@ export default function EditorArea() {
           <NoteEditor
             ref={editorRef}
             handleChange={handleChangeNote}
-            content={store.session.raw_memo_html}
+            content={sessionStore.session.raw_memo_html}
           />
         ) : (
           <NoteRenderer
             ref={rendererRef}
             handleChange={handleChangeNote}
-            content={store.session.enhanced_memo_html ?? ""}
+            content={sessionStore.session.enhanced_memo_html ?? ""}
           />
         )}
       </div>
 
       <AnimatePresence>
-        {!store.listening && (
+        {!ongoingSessionStore.listening && (
           <motion.div
             className="absolute bottom-16 left-1/2 flex -translate-x-1/2 justify-center"
             initial={{ y: 50, opacity: 0 }}
@@ -135,9 +136,9 @@ export default function EditorArea() {
             exit={{ y: 50, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            {store.listening ||
-            !store.session.conversations.length ? null : store.session
-                .enhanced_memo_html ? (
+            {ongoingSessionStore.listening ||
+            !sessionStore.session.conversations.length ? null : sessionStore
+                .session.enhanced_memo_html ? (
               <EnhanceControls showRaw={showRaw} setShowRaw={setShowRaw} />
             ) : (
               <EnhanceOnlyButton handleClick={() => setShowRaw(false)} />

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npx tsc --noEmit",
     "dev": "vite --port=3001",
     "build": "vite build",
     "serve": "vite preview",
@@ -13,7 +13,7 @@
   "devDependencies": {
     "@clerk/types": "^4.47.0",
     "@hypr/client": "workspace:^",
-    "@tanstack/router-plugin": "^1.111.12",
+    "@tanstack/router-plugin": "^1.112.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
@@ -30,8 +30,8 @@
     "@nangohq/frontend": "^0.53.2",
     "@sentry/react": "^8.55.0",
     "@tanstack/react-query": "^5.66.9",
-    "@tanstack/react-router": "^1.111.11",
-    "@tanstack/zod-adapter": "^1.111.11",
+    "@tanstack/react-router": "^1.112.0",
+    "@tanstack/zod-adapter": "^1.112.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.24.2",

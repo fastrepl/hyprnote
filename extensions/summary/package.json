@@ -10,7 +10,7 @@
     "./tailwind.config": "./tailwind.config.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npx tsc --noEmit",
     "preview": "storybook dev -p 6006",
     "build": "storybook build -o ../../apps/storybook/storybook-static/summary"
   },
@@ -20,27 +20,26 @@
     "@hypr/plugin-listener": "workspace:^",
     "@hypr/plugin-template": "workspace:^",
     "@hypr/ui": "workspace:^",
-    "@tanstack/react-query": "^5.66.0",
-    "@tauri-apps/api": "^2.2.0",
-    "motion": "^12.4.2",
+    "@tanstack/react-query": "^5.66.9",
+    "@tauri-apps/api": "^2.3.0",
+    "motion": "^12.4.7",
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@storybook/addon-essentials": "^8.5.8",
-    "@storybook/addon-interactions": "^8.5.8",
-    "@storybook/react": "^8.5.8",
-    "@storybook/react-vite": "^8.5.8",
+    "@storybook/addon-essentials": "^8.6.2",
+    "@storybook/addon-interactions": "^8.6.2",
+    "@storybook/react": "^8.6.2",
+    "@storybook/react-vite": "^8.6.2",
     "@types/node": "^22.13.5",
     "@types/react": "^18.3.18",
     "autoprefixer": "^10.4.20",
-    "msw": "^2.7.0",
+    "msw": "^2.7.3",
     "msw-storybook-addon": "^2.0.4",
-    "openai": "^4.85.3",
-    "storybook": "^8.5.8",
-    "tailwindcss": "^3.4.17"
-  },
-  "peerDependencies": {
-    "react": "^18.3.1"
+    "openai": "^4.86.1",
+    "storybook": "^8.6.2",
+    "tailwindcss": "^3.4.17",
+    "react": "^19",
+    "react-dom": "^19"
   },
   "msw": {
     "workerDirectory": [

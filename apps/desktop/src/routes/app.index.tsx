@@ -2,9 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import PastSessions from "@/components/past-sessions";
 import UpcomingEvents from "@/components/upcoming-events";
-
 import { commands } from "@/types";
-import { OngoingSessionProvider } from "@/contexts/ongoing-session";
 
 export const Route = createFileRoute("/app/")({
   component: Component,
@@ -23,15 +21,13 @@ export const Route = createFileRoute("/app/")({
 
 function Component() {
   return (
-    <OngoingSessionProvider>
-      <main className="flex h-full flex-col overflow-hidden bg-white">
-        <div className="overflow-y-auto px-8">
-          <div className="mx-auto max-w-3xl">
-            <UpcomingEvents />
-            <PastSessions />
-          </div>
+    <main className="flex h-full flex-col overflow-hidden bg-white">
+      <div className="overflow-y-auto px-8">
+        <div className="mx-auto max-w-3xl">
+          <UpcomingEvents />
+          <PastSessions />
         </div>
-      </main>
-    </OngoingSessionProvider>
+      </div>
+    </main>
   );
 }

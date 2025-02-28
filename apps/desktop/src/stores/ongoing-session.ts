@@ -7,11 +7,10 @@ import {
   type TimelineView,
   type SessionEvent,
 } from "@hypr/plugin-listener";
-import { type Session } from "@hypr/plugin-db";
+
 type State = {
-  channel: Channel<any> | null;
+  channel: Channel<SessionEvent> | null;
   listening: boolean;
-  session: Session | null;
   timeline: TimelineView;
   amplitude: { mic: number; speaker: number };
 };
@@ -29,8 +28,9 @@ export const createOngoingSessionStore = () => {
     timeline: { items: [] },
     amplitude: { mic: 0, speaker: 0 },
     start: () => {
-      const channel = new Channel<SessionEvent>();
-      channel.onmessage = (event: SessionEvent) => {
+      const channel: State["channel"] = new Channel();
+
+      channel.onmessage = (event) => {
         set((state) =>
           mutate(state, (draft) => {
             if (event.type === "stopped") {

@@ -5,7 +5,7 @@ import { MicIcon, Volume2Icon } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import clsx from "clsx";
 
-import { type OsType, type as getOsType } from "@tauri-apps/plugin-os";
+import { type as getOsType } from "@tauri-apps/plugin-os";
 
 import { Particles } from "@hypr/ui/components/ui/particles";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";

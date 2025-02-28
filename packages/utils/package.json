@@ -2,13 +2,13 @@
   "name": "@hypr/utils",
   "main": "./src/index.ts",
   "dependencies": {
-    "@ai-sdk/openai": "^1.1.13",
+    "@ai-sdk/openai": "^1.1.15",
     "@hypr/client": "workspace:^",
     "@hypr/plugin-auth": "workspace:^",
     "@hypr/plugin-connector": "workspace:^",
     "@hypr/plugin-sse": "workspace:^",
-    "@tauri-apps/api": "^2.2.0",
+    "@tauri-apps/api": "^2.3.0",
     "@tauri-apps/plugin-http": "^2.3.0",
-    "ai": "^4.1.45"
+    "ai": "^4.1.46"
   }
 }

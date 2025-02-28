@@ -7,8 +7,15 @@ type State = {
   session: Session;
 };
 
+type Actions = {
+  persistSession: () => Promise<void>;
+  updateTitle: (title: string) => void;
+  updateRawNote: (note: string) => void;
+  updateEnhancedNote: (note: string) => void;
+};
+
 export const createSessionStore = (session: Session) => {
-  return createStore<State>((set, get) => ({
+  return createStore<State & Actions>((set, get) => ({
     session,
     persistSession: async () => {
       const { session } = get();

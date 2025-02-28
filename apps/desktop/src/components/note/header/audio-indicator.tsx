@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 
-import { useSession } from "@/contexts";
+import { useOngoingSession } from "@/contexts/ongoing-session";
 
 export default function AudioIndicator() {
-  const { mic, speaker } = useSession((state) => state.amplitude);
+  const { mic, speaker } = useOngoingSession((state) => state.amplitude);
   const [amplitude, setAmplitude] = useState(0);
   const [heights, setHeights] = useState([0, 0, 0]);
 

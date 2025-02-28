@@ -6,6 +6,6 @@
     "codegen": "cargo test -p tauri-plugin-sfx"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.2.0"
+    "@tauri-apps/api": "^2.3.0"
   }
 }

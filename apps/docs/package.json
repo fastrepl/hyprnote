@@ -12,7 +12,7 @@
     "@unocss/preset-wind3": "^66.0.0",
     "isomorphic-git": "^1.29.0",
     "octokit": "^4.1.2",
-    "typedoc": "^0.27.7",
+    "typedoc": "^0.27.9",
     "unocss": "^66.0.0",
     "vite-plugin-posthog": "^2.1.0",
     "vitepress": "2.0.0-alpha.2",
@@ -23,6 +23,8 @@
     "@tanstack/vue-table": "^8.21.2",
     "clsx": "^2.1.1",
     "floating-vue": "^5.2.2",
-    "posthog-js": "^1.222.0"
+    "posthog-js": "^1.224.0",
+    "react": "19",
+    "react-dom": "19"
   }
 }

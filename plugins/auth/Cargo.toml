@@ -30,5 +30,6 @@ serde_qs = { workspace = true }
 
 specta = { workspace = true, features = ["serde_json"] }
 strum = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
 tracing = { workspace = true }
 url = { workspace = true }

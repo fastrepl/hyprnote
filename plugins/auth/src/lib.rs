@@ -1,16 +1,17 @@
 use tauri::Manager;
 
 mod commands;
+mod error;
 mod ext;
 mod store;
 mod vault;
 
+pub use error::*;
 pub use ext::*;
 pub use store::*;
 pub use vault::*;
 
 const PLUGIN_NAME: &str = "auth";
-const SERVICE_NAME: &str = "hyprnote";
 
 const CALLBACK_TEMPLATE_KEY: &str = "callback";
 const CALLBACK_TEMPLATE_VALUE: &str = include_str!("../templates/callback.jinja");
@@ -36,14 +37,12 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let vault = vault::Vault::new(SERVICE_NAME);
-
             let mut env = minijinja::Environment::new();
             env.add_template(CALLBACK_TEMPLATE_KEY, CALLBACK_TEMPLATE_VALUE)
                 .unwrap();
 
-            app.manage(vault);
             app.manage(env);
+            app.manage(Vault::default());
 
             Ok(())
         })

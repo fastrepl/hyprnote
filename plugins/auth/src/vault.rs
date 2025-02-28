@@ -1,6 +1,16 @@
+use std::sync::{Arc, Mutex};
+
 #[derive(Debug, Clone)]
 pub struct Vault {
-    service: String,
+    entry: Arc<Mutex<Option<keyring::Entry>>>,
+}
+
+impl Default for Vault {
+    fn default() -> Self {
+        Self {
+            entry: Arc::new(Mutex::new(None)),
+        }
+    }
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, strum::AsRefStr, specta::Type)]
@@ -16,36 +26,37 @@ pub enum VaultKey {
 }
 
 impl Vault {
-    pub fn new(service: impl Into<String>) -> Self {
-        Self {
-            service: service.into(),
-        }
+    pub fn init(&self, account_id: impl AsRef<str>) -> Result<(), crate::Error> {
+        let entry = keyring::Entry::new("hyprnote", account_id.as_ref()).unwrap();
+        self.entry.lock().unwrap().replace(entry);
+        Ok(())
     }
 
-    pub fn get(&self, key: VaultKey) -> Result<Option<String>, keyring::Error> {
-        let entry = keyring::Entry::new(&self.service, key.as_ref()).unwrap();
+    pub fn get(&self, _key: VaultKey) -> Result<Option<String>, crate::Error> {
+        let guard = self.entry.lock().unwrap();
+        let entry = guard.as_ref().ok_or(crate::Error::VaultNotInitialized)?;
+
         match entry.get_password() {
             Ok(v) => Ok(Some(v)),
             Err(keyring::Error::NoEntry) => Ok(None),
-            Err(e) => Err(e),
+            Err(e) => Err(e.into()),
         }
     }
 
-    pub fn set(&self, key: VaultKey, value: impl AsRef<str>) -> Result<(), keyring::Error> {
-        let entry = keyring::Entry::new(&self.service, key.as_ref()).unwrap();
-        entry.set_password(value.as_ref())
+    pub fn set(&self, _key: VaultKey, value: impl AsRef<str>) -> Result<(), crate::Error> {
+        let guard = self.entry.lock().unwrap();
+        let entry = guard.as_ref().ok_or(crate::Error::VaultNotInitialized)?;
+
+        entry.set_password(value.as_ref()).map_err(Into::into)
     }
 
-    pub fn clear(&self) -> Result<(), keyring::Error> {
-        for key in [VaultKey::RemoteDatabase, VaultKey::RemoteServer] {
-            let entry = keyring::Entry::new(&self.service, key.as_ref()).unwrap();
+    pub fn clear(&self) -> Result<(), crate::Error> {
+        let guard = self.entry.lock().unwrap();
+        let entry = guard.as_ref().ok_or(crate::Error::VaultNotInitialized)?;
 
-            match entry.delete_credential() {
-                Ok(_) | Err(keyring::Error::NoEntry) => (),
-                Err(e) => return Err(e),
-            }
+        match entry.delete_credential() {
+            Ok(_) | Err(keyring::Error::NoEntry) => Ok(()),
+            Err(e) => Err(e.into()),
         }
-
-        Ok(())
     }
 }

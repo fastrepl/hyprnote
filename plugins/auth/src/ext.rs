@@ -74,6 +74,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
                     Ok(params) => {
                         tracing::info!(params = ?params, "auth_callback");
 
+                        vault.init(&params.account_id).unwrap();
+
                         for (key, value) in [
                             (StoreKey::UserId, params.user_id),
                             (StoreKey::AccountId, params.account_id),

@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
+import { generateObject } from "ai";
+
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as templateCommands } from "@hypr/plugin-template";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
+
+import { modelProvider } from "@hypr/utils";
 import { Button } from "@hypr/ui/components/ui/button";
-import { modelProvider, generateObject } from "@hypr/extension-utils";
 import { WidgetHeader, WidgetTwoByTwo } from "@hypr/ui/components/ui/widgets";
+
 import {
   type LiveSummarySystemInput,
   type LiveSummaryUserInput,

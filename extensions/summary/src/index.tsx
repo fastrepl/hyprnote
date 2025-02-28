@@ -1,4 +1,5 @@
 import type { Extension } from "@hypr/extension-utils";
+
 import { init } from "./widgets/live/init";
 import LiveSummary2x2 from "./widgets/live/2x2";
 

@@ -1,13 +1,15 @@
-import { formatTime } from "@hypr/extension-utils";
+import { useEffect, useState, useRef } from "react";
+import { Channel } from "@tauri-apps/api/core";
+import { Minimize2Icon } from "lucide-react";
+
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   WidgetFullSizeModal,
   WidgetHeader,
 } from "@hypr/ui/components/ui/widgets";
-import { Minimize2Icon } from "lucide-react";
 import { Badge } from "@hypr/ui/components/ui/badge";
-import { useEffect, useState, useRef } from "react";
-import { Channel } from "@tauri-apps/api/core";
+
+import { formatTime } from "@hypr/extension-utils";
 import {
   commands as listenerCommands,
   type TimelineView,

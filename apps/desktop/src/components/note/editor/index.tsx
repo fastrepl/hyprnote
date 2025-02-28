@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useMutation } from "@tanstack/react-query";
-import clsx from "clsx";
 import { streamText, smoothStream } from "ai";
+import clsx from "clsx";
 
 import { modelProvider } from "@hypr/utils";
 import NoteEditor from "@hypr/tiptap/editor";

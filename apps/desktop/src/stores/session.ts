@@ -1,38 +1,15 @@
 import { createStore } from "zustand";
 import { create as mutate } from "mutative";
-import { Channel } from "@tauri-apps/api/core";
 
-import {
-  commands as listenerCommands,
-  type TimelineView,
-  type SessionEvent,
-} from "@hypr/plugin-listener";
-import { commands as dbCommands, type Session } from "@hypr/plugin-db";
+import { type Session, commands as dbCommands } from "@hypr/plugin-db";
+
 type State = {
-  channel: Channel<any> | null;
-  listening: boolean;
   session: Session;
-  timeline: TimelineView;
-  amplitude: { mic: number; speaker: number };
-};
-
-type Actions = {
-  start: () => void;
-  pause: () => void;
-  destroy: () => void;
-  updateTitle: (title: string) => void;
-  updateRawNote: (note: string) => void;
-  updateEnhancedNote: (note: string) => void;
-  persistSession: () => Promise<void>;
 };
 
 export const createSessionStore = (session: Session) => {
-  return createStore<State & Actions>((set, get) => ({
+  return createStore<State>((set, get) => ({
     session,
-    listening: false,
-    channel: null,
-    timeline: { items: [] },
-    amplitude: { mic: 0, speaker: 0 },
     persistSession: async () => {
       const { session } = get();
       await dbCommands.upsertSession(session);
@@ -44,13 +21,6 @@ export const createSessionStore = (session: Session) => {
         }),
       );
     },
-    updateEnhancedNote: (note: string) => {
-      set((state) =>
-        mutate(state, (draft) => {
-          draft.session.enhanced_memo_html = note;
-        }),
-      );
-    },
     updateRawNote: (note: string) => {
       set((state) =>
         mutate(state, (draft) => {
@@ -58,51 +28,12 @@ export const createSessionStore = (session: Session) => {
         }),
       );
     },
-    start: () => {
-      const channel = new Channel<SessionEvent>();
-      channel.onmessage = (event: SessionEvent) => {
-        set((state) =>
-          mutate(state, (draft) => {
-            if (event.type === "stopped") {
-              draft.listening = false;
-            } else if (event.type === "timelineView") {
-              draft.timeline = event.timeline;
-            } else if (event.type === "audioAmplitude") {
-              draft.amplitude = {
-                mic: event.mic,
-                speaker: event.speaker,
-              };
-            }
-          }),
-        );
-      };
-
-      try {
-        listenerCommands.startSession().then((_) => {
-          listenerCommands.subscribe(channel);
-        });
-      } catch (error) {
-        console.error("failed to start session", error);
-      }
-      set({ channel, listening: true });
-    },
-    pause: () => {
-      try {
-        listenerCommands.stopSession();
-      } catch (error) {
-        console.error(error);
-      }
-      set({ channel: null, listening: false });
-    },
-    destroy: () => {
-      set((state) => {
-        if (state.channel) {
-          state.channel.onmessage = () => {};
-        }
-
-        dbCommands.upsertSession(state.session);
-        return state;
-      });
+    updateEnhancedNote: (note: string) => {
+      set((state) =>
+        mutate(state, (draft) => {
+          draft.session.enhanced_memo_html = note;
+        }),
+      );
     },
   }));
 };

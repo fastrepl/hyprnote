@@ -10,10 +10,13 @@ const SessionContext = createContext<ReturnType<
   typeof createSessionStore
 > | null>(null);
 
-export const SessionProvider: React.FC<{
+export const SessionProvider = ({
+  session,
+  children,
+}: {
   session: Session;
   children: React.ReactNode;
-}> = ({ session, children }) => {
+}) => {
   const storeRef = useRef<ReturnType<typeof createSessionStore> | null>(null);
   if (!storeRef.current) {
     storeRef.current = createSessionStore(session);

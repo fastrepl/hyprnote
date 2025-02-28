@@ -1,4 +1,7 @@
-import { WidgetTwoByTwo } from "@hypr/ui/components/ui/widgets";
+import {
+  type WidgetTwoByTwo,
+  WidgetTwoByTwoWrapper,
+} from "@hypr/ui/components/ui/widgets";
 import { useState } from "react";
 import { cn } from "@hypr/ui/lib/utils";
 import {
@@ -12,7 +15,7 @@ import {
   formatDisplayValue,
 } from "../../lib/calculator";
 
-const BasicCalculator2x2: typeof WidgetTwoByTwo = () => {
+const BasicCalculator2x2: WidgetTwoByTwo = () => {
   const [state, setState] = useState<CalculatorState>({
     display: "0",
     prevValue: null,
@@ -46,7 +49,7 @@ const BasicCalculator2x2: typeof WidgetTwoByTwo = () => {
   );
 
   return (
-    <WidgetTwoByTwo>
+    <WidgetTwoByTwoWrapper>
       <div className="h-full flex flex-col bg-white text-neutral-900 rounded-lg overflow-hidden">
         <div className="flex flex-col h-full">
           <div className="flex-none h-32 flex flex-col items-end justify-end p-4 overflow-hidden">
@@ -147,7 +150,7 @@ const BasicCalculator2x2: typeof WidgetTwoByTwo = () => {
           </div>
         </div>
       </div>
-    </WidgetTwoByTwo>
+    </WidgetTwoByTwoWrapper>
   );
 };
 

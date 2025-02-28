@@ -1,6 +1,6 @@
 export { formatTime } from "./time";
 
-import {
+import type {
   WidgetOneByOne,
   WidgetTwoByOne,
   WidgetTwoByTwo,
@@ -14,9 +14,5 @@ export interface Extension {
 export interface Widget {
   id: string;
   init: () => Promise<void>;
-  component:
-    | typeof WidgetOneByOne
-    | typeof WidgetTwoByOne
-    | typeof WidgetTwoByTwo
-    | typeof WidgetFullSize;
+  component: WidgetTwoByTwo | WidgetOneByOne | WidgetTwoByOne | WidgetFullSize;
 }

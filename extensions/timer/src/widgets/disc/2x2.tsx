@@ -1,10 +1,13 @@
-import { WidgetTwoByTwo } from "@hypr/ui/components/ui/widgets";
+import {
+  type WidgetTwoByTwo,
+  WidgetTwoByTwoWrapper,
+} from "@hypr/ui/components/ui/widgets";
 import { Pause, Play, RotateCcw } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 const INIT_MINUTES = 60;
 
-const DiscTimer2x2 = () => {
+const DiscTimer2x2: WidgetTwoByTwo = () => {
   const [timeLeft, setTimeLeft] = useState(INIT_MINUTES * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [inputTime, setInputTime] = useState(INIT_MINUTES.toString());
@@ -132,7 +135,7 @@ const DiscTimer2x2 = () => {
   };
 
   return (
-    <WidgetTwoByTwo>
+    <WidgetTwoByTwoWrapper>
       <div
         style={{
           width: "100%",
@@ -257,7 +260,7 @@ const DiscTimer2x2 = () => {
           {!isTimeUp && generateTickMarks()}
         </svg>
       </div>
-    </WidgetTwoByTwo>
+    </WidgetTwoByTwoWrapper>
   );
 };
 

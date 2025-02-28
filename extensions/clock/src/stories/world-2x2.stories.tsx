@@ -15,7 +15,5 @@ export const Main: Story = {
       handlers: [],
     },
   },
-  args: {
-    children: <></>,
-  },
+  args: {},
 };

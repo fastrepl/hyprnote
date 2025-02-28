@@ -1,11 +1,14 @@
 import "./dino.css";
 
 import { useRef, useEffect } from "react";
-import { WidgetTwoByOne } from "@hypr/ui/components/ui/widgets";
+import {
+  type WidgetTwoByOne,
+  WidgetTwoByOneWrapper,
+} from "@hypr/ui/components/ui/widgets";
 
 import spriteImage from "../../../assets/dino-game-sprite.png";
 
-const ChromeDino2x1: typeof WidgetTwoByOne = () => {
+const ChromeDino2x1: WidgetTwoByOne = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameStateRef = useRef({
     scoreInterval: 0,
@@ -539,7 +542,7 @@ const ChromeDino2x1: typeof WidgetTwoByOne = () => {
   }, []);
 
   return (
-    <WidgetTwoByOne>
+    <WidgetTwoByOneWrapper>
       <div className="w-full h-full">
         <div className="dino-game">
           <canvas
@@ -550,7 +553,7 @@ const ChromeDino2x1: typeof WidgetTwoByOne = () => {
           />
         </div>
       </div>
-    </WidgetTwoByOne>
+    </WidgetTwoByOneWrapper>
   );
 };
 

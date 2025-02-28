@@ -10,10 +10,14 @@ import {
 } from "@hypr/plugin-listener";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import { WidgetHeader, WidgetTwoByTwo } from "@hypr/ui/components/ui/widgets";
+import {
+  WidgetHeader,
+  WidgetTwoByTwo,
+  WidgetTwoByTwoWrapper,
+} from "@hypr/ui/components/ui/widgets";
 import { Badge } from "@hypr/ui/components/ui/badge";
 
-const LiveTranscript2x2: typeof WidgetTwoByTwo = ({ onMaximize }) => {
+const LiveTranscript2x2: WidgetTwoByTwo = ({ onMaximize }) => {
   const [timeline, setTimeline] = useState<TimelineView | null>(null);
   const [isLive, setIsLive] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -46,7 +50,7 @@ const LiveTranscript2x2: typeof WidgetTwoByTwo = ({ onMaximize }) => {
   }, [timeline?.items.length, isLive]);
 
   return (
-    <WidgetTwoByTwo>
+    <WidgetTwoByTwoWrapper>
       <div className="p-4 pb-0">
         <WidgetHeader
           title={
@@ -72,7 +76,7 @@ const LiveTranscript2x2: typeof WidgetTwoByTwo = ({ onMaximize }) => {
       <div ref={scrollRef} className="overflow-y-auto flex-1 p-4 pt-0">
         <Transcript transcript={timeline} />
       </div>
-    </WidgetTwoByTwo>
+    </WidgetTwoByTwoWrapper>
   );
 };
 

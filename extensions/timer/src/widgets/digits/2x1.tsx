@@ -1,12 +1,16 @@
-import { WidgetTwoByOne } from "@hypr/ui/components/ui/widgets";
-import { Pause, Play, RotateCcw } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { Pause, Play, RotateCcw } from "lucide-react";
+
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
+import {
+  type WidgetTwoByOne,
+  WidgetTwoByOneWrapper,
+} from "@hypr/ui/components/ui/widgets";
 
 const INIT_MINUTES = 60;
 
-const DigitsTimer2x1 = () => {
+const DigitsTimer2x1: WidgetTwoByOne = () => {
   const [timeLeft, setTimeLeft] = useState(INIT_MINUTES * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [inputTime, setInputTime] = useState(INIT_MINUTES.toString());
@@ -107,7 +111,7 @@ const DigitsTimer2x1 = () => {
   };
 
   return (
-    <WidgetTwoByOne>
+    <WidgetTwoByOneWrapper>
       <div className="flex flex-col items-center justify-center w-full h-full gap-4 p-4">
         {isEditing && !isRunning && !isTimeUp ? (
           <input
@@ -158,7 +162,7 @@ const DigitsTimer2x1 = () => {
           </Button>
         </div>
       </div>
-    </WidgetTwoByOne>
+    </WidgetTwoByOneWrapper>
   );
 };
 

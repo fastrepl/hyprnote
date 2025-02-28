@@ -33,23 +33,33 @@ const WidgetHeader = ({
   );
 };
 
-// NOTE: The default size is twoByTwo.
-interface WidgetProps {
+type WidgetWrapperPropsBase = {
   width?: string;
   height?: string;
-  onMaximize?: () => void;
   children: ReactNode;
   className?: string;
   style?: React.CSSProperties;
-}
+};
 
-const Widget = ({
+type WidgetWrapperPropsNonFullSize = WidgetWrapperPropsBase & {
+  onMaximize?: () => void;
+};
+
+type WidgetWrapperPropsFullSize = WidgetWrapperPropsBase & {
+  onMinimize?: () => void;
+};
+
+type WidgetWrapperProps =
+  | WidgetWrapperPropsNonFullSize
+  | WidgetWrapperPropsFullSize;
+
+const WidgetWrapper = ({
   width = "340px",
   height = "340px",
   children,
   className,
   style,
-}: WidgetProps) => {
+}: WidgetWrapperProps) => {
   return (
     <motion.div
       className={className}
@@ -74,30 +84,47 @@ const Widget = ({
   );
 };
 
-const WidgetTwoByTwo = (props: Omit<WidgetProps, "width" | "height">) => (
-  <Widget width="340px" height="340px" {...props} />
-);
+const WidgetTwoByTwoWrapper = (
+  props: Omit<WidgetWrapperPropsNonFullSize, "width" | "height">,
+) => <WidgetWrapper width="340px" height="340px" {...props} />;
 
-const WidgetOneByOne = (props: Omit<WidgetProps, "width" | "height">) => (
-  <Widget width="160px" height="160px" {...props} />
-);
+const WidgetOneByOneWrapper = (
+  props: Omit<WidgetWrapperPropsNonFullSize, "width" | "height">,
+) => <WidgetWrapper width="160px" height="160px" {...props} />;
 
-const WidgetTwoByOne = (props: Omit<WidgetProps, "width" | "height">) => (
-  <Widget width="340px" height="160px" {...props} />
-);
+const WidgetTwoByOneWrapper = (
+  props: Omit<WidgetWrapperPropsNonFullSize, "width" | "height">,
+) => <WidgetWrapper width="340px" height="160px" {...props} />;
 
-const WidgetFullSize = ({
+const WidgetFullSizeWrapper = ({
   onMinimize,
   ...props
-}: Omit<WidgetProps, "width" | "height" | "onMaximize"> & {
+}: Omit<WidgetWrapperPropsFullSize, "width" | "height" | "onMaximize"> & {
   onMinimize: () => void;
-}) => <Widget width="360px" height="100%" {...props} />;
+}) => <WidgetWrapper width="360px" height="100%" {...props} />;
+
+type WidgetTwoByTwo = (
+  props: Omit<Parameters<typeof WidgetTwoByTwoWrapper>[0], "children">,
+) => ReturnType<typeof WidgetTwoByTwoWrapper>;
+type WidgetOneByOne = (
+  props: Omit<Parameters<typeof WidgetOneByOneWrapper>[0], "children">,
+) => ReturnType<typeof WidgetOneByOneWrapper>;
+type WidgetTwoByOne = (
+  props: Omit<Parameters<typeof WidgetTwoByOneWrapper>[0], "children">,
+) => ReturnType<typeof WidgetTwoByOneWrapper>;
+type WidgetFullSize = (
+  props: Omit<Parameters<typeof WidgetFullSizeWrapper>[0], "children">,
+) => ReturnType<typeof WidgetFullSizeWrapper>;
 
 export {
-  Widget,
-  WidgetOneByOne,
-  WidgetTwoByOne,
-  WidgetFullSize,
+  WidgetWrapper,
   WidgetHeader,
-  WidgetTwoByTwo,
+  WidgetTwoByTwoWrapper,
+  WidgetOneByOneWrapper,
+  WidgetTwoByOneWrapper,
+  WidgetFullSizeWrapper,
+  type WidgetTwoByTwo,
+  type WidgetOneByOne,
+  type WidgetTwoByOne,
+  type WidgetFullSize,
 };

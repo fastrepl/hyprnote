@@ -32,6 +32,5 @@ export const Main: Story = {
   ],
   args: {
     onMinimize: () => {},
-    children: <></>,
   },
 };

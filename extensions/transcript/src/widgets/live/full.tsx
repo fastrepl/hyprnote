@@ -5,6 +5,7 @@ import { Minimize2Icon } from "lucide-react";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   WidgetFullSize,
+  WidgetFullSizeWrapper,
   WidgetHeader,
 } from "@hypr/ui/components/ui/widgets";
 import { Badge } from "@hypr/ui/components/ui/badge";
@@ -16,7 +17,7 @@ import {
   type SessionEvent,
 } from "@hypr/plugin-listener";
 
-const LiveTranscriptFull: typeof WidgetFullSize = ({ onMinimize }) => {
+const LiveTranscriptFull: WidgetFullSize = ({ onMinimize }) => {
   const [timeline, setTimeline] = useState<TimelineView | null>(null);
   const [isLive, setIsLive] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -50,7 +51,7 @@ const LiveTranscriptFull: typeof WidgetFullSize = ({ onMinimize }) => {
   }, [timeline?.items.length, isLive]);
 
   return (
-    <WidgetFullSize onMinimize={onMinimize}>
+    <WidgetFullSizeWrapper onMinimize={onMinimize}>
       <div className="p-4 pb-0">
         <WidgetHeader
           title={
@@ -75,7 +76,7 @@ const LiveTranscriptFull: typeof WidgetFullSize = ({ onMinimize }) => {
       <div ref={scrollRef} className="overflow-auto flex-1 p-4 pt-0">
         <Transcript transcript={timeline} />
       </div>
-    </WidgetFullSize>
+    </WidgetFullSizeWrapper>
   );
 };
 

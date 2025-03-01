@@ -16,5 +16,6 @@ export interface Ticket {
   description: string;
   status: StatusType;
   priority: PriorityType;
-  assignee: string;
+  assignee?: string;
+  link?: string;
 }

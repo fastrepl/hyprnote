@@ -1,9 +1,8 @@
 const NoPriorityIcon = () => (
   <svg
     aria-label="No Priority"
-    className=""
-    width="16"
-    height="16"
+    width="14"
+    height="14"
     viewBox="0 0 16 16"
     fill="lch(39.286% 1 282.863 / 1)"
     role="img"
@@ -27,9 +26,8 @@ const NoPriorityIcon = () => (
 const UrgentPriorityIcon = () => (
   <svg
     aria-label="Urgent Priority"
-    className=""
-    width="16"
-    height="16"
+    width="14"
+    height="14"
     viewBox="0 0 16 16"
     fill="lch(66% 80 48)"
     role="img"
@@ -44,9 +42,8 @@ const UrgentPriorityIcon = () => (
 const HighPriorityIcon = () => (
   <svg
     aria-label="High Priority"
-    className=""
-    width="16"
-    height="16"
+    width="14"
+    height="14"
     viewBox="0 0 16 16"
     fill="lch(39.286% 1 282.863 / 1)"
     role="img"
@@ -63,9 +60,8 @@ const HighPriorityIcon = () => (
 const MediumPriorityIcon = () => (
   <svg
     aria-label="Medium Priority"
-    className=""
-    width="16"
-    height="16"
+    width="14"
+    height="14"
     viewBox="0 0 16 16"
     fill="lch(39.286% 1 282.863 / 1)"
     role="img"
@@ -82,9 +78,8 @@ const MediumPriorityIcon = () => (
 const LowPriorityIcon = () => (
   <svg
     aria-label="Low Priority"
-    className=""
-    width="16"
-    height="16"
+    width="14"
+    height="14"
     viewBox="0 0 16 16"
     fill="lch(39.286% 1 282.863 / 1)"
     role="img"

@@ -1,5 +1,6 @@
 import { Card } from "@hypr/ui/components/ui/card";
 import { Badge } from "@hypr/ui/components/ui/badge";
+import { Button } from "@hypr/ui/components/ui/button";
 import {
   Avatar,
   AvatarFallback,
@@ -8,6 +9,7 @@ import {
 import type { Ticket } from "../../type";
 import { PriorityIcons } from "./priority";
 import { StatusIcons } from "./status";
+import { ExternalLink, Plus } from "lucide-react";
 
 export default function TicketCard({ ticket }: { ticket: Ticket }) {
   const PriorityIcon = (() => {
@@ -54,18 +56,41 @@ export default function TicketCard({ ticket }: { ticket: Ticket }) {
       .toUpperCase();
   };
 
+  const handleCardClick = () => {
+    if (ticket.link) {
+      window.open(ticket.link, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const handleCreateTicket = (e: React.MouseEvent) => {
+    // Prevent the card click event from firing
+    e.stopPropagation();
+
+    // Here you would implement the logic to create a new ticket
+    // For example, open a modal or navigate to a create ticket page
+    console.log("Create new ticket");
+
+    // You might want to call an API or trigger an action in your application
+    // For example: dispatch(createTicket(ticket));
+  };
+
   return (
-    <Card className="p-4 hover:shadow-md transition-all cursor-pointer">
+    <Card
+      className={`p-4 hover:shadow-md transition-all ${ticket.link ? "cursor-pointer hover:bg-gray-50" : ""}`}
+      onClick={ticket.link ? handleCardClick : undefined}
+    >
       <div className="flex flex-col gap-2">
         {ticket.id && (
-          <div className="w-fit text-xs font-mono text-gray-500 bg-gray-100 px-1 py-0.5 rounded">
-            {ticket.id}
+          <div className="flex items-center justify-between">
+            <div className="inline-block text-xs font-mono text-gray-500 bg-gray-100 px-1 py-0.5 rounded">
+              {ticket.id}
+            </div>
+
+            {ticket.link && <ExternalLink className="h-3 w-3 text-gray-400" />}
           </div>
         )}
 
-        <div className="flex items-center gap-2">
-          <h3 className="font-medium text-sm line-clamp-1">{ticket.title}</h3>
-        </div>
+        <h3 className="font-medium text-sm line-clamp-1">{ticket.title}</h3>
 
         <p className="text-xs text-gray-600 line-clamp-2">
           {ticket.description}
@@ -90,16 +115,27 @@ export default function TicketCard({ ticket }: { ticket: Ticket }) {
             </Badge>
           </div>
 
-          <Avatar className="h-6 w-6">
-            <AvatarImage
-              src={`https://avatar.vercel.sh/${ticket.assignee}.png`}
-              alt={ticket.assignee}
-            />
-            <AvatarFallback className="text-xs">
-              {getInitials(ticket.assignee)}
-            </AvatarFallback>
-          </Avatar>
+          {ticket.assignee && (
+            <Avatar className="h-6 w-6">
+              <AvatarImage
+                src={`https://avatar.vercel.sh/${ticket.assignee}.png`}
+                alt={ticket.assignee}
+              />
+              <AvatarFallback className="text-xs">
+                {getInitials(ticket.assignee)}
+              </AvatarFallback>
+            </Avatar>
+          )}
         </div>
+
+        {!ticket.id && (
+          <div className="mt-2">
+            <Button size="md" className="w-full" onClick={handleCreateTicket}>
+              <Plus className="h-3 w-3" />
+              Create Ticket
+            </Button>
+          </div>
+        )}
       </div>
     </Card>
   );

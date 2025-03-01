@@ -36,6 +36,7 @@ export const mockRelatedTickets: Ticket[] = [
     status: "Done",
     priority: "Low",
     assignee: "Emma Johnson",
+    link: "https://linear.app/company/issue/LIN-972",
   },
   {
     id: "LIN-1051",
@@ -45,6 +46,7 @@ export const mockRelatedTickets: Ticket[] = [
     status: "To Do",
     priority: "Urgent",
     assignee: "Michael Wong",
+    link: "https://linear.app/company/issue/LIN-1051",
   },
   {
     id: "LIN-1038",
@@ -54,6 +56,7 @@ export const mockRelatedTickets: Ticket[] = [
     status: "In Progress",
     priority: "High",
     assignee: "Olivia Martinez",
+    link: "https://linear.app/company/issue/LIN-1038",
   },
   {
     id: "LIN-995",
@@ -63,5 +66,6 @@ export const mockRelatedTickets: Ticket[] = [
     status: "Backlog",
     priority: "Medium",
     assignee: "Unassigned",
+    link: "https://linear.app/company/issue/LIN-995",
   },
 ];

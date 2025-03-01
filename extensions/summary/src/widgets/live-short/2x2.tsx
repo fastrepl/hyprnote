@@ -45,7 +45,9 @@ const LiveShortSummary2x2: WidgetTwoByTwo = () => {
         return null;
       }
 
-      const timeline_view = await listenerCommands.getTimeline();
+      const timeline_view = await listenerCommands.getTimeline({
+        last_n_seconds: 100,
+      });
 
       const systemMessageContent = await templateCommands.render(
         TEMPLATE_LIVE_SUMMARY_SYSTEM,

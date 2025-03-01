@@ -1,13 +1,5 @@
 # Meeting Information:
 
-```
-{% if event %}Event: {{ event.name }}{% endif %}
-{% if participants | length > 0 %}Participants:{% endif %}
-{%- for participant in participants %}
-- {{ participant.name }}{% if participant.name == config_profile.full_name %} (this is me){% endif %}
-{%- endfor %}
-```
-
 # Raw Note:
 
 ```
@@ -18,5 +10,4 @@
 # Meeting Transcript:
 
 ```
-{{ render_timeline_view(timeline_view=timeline_view) }}
 ```

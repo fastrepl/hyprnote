@@ -8,20 +8,6 @@
     "/health": {
       "get": {}
     },
-    "/api/native/chat/completions": {
-      "post": {
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateChatCompletionRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
     "/api/native/user/integrations": {
       "get": {
         "responses": {
@@ -122,6 +108,20 @@
               }
             }
           }
+        }
+      }
+    },
+    "/chat/completions": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateChatCompletionRequest"
+              }
+            }
+          },
+          "required": true
         }
       }
     }

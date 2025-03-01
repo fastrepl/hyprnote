@@ -38,6 +38,7 @@ pub enum AuthEvent {
 pub trait AuthPluginExt<R: tauri::Runtime> {
     fn start_oauth_server(&self, channel: Channel<AuthEvent>) -> Result<u16, String>;
     fn stop_oauth_server(&self, port: u16) -> Result<(), String>;
+    fn init_vault(&self, account_id: impl AsRef<str>) -> Result<(), String>;
     fn reset_vault(&self) -> Result<(), String>;
     fn get_from_vault(&self, key: VaultKey) -> Result<Option<String>, String>;
     fn get_from_store(&self, key: StoreKey) -> Result<Option<String>, String>;
@@ -106,6 +107,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
 
     fn stop_oauth_server(&self, port: u16) -> Result<(), String> {
         tauri_plugin_oauth::cancel(port).map_err(|err| err.to_string())
+    }
+
+    fn init_vault(&self, account_id: impl AsRef<str>) -> Result<(), String> {
+        let vault = self.state::<Vault>();
+        vault.init(account_id).map_err(|err| err.to_string())
     }
 
     fn reset_vault(&self) -> Result<(), String> {

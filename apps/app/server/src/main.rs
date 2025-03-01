@@ -223,11 +223,6 @@ fn main() {
 
             let native_router = ApiRouter::new()
                 .api_route(
-                    "/chat/completions",
-                    api_post(native::openai::handler)
-                        .layer(TimeoutLayer::new(Duration::from_secs(10))),
-                )
-                .api_route(
                     "/user/integrations",
                     api_get(native::user::list_integrations),
                 )
@@ -256,6 +251,11 @@ fn main() {
                 .api_route("/health", api_get(|| async { (StatusCode::OK, "OK") }))
                 .nest("/api/native", native_router)
                 .nest("/api/web", web_router)
+                .api_route(
+                    "/chat/completions",
+                    api_post(native::openai::handler)
+                        .layer(TimeoutLayer::new(Duration::from_secs(10))),
+                )
                 .nest("/webhook", webhook_router)
                 .with_state(state.clone())
                 .layer(TraceLayer::new_for_http());

@@ -6,6 +6,7 @@ import clsx from "clsx";
 
 import { modelProvider } from "@hypr/utils";
 import Editor, { TiptapEditor } from "@hypr/tiptap/editor";
+import Renderer from "@hypr/tiptap/renderer";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
@@ -23,10 +24,24 @@ import { EnhanceOnlyButton } from "./enhanced-only-button";
 import { NoteHeader } from "../header";
 
 export default function EditorArea() {
+  const sessionStore = useSession((s) => ({
+    session: s.session,
+    updateRawNote: s.updateRawNote,
+    updateEnhancedNote: s.updateEnhancedNote,
+    persistSession: s.persistSession,
+  }));
+
+  const ongoingSessionStore = useOngoingSession((s) => ({
+    listening: s.listening,
+  }));
+
   const enhance = useMutation({
     mutationFn: async () => {
       const config = await dbCommands.getConfig();
       const provider = await modelProvider();
+
+      console.log(1);
+
       const systemMessage = await templateCommands.render(
         ENHANCE_SYSTEM_TEMPLATE_KEY,
         {
@@ -52,25 +67,17 @@ export default function EditorArea() {
         ],
       });
 
+      let acc = "";
       for await (const chunk of textStream) {
+        acc += chunk;
         const html = await miscCommands.opinionatedMdToHtml(chunk);
+        sessionStore.updateEnhancedNote(html);
         console.log(html);
       }
 
       return text.then(miscCommands.opinionatedMdToHtml);
     },
   });
-
-  const sessionStore = useSession((s) => ({
-    session: s.session,
-    updateRawNote: s.updateRawNote,
-    updateEnhancedNote: s.updateEnhancedNote,
-    persistSession: s.persistSession,
-  }));
-
-  const ongoingSessionStore = useOngoingSession((s) => ({
-    listening: s.listening,
-  }));
 
   const [showRaw, setShowRaw] = useState(true);
 
@@ -94,14 +101,12 @@ export default function EditorArea() {
   }, [enhance, setShowRaw]);
 
   useEffect(() => {
-    if (enhance.data) {
-      sessionStore.updateEnhancedNote(enhance.data);
-    }
-  }, [enhance.data]);
-
-  useEffect(() => {
     if (enhance.status === "success") {
       sessionStore.persistSession();
+    }
+
+    if (enhance.status === "error") {
+      console.error(enhance.error);
     }
 
     return () => {
@@ -138,17 +143,21 @@ export default function EditorArea() {
         }}
       >
         {showRaw ? (
-          <Editor
-            ref={editorRef}
-            handleChange={handleChangeRawNote}
-            content={sessionStore.session.raw_memo_html}
-          />
+          <div>
+            <Editor
+              ref={editorRef}
+              handleChange={handleChangeRawNote}
+              content={sessionStore.session.raw_memo_html}
+            />
+          </div>
         ) : (
-          <Editor
-            ref={rendererRef}
-            handleChange={handleChangeEnhancedNote}
-            content={sessionStore.session.enhanced_memo_html ?? ""}
-          />
+          <div>
+            <Renderer
+              ref={rendererRef}
+              handleChange={handleChangeEnhancedNote}
+              content={sessionStore.session.enhanced_memo_html ?? ""}
+            />
+          </div>
         )}
       </div>
 

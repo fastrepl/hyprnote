@@ -582,13 +582,6 @@ export type GetHealthData = {
     url: '/health';
 };
 
-export type PostApiNativeChatCompletionsData = {
-    body: CreateChatCompletionRequest;
-    path?: never;
-    query?: never;
-    url: '/api/native/chat/completions';
-};
-
 export type GetApiNativeUserIntegrationsData = {
     body?: never;
     path?: never;
@@ -653,6 +646,13 @@ export type PostApiWebIntegrationConnectionResponses = {
 };
 
 export type PostApiWebIntegrationConnectionResponse = PostApiWebIntegrationConnectionResponses[keyof PostApiWebIntegrationConnectionResponses];
+
+export type PostChatCompletionsData = {
+    body: CreateChatCompletionRequest;
+    path?: never;
+    query?: never;
+    url: '/chat/completions';
+};
 
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});

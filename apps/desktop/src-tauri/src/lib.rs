@@ -84,7 +84,7 @@ pub async fn main() {
                 let _ = app.store("store.json")?;
             }
 
-            let (user_id, _account_id, _server_token, _database_token) = {
+            let (user_id, account_id, _server_token, _database_token) = {
                 use tauri_plugin_auth::{AuthPluginExt, StoreKey, VaultKey};
 
                 let user_id = app.get_from_store(StoreKey::UserId).unwrap_or(None);
@@ -99,6 +99,14 @@ pub async fn main() {
 
                 (user_id, account_id, remote_server, remote_database)
             };
+
+            {
+                use tauri_plugin_auth::AuthPluginExt;
+
+                if let Some(account_id) = account_id {
+                    app.init_vault(account_id).unwrap();
+                }
+            }
 
             {
                 // use hypr_turso::{format_db_name, format_db_url};

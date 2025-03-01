@@ -4,14 +4,12 @@ import { Channel } from "@tauri-apps/api/core";
 
 import {
   commands as listenerCommands,
-  type TimelineView,
   type SessionEvent,
 } from "@hypr/plugin-listener";
 
 type State = {
   channel: Channel<SessionEvent> | null;
   listening: boolean;
-  timeline: TimelineView;
   amplitude: { mic: number; speaker: number };
 };
 
@@ -25,7 +23,6 @@ export const createOngoingSessionStore = () => {
     session: null,
     listening: false,
     channel: null,
-    timeline: { items: [] },
     amplitude: { mic: 0, speaker: 0 },
     start: () => {
       const channel: State["channel"] = new Channel();
@@ -35,8 +32,6 @@ export const createOngoingSessionStore = () => {
           mutate(state, (draft) => {
             if (event.type === "stopped") {
               draft.listening = false;
-            } else if (event.type === "timelineView") {
-              draft.timeline = event.timeline;
             } else if (event.type === "audioAmplitude") {
               draft.amplitude = {
                 mic: event.mic,
@@ -57,8 +52,14 @@ export const createOngoingSessionStore = () => {
       set({ channel, listening: true });
     },
     pause: () => {
+      const { channel } = get();
+
       try {
         listenerCommands.stopSession();
+
+        if (channel) {
+          listenerCommands.unsubscribe(channel);
+        }
       } catch (error) {
         console.error(error);
       }

@@ -11,6 +11,7 @@ import clsx from "clsx";
 import * as shared from "../shared";
 import { editorStyle } from "../shared/editorStyle";
 
+export type { TiptapEditor };
 export const extensions = [...shared.extensions];
 
 interface EditorProps {

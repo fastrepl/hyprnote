@@ -5,8 +5,7 @@ import { streamText, smoothStream } from "ai";
 import clsx from "clsx";
 
 import { modelProvider } from "@hypr/utils";
-import NoteEditor from "@hypr/tiptap/editor";
-import NoteRenderer from "@hypr/tiptap/renderer";
+import Editor, { TiptapEditor } from "@hypr/tiptap/editor";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
@@ -110,8 +109,8 @@ export default function EditorArea() {
     };
   }, [enhance.status]);
 
-  const editorRef = useRef<{ editor: any }>(null);
-  const rendererRef = useRef<{ editor: any }>(null);
+  const editorRef = useRef<{ editor: TiptapEditor }>(null);
+  const rendererRef = useRef<{ editor: TiptapEditor }>(null);
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
@@ -139,13 +138,13 @@ export default function EditorArea() {
         }}
       >
         {showRaw ? (
-          <NoteEditor
+          <Editor
             ref={editorRef}
             handleChange={handleChangeRawNote}
             content={sessionStore.session.raw_memo_html}
           />
         ) : (
-          <NoteRenderer
+          <Editor
             ref={rendererRef}
             handleChange={handleChangeEnhancedNote}
             content={sessionStore.session.enhanced_memo_html ?? ""}

@@ -64,7 +64,7 @@ pub struct TimelineViewItem {
     pub text: String,
 }
 
-#[derive(Default)]
+#[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct TimelineFilter {
     pub last_n_seconds: Option<u64>,
 }

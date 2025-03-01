@@ -6,7 +6,7 @@ use hypr_audio::AsyncSource;
 use tauri::ipc::Channel;
 use tokio::sync::{mpsc, Mutex};
 
-use crate::{SessionEvent, SessionEventTimelineView};
+use crate::{SessionEvent, SessionEventTimelineView, TimelineFilter, TimelineView};
 
 const SAMPLE_RATE: u32 = 16000;
 
@@ -18,7 +18,7 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn subscribe(&self, channel: Channel<SessionEvent>) -> impl Future<Output = ()>;
     fn unsubscribe(&self, channel: Channel<SessionEvent>) -> impl Future<Output = ()>;
     fn broadcast(&self, event: SessionEvent) -> impl Future<Output = Result<(), String>>;
-    fn get_timeline(&self) -> impl Future<Output = Result<crate::TimelineView, String>>;
+    fn get_timeline(&self, filter: TimelineFilter) -> impl Future<Output = TimelineView>;
     fn start_session(&self) -> impl Future<Output = Result<String, String>>;
     fn stop_session(&self) -> impl Future<Output = Result<(), String>>;
 }
@@ -99,15 +99,15 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn get_timeline(&self) -> Result<crate::TimelineView, String> {
+    async fn get_timeline(&self, filter: TimelineFilter) -> TimelineView {
         let state = self.state::<crate::SharedState>();
         let s = state.lock().await;
 
         match s.timeline.as_ref() {
-            None => Ok(crate::TimelineView::default()),
+            None => TimelineView::default(),
             Some(timeline) => {
-                let timeline_view = timeline.lock().await.view(crate::TimelineFilter::default());
-                Ok(timeline_view)
+                let timeline_view = timeline.lock().await.view(filter);
+                timeline_view
             }
         }
     }

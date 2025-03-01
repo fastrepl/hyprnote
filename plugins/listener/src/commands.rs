@@ -34,11 +34,12 @@ pub async fn open_system_audio_access_settings<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-// TODO: need filter TODOTODOTODO
 pub async fn get_timeline<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
+    filter: crate::TimelineFilter,
 ) -> Result<crate::TimelineView, String> {
-    app.get_timeline().await
+    let timeline = app.get_timeline(filter).await;
+    Ok(timeline)
 }
 
 #[tauri::command]

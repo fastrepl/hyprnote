@@ -6,11 +6,13 @@ use tokio::sync::Mutex;
 
 mod client;
 mod commands;
+mod error;
 mod events;
 mod ext;
 mod timeline;
 
 pub use client::*;
+pub use error::*;
 pub use events::*;
 pub use ext::ListenerPluginExt;
 pub use timeline::*;

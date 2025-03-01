@@ -11,28 +11,28 @@ use crate::{SessionEvent, SessionEventTimelineView, TimelineFilter, TimelineView
 const SAMPLE_RATE: u32 = 16000;
 
 pub trait ListenerPluginExt<R: tauri::Runtime> {
-    fn request_microphone_access(&self) -> impl Future<Output = Result<bool, String>>;
-    fn request_system_audio_access(&self) -> impl Future<Output = Result<bool, String>>;
-    fn open_microphone_access_settings(&self) -> impl Future<Output = Result<(), String>>;
-    fn open_system_audio_access_settings(&self) -> impl Future<Output = Result<(), String>>;
+    fn request_microphone_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
+    fn request_system_audio_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
+    fn open_microphone_access_settings(&self) -> impl Future<Output = Result<(), crate::Error>>;
+    fn open_system_audio_access_settings(&self) -> impl Future<Output = Result<(), crate::Error>>;
     fn subscribe(&self, channel: Channel<SessionEvent>) -> impl Future<Output = ()>;
     fn unsubscribe(&self, channel: Channel<SessionEvent>) -> impl Future<Output = ()>;
-    fn broadcast(&self, event: SessionEvent) -> impl Future<Output = Result<(), String>>;
+    fn broadcast(&self, event: SessionEvent) -> impl Future<Output = Result<(), crate::Error>>;
     fn get_timeline(&self, filter: TimelineFilter) -> impl Future<Output = TimelineView>;
-    fn start_session(&self) -> impl Future<Output = Result<String, String>>;
-    fn stop_session(&self) -> impl Future<Output = Result<(), String>>;
+    fn start_session(&self) -> impl Future<Output = Result<String, crate::Error>>;
+    fn stop_session(&self) -> impl Future<Output = Result<(), crate::Error>>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
-    async fn request_microphone_access(&self) -> Result<bool, String> {
+    async fn request_microphone_access(&self) -> Result<bool, crate::Error> {
         let mut mic_sample_stream = hypr_audio::AudioInput::from_mic().stream();
         let sample = mic_sample_stream.next().await;
         Ok(sample.is_some())
     }
 
     #[tracing::instrument(skip_all)]
-    async fn request_system_audio_access(&self) -> Result<bool, String> {
+    async fn request_system_audio_access(&self) -> Result<bool, crate::Error> {
         let stop = hypr_audio::AudioOutput::silence();
 
         let mut speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
@@ -43,24 +43,20 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn open_microphone_access_settings(&self) -> Result<(), String> {
+    async fn open_microphone_access_settings(&self) -> Result<(), crate::Error> {
         std::process::Command::new("open")
             .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")
-            .spawn()
-            .map_err(|e| e.to_string())?
-            .wait()
-            .map_err(|e| e.to_string())?;
+            .spawn()?
+            .wait()?;
         Ok(())
     }
 
     #[tracing::instrument(skip_all)]
-    async fn open_system_audio_access_settings(&self) -> Result<(), String> {
+    async fn open_system_audio_access_settings(&self) -> Result<(), crate::Error> {
         std::process::Command::new("open")
             .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_AudioCapture")
-            .spawn()
-            .map_err(|e| e.to_string())?
-            .wait()
-            .map_err(|e| e.to_string())?;
+            .spawn()?
+            .wait()?;
         Ok(())
     }
 
@@ -83,7 +79,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn broadcast(&self, event: SessionEvent) -> Result<(), String> {
+    async fn broadcast(&self, event: SessionEvent) -> Result<(), crate::Error> {
         let state = self.state::<crate::SharedState>();
         let channels = {
             let s = state.lock().await;
@@ -112,19 +108,19 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         }
     }
 
-    // TODO:
-    // this need to reworked, especially "123" session id.
     #[tracing::instrument(skip_all)]
-    async fn start_session(&self) -> Result<String, String> {
+    async fn start_session(&self) -> Result<String, crate::Error> {
         let state = self.state::<crate::SharedState>();
-        let mut s = state.lock().await;
+
+        {
+            let s = state.lock().await;
+            if s.timeline.is_some() {
+                return Err(crate::Error::SessionAlreadyStarted);
+            }
+        }
 
         let session_id = "123";
         let app_dir = self.path().app_data_dir().unwrap();
-
-        if s.timeline.is_some() {
-            return Err("Session already started".to_string());
-        }
 
         let api_base = {
             let app = self.app_handle();
@@ -158,9 +154,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         let (speaker_tx, mut speaker_rx) = mpsc::channel::<Vec<f32>>(chunk_buffer_size);
         let (mixed_tx, mixed_rx) = mpsc::channel::<f32>(sample_buffer_size);
 
-        s.silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
+        let silence_stream_tx = hypr_audio::AudioOutput::silence();
 
-        s.mic_stream_handle = Some(tokio::spawn({
+        let mic_stream_handle = tokio::spawn({
             async move {
                 while let Some(chunk) = mic_stream.next().await {
                     if let Err(e) = mic_tx.send(chunk).await {
@@ -169,9 +165,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                     }
                 }
             }
-        }));
+        });
 
-        s.speaker_stream_handle = Some(tokio::spawn({
+        let speaker_stream_handle = tokio::spawn({
             async move {
                 while let Some(chunk) = speaker_stream.next().await {
                     if let Err(e) = speaker_tx.send(chunk).await {
@@ -180,7 +176,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                     }
                 }
             }
-        }));
+        });
 
         let app = self.app_handle().clone();
 
@@ -225,12 +221,19 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         });
 
         let timeline = Arc::new(Mutex::new(crate::Timeline::default()));
-        s.timeline = Some(timeline.clone());
-
         let audio_stream = hypr_audio::ReceiverStreamSource::new(mixed_rx, SAMPLE_RATE);
+
+        {
+            let mut s = state.lock().await;
+            s.timeline = Some(timeline.clone());
+            s.silence_stream_tx = Some(silence_stream_tx);
+            s.mic_stream_handle = Some(mic_stream_handle);
+            s.speaker_stream_handle = Some(speaker_stream_handle);
+        }
+
         let listen_stream = listen_client.from_audio(audio_stream).await.unwrap();
 
-        s.listen_stream_handle = Some(tokio::spawn({
+        let listen_stream_handle = tokio::spawn({
             let app = self.app_handle().clone();
             let timeline = timeline.clone();
 
@@ -238,7 +241,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                 futures_util::pin_mut!(listen_stream);
 
                 while let Some(result) = listen_stream.next().await {
-                    println!("listen_stream: {:?}", result);
                     let mut timeline = timeline.lock().await;
 
                     match result {
@@ -259,13 +261,18 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
                 app.broadcast(SessionEvent::Stopped).await.unwrap();
             }
-        }));
+        });
+
+        {
+            let mut s = state.lock().await;
+            s.listen_stream_handle = Some(listen_stream_handle);
+        }
 
         Ok(session_id.to_string())
     }
 
     #[tracing::instrument(skip_all)]
-    async fn stop_session(&self) -> Result<(), String> {
+    async fn stop_session(&self) -> Result<(), crate::Error> {
         let state = self.state::<crate::SharedState>();
         let mut s = state.lock().await;
 

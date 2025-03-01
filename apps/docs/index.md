@@ -27,7 +27,7 @@
 
 _**Hackable AI notepad for meetings.** `Open source`, `local-first`, and `extensible`._
 
-Hyprnote was made for people packed with meetings. It's a smart notepad that takes your raw notes and turns them into a perfect meeting note. 
+Hyprnote is made for people packed with meetings. It's a smart notepad that takes your raw note and turns them into a perfect meeting note. 
 
 <div class="grid grid-cols-2 gap-4 my-8">
   <Card v-for="card in cards" :key="card.title" :title="card.title" :url="card.url" :body="card.body"/>

@@ -7,6 +7,8 @@ import clsx from "clsx";
 import { modelProvider } from "@hypr/utils";
 import NoteEditor from "@hypr/tiptap/editor";
 import NoteRenderer from "@hypr/tiptap/renderer";
+
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands } from "@hypr/plugin-template";
 import {
@@ -24,29 +26,30 @@ import { NoteHeader } from "../header";
 export default function EditorArea() {
   const enhance = useMutation({
     mutationFn: async () => {
+      const config = await dbCommands.getConfig();
       const provider = await modelProvider();
+      const systemMessage = await templateCommands.render(
+        ENHANCE_SYSTEM_TEMPLATE_KEY,
+        {
+          config,
+        },
+      );
+
+      const userMessage = await templateCommands.render(
+        ENHANCE_USER_TEMPLATE_KEY,
+        {
+          memo: sessionStore.session.raw_memo_html,
+        },
+      );
+
       const { text, textStream } = streamText({
         model: provider.languageModel("any"),
         messages: [
-          {
-            role: "system",
-            content: await templateCommands.render(
-              ENHANCE_SYSTEM_TEMPLATE_KEY,
-              {},
-            ),
-          },
-          {
-            role: "user",
-            content: await templateCommands.render(ENHANCE_USER_TEMPLATE_KEY, {
-              memo: sessionStore.session.raw_memo_html,
-            }),
-          },
+          { role: "system", content: systemMessage },
+          { role: "user", content: userMessage },
         ],
         experimental_transform: [
-          smoothStream({
-            delayInMs: 100,
-            chunking: "line",
-          }),
+          smoothStream({ delayInMs: 100, chunking: "line" }),
         ],
       });
 
@@ -72,23 +75,24 @@ export default function EditorArea() {
 
   const [showRaw, setShowRaw] = useState(true);
 
-  const handleChangeNote = useCallback(
+  const handleChangeRawNote = useCallback(
     (content: string) => {
-      if (showRaw) {
-        sessionStore.updateRawNote(content);
-        sessionStore.persistSession();
-      } else {
-        sessionStore.updateEnhancedNote(content);
-      }
+      sessionStore.updateRawNote(content);
     },
-    [showRaw, sessionStore],
+    [sessionStore],
   );
 
-  useEffect(() => {
-    if (!showRaw && !sessionStore.session.enhanced_memo_html) {
-      enhance.mutate();
-    }
-  }, [showRaw, sessionStore.session.enhanced_memo_html, enhance]);
+  const handleChangeEnhancedNote = useCallback(
+    (content: string) => {
+      sessionStore.updateEnhancedNote(content);
+    },
+    [sessionStore],
+  );
+
+  const handleClickEnhance = useCallback(() => {
+    enhance.mutate();
+    setShowRaw(false);
+  }, [enhance, setShowRaw]);
 
   useEffect(() => {
     if (enhance.data) {
@@ -97,9 +101,13 @@ export default function EditorArea() {
   }, [enhance.data]);
 
   useEffect(() => {
-    if (enhance.status === "success" || enhance.status === "pending") {
+    if (enhance.status === "success") {
       sessionStore.persistSession();
     }
+
+    return () => {
+      sessionStore.persistSession();
+    };
   }, [enhance.status]);
 
   const editorRef = useRef<{ editor: any }>(null);
@@ -133,13 +141,13 @@ export default function EditorArea() {
         {showRaw ? (
           <NoteEditor
             ref={editorRef}
-            handleChange={handleChangeNote}
+            handleChange={handleChangeRawNote}
             content={sessionStore.session.raw_memo_html}
           />
         ) : (
           <NoteRenderer
             ref={rendererRef}
-            handleChange={handleChangeNote}
+            handleChange={handleChangeEnhancedNote}
             content={sessionStore.session.enhanced_memo_html ?? ""}
           />
         )}
@@ -155,11 +163,10 @@ export default function EditorArea() {
             transition={{ duration: 0.2 }}
           >
             {ongoingSessionStore.listening ||
-            !sessionStore.session.conversations.length ? null : sessionStore
-                .session.enhanced_memo_html ? (
+            sessionStore.session.enhanced_memo_html ? (
               <EnhanceControls showRaw={showRaw} setShowRaw={setShowRaw} />
             ) : (
-              <EnhanceOnlyButton handleClick={() => setShowRaw(false)} />
+              <EnhanceOnlyButton handleClick={handleClickEnhance} />
             )}
           </motion.div>
         )}

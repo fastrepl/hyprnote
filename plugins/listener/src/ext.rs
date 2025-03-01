@@ -95,15 +95,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         let state = self.state::<crate::SharedState>();
         let s = state.lock().await;
 
-        let timeline_view = s
-            .timeline
-            .as_ref()
-            .unwrap()
-            .lock()
-            .await
-            .view(crate::TimelineFilter::default());
-
-        Ok(timeline_view)
+        match s.timeline.as_ref() {
+            None => Ok(crate::TimelineView::default()),
+            Some(timeline) => {
+                let timeline_view = timeline.lock().await.view(crate::TimelineFilter::default());
+                Ok(timeline_view)
+            }
+        }
     }
 
     // TODO:

@@ -25,7 +25,7 @@ export const Route = createFileRoute("/app/note/$id")({
 
 function Component() {
   const { session } = Route.useLoaderData();
-  
+
   const { hidePanel } = useRightPanel();
 
   useEffect(() => {

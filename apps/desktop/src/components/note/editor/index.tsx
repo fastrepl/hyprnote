@@ -8,6 +8,11 @@ import { modelProvider } from "@hypr/utils";
 import NoteEditor from "@hypr/tiptap/editor";
 import NoteRenderer from "@hypr/tiptap/renderer";
 import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as templateCommands } from "@hypr/plugin-template";
+import {
+  ENHANCE_SYSTEM_TEMPLATE_KEY,
+  ENHANCE_USER_TEMPLATE_KEY,
+} from "@/templates";
 
 import { useSession } from "@/contexts";
 import { useOngoingSession } from "@/contexts/ongoing-session";
@@ -22,7 +27,21 @@ export default function EditorArea() {
       const provider = await modelProvider();
       const { text, textStream } = streamText({
         model: provider.languageModel("any"),
-        prompt: "Hello, world!",
+        messages: [
+          {
+            role: "system",
+            content: await templateCommands.render(
+              ENHANCE_SYSTEM_TEMPLATE_KEY,
+              {},
+            ),
+          },
+          {
+            role: "user",
+            content: await templateCommands.render(ENHANCE_USER_TEMPLATE_KEY, {
+              memo: sessionStore.session.raw_memo_html,
+            }),
+          },
+        ],
         experimental_transform: [
           smoothStream({
             delayInMs: 100,
@@ -36,8 +55,7 @@ export default function EditorArea() {
         console.log(html);
       }
 
-      const html = await text.then(miscCommands.opinionatedMdToHtml);
-      return html;
+      return text.then(miscCommands.opinionatedMdToHtml);
     },
   });
 

@@ -375,6 +375,16 @@
           "const": "deny-subscribe"
         },
         {
+          "description": "Enables the unsubscribe command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-unsubscribe"
+        },
+        {
+          "description": "Denies the unsubscribe command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-unsubscribe"
+        },
+        {
           "description": "Default permissions for the plugin",
           "type": "string",
           "const": "default"

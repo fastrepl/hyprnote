@@ -5,6 +5,7 @@ const COMMANDS: &[&str] = &[
     "open_system_audio_access_settings",
     "get_timeline",
     "subscribe",
+    "unsubscribe",
     "start_session",
     "stop_session",
 ];

@@ -34,7 +34,7 @@ pub async fn open_system_audio_access_settings<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-// TODO: need filter
+// TODO: need filter TODOTODOTODO
 pub async fn get_timeline<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<crate::TimelineView, String> {
@@ -47,7 +47,18 @@ pub async fn subscribe<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     channel: tauri::ipc::Channel<SessionEvent>,
 ) -> Result<(), String> {
-    app.subscribe(channel).await
+    app.subscribe(channel).await;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn unsubscribe<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    channel: tauri::ipc::Channel<SessionEvent>,
+) -> Result<(), String> {
+    app.unsubscribe(channel).await;
+    Ok(())
 }
 
 #[tauri::command]

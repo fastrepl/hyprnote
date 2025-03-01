@@ -41,6 +41,10 @@ const LiveTranscript2x2: WidgetTwoByTwo = ({ onMaximize }) => {
         setIsLive(false);
       }
     };
+
+    return () => {
+      listenerCommands.unsubscribe(channel);
+    };
   }, []);
 
   useEffect(() => {

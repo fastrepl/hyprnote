@@ -7,6 +7,7 @@ permissions = [
     "allow-open-system-audio-access-settings",
     "allow-start-session",
     "allow-subscribe",
+    "allow-unsubscribe",
     "allow-stop-session",
     "allow-get-timeline",
 ]

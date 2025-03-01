@@ -42,6 +42,10 @@ const LiveTranslation2x2: WidgetTwoByTwo = ({ onMaximize }) => {
         setIsLive(false);
       }
     };
+
+    return () => {
+      listenerCommands.unsubscribe(channel);
+    };
   }, []);
 
   // Auto-scroll when new items are added

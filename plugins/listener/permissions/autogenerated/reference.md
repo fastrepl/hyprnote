@@ -8,6 +8,7 @@ Default permissions for the plugin
 - `allow-open-system-audio-access-settings`
 - `allow-start-session`
 - `allow-subscribe`
+- `allow-unsubscribe`
 - `allow-stop-session`
 - `allow-get-timeline`
 
@@ -224,6 +225,32 @@ Enables the subscribe command without any pre-configured scope.
 <td>
 
 Denies the subscribe command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-unsubscribe`
+
+</td>
+<td>
+
+Enables the unsubscribe command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-unsubscribe`
+
+</td>
+<td>
+
+Denies the unsubscribe command without any pre-configured scope.
 
 </td>
 </tr>

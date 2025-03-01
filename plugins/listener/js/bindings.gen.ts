@@ -25,6 +25,9 @@ async getTimeline() : Promise<TimelineView> {
 async subscribe(channel: TAURI_CHANNEL<SessionEvent>) : Promise<null> {
     return await TAURI_INVOKE("plugin:listener|subscribe", { channel });
 },
+async unsubscribe(channel: TAURI_CHANNEL<SessionEvent>) : Promise<null> {
+    return await TAURI_INVOKE("plugin:listener|unsubscribe", { channel });
+},
 async startSession() : Promise<string> {
     return await TAURI_INVOKE("plugin:listener|start_session");
 },

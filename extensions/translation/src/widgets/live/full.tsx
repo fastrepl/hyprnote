@@ -40,6 +40,10 @@ const LiveTranslationFull: WidgetFullSize = ({ onMinimize }) => {
         setIsLive(false);
       }
     };
+
+    return () => {
+      listenerCommands.unsubscribe(channel);
+    };
   }, []);
 
   // Auto-scroll when new items are added

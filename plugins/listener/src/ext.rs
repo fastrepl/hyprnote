@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use futures_util::StreamExt;
 use hypr_audio::AsyncSource;
+use tauri::ipc::Channel;
 use tokio::sync::{mpsc, Mutex};
 
 use crate::{SessionEvent, SessionEventTimelineView};
@@ -14,10 +15,8 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn request_system_audio_access(&self) -> impl Future<Output = Result<bool, String>>;
     fn open_microphone_access_settings(&self) -> impl Future<Output = Result<(), String>>;
     fn open_system_audio_access_settings(&self) -> impl Future<Output = Result<(), String>>;
-    fn subscribe(
-        &self,
-        channel: tauri::ipc::Channel<SessionEvent>,
-    ) -> impl Future<Output = Result<(), String>>;
+    fn subscribe(&self, channel: Channel<SessionEvent>) -> impl Future<Output = ()>;
+    fn unsubscribe(&self, channel: Channel<SessionEvent>) -> impl Future<Output = ()>;
     fn broadcast(&self, event: SessionEvent) -> impl Future<Output = Result<(), String>>;
     fn get_timeline(&self) -> impl Future<Output = Result<crate::TimelineView, String>>;
     fn start_session(&self) -> impl Future<Output = Result<String, String>>;
@@ -66,12 +65,21 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn subscribe(&self, channel: tauri::ipc::Channel<SessionEvent>) -> Result<(), String> {
+    async fn subscribe(&self, channel: Channel<SessionEvent>) {
         let state = self.state::<crate::SharedState>();
         let s = state.lock().await;
 
-        s.channels.lock().await.push(channel);
-        Ok(())
+        let id = channel.id();
+        s.channels.lock().await.insert(id, channel);
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn unsubscribe(&self, channel: Channel<SessionEvent>) {
+        let state = self.state::<crate::SharedState>();
+        let s = state.lock().await;
+
+        let id = channel.id();
+        s.channels.lock().await.remove(&id);
     }
 
     #[tracing::instrument(skip_all)]
@@ -83,7 +91,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         };
         let channels = channels.lock().await;
 
-        for channel in channels.iter() {
+        for (_id, channel) in channels.iter() {
             let _ = channel.send(event.clone());
         }
 

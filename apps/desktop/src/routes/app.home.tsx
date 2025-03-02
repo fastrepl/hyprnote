@@ -10,10 +10,12 @@ export const Route = createFileRoute("/app/home")({
 
 function RouteComponent() {
   return (
-    <div className="max-w-5xl mx-auto p-8 overflow-y-auto h-full">
-      <RecentNotes />
-      <WorkspaceCalendar />
-      <MyTasks />
+    <div className="overflow-y-auto h-full">
+      <div className="max-w-5xl mx-auto px-8 pt-6 pb-12">
+        <RecentNotes />
+        <WorkspaceCalendar />
+        <MyTasks />
+      </div>
     </div>
   );
 }

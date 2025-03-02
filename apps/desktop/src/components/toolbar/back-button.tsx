@@ -24,7 +24,7 @@ export function BackButton() {
     <Button
       variant="ghost"
       size="icon"
-      className="ml-[70px] hover:bg-neutral-200 disabled:opacity-0"
+      className="hover:bg-neutral-200 disabled:opacity-0"
       onClick={handleClickBack}
       disabled={!history.canGoBack()}
       aria-label="Go back"

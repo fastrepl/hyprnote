@@ -1,7 +1,4 @@
 import { PanelRightCloseIcon, PanelRightOpenIcon } from "lucide-react";
-import { useLocation } from "@tanstack/react-router";
-
-import type { RoutePath } from "@/types";
 import { useRightPanel } from "@/contexts/right-panel";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -10,15 +7,8 @@ import {
   TooltipTrigger,
 } from "@hypr/ui/components/ui/tooltip";
 
-export function RightSidePanelButton() {
+export function RightPanelButton() {
   const { isExpanded, togglePanel } = useRightPanel();
-  const { pathname } = useLocation();
-
-  const checker = ("/app/note/$id" satisfies RoutePath).slice(0, 10);
-
-  if (!pathname.includes(checker)) {
-    return null;
-  }
 
   const Icon = isExpanded ? PanelRightCloseIcon : PanelRightOpenIcon;
 

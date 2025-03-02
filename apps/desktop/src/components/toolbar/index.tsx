@@ -7,7 +7,10 @@ import { BackButton } from "@/components/toolbar/back-button";
 import { type as getOsType } from "@tauri-apps/plugin-os";
 
 import { SearchBar, SearchIconButton, SearchPalette } from "../search";
-import { RightSidePanelButton } from "./right-side-panel-button";
+import { RightPanelButton } from "./right-panel-button";
+import { cn } from "@/utils";
+import { HomeButton } from "./home-button";
+import { LeftSidebarButton } from "./left-sidebar-button";
 
 export default function Toolbar() {
   const osType = useQuery({
@@ -28,8 +31,13 @@ export default function Toolbar() {
         data-tauri-drag-region
       >
         {/* TODO */}
-        <div className="w-40" data-tauri-drag-region>
-          {osType.data === "macos" && <BackButton />}
+        <div
+          className={cn("w-40", osType.data === "macos" && "pl-[70px]")}
+          data-tauri-drag-region
+        >
+          <LeftSidebarButton />
+          <HomeButton />
+          <BackButton />
         </div>
 
         <SearchBar />
@@ -40,7 +48,7 @@ export default function Toolbar() {
         >
           <SearchIconButton />
           <NewNoteButton />
-          <RightSidePanelButton />
+          <RightPanelButton />
           <SettingsPanel />
         </div>
       </header>

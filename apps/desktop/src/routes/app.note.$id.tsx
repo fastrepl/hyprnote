@@ -4,7 +4,6 @@ import { commands as dbCommands } from "@hypr/plugin-db";
 
 import { SessionProvider, useRightPanel } from "@/contexts";
 import EditorArea from "@/components/note/editor";
-import RightPanel from "@/components/note/right-panel";
 
 export const Route = createFileRoute("/app/note/$id")({
   component: Component,
@@ -40,7 +39,6 @@ function Component() {
         <div className="h-full flex-1">
           <EditorArea />
         </div>
-        <RightPanel />
       </main>
     </SessionProvider>
   );

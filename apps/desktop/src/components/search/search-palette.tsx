@@ -1,4 +1,3 @@
-import { useState, useCallback } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import {
@@ -13,13 +12,7 @@ import {
 import { useSearchStore } from "@/stores/use-search-store";
 
 export function SearchPalette() {
-  const { isOpen: isOpenStore, toggle: toggleStore } = useSearchStore();
-  const [open, setOpen] = useState(isOpenStore);
-
-  const toggle = useCallback(() => {
-    setOpen((prev) => !prev);
-    toggleStore();
-  }, [toggleStore]);
+  const { isOpen, toggle } = useSearchStore();
 
   useHotkeys(
     "mod+k",
@@ -31,7 +24,7 @@ export function SearchPalette() {
   );
 
   return (
-    <CommandDialog open={open} onOpenChange={toggle}>
+    <CommandDialog open={isOpen} onOpenChange={toggle}>
       <CommandInput autoFocus placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>

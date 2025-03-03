@@ -2871,27 +2871,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c297a1c74b71ae29df00c3e22dd9534821d60eb9af5a0192823fa2acea70c2a"
 
 [[package]]
-name = "db"
-version = "0.1.0"
-dependencies = [
- "async-stripe",
- "calendar",
- "chrono",
- "codes-iso-639",
- "db-core",
- "libsql",
- "nango",
- "schemars",
- "serde",
- "serde_json",
- "specta",
- "strum 0.26.3",
- "thiserror 2.0.12",
- "tokio",
- "uuid",
-]
-
-[[package]]
 name = "db-admin"
 version = "0.1.0"
 dependencies = [

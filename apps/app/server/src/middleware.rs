@@ -76,17 +76,17 @@ pub async fn attach_user_from_clerk(
 
 #[tracing::instrument(skip_all)]
 pub async fn attach_user_db(
-    #[allow(unused)] Extension(org): Extension<hypr_db::admin::Account>,
+    #[allow(unused)] Extension(org): Extension<hypr_db_admin::Account>,
     mut req: Request,
     next: middleware::Next,
 ) -> Result<Response, StatusCode> {
     let conn = {
         if cfg!(debug_assertions) {
-            hypr_db::DatabaseBaseBuilder::default().local(":memory:")
+            hypr_db_core::DatabaseBaseBuilder::default().local(":memory:")
         } else {
             let token = crate::get_env("TURSO_API_KEY");
             let url = hypr_turso::format_db_url(org.turso_db_name);
-            hypr_db::DatabaseBaseBuilder::default().remote(url, token)
+            hypr_db_core::DatabaseBaseBuilder::default().remote(url, token)
         }
     }
     .build()
@@ -95,7 +95,7 @@ pub async fn attach_user_db(
     .connect()
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    let db = hypr_db::user::UserDatabase::from(conn);
+    let db = hypr_db_user::UserDatabase::from(conn);
 
     req.extensions_mut().insert(db);
     Ok(next.run(req).await)
@@ -103,7 +103,7 @@ pub async fn attach_user_db(
 
 #[tracing::instrument(skip_all)]
 pub async fn send_analytics(
-    Extension(user): Extension<hypr_db::admin::User>,
+    Extension(user): Extension<hypr_db_admin::User>,
     State(state): State<AnalyticsState>,
     req: Request,
     next: middleware::Next,
@@ -126,13 +126,13 @@ pub fn check_membership(
     _membership: String,
 ) -> impl Fn(
     State<AuthState>,
-    Extension<hypr_db::admin::User>,
+    Extension<hypr_db_admin::User>,
     Request,
     middleware::Next,
 ) -> MiddlewareHandler
        + Clone {
     move |State(_state): State<AuthState>,
-          Extension(_user): Extension<hypr_db::admin::User>,
+          Extension(_user): Extension<hypr_db_admin::User>,
           req: Request,
           next: middleware::Next| {
         Box::pin(async move {

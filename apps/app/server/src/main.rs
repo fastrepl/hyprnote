@@ -128,7 +128,7 @@ fn main() {
                 let conn = {
                     #[cfg(debug_assertions)]
                     {
-                        hypr_db::DatabaseBaseBuilder::default()
+                        hypr_db_core::DatabaseBaseBuilder::default()
                             .local(":memory:")
                             .build()
                             .await
@@ -143,7 +143,7 @@ fn main() {
                         let url = turso.db_url(&name);
                         let token = turso.generate_db_token(&name).await.unwrap();
 
-                        hypr_db::DatabaseBaseBuilder::default()
+                        hypr_db_core::DatabaseBaseBuilder::default()
                             .remote(url, token)
                             .build()
                             .await
@@ -153,12 +153,12 @@ fn main() {
                     }
                 };
 
-                hypr_db::admin::migrate(&conn).await.unwrap();
-                let db = hypr_db::admin::AdminDatabase::from(conn);
+                hypr_db_admin::migrate(&conn).await.unwrap();
+                let db = hypr_db_admin::AdminDatabase::from(conn);
 
                 #[cfg(debug_assertions)]
                 {
-                    hypr_db::admin::seed(&db).await.unwrap();
+                    hypr_db_admin::seed(&db).await.unwrap();
                 }
 
                 db

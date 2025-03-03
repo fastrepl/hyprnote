@@ -28,7 +28,7 @@ tracing = { workspace = true }
 hypr-listener-interface = { path = "../listener-interface", package = "listener-interface" }
 
 hypr-bridge = { path = "../../crates/bridge", package = "bridge" }
-hypr-db = { path = "../../crates/db", package = "db", default-features = false, features = ["user"] }
+hypr-db-user = { path = "../../crates/db-user", package = "db-user" }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }

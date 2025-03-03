@@ -71,7 +71,7 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
                         .await
                         .map_err(|e| err_from(e.to_string()))?;
 
-                    let conn = hypr_db::DatabaseBaseBuilder::default()
+                    let conn = hypr_db_core::DatabaseBaseBuilder::default()
                         .remote(url, token)
                         .build()
                         .await
@@ -79,13 +79,13 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
                         .connect()
                         .map_err(|e| err_from(e.to_string()))?;
 
-                    hypr_db::user::UserDatabase::from(conn)
+                    hypr_db_user::UserDatabase::from(conn)
                 };
 
                 for e in events {
                     // TODO
 
-                    // let event = hypr_db::user::Event {
+                    // let event = hypr_db_user::Event {
                     //     id: uuid::Uuid::new_v4().to_string(),
                     //     tracking_id: e.id.clone(),
                     //     user_id: user_id.clone(),

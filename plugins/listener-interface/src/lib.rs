@@ -11,8 +11,8 @@ macro_rules! common_derives {
 
 common_derives! {
     pub enum ListenOutputChunk {
-        Transcribe(hypr_db::user::TranscriptChunk),
-        Diarize(hypr_db::user::DiarizationChunk),
+        Transcribe(hypr_db_user::TranscriptChunk),
+        Diarize(hypr_db_user::DiarizationChunk),
     }
 }
 

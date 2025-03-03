@@ -25,7 +25,7 @@ hypr-listener-interface = { path = "../listener-interface", package = "listener-
 tauri-plugin-connector = { path = "../connector" }
 
 hypr-audio = { path = "../../crates/audio", package = "audio" }
-hypr-db = { path = "../../crates/db", package = "db", default-features = false, features = ["user"] }
+hypr-db-user = { path = "../../crates/db-user", package = "db-user" }
 hypr-ws = { path = "../../crates/ws", package = "ws" }
 
 tauri = { workspace = true, features = ["specta", "test"] }

@@ -17,4 +17,4 @@ common_derives! {
 }
 
 pub type DiarizeInputChunk = ListenInputChunk;
-pub type DiarizeOutputChunk = hypr_db::user::DiarizationChunk;
+pub type DiarizeOutputChunk = hypr_db_user::DiarizationChunk;

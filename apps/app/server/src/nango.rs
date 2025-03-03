@@ -23,7 +23,7 @@ pub async fn handler(
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::NOT_FOUND)?;
 
-    let integration = hypr_db::admin::Integration {
+    let integration = hypr_db_admin::Integration {
         id: uuid::Uuid::new_v4().to_string(),
         user_id: user.id,
         nango_integration_id: connection

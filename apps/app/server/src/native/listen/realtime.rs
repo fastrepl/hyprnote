@@ -15,7 +15,7 @@ use std::sync::{atomic::AtomicU64, Arc};
 use futures_util::{SinkExt, StreamExt};
 use tokio::sync::broadcast;
 
-use hypr_db::user::TranscriptChunk;
+use hypr_db_user::TranscriptChunk;
 use hypr_listener_interface::{ListenInputChunk, ListenOutputChunk, ListenParams};
 use hypr_stt::realtime::RealtimeSpeechToText;
 

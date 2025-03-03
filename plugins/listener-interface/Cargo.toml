@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-hypr-db = { path = "../../crates/db", package = "db", default-features = false, features = ["user"] }
+hypr-db-user = { path = "../../crates/db-user", package = "db-user" }
 
 serde = { workspace = true, features = ["derive"] }
 serde_bytes = { workspace = true }

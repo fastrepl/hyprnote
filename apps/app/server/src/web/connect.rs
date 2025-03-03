@@ -38,7 +38,7 @@ pub async fn handler(
             // make sure we use same format in tauri side
             let turso_db_name = hypr_turso::format_db_name(account_id.clone());
 
-            db.upsert_account(hypr_db::admin::Account {
+            db.upsert_account(hypr_db_admin::Account {
                 id: account_id,
                 turso_db_name,
                 clerk_org_id,
@@ -59,7 +59,7 @@ pub async fn handler(
             Ok(u)
         } else {
             let db = state.admin_db.clone();
-            db.upsert_user(hypr_db::admin::User {
+            db.upsert_user(hypr_db_admin::User {
                 id: uuid::Uuid::new_v4().to_string(),
                 account_id: account.id.clone(),
                 human_id: uuid::Uuid::new_v4().to_string(),
@@ -91,7 +91,7 @@ pub async fn handler(
 
     let device = match state
         .admin_db
-        .upsert_device(hypr_db::admin::Device {
+        .upsert_device(hypr_db_admin::Device {
             id: uuid::Uuid::new_v4().to_string(),
             user_id: user.id,
             timestamp: chrono::Utc::now(),

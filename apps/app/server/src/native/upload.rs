@@ -16,7 +16,7 @@ pub struct CreateUploadResponse {
 }
 
 pub async fn create_upload(
-    Extension(user): Extension<hypr_db::admin::User>,
+    Extension(user): Extension<hypr_db_admin::User>,
     State(state): State<AppState>,
     Json(input): Json<CreateUploadRequest>,
 ) -> Result<impl IntoResponse, StatusCode> {
@@ -45,7 +45,7 @@ pub struct CompleteUploadRequest {
 }
 
 pub async fn complete_upload(
-    Extension(user): Extension<hypr_db::admin::User>,
+    Extension(user): Extension<hypr_db_admin::User>,
     State(state): State<AppState>,
     Json(input): Json<CompleteUploadRequest>,
 ) -> Result<impl IntoResponse, StatusCode> {

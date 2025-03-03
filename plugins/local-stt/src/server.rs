@@ -97,7 +97,7 @@ async fn websocket(socket: WebSocket, state: crate::SharedState, _params: Listen
         let start = chunk.start() as u64;
         let duration = chunk.duration() as u64;
 
-        let data = ListenOutputChunk::Transcribe(hypr_db::user::TranscriptChunk {
+        let data = ListenOutputChunk::Transcribe(hypr_db_user::TranscriptChunk {
             text,
             start,
             end: start + duration,

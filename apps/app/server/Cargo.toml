@@ -14,7 +14,9 @@ hypr-analytics = { path = "../../../crates/analytics", package = "analytics" }
 hypr-bridge = { path = "../../../crates/bridge", package = "bridge" }
 hypr-buffer = { path = "../../../crates/buffer", package = "buffer" }
 hypr-calendar = { path = "../../../crates/calendar", package = "calendar", features = ["google", "outlook"] }
-hypr-db = { path = "../../../crates/db", package = "db", features = ["admin", "user"] }
+hypr-db-admin = { path = "../../../crates/db-admin", package = "db-admin" }
+hypr-db-core = { path = "../../../crates/db-core", package = "db-core" }
+hypr-db-user = { path = "../../../crates/db-user", package = "db-user" }
 hypr-nango = { path = "../../../crates/nango", package = "nango" }
 hypr-notion = { path = "../../../crates/notion", package = "notion" }
 hypr-openai = { path = "../../../crates/openai", package = "openai" }

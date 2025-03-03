@@ -5,7 +5,7 @@ use crate::state::AppState;
 
 pub async fn list_integrations(
     State(state): State<AppState>,
-    Extension(user): Extension<hypr_db::admin::User>,
+    Extension(user): Extension<hypr_db_admin::User>,
 ) -> Result<Json<Vec<NangoIntegration>>, StatusCode> {
     let integrations = state
         .admin_db

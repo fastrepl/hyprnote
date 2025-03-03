@@ -2,7 +2,7 @@ use axum::extract::FromRef;
 
 use clerk_rs::clerk::Clerk;
 use hypr_analytics::AnalyticsClient;
-use hypr_db::admin::AdminDatabase;
+use hypr_db_admin::AdminDatabase;
 use hypr_nango::NangoClient;
 use hypr_openai::OpenAIClient;
 use hypr_s3::Client as S3Client;

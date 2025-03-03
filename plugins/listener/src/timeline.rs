@@ -1,7 +1,7 @@
 use intervaltree::IntervalTree;
 
-type DiarizeOutputChunk = hypr_db::user::DiarizationChunk;
-type TranscribeOutputChunk = hypr_db::user::TranscriptChunk;
+type DiarizeOutputChunk = hypr_db_user::DiarizationChunk;
+type TranscribeOutputChunk = hypr_db_user::TranscriptChunk;
 
 pub trait Interval {
     fn start(&self) -> u64;

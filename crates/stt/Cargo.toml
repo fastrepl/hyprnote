@@ -12,7 +12,7 @@ local = []
 [dependencies]
 deepgram = { version = "0.6.4", features = ["listen"] }
 hypr-clova = { path = "../clova", package = "clova" }
-hypr-db = { path = "../db", package = "db", default-features = false, features = ["user"] }
+hypr-db-user = { path = "../db-user", package = "db-user" }
 hypr-rtzr = { path = "../rtzr", package = "rtzr" }
 
 anyhow = { workspace = true }

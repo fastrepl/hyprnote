@@ -7,7 +7,7 @@ pub struct Client {
 }
 
 pub struct SessionMessage {
-    session: hypr_db::user::Session,
+    session: hypr_db_user::Session,
 }
 
 impl SlackMessageTemplate for SessionMessage {
@@ -51,7 +51,7 @@ impl Client {
     pub async fn send_session(
         &self,
         channel: impl Into<SlackChannelId>,
-        hypr_session: hypr_db::user::Session,
+        hypr_session: hypr_db_user::Session,
     ) -> anyhow::Result<SlackApiChatPostMessageResponse> {
         let slack_session = self.client.open_session(&self.api_token);
         let session_message = SessionMessage {

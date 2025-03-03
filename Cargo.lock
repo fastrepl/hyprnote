@@ -2150,7 +2150,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "db",
  "serde",
  "serde_json",
  "tokio",
@@ -3106,7 +3105,8 @@ dependencies = [
  "chrono",
  "codes-iso-639",
  "data",
- "db",
+ "db-core",
+ "db-user",
  "dotenvy_macro",
  "futures-core",
  "futures-util",
@@ -6989,7 +6989,7 @@ name = "notion"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "db",
+ "db-user",
  "notion-client",
  "strum 0.26.3",
 ]
@@ -10523,7 +10523,7 @@ name = "slack"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "db",
+ "db-user",
  "slack-morphism",
  "url",
 ]
@@ -10895,7 +10895,7 @@ dependencies = [
  "clova",
  "codes-iso-639",
  "data",
- "db",
+ "db-user",
  "deepgram",
  "futures-core",
  "futures-util",
@@ -11367,7 +11367,7 @@ dependencies = [
  "apalis-cron",
  "calendar",
  "chrono",
- "db",
+ "db-user",
  "serde",
  "serde_json",
  "specta",
@@ -11456,7 +11456,8 @@ dependencies = [
 name = "tauri-plugin-db"
 version = "0.1.0"
 dependencies = [
- "db",
+ "db-core",
+ "db-user",
  "serde",
  "specta",
  "specta-typescript",

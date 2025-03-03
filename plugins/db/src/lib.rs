@@ -13,8 +13,8 @@ pub type ManagedState = Mutex<State>;
 #[derive(Default)]
 pub struct State {
     pub user_id: Option<String>,
-    pub libsql_db: Option<hypr_db::Database>,
-    pub db: Option<hypr_db::user::UserDatabase>,
+    pub libsql_db: Option<hypr_db_core::Database>,
+    pub db: Option<hypr_db_user::UserDatabase>,
 }
 
 const PLUGIN_NAME: &str = "db";

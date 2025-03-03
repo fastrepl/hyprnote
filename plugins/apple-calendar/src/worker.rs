@@ -9,7 +9,7 @@ pub struct Job(DateTime<Utc>);
 
 #[derive(Clone)]
 pub struct WorkerState {
-    pub db: hypr_db::user::UserDatabase,
+    pub db: hypr_db_user::UserDatabase,
     pub user_id: String,
 }
 
@@ -41,7 +41,7 @@ pub async fn perform(_job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
     for calendar in calendars {
         let _ = ctx
             .db
-            .upsert_calendar(hypr_db::user::Calendar {
+            .upsert_calendar(hypr_db_user::Calendar {
                 id: uuid::Uuid::new_v4().to_string(),
                 tracking_id: calendar.id.clone(),
                 user_id: user_id.clone(),
@@ -52,11 +52,11 @@ pub async fn perform(_job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
             .await
             .unwrap();
 
-        let events: Vec<hypr_db::user::Event> = list_events(calendar.clone())
+        let events: Vec<hypr_db_user::Event> = list_events(calendar.clone())
             .await
             .unwrap_or(vec![])
             .iter()
-            .map(|e| hypr_db::user::Event {
+            .map(|e| hypr_db_user::Event {
                 id: uuid::Uuid::new_v4().to_string(),
                 tracking_id: e.id.clone(),
                 user_id: user_id.clone(),

@@ -3,7 +3,7 @@
 #[tracing::instrument(skip(state))]
 pub async fn list_calendars(
     state: tauri::State<'_, crate::ManagedState>,
-) -> Result<Vec<hypr_db::user::Calendar>, String> {
+) -> Result<Vec<hypr_db_user::Calendar>, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()
@@ -20,7 +20,7 @@ pub async fn list_calendars(
 pub async fn list_participants(
     state: tauri::State<'_, crate::ManagedState>,
     event_id: String,
-) -> Result<Vec<hypr_db::user::Human>, String> {
+) -> Result<Vec<hypr_db_user::Human>, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()
@@ -38,8 +38,8 @@ pub async fn list_participants(
 #[tracing::instrument(skip(state))]
 pub async fn upsert_calendar(
     state: tauri::State<'_, crate::ManagedState>,
-    calendar: hypr_db::user::Calendar,
-) -> Result<hypr_db::user::Calendar, String> {
+    calendar: hypr_db_user::Calendar,
+) -> Result<hypr_db_user::Calendar, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()
@@ -57,8 +57,8 @@ pub async fn upsert_calendar(
 #[tracing::instrument(skip(state))]
 pub async fn upsert_session(
     state: tauri::State<'_, crate::ManagedState>,
-    session: hypr_db::user::Session,
-) -> Result<hypr_db::user::Session, String> {
+    session: hypr_db_user::Session,
+) -> Result<hypr_db_user::Session, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()
@@ -74,7 +74,7 @@ pub async fn upsert_session(
 #[tracing::instrument(skip(state))]
 pub async fn list_templates(
     state: tauri::State<'_, crate::ManagedState>,
-) -> Result<Vec<hypr_db::user::Template>, String> {
+) -> Result<Vec<hypr_db_user::Template>, String> {
     let (db, user_id) = {
         let s = state.lock().unwrap();
 
@@ -100,8 +100,8 @@ pub async fn list_templates(
 #[tracing::instrument(skip(state))]
 pub async fn upsert_template(
     state: tauri::State<'_, crate::ManagedState>,
-    template: hypr_db::user::Template,
-) -> Result<hypr_db::user::Template, String> {
+    template: hypr_db_user::Template,
+) -> Result<hypr_db_user::Template, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()
@@ -135,7 +135,7 @@ pub async fn delete_template(
 #[tracing::instrument(skip(state))]
 pub async fn list_events(
     state: tauri::State<'_, crate::ManagedState>,
-) -> Result<Vec<hypr_db::user::Event>, String> {
+) -> Result<Vec<hypr_db_user::Event>, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()
@@ -152,7 +152,7 @@ pub async fn list_events(
 pub async fn list_sessions(
     state: tauri::State<'_, crate::ManagedState>,
     search: Option<&str>,
-) -> Result<Vec<hypr_db::user::Session>, String> {
+) -> Result<Vec<hypr_db_user::Session>, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()
@@ -167,8 +167,8 @@ pub async fn list_sessions(
 #[tracing::instrument(skip(state))]
 pub async fn get_session(
     state: tauri::State<'_, crate::ManagedState>,
-    option: hypr_db::user::SessionFilter,
-) -> Result<Option<hypr_db::user::Session>, String> {
+    option: hypr_db_user::SessionFilter,
+) -> Result<Option<hypr_db_user::Session>, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()
@@ -204,7 +204,7 @@ pub async fn set_session_event(
 #[tracing::instrument(skip(state))]
 pub async fn get_config(
     state: tauri::State<'_, crate::ManagedState>,
-) -> Result<hypr_db::user::Config, String> {
+) -> Result<hypr_db_user::Config, String> {
     let (db, user_id) = {
         let s = state.lock().unwrap();
 
@@ -227,12 +227,12 @@ pub async fn get_config(
     match config {
         Some(config) => Ok(config),
         None => {
-            let config = hypr_db::user::Config {
+            let config = hypr_db_user::Config {
                 id: uuid::Uuid::new_v4().to_string(),
                 user_id,
-                general: hypr_db::user::ConfigGeneral::default(),
-                notification: hypr_db::user::ConfigNotification::default(),
-                ai: hypr_db::user::ConfigAI::default(),
+                general: hypr_db_user::ConfigGeneral::default(),
+                notification: hypr_db_user::ConfigNotification::default(),
+                ai: hypr_db_user::ConfigAI::default(),
             };
             Ok(config)
         }
@@ -244,7 +244,7 @@ pub async fn get_config(
 #[tracing::instrument(skip(state))]
 pub async fn set_config(
     state: tauri::State<'_, crate::ManagedState>,
-    config: hypr_db::user::Config,
+    config: hypr_db_user::Config,
 ) -> Result<(), String> {
     let db = {
         let s = state.lock().unwrap();
@@ -262,7 +262,7 @@ pub async fn set_config(
 #[tracing::instrument(skip(state))]
 pub async fn get_self_human(
     state: tauri::State<'_, crate::ManagedState>,
-) -> Result<hypr_db::user::Human, String> {
+) -> Result<hypr_db_user::Human, String> {
     let (db, user_id) = {
         let s = state.lock().unwrap();
 
@@ -289,8 +289,8 @@ pub async fn get_self_human(
 #[tracing::instrument(skip(state))]
 pub async fn upsert_human(
     state: tauri::State<'_, crate::ManagedState>,
-    human: hypr_db::user::Human,
-) -> Result<hypr_db::user::Human, String> {
+    human: hypr_db_user::Human,
+) -> Result<hypr_db_user::Human, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()
@@ -305,7 +305,7 @@ pub async fn upsert_human(
 #[tracing::instrument(skip(state))]
 pub async fn get_self_organization(
     state: tauri::State<'_, crate::ManagedState>,
-) -> Result<hypr_db::user::Organization, String> {
+) -> Result<hypr_db_user::Organization, String> {
     let (db, user_id) = {
         let s = state.lock().unwrap();
 
@@ -337,8 +337,8 @@ pub async fn get_self_organization(
 #[tracing::instrument(skip(state))]
 pub async fn upsert_organization(
     state: tauri::State<'_, crate::ManagedState>,
-    organization: hypr_db::user::Organization,
-) -> Result<hypr_db::user::Organization, String> {
+    organization: hypr_db_user::Organization,
+) -> Result<hypr_db_user::Organization, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()
@@ -357,7 +357,7 @@ pub async fn upsert_organization(
 pub async fn list_chat_groups(
     state: tauri::State<'_, crate::ManagedState>,
     user_id: String,
-) -> Result<Vec<hypr_db::user::ChatGroup>, String> {
+) -> Result<Vec<hypr_db_user::ChatGroup>, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()
@@ -376,7 +376,7 @@ pub async fn list_chat_groups(
 pub async fn list_chat_messages(
     state: tauri::State<'_, crate::ManagedState>,
     group_id: String,
-) -> Result<Vec<hypr_db::user::ChatMessage>, String> {
+) -> Result<Vec<hypr_db_user::ChatMessage>, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()
@@ -394,8 +394,8 @@ pub async fn list_chat_messages(
 #[tracing::instrument(skip(state))]
 pub async fn create_chat_group(
     state: tauri::State<'_, crate::ManagedState>,
-    group: hypr_db::user::ChatGroup,
-) -> Result<hypr_db::user::ChatGroup, String> {
+    group: hypr_db_user::ChatGroup,
+) -> Result<hypr_db_user::ChatGroup, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()
@@ -411,8 +411,8 @@ pub async fn create_chat_group(
 #[tracing::instrument(skip(state))]
 pub async fn upsert_chat_message(
     state: tauri::State<'_, crate::ManagedState>,
-    message: hypr_db::user::ChatMessage,
-) -> Result<hypr_db::user::ChatMessage, String> {
+    message: hypr_db_user::ChatMessage,
+) -> Result<hypr_db_user::ChatMessage, String> {
     let db = {
         let s = state.lock().unwrap();
         s.db.clone()

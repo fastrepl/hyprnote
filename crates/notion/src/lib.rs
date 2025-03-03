@@ -70,7 +70,7 @@ impl NotionClient {
     pub async fn append_to_db(
         &self,
         db_id: impl Into<String>,
-        session: hypr_db::user::Session,
+        session: hypr_db_user::Session,
     ) -> anyhow::Result<Page> {
         let properties: SessionDatabaseProperty = BTreeMap::from([
             (

@@ -18,7 +18,7 @@ specta-typescript = { workspace = true }
 tauri-plugin-db = { path = "../db" }
 
 hypr-calendar = { path = "../../crates/calendar", package = "calendar", features = ["apple"] }
-hypr-db = { path = "../../crates/db", package = "db" }
+hypr-db-user = { path = "../../crates/db-user", package = "db-user" }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }

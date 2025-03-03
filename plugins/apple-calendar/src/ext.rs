@@ -60,7 +60,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
 
     #[tracing::instrument(skip_all)]
     fn start_worker(&self, user_id: impl Into<String>) -> Result<(), String> {
-        let db = self.state::<hypr_db::user::UserDatabase>().inner().clone();
+        let db = self.state::<hypr_db_user::UserDatabase>().inner().clone();
         let user_id = user_id.into();
 
         let state = self.state::<crate::ManagedState>();

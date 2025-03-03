@@ -115,7 +115,8 @@ pub async fn main() {
                 let local_db_path = app.local_db_path();
                 let db = tokio::task::block_in_place(|| {
                     tokio::runtime::Handle::current().block_on(async move {
-                        let base = hypr_db::DatabaseBaseBuilder::default().local(local_db_path);
+                        let base =
+                            hypr_db_core::DatabaseBaseBuilder::default().local(local_db_path);
 
                         // TODO: waiting for Turso side for support
                         // if let Some(account_id) = account_id {

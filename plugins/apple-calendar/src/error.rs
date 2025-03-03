@@ -9,7 +9,7 @@ pub enum Error {
     #[error("contacts access denied")]
     ContactsAccessDenied,
     #[error("database error: {0}")]
-    DatabaseError(#[from] hypr_db::Error),
+    DatabaseError(#[from] hypr_db_user::Error),
 }
 
 impl Serialize for Error {

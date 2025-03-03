@@ -3,7 +3,7 @@ use tauri::Manager;
 
 pub trait DatabasePluginExt<R: tauri::Runtime> {
     fn local_db_path(&self) -> String;
-    fn attach_libsql_db(&self, db: hypr_db::Database) -> Result<(), String>;
+    fn attach_libsql_db(&self, db: hypr_db_core::Database) -> Result<(), String>;
     fn remote_sync(&self) -> impl Future<Output = Result<(), String>>;
 
     fn db_create_new_user(&self) -> Result<String, String>;
@@ -25,18 +25,18 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabasePluginExt<R> for T 
         v
     }
 
-    fn attach_libsql_db(&self, db: hypr_db::Database) -> Result<(), String> {
+    fn attach_libsql_db(&self, db: hypr_db_core::Database) -> Result<(), String> {
         let state = self.state::<crate::ManagedState>();
         let mut s = state.lock().unwrap();
 
         tokio::task::block_in_place(|| {
             tokio::runtime::Handle::current().block_on(async move {
                 let conn = db.connect().unwrap();
-                hypr_db::user::migrate(&conn).await.unwrap();
+                hypr_db_user::migrate(&conn).await.unwrap();
 
-                let user_db = hypr_db::user::UserDatabase::from(conn);
+                let user_db = hypr_db_user::UserDatabase::from(conn);
                 if cfg!(debug_assertions) {
-                    hypr_db::user::seed(&user_db).await.unwrap();
+                    hypr_db_user::seed(&user_db).await.unwrap();
                 }
 
                 s.libsql_db = Some(db);
@@ -58,10 +58,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabasePluginExt<R> for T 
     fn db_create_new_user(&self) -> Result<String, String> {
         let user_id = tokio::task::block_in_place(|| {
             tokio::runtime::Handle::current().block_on(async move {
-                let db = self.state::<hypr_db::user::UserDatabase>();
+                let db = self.state::<hypr_db_user::UserDatabase>();
 
                 let human = db
-                    .upsert_human(hypr_db::user::Human {
+                    .upsert_human(hypr_db_user::Human {
                         is_user: true,
                         ..Default::default()
                     })

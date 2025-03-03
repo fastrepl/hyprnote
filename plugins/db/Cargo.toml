@@ -15,7 +15,8 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
-hypr-db = { path = "../../crates/db", package = "db", features = ["user"] }
+hypr-db-core = { path = "../../crates/db-core", package = "db-core" }
+hypr-db-user = { path = "../../crates/db-user", package = "db-user" }
 
 specta = { workspace = true }
 tauri = { workspace = true, features = ["test"] }

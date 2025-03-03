@@ -2891,6 +2891,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "db-admin"
+version = "0.1.0"
+dependencies = [
+ "async-stripe",
+ "calendar",
+ "chrono",
+ "codes-iso-639",
+ "db-core",
+ "libsql",
+ "nango",
+ "schemars",
+ "serde",
+ "serde_json",
+ "specta",
+ "strum 0.26.3",
+ "thiserror 2.0.12",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "db-core"
 version = "0.1.0"
 dependencies = [
@@ -2898,6 +2919,25 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.12",
+]
+
+[[package]]
+name = "db-user"
+version = "0.1.0"
+dependencies = [
+ "calendar",
+ "chrono",
+ "codes-iso-639",
+ "db-core",
+ "libsql",
+ "schemars",
+ "serde",
+ "serde_json",
+ "specta",
+ "strum 0.26.3",
+ "thiserror 2.0.12",
+ "tokio",
+ "uuid",
 ]
 
 [[package]]

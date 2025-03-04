@@ -4,7 +4,7 @@ use crate::{
     store,
     store::StoreKey,
     vault::{Vault, VaultKey},
-    RequestParams, ResponseParams, CALLBACK_TEMPLATE_KEY,
+    ResponseParams, CALLBACK_TEMPLATE_KEY,
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
@@ -120,6 +120,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::RequestParams;
 
     #[test]
     fn test_qs() {

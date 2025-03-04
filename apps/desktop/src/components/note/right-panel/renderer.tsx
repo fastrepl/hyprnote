@@ -35,10 +35,10 @@ const getFull = (group: WidgetGroup) => {
 };
 
 const CC1 = getTwoByOne(DinoExtension["chromeDino"])!;
-const CC2 = getTwoByTwo(SummaryExtension["live-short"])!;
+const CC2 = getTwoByTwo(SummaryExtension["bullet"])!;
 
-const TranscriptLive2x2 = getTwoByTwo(TranscriptExtension["live"])!;
-const TranscriptLiveFull = getFull(TranscriptExtension["live"])!;
+const TranscriptLive2x2 = getTwoByTwo(TranscriptExtension["default"])!;
+const TranscriptLiveFull = getFull(TranscriptExtension["default"])!;
 
 export default function WidgetRenderer() {
   const [layout, setLayout] = useState<Layout[]>([

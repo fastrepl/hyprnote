@@ -10,10 +10,10 @@ pub async fn main() {
             .with_line_number(true)
             .with_env_filter(
                 tracing_subscriber::EnvFilter::from_default_env()
-                    .add_directive(tracing::Level::DEBUG.into())
+                    .add_directive(tracing::Level::INFO.into())
                     .add_directive("ort=error".parse().unwrap())
-                    .add_directive("rwhisper=trace".parse().unwrap())
-                    .add_directive("kalosm_sound=trace".parse().unwrap()),
+                    .add_directive("hyper=error".parse().unwrap())
+                    .add_directive("rustls=error".parse().unwrap()),
             );
 
         builder.init();
@@ -84,7 +84,7 @@ pub async fn main() {
                 let _ = app.store("store.json")?;
             }
 
-            let (user_id, _account_id, _server_token, _database_token) = {
+            let (user_id, account_id, server_token, database_token) = {
                 use tauri_plugin_auth::{AuthPluginExt, StoreKey, VaultKey};
 
                 let user_id = app.get_from_store(StoreKey::UserId).unwrap_or(None);
@@ -105,21 +105,20 @@ pub async fn main() {
             };
 
             {
-                // use hypr_turso::{format_db_name, format_db_url};
+                use hypr_turso::{format_db_name, format_db_url};
                 use tauri_plugin_db::DatabasePluginExt;
 
                 let local_db_path = app.local_db_path();
                 let db = tokio::task::block_in_place(|| {
                     tokio::runtime::Handle::current().block_on(async move {
-                        let base =
+                        let mut base =
                             hypr_db_core::DatabaseBaseBuilder::default().local(local_db_path);
 
-                        // TODO: waiting for Turso side for support
-                        // if let Some(account_id) = account_id.as_ref() {
-                        //     let db_name = format_db_name(account_id);
-                        //     let db_url = format_db_url(&db_name);
-                        //     base = base.remote(db_url, database_token.unwrap());
-                        // }
+                        if let Some(account_id) = account_id.as_ref() {
+                            let db_name = format_db_name(account_id);
+                            let db_url = format_db_url(&db_name);
+                            base = base.remote(db_url, database_token.unwrap());
+                        }
 
                         base.build().await.unwrap()
                     })

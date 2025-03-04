@@ -133,13 +133,14 @@ pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
         db.upsert_calendar(calendar).await?;
     }
 
-    for event in events {
-        let _ = db.upsert_event(event.clone()).await?;
-        for participant in participants.iter() {
-            db.add_participant(event.id.clone(), participant.id.clone())
-                .await?;
-        }
-    }
+    // FOREIGN KEY constraint failed
+    // for event in events {
+    //     let _ = db.upsert_event(event.clone()).await?;
+    //     for participant in participants.iter() {
+    //         db.add_participant(event.id.clone(), participant.id.clone())
+    //             .await?;
+    //     }
+    // }
 
     for session in sessions {
         let _ = db.upsert_session(session).await?;

@@ -27,16 +27,13 @@ impl DatabaseBaseBuilder {
             (Some(path), None) => libsql::Builder::new_local(path).build().await?,
             (None, Some((url, token))) => libsql::Builder::new_remote(url, token).build().await?,
             (Some(path), Some((url, token))) => {
+                // https://github.com/tursodatabase/libsql/blob/d42e05a/libsql/examples/remote_sync.rs
                 // https://docs.rs/libsql/latest/libsql/struct.Builder.html#note
-                let _ = std::fs::remove_file(&path);
-
-                let db = libsql::Builder::new_remote_replica(path, url, token)
+                libsql::Builder::new_remote_replica(path, url, token)
+                    .read_your_writes(true)
                     .sync_interval(std::time::Duration::from_secs(300))
                     .build()
-                    .await?;
-
-                db.sync().await?;
-                db
+                    .await?
             }
             (None, None) => Err(crate::Error::InvalidDatabaseConfig(
                 "either '.local()' or '.remote()' must be called".to_string(),

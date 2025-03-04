@@ -12,13 +12,10 @@ pub trait DatabasePluginExt<R: tauri::Runtime> {
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabasePluginExt<R> for T {
     fn local_db_path(&self) -> String {
-        let v = match std::env::var("PERSIST_DB").unwrap_or_default().as_str() {
-            "1" | "true" => {
-                let app = self.app_handle();
-                let dir = app.path().app_data_dir().unwrap();
-                dir.join("db.sqlite").to_str().unwrap().to_string()
-            }
-            _ => ":memory:".to_string(),
+        let v = {
+            let app = self.app_handle();
+            let dir = app.path().app_data_dir().unwrap();
+            dir.join("db.sqlite").to_str().unwrap().to_string()
         };
 
         tracing::info!(path = %v, "local_db");

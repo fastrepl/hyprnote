@@ -10,7 +10,8 @@ import {
   CommandSeparator,
 } from "@hypr/ui/components/ui/command";
 import { useSearchStore } from "@/stores/use-search-store";
-import { BookUser, BuildingIcon, NotepadText } from "lucide-react";
+import { Building, Laptop, Users2 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 
 export function SearchPalette() {
   const { isOpen, toggle } = useSearchStore();
@@ -29,25 +30,83 @@ export function SearchPalette() {
       <CommandInput autoFocus placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
-        <CommandGroup heading="Suggestions">
+        <CommandGroup heading="Note">
           <CommandItem>
-            <NotepadText />
-            <span>Note</span>
+            <div className="rounded-lg border bg-neutral-100 size-6 grid place-items-center">
+              <Users2 className="size-4" />
+            </div>
+            Note 1
           </CommandItem>
           <CommandItem>
-            <BookUser />
-            <span>Contact</span>
+            <div className="rounded-lg border bg-neutral-100 size-6 grid place-items-center">
+              <Laptop className="size-4" />
+            </div>
+            Note 2
           </CommandItem>
           <CommandItem>
-            <BuildingIcon />
-            <span>Organization</span>
+            <div className="rounded-lg border bg-neutral-100 size-6 grid place-items-center">
+              <Users2 className="size-4" />
+            </div>
+            Note 3
           </CommandItem>
         </CommandGroup>
+
         <CommandSeparator />
-        <CommandGroup heading="Settings">
-          <CommandItem>Profile</CommandItem>
-          <CommandItem>Billing</CommandItem>
-          <CommandItem>Settings</CommandItem>
+
+        <CommandGroup heading="Contact">
+          <CommandItem>
+            <Avatar variant="rounded" className="size-6 border bg-neutral-100">
+              <AvatarFallback variant="rounded" className="text-xs font-medium">
+                P1
+              </AvatarFallback>
+            </Avatar>
+            Profile 1
+          </CommandItem>
+          <CommandItem>
+            <Avatar variant="rounded" className="size-6 border bg-neutral-100">
+              <AvatarFallback variant="rounded" className="text-xs font-medium">
+                P2
+              </AvatarFallback>
+            </Avatar>
+            Profile 2
+          </CommandItem>
+          <CommandItem>
+            <Avatar variant="rounded" className="size-6 border bg-neutral-100">
+              <AvatarFallback variant="rounded" className="text-xs font-medium">
+                P3
+              </AvatarFallback>
+            </Avatar>
+            Profile 3
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Organization">
+          <CommandItem>
+            <Avatar variant="rounded" className="size-6 border bg-neutral-100">
+              <AvatarFallback variant="rounded" className="text-xs font-medium">
+                <Building className="size-4" />
+              </AvatarFallback>
+            </Avatar>
+            Acme Inc.
+          </CommandItem>
+          <CommandItem>
+            <Avatar variant="rounded" className="size-6 border bg-neutral-100">
+              <AvatarFallback variant="rounded" className="text-xs font-medium">
+                <Building className="size-4" />
+              </AvatarFallback>
+            </Avatar>
+            Acme Corp.
+          </CommandItem>
+          <CommandItem>
+            <Avatar variant="rounded" className="size-6 border bg-neutral-100">
+              <AvatarFallback variant="rounded" className="text-xs font-medium">
+                <Building className="size-4" />
+              </AvatarFallback>
+            </Avatar>
+            Acme Ltd.
+          </CommandItem>
         </CommandGroup>
       </CommandList>
     </CommandDialog>

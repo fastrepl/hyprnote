@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { mockTranscriptIPC } from "./mocks";
-import LiveTranscriptFull from "../widgets/live/full";
+import LiveTranscriptFull from "../widgets/default/full";
 
 const queryClient = new QueryClient();
 
 const meta = {
-  title: "Transcript/Live/Full",
+  title: "Transcript/Default/Full",
   component: LiveTranscriptFull,
 } satisfies Meta<typeof LiveTranscriptFull>;
 

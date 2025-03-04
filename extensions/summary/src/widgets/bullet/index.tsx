@@ -10,7 +10,7 @@ export const TEMPLATE_LIVE_SUMMARY_SYSTEM = "live-summary-system";
 export const TEMPLATE_LIVE_SUMMARY_USER = "live-summary-user";
 
 const widget: WidgetGroup = {
-  id: "live-summary",
+  id: "summary-bullet",
   items: [
     {
       init: async () => {

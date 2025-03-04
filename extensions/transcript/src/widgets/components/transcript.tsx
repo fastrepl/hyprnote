@@ -15,7 +15,7 @@ export default function Transcript({
       {transcript.items.map((item, index) => (
         <div
           key={index}
-          className="flex flex-col bg-white rounded-lg p-3 shadow-sm border border-neutral-100"
+          className="flex flex-col bg-white rounded-lg p-3 border border-neutral-200"
         >
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">{item.speaker}</span>

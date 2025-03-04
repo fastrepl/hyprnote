@@ -1,9 +1,11 @@
 import type { Extension } from "@hypr/extension-utils";
 
-import Live from "./widgets/live";
+import Default from "./widgets/default";
+import Checkpoint from "./widgets/checkpoint";
 
 const extension: Extension = {
-  live: Live,
+  default: Default,
+  checkpoint: Checkpoint,
 };
 
 export default extension;

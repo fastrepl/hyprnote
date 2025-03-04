@@ -5,14 +5,14 @@ import { http, HttpResponse, type HttpHandler } from "msw";
 
 import type { ChatCompletion } from "openai/resources/chat/completions";
 import type { LiveSummaryResponse } from "../types";
-import LiveShortSummary2x2 from "../widgets/live-short/2x2";
+import BulletStyledSummary2x2 from "../widgets/bullet/2x2";
 
 const queryClient = new QueryClient();
 
 const meta = {
-  title: "Summary/Live/2x2",
-  component: LiveShortSummary2x2,
-} satisfies Meta<typeof LiveShortSummary2x2>;
+  title: "Summary/Bullet/2x2",
+  component: BulletStyledSummary2x2,
+} satisfies Meta<typeof BulletStyledSummary2x2>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

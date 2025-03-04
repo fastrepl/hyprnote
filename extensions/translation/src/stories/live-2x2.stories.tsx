@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import { mockTranscriptIPC } from "./mocks";
+import { mockTranscriptIPC } from "../../mock";
 import LiveTranslation2x2 from "../widgets/live/2x2";
 
 const queryClient = new QueryClient();

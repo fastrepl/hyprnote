@@ -1,4 +1,4 @@
-import { AugmentedTimelineView } from "../../stories/mocks";
+import { AugmentedTimelineView } from "../../../mock";
 import { formatTime } from "../../utils";
 
 export default function Translation({

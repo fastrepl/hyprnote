@@ -1,4 +1,4 @@
 {
   "extends": "../tsconfig.base.json",
-  "include": ["./src", "../types.d.ts"]
+  "include": ["./src", "../types.d.ts", "mock.ts"]
 }

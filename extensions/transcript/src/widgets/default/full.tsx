@@ -47,7 +47,6 @@ const LiveTranscriptFull: WidgetFullSize = ({ onMinimize }) => {
     };
   }, []);
 
-  // Auto-scroll when new items are added
   useEffect(() => {
     if (scrollRef.current && isLive) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;

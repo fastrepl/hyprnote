@@ -50,7 +50,6 @@ const LiveTranscriptWithCheckpointFull: WidgetFullSize = ({ onMinimize }) => {
     };
   }, []);
 
-  // Auto-scroll when new items are added
   useEffect(() => {
     if (scrollRef.current && isLive) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -59,13 +58,11 @@ const LiveTranscriptWithCheckpointFull: WidgetFullSize = ({ onMinimize }) => {
 
   const handleAddCheckpoint = () => {
     if (!timeline || timeline.items.length === 0) return;
-    
-    // Find the latest transcript item timestamp
+
     const latestItem = [...timeline.items].sort((a, b) => b.end - a.end)[0];
     const timestamp = formatTime(latestItem.end);
-    
-    setCheckpoints(prev => {
-      // Avoid duplicate checkpoints
+
+    setCheckpoints((prev) => {
       if (prev.includes(timestamp)) return prev;
       return [...prev, timestamp];
     });
@@ -101,15 +98,15 @@ const LiveTranscriptWithCheckpointFull: WidgetFullSize = ({ onMinimize }) => {
           ref={scrollRef}
           className="overflow-y-auto flex-1 scrollbar-none pb-4"
         >
-          <TranscriptWithCheckpoints 
+          <TranscriptWithCheckpoints
             transcript={timeline}
             checkpoints={checkpoints}
           />
         </div>
 
-        <AddCheckpointButton 
-          onClick={handleAddCheckpoint} 
-          disabled={!hasTranscriptItems || !isLive} 
+        <AddCheckpointButton
+          onClick={handleAddCheckpoint}
+          disabled={!hasTranscriptItems || !isLive}
         />
       </div>
     </WidgetFullSizeWrapper>

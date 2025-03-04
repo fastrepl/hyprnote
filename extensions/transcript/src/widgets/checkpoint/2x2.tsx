@@ -59,12 +59,10 @@ const LiveTranscriptWithCheckpoint2x2: WidgetTwoByTwo = ({ onMaximize }) => {
   const handleAddCheckpoint = () => {
     if (!timeline || timeline.items.length === 0) return;
 
-    // Find the latest transcript item timestamp
     const latestItem = [...timeline.items].sort((a, b) => b.end - a.end)[0];
     const timestamp = formatTime(latestItem.end);
 
     setCheckpoints((prev) => {
-      // Avoid duplicate checkpoints
       if (prev.includes(timestamp)) return prev;
       return [...prev, timestamp];
     });

@@ -116,7 +116,7 @@ const LiveShortSummary2x2: WidgetTwoByTwo = () => {
         />
       </div>
 
-      <div className="overflow-auto flex-1 p-4">
+      <div className="overflow-auto flex-1 p-4 scrollbar-none">
         <Summary summary={summary.data} />
       </div>
     </WidgetTwoByTwoWrapper>

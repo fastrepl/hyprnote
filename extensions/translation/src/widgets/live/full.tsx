@@ -76,7 +76,10 @@ const LiveTranslationFull: WidgetFullSize = ({ onMinimize }) => {
         />
       </div>
 
-      <div ref={scrollRef} className="overflow-auto flex-1 p-4 pt-0">
+      <div
+        ref={scrollRef}
+        className="overflow-auto flex-1 p-4 pt-0 scrollbar-none"
+      >
         <Translation translation={timeline} />
       </div>
     </WidgetFullSizeWrapper>

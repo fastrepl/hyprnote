@@ -4,7 +4,7 @@ import Widget2x2 from "./2x2";
 import WidgetFull from "./full";
 
 const widgetGroup: WidgetGroup = {
-  id: "transcript-default",
+  id: "past-notes-related",
   items: [
     {
       init: async () => {},

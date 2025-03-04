@@ -77,7 +77,10 @@ const LiveTranscriptFull: WidgetFullSize = ({ onMinimize }) => {
         />
       </div>
 
-      <div ref={scrollRef} className="overflow-auto flex-1 p-4 pt-0">
+      <div
+        ref={scrollRef}
+        className="overflow-auto flex-1 p-4 pt-0 scrollbar-none"
+      >
         <Transcript transcript={timeline} />
       </div>
     </WidgetFullSizeWrapper>

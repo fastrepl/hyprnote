@@ -90,7 +90,10 @@ const LiveTranslation2x2: WidgetTwoByTwo = ({ onMaximize }) => {
         />
       </div>
 
-      <div ref={scrollRef} className="overflow-y-auto flex-1 p-4 pt-0">
+      <div
+        ref={scrollRef}
+        className="overflow-y-auto flex-1 p-4 pt-0 scrollbar-none"
+      >
         <Translation translation={timeline || translation.data} />
       </div>
     </WidgetTwoByTwoWrapper>

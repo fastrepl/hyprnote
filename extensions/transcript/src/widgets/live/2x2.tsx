@@ -77,7 +77,10 @@ const LiveTranscript2x2: WidgetTwoByTwo = ({ onMaximize }) => {
         />
       </div>
 
-      <div ref={scrollRef} className="overflow-y-auto flex-1 p-4 pt-0">
+      <div
+        ref={scrollRef}
+        className="overflow-y-auto flex-1 p-4 pt-0 scrollbar-none"
+      >
         <Transcript transcript={timeline} />
       </div>
     </WidgetTwoByTwoWrapper>

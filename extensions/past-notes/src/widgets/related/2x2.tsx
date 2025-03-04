@@ -6,8 +6,9 @@ import {
 } from "@hypr/ui/components/ui/widgets";
 import { Maximize2Icon } from "lucide-react";
 import Notes from "../components/notes";
+import { mockPastNotes } from "../../mock";
 
-const PastNotes2x2: WidgetTwoByTwo = ({ onMaximize }) => {
+const RelatedPastNotes2x2: WidgetTwoByTwo = ({ onMaximize }) => {
   return (
     <WidgetTwoByTwoWrapper>
       <div className="p-4 pb-0">
@@ -27,11 +28,11 @@ const PastNotes2x2: WidgetTwoByTwo = ({ onMaximize }) => {
         />
       </div>
 
-      <div className="overflow-y-auto flex-1 p-4 pt-0">
-        <Notes notes={[]} />
+      <div className="overflow-y-auto flex-1 p-4 pt-0 scrollbar-none">
+        <Notes notes={mockPastNotes} />
       </div>
     </WidgetTwoByTwoWrapper>
   );
 };
 
-export default PastNotes2x2;
+export default RelatedPastNotes2x2;

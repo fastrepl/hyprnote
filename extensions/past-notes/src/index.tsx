@@ -1,11 +1,9 @@
 import type { Extension } from "@hypr/extension-utils";
 
-import Live from "./widgets/live";
-import Default from "./widgets/default";
+import RelatedPastNotes from "./widgets/related";
 
 const extension: Extension = {
-  live: Live,
-  default: Default,
+  related: RelatedPastNotes,
 };
 
 export default extension;

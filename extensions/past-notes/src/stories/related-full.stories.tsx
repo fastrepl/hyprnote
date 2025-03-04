@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import PastNotesFull from "../widgets/default/full";
+import RelatedPastNotesFull from "../widgets/related/full";
 
 const queryClient = new QueryClient();
 
 const meta = {
-  title: "Past Notes/Default/Full",
-  component: PastNotesFull,
-} satisfies Meta<typeof PastNotesFull>;
+  title: "Past Notes/Related/Full",
+  component: RelatedPastNotesFull,
+} satisfies Meta<typeof RelatedPastNotesFull>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

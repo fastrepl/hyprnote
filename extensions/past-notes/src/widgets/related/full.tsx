@@ -1,5 +1,4 @@
 import { Minimize2Icon } from "lucide-react";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   type WidgetFullSize,
@@ -8,8 +7,9 @@ import {
 } from "@hypr/ui/components/ui/widgets";
 
 import Notes from "../components/notes";
+import { mockPastNotes } from "../../mock";
 
-const PastNotesFull: WidgetFullSize = ({ onMinimize }) => {
+const RelatedPastNotesFull: WidgetFullSize = ({ onMinimize }) => {
   return (
     <WidgetFullSizeWrapper onMinimize={onMinimize}>
       <div className="p-4 pb-0">
@@ -28,11 +28,11 @@ const PastNotesFull: WidgetFullSize = ({ onMinimize }) => {
         />
       </div>
 
-      <div className="overflow-auto flex-1 p-4 pt-0">
-        <Notes notes={[]} />
+      <div className="overflow-auto flex-1 p-4 pt-0 scrollbar-none">
+        <Notes notes={mockPastNotes} />
       </div>
     </WidgetFullSizeWrapper>
   );
 };
 
-export default PastNotesFull;
+export default RelatedPastNotesFull;

@@ -10,6 +10,7 @@ import {
   CommandSeparator,
 } from "@hypr/ui/components/ui/command";
 import { useSearchStore } from "@/stores/use-search-store";
+import { BookUser, BuildingIcon, NotepadText } from "lucide-react";
 
 export function SearchPalette() {
   const { isOpen, toggle } = useSearchStore();
@@ -29,9 +30,18 @@ export function SearchPalette() {
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Suggestions">
-          <CommandItem>Calendar</CommandItem>
-          <CommandItem>Search Emoji</CommandItem>
-          <CommandItem>Calculator</CommandItem>
+          <CommandItem>
+            <NotepadText />
+            <span>Note</span>
+          </CommandItem>
+          <CommandItem>
+            <BookUser />
+            <span>Contact</span>
+          </CommandItem>
+          <CommandItem>
+            <BuildingIcon />
+            <span>Organization</span>
+          </CommandItem>
         </CommandGroup>
         <CommandSeparator />
         <CommandGroup heading="Settings">

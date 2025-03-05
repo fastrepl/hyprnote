@@ -8,6 +8,8 @@ pub enum Error {
     NoneUser,
     #[error("database is None")]
     NoneDatabase,
+    #[error(transparent)]
+    DatabaseCoreError(#[from] hypr_db_core::Error),
 }
 
 impl Serialize for Error {

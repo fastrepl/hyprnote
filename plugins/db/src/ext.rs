@@ -2,16 +2,20 @@ use std::future::Future;
 use tauri::Manager;
 
 pub trait DatabasePluginExt<R: tauri::Runtime> {
-    fn local_db_path(&self) -> String;
-    fn attach_libsql_db(&self, db: hypr_db_core::Database) -> Result<(), String>;
-    fn remote_sync(&self) -> impl Future<Output = Result<(), String>>;
-
-    fn db_create_new_user(&self) -> Result<String, String>;
-    fn db_set_user_id(&self, user_id: String) -> Result<(), String>;
+    fn db_local_path(&self) -> String;
+    fn db_attach(
+        &self,
+        db: hypr_db_core::Database,
+    ) -> impl Future<Output = Result<(), crate::Error>>;
+    fn db_sync(&self) -> impl Future<Output = Result<(), crate::Error>>;
+    fn db_ensure_user(
+        &self,
+        user_id: impl Into<String>,
+    ) -> impl Future<Output = Result<(), crate::Error>>;
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabasePluginExt<R> for T {
-    fn local_db_path(&self) -> String {
+impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
+    fn db_local_path(&self) -> String {
         let v = {
             let app = self.app_handle();
             let dir = app.path().app_data_dir().unwrap();
@@ -22,64 +26,53 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::DatabasePluginExt<R> for T 
         v
     }
 
-    fn attach_libsql_db(&self, db: hypr_db_core::Database) -> Result<(), String> {
+    async fn db_attach(&self, db: hypr_db_core::Database) -> Result<(), crate::Error> {
         let state = self.state::<crate::ManagedState>();
-        let mut s = state.lock().unwrap();
+        let mut s = state.lock().await;
 
-        tokio::task::block_in_place(|| {
-            tokio::runtime::Handle::current().block_on(async move {
-                let conn = db.connect().unwrap();
-                hypr_db_user::migrate(&conn).await.unwrap();
+        let user_db = hypr_db_user::UserDatabase::from(db);
+        hypr_db_user::migrate(&user_db).await?;
 
-                let user_db = hypr_db_user::UserDatabase::from(conn);
-                if cfg!(debug_assertions) {
-                    hypr_db_user::seed(&user_db).await.unwrap();
-                }
+        if cfg!(debug_assertions) {
+            hypr_db_user::seed(&user_db).await?;
+        }
 
-                s.libsql_db = Some(db);
-                s.db = Some(user_db);
-            })
-        });
+        s.db = Some(user_db);
 
         Ok(())
     }
 
-    async fn remote_sync(&self) -> Result<(), String> {
+    async fn db_sync(&self) -> Result<(), crate::Error> {
         let state = self.state::<crate::ManagedState>();
-        let s = state.lock().unwrap();
-        let db = s.libsql_db.as_ref().unwrap();
-        db.sync().await.map_err(|e| e.to_string())?;
+        let guard = state.lock().await;
+
+        let db = guard.db.as_ref().ok_or(crate::Error::NoneDatabase)?;
+        db.sync().await?;
         Ok(())
     }
 
-    fn db_create_new_user(&self) -> Result<String, String> {
-        let user_id = tokio::task::block_in_place(|| {
-            tokio::runtime::Handle::current().block_on(async move {
-                let db = self.state::<hypr_db_user::UserDatabase>();
-
-                let human = db
-                    .upsert_human(hypr_db_user::Human {
-                        is_user: true,
-                        ..Default::default()
-                    })
-                    .await
-                    .unwrap();
-
-                let state = self.state::<crate::ManagedState>();
-                let mut s = state.lock().unwrap();
-
-                s.user_id = Some(human.id.clone());
-                human.id
-            })
-        });
-
-        Ok(user_id)
-    }
-
-    fn db_set_user_id(&self, user_id: String) -> Result<(), String> {
+    async fn db_ensure_user(&self, user_id: impl Into<String>) -> Result<(), crate::Error> {
         let state = self.state::<crate::ManagedState>();
-        let mut s = state.lock().unwrap();
-        s.user_id = Some(user_id);
+        let mut guard = state.lock().await;
+
+        let user_id_string = user_id.into();
+        guard.user_id = Some(user_id_string.clone());
+
+        let db = guard.db.as_ref().ok_or(crate::Error::NoneDatabase)?;
+
+        if db.get_human(&user_id_string).await.unwrap().is_none() {
+            let human = hypr_db_user::Human {
+                id: user_id_string,
+                is_user: true,
+                organization_id: None,
+                full_name: None,
+                email: None,
+                job_title: None,
+                linkedin_username: None,
+            };
+
+            db.upsert_human(human).await?;
+        }
 
         Ok(())
     }

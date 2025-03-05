@@ -1,5 +1,5 @@
-use std::sync::Mutex;
 use tauri::Manager;
+use tokio::sync::Mutex;
 
 mod commands;
 mod error;
@@ -13,7 +13,6 @@ pub type ManagedState = Mutex<State>;
 #[derive(Default)]
 pub struct State {
     pub user_id: Option<String>,
-    pub libsql_db: Option<hypr_db_core::Database>,
     pub db: Option<hypr_db_user::UserDatabase>,
 }
 

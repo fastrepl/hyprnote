@@ -1,0 +1,9 @@
+[package]
+name = "audio-utils"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bytes = { workspace = true }
+futures-util = { workspace = true }
+kalosm-sound = { workspace = true, default-features = false }

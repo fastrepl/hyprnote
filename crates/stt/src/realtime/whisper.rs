@@ -1,8 +1,10 @@
 use anyhow::Result;
 use bytes::Bytes;
-use futures_core::Stream;
-use futures_util::{future, StreamExt};
+use futures_util::{future, Stream, StreamExt};
 use std::error::Error;
+
+use hypr_audio_utils::AudioFormatExt;
+use hypr_whisper::cloud::WhisperClient;
 
 use super::{RealtimeSpeechToText, StreamResponse, StreamResponseWord};
 

@@ -1,5 +1,5 @@
 #[cfg(feature = "local")]
-mod local;
+pub mod local;
 
 #[cfg(feature = "cloud")]
-mod cloud;
+pub mod cloud;

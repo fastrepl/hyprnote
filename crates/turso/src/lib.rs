@@ -151,8 +151,12 @@ impl TursoClient {
         TursoClientBuilder::default()
     }
 
-    pub fn db_url(&self, name: impl Into<String>) -> String {
-        format!("libsql://{}-{}.turso.io", name.into(), self.org_slug)
+    pub fn format_db_url(&self, name: impl Into<String>) -> String {
+        format_db_url(name, &self.org_slug)
+    }
+
+    pub fn format_db_name(name: impl Into<String>) -> String {
+        format_db_name(name)
     }
 
     // https://docs.turso.tech/api-reference/databases/create-token
@@ -245,8 +249,10 @@ impl TursoClient {
     }
 }
 
-pub fn format_db_url(name: impl Into<String>) -> String {
-    format!("libsql://{}-yujonglee.turso.io", name.into())
+pub const DEFAULT_ORG_SLUG: &str = "yujonglee";
+
+pub fn format_db_url(name: impl Into<String>, org_slug: impl Into<String>) -> String {
+    format!("libsql://{}-{}.turso.io", name.into(), org_slug.into())
 }
 
 pub fn format_db_name(name: impl Into<String>) -> String {

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use futures_util::StreamExt;
+use futures_util::{Stream, StreamExt};
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -51,7 +51,7 @@ pub struct SpeakerStream {
     inner: windows::SpeakerStream,
 }
 
-impl futures_core::Stream for SpeakerStream {
+impl Stream for SpeakerStream {
     type Item = f32;
 
     fn poll_next(
@@ -71,7 +71,7 @@ impl futures_core::Stream for SpeakerStream {
 }
 
 impl kalosm_sound::AsyncSource for SpeakerStream {
-    fn as_stream(&mut self) -> impl futures_core::Stream<Item = f32> + '_ {
+    fn as_stream(&mut self) -> impl Stream<Item = f32> + '_ {
         self
     }
 

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use futures_util::StreamExt;
+use futures_util::{Stream, StreamExt};
 
 use ca::aggregate_device_keys as agg_keys;
 use cidre::{arc, av, cat, cf, core_audio as ca, ns, os};
@@ -13,7 +13,7 @@ pub struct SpeakerInput {
 }
 
 pub struct SpeakerStream {
-    receiver: std::pin::Pin<Box<dyn futures_core::Stream<Item = f32> + Send + Sync>>,
+    receiver: std::pin::Pin<Box<dyn Stream<Item = f32> + Send + Sync>>,
     stream_desc: cat::AudioBasicStreamDesc,
     sample_rate_override: Option<u32>,
     _device: ca::hardware::StartedDevice<ca::AggregateDevice>,
@@ -147,7 +147,7 @@ impl SpeakerInput {
     }
 }
 
-impl futures_core::Stream for SpeakerStream {
+impl Stream for SpeakerStream {
     type Item = f32;
 
     fn poll_next(

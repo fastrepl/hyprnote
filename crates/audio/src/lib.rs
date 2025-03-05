@@ -1,11 +1,14 @@
+mod errors;
 mod mic;
 mod speaker;
 mod stream;
 
+pub use errors::*;
 pub use mic::*;
 pub use speaker::*;
 pub use stream::*;
 
+use futures_util::Stream;
 pub use kalosm_sound::AsyncSource;
 
 pub struct AudioOutput {}
@@ -112,7 +115,7 @@ pub enum AudioStream {
     Recorded { data: Vec<u8>, position: usize },
 }
 
-impl futures_core::Stream for AudioStream {
+impl Stream for AudioStream {
     type Item = f32;
 
     fn poll_next(
@@ -143,7 +146,7 @@ impl futures_core::Stream for AudioStream {
 }
 
 impl kalosm_sound::AsyncSource for AudioStream {
-    fn as_stream(&mut self) -> impl futures_core::Stream<Item = f32> + '_ {
+    fn as_stream(&mut self) -> impl Stream<Item = f32> + '_ {
         self
     }
 

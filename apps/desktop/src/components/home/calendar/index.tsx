@@ -32,7 +32,8 @@ export default function WorkspaceCalendar() {
     }
     return events.filter(
       (event) =>
-        format(new Date(event.start_date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd"),
+        format(new Date(event.start_date), "yyyy-MM-dd") ===
+        format(date, "yyyy-MM-dd"),
     );
   };
 

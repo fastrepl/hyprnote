@@ -48,16 +48,15 @@ export function DayEvents({ date, events }: DayEventsProps) {
               <PopoverTrigger asChild>
                 <div className="text-sm p-2 hover:bg-neutral-100 rounded cursor-pointer">
                   <div className="font-medium">{event.name}</div>
-                  <div className="text-muted-foreground">
-                    {event.note}
-                  </div>
+                  <div className="text-muted-foreground">{event.note}</div>
                 </div>
               </PopoverTrigger>
               <PopoverContent className="w-80 p-4" side="right">
                 <p className="text-sm mb-2">
                   {format(new Date(event.start_date), "MMM d, h:mm a")}
                   {" - "}
-                  {format(new Date(event.start_date), "yyyy-MM-dd") !== format(new Date(event.end_date), "yyyy-MM-dd")
+                  {format(new Date(event.start_date), "yyyy-MM-dd") !==
+                  format(new Date(event.end_date), "yyyy-MM-dd")
                     ? format(new Date(event.end_date), "MMM d, h:mm a")
                     : format(new Date(event.end_date), "h:mm a")}
                 </p>

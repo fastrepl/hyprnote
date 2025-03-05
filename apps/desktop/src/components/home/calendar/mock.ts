@@ -8,8 +8,12 @@ export const mockEvents: Event[] = [
     calendar_id: "cal1",
     name: "Team Meeting",
     note: "Weekly sync with the team",
-    start_date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(),
-    end_date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(),
+    start_date: new Date(
+      new Date().setDate(new Date().getDate() - 2),
+    ).toISOString(),
+    end_date: new Date(
+      new Date().setDate(new Date().getDate() - 2),
+    ).toISOString(),
     google_event_url: null,
   },
   {
@@ -19,8 +23,12 @@ export const mockEvents: Event[] = [
     calendar_id: "cal1",
     name: "Project Review",
     note: "Review Q1 progress",
-    start_date: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(),
-    end_date: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(),
+    start_date: new Date(
+      new Date().setDate(new Date().getDate() + 1),
+    ).toISOString(),
+    end_date: new Date(
+      new Date().setDate(new Date().getDate() + 1),
+    ).toISOString(),
     google_event_url: null,
   },
   {
@@ -30,8 +38,12 @@ export const mockEvents: Event[] = [
     calendar_id: "cal1",
     name: "Client Call",
     note: "Monthly check-in",
-    start_date: new Date(new Date().setDate(new Date().getDate() + 3)).toISOString(),
-    end_date: new Date(new Date().setDate(new Date().getDate() + 3)).toISOString(),
+    start_date: new Date(
+      new Date().setDate(new Date().getDate() + 3),
+    ).toISOString(),
+    end_date: new Date(
+      new Date().setDate(new Date().getDate() + 3),
+    ).toISOString(),
     google_event_url: null,
   },
   {
@@ -41,8 +53,12 @@ export const mockEvents: Event[] = [
     calendar_id: "cal1",
     name: "Planning",
     note: "Sprint planning",
-    start_date: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString(),
-    end_date: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString(),
+    start_date: new Date(
+      new Date().setDate(new Date().getDate() + 5),
+    ).toISOString(),
+    end_date: new Date(
+      new Date().setDate(new Date().getDate() + 5),
+    ).toISOString(),
     google_event_url: null,
   },
   {
@@ -52,8 +68,12 @@ export const mockEvents: Event[] = [
     calendar_id: "cal1",
     name: "Training",
     note: "New tool training",
-    start_date: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString(),
-    end_date: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString(),
+    start_date: new Date(
+      new Date().setDate(new Date().getDate() + 7),
+    ).toISOString(),
+    end_date: new Date(
+      new Date().setDate(new Date().getDate() + 7),
+    ).toISOString(),
     google_event_url: null,
   },
 ];

@@ -122,39 +122,32 @@ mod tests {
     use serial_test::serial;
 
     use anyhow::Result;
-    use bytes::{BufMut, Bytes};
+    use bytes::Bytes;
     use futures_util::StreamExt;
-    use hypr_audio::AsyncSource;
+    use hypr_audio_utils::AudioFormatExt;
     use std::io::Read;
 
+    #[allow(unused)]
     fn microphone_as_stream(
     ) -> impl Stream<Item = Result<Bytes, std::io::Error>> + Send + Unpin + 'static {
         let source = hypr_audio::MicInput::default();
-        let stream = source.stream().resample(16 * 1000).chunks(128);
 
-        stream.map(|chunk| {
-            let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
-            for sample in chunk {
-                let scaled = (sample * 32767.0).clamp(-32768.0, 32767.0);
-                buf.put_i16_le(scaled as i16);
-            }
-            Ok(buf.freeze())
-        })
+        source
+            .stream()
+            .to_i16_le_chunks(16 * 1000, 128)
+            .map(|chunk| Ok(chunk))
     }
 
+    #[allow(unused)]
     fn system_audio_as_stream(
     ) -> impl Stream<Item = Result<Bytes, std::io::Error>> + Send + Unpin + 'static {
         let source = hypr_audio::SpeakerInput::new(None).unwrap();
-        let stream = source.stream().unwrap().resample(16 * 1000).chunks(128);
 
-        stream.map(|chunk| {
-            let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
-            for sample in chunk {
-                let scaled = (sample * 32767.0).clamp(-32768.0, 32767.0);
-                buf.put_i16_le(scaled as i16);
-            }
-            Ok(buf.freeze())
-        })
+        source
+            .stream()
+            .unwrap()
+            .to_i16_le_chunks(16 * 1000, 128)
+            .map(|chunk| Ok(chunk))
     }
 
     fn stream_from_bytes(

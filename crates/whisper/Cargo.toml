@@ -9,6 +9,7 @@ local = ["dep:rwhisper"]
 cloud = []
 
 [dependencies]
+hypr-audio-utils = { path = "../audio-utils", package = "audio-utils" }
 hypr-ws = { path = "../ws", package = "ws" }
 
 bytes = { workspace = true }

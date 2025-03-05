@@ -1,7 +1,7 @@
-use bytes::BufMut;
-use futures_util::{Stream, StreamExt};
+use futures_util::Stream;
 
 use hypr_audio::AsyncSource;
+use hypr_audio_utils::AudioFormatExt;
 use hypr_ws::client::{ClientRequestBuilder, Message, WebSocketClient, WebSocketIO};
 
 use crate::{ListenInputChunk, ListenOutputChunk};
@@ -101,16 +101,8 @@ impl ListenClient {
         &self,
         audio_stream: impl AsyncSource + Send + Unpin + 'static,
     ) -> Result<impl Stream<Item = ListenOutputChunk>, hypr_ws::Error> {
-        let processed_stream = audio_stream.resample(16 * 1000).chunks(1024).map(|chunk| {
-            let mut buf = bytes::BytesMut::with_capacity(chunk.len() * 4);
-            for sample in chunk {
-                let scaled = (sample * 32767.0).clamp(-32768.0, 32767.0);
-                buf.put_i16_le(scaled as i16);
-            }
-            buf.freeze()
-        });
-
+        let input_stream = audio_stream.to_i16_le_chunks(16 * 1000, 1024);
         let ws = WebSocketClient::new(self.request.clone());
-        ws.from_audio::<Self>(processed_stream).await
+        ws.from_audio::<Self>(input_stream).await
     }
 }

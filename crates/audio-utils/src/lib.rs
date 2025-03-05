@@ -1,3 +1,5 @@
+use std::i16::{MAX, MIN};
+
 use bytes::{BufMut, Bytes, BytesMut};
 use futures_util::{Stream, StreamExt};
 use kalosm_sound::AsyncSource;
@@ -14,9 +16,12 @@ pub trait AudioFormatExt: AsyncSource {
         Self: Sized + Send + Unpin + 'static,
     {
         self.resample(sample_rate).chunks(chunk_size).map(|chunk| {
-            let mut buf = BytesMut::with_capacity(chunk.len() * 2);
+            let n = std::mem::size_of::<f32>() * chunk.len();
+
+            let mut buf = BytesMut::with_capacity(n);
             for sample in chunk {
-                buf.put_i16_le(sample as i16);
+                let scaled = (sample * MAX as f32).clamp(MIN as f32, MAX as f32);
+                buf.put_i16_le(scaled as i16);
             }
             buf.freeze()
         })

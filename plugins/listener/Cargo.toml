@@ -27,6 +27,7 @@ tauri-plugin-auth = { path = "../auth" }
 tauri-plugin-connector = { path = "../connector" }
 
 hypr-audio = { path = "../../crates/audio", package = "audio" }
+hypr-audio-utils = { path = "../../crates/audio-utils", package = "audio-utils" }
 hypr-db-core = { path = "../../crates/db-core", package = "db-core" }
 hypr-db-user = { path = "../../crates/db-user", package = "db-user" }
 hypr-ws = { path = "../../crates/ws", package = "ws" }

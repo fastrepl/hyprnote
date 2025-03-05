@@ -11593,6 +11593,7 @@ name = "tauri-plugin-listener"
 version = "0.1.0"
 dependencies = [
  "audio 0.1.0",
+ "audio-utils",
  "bytes",
  "codes-iso-639",
  "data",
@@ -13629,6 +13630,7 @@ dependencies = [
 name = "whisper"
 version = "0.1.0"
 dependencies = [
+ "audio-utils",
  "bytes",
  "codes-iso-639",
  "futures-util",

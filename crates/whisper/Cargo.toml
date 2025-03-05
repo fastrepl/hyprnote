@@ -12,8 +12,12 @@ cloud = []
 hypr-ws = { path = "../ws", package = "ws" }
 
 bytes = { workspace = true }
+codes-iso-639 = { workspace = true }
+futures-util = { workspace = true }
+kalosm-sound = { workspace = true, default-features = false }
 serde = { workspace = true }
 serde_json = { workspace = true }
+url = { workspace = true }
 
 [target.'cfg(not(target_os = "macos"))'.dependencies]
 rwhisper = { workspace = true, optional = true }

@@ -6,8 +6,6 @@ use std::error::Error;
 
 use super::{RealtimeSpeechToText, StreamResponse, StreamResponseWord};
 
-pub struct WhisperClient {}
-
 impl<S, E> RealtimeSpeechToText<S, E> for WhisperClient {
     async fn transcribe(
         &mut self,

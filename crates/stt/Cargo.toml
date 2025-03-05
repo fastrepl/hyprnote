@@ -14,6 +14,7 @@ deepgram = { version = "0.6.6", default-features = false, features = ["listen"] 
 hypr-clova = { path = "../clova", package = "clova" }
 hypr-db-user = { path = "../db-user", package = "db-user" }
 hypr-rtzr = { path = "../rtzr", package = "rtzr" }
+hypr-whisper = { path = "../whisper", package = "whisper", default-features = false, features = ["cloud"] }
 
 anyhow = { workspace = true }
 thiserror = { workspace = true }

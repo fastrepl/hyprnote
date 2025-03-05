@@ -10896,6 +10896,7 @@ dependencies = [
  "specta",
  "thiserror 2.0.12",
  "tokio",
+ "whisper",
 ]
 
 [[package]]
@@ -13619,9 +13620,13 @@ name = "whisper"
 version = "0.1.0"
 dependencies = [
  "bytes",
+ "codes-iso-639",
+ "futures-util",
+ "kalosm-sound",
  "rwhisper",
  "serde",
  "serde_json",
+ "url",
  "ws",
 ]
 

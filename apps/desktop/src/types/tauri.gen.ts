@@ -7,26 +7,8 @@
 
 
 export const commands = {
-async getUserId() : Promise<string> {
-    return await TAURI_INVOKE("get_user_id");
-},
-async openPermissionSettings(permission: OSPermission) : Promise<void> {
-    await TAURI_INVOKE("open_permission_settings", { permission });
-},
-async checkPermissionStatus(permission: OSPermission) : Promise<boolean | null> {
-    return await TAURI_INVOKE("check_permission_status", { permission });
-},
-async startOauthServer() : Promise<number> {
-    return await TAURI_INVOKE("start_oauth_server");
-},
-async cancelOauthServer(port: number) : Promise<null> {
-    return await TAURI_INVOKE("cancel_oauth_server", { port });
-},
-async isAuthenticated() : Promise<boolean> {
-    return await TAURI_INVOKE("is_authenticated");
-},
-async showWindow(window: ShowHyprWindow) : Promise<void> {
-    await TAURI_INVOKE("show_window", { window });
+async setupDb() : Promise<null> {
+    return await TAURI_INVOKE("setup_db");
 }
 }
 
@@ -40,8 +22,7 @@ async showWindow(window: ShowHyprWindow) : Promise<void> {
 
 /** user-defined types **/
 
-export type OSPermission = "calendar" | "contacts" | "audioRecording" | "screenRecording" | "microphone" | "accessibility"
-export type ShowHyprWindow = "Demo" | "MainWithoutDemo" | "MainWithDemo"
+
 
 /** tauri-specta globals **/
 

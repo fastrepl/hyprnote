@@ -18,6 +18,7 @@ import {
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 
+import { commands } from "@/types";
 import { baseUrl } from "@/client";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { Particles } from "@hypr/ui/components/ui/particles";
@@ -60,8 +61,9 @@ function Component() {
 
   useEffect(() => {
     if (status === "Success") {
-      // TODO: if status is success, app will start restarting. so we can not navigate here.
-      navigate({ to: "/onboarding" });
+      commands.setupDb().then(() => {
+        navigate({ to: "/onboarding" });
+      });
       return;
     }
 

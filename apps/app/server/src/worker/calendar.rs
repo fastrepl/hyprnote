@@ -37,26 +37,20 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
                 .map_err(|e| Into::<crate::Error>::into(e).as_worker_error())?
                 .unwrap();
 
-            let url = ctx.turso.db_url(&account.turso_db_name);
+            let url = ctx.turso.format_db_url(&account.turso_db_name);
             let token = ctx
                 .turso
                 .generate_db_token(&account.turso_db_name)
                 .await
                 .map_err(|e| Into::<crate::Error>::into(e).as_worker_error())?;
 
-            let conn = hypr_db_core::DatabaseBaseBuilder::default()
+            let base_db = hypr_db_core::DatabaseBuilder::default()
                 .remote(url, token)
                 .build()
                 .await
-                .map_err(|e| Into::<crate::Error>::into(e).as_worker_error())?
-                .connect()
-                .map_err(|e| {
-                    let db_err: hypr_db_core::Error = e.into();
-                    let err: crate::Error = db_err.into();
-                    err.as_worker_error()
-                })?;
+                .map_err(|e| Into::<crate::Error>::into(e).as_worker_error())?;
 
-            hypr_db_user::UserDatabase::from(conn)
+            hypr_db_user::UserDatabase::from(base_db)
         };
 
         let integrations = ctx

@@ -123,43 +123,34 @@ fn main() {
                 .build();
 
             let admin_db = {
-                let conn = {
-                    #[cfg(debug_assertions)]
-                    {
-                        hypr_db_core::DatabaseBaseBuilder::default()
-                            .local(":memory:")
+                let base_db = {
+                    if cfg!(debug_assertions) {
+                        hypr_db_core::DatabaseBuilder::default()
+                            .memory()
                             .build()
                             .await
                             .unwrap()
-                            .connect()
-                            .unwrap()
-                    }
-
-                    #[cfg(not(debug_assertions))]
-                    {
+                    } else {
                         let name = get_env("TURSO_ADMIN_DB_NAME");
-                        let url = turso.db_url(&name);
+                        let url = turso.format_db_url(&name);
                         let token = turso.generate_db_token(&name).await.unwrap();
 
-                        hypr_db_core::DatabaseBaseBuilder::default()
+                        hypr_db_core::DatabaseBuilder::default()
                             .remote(url, token)
                             .build()
                             .await
                             .unwrap()
-                            .connect()
-                            .unwrap()
                     }
                 };
 
-                hypr_db_admin::migrate(&conn).await.unwrap();
-                let db = hypr_db_admin::AdminDatabase::from(conn);
+                let admin_db = hypr_db_admin::AdminDatabase::from(base_db);
+                hypr_db_admin::migrate(&admin_db).await.unwrap();
 
-                #[cfg(debug_assertions)]
-                {
-                    hypr_db_admin::seed(&db).await.unwrap();
+                if cfg!(debug_assertions) {
+                    hypr_db_admin::seed(&admin_db).await.unwrap();
                 }
 
-                db
+                admin_db
             };
 
             let nango = hypr_nango::NangoClientBuilder::default()
@@ -201,8 +192,10 @@ fn main() {
                 .api_route("/connect", api_post(web::connect::handler))
                 .api_route(
                     "/session/{id}",
-                    api_get(web::session::handler)
-                        .layer(axum::middleware::from_fn(middleware::attach_user_db)),
+                    api_get(web::session::handler).layer(axum::middleware::from_fn_with_state(
+                        AuthState::from_ref(&state),
+                        middleware::attach_user_db,
+                    )),
                 )
                 .api_route(
                     "/integration/connection",
@@ -233,7 +226,10 @@ fn main() {
                             AuthState::from_ref(&state),
                             middleware::verify_api_key,
                         ))
-                        .layer(axum::middleware::from_fn(middleware::attach_user_db))
+                        .layer(axum::middleware::from_fn_with_state(
+                            AuthState::from_ref(&state),
+                            middleware::attach_user_db,
+                        ))
                         .layer(axum::middleware::from_fn_with_state(
                             AnalyticsState::from_ref(&state),
                             middleware::send_analytics,

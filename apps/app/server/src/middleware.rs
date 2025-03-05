@@ -75,28 +75,29 @@ pub async fn attach_user_from_clerk(
 
 #[tracing::instrument(skip_all)]
 pub async fn attach_user_db(
+    State(state): State<AuthState>,
     #[allow(unused)] Extension(account): Extension<hypr_db_admin::Account>,
     mut req: Request,
     next: middleware::Next,
 ) -> Result<Response, (StatusCode, String)> {
-    let conn = {
-        if cfg!(debug_assertions) {
-            hypr_db_core::DatabaseBaseBuilder::default().local(":memory:")
-        } else {
-            let token = crate::get_env("TURSO_API_KEY");
-            let url = hypr_turso::format_db_url(account.turso_db_name);
-            hypr_db_core::DatabaseBaseBuilder::default().remote(url, token)
-        }
-    }
-    .build()
-    .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-    .connect()
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    let token = state
+        .turso
+        .generate_db_token(&account.turso_db_name)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    let db = hypr_db_user::UserDatabase::from(conn);
+    let base_db = {
+        let url = state.turso.format_db_url(&account.turso_db_name);
+        hypr_db_core::DatabaseBuilder::default()
+            .remote(url, token)
+            .build()
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
+    };
 
-    req.extensions_mut().insert(db);
+    let user_db = hypr_db_user::UserDatabase::from(base_db);
+
+    req.extensions_mut().insert(user_db);
     Ok(next.run(req).await)
 }
 

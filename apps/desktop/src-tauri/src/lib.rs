@@ -1,3 +1,7 @@
+mod commands;
+mod ext;
+
+use ext::*;
 use tauri_plugin_windows::{ShowHyprWindow, WindowsPluginExt};
 
 #[tokio::main]
@@ -84,53 +88,6 @@ pub async fn main() {
                 let _ = app.store("store.json")?;
             }
 
-            let (user_id, account_id, server_token, database_token) = {
-                use tauri_plugin_auth::{AuthPluginExt, StoreKey, VaultKey};
-
-                let user_id = app.get_from_store(StoreKey::UserId).unwrap_or(None);
-                let account_id = app.get_from_store(StoreKey::AccountId).unwrap_or(None);
-
-                if let Some(account_id) = account_id.as_ref() {
-                    app.init_vault(account_id).unwrap();
-                }
-
-                let remote_server = account_id
-                    .as_ref()
-                    .and_then(|_| app.get_from_vault(VaultKey::RemoteServer).unwrap_or(None));
-                let remote_database = account_id
-                    .as_ref()
-                    .and_then(|_| app.get_from_vault(VaultKey::RemoteDatabase).unwrap_or(None));
-
-                (user_id, account_id, remote_server, remote_database)
-            };
-
-            {
-                use hypr_turso::{format_db_name, format_db_url};
-                use tauri_plugin_db::DatabasePluginExt;
-
-                let local_db_path = app.local_db_path();
-                let db = tokio::task::block_in_place(|| {
-                    tokio::runtime::Handle::current().block_on(async move {
-                        let mut base =
-                            hypr_db_core::DatabaseBaseBuilder::default().local(local_db_path);
-
-                        if let Some(account_id) = account_id.as_ref() {
-                            let db_name = format_db_name(account_id);
-                            let db_url = format_db_url(&db_name);
-                            base = base.remote(db_url, database_token.unwrap());
-                        }
-
-                        base.build().await.unwrap()
-                    })
-                });
-
-                if let Some(user_id) = user_id {
-                    app.db_set_user_id(user_id).unwrap();
-                }
-
-                app.attach_libsql_db(db).unwrap();
-            }
-
             {
                 use tauri_plugin_template::TemplatePluginExt;
                 for (name, template) in tauri_plugin_misc::TEMPLATES {
@@ -152,15 +109,23 @@ pub async fn main() {
 
             app.show_window(ShowHyprWindow::MainWithoutDemo).unwrap();
 
+            tokio::task::block_in_place(|| {
+                tokio::runtime::Handle::current().block_on(async move {
+                    app.setup_db().await.unwrap();
+                })
+            });
+
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .unwrap();
 }
 
-fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
-    tauri_specta::Builder::<tauri::Wry>::new()
-        .commands(tauri_specta::collect_commands![])
+fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
+    tauri_specta::Builder::<R>::new()
+        .commands(tauri_specta::collect_commands![
+            commands::setup_db::<tauri::Wry>
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
@@ -170,7 +135,7 @@ mod test {
 
     #[test]
     fn export_types() {
-        make_specta_builder()
+        make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
                     .header("// @ts-nocheck\n\n")

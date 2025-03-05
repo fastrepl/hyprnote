@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import MyTasks from "@/components/home/my-tasks";
 import RecentNotes from "@/components/home/recent-notes";
-import WorkspaceCalendar from "@/components/home/workspace-calendar";
+import WorkspaceCalendar from "@/components/home/calendar";
 
 export const Route = createFileRoute("/app/home")({
   component: RouteComponent,

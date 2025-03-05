@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "@tanstack/react-router";
+import { useLocation, useParams, useRouterState } from "@tanstack/react-router";
 
 import SettingsPanel from "@/components/settings-panel";
 import { NewNoteButton } from "@/components/toolbar/new-note-button";
@@ -28,7 +28,7 @@ export default function Toolbar() {
     session: s.session,
   }));
 
-  const { id: routeId } = useParams({ from: "/app/note/$id" });
+  const { pathname } = useLocation();
 
   return (
     <>
@@ -50,11 +50,8 @@ export default function Toolbar() {
           <BackButton />
         </div>
 
-        {!isListening && routeId !== session?.id ? (
-          <SearchBar />
-        ) : (
-          <SessionIndicator />
-        )}
+        {/* TODO: 듣는중인데 현재 route가 노트 페이지이고 그게 현재 세션(session?.id)과 일치한다면 보여줄 필요가 없음 */}
+        {!isListening ? <SearchBar /> : <SessionIndicator />}
 
         <div
           className="flex w-40 items-center justify-end gap-1"

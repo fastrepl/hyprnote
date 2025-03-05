@@ -6,6 +6,7 @@ use std::error::Error;
 
 mod clova;
 mod deepgram;
+mod whisper;
 
 use crate::deepgram::DeepgramClient;
 

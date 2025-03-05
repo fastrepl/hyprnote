@@ -1,0 +1,22 @@
+[package]
+name = "whisper"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["local", "cloud"]
+local = ["dep:rwhisper"]
+cloud = []
+
+[dependencies]
+hypr-ws = { path = "../ws", package = "ws" }
+
+bytes = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[target.'cfg(not(target_os = "macos"))'.dependencies]
+rwhisper = { workspace = true, optional = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+rwhisper = { workspace = true, features = ["metal"], optional = true }

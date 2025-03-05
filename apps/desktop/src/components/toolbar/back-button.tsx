@@ -1,22 +1,16 @@
 import { useCallback } from "react";
 import { ArrowLeft } from "lucide-react";
-import { useRouter, useLocation } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import { Button } from "@hypr/ui/components/ui/button";
-
-import type { RoutePath } from "@/types";
 
 export function BackButton() {
   const { history } = useRouter();
-  const { pathname } = useLocation();
 
   const handleClickBack = useCallback(() => {
     history.back();
   }, [history]);
 
-  const checker = ("/app/note/$id" satisfies RoutePath).slice(0, 9);
-  const showBackButton = pathname.includes(checker);
-
-  if (!showBackButton) {
+  if (!history.canGoBack()) {
     return null;
   }
 
@@ -24,9 +18,8 @@ export function BackButton() {
     <Button
       variant="ghost"
       size="icon"
-      className="hover:bg-neutral-200 disabled:opacity-0"
+      className="hover:bg-neutral-200"
       onClick={handleClickBack}
-      disabled={!history.canGoBack()}
       aria-label="Go back"
     >
       <ArrowLeft className="size-4" />

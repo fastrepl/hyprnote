@@ -80,9 +80,9 @@ impl Client {
         ClientBuilder::default()
     }
 
-    pub async fn stream<S, E>(
+    pub async fn from_audio<S, E>(
         &mut self,
-        stream: S,
+        audio: S,
     ) -> Result<impl Stream<Item = Result<interface::StreamResponse>>>
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
@@ -97,7 +97,7 @@ impl Client {
         };
         let config_stream = futures_util::stream::once(async move { config_request });
 
-        let audio_request_stream = stream.filter_map(|chunk| async {
+        let audio_request_stream = audio.filter_map(|chunk| async {
             chunk.ok().map(|chunk| interface::NestRequest {
                 r#type: interface::RequestType::Data.into(),
                 part: Some(interface::nest_request::Part::Data(interface::NestData {

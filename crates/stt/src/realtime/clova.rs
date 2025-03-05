@@ -11,15 +11,15 @@ pub use hypr_clova::realtime::interface as clova;
 impl<S, E> RealtimeSpeechToText<S, E> for hypr_clova::realtime::Client {
     async fn transcribe(
         &mut self,
-        audio: S,
+        input_stream: S,
     ) -> Result<Box<dyn Stream<Item = Result<StreamResponse>> + Send + Unpin>>
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
         E: Error + Send + Sync + 'static,
     {
-        let transcription = self.stream(audio).await?;
+        let output_stream = self.from_audio(input_stream).await?;
 
-        let stream = transcription.filter_map(|item| {
+        let stream = output_stream.filter_map(|item| {
             let item = match item {
                 Err(e) => Some(Err(e)),
                 Ok(response) => match response {

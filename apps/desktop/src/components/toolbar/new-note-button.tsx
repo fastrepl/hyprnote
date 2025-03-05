@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { Trans } from "@lingui/react/macro";
-import { useLocation, useRouter } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import clsx from "clsx";
 import { PenIcon } from "lucide-react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -14,7 +14,6 @@ import {
 
 export function NewNoteButton() {
   const { navigate } = useRouter();
-  const { pathname } = useLocation();
 
   const handleClickNewNote = useCallback(() => {
     navigate({ to: "/note/new" });

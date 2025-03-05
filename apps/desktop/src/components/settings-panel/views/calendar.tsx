@@ -23,7 +23,7 @@ import { commands as dbCommands, type Calendar } from "@hypr/plugin-db";
 import { type as getOsType } from "@tauri-apps/plugin-os";
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
 
-import { commands, type CalendarIntegration } from "@/types";
+import { type CalendarIntegration } from "@/types";
 import {
   client,
   getApiNativeUserIntegrationsOptions,
@@ -225,12 +225,12 @@ function OauthCalendarIntegrationDetails({
 function AppleCalendarIntegrationDetails() {
   const calendarAccess = useQuery({
     queryKey: ["settings", "calendarAccess"],
-    queryFn: async () => commands.checkPermissionStatus("calendar"),
+    queryFn: async () => appleCalendarCommands.calendarAccessStatus(),
   });
 
   const contactsAccess = useQuery({
     queryKey: ["settings", "contactsAccess"],
-    queryFn: async () => commands.checkPermissionStatus("contacts"),
+    queryFn: async () => appleCalendarCommands.contactsAccessStatus(),
   });
 
   const handleRequestCalendarAccess = useCallback(() => {

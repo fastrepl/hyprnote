@@ -2,7 +2,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import PastSessions from "@/components/past-sessions";
 import UpcomingEvents from "@/components/upcoming-events";
-import { commands } from "@/types";
 
 export const Route = createFileRoute("/app/")({
   component: Component,
@@ -11,9 +10,8 @@ export const Route = createFileRoute("/app/")({
       return;
     }
 
-    const isAuthenticated = await commands.isAuthenticated();
-
-    if (!isAuthenticated) {
+    // TODO
+    if (false) {
       throw redirect({ to: "/login" });
     }
   },

@@ -13,7 +13,7 @@ export default function RecentNotes() {
       <Carousel className="-ml-2">
         <CarouselContent className="px-2">
           {[...Array(7)].map((_, i) => (
-            <CarouselItem key={i} className="sm:basis-auto">
+            <CarouselItem key={i} className="basis-auto">
               <div className="h-40 w-40 p-4 cursor-pointer transition-all border rounded-lg hover:bg-neutral-50 flex flex-col">
                 <div className="font-medium text-base truncate">
                   Lorem ipsum dolor sit amet

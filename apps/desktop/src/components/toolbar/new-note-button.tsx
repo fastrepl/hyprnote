@@ -36,11 +36,7 @@ export function NewNoteButton() {
           <Button
             variant="outline"
             size="sm"
-            className={clsx(
-              "hidden sm:block",
-              "text-xs",
-              pathname === "/" ? "opacity-100" : "opacity-0",
-            )}
+            className={clsx("hidden sm:block", "text-xs")}
             onClick={handleClickNewNote}
           >
             <Trans>New Note</Trans>

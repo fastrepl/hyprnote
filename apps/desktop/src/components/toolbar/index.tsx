@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useQuery } from "@tanstack/react-query";
+import { useParams } from "@tanstack/react-router";
 
 import SettingsPanel from "@/components/settings-panel";
 import { NewNoteButton } from "@/components/toolbar/new-note-button";
@@ -11,6 +12,8 @@ import { RightPanelButton } from "./right-panel-button";
 import { cn } from "@/utils";
 import { HomeButton } from "./home-button";
 import { LeftSidebarButton } from "./left-sidebar-button";
+import { useOngoingSession } from "@/contexts/ongoing-session";
+import { SessionIndicator } from "./session-indicator";
 
 export default function Toolbar() {
   const osType = useQuery({
@@ -19,6 +22,13 @@ export default function Toolbar() {
       return getOsType();
     },
   });
+
+  const { listening: isListening, session } = useOngoingSession((s) => ({
+    listening: s.listening,
+    session: s.session,
+  }));
+
+  const { id: routeId } = useParams({ from: "/app/note/$id" });
 
   return (
     <>
@@ -40,7 +50,11 @@ export default function Toolbar() {
           <BackButton />
         </div>
 
-        <SearchBar />
+        {!isListening && routeId !== session?.id ? (
+          <SearchBar />
+        ) : (
+          <SessionIndicator />
+        )}
 
         <div
           className="flex w-40 items-center justify-end gap-1"

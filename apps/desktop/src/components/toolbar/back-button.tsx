@@ -4,13 +4,17 @@ import { useRouter } from "@tanstack/react-router";
 import { Button } from "@hypr/ui/components/ui/button";
 
 export function BackButton() {
-  const { history } = useRouter();
+  const { history, state } = useRouter();
 
   const handleClickBack = useCallback(() => {
+    if (state.location.pathname === "/app/home") {
+      history.push("/app/");
+      return;
+    }
     history.back();
-  }, [history]);
+  }, [history, state.location.pathname]);
 
-  if (!history.canGoBack()) {
+  if (!history.canGoBack() && state.location.pathname !== "/app/home") {
     return null;
   }
 

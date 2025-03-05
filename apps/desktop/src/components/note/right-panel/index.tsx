@@ -11,7 +11,7 @@ export default function RightPanel() {
       layout
       initial={{ width: 0 }}
       animate={{ width: isExpanded ? 380 : 0 }}
-      className="h-full overflow-y-auto border-l bg-neutral-50"
+      className="h-full overflow-y-auto border-l bg-neutral-50 scrollbar-none"
     >
       <WidgetRenderer />
     </motion.div>

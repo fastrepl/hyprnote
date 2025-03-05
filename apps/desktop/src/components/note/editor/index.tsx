@@ -167,18 +167,20 @@ export default function EditorArea() {
       <AnimatePresence>
         {!ongoingSessionStore.listening && (
           <motion.div
-            className="absolute bottom-12 left-1/2 flex -translate-x-1/2 justify-center"
+            className="absolute bottom-6 w-full flex justify-center items-center pointer-events-none"
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            {ongoingSessionStore.listening ||
-            sessionStore.session.enhanced_memo_html ? (
-              <EnhanceControls showRaw={showRaw} setShowRaw={setShowRaw} />
-            ) : (
-              <EnhanceOnlyButton handleClick={handleClickEnhance} />
-            )}
+            <div className="pointer-events-auto">
+              {ongoingSessionStore.listening ||
+              sessionStore.session.enhanced_memo_html ? (
+                <EnhanceControls showRaw={showRaw} setShowRaw={setShowRaw} />
+              ) : (
+                <EnhanceOnlyButton handleClick={handleClickEnhance} />
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

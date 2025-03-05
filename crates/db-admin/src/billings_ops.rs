@@ -5,8 +5,9 @@ impl AdminDatabase {
         &self,
         organization_id: impl Into<String>,
     ) -> Result<Option<Billing>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT INTO billings (
                     id,
@@ -37,8 +38,9 @@ impl AdminDatabase {
         &self,
         customer: &stripe::Customer,
     ) -> Result<Option<Billing>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "UPDATE billings 
                     SET stripe_customer = ?
@@ -65,8 +67,9 @@ impl AdminDatabase {
         customer_id: impl Into<String>,
         subscription: Option<&stripe::Subscription>,
     ) -> Result<Option<Billing>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "UPDATE billings 
                     SET stripe_subscription = ?

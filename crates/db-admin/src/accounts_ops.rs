@@ -2,7 +2,9 @@ use super::{Account, AdminDatabase};
 
 impl AdminDatabase {
     pub async fn list_accounts(&self) -> Result<Vec<Account>, crate::Error> {
-        let mut rows = self.conn.query("SELECT * FROM accounts", ()).await?;
+        let conn = self.conn()?;
+
+        let mut rows = conn.query("SELECT * FROM accounts", ()).await?;
 
         let mut items = Vec::new();
         while let Some(row) = rows.next().await? {
@@ -13,14 +15,15 @@ impl AdminDatabase {
     }
 
     pub async fn upsert_account(&self, organization: Account) -> Result<Account, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT INTO accounts (
-                id,
-                turso_db_name,
-                clerk_org_id
-            ) VALUES (?, ?, ?) RETURNING *",
+                    id,
+                    turso_db_name,
+                    clerk_org_id
+                ) VALUES (?, ?, ?) RETURNING *",
                 vec![
                     libsql::Value::Text(organization.id),
                     libsql::Value::Text(organization.turso_db_name),
@@ -41,8 +44,9 @@ impl AdminDatabase {
         &self,
         id: impl Into<String>,
     ) -> Result<Option<Account>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query("SELECT * FROM accounts WHERE id = ?", vec![id.into()])
             .await?;
         match rows.next().await? {
@@ -58,8 +62,9 @@ impl AdminDatabase {
         &self,
         clerk_org_id: impl Into<String>,
     ) -> Result<Option<Account>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "SELECT * FROM accounts WHERE clerk_org_id = ?",
                 vec![clerk_org_id.into()],
@@ -79,8 +84,9 @@ impl AdminDatabase {
         &self,
         clerk_user_id: impl Into<String>,
     ) -> Result<Option<Account>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "SELECT o.* FROM accounts o
                  INNER JOIN users u ON u.account_id = o.id
@@ -102,8 +108,9 @@ impl AdminDatabase {
         &self,
         user_id: impl Into<String>,
     ) -> Result<Vec<Account>, crate::Error> {
-        let rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "SELECT o.* FROM accounts o
                  INNER JOIN users u ON u.account_id = o.id
@@ -113,7 +120,6 @@ impl AdminDatabase {
             .await?;
 
         let mut accounts = Vec::new();
-        let mut rows = rows;
         while let Some(row) = rows.next().await? {
             let org: Account = libsql::de::from_row(&row).unwrap();
             accounts.push(org);

@@ -71,7 +71,7 @@ mod seed;
 #[cfg(debug_assertions)]
 pub use seed::*;
 
-pub use hypr_db_core::Error;
+pub use hypr_db_core::{Database, Error};
 
 #[macro_export]
 macro_rules! user_common_derives {
@@ -91,12 +91,20 @@ macro_rules! user_common_derives {
 
 #[derive(Clone)]
 pub struct UserDatabase {
-    pub conn: libsql::Connection,
+    db: hypr_db_core::Database,
 }
 
 impl UserDatabase {
-    pub fn from(conn: libsql::Connection) -> Self {
-        Self { conn }
+    pub fn from(db: hypr_db_core::Database) -> Self {
+        Self { db }
+    }
+}
+
+impl std::ops::Deref for UserDatabase {
+    type Target = hypr_db_core::Database;
+
+    fn deref(&self) -> &Self::Target {
+        &self.db
     }
 }
 
@@ -116,27 +124,23 @@ const MIGRATIONS: [&str; 12] = [
     include_str!("./extension_mappings_migration.sql"),
 ];
 
-pub async fn migrate(conn: &libsql::Connection) -> libsql::Result<()> {
-    hypr_db_core::migrate(conn, MIGRATIONS.to_vec()).await
+pub async fn migrate(db: &UserDatabase) -> Result<(), crate::Error> {
+    let conn = db.conn()?;
+    hypr_db_core::migrate(&conn, MIGRATIONS.to_vec()).await?;
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::UserDatabase;
     use crate::{migrate, seed};
-    use hypr_db_core::DatabaseBaseBuilder;
+    use hypr_db_core::DatabaseBuilder;
 
     pub async fn setup_db() -> UserDatabase {
-        let conn = DatabaseBaseBuilder::default()
-            .local(":memory:")
-            .build()
-            .await
-            .unwrap()
-            .connect()
-            .unwrap();
-
-        migrate(&conn).await.unwrap();
-        UserDatabase::from(conn)
+        let base_db = DatabaseBuilder::default().memory().build().await.unwrap();
+        let user_db = UserDatabase::from(base_db);
+        migrate(&user_db).await.unwrap();
+        user_db
     }
 
     #[tokio::test]

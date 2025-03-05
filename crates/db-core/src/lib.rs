@@ -1,17 +1,47 @@
-pub use libsql::{Connection, Database};
+use std::sync::Arc;
+
+pub use libsql;
+
+#[derive(Clone)]
+pub enum Database {
+    InMemory(libsql::Connection),
+    NotInMemory(Arc<libsql::Database>),
+}
+
+impl Database {
+    pub fn conn(&self) -> Result<libsql::Connection, crate::Error> {
+        match self {
+            Database::InMemory(conn) => Ok(conn.clone()),
+            Database::NotInMemory(db) => db.connect().map_err(|e| Into::into(e)),
+        }
+    }
+
+    pub async fn sync(&self) -> Result<(), crate::Error> {
+        match self {
+            Database::InMemory(_) => Ok(()),
+            Database::NotInMemory(db) => db.sync().await.map_err(|e| Into::into(e)).map(|_| ()),
+        }
+    }
+}
 
 #[derive(Debug, Default)]
-struct DatabaseBaseConfig {
+struct DatabaseConfig {
+    memory: Option<bool>,
     local_path: Option<std::path::PathBuf>,
     remote_config: Option<(String, String)>,
 }
 
 #[derive(Default)]
-pub struct DatabaseBaseBuilder {
-    config: DatabaseBaseConfig,
+pub struct DatabaseBuilder {
+    config: DatabaseConfig,
 }
 
-impl DatabaseBaseBuilder {
+impl DatabaseBuilder {
+    pub fn memory(mut self) -> Self {
+        self.config.memory = Some(true);
+        self
+    }
+
     pub fn local(mut self, path: impl AsRef<std::path::Path>) -> Self {
         self.config.local_path = Some(path.as_ref().to_owned());
         self
@@ -22,21 +52,37 @@ impl DatabaseBaseBuilder {
         self
     }
 
-    pub async fn build(self) -> Result<libsql::Database, crate::Error> {
-        let db = match (self.config.local_path, self.config.remote_config) {
-            (Some(path), None) => libsql::Builder::new_local(path).build().await?,
-            (None, Some((url, token))) => libsql::Builder::new_remote(url, token).build().await?,
-            (Some(path), Some((url, token))) => {
+    pub async fn build(self) -> Result<Database, crate::Error> {
+        let db = match (
+            self.config.memory,
+            self.config.local_path,
+            self.config.remote_config,
+        ) {
+            (Some(true), _, _) => {
+                let db = libsql::Builder::new_local(":memory:").build().await?;
+                let conn = db.connect()?;
+                Database::InMemory(conn)
+            }
+            (_, Some(path), None) => {
+                let db = libsql::Builder::new_local(path).build().await?;
+                Database::NotInMemory(Arc::new(db))
+            }
+            (_, None, Some((url, token))) => {
+                let db = libsql::Builder::new_remote(url, token).build().await?;
+                Database::NotInMemory(Arc::new(db))
+            }
+            (_, Some(path), Some((url, token))) => {
                 // https://github.com/tursodatabase/libsql/blob/d42e05a/libsql/examples/remote_sync.rs
                 // https://docs.rs/libsql/latest/libsql/struct.Builder.html#note
-                libsql::Builder::new_remote_replica(path, url, token)
+                let db = libsql::Builder::new_remote_replica(path, url, token)
                     .read_your_writes(true)
                     .sync_interval(std::time::Duration::from_secs(300))
                     .build()
-                    .await?
+                    .await?;
+                Database::NotInMemory(Arc::new(db))
             }
-            (None, None) => Err(crate::Error::InvalidDatabaseConfig(
-                "either '.local()' or '.remote()' must be called".to_string(),
+            (_, None, None) => Err(crate::Error::InvalidDatabaseConfig(
+                "either '.memory()' or '.local()' or '.remote()' must be called".to_string(),
             ))?,
         };
 
@@ -47,7 +93,7 @@ impl DatabaseBaseBuilder {
 pub async fn migrate(
     conn: &libsql::Connection,
     migrations: Vec<impl AsRef<str>>,
-) -> libsql::Result<()> {
+) -> Result<(), crate::Error> {
     let current_version: i32 = conn
         .query("PRAGMA user_version", ())
         .await?

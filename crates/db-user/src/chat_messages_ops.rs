@@ -5,8 +5,9 @@ impl UserDatabase {
         &self,
         message: ChatMessage,
     ) -> Result<ChatMessage, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT INTO chat_messages (
                     id,
@@ -35,8 +36,9 @@ impl UserDatabase {
         &self,
         group_id: impl Into<String>,
     ) -> Result<Vec<ChatMessage>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "SELECT * FROM chat_messages 
                 WHERE group_id = ? 

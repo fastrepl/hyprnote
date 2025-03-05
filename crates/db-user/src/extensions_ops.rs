@@ -4,8 +4,9 @@ impl UserDatabase {
     pub async fn list_extension_definitions(
         &self,
     ) -> Result<Vec<ExtensionDefinition>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query("SELECT * FROM extension_definitions", ())
             .await?;
 
@@ -21,8 +22,9 @@ impl UserDatabase {
         &self,
         user_id: impl Into<String>,
     ) -> Result<Vec<ExtensionMapping>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "SELECT * FROM extension_mappings WHERE user_id = ?",
                 vec![user_id.into()],

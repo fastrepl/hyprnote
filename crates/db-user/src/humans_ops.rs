@@ -1,21 +1,21 @@
 use super::{Human, UserDatabase};
 
 impl UserDatabase {
-    pub async fn get_human(&self, id: impl Into<String>) -> Result<Human, crate::Error> {
-        let mut rows = self
-            .conn
+    pub async fn get_human(&self, id: impl Into<String>) -> Result<Option<Human>, crate::Error> {
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query("SELECT * FROM humans WHERE id = ?", vec![id.into()])
             .await?;
 
-        match rows.next().await? {
-            Some(row) => Ok(libsql::de::from_row(&row)?),
-            None => Ok(Human::default()),
-        }
+        let row = rows.next().await?;
+        Ok(row.map(|row| libsql::de::from_row(&row)).transpose()?)
     }
 
     pub async fn upsert_human(&self, human: Human) -> Result<Human, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT OR REPLACE INTO humans (
                     id, 
@@ -44,7 +44,9 @@ impl UserDatabase {
     }
 
     pub async fn list_humans(&self) -> Result<Vec<Human>, crate::Error> {
-        let mut rows = self.conn.query("SELECT * FROM humans", ()).await?;
+        let conn = self.conn()?;
+
+        let mut rows = conn.query("SELECT * FROM humans", ()).await?;
 
         let mut humans = Vec::new();
         while let Some(row) = rows.next().await? {

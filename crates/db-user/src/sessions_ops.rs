@@ -5,22 +5,21 @@ impl UserDatabase {
         &self,
         option: SessionFilter,
     ) -> Result<Option<Session>, crate::Error> {
+        let conn = self.conn()?;
+
         let mut rows = match option {
-            SessionFilter::Id(id) => self
-                .conn
+            SessionFilter::Id(id) => conn
                 .query("SELECT * FROM sessions WHERE id = ?", vec![id])
                 .await
                 .unwrap(),
-            SessionFilter::CalendarEventId(id) => self
-                .conn
+            SessionFilter::CalendarEventId(id) => conn
                 .query(
                     "SELECT * FROM sessions WHERE calendar_event_id = ?",
                     vec![id],
                 )
                 .await
                 .unwrap(),
-            SessionFilter::TagId(id) => self
-                .conn
+            SessionFilter::TagId(id) => conn
                 .query(
                     "SELECT * FROM sessions WHERE id IN (SELECT session_id FROM tags WHERE id = ?)",
                     vec![id],
@@ -39,17 +38,17 @@ impl UserDatabase {
     }
 
     pub async fn list_sessions(&self, search: Option<&str>) -> Result<Vec<Session>, crate::Error> {
+        let conn = self.conn()?;
+
         let mut rows = match search {
-            Some(q) => self
-                .conn
+            Some(q) => conn
                 .query(
                     "SELECT * FROM sessions WHERE title LIKE ? ORDER BY timestamp DESC LIMIT 100",
                     vec![format!("%{}%", q)],
                 )
                 .await
                 .unwrap(),
-            None => self
-                .conn
+            None => conn
                 .query(
                     "SELECT * FROM sessions ORDER BY timestamp DESC LIMIT 100",
                     (),
@@ -67,8 +66,9 @@ impl UserDatabase {
     }
 
     pub async fn upsert_session(&self, session: Session) -> Result<Session, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT OR REPLACE INTO sessions (
                     id,
@@ -108,12 +108,13 @@ impl UserDatabase {
         session_id: String,
         event_id: String,
     ) -> Result<(), crate::Error> {
-        self.conn
-            .query(
-                "UPDATE sessions SET calendar_event_id = ? WHERE id = ?",
-                vec![event_id, session_id],
-            )
-            .await?;
+        let conn = self.conn()?;
+
+        conn.query(
+            "UPDATE sessions SET calendar_event_id = ? WHERE id = ?",
+            vec![event_id, session_id],
+        )
+        .await?;
         Ok(())
     }
 }

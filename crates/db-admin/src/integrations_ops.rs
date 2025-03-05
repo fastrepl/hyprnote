@@ -5,8 +5,9 @@ impl AdminDatabase {
         &self,
         user_id: impl AsRef<str>,
     ) -> Result<Vec<Integration>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "SELECT * FROM integrations WHERE user_id = ?",
                 vec![user_id.as_ref()],
@@ -25,8 +26,9 @@ impl AdminDatabase {
         &self,
         integration: Integration,
     ) -> Result<Integration, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT INTO integrations (
                     id,

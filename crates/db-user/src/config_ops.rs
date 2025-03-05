@@ -5,8 +5,9 @@ impl UserDatabase {
         &self,
         user_id: impl Into<String>,
     ) -> Result<Option<Config>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "SELECT * FROM configs WHERE user_id = ?",
                 vec![user_id.into()],
@@ -23,24 +24,25 @@ impl UserDatabase {
     }
 
     pub async fn set_config(&self, config: Config) -> Result<(), crate::Error> {
-        self.conn
-            .execute(
-                "INSERT OR REPLACE INTO configs (
+        let conn = self.conn()?;
+
+        conn.execute(
+            "INSERT OR REPLACE INTO configs (
                     id,
                     user_id,
                     general,
                     notification,
                     ai
                 ) VALUES (?, ?, ?, ?, ?)",
-                vec![
-                    config.id.clone(),
-                    config.user_id.clone(),
-                    serde_json::to_string(&config.general)?,
-                    serde_json::to_string(&config.notification)?,
-                    serde_json::to_string(&config.ai)?,
-                ],
-            )
-            .await?;
+            vec![
+                config.id.clone(),
+                config.user_id.clone(),
+                serde_json::to_string(&config.general)?,
+                serde_json::to_string(&config.notification)?,
+                serde_json::to_string(&config.ai)?,
+            ],
+        )
+        .await?;
         Ok(())
     }
 }

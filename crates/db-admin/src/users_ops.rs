@@ -2,7 +2,9 @@ use super::{AdminDatabase, User};
 
 impl AdminDatabase {
     pub async fn list_users(&self) -> Result<Vec<User>, crate::Error> {
-        let mut rows = self.conn.query("SELECT * FROM users", ()).await.unwrap();
+        let conn = self.conn()?;
+
+        let mut rows = conn.query("SELECT * FROM users", ()).await.unwrap();
         let mut users = Vec::new();
 
         while let Some(row) = rows.next().await.unwrap() {
@@ -14,8 +16,9 @@ impl AdminDatabase {
     }
 
     pub async fn upsert_user(&self, user: User) -> Result<User, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT OR REPLACE INTO users (
                     id,
@@ -43,8 +46,9 @@ impl AdminDatabase {
         &self,
         clerk_user_id: impl AsRef<str>,
     ) -> Result<Option<User>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "SELECT * FROM users WHERE clerk_user_id = ?",
                 vec![clerk_user_id.as_ref()],
@@ -64,8 +68,9 @@ impl AdminDatabase {
         &self,
         api_key: impl AsRef<str>,
     ) -> Result<Option<User>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "SELECT users.* FROM users
                 JOIN devices ON devices.user_id = users.id
@@ -117,7 +122,7 @@ mod tests {
         let users = db.list_users().await.unwrap();
         assert_eq!(users.len(), 1);
 
-        let user = db
+        let _user = db
             .get_user_by_clerk_user_id("21".to_string())
             .await
             .unwrap()

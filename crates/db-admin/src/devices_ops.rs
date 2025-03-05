@@ -2,7 +2,9 @@ use super::{AdminDatabase, Device};
 
 impl AdminDatabase {
     pub async fn list_devices(&self) -> Result<Vec<Device>, crate::Error> {
-        let mut rows = self.conn.query("SELECT * FROM devices", ()).await.unwrap();
+        let conn = self.conn()?;
+
+        let mut rows = conn.query("SELECT * FROM devices", ()).await.unwrap();
         let mut devices = Vec::new();
 
         while let Some(row) = rows.next().await.unwrap() {
@@ -14,8 +16,9 @@ impl AdminDatabase {
     }
 
     pub async fn upsert_device(&self, device: Device) -> Result<Device, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT INTO devices (
                     id,
@@ -46,12 +49,13 @@ impl AdminDatabase {
         &self,
         api_key: impl AsRef<str>,
     ) -> Result<(), crate::Error> {
-        self.conn
-            .query(
-                "DELETE FROM devices WHERE api_key = ?",
-                vec![api_key.as_ref()],
-            )
-            .await?;
+        let conn = self.conn()?;
+
+        conn.query(
+            "DELETE FROM devices WHERE api_key = ?",
+            vec![api_key.as_ref()],
+        )
+        .await?;
         Ok(())
     }
 }

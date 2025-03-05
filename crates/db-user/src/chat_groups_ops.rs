@@ -2,8 +2,9 @@ use super::{ChatGroup, UserDatabase};
 
 impl UserDatabase {
     pub async fn create_chat_group(&self, group: ChatGroup) -> Result<ChatGroup, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT INTO chat_groups (
                     id,
@@ -33,8 +34,9 @@ impl UserDatabase {
         &self,
         user_id: impl Into<String>,
     ) -> Result<Vec<ChatGroup>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "SELECT * FROM chat_groups 
                 WHERE user_id = ? 

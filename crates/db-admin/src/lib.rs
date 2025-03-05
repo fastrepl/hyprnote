@@ -47,12 +47,20 @@ macro_rules! admin_common_derives {
 
 #[derive(Clone)]
 pub struct AdminDatabase {
-    conn: libsql::Connection,
+    db: hypr_db_core::Database,
 }
 
 impl AdminDatabase {
-    pub fn from(conn: libsql::Connection) -> Self {
-        Self { conn }
+    pub fn from(db: hypr_db_core::Database) -> Self {
+        Self { db }
+    }
+}
+
+impl std::ops::Deref for AdminDatabase {
+    type Target = hypr_db_core::Database;
+
+    fn deref(&self) -> &Self::Target {
+        &self.db
     }
 }
 
@@ -65,27 +73,23 @@ const MIGRATIONS: [&str; 5] = [
     include_str!("./users_migration.sql"),
 ];
 
-pub async fn migrate(conn: &libsql::Connection) -> libsql::Result<()> {
-    hypr_db_core::migrate(conn, MIGRATIONS.to_vec()).await
+pub async fn migrate(db: &AdminDatabase) -> Result<(), crate::Error> {
+    let conn = db.conn()?;
+    hypr_db_core::migrate(&conn, MIGRATIONS.to_vec()).await?;
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::AdminDatabase;
     use crate::{migrate, seed};
-    use hypr_db_core::DatabaseBaseBuilder;
+    use hypr_db_core::DatabaseBuilder;
 
     pub async fn setup_db() -> AdminDatabase {
-        let conn = DatabaseBaseBuilder::default()
-            .local(":memory:")
-            .build()
-            .await
-            .unwrap()
-            .connect()
-            .unwrap();
-
-        migrate(&conn).await.unwrap();
-        AdminDatabase::from(conn)
+        let base_db = DatabaseBuilder::default().memory().build().await.unwrap();
+        let admin_db = AdminDatabase::from(base_db);
+        migrate(&admin_db).await.unwrap();
+        admin_db
     }
 
     #[tokio::test]

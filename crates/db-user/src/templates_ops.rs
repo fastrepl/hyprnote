@@ -5,8 +5,9 @@ impl UserDatabase {
         &self,
         user_id: impl Into<String>,
     ) -> Result<Vec<Template>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "SELECT * FROM templates WHERE user_id = ?",
                 vec![user_id.into()],
@@ -22,8 +23,9 @@ impl UserDatabase {
     }
 
     pub async fn upsert_template(&self, template: Template) -> Result<Template, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT INTO templates (
                     id,
@@ -62,8 +64,9 @@ impl UserDatabase {
     }
 
     pub async fn delete_template(&self, id: String) -> Result<(), crate::Error> {
-        self.conn
-            .query("DELETE FROM templates WHERE id = ?", vec![id])
+        let conn = self.conn()?;
+
+        conn.query("DELETE FROM templates WHERE id = ?", vec![id])
             .await?;
         Ok(())
     }

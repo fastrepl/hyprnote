@@ -2,8 +2,9 @@ use super::{Event, Human, UserDatabase};
 
 impl UserDatabase {
     pub async fn get_event(&self, id: impl Into<String>) -> Result<Option<Event>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query("SELECT * FROM events WHERE id = ?", vec![id.into()])
             .await?;
 
@@ -17,8 +18,9 @@ impl UserDatabase {
     }
 
     pub async fn upsert_event(&self, event: Event) -> Result<Event, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT INTO events (
                     id,
@@ -67,7 +69,9 @@ impl UserDatabase {
     }
 
     pub async fn list_events(&self) -> Result<Vec<Event>, crate::Error> {
-        let mut rows = self.conn.query("SELECT * FROM events", ()).await.unwrap();
+        let conn = self.conn()?;
+
+        let mut rows = conn.query("SELECT * FROM events", ()).await.unwrap();
 
         let mut items = Vec::new();
         while let Some(row) = rows.next().await.unwrap() {
@@ -81,8 +85,9 @@ impl UserDatabase {
         &self,
         event_id: impl Into<String>,
     ) -> Result<Vec<Human>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "SELECT h.* 
                 FROM humans h 
@@ -105,12 +110,13 @@ impl UserDatabase {
         event_id: impl Into<String>,
         human_id: impl Into<String>,
     ) -> Result<(), crate::Error> {
-        self.conn
-            .query(
-                "INSERT OR IGNORE INTO event_participants (event_id, human_id) VALUES (?, ?)",
-                (event_id.into(), human_id.into()),
-            )
-            .await?;
+        let conn = self.conn()?;
+
+        conn.query(
+            "INSERT OR IGNORE INTO event_participants (event_id, human_id) VALUES (?, ?)",
+            (event_id.into(), human_id.into()),
+        )
+        .await?;
 
         Ok(())
     }
@@ -120,12 +126,13 @@ impl UserDatabase {
         event_id: impl Into<String>,
         human_id: impl Into<String>,
     ) -> Result<(), crate::Error> {
-        self.conn
-            .query(
-                "DELETE FROM event_participants WHERE event_id = ? AND human_id = ?",
-                (event_id.into(), human_id.into()),
-            )
-            .await?;
+        let conn = self.conn()?;
+
+        conn.query(
+            "DELETE FROM event_participants WHERE event_id = ? AND human_id = ?",
+            (event_id.into(), human_id.into()),
+        )
+        .await?;
 
         Ok(())
     }

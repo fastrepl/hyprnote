@@ -5,8 +5,9 @@ impl UserDatabase {
         &self,
         organization: Organization,
     ) -> Result<Organization, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT INTO organizations (id, name, description) VALUES (?, ?, ?)",
                 (organization.id, organization.name, organization.description),
@@ -19,7 +20,9 @@ impl UserDatabase {
     }
 
     pub async fn list_organizations(&self) -> Result<Vec<Organization>, crate::Error> {
-        let mut rows = self.conn.query("SELECT * FROM organizations", ()).await?;
+        let conn = self.conn()?;
+
+        let mut rows = conn.query("SELECT * FROM organizations", ()).await?;
 
         let mut items = Vec::new();
         while let Some(row) = rows.next().await? {
@@ -33,9 +36,10 @@ impl UserDatabase {
         &self,
         id: impl Into<String>,
     ) -> Result<Option<Organization>, crate::Error> {
+        let conn = self.conn()?;
         let id = id.into();
-        let mut rows = self
-            .conn
+
+        let mut rows = conn
             .query(
                 "SELECT o.* FROM organizations o 
                 INNER JOIN users u ON u.organization_id = o.id 

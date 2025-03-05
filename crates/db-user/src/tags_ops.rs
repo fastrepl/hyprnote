@@ -2,8 +2,9 @@ use super::{Tag, UserDatabase};
 
 impl UserDatabase {
     pub async fn upsert_tag(&self, tag: Tag) -> Result<Tag, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT OR REPLACE INTO tags (
                     id,
@@ -22,8 +23,9 @@ impl UserDatabase {
     }
 
     pub async fn delete_tag(&self, tag_id: impl Into<String>) -> Result<(), crate::Error> {
-        self.conn
-            .query("DELETE FROM tags WHERE id = ?", vec![tag_id.into()])
+        let conn = self.conn()?;
+
+        conn.query("DELETE FROM tags WHERE id = ?", vec![tag_id.into()])
             .await?;
         Ok(())
     }
@@ -32,8 +34,9 @@ impl UserDatabase {
         &self,
         user_id: impl Into<String>,
     ) -> Result<Vec<Tag>, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query("SELECT * FROM tags WHERE user_id = ?", vec![user_id.into()])
             .await?;
 

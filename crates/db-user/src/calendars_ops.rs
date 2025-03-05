@@ -2,11 +2,9 @@ use super::{Calendar, UserDatabase};
 
 impl UserDatabase {
     pub async fn list_calendars(&self) -> Result<Vec<Calendar>, crate::Error> {
-        let mut rows = self
-            .conn
-            .query("SELECT * FROM calendars", ())
-            .await
-            .unwrap();
+        let conn = self.conn()?;
+
+        let mut rows = conn.query("SELECT * FROM calendars", ()).await.unwrap();
 
         let mut items = Vec::new();
         while let Some(row) = rows.next().await.unwrap() {
@@ -17,8 +15,9 @@ impl UserDatabase {
     }
 
     pub async fn upsert_calendar(&self, calendar: Calendar) -> Result<Calendar, crate::Error> {
-        let mut rows = self
-            .conn
+        let conn = self.conn()?;
+
+        let mut rows = conn
             .query(
                 "INSERT INTO calendars (
                     id,

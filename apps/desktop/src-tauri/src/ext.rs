@@ -33,9 +33,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
             use hypr_turso::{format_db_name, format_db_url, DEFAULT_ORG_SLUG};
             use tauri_plugin_db::DatabasePluginExt;
 
+            let local_db_path = app.db_local_path();
             if let Some(account_id) = account_id.as_ref() {
                 let db = {
-                    let mut base = hypr_db_core::DatabaseBuilder::default();
+                    let mut base = hypr_db_core::DatabaseBuilder::default().local(local_db_path);
 
                     let db_name = format_db_name(account_id);
                     let db_url = format_db_url(&db_name, DEFAULT_ORG_SLUG);
@@ -45,6 +46,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
                 };
 
                 app.db_attach(db).await.unwrap();
+                let _ = app.db_sync().await;
 
                 if let Some(user_id) = user_id {
                     app.db_ensure_user(&user_id).await.unwrap();

@@ -28,18 +28,20 @@ export default function NotesList() {
 
   return (
     <nav className="h-full overflow-y-auto space-y-6 px-3 py-4">
-      <section>
-        <h2 className="font-medium text-neutral-600 mb-2 flex items-center gap-2">
-          <CalendarIcon className="size-4" />
-          <span>Upcoming</span>
-        </h2>
+      {events.data && events.data.length > 0 && (
+        <section>
+          <h2 className="font-medium text-neutral-600 mb-2 flex items-center gap-2">
+            <CalendarIcon className="size-4" />
+            <strong>Upcoming</strong>
+          </h2>
 
-        <div className="divide-y divide-neutral-200">
-          {events.data?.map((event) => (
-            <EventItem key={event.id} event={event} />
-          ))}
-        </div>
-      </section>
+          <div className="divide-y divide-neutral-200">
+            {events.data.map((event) => (
+              <EventItem key={event.id} event={event} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <SessionList data={sessions.data ?? []} />
     </nav>
@@ -105,9 +107,10 @@ function SessionList({ data }: { data: Session[] }) {
 
         return (
           <section key={dateKey}>
-            <h2 className="font-medium text-neutral-600 mb-2">
+            <h2 className="font-bold text-neutral-600 mb-2">
               {formatDateHeader(date)}
             </h2>
+
             <div className="divide-y divide-neutral-200">
               {sessions.map((session: Session) => {
                 const timestamp = parseFloat(session.timestamp);

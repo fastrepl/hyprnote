@@ -9,7 +9,7 @@ export function EnhanceOnlyButton({ handleClick }: EnhanceOnlyButtonProps) {
   return (
     <Button variant="default" size="lg" onClick={handleClick}>
       <Zap size={20} />
-      Hypercharge Note
+      Hypercharge
     </Button>
   );
 }

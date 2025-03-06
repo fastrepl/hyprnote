@@ -9,7 +9,7 @@ export default function MyTasks() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">My Tasks</h2>
+      <h2 className="text-2xl font-medium mb-4">My Tasks</h2>
       <div className="space-y-2">
         {tasks.map((task, i) => (
           <div key={i} className="flex items-center gap-2">

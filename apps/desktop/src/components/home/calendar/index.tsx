@@ -1,20 +1,14 @@
 import { useEffect, useState } from "react";
 import {
   format,
-  startOfWeek,
-  endOfWeek,
   eachDayOfInterval,
   isToday,
-  isSameMonth,
   isWeekend,
   addDays,
   getDay,
-  startOfMonth,
-  endOfMonth,
 } from "date-fns";
 
 import { type Event } from "@hypr/plugin-db";
-import { Switch } from "@hypr/ui/components/ui/switch";
 
 import { DayEvents } from "./day-events";
 import { mockEvents } from "./mock";
@@ -34,7 +28,6 @@ const useWindowSize = () => {
 export default function WorkspaceCalendar() {
   const today = new Date();
 
-  const [showWeekends, setShowWeekends] = useState(true);
   const windowWidth = useWindowSize();
 
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -64,14 +57,9 @@ export default function WorkspaceCalendar() {
     const viewMode = getViewMode();
 
     if (viewMode === "month") {
-      // For month view, show the entire month
-      const monthStart = startOfMonth(today);
-      const monthEnd = endOfMonth(today);
-      // Start from the first day of the first week that contains the month start
-      const firstDay = startOfWeek(monthStart);
-      // End on the last day of the last week that contains the month end
-      const lastDay = endOfWeek(monthEnd);
-      return eachDayOfInterval({ start: firstDay, end: lastDay });
+      // Show from today to today + 1 month
+      const endDate = addDays(today, 30); // Show next 30 days
+      return eachDayOfInterval({ start: today, end: endDate });
     }
 
     // For 2-day and 4-day views, start from today
@@ -105,31 +93,17 @@ export default function WorkspaceCalendar() {
     }
   };
 
+  // Calculate empty cells needed at the start to align with the correct day of week
+  const getEmptyCellsCount = () => {
+    if (viewMode !== "month") return 0;
+    return getDay(today);
+  };
+
   return (
     <div className="mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-medium">
-          {viewMode === "month"
-            ? format(today, "MMMM yyyy")
-            : "Upcoming Events"}
-        </h2>
-        {viewMode === "month" && (
-          <div className="flex items-center gap-2">
-            <Switch
-              id="show-weekends"
-              checked={showWeekends}
-              onCheckedChange={setShowWeekends}
-              size="sm"
-            />
-            <label
-              htmlFor="show-weekends"
-              className="text-sm font-medium leading-none cursor-pointer"
-            >
-              Show weekends
-            </label>
-          </div>
-        )}
-      </div>
+      <h2 className="text-2xl font-medium mb-4">
+        {viewMode === "month" ? "Upcoming Events" : "Upcoming Events"}
+      </h2>
 
       <div className={`grid ${getGridColumnsClass()} gap-1`}>
         {getWeekdayHeaders().map((day) => (
@@ -137,20 +111,22 @@ export default function WorkspaceCalendar() {
             {day}
           </div>
         ))}
+        {Array(getEmptyCellsCount())
+          .fill(null)
+          .map((_, i) => (
+            <div key={`empty-${i}`} className="min-h-[120px]" />
+          ))}
         {visibleDays.map((day, i) => {
-          const isPastDay =
-            format(day, "yyyy-MM-dd") < format(today, "yyyy-MM-dd");
           const dayEvents = getEventsForDay(day);
-          const isCurrentMonth = isSameMonth(day, today);
 
           return (
             <div
               key={i}
               className={`min-h-[120px] border rounded-lg p-1 relative ${
                 isWeekend(day) ? "bg-neutral-50" : "bg-white"
-              } ${!isCurrentMonth ? "opacity-50" : ""} ${
+              } ${
                 isToday(day) ? "border-blue-500 border-2" : "border-gray-200"
-              } ${isPastDay ? "invisible" : ""}`}
+              }`}
             >
               <div className="text-sm text-right mb-1 pr-1">
                 {format(day, "d")}

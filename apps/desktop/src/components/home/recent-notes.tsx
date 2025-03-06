@@ -1,14 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@hypr/ui/components/ui/carousel";
-
+import { CarouselItem } from "@hypr/ui/components/ui/carousel";
 import { commands as dbCommands } from "@hypr/plugin-db";
 
 export default function RecentNotes() {
@@ -27,8 +20,8 @@ export default function RecentNotes() {
     <div className="mb-8 space-y-4">
       <h2 className="text-2xl font-medium">Recently Opened</h2>
 
-      <Carousel className="-ml-2">
-        <CarouselContent className="px-2">
+      <div className="overflow-x-auto -mx-8 px-8">
+        <div className="flex gap-4">
           {sessions.data?.map((session: any, i) => (
             <CarouselItem
               key={i}
@@ -45,10 +38,8 @@ export default function RecentNotes() {
               </div>
             </CarouselItem>
           ))}
-        </CarouselContent>
-        <CarouselPrevious className="absolute left-0 top-1/2 z-10 hover:bg-neutral-50" />
-        <CarouselNext className="absolute right-0 top-1/2 z-10 hover:bg-neutral-50" />
-      </Carousel>
+        </div>
+      </div>
     </div>
   );
 }

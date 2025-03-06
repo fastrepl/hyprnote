@@ -1,4 +1,3 @@
-import { motion } from "motion/react";
 import React, { type ReactNode } from "react";
 import { Button } from "./button";
 import { Maximize2Icon } from "lucide-react";
@@ -66,7 +65,7 @@ const WidgetWrapper = ({
   style,
 }: WidgetWrapperProps) => {
   return (
-    <motion.div
+    <div
       className={className}
       style={{
         width,
@@ -79,13 +78,9 @@ const WidgetWrapper = ({
         flexDirection: "column",
         ...style,
       }}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
-      transition={{ duration: 0.2 }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 };
 

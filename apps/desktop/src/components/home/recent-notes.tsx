@@ -13,7 +13,7 @@ import { commands as dbCommands } from "@hypr/plugin-db";
 
 export default function RecentNotes() {
   const navigate = useNavigate();
-  
+
   const sessions = useQuery({
     queryKey: ["sessions"],
     queryFn: () => dbCommands.listSessions({ recentlyVisited: [10] }),

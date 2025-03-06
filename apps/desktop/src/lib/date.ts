@@ -8,35 +8,46 @@ import {
   startOfToday,
 } from "date-fns";
 import { type Session } from "@hypr/plugin-db";
+import { tz } from "@date-fns/tz";
 
 export type GroupedSessions = Record<
   string,
   { date: Date; sessions: Session[] }
 >;
 
+export const timezone = () => {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+};
+
 export function formatDateHeader(date: Date): string {
-  if (isToday(date)) {
+  const userTimeZone = timezone();
+  const tzOptions = { in: tz(userTimeZone) };
+
+  if (isToday(date, tzOptions)) {
     return "Today";
   }
 
-  if (isYesterday(date)) {
+  if (isYesterday(date, tzOptions)) {
     return "Yesterday";
   }
 
-  const daysDiff = differenceInCalendarDays(startOfToday(), date);
+  const todayStart = startOfToday();
+  const daysDiff = differenceInCalendarDays(todayStart, date, tzOptions);
+
+  console.log(todayStart, date, daysDiff);
 
   if (daysDiff > 1 && daysDiff <= 7) {
-    if (isThisWeek(date)) {
-      return format(date, "EEEE");
+    if (isThisWeek(date, tzOptions)) {
+      return format(date, "EEEE", tzOptions);
     }
-    return `Last ${format(date, "EEEE")}`;
+    return `Last ${format(date, "EEEE", tzOptions)}`;
   }
 
-  if (isThisYear(date)) {
-    return format(date, "MMM d");
+  if (isThisYear(date, tzOptions)) {
+    return format(date, "MMM d", tzOptions);
   }
 
-  return format(date, "MMM d, yyyy");
+  return format(date, "MMM d, yyyy", tzOptions);
 }
 
 export function formatRemainingTime(date: Date): string {
@@ -61,8 +72,7 @@ export function formatRemainingTime(date: Date): string {
 
 export function groupSessionsByDate(sessions: Session[]): GroupedSessions {
   return sessions.reduce<GroupedSessions>((groups, session) => {
-    const timestamp = parseFloat(session.created_at);
-    const date = new Date(timestamp);
+    const date = new Date(session.created_at);
     const dateKey = format(date, "yyyy-MM-dd");
 
     if (!groups[dateKey]) {

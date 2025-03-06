@@ -93,8 +93,7 @@ function SessionList({ data }: { data: Session[] }) {
   // Group sessions by date
   const groupedSessions = data.reduce(
     (groups, session) => {
-      const timestamp = parseFloat(session.created_at);
-      const date = new Date(timestamp);
+      const date = new Date(session.created_at);
       const dateKey = format(date, "yyyy-MM-dd");
 
       if (!groups[dateKey]) {
@@ -129,8 +128,7 @@ function SessionList({ data }: { data: Session[] }) {
 
             <div className="flex flex-col gap-4">
               {sessions.map((session) => {
-                const timestamp = parseFloat(session.created_at);
-                const sessionDate = new Date(timestamp);
+                const sessionDate = new Date(session.created_at);
                 const formattedTime = format(sessionDate, "h:mm a");
 
                 return (

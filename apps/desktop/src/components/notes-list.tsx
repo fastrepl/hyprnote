@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
@@ -21,11 +20,6 @@ export default function NotesList() {
     queryFn: () => dbCommands.listEvents(),
   });
 
-  const sessions = useQuery({
-    queryKey: ["sessions"],
-    queryFn: () => dbCommands.listSessions(null),
-  });
-
   return (
     <nav className="h-full overflow-y-auto space-y-6 px-3 py-4">
       {events.data && events.data.length > 0 && (
@@ -43,7 +37,7 @@ export default function NotesList() {
         </section>
       )}
 
-      <SessionList data={sessions.data ?? []} />
+      <SessionList />
     </nav>
   );
 }
@@ -85,19 +79,22 @@ function EventItem({ event }: { event: Event }) {
   );
 }
 
-function SessionList({ data }: { data: Session[] }) {
+function SessionList() {
   const navigate = useNavigate();
-  const handleClickSession = useCallback(
-    (session: Session) => {
-      navigate({
-        to: "/app/note/$id",
-        params: { id: session.id },
-      });
-    },
-    [navigate],
-  );
 
-  const groupedSessions = groupSessionsByDate(data);
+  const sessions = useQuery({
+    queryKey: ["sessions"],
+    queryFn: () => dbCommands.listSessions(null),
+  });
+
+  const handleClickSession = (id: string) => {
+    navigate({
+      to: "/app/note/$id",
+      params: { id },
+    });
+  };
+
+  const groupedSessions = groupSessionsByDate(sessions.data ?? []);
   const sortedDates = getSortedDates(groupedSessions);
 
   return (
@@ -113,13 +110,12 @@ function SessionList({ data }: { data: Session[] }) {
 
             <div className="divide-y divide-neutral-200">
               {sessions.map((session: Session) => {
-                const timestamp = parseFloat(session.created_at);
-                const sessionDate = new Date(timestamp);
+                const sessionDate = new Date(session.created_at);
 
                 return (
                   <button
                     key={session.id}
-                    onClick={() => handleClickSession(session)}
+                    onClick={() => handleClickSession(session.id)}
                     className="w-full text-left group flex items-start gap-3 py-2 hover:bg-neutral-200 rounded px-2"
                   >
                     <div className="flex flex-col items-start gap-1">

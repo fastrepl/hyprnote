@@ -13,7 +13,7 @@ export function LeftSidebarProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const togglePanel = useCallback(() => {
     setIsExpanded((prev) => !prev);

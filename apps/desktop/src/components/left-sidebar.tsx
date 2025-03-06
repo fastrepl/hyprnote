@@ -8,7 +8,7 @@ export default function LeftSidebar() {
   return (
     <motion.div
       layout
-      initial={{ width: 0 }}
+      initial={{ width: isExpanded ? 240 : 0 }}
       animate={{ width: isExpanded ? 240 : 0 }}
       className="h-full overflow-y-auto border-r bg-neutral-50"
     >

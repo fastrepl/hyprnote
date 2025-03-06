@@ -51,12 +51,7 @@ function EventItem({ event }: { event: Event }) {
   });
 
   const handleClick = () => {
-    if (!session.data) {
-      navigate({
-        to: "/note/new",
-        search: { eventId: event.id.toString() },
-      });
-    } else {
+    if (session.data) {
       navigate({
         to: "/app/note/$id",
         params: { id: session.data.id },

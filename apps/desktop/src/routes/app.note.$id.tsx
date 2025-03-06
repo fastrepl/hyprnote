@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 
 import { SessionProvider, useRightPanel } from "@/contexts";
 import EditorArea from "@/components/note/editor";
@@ -11,12 +11,21 @@ export const Route = createFileRoute("/app/note/$id")({
     return queryClient.fetchQuery({
       queryKey: ["note", id],
       queryFn: async () => {
-        const session = await dbCommands.getSession({ id });
+        let session: Session | null = null;
+
+        try {
+          const [s, _] = await Promise.all([
+            dbCommands.getSession({ id }),
+            dbCommands.visitSession(id),
+          ]);
+
+          session = s;
+        } catch {}
+
         if (!session) {
-          throw redirect({ to: "/app" });
+          throw redirect({ to: "/app/home" });
         }
 
-        await dbCommands.visitSession(session.id);
         return { session };
       },
     });

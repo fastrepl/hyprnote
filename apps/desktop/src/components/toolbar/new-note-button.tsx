@@ -16,7 +16,7 @@ export function NewNoteButton() {
   const { navigate } = useRouter();
 
   const handleClickNewNote = useCallback(() => {
-    navigate({ to: "/note/new" });
+    navigate({ to: "/app" });
   }, []);
 
   useHotkeys(

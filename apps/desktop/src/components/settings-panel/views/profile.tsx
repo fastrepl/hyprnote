@@ -23,17 +23,22 @@ import {
 const schema = z.object({
   fullName: z.string().min(2).max(50).optional(),
   jobTitle: z.string().min(2).max(50).optional(),
-  companyName: z.string().min(2).max(50).optional(),
-  companyDescription: z.string().min(2).max(50).optional(),
+  companyName: z.string().min(2).max(50),
+  companyDescription: z.string().min(2).max(500).optional(),
   linkedinUserName: z.string().min(2).max(50).optional(),
 });
 
 type Schema = z.infer<typeof schema>;
 
+type ConfigData = {
+  human: Human | null;
+  organization: Organization;
+};
+
 export default function ProfileComponent() {
   const queryClient = useQueryClient();
 
-  const config = useQuery({
+  const config = useQuery<ConfigData>({
     queryKey: ["config", "profile"],
     queryFn: async () => {
       const [human, organization] = await Promise.all([
@@ -66,13 +71,14 @@ export default function ProfileComponent() {
         ...config.data.human!,
         full_name: v.fullName ?? null,
         job_title: v.jobTitle ?? null,
+        email: config.data.human?.email ?? null,
         linkedin_username: v.linkedinUserName ?? null,
       };
 
       const newOrganization: Organization = {
         ...config.data.organization,
-        name: v.companyName ?? "",
-        description: v.companyDescription ?? "",
+        name: v.companyName,
+        description: v.companyDescription ?? null,
       };
 
       try {

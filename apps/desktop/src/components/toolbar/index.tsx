@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "@tanstack/react-router";
 import { type as getOsType } from "@tauri-apps/plugin-os";
 
 import { cn } from "@/utils";
@@ -22,10 +23,12 @@ export default function Toolbar() {
     },
   });
 
-  const { listening: isListening } = useOngoingSession((s) => ({
+  const { listening, session } = useOngoingSession((s) => ({
     listening: s.listening,
     session: s.session,
   }));
+
+  const { pathname } = useLocation();
 
   return (
     <>
@@ -37,7 +40,7 @@ export default function Toolbar() {
         ])}
         data-tauri-drag-region
       >
-        {/* TODO */}
+        {/* TODO: change for windows */}
         <div
           className={cn("w-40", osType.data === "macos" && "pl-[70px]")}
           data-tauri-drag-region
@@ -47,8 +50,7 @@ export default function Toolbar() {
           <BackButton />
         </div>
 
-        {/* Show SessionIndicator when listening and not on the current session's note page */}
-        {isListening && pathname !== `/app/note/${session?.id}` ? (
+        {listening && pathname !== `/app/note/${session?.id}` ? (
           <SessionIndicator />
         ) : (
           <SearchBar />

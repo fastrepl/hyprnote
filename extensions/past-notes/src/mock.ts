@@ -4,7 +4,8 @@ export const mockPastNotes: Session[] = [
   {
     id: "note1",
     user_id: "user123",
-    timestamp: "2025-03-04T04:15:00Z",
+    created_at: "2025-03-04T04:15:00Z",
+    visited_at: "2025-03-04T04:15:00Z",
     calendar_event_id: "event1",
     title: "Weekly Team Sync",
     audio_local_path: "/recordings/team-sync-mar4.mp3",
@@ -19,7 +20,8 @@ export const mockPastNotes: Session[] = [
   {
     id: "note2",
     user_id: "user123",
-    timestamp: "2025-03-03T09:30:00Z",
+    created_at: "2025-03-03T09:30:00Z",
+    visited_at: "2025-03-03T09:30:00Z",
     calendar_event_id: null,
     title: "Product Design Review",
     audio_local_path: null,
@@ -31,7 +33,8 @@ export const mockPastNotes: Session[] = [
   {
     id: "note3",
     user_id: "user123",
-    timestamp: "2025-03-02T15:45:00Z",
+    created_at: "2025-03-02T15:45:00Z",
+    visited_at: "2025-03-02T15:45:00Z",
     calendar_event_id: "event3",
     title: "Client Meeting - ABC Corp",
     audio_local_path: "/recordings/client-abc-mar2.mp3",

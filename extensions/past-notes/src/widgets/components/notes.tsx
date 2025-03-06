@@ -16,7 +16,7 @@ export default function Notes({ notes }: { notes: Session[] }) {
           <h3 className="text-lg font-semibold mb-1">{note.title}</h3>
           <div className="flex gap-2">
             <div className="text-sm text-gray-500">
-              {formatRelativeDate(new Date(note.timestamp))}
+              {formatRelativeDate(new Date(note.created_at))}
             </div>
             <div className="text-sm line-clamp-1 overflow-ellipsis flex-1">
               {parseFirstLine(note.enhanced_memo_html || note.raw_memo_html)}

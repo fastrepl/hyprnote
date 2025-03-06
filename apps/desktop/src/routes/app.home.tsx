@@ -11,7 +11,7 @@ export const Route = createFileRoute("/app/home")({
 function RouteComponent() {
   return (
     <main className="flex h-full flex-col overflow-hidden bg-white">
-      <div className="overflow-y-auto px-8 py-12">
+      <div className="overflow-y-auto sm:px-8 sm:py-12 px-4 py-6">
         <div className="mx-auto max-w-3xl w-full">
           <RecentNotes />
           <WorkspaceCalendar />

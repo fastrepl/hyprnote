@@ -35,7 +35,7 @@ export function NoteHeader({ onNavigateToEditor }: NoteHeaderProps) {
 
   return (
     <>
-      <div className="flex flex-row items-center justify-between pl-8 pr-4 pt-6">
+      <div className="flex flex-row items-center justify-between sm:pl-8 px-4 pt-6">
         <TitleInput
           value={sessionStore.session.title}
           onChange={handleTitleChange}

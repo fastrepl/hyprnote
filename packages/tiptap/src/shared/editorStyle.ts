@@ -4,5 +4,5 @@ export const editorStyle = [
   "prose-p:my-1",
   "prose-headings:font-medium",
   "prose-h1:text-xl prose-h1:font-semibold prose-h1:mt-6 prose-h1:mb-2",
-  "focus:outline-none focus:ring-0 px-8",
+  "focus:outline-none focus:ring-0 sm:px-8 px-4",
 ] as const;

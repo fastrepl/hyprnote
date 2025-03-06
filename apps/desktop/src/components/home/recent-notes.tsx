@@ -25,7 +25,8 @@ export default function RecentNotes() {
 
   return (
     <div className="mb-8 space-y-4">
-      <h2 className="text-2xl font-bold">Recently Opened</h2>
+      <h2 className="text-2xl font-medium">Recently Opened</h2>
+
       <Carousel className="-ml-2">
         <CarouselContent className="px-2">
           {sessions.data?.map((session: any, i) => (

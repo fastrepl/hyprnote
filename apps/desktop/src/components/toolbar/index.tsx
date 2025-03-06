@@ -47,8 +47,12 @@ export default function Toolbar() {
           <BackButton />
         </div>
 
-        {/* TODO: 듣는중인데 현재 route가 노트 페이지이고 그게 현재 세션(session?.id)과 일치한다면 보여줄 필요가 없음 */}
-        {!isListening ? <SearchBar /> : <SessionIndicator />}
+        {/* Show SessionIndicator when listening and not on the current session's note page */}
+        {isListening && pathname !== `/app/note/${session?.id}` ? (
+          <SessionIndicator />
+        ) : (
+          <SearchBar />
+        )}
 
         <div
           className="flex w-40 items-center justify-end gap-1"

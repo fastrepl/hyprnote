@@ -18,11 +18,11 @@ import { commands as dbCommands, type Human, type Tag } from "@hypr/plugin-db";
 
 export default function Chips() {
   return (
-    <div className="-mx-1.5 flex flex-row items-center px-8 pb-4 pt-1">
+    <div className="-mx-1.5 flex flex-row items-center px-8 pb-4 pt-1 overflow-x-auto scrollbar-none whitespace-nowrap">
       <EventChip />
-      <div className="mx-1 h-4 w-px bg-border" />
+      <div className="mx-1 h-4 w-px flex-shrink-0 bg-border" />
       <ParticipantsChip />
-      <div className="mx-1 h-4 w-px bg-border" />
+      <div className="mx-1 h-4 w-px flex-shrink-0 bg-border" />
       <TagChips />
     </div>
   );
@@ -243,17 +243,15 @@ export function TagChips() {
       }}
     >
       <PopoverTrigger>
-        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100">
-          <TagIcon size={14} />
+        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 flex-shrink-0">
+          <TagIcon size={14} className="flex-shrink-0" />
           {selected.length > 0 ? (
-            <div className="flex items-center text-xs">
-              {selected[0].name}
-              {selected.length > 1 && (
-                <span className="ml-1">+{selected.length - 1}</span>
-              )}
-            </div>
+            <span className="truncate text-xs">
+              {selected[0]?.name}
+              {selected.length > 1 && ` +${selected.length - 1}`}
+            </span>
           ) : (
-            <span className="text-xs">Add tags</span>
+            <span className="text-xs truncate">Add tags</span>
           )}
         </div>
       </PopoverTrigger>

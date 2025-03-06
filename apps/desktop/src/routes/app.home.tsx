@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import MyTasks from "@/components/home/my-tasks";
+// import MyTasks from "@/components/home/my-tasks";
 import RecentNotes from "@/components/home/recent-notes";
 import WorkspaceCalendar from "@/components/home/calendar";
 
@@ -15,7 +15,7 @@ function RouteComponent() {
         <div className="mx-auto max-w-3xl">
           <RecentNotes />
           <WorkspaceCalendar />
-          <MyTasks />
+          {/* <MyTasks /> */}
         </div>
       </div>
     </main>

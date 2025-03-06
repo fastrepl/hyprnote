@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   format,
   startOfWeek,
@@ -8,9 +9,10 @@ import {
   isWeekend,
   addWeeks,
 } from "date-fns";
-import { useState } from "react";
+
 import { type Event } from "@hypr/plugin-db";
 import { Switch } from "@hypr/ui/components/ui/switch";
+
 import { DayEvents } from "./day-events";
 import { mockEvents } from "./mock";
 

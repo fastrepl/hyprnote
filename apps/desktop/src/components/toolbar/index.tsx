@@ -1,18 +1,17 @@
 import clsx from "clsx";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation, useParams, useRouterState } from "@tanstack/react-router";
+import { type as getOsType } from "@tauri-apps/plugin-os";
 
+import { cn } from "@/utils";
 import SettingsPanel from "@/components/settings-panel";
 import { NewNoteButton } from "@/components/toolbar/new-note-button";
 import { BackButton } from "@/components/toolbar/back-button";
-import { type as getOsType } from "@tauri-apps/plugin-os";
+import { useOngoingSession } from "@/contexts/ongoing-session";
 
 import { SearchBar, SearchIconButton, SearchPalette } from "../search";
 import { RightPanelButton } from "./right-panel-button";
-import { cn } from "@/utils";
 import { HomeButton } from "./home-button";
 import { LeftSidebarButton } from "./left-sidebar-button";
-import { useOngoingSession } from "@/contexts/ongoing-session";
 import { SessionIndicator } from "./session-indicator";
 
 export default function Toolbar() {
@@ -23,12 +22,10 @@ export default function Toolbar() {
     },
   });
 
-  const { listening: isListening, session } = useOngoingSession((s) => ({
+  const { listening: isListening } = useOngoingSession((s) => ({
     listening: s.listening,
     session: s.session,
   }));
-
-  const { pathname } = useLocation();
 
   return (
     <>

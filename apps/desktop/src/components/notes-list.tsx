@@ -62,7 +62,7 @@ function EventItem({ event }: { event: Event }) {
   return (
     <button
       onClick={handleClick}
-      className="w-full text-left group flex items-start gap-3 py-2 hover:bg-neutral-200 rounded px-2"
+      className="w-full text-left group flex items-start gap-3 py-2 hover:bg-neutral-100 rounded px-2"
     >
       <div className="flex flex-col items-start gap-1">
         <div className="font-medium text-sm line-clamp-1">{event.name}</div>
@@ -111,7 +111,7 @@ function SessionList() {
                   <button
                     key={session.id}
                     onClick={() => handleClickSession(session.id)}
-                    className="w-full text-left group flex items-start gap-3 py-2 hover:bg-neutral-200 rounded px-2"
+                    className="w-full text-left group flex items-start gap-3 py-2 hover:bg-neutral-100 rounded px-2"
                   >
                     <div className="flex flex-col items-start gap-1">
                       <div className="font-medium text-sm">{session.title}</div>

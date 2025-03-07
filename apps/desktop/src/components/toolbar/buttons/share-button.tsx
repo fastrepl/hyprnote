@@ -43,7 +43,7 @@ export function ShareButton() {
               className="hover:bg-neutral-200"
               aria-label="Share"
             >
-              <ShareIcon className="size-4" />
+              <ShareIcon className="size-4 text-neutral-600" />
             </Button>
           </TooltipTrigger>
         </PopoverTrigger>

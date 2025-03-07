@@ -6,6 +6,11 @@ import {
 } from "@hypr/ui/components/ui/popover";
 import AudioIndicator from "./audio-indicator";
 import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@hypr/ui/components/ui/tooltip";
 
 interface ListenButtonProps {
   isListening: boolean;
@@ -25,14 +30,21 @@ export default function ListenButton({
   };
 
   const button = (
-    <Button
-      variant={isListening ? "default" : "outline"}
-      onClick={handleClick}
-      className="p-2"
-    >
-      {isListening ? <Ear size={20} /> : <EarOff size={20} />}
-      {isListening && <AudioIndicator />}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant={isListening ? "default" : "outline"}
+          onClick={handleClick}
+          className="p-2"
+        >
+          {isListening ? <Ear size={20} /> : <EarOff size={20} />}
+          {isListening && <AudioIndicator />}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" align="end">
+        <p>{isListening ? "Stop recording" : "Start recording"}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 
   if (!isListening) {

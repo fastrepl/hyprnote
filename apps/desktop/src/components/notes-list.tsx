@@ -32,7 +32,7 @@ export default function NotesList() {
   });
 
   return (
-    <nav className="h-full overflow-y-auto space-y-6 px-3 py-4">
+    <nav className="h-full overflow-y-auto space-y-6 px-3 pb-4">
       {events.data && events.data.length > 0 && (
         <section>
           <h2 className="font-medium text-neutral-600 mb-2 flex items-center gap-2">
@@ -40,7 +40,7 @@ export default function NotesList() {
             <strong>Upcoming</strong>
           </h2>
 
-          <div className="divide-y divide-neutral-200">
+          <div>
             {events.data.map((event) => (
               <EventItem key={event.id} event={event} />
             ))}
@@ -114,7 +114,7 @@ function SessionList() {
               {formatDateHeader(date)}
             </h2>
 
-            <div className="divide-y divide-neutral-200">
+            <div>
               {sessions.map((session: Session) => {
                 const sessionDate = new Date(session.created_at);
 

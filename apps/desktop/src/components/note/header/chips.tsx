@@ -69,12 +69,12 @@ export function ParticipantsChip() {
   return (
     <Popover>
       <PopoverTrigger>
-        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100">
+        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 text-xs">
           <Users2Icon size={14} />
           {participants.data?.length && participants.data.length > 2 && (
-            <span className="text-xs">
+            <div>
               {participants.data[0].full_name} + {participants.data.length - 1}
-            </span>
+            </div>
           )}
         </div>
       </PopoverTrigger>
@@ -243,15 +243,15 @@ export function TagChips() {
       }}
     >
       <PopoverTrigger>
-        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 flex-shrink-0">
+        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 flex-shrink-0 text-xs">
           <TagIcon size={14} className="flex-shrink-0" />
           {selected.length > 0 ? (
-            <span className="truncate text-xs">
+            <span className="truncate">
               {selected[0]?.name}
               {selected.length > 1 && ` +${selected.length - 1}`}
             </span>
           ) : (
-            <span className="text-xs truncate">Add tags</span>
+            <span className="truncate">Add tags</span>
           )}
         </div>
       </PopoverTrigger>

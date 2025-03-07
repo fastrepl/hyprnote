@@ -6,6 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@hypr/ui/components/ui/tooltip";
+import Shortcut from "../shortcut";
 
 export function RightPanelButton() {
   const { isExpanded, togglePanel } = useRightPanel();
@@ -25,7 +26,10 @@ export function RightPanelButton() {
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        <p>Toggle right panel (⌘R)</p>
+        <p>
+          Toggle right panel{" "}
+          <Shortcut macDisplay="⌘R" windowsDisplay="Ctrl+R" />
+        </p>
       </TooltipContent>
     </Tooltip>
   );

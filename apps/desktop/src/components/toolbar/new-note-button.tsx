@@ -1,8 +1,6 @@
 import { useCallback } from "react";
-import { Trans } from "@lingui/react/macro";
 import { useRouter } from "@tanstack/react-router";
-import clsx from "clsx";
-import { PenIcon } from "lucide-react";
+import { SquarePenIcon } from "lucide-react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -11,6 +9,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@hypr/ui/components/ui/tooltip";
+import Shortcut from "../shortcut";
 
 export function NewNoteButton() {
   const { navigate } = useRouter();
@@ -29,38 +28,23 @@ export function NewNoteButton() {
   );
 
   return (
-    <>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className={clsx("hidden sm:block", "text-xs")}
-            onClick={handleClickNewNote}
-          >
-            <Trans>New Note</Trans>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Create new note (⌘N)</p>
-        </TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hover:bg-neutral-200 sm:hidden"
-            onClick={handleClickNewNote}
-            aria-label="New Note"
-          >
-            <PenIcon className="size-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Create new note (⌘N)</p>
-        </TooltipContent>
-      </Tooltip>
-    </>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="hover:bg-neutral-200"
+          onClick={handleClickNewNote}
+          aria-label="New Note"
+        >
+          <SquarePenIcon className="size-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>
+          Create new note <Shortcut macDisplay="⌘N" windowsDisplay="Ctrl+N" />
+        </p>
+      </TooltipContent>
+    </Tooltip>
   );
 }

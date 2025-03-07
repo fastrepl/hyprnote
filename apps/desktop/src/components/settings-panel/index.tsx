@@ -21,6 +21,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@hypr/ui/components/ui/tooltip";
+import Shortcut from "../shortcut";
 import ExtensionsComponent from "./views/extensions";
 
 export default function SettingsPanel() {
@@ -76,7 +77,7 @@ export default function SettingsPanel() {
           <Button
             variant="ghost"
             size="icon"
-            className="hover:bg-neutral-200"
+            className="hover:bg-neutral-200 hidden sm:block"
             onClick={() => setOpen(true)}
             aria-label="Settings"
           >
@@ -84,7 +85,10 @@ export default function SettingsPanel() {
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Open settings panel (⌘,)</p>
+          <p>
+            Open settings panel{" "}
+            <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
+          </p>
         </TooltipContent>
       </Tooltip>
 

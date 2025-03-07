@@ -1,12 +1,7 @@
 import clsx from "clsx";
-import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "@tanstack/react-router";
-import { type as getOsType } from "@tauri-apps/plugin-os";
-
-import { cn } from "@/utils";
 import SettingsPanel from "@/components/settings-panel";
 import { NewNoteButton } from "@/components/toolbar/new-note-button";
-import { BackButton } from "@/components/toolbar/back-button";
 import { useOngoingSession } from "@/contexts/ongoing-session";
 
 import { SearchBar, SearchIconButton, SearchPalette } from "../search";
@@ -16,52 +11,42 @@ import { LeftSidebarButton } from "./left-sidebar-button";
 import { SessionIndicator } from "./session-indicator";
 
 export default function Toolbar() {
-  const osType = useQuery({
-    queryKey: ["osType"],
-    queryFn: async () => {
-      return getOsType();
-    },
-  });
-
   const { listening, session } = useOngoingSession((s) => ({
     listening: s.listening,
     session: s.session,
   }));
 
   const { pathname } = useLocation();
+  const inMeetingAndNotInNote =
+    listening && session !== null && pathname !== `/app/note/${session.id}`;
 
   return (
     <>
       <header
         className={clsx([
           "flex w-full items-center justify-between",
-          "border-b border-border bg-neutral-100",
+          "border-b border-border bg-neutral-50",
           "min-h-11 p-1 px-2",
         ])}
         data-tauri-drag-region
       >
-        {/* TODO: change for windows */}
-        <div
-          className={cn("w-40", osType.data === "macos" && "pl-[70px]")}
-          data-tauri-drag-region
-        >
-          <LeftSidebarButton />
+        <div className="w-40 flex items-center" data-tauri-drag-region>
+          <LeftSidebarButton type="toolbar" />
           <HomeButton />
-          <BackButton />
+          <NewNoteButton />
         </div>
 
-        {listening && pathname !== `/app/note/${session?.id}` ? (
-          <SessionIndicator />
+        {inMeetingAndNotInNote ? (
+          <SessionIndicator sessionId={session.id} />
         ) : (
           <SearchBar />
         )}
 
         <div
-          className="flex w-40 items-center justify-end gap-1"
+          className="flex w-40 items-center justify-end"
           data-tauri-drag-region
         >
-          <SearchIconButton />
-          <NewNoteButton />
+          <SearchIconButton isShown={inMeetingAndNotInNote} />
           <RightPanelButton />
           <SettingsPanel />
         </div>

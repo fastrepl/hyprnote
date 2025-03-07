@@ -15,7 +15,6 @@ import ProfileComponent from "./views/profile";
 import { SettingsSidebar } from "./sidebar";
 import type { NavNames } from "./types";
 import { commands as dbCommands, type Template } from "@hypr/plugin-db";
-import { useHotkeys } from "react-hotkeys-hook";
 import {
   Tooltip,
   TooltipTrigger,
@@ -23,9 +22,10 @@ import {
 } from "@hypr/ui/components/ui/tooltip";
 import Shortcut from "../shortcut";
 import ExtensionsComponent from "./views/extensions";
+import { useSettingsPanel } from "@/contexts/settings-panel";
 
 export default function SettingsPanel() {
-  const [open, setOpen] = useState(false);
+  const { isOpen, open, close } = useSettingsPanel();
   const [active, setActive] = useState<NavNames | "Profile">("General");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
@@ -55,20 +55,11 @@ export default function SettingsPanel() {
     setSelectedTemplate(template);
   };
 
-  useHotkeys(
-    "mod+,",
-    (event) => {
-      event.preventDefault();
-      setOpen((prev) => !prev);
-    },
-    { enableOnFormTags: true },
-  );
-
   useEffect(() => {
-    if (!open) {
+    if (!isOpen) {
       setActive("General");
     }
-  }, [open, active]);
+  }, [isOpen, active]);
 
   return (
     <>
@@ -77,9 +68,9 @@ export default function SettingsPanel() {
           <Button
             variant="ghost"
             size="icon"
-            className="hover:bg-neutral-200 hidden sm:block"
-            onClick={() => setOpen(true)}
+            onClick={open}
             aria-label="Settings"
+            className=" hover:bg-neutral-200"
           >
             <SettingsIcon className="h-4 w-4" />
           </Button>
@@ -92,7 +83,7 @@ export default function SettingsPanel() {
         </TooltipContent>
       </Tooltip>
 
-      <Modal open={open} onClose={() => setOpen(false)} size="full">
+      <Modal open={isOpen} onClose={close} size="full">
         <ModalBody className="p-0">
           <div className="flex h-full w-full gap-0 overflow-clip">
             <SettingsSidebar

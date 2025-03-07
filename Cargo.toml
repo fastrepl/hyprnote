@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["apps/app/server", "apps/desktop/src-tauri", "crates/*", "plugins/*"]
+members = ["apps/app/server", "apps/desktop/src-tauri", "apps/mobile/src-tauri", "crates/*", "plugins/*"]
 
 [workspace.dependencies]
 tauri = "2.1.1"

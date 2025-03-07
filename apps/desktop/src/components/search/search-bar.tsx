@@ -1,10 +1,10 @@
 import clsx from "clsx";
 import { SearchIcon } from "lucide-react";
-import { useSearchStore } from "@/stores/use-search-store";
+import { useSearchPalette } from "@/contexts/search-palette";
 import Shortcut from "../shortcut";
 
 export function SearchBar() {
-  const { open } = useSearchStore();
+  const { open } = useSearchPalette();
 
   return (
     <button

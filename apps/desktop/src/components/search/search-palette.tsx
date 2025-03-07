@@ -1,5 +1,3 @@
-import { useHotkeys } from "react-hotkeys-hook";
-
 import {
   CommandDialog,
   CommandEmpty,
@@ -9,21 +7,12 @@ import {
   CommandList,
   CommandSeparator,
 } from "@hypr/ui/components/ui/command";
-import { useSearchStore } from "@/stores/use-search-store";
 import { Building, Laptop, Users2 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
+import { useSearchPalette } from "@/contexts/search-palette";
 
 export function SearchPalette() {
-  const { isOpen, toggle } = useSearchStore();
-
-  useHotkeys(
-    "mod+k",
-    (event) => {
-      event.preventDefault();
-      toggle();
-    },
-    { enableOnFormTags: true },
-  );
+  const { isOpen, toggle } = useSearchPalette();
 
   return (
     <CommandDialog open={isOpen} onOpenChange={toggle}>

@@ -1,11 +1,11 @@
 import { SearchIcon } from "lucide-react";
 import { Button } from "@hypr/ui/components/ui/button";
 
-import { useSearchStore } from "@/stores/use-search-store";
 import { cn } from "@/utils";
+import { useSearchPalette } from "@/contexts/search-palette";
 
 export function SearchIconButton({ isShown }: { isShown: boolean }) {
-  const { open } = useSearchStore();
+  const { open } = useSearchPalette();
 
   return (
     <Button

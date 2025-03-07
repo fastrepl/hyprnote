@@ -88,13 +88,10 @@ export default function ProfileComponent() {
         console.error("error upserting human or organization", error);
       }
     },
-  });
-
-  useEffect(() => {
-    if (mutation.status === "success") {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["config", "profile"] });
-    }
-  }, [mutation.status]);
+    },
+  });
 
   useEffect(() => {
     const subscription = form.watch(() =>

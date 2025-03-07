@@ -28,7 +28,6 @@ i18n.activate("en");
 import "@hypr/ui/globals.css";
 import "./styles/globals.css";
 
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

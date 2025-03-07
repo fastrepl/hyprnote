@@ -64,13 +64,10 @@ export default function NotificationsComponent() {
         console.error(e);
       }
     },
-  });
-
-  useEffect(() => {
-    if (mutation.status === "success") {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["config", "notifications"] });
-    }
-  }, [mutation.status]);
+    },
+  });
 
   useEffect(() => {
     const subscription = form.watch(() =>

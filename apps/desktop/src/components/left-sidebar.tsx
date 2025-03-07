@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { useLeftSidebar } from "@/contexts/left-sidebar";
 import NotesList from "./notes-list";
+import { LeftSidebarButton } from "./toolbar/left-sidebar-button";
 
 export default function LeftSidebar() {
   const { isExpanded } = useLeftSidebar();
@@ -10,9 +11,15 @@ export default function LeftSidebar() {
       layout
       initial={{ width: isExpanded ? 240 : 0 }}
       animate={{ width: isExpanded ? 240 : 0 }}
-      className="h-full overflow-y-auto border-r bg-neutral-50"
+      className="h-full flex flex-col overflow-hidden border-r bg-neutral-100"
     >
-      <NotesList />
+      <div className="flex items-center justify-end min-h-11 px-2">
+        <LeftSidebarButton type="sidebar" />
+      </div>
+
+      <div className="flex-1 h-full overflow-y-auto">
+        <NotesList />
+      </div>
     </motion.div>
   );
 }

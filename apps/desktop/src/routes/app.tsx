@@ -27,14 +27,16 @@ function Component() {
       <OngoingSessionProvider>
         <LeftSidebarProvider>
           <RightPanelProvider>
-            <div className="flex h-screen w-screen flex-col overflow-hidden">
-              <Toolbar />
-              <div className="flex h-full overflow-hidden bg-white">
-                <LeftSidebar />
-                <div className="flex-1">
-                  <Outlet />
+            <div className="flex h-screen w-screen overflow-hidden">
+              <LeftSidebar />
+              <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
+                <Toolbar />
+                <div className="flex h-full overflow-hidden bg-white">
+                  <div className="flex-1">
+                    <Outlet />
+                  </div>
+                  <RightPanel />
                 </div>
-                <RightPanel />
               </div>
             </div>
           </RightPanelProvider>

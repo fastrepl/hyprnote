@@ -3,8 +3,9 @@ resolver = "2"
 members = ["apps/app/server", "apps/desktop/src-tauri", "apps/mobile/src-tauri", "crates/*", "plugins/*"]
 
 [workspace.dependencies]
-tauri = "2.1.1"
-tauri-plugin = "2.0.3"
+tauri = "2"
+tauri-build = "2"
+tauri-plugin = "2"
 
 async-stream = "0.3.6"
 futures-channel = "0.3.31"

@@ -25,6 +25,7 @@
     "**/dist",
     "**/target",
     "**/public",
+    "**/gen/**",
     "**/generated/**",
     "**/permissions/**"
   ],

@@ -1,0 +1,484 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0C7DB11BD56287D656FFC573 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0052FC530EC8CD87340968F8 /* Metal.framework */; };
+		177FDD2546F536D94E894D9B /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A716C4F188EFD18493DF7DF /* Security.framework */; };
+		1FA89FA26162950F546D2BF8 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7065096AD865A92E7731CC6C /* WebKit.framework */; };
+		490A20822F73477D41F059F4 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E8B63E6ACF2C1263D0E2C1B /* CoreGraphics.framework */; };
+		52C1CB172C184A99D4A5B25A /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D85ACDF3D6DCC13D7B7587C5 /* UIKit.framework */; };
+		68C1DC93763C27E6E502A029 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B11332B799CB255B4456D30 /* QuartzCore.framework */; };
+		7C0E5045EC6E68F367ABD3C6 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F8405B767AED3AB59234FEF /* MetalKit.framework */; };
+		91EBE8EB220202B4F5174ED7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F743357502D6D6CE09A9A369 /* LaunchScreen.storyboard */; };
+		B71BA4E5A8F4A65B07F9CCBC /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C2AFFD36603823DC7243C685 /* libapp.a */; };
+		CBF23D2B08EA36ED7D9525E5 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 705459F243B165FF5F1BA465 /* main.mm */; };
+		E4AEDBFA68D59FE8739FAC6C /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 68C0E26C4FA8A8A71B993C1D /* assets */; };
+		FC5DF2B55A3C1D483F1FD4AE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 227210D4C98E3D538C7F48A5 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0052FC530EC8CD87340968F8 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		0B11332B799CB255B4456D30 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		227210D4C98E3D538C7F48A5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4E8B63E6ACF2C1263D0E2C1B /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		4F8E3CBE6A993BABC51A6AE6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		53975C5822B0DF6F2489C289 /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
+		5A716C4F188EFD18493DF7DF /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		68C0E26C4FA8A8A71B993C1D /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = SOURCE_ROOT; };
+		705459F243B165FF5F1BA465 /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		7065096AD865A92E7731CC6C /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		8063FD18AE72DD15E555AFBD /* hyprnote-mobile_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "hyprnote-mobile_iOS.entitlements"; sourceTree = "<group>"; };
+		8F8405B767AED3AB59234FEF /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		AAD19698DBCDFB1F1432E459 /* bindings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bindings.h; sourceTree = "<group>"; };
+		AE3A1657FC29A4A2030CC831 /* hyprnote-mobile_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "hyprnote-mobile_iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B7B330B96F9DDEB270519201 /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
+		C2AFFD36603823DC7243C685 /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
+		D85ACDF3D6DCC13D7B7587C5 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		F743357502D6D6CE09A9A369 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F22204F6075FA0F16473C2E8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B71BA4E5A8F4A65B07F9CCBC /* libapp.a in Frameworks */,
+				490A20822F73477D41F059F4 /* CoreGraphics.framework in Frameworks */,
+				0C7DB11BD56287D656FFC573 /* Metal.framework in Frameworks */,
+				7C0E5045EC6E68F367ABD3C6 /* MetalKit.framework in Frameworks */,
+				68C1DC93763C27E6E502A029 /* QuartzCore.framework in Frameworks */,
+				177FDD2546F536D94E894D9B /* Security.framework in Frameworks */,
+				52C1CB172C184A99D4A5B25A /* UIKit.framework in Frameworks */,
+				1FA89FA26162950F546D2BF8 /* WebKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		136668D5BCDD2D8E341F94EB /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4E8B63E6ACF2C1263D0E2C1B /* CoreGraphics.framework */,
+				C2AFFD36603823DC7243C685 /* libapp.a */,
+				0052FC530EC8CD87340968F8 /* Metal.framework */,
+				8F8405B767AED3AB59234FEF /* MetalKit.framework */,
+				0B11332B799CB255B4456D30 /* QuartzCore.framework */,
+				5A716C4F188EFD18493DF7DF /* Security.framework */,
+				D85ACDF3D6DCC13D7B7587C5 /* UIKit.framework */,
+				7065096AD865A92E7731CC6C /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		3D683BB696352118118EDA6D /* src */ = {
+			isa = PBXGroup;
+			children = (
+				B7B330B96F9DDEB270519201 /* lib.rs */,
+				53975C5822B0DF6F2489C289 /* main.rs */,
+			);
+			name = src;
+			path = ../../src;
+			sourceTree = "<group>";
+		};
+		3DAFA65328021D47F351ABF2 = {
+			isa = PBXGroup;
+			children = (
+				68C0E26C4FA8A8A71B993C1D /* assets */,
+				227210D4C98E3D538C7F48A5 /* Assets.xcassets */,
+				F743357502D6D6CE09A9A369 /* LaunchScreen.storyboard */,
+				D45F2FFBE3CBA0DF3B88346A /* Externals */,
+				6CB7177146A2552741534450 /* hyprnote-mobile_iOS */,
+				EE567D05E2B157A74256D39A /* Sources */,
+				3D683BB696352118118EDA6D /* src */,
+				136668D5BCDD2D8E341F94EB /* Frameworks */,
+				48B244DD952E2318C6F5B138 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		48B244DD952E2318C6F5B138 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AE3A1657FC29A4A2030CC831 /* hyprnote-mobile_iOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6CB7177146A2552741534450 /* hyprnote-mobile_iOS */ = {
+			isa = PBXGroup;
+			children = (
+				8063FD18AE72DD15E555AFBD /* hyprnote-mobile_iOS.entitlements */,
+				4F8E3CBE6A993BABC51A6AE6 /* Info.plist */,
+			);
+			path = "hyprnote-mobile_iOS";
+			sourceTree = "<group>";
+		};
+		800FDF61F16526C7F42F0452 /* hyprnote-mobile */ = {
+			isa = PBXGroup;
+			children = (
+				705459F243B165FF5F1BA465 /* main.mm */,
+				C497241CA23B64757748B75A /* bindings */,
+			);
+			path = "hyprnote-mobile";
+			sourceTree = "<group>";
+		};
+		C497241CA23B64757748B75A /* bindings */ = {
+			isa = PBXGroup;
+			children = (
+				AAD19698DBCDFB1F1432E459 /* bindings.h */,
+			);
+			path = bindings;
+			sourceTree = "<group>";
+		};
+		D45F2FFBE3CBA0DF3B88346A /* Externals */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Externals;
+			sourceTree = "<group>";
+		};
+		EE567D05E2B157A74256D39A /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				800FDF61F16526C7F42F0452 /* hyprnote-mobile */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		"TEMP_48A078E6-6F9B-4F30-82FA-D653C7267416" /* arm64-sim */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "arm64-sim";
+			sourceTree = "<group>";
+		};
+		"TEMP_A3C84EE1-CADF-479B-B631-D01EF7E1BFB5" /* arm64 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = arm64;
+			sourceTree = "<group>";
+		};
+		"TEMP_BE8DA6B9-8342-45C0-A0B5-CE74CD60B28D" /* x86_64 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = x86_64;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		96272851D1B42911128BBC57 /* hyprnote-mobile_iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 45ACA27EB9AF91253E188DE4 /* Build configuration list for PBXNativeTarget "hyprnote-mobile_iOS" */;
+			buildPhases = (
+				C8273EF88B65D45F8BB6C77B /* Build Rust Code */,
+				CF08FA9FE8C7C43AC7AFEB9F /* Sources */,
+				091F074329B80CED71372737 /* Resources */,
+				F22204F6075FA0F16473C2E8 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "hyprnote-mobile_iOS";
+			productName = "hyprnote-mobile_iOS";
+			productReference = AE3A1657FC29A4A2030CC831 /* hyprnote-mobile_iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E798DBEE56C311311B00BDC2 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = FD8266D90602A2AF68EE5B65 /* Build configuration list for PBXProject "hyprnote-mobile" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 3DAFA65328021D47F351ABF2;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				96272851D1B42911128BBC57 /* hyprnote-mobile_iOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		091F074329B80CED71372737 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FC5DF2B55A3C1D483F1FD4AE /* Assets.xcassets in Resources */,
+				91EBE8EB220202B4F5174ED7 /* LaunchScreen.storyboard in Resources */,
+				E4AEDBFA68D59FE8739FAC6C /* assets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C8273EF88B65D45F8BB6C77B /* Build Rust Code */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build Rust Code";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Externals/x86_64/${CONFIGURATION}/libapp.a",
+				"$(SRCROOT)/Externals/arm64/${CONFIGURATION}/libapp.a",
+				"$(SRCROOT)/Externals/arm64-sim/${CONFIGURATION}/libapp.a",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "pnpm tauri ios xcode-script -v --platform ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?} --framework-search-paths \"${FRAMEWORK_SEARCH_PATHS:?}\" --header-search-paths \"${HEADER_SEARCH_PATHS:?}\" --gcc-preprocessor-definitions \"${GCC_PREPROCESSOR_DEFINITIONS:-}\" --configuration ${CONFIGURATION:?} ${FORCE_COLOR} ${ARCHS:?}";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CF08FA9FE8C7C43AC7AFEB9F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CBF23D2B08EA36ED7D9525E5 /* main.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		280E00F5EC774749970ED057 /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = debug;
+		};
+		930403DE3CB2D4D2B8E582C9 /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = release;
+		};
+		B8C8D0A453EA14CD1EA9C02C /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+					"arm64-sim",
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "hyprnote-mobile_iOS/hyprnote-mobile_iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = "arm64-sim x86_64";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = "hyprnote-mobile_iOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64-sim]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64-sim/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.fastrepl.hyprnote-mobile";
+				PRODUCT_NAME = "hyprnote-mobile";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64  arm64-sim";
+			};
+			name = debug;
+		};
+		C5661553B077AC1B91928A3E /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+					"arm64-sim",
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "hyprnote-mobile_iOS/hyprnote-mobile_iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = "arm64-sim x86_64";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = "hyprnote-mobile_iOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64-sim]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64-sim/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.fastrepl.hyprnote-mobile";
+				PRODUCT_NAME = "hyprnote-mobile";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64  arm64-sim";
+			};
+			name = release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		45ACA27EB9AF91253E188DE4 /* Build configuration list for PBXNativeTarget "hyprnote-mobile_iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B8C8D0A453EA14CD1EA9C02C /* debug */,
+				C5661553B077AC1B91928A3E /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+		FD8266D90602A2AF68EE5B65 /* Build configuration list for PBXProject "hyprnote-mobile" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				280E00F5EC774749970ED057 /* debug */,
+				930403DE3CB2D4D2B8E582C9 /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E798DBEE56C311311B00BDC2 /* Project object */;
+}

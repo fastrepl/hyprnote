@@ -9,23 +9,11 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@hypr/ui/components/ui/tooltip";
+import { useNewNote } from "@/contexts/new-note";
 import Shortcut from "../../shortcut";
 
 export function NewNoteButton() {
-  const { navigate } = useRouter();
-
-  const handleClickNewNote = useCallback(() => {
-    navigate({ to: "/app" });
-  }, []);
-
-  useHotkeys(
-    "mod+n",
-    (event) => {
-      event.preventDefault();
-      handleClickNewNote();
-    },
-    { enableOnFormTags: true },
-  );
+  const { createNewNote } = useNewNote();
 
   return (
     <Tooltip>
@@ -34,7 +22,7 @@ export function NewNoteButton() {
           variant="ghost"
           size="icon"
           className="hover:bg-neutral-200"
-          onClick={handleClickNewNote}
+          onClick={createNewNote}
           aria-label="New Note"
         >
           <SquarePenIcon className="size-4" />

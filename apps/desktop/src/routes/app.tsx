@@ -7,6 +7,9 @@ import { RightPanelProvider } from "@/contexts/right-panel";
 import { HyprProvider } from "@/contexts/hypr";
 import { OngoingSessionProvider } from "@/contexts/ongoing-session";
 import { LeftSidebarProvider } from "@/contexts/left-sidebar";
+import { SearchProvider } from "@/contexts/search-palette";
+import { SettingsPanelProvider } from "@/contexts/settings-panel";
+import { NewNoteProvider } from "@/contexts/new-note";
 import RightPanel from "@/components/note/right-panel";
 import LeftSidebar from "@/components/left-sidebar";
 
@@ -27,18 +30,24 @@ function Component() {
       <OngoingSessionProvider>
         <LeftSidebarProvider>
           <RightPanelProvider>
-            <div className="flex h-screen w-screen overflow-hidden">
-              <LeftSidebar />
-              <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
-                <Toolbar />
-                <div className="flex h-full overflow-hidden bg-white">
-                  <div className="flex-1">
-                    <Outlet />
+            <SearchProvider>
+              <SettingsPanelProvider>
+                <NewNoteProvider>
+                  <div className="flex h-screen w-screen overflow-hidden">
+                    <LeftSidebar />
+                    <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
+                      <Toolbar />
+                      <div className="flex h-full overflow-hidden bg-white">
+                        <div className="flex-1">
+                          <Outlet />
+                        </div>
+                        <RightPanel />
+                      </div>
+                    </div>
                   </div>
-                  <RightPanel />
-                </div>
-              </div>
-            </div>
+                </NewNoteProvider>
+              </SettingsPanelProvider>
+            </SearchProvider>
           </RightPanelProvider>
         </LeftSidebarProvider>
       </OngoingSessionProvider>

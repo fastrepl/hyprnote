@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import { useLeftSidebar } from "@/contexts/left-sidebar";
 import NotesList from "./notes-list";
-import { LeftSidebarButton } from "./toolbar/left-sidebar-button";
+import { LeftSidebarButton } from "./toolbar/buttons/left-sidebar-button";
 
 export default function LeftSidebar() {
   const { isExpanded } = useLeftSidebar();

@@ -8,7 +8,7 @@ import {
 } from "@hypr/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import { type as getOsType } from "@tauri-apps/plugin-os";
-import Shortcut from "../shortcut";
+import Shortcut from "../../shortcut";
 
 export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
   const osType = useQuery({

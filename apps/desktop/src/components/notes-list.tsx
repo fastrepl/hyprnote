@@ -125,7 +125,9 @@ function SessionList() {
                     className="w-full text-left group flex items-start gap-3 py-2 hover:bg-neutral-100 rounded px-2"
                   >
                     <div className="flex flex-col items-start gap-1">
-                      <div className="font-medium text-sm">{session.title}</div>
+                      <div className="font-medium text-sm">
+                        {session.title || "Untitled"}
+                      </div>
                       <div className="flex items-center gap-2 text-xs text-neutral-500">
                         <span>{format(sessionDate, "M/d/yy")}</span>
                       </div>

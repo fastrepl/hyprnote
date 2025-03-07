@@ -6,7 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@hypr/ui/components/ui/tooltip";
-import Shortcut from "../shortcut";
+import Shortcut from "../../shortcut";
 
 export function RightPanelButton() {
   const { isExpanded, togglePanel } = useRightPanel();

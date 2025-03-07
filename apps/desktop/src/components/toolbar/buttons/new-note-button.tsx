@@ -9,7 +9,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@hypr/ui/components/ui/tooltip";
-import Shortcut from "../shortcut";
+import Shortcut from "../../shortcut";
 
 export function NewNoteButton() {
   const { navigate } = useRouter();

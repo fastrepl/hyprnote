@@ -1,14 +1,15 @@
 import clsx from "clsx";
 import { useLocation } from "@tanstack/react-router";
 import SettingsPanel from "@/components/settings-panel";
-import { NewNoteButton } from "@/components/toolbar/new-note-button";
+import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
 import { useOngoingSession } from "@/contexts/ongoing-session";
 
 import { SearchBar, SearchIconButton, SearchPalette } from "../search";
-import { RightPanelButton } from "./right-panel-button";
-import { HomeButton } from "./home-button";
-import { LeftSidebarButton } from "./left-sidebar-button";
+import { RightPanelButton } from "./buttons/right-panel-button";
+import { HomeButton } from "./buttons/home-button";
+import { LeftSidebarButton } from "./buttons/left-sidebar-button";
 import { SessionIndicator } from "./session-indicator";
+import { ShareButton } from "./buttons/share-button";
 
 export default function Toolbar() {
   const { listening, session } = useOngoingSession((s) => ({
@@ -47,6 +48,7 @@ export default function Toolbar() {
           data-tauri-drag-region
         >
           <SearchIconButton isShown={inMeetingAndNotInNote} />
+          <ShareButton />
           <RightPanelButton />
           <SettingsPanel />
         </div>

@@ -62,10 +62,10 @@ export function ShareButton() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="hover:bg-neutral-100 rounded"
+                  className="hover:bg-neutral-200"
                   aria-label="Share"
                 >
-                  <ShareIcon className="size-4 text-neutral-600" />
+                  <ShareIcon className="size-4" />
                 </Button>
               </TooltipTrigger>
             </PopoverTrigger>

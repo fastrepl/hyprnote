@@ -15,7 +15,7 @@ export const ParticipantsSelector = ({
 }: ParticipantsSelectorProps) => (
   <>
     <div
-      className="flex items-center justify-between hover:bg-neutral-200 rounded-lg -mx-2 px-2 py-1 cursor-pointer"
+      className="flex items-center justify-between hover:bg-neutral-200 min-h-11 rounded-lg -mx-2 px-2 py-1 cursor-pointer"
       onClick={onToggle}
       role="button"
       tabIndex={0}

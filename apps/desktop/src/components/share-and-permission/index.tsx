@@ -11,6 +11,8 @@ import { InviteList } from "./invite-list";
 import { ParticipantsSelector } from "./participants-selector";
 import { GeneralAccessSelector } from "./general-access-selector";
 import { PublishTab } from "./publish-tab";
+import { Button } from "@hypr/ui/components/ui/button";
+import { LinkIcon } from "lucide-react";
 
 export * from "./invited-user";
 export * from "./invite-list";
@@ -50,7 +52,10 @@ export default function ShareAndPermissionPanel({
   };
 
   return (
-    <Tabs defaultValue="share" className="w-full focus:outline-none focus:ring-0">
+    <Tabs
+      defaultValue="share"
+      className="w-full focus:outline-none focus:ring-0"
+    >
       <TabsList className="w-full h-fit p-0 bg-transparent rounded-none focus:outline-none focus:ring-0">
         <TabsTrigger
           value="share"
@@ -67,29 +72,39 @@ export default function ShareAndPermissionPanel({
       </TabsList>
 
       <div className="p-4">
-        <TabsContent value="share" className="mt-0 focus:outline-none focus:ring-0">
-          <div className="flex flex-col gap-4">
+        <TabsContent
+          value="share"
+          className="mt-0 focus:outline-none focus:ring-0"
+        >
+          <div className="flex flex-col gap-2">
             <InviteList
               email={email}
               setEmail={setEmail}
               currentUser={currentUser}
             />
 
-            <div className="space-y-3">
-              <ParticipantsSelector
-                expanded={expandedGroups.includes("participants")}
-                onToggle={() => toggleGroup("participants")}
-                participants={participants}
-              />
+            <ParticipantsSelector
+              expanded={expandedGroups.includes("participants")}
+              onToggle={() => toggleGroup("participants")}
+              participants={participants}
+            />
 
-              <GeneralAccessSelector
-                expanded={expandedGroups.includes("general")}
-                onToggle={() => toggleGroup("general")}
-              />
-            </div>
+            <div className="h-px bg-neutral-200"></div>
+
+            <GeneralAccessSelector
+              expanded={expandedGroups.includes("general")}
+              onToggle={() => toggleGroup("general")}
+            />
+
+            <Button>
+              <LinkIcon className="size-4" /> Copy link
+            </Button>
           </div>
         </TabsContent>
-        <TabsContent value="publish" className="mt-0 focus:outline-none focus:ring-0">
+        <TabsContent
+          value="publish"
+          className="mt-0 focus:outline-none focus:ring-0"
+        >
           <PublishTab session={session} />
         </TabsContent>
       </div>

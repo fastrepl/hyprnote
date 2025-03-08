@@ -1,77 +1,102 @@
 import { Button } from "@hypr/ui/components/ui/button";
-import { Building2, ChevronDown, ChevronRight, FolderIcon, LinkIcon, LockIcon } from "lucide-react";
+import { useState } from "react";
+import {
+  BuildingIcon,
+  ChevronDown,
+  ChevronRight,
+  FolderIcon,
+  LockIcon,
+} from "lucide-react";
+import { cn } from "@hypr/ui/lib/utils";
 
 export interface GeneralAccessSelectorProps {
   expanded: boolean;
   onToggle: () => void;
 }
 
+type AccessType = {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+};
+
+const accessTypes: Record<string, AccessType> = {
+  invited: {
+    icon: <LockIcon className="size-4 text-neutral-600" />,
+    title: "Invited Only",
+    description: "Only invited people can access",
+  },
+  folder: {
+    icon: <FolderIcon className="size-4 text-neutral-600" />,
+    title: "Folder Members",
+    description: "+ Authorized personnels can access",
+  },
+  workspace: {
+    icon: <BuildingIcon className="size-4 text-neutral-600" />,
+    title: "All Workspace Members",
+    description: "+ Everyone in the workspace can access",
+  },
+} as const;
+
 export const GeneralAccessSelector = ({
   expanded,
   onToggle,
-}: GeneralAccessSelectorProps) => (
-  <>
-    <div
-      className="flex items-center justify-between hover:bg-neutral-200 rounded-lg -mx-2 px-2 py-1 cursor-pointer"
-      onClick={onToggle}
-      role="button"
-      tabIndex={0}
-    >
-      <div className="flex items-center gap-3">
-        <div className="size-8 rounded-lg bg-neutral-100 flex items-center justify-center">
-          <Building2 className="size-4 text-neutral-600" />
-        </div>
-        <div>
-          <div className="text-sm font-medium">General Access</div>
-          <div className="text-xs text-neutral-600">
-            Anyone with the link can view
+}: GeneralAccessSelectorProps) => {
+  const [selectedAccess, setSelectedAccess] =
+    useState<keyof typeof accessTypes>("invited");
+
+  return (
+    <>
+      <div
+        className="flex items-center justify-between hover:bg-neutral-200 min-h-11 rounded-lg -mx-2 px-2 py-1 cursor-pointer"
+        onClick={onToggle}
+        role="button"
+        tabIndex={0}
+      >
+        <div className="flex items-center gap-3">
+          <div className="size-8 rounded-lg bg-neutral-100 flex items-center justify-center">
+            {accessTypes[selectedAccess].icon}
+          </div>
+
+          <div className="text-sm font-medium">
+            {accessTypes[selectedAccess].title}
           </div>
         </div>
+        <Button variant="ghost" size="icon" className="hover:bg-transparent">
+          {expanded ? (
+            <ChevronDown className="size-4 text-neutral-600" />
+          ) : (
+            <ChevronRight className="size-4 text-neutral-600" />
+          )}
+        </Button>
       </div>
-      <Button variant="ghost" size="icon" className="hover:bg-transparent">
-        {expanded ? (
-          <ChevronDown className="size-4 text-neutral-600" />
-        ) : (
-          <ChevronRight className="size-4 text-neutral-600" />
-        )}
-      </Button>
-    </div>
-    {expanded && (
-      <div className="pl-2 space-y-3">
-        <div className="flex items-center gap-3 hover:bg-neutral-100 rounded-lg px-2 py-1 cursor-pointer">
-          <div className="size-8 rounded-lg bg-neutral-100 flex items-center justify-center">
-            <LockIcon className="size-4 text-neutral-600" />
-          </div>
-          <div>
-            <div className="text-sm font-medium">Restricted</div>
-            <div className="text-xs text-neutral-600">
-              Only invited people can access
-            </div>
-          </div>
+      {expanded && (
+        <div className="pl-2 space-y-3">
+          {Object.entries(accessTypes).map(
+            ([key, { icon, title, description }]) => (
+              <div
+                key={key}
+                className={cn(
+                  "flex items-center gap-3 hover:bg-neutral-200 rounded-lg -mx-2 px-2 py-1 cursor-pointer",
+                  selectedAccess === key && "bg-neutral-100",
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedAccess(key as keyof typeof accessTypes);
+                }}
+              >
+                <div className="size-8 rounded-lg bg-neutral-100 flex items-center justify-center">
+                  {icon}
+                </div>
+                <div>
+                  <div className="text-sm font-medium">{title}</div>
+                  <div className="text-xs text-neutral-600">{description}</div>
+                </div>
+              </div>
+            ),
+          )}
         </div>
-        <div className="flex items-center gap-3 hover:bg-neutral-100 rounded-lg px-2 py-1 cursor-pointer">
-          <div className="size-8 rounded-lg bg-neutral-100 flex items-center justify-center">
-            <LinkIcon className="size-4 text-neutral-600" />
-          </div>
-          <div>
-            <div className="text-sm font-medium">Anyone with the link</div>
-            <div className="text-xs text-neutral-600">
-              Anyone with the link can view
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 hover:bg-neutral-100 rounded-lg px-2 py-1 cursor-pointer">
-          <div className="size-8 rounded-lg bg-neutral-100 flex items-center justify-center">
-            <FolderIcon className="size-4 text-neutral-600" />
-          </div>
-          <div>
-            <div className="text-sm font-medium">Workspace</div>
-            <div className="text-xs text-neutral-600">
-              Everyone in the workspace can access
-            </div>
-          </div>
-        </div>
-      </div>
-    )}
-  </>
-);
+      )}
+    </>
+  );
+};

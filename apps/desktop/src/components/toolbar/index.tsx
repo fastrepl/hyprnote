@@ -48,7 +48,7 @@ export default function Toolbar() {
           data-tauri-drag-region
         >
           <SearchIconButton isShown={inMeetingAndNotInNote} />
-          <ShareButton />
+          {pathname.includes("/app/note/") && <ShareButton />}
           <RightPanelButton />
           <SettingsPanel />
         </div>

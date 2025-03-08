@@ -5,42 +5,34 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@hypr/ui/components/ui/tooltip";
-import { useLocation } from "@tanstack/react-router";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@hypr/ui/components/ui/popover";
 import { useState } from "react";
-import { type Session } from "@hypr/plugin-db";
+import { commands as dbCommands } from "@hypr/plugin-db";
+import { useParams } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import ShareAndPermissionPanel from "@/components/share-and-permission";
 
-const SessionAccessor = ({
-  children,
-}: {
-  children: (sessionData: Session | null) => React.ReactNode;
-}) => {
-  try {
-    const { useSession } = require("@/contexts");
-    const session = useSession((s: { session: Session }) => s.session);
-    return <>{children(session)}</>;
-  } catch (e) {
-    return <>{children(null)}</>;
-  }
-};
-
 export function ShareButton() {
-  const { pathname } = useLocation();
-  const inNote = pathname.includes("/app/note/");
+  const { id } = useParams({ from: "/app/note/$id" });
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(false);
 
-  if (!inNote) return null;
+  const { data: session } = useQuery({
+    queryKey: ["note", id],
+    queryFn: async () => {
+      const session = await dbCommands.getSession({ id });
+      return session;
+    },
+  });
 
   const currentUser = {
     name: "John Jeong",
     email: "john@fastrepl.com",
-    avatarUrl: "/avatar.png",
+    avatarUrl: "",
   };
 
   const participants = [
@@ -48,45 +40,43 @@ export function ShareButton() {
     {
       name: "Alice Smith",
       email: "alice@fastrepl.com",
-      avatarUrl: "/avatar.png",
+      avatarUrl: "",
     },
   ];
 
+  if (!session) return null;
+
   return (
-    <SessionAccessor>
-      {(session) => (
-        <Popover open={open} onOpenChange={setOpen}>
-          <Tooltip>
-            <PopoverTrigger asChild>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="hover:bg-neutral-200"
-                  aria-label="Share"
-                >
-                  <ShareIcon className="size-4" />
-                </Button>
-              </TooltipTrigger>
-            </PopoverTrigger>
-            <TooltipContent>
-              <p>Share</p>
-            </TooltipContent>
-          </Tooltip>
-          <PopoverContent
-            className="w-80 p-0 overflow-clip focus:outline-none focus:ring-0 focus:ring-offset-0"
-            align="end"
-          >
-            <ShareAndPermissionPanel
-              session={session}
-              email={email}
-              setEmail={setEmail}
-              currentUser={currentUser}
-              participants={participants}
-            />
-          </PopoverContent>
-        </Popover>
-      )}
-    </SessionAccessor>
+    <Popover open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <PopoverTrigger asChild>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-neutral-200"
+              aria-label="Share"
+            >
+              <ShareIcon className="size-4" />
+            </Button>
+          </TooltipTrigger>
+        </PopoverTrigger>
+        <TooltipContent>
+          <p>Share</p>
+        </TooltipContent>
+      </Tooltip>
+      <PopoverContent
+        className="w-80 p-0 overflow-clip focus:outline-none focus:ring-0 focus:ring-offset-0"
+        align="end"
+      >
+        <ShareAndPermissionPanel
+          session={session}
+          email={email}
+          setEmail={setEmail}
+          currentUser={currentUser}
+          participants={participants}
+        />
+      </PopoverContent>
+    </Popover>
   );
 }

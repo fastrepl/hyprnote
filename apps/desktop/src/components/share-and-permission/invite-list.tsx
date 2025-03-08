@@ -8,14 +8,19 @@ export interface InviteListProps {
   currentUser: { name: string; email: string; avatarUrl: string };
 }
 
-export const InviteList = ({ email, setEmail, currentUser }: InviteListProps) => (
+export const InviteList = ({
+  email,
+  setEmail,
+  currentUser,
+}: InviteListProps) => (
   <div className="flex flex-col gap-4">
     <div className="flex gap-2">
       <Input
         placeholder="Email separated by commas"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="text-sm"
+        className="text-sm focus:outline-none focus:ring-0 focus:ring-offset-0"
+        autoFocus={false}
       />
       <Button variant="outline">Invite</Button>
     </div>

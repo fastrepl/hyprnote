@@ -12,19 +12,8 @@ import {
   PopoverContent,
 } from "@hypr/ui/components/ui/popover";
 import { useState } from "react";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@hypr/ui/components/ui/tabs";
 import { type Session } from "@hypr/plugin-db";
-import {
-  InviteList,
-  ParticipantsSelector,
-  GeneralAccessSelector,
-  PublishTab,
-} from "@/components/share-and-permission";
+import ShareAndPermissionPanel from "@/components/share-and-permission";
 
 const SessionAccessor = ({
   children,
@@ -45,13 +34,6 @@ export function ShareButton() {
   const inNote = pathname.includes("/app/note/");
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
-
-  const toggleGroup = (group: string) => {
-    setExpandedGroups((prev) =>
-      prev.includes(group) ? prev.filter((g) => g !== group) : [...prev, group]
-    );
-  };
 
   if (!inNote) return null;
 
@@ -91,51 +73,17 @@ export function ShareButton() {
               <p>Share</p>
             </TooltipContent>
           </Tooltip>
-          <PopoverContent className="w-80 p-0 overflow-clip" align="end">
-            <Tabs defaultValue="share" className="w-full">
-              <TabsList className="w-full h-fit p-0 bg-transparent rounded-none">
-                <TabsTrigger
-                  value="share"
-                  className="flex-1 px-4 py-3 text-sm font-medium border-b-2 data-[state=active]:border-neutral-950 data-[state=inactive]:border-transparent rounded-none hover:bg-neutral-100"
-                >
-                  Share
-                </TabsTrigger>
-                <TabsTrigger
-                  value="publish"
-                  className="flex-1 px-4 py-3 text-sm font-medium border-b-2 data-[state=active]:border-neutral-950 data-[state=inactive]:border-transparent rounded-none hover:bg-neutral-100"
-                >
-                  Publish
-                </TabsTrigger>
-              </TabsList>
-
-              <div className="p-4">
-                <TabsContent value="share" className="mt-0">
-                  <div className="flex flex-col gap-4">
-                    <InviteList
-                      email={email}
-                      setEmail={setEmail}
-                      currentUser={currentUser}
-                    />
-
-                    <div className="space-y-3">
-                      <ParticipantsSelector
-                        expanded={expandedGroups.includes("participants")}
-                        onToggle={() => toggleGroup("participants")}
-                        participants={participants}
-                      />
-
-                      <GeneralAccessSelector
-                        expanded={expandedGroups.includes("general")}
-                        onToggle={() => toggleGroup("general")}
-                      />
-                    </div>
-                  </div>
-                </TabsContent>
-                <TabsContent value="publish" className="mt-0">
-                  <PublishTab session={session} />
-                </TabsContent>
-              </div>
-            </Tabs>
+          <PopoverContent
+            className="w-80 p-0 overflow-clip focus:outline-none focus:ring-0 focus:ring-offset-0"
+            align="end"
+          >
+            <ShareAndPermissionPanel
+              session={session}
+              email={email}
+              setEmail={setEmail}
+              currentUser={currentUser}
+              participants={participants}
+            />
           </PopoverContent>
         </Popover>
       )}

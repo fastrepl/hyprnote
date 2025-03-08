@@ -1,8 +1,4 @@
-import { useCallback } from "react";
-import { useRouter } from "@tanstack/react-router";
 import { SquarePenIcon } from "lucide-react";
-import { useHotkeys } from "react-hotkeys-hook";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Tooltip,

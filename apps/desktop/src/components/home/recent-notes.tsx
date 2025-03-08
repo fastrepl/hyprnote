@@ -24,7 +24,7 @@ export default function RecentNotes() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {sessions.data?.map((session: any, i) => {
           const previewText = extractTextFromHtml(
-            session.enhanced_memo_html || session.raw_memo_html
+            session.enhanced_memo_html || session.raw_memo_html,
           );
 
           return (

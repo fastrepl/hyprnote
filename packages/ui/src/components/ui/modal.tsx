@@ -1,6 +1,5 @@
 import * as React from "react";
 import { cn } from "@hypr/ui/lib/utils";
-import { useHotkeys } from "react-hotkeys-hook";
 
 interface ModalProps {
   open: boolean;

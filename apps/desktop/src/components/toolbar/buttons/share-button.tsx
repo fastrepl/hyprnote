@@ -22,7 +22,7 @@ export function ShareButton() {
   const [open, setOpen] = useState(false);
 
   const { data: session } = useQuery({
-    queryKey: ["note", id],
+    queryKey: ["get-note", id],
     queryFn: async () => {
       const session = await dbCommands.getSession({ id });
       return session;

@@ -11,23 +11,11 @@ import {
   PopoverContent,
 } from "@hypr/ui/components/ui/popover";
 import { useState } from "react";
-import { commands as dbCommands } from "@hypr/plugin-db";
-import { useParams } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import ShareAndPermissionPanel from "@/components/share-and-permission";
 
 export function ShareButton() {
-  const { id } = useParams({ from: "/app/note/$id" });
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(false);
-
-  const { data: session } = useQuery({
-    queryKey: ["get-note", id],
-    queryFn: async () => {
-      const session = await dbCommands.getSession({ id });
-      return session;
-    },
-  });
 
   const currentUser = {
     name: "John Jeong",
@@ -43,8 +31,6 @@ export function ShareButton() {
       avatarUrl: "",
     },
   ];
-
-  if (!session) return null;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -70,7 +56,6 @@ export function ShareButton() {
         align="end"
       >
         <ShareAndPermissionPanel
-          session={session}
           email={email}
           setEmail={setEmail}
           currentUser={currentUser}

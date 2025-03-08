@@ -5,7 +5,6 @@ import {
   TabsTrigger,
   TabsContent,
 } from "@hypr/ui/components/ui/tabs";
-import { type Session } from "@hypr/plugin-db";
 
 import { InviteList } from "./invite-list";
 import { ParticipantsSelector } from "./participants-selector";
@@ -21,7 +20,6 @@ export * from "./general-access-selector";
 export * from "./publish-tab";
 
 interface ShareAndPermissionPanelProps {
-  session: Session | null;
   email: string;
   setEmail: (email: string) => void;
   currentUser: {
@@ -37,7 +35,6 @@ interface ShareAndPermissionPanelProps {
 }
 
 export default function ShareAndPermissionPanel({
-  session,
   email,
   setEmail,
   currentUser,
@@ -105,7 +102,7 @@ export default function ShareAndPermissionPanel({
           value="publish"
           className="mt-0 focus:outline-none focus:ring-0"
         >
-          <PublishTab session={session} />
+          <PublishTab />
         </TabsContent>
       </div>
     </Tabs>

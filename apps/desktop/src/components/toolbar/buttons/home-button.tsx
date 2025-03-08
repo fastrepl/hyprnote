@@ -15,7 +15,7 @@ export function HomeButton() {
           <Button
             variant="ghost"
             size="icon"
-            className="hover:bg-neutral-200"
+            className="hover:bg-neutral-200 dark:hover:bg-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
             aria-label="Go home"
           >
             <HomeIcon className="size-4" />

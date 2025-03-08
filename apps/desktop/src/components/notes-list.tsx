@@ -35,7 +35,7 @@ export default function NotesList() {
     <nav className="h-full overflow-y-auto space-y-6 px-3 pb-4">
       {events.data && events.data.length > 0 && (
         <section>
-          <h2 className="font-medium text-neutral-600 mb-2 flex items-center gap-2">
+          <h2 className="font-medium text-neutral-600 dark:text-neutral-200 mb-2 flex items-center gap-2">
             <CalendarIcon className="size-4" />
             <strong>Upcoming</strong>
           </h2>
@@ -77,7 +77,7 @@ function EventItem({ event }: { event: Event }) {
     >
       <div className="flex flex-col items-start gap-1">
         <div className="font-medium text-sm line-clamp-1">{event.name}</div>
-        <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
+        <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-300 line-clamp-1">
           <span>{formatRemainingTime(new Date(event.start_date))}</span>
         </div>
       </div>
@@ -110,7 +110,7 @@ function SessionList() {
 
         return (
           <section key={dateKey}>
-            <h2 className="font-bold text-neutral-600 mb-2">
+            <h2 className="font-bold text-neutral-600 dark:text-neutral-200 mb-2">
               {formatDateHeader(date)}
             </h2>
 
@@ -122,16 +122,16 @@ function SessionList() {
                   <button
                     key={session.id}
                     onClick={() => handleClickSession(session.id)}
-                    className="w-full text-left group flex items-start gap-3 py-2 hover:bg-neutral-100 rounded px-2"
+                    className="w-full text-left group flex items-start gap-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded px-2"
                   >
                     <div className="flex flex-col items-start gap-1">
-                      <div className="font-medium text-sm">
+                      <div className="font-medium text-sm dark:text-neutral-300">
                         {session.title || "Untitled"}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-neutral-500">
+                      <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-300">
                         <span>{format(sessionDate, "M/d/yy")}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-neutral-500">
+                      <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-300">
                         <Folder className="size-3" />
                         <span>Notes</span>
                       </div>

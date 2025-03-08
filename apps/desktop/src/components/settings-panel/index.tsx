@@ -70,7 +70,7 @@ export default function SettingsPanel() {
             size="icon"
             onClick={open}
             aria-label="Settings"
-            className=" hover:bg-neutral-200 hidden md:block"
+            className=" hover:bg-neutral-200 hidden md:block dark:hover:bg-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
           >
             <SettingsIcon className="h-4 w-4" />
           </Button>

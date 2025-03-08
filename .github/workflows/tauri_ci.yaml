@@ -6,13 +6,17 @@ on:
       - main
     paths:
       - apps/desktop/**
+      - apps/mobile/**
       - crates/**
+      - plugins/**
   pull_request:
     branches:
       - main
     paths:
       - apps/desktop/**
+      - apps/mobile/**
       - crates/**
+      - plugins/**
 jobs:
   ci:
     strategy:

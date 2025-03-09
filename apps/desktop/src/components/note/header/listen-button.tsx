@@ -12,6 +12,7 @@ import {
   TooltipContent,
 } from "@hypr/ui/components/ui/tooltip";
 import AudioIndicator from "./audio-indicator";
+import { cn } from "@/utils";
 
 interface ListenButtonProps {
   isListening: boolean;
@@ -36,7 +37,11 @@ export default function ListenButton({
         <Button
           variant={isListening ? "default" : "outline"}
           onClick={handleClick}
-          className="p-2"
+          className={cn(
+            "p-2",
+            "dark:text-neutral-100 dark:bg-neutral-800",
+            "dark:hover:bg-neutral-700 dark:hover:text-neutral-100",
+          )}
         >
           {isListening ? <Ear size={20} /> : <EarOff size={20} />}
           {isListening && <AudioIndicator />}

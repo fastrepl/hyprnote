@@ -51,7 +51,7 @@ export function Modal({
     <>
       {showOverlay && (
         <div
-          className="fixed inset-0 z-50 bg-black/50"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
           aria-hidden="true"
           onClick={preventClose ? undefined : onClose}
         />
@@ -78,16 +78,7 @@ interface ModalHeaderProps {
 }
 
 export function ModalHeader({ children, className }: ModalHeaderProps) {
-  return (
-    <div
-      className={cn(
-        "flex h-14 items-center justify-between border-b px-6",
-        className,
-      )}
-    >
-      {children}
-    </div>
-  );
+  return <div className={cn("flex flex-col", className)}>{children}</div>;
 }
 
 interface ModalBodyProps {

@@ -75,22 +75,26 @@ export default function TeamComponent() {
     <div>
       <div className="mb-4 flex items-center gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground dark:text-neutral-300" />
           <Input
             placeholder="Type to search..."
-            className="max-w-60 pl-8"
+            className="max-w-60 pl-8 dark:text-neutral-300 dark:bg-neutral-950 focus-visible:ring-0 focus-visible:ring-offset-0"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Button variant="outline" onClick={() => setShowInviteModal(true)}>
+        <Button
+          variant="outline"
+          onClick={() => setShowInviteModal(true)}
+          className="dark:text-neutral-300 dark:bg-neutral-950"
+        >
           <Plus className="h-4 w-4" />
           <Trans>Add members</Trans>
         </Button>
       </div>
 
       <div className="overflow-clip rounded-lg border bg-card">
-        <div className="grid grid-cols-2 gap-4 border-b bg-neutral-50 px-6 py-3 text-sm font-bold text-neutral-700">
+        <div className="grid grid-cols-2 gap-4 border-b bg-neutral-50 px-6 py-3 text-sm font-bold text-neutral-700 dark:bg-neutral-950 dark:text-neutral-300">
           <div>
             <Trans>User</Trans>
           </div>
@@ -103,36 +107,47 @@ export default function TeamComponent() {
           {filteredMembers.map((member) => (
             <div
               key={member.id}
-              className="grid grid-cols-2 gap-4 border-t px-6 py-4 first:border-t-0"
+              className="grid grid-cols-2 gap-4 border-t px-6 py-4 first:border-t-0 dark:bg-neutral-950 dark:text-neutral-300"
             >
               <div className="flex items-center gap-3">
                 {member.id === "1" ? (
                   <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-700" />
                 ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full border bg-secondary text-sm font-medium">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full border dark:border-neutral-400 bg-secondary text-sm font-medium">
                     {member.avatar}
                   </div>
                 )}
                 <div>
-                  <div className="text-sm font-medium">{member.name}</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-sm font-medium dark:text-neutral-300">
+                    {member.name}
+                  </div>
+                  <div className="text-xs text-muted-foreground dark:text-neutral-300">
                     {member.email}
                   </div>
                 </div>
               </div>
               <div className="flex items-center justify-between">
                 <Select defaultValue={member.role}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-[140px] dark:text-neutral-300 dark:bg-neutral-950">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="workspace_owner">
+                  <SelectContent className="dark:bg-neutral-950">
+                    <SelectItem
+                      value="workspace_owner"
+                      className="dark:text-neutral-300 cursor-pointer dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
+                    >
                       <Trans>Owner</Trans>
                     </SelectItem>
-                    <SelectItem value="admin">
+                    <SelectItem
+                      value="admin"
+                      className="dark:text-neutral-300 cursor-pointer dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
+                    >
                       <Trans>Admin</Trans>
                     </SelectItem>
-                    <SelectItem value="member">
+                    <SelectItem
+                      value="member"
+                      className="dark:text-neutral-300 cursor-pointer dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
+                    >
                       <Trans>Member</Trans>
                     </SelectItem>
                   </SelectContent>
@@ -142,14 +157,17 @@ export default function TeamComponent() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground dark:text-neutral-300 dark:bg-neutral-950 cursor-pointer hover:bg-neutral-900 hover:text-neutral-300"
                     >
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent
+                    align="end"
+                    className="dark:bg-neutral-950 dark:text-neutral-300"
+                  >
                     <DropdownMenuItem
-                      className="text-destructive"
+                      className="text-destructive dark:hover:bg-neutral-800 dark:hover:text-neutral-300 cursor-pointer"
                       onClick={() => handleDelete(member)}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
@@ -162,7 +180,7 @@ export default function TeamComponent() {
           ))}
 
           {filteredMembers.length === 0 && (
-            <div className="px-6 py-4 text-sm text-muted-foreground">
+            <div className="px-6 py-4 text-sm text-muted-foreground dark:text-neutral-300">
               <Trans>No members found</Trans>
             </div>
           )}
@@ -174,12 +192,12 @@ export default function TeamComponent() {
         onClose={() => setShowInviteModal(false)}
         size="sm"
       >
-        <ModalBody>
+        <ModalBody className="dark:bg-neutral-950">
           <ModalHeader>
-            <ModalTitle>
+            <ModalTitle className="dark:text-neutral-300">
               <Trans>Invite members</Trans>
             </ModalTitle>
-            <ModalDescription>
+            <ModalDescription className="dark:text-neutral-300">
               <Trans>
                 Type or paste in emails below, separated by commas. Your
                 workspace will be billed by members.
@@ -189,7 +207,7 @@ export default function TeamComponent() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <label className="text-sm font-medium dark:text-neutral-300">
                 <Trans>Email addresses</Trans>
               </label>
               <Input
@@ -201,7 +219,7 @@ export default function TeamComponent() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <label className="text-sm font-medium dark:text-neutral-300">
                 <Trans>Role</Trans>
               </label>
               <Select
@@ -228,7 +246,10 @@ export default function TeamComponent() {
             </div>
 
             <div className="flex justify-end">
-              <Button onClick={() => setShowInviteModal(false)}>
+              <Button
+                className="dark:text-neutral-300"
+                onClick={() => setShowInviteModal(false)}
+              >
                 <Trans>Send invite</Trans>
               </Button>
             </div>

@@ -30,7 +30,7 @@ export function SettingsSidebar({
     <aside
       className={cn(
         "flex flex-col",
-        "border-r bg-background",
+        "border-r bg-background dark:bg-neutral-600 dark:border-neutral-500",
         "w-[52px] min-w-[52px]",
         "h-full md:w-[240px] md:min-w-[240px]",
       )}

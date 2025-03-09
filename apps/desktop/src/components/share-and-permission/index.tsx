@@ -12,6 +12,7 @@ import { GeneralAccessSelector } from "./general-access-selector";
 import { PublishTab } from "./publish-tab";
 import { Button } from "@hypr/ui/components/ui/button";
 import { LinkIcon } from "lucide-react";
+import { cn } from "@/utils";
 
 export * from "./invited-user";
 export * from "./invite-list";
@@ -56,13 +57,23 @@ export default function ShareAndPermissionPanel({
       <TabsList className="w-full h-fit p-0 bg-transparent rounded-none focus:outline-none focus:ring-0">
         <TabsTrigger
           value="share"
-          className="flex-1 px-4 py-3 text-sm font-medium border-b-2 data-[state=active]:border-neutral-950 data-[state=inactive]:border-transparent rounded-none hover:bg-neutral-100 focus:outline-none focus:ring-0"
+          className={cn(
+            "flex-1 px-4 py-3 text-sm font-medium border-b-2",
+            "data-[state=active]:border-neutral-950 data-[state=inactive]:border-transparent",
+            "rounded-none hover:bg-neutral-100 focus:outline-none focus:ring-0",
+            "dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-300",
+          )}
         >
           Share
         </TabsTrigger>
         <TabsTrigger
           value="publish"
-          className="flex-1 px-4 py-3 text-sm font-medium border-b-2 data-[state=active]:border-neutral-950 data-[state=inactive]:border-transparent rounded-none hover:bg-neutral-100 focus:outline-none focus:ring-0"
+          className={cn(
+            "flex-1 px-4 py-3 text-sm font-medium border-b-2",
+            "data-[state=active]:border-neutral-950 data-[state=inactive]:border-transparent",
+            "rounded-none hover:bg-neutral-100 focus:outline-none focus:ring-0",
+            "dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-300",
+          )}
         >
           Publish
         </TabsTrigger>

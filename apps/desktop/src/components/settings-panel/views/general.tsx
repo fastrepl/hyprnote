@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { Trans } from "@lingui/react/macro";
-import { relaunch } from "@tauri-apps/plugin-process";
 
 import {
   Form,
@@ -26,7 +25,6 @@ import {
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { Input } from "@hypr/ui/components/ui/input";
 import { type ConfigGeneral, commands as dbCommands } from "@hypr/plugin-db";
-import { commands as authCommands } from "@hypr/plugin-auth";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
 const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = ["en", "ko"];
@@ -96,18 +94,6 @@ export default function General() {
     return () => subscription.unsubscribe();
   }, [mutation]);
 
-  const reset = useMutation({
-    mutationFn: async () => {
-      try {
-        await authCommands.resetVault();
-      } catch (e) {
-        console.error(e);
-      } finally {
-        await relaunch();
-      }
-    },
-  });
-
   return (
     <div>
       <Form {...form}>
@@ -118,8 +104,10 @@ export default function General() {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
-                  <FormLabel>Open Hyprnote on startup</FormLabel>
-                  <FormDescription>
+                  <FormLabel className="dark:text-neutral-300">
+                    Open Hyprnote on startup
+                  </FormLabel>
+                  <FormDescription className="dark:text-neutral-300">
                     Hyprnote will be opened automatically when you start your
                     computer.
                   </FormDescription>
@@ -142,18 +130,23 @@ export default function General() {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
-                  <FormLabel>Display language</FormLabel>
-                  <FormDescription>
+                  <FormLabel className="dark:text-neutral-300">
+                    Display language
+                  </FormLabel>
+                  <FormDescription className="dark:text-neutral-300">
                     This is the language you read.
                   </FormDescription>
                 </div>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger className="max-w-[100px] focus:outline-none focus:ring-0 focus:ring-offset-0">
+                    <SelectTrigger className="max-w-[100px] focus:outline-none focus:ring-0 focus:ring-offset-0 dark:bg-neutral-800 dark:text-neutral-300">
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent align="end">
+                  <SelectContent
+                    align="end"
+                    className="dark:bg-neutral-800 dark:text-neutral-300"
+                  >
                     {SUPPORTED_LANGUAGES.map((code) => (
                       <SelectItem key={code} value={code}>
                         {LANGUAGES_ISO_639_1[code].nativeName}
@@ -172,10 +165,10 @@ export default function General() {
             render={({ field }) => (
               <FormItem>
                 <div>
-                  <FormLabel>
+                  <FormLabel className="dark:text-neutral-300">
                     <Trans>Jargons</Trans>
                   </FormLabel>
-                  <FormDescription>
+                  <FormDescription className="dark:text-neutral-300">
                     You can make Hyprnote takes these words into account when
                     transcribing.
                   </FormDescription>
@@ -185,7 +178,7 @@ export default function General() {
                     placeholder="Type jargons (e.g., Blitz Meeting, PaC Squad)"
                     {...field}
                     value={field.value ?? ""}
-                    className="focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="focus-visible:ring-0 focus-visible:ring-offset-0 dark:text-neutral-300 dark:bg-neutral-800"
                   />
                 </FormControl>
                 <FormMessage />
@@ -194,15 +187,6 @@ export default function General() {
           />
         </form>
       </Form>
-
-      <div className="mt-4">
-        <button
-          className="p-2 bg-gray-200 rounded-md"
-          onClick={() => reset.mutate()}
-        >
-          Reset
-        </button>
-      </div>
     </div>
   );
 }

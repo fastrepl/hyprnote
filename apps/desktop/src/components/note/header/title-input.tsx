@@ -26,7 +26,7 @@ export default function TitleInput({
       value={value}
       placeholder="Untitled"
       className={clsx([
-        "w-full border-none bg-transparent text-2xl font-bold",
+        "w-full border-none bg-transparent text-2xl font-bold dark:text-neutral-100",
         "focus:outline-none",
       ])}
       onKeyDown={handleKeyDown}

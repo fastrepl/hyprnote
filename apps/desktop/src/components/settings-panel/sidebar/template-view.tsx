@@ -37,8 +37,8 @@ export function TemplateView({
             onClick={() => setActive(data.nav[0].name)}
             className={cn(
               "flex w-full items-center gap-2 rounded-lg p-2 text-sm",
-              "text-neutral-600",
-              "hover:bg-neutral-100",
+              "text-neutral-600 dark:text-neutral-300",
+              "hover:bg-neutral-100 dark:hover:bg-neutral-700",
             )}
           >
             <ChevronLeftIcon className="h-4 w-4" />
@@ -60,8 +60,8 @@ export function TemplateView({
         <button
           className={cn(
             "flex w-full items-center gap-2 rounded-lg p-2 text-sm",
-            "text-neutral-600",
-            "hover:bg-neutral-100",
+            "text-neutral-600 dark:text-neutral-300",
+            "hover:bg-neutral-100 dark:hover:bg-neutral-700",
           )}
           onClick={() => {
             const newTemplate: Template = {

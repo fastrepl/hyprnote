@@ -25,17 +25,21 @@ export function SettingsPanelBody({
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink>Settings</BreadcrumbLink>
+              <BreadcrumbLink className="dark:text-neutral-300 hover:text-neutral-200">
+                Settings
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink>{title}</BreadcrumbLink>
+              <BreadcrumbLink className="dark:text-neutral-300 hover:text-neutral-200">
+                {title}
+              </BreadcrumbLink>
             </BreadcrumbItem>
             {title === "Templates" && selectedTemplate && (
               <>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbLink>
+                  <BreadcrumbLink className="dark:text-neutral-300 hover:text-neutral-200">
                     {selectedTemplate.title || "Untitled Template"}
                   </BreadcrumbLink>
                 </BreadcrumbItem>

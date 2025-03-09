@@ -165,7 +165,7 @@ export default function EditorArea() {
       <AnimatePresence>
         {!ongoingSessionStore.listening && (
           <motion.div
-            className="absolute bottom-6 w-full flex justify-center items-center pointer-events-none"
+            className="absolute bottom-6 w-full flex justify-center items-center pointer-events-none z-10"
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}

@@ -122,7 +122,7 @@ function SessionList() {
                   <button
                     key={session.id}
                     onClick={() => handleClickSession(session.id)}
-                    className="w-full text-left group flex items-start gap-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded px-2"
+                    className="w-full text-left group flex items-start gap-3 py-2 transition-all hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded px-2"
                   >
                     <div className="flex flex-col items-start gap-1">
                       <div className="font-medium text-sm dark:text-neutral-300">

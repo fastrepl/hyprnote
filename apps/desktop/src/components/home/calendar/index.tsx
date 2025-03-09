@@ -45,24 +45,20 @@ export default function WorkspaceCalendar() {
     );
   };
 
-  // Determine view mode based on window width
   const getViewMode = () => {
     if (windowWidth >= 1200) return "month";
     if (windowWidth >= 900) return "4days";
     return "2days";
   };
 
-  // Get visible days based on view mode
   const getVisibleDays = () => {
     const viewMode = getViewMode();
 
     if (viewMode === "month") {
-      // Show from today to today + 1 month
-      const endDate = addDays(today, 30); // Show next 30 days
+      const endDate = addDays(today, 30);
       return eachDayOfInterval({ start: today, end: endDate });
     }
 
-    // For 2-day and 4-day views, start from today
     const daysToShow = viewMode === "4days" ? 4 : 2;
     return eachDayOfInterval({
       start: today,
@@ -73,7 +69,6 @@ export default function WorkspaceCalendar() {
   const visibleDays = getVisibleDays();
   const viewMode = getViewMode();
 
-  // Get weekday headers based on view mode
   const getWeekdayHeaders = () => {
     if (viewMode === "month") {
       return weekDays;
@@ -81,7 +76,6 @@ export default function WorkspaceCalendar() {
     return visibleDays.map((day) => weekDays[getDay(day)]);
   };
 
-  // Get grid columns class based on view mode
   const getGridColumnsClass = () => {
     switch (viewMode) {
       case "month":
@@ -93,7 +87,6 @@ export default function WorkspaceCalendar() {
     }
   };
 
-  // Calculate empty cells needed at the start to align with the correct day of week
   const getEmptyCellsCount = () => {
     if (viewMode !== "month") return 0;
     return getDay(today);
@@ -101,13 +94,16 @@ export default function WorkspaceCalendar() {
 
   return (
     <div className="mb-8">
-      <h2 className="text-lg font-medium mb-6 border-b pb-1">
+      <h2 className="text-lg font-medium mb-6 border-b pb-1 dark:text-neutral-300">
         {viewMode === "month" ? "Upcoming Events" : "Upcoming Events"}
       </h2>
 
       <div className={`grid ${getGridColumnsClass()} gap-1`}>
         {getWeekdayHeaders().map((day) => (
-          <div key={day} className="text-center font-semibold pb-2">
+          <div
+            key={day}
+            className="text-center font-semibold pb-2 dark:text-neutral-300"
+          >
             {day}
           </div>
         ))}
@@ -123,12 +119,16 @@ export default function WorkspaceCalendar() {
             <div
               key={i}
               className={`min-h-[120px] border rounded-lg p-1 relative ${
-                isWeekend(day) ? "bg-neutral-50" : "bg-white"
+                isWeekend(day)
+                  ? "bg-neutral-50 dark:bg-neutral-950"
+                  : "bg-white dark:bg-neutral-950"
               } ${
-                isToday(day) ? "border-blue-500 border-2" : "border-gray-200"
+                isToday(day)
+                  ? "border-blue-500 border-2"
+                  : "border-gray-200 dark:border-gray-700"
               }`}
             >
-              <div className="text-sm text-right mb-1 pr-1">
+              <div className="text-sm text-right mb-1 pr-1 dark:text-neutral-300">
                 {format(day, "d")}
               </div>
               <DayEvents date={day} events={dayEvents} />

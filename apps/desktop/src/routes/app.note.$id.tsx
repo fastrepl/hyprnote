@@ -65,7 +65,7 @@ function Component() {
 
   return (
     <SessionProvider session={session}>
-      <main className="flex h-full overflow-hidden bg-white">
+      <main className="flex h-full overflow-hidden bg-white dark:bg-neutral-800">
         <div className="h-full flex-1">
           <EditorArea />
         </div>

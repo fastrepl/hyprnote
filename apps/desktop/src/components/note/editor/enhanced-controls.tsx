@@ -19,9 +19,13 @@ export function EnhanceControls({ showRaw, setShowRaw }: EnhanceControlsProps) {
         onClick={() => setShowRaw(true)}
         className={clsx([
           "rounded-l-xl border border-r-0 border-border px-4 py-2.5",
-          "duration-400 transition-all ease-in-out",
-          showRaw ? "bg-primary" : "bg-background",
-          showRaw ? "text-primary-foreground" : "text-neutral-200",
+          "transition-all ease-in-out",
+          showRaw
+            ? "bg-primary dark:bg-white dark:text-black dark:hover:bg-neutral-200"
+            : "bg-background dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700",
+          showRaw
+            ? "text-primary-foreground"
+            : "text-neutral-200 dark:text-neutral-100",
         ])}
       >
         <AlignLeft size={20} />
@@ -34,15 +38,15 @@ export function EnhanceControls({ showRaw, setShowRaw }: EnhanceControlsProps) {
               className={clsx([
                 "flex px-4 py-2.5 flex-row items-center rounded-r-xl border border-l-0 border-border",
                 "duration-400 transition-all ease-in-out",
-                "bg-primary text-primary-foreground cursor-pointer",
+                "bg-primary text-primary-foreground cursor-pointer dark:bg-white dark:hover:bg-neutral-200 dark:text-black",
               ])}
             >
               <Zap size={20} />
               <span className="text-sm pl-2">Stand up</span>
             </div>
           </PopoverTrigger>
-          <PopoverContent>
-            <div>Template Selector</div>
+          <PopoverContent className="dark:bg-neutral-800">
+            <div className="dark:text-neutral-100">Template Selector</div>
           </PopoverContent>
         </Popover>
       ) : (
@@ -50,7 +54,7 @@ export function EnhanceControls({ showRaw, setShowRaw }: EnhanceControlsProps) {
           className={clsx([
             "flex py-2.5 flex-row items-center rounded-r-xl border border-l-0 border-border",
             "duration-400 transition-all ease-in-out px-4",
-            "bg-background text-neutral-200",
+            "bg-background text-neutral-200 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700",
           ])}
         >
           <button onClick={() => setShowRaw(false)}>

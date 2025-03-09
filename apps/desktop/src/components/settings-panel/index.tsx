@@ -84,7 +84,7 @@ export default function SettingsPanel() {
       </Tooltip>
 
       <Modal open={isOpen} onClose={close} size="full">
-        <ModalBody className="p-0">
+        <ModalBody className="p-0 dark:bg-neutral-600">
           <div className="flex h-full w-full gap-0 overflow-clip">
             <SettingsSidebar
               active={active}

@@ -7,7 +7,6 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@hypr/ui/components/ui/popover";
-import { Input } from "@hypr/ui/components/ui/input";
 import { Button } from "@hypr/ui/components/ui/button";
 import { useSession } from "@/contexts";
 
@@ -67,20 +66,20 @@ export function TagChip() {
       }}
     >
       <PopoverTrigger>
-        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 flex-shrink-0 text-xs">
-          <TagIcon size={14} className="flex-shrink-0" />
+        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-700 dark:hover:text-neutral-100 flex-shrink-0 text-xs">
+          <TagIcon size={14} className="flex-shrink-0 dark:text-neutral-100" />
           {selected.length > 0 ? (
-            <span className="truncate">
+            <span className="truncate dark:text-neutral-100">
               {selected[0]?.name}
               {selected.length > 1 && ` +${selected.length - 1}`}
             </span>
           ) : (
-            <span className="truncate">Add tags</span>
+            <span className="truncate dark:text-neutral-100">Add tags</span>
           )}
         </div>
       </PopoverTrigger>
       <PopoverContent
-        className="overflow-clip p-0 py-2 shadow-lg"
+        className="overflow-clip p-0 py-2 shadow-lg dark:bg-neutral-800 dark:text-neutral-100"
         align="start"
       >
         <div className="space-y-1">
@@ -90,30 +89,32 @@ export function TagChip() {
               <button
                 key={tag.id}
                 onClick={() => toggleTag(tag)}
-                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-neutral-100"
+                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
               >
-                <div className="rounded px-2 py-0.5 text-sm">{tag.name}</div>
+                <div className="rounded px-2 py-0.5 text-sm dark:text-neutral-100">
+                  {tag.name}
+                </div>
                 {isSelected && <Check className="ml-auto h-4 w-4" />}
               </button>
             );
           })}
 
           {tags.data?.length && (
-            <div className="my-2 border-t border-gray-200" />
+            <div className="my-2 border-t border-gray-200 dark:border-neutral-700" />
           )}
 
           <div className="relative pl-1">
-            <Input
+            <input
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Create new tag..."
-              className="rounded-none border-none pr-8 focus-visible:border-transparent focus-visible:outline-none focus-visible:ring-0"
+              className="min-h-11 w-full rounded-none border-none bg-transparent px-3 py-2 text-sm focus-visible:border-transparent focus-visible:outline-none focus-visible:ring-0 dark:text-neutral-100 dark:placeholder:text-neutral-400"
             />
             {newTagName.trim() && (
               <Button
                 onClick={handleCreateTag}
-                className="absolute right-2 top-1/2 -translate-y-1/2 transform rounded-full bg-white p-1 text-green-500 transition ease-in-out hover:bg-green-500 hover:text-white"
+                className="absolute right-2 top-1/2 -translate-y-1/2 transform rounded-full bg-white p-1 text-green-500 transition ease-in-out hover:bg-green-500 hover:text-white dark:bg-neutral-700 dark:text-white"
               >
                 <Check className="h-4 w-4" />
               </Button>

@@ -49,7 +49,7 @@ mod test {
     }
 
     #[tokio::test]
-    async fn test_store() {
+    async fn test_store() -> anyhow::Result<()> {
         let app = create_app(tauri::test::mock_builder());
         assert!(app.store().is_ok());
 
@@ -63,7 +63,15 @@ mod test {
 
         impl ScopedStoreKey for TestKey {}
 
-        let scoped_store = app.scoped_store::<TestKey>("test").unwrap();
-        assert!(scoped_store.get::<String>(TestKey::KeyA).unwrap().is_none());
+        let scoped_store = app.scoped_store::<TestKey>("test")?;
+        assert!(scoped_store.get::<String>(TestKey::KeyA)?.is_none());
+
+        scoped_store.set(TestKey::KeyA, "test".to_string())?;
+        assert_eq!(
+            scoped_store.get::<String>(TestKey::KeyA)?,
+            Some("test".to_string())
+        );
+
+        Ok(())
     }
 }

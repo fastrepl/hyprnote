@@ -11920,6 +11920,7 @@ dependencies = [
 name = "tauri-plugin-store2"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "serde",
  "serde_json",
  "specta",

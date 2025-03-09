@@ -40,7 +40,7 @@
     "windows:default",
     "auth:default",
     "tray:default",
-    "store:default",
+    "store2:default",
     {
       "identifier": "http:default",
       "allow": [

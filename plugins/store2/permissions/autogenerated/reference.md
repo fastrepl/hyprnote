@@ -2,12 +2,12 @@
 
 Default permissions for the plugin
 
-- `allow-get_str`
-- `allow-set_str`
-- `allow-get_bool`
-- `allow-set_bool`
-- `allow-get_number`
-- `allow-set_number`
+- `allow-get-str`
+- `allow-set-str`
+- `allow-get-bool`
+- `allow-set-bool`
+- `allow-get-number`
+- `allow-set-number`
 
 ## Permission Table
 

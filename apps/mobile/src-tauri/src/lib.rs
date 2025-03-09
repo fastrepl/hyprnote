@@ -22,7 +22,7 @@ pub fn run() {
         .plugin(tauri_plugin_misc::init())
         .plugin(tauri_plugin_db::init())
         .plugin(tauri_plugin_template::init())
-        .plugin(tauri_plugin_store::Builder::default().build());
+        .plugin(tauri_plugin_store2::init());
 
     builder
         .invoke_handler({

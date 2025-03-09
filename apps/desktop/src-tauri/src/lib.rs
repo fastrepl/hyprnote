@@ -38,7 +38,7 @@ pub async fn main() {
         .plugin(tauri_plugin_sse::init())
         .plugin(tauri_plugin_misc::init())
         .plugin(tauri_plugin_db::init())
-        .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_store2::init())
         .plugin(tauri_plugin_template::init())
         .plugin(tauri_plugin_local_llm::init())
         .plugin(tauri_plugin_local_stt::init())
@@ -81,11 +81,6 @@ pub async fn main() {
             let app = app.handle().clone();
 
             specta_builder.mount_events(&app);
-
-            {
-                use tauri_plugin_store::StoreExt;
-                let _ = app.store("store.json")?;
-            }
 
             {
                 use tauri_plugin_template::TemplatePluginExt;

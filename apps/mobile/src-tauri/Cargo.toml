@@ -22,7 +22,7 @@ tauri = { workspace = true, features = ["specta"] }
 tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-http = { workspace = true }
-tauri-plugin-store = { workspace = true }
+tauri-plugin-store2 = { workspace = true }
 
 tauri-plugin-auth = { workspace = true }
 tauri-plugin-db = { workspace = true }

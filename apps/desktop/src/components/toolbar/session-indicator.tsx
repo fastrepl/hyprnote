@@ -14,12 +14,13 @@ export function SessionIndicator({ sessionId }: { sessionId: string }) {
           "flex-row items-center justify-between",
           "rounded-md border border-border px-2 py-2",
           "bg-primary transition-all duration-200",
+          "dark:bg-primary-foreground dark:text-primary",
           "text-primary-foreground",
           "hover:scale-95",
         ])}
       >
-        <ArrowLeft size={16} />
-        <span className="text-xs">Return to session</span>
+        <ArrowLeft size={16} className="dark:text-neutral-100" />
+        <span className="text-xs dark:text-neutral-100">Return to session</span>
         <AudioIndicator />
       </button>
     </Link>

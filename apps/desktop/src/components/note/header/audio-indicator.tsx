@@ -19,8 +19,8 @@ export default function AudioIndicator() {
     }
 
     let prevHeights = heights;
-    const damping = 0.8; // Controls how quickly the oscillation settles
-    const springStrength = 0.3; // Controls how bouncy the animation is
+    const damping = 0.8;
+    const springStrength = 0.3;
 
     const interval = setInterval(() => {
       const maxHeight = Math.min(16, Math.max(4, amplitude * 16));
@@ -30,7 +30,6 @@ export default function AudioIndicator() {
         targetCenterHeight * (0.5 + Math.random() * 0.5),
       );
 
-      // Apply spring physics
       const newHeights = prevHeights.map((prev, i) => {
         const target = i === 1 ? targetCenterHeight : targetSideHeight;
         const velocity = (target - prev) * springStrength;
@@ -40,7 +39,7 @@ export default function AudioIndicator() {
 
       setHeights(newHeights);
       prevHeights = newHeights;
-    }, 50); // Increased animation frequency for smoother motion
+    }, 50);
 
     return () => clearInterval(interval);
   }, [amplitude]);
@@ -50,7 +49,7 @@ export default function AudioIndicator() {
       {heights.map((height, i) => (
         <div
           key={i}
-          className="w-0.5 rounded-full bg-white transition-all duration-[400ms] ease-out"
+          className="w-0.5 rounded-full bg-white transition-all duration-[400ms] ease-out dark:bg-neutral-100"
           style={{ height: `${height}px` }}
         />
       ))}

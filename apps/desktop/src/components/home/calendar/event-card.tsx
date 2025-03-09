@@ -36,7 +36,7 @@ export function EventCard({ event }: { event: Event }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <div className="text-xs p-1 bg-blue-100 rounded cursor-pointer truncate hover:bg-blue-200 dark:bg-blue-950 dark:hover:bg-blue-800 dark:text-neutral-300">
+        <div className="text-xs p-1 bg-blue-100 rounded cursor-pointer truncate hover:bg-blue-200 dark:bg-blue-800 dark:hover:bg-blue-700 dark:text-neutral-300">
           {event.name}
         </div>
       </PopoverTrigger>

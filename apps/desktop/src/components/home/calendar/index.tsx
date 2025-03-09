@@ -120,12 +120,12 @@ export default function WorkspaceCalendar() {
               key={i}
               className={`min-h-[120px] border rounded-lg p-1 relative ${
                 isWeekend(day)
-                  ? "bg-neutral-50 dark:bg-neutral-950"
-                  : "bg-white dark:bg-neutral-950"
+                  ? "bg-neutral-50 dark:bg-neutral-800"
+                  : "bg-white dark:bg-neutral-800"
               } ${
                 isToday(day)
                   ? "border-blue-500 border-2"
-                  : "border-gray-200 dark:border-gray-700"
+                  : "border-neutral-700 dark:border-neutral-200"
               }`}
             >
               <div className="text-sm text-right mb-1 pr-1 dark:text-neutral-300">

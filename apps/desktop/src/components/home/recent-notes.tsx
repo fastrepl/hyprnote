@@ -33,7 +33,7 @@ export default function RecentNotes() {
             <div
               key={i}
               onClick={() => handleClickSession(session.id)}
-              className="min-h-[8rem] p-4 cursor-pointer transition-all border rounded-lg hover:bg-neutral-50 hover:shadow-sm flex flex-col dark:bg-neutral-950 dark:hover:bg-neutral-800"
+              className="min-h-[8rem] p-4 cursor-pointer transition-all border rounded-lg hover:bg-neutral-50 hover:shadow-sm flex flex-col dark:bg-neutral-800 dark:hover:bg-neutral-700"
             >
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="h-5 w-5 text-neutral-500 flex-shrink-0 dark:text-neutral-300" />

@@ -47,8 +47,12 @@ export function DayEvents({ date, events }: DayEventsProps) {
             <Popover key={event.id}>
               <PopoverTrigger asChild>
                 <div className="text-sm p-2 hover:bg-neutral-100 rounded cursor-pointer dark:bg-neutral-950 dark:hover:bg-neutral-800">
-                  <div className="font-medium">{event.name}</div>
-                  <div className="text-muted-foreground">{event.note}</div>
+                  <div className="font-medium dark:text-neutral-300">
+                    {event.name}
+                  </div>
+                  <div className="text-muted-foreground dark:text-neutral-300">
+                    {event.note}
+                  </div>
                 </div>
               </PopoverTrigger>
               <PopoverContent

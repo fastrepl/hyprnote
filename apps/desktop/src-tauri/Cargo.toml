@@ -61,6 +61,7 @@ tauri-plugin-process = "2"
 tauri-plugin-sentry = "0.4.1"
 tauri-plugin-shell = "2"
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+tauri-plugin-store = { workspace = true }
 tauri-plugin-updater = "2"
 
 tracing = { workspace = true }

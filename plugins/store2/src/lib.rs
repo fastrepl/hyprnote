@@ -5,7 +5,7 @@ mod ext;
 pub use error::*;
 pub use ext::*;
 
-const PLUGIN_NAME: &str = "hypr-store";
+const PLUGIN_NAME: &str = "store2";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
@@ -26,7 +26,6 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(move |_app, _api| Ok(()))
         .build()
 }
 

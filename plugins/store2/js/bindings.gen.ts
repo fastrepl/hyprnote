@@ -8,22 +8,22 @@
 
 export const commands = {
 async getStr(scope: string, key: string) : Promise<string | null> {
-    return await TAURI_INVOKE("plugin:hypr-store|get_str", { scope, key });
+    return await TAURI_INVOKE("plugin:store2|get_str", { scope, key });
 },
 async setStr(scope: string, key: string, value: string) : Promise<null> {
-    return await TAURI_INVOKE("plugin:hypr-store|set_str", { scope, key, value });
+    return await TAURI_INVOKE("plugin:store2|set_str", { scope, key, value });
 },
 async getBool(scope: string, key: string) : Promise<boolean | null> {
-    return await TAURI_INVOKE("plugin:hypr-store|get_bool", { scope, key });
+    return await TAURI_INVOKE("plugin:store2|get_bool", { scope, key });
 },
 async setBool(scope: string, key: string, value: boolean) : Promise<null> {
-    return await TAURI_INVOKE("plugin:hypr-store|set_bool", { scope, key, value });
+    return await TAURI_INVOKE("plugin:store2|set_bool", { scope, key, value });
 },
 async getNumber(scope: string, key: string) : Promise<number | null> {
-    return await TAURI_INVOKE("plugin:hypr-store|get_number", { scope, key });
+    return await TAURI_INVOKE("plugin:store2|get_number", { scope, key });
 },
 async setNumber(scope: string, key: string, value: number) : Promise<null> {
-    return await TAURI_INVOKE("plugin:hypr-store|set_number", { scope, key, value });
+    return await TAURI_INVOKE("plugin:store2|set_number", { scope, key, value });
 }
 }
 

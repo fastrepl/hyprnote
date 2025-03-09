@@ -121,10 +121,16 @@ impl ShowHyprWindow {
 
 pub trait WindowsPluginExt<R: tauri::Runtime> {
     fn show_window(&self, window: ShowHyprWindow) -> tauri::Result<WebviewWindow>;
+    fn set_always_on_top(&self, always_on_top: bool) -> tauri::Result<()>;
 }
 
 impl WindowsPluginExt<tauri::Wry> for tauri::AppHandle<tauri::Wry> {
     fn show_window(&self, window: ShowHyprWindow) -> tauri::Result<WebviewWindow> {
         window.show(self)
+    }
+
+    fn set_always_on_top(&self, always_on_top: bool) -> tauri::Result<()> {
+        let window = self.get_webview_window("main").unwrap();
+        window.set_always_on_top(always_on_top)
     }
 }

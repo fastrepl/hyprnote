@@ -2,7 +2,7 @@ use tauri::ipc::Channel;
 
 use crate::{
     store,
-    store::StoreKey,
+    store::AuthStoreKey,
     vault::{Vault, VaultKey},
     ResponseParams, CALLBACK_TEMPLATE_KEY,
 };
@@ -19,7 +19,7 @@ pub trait AuthPluginExt<R: tauri::Runtime> {
     fn init_vault(&self, account_id: impl AsRef<str>) -> Result<(), String>;
     fn reset_vault(&self) -> Result<(), String>;
     fn get_from_vault(&self, key: VaultKey) -> Result<Option<String>, String>;
-    fn get_from_store(&self, key: StoreKey) -> Result<Option<String>, String>;
+    fn get_from_store(&self, key: AuthStoreKey) -> Result<Option<String>, String>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
@@ -63,8 +63,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
                         }
 
                         for (key, value) in [
-                            (StoreKey::UserId, params.user_id),
-                            (StoreKey::AccountId, params.account_id),
+                            (AuthStoreKey::UserId, params.user_id),
+                            (AuthStoreKey::AccountId, params.account_id),
                         ] {
                             store.set(key.as_ref(), value);
                         }
@@ -103,7 +103,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
         vault.get(key).map_err(|err| err.to_string())
     }
 
-    fn get_from_store(&self, key: StoreKey) -> Result<Option<String>, String> {
+    fn get_from_store(&self, key: AuthStoreKey) -> Result<Option<String>, String> {
         let store = store::get_store(self);
 
         let v = store.get(key).and_then(|v| {

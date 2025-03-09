@@ -10,10 +10,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
         let app = self.app_handle();
 
         let (user_id, account_id, _server_token, database_token) = {
-            use tauri_plugin_auth::{AuthPluginExt, StoreKey, VaultKey};
+            use tauri_plugin_auth::{AuthPluginExt, AuthStoreKey, VaultKey};
 
-            let user_id = app.get_from_store(StoreKey::UserId).unwrap_or(None);
-            let account_id = app.get_from_store(StoreKey::AccountId).unwrap_or(None);
+            let user_id = app.get_from_store(AuthStoreKey::UserId).unwrap_or(None);
+            let account_id = app.get_from_store(AuthStoreKey::AccountId).unwrap_or(None);
 
             if let Some(account_id) = account_id.as_ref() {
                 app.init_vault(account_id).unwrap();

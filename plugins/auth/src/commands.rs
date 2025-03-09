@@ -1,4 +1,4 @@
-use crate::{store::StoreKey, vault::VaultKey, AuthEvent, AuthPluginExt};
+use crate::{store::AuthStoreKey, vault::VaultKey, AuthEvent, AuthPluginExt};
 
 #[tauri::command]
 #[specta::specta]
@@ -37,7 +37,7 @@ pub fn get_from_vault<R: tauri::Runtime>(
 #[specta::specta]
 pub fn get_from_store<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    key: StoreKey,
+    key: AuthStoreKey,
 ) -> Result<Option<String>, String> {
     app.get_from_store(key)
 }

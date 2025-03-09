@@ -18,9 +18,10 @@ specta-typescript = { workspace = true }
 hypr-auth-interface = { path = "../auth-interface", package = "auth-interface" }
 
 tauri = { workspace = true, features = ["test"] }
-tauri-plugin-oauth = "2"
-tauri-plugin-store = "2"
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+tauri-plugin-oauth = "2"
+tauri-plugin-store = { workspace = true }
 
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
 minijinja = { workspace = true }

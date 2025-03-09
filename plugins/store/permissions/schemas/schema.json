@@ -295,14 +295,64 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the ping command without any pre-configured scope.",
+          "description": "Enables the get_bool command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-ping"
+          "const": "allow-get-bool"
         },
         {
-          "description": "Denies the ping command without any pre-configured scope.",
+          "description": "Denies the get_bool command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-ping"
+          "const": "deny-get-bool"
+        },
+        {
+          "description": "Enables the get_number command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-number"
+        },
+        {
+          "description": "Denies the get_number command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-number"
+        },
+        {
+          "description": "Enables the get_str command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-str"
+        },
+        {
+          "description": "Denies the get_str command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-str"
+        },
+        {
+          "description": "Enables the set_bool command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-bool"
+        },
+        {
+          "description": "Denies the set_bool command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-bool"
+        },
+        {
+          "description": "Enables the set_number command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-number"
+        },
+        {
+          "description": "Denies the set_number command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-number"
+        },
+        {
+          "description": "Enables the set_str command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-str"
+        },
+        {
+          "description": "Denies the set_str command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-str"
         },
         {
           "description": "Default permissions for the plugin",

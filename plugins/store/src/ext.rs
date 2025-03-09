@@ -28,6 +28,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> StorePluginExt<R> for T {
 
 pub trait ScopedStoreKey: std::cmp::Eq + std::hash::Hash + std::fmt::Display {}
 
+impl ScopedStoreKey for String {}
+
 pub struct ScopedStore<R: tauri::Runtime, K: ScopedStoreKey> {
     scope: String,
     store: Arc<tauri_plugin_store::Store<R>>,

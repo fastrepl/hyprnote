@@ -1,14 +1,10 @@
-use tauri_plugin_store::StoreExt;
-
 #[derive(
-    Debug,
-    serde::Serialize,
-    serde::Deserialize,
-    strum::AsRefStr,
-    specta::Type,
     std::cmp::Eq,
     std::cmp::PartialEq,
     std::hash::Hash,
+    specta::Type,
+    strum::Display,
+    serde::Deserialize,
 )]
 pub enum AuthStoreKey {
     #[strum(serialize = "auth-user-id")]
@@ -22,9 +18,3 @@ pub enum AuthStoreKey {
 }
 
 impl tauri_plugin_store2::ScopedStoreKey for AuthStoreKey {}
-
-pub fn get_store<R: tauri::Runtime, T: tauri::Manager<R>>(
-    app: &T,
-) -> std::sync::Arc<tauri_plugin_store::Store<R>> {
-    app.store("store.json").unwrap()
-}

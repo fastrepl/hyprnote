@@ -1,10 +1,9 @@
 use tauri::ipc::Channel;
 
 use crate::{
-    store,
     store::AuthStoreKey,
     vault::{Vault, VaultKey},
-    ResponseParams, CALLBACK_TEMPLATE_KEY,
+    ResponseParams, CALLBACK_TEMPLATE_KEY, PLUGIN_NAME,
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
@@ -24,7 +23,11 @@ pub trait AuthPluginExt<R: tauri::Runtime> {
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
     fn start_oauth_server(&self, channel: Channel<AuthEvent>) -> Result<u16, String> {
-        let store = store::get_store(self);
+        let store = {
+            use tauri_plugin_store2::StorePluginExt;
+            self.scoped_store::<AuthStoreKey>(PLUGIN_NAME.to_string())
+        }
+        .unwrap();
 
         let env = self.state::<minijinja::Environment>().inner().clone();
         let vault = self.state::<Vault>().inner().clone();
@@ -66,7 +69,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
                             (AuthStoreKey::UserId, params.user_id),
                             (AuthStoreKey::AccountId, params.account_id),
                         ] {
-                            store.set(key.as_ref(), value);
+                            store.set(key, value).unwrap();
                         }
                         store.save().unwrap();
 
@@ -104,23 +107,18 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
     }
 
     fn get_from_store(&self, key: AuthStoreKey) -> Result<Option<String>, String> {
-        let store = store::get_store(self);
+        let store = {
+            use tauri_plugin_store2::StorePluginExt;
+            self.scoped_store::<AuthStoreKey>(PLUGIN_NAME.to_string())
+        }
+        .unwrap();
 
-        let v = store.get(key).and_then(|v| {
-            if let Some(s) = v.as_str() {
-                Some(s.to_string())
-            } else {
-                None
-            }
-        });
-
-        Ok(v)
+        store.get::<String>(key).map_err(|err| err.to_string())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::RequestParams;
 
     #[test]

@@ -85,7 +85,7 @@ mod test {
             Some("1".to_string())
         );
 
-        scoped_store.set(TestKey::KeyA, "1".to_string())?;
+        scoped_store.set(TestKey::KeyA, 1)?;
         assert_eq!(scoped_store.get::<u8>(TestKey::KeyA)?, Some(1));
 
         assert!(scoped_store.get::<String>(TestKey::KeyB)?.is_none());

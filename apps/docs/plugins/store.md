@@ -1,7 +1,7 @@
 ---
-title: Store
+title: Store2
 description: Simple persistent key-value store.
-id: store
+id: store2
 ---
 
 # {{ $frontmatter.title }}

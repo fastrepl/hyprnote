@@ -9,9 +9,7 @@ tauri-plugin = "2"
 tauri-plugin-deep-link = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-http = "2"
-
 tauri-plugin-store = "2"
-tauri-plugin-store2 = { path = "plugins/store" }
 
 tauri-plugin-auth = { path = "plugins/auth" }
 tauri-plugin-connector = { path = "plugins/connector" }
@@ -22,6 +20,7 @@ tauri-plugin-local-stt = { path = "plugins/local-stt" }
 tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-sfx = { path = "plugins/sfx" }
 tauri-plugin-sse = { path = "plugins/sse" }
+tauri-plugin-store2 = { path = "plugins/store2" }
 tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-tray = { path = "plugins/tray" }
 tauri-plugin-windows = { path = "plugins/windows" }

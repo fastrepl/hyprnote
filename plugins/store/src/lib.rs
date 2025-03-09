@@ -53,7 +53,7 @@ mod test {
         let app = create_app(tauri::test::mock_builder());
         assert!(app.store().is_ok());
 
-        #[derive(PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, strum::Display)]
+        #[derive(PartialEq, Eq, Hash, strum::Display)]
         enum TestKey {
             #[strum(serialize = "key-a")]
             KeyA,
@@ -71,6 +71,17 @@ mod test {
             scoped_store.get::<String>(TestKey::KeyA)?,
             Some("test".to_string())
         );
+
+        scoped_store.set(TestKey::KeyA, "1".to_string())?;
+        assert_eq!(
+            scoped_store.get::<String>(TestKey::KeyA)?,
+            Some("1".to_string())
+        );
+
+        scoped_store.set(TestKey::KeyA, "1".to_string())?;
+        assert_eq!(scoped_store.get::<u8>(TestKey::KeyA)?, Some(1));
+
+        assert!(scoped_store.get::<String>(TestKey::KeyB)?.is_none());
 
         Ok(())
     }

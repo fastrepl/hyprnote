@@ -3,7 +3,7 @@ mod ext;
 
 pub use ext::*;
 
-const PLUGIN_NAME: &str = "connector";
+const PLUGIN_NAME: &str = "hypr-connector";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()

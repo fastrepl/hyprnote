@@ -13,7 +13,7 @@ pub use vault::*;
 
 pub use hypr_auth_interface::{RequestParams, ResponseParams};
 
-const PLUGIN_NAME: &str = "auth";
+const PLUGIN_NAME: &str = "hypr-auth";
 
 const CALLBACK_TEMPLATE_KEY: &str = "callback";
 const CALLBACK_TEMPLATE_VALUE: &str = include_str!("../templates/callback.jinja");

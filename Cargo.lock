@@ -11916,6 +11916,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-store2"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.12",
+]
+
+[[package]]
 name = "tauri-plugin-template"
 version = "0.1.0"
 dependencies = [

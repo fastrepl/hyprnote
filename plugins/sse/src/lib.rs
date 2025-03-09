@@ -7,7 +7,7 @@ mod types;
 pub use ext::*;
 pub use types::*;
 
-const PLUGIN_NAME: &str = "sse";
+const PLUGIN_NAME: &str = "hypr-sse";
 
 #[derive(Default)]
 pub struct State {

@@ -3,7 +3,7 @@ mod ext;
 
 pub use ext::*;
 
-const PLUGIN_NAME: &str = "sfx";
+const PLUGIN_NAME: &str = "hypr-sfx";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()

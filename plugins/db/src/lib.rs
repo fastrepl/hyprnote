@@ -16,7 +16,7 @@ pub struct State {
     pub db: Option<hypr_db_user::UserDatabase>,
 }
 
-const PLUGIN_NAME: &str = "db";
+const PLUGIN_NAME: &str = "hypr-db";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()

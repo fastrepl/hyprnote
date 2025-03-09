@@ -7,7 +7,7 @@ mod ext;
 
 pub use ext::TemplatePluginExt;
 
-const PLUGIN_NAME: &str = "template";
+const PLUGIN_NAME: &str = "hypr-template";
 
 pub type ManagedState = Mutex<State>;
 

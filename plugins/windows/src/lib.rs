@@ -3,7 +3,7 @@ mod ext;
 
 pub use ext::*;
 
-const PLUGIN_NAME: &str = "windows";
+const PLUGIN_NAME: &str = "hypr-windows";
 
 fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
     tauri_specta::Builder::<tauri::Wry>::new()

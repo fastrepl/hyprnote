@@ -16,7 +16,7 @@ pub struct State {
     pub worker_handle: Option<tokio::task::JoinHandle<()>>,
 }
 
-const PLUGIN_NAME: &str = "apple-calendar";
+const PLUGIN_NAME: &str = "hypr-apple-calendar";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()

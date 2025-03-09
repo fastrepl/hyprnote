@@ -9,7 +9,7 @@ mod server;
 pub use error::*;
 pub use ext::*;
 
-const PLUGIN_NAME: &str = "local-llm";
+const PLUGIN_NAME: &str = "hypr-local-llm";
 
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 

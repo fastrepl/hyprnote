@@ -4,7 +4,7 @@ mod model;
 
 pub use model::*;
 
-const PLUGIN_NAME: &str = "misc";
+const PLUGIN_NAME: &str = "hypr-misc";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()

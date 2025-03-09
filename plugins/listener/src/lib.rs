@@ -19,7 +19,7 @@ pub use timeline::*;
 
 pub use hypr_listener_interface::*;
 
-const PLUGIN_NAME: &str = "listener";
+const PLUGIN_NAME: &str = "hypr-listener";
 
 pub type SharedState = Mutex<State>;
 

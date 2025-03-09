@@ -11,7 +11,7 @@ pub struct State {
     pub always_on_top: Option<bool>,
 }
 
-const PLUGIN_NAME: &str = "tray";
+const PLUGIN_NAME: &str = "hypr-tray";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()

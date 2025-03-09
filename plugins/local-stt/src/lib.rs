@@ -19,7 +19,7 @@ pub struct State {
     pub server: Option<crate::server::ServerHandle>,
 }
 
-const PLUGIN_NAME: &str = "local-stt";
+const PLUGIN_NAME: &str = "hypr-local-stt";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()

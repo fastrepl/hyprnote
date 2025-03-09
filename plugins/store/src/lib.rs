@@ -42,17 +42,16 @@ mod test {
 
     fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
         builder
+            .plugin(tauri_plugin_store::Builder::new().build())
             .plugin(init())
             .build(tauri::test::mock_context(tauri::test::noop_assets()))
             .unwrap()
     }
 
     #[tokio::test]
-    async fn test_sse() {
+    async fn test_store() {
         let app = create_app(tauri::test::mock_builder());
-
-        let store = app.store();
-        assert!(store.is_ok());
+        assert!(app.store().is_ok());
 
         #[derive(PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, strum::Display)]
         enum TestKey {
@@ -64,7 +63,7 @@ mod test {
 
         impl ScopedStoreKey for TestKey {}
 
-        let scoped_store = app.scoped_store::<TestKey>("test");
-        assert!(scoped_store.is_ok());
+        let scoped_store = app.scoped_store::<TestKey>("test").unwrap();
+        assert!(scoped_store.get::<String>(TestKey::KeyA).unwrap().is_none());
     }
 }

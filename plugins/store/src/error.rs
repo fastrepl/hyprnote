@@ -4,6 +4,8 @@ use serde::{ser::Serializer, Serialize};
 pub enum Error {
     #[error(transparent)]
     StorePluginError(#[from] tauri_plugin_store::Error),
+    #[error(transparent)]
+    SerdeJsonError(#[from] serde_json::Error),
 }
 
 impl Serialize for Error {

@@ -11467,6 +11467,7 @@ dependencies = [
  "tauri-plugin",
  "tauri-plugin-oauth",
  "tauri-plugin-store",
+ "tauri-plugin-store2",
  "tauri-specta",
  "thiserror 2.0.12",
  "tracing",
@@ -11920,9 +11921,16 @@ name = "tauri-plugin-store2"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-store",
+ "tauri-specta",
  "thiserror 2.0.12",
+ "tokio",
 ]
 
 [[package]]

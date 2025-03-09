@@ -22,6 +22,7 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 tauri-plugin-oauth = "2"
 tauri-plugin-store = { workspace = true }
+tauri-plugin-store2 = { workspace = true }
 
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
 minijinja = { workspace = true }

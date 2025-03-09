@@ -9,7 +9,9 @@ tauri-plugin = "2"
 tauri-plugin-deep-link = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-http = "2"
+
 tauri-plugin-store = "2"
+tauri-plugin-store2 = { path = "plugins/store" }
 
 tauri-plugin-auth = { path = "plugins/auth" }
 tauri-plugin-connector = { path = "plugins/connector" }

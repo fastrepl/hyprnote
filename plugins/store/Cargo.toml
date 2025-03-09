@@ -3,15 +3,25 @@ name = "tauri-plugin-store2"
 version = "0.1.0"
 authors = ["You"]
 edition = "2021"
-exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules"]
+exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-store2"
 rust-version = "1.77.2"
 description = ""
 
-[dependencies]
-serde = "1.0"
-tauri = { version = "2.3.1" }
-thiserror = "2"
-
 [build-dependencies]
-tauri-plugin = { version = "2.0.4", features = ["build"] }
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+specta-typescript = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
+tokio = { workspace = true, features = ["rt", "macros"] }
+
+[dependencies]
+tauri = { workspace = true, features = ["test"] }
+tauri-plugin-store = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+specta = { workspace = true }
+thiserror = { workspace = true }

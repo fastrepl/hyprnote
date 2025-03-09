@@ -1,14 +1,9 @@
 use serde::{ser::Serializer, Serialize};
 
-pub type Result<T> = std::result::Result<T, Error>;
-
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
-    Io(#[from] std::io::Error),
-    #[cfg(mobile)]
-    #[error(transparent)]
-    PluginInvoke(#[from] tauri::plugin::mobile::PluginInvokeError),
+    StorePluginError(#[from] tauri_plugin_store::Error),
 }
 
 impl Serialize for Error {

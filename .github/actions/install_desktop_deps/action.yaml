@@ -21,3 +21,7 @@ runs:
           libssl-dev \
           libayatana-appindicator3-dev \
           librsvg2-dev
+    - if: ${{ runner.os == 'Linux' }}
+      shell: bash
+      run: |
+        sudo apt-get install -y libasound2-dev pkg-config

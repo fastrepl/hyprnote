@@ -20,8 +20,8 @@ jobs:
       - uses: ./.github/actions/pnpm_install
       - run: pnpm -F ui build
       - run: pnpm -F app build
-      - run: ./.github/actions/rust_install
-      - run: ./.github/actions/install_app_deps
+      - uses: ./.github/actions/rust_install
+      - uses: ./.github/actions/install_app_deps
       - uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}

@@ -8,7 +8,6 @@ import { RoutePath } from "@/types";
 
 import { SearchBar, SearchIconButton, SearchPalette } from "../search";
 import { RightPanelButton } from "./buttons/right-panel-button";
-import { HomeButton } from "./buttons/home-button";
 import { LeftSidebarButton } from "./buttons/left-sidebar-button";
 import { SessionIndicator } from "./session-indicator";
 import { ShareButton } from "./buttons/share-button";
@@ -40,7 +39,7 @@ export default function Toolbar() {
       >
         <div className="w-40 flex items-center" data-tauri-drag-region>
           <LeftSidebarButton type="toolbar" />
-          <HomeButton />
+          {/* <HomeButton /> */}
           <NewNoteButton />
         </div>
 

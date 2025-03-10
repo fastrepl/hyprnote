@@ -13,13 +13,14 @@ interface NoteHeaderProps {
 
 export function NoteHeader({ onNavigateToEditor }: NoteHeaderProps) {
   const ongoingSessionStore = useOngoingSession((s) => ({
+    onGoingSessionId: s.sessionId,
     listening: s.listening,
     start: s.start,
     pause: s.pause,
   }));
 
   const sessionStore = useSession((s) => ({
-    session: s.session,
+    sessionInView: s.session,
     updateTitle: s.updateTitle,
     persistSession: s.persistSession,
   }));
@@ -30,18 +31,22 @@ export function NoteHeader({ onNavigateToEditor }: NoteHeaderProps) {
   };
 
   const handleClickListen = useCallback(() => {
-    ongoingSessionStore.start(sessionStore.session.id);
-  }, [sessionStore.session, ongoingSessionStore.start]);
+    ongoingSessionStore.start(sessionStore.sessionInView.id);
+  }, [sessionStore.sessionInView, ongoingSessionStore.start]);
 
   return (
     <>
       <div className="flex flex-row items-center justify-between sm:pl-8 px-4 pt-6">
         <TitleInput
-          value={sessionStore.session.title}
+          value={sessionStore.sessionInView.title}
           onChange={handleTitleChange}
           onNavigateToEditor={onNavigateToEditor}
         />
         <ListenButton
+          isCurrent={
+            sessionStore.sessionInView.id ===
+            ongoingSessionStore.onGoingSessionId
+          }
           isListening={ongoingSessionStore.listening}
           onClick={handleClickListen}
           onStop={ongoingSessionStore.pause}

@@ -47,9 +47,9 @@ export default function UpdateButton() {
         onClick={handleClick}
         className={clsx([
           "w-full px-2 py-1.5 rounded-md",
-          "bg-neutral-200 dark:bg-neutral-800",
-          "hover:bg-neutral-300 dark:hover:bg-neutral-600",
-          "text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100",
+          "bg-neutral-200 ",
+          "hover:bg-neutral-300 ",
+          "text-neutral-900  ",
         ])}
       >
         Update

@@ -11,10 +11,7 @@ export function SearchIconButton({ isShown }: { isShown: boolean }) {
     <Button
       variant="ghost"
       size="icon"
-      className={cn(
-        "hover:bg-neutral-200 dark:hover:bg-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100",
-        isShown ? "block" : "md:hidden",
-      )}
+      className={cn("hover:bg-neutral-200   ", isShown ? "block" : "md:hidden")}
       onClick={open}
       aria-label="Search"
     >

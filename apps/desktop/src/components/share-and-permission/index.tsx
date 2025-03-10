@@ -40,7 +40,7 @@ export default function ShareAndPermissionPanel({
   };
 
   return (
-    <div className="w-full dark:bg-neutral-700 dark:text-neutral-100">
+    <div className="w-full  ">
       <div className="p-4">
         <div className="flex flex-col gap-2">
           <InviteList
@@ -62,7 +62,7 @@ export default function ShareAndPermissionPanel({
             onToggle={() => toggleGroup("general")}
           />
 
-          <Button className="w-full dark:bg-white dark:text-black  dark:hover:bg-neutral-100 dark:hover:text-black">
+          <Button className="w-full     ">
             <LinkIcon className="size-4" /> Copy link
           </Button>
         </div>

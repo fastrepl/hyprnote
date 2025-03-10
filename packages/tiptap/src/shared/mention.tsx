@@ -27,9 +27,7 @@ export const Mention = (args: MentionArgs) => {
         "span",
         {
           "data-hypr-exclude": true,
-          class: clsx(
-            "before:content-['#'] underline text-yellow-600 dark:text-yellow-400",
-          ),
+          class: clsx("before:content-['#'] underline text-yellow-600 "),
         },
         node.attrs.id,
       ];

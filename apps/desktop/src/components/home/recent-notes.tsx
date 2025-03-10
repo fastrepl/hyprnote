@@ -19,9 +19,7 @@ export default function RecentNotes() {
 
   return (
     <div className="mb-8 space-y-4 w-full">
-      <h2 className="text-lg font-medium border-b pb-1 dark:text-neutral-300">
-        Recently Opened
-      </h2>
+      <h2 className="text-lg font-medium border-b pb-1 ">Recently Opened</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {sessions.data?.map((session: any, i) => {
@@ -33,15 +31,15 @@ export default function RecentNotes() {
             <div
               key={i}
               onClick={() => handleClickSession(session.id)}
-              className="min-h-[8rem] p-4 cursor-pointer transition-all border rounded-lg hover:bg-neutral-50 hover:shadow-sm flex flex-col dark:bg-neutral-800 dark:hover:bg-neutral-700"
+              className="min-h-[8rem] p-4 cursor-pointer transition-all border rounded-lg hover:bg-neutral-50 hover:shadow-sm flex flex-col  "
             >
               <div className="flex items-center gap-2 mb-3">
-                <FileText className="h-5 w-5 text-neutral-500 flex-shrink-0 dark:text-neutral-300" />
-                <div className="font-medium text-base truncate dark:text-neutral-300">
+                <FileText className="h-5 w-5 text-neutral-500 flex-shrink-0 " />
+                <div className="font-medium text-base truncate ">
                   {session.title || "Untitled"}
                 </div>
               </div>
-              <div className="text-sm text-neutral-600 line-clamp-4 dark:text-neutral-300">
+              <div className="text-sm text-neutral-600 line-clamp-4 ">
                 {previewText}
               </div>
             </div>

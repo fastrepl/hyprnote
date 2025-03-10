@@ -94,16 +94,13 @@ export default function WorkspaceCalendar() {
 
   return (
     <div className="mb-8">
-      <h2 className="text-lg font-medium mb-6 border-b pb-1 dark:text-neutral-300">
+      <h2 className="text-lg font-medium mb-6 border-b pb-1 ">
         {viewMode === "month" ? "Upcoming Events" : "Upcoming Events"}
       </h2>
 
       <div className={`grid ${getGridColumnsClass()} gap-1`}>
         {getWeekdayHeaders().map((day) => (
-          <div
-            key={day}
-            className="text-center font-semibold pb-2 dark:text-neutral-300"
-          >
+          <div key={day} className="text-center font-semibold pb-2 ">
             {day}
           </div>
         ))}
@@ -119,16 +116,14 @@ export default function WorkspaceCalendar() {
             <div
               key={i}
               className={`min-h-[120px] border rounded-lg p-1 relative ${
-                isWeekend(day)
-                  ? "bg-neutral-50 dark:bg-neutral-800"
-                  : "bg-white dark:bg-neutral-800"
+                isWeekend(day) ? "bg-neutral-50 " : "bg-white "
               } ${
                 isToday(day)
                   ? "border-blue-500 border-2"
-                  : "border-neutral-700 dark:border-neutral-200"
+                  : "border-neutral-700 "
               }`}
             >
-              <div className="text-sm text-right mb-1 pr-1 dark:text-neutral-300">
+              <div className="text-sm text-right mb-1 pr-1 ">
                 {format(day, "d")}
               </div>
               <DayEvents date={day} events={dayEvents} />

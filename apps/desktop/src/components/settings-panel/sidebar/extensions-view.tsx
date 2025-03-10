@@ -41,8 +41,8 @@ export function ExtensionsView({
             onClick={() => setActive(data.nav[0].name)}
             className={cn(
               "flex w-full items-center gap-2 rounded-lg p-2 text-sm",
-              "text-neutral-600 dark:text-neutral-300",
-              "hover:bg-neutral-100 dark:hover:bg-neutral-600",
+              "text-neutral-600 ",
+              "hover:bg-neutral-100 ",
             )}
           >
             <ChevronLeftIcon className="h-4 w-4" />

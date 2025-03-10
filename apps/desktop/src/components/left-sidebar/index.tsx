@@ -13,7 +13,7 @@ export default function LeftSidebar() {
       layout
       initial={{ width: isExpanded ? 240 : 0 }}
       animate={{ width: isExpanded ? 240 : 0 }}
-      className="h-full flex flex-col overflow-hidden border-r bg-neutral-100 dark:bg-neutral-700 dark:border-neutral-800"
+      className="h-full flex flex-col overflow-hidden border-r bg-neutral-100"
     >
       <div
         className="flex items-center justify-end min-h-11 px-2"

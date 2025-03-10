@@ -40,12 +40,7 @@ export default function ListenButton({
     <Button
       variant={isListening && isCurrent ? "default" : "outline"}
       onClick={handleClick}
-      className={cn(
-        "p-2",
-        !(isListening && isCurrent)
-          ? "dark:text-neutral-100 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
-          : "dark:text-neutral-800 dark:bg-white dark:hover:bg-neutral-100 dark:hover:text-neutral-800",
-      )}
+      className={cn("p-2", !(isListening && isCurrent) ? "   " : "   ")}
     >
       {isListening && isCurrent ? <Ear size={20} /> : <EarOff size={20} />}
       {isListening && isCurrent && <AudioIndicator />}
@@ -73,10 +68,7 @@ export default function ListenButton({
           <p>Stop recording</p>
         </TooltipContent>
       </Tooltip>
-      <PopoverContent
-        className="w-60 p-4 dark:bg-neutral-800 dark:text-neutral-100"
-        align="end"
-      >
+      <PopoverContent className="w-60 p-4  " align="end">
         <div className="flex flex-col items-center gap-3 w-full">
           <div className="text-sm font-medium">
             Stop listening to the meeting?
@@ -88,7 +80,7 @@ export default function ListenButton({
               onStop?.();
               setOpen(false);
             }}
-            className="dark:text-neutral-100 w-full"
+            className=" w-full"
           >
             Stop
           </Button>

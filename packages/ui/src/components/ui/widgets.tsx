@@ -1,30 +1,6 @@
-import React, { type ReactNode, useState, useEffect } from "react";
+import React, { type ReactNode } from "react";
 import { Button } from "./button";
 import { Maximize2Icon } from "lucide-react";
-
-// Custom hook for dark mode detection
-function useDarkMode() {
-  const [isDarkMode, setIsDarkMode] = useState(
-    window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches,
-  );
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-    const handleChange = (e: MediaQueryListEvent) => {
-      setIsDarkMode(e.matches);
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-
-    return () => {
-      mediaQuery.removeEventListener("change", handleChange);
-    };
-  }, []);
-
-  return isDarkMode;
-}
 
 interface WidgetHeaderProps {
   leading?: ReactNode;
@@ -41,27 +17,11 @@ const WidgetHeader = ({
     </Button>,
   ],
 }: WidgetHeaderProps) => {
-  const isDarkMode = useDarkMode();
-
   return (
-    <header
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        color: isDarkMode ? "#f5f5f5" : "inherit", // neutral-100 for dark mode
-      }}
-    >
+    <header style={{ display: "flex", alignItems: "center", gap: "8px" }}>
       {leading && <div>{leading}</div>}
       {title && (
-        <div
-          style={{
-            flex: 1,
-            fontSize: "18px",
-            fontWeight: 600,
-            color: isDarkMode ? "#f5f5f5" : "inherit", // neutral-100 for dark mode
-          }}
-        >
+        <div style={{ flex: 1, fontSize: "18px", fontWeight: 600 }}>
           {title}
         </div>
       )}
@@ -104,8 +64,6 @@ const WidgetWrapper = ({
   className,
   style,
 }: WidgetWrapperProps) => {
-  const isDarkMode = useDarkMode();
-
   return (
     <div
       className={className}
@@ -115,7 +73,7 @@ const WidgetWrapper = ({
         borderWidth: "1px",
         borderRadius: "16px",
         overflow: "hidden",
-        background: isDarkMode ? "#525252" : "white", // neutral-600 in dark mode
+        background: "white",
         display: "flex",
         flexDirection: "column",
         ...style,

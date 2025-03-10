@@ -31,7 +31,7 @@ export default function Toolbar() {
       <header
         className={clsx([
           "flex w-full items-center justify-between",
-          "border-b border-border bg-neutral-50 dark:bg-neutral-600 dark:border-neutral-600",
+          "border-b border-border bg-neutral-50  ",
           "min-h-11 p-1 px-2",
         ])}
         data-tauri-drag-region

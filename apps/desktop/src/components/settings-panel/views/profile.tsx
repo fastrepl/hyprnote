@@ -109,14 +109,12 @@ export default function ProfileComponent() {
             name="fullName"
             render={({ field }) => (
               <FormItem className="max-w-sm">
-                <FormLabel className="dark:text-neutral-300">
-                  Username
-                </FormLabel>
+                <FormLabel className="">Username</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Your Name"
                     {...field}
-                    className="focus-visible:ring-0 focus-visible:ring-offset-0 dark:bg-neutral-800 dark:text-neutral-300"
+                    className="focus-visible:ring-0 focus-visible:ring-offset-0  "
                   />
                 </FormControl>
                 <FormMessage />
@@ -129,13 +127,11 @@ export default function ProfileComponent() {
             name="jobTitle"
             render={({ field }) => (
               <FormItem className="max-w-sm">
-                <FormLabel className="dark:text-neutral-300">
-                  Job Title
-                </FormLabel>
+                <FormLabel className="">Job Title</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
-                    className="focus-visible:ring-0 focus-visible:ring-offset-0 dark:bg-neutral-800 dark:text-neutral-300"
+                    className="focus-visible:ring-0 focus-visible:ring-offset-0  "
                   />
                 </FormControl>
                 <FormMessage />
@@ -149,17 +145,15 @@ export default function ProfileComponent() {
             render={({ field }) => (
               <FormItem className="max-w-sm">
                 <div>
-                  <FormLabel className="dark:text-neutral-300">
-                    Company Name
-                  </FormLabel>
-                  <FormDescription className="dark:text-neutral-300">
+                  <FormLabel className="">Company Name</FormLabel>
+                  <FormDescription className="">
                     This is the name of the company you work for.
                   </FormDescription>
                 </div>
                 <FormControl>
                   <Input
                     {...field}
-                    className="focus-visible:ring-0 focus-visible:ring-offset-0 dark:bg-neutral-800 dark:text-neutral-300"
+                    className="focus-visible:ring-0 focus-visible:ring-offset-0  "
                   />
                 </FormControl>
                 <FormMessage />
@@ -173,10 +167,8 @@ export default function ProfileComponent() {
             render={({ field }) => (
               <FormItem className="max-w-lg">
                 <div>
-                  <FormLabel className="dark:text-neutral-300">
-                    Company Description
-                  </FormLabel>
-                  <FormDescription className="dark:text-neutral-300">
+                  <FormLabel className="">Company Description</FormLabel>
+                  <FormDescription className="">
                     This is a short description of your company.
                   </FormDescription>
                 </div>
@@ -184,7 +176,7 @@ export default function ProfileComponent() {
                   <Textarea
                     placeholder="Add a few words about your company."
                     {...field}
-                    className="focus-visible:ring-0 focus-visible:ring-offset-0 dark:bg-neutral-800 dark:text-neutral-300"
+                    className="focus-visible:ring-0 focus-visible:ring-offset-0  "
                   />
                 </FormControl>
                 <FormMessage />
@@ -198,20 +190,18 @@ export default function ProfileComponent() {
             render={({ field }) => (
               <FormItem className="max-w-sm">
                 <div>
-                  <FormLabel className="dark:text-neutral-300">
-                    LinkedIn Username
-                  </FormLabel>
-                  <FormDescription className="dark:text-neutral-300">
+                  <FormLabel className="">LinkedIn Username</FormLabel>
+                  <FormDescription className="">
                     Your LinkedIn username (the part after linkedin.com/in/)
                   </FormDescription>
                 </div>
                 <FormControl>
                   <div className="flex">
-                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-sm text-muted-foreground dark:bg-neutral-800 dark:text-neutral-300">
+                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-sm text-muted-foreground  ">
                       linkedin.com/in/
                     </span>
                     <Input
-                      className="rounded-l-none focus-visible:ring-0 focus-visible:ring-offset-0 dark:bg-neutral-800 dark:text-neutral-300"
+                      className="rounded-l-none focus-visible:ring-0 focus-visible:ring-offset-0  "
                       placeholder="username"
                       {...field}
                     />

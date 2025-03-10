@@ -25,17 +25,17 @@ export function ParticipantsChip() {
   return (
     <Popover>
       <PopoverTrigger>
-        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-700 dark:text-neutral-100 dark:hover:text-neutral-100 text-xs">
-          <Users2Icon size={14} className="dark:text-neutral-100" />
+        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100    text-xs">
+          <Users2Icon size={14} className="" />
           {participants.data?.length && participants.data.length > 2 && (
-            <div className="dark:text-neutral-100">
+            <div className="">
               {participants.data[0].full_name} + {participants.data.length - 1}
             </div>
           )}
         </div>
       </PopoverTrigger>
       <PopoverContent
-        className="shadow-lg dark:bg-neutral-800 dark:text-neutral-100"
+        className="shadow-lg  "
         align="start"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
@@ -75,7 +75,7 @@ function ParticipantsList({ participants }: { participants: Human[] }) {
       {Object.entries(groupedParticipants).map(([orgId, members]) => (
         <div key={orgId} className="space-y-1">
           <div className="pb-1">
-            <p className="text-xs font-medium text-neutral-500 dark:text-neutral-300">
+            <p className="text-xs font-medium text-neutral-500 ">
               {orgId === "No Organization" ? "Others" : orgId}
             </p>
           </div>
@@ -98,11 +98,9 @@ function ParticipantsList({ participants }: { participants: Human[] }) {
                     </Avatar>
 
                     <div className="flex flex-col">
-                      <span className="font-medium dark:text-neutral-100">
-                        {member.full_name}
-                      </span>
+                      <span className="font-medium ">{member.full_name}</span>
                       {member.job_title && (
-                        <span className="text-xs text-neutral-500 dark:text-neutral-300">
+                        <span className="text-xs text-neutral-500 ">
                           {member.job_title}
                         </span>
                       )}
@@ -115,7 +113,7 @@ function ParticipantsList({ participants }: { participants: Human[] }) {
                         href={`https://linkedin.com/in/${member.linkedin_username}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-neutral-400 transition-colors hover:text-neutral-600 dark:text-neutral-300 dark:hover:text-neutral-100"
+                        className="text-neutral-400 transition-colors hover:text-neutral-600  "
                       >
                         <RiLinkedinBoxFill className="size-5" />
                       </a>
@@ -131,7 +129,7 @@ function ParticipantsList({ participants }: { participants: Human[] }) {
                             toast.error("Failed to copy email");
                           }
                         }}
-                        className="text-neutral-400 transition-colors hover:text-neutral-600 dark:text-neutral-300 dark:hover:text-neutral-100"
+                        className="text-neutral-400 transition-colors hover:text-neutral-600  "
                         title={member.email}
                       >
                         <Mail className="size-4" />

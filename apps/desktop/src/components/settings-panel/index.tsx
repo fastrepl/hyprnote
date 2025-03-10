@@ -62,7 +62,7 @@ export default function SettingsPanel() {
         onClick={open}
         aria-label="Settings"
         variant="ghost"
-        className="hidden w-full justify-start md:flex hover:bg-neutral-200 dark:hover:bg-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
+        className="hidden w-full justify-start md:flex hover:bg-neutral-200   "
       >
         <SettingsIcon className="mr-2 h-4 w-4" />
         Settings
@@ -70,7 +70,7 @@ export default function SettingsPanel() {
       </Button>
 
       <Modal open={isOpen} onClose={close} size="full">
-        <ModalBody className="p-0 dark:bg-neutral-600">
+        <ModalBody className="p-0 ">
           <div className="flex h-full w-full gap-0 overflow-clip">
             <SettingsSidebar
               active={active}

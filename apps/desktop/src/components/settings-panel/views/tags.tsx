@@ -78,10 +78,10 @@ export default function TagsComponent() {
     <div>
       <div className="mb-4 flex items-center gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground dark:text-neutral-300 dark:bg-neutral-950" />
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground  " />
           <Input
             placeholder="Type to search..."
-            className="max-w-60 pl-8 dark:text-neutral-300 dark:bg-neutral-950"
+            className="max-w-60 pl-8  "
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -89,7 +89,7 @@ export default function TagsComponent() {
         <Button
           variant="outline"
           onClick={() => setShowAddModal(true)}
-          className="dark:text-neutral-300 dark:bg-neutral-950 cursor-pointer hover:bg-neutral-900 hover:text-neutral-300"
+          className="  cursor-pointer hover:bg-neutral-900 hover:text-neutral-300"
         >
           <Plus className="h-4 w-4" />
           <Trans>Add tag</Trans>
@@ -97,7 +97,7 @@ export default function TagsComponent() {
       </div>
 
       <div className="overflow-clip rounded-lg border bg-card">
-        <div className="grid grid-cols-2 gap-4 border-b bg-neutral-50 px-6 py-3 text-sm font-bold text-neutral-700 dark:bg-neutral-950 dark:text-neutral-300">
+        <div className="grid grid-cols-2 gap-4 border-b bg-neutral-50 px-6 py-3 text-sm font-bold text-neutral-700  ">
           <div>
             <Trans>Tag</Trans>
           </div>
@@ -110,7 +110,7 @@ export default function TagsComponent() {
           {filteredTags.map((tag) => (
             <div
               key={tag.id}
-              className="grid grid-cols-2 gap-4 border-t px-6 py-4 first:border-t-0 dark:bg-neutral-950 dark:text-neutral-300"
+              className="grid grid-cols-2 gap-4 border-t px-6 py-4 first:border-t-0  "
             >
               <div className="flex items-center gap-3">
                 {editingTag === tag.id ? (
@@ -118,7 +118,7 @@ export default function TagsComponent() {
                     <Input
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
-                      className="h-8 dark:text-neutral-300 dark:bg-neutral-950"
+                      className="h-8  "
                       autoFocus
                       onBlur={() => {
                         setEditingTag(null);
@@ -136,7 +136,7 @@ export default function TagsComponent() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground dark:text-neutral-300 dark:bg-neutral-950"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground  "
                       onClick={() => handleSaveEdit(tag)}
                       onMouseDown={(e) => e.preventDefault()}
                     >
@@ -161,17 +161,14 @@ export default function TagsComponent() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground dark:text-neutral-300 dark:bg-neutral-950 cursor-pointer hover:bg-neutral-900 hover:text-neutral-300"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground   cursor-pointer hover:bg-neutral-900 hover:text-neutral-300"
                     >
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="dark:bg-neutral-950 dark:text-neutral-300"
-                  >
+                  <DropdownMenuContent align="end" className=" ">
                     <DropdownMenuItem
-                      className="text-destructive dark:text-neutral-300 dark:bg-neutral-950 dark:hover:bg-neutral-900 dark:hover:text-neutral-300 cursor-pointer"
+                      className="text-destructive     cursor-pointer"
                       onClick={() => handleDelete(tag)}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
@@ -195,11 +192,11 @@ export default function TagsComponent() {
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
         size="sm"
-        className="dark:bg-neutral-950 dark:border-neutral-400 border min-w-80"
+        className="  border min-w-80"
       >
-        <ModalBody className="dark:bg-neutral-950">
+        <ModalBody className="">
           <ModalHeader>
-            <ModalTitle className="dark:text-neutral-300 dark:bg-neutral-950">
+            <ModalTitle className=" ">
               <Trans>Add new tag</Trans>
             </ModalTitle>
           </ModalHeader>
@@ -209,7 +206,7 @@ export default function TagsComponent() {
               placeholder="Enter tag name"
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
-              className="focus-visible:ring-0 focus-visible:ring-offset-0 dark:text-neutral-300 dark:bg-neutral-950"
+              className="focus-visible:ring-0 focus-visible:ring-offset-0  "
             />
 
             <div className="flex justify-end gap-2">
@@ -219,7 +216,7 @@ export default function TagsComponent() {
                   setNewTagName("");
                   setShowAddModal(false);
                 }}
-                className="dark:text-neutral-300 dark:bg-neutral-950"
+                className=" "
               >
                 <Trans>Cancel</Trans>
               </Button>
@@ -230,7 +227,7 @@ export default function TagsComponent() {
                   setShowAddModal(false);
                 }}
                 disabled={!newTagName.trim()}
-                className="dark:text-neutral-300 dark:bg-neutral-950"
+                className=" "
               >
                 <Trans>Add tag</Trans>
               </Button>

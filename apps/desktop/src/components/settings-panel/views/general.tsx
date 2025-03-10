@@ -104,10 +104,8 @@ export default function General() {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
-                  <FormLabel className="dark:text-neutral-300">
-                    Open Hyprnote on startup
-                  </FormLabel>
-                  <FormDescription className="dark:text-neutral-300">
+                  <FormLabel className="">Open Hyprnote on startup</FormLabel>
+                  <FormDescription className="">
                     Hyprnote will be opened automatically when you start your
                     computer.
                   </FormDescription>
@@ -130,23 +128,18 @@ export default function General() {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
-                  <FormLabel className="dark:text-neutral-300">
-                    Display language
-                  </FormLabel>
-                  <FormDescription className="dark:text-neutral-300">
+                  <FormLabel className="">Display language</FormLabel>
+                  <FormDescription className="">
                     This is the language you read.
                   </FormDescription>
                 </div>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger className="max-w-[100px] focus:outline-none focus:ring-0 focus:ring-offset-0 dark:bg-neutral-800 dark:text-neutral-300">
+                    <SelectTrigger className="max-w-[100px] focus:outline-none focus:ring-0 focus:ring-offset-0  ">
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent
-                    align="end"
-                    className="dark:bg-neutral-800 dark:text-neutral-300"
-                  >
+                  <SelectContent align="end" className=" ">
                     {SUPPORTED_LANGUAGES.map((code) => (
                       <SelectItem key={code} value={code}>
                         {LANGUAGES_ISO_639_1[code].nativeName}
@@ -165,10 +158,10 @@ export default function General() {
             render={({ field }) => (
               <FormItem>
                 <div>
-                  <FormLabel className="dark:text-neutral-300">
+                  <FormLabel className="">
                     <Trans>Jargons</Trans>
                   </FormLabel>
-                  <FormDescription className="dark:text-neutral-300">
+                  <FormDescription className="">
                     You can make Hyprnote takes these words into account when
                     transcribing.
                   </FormDescription>
@@ -178,7 +171,7 @@ export default function General() {
                     placeholder="Type jargons (e.g., Blitz Meeting, PaC Squad)"
                     {...field}
                     value={field.value ?? ""}
-                    className="focus-visible:ring-0 focus-visible:ring-offset-0 dark:text-neutral-300 dark:bg-neutral-800"
+                    className="focus-visible:ring-0 focus-visible:ring-offset-0  "
                   />
                 </FormControl>
                 <FormMessage />

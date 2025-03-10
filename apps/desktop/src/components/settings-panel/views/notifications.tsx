@@ -86,10 +86,8 @@ export default function NotificationsComponent() {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
-                  <FormLabel className="dark:text-neutral-300">
-                    Meeting notifications
-                  </FormLabel>
-                  <FormDescription className="dark:text-neutral-300">
+                  <FormLabel className="">Meeting notifications</FormLabel>
+                  <FormDescription className="">
                     Show notifications 1 minute before meetings start based on
                     your Calendar
                   </FormDescription>
@@ -111,10 +109,10 @@ export default function NotificationsComponent() {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
-                  <FormLabel className="dark:text-neutral-300">
+                  <FormLabel className="">
                     Automatic meeting detection
                   </FormLabel>
-                  <FormDescription className="dark:text-neutral-300">
+                  <FormDescription className="">
                     Show notifications whenever a call is detected
                   </FormDescription>
                 </div>

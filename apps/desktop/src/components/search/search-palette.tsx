@@ -21,19 +21,19 @@ export function SearchPalette() {
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Note">
           <CommandItem>
-            <div className="rounded-lg border bg-neutral-100 size-6 grid place-items-center dark:bg-neutral-600 dark:text-neutral-100">
+            <div className="rounded-lg border bg-neutral-100 size-6 grid place-items-center  ">
               <Users2 className="size-4" />
             </div>
             Note 1
           </CommandItem>
           <CommandItem>
-            <div className="rounded-lg border bg-neutral-100 size-6 grid place-items-center dark:bg-neutral-600 dark:text-neutral-100">
+            <div className="rounded-lg border bg-neutral-100 size-6 grid place-items-center  ">
               <Laptop className="size-4" />
             </div>
             Note 2
           </CommandItem>
           <CommandItem>
-            <div className="rounded-lg border bg-neutral-100 size-6 grid place-items-center dark:bg-neutral-600 dark:text-neutral-100">
+            <div className="rounded-lg border bg-neutral-100 size-6 grid place-items-center  ">
               <Users2 className="size-4" />
             </div>
             Note 3
@@ -47,7 +47,7 @@ export function SearchPalette() {
             <Avatar variant="rounded" className="size-6 border">
               <AvatarFallback
                 variant="rounded"
-                className="text-xs font-medium bg-neutral-100 dark:bg-neutral-600 dark:text-neutral-100"
+                className="text-xs font-medium bg-neutral-100  "
               >
                 P1
               </AvatarFallback>
@@ -58,7 +58,7 @@ export function SearchPalette() {
             <Avatar variant="rounded" className="size-6 border">
               <AvatarFallback
                 variant="rounded"
-                className="text-xs font-medium bg-neutral-100 dark:bg-neutral-600 dark:text-neutral-100"
+                className="text-xs font-medium bg-neutral-100  "
               >
                 P2
               </AvatarFallback>
@@ -69,7 +69,7 @@ export function SearchPalette() {
             <Avatar variant="rounded" className="size-6 border">
               <AvatarFallback
                 variant="rounded"
-                className="text-xs font-medium bg-neutral-100 dark:bg-neutral-600 dark:text-neutral-100"
+                className="text-xs font-medium bg-neutral-100  "
               >
                 P3
               </AvatarFallback>
@@ -85,7 +85,7 @@ export function SearchPalette() {
             <Avatar variant="rounded" className="size-6 border">
               <AvatarFallback
                 variant="rounded"
-                className="text-xs font-medium bg-neutral-100 dark:bg-neutral-600 dark:text-neutral-100"
+                className="text-xs font-medium bg-neutral-100  "
               >
                 <Building className="size-4" />
               </AvatarFallback>
@@ -96,7 +96,7 @@ export function SearchPalette() {
             <Avatar variant="rounded" className="size-6 border">
               <AvatarFallback
                 variant="rounded"
-                className="text-xs font-medium bg-neutral-100 dark:bg-neutral-600 dark:text-neutral-100"
+                className="text-xs font-medium bg-neutral-100  "
               >
                 <Building className="size-4" />
               </AvatarFallback>
@@ -107,7 +107,7 @@ export function SearchPalette() {
             <Avatar variant="rounded" className="size-6 border">
               <AvatarFallback
                 variant="rounded"
-                className="text-xs font-medium bg-neutral-100 dark:bg-neutral-600 dark:text-neutral-100"
+                className="text-xs font-medium bg-neutral-100  "
               >
                 <Building className="size-4" />
               </AvatarFallback>

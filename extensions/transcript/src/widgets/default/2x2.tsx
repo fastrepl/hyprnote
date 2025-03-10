@@ -74,7 +74,7 @@ const LiveTranscript2x2: WidgetTwoByTwo = ({ onMaximize }) => {
               onClick={onMaximize}
               className="p-0"
             >
-              <Maximize2Icon size={16} className="text-black dark:text-white" />
+              <Maximize2Icon size={16} className="text-black " />
             </Button>,
           ]}
         />

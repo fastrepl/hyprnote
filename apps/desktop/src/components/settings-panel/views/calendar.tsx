@@ -66,7 +66,7 @@ export default function Calendar() {
 
   return (
     <div>
-      <h3 className="text-sm font-medium dark:text-neutral-300">Calendars</h3>
+      <h3 className="text-sm font-medium ">Calendars</h3>
       <ul className="flex flex-col px-1">
         {supportedIntegrations.map((type) => (
           <li key={type}>
@@ -83,7 +83,7 @@ export default function Calendar() {
               mutation.mutate({ calendar_id: id, selected: true })
             }
           >
-            <SelectTrigger className="max-w-[100px] focus:outline-none focus:ring-0 focus:ring-offset-0 dark:bg-neutral-800 dark:text-neutral-300">
+            <SelectTrigger className="max-w-[100px] focus:outline-none focus:ring-0 focus:ring-offset-0  ">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -107,7 +107,7 @@ export default function Calendar() {
             .map((calendar, i) => (
               <li
                 key={i}
-                className="flex flex-row justify-between rounded-md p-1 hover:bg-neutral-50 dark:bg-neutral-800 dark:text-neutral-300"
+                className="flex flex-row justify-between rounded-md p-1 hover:bg-neutral-50  "
               >
                 <div className="flex flex-row items-center gap-1">
                   <span>- {calendar.name}</span>
@@ -188,14 +188,14 @@ function OauthCalendarIntegrationDetails({
             <Icon />
           </div>
           <div>
-            <div className="text-sm font-medium dark:text-neutral-300">
+            <div className="text-sm font-medium ">
               <Trans>
                 {type === "google-calendar"
                   ? "Google Calendar"
                   : "Outlook Calendar"}
               </Trans>
             </div>
-            <div className="text-xs text-muted-foreground dark:text-neutral-300">
+            <div className="text-xs text-muted-foreground ">
               {integration ? (
                 <Trans>Calendar connected</Trans>
               ) : (
@@ -255,10 +255,10 @@ function AppleCalendarIntegrationDetails() {
             className="size-6"
           />
           <div>
-            <div className="text-sm font-medium dark:text-neutral-300">
+            <div className="text-sm font-medium ">
               <Trans>Calendar Access</Trans>
             </div>
-            <div className="text-xs text-muted-foreground dark:text-neutral-300">
+            <div className="text-xs text-muted-foreground ">
               {calendarAccess.data ? (
                 <Trans>Access granted</Trans>
               ) : (
@@ -289,10 +289,10 @@ function AppleCalendarIntegrationDetails() {
             className="size-6"
           />
           <div>
-            <div className="text-sm font-medium dark:text-neutral-300">
+            <div className="text-sm font-medium ">
               <Trans>Contacts Access</Trans>
             </div>
-            <div className="text-xs text-muted-foreground dark:text-neutral-300">
+            <div className="text-xs text-muted-foreground ">
               {contactsAccess.data ? (
                 <Trans>Access granted</Trans>
               ) : (
@@ -322,13 +322,13 @@ function CalendarIconWithText({ type }: { type: CalendarIntegration }) {
   return (
     <div className="flex flex-row items-center gap-2">
       {type === "apple-calendar" ? (
-        <AppleIcon size={16} className="dark:text-neutral-300" />
+        <AppleIcon size={16} className="" />
       ) : type === "google-calendar" ? (
         <GoogleIcon />
       ) : (
         <OutlookIcon />
       )}
-      <span className="text-sm dark:text-neutral-300">
+      <span className="text-sm ">
         {type === "apple-calendar"
           ? "Apple"
           : type === "google-calendar"

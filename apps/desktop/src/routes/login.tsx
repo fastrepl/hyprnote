@@ -142,7 +142,7 @@ function Component() {
         </div>
       </div>
 
-      {/* <SkipToUseLocally /> */}
+      <SkipToUseLocally />
 
       <Particles
         className="absolute inset-0 z-0"

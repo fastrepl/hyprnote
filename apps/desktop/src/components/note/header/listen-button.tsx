@@ -1,16 +1,17 @@
+import { useState } from "react";
 import { Ear, EarOff } from "lucide-react";
 
 import {
   Popover,
-  PopoverContent,
   PopoverTrigger,
+  PopoverContent,
 } from "@hypr/ui/components/ui/popover";
-import { Button } from "@hypr/ui/components/ui/button";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@hypr/ui/components/ui/tooltip";
+import { Button } from "@hypr/ui/components/ui/button";
 import AudioIndicator from "./audio-indicator";
 import { cn } from "@/utils";
 
@@ -18,56 +19,79 @@ interface ListenButtonProps {
   isListening: boolean;
   onClick: () => void;
   onStop?: () => void;
+  isCurrent: boolean;
 }
 
 export default function ListenButton({
   isListening,
   onClick,
   onStop,
+  isCurrent,
 }: ListenButtonProps) {
+  const [open, setOpen] = useState(false);
+
   const handleClick = () => {
-    if (!isListening) {
+    if (!(isListening && isCurrent)) {
       onClick();
     }
   };
 
   const button = (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant={isListening ? "default" : "outline"}
-          onClick={handleClick}
-          className={cn(
-            "p-2",
-            "dark:text-neutral-100 dark:bg-neutral-800",
-            "dark:hover:bg-neutral-700 dark:hover:text-neutral-100",
-          )}
-        >
-          {isListening ? <Ear size={20} /> : <EarOff size={20} />}
-          {isListening && <AudioIndicator />}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom" align="end">
-        <p>{isListening ? "Stop recording" : "Start recording"}</p>
-      </TooltipContent>
-    </Tooltip>
+    <Button
+      variant={isListening && isCurrent ? "default" : "outline"}
+      onClick={handleClick}
+      className={cn(
+        "p-2",
+        !(isListening && isCurrent)
+          ? "dark:text-neutral-100 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
+          : "dark:text-neutral-800 dark:bg-white dark:hover:bg-neutral-100 dark:hover:text-neutral-800",
+      )}
+    >
+      {isListening && isCurrent ? <Ear size={20} /> : <EarOff size={20} />}
+      {isListening && isCurrent && <AudioIndicator />}
+    </Button>
   );
 
-  if (!isListening) {
-    return button;
+  if (!(isListening && isCurrent)) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipContent side="bottom" align="end">
+          <p>Start recording</p>
+        </TooltipContent>
+      </Tooltip>
+    );
   }
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>{button}</PopoverTrigger>
-      <PopoverContent className="w-fit" align="end">
-        <div className="flex flex-col items-center gap-3 py-1">
-          <div className="text-sm font-medium">Is your meeting over?</div>
-          <div className="flex justify-end gap-2">
-            <Button variant="destructive" onClick={onStop}>
-              Yes, stop recording
-            </Button>
+    <Popover open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>{button}</PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" align="end">
+          <p>Stop recording</p>
+        </TooltipContent>
+      </Tooltip>
+      <PopoverContent
+        className="w-60 p-4 dark:bg-neutral-800 dark:text-neutral-100"
+        align="end"
+      >
+        <div className="flex flex-col items-center gap-3 w-full">
+          <div className="text-sm font-medium">
+            Stop listening to the meeting?
           </div>
+
+          <Button
+            variant="destructive"
+            onClick={() => {
+              onStop?.();
+              setOpen(false);
+            }}
+            className="dark:text-neutral-100 w-full"
+          >
+            Stop
+          </Button>
         </div>
       </PopoverContent>
     </Popover>

@@ -37,7 +37,7 @@ function Component() {
                     <LeftSidebar />
                     <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
                       <Toolbar />
-                      <div className="flex h-full overflow-hidden bg-white">
+                      <div className="flex h-full overflow-hidden">
                         <div className="flex-1">
                           <Outlet />
                         </div>

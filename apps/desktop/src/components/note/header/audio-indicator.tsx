@@ -49,7 +49,7 @@ export default function AudioIndicator() {
       {heights.map((height, i) => (
         <div
           key={i}
-          className="w-0.5 rounded-full bg-neutral-700 transition-all duration-[400ms] ease-out dark:bg-neutral-700"
+          className="w-0.5 rounded-full bg-white transition-all duration-[400ms] ease-out dark:bg-neutral-700"
           style={{ height: `${height}px` }}
         />
       ))}

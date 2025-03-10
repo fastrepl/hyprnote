@@ -70,7 +70,7 @@ const LiveTranscriptFull: WidgetFullSize = ({ onMinimize }) => {
               size="icon"
               onClick={onMinimize}
             >
-              <Minimize2Icon className="h-4 w-4" />
+              <Minimize2Icon className="h-4 w-4 text-black dark:text-white" />
             </Button>,
           ]}
         />

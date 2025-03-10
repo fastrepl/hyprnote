@@ -4,8 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 
+import { SessionProvider } from "@/contexts";
 import EditorArea from "@/components/note/editor";
-import { SessionProvider, useRightPanel } from "@/contexts";
 
 export const Route = createFileRoute("/app/note/$id")({
   component: Component,
@@ -36,7 +36,6 @@ export const Route = createFileRoute("/app/note/$id")({
 
 function Component() {
   const { session } = Route.useLoaderData();
-  const { hidePanel } = useRightPanel();
 
   const queryClient = useQueryClient();
 
@@ -52,7 +51,8 @@ function Component() {
 
   useEffect(() => {
     return () => {
-      hidePanel();
+      // Don't call hidePanel during unmount to prevent max depth errors
+      // hidePanel();
 
       const isNoteEmpty =
         !session.title?.trim() &&
@@ -65,7 +65,7 @@ function Component() {
         mutation.mutate();
       }
     };
-  }, [hidePanel, session, mutation]);
+  }, [session, mutation]);
 
   return (
     <SessionProvider session={session}>

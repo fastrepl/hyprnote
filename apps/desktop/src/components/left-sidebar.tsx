@@ -20,7 +20,10 @@ export default function LeftSidebar() {
       animate={{ width: isExpanded ? 240 : 0 }}
       className="h-full flex flex-col overflow-hidden border-r bg-neutral-100 dark:bg-neutral-700 dark:border-neutral-800"
     >
-      <div className="flex items-center justify-end min-h-11 px-2">
+      <div
+        className="flex items-center justify-end min-h-11 px-2"
+        data-tauri-drag-region
+      >
         <LeftSidebarButton type="sidebar" />
       </div>
 

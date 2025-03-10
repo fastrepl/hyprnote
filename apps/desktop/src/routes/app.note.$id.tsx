@@ -55,14 +55,17 @@ function Component() {
       hidePanel();
 
       const isNoteEmpty =
-        !session.title &&
-        (!session.raw_memo_html || !session.enhanced_memo_html);
+        !session.title?.trim() &&
+        (!session.raw_memo_html?.trim() ||
+          session.raw_memo_html === "<p></p>") &&
+        (!session.enhanced_memo_html?.trim() ||
+          session.enhanced_memo_html === "<p></p>");
 
       if (isNoteEmpty) {
         mutation.mutate();
       }
     };
-  }, [hidePanel, session]);
+  }, [hidePanel, session, mutation]);
 
   return (
     <SessionProvider session={session}>

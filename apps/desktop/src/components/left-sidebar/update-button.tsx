@@ -1,42 +1,10 @@
-import { clsx } from "clsx";
-import { motion } from "motion/react";
-
-import { check } from "@tauri-apps/plugin-updater";
+import { useQuery } from "@tanstack/react-query";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { relaunch } from "@tauri-apps/plugin-process";
+import { check } from "@tauri-apps/plugin-updater";
+import clsx from "clsx";
 
-import { useLeftSidebar } from "@/contexts/left-sidebar";
-import NotesList from "./notes-list";
-import { LeftSidebarButton } from "./toolbar/buttons/left-sidebar-button";
-import { useQuery } from "@tanstack/react-query";
-
-export default function LeftSidebar() {
-  const { isExpanded } = useLeftSidebar();
-
-  return (
-    <motion.div
-      layout
-      initial={{ width: isExpanded ? 240 : 0 }}
-      animate={{ width: isExpanded ? 240 : 0 }}
-      className="h-full flex flex-col overflow-hidden border-r bg-neutral-100 dark:bg-neutral-700 dark:border-neutral-800"
-    >
-      <div
-        className="flex items-center justify-end min-h-11 px-2"
-        data-tauri-drag-region
-      >
-        <LeftSidebarButton type="sidebar" />
-      </div>
-
-      <div className="flex-1 h-full overflow-y-auto">
-        <NotesList />
-      </div>
-
-      <UpdateButton />
-    </motion.div>
-  );
-}
-
-function UpdateButton() {
+export default function UpdateButton() {
   const checkForUpdate = useQuery({
     enabled: process.env.NODE_ENV === "production",
     queryKey: ["check-for-update"],
@@ -56,9 +24,9 @@ function UpdateButton() {
 
     const yes = await ask(
       `
-  Update to ${update.version} is available!
-  Release notes: ${update.body}
-          `,
+    Update to ${update.version} is available!
+    Release notes: ${update.body}
+            `,
       {
         title: "Update Now!",
         kind: "info",

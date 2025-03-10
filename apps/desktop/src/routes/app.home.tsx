@@ -1,9 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import RecentNotes from "@/components/home/recent-notes";
 import WorkspaceCalendar from "@/components/home/calendar";
 
 export const Route = createFileRoute("/app/home")({
+  beforeLoad: () => {
+    return redirect({ to: "/app" });
+  },
   component: Component,
 });
 

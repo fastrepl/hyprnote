@@ -56,7 +56,6 @@ export default function Toolbar() {
           <SearchIconButton isShown={inMeetingAndNotInNote} />
           {pathname.includes("/app/note/") && <ShareButton />}
           <RightPanelButton />
-          <SettingsPanel />
         </div>
       </header>
 

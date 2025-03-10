@@ -15,11 +15,6 @@ import ProfileComponent from "./views/profile";
 import { SettingsSidebar } from "./sidebar";
 import type { NavNames } from "./types";
 import { commands as dbCommands, type Template } from "@hypr/plugin-db";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@hypr/ui/components/ui/tooltip";
 import Shortcut from "../shortcut";
 import ExtensionsComponent from "./views/extensions";
 import { useSettingsPanel } from "@/contexts/settings-panel";
@@ -63,25 +58,16 @@ export default function SettingsPanel() {
 
   return (
     <>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={open}
-            aria-label="Settings"
-            className=" hover:bg-neutral-200 hidden md:block dark:hover:bg-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
-          >
-            <SettingsIcon className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>
-            Open settings panel{" "}
-            <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
-          </p>
-        </TooltipContent>
-      </Tooltip>
+      <Button
+        onClick={open}
+        aria-label="Settings"
+        variant="ghost"
+        className="hidden w-full justify-start md:flex hover:bg-neutral-200 dark:hover:bg-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
+      >
+        <SettingsIcon className="mr-2 h-4 w-4" />
+        Settings
+        <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
+      </Button>
 
       <Modal open={isOpen} onClose={close} size="full">
         <ModalBody className="p-0 dark:bg-neutral-600">

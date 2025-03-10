@@ -19,10 +19,15 @@ export const InviteList = ({
         placeholder="Email separated by commas"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="text-sm focus:outline-none focus:ring-0 focus:ring-offset-0"
+        className="text-sm focus:outline-none focus:ring-0 focus:ring-offset-0 dark:text-neutral-100 dark:bg-neutral-900"
         autoFocus={false}
       />
-      <Button variant="outline">Invite</Button>
+      <Button
+        variant="outline"
+        className="dark:bg-neutral-900 dark:text-neutral-100"
+      >
+        Invite
+      </Button>
     </div>
     <div className="space-y-3">
       <InvitedUser

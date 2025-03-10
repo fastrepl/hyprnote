@@ -1,11 +1,6 @@
 import { ShareIcon } from "lucide-react";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@hypr/ui/components/ui/tooltip";
-import {
   Popover,
   PopoverTrigger,
   PopoverContent,
@@ -34,23 +29,16 @@ export function ShareButton() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <PopoverTrigger asChild>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hover:bg-neutral-200 dark:hover:bg-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
-              aria-label="Share"
-            >
-              <ShareIcon className="size-4" />
-            </Button>
-          </TooltipTrigger>
-        </PopoverTrigger>
-        <TooltipContent>
-          <p>Share</p>
-        </TooltipContent>
-      </Tooltip>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="hover:bg-neutral-200 dark:hover:bg-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
+          aria-label="Share"
+        >
+          <ShareIcon className="size-4" />
+        </Button>
+      </PopoverTrigger>
       <PopoverContent
         className="w-80 p-0 overflow-clip focus:outline-none focus:ring-0 focus:ring-offset-0"
         align="end"

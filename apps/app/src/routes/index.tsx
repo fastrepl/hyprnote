@@ -7,7 +7,6 @@ import {
 } from "@clerk/clerk-react";
 import { clsx } from "clsx";
 import { Particles } from "@hypr/ui/components/ui/particles";
-import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 import { Button } from "@hypr/ui/components/ui/button";
 
 export const Route = createFileRoute("/")({
@@ -34,43 +33,21 @@ function Component() {
 
       <div className="z-10 flex w-full flex-col items-center justify-center">
         <div className="flex flex-col items-center">
-          <TextAnimate
-            animation="blurIn"
-            as="h1"
-            once
-            className="mb-4 font-racing-sans text-6xl font-bold md:text-7xl lg:text-8xl"
-          >
+          <h1 className="mb-4 text-6xl font-bold md:text-7xl lg:text-8xl">
             Hyprnote
-          </TextAnimate>
+          </h1>
 
-          <TextAnimate
-            animation="slideUp"
-            by="word"
-            once
-            className="mb-12 text-center text-lg font-medium text-neutral-600 md:text-xl lg:text-2xl"
-          >
+          <p className="mb-12 text-center text-lg font-medium text-neutral-600 md:text-xl lg:text-2xl">
             AI notepad for meetings
-          </TextAnimate>
+          </p>
 
-          <SignedIn>
-            <div className="mb-4 w-full">
-              <a href="hypr://open" className="w-full">
-                <Button className="w-full" size="lg">
-                  Open Desktop App
-                </Button>
-              </a>
-            </div>
-          </SignedIn>
-          <SignedOut>
-            <div className="mb-4 w-full">
-              <SignInButton>
-                <Button className="w-full" size="lg">
-                  Sign In
-                </Button>
-              </SignInButton>
-            </div>
-            <TOS />
-          </SignedOut>
+          <div className="mb-4 w-full">
+            <a href="https://hyprnote.com" className="w-full">
+              <Button className="w-full" size="lg">
+                Go to homepage
+              </Button>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -82,30 +59,5 @@ function Component() {
         refresh
       />
     </main>
-  );
-}
-
-function TOS() {
-  return (
-    <p className="text-xs text-neutral-400">
-      By proceeding, I agree to the{" "}
-      <a
-        href="https://hyprnote.com/docs/terms"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="decoration-dotted hover:underline"
-      >
-        Terms of Service
-      </a>{" "}
-      and{" "}
-      <a
-        href="https://hyprnote.com/docs/privacy"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="decoration-dotted hover:underline"
-      >
-        Privacy Policy
-      </a>
-    </p>
   );
 }

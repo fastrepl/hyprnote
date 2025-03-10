@@ -139,12 +139,10 @@ function Component() {
           <PushableButton onClick={handleSignIn} className="mb-4 w-full">
             <Trans>Get Started</Trans>
           </PushableButton>
-
-          <TOS />
         </div>
       </div>
 
-      <SkipToUseLocally />
+      {/* <SkipToUseLocally /> */}
 
       <Particles
         className="absolute inset-0 z-0"
@@ -154,31 +152,6 @@ function Component() {
         refresh
       />
     </main>
-  );
-}
-
-function TOS() {
-  return (
-    <p className="text-xs text-neutral-400">
-      By proceeding, I agree to the{" "}
-      <a
-        href="https://hyprnote.com/docs/terms"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="decoration-dotted hover:underline"
-      >
-        Terms of Service
-      </a>{" "}
-      and{" "}
-      <a
-        href="https://hyprnote.com/docs/privacy"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="decoration-dotted hover:underline"
-      >
-        Privacy Policy
-      </a>
-    </p>
   );
 }
 

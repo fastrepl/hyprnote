@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { CalendarIcon, Folder } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { format, isFuture } from "date-fns";
 import { clsx } from "clsx";
 
@@ -145,10 +145,10 @@ function SessionList() {
                       <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-300">
                         <span>{format(sessionDate, "M/d/yy")}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-300">
+                      {/* <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-300">
                         <Folder className="size-3" />
                         <span>Notes</span>
-                      </div>
+                      </div> */}
                     </div>
                   </button>
                 );

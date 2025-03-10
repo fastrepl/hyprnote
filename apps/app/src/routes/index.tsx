@@ -5,10 +5,10 @@ import {
   UserButton,
   SignInButton,
 } from "@clerk/clerk-react";
-import clsx from "clsx";
+import { clsx } from "clsx";
 import { Particles } from "@hypr/ui/components/ui/particles";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
-import PushableButton from "@hypr/ui/components/ui/pushable-button";
+import { Button } from "@hypr/ui/components/ui/button";
 
 export const Route = createFileRoute("/")({
   component: Component,
@@ -55,16 +55,18 @@ function Component() {
           <SignedIn>
             <div className="mb-4 w-full">
               <a href="hypr://open" className="w-full">
-                <PushableButton className="w-full">
+                <Button className="w-full" size="lg">
                   Open Desktop App
-                </PushableButton>
+                </Button>
               </a>
             </div>
           </SignedIn>
           <SignedOut>
             <div className="mb-4 w-full">
               <SignInButton>
-                <PushableButton className="w-full">Sign In</PushableButton>
+                <Button className="w-full" size="lg">
+                  Sign In
+                </Button>
               </SignInButton>
             </div>
             <TOS />

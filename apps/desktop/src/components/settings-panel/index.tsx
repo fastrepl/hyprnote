@@ -62,11 +62,10 @@ export default function SettingsPanel() {
         onClick={open}
         aria-label="Settings"
         variant="ghost"
-        className="hidden w-full justify-start md:flex hover:bg-neutral-200   "
+        className="w-full justify-start md:flex hover:bg-neutral-200   "
       >
         <SettingsIcon className="mr-2 h-4 w-4" />
         Settings
-        <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
       </Button>
 
       <Modal open={isOpen} onClose={close} size="full">

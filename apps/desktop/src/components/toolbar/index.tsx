@@ -1,7 +1,6 @@
 import { useLocation } from "@tanstack/react-router";
 import clsx from "clsx";
 
-import SettingsPanel from "@/components/settings-panel";
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
 import { useOngoingSession } from "@/contexts/ongoing-session";
 import { RoutePath } from "@/types";

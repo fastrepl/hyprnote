@@ -67,4 +67,20 @@ mod test {
             )
             .unwrap()
     }
+
+    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
+        builder
+            .plugin(init())
+            .plugin(tauri_plugin_store::Builder::new().build())
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap()
+    }
+
+    #[test]
+    fn test_store() {
+        let app = create_app(tauri::test::mock_builder());
+
+        let v = app.get_from_store(AuthStoreKey::UserId).unwrap();
+        assert!(v.is_none());
+    }
 }

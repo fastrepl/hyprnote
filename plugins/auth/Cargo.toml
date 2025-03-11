@@ -13,6 +13,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 specta-typescript = { workspace = true }
+tauri-plugin-store = { workspace = true }
 
 [dependencies]
 hypr-auth-interface = { path = "../auth-interface", package = "auth-interface" }

@@ -62,13 +62,30 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           }
         }
 
-        // Handle Shift+Tab to move focus to the title input
         if (e.key === "Tab" && e.shiftKey) {
           e.preventDefault();
-          // Find the title input by ID and focus it
+
           const titleInput = document.getElementById("note-title-input") as HTMLElement;
           if (titleInput) {
             titleInput.focus();
+          }
+        }
+
+        if (e.key === "ArrowUp" && editor?.state.selection.empty) {
+          const { from } = editor.state.selection;
+          const resolvedPos = editor.state.doc.resolve(from);
+
+          const isFirstNode = resolvedPos.depth > 0 && resolvedPos.index(0) === 0;
+
+          if (isFirstNode) {
+            e.preventDefault();
+            const titleInput = document.getElementById("note-title-input") as HTMLInputElement;
+            if (titleInput) {
+              titleInput.focus();
+
+              const length = titleInput.value.length;
+              titleInput.setSelectionRange(length, length);
+            }
           }
         }
       };

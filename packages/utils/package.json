@@ -9,6 +9,10 @@
     "@hypr/plugin-sse": "workspace:^",
     "@tauri-apps/api": "^2.3.0",
     "@tauri-apps/plugin-http": "^2.3.0",
-    "ai": "^4.1.54"
+    "ai": "^4.1.54",
+    "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.8"
   }
 }

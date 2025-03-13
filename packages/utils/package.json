@@ -1,6 +1,9 @@
 {
   "name": "@hypr/utils",
   "main": "./src/index.ts",
+  "scripts": {
+    "test": "vitest run"
+  },
   "dependencies": {
     "@ai-sdk/openai": "^1.2.1",
     "@hypr/client": "workspace:^",

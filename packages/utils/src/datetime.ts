@@ -1,1 +1,5 @@
-export const a = 1;
+import { format } from "date-fns";
+
+export const formatDate = (date: Date, formatString: string) => {
+  return format(date, formatString);
+};

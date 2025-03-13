@@ -203,7 +203,21 @@ const ChromeDino2x1: WidgetTwoByOne = () => {
   const handleKeyDown = (evt: KeyboardEvent) => {
     const state = gameStateRef.current;
 
+    // Only handle keyboard events if the canvas element or one of its parents has focus
+    const canvas = canvasRef.current;
+    if (!canvas || !document.activeElement) return;
+
+    // Check if the event target is the editor area or its parent
+    const target = evt.target as HTMLElement;
+    if (target.closest(".h-full.overflow-y-auto")) {
+      return; // Skip if we're inside the editor area
+    }
+
     if (evt.key === "ArrowUp" || evt.key === " ") {
+      // Prevent event from bubbling up to document
+      evt.preventDefault();
+      evt.stopPropagation();
+
       if (state.onG && !state.isJumping) {
         state.isJumping = true;
         state.isJumpButtonHeld = true;
@@ -222,7 +236,15 @@ const ChromeDino2x1: WidgetTwoByOne = () => {
   const handleKeyUp = (evt: KeyboardEvent) => {
     const state = gameStateRef.current;
 
+    // Only handle keyboard events if we're not in the editor
+    const target = evt.target as HTMLElement;
+    if (target.closest(".h-full.overflow-y-auto")) {
+      return; // Skip if we're inside the editor area
+    }
+
     if (evt.key === "ArrowUp" || evt.key === " ") {
+      evt.preventDefault();
+      evt.stopPropagation();
       state.isJumpButtonHeld = false;
     }
   };
@@ -257,6 +279,9 @@ const ChromeDino2x1: WidgetTwoByOne = () => {
       return;
     }
 
+    // Let the canvas receive focus naturally, which will blur the editor
+    // Don't prevent default or stop propagation here
+    
     const rect = canvas.getBoundingClientRect();
     const x = evt.clientX - rect.left;
     const y = evt.clientY - rect.top;

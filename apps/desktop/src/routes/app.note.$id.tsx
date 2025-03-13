@@ -1,10 +1,9 @@
+import EditorArea from "@/components/note/editor-area";
+import { useSession } from "@/contexts/session";
+import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect } from "react";
-
-import EditorArea from "@/components/note/editor";
-import { useSession } from "@/contexts/session";
-import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 
 export const Route = createFileRoute("/app/note/$id")({
   component: Component,

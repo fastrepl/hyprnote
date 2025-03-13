@@ -1,4 +1,4 @@
-import { useMatch } from "@tanstack/react-router";
+import { useLocation, useMatch } from "@tanstack/react-router";
 
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
 import { useOngoingSession } from "@/contexts/ongoing-session";

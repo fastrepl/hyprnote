@@ -7,6 +7,8 @@ import { NewNoteProvider } from "@/contexts/new-note";
 import { OngoingSessionProvider } from "@/contexts/ongoing-session";
 import { RightPanelProvider } from "@/contexts/right-panel";
 import { SearchProvider } from "@/contexts/search-palette";
+import { SessionProvider } from "@/contexts/session";
+import { SessionsProvider } from "@/contexts/sessions";
 import { SettingsPanelProvider } from "@/contexts/settings-panel";
 
 import LeftSidebar from "@/components/left-sidebar";
@@ -27,36 +29,37 @@ function Component() {
   return (
     <HyprProvider>
       <SessionsProvider>
-        <OngoingSessionProvider>
-          <LeftSidebarProvider>
-            <RightPanelProvider>
-              <SearchProvider>
-                <SettingsPanelProvider>
-                  <NewNoteProvider>
-                    <div className="flex h-screen w-screen overflow-hidden">
-                      <LeftSidebar />
-                      <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
-                        <Toolbar />
-                        <div className="flex h-full overflow-hidden">
-                          <div className="flex-1">
-                            <Outlet />
+        <SessionProvider>
+          <OngoingSessionProvider>
+            <LeftSidebarProvider>
+              <RightPanelProvider>
+                <SearchProvider>
+                  <SettingsPanelProvider>
+                    <NewNoteProvider>
+                      <div className="flex h-screen w-screen overflow-hidden">
+                        <LeftSidebar />
+                        <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
+                          <Toolbar />
+                          <div className="flex h-full overflow-hidden">
+                            <div className="flex-1">
+                              <Outlet />
+                            </div>
+                            <RightPanel />
                           </div>
-                          <RightPanel />
                         </div>
                       </div>
-                    </div>
-                  </NewNoteProvider>
-                </SettingsPanelProvider>
-              </SearchProvider>
-            </RightPanelProvider>
-          </LeftSidebarProvider>
-        </OngoingSessionProvider>
+                    </NewNoteProvider>
+                  </SettingsPanelProvider>
+                </SearchProvider>
+              </RightPanelProvider>
+            </LeftSidebarProvider>
+          </OngoingSessionProvider>
+        </SessionProvider>
       </SessionsProvider>
     </HyprProvider>
   );
 }
 
-import { SessionsProvider } from "@/contexts/sessions";
 import DinoGameExtension from "@hypr/extension-dino-game";
 import SummaryExtension from "@hypr/extension-summary";
 import TranscriptExtension from "@hypr/extension-transcript";

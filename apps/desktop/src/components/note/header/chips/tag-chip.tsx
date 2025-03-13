@@ -8,11 +8,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 
 export function TagChip() {
   const [open, setOpen] = useState(false);
-  const sessionId = useSession((s) => s.session.id);
+  const sessionId = useSession((s) => s.session?.id);
 
   const tags = useQuery({
     queryKey: ["tags"],
-    queryFn: () => dbCommands.listSessionTags(sessionId),
+    enabled: !!sessionId,
+    queryFn: () => {
+      const id = sessionId!;
+      return dbCommands.listSessionTags(id);
+    },
   });
 
   if (!sessionId || tags.isLoading || tags.isError || !tags.data?.length) {

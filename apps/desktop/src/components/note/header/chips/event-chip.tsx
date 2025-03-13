@@ -7,11 +7,12 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 
 export function EventChip() {
-  const sessionId = useSession((s) => s.session.id);
+  const sessionId = useSession((s) => s.session?.id);
 
   const event = useQuery({
-    queryKey: ["event", sessionId],
-    queryFn: () => dbCommands.sessionGetEvent(sessionId),
+    enabled: !!sessionId,
+    queryKey: ["event", sessionId!],
+    queryFn: () => dbCommands.sessionGetEvent(sessionId!),
   });
 
   return (

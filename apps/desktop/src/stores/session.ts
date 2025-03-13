@@ -4,10 +4,11 @@ import { createStore } from "zustand";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 
 type State = {
-  session: Session;
+  session: Session | null;
 };
 
 type Actions = {
+  setSession: (session: Session) => void;
   persistSession: () => Promise<void>;
   updateTitle: (title: string) => void;
   updateRawNote: (note: string) => void;
@@ -16,9 +17,12 @@ type Actions = {
 
 export type SessionStore = ReturnType<typeof createSessionStore>;
 
-export const createSessionStore = (session: Session) => {
+export const createSessionStore = () => {
   return createStore<State & Actions>((set, get) => ({
-    session,
+    session: null,
+    setSession: (session: Session) => {
+      set({ session });
+    },
     persistSession: async () => {
       const { session } = get();
       if (!session) {

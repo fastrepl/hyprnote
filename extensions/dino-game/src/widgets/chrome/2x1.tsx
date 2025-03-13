@@ -289,6 +289,9 @@ const ChromeDino2x1: WidgetTwoByOne = () => {
       return;
     }
 
+    // Let the canvas receive focus naturally, which will blur the editor
+    // Don't prevent default or stop propagation here
+    
     const rect = canvas.getBoundingClientRect();
     const x = evt.clientX - rect.left;
     const y = evt.clientY - rect.top;

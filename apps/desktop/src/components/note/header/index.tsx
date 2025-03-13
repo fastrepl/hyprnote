@@ -1,6 +1,8 @@
+import { useMatch } from "@tanstack/react-router";
+import { type ChangeEvent, useCallback } from "react";
+
 import { useSession } from "@/contexts";
 import { useOngoingSession } from "@/contexts/ongoing-session";
-import { type ChangeEvent, useCallback } from "react";
 import Chips from "./chips";
 import ListenButton from "./listen-button";
 import TitleInput from "./title-input";
@@ -32,6 +34,9 @@ export function NoteHeader({ onNavigateToEditor }: NoteHeaderProps) {
     ongoingSessionStore.start(sessionStore.sessionInView?.id ?? "");
   }, [sessionStore.sessionInView, ongoingSessionStore.start]);
 
+  const match = useMatch({ from: "/app/note/$id/main", shouldThrow: false });
+  const isInNoteMain = match !== undefined;
+
   return (
     <>
       <div className="flex flex-row items-center justify-between sm:pl-8 px-4 pt-6">
@@ -40,13 +45,15 @@ export function NoteHeader({ onNavigateToEditor }: NoteHeaderProps) {
           onChange={handleTitleChange}
           onNavigateToEditor={onNavigateToEditor}
         />
-        <ListenButton
-          isCurrent={sessionStore.sessionInView?.id
-            === ongoingSessionStore.onGoingSessionId}
-          isListening={ongoingSessionStore.listening}
-          onClick={handleClickListen}
-          onStop={ongoingSessionStore.pause}
-        />
+        {isInNoteMain && (
+          <ListenButton
+            isCurrent={sessionStore.sessionInView?.id
+              === ongoingSessionStore.onGoingSessionId}
+            isListening={ongoingSessionStore.listening}
+            onClick={handleClickListen}
+            onStop={ongoingSessionStore.pause}
+          />
+        )}
       </div>
       <Chips />
     </>

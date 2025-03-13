@@ -1,9 +1,8 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useEffect } from "react";
 
 import EditorArea from "@/components/note/editor";
-import { useSession } from "@/contexts/session";
+import { SessionProvider } from "@/contexts/session";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 
 const loader = (
@@ -39,16 +38,13 @@ export const Route = createFileRoute("/app/note/$id/sub")({
 
 function Component() {
   const { session } = Route.useLoaderData();
-  const setSession = useSession((s) => s.setSession);
-
-  useEffect(() => {
-    setSession(session);
-  }, [setSession, session]);
 
   return (
     <main className="flex h-full overflow-hidden bg-white">
       <div className="h-full flex-1">
-        <EditorArea />
+        <SessionProvider session={session}>
+          <EditorArea />
+        </SessionProvider>
       </div>
     </main>
   );

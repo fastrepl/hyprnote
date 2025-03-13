@@ -10,9 +10,9 @@ export function NewNoteButton() {
   const { createNewNote } = useNewNote();
   const disabled = useSession(
     (s) =>
-      !s.session?.title
-      && !s.session?.raw_memo_html
-      && !s.session?.enhanced_memo_html,
+      !s.session.title
+      && !s.session.raw_memo_html
+      && !s.session.enhanced_memo_html,
   );
 
   return (

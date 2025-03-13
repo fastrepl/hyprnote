@@ -1,7 +1,9 @@
-import { createSessionStore } from "@/stores/session";
-import { createContext, useContext, useRef } from "react";
+import { createContext, useContext } from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
+
+import { createSessionStore } from "@/stores/session";
+import { type Session } from "@hypr/plugin-db";
 
 const SessionContext = createContext<
   ReturnType<
@@ -11,16 +13,15 @@ const SessionContext = createContext<
 
 export const SessionProvider = ({
   children,
+  session,
 }: {
+  session: Session;
   children: React.ReactNode;
 }) => {
-  const storeRef = useRef<ReturnType<typeof createSessionStore> | null>(null);
-  if (!storeRef.current) {
-    storeRef.current = createSessionStore();
-  }
+  const store = createSessionStore(session);
 
   return (
-    <SessionContext.Provider value={storeRef.current}>
+    <SessionContext.Provider value={store}>
       {children}
     </SessionContext.Provider>
   );

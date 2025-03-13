@@ -27,36 +27,33 @@ function Component() {
   return (
     <HyprProvider>
       <OngoingSessionProvider>
-        <SessionProvider>
-          <LeftSidebarProvider>
-            <RightPanelProvider>
-              <SearchProvider>
-                <SettingsPanelProvider>
-                  <NewNoteProvider>
-                    <div className="flex h-screen w-screen overflow-hidden">
-                      <LeftSidebar />
-                      <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
-                        <Toolbar />
-                        <div className="flex h-full overflow-hidden">
-                          <div className="flex-1">
-                            <Outlet />
-                          </div>
-                          <RightPanel />
+        <LeftSidebarProvider>
+          <RightPanelProvider>
+            <SearchProvider>
+              <SettingsPanelProvider>
+                <NewNoteProvider>
+                  <div className="flex h-screen w-screen overflow-hidden">
+                    <LeftSidebar />
+                    <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
+                      <Toolbar />
+                      <div className="flex h-full overflow-hidden">
+                        <div className="flex-1">
+                          <Outlet />
                         </div>
+                        <RightPanel />
                       </div>
                     </div>
-                  </NewNoteProvider>
-                </SettingsPanelProvider>
-              </SearchProvider>
-            </RightPanelProvider>
-          </LeftSidebarProvider>
-        </SessionProvider>
+                  </div>
+                </NewNoteProvider>
+              </SettingsPanelProvider>
+            </SearchProvider>
+          </RightPanelProvider>
+        </LeftSidebarProvider>
       </OngoingSessionProvider>
     </HyprProvider>
   );
 }
 
-import { SessionProvider } from "@/contexts";
 import DinoGameExtension from "@hypr/extension-dino-game";
 import SummaryExtension from "@hypr/extension-summary";
 import TranscriptExtension from "@hypr/extension-transcript";

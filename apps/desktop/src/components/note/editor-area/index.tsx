@@ -1,14 +1,6 @@
 import { useSession } from "@/contexts";
 import { useOngoingSession } from "@/contexts/ongoing-session";
 import { ENHANCE_SYSTEM_TEMPLATE_KEY, ENHANCE_USER_TEMPLATE_KEY } from "@/templates";
-import { useMutation } from "@tanstack/react-query";
-import { smoothStream, streamText } from "ai";
-import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { NoteHeader } from "../header";
-import { EnhanceControls } from "./enhanced-controls";
-import { EnhanceOnlyButton } from "./enhanced-only-button";
-
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as miscCommands } from "@hypr/plugin-misc";
@@ -16,6 +8,13 @@ import { commands as templateCommands } from "@hypr/plugin-template";
 import Editor, { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/ui/lib/utils";
 import { modelProvider } from "@hypr/utils";
+import { useMutation } from "@tanstack/react-query";
+import { smoothStream, streamText } from "ai";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { NoteHeader } from "../header";
+import { EnhanceControls } from "./enhanced-controls";
+import { EnhanceOnlyButton } from "./enhanced-only-button";
 
 export default function EditorArea() {
   const [showRaw, setShowRaw] = useState(true);
@@ -129,7 +128,9 @@ export default function EditorArea() {
           "h-full overflow-y-auto",
           enhance.status === "pending" && "tiptap-animate",
         ])}
-        onClick={() => {
+        onClick={(e) => {
+          // Stop propagation to prevent triggering widget interactions
+          e.stopPropagation();
           editorRef.current?.editor?.commands?.focus();
         }}
       >

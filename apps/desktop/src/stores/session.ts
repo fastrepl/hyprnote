@@ -14,6 +14,8 @@ type Actions = {
   updateEnhancedNote: (note: string) => void;
 };
 
+export type SessionStore = ReturnType<typeof createSessionStore>;
+
 export const createSessionStore = (session: Session) => {
   return createStore<State & Actions>((set, get) => ({
     session,

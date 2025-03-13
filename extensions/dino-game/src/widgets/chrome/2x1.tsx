@@ -207,12 +207,14 @@ const ChromeDino2x1: WidgetTwoByOne = () => {
     if (!canvas || !document.activeElement) return;
 
     const target = evt.target as HTMLElement;
-    
+
     // Skip handling if the event is in the editor area or in an input-like element
-    if (target.closest("#editor-content-area") || 
-        target.tagName === "INPUT" || 
-        target.tagName === "TEXTAREA" || 
-        target.getAttribute("contenteditable") === "true") {
+    if (
+      target.closest("#editor-content-area")
+      || target.tagName === "INPUT"
+      || target.tagName === "TEXTAREA"
+      || target.getAttribute("contenteditable") === "true"
+    ) {
       return;
     }
 
@@ -239,12 +241,14 @@ const ChromeDino2x1: WidgetTwoByOne = () => {
     const state = gameStateRef.current;
 
     const target = evt.target as HTMLElement;
-    
+
     // Skip handling if the event is in the editor area or in an input-like element
-    if (target.closest("#editor-content-area") || 
-        target.tagName === "INPUT" || 
-        target.tagName === "TEXTAREA" || 
-        target.getAttribute("contenteditable") === "true") {
+    if (
+      target.closest("#editor-content-area")
+      || target.tagName === "INPUT"
+      || target.tagName === "TEXTAREA"
+      || target.getAttribute("contenteditable") === "true"
+    ) {
       return;
     }
 

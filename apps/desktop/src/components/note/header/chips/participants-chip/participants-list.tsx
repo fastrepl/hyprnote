@@ -97,11 +97,9 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
     // Get the updated participant from the React Query cache
     const updatedParticipants = queryClient.getQueryData<Human[]>(["participants", sessionId!]);
     const updatedParticipant = updatedParticipants?.find(p => p.id === participantId);
-    
+
     if (updatedParticipant) {
-      setLocalParticipants(prev => 
-        prev.map(p => p.id === participantId ? updatedParticipant : p)
-      );
+      setLocalParticipants(prev => prev.map(p => p.id === participantId ? updatedParticipant : p));
     }
   };
 

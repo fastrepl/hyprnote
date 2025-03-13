@@ -124,12 +124,12 @@ export default function EditorArea() {
       />
 
       <div
+        id="editor-content-area"
         className={cn([
           "h-full overflow-y-auto",
           enhance.status === "pending" && "tiptap-animate",
         ])}
         onClick={(e) => {
-          // Stop propagation to prevent triggering widget interactions
           e.stopPropagation();
           editorRef.current?.editor?.commands?.focus();
         }}

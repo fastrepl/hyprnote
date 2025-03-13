@@ -1,7 +1,7 @@
+import { useLocation, useMatch } from "@tanstack/react-router";
+
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
 import { useOngoingSession } from "@/contexts/ongoing-session";
-import { RoutePath } from "@/types";
-import { useLocation } from "@tanstack/react-router";
 import { SearchBar, SearchIconButton, SearchPalette } from "../search";
 import { LeftSidebarButton } from "./buttons/left-sidebar-button";
 import { RightPanelButton } from "./buttons/right-panel-button";
@@ -14,13 +14,17 @@ export default function Toolbar() {
     sessionId: s.sessionId,
   }));
 
-  const getNoteURL = (id: string) => {
-    const pattern: RoutePath = "/app/note/$id/main";
-    return pattern.replace("$id", id);
-  };
+  const noteMainMatch = useMatch({ from: "/app/note/$id/main", shouldThrow: false });
+  const noteSubMatch = useMatch({ from: "/app/note/$id/sub", shouldThrow: false });
 
-  const { pathname } = useLocation();
-  const inMeetingAndNotInNote = listening && sessionId !== null && pathname !== getNoteURL(sessionId);
+  const isInNoteMain = noteMainMatch !== undefined;
+  const isInOngoingNoteMain = noteMainMatch?.params.id === sessionId;
+  const isInNoteSub = noteSubMatch !== undefined;
+  const isInOngoingNoteSub = noteSubMatch?.params.id === sessionId;
+  const isInNote = isInNoteMain || isInNoteSub;
+  const isInOngoingNote = isInOngoingNoteMain || isInOngoingNoteSub;
+
+  const inMeetingAndNotInNote = listening && sessionId !== null && !isInOngoingNote;
 
   return (
     <>
@@ -28,21 +32,31 @@ export default function Toolbar() {
         className="flex w-full items-center justify-between border-b border-border bg-neutral-50 min-h-11 p-1 px-2"
         data-tauri-drag-region
       >
-        <div className="w-40 flex items-center" data-tauri-drag-region>
-          <LeftSidebarButton type="toolbar" />
-          <NewNoteButton />
-        </div>
+        {!isInNoteSub && (
+          <div className="w-40 flex items-center" data-tauri-drag-region>
+            <LeftSidebarButton type="toolbar" />
+            <NewNoteButton />
+          </div>
+        )}
 
         {inMeetingAndNotInNote ? <SessionIndicator sessionId={sessionId} /> : <SearchBar />}
 
-        <div
-          className="flex w-40 items-center justify-end"
-          data-tauri-drag-region
-        >
-          <SearchIconButton isShown={inMeetingAndNotInNote} />
-          {pathname.includes("/app/note/") && <ShareButton />}
-          <RightPanelButton />
-        </div>
+        {!isInNoteSub && (
+          <div
+            className="flex w-40 items-center justify-end"
+            data-tauri-drag-region
+          >
+            <SearchIconButton isShown={inMeetingAndNotInNote} />
+            {isInNote && <ShareButton />}
+            <RightPanelButton />
+          </div>
+        )}
+
+        {isInNote && (
+          <div className="flex ml-auto">
+            <ShareButton />
+          </div>
+        )}
       </header>
 
       <SearchPalette />

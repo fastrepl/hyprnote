@@ -1,5 +1,7 @@
-import { useLeftSidebar } from "@/contexts/left-sidebar";
+import { useMatch } from "@tanstack/react-router";
 import { motion } from "motion/react";
+
+import { useLeftSidebar } from "@/contexts/left-sidebar";
 import SettingsButton from "../settings-panel";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
 import NotesList from "./notes-list";
@@ -7,12 +9,15 @@ import UpdateButton from "./update-button";
 
 export default function LeftSidebar() {
   const { isExpanded } = useLeftSidebar();
+  const match = useMatch({ from: "/app/note/$id/main", shouldThrow: false });
+
+  const show = match !== undefined && isExpanded;
 
   return (
     <motion.div
       layout
-      initial={{ width: isExpanded ? 240 : 0, opacity: isExpanded ? 1 : 0 }}
-      animate={{ width: isExpanded ? 240 : 0, opacity: isExpanded ? 1 : 0 }}
+      initial={{ width: show ? 240 : 0, opacity: show ? 1 : 0 }}
+      animate={{ width: show ? 240 : 0, opacity: show ? 1 : 0 }}
       transition={{ duration: 0.2 }}
       className="h-full flex flex-col overflow-hidden border-r bg-neutral-50"
     >

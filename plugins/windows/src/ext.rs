@@ -36,7 +36,7 @@ impl HyprWindow {
             None => {
                 let url = match self {
                     Self::Main => "/app",
-                    Self::Note(id) => &format!("/app/note/{}", id),
+                    Self::Note(id) => &format!("/app/note/{}/sub", id),
                 };
                 self.window_builder(app, url).build()?
             }
@@ -51,14 +51,23 @@ impl HyprWindow {
                 window.center()?;
             }
             Self::Note(_) => {
+                window.hide()?;
+                std::thread::sleep(std::time::Duration::from_millis(80));
+
                 window.set_maximizable(false)?;
                 window.set_minimizable(false)?;
                 window.set_size(LogicalSize::new(600.0, 800.0))?;
                 window.set_min_size(Some(LogicalSize::new(480.0, 360.0)))?;
+
+                {
+                    let mut cursor = app.cursor_position().unwrap();
+                    cursor.x -= 160.0;
+                    cursor.y -= 30.0;
+                    window.set_position(cursor)?;
+                }
             }
         };
 
-        window.set_theme(Some(tauri::Theme::Light))?;
         window.set_focus()?;
         window.show()?;
         Ok(window)
@@ -78,6 +87,7 @@ impl HyprWindow {
         {
             builder = builder
                 .hidden_title(true)
+                .theme(Some(tauri::Theme::Light))
                 .title_bar_style(tauri::TitleBarStyle::Overlay);
         }
 

@@ -61,6 +61,16 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
             e.preventDefault();
           }
         }
+
+        // Handle Shift+Tab to move focus to the title input
+        if (e.key === "Tab" && e.shiftKey) {
+          e.preventDefault();
+          // Find the title input by ID and focus it
+          const titleInput = document.getElementById("note-title-input") as HTMLElement;
+          if (titleInput) {
+            titleInput.focus();
+          }
+        }
       };
 
       if (editor) {

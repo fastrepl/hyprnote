@@ -20,6 +20,7 @@ export default function TitleInput({
 
   return (
     <input
+      id="note-title-input"
       type="text"
       onChange={onChange}
       value={value}

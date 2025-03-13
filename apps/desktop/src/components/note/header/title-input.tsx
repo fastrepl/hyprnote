@@ -27,7 +27,6 @@ export default function TitleInput({
           // Create a range at the start of the editor content
           const range = document.createRange();
           const selection = window.getSelection();
-
           // Find the first text node or element node
           let firstNode = editorContent.firstChild;
           while (firstNode && firstNode.nodeType !== Node.TEXT_NODE && firstNode.nodeType !== Node.ELEMENT_NODE) {

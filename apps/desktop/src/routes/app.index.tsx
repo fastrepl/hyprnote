@@ -30,7 +30,7 @@ export const Route = createFileRoute("/app/")({
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
 
       return redirect({
-        to: "/app/note/$id",
+        to: "/app/note/$id/main",
         params: { id: session.id },
       });
     } catch (error) {

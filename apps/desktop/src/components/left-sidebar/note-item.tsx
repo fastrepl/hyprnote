@@ -48,7 +48,7 @@ export function NoteItem({
 
   const handleSingleClick = () => {
     navigate({
-      to: "/app/note/$id",
+      to: "/app/note/$id/main",
       params: { id: session.id },
     });
   };

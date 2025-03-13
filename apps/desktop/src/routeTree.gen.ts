@@ -16,7 +16,7 @@ import { Route as LoginImport } from './routes/login'
 import { Route as AppImport } from './routes/app'
 import { Route as AppIndexImport } from './routes/app.index'
 import { Route as AppHomeImport } from './routes/app.home'
-import { Route as AppNoteIdImport } from './routes/app.note.$id'
+import { Route as AppNoteIdMainImport } from './routes/app.note.$id.main'
 
 // Create/Update Routes
 
@@ -50,9 +50,9 @@ const AppHomeRoute = AppHomeImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 
-const AppNoteIdRoute = AppNoteIdImport.update({
-  id: '/note/$id',
-  path: '/note/$id',
+const AppNoteIdMainRoute = AppNoteIdMainImport.update({
+  id: '/note/$id/main',
+  path: '/note/$id/main',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -95,11 +95,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexImport
       parentRoute: typeof AppImport
     }
-    '/app/note/$id': {
-      id: '/app/note/$id'
-      path: '/note/$id'
-      fullPath: '/app/note/$id'
-      preLoaderRoute: typeof AppNoteIdImport
+    '/app/note/$id/main': {
+      id: '/app/note/$id/main'
+      path: '/note/$id/main'
+      fullPath: '/app/note/$id/main'
+      preLoaderRoute: typeof AppNoteIdMainImport
       parentRoute: typeof AppImport
     }
   }
@@ -110,13 +110,13 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppHomeRoute: typeof AppHomeRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppNoteIdRoute: typeof AppNoteIdRoute
+  AppNoteIdMainRoute: typeof AppNoteIdMainRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppHomeRoute: AppHomeRoute,
   AppIndexRoute: AppIndexRoute,
-  AppNoteIdRoute: AppNoteIdRoute,
+  AppNoteIdMainRoute: AppNoteIdMainRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -127,7 +127,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/app/home': typeof AppHomeRoute
   '/app/': typeof AppIndexRoute
-  '/app/note/$id': typeof AppNoteIdRoute
+  '/app/note/$id/main': typeof AppNoteIdMainRoute
 }
 
 export interface FileRoutesByTo {
@@ -135,7 +135,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/app/home': typeof AppHomeRoute
   '/app': typeof AppIndexRoute
-  '/app/note/$id': typeof AppNoteIdRoute
+  '/app/note/$id/main': typeof AppNoteIdMainRoute
 }
 
 export interface FileRoutesById {
@@ -145,7 +145,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/app/home': typeof AppHomeRoute
   '/app/': typeof AppIndexRoute
-  '/app/note/$id': typeof AppNoteIdRoute
+  '/app/note/$id/main': typeof AppNoteIdMainRoute
 }
 
 export interface FileRouteTypes {
@@ -156,9 +156,9 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/app/home'
     | '/app/'
-    | '/app/note/$id'
+    | '/app/note/$id/main'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/onboarding' | '/app/home' | '/app' | '/app/note/$id'
+  to: '/login' | '/onboarding' | '/app/home' | '/app' | '/app/note/$id/main'
   id:
     | '__root__'
     | '/app'
@@ -166,7 +166,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/app/home'
     | '/app/'
-    | '/app/note/$id'
+    | '/app/note/$id/main'
   fileRoutesById: FileRoutesById
 }
 
@@ -202,7 +202,7 @@ export const routeTree = rootRoute
       "children": [
         "/app/home",
         "/app/",
-        "/app/note/$id"
+        "/app/note/$id/main"
       ]
     },
     "/login": {
@@ -219,8 +219,8 @@ export const routeTree = rootRoute
       "filePath": "app.index.tsx",
       "parent": "/app"
     },
-    "/app/note/$id": {
-      "filePath": "app.note.$id.tsx",
+    "/app/note/$id/main": {
+      "filePath": "app.note.$id.main.tsx",
       "parent": "/app"
     }
   }

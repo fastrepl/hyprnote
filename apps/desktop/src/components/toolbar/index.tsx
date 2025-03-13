@@ -15,7 +15,7 @@ export default function Toolbar() {
   }));
 
   const getNoteURL = (id: string) => {
-    const pattern: RoutePath = "/app/note/$id";
+    const pattern: RoutePath = "/app/note/$id/main";
     return pattern.replace("$id", id);
   };
 

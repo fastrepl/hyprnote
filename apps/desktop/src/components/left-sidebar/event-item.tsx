@@ -16,7 +16,7 @@ export function EventItem({ event }: { event: Event }) {
   const handleClick = () => {
     if (session.data) {
       navigate({
-        to: "/app/note/$id",
+        to: "/app/note/$id/main",
         params: { id: session.data.id },
       });
     }

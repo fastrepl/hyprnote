@@ -23,7 +23,7 @@ export function EventCard({ event }: { event: Event }) {
       });
     } else {
       navigate({
-        to: "/app/note/$id",
+        to: "/app/note/$id/main",
         params: { id: session.data!.id },
       });
     }

@@ -14,7 +14,7 @@ export default function RecentNotes() {
   });
 
   const handleClickSession = (id: string) => {
-    navigate({ to: "/app/note/$id", params: { id } });
+    navigate({ to: "/app/note/$id/main", params: { id } });
   };
 
   return (

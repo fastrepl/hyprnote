@@ -35,6 +35,7 @@ jobs:
       - uses: ./.github/actions/pnpm_install
       - run: pnpm -F ui build
       - run: pnpm -r typecheck
+      - run: pnpm -r test
       - uses: ./.github/actions/install_desktop_deps
         with:
           target: "linux"

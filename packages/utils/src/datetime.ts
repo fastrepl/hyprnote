@@ -2,6 +2,21 @@ import * as FNS_TZ from "@date-fns/tz";
 import * as FNS from "date-fns";
 import * as FNS_LOCALE from "date-fns/locale";
 
+// TODO
+export const formatDate = (date: string) => {
+  const d = new Date(date);
+  const now = Date.now();
+  const diff = (now - d.getTime()) / 1000;
+
+  if (diff < 60 * 1) {
+    return "방금 전";
+  }
+  if (diff < 60 * 60 * 24 * 3) {
+    return FNS.formatDistanceToNow(d, { addSuffix: true, locale: FNS_LOCALE.ko });
+  }
+  return FNS.format(d, "PPP EEE p", { locale: FNS_LOCALE.ko });
+};
+
 export const timezone = () => {
   if (typeof window === "undefined") {
     throw new Error("timezone is only available on browser");

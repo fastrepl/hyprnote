@@ -34,7 +34,7 @@ export function NoteItem({
       singleClickTimer = setTimeout(() => {
         handleSingleClick();
         setClicks(0);
-      }, 240);
+      }, 500);
     } else if (clicks === 2) {
       handleDoubleClick();
       setClicks(0);
@@ -65,8 +65,14 @@ export function NoteItem({
     dbCommands.deleteSession(session.id);
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      handleSingleClick();
+    }
+  };
+
   return (
-    <ContextMenu>
+    <ContextMenu onOpenChange={handleOpenChange}>
       <ContextMenuTrigger>
         <button
           onClick={handleClick}

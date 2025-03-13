@@ -65,14 +65,8 @@ export function NoteItem({
     dbCommands.deleteSession(session.id);
   };
 
-  const handleOpenChange = (open: boolean) => {
-    if (open) {
-      handleSingleClick();
-    }
-  };
-
   return (
-    <ContextMenu onOpenChange={handleOpenChange}>
+    <ContextMenu>
       <ContextMenuTrigger>
         <button
           onClick={handleClick}

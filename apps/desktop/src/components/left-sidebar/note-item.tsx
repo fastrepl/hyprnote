@@ -67,7 +67,7 @@ export function NoteItem({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger>
+      <ContextMenuTrigger disabled={session.id === currentSession?.id}>
         <button
           onClick={handleClick}
           disabled={isActive}

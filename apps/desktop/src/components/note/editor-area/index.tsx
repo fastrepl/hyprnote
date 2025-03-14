@@ -8,6 +8,7 @@ import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands } from "@hypr/plugin-template";
 import Editor, { TiptapEditor } from "@hypr/tiptap/editor";
+import Renderer from "@hypr/tiptap/renderer";
 import { cn } from "@hypr/ui/lib/utils";
 import { modelProvider } from "@hypr/utils";
 
@@ -17,7 +18,7 @@ import { NoteHeader } from "../header";
 import { EnhanceControls } from "./enhanced-controls";
 import { EnhanceOnlyButton } from "./enhanced-only-button";
 
-export default function EditorArea() {
+export default function EditorArea({ editable }: { editable: boolean }) {
   const [showRaw, setShowRaw] = useState(true);
 
   const sessionStore = useSession((s) => ({
@@ -136,11 +137,20 @@ export default function EditorArea() {
         }}
       >
         <div>
-          <Editor
-            ref={editorRef}
-            handleChange={handleChangeNote}
-            initialContent={initialEditorContent}
-          />
+          {editable
+            ? (
+              <Editor
+                ref={editorRef}
+                handleChange={handleChangeNote}
+                initialContent={initialEditorContent}
+              />
+            )
+            : (
+              <Renderer
+                ref={editorRef}
+                initialContent={initialEditorContent}
+              />
+            )}
         </div>
       </div>
 

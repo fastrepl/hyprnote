@@ -43,7 +43,7 @@ function Component() {
   return (
     <main className="flex h-full overflow-hidden bg-white">
       <div className="h-full flex-1">
-        <EditorArea />
+        <EditorArea editable={true} />
       </div>
     </main>
   );

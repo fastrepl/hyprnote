@@ -27,35 +27,11 @@ export function NoteItem({
 
   const sessionDate = new Date(session.created_at);
 
-  const [clicks, setClicks] = useState(0);
-
-  useEffect(() => {
-    let singleClickTimer: ReturnType<typeof setTimeout>;
-    if (clicks === 1) {
-      singleClickTimer = setTimeout(() => {
-        handleSingleClick();
-        setClicks(0);
-      }, 500);
-    } else if (clicks === 2) {
-      handleDoubleClick();
-      setClicks(0);
-    }
-    return () => clearTimeout(singleClickTimer);
-  }, [clicks]);
-
   const handleClick = () => {
-    setClicks((c) => c + 1);
-  };
-
-  const handleSingleClick = () => {
     navigate({
       to: "/app/note/$id/main",
       params: { id: session.id },
     });
-  };
-
-  const handleDoubleClick = () => {
-    handleOpenWindow();
   };
 
   const handleOpenWindow = () => {

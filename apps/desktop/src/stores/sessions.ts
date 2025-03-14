@@ -19,7 +19,9 @@ export const createSessionsStore = () => {
       const sessions = get().sessions;
       const list = await dbCommands.listSessions(null);
       for (const session of list) {
-        sessions[session.id] = createSessionStore(session);
+        if (!sessions[session.id]) {
+          sessions[session.id] = createSessionStore(session);
+        }
       }
       set({ sessions });
     },

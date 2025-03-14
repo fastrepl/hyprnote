@@ -53,7 +53,7 @@ export default function Toolbar() {
           </div>
         )}
 
-        {isInNote && (
+        {isInNoteSub && (
           <div className="flex ml-auto">
             <ShareButton />
           </div>

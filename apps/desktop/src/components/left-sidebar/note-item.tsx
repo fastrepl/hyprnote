@@ -1,10 +1,10 @@
 import { useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { AppWindowMacIcon, ArrowUpRight, TrashIcon } from "lucide-react";
-import { useEffect, useState } from "react";
 
-import { useSession } from "@/contexts";
-import { commands as dbCommands, type Session } from "@hypr/plugin-db";
+import { useSession, useSessions } from "@/contexts";
+import { useStore2 } from "@/utils";
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import {
   ContextMenu,
@@ -16,35 +16,36 @@ import {
 import { cn } from "@hypr/ui/lib/utils";
 
 export function NoteItem({
-  session,
+  sessionId,
 }: {
-  session: Session;
+  sessionId: string;
 }) {
   const navigate = useNavigate();
 
   const activeSession = useSession((s) => s.session);
-  const isActive = activeSession.id === session.id;
+  const currentSession = useStore2(useSessions((s) => s.sessions[sessionId]), (s) => s.session);
 
-  const sessionDate = new Date(session.created_at);
+  const isActive = activeSession.id === currentSession.id;
+  const sessionDate = new Date(currentSession.created_at);
 
   const handleClick = () => {
     navigate({
       to: "/app/note/$id/main",
-      params: { id: session.id },
+      params: { id: currentSession.id },
     });
   };
 
   const handleOpenWindow = () => {
-    windowsCommands.windowShow({ note: session.id });
+    windowsCommands.windowShow({ note: currentSession.id });
   };
 
   const handleDeleteNote = () => {
-    dbCommands.deleteSession(session.id);
+    dbCommands.deleteSession(currentSession.id);
   };
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger disabled={session.id === activeSession.id}>
+      <ContextMenuTrigger disabled={isActive}>
         <button
           onClick={handleClick}
           disabled={isActive}
@@ -55,9 +56,7 @@ export function NoteItem({
         >
           <div className="flex flex-col items-start gap-1">
             <div className="font-medium text-sm max-w-[180px] truncate">
-              {isActive
-                ? activeSession.title || "Untitled"
-                : session.title || "Untitled"}
+              {currentSession.title || "Untitled"}
             </div>
             <div className="flex items-center gap-2 text-xs text-neutral-500">
               <span>{format(sessionDate, "M/d/yy")}</span>

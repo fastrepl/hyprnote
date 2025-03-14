@@ -15,6 +15,7 @@ export default function NotesList() {
 
   const sessionsInit = useSessions((s) => s.init);
 
+  // TODO: not very ideal
   useEffect(() => {
     sessionsInit();
   }, [sessionsInit]);
@@ -67,7 +68,7 @@ export default function NotesList() {
               {sessions.map((session: Session) => (
                 <NoteItem
                   key={session.id}
-                  session={session}
+                  sessionId={session.id}
                 />
               ))}
             </div>

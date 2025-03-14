@@ -33,8 +33,6 @@ export const createSessionStore = (session: Session) => {
           if (!draft.session) {
             return;
           }
-          console.log(`title is updated for ${draft.session.id}`);
-
           draft.session.title = title;
         })
       );

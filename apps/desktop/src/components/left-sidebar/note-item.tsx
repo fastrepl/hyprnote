@@ -43,6 +43,10 @@ export function NoteItem({
     dbCommands.deleteSession(currentSession.id);
   };
 
+  const html2text = (html: string) => {
+    return html.replace(/<[^>]*>?/g, "");
+  };
+
   return (
     <ContextMenu>
       <ContextMenuTrigger disabled={isActive}>
@@ -54,12 +58,13 @@ export function NoteItem({
             isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
           )}
         >
-          <div className="flex flex-col items-start gap-1">
-            <div className="font-medium text-sm max-w-[180px] truncate">
+          <div className="flex flex-col items-start gap-1 max-w-[180px] truncate">
+            <div className="font-medium text-sm">
               {currentSession.title || "Untitled"}
             </div>
-            <div className="flex items-center gap-2 text-xs text-neutral-500">
-              <span>{format(sessionDate, "M/d/yy")}</span>
+            <div className="flex items-center gap-3 text-xs text-neutral-500">
+              <span className="font-medium">{format(sessionDate, "M/d/yy")}</span>
+              <span className="text-xs">{html2text(currentSession.raw_memo_html)}</span>
             </div>
           </div>
         </button>

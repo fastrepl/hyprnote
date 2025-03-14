@@ -1,7 +1,6 @@
+import { CommandShortcut } from "@hypr/ui/components/ui/command";
 import { useQuery } from "@tanstack/react-query";
 import { type as getOsType } from "@tauri-apps/plugin-os";
-
-import { CommandShortcut } from "@hypr/ui/components/ui/command";
 
 export default function Shortcut({
   macDisplay,

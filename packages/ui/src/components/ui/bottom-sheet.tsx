@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@hypr/ui/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
 import * as React from "react";

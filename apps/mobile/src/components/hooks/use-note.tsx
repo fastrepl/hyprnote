@@ -1,5 +1,5 @@
-import { ConversationChunk, type Session } from "@hypr/plugin-db";
-import { useState } from "react";
+import { type Session } from "@hypr/plugin-db";
+import { useEffect, useState } from "react";
 
 const mockParticipants = [
   {
@@ -49,6 +49,10 @@ export function useNote({ session }: UseNoteProps) {
   const [shareSheetOpen, setShareSheetOpen] = useState(false);
   const [title, setTitle] = useState(session.title || "Untitled");
   const [content, setContent] = useState(session.enhanced_memo_html || session.raw_memo_html);
+  const [noteStatus, setNoteStatus] = useState<"listening" | "uploading" | "transcribing" | "enhancing" | null>(
+    "listening",
+  );
+  const [audioLevel, setAudioLevel] = useState(0);
 
   const currentDate = new Date().toLocaleDateString("en-US", {
     month: "short",
@@ -60,6 +64,19 @@ export function useNote({ session }: UseNoteProps) {
     "Acme Inc": mockParticipants.filter(p => p.organization_id === "Acme Inc"),
     "Design Studio": mockParticipants.filter(p => p.organization_id === "Design Studio"),
   };
+
+  // Mock changing audio levels when in listening mode
+  useEffect(() => {
+    if (noteStatus !== "listening") return;
+
+    const interval = setInterval(() => {
+      // Generate random audio level between 10 and 90
+      const newLevel = Math.floor(Math.random() * 80) + 10;
+      setAudioLevel(newLevel);
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [noteStatus]);
 
   // Handlers
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,6 +142,8 @@ export function useNote({ session }: UseNoteProps) {
     setTagsSheetOpen,
     shareSheetOpen,
     setShareSheetOpen,
+    noteStatus,
+    setNoteStatus,
     title,
     content,
     currentDate,
@@ -132,6 +151,7 @@ export function useNote({ session }: UseNoteProps) {
     mockEvent,
     mockTags,
     groupedParticipants,
+    audioLevel,
     handleTitleChange,
     handleTitleBlur,
     handleEditorChange,

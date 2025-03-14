@@ -6,6 +6,7 @@ import { Share2Icon } from "lucide-react";
 import { useNote } from "../components/hooks/use-note";
 import { NoteContent, NoteInfo } from "../components/note";
 import { CalendarEventSheet, ParticipantsSheet, ShareSheet, TagsSheet } from "../components/note/bottom-sheets";
+import { ProcessingStatus } from "../components/note/processing-status";
 import { Transcript } from "../components/note/transcript";
 import { mockSessions } from "../mock/home";
 
@@ -42,6 +43,7 @@ export const NoteView: ActivityComponentType<"NoteView"> = () => {
     setCalendarSheetOpen,
     tagsSheetOpen,
     setTagsSheetOpen,
+    noteStatus,
     mockEvent,
     mockTags,
     groupedParticipants,
@@ -49,6 +51,7 @@ export const NoteView: ActivityComponentType<"NoteView"> = () => {
     handleViewInCalendar,
     formatEventTime,
     getInitials,
+    audioLevel,
   } = useNote({ session });
 
   const ShareButton = () => (
@@ -71,31 +74,35 @@ export const NoteView: ActivityComponentType<"NoteView"> = () => {
           setTagsSheetOpen={setTagsSheetOpen}
         />
 
-        <Tabs defaultValue="note" className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="mx-4 rounded-md">
-            <TabsTrigger
-              value="note"
-              className="flex-1 data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-100"
-            >
-              Note
-            </TabsTrigger>
+        {session.enhanced_memo_html
+          ? (
+            <Tabs defaultValue="note" className="flex-1 flex flex-col overflow-hidden">
+              <TabsList className="mx-4 rounded-md">
+                <TabsTrigger
+                  value="note"
+                  className="flex-1 data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-100"
+                >
+                  Note
+                </TabsTrigger>
 
-            <TabsTrigger
-              value="transcript"
-              className="flex-1 data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-100"
-            >
-              Transcript
-            </TabsTrigger>
-          </TabsList>
+                <TabsTrigger
+                  value="transcript"
+                  className="flex-1 data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-100"
+                >
+                  Transcript
+                </TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="note" className="flex-1 overflow-y-auto">
-            <NoteContent session={session} />
-          </TabsContent>
+              <TabsContent value="note" className="flex-1 overflow-y-auto">
+                <NoteContent session={session} />
+              </TabsContent>
 
-          <TabsContent value="transcript" className="flex-1 overflow-y-auto">
-            <Transcript session={session} />
-          </TabsContent>
-        </Tabs>
+              <TabsContent value="transcript" className="flex-1 overflow-y-auto">
+                <Transcript session={session} />
+              </TabsContent>
+            </Tabs>
+          )
+          : <ProcessingStatus session={session} noteStatus={noteStatus} audioLevel={audioLevel} />}
       </div>
 
       <ShareSheet

@@ -1,8 +1,7 @@
+import type { QueryClient } from "@tanstack/react-query";
 import { Maximize2Icon } from "lucide-react";
 import React, { type ReactNode } from "react";
 import { Button } from "./button";
-
-import type { QueryClient } from "@tanstack/react-query";
 
 interface WidgetHeaderProps {
   leading?: ReactNode;

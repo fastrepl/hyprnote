@@ -46,7 +46,7 @@ export const RecordingsView: ActivityComponentType<"RecordingsView"> = () => {
                   const { date, recordings: dateRecordings } = groupedRecordings[dateKey];
 
                   return (
-                    <section key={dateKey} >
+                    <section key={dateKey}>
                       <h2 className="font-bold text-neutral-600 mb-3">
                         {formatDateHeader(date)}
                       </h2>

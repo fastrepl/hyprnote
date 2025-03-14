@@ -1,5 +1,3 @@
-"use client";
-
 import React, { ComponentPropsWithoutRef, useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";

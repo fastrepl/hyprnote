@@ -1,5 +1,3 @@
-"use client";
-
 import { AnimatePresence, motion, MotionProps, Variants } from "motion/react";
 import { ElementType } from "react";
 

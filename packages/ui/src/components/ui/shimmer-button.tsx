@@ -1,8 +1,7 @@
 // https://magicui.design/docs/components/shimmer-button
 
-import React, { CSSProperties } from "react";
-
 import { cn } from "@hypr/ui/lib/utils";
+import React, { CSSProperties } from "react";
 
 export interface ShimmerButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   shimmerColor?: string;

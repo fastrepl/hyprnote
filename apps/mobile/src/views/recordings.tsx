@@ -32,8 +32,8 @@ export const RecordingsView: ActivityComponentType<"RecordingsView"> = () => {
         title: "Recordings",
       }}
     >
-      <div className="relative flex h-full flex-col">
-        <div className="flex-1 overflow-y-auto px-4">
+      <div className="flex h-full flex-col">
+        <div className="flex-1 overflow-y-auto px-4 pt-6 pb-20 space-y-6">
           {recordings.length === 0
             ? (
               <div className="flex flex-col justify-center items-center h-64">
@@ -46,7 +46,7 @@ export const RecordingsView: ActivityComponentType<"RecordingsView"> = () => {
                   const { date, recordings: dateRecordings } = groupedRecordings[dateKey];
 
                   return (
-                    <section key={dateKey} className="mb-6">
+                    <section key={dateKey} >
                       <h2 className="font-bold text-neutral-600 mb-3">
                         {formatDateHeader(date)}
                       </h2>
@@ -70,7 +70,7 @@ export const RecordingsView: ActivityComponentType<"RecordingsView"> = () => {
 
         {selectedRecordingId && (
           <div
-            className="absolute z-10 bottom-0 left-0 right-0 flex justify-center px-4 pb-4"
+            className="fixed z-10 bottom-0 left-0 right-0 flex justify-center px-4 pb-4"
             onClick={(e) => e.stopPropagation()}
           >
             <Button

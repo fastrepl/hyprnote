@@ -13,7 +13,7 @@ export function NoteItem({
   return (
     <button
       onClick={onSelect}
-      className="hover:bg-neutral-100 group flex items-start gap-3 py-3 w-full text-left transition-all rounded-lg px-3 border border-neutral-200"
+      className="hover:bg-neutral-100 bg-white group flex items-start gap-3 py-3 w-full text-left transition-all rounded-lg px-3 border border-neutral-200"
     >
       <div className="flex flex-col items-start gap-1">
         <div className="font-medium text-sm line-clamp-1 truncate">

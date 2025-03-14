@@ -21,8 +21,8 @@ export function noteLoader({
     calendar_event_id: null,
     audio_local_path: null,
     audio_remote_path: null,
-    raw_memo_html: "<p>No content available.</p>",
-    enhanced_memo_html: "<h2>Untitled Note</h2><p>No content available.</p>",
+    raw_memo_html: "",
+    enhanced_memo_html: null,
     conversations: [],
   };
 

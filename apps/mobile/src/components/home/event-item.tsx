@@ -18,7 +18,7 @@ export function EventItem({ event, onSelect }: { event: Event; onSelect: (sessio
   return (
     <button
       onClick={handleClick}
-      className="w-full text-left group flex items-start gap-3 py-3 hover:bg-neutral-100 rounded-lg px-3 border border-neutral-200"
+      className="w-full text-left group bg-white flex items-start gap-3 py-3 hover:bg-neutral-100 rounded-lg px-3 border border-neutral-200"
     >
       <div className="flex flex-col items-start gap-1">
         <div className="font-medium text-sm line-clamp-1 truncate">{event.name}</div>

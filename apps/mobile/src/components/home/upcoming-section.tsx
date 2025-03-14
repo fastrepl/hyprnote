@@ -22,14 +22,14 @@ export const UpcomingSection = ({
   return (
     <section>
       <h2
-        className="font-medium text-neutral-600 mb-3 flex items-center gap-2 cursor-pointer w-fit"
+        className="font-medium text-neutral-800 mb-3 flex items-center gap-2 cursor-pointer w-fit"
         onClick={() => setUpcomingExpanded(!upcomingExpanded)}
       >
         <CalendarIcon className="size-4" />
         <strong>Upcoming</strong>
         {upcomingExpanded
-          ? <ChevronDownIcon className="size-4 text-neutral-600" />
-          : <ChevronRightIcon className="size-4 text-neutral-600" />}
+          ? <ChevronDownIcon className="size-4" />
+          : <ChevronRightIcon className="size-4" />}
       </h2>
 
       {upcomingExpanded && (

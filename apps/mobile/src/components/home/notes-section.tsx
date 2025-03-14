@@ -18,7 +18,7 @@ export const NotesSection = ({
 }: NotesSectionProps) => {
   return (
     <section key={dateKey}>
-      <h2 className="font-bold text-neutral-600 mb-3">
+      <h2 className="font-bold text-neutral-800 mb-3">
         {formatDateHeader(date)}
       </h2>
 

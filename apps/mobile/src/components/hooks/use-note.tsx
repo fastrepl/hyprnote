@@ -1,4 +1,4 @@
-import { type Session } from "@hypr/plugin-db";
+import { ConversationChunk, type Session } from "@hypr/plugin-db";
 import { useState } from "react";
 
 const mockParticipants = [

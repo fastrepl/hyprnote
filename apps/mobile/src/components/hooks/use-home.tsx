@@ -1,6 +1,5 @@
 import { useFlow } from "@stackflow/react/future";
 import { useState } from "react";
-
 import { mockSessions } from "../../mock/home";
 
 export function useHome() {

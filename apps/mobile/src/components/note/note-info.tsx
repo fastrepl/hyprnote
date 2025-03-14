@@ -25,7 +25,7 @@ export function NoteInfo({
   } = useNote({ session });
 
   return (
-    <div className="px-4 w-full flex flex-col pb-6">
+    <div className="px-4 w-full flex flex-col pb-4 pt-6">
       <input
         type="text"
         value={title}

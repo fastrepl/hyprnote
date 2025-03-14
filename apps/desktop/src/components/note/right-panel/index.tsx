@@ -2,7 +2,7 @@ import { useMatch } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 
-import { useRightPanel } from "@/contexts/right-panel";
+import { useRightPanel } from "@/contexts";
 import WidgetRenderer from "./renderer";
 
 export default function RightPanel() {

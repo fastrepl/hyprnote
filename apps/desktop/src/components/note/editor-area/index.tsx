@@ -11,8 +11,7 @@ import Editor, { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/ui/lib/utils";
 import { modelProvider } from "@hypr/utils";
 
-import { useSession } from "@/contexts";
-import { useOngoingSession } from "@/contexts/ongoing-session";
+import { useOngoingSession, useSession } from "@/contexts";
 import { ENHANCE_SYSTEM_TEMPLATE_KEY, ENHANCE_USER_TEMPLATE_KEY } from "@/templates";
 import { NoteHeader } from "../header";
 import { EnhanceControls } from "./enhanced-controls";

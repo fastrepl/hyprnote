@@ -1,6 +1,6 @@
-import { useSearchPalette } from "@/contexts/search-palette";
 import { Building, Laptop, Users2 } from "lucide-react";
 
+import { useSearchPalette } from "@/contexts";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import {
   CommandDialog,

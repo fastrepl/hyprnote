@@ -1,8 +1,7 @@
 import { useMatch } from "@tanstack/react-router";
 import { type ChangeEvent, useCallback } from "react";
 
-import { useSession } from "@/contexts";
-import { useOngoingSession } from "@/contexts/ongoing-session";
+import { useOngoingSession, useSession } from "@/contexts";
 import Chips from "./chips";
 import ListenButton from "./listen-button";
 import TitleInput from "./title-input";

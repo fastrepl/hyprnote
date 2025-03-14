@@ -1,5 +1,5 @@
-import { useSettingsPanel } from "@/contexts/settings-panel";
 import { useQuery } from "@tanstack/react-query";
+
 import { SettingsIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SettingsSidebar } from "./sidebar";
@@ -14,6 +14,7 @@ import ProfileComponent from "./views/profile";
 import TeamComponent from "./views/team";
 import TemplateEditor from "./views/template";
 
+import { useSettingsPanel } from "@/contexts";
 import { commands as dbCommands, type Template } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";

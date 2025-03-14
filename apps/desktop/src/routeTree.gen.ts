@@ -15,7 +15,7 @@ import { Route as OnboardingImport } from './routes/onboarding'
 import { Route as LoginImport } from './routes/login'
 import { Route as AppImport } from './routes/app'
 import { Route as AppIndexImport } from './routes/app.index'
-import { Route as AppHomeImport } from './routes/app.home'
+import { Route as AppNoteIdImport } from './routes/app.note.$id'
 import { Route as AppNoteIdSubImport } from './routes/app.note.$id.sub'
 import { Route as AppNoteIdMainImport } from './routes/app.note.$id.main'
 
@@ -45,22 +45,22 @@ const AppIndexRoute = AppIndexImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 
-const AppHomeRoute = AppHomeImport.update({
-  id: '/home',
-  path: '/home',
+const AppNoteIdRoute = AppNoteIdImport.update({
+  id: '/note/$id',
+  path: '/note/$id',
   getParentRoute: () => AppRoute,
 } as any)
 
 const AppNoteIdSubRoute = AppNoteIdSubImport.update({
-  id: '/note/$id/sub',
-  path: '/note/$id/sub',
-  getParentRoute: () => AppRoute,
+  id: '/sub',
+  path: '/sub',
+  getParentRoute: () => AppNoteIdRoute,
 } as any)
 
 const AppNoteIdMainRoute = AppNoteIdMainImport.update({
-  id: '/note/$id/main',
-  path: '/note/$id/main',
-  getParentRoute: () => AppRoute,
+  id: '/main',
+  path: '/main',
+  getParentRoute: () => AppNoteIdRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -88,13 +88,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingImport
       parentRoute: typeof rootRoute
     }
-    '/app/home': {
-      id: '/app/home'
-      path: '/home'
-      fullPath: '/app/home'
-      preLoaderRoute: typeof AppHomeImport
-      parentRoute: typeof AppImport
-    }
     '/app/': {
       id: '/app/'
       path: '/'
@@ -102,37 +95,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexImport
       parentRoute: typeof AppImport
     }
+    '/app/note/$id': {
+      id: '/app/note/$id'
+      path: '/note/$id'
+      fullPath: '/app/note/$id'
+      preLoaderRoute: typeof AppNoteIdImport
+      parentRoute: typeof AppImport
+    }
     '/app/note/$id/main': {
       id: '/app/note/$id/main'
-      path: '/note/$id/main'
+      path: '/main'
       fullPath: '/app/note/$id/main'
       preLoaderRoute: typeof AppNoteIdMainImport
-      parentRoute: typeof AppImport
+      parentRoute: typeof AppNoteIdImport
     }
     '/app/note/$id/sub': {
       id: '/app/note/$id/sub'
-      path: '/note/$id/sub'
+      path: '/sub'
       fullPath: '/app/note/$id/sub'
       preLoaderRoute: typeof AppNoteIdSubImport
-      parentRoute: typeof AppImport
+      parentRoute: typeof AppNoteIdImport
     }
   }
 }
 
 // Create and export the route tree
 
-interface AppRouteChildren {
-  AppHomeRoute: typeof AppHomeRoute
-  AppIndexRoute: typeof AppIndexRoute
+interface AppNoteIdRouteChildren {
   AppNoteIdMainRoute: typeof AppNoteIdMainRoute
   AppNoteIdSubRoute: typeof AppNoteIdSubRoute
 }
 
-const AppRouteChildren: AppRouteChildren = {
-  AppHomeRoute: AppHomeRoute,
-  AppIndexRoute: AppIndexRoute,
+const AppNoteIdRouteChildren: AppNoteIdRouteChildren = {
   AppNoteIdMainRoute: AppNoteIdMainRoute,
   AppNoteIdSubRoute: AppNoteIdSubRoute,
+}
+
+const AppNoteIdRouteWithChildren = AppNoteIdRoute._addFileChildren(
+  AppNoteIdRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppIndexRoute: typeof AppIndexRoute
+  AppNoteIdRoute: typeof AppNoteIdRouteWithChildren
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppIndexRoute: AppIndexRoute,
+  AppNoteIdRoute: AppNoteIdRouteWithChildren,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -141,8 +151,8 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
-  '/app/home': typeof AppHomeRoute
   '/app/': typeof AppIndexRoute
+  '/app/note/$id': typeof AppNoteIdRouteWithChildren
   '/app/note/$id/main': typeof AppNoteIdMainRoute
   '/app/note/$id/sub': typeof AppNoteIdSubRoute
 }
@@ -150,8 +160,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
-  '/app/home': typeof AppHomeRoute
   '/app': typeof AppIndexRoute
+  '/app/note/$id': typeof AppNoteIdRouteWithChildren
   '/app/note/$id/main': typeof AppNoteIdMainRoute
   '/app/note/$id/sub': typeof AppNoteIdSubRoute
 }
@@ -161,8 +171,8 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
-  '/app/home': typeof AppHomeRoute
   '/app/': typeof AppIndexRoute
+  '/app/note/$id': typeof AppNoteIdRouteWithChildren
   '/app/note/$id/main': typeof AppNoteIdMainRoute
   '/app/note/$id/sub': typeof AppNoteIdSubRoute
 }
@@ -173,16 +183,16 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/onboarding'
-    | '/app/home'
     | '/app/'
+    | '/app/note/$id'
     | '/app/note/$id/main'
     | '/app/note/$id/sub'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/onboarding'
-    | '/app/home'
     | '/app'
+    | '/app/note/$id'
     | '/app/note/$id/main'
     | '/app/note/$id/sub'
   id:
@@ -190,8 +200,8 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/onboarding'
-    | '/app/home'
     | '/app/'
+    | '/app/note/$id'
     | '/app/note/$id/main'
     | '/app/note/$id/sub'
   fileRoutesById: FileRoutesById
@@ -227,10 +237,8 @@ export const routeTree = rootRoute
     "/app": {
       "filePath": "app.tsx",
       "children": [
-        "/app/home",
         "/app/",
-        "/app/note/$id/main",
-        "/app/note/$id/sub"
+        "/app/note/$id"
       ]
     },
     "/login": {
@@ -239,21 +247,25 @@ export const routeTree = rootRoute
     "/onboarding": {
       "filePath": "onboarding.tsx"
     },
-    "/app/home": {
-      "filePath": "app.home.tsx",
-      "parent": "/app"
-    },
     "/app/": {
       "filePath": "app.index.tsx",
       "parent": "/app"
     },
+    "/app/note/$id": {
+      "filePath": "app.note.$id.tsx",
+      "parent": "/app",
+      "children": [
+        "/app/note/$id/main",
+        "/app/note/$id/sub"
+      ]
+    },
     "/app/note/$id/main": {
       "filePath": "app.note.$id.main.tsx",
-      "parent": "/app"
+      "parent": "/app/note/$id"
     },
     "/app/note/$id/sub": {
       "filePath": "app.note.$id.sub.tsx",
-      "parent": "/app"
+      "parent": "/app/note/$id"
     }
   }
 }

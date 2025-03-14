@@ -1,5 +1,6 @@
-import { useSearchPalette } from "@/contexts/search-palette";
 import { SearchIcon } from "lucide-react";
+
+import { useSearchPalette } from "@/contexts";
 import Shortcut from "../shortcut";
 
 export function SearchBar() {

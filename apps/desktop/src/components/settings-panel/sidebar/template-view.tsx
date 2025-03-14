@@ -1,9 +1,10 @@
-import { useHypr } from "@/contexts/hypr";
 import { ChevronLeftIcon, FilePlusIcon } from "lucide-react";
+
 import { TemplateList } from "../components/template-list";
 import { data } from "../constants";
 import { type NavNames } from "../types";
 
+import { useHypr } from "@/contexts";
 import { type Template } from "@hypr/plugin-db";
 
 export interface TemplateViewProps {

@@ -17,13 +17,14 @@ import { cn } from "@hypr/ui/lib/utils";
 
 export function NoteItem({
   session,
-  isActive,
 }: {
   session: Session;
-  isActive: boolean;
 }) {
   const navigate = useNavigate();
-  const currentSession = useSession((s) => s.session);
+
+  const activeSession = useSession((s) => s.session);
+  const isActive = activeSession.id === session.id;
+
   const sessionDate = new Date(session.created_at);
 
   const [clicks, setClicks] = useState(0);
@@ -67,7 +68,7 @@ export function NoteItem({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger disabled={session.id === currentSession?.id}>
+      <ContextMenuTrigger disabled={session.id === activeSession.id}>
         <button
           onClick={handleClick}
           disabled={isActive}
@@ -79,7 +80,7 @@ export function NoteItem({
           <div className="flex flex-col items-start gap-1">
             <div className="font-medium text-sm max-w-[180px] truncate">
               {isActive
-                ? currentSession?.title || "Untitled"
+                ? activeSession.title || "Untitled"
                 : session.title || "Untitled"}
             </div>
             <div className="flex items-center gap-2 text-xs text-neutral-500">

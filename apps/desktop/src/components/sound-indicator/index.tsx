@@ -1,9 +1,8 @@
-import { useOngoingSession } from "@/contexts/ongoing-session";
 import { useEffect, useState } from "react";
 
-import EqualizerStick from "./equalizer-stick";
-
+import { useOngoingSession } from "@/contexts";
 import { cn } from "@hypr/ui/lib/utils";
+import EqualizerStick from "./equalizer-stick";
 
 type SoundIndicatorProps = {
   className?: string;

@@ -29,7 +29,11 @@ export const SessionsProvider = ({
   );
 };
 
-export const useSessions = (id: string) => {
+export const useSessions = <T,>(
+  selector: Parameters<
+    typeof useStore<ReturnType<typeof createSessionsStore>, T>
+  >[1],
+) => {
   const store = useContext(SessionsContext);
 
   if (!store) {
@@ -38,5 +42,5 @@ export const useSessions = (id: string) => {
     );
   }
 
-  return useStore(store, useShallow((s) => s.sessions[id]));
+  return useStore(store, useShallow(selector));
 };

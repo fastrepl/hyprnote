@@ -1,6 +1,6 @@
-import { useSearchPalette } from "@/contexts/search-palette";
 import { SearchIcon } from "lucide-react";
 
+import { useSearchPalette } from "@/contexts";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 

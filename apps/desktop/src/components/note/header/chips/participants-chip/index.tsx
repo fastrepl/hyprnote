@@ -6,11 +6,11 @@ import { Users2Icon } from "lucide-react";
 import { ParticipantsList } from "./participants-list";
 
 export function ParticipantsChip() {
-  const sessionId = useSession((s) => s.session?.id);
+  const sessionId = useSession((s) => s.session.id);
+
   const participants = useQuery({
-    enabled: !!sessionId,
-    queryKey: ["participants", sessionId!],
-    queryFn: () => dbCommands.sessionListParticipants(sessionId!),
+    queryKey: ["participants", sessionId],
+    queryFn: () => dbCommands.sessionListParticipants(sessionId),
   });
 
   return (

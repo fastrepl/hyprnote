@@ -1,7 +1,7 @@
 import { useMatch } from "@tanstack/react-router";
 import { motion } from "motion/react";
 
-import { useLeftSidebar } from "@/contexts/left-sidebar";
+import { useLeftSidebar } from "@/contexts";
 import SettingsButton from "../settings-panel";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
 import NotesList from "./notes-list";

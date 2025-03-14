@@ -1,7 +1,8 @@
 import { useMatch } from "@tanstack/react-router";
 
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
-import { useOngoingSession } from "@/contexts/ongoing-session";
+import { useOngoingSession } from "@/contexts";
+
 import { SearchBar, SearchIconButton, SearchPalette } from "../search";
 import { LeftSidebarButton } from "./buttons/left-sidebar-button";
 import { RightPanelButton } from "./buttons/right-panel-button";

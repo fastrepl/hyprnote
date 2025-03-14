@@ -19,15 +19,12 @@ export default function TitleInput({
       e.preventDefault();
       onNavigateToEditor?.();
 
-      // Add a small delay to ensure the editor is focused before setting cursor position
       setTimeout(() => {
-        // Find the editor and set cursor at the beginning of the first line
         const editorContent = document.querySelector(".ProseMirror");
         if (editorContent && editorContent instanceof HTMLElement) {
-          // Create a range at the start of the editor content
           const range = document.createRange();
           const selection = window.getSelection();
-          // Find the first text node or element node
+
           let firstNode = editorContent.firstChild;
           while (firstNode && firstNode.nodeType !== Node.TEXT_NODE && firstNode.nodeType !== Node.ELEMENT_NODE) {
             firstNode = firstNode.nextSibling;

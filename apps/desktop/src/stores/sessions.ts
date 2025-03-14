@@ -4,19 +4,16 @@ import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 import { createSessionStore, SessionStore } from "./session";
 
 type State = {
-  session: SessionStore | null;
   sessions: Record<string, SessionStore>;
 };
 
 type Actions = {
   init: () => Promise<void>;
-  enter: (session: Session) => void;
-  exit: (session: Session) => void;
+  enter: (session: Session) => SessionStore;
 };
 
 export const createSessionsStore = () => {
   return createStore<State & Actions>((set, get) => ({
-    session: null,
     sessions: {},
     init: async () => {
       const sessions = get().sessions;
@@ -29,19 +26,13 @@ export const createSessionsStore = () => {
     enter: (session: Session) => {
       const sessions = get().sessions;
       if (sessions[session.id]) {
-        return;
+        return sessions[session.id];
       }
+
       const store = createSessionStore(session);
       sessions[session.id] = store;
-      set({ session: store, sessions });
-    },
-    exit: (session: Session) => {
-      const sessions = get().sessions;
-      if (!sessions[session.id]) {
-        return;
-      }
-      delete sessions[session.id];
-      set({ session: null, sessions });
+      set({ sessions });
+      return store;
     },
   }));
 };

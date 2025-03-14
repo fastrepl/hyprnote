@@ -1,7 +1,16 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useEffect } from "react";
 
-import { HyprProvider } from "@/contexts";
+import {
+  HyprProvider,
+  LeftSidebarProvider,
+  NewNoteProvider,
+  OngoingSessionProvider,
+  RightPanelProvider,
+  SearchProvider,
+  SessionsProvider,
+  SettingsPanelProvider,
+} from "@/contexts";
 
 import { registerTemplates } from "@/templates";
 
@@ -17,7 +26,21 @@ function Component() {
 
   return (
     <HyprProvider>
-      <Outlet />
+      <SessionsProvider>
+        <OngoingSessionProvider>
+          <LeftSidebarProvider>
+            <RightPanelProvider>
+              <SearchProvider>
+                <SettingsPanelProvider>
+                  <NewNoteProvider>
+                    <Outlet />
+                  </NewNoteProvider>
+                </SettingsPanelProvider>
+              </SearchProvider>
+            </RightPanelProvider>
+          </LeftSidebarProvider>
+        </OngoingSessionProvider>
+      </SessionsProvider>
     </HyprProvider>
   );
 }

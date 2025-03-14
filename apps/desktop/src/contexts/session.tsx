@@ -1,9 +1,10 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
 import { createSessionStore } from "@/stores/session";
 import { type Session } from "@hypr/plugin-db";
+import { useSessions } from "./sessions";
 
 const SessionContext = createContext<
   ReturnType<
@@ -18,7 +19,18 @@ export const SessionProvider = ({
   children: React.ReactNode;
   session: Session;
 }) => {
-  const store = createSessionStore(session);
+  const [store, setStore] = useState<ReturnType<typeof createSessionStore> | null>(null);
+
+  const enter = useSessions((s) => s.enter);
+
+  useEffect(() => {
+    const s = enter(session);
+    setStore(s);
+  }, [enter, session]);
+
+  if (!store) {
+    return null;
+  }
 
   return (
     <SessionContext.Provider value={store}>

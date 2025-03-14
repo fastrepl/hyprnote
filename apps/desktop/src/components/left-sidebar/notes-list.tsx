@@ -1,23 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import { isFuture } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { useEffect } from "react";
 
 import { useHypr, useSessions } from "@/contexts";
 import { formatDateHeader, getSortedDates, groupSessionsByDate } from "@/lib/date";
-
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
-import { useEffect } from "react";
+
 import { EventItem } from "./event-item";
 import { NoteItem } from "./note-item";
 
 export default function NotesList() {
   const { userId } = useHypr();
 
-  const sessionsStore = useSessions((s) => s);
+  const sessionsInit = useSessions((s) => s.init);
 
   useEffect(() => {
-    sessionsStore.init();
-  }, [sessionsStore]);
+    sessionsInit();
+  }, [sessionsInit]);
 
   const events = useQuery({
     queryKey: ["events"],

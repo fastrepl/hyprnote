@@ -25,12 +25,11 @@ export function EventCard({ session, showTime = false }: { session: Session; sho
   const [open, setOpen] = useState(false);
 
   const handleClick = (id: string) => {
-    // Close the popover
     setOpen(false);
-    
-    // Navigate to the note
+
     const path = "/app/note/$id/main" satisfies RoutePath;
     windowsCommands.windowEmitNavigate("main", path.replace("$id", id));
+    windowsCommands.windowFocus("main");
   };
 
   const getStartDate = () => {

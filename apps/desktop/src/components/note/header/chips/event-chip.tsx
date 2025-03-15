@@ -6,8 +6,13 @@ import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 
+import { format } from "@hypr/utils/datetime";
+
 export function EventChip() {
-  const sessionId = useSession((s) => s.session.id);
+  const { sessionId, sessionCreatedAt } = useSession((s) => ({
+    sessionId: s.session.id,
+    sessionCreatedAt: s.session.created_at,
+  }));
 
   const event = useQuery({
     queryKey: ["event", sessionId],
@@ -20,7 +25,7 @@ export function EventChip() {
         <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100">
           <CalendarIcon size={14} />
           <p className="text-xs">
-            {event.data?.start_date} - {event.data?.end_date}
+            {event.data?.start_date ?? format(sessionCreatedAt, "MM/dd")}
           </p>
         </div>
       </PopoverTrigger>

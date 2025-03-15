@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { format } from "date-fns";
 import { AppWindowMacIcon, ArrowUpRight, TrashIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -16,6 +15,7 @@ import {
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/ui/lib/utils";
+import { format } from "@hypr/utils/datetime";
 
 export function NoteItem({
   sessionId,
@@ -76,7 +76,7 @@ export function NoteItem({
               {currentSession.title || "Untitled"}
             </div>
             <div className="flex items-center gap-3 text-xs text-neutral-500">
-              <span className="font-medium">{format(sessionDate, "M/d/yy")}</span>
+              <span className="font-medium">{format(sessionDate, "p")}</span>
               <span className="text-xs">{html2text(currentSession.raw_memo_html)}</span>
             </div>
           </div>

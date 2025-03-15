@@ -1,6 +1,9 @@
 {
   "name": "@hypr/utils",
-  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./datetime": "./src/datetime.ts"
+  },
   "scripts": {
     "test": "vitest run"
   },

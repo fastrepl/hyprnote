@@ -2,7 +2,17 @@ import * as FNS_TZ from "@date-fns/tz";
 import * as FNS from "date-fns";
 import * as FNS_LOCALE from "date-fns/locale";
 
+export const format = (
+  date: Parameters<typeof FNS.format>[0],
+  format: Parameters<typeof FNS.format>[1],
+  options?: Parameters<typeof FNS.format>[2],
+) => {
+  const tz = options?.in ?? FNS_TZ.tz(timezone());
+  return FNS.format(new Date(date), format, { ...options, in: tz });
+};
+
 // TODO
+
 export const formatDate = (date: string) => {
   const d = new Date(date);
   const now = Date.now();

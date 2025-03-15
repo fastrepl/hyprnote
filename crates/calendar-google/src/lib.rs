@@ -11,6 +11,7 @@ use google_calendar3::{
 mod auth;
 mod errors;
 
+pub use auth::*;
 pub use errors::*;
 
 pub struct Handle {

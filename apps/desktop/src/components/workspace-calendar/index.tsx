@@ -9,14 +9,12 @@ import { DayEvents, EventCard } from "./day-events";
 interface WorkspaceCalendarProps {
   sessions: Session[];
   currentDate?: Date;
-  onMonthChange?: (date: Date) => void;
 }
 
-// Constants for sizing calculations
 const HEADER_HEIGHT = 32;
 const EVENT_HEIGHT = 20;
 
-export default function WorkspaceCalendar({ sessions, currentDate, onMonthChange }: WorkspaceCalendarProps) {
+export default function WorkspaceCalendar({ sessions, currentDate }: WorkspaceCalendarProps) {
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(currentDate || today);
   const calendarRef = useRef<HTMLDivElement>(null);

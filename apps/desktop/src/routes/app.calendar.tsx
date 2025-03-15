@@ -89,7 +89,7 @@ function RouteComponent() {
       </header>
 
       <div className="flex-1 h-full">
-        <WorkspaceCalendar currentDate={currentDate} onMonthChange={setCurrentDate} sessions={sessions} />
+        <WorkspaceCalendar currentDate={currentDate} sessions={sessions} />
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { ExtensionsView } from "./extensions-view";
 import { SettingsView } from "./settings-view";
 import { TemplateView } from "./template-view";
 
-import { type Template } from "@hypr/plugin-db";
+import { type ExtensionDefinition, type Template } from "@hypr/plugin-db";
 
 interface SettingsSidebarProps {
   active: NavNames | "Profile";
@@ -14,6 +14,8 @@ interface SettingsSidebarProps {
   builtinTemplates: Template[];
   onTemplateSelect: (template: Template) => void;
   onCreateTemplate: (template: Template) => void;
+  selectedExtension: ExtensionDefinition | null;
+  onExtensionSelect: (extension: ExtensionDefinition | null) => void;
 }
 
 export function SettingsSidebar({
@@ -25,6 +27,8 @@ export function SettingsSidebar({
   builtinTemplates,
   onTemplateSelect,
   onCreateTemplate,
+  selectedExtension,
+  onExtensionSelect,
 }: SettingsSidebarProps) {
   return (
     <aside
@@ -51,6 +55,8 @@ export function SettingsSidebar({
               searchQuery={searchQuery}
               onSearchChange={onSearchChange}
               setActive={setActive}
+              selectedExtension={selectedExtension}
+              onExtensionSelect={onExtensionSelect}
             />
           )
           : <SettingsView active={active} setActive={setActive} />}

@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "desktop:dev": "pnpm --filter desktop tauri dev"
+  },
   "dependencies": {
     "@remixicon/react": "^4.6.0",
     "lucide-react": "^0.474.0"

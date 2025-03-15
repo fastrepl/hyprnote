@@ -15,7 +15,7 @@ import TeamComponent from "./views/team";
 import TemplateEditor from "./views/template";
 
 import { useSettingsPanel } from "@/contexts";
-import { commands as dbCommands, type Template } from "@hypr/plugin-db";
+import { commands as dbCommands, type ExtensionDefinition, type Template } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
 
@@ -26,6 +26,7 @@ export default function SettingsPanel() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
     null,
   );
+  const [selectedExtension, setSelectedExtension] = useState<ExtensionDefinition | null>(null);
 
   const templates = useQuery({
     queryKey: ["settings", "templates"],
@@ -56,6 +57,13 @@ export default function SettingsPanel() {
     }
   }, [isOpen, active]);
 
+  // Reset selected extension when changing away from Extensions view
+  useEffect(() => {
+    if (active !== "Extensions") {
+      setSelectedExtension(null);
+    }
+  }, [active]);
+
   return (
     <>
       <Button
@@ -80,6 +88,8 @@ export default function SettingsPanel() {
               builtinTemplates={templates.data?.builtin || []}
               onTemplateSelect={handleTemplateSelect}
               onCreateTemplate={handleCreateTemplate}
+              selectedExtension={selectedExtension}
+              onExtensionSelect={setSelectedExtension}
             />
 
             <SettingsPanelBody
@@ -100,7 +110,9 @@ export default function SettingsPanel() {
                   }
                 />
               )}
-              {active === "Extensions" && !selectedTemplate && <ExtensionsComponent />}
+              {active === "Extensions" && (
+                <ExtensionsComponent selectedExtension={selectedExtension} onExtensionSelect={setSelectedExtension} />
+              )}
               {active === "Team" && <TeamComponent />}
               {active === "Billing" && <BillingComponent />}
               {active === "Profile" && <ProfileComponent />}

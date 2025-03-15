@@ -41,53 +41,49 @@ function RouteComponent() {
   return (
     <div className="flex h-screen w-screen overflow-hidden flex-col bg-white text-neutral-700">
       <header className="flex w-full flex-col">
-        <div className="min-h-11 w-full" data-tauri-drag-region></div>
+        <div className="relative min-h-11 w-full flex items-center justify-center" data-tauri-drag-region>
+          <h1 className="text-xl font-medium">
+            <strong>{format(currentDate, "MMMM")}</strong> {format(currentDate, "yyyy")}
+          </h1>
 
-        <div className="border-b border-neutral-200">
-          <div className="flex justify-between px-2 items-center">
-            <h1 className="text-3xl font-medium">
-              <strong>{format(currentDate, "MMMM")}</strong> {format(currentDate, "yyyy")}
-            </h1>
+          <div className="absolute right-2 flex h-fit rounded-md overflow-clip border border-neutral-200">
+            <Button
+              variant="outline"
+              className="p-0.5 rounded-none border-none"
+              onClick={handlePreviousMonth}
+            >
+              <ChevronLeftIcon size={16} />
+            </Button>
 
-            <div className="flex h-fit rounded-md overflow-clip border border-neutral-200">
-              <Button
-                variant="outline"
-                className="p-0.5 rounded-none border-none"
-                onClick={handlePreviousMonth}
-              >
-                <ChevronLeftIcon size={16} />
-              </Button>
+            <Button
+              variant="outline"
+              className="text-sm px-1 py-0.5 rounded-none border-none"
+              onClick={handleToday}
+            >
+              Today
+            </Button>
 
-              <Button
-                variant="outline"
-                className="text-sm px-1 py-0.5 rounded-none border-none"
-                onClick={handleToday}
-              >
-                Today
-              </Button>
+            <Button
+              variant="outline"
+              className="p-0.5 rounded-none border-none"
+              onClick={handleNextMonth}
+            >
+              <ChevronRightIcon size={16} />
+            </Button>
+          </div>
+        </div>
 
-              <Button
-                variant="outline"
-                className="p-0.5 rounded-none border-none"
-                onClick={handleNextMonth}
-              >
-                <ChevronRightIcon size={16} />
-              </Button>
+        <div className="border-b border-neutral-200 grid grid-cols-7">
+          {weekDays.map((day, index) => (
+            <div
+              key={day}
+              className={`text-center font-light text-sm pb-2 pt-1 ${
+                index === weekDays.length - 1 ? "border-r-0" : ""
+              }`}
+            >
+              {day}
             </div>
-          </div>
-
-          <div className="grid grid-cols-7">
-            {weekDays.map((day, index) => (
-              <div
-                key={day}
-                className={`text-center font-light text-sm pb-2 pt-1 ${
-                  index === weekDays.length - 1 ? "border-r-0" : ""
-                }`}
-              >
-                {day}
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
       </header>
 

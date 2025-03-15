@@ -7,6 +7,7 @@ import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 
+import { cn } from "@hypr/ui/lib/utils";
 import Shortcut from "../../shortcut";
 
 export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
@@ -29,7 +30,7 @@ export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
   };
 
   return (
-    <div className={osType.data === "macos" ? "pl-[70px]" : ""}>
+    <div className={cn(osType.data === "macos" && "pl-[68px]")}>
       {isExpanded && (
         <Button
           variant="ghost"

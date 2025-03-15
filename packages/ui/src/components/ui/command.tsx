@@ -53,7 +53,15 @@ const CommandDialog = ({
         className="fixed inset-0 z-50 bg-black/50"
         aria-hidden="true"
         onClick={() => onOpenChange?.(false)}
-      />
+      >
+        <div
+          data-tauri-drag-region
+          className="w-full min-h-11"
+          onClick={(e) => e.stopPropagation()}
+        >
+        </div>
+      </div>
+
       <div
         role="dialog"
         aria-modal="true"

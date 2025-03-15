@@ -1,8 +1,9 @@
+import { addDays, eachDayOfInterval, format, getDay, isSameMonth, startOfMonth, subDays } from "date-fns";
+import { useEffect, useRef, useState } from "react";
+
 import type { Session } from "@hypr/plugin-db";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/ui/lib/utils";
-import { addDays, eachDayOfInterval, format, getDay, isSameMonth, startOfMonth, subDays } from "date-fns";
-import { useEffect, useRef, useState } from "react";
 import { DayEvents, EventCard } from "./day-events";
 
 interface WorkspaceCalendarProps {

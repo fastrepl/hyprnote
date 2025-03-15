@@ -1,10 +1,11 @@
-import WorkspaceCalendar from "@/components/workspace-calendar";
-import { commands as dbCommands } from "@hypr/plugin-db";
-import { Button } from "@hypr/ui/components/ui/button";
 import { createFileRoute } from "@tanstack/react-router";
 import { addMonths, format, subMonths } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
+
+import WorkspaceCalendar from "@/components/workspace-calendar";
+import { commands as dbCommands } from "@hypr/plugin-db";
+import { Button } from "@hypr/ui/components/ui/button";
 
 export const Route = createFileRoute("/app/calendar")({
   component: RouteComponent,
@@ -41,9 +42,9 @@ function RouteComponent() {
   return (
     <div className="flex h-screen w-screen overflow-hidden flex-col bg-white text-neutral-700">
       <header className="flex w-full flex-col">
-        <div className="relative min-h-11 w-full flex items-center justify-center" data-tauri-drag-region>
+        <div data-tauri-drag-region className="relative min-h-11 w-full flex items-center justify-center">
           <h1 className="text-xl font-medium">
-            <strong>{format(currentDate, "MMMM")}</strong> {format(currentDate, "yyyy")}
+            <strong data-tauri-drag-region>{format(currentDate, "MMMM")}</strong> {format(currentDate, "yyyy")}
           </h1>
 
           <div className="absolute right-2 flex h-fit rounded-md overflow-clip border border-neutral-200">

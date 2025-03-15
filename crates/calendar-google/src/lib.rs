@@ -5,6 +5,11 @@ use hypr_calendar_interface::{
     Calendar, CalendarSource, Error, Event, EventFilter, Participant, Platform,
 };
 
+mod beta;
+mod errors;
+
+pub use errors::*;
+
 pub struct Handle {
     client: google_calendar::Client,
 }

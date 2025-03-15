@@ -1819,6 +1819,9 @@ dependencies = [
  "chrono",
  "google-calendar",
  "google-calendar3",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -1828,6 +1831,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "serde",
+ "serde_json",
  "thiserror 2.0.12",
 ]
 

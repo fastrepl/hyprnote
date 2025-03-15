@@ -33,7 +33,7 @@ export default function Toolbar() {
       <header
         data-tauri-drag-region
         className={cn([
-          "flex w-full items-center justify-between min-h-11 p-1 px-2 border-b ",
+          "flex w-full items-center justify-between min-h-11 p-1 px-2 border-b",
           isInNoteMain ? "border-border" : "border-transparent",
           isInNoteMain ? "bg-neutral-50" : "bg-transparent",
         ])}

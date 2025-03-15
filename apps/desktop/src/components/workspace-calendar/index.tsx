@@ -12,6 +12,10 @@ interface WorkspaceCalendarProps {
   onMonthChange?: (date: Date) => void;
 }
 
+// Constants for sizing calculations
+const HEADER_HEIGHT = 32;
+const EVENT_HEIGHT = 20;
+
 export default function WorkspaceCalendar({ sessions, currentDate, onMonthChange }: WorkspaceCalendarProps) {
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(currentDate || today);
@@ -26,22 +30,54 @@ export default function WorkspaceCalendar({ sessions, currentDate, onMonthChange
   }, [currentDate]);
 
   useEffect(() => {
-    const updateCellHeight = () => {
-      if (calendarRef.current) {
-        const containerHeight = calendarRef.current.clientHeight;
+    const updateCellHeight = (containerHeight: number) => {
+      const newCellHeight = Math.floor(containerHeight / 6) - 1;
+      setCellHeight(newCellHeight);
 
-        const newCellHeight = Math.floor(containerHeight / 6) - 1;
-        setCellHeight(newCellHeight);
+      const availableHeight = newCellHeight - HEADER_HEIGHT;
 
-        const availableHeightForEvents = newCellHeight - 32 - 20;
-        const eventsPerCell = Math.max(1, Math.floor(availableHeightForEvents / 20));
-        setVisibleEvents(eventsPerCell);
+      let maxEvents = 0;
+
+      if (availableHeight < 2 * EVENT_HEIGHT) {
+        maxEvents = 0;
+      } else if (availableHeight < 3 * EVENT_HEIGHT) {
+        maxEvents = 1;
+      } else if (availableHeight < 4 * EVENT_HEIGHT) {
+        maxEvents = 2;
+      } else if (availableHeight < 5 * EVENT_HEIGHT) {
+        maxEvents = 3;
+      } else if (availableHeight < 6 * EVENT_HEIGHT) {
+        maxEvents = 4;
+      } else if (availableHeight < 7 * EVENT_HEIGHT) {
+        maxEvents = 5;
+      } else if (availableHeight < 8 * EVENT_HEIGHT) {
+        maxEvents = 6;
+      } else if (availableHeight < 9 * EVENT_HEIGHT) {
+        maxEvents = 7;
+      } else if (availableHeight < 10 * EVENT_HEIGHT) {
+        maxEvents = 8;
+      } else if (availableHeight < 11 * EVENT_HEIGHT) {
+        maxEvents = 9;
+      } else if (availableHeight < 12 * EVENT_HEIGHT) {
+        maxEvents = 10;
       }
+
+      setVisibleEvents(maxEvents);
     };
 
-    updateCellHeight();
-    window.addEventListener("resize", updateCellHeight);
-    return () => window.removeEventListener("resize", updateCellHeight);
+    const observer = new ResizeObserver((entries) => {
+      entries.forEach(entry => {
+        const height = entry.contentRect.height;
+        if (height > 0) updateCellHeight(height);
+      });
+    });
+
+    if (calendarRef.current) {
+      observer.observe(calendarRef.current);
+      updateCellHeight(calendarRef.current.clientHeight);
+    }
+
+    return () => observer.disconnect();
   }, []);
 
   const getSessionsForDay = (date: Date) => {
@@ -93,7 +129,7 @@ export default function WorkspaceCalendar({ sessions, currentDate, onMonthChange
               isLastInRow && "border-r-0",
             )}
           >
-            <div className="flex items-center justify-end p-1 min-h-[24px] text-sm h-8">
+            <div className="flex items-center justify-end pt-1 px-1 text-sm h-8">
               <div className={cn("flex items-end gap-1", isHighlighted && "items-center")}>
                 {isFirstDayOfMonth && (
                   <span
@@ -129,33 +165,37 @@ export default function WorkspaceCalendar({ sessions, currentDate, onMonthChange
             </div>
 
             <div className="flex-1 overflow-hidden flex flex-col">
-              {isCurrentMonth && visibleSessionsArray.length > 0 && <DayEvents sessions={visibleSessionsArray} />}
+              {isCurrentMonth && daySessions.length > 0 && (
+                <>
+                  {visibleSessionsArray.length > 0 && <DayEvents sessions={visibleSessionsArray} />}
 
-              {isCurrentMonth && hiddenSessionsCount > 0 && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <div className="text-xs text-neutral-600 px-1 mt-0.5 bg-neutral-50 rounded py-0.5 cursor-pointer hover:bg-neutral-100">
-                      +{hiddenSessionsCount} more
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="w-80 p-4 max-h-80 space-y-1 overflow-y-auto bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0"
-                    align="start"
-                  >
-                    <div className="text-lg font-semibold text-neutral-800">
-                      {format(day, "MMMM d, yyyy")}
-                    </div>
-
-                    {daySessions.map((session) => (
-                      <div
-                        key={session.id}
-                        className="text-sm hover:bg-neutral-100 rounded cursor-pointer transition-colors"
+                  {(hiddenSessionsCount > 0) && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <div className="text-xs text-neutral-600 bg-neutral-50 rounded py-0.5 cursor-pointer hover:bg-neutral-200 mx-1">
+                          {`+${hiddenSessionsCount} more`}
+                        </div>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-80 p-4 max-h-80 space-y-1 overflow-y-auto bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0"
+                        align="start"
                       >
-                        <EventCard session={session} showTime />
-                      </div>
-                    ))}
-                  </PopoverContent>
-                </Popover>
+                        <div className="text-lg font-semibold text-neutral-800">
+                          {format(day, "MMMM d, yyyy")}
+                        </div>
+
+                        {daySessions.map((session) => (
+                          <div
+                            key={session.id}
+                            className="text-sm hover:bg-neutral-100 rounded cursor-pointer transition-colors"
+                          >
+                            <EventCard session={session} showTime />
+                          </div>
+                        ))}
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </>
               )}
             </div>
           </div>

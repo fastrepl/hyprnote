@@ -51,7 +51,7 @@ export function EventCard({ session, showTime = false }: { session: Session; sho
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className="flex items-start space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-100 transition-colors">
+        <div className="flex items-start space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 transition-colors">
           <div className="w-1 h-3 mt-0.5 rounded-full flex-shrink-0 bg-neutral-600"></div>
 
           <div className="flex-1 text-xs text-neutral-800 truncate">
@@ -74,7 +74,7 @@ export function EventCard({ session, showTime = false }: { session: Session; sho
             : format(getEndDate(), "h:mm a")}
         </p>
 
-        <div className="font-semibold text-lg mb-1 text-neutral-800">{session.title}</div>
+        <div className="font-semibold text-lg mb-1 text-neutral-800">{session.title || "Untitled"}</div>
 
         <p className="text-sm text-neutral-500 mb-4">
           {html2text(session.enhanced_memo_html || session.raw_memo_html)}

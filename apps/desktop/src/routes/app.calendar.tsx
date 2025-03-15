@@ -3,8 +3,10 @@ import type { RoutePath } from "@/types";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
-import { createFileRoute } from "@tanstack/react-router";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { format, addMonths, subMonths } from "date-fns";
 
 export const Route = createFileRoute("/app/calendar")({
   component: RouteComponent,
@@ -21,12 +23,27 @@ export const Route = createFileRoute("/app/calendar")({
 function RouteComponent() {
   const { sessions } = Route.useLoaderData();
 
+  const today = new Date();
+  const [currentDate, setCurrentDate] = useState(today);
+
+  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  const handlePreviousMonth = () => {
+    setCurrentDate(prevDate => subMonths(prevDate, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(prevDate => addMonths(prevDate, 1));
+  };
+
+  const handleToday = () => {
+    setCurrentDate(today);
+  };
+
   const handleClick = (id: string) => {
     const path = "/app/note/$id/main" satisfies RoutePath;
     windowsCommands.windowEmitNavigate("main", path.replace("$id", id));
   };
-
-  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
     <div className="flex h-screen w-screen overflow-hidden flex-col bg-white text-neutral-700">
@@ -35,12 +52,15 @@ function RouteComponent() {
 
         <div className="border-b border-neutral-200">
           <div className="flex justify-between px-2 pb-4 items-center">
-            <h1 className="text-2xl font-medium">March 2025</h1>
+            <h1 className="text-3xl font-medium">
+              <strong>{format(currentDate, "MMMM")}</strong> {format(currentDate, "yyyy")}
+            </h1>
 
             <div className="flex h-fit rounded-md overflow-clip border border-neutral-200">
               <Button
                 variant="outline"
                 className="p-0.5 rounded-none border-none"
+                onClick={handlePreviousMonth}
               >
                 <ChevronLeftIcon size={16} />
               </Button>
@@ -48,6 +68,7 @@ function RouteComponent() {
               <Button
                 variant="outline"
                 className="text-sm px-1 py-0.5 rounded-none border-none"
+                onClick={handleToday}
               >
                 Today
               </Button>
@@ -55,6 +76,7 @@ function RouteComponent() {
               <Button
                 variant="outline"
                 className="p-0.5 rounded-none border-none"
+                onClick={handleNextMonth}
               >
                 <ChevronRightIcon size={16} />
               </Button>
@@ -65,7 +87,9 @@ function RouteComponent() {
             {weekDays.map((day, index) => (
               <div
                 key={day}
-                className={`text-center font-semibold pb-2 pt-1 ${index === weekDays.length - 1 ? "border-r-0" : ""}`}
+                className={`text-center font-light text-sm pb-2 pt-1 ${
+                  index === weekDays.length - 1 ? "border-r-0" : ""
+                }`}
               >
                 {day}
               </div>
@@ -74,8 +98,8 @@ function RouteComponent() {
         </div>
       </header>
 
-      <div className="flex-1 h-full overflow-y-auto scrollbar-none">
-        <WorkspaceCalendar />
+      <div className="flex-1 h-full">
+        <WorkspaceCalendar currentDate={currentDate} onMonthChange={setCurrentDate} />
       </div>
     </div>
   );

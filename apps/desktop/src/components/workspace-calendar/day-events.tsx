@@ -1,10 +1,6 @@
-import { format } from "date-fns";
-import { Pen } from "lucide-react";
-import { EventCard } from "./event-card";
-
-import { type Event } from "@hypr/plugin-db";
-import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { commands as dbCommands, type Event } from "@hypr/plugin-db";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 
 interface DayEventsProps {
   date: Date;
@@ -14,61 +10,50 @@ interface DayEventsProps {
 export function DayEvents({ date, events }: DayEventsProps) {
   if (events.length === 0) return null;
 
-  if (events.length <= 4) {
-    return (
-      <div className="space-y-1 mt-1">
-        {events.map((event) => <EventCard key={event.id} event={event} />)}
-      </div>
-    );
-  }
+  return (
+    <div className="space-y-1 px-1">
+      {events.map((event) => <EventCard key={event.id} event={event} />)}
+    </div>
+  );
+}
+
+export function EventCard({ event }: { event: Event }) {
+  const navigate = useNavigate();
+
+  const session = useQuery({
+    queryKey: ["event-session", event.id],
+    queryFn: async () => dbCommands.getSession({ calendarEventId: event.id }),
+  });
+
+  const handleClick = () => {
+    if (!session.data) {
+      navigate({
+        to: "/app",
+        search: { eventId: event.id.toString() },
+      });
+    } else {
+      navigate({
+        to: "/app/note/$id",
+        params: { id: session.data!.id },
+      });
+    }
+  };
+
+  // Check if event has special styling (like birthday with star)
+  const isSpecialEvent = event.name.toLowerCase().includes("생일")
+    || event.name.toLowerCase().includes("birthday");
 
   return (
-    <div className="space-y-1 mt-1">
-      {events.slice(0, 3).map((event) => <EventCard key={event.id} event={event} />)}
-      <Popover>
-        <PopoverTrigger asChild>
-          <div className="text-xs p-1 bg-neutral-100 rounded cursor-pointer text-center hover:bg-neutral-200">
-            +{events.length - 3} more
-          </div>
-        </PopoverTrigger>
-        <PopoverContent className="w-80 p-4 space-y-2">
-          <div className="text-lg font-semibold">
-            {format(date, "MMMM d, yyyy")}
-          </div>
+    <div
+      onClick={handleClick}
+      className="flex items-start space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-100 transition-colors"
+    >
+      <div className="w-1 h-3 mt-0.5 rounded-full flex-shrink-0 bg-neutral-600"></div>
 
-          {events.map((event) => (
-            <Popover key={event.id}>
-              <PopoverTrigger asChild>
-                <div className="text-sm p-2 hover:bg-neutral-100 rounded cursor-pointer">
-                  <div className="font-medium">{event.name}</div>
-                  <div className="text-muted-foreground">{event.note}</div>
-                </div>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-4" side="right">
-                <p className="text-sm mb-2">
-                  {format(new Date(event.start_date), "MMM d, h:mm a")}
-                  {" - "}
-                  {format(new Date(event.start_date), "yyyy-MM-dd")
-                      !== format(new Date(event.end_date), "yyyy-MM-dd")
-                    ? format(new Date(event.end_date), "MMM d, h:mm a")
-                    : format(new Date(event.end_date), "h:mm a")}
-                </p>
-
-                <div className="font-semibold text-lg mb-1">{event.name}</div>
-
-                <p className="text-sm text-muted-foreground mb-4">
-                  {event.note}
-                </p>
-
-                <Button className="w-full" size="md">
-                  <Pen className="mr-2 size-4" />
-                  Prepare Meeting Note
-                </Button>
-              </PopoverContent>
-            </Popover>
-          ))}
-        </PopoverContent>
-      </Popover>
+      <div className="flex-1 text-xs text-neutral-800 truncate">
+        {isSpecialEvent && <span className="mr-1">★</span>}
+        {event.name}
+      </div>
     </div>
   );
 }

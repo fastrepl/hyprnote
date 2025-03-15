@@ -1,20 +1,14 @@
-use tauri::ipc::Channel;
+use tauri_specta::Event;
 
 use crate::{
-    store,
-    store::StoreKey,
+    events::AuthEvent,
+    store::{self, StoreKey},
     vault::{Vault, VaultKey},
     ResponseParams, CALLBACK_TEMPLATE_KEY,
 };
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
-pub enum AuthEvent {
-    Success,
-    Error,
-}
-
 pub trait AuthPluginExt<R: tauri::Runtime> {
-    fn start_oauth_server(&self, channel: Channel<AuthEvent>) -> Result<u16, String>;
+    fn start_oauth_server(&self) -> Result<u16, String>;
     fn stop_oauth_server(&self, port: u16) -> Result<(), String>;
     fn init_vault(&self, account_id: impl AsRef<str>) -> Result<(), String>;
     fn reset_vault(&self) -> Result<(), String>;
@@ -23,7 +17,8 @@ pub trait AuthPluginExt<R: tauri::Runtime> {
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
-    fn start_oauth_server(&self, channel: Channel<AuthEvent>) -> Result<u16, String> {
+    fn start_oauth_server(&self) -> Result<u16, String> {
+        let app = self.app_handle().clone();
         let store = store::get_store(self);
 
         let env = self.state::<minijinja::Environment>().inner().clone();
@@ -70,11 +65,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
                         }
                         store.save().unwrap();
 
-                        channel.send(AuthEvent::Success).unwrap();
+                        AuthEvent::Success.emit(&app).unwrap();
                     }
                     Err(err) => {
                         tracing::error!(error = ?err, url = ?u, "failed_to_parse_callback_params");
-                        channel.send(AuthEvent::Error).unwrap();
+                        AuthEvent::Error(err.to_string()).emit(&app).unwrap();
                     }
                 }
             },
@@ -120,7 +115,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::RequestParams;
 
     #[test]

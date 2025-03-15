@@ -2,11 +2,13 @@ use tauri::Manager;
 
 mod commands;
 mod error;
+mod events;
 mod ext;
 mod store;
 mod vault;
 
 pub use error::*;
+pub use events::*;
 pub use ext::*;
 pub use store::*;
 pub use vault::*;
@@ -21,6 +23,7 @@ const CALLBACK_TEMPLATE_VALUE: &str = include_str!("../templates/callback.jinja"
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
+        .events(tauri_specta::collect_events![events::AuthEvent])
         .commands(tauri_specta::collect_commands![
             commands::start_oauth_server::<tauri::Wry>,
             commands::stop_oauth_server::<tauri::Wry>,

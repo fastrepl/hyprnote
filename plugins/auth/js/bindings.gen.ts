@@ -7,8 +7,8 @@
 
 
 export const commands = {
-async startOauthServer(channel: TAURI_CHANNEL<AuthEvent>) : Promise<number> {
-    return await TAURI_INVOKE("plugin:auth|start_oauth_server", { channel });
+async startOauthServer() : Promise<number> {
+    return await TAURI_INVOKE("plugin:auth|start_oauth_server");
 },
 async stopOauthServer(port: number) : Promise<null> {
     return await TAURI_INVOKE("plugin:auth|stop_oauth_server", { port });
@@ -27,6 +27,11 @@ async getFromStore(key: StoreKey) : Promise<string | null> {
 /** user-defined events **/
 
 
+export const events = __makeEvents__<{
+authEvent: AuthEvent
+}>({
+authEvent: "plugin:auth:auth-event"
+})
 
 /** user-defined constants **/
 
@@ -34,11 +39,10 @@ async getFromStore(key: StoreKey) : Promise<string | null> {
 
 /** user-defined types **/
 
-export type AuthEvent = "Success" | "Error"
+export type AuthEvent = "success" | { error: string }
 export type RequestParams = { c: string; f: string; p: number }
 export type ResponseParams = { ui: string; ai: string; st: string; dt: string }
 export type StoreKey = "auth-user-id" | "auth-account-id"
-export type TAURI_CHANNEL<TSend> = null
 export type VaultKey = "remote-database" | "remote-server"
 
 /** tauri-specta globals **/

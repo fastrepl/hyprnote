@@ -3,13 +3,12 @@ import { commands } from "@/types";
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Channel } from "@tauri-apps/api/core";
 import { message } from "@tauri-apps/plugin-dialog";
 import { open } from "@tauri-apps/plugin-shell";
 import { Pause, Play } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { type AuthEvent, commands as authCommands, type RequestParams } from "@hypr/plugin-auth";
+import { commands as authCommands, events, type RequestParams } from "@hypr/plugin-auth";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -33,37 +32,38 @@ function Component() {
   const navigate = useNavigate();
 
   const [port, setPort] = useState<number | null>(null);
-  const [status, setStatus] = useState<AuthEvent | "Idle">("Idle");
 
   useEffect(() => {
     let cleanup: (() => void) | undefined;
+    let unlisten: (() => void) | undefined;
 
-    const channel = new Channel<AuthEvent>();
-    channel.onmessage = setStatus;
-
-    authCommands.startOauthServer(channel).then((port) => {
+    authCommands.startOauthServer().then((port) => {
       setPort(port);
+
+      events.authEvent.listen(({ payload }) => {
+        if (payload === "success") {
+          commands.setupDb().then(() => {
+            navigate({ to: "/onboarding", replace: true });
+          });
+          return;
+        }
+
+        if (payload.error) {
+          message("Error occurred while authenticating!");
+          return;
+        }
+      }).then((fn) => {
+        unlisten = fn;
+      });
+
       cleanup = () => {
+        unlisten?.();
         authCommands.stopOauthServer(port);
       };
     });
 
     return () => cleanup?.();
   }, []);
-
-  useEffect(() => {
-    if (status === "Success") {
-      commands.setupDb().then(() => {
-        navigate({ to: "/onboarding", replace: true });
-      });
-      return;
-    }
-
-    if (status === "Error") {
-      message("Error occurred while authenticating!");
-      return;
-    }
-  }, [status]);
 
   const url = useQuery({
     queryKey: ["oauth-url", port],
@@ -124,7 +124,11 @@ function Component() {
             AI notepad for meetings
           </TextAnimate>
 
-          <PushableButton onClick={handleSignIn} className="mb-4 w-full">
+          <PushableButton
+            disabled={port === null}
+            onClick={handleSignIn}
+            className="mb-4 w-full"
+          >
             <Trans>Get Started</Trans>
           </PushableButton>
         </div>

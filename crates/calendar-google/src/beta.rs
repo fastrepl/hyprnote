@@ -1,12 +1,32 @@
+use std::{future::Future, pin::Pin};
+
 use google_calendar3::{
-    api::Channel,
+    api::{CalendarListEntry, Channel, Event},
+    common::GetToken,
     hyper_rustls::{self, HttpsConnector},
     hyper_util::{self, client::legacy::connect::HttpConnector},
-    yup_oauth2, CalendarHub,
+    CalendarHub,
 };
 
 pub struct Handle {
     hub: CalendarHub<HttpsConnector<HttpConnector>>,
+}
+
+#[derive(Debug, Clone)]
+struct Storage {}
+
+type GetTokenOutput<'a> = Pin<
+    Box<
+        dyn Future<Output = Result<Option<String>, Box<dyn std::error::Error + Send + Sync>>>
+            + Send
+            + 'a,
+    >,
+>;
+
+impl GetToken for Storage {
+    fn get_token<'a>(&'a self, _scopes: &'a [&str]) -> GetTokenOutput<'a> {
+        Box::pin(async move { Ok(Some("your_oauth_token_here".to_string())) })
+    }
 }
 
 impl Handle {
@@ -22,16 +42,7 @@ impl Handle {
                         .build(),
                 );
 
-        let secret: yup_oauth2::ApplicationSecret = Default::default();
-
-        let auth = yup_oauth2::InstalledFlowAuthenticator::builder(
-            secret,
-            yup_oauth2::InstalledFlowReturnMethod::HTTPRedirect,
-        )
-        .build()
-        .await
-        .unwrap();
-
+        let auth = Storage {};
         let hub = CalendarHub::new(client, auth);
 
         Ok(Self { hub })
@@ -39,19 +50,24 @@ impl Handle {
 }
 
 impl Handle {
-    pub async fn list_calendars(&self) -> Result<Vec<()>, crate::Error> {
-        Ok(vec![])
+    pub async fn list_calendars(&self) -> Result<Vec<CalendarListEntry>, crate::Error> {
+        let (_res, calendar_list) = self.hub.calendar_list().list().doit().await?;
+
+        let calendars = calendar_list.items.unwrap_or_default();
+        Ok(calendars)
     }
     // https://developers.google.com/calendar/api/guides/sync
-    pub async fn list_events(&self) -> Result<Vec<()>, crate::Error> {
+    pub async fn list_events(
+        &self,
+        calendar_id: impl AsRef<str>,
+    ) -> Result<Vec<Event>, crate::Error> {
         // let mut req = Channel::default();
 
-        let (_res, _events) = self
+        let (_res, events_wrapper) = self
             .hub
             .events()
-            .list("calendarId")
+            .list(calendar_id.as_ref())
             .updated_min(chrono::Utc::now())
-            .time_zone("et")
             .time_min(chrono::Utc::now())
             .time_max(chrono::Utc::now())
             .sync_token("At")
@@ -61,11 +77,11 @@ impl Handle {
             .order_by("erat")
             .max_results(500)
             .max_attendees(100)
-            .add_event_types("Lorem")
             .always_include_email(true)
             .doit()
             .await?;
 
-        Ok(vec![])
+        let events = events_wrapper.items.unwrap_or_default();
+        Ok(events)
     }
 }

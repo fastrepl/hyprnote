@@ -8,7 +8,7 @@ graph-rs-sdk = { workspace = true }
 hypr-calendar-interface = { path = "../calendar-interface", package = "calendar-interface" }
 
 chrono = { workspace = true, features = ["serde"] }
-reqwest = { workspace = true, default-features = false }
+reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

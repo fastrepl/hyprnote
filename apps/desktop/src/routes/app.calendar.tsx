@@ -1,12 +1,10 @@
 import WorkspaceCalendar from "@/components/workspace-calendar";
-import type { RoutePath } from "@/types";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
+import { addMonths, format, subMonths } from "date-fns";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
-import { format, addMonths, subMonths } from "date-fns";
 
 export const Route = createFileRoute("/app/calendar")({
   component: RouteComponent,
@@ -40,18 +38,13 @@ function RouteComponent() {
     setCurrentDate(today);
   };
 
-  const handleClick = (id: string) => {
-    const path = "/app/note/$id/main" satisfies RoutePath;
-    windowsCommands.windowEmitNavigate("main", path.replace("$id", id));
-  };
-
   return (
     <div className="flex h-screen w-screen overflow-hidden flex-col bg-white text-neutral-700">
       <header className="flex w-full flex-col">
         <div className="min-h-11 w-full" data-tauri-drag-region></div>
 
         <div className="border-b border-neutral-200">
-          <div className="flex justify-between px-2 pb-4 items-center">
+          <div className="flex justify-between px-2 items-center">
             <h1 className="text-3xl font-medium">
               <strong>{format(currentDate, "MMMM")}</strong> {format(currentDate, "yyyy")}
             </h1>
@@ -99,7 +92,7 @@ function RouteComponent() {
       </header>
 
       <div className="flex-1 h-full">
-        <WorkspaceCalendar currentDate={currentDate} onMonthChange={setCurrentDate} />
+        <WorkspaceCalendar currentDate={currentDate} onMonthChange={setCurrentDate} sessions={sessions} />
       </div>
     </div>
   );

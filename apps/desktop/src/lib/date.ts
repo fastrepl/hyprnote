@@ -1,3 +1,5 @@
+// TODO: move all to utils/datetime
+
 import { tz } from "@date-fns/tz";
 import { differenceInCalendarDays, format, isThisWeek, isThisYear, isToday, isYesterday, startOfToday } from "date-fns";
 
@@ -61,6 +63,7 @@ export function formatRemainingTime(date: Date): string {
   }
 }
 
+// We can use native groupBy implemented in browser
 export function groupSessionsByDate(sessions: Session[]): GroupedSessions {
   return sessions.reduce<GroupedSessions>((groups, session) => {
     const date = new Date(session.created_at);
@@ -78,6 +81,7 @@ export function groupSessionsByDate(sessions: Session[]): GroupedSessions {
   }, {});
 }
 
+// TODO ;Move inside Notelist
 export function getSortedDates(groupedSessions: GroupedSessions): string[] {
   return Object.keys(groupedSessions).sort((a, b) => b.localeCompare(a));
 }

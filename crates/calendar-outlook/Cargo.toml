@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+graph-rs-sdk = { workspace = true }
 hypr-calendar-interface = { path = "../calendar-interface", package = "calendar-interface" }
 
-graph-rs-sdk = { workspace = true }
+chrono = { workspace = true }
+reqwest = { workspace = true, default-features = false }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

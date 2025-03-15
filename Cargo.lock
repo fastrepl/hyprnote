@@ -1818,6 +1818,7 @@ dependencies = [
  "calendar-interface",
  "chrono",
  "google-calendar",
+ "google-calendar3",
 ]
 
 [[package]]
@@ -1835,7 +1836,12 @@ name = "calendar-outlook"
 version = "0.1.0"
 dependencies = [
  "calendar-interface",
+ "chrono",
  "graph-rs-sdk",
+ "reqwest 0.12.12",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -4641,6 +4647,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "google-apis-common"
+version = "7.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7530ee92a7e9247c3294ae1b84ea98474dbc27563c49a14d3938e816499bf38f"
+dependencies = [
+ "base64 0.22.1",
+ "chrono",
+ "http 1.2.0",
+ "http-body-util",
+ "hyper 1.6.0",
+ "hyper-util",
+ "itertools 0.13.0",
+ "mime",
+ "percent-encoding",
+ "serde",
+ "serde_json",
+ "serde_with 3.12.0",
+ "tokio",
+ "url",
+ "yup-oauth2 11.0.0",
+]
+
+[[package]]
 name = "google-calendar"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4672,7 +4701,27 @@ dependencies = [
  "tokio",
  "url",
  "uuid",
- "yup-oauth2",
+ "yup-oauth2 8.3.2",
+]
+
+[[package]]
+name = "google-calendar3"
+version = "6.0.0+20240523"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eecfc108ae1dc04a710b8db3a79e15ab3e87bda7735e0f84df9bf4d4e1496cf6"
+dependencies = [
+ "chrono",
+ "google-apis-common",
+ "hyper 1.6.0",
+ "hyper-rustls 0.27.5",
+ "hyper-util",
+ "mime",
+ "serde",
+ "serde_json",
+ "serde_with 3.12.0",
+ "tokio",
+ "url",
+ "yup-oauth2 11.0.0",
 ]
 
 [[package]]
@@ -14859,6 +14908,33 @@ dependencies = [
  "time",
  "tokio",
  "tower-service",
+ "url",
+]
+
+[[package]]
+name = "yup-oauth2"
+version = "11.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ed5f19242090128c5809f6535cc7b8d4e2c32433f6c6005800bbc20a644a7f0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "futures",
+ "http 1.2.0",
+ "http-body-util",
+ "hyper 1.6.0",
+ "hyper-rustls 0.27.5",
+ "hyper-util",
+ "log",
+ "percent-encoding",
+ "rustls 0.23.23",
+ "rustls-pemfile 2.2.0",
+ "seahash",
+ "serde",
+ "serde_json",
+ "time",
+ "tokio",
  "url",
 ]
 

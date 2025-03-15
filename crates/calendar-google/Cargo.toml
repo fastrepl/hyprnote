@@ -8,3 +8,4 @@ hypr-calendar-interface = { path = "../calendar-interface", package = "calendar-
 
 chrono = { workspace = true }
 google-calendar = "0.7.0"
+google-calendar3 = "6.0.0"

@@ -1,6 +1,6 @@
 import * as FNS_TZ from "@date-fns/tz";
 import * as FNS from "date-fns";
-import * as FNS_LOCALE from "date-fns/locale";
+// import * as FNS_LOCALE from "date-fns/locale";
 
 export const format = (
   date: Parameters<typeof FNS.format>[0],
@@ -11,20 +11,52 @@ export const format = (
   return FNS.format(new Date(date), format, { ...options, in: tz });
 };
 
-// TODO
+export function formatRemainingTime(date: Date): string {
+  const now = new Date();
+  const diff = date.getTime() - now.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
-export const formatDate = (date: string) => {
+  if (days > 0) {
+    return `${days} day${days > 1 ? "s" : ""} later`;
+  } else if (hours > 0) {
+    return `${hours} hour${hours > 1 ? "s" : ""} later`;
+  } else if (minutes > 1) {
+    return `${minutes} minutes later`;
+  } else if (minutes > 0) {
+    return "Starting soon";
+  } else {
+    return "In progress";
+  }
+}
+
+export const formatRelative = (date: string, t?: string) => {
+  const tz = FNS_TZ.tz(t ?? timezone());
   const d = new Date(date);
-  const now = Date.now();
-  const diff = (now - d.getTime()) / 1000;
+  const now = new Date();
 
-  if (diff < 60 * 1) {
-    return "방금 전";
+  const startOfDay = FNS.startOfDay(d);
+  const startOfToday = FNS.startOfDay(now);
+  const diffInDays = FNS.differenceInCalendarDays(startOfToday, startOfDay, { in: tz });
+
+  if (diffInDays === 0) {
+    return "Today";
+  } else if (diffInDays === 1) {
+    return "Yesterday";
+  } else if (diffInDays === 2) {
+    return "2 days ago";
+  } else if (diffInDays < 7) {
+    return `${diffInDays} days ago`;
+  } else if (diffInDays < 14) {
+    return "Last week";
+  } else if (diffInDays < 21) {
+    return "2 weeks ago";
+  } else if (diffInDays < 30) {
+    return "3 weeks ago";
+  } else {
+    return `${diffInDays} days ago`;
   }
-  if (diff < 60 * 60 * 24 * 3) {
-    return FNS.formatDistanceToNow(d, { addSuffix: true, locale: FNS_LOCALE.ko });
-  }
-  return FNS.format(d, "PPP EEE p", { locale: FNS_LOCALE.ko });
 };
 
 export const timezone = () => {

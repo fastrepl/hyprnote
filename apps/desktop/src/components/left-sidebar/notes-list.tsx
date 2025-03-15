@@ -3,8 +3,8 @@ import { isFuture } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
 import { useHypr, useSessions } from "@/contexts";
-import { formatDateHeader, getSortedDates, groupSessionsByDate } from "@/lib/date";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
+import { format, formatRelative } from "@hypr/utils/datetime";
 
 import { EventItem } from "./event-item";
 import { NoteItem } from "./note-item";
@@ -32,12 +32,17 @@ export default function NotesList() {
       const sessions = await dbCommands.listSessions(null);
       sessionsInit();
 
-      return sessions;
+      const grouped = sessions.reduce<Record<string, Session[]>>((acc, session) => {
+        const key = format(session.created_at, "yyyy-MM-dd");
+        return {
+          ...acc,
+          [key]: [...(acc[key] ?? []), session],
+        };
+      }, {});
+
+      return grouped;
     },
   });
-
-  const groupedSessions = groupSessionsByDate(sessions.data ?? []);
-  const sortedDates = getSortedDates(groupedSessions);
 
   const sessionsStore = useSessions((s) => s.sessions);
 
@@ -56,29 +61,29 @@ export default function NotesList() {
         </section>
       )}
 
-      {sortedDates.map((dateKey) => {
-        const { date, sessions } = groupedSessions[dateKey];
+      {Object.entries(sessions.data ?? {}).sort(([keyA, _a], [keyB, _b]) => keyA.localeCompare(keyB)).map(
+        ([key, items]) => {
+          return (
+            <section key={key}>
+              <h2 className="font-bold text-neutral-600 mb-2">
+                {formatRelative(key)}
+              </h2>
 
-        return (
-          <section key={dateKey}>
-            <h2 className="font-bold text-neutral-600 mb-2">
-              {formatDateHeader(date)}
-            </h2>
-
-            <div>
-              {sessions
-                // TODO: not ideal. fresh note is not visible
-                .filter((session) => sessionsStore[session.id])
-                .map((session: Session) => (
-                  <NoteItem
-                    key={session.id}
-                    sessionId={session.id}
-                  />
-                ))}
-            </div>
-          </section>
-        );
-      })}
+              <div>
+                {items
+                  // TODO: not ideal. fresh note is not visible
+                  .filter((session) => sessionsStore[session.id])
+                  .map((session: Session) => (
+                    <NoteItem
+                      key={session.id}
+                      sessionId={session.id}
+                    />
+                  ))}
+              </div>
+            </section>
+          );
+        },
+      )}
     </nav>
   );
 }

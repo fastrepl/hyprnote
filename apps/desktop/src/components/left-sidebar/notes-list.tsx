@@ -10,7 +10,7 @@ import { format, formatRelative } from "@hypr/utils/datetime";
 import { EventItem } from "./event-item";
 import { NoteItem } from "./note-item";
 
-export default function NotesList() {
+export function EventsList() {
   const { userId } = useHypr();
 
   const events = useQuery({
@@ -25,6 +25,25 @@ export default function NotesList() {
     },
   });
 
+  return (
+    <>
+      {events.data && events.data.length > 0 && (
+        <section>
+          <h2 className="font-medium text-neutral-600 mb-2 flex items-center gap-2">
+            <CalendarIcon className="size-4" />
+            <strong>Upcoming</strong>
+          </h2>
+
+          <div>
+            {events.data.map((event) => <EventItem key={event.id} event={event} />)}
+          </div>
+        </section>
+      )}
+    </>
+  );
+}
+
+export function NotesList() {
   const insertSession = useSessions((s) => s.insert);
 
   const sessions = useQuery({
@@ -48,52 +67,49 @@ export default function NotesList() {
   const sessionsStore = useSessions((s) => s.sessions);
 
   return (
-    <nav className="h-full overflow-y-auto space-y-6 px-3 pb-4">
-      {events.data && events.data.length > 0 && (
-        <section>
-          <h2 className="font-medium text-neutral-600 mb-2 flex items-center gap-2">
-            <CalendarIcon className="size-4" />
-            <strong>Upcoming</strong>
-          </h2>
+    <>
+      {Object.entries(sessions.data ?? {}).sort(([keyA, _a], [keyB, _b]) => keyA.localeCompare(keyB)).map(
+        ([key, items]) => {
+          return (
+            <section key={key}>
+              <h2 className="font-bold text-neutral-600 mb-2">
+                {formatRelative(key)}
+              </h2>
 
-          <div>
-            {events.data.map((event) => <EventItem key={event.id} event={event} />)}
-          </div>
-        </section>
+              <motion.div layout>
+                {items
+                  .filter((session) => sessionsStore[session.id])
+                  .map((session: Session) => (
+                    <motion.div
+                      key={session.id}
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <NoteItem
+                        sessionId={session.id}
+                      />
+                    </motion.div>
+                  ))}
+              </motion.div>
+            </section>
+          );
+        },
       )}
+    </>
+  );
+}
+
+export function AllList() {
+  return (
+    <nav className="h-full overflow-y-auto space-y-6 px-3 pb-4">
+      <EventsList />
 
       <LayoutGroup>
         <AnimatePresence initial={false}>
-          {Object.entries(sessions.data ?? {}).sort(([keyA, _a], [keyB, _b]) => keyA.localeCompare(keyB)).map(
-            ([key, items]) => {
-              return (
-                <section key={key}>
-                  <h2 className="font-bold text-neutral-600 mb-2">
-                    {formatRelative(key)}
-                  </h2>
-
-                  <motion.div layout>
-                    {items
-                      .filter((session) => sessionsStore[session.id])
-                      .map((session: Session) => (
-                        <motion.div
-                          key={session.id}
-                          layout
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <NoteItem
-                            sessionId={session.id}
-                          />
-                        </motion.div>
-                      ))}
-                  </motion.div>
-                </section>
-              );
-            },
-          )}
+          <NotesList />
         </AnimatePresence>
       </LayoutGroup>
     </nav>

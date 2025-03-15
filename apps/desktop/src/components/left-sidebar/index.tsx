@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { useLeftSidebar } from "@/contexts";
 import SettingsButton from "../settings-panel";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
-import NotesList from "./notes-list";
+import { AllList } from "./notes-list";
 import UpdateButton from "./update-button";
 
 export default function LeftSidebar() {
@@ -29,7 +29,7 @@ export default function LeftSidebar() {
       </div>
 
       <div className="flex-1 h-full overflow-y-auto">
-        <NotesList />
+        <AllList />
       </div>
 
       <UpdateButton />

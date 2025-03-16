@@ -20,6 +20,9 @@ importers:
       '@nangohq/frontend':
         specifier: ^0.53.2
         version: 0.53.2
+      '@remixicon/react':
+        specifier: ^4.6.0
+        version: 4.6.0(react@18.3.1)
       '@sentry/react':
         specifier: ^8.55.0
         version: 8.55.0(react@18.3.1)
@@ -84,6 +87,9 @@ importers:
       tailwindcss:
         specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.6)(@types/node@22.13.10)(typescript@5.8.2))
+      typescript:
+        specifier: ^5.8.2
+        version: 5.8.2
       vite:
         specifier: ^6.2.1
         version: 6.2.1(@types/node@22.13.10)(jiti@2.4.2)(tsx@4.19.3)(yaml@2.7.0)

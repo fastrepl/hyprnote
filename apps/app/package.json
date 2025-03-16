@@ -13,6 +13,7 @@
   "devDependencies": {
     "@clerk/types": "^4.47.0",
     "@hypr/client": "workspace:^",
+    "@tailwindcss/typography": "^0.5.16",
     "@tanstack/router-plugin": "^1.114.7",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
@@ -21,14 +22,15 @@
     "msw": "^2.7.3",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
-    "vite": "^6.2.1",
-    "@tailwindcss/typography": "^0.5.16"
+    "typescript": "^5.8.2",
+    "vite": "^6.2.1"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.24.1",
     "@hypr/tiptap": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@nangohq/frontend": "^0.53.2",
+    "@remixicon/react": "^4.6.0",
     "@sentry/react": "^8.55.0",
     "@tanstack/react-query": "^5.67.2",
     "@tanstack/react-router": "^1.114.7",

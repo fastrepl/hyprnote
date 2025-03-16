@@ -31,6 +31,10 @@ msgstr "{0}"
 msgid "Access granted"
 msgstr "Access granted"
 
+#: src/components/settings-panel/views/template.tsx:115
+msgid "Add a description..."
+msgstr "Add a description..."
+
 #: src/components/settings-panel/views/team.tsx:79
 msgid "Add members"
 msgstr "Add members"
@@ -38,6 +42,10 @@ msgstr "Add members"
 #: src/components/settings-panel/views/tags.tsx:196
 #~ msgid "Add new tag"
 #~ msgstr "Add new tag"
+
+#: src/components/note/header/chips/participants-chip/participants-list.tsx:197
+msgid "Add participant"
+msgstr "Add participant"
 
 #: src/components/settings-panel/views/tags.tsx:92
 #: src/components/settings-panel/views/tags.tsx:236
@@ -49,9 +57,34 @@ msgstr "Add members"
 msgid "Admin"
 msgstr "Admin"
 
+#: src/routes/onboarding.tsx:75
+msgid "AI Meeting Notepad that keeps you in flow"
+msgstr "AI Meeting Notepad that keeps you in flow"
+
+#: src/components/share-and-permission/participants-selector.tsx:31
+msgid "All Participants"
+msgstr "All Participants"
+
 #: src/components/settings-panel/views/billing.tsx:112
 msgid "Annual"
 msgstr "Annual"
+
+#: src/components/share-and-permission/publish.tsx:18
+msgid "Anyone with the link can view this page"
+msgstr "Anyone with the link can view this page"
+
+#: src/components/settings-panel/views/profile.tsx:159
+msgid "Apple"
+msgstr "Apple"
+
+#: src/components/settings-panel/views/notifications.tsx:104
+msgid "Automatic meeting detection"
+msgstr "Automatic meeting detection"
+
+#: src/components/settings-panel/sidebar/template-view.tsx:44
+#: src/components/settings-panel/sidebar/extensions-view.tsx:60
+msgid "Back to Settings"
+msgstr "Back to Settings"
 
 #: src/components/settings/billing.tsx:17
 #~ msgid "Billing"
@@ -73,6 +106,18 @@ msgstr "Calendar connected"
 #~ msgid "Cancel"
 #~ msgstr "Cancel"
 
+#: src/components/settings-panel/views/profile.tsx:134
+msgid "CEO"
+msgstr "CEO"
+
+#: src/components/settings-panel/views/profile.tsx:176
+msgid "Company Description"
+msgstr "Company Description"
+
+#: src/components/settings-panel/views/profile.tsx:151
+msgid "Company Name"
+msgstr "Company Name"
+
 #: src/components/settings-panel/views/calendar.tsx:191
 msgid "Connect"
 msgstr "Connect"
@@ -93,15 +138,57 @@ msgstr "Continue"
 #~ msgid "Create a new tag to help organize and categorize your notes."
 #~ msgstr "Create a new tag to help organize and categorize your notes."
 
+#: src/components/toolbar/buttons/new-note-button.tsx:33
+msgid "Create new note"
+msgstr "Create new note"
+
+#: src/components/settings-panel/sidebar/template-view.tsx:77
+msgid "Create Template"
+msgstr "Create Template"
+
+#: src/components/settings-panel/views/template.tsx:86
 #: src/components/settings-panel/views/team.tsx:150
+#: src/components/left-sidebar/note-item.tsx:110
 msgid "Delete"
 msgstr "Delete"
+
+#: src/components/settings-panel/components/template-sections.tsx:125
+msgid "Describe the content and purpose of this section"
+msgstr "Describe the content and purpose of this section"
+
+#: src/components/settings-panel/views/template.tsx:109
+msgid "Description"
+msgstr "Description"
+
+#: src/components/settings-panel/views/general.tsx:125
+msgid "Display language"
+msgstr "Display language"
+
+#: src/components/settings-panel/views/template.tsx:82
+msgid "Duplicate"
+msgstr "Duplicate"
+
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:96
+msgid "Email"
+msgstr "Email"
+
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:100
+msgid "Email address"
+msgstr "Email address"
 
 #: src/components/settings-panel/views/team.tsx:186
 msgid "Email addresses"
 msgstr "Email addresses"
 
-#: src/routes/login.tsx:128
+#: src/components/share-and-permission/invite-list.tsx:23
+msgid "Email separated by commas"
+msgstr "Email separated by commas"
+
+#: src/components/settings-panel/components/template-sections.tsx:119
+msgid "Enter a section title"
+msgstr "Enter a section title"
+
+#: src/routes/login.tsx:132
 msgid "Get Started"
 msgstr "Get Started"
 
@@ -118,21 +205,59 @@ msgstr "Grant Access"
 #~ msgid "home.newUser.tryDemo"
 #~ msgstr "home.newUser.tryDemo"
 
+#: src/components/note/editor-area/enhanced-only-button.tsx:18
+msgid "Hypercharge"
+msgstr "Hypercharge"
+
+#: src/components/settings-panel/views/general.tsx:103
+msgid "Hyprnote will be opened automatically when you start your computer."
+msgstr "Hyprnote will be opened automatically when you start your computer."
+
 #: src/components/settings/calendar.tsx:64
 #~ msgid "Integrations"
 #~ msgstr "Integrations"
+
+#: src/components/share-and-permission/invite-list.tsx:30
+msgid "Invite"
+msgstr "Invite"
 
 #: src/components/settings-panel/views/team.tsx:174
 msgid "Invite members"
 msgstr "Invite members"
 
-#: src/components/settings-panel/views/general.tsx:153
+#: src/components/settings-panel/views/general.tsx:157
 msgid "Jargons"
 msgstr "Jargons"
+
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:121
+msgid "Job title"
+msgstr "Job title"
+
+#: src/components/settings-panel/views/profile.tsx:130
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:117
+msgid "Job Title"
+msgstr "Job Title"
 
 #: src/components/settings-panel/views/billing.tsx:192
 msgid "Learn more about our pricing plans"
 msgstr "Learn more about our pricing plans"
+
+#: src/components/settings-panel/views/profile.tsx:201
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:138
+msgid "LinkedIn Username"
+msgstr "LinkedIn Username"
+
+#: src/components/settings-panel/views/extensions.tsx:35
+msgid "Loading extension details..."
+msgstr "Loading extension details..."
+
+#: src/components/share-and-permission/publish.tsx:24
+msgid "Make it public"
+msgstr "Make it public"
+
+#: src/components/settings-panel/views/notifications.tsx:80
+msgid "Meeting notifications"
+msgstr "Meeting notifications"
 
 #: src/components/settings-panel/views/team.tsx:130
 #: src/components/settings-panel/views/team.tsx:217
@@ -143,9 +268,25 @@ msgstr "Member"
 msgid "Monthly"
 msgstr "Monthly"
 
+#: src/components/settings-panel/components/template-list.tsx:55
+msgid "My Templates"
+msgstr "My Templates"
+
+#: src/components/settings-panel/views/calendar.tsx:72
+msgid "New"
+msgstr "New"
+
+#: src/routes/app.index.tsx:13
+msgid "New note"
+msgstr "New note"
+
 #: src/components/toolbar/new-note-button.tsx:45
 #~ msgid "New Note"
 #~ msgstr "New Note"
+
+#: src/components/left-sidebar/note-item.tsx:99
+msgid "New window"
+msgstr "New window"
 
 #: src/components/settings-panel/views/team.tsx:160
 msgid "No members found"
@@ -155,6 +296,10 @@ msgstr "No members found"
 #~ msgid "No results"
 #~ msgstr "No results"
 
+#: src/components/settings-panel/views/extensions.tsx:63
+msgid "no tags"
+msgstr "no tags"
+
 #: src/components/settings-panel/views/tags.tsx:182
 #~ msgid "No tags found"
 #~ msgstr "No tags found"
@@ -163,9 +308,25 @@ msgstr "No members found"
 #~ msgid "Notes"
 #~ msgstr "Notes"
 
+#: src/components/settings-panel/components/template-list.tsx:89
+msgid "Official Templates"
+msgstr "Official Templates"
+
+#: src/components/settings-panel/views/general.tsx:100
+msgid "Open Hyprnote on startup"
+msgstr "Open Hyprnote on startup"
+
+#: src/components/workspace-calendar/day-events.tsx:88
+msgid "Open Note"
+msgstr "Open Note"
+
 #: src/components/settings-panel/views/calendar.tsx:268
 msgid "Optional for participant suggestions"
 msgstr "Optional for participant suggestions"
+
+#: src/routes/onboarding.tsx:108
+msgid "Optional Permissions"
+msgstr "Optional Permissions"
 
 #: src/components/settings-panel/views/team.tsx:124
 #: src/components/settings-panel/views/team.tsx:211
@@ -180,6 +341,18 @@ msgstr "Owner"
 #~ msgid "Past Sessions"
 #~ msgstr "Past Sessions"
 
+#: src/components/share-and-permission/participants-selector.tsx:34
+msgid "people"
+msgstr "people"
+
+#: src/components/settings-panel/sidebar/settings-view.tsx:51
+msgid "Profile"
+msgstr "Profile"
+
+#: src/components/share-and-permission/publish.tsx:15
+msgid "Publish your note"
+msgstr "Publish your note"
+
 #: src/components/home/PastNotes.tsx:16
 #~ msgid "Recent Notes"
 #~ msgstr "Recent Notes"
@@ -188,22 +361,86 @@ msgstr "Owner"
 msgid "Required for syncing calendar events"
 msgstr "Required for syncing calendar events"
 
+#: src/routes/onboarding.tsx:80
+msgid "Required Permissions"
+msgstr "Required Permissions"
+
+#: src/components/toolbar/session-indicator.tsx:12
+msgid "Return to session"
+msgstr "Return to session"
+
 #: src/components/settings-panel/views/team.tsx:89
 #: src/components/settings-panel/views/team.tsx:198
 msgid "Role"
 msgstr "Role"
 
-#: src/components/SearchModal.tsx:72
-#~ msgid "Search"
-#~ msgstr "Search"
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:167
+msgid "Save Changes"
+msgstr "Save Changes"
+
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:167
+msgid "Saving..."
+msgstr "Saving..."
+
+#: src/components/search/search-bar.tsx:17
+msgid "Search"
+msgstr "Search"
+
+#: src/components/settings-panel/components/extension-list.tsx:52
+msgid "Search extensions..."
+msgstr "Search extensions..."
+
+#: src/components/settings-panel/views/team.tsx:189
+msgid "Search names or emails"
+msgstr "Search names or emails"
+
+#: src/components/settings-panel/components/template-list.tsx:42
+msgid "Search templates..."
+msgstr "Search templates..."
+
+#: src/components/settings-panel/views/template.tsx:121
+msgid "Sections"
+msgstr "Sections"
+
+#: src/components/settings-panel/views/general.tsx:134
+msgid "Select language"
+msgstr "Select language"
 
 #: src/components/settings-panel/views/team.tsx:225
 msgid "Send invite"
 msgstr "Send invite"
 
-#: src/routes/login.tsx:157
+#: src/components/settings-panel/views/index.tsx:48
+msgid "Settings"
+msgstr "Settings"
+
+#: src/components/settings-panel/views/notifications.tsx:83
+msgid "Show notifications 1 minute before meetings start based on your Calendar"
+msgstr "Show notifications 1 minute before meetings start based on your Calendar"
+
+#: src/components/settings-panel/views/notifications.tsx:107
+msgid "Show notifications whenever a call is detected"
+msgstr "Show notifications whenever a call is detected"
+
+#: src/routes/login.tsx:161
 msgid "Skip to use locally"
 msgstr "Skip to use locally"
+
+#: src/components/note/header/listen-button.tsx:49
+msgid "Start recording"
+msgstr "Start recording"
+
+#: src/components/note/header/listen-button.tsx:82
+msgid "Stop"
+msgstr "Stop"
+
+#: src/components/note/header/listen-button.tsx:71
+msgid "Stop listening to the meeting?"
+msgstr "Stop listening to the meeting?"
+
+#: src/components/note/header/listen-button.tsx:64
+msgid "Stop recording"
+msgstr "Stop recording"
 
 #: src/components/settings-panel/views/tags.tsx:99
 #~ msgid "Tag"
@@ -217,21 +454,65 @@ msgstr "Skip to use locally"
 #~ msgid "Team"
 #~ msgstr "Team"
 
+#: src/components/share-and-permission/participants-selector.tsx:34
+msgid "Teamspace"
+msgstr "Teamspace"
+
+#: src/components/note/editor-area/enhanced-controls.tsx:38
+msgid "Template Selector"
+msgstr "Template Selector"
+
 #: src/components/settings-panel/views/billing.tsx:94
 msgid "There's a plan for everyone"
 msgstr "There's a plan for everyone"
+
+#: src/components/settings-panel/views/profile.tsx:179
+msgid "This is a short description of your company."
+msgstr "This is a short description of your company."
+
+#: src/components/settings-panel/views/general.tsx:128
+msgid "This is the language you read."
+msgstr "This is the language you read."
+
+#: src/components/settings-panel/views/profile.tsx:154
+msgid "This is the name of the company you work for."
+msgstr "This is the name of the company you work for."
 
 #: src/components/settings/calendar.tsx:194
 #~ msgid "To connect your Calendar, you need to <0>authorize Hypr to access your calendar.</0>"
 #~ msgstr "To connect your Calendar, you need to <0>authorize Hypr to access your calendar.</0>"
 
+#: src/routes/app.calendar.tsx:64
+msgid "Today"
+msgstr "Today"
+
+#: src/components/toolbar/buttons/left-sidebar-button.tsx:59
+msgid "Toggle left sidebar"
+msgstr "Toggle left sidebar"
+
+#: src/components/toolbar/buttons/right-panel-button.tsx:27
+msgid "Toggle right panel"
+msgstr "Toggle right panel"
+
+#: src/components/settings-panel/views/general.tsx:165
+msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
+msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
+
 #: src/components/settings-panel/views/team.tsx:177
 msgid "Type or paste in emails below, separated by commas. Your workspace will be billed by members."
 msgstr "Type or paste in emails below, separated by commas. Your workspace will be billed by members."
 
-#: src/components/home/PastNotes.tsx:28
-#~ msgid "Untitled"
-#~ msgstr "Untitled"
+#: src/components/settings-panel/views/team.tsx:68
+msgid "Type to search..."
+msgstr "Type to search..."
+
+#: src/components/note/header/title-input.tsx:59
+msgid "Untitled"
+msgstr "Untitled"
+
+#: src/components/settings-panel/views/template.tsx:68
+msgid "Untitled Template"
+msgstr "Untitled Template"
 
 #: src/components/upcoming-events.tsx:30
 #~ msgid "Upcoming"
@@ -245,6 +526,36 @@ msgstr "Type or paste in emails below, separated by commas. Your workspace will 
 msgid "User"
 msgstr "User"
 
+#: src/components/settings-panel/views/profile.tsx:214
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:151
+msgid "username"
+msgstr "username"
+
+#: src/components/settings-panel/views/profile.tsx:110
+msgid "Username"
+msgstr "Username"
+
+#: src/components/note/header/chips/event-chip.tsx:40
+msgid "View in calendar"
+msgstr "View in calendar"
+
+#: src/components/settings-panel/views/profile.tsx:184
+msgid "We think different."
+msgstr "We think different."
+
 #: src/routes/login.tsx:52
 #~ msgid "Welcome to"
 #~ msgstr "Welcome to"
+
+#: src/components/settings-panel/views/general.tsx:160
+msgid "You can make Hyprnote takes these words into account when transcribing."
+msgstr "You can make Hyprnote takes these words into account when transcribing."
+
+#: src/components/settings-panel/views/profile.tsx:204
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:141
+msgid "Your LinkedIn username (the part after linkedin.com/in/)"
+msgstr "Your LinkedIn username (the part after linkedin.com/in/)"
+
+#: src/components/settings-panel/views/profile.tsx:114
+msgid "Your Name"
+msgstr "Your Name"

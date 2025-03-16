@@ -6,6 +6,7 @@ import { type Template } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
+import { useLingui } from "@lingui/react/macro";
 
 type ReorderItem = Template["sections"][number];
 
@@ -93,6 +94,8 @@ interface SectionItemProps {
 }
 
 export function SectionItem({ disabled, item, onChange }: SectionItemProps) {
+  const { t } = useLingui();
+
   const handleChangeTitle = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange({ ...item, title: e.target.value });
@@ -113,13 +116,13 @@ export function SectionItem({ disabled, item, onChange }: SectionItemProps) {
         disabled={disabled}
         value={item.title}
         onChange={handleChangeTitle}
-        placeholder="Enter a section title"
+        placeholder={t`Enter a section title`}
       />
       <Textarea
         disabled={disabled}
         value={item.description}
         onChange={handleChangeDescription}
-        placeholder="Describe the content and purpose of this section"
+        placeholder={t`Describe the content and purpose of this section`}
       />
     </div>
   );

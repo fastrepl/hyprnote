@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 
 const schema = z.object({
   email: z.string().email().optional().or(z.literal("")),
@@ -38,6 +38,7 @@ export function EditParticipantForm({
   onParticipantEdited,
 }: EditParticipantFormProps) {
   const queryClient = useQueryClient();
+  const { t } = useLingui();
 
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
@@ -96,7 +97,7 @@ export function EditParticipantForm({
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Email address"
+                    placeholder={t`Email address`}
                     type="email"
                     {...field}
                     className="focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -117,7 +118,7 @@ export function EditParticipantForm({
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Job title"
+                    placeholder={t`Job title`}
                     {...field}
                     className="focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
@@ -147,7 +148,7 @@ export function EditParticipantForm({
                     </span>
                     <Input
                       className="rounded-l-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                      placeholder="username"
+                      placeholder={t`username`}
                       {...field}
                     />
                   </div>

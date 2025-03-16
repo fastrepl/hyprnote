@@ -1,5 +1,6 @@
 import type { ExtensionDefinition } from "@hypr/plugin-db";
 import { cn } from "@hypr/ui/lib/utils";
+import { useLingui } from "@lingui/react/macro";
 import { SearchIcon } from "lucide-react";
 import { type ReactNode, useCallback, useMemo } from "react";
 
@@ -18,6 +19,8 @@ export function ExtensionList({
   onExtensionSelect,
   selectedExtension,
 }: ExtensionListProps) {
+  const { t } = useLingui();
+
   const filterExtension = useCallback((extension: ExtensionDefinition, query: string) => {
     const searchLower = query.toLowerCase();
     return (
@@ -46,7 +49,7 @@ export function ExtensionList({
         <div className="relative">
           <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-neutral-400" />
           <input
-            placeholder="Search extensions..."
+            placeholder={t`Search extensions...`}
             className="w-full rounded-md border border-neutral-200 bg-white px-8 py-2 text-sm text-neutral-700 focus:outline-none focus:ring-1 focus:ring-neutral-300"
             value={searchQuery}
             onChange={handleSearchChange}

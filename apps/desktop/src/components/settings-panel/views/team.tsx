@@ -1,7 +1,3 @@
-import { Trans } from "@lingui/react/macro";
-import { MoreVertical, Plus, Search, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -12,6 +8,9 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Modal, ModalBody, ModalDescription, ModalHeader, ModalTitle } from "@hypr/ui/components/ui/modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
+import { Trans, useLingui } from "@lingui/react/macro";
+import { MoreVertical, Plus, Search, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
 
 type Member = {
   id: string;
@@ -39,6 +38,7 @@ const members: Member[] = [
 ];
 
 export default function TeamComponent() {
+  const { t } = useLingui();
   const [searchQuery, setSearchQuery] = useState("");
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmails, setInviteEmails] = useState("");
@@ -65,7 +65,7 @@ export default function TeamComponent() {
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Type to search..."
+            placeholder={t`Type to search...`}
             className="max-w-60 pl-8 focus-visible:ring-0 focus-visible:ring-offset-0"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -119,14 +119,14 @@ export default function TeamComponent() {
                   <SelectContent>
                     <SelectItem
                       value="workspace_owner"
-                      className=" cursor-pointer"
+                      className="cursor-pointer"
                     >
                       <Trans>Owner</Trans>
                     </SelectItem>
-                    <SelectItem value="admin" className=" cursor-pointer">
+                    <SelectItem value="admin" className="cursor-pointer">
                       <Trans>Admin</Trans>
                     </SelectItem>
-                    <SelectItem value="member" className=" cursor-pointer">
+                    <SelectItem value="member" className="cursor-pointer">
                       <Trans>Member</Trans>
                     </SelectItem>
                   </SelectContent>
@@ -186,7 +186,7 @@ export default function TeamComponent() {
                 <Trans>Email addresses</Trans>
               </label>
               <Input
-                placeholder="Search names or emails"
+                placeholder={t`Search names or emails`}
                 value={inviteEmails}
                 onChange={(e) => setInviteEmails(e.target.value)}
                 className="focus-visible:ring-0 focus-visible:ring-offset-0"

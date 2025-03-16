@@ -16,7 +16,7 @@ import {
 } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 
 const schema = z.object({
   fullName: z.string().min(2).max(50).optional(),
@@ -34,6 +34,7 @@ type ConfigData = {
 };
 
 export default function ProfileComponent() {
+  const { t } = useLingui();
   const queryClient = useQueryClient();
 
   const config = useQuery<ConfigData>({
@@ -110,7 +111,7 @@ export default function ProfileComponent() {
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Your Name"
+                    placeholder={t`Your Name`}
                     {...field}
                     className="focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
@@ -130,6 +131,7 @@ export default function ProfileComponent() {
                 </FormLabel>
                 <FormControl>
                   <Input
+                    placeholder={t`CEO`}
                     {...field}
                     className="focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
@@ -154,6 +156,7 @@ export default function ProfileComponent() {
                 </div>
                 <FormControl>
                   <Input
+                    placeholder={t`Apple`}
                     {...field}
                     className="focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
@@ -178,7 +181,7 @@ export default function ProfileComponent() {
                 </div>
                 <FormControl>
                   <Textarea
-                    placeholder="Add a few words about your company."
+                    placeholder={t`We think different.`}
                     {...field}
                     className="focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
@@ -208,7 +211,7 @@ export default function ProfileComponent() {
                     </span>
                     <Input
                       className="rounded-l-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                      placeholder="username"
+                      placeholder={t`username`}
                       {...field}
                     />
                   </div>

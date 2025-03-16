@@ -1,11 +1,11 @@
+import { type Human } from "@hypr/plugin-db";
+import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { useLingui } from "@lingui/react/macro";
 import { RiCornerDownLeftLine, RiLinkedinBoxFill } from "@remixicon/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Mail, PenIcon } from "lucide-react";
 import { KeyboardEvent, useMemo, useState } from "react";
-
-import { type Human } from "@hypr/plugin-db";
-import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { EditParticipantForm } from "./edit-participant-form";
 
 interface ParticipantsListProps {
@@ -16,6 +16,7 @@ interface ParticipantsListProps {
 export function ParticipantsList({ participants, sessionId }: ParticipantsListProps) {
   const [newParticipantInput, setNewParticipantInput] = useState("");
   const queryClient = useQueryClient();
+  const { t } = useLingui();
 
   const [localParticipants, setLocalParticipants] = useState<Human[]>(participants);
   const [locallyAddedIds, setLocallyAddedIds] = useState<Set<string>>(new Set());
@@ -193,7 +194,7 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
           value={newParticipantInput}
           onChange={(e) => setNewParticipantInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Add participant"
+          placeholder={t`Add participant`}
           className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-neutral-500"
         />
         <button

@@ -1,7 +1,3 @@
-import { CopyIcon, EditIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
-import { useCallback } from "react";
-import { SectionsList } from "../components/template-sections";
-
 import { type Template } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -12,7 +8,10 @@ import {
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
+import { CopyIcon, EditIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
+import { useCallback } from "react";
+import { SectionsList } from "../components/template-sections";
 
 interface TemplateEditorProps {
   disabled: boolean;
@@ -27,6 +26,7 @@ export default function TemplateEditor({
   onTemplateUpdate,
   isCreator = true,
 }: TemplateEditorProps) {
+  const { t } = useLingui();
   const handleChangeTitle = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onTemplateUpdate({ ...template, title: e.target.value });
@@ -65,7 +65,7 @@ export default function TemplateEditor({
             value={template.title}
             onChange={handleChangeTitle}
             className="rounded-none border-0 p-0 !text-2xl font-semibold focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-            placeholder="Untitled Template"
+            placeholder={t`Untitled Template`}
           />
 
           {isCreator
@@ -112,7 +112,7 @@ export default function TemplateEditor({
           disabled={disabled}
           value={template.description}
           onChange={handleChangeDescription}
-          placeholder="Add a description..."
+          placeholder={t`Add a description...`}
         />
       </div>
 

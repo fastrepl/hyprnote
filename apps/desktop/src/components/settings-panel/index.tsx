@@ -95,6 +95,7 @@ export default function SettingsPanel() {
             <SettingsPanelBody
               title={active}
               selectedTemplate={selectedTemplate}
+              selectedExtension={selectedExtension}
               setActive={setActive}
             >
               {active === "General" && <GeneralComponent />}

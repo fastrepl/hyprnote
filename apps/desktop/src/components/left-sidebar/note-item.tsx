@@ -16,6 +16,7 @@ import {
 } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/ui/lib/utils";
 import { format } from "@hypr/utils/datetime";
+import { Trans } from "@lingui/react/macro";
 
 export function NoteItem({
   sessionId,
@@ -95,7 +96,7 @@ export function NoteItem({
           onClick={handleOpenWindow}
         >
           <AppWindowMacIcon size={16} className="mr-2" />
-          New window
+          <Trans>New window</Trans>
           <ArrowUpRight size={16} className="ml-2" />
         </ContextMenuItem>
 
@@ -105,7 +106,8 @@ export function NoteItem({
           className="text-red-500 hover:bg-red-100 hover:text-red-600 cursor-pointer"
           onClick={() => deleteSession.mutate()}
         >
-          <TrashIcon size={16} className="mr-2" />Delete
+          <TrashIcon size={16} className="mr-2" />
+          <Trans>Delete</Trans>
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

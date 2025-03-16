@@ -12,7 +12,7 @@ export const Route = createFileRoute("/auth/sso-callback")({
 function Component() {
   const search = Route.useSearch();
 
-  const redirectUrl = search
+  const redirectUrl = search?.c
     ? createURL("/auth/connect", search).toString()
     : ("/" satisfies LinkProps["to"]);
 

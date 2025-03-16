@@ -1,6 +1,6 @@
-import { SignedOut, useSignIn } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, useSignIn } from "@clerk/clerk-react";
 import type { OAuthStrategy } from "@clerk/types";
-import { createFileRoute, LinkProps } from "@tanstack/react-router";
+import { createFileRoute, LinkProps, useNavigate } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { createURL } from "../utils";
 import { schema as connectSchema } from "./auth.connect";
@@ -20,11 +20,12 @@ function Component() {
     return null;
   }
 
+  const navigate = useNavigate();
   const search = Route.useSearch();
 
   const redirectUrl = createURL("/auth/sso-callback", search).toString();
 
-  const redirectUrlComplete = search
+  const redirectUrlComplete = search?.c
     ? createURL("/auth/connect", search).toString()
     : ("/" satisfies LinkProps["to"]);
 
@@ -47,14 +48,13 @@ function Component() {
       <div className="z-10 flex w-full flex-col items-center justify-center">
         <div className="flex flex-col items-center">
           <h1 className="mb-4 text-5xl font-bold md:text-6xl lg:text-7xl">
-            Welcome Back
+            Welcome
           </h1>
 
-          <p className="mb-12 text-center text-base font-medium text-neutral-600 md:text-lg lg:text-xl">
-            Sign in to continue to Hyprnote
-          </p>
-
           <SignedOut>
+            <p className="mb-12 text-center text-base font-medium text-neutral-600 md:text-lg lg:text-xl">
+              Sign in to continue to Hyprnote
+            </p>
             <div className="mb-4 w-full">
               <Button
                 size="lg"
@@ -68,6 +68,18 @@ function Component() {
             </div>
             <TOS />
           </SignedOut>
+          <SignedIn>
+            <div className="mb-4 w-full">
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full min-h-11 text-lg"
+                onClick={() => navigate({ to: "/auth/sign-out" })}
+              >
+                Sign out
+              </Button>
+            </div>
+          </SignedIn>
         </div>
       </div>
 

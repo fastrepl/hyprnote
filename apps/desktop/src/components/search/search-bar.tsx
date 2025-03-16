@@ -1,6 +1,7 @@
 import { SearchIcon } from "lucide-react";
 
 import { useSearchPalette } from "@/contexts";
+import { Trans } from "@lingui/react/macro";
 import Shortcut from "../shortcut";
 
 export function SearchBar() {
@@ -12,7 +13,9 @@ export function SearchBar() {
       onClick={open}
     >
       <SearchIcon className="mr-2 h-4 w-4" />
-      <span className="text-xs">Search</span>
+      <span className="text-xs">
+        <Trans>Search</Trans>
+      </span>
       <Shortcut macDisplay="⌘K" windowsDisplay="Ctrl+K" />
     </button>
   );

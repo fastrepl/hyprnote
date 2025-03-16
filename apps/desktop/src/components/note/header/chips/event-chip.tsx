@@ -7,6 +7,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 
 import { format } from "@hypr/utils/datetime";
+import { Trans } from "@lingui/react/macro";
 
 export function EventChip() {
   const { sessionId, sessionCreatedAt } = useSession((s) => ({
@@ -36,7 +37,7 @@ export function EventChip() {
           <div className="font-semibold">{event.data?.name}</div>
           <div className="text-sm text-neutral-600">{event.data?.note}</div>
           <Button variant="outline">
-            View in calendar
+            <Trans>View in calendar</Trans>
           </Button>
         </div>
       </PopoverContent>

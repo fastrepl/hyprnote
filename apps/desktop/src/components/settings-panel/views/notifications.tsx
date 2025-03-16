@@ -7,6 +7,7 @@ import { z } from "zod";
 import { commands as dbCommands, type ConfigNotification } from "@hypr/plugin-db";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@hypr/ui/components/ui/form";
 import { Switch } from "@hypr/ui/components/ui/switch";
+import { Trans } from "@lingui/react/macro";
 
 const schema = z.object({
   before: z.boolean().optional(),
@@ -75,9 +76,11 @@ export default function NotificationsComponent() {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
-                  <FormLabel>Meeting notifications</FormLabel>
+                  <FormLabel>
+                    <Trans>Meeting notifications</Trans>
+                  </FormLabel>
                   <FormDescription>
-                    Show notifications 1 minute before meetings start based on your Calendar
+                    <Trans>Show notifications 1 minute before meetings start based on your Calendar</Trans>
                   </FormDescription>
                 </div>
 
@@ -98,10 +101,10 @@ export default function NotificationsComponent() {
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
                   <FormLabel>
-                    Automatic meeting detection
+                    <Trans>Automatic meeting detection</Trans>
                   </FormLabel>
                   <FormDescription>
-                    Show notifications whenever a call is detected
+                    <Trans>Show notifications whenever a call is detected</Trans>
                   </FormDescription>
                 </div>
 

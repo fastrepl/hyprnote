@@ -72,12 +72,12 @@ function Component() {
         <div className="z-10 flex w-full max-w-md flex-col items-center justify-center">
           <div className="mt-12 flex flex-col gap-12 w-full">
             <p className="text-center text-lg font-medium text-neutral-600 md:text-xl lg:text-2xl">
-              AI Meeting Notepad that keeps you in flow
+              <Trans>AI Meeting Notepad that keeps you in flow</Trans>
             </p>
 
             <div className="space-y-2">
               <p className="text-center text-lg font-medium md:text-start">
-                Required Permissions
+                <Trans>Required Permissions</Trans>
               </p>
 
               <PermissionItem
@@ -105,7 +105,7 @@ function Component() {
             {osType.data === "macos" && (
               <div className="space-y-2">
                 <p className="text-center text-lg font-medium md:text-start">
-                  Optional Permissions
+                  <Trans>Optional Permissions</Trans>
                 </p>
 
                 <PermissionItem

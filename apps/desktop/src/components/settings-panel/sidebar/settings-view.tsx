@@ -3,6 +3,7 @@ import { data } from "../constants";
 import { type NavNames } from "../types";
 
 import { cn } from "@hypr/ui/lib/utils";
+import { Trans } from "@lingui/react/macro";
 
 export interface SettingsViewProps {
   active: NavNames | "Profile";
@@ -46,7 +47,9 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
           )}
         >
           <UserIcon className="h-4 w-4" />
-          <span className="hidden md:inline-block">Profile</span>
+          <span className="hidden md:inline-block">
+            <Trans>Profile</Trans>
+          </span>
         </button>
       </footer>
     </div>

@@ -16,6 +16,7 @@ import {
 } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
+import { Trans } from "@lingui/react/macro";
 
 const schema = z.object({
   fullName: z.string().min(2).max(50).optional(),
@@ -104,7 +105,9 @@ export default function ProfileComponent() {
             name="fullName"
             render={({ field }) => (
               <FormItem className="max-w-sm">
-                <FormLabel>Username</FormLabel>
+                <FormLabel>
+                  <Trans>Username</Trans>
+                </FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Your Name"
@@ -122,7 +125,9 @@ export default function ProfileComponent() {
             name="jobTitle"
             render={({ field }) => (
               <FormItem className="max-w-sm">
-                <FormLabel>Job Title</FormLabel>
+                <FormLabel>
+                  <Trans>Job Title</Trans>
+                </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -140,9 +145,11 @@ export default function ProfileComponent() {
             render={({ field }) => (
               <FormItem className="max-w-sm">
                 <div>
-                  <FormLabel>Company Name</FormLabel>
+                  <FormLabel>
+                    <Trans>Company Name</Trans>
+                  </FormLabel>
                   <FormDescription>
-                    This is the name of the company you work for.
+                    <Trans>This is the name of the company you work for.</Trans>
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -162,9 +169,11 @@ export default function ProfileComponent() {
             render={({ field }) => (
               <FormItem className="max-w-lg">
                 <div>
-                  <FormLabel>Company Description</FormLabel>
+                  <FormLabel>
+                    <Trans>Company Description</Trans>
+                  </FormLabel>
                   <FormDescription>
-                    This is a short description of your company.
+                    <Trans>This is a short description of your company.</Trans>
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -185,9 +194,11 @@ export default function ProfileComponent() {
             render={({ field }) => (
               <FormItem className="max-w-sm">
                 <div>
-                  <FormLabel>LinkedIn Username</FormLabel>
+                  <FormLabel>
+                    <Trans>LinkedIn Username</Trans>
+                  </FormLabel>
                   <FormDescription>
-                    Your LinkedIn username (the part after linkedin.com/in/)
+                    <Trans>Your LinkedIn username (the part after linkedin.com/in/)</Trans>
                   </FormDescription>
                 </div>
                 <FormControl>

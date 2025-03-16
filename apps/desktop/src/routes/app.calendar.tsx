@@ -1,11 +1,11 @@
+import WorkspaceCalendar from "@/components/workspace-calendar";
+import { commands as dbCommands } from "@hypr/plugin-db";
+import { Button } from "@hypr/ui/components/ui/button";
+import { Trans } from "@lingui/react/macro";
 import { createFileRoute } from "@tanstack/react-router";
 import { addMonths, format, subMonths } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
-
-import WorkspaceCalendar from "@/components/workspace-calendar";
-import { commands as dbCommands } from "@hypr/plugin-db";
-import { Button } from "@hypr/ui/components/ui/button";
 
 export const Route = createFileRoute("/app/calendar")({
   component: RouteComponent,
@@ -61,7 +61,7 @@ function RouteComponent() {
               className="text-sm px-1 py-0.5 rounded-none border-none"
               onClick={handleToday}
             >
-              Today
+              <Trans>Today</Trans>
             </Button>
 
             <Button

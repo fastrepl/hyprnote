@@ -7,6 +7,7 @@ import { type Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Trans } from "@lingui/react/macro";
 
 interface DayEventsProps {
   sessions: Session[];
@@ -84,7 +85,7 @@ export function EventCard({ session, showTime = false }: { session: Session; sho
 
         <Button className="w-full inline-flex gap-2" size="md" onClick={() => handleClick(session.id)}>
           <Pen className="size-4" />
-          Open Note
+          <Trans>Open Note</Trans>
         </Button>
       </PopoverContent>
     </Popover>

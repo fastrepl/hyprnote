@@ -1,9 +1,8 @@
-import { SquarePenIcon } from "lucide-react";
-
 import { useNewNote, useSession } from "@/contexts";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-
+import { Trans } from "@lingui/react/macro";
+import { SquarePenIcon } from "lucide-react";
 import Shortcut from "../../shortcut";
 
 export function NewNoteButton() {
@@ -31,7 +30,7 @@ export function NewNoteButton() {
       </TooltipTrigger>
       <TooltipContent>
         <p>
-          Create new note <Shortcut macDisplay="⌘N" windowsDisplay="Ctrl+N" />
+          <Trans>Create new note</Trans> <Shortcut macDisplay="⌘N" windowsDisplay="Ctrl+N" />
         </p>
       </TooltipContent>
     </Tooltip>

@@ -1,6 +1,7 @@
 import type { ExtensionDefinition } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { WidgetOneByOneWrapper, WidgetTwoByOneWrapper, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
+import { Trans } from "@lingui/react/macro";
 import { PlugIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { EXTENSION_CONFIGS } from "../sidebar/extensions-view";
@@ -30,7 +31,9 @@ export default function Extensions({ selectedExtension, onExtensionSelect }: Ext
       <div className="p-4">
         <h2 className="text-xl font-semibold mb-4 text-neutral-700">Extensions</h2>
         <div className="bg-white rounded-lg p-4 shadow-sm border border-neutral-200">
-          <p className="text-neutral-500">Loading extension details...</p>
+          <p className="text-neutral-500">
+            <Trans>Loading extension details...</Trans>
+          </p>
         </div>
       </div>
     );
@@ -57,7 +60,7 @@ export default function Extensions({ selectedExtension, onExtensionSelect }: Ext
             )
             : (
               <span className="text-xs text-neutral-500 px-1.5 py-0.5 rounded border border-dashed border-neutral-300">
-                no tags
+                <Trans>no tags</Trans>
               </span>
             )}
         </div>

@@ -96,9 +96,11 @@ export default function General() {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
-                  <FormLabel>Open Hyprnote on startup</FormLabel>
+                  <FormLabel>
+                    <Trans>Open Hyprnote on startup</Trans>
+                  </FormLabel>
                   <FormDescription>
-                    Hyprnote will be opened automatically when you start your computer.
+                    <Trans>Hyprnote will be opened automatically when you start your computer.</Trans>
                   </FormDescription>
                 </div>
 
@@ -119,9 +121,11 @@ export default function General() {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
-                  <FormLabel>Display language</FormLabel>
+                  <FormLabel>
+                    <Trans>Display language</Trans>
+                  </FormLabel>
                   <FormDescription>
-                    This is the language you read.
+                    <Trans>This is the language you read.</Trans>
                   </FormDescription>
                 </div>
                 <Select onValueChange={field.onChange} value={field.value}>
@@ -153,7 +157,7 @@ export default function General() {
                     <Trans>Jargons</Trans>
                   </FormLabel>
                   <FormDescription>
-                    You can make Hyprnote takes these words into account when transcribing.
+                    <Trans>You can make Hyprnote takes these words into account when transcribing.</Trans>
                   </FormDescription>
                 </div>
                 <FormControl>

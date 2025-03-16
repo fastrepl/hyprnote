@@ -3,6 +3,7 @@ import { type ReactNode } from "react";
 
 import { type Template } from "@hypr/plugin-db";
 import { cn } from "@hypr/ui/lib/utils";
+import { Trans } from "@lingui/react/macro";
 
 interface TemplateListProps {
   searchQuery: string;
@@ -49,7 +50,7 @@ export function TemplateList({
           <section className="p-2">
             <h3 className="flex items-center gap-2 p-2 text-sm font-semibold text-neutral-700">
               <HeartIcon className="h-4 w-4" />
-              My Templates
+              <Trans>My Templates</Trans>
             </h3>
             <nav className="mt-2 rounded-md bg-neutral-50 p-2">
               <ul>
@@ -83,7 +84,7 @@ export function TemplateList({
         <section className="p-2">
           <h3 className="flex items-center gap-2 p-2 text-sm font-semibold text-neutral-700">
             <ZapIcon className="h-4 w-4" />
-            Official Templates
+            <Trans>Official Templates</Trans>
           </h3>
           <nav className="mt-2 rounded-md bg-neutral-50 p-2">
             <ul>

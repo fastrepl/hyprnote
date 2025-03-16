@@ -100,7 +100,7 @@ function Component() {
         className="absolute left-0 right-0 top-0 z-10 min-h-11 px-2 flex w-full items-center justify-between bg-transparent"
         data-tauri-drag-region
       >
-        <div /> {/* Empty div for spacing */}
+        <div />
         <PlayPauseButton />
       </header>
 

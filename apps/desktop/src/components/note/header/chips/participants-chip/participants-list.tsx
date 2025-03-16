@@ -95,7 +95,6 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
       return newSet;
     });
 
-    // Get the updated participant from the React Query cache
     const updatedParticipants = queryClient.getQueryData<Human[]>(["participants", sessionId!]);
     const updatedParticipant = updatedParticipants?.find(p => p.id === participantId);
 
@@ -151,7 +150,6 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
                     </a>
                   )}
 
-                  {/* Edit icon for locally added participants that haven't been edited yet */}
                   {locallyAddedIds.has(member.id) && !editedParticipantIds.has(member.id) && (
                     <Popover
                       open={openPopoverId === member.id}
@@ -189,7 +187,6 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
         ))}
       </div>
 
-      {/* Input for adding participants */}
       <div className="flex items-center gap-2 border-t border-border pt-2 mt-1">
         <input
           type="text"

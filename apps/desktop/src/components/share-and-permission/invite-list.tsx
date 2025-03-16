@@ -2,6 +2,7 @@ import { InvitedUser } from "./invited-user";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
+import { Trans } from "@lingui/react/macro";
 
 export interface InviteListProps {
   email: string;
@@ -24,7 +25,7 @@ export const InviteList = ({
         autoFocus={false}
       />
       <Button variant="outline">
-        Invite
+        <Trans>Invite</Trans>
       </Button>
     </div>
     <div className="space-y-3">

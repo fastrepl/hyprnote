@@ -69,7 +69,7 @@ export default function Calendar() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem disabled value="new">
-                New
+                <Trans>New</Trans>
               </SelectItem>
               {(calendars.data ?? [])
                 .filter((calendar) => !calendar.selected)

@@ -8,6 +8,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@hypr/ui/components/ui/breadcrumb";
+import { Trans } from "@lingui/react/macro";
 import { data } from "../constants";
 import { type NavNames } from "../types";
 
@@ -44,7 +45,7 @@ export function SettingsPanelBody({
                 onClick={() => setActive(data.nav[0].name)}
                 className="hover:text-black hover:underline decoration-dotted cursor-pointer"
               >
-                Settings
+                <Trans>Settings</Trans>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />

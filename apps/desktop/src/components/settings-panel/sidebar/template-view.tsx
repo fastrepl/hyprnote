@@ -6,6 +6,7 @@ import { type NavNames } from "../types";
 
 import { useHypr } from "@/contexts";
 import { type Template } from "@hypr/plugin-db";
+import { Trans } from "@lingui/react/macro";
 
 export interface TemplateViewProps {
   searchQuery: string;
@@ -39,7 +40,9 @@ export function TemplateView({
             className="flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100"
           >
             <ChevronLeftIcon className="h-4 w-4" />
-            <span>Back to Settings</span>
+            <span>
+              <Trans>Back to Settings</Trans>
+            </span>
           </button>
         </header>
 
@@ -71,7 +74,7 @@ export function TemplateView({
           }}
         >
           <FilePlusIcon className="h-4 w-4" />
-          Create Template
+          <Trans>Create Template</Trans>
         </button>
       </footer>
     </div>

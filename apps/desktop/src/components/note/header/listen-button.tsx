@@ -6,6 +6,7 @@ import SoundIndicator from "@/components/sound-indicator";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { Trans } from "@lingui/react/macro";
 
 interface ListenButtonProps {
   isListening: boolean;
@@ -44,7 +45,9 @@ export default function ListenButton({
       <Tooltip>
         <TooltipTrigger asChild>{button}</TooltipTrigger>
         <TooltipContent side="bottom" align="end">
-          <p>Start recording</p>
+          <p>
+            <Trans>Start recording</Trans>
+          </p>
         </TooltipContent>
       </Tooltip>
     );
@@ -57,13 +60,15 @@ export default function ListenButton({
           <PopoverTrigger asChild>{button}</PopoverTrigger>
         </TooltipTrigger>
         <TooltipContent side="bottom" align="end">
-          <p>Stop recording</p>
+          <p>
+            <Trans>Stop recording</Trans>
+          </p>
         </TooltipContent>
       </Tooltip>
       <PopoverContent className="w-60 p-4" align="end">
         <div className="flex flex-col items-center gap-3 w-full">
           <div className="text-sm font-medium">
-            Stop listening to the meeting?
+            <Trans>Stop listening to the meeting?</Trans>
           </div>
 
           <Button
@@ -74,7 +79,7 @@ export default function ListenButton({
             }}
             className=" w-full"
           >
-            Stop
+            <Trans>Stop</Trans>
           </Button>
         </div>
       </PopoverContent>

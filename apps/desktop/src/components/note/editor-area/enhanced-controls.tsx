@@ -2,6 +2,7 @@ import { AlignLeft, Zap } from "lucide-react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/ui/lib/utils";
+import { Trans } from "@lingui/react/macro";
 
 interface EnhanceControlsProps {
   showRaw: boolean;
@@ -33,7 +34,9 @@ export function EnhanceControls({ showRaw, setShowRaw }: EnhanceControlsProps) {
               </div>
             </PopoverTrigger>
             <PopoverContent>
-              <div>Template Selector</div>
+              <div>
+                <Trans>Template Selector</Trans>
+              </div>
             </PopoverContent>
           </Popover>
         )

@@ -8,6 +8,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 
 import { cn } from "@hypr/ui/lib/utils";
+import { Trans } from "@lingui/react/macro";
 import Shortcut from "../../shortcut";
 
 export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
@@ -55,7 +56,7 @@ export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
         </TooltipTrigger>
         <TooltipContent>
           <p>
-            Toggle left sidebar <Shortcut macDisplay="⌘L" windowsDisplay="Ctrl+L" />
+            <Trans>Toggle left sidebar</Trans> <Shortcut macDisplay="⌘L" windowsDisplay="Ctrl+L" />
           </p>
         </TooltipContent>
       </Tooltip>

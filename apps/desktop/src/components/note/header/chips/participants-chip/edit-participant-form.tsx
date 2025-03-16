@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
+import { Trans } from "@lingui/react/macro";
 
 const schema = z.object({
   email: z.string().email().optional().or(z.literal("")),
@@ -90,7 +91,9 @@ export function EditParticipantForm({
             name="email"
             render={({ field }) => (
               <FormItem className="max-w-sm">
-                <FormLabel>Email</FormLabel>
+                <FormLabel>
+                  <Trans>Email</Trans>
+                </FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Email address"
@@ -109,7 +112,9 @@ export function EditParticipantForm({
             name="jobTitle"
             render={({ field }) => (
               <FormItem className="max-w-sm">
-                <FormLabel>Job Title</FormLabel>
+                <FormLabel>
+                  <Trans>Job Title</Trans>
+                </FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Job title"
@@ -128,9 +133,11 @@ export function EditParticipantForm({
             render={({ field }) => (
               <FormItem className="max-w-sm">
                 <div>
-                  <FormLabel>LinkedIn Username</FormLabel>
+                  <FormLabel>
+                    <Trans>LinkedIn Username</Trans>
+                  </FormLabel>
                   <FormDescription>
-                    Your LinkedIn username (the part after linkedin.com/in/)
+                    <Trans>Your LinkedIn username (the part after linkedin.com/in/)</Trans>
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -156,7 +163,7 @@ export function EditParticipantForm({
               disabled={updateParticipantMutation.isPending}
               className="px-3 py-1 bg-neutral-700 hover:bg-neutral-600 text-neutral-100 rounded-md text-xs font-medium transition-colors"
             >
-              {updateParticipantMutation.isPending ? "Saving..." : "Save Changes"}
+              {updateParticipantMutation.isPending ? <Trans>Saving...</Trans> : <Trans>Save Changes</Trans>}
             </button>
           </div>
         </form>

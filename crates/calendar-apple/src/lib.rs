@@ -14,6 +14,9 @@ use hypr_calendar_interface::{
     Calendar, CalendarSource, Error, Event, EventFilter, Participant, Platform,
 };
 
+mod models;
+pub use models::*;
+
 pub struct Handle {
     event_store: Retained<EKEventStore>,
     contacts_store: Retained<CNContactStore>,

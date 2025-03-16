@@ -3,9 +3,10 @@ use std::collections::HashMap;
 use apalis::prelude::{Data, Error};
 use chrono::{DateTime, Utc};
 
-use crate::state::WorkerState;
-use hypr_calendar_interface::CalendarSource;
+use hypr_calendar_google::GetTokenOutput;
 use hypr_nango::{NangoCredentials, NangoIntegration};
+
+use crate::state::WorkerState;
 
 #[allow(unused)]
 #[derive(Default, Debug, Clone)]
@@ -14,6 +15,25 @@ pub struct Job(DateTime<Utc>);
 impl From<DateTime<Utc>> for Job {
     fn from(t: DateTime<Utc>) -> Self {
         Job(t)
+    }
+}
+
+#[derive(Clone)]
+struct AuthProvider {
+    pub nango: hypr_nango::NangoClient,
+}
+
+impl AuthProvider {
+    pub async fn impl_get_token(
+        &self,
+    ) -> Result<Option<String>, Box<dyn std::error::Error + Send + Sync>> {
+        Ok(Some("TODO".to_string()))
+    }
+}
+
+impl hypr_calendar_google::GetToken for AuthProvider {
+    fn get_token(&self, _scopes: &[&str]) -> GetTokenOutput {
+        Box::pin(self.impl_get_token())
     }
 }
 
@@ -72,37 +92,37 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
 
         for (kind, integrations) in integration_groups {
             for integration in integrations {
-                let token = get_oauth_access_token(&ctx.nango, &integration)
-                    .await
-                    .map_err(|e| e.as_worker_error())?;
+                // let token = get_oauth_access_token(&ctx.nango, &integration)
+                //     .await
+                //     .map_err(|e| e.as_worker_error())?;
 
-                assert!(kind == NangoIntegration::GoogleCalendar);
-                let gcal = hypr_calendar_google::Handle::new(token).await;
+                // assert!(kind == NangoIntegration::GoogleCalendar);
+
+                let gcal = hypr_calendar_google::Client::new(AuthProvider {
+                    nango: ctx.nango.clone(),
+                });
 
                 let filter = hypr_calendar_interface::EventFilter {
                     calendars: vec![],
                     from: now - chrono::Duration::days(1),
                     to: now + chrono::Duration::days(1),
                 };
-                let events = gcal
-                    .list_events(filter)
-                    .await
-                    .map_err(|e| Into::<crate::Error>::into(e).as_worker_error())?;
+                let events = gcal.list_events("TODO_CALENDAR_ID").await.unwrap();
 
                 for e in events {
-                    let event = hypr_db_user::Event {
-                        id: uuid::Uuid::new_v4().to_string(),
-                        tracking_id: e.id.clone(),
-                        user_id: user_id.clone(),
-                        calendar_id: "TODO".to_string(),
-                        name: e.name.clone(),
-                        note: e.note.clone(),
-                        start_date: e.start_date,
-                        end_date: e.end_date,
-                        google_event_url: None,
-                    };
+                    // let event = hypr_db_user::Event {
+                    //     id: uuid::Uuid::new_v4().to_string(),
+                    //     tracking_id: e.id.clone(),
+                    //     user_id: user_id.clone(),
+                    //     calendar_id: "TODO".to_string(),
+                    //     name: e.name.clone(),
+                    //     note: e.note.clone(),
+                    //     start_date: e.start_date,
+                    //     end_date: e.end_date,
+                    //     google_event_url: None,
+                    // };
 
-                    let _ = user_db.upsert_event(event).await;
+                    // let _ = user_db.upsert_event(event).await;
                 }
             }
         }

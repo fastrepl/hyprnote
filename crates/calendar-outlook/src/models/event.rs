@@ -1,4 +1,4 @@
-// https://learn.microsoft.com/en-us/graph/delta-query-events?tabs=http#sample-initial-response
+// https://learn.microsoft.com/en-us/graph/delta-query-events
 
 // TODO
 // use chrono::{DateTime, Utc};

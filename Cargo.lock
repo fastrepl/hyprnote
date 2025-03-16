@@ -1797,6 +1797,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "calendar"
+version = "0.1.0"
+dependencies = [
+ "calendar-apple",
+ "calendar-google",
+ "calendar-interface",
+ "calendar-outlook",
+ "schemars",
+ "serde",
+ "serde_json",
+ "specta",
+ "thiserror 2.0.12",
+]
+
+[[package]]
 name = "calendar-apple"
 version = "0.1.0"
 dependencies = [

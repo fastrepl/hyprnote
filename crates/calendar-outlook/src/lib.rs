@@ -6,8 +6,6 @@ pub use models::*;
 
 use graph_rs_sdk::GraphClient;
 
-use hypr_calendar_interface::Calendar;
-
 pub struct Client {
     inner: GraphClient,
 }
@@ -49,7 +47,7 @@ pub struct UserClient<'a> {
 
 impl<'a> UserClient<'a> {
     // https://learn.microsoft.com/en-us/graph/api/user-list-calendars
-    pub async fn list_calendars(&self) -> Result<Vec<Calendar>, Error> {
+    pub async fn list_calendars(&self) -> Result<Vec<()>, Error> {
         let _response = self
             .client
             .user(&self.user_id)

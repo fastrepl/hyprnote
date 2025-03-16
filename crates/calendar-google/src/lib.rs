@@ -1,8 +1,8 @@
 // https://developers.google.com/calendar/api/v3/reference/calendars
 // https://developers.google.com/calendar/api/v3/reference/events
 
+pub use google_calendar3::api::{CalendarListEntry, Event};
 use google_calendar3::{
-    api::{CalendarListEntry, Event},
     hyper_rustls::{self, HttpsConnector},
     hyper_util::{self, client::legacy::connect::HttpConnector},
     CalendarHub,
@@ -14,13 +14,13 @@ mod errors;
 pub use auth::*;
 pub use errors::*;
 
-pub struct Handle {
+#[derive(Clone)]
+pub struct Client {
     hub: CalendarHub<HttpsConnector<HttpConnector>>,
 }
 
-// impl CalendarSource for Handle {
-impl Handle {
-    pub async fn new() -> Result<Self, crate::Error> {
+impl Client {
+    pub fn new(auth: impl auth::GetToken + 'static) -> Self {
         let client =
             hyper_util::client::legacy::Client::builder(hyper_util::rt::TokioExecutor::new())
                 .build(
@@ -32,14 +32,12 @@ impl Handle {
                         .build(),
                 );
 
-        let auth = crate::auth::Storage {};
         let hub = CalendarHub::new(client, auth);
-
-        Ok(Self { hub })
+        Self { hub }
     }
 }
 
-impl Handle {
+impl Client {
     pub async fn list_calendars(&self) -> Result<Vec<CalendarListEntry>, crate::Error> {
         let (_res, calendar_list) = self.hub.calendar_list().list().doit().await?;
         let calendars = calendar_list.items.unwrap_or_default();

@@ -3,6 +3,11 @@ resolver = "2"
 members = ["apps/app/server", "apps/desktop/src-tauri", "apps/mobile/src-tauri", "crates/*", "plugins/*"]
 
 [workspace.dependencies]
+hypr-calendar = { path = "crates/calendar", package = "calendar" }
+hypr-calendar-apple = { path = "crates/calendar-apple", package = "calendar-apple" }
+hypr-calendar-google = { path = "crates/calendar-google", package = "calendar-google" }
+hypr-calendar-interface = { path = "crates/calendar-interface", package = "calendar-interface" }
+hypr-calendar-outlook = { path = "crates/calendar-outlook", package = "calendar-outlook" }
 hypr-data = { path = "crates/data", package = "data" }
 hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }

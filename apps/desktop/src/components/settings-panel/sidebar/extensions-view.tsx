@@ -49,7 +49,7 @@ export const ExtensionsView = memo(function ExtensionsView({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="shrink-0 border-b p-2 bg-white">
+      <header className="border-b p-2">
         <button
           onClick={handleBackClick}
           className="flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100"
@@ -59,7 +59,7 @@ export const ExtensionsView = memo(function ExtensionsView({
         </button>
       </header>
 
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         <ExtensionList
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}

@@ -42,7 +42,7 @@ export function ExtensionList({
 
   return (
     <div className="flex-1 flex flex-col h-full">
-      <div className="bg-white p-2">
+      <div className="bg-background p-2">
         <div className="relative">
           <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-neutral-400" />
           <input

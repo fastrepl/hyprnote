@@ -31,8 +31,8 @@ export function TemplateView({
   const { userId } = useHypr();
 
   return (
-    <div className="flex h-full flex-col justify-between">
-      <div className="flex-1 overflow-auto">
+    <div className="flex h-full flex-col">
+      <div className="flex-1 overflow-hidden">
         <header className="border-b p-2">
           <button
             onClick={() => setActive(data.nav[0].name)}

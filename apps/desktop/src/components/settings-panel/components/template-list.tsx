@@ -31,8 +31,8 @@ export function TemplateList({
   };
 
   return (
-    <>
-      <div className="sticky top-0 bg-background p-2">
+    <div className="flex-1 flex flex-col h-full">
+      <div className="bg-background p-2">
         <div className="relative">
           <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-neutral-400" />
           <input
@@ -44,15 +44,50 @@ export function TemplateList({
         </div>
       </div>
 
-      {customTemplates && customTemplates.length > 0 && (
+      <div className="flex-1 overflow-y-auto scrollbar-none">
+        {customTemplates && customTemplates.length > 0 && (
+          <section className="p-2">
+            <h3 className="flex items-center gap-2 p-2 text-sm font-semibold text-neutral-700">
+              <HeartIcon className="h-4 w-4" />
+              My Templates
+            </h3>
+            <nav className="mt-2 rounded-md bg-neutral-50 p-2">
+              <ul>
+                {customTemplates
+                  .filter((template) => filterTemplate(template, searchQuery))
+                  .map((template) => (
+                    <li key={template.id}>
+                      <button
+                        onClick={() => onTemplateSelect(template)}
+                        className={cn(
+                          "flex w-full flex-col gap-1 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
+                          selectedTemplate?.id === template.id
+                            && "bg-neutral-200 font-bold text-neutral-700",
+                        )}
+                      >
+                        <span>{template.title || "Untitled Template"}</span>
+                        {template.tags && template.tags.length > 0 && (
+                          <div className="flex items-center gap-1 text-xs text-neutral-500">
+                            <TagIcon className="h-3 w-3" />
+                            <span>{template.tags.join(", ")}</span>
+                          </div>
+                        )}
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            </nav>
+          </section>
+        )}
+
         <section className="p-2">
           <h3 className="flex items-center gap-2 p-2 text-sm font-semibold text-neutral-700">
-            <HeartIcon className="h-4 w-4" />
-            My Templates
+            <ZapIcon className="h-4 w-4" />
+            Official Templates
           </h3>
           <nav className="mt-2 rounded-md bg-neutral-50 p-2">
             <ul>
-              {customTemplates
+              {builtinTemplates
                 .filter((template) => filterTemplate(template, searchQuery))
                 .map((template) => (
                   <li key={template.id}>
@@ -77,41 +112,8 @@ export function TemplateList({
             </ul>
           </nav>
         </section>
-      )}
-
-      <section className="p-2">
-        <h3 className="flex items-center gap-2 p-2 text-sm font-semibold text-neutral-700">
-          <ZapIcon className="h-4 w-4" />
-          Official Templates
-        </h3>
-        <nav className="mt-2 rounded-md bg-neutral-50 p-2">
-          <ul>
-            {builtinTemplates
-              .filter((template) => filterTemplate(template, searchQuery))
-              .map((template) => (
-                <li key={template.id}>
-                  <button
-                    onClick={() => onTemplateSelect(template)}
-                    className={cn(
-                      "flex w-full flex-col gap-1 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
-                      selectedTemplate?.id === template.id
-                        && "bg-neutral-200 font-bold text-neutral-700",
-                    )}
-                  >
-                    <span>{template.title || "Untitled Template"}</span>
-                    {template.tags && template.tags.length > 0 && (
-                      <div className="flex items-center gap-1 text-xs text-neutral-500">
-                        <TagIcon className="h-3 w-3" />
-                        <span>{template.tags.join(", ")}</span>
-                      </div>
-                    )}
-                  </button>
-                </li>
-              ))}
-          </ul>
-        </nav>
-      </section>
-    </>
+      </div>
+    </div>
   );
 }
 

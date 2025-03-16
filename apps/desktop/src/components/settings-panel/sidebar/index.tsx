@@ -32,10 +32,13 @@ export function SettingsSidebar({
 }: SettingsSidebarProps) {
   return (
     <aside
-      className="flex flex-col border-r bg-background w-[52px] min-w-[52px] h-full md:w-[240px] md:min-w-[240px]"
-      data-collapsed={active !== "Templates"}
+      className={`flex flex-col border-r bg-background ${
+        active !== "Templates" && active !== "Extensions" 
+          ? "w-[52px] min-w-[52px] md:w-[240px] md:min-w-[240px]" 
+          : "w-0 min-w-0 md:w-[240px] md:min-w-[240px]"
+      } h-full`}
     >
-      <div className="h-full w-full transition-all duration-300 lg:group-data-[collapsed=true]:w-[52px]">
+      <div className="h-full w-full transition-all duration-300">
         {active === "Templates"
           ? (
             <TemplateView

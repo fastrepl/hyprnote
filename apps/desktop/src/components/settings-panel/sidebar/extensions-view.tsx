@@ -49,7 +49,7 @@ export const ExtensionsView = memo(function ExtensionsView({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="border-b p-2">
+      <header className="border-b p-2 hidden md:block">
         <button
           onClick={handleBackClick}
           className="flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100"

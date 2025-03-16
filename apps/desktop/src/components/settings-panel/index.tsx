@@ -95,6 +95,7 @@ export default function SettingsPanel() {
             <SettingsPanelBody
               title={active}
               selectedTemplate={selectedTemplate}
+              setActive={setActive}
             >
               {active === "General" && <GeneralComponent />}
               {active === "Calendar" && <CalendarComponent />}

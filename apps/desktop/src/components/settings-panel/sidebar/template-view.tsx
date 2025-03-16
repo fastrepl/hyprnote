@@ -53,7 +53,7 @@ export function TemplateView({
         />
       </div>
 
-      <footer className="mt-auto border-t p-2">
+      <footer className="mt-auto border-t p-2 hidden md:block">
         <button
           className="flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100"
           onClick={() => {
@@ -71,7 +71,7 @@ export function TemplateView({
           }}
         >
           <FilePlusIcon className="h-4 w-4" />
-          <span className="hidden md:inline-block">Create Template</span>
+          Create Template
         </button>
       </footer>
     </div>

@@ -20,7 +20,7 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
                 <button
                   onClick={() => setActive(item.name)}
                   className={cn(
-                    "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 focus:outline-none",
+                    "h-9 flex w-full items-center justify-center md:justify-start gap-2 rounded-lg p-2 text-sm text-neutral-600 focus:outline-none",
                     item.name === active
                       ? "bg-primary text-primary-foreground"
                       : "hover:bg-neutral-100",
@@ -39,7 +39,7 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
         <button
           onClick={() => setActive("Profile")}
           className={cn(
-            "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 focus:outline-none",
+            "h-9 flex w-full items-center justify-center md:justify-start gap-2 rounded-lg p-2 text-sm text-neutral-600 focus:outline-none",
             active === "Profile"
               ? "bg-primary text-primary-foreground"
               : "hover:bg-neutral-100",

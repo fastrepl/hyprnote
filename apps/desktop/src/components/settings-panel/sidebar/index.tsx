@@ -33,8 +33,8 @@ export function SettingsSidebar({
   return (
     <aside
       className={`flex flex-col border-r bg-background ${
-        active !== "Templates" && active !== "Extensions" 
-          ? "w-[52px] min-w-[52px] md:w-[240px] md:min-w-[240px]" 
+        active !== "Templates" && active !== "Extensions"
+          ? "w-[52px] min-w-[52px] md:w-[240px] md:min-w-[240px]"
           : "w-0 min-w-0 md:w-[240px] md:min-w-[240px]"
       } h-full`}
     >

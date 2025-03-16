@@ -8,17 +8,21 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@hypr/ui/components/ui/breadcrumb";
+import { data } from "../constants";
+import { type NavNames } from "../types";
 
 interface SettingsPanelBodyProps {
   title: string;
   selectedTemplate: Template | null;
   children: ReactNode;
+  setActive: (name: NavNames | "Profile") => void;
 }
 
 export function SettingsPanelBody({
   title,
   selectedTemplate,
   children,
+  setActive,
 }: SettingsPanelBodyProps) {
   return (
     <main className="flex flex-1 flex-col overflow-hidden">
@@ -26,7 +30,10 @@ export function SettingsPanelBody({
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink>
+              <BreadcrumbLink
+                onClick={() => setActive(data.nav[0].name)}
+                className="hover:text-black hover:underline decoration-dotted cursor-pointer"
+              >
                 Settings
               </BreadcrumbLink>
             </BreadcrumbItem>

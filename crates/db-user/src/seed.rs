@@ -3,11 +3,11 @@ use super::{
     UserDatabase,
 };
 
-pub async fn seed(db: &UserDatabase) -> Result<(), crate::Error> {
+pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), crate::Error> {
     let now = chrono::Utc::now();
 
     let yujong = Human {
-        id: uuid::Uuid::new_v4().to_string(),
+        id: user_id.into(),
         is_user: true,
         full_name: Some("Yujong Lee".to_string()),
         email: Some("yujonglee@hyprnote.com".to_string()),

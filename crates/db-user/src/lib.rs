@@ -147,6 +147,7 @@ mod tests {
     #[tokio::test]
     async fn test_seed() {
         let db = setup_db().await;
-        seed(&db).await.unwrap();
+        let user_id = uuid::Uuid::new_v4().to_string();
+        seed(&db, user_id).await.unwrap();
     }
 }

@@ -1,5 +1,7 @@
 use std::future::Future;
 
+use tauri::Manager;
+
 pub trait AppExt<R: tauri::Runtime> {
     fn setup_db(&self) -> impl Future<Output = Result<(), String>>;
 }
@@ -53,8 +55,19 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
 
                 app.db_attach(db).await.unwrap();
 
-                if let Some(user_id) = user_id {
-                    app.db_ensure_user(&user_id).await.unwrap();
+                #[cfg(debug_assertions)]
+                {
+                    let state = app.state::<tauri_plugin_db::ManagedState>();
+                    let s = state.lock().await;
+                    let user_db = s.db.as_ref().unwrap();
+
+                    if let Some(id) = user_id.as_ref() {
+                        hypr_db_user::seed(user_db, id).await.unwrap();
+                    }
+                }
+
+                if let Some(id) = user_id.as_ref() {
+                    app.db_ensure_user(id).await.unwrap();
                 }
             }
         }

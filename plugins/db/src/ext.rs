@@ -33,11 +33,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
         let user_db = hypr_db_user::UserDatabase::from(db);
         hypr_db_user::migrate(&user_db).await?;
 
-        #[cfg(debug_assertions)]
-        {
-            hypr_db_user::seed(&user_db).await?;
-        }
-
         s.db = Some(user_db);
 
         Ok(())

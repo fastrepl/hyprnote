@@ -49,7 +49,9 @@ export default function Calendar() {
 
   return (
     <div>
-      <h3 className="text-sm font-medium">Calendars</h3>
+      <h3 className="text-sm font-medium">
+        <Trans>Calendars</Trans>
+      </h3>
       <ul className="flex flex-col px-1">
         {supportedIntegrations.map((type) => (
           <li key={type}>
@@ -57,56 +59,6 @@ export default function Calendar() {
           </li>
         ))}
       </ul>
-
-      <div className="mt-6">
-        <div className="flex flex-row items-center gap-4">
-          <Select
-            value="new"
-            onValueChange={(id) => mutation.mutate({ calendar_id: id, selected: true })}
-          >
-            <SelectTrigger className="max-w-[100px] focus:outline-none focus:ring-0 focus:ring-offset-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem disabled value="new">
-                <Trans>New</Trans>
-              </SelectItem>
-              {(calendars.data ?? [])
-                .filter((calendar) => !calendar.selected)
-                .map((calendar, i) => (
-                  <SelectItem key={i} value={calendar.id}>
-                    {calendar.name}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <ul className="mt-2 flex flex-col gap-2 pl-2">
-          {(calendars.data ?? [])
-            .filter((calendar) => calendar.selected)
-            .map((calendar, i) => (
-              <li
-                key={i}
-                className="flex flex-row justify-between rounded-md p-1 hover:bg-neutral-50"
-              >
-                <div className="flex flex-row items-center gap-1">
-                  <span>- {calendar.name}</span>
-                </div>
-                <button>
-                  <XIcon
-                    size={16}
-                    onClick={() =>
-                      mutation.mutate({
-                        calendar_id: calendar.id,
-                        selected: false,
-                      })}
-                  />
-                </button>
-              </li>
-            ))}
-        </ul>
-      </div>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { ChevronLeftIcon, FilePlusIcon } from "lucide-react";
 
 import { TemplateList } from "../components/template-list";
-import { data } from "../constants";
 import { type NavNames } from "../types";
 
 import { useHypr } from "@/contexts";
@@ -36,7 +35,7 @@ export function TemplateView({
       <div className="flex-1 overflow-hidden">
         <header className="border-b p-2">
           <button
-            onClick={() => setActive(data.nav[0].name)}
+            onClick={() => setActive("General")}
             className="flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100"
           >
             <ChevronLeftIcon className="h-4 w-4" />

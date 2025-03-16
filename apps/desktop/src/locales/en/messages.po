@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
-#: src/components/settings-panel/views/calendar.tsx:170
+#: src/components/settings-panel/views/calendar.tsx:122
 msgid "{0}"
 msgstr "{0}"
 
@@ -22,12 +22,16 @@ msgstr "{0}"
 #~ msgid "{0} ~ {1}"
 #~ msgstr "{0} ~ {1}"
 
+#: src/components/settings-panel/sidebar/settings-view.tsx:36
+#~ msgid "{nameKey}"
+#~ msgstr "{nameKey}"
+
 #: src/components/settings/calendar.tsx:226
 #~ msgid "<0>{0}</0><1>{1}</1>"
 #~ msgstr "<0>{0}</0><1>{1}</1>"
 
-#: src/components/settings-panel/views/calendar.tsx:239
-#: src/components/settings-panel/views/calendar.tsx:267
+#: src/components/settings-panel/views/calendar.tsx:191
+#: src/components/settings-panel/views/calendar.tsx:219
 msgid "Access granted"
 msgstr "Access granted"
 
@@ -81,26 +85,36 @@ msgstr "Apple"
 msgid "Automatic meeting detection"
 msgstr "Automatic meeting detection"
 
-#: src/components/settings-panel/sidebar/template-view.tsx:44
-#: src/components/settings-panel/sidebar/extensions-view.tsx:60
+#: src/components/settings-panel/sidebar/template-view.tsx:43
+#: src/components/settings-panel/sidebar/extensions-view.tsx:59
 msgid "Back to Settings"
 msgstr "Back to Settings"
 
-#: src/components/settings/billing.tsx:17
-#~ msgid "Billing"
-#~ msgstr "Billing"
+#: src/components/settings-panel/views/index.tsx:53
+#: src/components/settings-panel/sidebar/settings-view.tsx:127
+msgid "Billing"
+msgstr "Billing"
 
-#: src/components/settings-panel/views/calendar.tsx:235
+#: src/components/settings-panel/views/index.tsx:43
+#: src/components/settings-panel/sidebar/settings-view.tsx:52
+msgid "Calendar"
+msgstr "Calendar"
+
+#: src/components/settings-panel/views/calendar.tsx:187
 msgid "Calendar Access"
 msgstr "Calendar Access"
 
-#: src/components/settings-panel/views/calendar.tsx:177
+#: src/components/settings-panel/views/calendar.tsx:129
 msgid "Calendar connected"
 msgstr "Calendar connected"
 
 #: src/components/settings/calendar.tsx:189
 #~ msgid "Calendar connected. Hyprnote will periodically sync your calendar events."
 #~ msgstr "Calendar connected. Hyprnote will periodically sync your calendar events."
+
+#: src/components/settings-panel/views/calendar.tsx:53
+msgid "Calendars"
+msgstr "Calendars"
 
 #: src/components/settings-panel/views/tags.tsx:226
 #~ msgid "Cancel"
@@ -118,15 +132,15 @@ msgstr "Company Description"
 msgid "Company Name"
 msgstr "Company Name"
 
-#: src/components/settings-panel/views/calendar.tsx:191
+#: src/components/settings-panel/views/calendar.tsx:143
 msgid "Connect"
 msgstr "Connect"
 
-#: src/components/settings-panel/views/calendar.tsx:177
+#: src/components/settings-panel/views/calendar.tsx:129
 msgid "Connect to sync your meetings"
 msgstr "Connect to sync your meetings"
 
-#: src/components/settings-panel/views/calendar.tsx:263
+#: src/components/settings-panel/views/calendar.tsx:215
 msgid "Contacts Access"
 msgstr "Contacts Access"
 
@@ -142,7 +156,7 @@ msgstr "Continue"
 msgid "Create new note"
 msgstr "Create new note"
 
-#: src/components/settings-panel/sidebar/template-view.tsx:77
+#: src/components/settings-panel/sidebar/template-view.tsx:76
 msgid "Create Template"
 msgstr "Create Template"
 
@@ -160,7 +174,7 @@ msgstr "Describe the content and purpose of this section"
 msgid "Description"
 msgstr "Description"
 
-#: src/components/settings-panel/views/general.tsx:125
+#: src/components/settings-panel/views/general.tsx:133
 msgid "Display language"
 msgstr "Display language"
 
@@ -188,12 +202,22 @@ msgstr "Email separated by commas"
 msgid "Enter a section title"
 msgstr "Enter a section title"
 
+#: src/components/settings-panel/views/index.tsx:49
+#: src/components/settings-panel/sidebar/settings-view.tsx:97
+msgid "Extensions"
+msgstr "Extensions"
+
+#: src/components/settings-panel/views/index.tsx:41
+#: src/components/settings-panel/sidebar/settings-view.tsx:37
+msgid "General"
+msgstr "General"
+
 #: src/routes/login.tsx:132
 msgid "Get Started"
 msgstr "Get Started"
 
-#: src/components/settings-panel/views/calendar.tsx:250
-#: src/components/settings-panel/views/calendar.tsx:278
+#: src/components/settings-panel/views/calendar.tsx:202
+#: src/components/settings-panel/views/calendar.tsx:230
 msgid "Grant Access"
 msgstr "Grant Access"
 
@@ -209,7 +233,7 @@ msgstr "Grant Access"
 msgid "Hypercharge"
 msgstr "Hypercharge"
 
-#: src/components/settings-panel/views/general.tsx:103
+#: src/components/settings-panel/views/general.tsx:111
 msgid "Hyprnote will be opened automatically when you start your computer."
 msgstr "Hyprnote will be opened automatically when you start your computer."
 
@@ -225,7 +249,7 @@ msgstr "Invite"
 msgid "Invite members"
 msgstr "Invite members"
 
-#: src/components/settings-panel/views/general.tsx:157
+#: src/components/settings-panel/views/general.tsx:171
 msgid "Jargons"
 msgstr "Jargons"
 
@@ -273,8 +297,8 @@ msgid "My Templates"
 msgstr "My Templates"
 
 #: src/components/settings-panel/views/calendar.tsx:72
-msgid "New"
-msgstr "New"
+#~ msgid "New"
+#~ msgstr "New"
 
 #: src/routes/app.index.tsx:13
 msgid "New note"
@@ -308,11 +332,16 @@ msgstr "no tags"
 #~ msgid "Notes"
 #~ msgstr "Notes"
 
+#: src/components/settings-panel/views/index.tsx:45
+#: src/components/settings-panel/sidebar/settings-view.tsx:67
+msgid "Notifications"
+msgstr "Notifications"
+
 #: src/components/settings-panel/components/template-list.tsx:89
 msgid "Official Templates"
 msgstr "Official Templates"
 
-#: src/components/settings-panel/views/general.tsx:100
+#: src/components/settings-panel/views/general.tsx:108
 msgid "Open Hyprnote on startup"
 msgstr "Open Hyprnote on startup"
 
@@ -320,7 +349,7 @@ msgstr "Open Hyprnote on startup"
 msgid "Open Note"
 msgstr "Open Note"
 
-#: src/components/settings-panel/views/calendar.tsx:268
+#: src/components/settings-panel/views/calendar.tsx:220
 msgid "Optional for participant suggestions"
 msgstr "Optional for participant suggestions"
 
@@ -345,7 +374,8 @@ msgstr "Owner"
 msgid "people"
 msgstr "people"
 
-#: src/components/settings-panel/sidebar/settings-view.tsx:51
+#: src/components/settings-panel/views/index.tsx:55
+#: src/components/settings-panel/sidebar/settings-view.tsx:147
 msgid "Profile"
 msgstr "Profile"
 
@@ -357,7 +387,7 @@ msgstr "Publish your note"
 #~ msgid "Recent Notes"
 #~ msgstr "Recent Notes"
 
-#: src/components/settings-panel/views/calendar.tsx:240
+#: src/components/settings-panel/views/calendar.tsx:192
 msgid "Required for syncing calendar events"
 msgstr "Required for syncing calendar events"
 
@@ -402,7 +432,7 @@ msgstr "Search templates..."
 msgid "Sections"
 msgstr "Sections"
 
-#: src/components/settings-panel/views/general.tsx:134
+#: src/components/settings-panel/views/general.tsx:148
 msgid "Select language"
 msgstr "Select language"
 
@@ -410,7 +440,8 @@ msgstr "Select language"
 msgid "Send invite"
 msgstr "Send invite"
 
-#: src/components/settings-panel/views/index.tsx:48
+#: src/components/settings-panel/index.tsx:77
+#: src/components/settings-panel/views/index.tsx:71
 msgid "Settings"
 msgstr "Settings"
 
@@ -450,9 +481,10 @@ msgstr "Stop recording"
 #~ msgid "Tag name"
 #~ msgstr "Tag name"
 
-#: src/components/settings/billing.tsx:8
-#~ msgid "Team"
-#~ msgstr "Team"
+#: src/components/settings-panel/views/index.tsx:51
+#: src/components/settings-panel/sidebar/settings-view.tsx:112
+msgid "Team"
+msgstr "Team"
 
 #: src/components/share-and-permission/participants-selector.tsx:34
 msgid "Teamspace"
@@ -462,6 +494,11 @@ msgstr "Teamspace"
 msgid "Template Selector"
 msgstr "Template Selector"
 
+#: src/components/settings-panel/views/index.tsx:47
+#: src/components/settings-panel/sidebar/settings-view.tsx:82
+msgid "Templates"
+msgstr "Templates"
+
 #: src/components/settings-panel/views/billing.tsx:94
 msgid "There's a plan for everyone"
 msgstr "There's a plan for everyone"
@@ -470,7 +507,7 @@ msgstr "There's a plan for everyone"
 msgid "This is a short description of your company."
 msgstr "This is a short description of your company."
 
-#: src/components/settings-panel/views/general.tsx:128
+#: src/components/settings-panel/views/general.tsx:136
 msgid "This is the language you read."
 msgstr "This is the language you read."
 
@@ -494,7 +531,7 @@ msgstr "Toggle left sidebar"
 msgid "Toggle right panel"
 msgstr "Toggle right panel"
 
-#: src/components/settings-panel/views/general.tsx:165
+#: src/components/settings-panel/views/general.tsx:179
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 
@@ -547,7 +584,7 @@ msgstr "We think different."
 #~ msgid "Welcome to"
 #~ msgstr "Welcome to"
 
-#: src/components/settings-panel/views/general.tsx:160
+#: src/components/settings-panel/views/general.tsx:174
 msgid "You can make Hyprnote takes these words into account when transcribing."
 msgstr "You can make Hyprnote takes these words into account when transcribing."
 

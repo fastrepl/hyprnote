@@ -1,5 +1,13 @@
-import { UserIcon } from "lucide-react";
-import { data } from "../constants";
+import {
+  BellIcon,
+  BlocksIcon,
+  CalendarIcon,
+  CreditCardIcon,
+  FileTextIcon,
+  SettingsIcon,
+  UserIcon,
+  UsersIcon,
+} from "lucide-react";
 import { type NavNames } from "../types";
 
 import { cn } from "@hypr/ui/lib/utils";
@@ -16,22 +24,110 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
       <div className="flex-1 overflow-auto py-2">
         <nav>
           <ul className="space-y-1 px-2">
-            {data.nav.map((item) => (
-              <li key={item.name}>
-                <button
-                  onClick={() => setActive(item.name)}
-                  className={cn(
-                    "h-9 flex w-full items-center justify-center md:justify-start gap-2 rounded-lg p-2 text-sm text-neutral-600 focus:outline-none",
-                    item.name === active
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-neutral-100",
-                  )}
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span className="hidden md:inline-block">{item.name}</span>
-                </button>
-              </li>
-            ))}
+            <li>
+              <button
+                onClick={() => setActive("General")}
+                className={cn(
+                  "h-9 flex w-full items-center justify-center md:justify-start gap-2 rounded-lg p-2 text-sm text-neutral-600 focus:outline-none",
+                  active === "General" ? "bg-primary text-primary-foreground" : "hover:bg-neutral-100",
+                )}
+              >
+                <SettingsIcon className="h-4 w-4" />
+                <span className="hidden md:inline-block">
+                  <Trans>General</Trans>
+                </span>
+              </button>
+            </li>
+            
+            <li>
+              <button
+                onClick={() => setActive("Calendar")}
+                className={cn(
+                  "h-9 flex w-full items-center justify-center md:justify-start gap-2 rounded-lg p-2 text-sm text-neutral-600 focus:outline-none",
+                  active === "Calendar" ? "bg-primary text-primary-foreground" : "hover:bg-neutral-100",
+                )}
+              >
+                <CalendarIcon className="h-4 w-4" />
+                <span className="hidden md:inline-block">
+                  <Trans>Calendar</Trans>
+                </span>
+              </button>
+            </li>
+            
+            <li>
+              <button
+                onClick={() => setActive("Notifications")}
+                className={cn(
+                  "h-9 flex w-full items-center justify-center md:justify-start gap-2 rounded-lg p-2 text-sm text-neutral-600 focus:outline-none",
+                  active === "Notifications" ? "bg-primary text-primary-foreground" : "hover:bg-neutral-100",
+                )}
+              >
+                <BellIcon className="h-4 w-4" />
+                <span className="hidden md:inline-block">
+                  <Trans>Notifications</Trans>
+                </span>
+              </button>
+            </li>
+            
+            <li>
+              <button
+                onClick={() => setActive("Templates")}
+                className={cn(
+                  "h-9 flex w-full items-center justify-center md:justify-start gap-2 rounded-lg p-2 text-sm text-neutral-600 focus:outline-none",
+                  active === "Templates" ? "bg-primary text-primary-foreground" : "hover:bg-neutral-100",
+                )}
+              >
+                <FileTextIcon className="h-4 w-4" />
+                <span className="hidden md:inline-block">
+                  <Trans>Templates</Trans>
+                </span>
+              </button>
+            </li>
+            
+            <li>
+              <button
+                onClick={() => setActive("Extensions")}
+                className={cn(
+                  "h-9 flex w-full items-center justify-center md:justify-start gap-2 rounded-lg p-2 text-sm text-neutral-600 focus:outline-none",
+                  active === "Extensions" ? "bg-primary text-primary-foreground" : "hover:bg-neutral-100",
+                )}
+              >
+                <BlocksIcon className="h-4 w-4" />
+                <span className="hidden md:inline-block">
+                  <Trans>Extensions</Trans>
+                </span>
+              </button>
+            </li>
+            
+            <li>
+              <button
+                onClick={() => setActive("Team")}
+                className={cn(
+                  "h-9 flex w-full items-center justify-center md:justify-start gap-2 rounded-lg p-2 text-sm text-neutral-600 focus:outline-none",
+                  active === "Team" ? "bg-primary text-primary-foreground" : "hover:bg-neutral-100",
+                )}
+              >
+                <UsersIcon className="h-4 w-4" />
+                <span className="hidden md:inline-block">
+                  <Trans>Team</Trans>
+                </span>
+              </button>
+            </li>
+            
+            <li>
+              <button
+                onClick={() => setActive("Billing")}
+                className={cn(
+                  "h-9 flex w-full items-center justify-center md:justify-start gap-2 rounded-lg p-2 text-sm text-neutral-600 focus:outline-none",
+                  active === "Billing" ? "bg-primary text-primary-foreground" : "hover:bg-neutral-100",
+                )}
+              >
+                <CreditCardIcon className="h-4 w-4" />
+                <span className="hidden md:inline-block">
+                  <Trans>Billing</Trans>
+                </span>
+              </button>
+            </li>
           </ul>
         </nav>
       </div>

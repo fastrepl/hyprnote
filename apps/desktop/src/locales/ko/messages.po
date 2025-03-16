@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
-#: src/components/settings-panel/views/calendar.tsx:170
+#: src/components/settings-panel/views/calendar.tsx:122
 msgid "{0}"
 msgstr "{0}"
 
@@ -22,12 +22,16 @@ msgstr "{0}"
 #~ msgid "{0} ~ {1}"
 #~ msgstr "{0} ~ {1}"
 
+#: src/components/settings-panel/sidebar/settings-view.tsx:36
+#~ msgid "{nameKey}"
+#~ msgstr "{nameKey}"
+
 #: src/components/settings/calendar.tsx:226
 #~ msgid "<0>{0}</0><1>{1}</1>"
 #~ msgstr "<0>{0}</0><1>{1}</1>"
 
-#: src/components/settings-panel/views/calendar.tsx:239
-#: src/components/settings-panel/views/calendar.tsx:267
+#: src/components/settings-panel/views/calendar.tsx:191
+#: src/components/settings-panel/views/calendar.tsx:219
 msgid "Access granted"
 msgstr "액세스 승인됨"
 
@@ -81,26 +85,36 @@ msgstr "애플"
 msgid "Automatic meeting detection"
 msgstr "자동 회의 감지"
 
-#: src/components/settings-panel/sidebar/template-view.tsx:44
-#: src/components/settings-panel/sidebar/extensions-view.tsx:60
+#: src/components/settings-panel/sidebar/template-view.tsx:43
+#: src/components/settings-panel/sidebar/extensions-view.tsx:59
 msgid "Back to Settings"
 msgstr "설정으로 돌아가기"
 
-#: src/components/settings/billing.tsx:17
-#~ msgid "Billing"
-#~ msgstr "결제"
+#: src/components/settings-panel/views/index.tsx:53
+#: src/components/settings-panel/sidebar/settings-view.tsx:127
+msgid "Billing"
+msgstr "결제"
 
-#: src/components/settings-panel/views/calendar.tsx:235
+#: src/components/settings-panel/views/index.tsx:43
+#: src/components/settings-panel/sidebar/settings-view.tsx:52
+msgid "Calendar"
+msgstr "캘린더"
+
+#: src/components/settings-panel/views/calendar.tsx:187
 msgid "Calendar Access"
 msgstr "캘린더 액세스"
 
-#: src/components/settings-panel/views/calendar.tsx:177
+#: src/components/settings-panel/views/calendar.tsx:129
 msgid "Calendar connected"
 msgstr "캘린더 연결됨"
 
 #: src/components/settings/calendar.tsx:189
 #~ msgid "Calendar connected. Hyprnote will periodically sync your calendar events."
 #~ msgstr "캘린더가 연결되었습니다. Hyprnote가 주기적으로 캘린더 이벤트를 동기화합니다."
+
+#: src/components/settings-panel/views/calendar.tsx:53
+msgid "Calendars"
+msgstr "캘린더"
 
 #: src/components/settings-panel/views/tags.tsx:226
 #~ msgid "Cancel"
@@ -118,15 +132,15 @@ msgstr "회사 설명"
 msgid "Company Name"
 msgstr "회사 이름"
 
-#: src/components/settings-panel/views/calendar.tsx:191
+#: src/components/settings-panel/views/calendar.tsx:143
 msgid "Connect"
 msgstr "연결"
 
-#: src/components/settings-panel/views/calendar.tsx:177
+#: src/components/settings-panel/views/calendar.tsx:129
 msgid "Connect to sync your meetings"
 msgstr "회의를 동기화하기 위해 연결"
 
-#: src/components/settings-panel/views/calendar.tsx:263
+#: src/components/settings-panel/views/calendar.tsx:215
 msgid "Contacts Access"
 msgstr "연락처 액세스"
 
@@ -142,7 +156,7 @@ msgstr "계속"
 msgid "Create new note"
 msgstr "새 노트 만들기"
 
-#: src/components/settings-panel/sidebar/template-view.tsx:77
+#: src/components/settings-panel/sidebar/template-view.tsx:76
 msgid "Create Template"
 msgstr "템플릿 만들기"
 
@@ -160,7 +174,7 @@ msgstr "이 섹션의 내용과 목적을 설명하세요"
 msgid "Description"
 msgstr "설명"
 
-#: src/components/settings-panel/views/general.tsx:125
+#: src/components/settings-panel/views/general.tsx:133
 msgid "Display language"
 msgstr "표시 언어"
 
@@ -188,12 +202,22 @@ msgstr "쉼표로 구분된 이메일"
 msgid "Enter a section title"
 msgstr "섹션 제목 입력"
 
+#: src/components/settings-panel/views/index.tsx:49
+#: src/components/settings-panel/sidebar/settings-view.tsx:97
+msgid "Extensions"
+msgstr "익스텐션"
+
+#: src/components/settings-panel/views/index.tsx:41
+#: src/components/settings-panel/sidebar/settings-view.tsx:37
+msgid "General"
+msgstr "일반"
+
 #: src/routes/login.tsx:132
 msgid "Get Started"
 msgstr "시작하기"
 
-#: src/components/settings-panel/views/calendar.tsx:250
-#: src/components/settings-panel/views/calendar.tsx:278
+#: src/components/settings-panel/views/calendar.tsx:202
+#: src/components/settings-panel/views/calendar.tsx:230
 msgid "Grant Access"
 msgstr "액세스 허용"
 
@@ -209,7 +233,7 @@ msgstr "액세스 허용"
 msgid "Hypercharge"
 msgstr "하이퍼차지"
 
-#: src/components/settings-panel/views/general.tsx:103
+#: src/components/settings-panel/views/general.tsx:111
 msgid "Hyprnote will be opened automatically when you start your computer."
 msgstr "컴퓨터를 시작할 때 Hyprnote가 자동으로 열립니다."
 
@@ -225,7 +249,7 @@ msgstr "초대"
 msgid "Invite members"
 msgstr "멤버 초대"
 
-#: src/components/settings-panel/views/general.tsx:157
+#: src/components/settings-panel/views/general.tsx:171
 msgid "Jargons"
 msgstr "전문 용어"
 
@@ -273,8 +297,8 @@ msgid "My Templates"
 msgstr "내 템플릿"
 
 #: src/components/settings-panel/views/calendar.tsx:72
-msgid "New"
-msgstr "새로운"
+#~ msgid "New"
+#~ msgstr "새로운"
 
 #: src/routes/app.index.tsx:13
 msgid "New note"
@@ -308,11 +332,16 @@ msgstr "태그 없음"
 #~ msgid "Notes"
 #~ msgstr "노트"
 
+#: src/components/settings-panel/views/index.tsx:45
+#: src/components/settings-panel/sidebar/settings-view.tsx:67
+msgid "Notifications"
+msgstr "알림"
+
 #: src/components/settings-panel/components/template-list.tsx:89
 msgid "Official Templates"
 msgstr "공식 템플릿"
 
-#: src/components/settings-panel/views/general.tsx:100
+#: src/components/settings-panel/views/general.tsx:108
 msgid "Open Hyprnote on startup"
 msgstr "시작 시 Hyprnote 열기"
 
@@ -320,7 +349,7 @@ msgstr "시작 시 Hyprnote 열기"
 msgid "Open Note"
 msgstr "노트 열기"
 
-#: src/components/settings-panel/views/calendar.tsx:268
+#: src/components/settings-panel/views/calendar.tsx:220
 msgid "Optional for participant suggestions"
 msgstr "참가자 제안을 위한 선택 사항"
 
@@ -345,7 +374,8 @@ msgstr "소유자"
 msgid "people"
 msgstr "사람"
 
-#: src/components/settings-panel/sidebar/settings-view.tsx:51
+#: src/components/settings-panel/views/index.tsx:55
+#: src/components/settings-panel/sidebar/settings-view.tsx:147
 msgid "Profile"
 msgstr "프로필"
 
@@ -357,7 +387,7 @@ msgstr "노트 게시하기"
 #~ msgid "Recent Notes"
 #~ msgstr "최근 노트"
 
-#: src/components/settings-panel/views/calendar.tsx:240
+#: src/components/settings-panel/views/calendar.tsx:192
 msgid "Required for syncing calendar events"
 msgstr "캘린더 이벤트 동기화에 필요"
 
@@ -402,7 +432,7 @@ msgstr "템플릿 검색..."
 msgid "Sections"
 msgstr "섹션"
 
-#: src/components/settings-panel/views/general.tsx:134
+#: src/components/settings-panel/views/general.tsx:148
 msgid "Select language"
 msgstr "언어 선택"
 
@@ -410,7 +440,8 @@ msgstr "언어 선택"
 msgid "Send invite"
 msgstr "초대장 보내기"
 
-#: src/components/settings-panel/views/index.tsx:48
+#: src/components/settings-panel/index.tsx:77
+#: src/components/settings-panel/views/index.tsx:71
 msgid "Settings"
 msgstr "설정"
 
@@ -450,9 +481,10 @@ msgstr "녹음 중지"
 #~ msgid "Tag name"
 #~ msgstr "태그 이름"
 
-#: src/components/settings/billing.tsx:8
-#~ msgid "Team"
-#~ msgstr "팀"
+#: src/components/settings-panel/views/index.tsx:51
+#: src/components/settings-panel/sidebar/settings-view.tsx:112
+msgid "Team"
+msgstr "팀"
 
 #: src/components/share-and-permission/participants-selector.tsx:34
 msgid "Teamspace"
@@ -462,6 +494,11 @@ msgstr "팀스페이스"
 msgid "Template Selector"
 msgstr "템플릿 선택기"
 
+#: src/components/settings-panel/views/index.tsx:47
+#: src/components/settings-panel/sidebar/settings-view.tsx:82
+msgid "Templates"
+msgstr "템플릿"
+
 #: src/components/settings-panel/views/billing.tsx:94
 msgid "There's a plan for everyone"
 msgstr "모두를 위한 플랜이 있습니다"
@@ -470,7 +507,7 @@ msgstr "모두를 위한 플랜이 있습니다"
 msgid "This is a short description of your company."
 msgstr "회사에 대한 간단한 설명입니다."
 
-#: src/components/settings-panel/views/general.tsx:128
+#: src/components/settings-panel/views/general.tsx:136
 msgid "This is the language you read."
 msgstr "이것은 당신이 읽는 언어입니다."
 
@@ -494,7 +531,7 @@ msgstr "왼쪽 사이드바 전환"
 msgid "Toggle right panel"
 msgstr "오른쪽 패널 전환"
 
-#: src/components/settings-panel/views/general.tsx:165
+#: src/components/settings-panel/views/general.tsx:179
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr "전문 용어 입력 (예: Blitz Meeting, PaC Squad)"
 
@@ -547,7 +584,7 @@ msgstr "우리는 다르게 생각합니다."
 #~ msgid "Welcome to"
 #~ msgstr "환영합니다"
 
-#: src/components/settings-panel/views/general.tsx:160
+#: src/components/settings-panel/views/general.tsx:174
 msgid "You can make Hyprnote takes these words into account when transcribing."
 msgstr "Hyprnote가 텍스트를 변환할 때 이러한 단어를 고려하도록 할 수 있습니다."
 

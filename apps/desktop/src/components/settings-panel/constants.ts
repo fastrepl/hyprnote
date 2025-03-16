@@ -8,14 +8,17 @@ import {
   UsersIcon,
 } from "lucide-react";
 
+// Define the navigation items without translations
 export const data = {
   nav: [
-    { name: "General", icon: SettingsIcon },
-    { name: "Calendar", icon: CalendarIcon },
-    { name: "Notifications", icon: BellIcon },
-    { name: "Templates", icon: FileTextIcon },
-    { name: "Extensions", icon: BlocksIcon },
-    { name: "Team", icon: UsersIcon },
-    { name: "Billing", icon: CreditCardIcon },
+    { nameKey: "General", icon: SettingsIcon },
+    { nameKey: "Calendar", icon: CalendarIcon },
+    { nameKey: "Notifications", icon: BellIcon },
+    { nameKey: "Templates", icon: FileTextIcon },
+    { nameKey: "Extensions", icon: BlocksIcon },
+    { nameKey: "Team", icon: UsersIcon },
+    { nameKey: "Billing", icon: CreditCardIcon },
   ],
 } as const;
+
+export type NavItem = typeof data.nav[number];

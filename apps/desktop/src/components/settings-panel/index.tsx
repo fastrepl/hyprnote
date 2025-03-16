@@ -18,6 +18,7 @@ import { useSettingsPanel } from "@/contexts";
 import { commands as dbCommands, type ExtensionDefinition, type Template } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
+import { Trans } from "@lingui/react/macro";
 
 export default function SettingsPanel() {
   const { isOpen, open, close } = useSettingsPanel();
@@ -73,7 +74,7 @@ export default function SettingsPanel() {
         className="w-full justify-start flex hover:bg-neutral-200"
       >
         <SettingsIcon className="mr-2 h-4 w-4" />
-        Settings
+        <Trans>Settings</Trans>
       </Button>
 
       <Modal open={isOpen} onClose={close} size="full">

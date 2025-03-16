@@ -2,7 +2,6 @@ import type { ExtensionDefinition } from "@hypr/plugin-db";
 import { ChevronLeftIcon } from "lucide-react";
 import { memo, useCallback } from "react";
 import { ExtensionList } from "../components/extension-list";
-import { data } from "../constants";
 import type { NavNames } from "../types";
 
 import calculatorConfig from "@hypr/extension-calculator/config.json";
@@ -45,7 +44,7 @@ export const ExtensionsView = memo(function ExtensionsView({
 
   // Memoize the back button handler
   const handleBackClick = useCallback(() => {
-    setActive(data.nav[0].name);
+    setActive("General");
   }, [setActive]);
 
   return (

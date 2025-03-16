@@ -13,6 +13,7 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Switch } from "@hypr/ui/components/ui/switch";
+import { i18n } from "@lingui/core";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -86,6 +87,13 @@ export default function General() {
     return () => subscription.unsubscribe();
   }, [mutation]);
 
+  // Handle language change specifically
+  const handleLanguageChange = (value: string) => {
+    form.setValue("displayLanguage", value as ISO_639_1_CODE);
+    // Activate the new language in i18n
+    i18n.activate(value);
+  };
+
   return (
     <div>
       <Form {...form}>
@@ -128,7 +136,13 @@ export default function General() {
                     <Trans>This is the language you read.</Trans>
                   </FormDescription>
                 </div>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  onValueChange={(value) => {
+                    handleLanguageChange(value);
+                    field.onChange(value);
+                  }}
+                  value={field.value}
+                >
                   <FormControl>
                     <SelectTrigger className="max-w-[100px] focus:outline-none focus:ring-0 focus:ring-offset-0">
                       <SelectValue placeholder={t`Select language`} />

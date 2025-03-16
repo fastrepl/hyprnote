@@ -41,7 +41,9 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|app, _api| {
+        .setup(move |app, _api| {
+            specta_builder.mount_events(app);
+
             let mut env = minijinja::Environment::new();
             env.add_template(CALLBACK_TEMPLATE_KEY, CALLBACK_TEMPLATE_VALUE)
                 .unwrap();

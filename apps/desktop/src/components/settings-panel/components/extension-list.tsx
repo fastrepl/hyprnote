@@ -1,8 +1,7 @@
-import { SearchIcon } from "lucide-react";
-import { type ReactNode, useCallback, useMemo } from "react";
-
 import type { ExtensionDefinition } from "@hypr/plugin-db";
 import { cn } from "@hypr/ui/lib/utils";
+import { SearchIcon } from "lucide-react";
+import { type ReactNode, useCallback, useMemo } from "react";
 
 interface ExtensionListProps {
   searchQuery: string;
@@ -62,15 +61,17 @@ export function ExtensionList({
               key={extension.id}
               onClick={() => onExtensionSelect(extension)}
               className={cn(
-                "flex w-full flex-col gap-1 rounded-lg p-2 text-left hover:bg-neutral-100",
+                "flex w-full flex-col rounded-lg p-2 text-left hover:bg-neutral-100",
                 selectedExtension?.id === extension.id && "bg-neutral-100",
               )}
             >
-              <div className="font-medium text-neutral-700">{extension.title}</div>
-              <p className="text-xs text-neutral-600 line-clamp-1">
+              <div className="font-medium text-neutral-700 mb-1">{extension.title}</div>
+
+              <p className="text-xs text-neutral-600 line-clamp-1 mb-2">
                 {extension.description}
               </p>
-              <div className="flex flex-wrap overflow-hidden h-6">
+
+              <div className="flex flex-wrap overflow-hidden h-6 gap-0.5">
                 {extension.tags.length > 0
                   ? (
                     extension.tags.map((tag) => (

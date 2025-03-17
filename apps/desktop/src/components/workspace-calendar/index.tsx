@@ -17,7 +17,7 @@ export default function WorkspaceCalendar({ sessions, currentDate }: WorkspaceCa
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(currentDate || today);
   const calendarRef = useRef<HTMLDivElement>(null);
-  const [cellHeight, setCellHeight] = useState<number>(0);
+  const [cellHeight, setCellHeight] = useState<number>(75);
   const [visibleEvents, setVisibleEvents] = useState<number>(2);
 
   useEffect(() => {
@@ -65,13 +65,14 @@ export default function WorkspaceCalendar({ sessions, currentDate }: WorkspaceCa
     const observer = new ResizeObserver((entries) => {
       entries.forEach(entry => {
         const height = entry.contentRect.height;
-        if (height > 0) updateCellHeight(height);
+        console.log("Height:", height);
+        if (height > 75 * 6) updateCellHeight(height);
       });
     });
 
     if (calendarRef.current) {
       observer.observe(calendarRef.current);
-      updateCellHeight(calendarRef.current.clientHeight);
+      updateCellHeight(75 * 6);
     }
 
     return () => observer.disconnect();
@@ -96,10 +97,12 @@ export default function WorkspaceCalendar({ sessions, currentDate }: WorkspaceCa
 
   const calendarDays = getCalendarDays();
 
+  console.log("Cell height:", cellHeight);
+
   return (
     <div
       ref={calendarRef}
-      className="grid grid-cols-7 divide-x divide-neutral-200 h-full grid-rows-6"
+      className="grid grid-cols-7 divide-x divide-neutral-200 h-full grid-rows-6 gap-0"
     >
       {calendarDays.map((day, i) => {
         const daySessions = getSessionsForDay(day);
@@ -123,7 +126,6 @@ export default function WorkspaceCalendar({ sessions, currentDate }: WorkspaceCa
               "relative flex flex-col",
               !isLastWeek && "border-b border-neutral-200",
               isWeekend ? "bg-neutral-50" : "bg-white",
-              isLastInRow && "border-r-0",
             )}
           >
             <div className="flex items-center justify-end pt-1 px-1 text-sm h-8">
@@ -169,7 +171,7 @@ export default function WorkspaceCalendar({ sessions, currentDate }: WorkspaceCa
                   {(hiddenSessionsCount > 0) && (
                     <Popover>
                       <PopoverTrigger asChild>
-                        <div className="text-xs text-neutral-600 bg-neutral-50 rounded py-0.5 cursor-pointer hover:bg-neutral-200 mx-1">
+                        <div className="text-xs text-neutral-600 rounded py-0.5 cursor-pointer hover:bg-neutral-200 mx-1">
                           {`+${hiddenSessionsCount} more`}
                         </div>
                       </PopoverTrigger>

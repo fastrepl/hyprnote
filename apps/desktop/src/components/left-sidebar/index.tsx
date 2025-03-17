@@ -5,7 +5,6 @@ import SettingsButton from "../settings-panel";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
 import { AllList } from "./notes-list";
 import OngoingSession from "./ongoing-session";
-import UpdateButton from "./update-button";
 
 export default function LeftSidebar() {
   const { isExpanded } = useLeftSidebar();
@@ -45,8 +44,6 @@ export default function LeftSidebar() {
       <div className="flex-1 h-full overflow-y-auto">
         <AllList />
       </div>
-
-      <UpdateButton />
 
       <div className="flex items-center p-2 border-t">
         <SettingsButton />

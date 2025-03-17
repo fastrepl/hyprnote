@@ -42,7 +42,7 @@ function RouteComponent() {
   return (
     <div className="flex h-screen w-screen overflow-hidden flex-col bg-white text-neutral-700">
       <header className="flex w-full flex-col">
-        <div data-tauri-drag-region className="relative min-h-11 w-full flex items-center justify-center">
+        <div data-tauri-drag-region className="relative h-11 w-full flex items-center justify-center">
           <h1 className="text-xl font-medium">
             <strong data-tauri-drag-region>{format(currentDate, "MMMM")}</strong> {format(currentDate, "yyyy")}
           </h1>
@@ -74,7 +74,7 @@ function RouteComponent() {
           </div>
         </div>
 
-        <div className="border-b border-neutral-200 grid grid-cols-7">
+        <div className="border-b border-neutral-200 grid grid-cols-7 h-8">
           {weekDays.map((day, index) => (
             <div
               key={day}

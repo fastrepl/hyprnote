@@ -40,7 +40,7 @@ function Component() {
 
   return (
     <SessionProvider session={session}>
-      <div className="flex h-screen w-screen overflow-hidden">
+      <div className="relative flex h-screen w-screen overflow-hidden">
         <LeftSidebar />
         <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
           <Toolbar />

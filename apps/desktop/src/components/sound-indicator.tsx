@@ -1,13 +1,8 @@
-import { useEffect, useState } from "react";
-
 import { useOngoingSession } from "@/contexts/ongoing-session";
 import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
+import { useEffect, useState } from "react";
 
-type SoundIndicatorProps = {
-  className?: string;
-};
-
-export default function SoundIndicator({ className }: SoundIndicatorProps) {
+export default function SoundIndicator() {
   const { mic, speaker } = useOngoingSession((state) => state.amplitude);
   const [amplitude, setAmplitude] = useState(0);
 

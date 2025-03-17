@@ -1,4 +1,3 @@
-export * from "./global-search";
 export * from "./hypr";
 export * from "./left-sidebar";
 export * from "./new-note";

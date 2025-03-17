@@ -84,7 +84,7 @@ export function NoteItem({
               <div className="font-medium text-sm">
                 {currentSession.title || "Untitled"}
               </div>
-              {isLive && <SoundIndicator />}
+              {isLive && <SoundIndicator theme={"light"} />}
             </div>
 
             <div className="flex items-center gap-3 text-xs text-neutral-500">

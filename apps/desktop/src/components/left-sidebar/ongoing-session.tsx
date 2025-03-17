@@ -11,12 +11,13 @@ export default function OngoingSession({ sessionId }: { sessionId: string }) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
+        className="px-3 pb-4 mb-4 border-b border-border"
       >
         <NoteItem
           sessionId={sessionId}
+          isLive
         />
       </motion.div>
-      <hr />
     </>
   );
 }

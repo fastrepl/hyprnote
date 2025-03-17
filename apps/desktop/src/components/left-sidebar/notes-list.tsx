@@ -32,7 +32,7 @@ export function EventsList() {
   }
 
   return (
-    <section>
+    <section className="border-b mb-4 border-border">
       <h2 className="font-bold text-neutral-600 mb-1">
         Upcoming
       </h2>
@@ -118,7 +118,7 @@ export function AllList() {
   return (
     <div className="h-full overflow-y-auto space-y-4 px-3 pb-4">
       <EventsList />
-      <hr />
+
       <LayoutGroup>
         <AnimatePresence initial={false}>
           <NotesList />

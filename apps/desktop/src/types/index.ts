@@ -15,7 +15,7 @@ export type Context = {
 export type RoutePath = RouteIds<RegisteredRouter["routeTree"]>;
 
 export type CalendarIntegration =
-  | Exclude<NangoIntegration, "outlook-calendar">
+  | NangoIntegration
   | "apple-calendar";
 
 export interface Message {

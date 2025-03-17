@@ -1,8 +1,9 @@
+import { addDays, eachDayOfInterval, format, getDay, isSameMonth, startOfMonth, subDays } from "date-fns";
+import { useEffect, useRef, useState } from "react";
+
 import type { Event, Session } from "@hypr/plugin-db";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/ui/lib/utils";
-import { addDays, eachDayOfInterval, format, getDay, isSameMonth, startOfMonth, subDays } from "date-fns";
-import { useEffect, useRef, useState } from "react";
 import { EventCard } from "./event-card";
 import { NoteCard } from "./note-card";
 
@@ -38,11 +39,8 @@ export default function WorkspaceCalendar({ sessions, events, month }: Workspace
       setCellHeight(newCellHeight);
 
       const availableHeight = newCellHeight + 1 - HEADER_HEIGHT + 18;
-
       const maxPossibleEvents = Math.floor(availableHeight / EVENT_HEIGHT);
-
       const maxEvents = maxPossibleEvents >= 2 ? maxPossibleEvents - 1 : 0;
-
       setVisibleEvents(maxEvents);
     };
 
@@ -128,7 +126,13 @@ export default function WorkspaceCalendar({ sessions, events, month }: Workspace
           ? maxPossibleEvents - 1
           : Math.min(totalItems, visibleEvents);
 
-        const visibleItemsArray = dayItems.slice(0, visibleCount);
+        const visibleItemsArray = dayItems
+          .sort((a, b) => {
+            const aDate = ("calendar_event_id" in a) ? new Date(a.created_at) : new Date(a.start_date);
+            const bDate = ("calendar_event_id" in b) ? new Date(b.created_at) : new Date(b.start_date);
+            return aDate.getTime() - bDate.getTime();
+          }).slice(0, visibleCount);
+
         const hiddenCount = totalItems > maxPossibleEvents
           ? totalItems - maxPossibleEvents + 1
           : totalItems - visibleCount;
@@ -184,13 +188,14 @@ export default function WorkspaceCalendar({ sessions, events, month }: Workspace
                 <>
                   {visibleItemsArray.length > 0 && (
                     <div className="px-1">
-                      {visibleItemsArray.map((item) => (
-                        <div key={"id" in item ? item.id : ""}>
-                          {"calendar_event_id" in item
-                            ? <NoteCard session={item as Session} />
-                            : <EventCard event={item as Event} />}
-                        </div>
-                      ))}
+                      {visibleItemsArray
+                        .map((item) => (
+                          <div key={"id" in item ? item.id : ""}>
+                            {"calendar_event_id" in item
+                              ? <NoteCard session={item as Session} />
+                              : <EventCard event={item as Event} />}
+                          </div>
+                        ))}
                     </div>
                   )}
 
@@ -209,16 +214,22 @@ export default function WorkspaceCalendar({ sessions, events, month }: Workspace
                           {format(day, "MMMM d, yyyy")}
                         </div>
 
-                        {dayItems.map((item) => (
-                          <div
-                            key={"id" in item ? item.id : ""}
-                            className="text-sm hover:bg-neutral-100 rounded cursor-pointer transition-colors"
-                          >
-                            {"calendar_event_id" in item
-                              ? <NoteCard session={item as Session} showTime />
-                              : <EventCard event={item as Event} showTime />}
-                          </div>
-                        ))}
+                        {dayItems
+                          .sort((a, b) => {
+                            const aDate = ("calendar_event_id" in a) ? new Date(a.created_at) : new Date(a.start_date);
+                            const bDate = ("calendar_event_id" in b) ? new Date(b.created_at) : new Date(b.start_date);
+                            return aDate.getTime() - bDate.getTime();
+                          })
+                          .map((item) => (
+                            <div
+                              key={item.id}
+                              className="text-sm hover:bg-neutral-100 rounded cursor-pointer transition-colors"
+                            >
+                              {"calendar_event_id" in item
+                                ? <NoteCard session={item as Session} showTime />
+                                : <EventCard event={item as Event} showTime />}
+                            </div>
+                          ))}
                       </PopoverContent>
                     </Popover>
                   )}

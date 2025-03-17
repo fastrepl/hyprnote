@@ -39,7 +39,7 @@ pub async fn list_sessions(
 #[tracing::instrument(skip(state))]
 pub async fn get_session(
     state: tauri::State<'_, crate::ManagedState>,
-    option: hypr_db_user::GetSessionFilter,
+    filter: hypr_db_user::GetSessionFilter,
 ) -> Result<Option<hypr_db_user::Session>, String> {
     let guard = state.lock().await;
 
@@ -49,7 +49,7 @@ pub async fn get_session(
         .ok_or(crate::Error::NoneDatabase)
         .map_err(|e| e.to_string())?;
 
-    db.get_session(option).await.map_err(|e| e.to_string())
+    db.get_session(filter).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

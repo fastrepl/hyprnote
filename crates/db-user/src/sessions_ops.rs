@@ -3,11 +3,11 @@ use super::{Event, GetSessionFilter, Human, ListSessionFilter, Session, UserData
 impl UserDatabase {
     pub async fn get_session(
         &self,
-        option: GetSessionFilter,
+        filter: GetSessionFilter,
     ) -> Result<Option<Session>, crate::Error> {
         let conn = self.conn()?;
 
-        let mut rows = match option {
+        let mut rows = match filter {
             GetSessionFilter::Id(id) => conn
                 .query("SELECT * FROM sessions WHERE id = ?", vec![id])
                 .await

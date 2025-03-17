@@ -1,10 +1,17 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { zodValidator } from "@tanstack/zod-adapter";
+import { z } from "zod";
 
 import { commands as authCommands } from "@hypr/plugin-auth";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 
+const schema = z.object({
+  calendarEventId: z.string().optional(),
+});
+
 export const Route = createFileRoute("/app/new")({
-  beforeLoad: async ({ context: { queryClient, sessionsStore } }) => {
+  validateSearch: zodValidator(schema),
+  beforeLoad: async ({ context: { queryClient, sessionsStore }, search }) => {
     const id = await authCommands.getFromStore("auth-user-id");
 
     if (!id) {
@@ -17,7 +24,7 @@ export const Route = createFileRoute("/app/new")({
         user_id: id,
         created_at: new Date().toISOString(),
         visited_at: new Date().toISOString(),
-        calendar_event_id: null,
+        calendar_event_id: search.calendarEventId ?? null,
         title: "",
         audio_local_path: null,
         audio_remote_path: null,
@@ -27,7 +34,9 @@ export const Route = createFileRoute("/app/new")({
       };
 
       const session = await dbCommands.upsertSession(emptySession);
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({
+        queryKey: ["sessions"],
+      });
 
       return redirect({
         to: "/app/note/$id/main",

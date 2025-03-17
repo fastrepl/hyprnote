@@ -16,9 +16,11 @@ export function EventsList() {
     queryKey: ["events"],
     queryFn: async () => {
       const events = await dbCommands.listEvents({ userId });
-      const upcomingEvents = events.filter((event) => {
-        return isFuture(new Date(event.start_date));
-      });
+      const upcomingEvents = events
+        .filter((event) => {
+          return isFuture(new Date(event.start_date));
+        })
+        .slice(0, 3);
 
       return upcomingEvents;
     },
@@ -114,11 +116,11 @@ export function NotesList() {
 export function AllList() {
   return (
     <nav className="h-full overflow-y-auto space-y-4 px-3 pb-4">
+      <hr />
+      <EventsList />
+      <hr />
       <LayoutGroup>
         <AnimatePresence initial={false}>
-          <hr />
-          <EventsList />
-          <hr />
           <NotesList />
         </AnimatePresence>
       </LayoutGroup>

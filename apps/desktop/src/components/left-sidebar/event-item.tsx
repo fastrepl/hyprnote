@@ -18,6 +18,8 @@ export function EventItem({ event }: { event: Event }) {
         to: "/app/note/$id/main",
         params: { id: session.data.id },
       });
+    } else {
+      navigate({ to: "/app/new", search: { calendarEventId: event.id } });
     }
   };
 

@@ -20,9 +20,12 @@ export const Route = createFileRoute("/app/note/$id")({
             dbCommands.visitSession(id),
           ]);
           session = s;
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         if (!session) {
+          console.log("failed_to_find_session", id);
           throw redirect({ to: "/app" });
         }
 

@@ -101,16 +101,20 @@ impl UserDatabase {
             .query(
                 "INSERT OR REPLACE INTO sessions (
                     id,
+                    created_at,
+                    visited_at,
                     user_id,
                     calendar_event_id,
                     title,
                     raw_memo_html,
                     enhanced_memo_html,
                     conversations
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 RETURNING *",
                 vec![
                     libsql::Value::Text(session.id),
+                    libsql::Value::Text(session.created_at.to_rfc3339()),
+                    libsql::Value::Text(session.visited_at.to_rfc3339()),
                     libsql::Value::Text(session.user_id),
                     session
                         .calendar_event_id

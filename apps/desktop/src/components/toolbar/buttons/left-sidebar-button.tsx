@@ -31,7 +31,10 @@ export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
   };
 
   return (
-    <div className={cn(osType.data === "macos" && "pl-[68px]")}>
+    <div
+      data-tauri-drag-region
+      className={cn(osType.data === "macos" && "pl-[68px]")}
+    >
       {isExpanded && (
         <Button
           variant="ghost"

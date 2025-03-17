@@ -1,14 +1,15 @@
-import type { RoutePath } from "@/types";
+import { Trans } from "@lingui/react/macro";
+import { useQuery } from "@tanstack/react-query";
+import type { LinkProps } from "@tanstack/react-router";
+import { format } from "date-fns";
+import { ExternalLinkIcon, Pen } from "lucide-react";
+import { useState } from "react";
+
 import type { Event } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { Trans } from "@lingui/react/macro";
-import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { ExternalLinkIcon, Pen } from "lucide-react";
-import { useState } from "react";
 
 export function EventCard({ event, showTime = false }: { event: Event; showTime?: boolean }) {
   const session = useQuery({
@@ -22,13 +23,25 @@ export function EventCard({ event, showTime = false }: { event: Event; showTime?
     setOpen(false);
 
     if (session.data) {
-      const path = "/app/note/$id/main" satisfies RoutePath;
-      windowsCommands.windowEmitNavigate("main", path.replace("$id", session.data.id)).then(() => {
+      const props = {
+        to: "/app/note/$id",
+        params: { id: session.data.id },
+      } as const satisfies LinkProps;
+
+      const url = props.to.replace("$id", props.params.id);
+
+      windowsCommands.windowEmitNavigate("main", url).then(() => {
         windowsCommands.windowShow("main");
       });
     } else {
-      const path = "/app/new" satisfies RoutePath;
-      windowsCommands.windowEmitNavigate("main", `${path}?calendarEventId=${event.id}`).then(() => {
+      const props = {
+        to: "/app/new",
+        search: { calendarEventId: event.id },
+      } as const satisfies LinkProps;
+
+      const url = props.to.concat(`?calendarEventId=${props.search.calendarEventId}`);
+
+      windowsCommands.windowEmitNavigate("main", url).then(() => {
         windowsCommands.windowShow("main");
       });
     }

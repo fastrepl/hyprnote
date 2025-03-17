@@ -1,9 +1,9 @@
-import type { RoutePath } from "@/types";
 import { type Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Trans } from "@lingui/react/macro";
+import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Pen } from "lucide-react";
 import { useState } from "react";
@@ -14,8 +14,14 @@ export function NoteCard({ session, showTime = false }: { session: Session; show
   const handleClick = (id: string) => {
     setOpen(false);
 
-    const path = "/app/note/$id/main" satisfies RoutePath;
-    windowsCommands.windowEmitNavigate("main", path.replace("$id", id)).then(() => {
+    const props = {
+      to: "/app/note/$id",
+      params: { id },
+    } as const satisfies LinkProps;
+
+    const url = props.to.replace("$id", props.params.id);
+
+    windowsCommands.windowEmitNavigate("main", url).then(() => {
       windowsCommands.windowShow("main");
     });
   };

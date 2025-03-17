@@ -36,6 +36,9 @@ export const Route = createFileRoute("/app/new")({
       const session = await dbCommands.upsertSession(emptySession);
       queryClient.invalidateQueries({
         queryKey: ["sessions"],
+        predicate(query) {
+          return query.queryKey[0] === "event-session";
+        },
       });
 
       return redirect({

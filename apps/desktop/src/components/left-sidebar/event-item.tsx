@@ -1,8 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
-
 import { commands as dbCommands, type Event } from "@hypr/plugin-db";
 import { formatRemainingTime } from "@hypr/utils/datetime";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 
 export function EventItem({ event }: { event: Event }) {
   const navigate = useNavigate();
@@ -26,7 +25,7 @@ export function EventItem({ event }: { event: Event }) {
   return (
     <button
       onClick={handleClick}
-      className="w-full text-left group flex items-start gap-3 py-2 hover:bg-neutral-100 rounded px-2"
+      className="w-full text-left group flex items-start gap-3 py-2 hover:bg-neutral-100 rounded-lg px-2"
     >
       <div className="flex flex-col items-start gap-1">
         <div className="font-medium text-sm line-clamp-1">{event.name}</div>

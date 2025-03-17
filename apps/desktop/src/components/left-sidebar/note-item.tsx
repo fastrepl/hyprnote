@@ -74,7 +74,7 @@ export function NoteItem({
           onClick={handleClick}
           disabled={isActive}
           className={cn(
-            "group flex items-start gap-3 py-2 w-full text-left transition-all rounded px-2",
+            "group flex items-start gap-3 py-2 w-full text-left transition-all rounded-lg px-2",
             isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
             isOpen && "bg-neutral-100",
           )}

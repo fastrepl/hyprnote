@@ -134,7 +134,12 @@ function CloudCalendarIntegrationDetails({
           {integration
             ? "✅"
             : (
-              <Button variant="outline" size="sm" onClick={handleClickConnect}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClickConnect}
+                className="min-w-12 text-center"
+              >
                 <Trans>Connect</Trans>
               </Button>
             )}
@@ -194,6 +199,7 @@ function AppleCalendarIntegrationDetails() {
               variant="outline"
               size="sm"
               onClick={handleRequestCalendarAccess}
+              className="min-w-12 text-center"
             >
               <Trans>Grant Access</Trans>
             </Button>
@@ -225,6 +231,7 @@ function AppleCalendarIntegrationDetails() {
               variant="outline"
               size="sm"
               onClick={handleRequestContactsAccess}
+              className="min-w-12 text-center"
             >
               <Trans>Grant Access</Trans>
             </Button>

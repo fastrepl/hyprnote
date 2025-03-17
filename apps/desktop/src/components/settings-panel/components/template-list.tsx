@@ -63,9 +63,10 @@ export function TemplateList({
                       <button
                         onClick={() => onTemplateSelect(template)}
                         className={cn(
-                          "flex w-full flex-col gap-1 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
+                          "flex w-full flex-col gap-1 rounded-lg p-2 text-sm text-neutral-600",
                           selectedTemplate?.id === template.id
-                            && "bg-neutral-200 font-bold text-neutral-700",
+                            ? "bg-neutral-200 font-bold text-neutral-700"
+                            : "hover:bg-neutral-100",
                         )}
                       >
                         <span>{template.title || "Untitled Template"}</span>
@@ -97,9 +98,10 @@ export function TemplateList({
                     <button
                       onClick={() => onTemplateSelect(template)}
                       className={cn(
-                        "flex w-full flex-col gap-1 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
+                        "flex w-full flex-col gap-1 rounded-lg p-2 text-sm text-neutral-600",
                         selectedTemplate?.id === template.id
-                          && "bg-neutral-200 font-bold text-neutral-700",
+                          ? "bg-neutral-200 font-bold text-neutral-700"
+                          : "hover:bg-neutral-100",
                       )}
                     >
                       <span>{template.title || "Untitled Template"}</span>

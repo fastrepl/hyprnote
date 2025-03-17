@@ -64,8 +64,8 @@ export function ExtensionList({
               key={extension.id}
               onClick={() => onExtensionSelect(extension)}
               className={cn(
-                "flex w-full flex-col rounded-lg p-2 text-left hover:bg-neutral-100",
-                selectedExtension?.id === extension.id && "bg-neutral-100",
+                "flex w-full flex-col rounded-lg p-2 text-left",
+                selectedExtension?.id === extension.id ? "bg-neutral-200" : "hover:bg-neutral-100",
               )}
             >
               <div className="font-medium text-neutral-700 mb-1">{extension.title}</div>

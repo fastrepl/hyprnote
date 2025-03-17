@@ -192,7 +192,7 @@ msgstr "템플릿 생성"
 
 #: src/components/settings-panel/views/template.tsx:86
 #: src/components/settings-panel/views/team.tsx:162
-#: src/components/left-sidebar/note-item.tsx:145
+#: src/components/left-sidebar/note-item.tsx:157
 msgid "Delete"
 msgstr "삭제"
 
@@ -204,7 +204,7 @@ msgstr "이 섹션의 내용과 목적을 설명하세요"
 msgid "Description"
 msgstr "설명"
 
-#: src/components/settings-panel/views/notifications.tsx:151
+#: src/components/settings-panel/views/notifications.tsx:153
 msgid "Detect meetings automatically"
 msgstr "자동으로 대화 감지"
 
@@ -244,7 +244,7 @@ msgstr "시스템 오디오 활성화"
 msgid "Enter a section title"
 msgstr "섹션 제목 입력"
 
-#: src/components/settings-panel/views/notifications.tsx:177
+#: src/components/settings-panel/views/notifications.tsx:179
 msgid "Exclude these apps from auto detection"
 msgstr "자동 감지에서 이 앱들 제외"
 
@@ -283,7 +283,7 @@ msgstr "HYPRNOTE"
 msgid "Hyprnote will be opened automatically when you start your computer."
 msgstr "컴퓨터를 시작할 때 하이퍼노트가 자동으로 열립니다."
 
-#: src/components/left-sidebar/note-item.tsx:134
+#: src/components/left-sidebar/note-item.tsx:146
 msgid "In calendar view"
 msgstr "캘린더 뷰에서 보기"
 
@@ -321,7 +321,8 @@ msgstr "요금제에 대해 자세히 알아보기"
 msgid "LinkedIn Username"
 msgstr "링크드인 사용자 이름"
 
-#: src/components/settings-panel/views/extension.tsx:60
+#: src/components/settings-panel/views/extensions.tsx:35
+#: src/components/settings-panel/views/extension.tsx:35
 msgid "Loading extension details..."
 msgstr "익스텐션 정보 로딩중..."
 
@@ -360,9 +361,9 @@ msgstr "새 노트"
 
 #: src/components/toolbar/new-note-button.tsx:45
 #~ msgid "New Note"
-#~ msgstr "새 노트"
+#~ msgstr "새 노트<<<<<<< HEAD"
 
-#: src/components/left-sidebar/note-item.tsx:125
+#: src/components/left-sidebar/note-item.tsx:137
 msgid "New window"
 msgstr "새 창에서 열기"
 
@@ -374,7 +375,8 @@ msgstr "멤버를 찾을 수 없음"
 #~ msgid "No results"
 #~ msgstr "결과 없음"
 
-#: src/components/settings-panel/views/extension.tsx:88
+#: src/components/settings-panel/views/extensions.tsx:63
+#: src/components/settings-panel/views/extension.tsx:63
 msgid "no tags"
 msgstr "태그 없음"
 
@@ -391,7 +393,7 @@ msgstr "태그 없음"
 msgid "Notifications"
 msgstr "알림"
 
-#: src/components/settings-panel/views/notifications.tsx:126
+#: src/components/settings-panel/views/notifications.tsx:128
 msgid "Notify upcoming events"
 msgstr "예정된 이벤트 알림"
 
@@ -483,7 +485,7 @@ msgstr "템플릿 검색..."
 msgid "Sections"
 msgstr "섹션"
 
-#: src/components/settings-panel/views/notifications.tsx:180
+#: src/components/settings-panel/views/notifications.tsx:182
 msgid "Select apps that should not trigger meeting notifications"
 msgstr "회의 알림을 트리거하지 않아야 하는 앱 선택"
 
@@ -500,11 +502,11 @@ msgstr "초대장 보내기"
 msgid "Settings"
 msgstr "설정"
 
-#: src/components/settings-panel/views/notifications.tsx:129
+#: src/components/settings-panel/views/notifications.tsx:131
 msgid "Show notifications 1 minute before events start based on your calendars"
 msgstr "캘린더를 기반으로 이벤트 시작 1분 전에 알림 표시"
 
-#: src/components/settings-panel/views/notifications.tsx:154
+#: src/components/settings-panel/views/notifications.tsx:156
 msgid "Show notifications whenever a microphone is being used"
 msgstr "마이크가 사용될 때마다 알림 표시"
 

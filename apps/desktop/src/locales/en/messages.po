@@ -192,7 +192,7 @@ msgstr "Create Template"
 
 #: src/components/settings-panel/views/template.tsx:86
 #: src/components/settings-panel/views/team.tsx:162
-#: src/components/left-sidebar/note-item.tsx:145
+#: src/components/left-sidebar/note-item.tsx:157
 msgid "Delete"
 msgstr "Delete"
 
@@ -204,7 +204,7 @@ msgstr "Describe the content and purpose of this section"
 msgid "Description"
 msgstr "Description"
 
-#: src/components/settings-panel/views/notifications.tsx:151
+#: src/components/settings-panel/views/notifications.tsx:153
 msgid "Detect meetings automatically"
 msgstr "Detect meetings automatically"
 
@@ -244,7 +244,7 @@ msgstr "Enable System Audio"
 msgid "Enter a section title"
 msgstr "Enter a section title"
 
-#: src/components/settings-panel/views/notifications.tsx:177
+#: src/components/settings-panel/views/notifications.tsx:179
 msgid "Exclude these apps from auto detection"
 msgstr "Exclude these apps from auto detection"
 
@@ -283,7 +283,7 @@ msgstr "HYPRNOTE"
 msgid "Hyprnote will be opened automatically when you start your computer."
 msgstr "Hyprnote will be opened automatically when you start your computer."
 
-#: src/components/left-sidebar/note-item.tsx:134
+#: src/components/left-sidebar/note-item.tsx:146
 msgid "In calendar view"
 msgstr "In calendar view"
 
@@ -321,7 +321,8 @@ msgstr "Learn more about our pricing plans"
 msgid "LinkedIn Username"
 msgstr "LinkedIn Username"
 
-#: src/components/settings-panel/views/extension.tsx:60
+#: src/components/settings-panel/views/extensions.tsx:35
+#: src/components/settings-panel/views/extension.tsx:35
 msgid "Loading extension details..."
 msgstr "Loading extension details..."
 
@@ -360,9 +361,9 @@ msgstr "New note"
 
 #: src/components/toolbar/new-note-button.tsx:45
 #~ msgid "New Note"
-#~ msgstr "New Note"
+#~ msgstr "New Note<<<<<<< HEAD"
 
-#: src/components/left-sidebar/note-item.tsx:125
+#: src/components/left-sidebar/note-item.tsx:137
 msgid "New window"
 msgstr "New window"
 
@@ -374,7 +375,8 @@ msgstr "No members found"
 #~ msgid "No results"
 #~ msgstr "No results"
 
-#: src/components/settings-panel/views/extension.tsx:88
+#: src/components/settings-panel/views/extensions.tsx:63
+#: src/components/settings-panel/views/extension.tsx:63
 msgid "no tags"
 msgstr "no tags"
 
@@ -391,7 +393,7 @@ msgstr "no tags"
 msgid "Notifications"
 msgstr "Notifications"
 
-#: src/components/settings-panel/views/notifications.tsx:126
+#: src/components/settings-panel/views/notifications.tsx:128
 msgid "Notify upcoming events"
 msgstr "Notify upcoming events"
 
@@ -483,7 +485,7 @@ msgstr "Search templates..."
 msgid "Sections"
 msgstr "Sections"
 
-#: src/components/settings-panel/views/notifications.tsx:180
+#: src/components/settings-panel/views/notifications.tsx:182
 msgid "Select apps that should not trigger meeting notifications"
 msgstr "Select apps that should not trigger meeting notifications"
 
@@ -500,11 +502,11 @@ msgstr "Send invite"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/settings-panel/views/notifications.tsx:129
+#: src/components/settings-panel/views/notifications.tsx:131
 msgid "Show notifications 1 minute before events start based on your calendars"
 msgstr "Show notifications 1 minute before events start based on your calendars"
 
-#: src/components/settings-panel/views/notifications.tsx:154
+#: src/components/settings-panel/views/notifications.tsx:156
 msgid "Show notifications whenever a microphone is being used"
 msgstr "Show notifications whenever a microphone is being used"
 

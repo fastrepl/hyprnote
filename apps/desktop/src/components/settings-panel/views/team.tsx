@@ -60,174 +60,187 @@ export default function TeamComponent() {
   };
 
   return (
-    <div>
-      <div className="mb-4 flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t`Type to search...`}
-            className="max-w-60 pl-8 focus-visible:ring-0 focus-visible:ring-offset-0"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+    <div className="relative h-full">
+      <div className="absolute inset-0 backdrop-blur-sm bg-white/50 z-10 flex flex-col items-center justify-center">
+        <div className="text-4xl font-bold text-neutral-900 mb-4">
+          <Trans>Coming Soon</Trans>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => setShowInviteModal(true)}
-        >
-          <Plus className="h-4 w-4" />
-          <Trans>Add members</Trans>
-        </Button>
+        <p className="text-neutral-700 max-w-md text-center">
+          <Trans>
+            Team management features are currently under development and will be available in a future update.
+          </Trans>
+        </p>
       </div>
 
-      <div className="overflow-clip rounded-lg border bg-card">
-        <div className="grid grid-cols-2 gap-4 border-b bg-neutral-50 px-6 py-3 text-sm font-bold text-neutral-700">
-          <div>
-            <Trans>User</Trans>
+      <div className="space-y-6">
+        <div className="mb-4 flex items-center gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t`Type to search...`}
+              className="max-w-60 pl-8 focus-visible:ring-0 focus-visible:ring-offset-0"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowInviteModal(true)}
+          >
+            <Plus className="h-4 w-4" />
+            <Trans>Add members</Trans>
+          </Button>
+        </div>
+
+        <div className="overflow-clip rounded-lg border bg-card">
+          <div className="grid grid-cols-2 gap-4 border-b bg-neutral-50 px-6 py-3 text-sm font-bold text-neutral-700">
+            <div>
+              <Trans>User</Trans>
+            </div>
+            <div>
+              <Trans>Role</Trans>
+            </div>
+          </div>
+
           <div>
-            <Trans>Role</Trans>
+            {filteredMembers.map((member) => (
+              <div
+                key={member.id}
+                className="grid grid-cols-2 gap-4 border-t px-6 py-4 first:border-t-0"
+              >
+                <div className="flex items-center gap-3">
+                  {member.id === "1"
+                    ? <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-700" />
+                    : (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full border bg-secondary text-sm font-medium">
+                        {member.avatar}
+                      </div>
+                    )}
+                  <div>
+                    <div className="text-sm font-medium">{member.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {member.email}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Select defaultValue={member.role}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem
+                        value="workspace_owner"
+                        className="cursor-pointer"
+                      >
+                        <Trans>Owner</Trans>
+                      </SelectItem>
+                      <SelectItem value="admin" className="cursor-pointer">
+                        <Trans>Admin</Trans>
+                      </SelectItem>
+                      <SelectItem value="member" className="cursor-pointer">
+                        <Trans>Member</Trans>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer hover:bg-neutral-900 hover:text-neutral-300"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        className="text-destructive cursor-pointer"
+                        onClick={() => handleDelete(member)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        <Trans>Delete</Trans>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            ))}
+
+            {filteredMembers.length === 0 && (
+              <div className="px-6 py-4 text-sm text-muted-foreground">
+                <Trans>No members found</Trans>
+              </div>
+            )}
           </div>
         </div>
 
-        <div>
-          {filteredMembers.map((member) => (
-            <div
-              key={member.id}
-              className="grid grid-cols-2 gap-4 border-t px-6 py-4 first:border-t-0"
-            >
-              <div className="flex items-center gap-3">
-                {member.id === "1"
-                  ? <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-700" />
-                  : (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border bg-secondary text-sm font-medium">
-                      {member.avatar}
-                    </div>
-                  )}
-                <div>
-                  <div className="text-sm font-medium">{member.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {member.email}
-                  </div>
-                </div>
+        <Modal
+          open={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          size="sm"
+        >
+          <ModalBody>
+            <ModalHeader>
+              <ModalTitle>
+                <Trans>Invite members</Trans>
+              </ModalTitle>
+              <ModalDescription>
+                <Trans>
+                  Type or paste in emails below, separated by commas. Your workspace will be billed by members.
+                </Trans>
+              </ModalDescription>
+            </ModalHeader>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  <Trans>Email addresses</Trans>
+                </label>
+                <Input
+                  placeholder={t`Search names or emails`}
+                  value={inviteEmails}
+                  onChange={(e) => setInviteEmails(e.target.value)}
+                  className="focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
               </div>
-              <div className="flex items-center justify-between">
-                <Select defaultValue={member.role}>
-                  <SelectTrigger className="w-[140px]">
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  <Trans>Role</Trans>
+                </label>
+                <Select
+                  value={inviteRole}
+                  onValueChange={(
+                    value: "workspace_owner" | "admin" | "member",
+                  ) => setInviteRole(value)}
+                >
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem
-                      value="workspace_owner"
-                      className="cursor-pointer"
-                    >
+                    <SelectItem value="workspace_owner">
                       <Trans>Owner</Trans>
                     </SelectItem>
-                    <SelectItem value="admin" className="cursor-pointer">
+                    <SelectItem value="admin">
                       <Trans>Admin</Trans>
                     </SelectItem>
-                    <SelectItem value="member" className="cursor-pointer">
+                    <SelectItem value="member">
                       <Trans>Member</Trans>
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer hover:bg-neutral-900 hover:text-neutral-300"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      className="text-destructive cursor-pointer"
-                      onClick={() => handleDelete(member)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      <Trans>Delete</Trans>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={() => setShowInviteModal(false)}>
+                  <Trans>Send invite</Trans>
+                </Button>
               </div>
             </div>
-          ))}
-
-          {filteredMembers.length === 0 && (
-            <div className="px-6 py-4 text-sm text-muted-foreground">
-              <Trans>No members found</Trans>
-            </div>
-          )}
-        </div>
+          </ModalBody>
+        </Modal>
       </div>
-
-      <Modal
-        open={showInviteModal}
-        onClose={() => setShowInviteModal(false)}
-        size="sm"
-      >
-        <ModalBody>
-          <ModalHeader>
-            <ModalTitle>
-              <Trans>Invite members</Trans>
-            </ModalTitle>
-            <ModalDescription>
-              <Trans>
-                Type or paste in emails below, separated by commas. Your workspace will be billed by members.
-              </Trans>
-            </ModalDescription>
-          </ModalHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                <Trans>Email addresses</Trans>
-              </label>
-              <Input
-                placeholder={t`Search names or emails`}
-                value={inviteEmails}
-                onChange={(e) => setInviteEmails(e.target.value)}
-                className="focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                <Trans>Role</Trans>
-              </label>
-              <Select
-                value={inviteRole}
-                onValueChange={(
-                  value: "workspace_owner" | "admin" | "member",
-                ) => setInviteRole(value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="workspace_owner">
-                    <Trans>Owner</Trans>
-                  </SelectItem>
-                  <SelectItem value="admin">
-                    <Trans>Admin</Trans>
-                  </SelectItem>
-                  <SelectItem value="member">
-                    <Trans>Member</Trans>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex justify-end">
-              <Button onClick={() => setShowInviteModal(false)}>
-                <Trans>Send invite</Trans>
-              </Button>
-            </div>
-          </div>
-        </ModalBody>
-      </Modal>
     </div>
   );
 }

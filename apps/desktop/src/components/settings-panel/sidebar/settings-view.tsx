@@ -1,3 +1,5 @@
+import { cn } from "@hypr/ui/lib/utils";
+import { Trans } from "@lingui/react/macro";
 import {
   BellIcon,
   BlocksIcon,
@@ -9,9 +11,6 @@ import {
   UsersIcon,
 } from "lucide-react";
 import { type NavNames } from "../types";
-
-import { cn } from "@hypr/ui/lib/utils";
-import { Trans } from "@lingui/react/macro";
 
 export interface SettingsViewProps {
   active: NavNames | "Profile";
@@ -111,6 +110,10 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
                 <span className="hidden md:inline-block">
                   <Trans>Team</Trans>
                 </span>
+
+                <div className="ml-auto text-xs">
+                  <Trans>Coming Soon</Trans>
+                </div>
               </button>
             </li>
 

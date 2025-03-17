@@ -1,17 +1,29 @@
+import { useLeftSidebar, useOngoingSession } from "@/contexts";
 import { useMatch } from "@tanstack/react-router";
 import { motion } from "motion/react";
-
-import { useLeftSidebar } from "@/contexts";
 import SettingsButton from "../settings-panel";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
 import { AllList } from "./notes-list";
+import OngoingSession from "./ongoing-session";
 import UpdateButton from "./update-button";
 
 export default function LeftSidebar() {
   const { isExpanded } = useLeftSidebar();
   const match = useMatch({ from: "/app/note/$id/main", shouldThrow: false });
+  const { listening, sessionId } = useOngoingSession((s) => ({
+    listening: s.listening,
+    sessionId: s.sessionId,
+  }));
 
   const show = match !== undefined && isExpanded;
+
+  const noteMainMatch = useMatch({ from: "/app/note/$id/main", shouldThrow: false });
+  const noteSubMatch = useMatch({ from: "/app/note/$id/sub", shouldThrow: false });
+
+  const isInOngoingNoteMain = noteMainMatch?.params.id === sessionId;
+  const isInOngoingNoteSub = noteSubMatch?.params.id === sessionId;
+  const isInOngoingNote = isInOngoingNoteMain || isInOngoingNoteSub;
+  const inMeetingAndNotInNote = listening && sessionId !== null && !isInOngoingNote;
 
   return (
     <motion.div
@@ -27,6 +39,8 @@ export default function LeftSidebar() {
       >
         <LeftSidebarButton type="sidebar" />
       </div>
+
+      {inMeetingAndNotInNote && <OngoingSession sessionId={sessionId} />}
 
       <div className="flex-1 h-full overflow-y-auto">
         <AllList />

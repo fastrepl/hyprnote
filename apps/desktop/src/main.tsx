@@ -22,7 +22,9 @@ i18n.load({
   en: enMessages,
   ko: koMessages,
 });
-i18n.activate("en");
+
+// TODO: load language from user settings
+i18n.activate("ko");
 
 import "@hypr/ui/globals.css";
 import "./styles/globals.css";

@@ -1,32 +1,18 @@
-import { useMatch } from "@tanstack/react-router";
-
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
-import { useOngoingSession } from "@/contexts";
 import { cn } from "@hypr/ui/lib/utils";
-
+import { useMatch } from "@tanstack/react-router";
 import { SearchBar, SearchIconButton, SearchPalette } from "../search";
 import { LeftSidebarButton } from "./buttons/left-sidebar-button";
 import { RightPanelButton } from "./buttons/right-panel-button";
 import { ShareButton } from "./buttons/share-button";
-import { SessionIndicator } from "./session-indicator";
 
 export default function Toolbar() {
-  const { listening, sessionId } = useOngoingSession((s) => ({
-    listening: s.listening,
-    sessionId: s.sessionId,
-  }));
-
   const noteMainMatch = useMatch({ from: "/app/note/$id/main", shouldThrow: false });
   const noteSubMatch = useMatch({ from: "/app/note/$id/sub", shouldThrow: false });
 
   const isInNoteMain = noteMainMatch !== undefined;
-  const isInOngoingNoteMain = noteMainMatch?.params.id === sessionId;
   const isInNoteSub = noteSubMatch !== undefined;
-  const isInOngoingNoteSub = noteSubMatch?.params.id === sessionId;
   const isInNote = isInNoteMain || isInNoteSub;
-  const isInOngoingNote = isInOngoingNoteMain || isInOngoingNoteSub;
-
-  const inMeetingAndNotInNote = listening && sessionId !== null && !isInOngoingNote;
 
   return (
     <>
@@ -45,14 +31,14 @@ export default function Toolbar() {
           </div>
         )}
 
-        {isInNoteMain ?? (inMeetingAndNotInNote ? <SessionIndicator sessionId={sessionId} /> : <SearchBar />)}
+        {isInNoteMain && <SearchBar />}
 
         {!isInNoteSub && (
           <div
             className="flex w-40 items-center justify-end"
             data-tauri-drag-region
           >
-            <SearchIconButton isShown={inMeetingAndNotInNote} />
+            <SearchIconButton />
             {isInNote && <ShareButton />}
             <RightPanelButton />
           </div>

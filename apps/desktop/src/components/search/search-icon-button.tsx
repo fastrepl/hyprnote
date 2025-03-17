@@ -9,7 +9,7 @@ export function SearchIconButton() {
     <Button
       variant="ghost"
       size="icon"
-      className="hover:bg-neutral-200"
+      className="hover:bg-neutral-200 md:hidden block"
       onClick={open}
       aria-label="Search"
     >

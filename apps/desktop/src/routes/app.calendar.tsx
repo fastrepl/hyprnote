@@ -1,7 +1,7 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
-import { addMonths, endOfMonth, format, startOfMonth, subMonths } from "date-fns";
+import { addMonths, endOfMonth, startOfMonth, subMonths } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { z } from "zod";
 
@@ -53,6 +53,7 @@ export const Route = createFileRoute("/app/calendar")({
 function Component() {
   const { sessions, date } = Route.useLoaderData();
   const navigate = useNavigate();
+  const { i18n } = useLingui();
 
   const today = new Date();
 
@@ -86,8 +87,8 @@ function Component() {
     <div className="flex h-screen w-screen overflow-hidden flex-col bg-white text-neutral-700">
       <header className="flex w-full flex-col">
         <div data-tauri-drag-region className="relative h-11 w-full flex items-center justify-center">
-          <h1 className="text-xl font-medium">
-            <strong data-tauri-drag-region>{format(date, "MMMM")}</strong> {format(date, "yyyy")}
+          <h1 className="text-xl font-bold" data-tauri-drag-region>
+            {i18n.date(date, { month: "long", year: "numeric" })}
           </h1>
 
           <div className="absolute right-2 flex h-fit rounded-md overflow-clip border border-neutral-200">

@@ -40,7 +40,7 @@ export default function WorkspaceCalendar({ sessions, month }: WorkspaceCalendar
       const newCellHeight = Math.floor(containerHeight / 6) - 1;
       setCellHeight(newCellHeight);
 
-      const availableHeight = newCellHeight - HEADER_HEIGHT;
+      const availableHeight = newCellHeight + 1 - HEADER_HEIGHT;
 
       let maxEvents = 0;
 
@@ -134,7 +134,7 @@ export default function WorkspaceCalendar({ sessions, month }: WorkspaceCalendar
               isWeekend ? "bg-neutral-50" : "bg-white",
             )}
           >
-            <div className="flex items-center justify-end pt-1 px-1 text-sm h-8">
+            <div className="flex items-center justify-end px-1 text-sm h-8">
               <div className={cn("flex items-end gap-1", isHighlighted && "items-center")}>
                 {isFirstDayOfMonth && (
                   <span
@@ -149,6 +149,7 @@ export default function WorkspaceCalendar({ sessions, month }: WorkspaceCalendar
                     {monthName}
                   </span>
                 )}
+
                 <div
                   className={cn(isHighlighted && "bg-red-500 rounded-full w-6 h-6 flex items-center justify-center")}
                 >
@@ -177,7 +178,7 @@ export default function WorkspaceCalendar({ sessions, month }: WorkspaceCalendar
                   {(hiddenSessionsCount > 0) && (
                     <Popover>
                       <PopoverTrigger asChild>
-                        <div className="text-xs text-neutral-600 rounded py-0.5 cursor-pointer hover:bg-neutral-200 mx-1">
+                        <div className="text-xs text-neutral-600 rounded py-0.5 cursor-pointer hover:bg-neutral-200 mx-1 h-5">
                           {`+${hiddenSessionsCount} more`}
                         </div>
                       </PopoverTrigger>

@@ -16,7 +16,7 @@ tasks:
   i18n:
     cmds:
       - |
-          pnpm -F desktop lingui extract |
+          pnpm -F desktop lingui:extract |
           awk -F '│' '($2 ~ /[^ ]/ && $3 ~ /[0-9-]/) {
             gsub(/^ *| *$/, "", $2);
             gsub(/[^0-9-]/, "", $3);

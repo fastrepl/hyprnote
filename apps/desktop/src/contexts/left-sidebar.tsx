@@ -36,6 +36,8 @@ export function LeftSidebarProvider({
       {children}
     </LeftSidebarContext.Provider>
   );
+
+  // TODO: Add global search in left sidebar
 }
 
 export function useLeftSidebar() {

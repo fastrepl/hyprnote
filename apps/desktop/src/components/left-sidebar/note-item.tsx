@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { AppWindowMacIcon, ArrowUpRight, EarIcon, TrashIcon } from "lucide-react";
+import { AppWindowMacIcon, ArrowUpRight, TrashIcon } from "lucide-react";
 import { useState } from "react";
 
 import { useSession, useSessions } from "@/contexts";

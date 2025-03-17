@@ -1,11 +1,11 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 import {
+  GlobalSearchProvider,
   LeftSidebarProvider,
   NewNoteProvider,
   OngoingSessionProvider,
   RightPanelProvider,
-  SearchProvider,
   SessionsProvider,
   SettingsPanelProvider,
 } from "@/contexts";
@@ -25,13 +25,13 @@ function Component() {
       <OngoingSessionProvider>
         <LeftSidebarProvider>
           <RightPanelProvider>
-            <SearchProvider>
+            <GlobalSearchProvider>
               <SettingsPanelProvider>
                 <NewNoteProvider>
                   <Outlet />
                 </NewNoteProvider>
               </SettingsPanelProvider>
-            </SearchProvider>
+            </GlobalSearchProvider>
           </RightPanelProvider>
         </LeftSidebarProvider>
       </OngoingSessionProvider>

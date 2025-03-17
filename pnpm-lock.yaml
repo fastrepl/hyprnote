@@ -1028,6 +1028,9 @@ importers:
       '@hypr/extension-utils':
         specifier: workspace:^
         version: link:../utils
+      '@hypr/plugin-db':
+        specifier: workspace:^
+        version: link:../../plugins/db
       '@hypr/plugin-listener':
         specifier: workspace:^
         version: link:../../plugins/listener
@@ -1083,82 +1086,6 @@ importers:
       msw-storybook-addon:
         specifier: ^2.0.4
         version: 2.0.4(msw@2.7.3(@types/node@22.13.10)(typescript@5.8.2))
-      storybook:
-        specifier: ^8.6.4
-        version: 8.6.4(prettier@3.5.3)
-      tailwindcss:
-        specifier: ^3.4.17
-        version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.6)(@types/node@22.13.10)(typescript@5.8.2))
-      typescript:
-        specifier: ^5.8.2
-        version: 5.8.2
-
-  extensions/translation:
-    dependencies:
-      '@hypr/extension-utils':
-        specifier: workspace:^
-        version: link:../utils
-      '@hypr/plugin-listener':
-        specifier: workspace:^
-        version: link:../../plugins/listener
-      '@hypr/plugin-template':
-        specifier: workspace:^
-        version: link:../../plugins/template
-      '@hypr/ui':
-        specifier: workspace:^
-        version: link:../../packages/ui
-      '@tanstack/react-query':
-        specifier: ^5.67.2
-        version: 5.67.2(react@19.0.0)
-      '@tauri-apps/api':
-        specifier: ^2.3.0
-        version: 2.3.0
-      '@tauri-apps/plugin-http':
-        specifier: ^2.3.0
-        version: 2.3.0
-      lucide-react:
-        specifier: ^0.474.0
-        version: 0.474.0(react@19.0.0)
-      motion:
-        specifier: ^12.4.10
-        version: 12.4.10(@emotion/is-prop-valid@0.8.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      zod:
-        specifier: ^3.24.2
-        version: 3.24.2
-    devDependencies:
-      '@storybook/addon-essentials':
-        specifier: ^8.6.4
-        version: 8.6.4(@types/react@18.3.18)(storybook@8.6.4(prettier@3.5.3))
-      '@storybook/addon-interactions':
-        specifier: ^8.6.4
-        version: 8.6.4(storybook@8.6.4(prettier@3.5.3))
-      '@storybook/react':
-        specifier: ^8.6.4
-        version: 8.6.4(@storybook/test@8.6.4(storybook@8.6.4(prettier@3.5.3)))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(storybook@8.6.4(prettier@3.5.3))(typescript@5.8.2)
-      '@storybook/react-vite':
-        specifier: ^8.6.4
-        version: 8.6.4(@storybook/test@8.6.4(storybook@8.6.4(prettier@3.5.3)))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.35.0)(storybook@8.6.4(prettier@3.5.3))(typescript@5.8.2)(vite@6.2.1(@types/node@22.13.10)(jiti@2.4.2)(tsx@4.19.3)(yaml@2.7.0))
-      '@types/node':
-        specifier: ^22.13.10
-        version: 22.13.10
-      '@types/react':
-        specifier: ^18.3.18
-        version: 18.3.18
-      autoprefixer:
-        specifier: ^10.4.21
-        version: 10.4.21(postcss@8.5.3)
-      msw:
-        specifier: ^2.7.3
-        version: 2.7.3(@types/node@22.13.10)(typescript@5.8.2)
-      msw-storybook-addon:
-        specifier: ^2.0.4
-        version: 2.0.4(msw@2.7.3(@types/node@22.13.10)(typescript@5.8.2))
-      react:
-        specifier: ^19.0.0
-        version: 19.0.0
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.0.0(react@19.0.0)
       storybook:
         specifier: ^8.6.4
         version: 8.6.4(prettier@3.5.3)

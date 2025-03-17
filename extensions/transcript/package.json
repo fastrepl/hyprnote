@@ -18,6 +18,7 @@
   "dependencies": {
     "@hypr/extension-utils": "workspace:^",
     "@hypr/plugin-listener": "workspace:^",
+    "@hypr/plugin-db": "workspace:^",
     "@hypr/plugin-template": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@tanstack/react-query": "^5.67.2",

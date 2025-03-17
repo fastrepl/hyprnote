@@ -28,7 +28,7 @@ const WidgetHeader = ({
       )}
       {actions && (
         <div
-          style={{ display: "flex", alignItems: "center" }}
+          style={{ display: "flex", alignItems: "center", gap: "8px" }}
           className="not-draggable"
         >
           {actions}

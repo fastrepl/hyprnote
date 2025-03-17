@@ -1,13 +1,5 @@
 import { baseUrl } from "@/client";
 import { commands } from "@/types";
-import { Trans } from "@lingui/react/macro";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { message } from "@tauri-apps/plugin-dialog";
-import { open } from "@tauri-apps/plugin-shell";
-import { Pause, Play } from "lucide-react";
-import { useEffect, useState } from "react";
-
 import { commands as authCommands, events, type RequestParams } from "@hypr/plugin-auth";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
@@ -15,6 +7,13 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Particles } from "@hypr/ui/components/ui/particles";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
+import { Trans, useLingui } from "@lingui/react/macro";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { message } from "@tauri-apps/plugin-dialog";
+import { open } from "@tauri-apps/plugin-shell";
+import { Pause, Play } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/login")({
   component: Component,
@@ -30,6 +29,7 @@ export const Route = createFileRoute("/login")({
 function Component() {
   const { code, fingerprint } = Route.useLoaderData();
   const navigate = useNavigate();
+  const { t } = useLingui();
 
   const [port, setPort] = useState<number | null>(null);
 
@@ -112,7 +112,7 @@ function Component() {
             once
             className="mb-4 font-racing-sans text-6xl font-bold md:text-7xl lg:text-8xl"
           >
-            Hyprnote
+            {t`HYPRNOTE`}
           </TextAnimate>
 
           <TextAnimate
@@ -121,7 +121,7 @@ function Component() {
             once
             className="mb-12 text-center text-lg font-medium text-neutral-600 md:text-xl lg:text-2xl"
           >
-            AI notepad for meetings
+            {t`AI notepad for meetings`}
           </TextAnimate>
 
           <PushableButton

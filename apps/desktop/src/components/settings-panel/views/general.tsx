@@ -133,7 +133,7 @@ export default function General() {
                     <Trans>Display language</Trans>
                   </FormLabel>
                   <FormDescription>
-                    <Trans>This is the language you read.</Trans>
+                    <Trans>This is the language you mostly use.</Trans>
                   </FormDescription>
                 </div>
                 <Select

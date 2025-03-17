@@ -1,4 +1,4 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { type as getOsType } from "@tauri-apps/plugin-os";
@@ -18,6 +18,7 @@ export const Route = createFileRoute("/onboarding")({
 
 function Component() {
   const navigate = useNavigate();
+  const { t } = useLingui();
 
   useEffect(() => {
     return () => {
@@ -81,22 +82,22 @@ function Component() {
               </p>
 
               <PermissionItem
-                label="Transcribe my voice"
+                label={t`Transcribe my voice`}
                 done={micPermission.data}
                 handleClick={() => {
                   micPermission.mutate({});
                 }}
-                buttonTitle="Enable Microphone"
+                buttonTitle={t`Enable Microphone`}
                 suffixIcon={<MicIcon size={16} />}
                 required
               />
               <PermissionItem
-                label="Transcribe other people's voice"
+                label={t`Transcribe other people's voice`}
                 done={capturePermission.data}
                 handleClick={() => {
                   capturePermission.mutate({});
                 }}
-                buttonTitle="Enable System Audio"
+                buttonTitle={t`Enable System Audio`}
                 suffixIcon={<Volume2Icon size={16} />}
                 required
               />
@@ -109,10 +110,10 @@ function Component() {
                 </p>
 
                 <PermissionItem
-                  label="Want to keep track of events?"
+                  label={t`Want to keep track of events?`}
                   done={calendarPermission.data}
                   handleClick={() => calendarPermission.mutate({})}
-                  buttonTitle={"Connect to Calendar"}
+                  buttonTitle={t`Connect to Calendar`}
                   suffixIcon={
                     <img
                       src="/icons/calendar.png"
@@ -123,10 +124,10 @@ function Component() {
                 />
 
                 <PermissionItem
-                  label="How about your contacts?"
+                  label={t`How about your contacts?`}
                   done={contactsPermission.data}
                   handleClick={() => contactsPermission.mutate({})}
-                  buttonTitle="Connect to Contacts"
+                  buttonTitle={t`Connect to Contacts`}
                   suffixIcon={
                     <img
                       src="/icons/contacts.png"

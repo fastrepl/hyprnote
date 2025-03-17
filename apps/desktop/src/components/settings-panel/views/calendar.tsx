@@ -1,17 +1,16 @@
-import { client, getApiDesktopUserIntegrationsOptions, getIntegrationURL } from "@/client";
-import { type CalendarIntegration } from "@/types";
 import { Trans } from "@lingui/react/macro";
 import { RiAppleFill as AppleIcon } from "@remixicon/react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { type as getOsType } from "@tauri-apps/plugin-os";
-import { CheckIcon, XIcon } from "lucide-react";
+import { CheckIcon } from "lucide-react";
 import { useCallback } from "react";
 
+import { client, getApiDesktopUserIntegrationsOptions, getIntegrationURL } from "@/client";
+import { type CalendarIntegration } from "@/types";
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
-import { type Calendar, commands as dbCommands } from "@hypr/plugin-db";
+import { type Calendar } from "@hypr/plugin-db";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 
 const supportedIntegrations: CalendarIntegration[] = [
   "apple-calendar",
@@ -19,34 +18,6 @@ const supportedIntegrations: CalendarIntegration[] = [
 ];
 
 export default function Calendar() {
-  const queryClient = useQueryClient();
-
-  const calendars = useQuery({
-    queryKey: ["settings", "calendars"],
-    queryFn: async () => {
-      const calendars = await dbCommands.listCalendars();
-      return calendars;
-    },
-  });
-
-  const mutation = useMutation({
-    mutationFn: async ({
-      calendar_id,
-      selected,
-    }: {
-      calendar_id: Calendar["id"];
-      selected: boolean;
-    }) => {
-      const calendar = calendars.data?.find(
-        (calendar) => calendar.id === calendar_id,
-      );
-      if (calendar) {
-        dbCommands.upsertCalendar({ ...calendar, selected });
-        queryClient.invalidateQueries({ queryKey: ["settings", "calendars"] });
-      }
-    },
-  });
-
   return (
     <div>
       <h3 className="text-sm font-medium">

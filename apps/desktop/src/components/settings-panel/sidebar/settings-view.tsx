@@ -38,7 +38,7 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
                 </span>
               </button>
             </li>
-            
+
             <li>
               <button
                 onClick={() => setActive("Calendar")}
@@ -53,7 +53,7 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
                 </span>
               </button>
             </li>
-            
+
             <li>
               <button
                 onClick={() => setActive("Notifications")}
@@ -68,7 +68,7 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
                 </span>
               </button>
             </li>
-            
+
             <li>
               <button
                 onClick={() => setActive("Templates")}
@@ -83,7 +83,7 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
                 </span>
               </button>
             </li>
-            
+
             <li>
               <button
                 onClick={() => setActive("Extensions")}
@@ -98,7 +98,7 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
                 </span>
               </button>
             </li>
-            
+
             <li>
               <button
                 onClick={() => setActive("Team")}
@@ -113,7 +113,7 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
                 </span>
               </button>
             </li>
-            
+
             <li>
               <button
                 onClick={() => setActive("Billing")}

@@ -1,10 +1,10 @@
-import { addDays, eachDayOfInterval, format, getDay, isSameMonth, startOfMonth, subDays } from "date-fns";
-import { useEffect, useRef, useState } from "react";
-
 import type { Event, Session } from "@hypr/plugin-db";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/ui/lib/utils";
-import { DayEvents, EventCard } from "./day-events";
+import { addDays, eachDayOfInterval, format, getDay, isSameMonth, startOfMonth, subDays } from "date-fns";
+import { useEffect, useRef, useState } from "react";
+import { EventCard } from "./event-card";
+import { NoteCard } from "./note-card";
 
 interface WorkspaceCalendarProps {
   events: Event[];
@@ -12,15 +12,12 @@ interface WorkspaceCalendarProps {
   month: Date;
 }
 
+type CalendarItem = Event | Session;
+
 const HEADER_HEIGHT = 32;
 const EVENT_HEIGHT = 20;
 
-// TODO:
-// 'sessions' and 'events' are passed as-is based on date range.
-// For future: if event OR session exist, we should render it.
-// For past: event does not matter. if session exists, render it.
-// future/past decision can be made with `const today = new Date();`.
-export default function WorkspaceCalendar({ sessions, month }: WorkspaceCalendarProps) {
+export default function WorkspaceCalendar({ sessions, events, month }: WorkspaceCalendarProps) {
   const today = new Date();
 
   const calendarRef = useRef<HTMLDivElement>(null);
@@ -40,33 +37,11 @@ export default function WorkspaceCalendar({ sessions, month }: WorkspaceCalendar
       const newCellHeight = Math.floor(containerHeight / 6) - 1;
       setCellHeight(newCellHeight);
 
-      const availableHeight = newCellHeight + 1 - HEADER_HEIGHT;
+      const availableHeight = newCellHeight + 1 - HEADER_HEIGHT + 18;
 
-      let maxEvents = 0;
+      const maxPossibleEvents = Math.floor(availableHeight / EVENT_HEIGHT);
 
-      if (availableHeight < 2 * EVENT_HEIGHT) {
-        maxEvents = 0;
-      } else if (availableHeight < 3 * EVENT_HEIGHT) {
-        maxEvents = 1;
-      } else if (availableHeight < 4 * EVENT_HEIGHT) {
-        maxEvents = 2;
-      } else if (availableHeight < 5 * EVENT_HEIGHT) {
-        maxEvents = 3;
-      } else if (availableHeight < 6 * EVENT_HEIGHT) {
-        maxEvents = 4;
-      } else if (availableHeight < 7 * EVENT_HEIGHT) {
-        maxEvents = 5;
-      } else if (availableHeight < 8 * EVENT_HEIGHT) {
-        maxEvents = 6;
-      } else if (availableHeight < 9 * EVENT_HEIGHT) {
-        maxEvents = 7;
-      } else if (availableHeight < 10 * EVENT_HEIGHT) {
-        maxEvents = 8;
-      } else if (availableHeight < 11 * EVENT_HEIGHT) {
-        maxEvents = 9;
-      } else if (availableHeight < 12 * EVENT_HEIGHT) {
-        maxEvents = 10;
-      }
+      const maxEvents = maxPossibleEvents >= 2 ? maxPossibleEvents - 1 : 0;
 
       setVisibleEvents(maxEvents);
     };
@@ -92,6 +67,32 @@ export default function WorkspaceCalendar({ sessions, month }: WorkspaceCalendar
     );
   };
 
+  const getEventsForDay = (date: Date) => {
+    return events.filter(
+      (event) => format(new Date(event.start_date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd"),
+    );
+  };
+
+  const getItemsForDay = (date: Date) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    const todayStr = format(today, "yyyy-MM-dd");
+    const isFutureDate = dateStr > todayStr;
+    const isPastDate = dateStr < todayStr;
+
+    const daySessions = getSessionsForDay(date);
+    const dayEvents = getEventsForDay(date);
+
+    if (isFutureDate) {
+      return [...dayEvents, ...daySessions] as CalendarItem[];
+    }
+
+    if (isPastDate) {
+      return daySessions as CalendarItem[];
+    }
+
+    return [...dayEvents, ...daySessions] as CalendarItem[];
+  };
+
   const getCalendarDays = () => {
     const monthStart = startOfMonth(currentMonth);
 
@@ -111,7 +112,7 @@ export default function WorkspaceCalendar({ sessions, month }: WorkspaceCalendar
       className="grid grid-cols-7 divide-x divide-neutral-200 h-full grid-rows-6 gap-0"
     >
       {calendarDays.map((day, i) => {
-        const daySessions = getSessionsForDay(day);
+        const dayItems = getItemsForDay(day);
         const isLastInRow = (i + 1) % 7 === 0;
         const isWeekend = isLastInRow || (i + 1) % 7 === 6;
         const isLastWeek = i >= 35;
@@ -121,8 +122,16 @@ export default function WorkspaceCalendar({ sessions, month }: WorkspaceCalendar
         const isFirstDayOfMonth = dayNumber === "1";
         const monthName = isFirstDayOfMonth ? format(day, "MMM") : "";
 
-        const visibleSessionsArray = daySessions.slice(0, visibleEvents);
-        const hiddenSessionsCount = daySessions.length - visibleEvents;
+        const totalItems = dayItems.length;
+        const maxPossibleEvents = Math.floor((cellHeight + 1 - HEADER_HEIGHT) / EVENT_HEIGHT);
+        const visibleCount = maxPossibleEvents >= 2 && totalItems > maxPossibleEvents
+          ? maxPossibleEvents - 1
+          : Math.min(totalItems, visibleEvents);
+
+        const visibleItemsArray = dayItems.slice(0, visibleCount);
+        const hiddenCount = totalItems > maxPossibleEvents
+          ? totalItems - maxPossibleEvents + 1
+          : totalItems - visibleCount;
 
         return (
           <div
@@ -171,15 +180,25 @@ export default function WorkspaceCalendar({ sessions, month }: WorkspaceCalendar
             </div>
 
             <div className="flex-1 overflow-hidden flex flex-col">
-              {isCurrentMonth && daySessions.length > 0 && (
+              {dayItems.length > 0 && (
                 <>
-                  {visibleSessionsArray.length > 0 && <DayEvents sessions={visibleSessionsArray} />}
+                  {visibleItemsArray.length > 0 && (
+                    <div className="px-1">
+                      {visibleItemsArray.map((item) => (
+                        <div key={"id" in item ? item.id : ""}>
+                          {"calendar_event_id" in item
+                            ? <NoteCard session={item as Session} />
+                            : <EventCard event={item as Event} />}
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
-                  {(hiddenSessionsCount > 0) && (
+                  {(hiddenCount > 0) && (
                     <Popover>
                       <PopoverTrigger asChild>
                         <div className="text-xs text-neutral-600 rounded py-0.5 cursor-pointer hover:bg-neutral-200 mx-1 h-5">
-                          {`+${hiddenSessionsCount} more`}
+                          {`+${hiddenCount} more`}
                         </div>
                       </PopoverTrigger>
                       <PopoverContent
@@ -190,12 +209,14 @@ export default function WorkspaceCalendar({ sessions, month }: WorkspaceCalendar
                           {format(day, "MMMM d, yyyy")}
                         </div>
 
-                        {daySessions.map((session) => (
+                        {dayItems.map((item) => (
                           <div
-                            key={session.id}
+                            key={"id" in item ? item.id : ""}
                             className="text-sm hover:bg-neutral-100 rounded cursor-pointer transition-colors"
                           >
-                            <EventCard session={session} showTime />
+                            {"calendar_event_id" in item
+                              ? <NoteCard session={item as Session} showTime />
+                              : <EventCard event={item as Event} showTime />}
                           </div>
                         ))}
                       </PopoverContent>

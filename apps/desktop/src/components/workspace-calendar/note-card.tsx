@@ -1,29 +1,14 @@
-import { Trans } from "@lingui/react/macro";
-import { format } from "date-fns";
-import { Pen } from "lucide-react";
-import { useState } from "react";
-
 import type { RoutePath } from "@/types";
 import { type Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Trans } from "@lingui/react/macro";
+import { format } from "date-fns";
+import { Pen } from "lucide-react";
+import { useState } from "react";
 
-interface DayEventsProps {
-  sessions: Session[];
-}
-
-export function DayEvents({ sessions }: DayEventsProps) {
-  if (sessions.length === 0) return null;
-
-  return (
-    <div className="px-1">
-      {sessions.map((session) => <EventCard key={session.id} session={session} />)}
-    </div>
-  );
-}
-
-export function EventCard({ session, showTime = false }: { session: Session; showTime?: boolean }) {
+export function NoteCard({ session, showTime = false }: { session: Session; showTime?: boolean }) {
   const [open, setOpen] = useState(false);
 
   const handleClick = (id: string) => {

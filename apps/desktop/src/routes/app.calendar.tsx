@@ -51,7 +51,7 @@ export const Route = createFileRoute("/app/calendar")({
 });
 
 function Component() {
-  const { sessions, date } = Route.useLoaderData();
+  const { sessions, events, date } = Route.useLoaderData();
   const navigate = useNavigate();
   const { i18n } = useLingui();
 
@@ -133,7 +133,7 @@ function Component() {
       </header>
 
       <div className="flex-1 h-full">
-        <WorkspaceCalendar month={date} sessions={sessions} events={[]} />
+        <WorkspaceCalendar month={date} sessions={sessions} events={events} />
       </div>
     </div>
   );

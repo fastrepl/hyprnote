@@ -41,7 +41,7 @@ const CALL_PLATFORMS = [
 const schema = z.object({
   before: z.boolean().optional(),
   auto: z.boolean().optional(),
-  platforms: z.array(z.string()).optional(),
+  ignoredPlatforms: z.array(z.string()).optional(),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -63,7 +63,7 @@ export default function NotificationsComponent() {
     values: {
       before: config.data?.notification.before ?? true,
       auto: config.data?.notification.auto ?? true,
-      platforms: config.data?.notification.platforms ?? [],
+      ignoredPlatforms: config.data?.notification.ignoredPlatforms ?? [],
     },
   });
 
@@ -72,7 +72,7 @@ export default function NotificationsComponent() {
       const newNotification: ConfigNotification = {
         before: v.before ?? true,
         auto: v.auto ?? true,
-        platforms: v.platforms ?? [],
+        ignoredPlatforms: v.ignoredPlatforms ?? [],
       };
 
       if (!config.data) {
@@ -106,11 +106,11 @@ export default function NotificationsComponent() {
 
   // Toggle platform selection
   const togglePlatform = (platform: string) => {
-    const currentPlatforms = form.getValues().platforms || [];
-    if (currentPlatforms.includes(platform)) {
-      form.setValue("platforms", currentPlatforms.filter(p => p !== platform), { shouldDirty: true });
+    const currentIgnoredPlatforms = form.getValues().ignoredPlatforms || [];
+    if (currentIgnoredPlatforms.includes(platform)) {
+      form.setValue("ignoredPlatforms", currentIgnoredPlatforms.filter(p => p !== platform), { shouldDirty: true });
     } else {
-      form.setValue("platforms", [...currentPlatforms, platform], { shouldDirty: true });
+      form.setValue("ignoredPlatforms", [...currentIgnoredPlatforms, platform], { shouldDirty: true });
     }
   };
 
@@ -172,7 +172,7 @@ export default function NotificationsComponent() {
 
                     <FormField
                       control={form.control}
-                      name="platforms"
+                      name="ignoredPlatforms"
                       render={() => (
                         <FormItem>
                           <FormLabel className="text-sm">
@@ -196,7 +196,7 @@ export default function NotificationsComponent() {
                             <div className="rounded-md border">
                               <div className="p-2">
                                 {filteredPlatforms.map(platform => {
-                                  const isSelected = form.getValues().platforms?.includes(platform) || false;
+                                  const isSelected = form.getValues().ignoredPlatforms?.includes(platform) || false;
                                   return (
                                     <div
                                       key={platform}

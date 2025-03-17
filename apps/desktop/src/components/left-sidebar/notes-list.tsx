@@ -50,7 +50,7 @@ export function NotesList() {
   const sessions = useQuery({
     queryKey: ["sessions"],
     queryFn: async () => {
-      const sessions = await dbCommands.listSessions(null);
+      const sessions = await dbCommands.listSessions({ pagination: { offset: 0, limit: 100 } });
       sessions.forEach(insertSession);
 
       const grouped = sessions.reduce<Record<string, Session[]>>((acc, session) => {

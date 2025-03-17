@@ -63,6 +63,13 @@ impl UserDatabase {
         let conn = self.conn()?;
 
         let mut rows = match filter {
+            Some(ListSessionFilter::Pagination { limit, offset }) => {
+                conn.query(
+                    "SELECT * FROM sessions ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                    vec![limit.to_string(), offset.to_string()],
+                )
+                .await?
+            }
             Some(ListSessionFilter::Search((limit, q))) => {
                 conn.query(
                     "SELECT * FROM sessions WHERE title LIKE ? ORDER BY created_at DESC LIMIT ?",

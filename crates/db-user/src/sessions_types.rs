@@ -87,6 +87,11 @@ user_common_derives! {
 
 user_common_derives! {
     pub enum ListSessionFilter {
+        #[serde(rename = "pagination")]
+        Pagination {
+            limit: u8,
+            offset: u8,
+        },
         #[serde(rename = "search")]
         Search((u8, String)),
         #[serde(rename = "recentlyVisited")]

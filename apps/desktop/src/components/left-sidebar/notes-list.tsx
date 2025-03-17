@@ -116,7 +116,7 @@ export function NotesList() {
 
 export function AllList() {
   return (
-    <nav className="h-full overflow-y-auto space-y-4 px-3 pb-4">
+    <div className="h-full overflow-y-auto space-y-4 px-3 pb-4">
       <EventsList />
       <hr />
       <LayoutGroup>
@@ -124,6 +124,6 @@ export function AllList() {
           <NotesList />
         </AnimatePresence>
       </LayoutGroup>
-    </nav>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { AppWindowMacIcon, ArrowUpRight, TrashIcon } from "lucide-react";
+import { AppWindowMacIcon, ArrowUpRight, EarIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 
 import { useSession, useSessions } from "@/contexts";
@@ -17,11 +17,14 @@ import {
 import { cn } from "@hypr/ui/lib/utils";
 import { format } from "@hypr/utils/datetime";
 import { Trans } from "@lingui/react/macro";
+import SoundIndicator from "../sound-indicator";
 
 export function NoteItem({
   sessionId,
+  isLive,
 }: {
   sessionId: string;
+  isLive?: boolean;
 }) {
   const navigate = useNavigate();
 
@@ -77,9 +80,13 @@ export function NoteItem({
           )}
         >
           <div className="flex flex-col items-start gap-1 max-w-[180px] truncate">
-            <div className="font-medium text-sm">
-              {currentSession.title || "Untitled"}
+            <div className="flex items-center justify-between gap-1">
+              <div className="font-medium text-sm">
+                {currentSession.title || "Untitled"}
+              </div>
+              {isLive && <SoundIndicator />}
             </div>
+
             <div className="flex items-center gap-3 text-xs text-neutral-500">
               <span className="font-medium">{format(sessionDate, "M/d/yy")}</span>
               <span className="text-xs">

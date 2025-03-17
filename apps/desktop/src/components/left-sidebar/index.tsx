@@ -26,7 +26,7 @@ export default function LeftSidebar() {
   const inMeetingAndNotInNote = listening && sessionId !== null && !isInOngoingNote;
 
   return (
-    <motion.div
+    <motion.nav
       layout
       initial={{ width: show ? 240 : 0, opacity: show ? 1 : 0 }}
       animate={{ width: show ? 240 : 0, opacity: show ? 1 : 0 }}
@@ -51,6 +51,6 @@ export default function LeftSidebar() {
       <div className="flex items-center p-2 border-t">
         <SettingsButton />
       </div>
-    </motion.div>
+    </motion.nav>
   );
 }

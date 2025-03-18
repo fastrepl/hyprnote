@@ -1,6 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
+import { clsx } from "clsx";
 import { addMonths, endOfMonth, startOfMonth, subMonths } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { z } from "zod";
@@ -136,9 +137,10 @@ function Component() {
           {weekDays.map((day, index) => (
             <div
               key={day}
-              className={`text-center font-light text-sm pb-2 pt-1 ${
-                index === weekDays.length - 1 ? "border-r-0" : ""
-              }`}
+              className={clsx(
+                "text-center font-light text-sm pb-2 pt-1",
+                index === weekDays.length - 1 && "border-r-0",
+              )}
             >
               {day}
             </div>

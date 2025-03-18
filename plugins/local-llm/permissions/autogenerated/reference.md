@@ -49,6 +49,32 @@ Denies the download_model command without any pre-configured scope.
 <tr>
 <td>
 
+`local-llm:allow-get-status`
+
+</td>
+<td>
+
+Enables the get_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-get-status`
+
+</td>
+<td>
+
+Denies the get_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `local-llm:allow-is-model-downloaded`
 
 </td>

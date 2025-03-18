@@ -40,6 +40,10 @@ const COMMANDS: &[&str] = &[
     "list_session_tags",
     "assign_tag_to_session",
     "unassign_tag_from_session",
+    // extension
+    "get_extension_mapping",
+    "list_extension_mappings",
+    "upsert_extension_mapping",
 ];
 
 fn main() {

@@ -178,6 +178,32 @@ Denies the get_config command without any pre-configured scope.
 <tr>
 <td>
 
+`db:allow-get-extension-mapping`
+
+</td>
+<td>
+
+Enables the get_extension_mapping command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-get-extension-mapping`
+
+</td>
+<td>
+
+Denies the get_extension_mapping command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `db:allow-get-human`
 
 </td>
@@ -405,6 +431,32 @@ Enables the list_events command without any pre-configured scope.
 <td>
 
 Denies the list_events command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-list-extension-mappings`
+
+</td>
+<td>
+
+Enables the list_extension_mappings command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-list-extension-mappings`
+
+</td>
+<td>
+
+Denies the list_extension_mappings command without any pre-configured scope.
 
 </td>
 </tr>
@@ -769,6 +821,32 @@ Enables the upsert_chat_message command without any pre-configured scope.
 <td>
 
 Denies the upsert_chat_message command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-upsert-extension-mapping`
+
+</td>
+<td>
+
+Enables the upsert_extension_mapping command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-upsert-extension-mapping`
+
+</td>
+<td>
+
+Denies the upsert_extension_mapping command without any pre-configured scope.
 
 </td>
 </tr>

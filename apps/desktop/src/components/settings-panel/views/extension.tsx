@@ -1,17 +1,42 @@
-import type { ExtensionDefinition } from "@hypr/plugin-db";
-import { Button } from "@hypr/ui/components/ui/button";
-import { WidgetOneByOneWrapper, WidgetTwoByOneWrapper, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
 import { Trans } from "@lingui/react/macro";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { PlugIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+
+import { useHypr } from "@/contexts";
+import { commands as dbCommands, type ExtensionDefinition } from "@hypr/plugin-db";
+import { Button } from "@hypr/ui/components/ui/button";
+import { WidgetOneByOneWrapper, WidgetTwoByOneWrapper, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
 import { EXTENSION_CONFIGS } from "../sidebar/extensions-view";
 
-interface ExtensionComponentProps {
+interface ExtensionsComponentProps {
   selectedExtension: ExtensionDefinition | null;
   onExtensionSelect: (extension: ExtensionDefinition | null) => void;
 }
 
-export default function Extension({ selectedExtension, onExtensionSelect }: ExtensionComponentProps) {
+export default function Extensions({ selectedExtension, onExtensionSelect }: ExtensionsComponentProps) {
+  const { userId } = useHypr();
+
+  const extension = useQuery({
+    enabled: !!selectedExtension?.id,
+    queryKey: ["extension-mapping", selectedExtension?.id],
+    queryFn: async () => {
+      const extensionMapping = await dbCommands.getExtensionMapping(userId, selectedExtension?.id!);
+      return extensionMapping;
+    },
+  });
+
+  // TODO
+  useMutation({
+    mutationFn: async () => {
+      if (!extension.data) {
+        return;
+      }
+
+      await dbCommands.upsertExtensionMapping(extension.data);
+    },
+  });
+
   const implementedExtensions = useMemo(() => EXTENSION_CONFIGS.filter(ext => ext.implemented), []);
   const [isConnected, setIsConnected] = useState(false);
 

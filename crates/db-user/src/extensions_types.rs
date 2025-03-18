@@ -14,6 +14,7 @@ user_common_derives! {
 }
 
 user_common_derives! {
+    #[sql_table("extension_mappings")]
     pub struct ExtensionMapping {
         pub id: String,
         pub user_id: String,
@@ -21,6 +22,25 @@ user_common_derives! {
         pub enabled: bool,
         pub config: serde_json::Value,
         pub widget_layout_mapping: serde_json::Value,
+    }
+}
+
+impl ExtensionMapping {
+    pub fn from_row(row: &libsql::Row) -> Result<Self, serde::de::value::Error> {
+        Ok(Self {
+            id: row.get(0).expect("id"),
+            user_id: row.get(1).expect("user_id"),
+            extension_id: row.get(2).expect("extension_id"),
+            enabled: row.get(3).expect("enabled"),
+            config: row
+                .get_str(4)
+                .map(|s| serde_json::from_str(s).unwrap())
+                .unwrap_or_default(),
+            widget_layout_mapping: row
+                .get_str(5)
+                .map(|s| serde_json::from_str(s).unwrap())
+                .unwrap_or_default(),
+        })
     }
 }
 

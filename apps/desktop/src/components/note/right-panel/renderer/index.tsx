@@ -102,55 +102,28 @@ export const SuspenseWidget = ({
   );
 };
 
-// Define types for our widget configuration
-interface WidgetConfig {
+export interface WidgetConfig {
   id: string;
   extensionName: ExtensionName;
   groupName: string;
-  widgetType: "oneByOne" | "twoByOne" | "twoByTwo" | "full";
+  widgetType: "oneByOne" | "twoByOne" | "twoByTwo";
+  layout?: Omit<Layout, "i" | "w" | "h">;
 }
 
-interface LayoutConfig {
-  widgets: WidgetConfig[];
-  layouts: Layout[];
-}
+export default function WidgetRenderer({ widgets }: { widgets: WidgetConfig[] }) {
+  const initialLayout = widgets.map((w) => {
+    if (!w.layout) return null;
+    const size = w.widgetType === "oneByOne"
+      ? { w: 1, h: 1 }
+      : w.widgetType === "twoByOne"
+      ? { w: 2, h: 1 }
+      : { w: 2, h: 2 };
 
-const defaultConfig: LayoutConfig = {
-  widgets: [
-    {
-      id: "1",
-      extensionName: "@hypr/extension-dino-game",
-      groupName: "chromeDino",
-      widgetType: "twoByOne",
-    },
-    {
-      id: "2",
-      extensionName: "@hypr/extension-summary",
-      groupName: "bullet",
-      widgetType: "twoByTwo",
-    },
-    {
-      id: "3",
-      extensionName: "@hypr/extension-transcript",
-      groupName: "default",
-      widgetType: "twoByTwo",
-    },
-  ],
-  layouts: [
-    { i: "1", x: 0, y: 0, w: 2, h: 1 },
-    { i: "2", x: 0, y: 1, w: 2, h: 2 },
-    { i: "3", x: 0, y: 3, w: 2, h: 2 },
-  ],
-};
+    return { ...w.layout, i: w.id, ...size };
+  }).filter((l) => !!l);
 
-export default function WidgetRenderer({
-  config = defaultConfig,
-}: {
-  config?: LayoutConfig;
-}) {
   const queryClient = useQueryClient();
-
-  const [layout, setLayout] = useState<Layout[]>(config.layouts);
+  const [layout, setLayout] = useState<Layout[]>(initialLayout);
   const [showFull, setShowFull] = useState(false);
   const [fullWidgetConfig, setFullWidgetConfig] = useState<WidgetConfig | null>(null);
 
@@ -193,7 +166,7 @@ export default function WidgetRenderer({
             compactType="vertical"
             draggableCancel=".not-draggable"
           >
-            {config.widgets.map(widget => (
+            {widgets.map(widget => (
               <div key={widget.id}>
                 <SuspenseWidget
                   extensionName={widget.extensionName}

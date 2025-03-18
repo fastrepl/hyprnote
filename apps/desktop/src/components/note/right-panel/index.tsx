@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 import { useRightPanel } from "@/contexts";
-import WidgetRenderer from "./renderer";
+import WidgetRenderer, { WidgetConfig } from "./renderer";
 
 export default function RightPanel() {
   const [isMobile, setIsMobile] = useState(false);
@@ -11,6 +11,30 @@ export default function RightPanel() {
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const show = noteMatch?.search.window === "main" && isExpanded;
+
+  const widgets: WidgetConfig[] = [
+    {
+      id: "1",
+      extensionName: "@hypr/extension-dino-game",
+      groupName: "chromeDino",
+      widgetType: "twoByOne",
+      layout: { x: 0, y: 0 },
+    },
+    {
+      id: "2",
+      extensionName: "@hypr/extension-summary",
+      groupName: "bullet",
+      widgetType: "twoByTwo",
+      layout: { x: 0, y: 1 },
+    },
+    {
+      id: "3",
+      extensionName: "@hypr/extension-transcript",
+      groupName: "default",
+      widgetType: "twoByTwo",
+      layout: { x: 0, y: 3 },
+    },
+  ];
 
   useEffect(() => {
     const checkViewport = () => {
@@ -41,7 +65,7 @@ export default function RightPanel() {
           transition={{ duration: 0.3 }}
           className="absolute right-0 top-0 z-40 h-full w-[380px] overflow-y-auto border-l bg-neutral-50 scrollbar-none shadow-lg"
         >
-          <WidgetRenderer />
+          <WidgetRenderer widgets={widgets} />
         </motion.div>
       </div>
     );
@@ -54,7 +78,7 @@ export default function RightPanel() {
       transition={{ duration: 0.3 }}
       className="h-full overflow-y-auto border-l bg-neutral-50 scrollbar-none"
     >
-      <WidgetRenderer />
+      <WidgetRenderer widgets={widgets} />
     </motion.div>
   );
 }

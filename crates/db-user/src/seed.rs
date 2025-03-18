@@ -115,94 +115,59 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
     let sessions = vec![
         Session {
             id: uuid::Uuid::new_v4().to_string(),
-            user_id: yujong.clone().id,
             title: "Session 0".to_string(),
             created_at: now - chrono::Duration::hours(1),
             visited_at: now - chrono::Duration::hours(1),
-            calendar_event_id: None,
-            audio_local_path: None,
-            audio_remote_path: None,
-            raw_memo_html: "".to_string(),
-            enhanced_memo_html: None,
-            conversations: vec![],
+            ..new_default_session(&yujong.id)
         },
         Session {
-            id: uuid::Uuid::new_v4().to_string(),
-            user_id: yujong.clone().id,
             title: "Session 1".to_string(),
             created_at: now,
             visited_at: now,
             calendar_event_id: Some(events[0].id.clone()),
-            audio_local_path: None,
-            audio_remote_path: None,
-            raw_memo_html: "".to_string(),
-            enhanced_memo_html: None,
-            conversations: vec![],
+            ..new_default_session(&yujong.id)
         },
         Session {
-            id: uuid::Uuid::new_v4().to_string(),
-            user_id: yujong.clone().id,
             title: "Session 2".to_string(),
             created_at: now - chrono::Duration::days(1),
             visited_at: now - chrono::Duration::days(1),
-            calendar_event_id: None,
-            audio_local_path: None,
-            audio_remote_path: None,
-            raw_memo_html: "".to_string(),
-            enhanced_memo_html: None,
-            conversations: vec![],
+            ..new_default_session(&yujong.id)
         },
         Session {
-            id: uuid::Uuid::new_v4().to_string(),
-            user_id: yujong.clone().id,
             title: "Session 3".to_string(),
             created_at: now - chrono::Duration::days(7),
             visited_at: now - chrono::Duration::days(7),
-            calendar_event_id: None,
-            audio_local_path: None,
-            audio_remote_path: None,
-            raw_memo_html: "".to_string(),
-            enhanced_memo_html: None,
-            conversations: vec![],
+            ..new_default_session(&yujong.id)
         },
         Session {
-            id: uuid::Uuid::new_v4().to_string(),
-            user_id: yujong.clone().id,
             title: "Session 4".to_string(),
             created_at: now - chrono::Duration::days(10),
             visited_at: now - chrono::Duration::days(10),
-            calendar_event_id: None,
-            audio_local_path: None,
-            audio_remote_path: None,
-            raw_memo_html: "".to_string(),
-            enhanced_memo_html: None,
-            conversations: vec![],
+            ..new_default_session(&yujong.id)
         },
         Session {
-            id: uuid::Uuid::new_v4().to_string(),
-            user_id: yujong.clone().id,
             title: "Session 5".to_string(),
             created_at: now - chrono::Duration::days(34),
             visited_at: now - chrono::Duration::days(34),
-            calendar_event_id: None,
-            audio_local_path: None,
-            audio_remote_path: None,
-            raw_memo_html: "".to_string(),
-            enhanced_memo_html: None,
-            conversations: vec![],
+            ..new_default_session(&yujong.id)
         },
         Session {
-            id: uuid::Uuid::new_v4().to_string(),
-            user_id: yujong.clone().id,
             title: "Session 6".to_string(),
-            created_at: now - chrono::Duration::days(68),
-            visited_at: now - chrono::Duration::days(68),
-            calendar_event_id: None,
-            audio_local_path: None,
-            audio_remote_path: None,
-            raw_memo_html: "".to_string(),
-            enhanced_memo_html: None,
-            conversations: vec![],
+            created_at: now - chrono::Duration::days(48),
+            visited_at: now - chrono::Duration::days(48),
+            ..new_default_session(&yujong.id)
+        },
+        Session {
+            title: "Session 7".to_string(),
+            created_at: now - chrono::Duration::days(98),
+            visited_at: now - chrono::Duration::days(98),
+            ..new_default_session(&yujong.id)
+        },
+        Session {
+            title: "Session 8".to_string(),
+            created_at: now - chrono::Duration::days(148),
+            visited_at: now - chrono::Duration::days(148),
+            ..new_default_session(&yujong.id)
         },
     ];
 
@@ -252,4 +217,22 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
     }
 
     Ok(())
+}
+
+fn new_default_session(user_id: impl Into<String>) -> Session {
+    let now = chrono::Utc::now();
+
+    Session {
+        id: uuid::Uuid::new_v4().to_string(),
+        user_id: user_id.into(),
+        title: "".to_string(),
+        created_at: now,
+        visited_at: now,
+        calendar_event_id: None,
+        audio_local_path: None,
+        audio_remote_path: None,
+        raw_memo_html: "".to_string(),
+        enhanced_memo_html: None,
+        conversations: vec![],
+    }
 }

@@ -5,7 +5,7 @@ import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import React, { Suspense, useCallback, useState } from "react";
 import GridLayout, { Layout } from "react-grid-layout";
 
-import { WidgetGroup } from "@hypr/extension-utils";
+import type { WidgetGroup, WidgetType } from "@hypr/extension-utils";
 import { ExtensionName, importExtension } from "./extensions";
 
 const componentCache: Record<string, React.LazyExoticComponent<any>> = {};
@@ -13,7 +13,7 @@ const componentCache: Record<string, React.LazyExoticComponent<any>> = {};
 function getLazyWidget(
   extensionName: ExtensionName,
   groupName: string,
-  widgetType: "oneByOne" | "twoByOne" | "twoByTwo" | "full",
+  widgetType: WidgetType,
 ): React.LazyExoticComponent<any> {
   const id = `${extensionName}-${groupName}-${widgetType}`;
   if (componentCache[id]) {
@@ -76,7 +76,7 @@ export const SuspenseWidget = ({
 }: {
   extensionName: ExtensionName;
   groupName: string;
-  widgetType: "oneByOne" | "twoByOne" | "twoByTwo" | "full";
+  widgetType: WidgetType;
   queryClient: QueryClient;
   callbacks: {
     onMaximize?: () => void;
@@ -103,12 +103,13 @@ export const SuspenseWidget = ({
 };
 
 export interface WidgetConfig {
-  id: string;
   extensionName: ExtensionName;
   groupName: string;
-  widgetType: "oneByOne" | "twoByOne" | "twoByTwo";
+  widgetType: WidgetType;
   layout?: Omit<Layout, "i" | "w" | "h">;
 }
+
+const getID = (widget: WidgetConfig) => `${widget.extensionName}-${widget.groupName}-${widget.widgetType}`;
 
 export default function WidgetRenderer({ widgets }: { widgets: WidgetConfig[] }) {
   const initialLayout = widgets.map((w) => {
@@ -119,7 +120,7 @@ export default function WidgetRenderer({ widgets }: { widgets: WidgetConfig[] })
       ? { w: 2, h: 1 }
       : { w: 2, h: 2 };
 
-    return { ...w.layout, i: w.id, ...size };
+    return { ...w.layout, i: getID(w), ...size };
   }).filter((l) => !!l);
 
   const queryClient = useQueryClient();
@@ -167,7 +168,7 @@ export default function WidgetRenderer({ widgets }: { widgets: WidgetConfig[] })
             draggableCancel=".not-draggable"
           >
             {widgets.map(widget => (
-              <div key={widget.id}>
+              <div key={getID(widget)}>
                 <SuspenseWidget
                   extensionName={widget.extensionName}
                   groupName={widget.groupName}

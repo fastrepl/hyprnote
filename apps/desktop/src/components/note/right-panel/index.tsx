@@ -14,21 +14,18 @@ export default function RightPanel() {
 
   const widgets: WidgetConfig[] = [
     {
-      id: "1",
       extensionName: "@hypr/extension-dino-game",
       groupName: "chromeDino",
       widgetType: "twoByOne",
       layout: { x: 0, y: 0 },
     },
     {
-      id: "2",
       extensionName: "@hypr/extension-summary",
       groupName: "bullet",
       widgetType: "twoByTwo",
       layout: { x: 0, y: 1 },
     },
     {
-      id: "3",
       extensionName: "@hypr/extension-transcript",
       groupName: "default",
       widgetType: "twoByTwo",
@@ -59,9 +56,7 @@ export default function RightPanel() {
 
         <motion.div
           initial={false}
-          animate={{
-            x: show ? 0 : "100%",
-          }}
+          animate={{ x: show ? 0 : "100%" }}
           transition={{ duration: 0.3 }}
           className="absolute right-0 top-0 z-40 h-full w-[380px] overflow-y-auto border-l bg-neutral-50 scrollbar-none shadow-lg"
         >

@@ -1,4 +1,8 @@
-export type ExtensionName = "@hypr/extension-dino-game" | "@hypr/extension-summary" | "@hypr/extension-transcript";
+export type ExtensionName =
+  | "@hypr/extension-dino-game"
+  | "@hypr/extension-summary"
+  | "@hypr/extension-transcript"
+  | "@hypr/extension-timer";
 
 export function importExtension(name: ExtensionName) {
   switch (name) {
@@ -8,6 +12,8 @@ export function importExtension(name: ExtensionName) {
       return import("@hypr/extension-summary");
     case "@hypr/extension-transcript":
       return import("@hypr/extension-transcript");
+    case "@hypr/extension-timer":
+      return import("@hypr/extension-timer");
     default:
       throw new Error("Unreachable");
   }

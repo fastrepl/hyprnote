@@ -9,6 +9,8 @@ export type WidgetGroup = {
   items: WidgetItem[];
 };
 
+export type WidgetType = WidgetItem["type"];
+
 export type WidgetItem =
   & {
     init: () => Promise<void>;

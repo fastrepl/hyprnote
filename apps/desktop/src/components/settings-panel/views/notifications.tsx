@@ -99,12 +99,10 @@ export default function NotificationsComponent() {
     return () => subscription.unsubscribe();
   }, [mutation]);
 
-  // Filter platforms based on search query
   const filteredPlatforms = CALL_PLATFORMS.filter(platform =>
     platform.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Toggle platform selection
   const togglePlatform = (platform: string) => {
     const currentIgnoredPlatforms = form.getValues().ignoredPlatforms || [];
     if (currentIgnoredPlatforms.includes(platform)) {
@@ -167,7 +165,6 @@ export default function NotificationsComponent() {
 
                 {field.value && (
                   <div className="relative ml-6 mt-2">
-                    {/* Branch-like UI connector */}
                     <div className="absolute -left-6 -top-4 h-8 w-4 border-l-2 border-b-2 border-muted" />
 
                     <FormField

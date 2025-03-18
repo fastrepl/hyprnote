@@ -51,38 +51,22 @@ export function Header({ session }: HeaderProps) {
     return `https://hyprnote.com/download/${platform.toLowerCase()}`;
   };
 
-  const getButtonText = (platform: Platform) => {
-    if (platform === "unknown") {
-      return "Get App";
-    }
-    return `Download Hyprnote for ${platform}`;
-  };
-
   return (
     <div className="flex flex-col border-b">
-      <div className="flex flex-row items-center justify-between p-4 border-b bg-neutral-50">
-        <div className="w-full flex items-center">
-          <img
-            src="/hyprnote_icon.png"
-            alt="Hyprnote"
-            className="size-8 mr-3"
-          />
-          <h1 className="font-racing-sans text-2xl font-bold text-black">
-            HYPRNOTE
-          </h1>
-        </div>
-
-        <div className="flex items-center">
-          <a
-            href={getDownloadUrl(platform)}
-            className="inline-flex items-center justify-center gap-2 px-4 py-3 transition-all rounded-full text-sm bg-black hover:bg-neutral-800 hover:scale-95 text-white font-medium whitespace-nowrap"
-          >
+      <a
+        href={getDownloadUrl(platform)}
+      >
+        <div className="flex gap-1 items-center justify-center p-4 border-b bg-black text-white group">
+          <div className="flex gap-1 items-center transition-transform group-hover:scale-95">
+            <span>Download</span>
+            <img src="/hyprnote_icon.png" alt="Hyprnote Icon" className="size-6 ml-1" />
+            <span className="font-racing-sans font-bold text-lg mr-1">HYPRNOTE</span>
+            <span className="mr-1">for</span>
             {getPlatformIcon(platform)}
-            <div className="sm:block hidden">{getButtonText(platform)}</div>
-            <div className="sm:hidden block">Download</div>
-          </a>
+            <span>{platform}</span>
+          </div>
         </div>
-      </div>
+      </a>
 
       <SessionInfo session={session} />
     </div>

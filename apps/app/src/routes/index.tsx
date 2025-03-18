@@ -22,8 +22,8 @@ function Component() {
 
       <div className="z-10 flex w-full flex-col items-center justify-center">
         <div className="flex flex-col items-center">
-          <h1 className="mb-4 text-6xl font-bold md:text-7xl lg:text-8xl">
-            Hyprnote
+          <h1 className="font-racing-sans mb-4 text-6xl font-bold md:text-7xl lg:text-8xl">
+            HYPRNOTE
           </h1>
 
           <p className="mb-12 text-center text-lg font-medium text-neutral-600 md:text-xl lg:text-2xl">

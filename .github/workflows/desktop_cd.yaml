@@ -14,7 +14,7 @@ env:
 jobs:
   draft:
     if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/cn_release
@@ -81,7 +81,7 @@ jobs:
   publish:
     if: ${{ startsWith(github.event.release.tag_name, 'desktop_') }}
     needs: build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/cn_release

@@ -1,4 +1,7 @@
+import { ExtensionWidgetKind } from "@hypr/plugin-db";
 import type { WidgetFullSize, WidgetOneByOne, WidgetTwoByOne, WidgetTwoByTwo } from "@hypr/ui/components/ui/widgets";
+
+import { assert, type TypeEqualityGuard } from "./types";
 
 export type Extension = {
   [key: string]: WidgetGroup;
@@ -10,6 +13,8 @@ export type WidgetGroup = {
 };
 
 export type WidgetType = WidgetItem["type"];
+
+assert<TypeEqualityGuard<WidgetType, ExtensionWidgetKind>>();
 
 export type WidgetItem =
   & {

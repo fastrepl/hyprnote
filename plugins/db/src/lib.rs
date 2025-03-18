@@ -60,6 +60,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::extensions::upsert_extension_mapping,
         ])
         .typ::<hypr_db_user::ExtensionDefinition>()
+        .typ::<hypr_db_user::ExtensionWidgetKind>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 

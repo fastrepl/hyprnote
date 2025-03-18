@@ -1102,6 +1102,9 @@ importers:
         specifier: workspace:^
         version: link:../../packages/ui
     devDependencies:
+      '@hypr/plugin-db':
+        specifier: workspace:^
+        version: link:../../plugins/db
       typescript:
         specifier: ^5.8.2
         version: 5.8.2

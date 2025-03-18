@@ -1,27 +1,41 @@
 use crate::user_common_derives;
 
 user_common_derives! {
-    pub struct ExtensionDefinition {
-        pub id: String,
-        pub title: String,
-        pub description: String,
-        pub implemented: bool,
-        pub default: bool,
-        pub cloud_only: bool,
-        pub plugins: Vec<String>,
-        pub tags: Vec<String>,
-    }
-}
-
-user_common_derives! {
     #[sql_table("extension_mappings")]
     pub struct ExtensionMapping {
         pub id: String,
         pub user_id: String,
         pub extension_id: String,
-        pub enabled: bool,
         pub config: serde_json::Value,
-        pub widget_layout_mapping: serde_json::Value,
+        pub widgets: Vec<ExtensionWidget>,
+    }
+}
+
+user_common_derives! {
+    pub struct ExtensionWidget {
+        pub group: String,
+        pub kind: String,
+        pub position: Option<ExtensionWidgetPosition>,
+    }
+}
+
+user_common_derives! {
+    pub enum ExtensionWidgetKind {
+        #[specta(rename = "oneByOne")]
+        OneByOne,
+        #[specta(rename = "twoByOne")]
+        TwoByOne,
+        #[specta(rename = "twoByTwo")]
+        TwoByTwo,
+        #[specta(rename = "full")]
+        Full,
+    }
+}
+
+user_common_derives! {
+    pub struct ExtensionWidgetPosition {
+        pub x: u8,
+        pub y: u8,
     }
 }
 
@@ -31,16 +45,28 @@ impl ExtensionMapping {
             id: row.get(0).expect("id"),
             user_id: row.get(1).expect("user_id"),
             extension_id: row.get(2).expect("extension_id"),
-            enabled: row.get(3).expect("enabled"),
             config: row
+                .get_str(3)
+                .map(|s| serde_json::from_str(s).unwrap())
+                .unwrap_or_default(),
+            widgets: row
                 .get_str(4)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap_or_default(),
-            widget_layout_mapping: row
-                .get_str(5)
-                .map(|s| serde_json::from_str(s).unwrap())
-                .unwrap_or_default(),
         })
+    }
+}
+
+user_common_derives! {
+    pub struct ExtensionDefinition {
+        pub id: String,
+        pub title: String,
+        pub description: String,
+        pub implemented: bool,
+        pub default: bool,
+        pub cloud_only: bool,
+        pub plugins: Vec<String>,
+        pub tags: Vec<String>,
     }
 }
 

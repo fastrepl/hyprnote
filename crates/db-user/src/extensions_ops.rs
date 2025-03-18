@@ -14,21 +14,19 @@ impl UserDatabase {
                 id,
                 user_id,
                 extension_id,
-                enabled,
                 config,
-                widget_layout_mapping
+                position
             ) VALUES (?, ?, ?, ?, ?, ?) RETURNING *",
             ExtensionMapping::sql_table()
         );
 
-        let params = (
-            mapping.id,
-            mapping.user_id,
-            mapping.extension_id,
-            mapping.enabled,
-            serde_json::to_string(&mapping.config)?,
-            serde_json::to_string(&mapping.widget_layout_mapping)?,
-        );
+        let params = vec![
+            libsql::Value::Text(mapping.id),
+            libsql::Value::Text(mapping.user_id),
+            libsql::Value::Text(mapping.extension_id),
+            libsql::Value::Text(serde_json::to_string(&mapping.config)?),
+            libsql::Value::Text(serde_json::to_string(&mapping.widgets)?),
+        ];
 
         let mut rows = conn.query(&sql, params).await?;
         let row = rows.next().await?.unwrap();

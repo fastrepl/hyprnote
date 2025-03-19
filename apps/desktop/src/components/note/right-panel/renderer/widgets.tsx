@@ -73,7 +73,7 @@ export interface WidgetConfig {
   extensionName: ExtensionName;
   groupName: string;
   widgetType: WidgetType;
-  layout?: Omit<Layout, "i" | "w" | "h">;
+  layout?: Omit<Layout, "i" | "w" | "h"> | null;
 }
 
 export const getID = (widget: WidgetConfig) => `${widget.extensionName}-${widget.groupName}-${widget.widgetType}`;

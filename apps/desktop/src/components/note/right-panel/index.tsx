@@ -1,9 +1,13 @@
 import { useMatch } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { useRightPanel } from "@/contexts";
-import WidgetRenderer, { type WidgetConfig } from "./renderer";
+import { useHypr, useRightPanel } from "@/contexts";
+import { useQuery } from "@tanstack/react-query";
+import WidgetRenderer from "./renderer";
+
+import { commands as dbCommands } from "@hypr/plugin-db";
+import { ExtensionName } from "./renderer/extensions";
 
 export default function RightPanel() {
   const [isMobile, setIsMobile] = useState(false);
@@ -12,26 +16,46 @@ export default function RightPanel() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const show = noteMatch?.search.window === "main" && isExpanded;
 
-  const widgets: WidgetConfig[] = [
-    {
-      extensionName: "@hypr/extension-dino-game",
-      groupName: "chromeDino",
-      widgetType: "twoByOne",
-      layout: { x: 0, y: 0 },
-    },
-    {
-      extensionName: "@hypr/extension-summary",
-      groupName: "bullet",
-      widgetType: "twoByTwo",
-      layout: { x: 0, y: 1 },
-    },
-    {
-      extensionName: "@hypr/extension-transcript",
-      groupName: "default",
-      widgetType: "twoByTwo",
-      layout: { x: 0, y: 3 },
-    },
-  ];
+  const { userId } = useHypr();
+
+  const extensions = useQuery({
+    queryKey: ["extensions"],
+    queryFn: () => dbCommands.listExtensionMappings(userId),
+  });
+
+  const widgets = useMemo(() => {
+    return (extensions.data?.flatMap((extension) => {
+      return extension.widgets.map((widget) => {
+        return {
+          extensionName: extension.extension_id as ExtensionName,
+          groupName: widget.group,
+          widgetType: widget.kind,
+          layout: widget.position,
+        };
+      }) ?? [];
+    }) ?? []);
+  }, [extensions.data]);
+
+  // const widgets: WidgetConfig[] = [
+  //   {
+  //     extensionName: "@hypr/extension-dino-game",
+  //     groupName: "chromeDino",
+  //     widgetType: "twoByOne",
+  //     layout: { x: 0, y: 0 },
+  //   },
+  //   {
+  //     extensionName: "@hypr/extension-summary",
+  //     groupName: "bullet",
+  //     widgetType: "twoByTwo",
+  //     layout: { x: 0, y: 1 },
+  //   },
+  //   {
+  //     extensionName: "@hypr/extension-transcript",
+  //     groupName: "default",
+  //     widgetType: "twoByTwo",
+  //     layout: { x: 0, y: 3 },
+  //   },
+  // ];
 
   useEffect(() => {
     const checkViewport = () => {

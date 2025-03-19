@@ -26,7 +26,6 @@ export default function Extensions({ selectedExtension, onExtensionSelect }: Ext
     },
   });
 
-  // TODO
   useMutation({
     mutationFn: async () => {
       if (!extension.data) {
@@ -68,6 +67,11 @@ export default function Extensions({ selectedExtension, onExtensionSelect }: Ext
     <div className="flex flex-col gap-4">
       <div className="border-b pb-4 border-border">
         <h3 className="text-2xl font-semibold text-neutral-700 mb-2">{selectedExtension.title}</h3>
+
+        {/* TODO */}
+        <button className="p-2 bg-neutral-500 hover:bg-neutral-600 text-neutral-100 rounded-md">
+          upsert
+        </button>
 
         <p className="text-neutral-600 mb-4">{selectedExtension.description}</p>
 

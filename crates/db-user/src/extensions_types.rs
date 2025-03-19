@@ -13,8 +13,8 @@ user_common_derives! {
 
 user_common_derives! {
     pub struct ExtensionWidget {
+        pub kind: ExtensionWidgetKind,
         pub group: String,
-        pub kind: String,
         pub position: Option<ExtensionWidgetPosition>,
     }
 }

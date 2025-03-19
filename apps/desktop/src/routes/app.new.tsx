@@ -11,7 +11,7 @@ const schema = z.object({
 
 export const Route = createFileRoute("/app/new")({
   validateSearch: zodValidator(schema),
-  beforeLoad: async ({ context: { queryClient, sessionsStore }, search }) => {
+  beforeLoad: async ({ context: { queryClient }, search }) => {
     const id = await authCommands.getFromStore("auth-user-id");
 
     if (!id) {

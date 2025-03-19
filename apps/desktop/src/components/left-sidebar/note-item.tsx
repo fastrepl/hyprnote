@@ -4,7 +4,7 @@ import { type LinkProps, useMatch, useNavigate } from "@tanstack/react-router";
 import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { useSession2 } from "@/contexts";
+import { useSession } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import {
@@ -28,8 +28,8 @@ export function NoteItem({
   const navigate = useNavigate();
   const { params: { id: activeSessionId } } = useMatch({ from: "/app/note/$id" });
 
-  const activeSession = useSession2(activeSessionId, (s) => s.session);
-  const currentSession = useSession2(sessionId, (s) => s.session);
+  const activeSession = useSession(activeSessionId, (s) => s.session);
+  const currentSession = useSession(sessionId, (s) => s.session);
 
   const currentSessionEvent = useQuery({
     queryKey: ["event", currentSession.id],

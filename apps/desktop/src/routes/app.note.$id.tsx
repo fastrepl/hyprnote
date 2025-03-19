@@ -1,9 +1,8 @@
-import { createFileRoute, notFound, Outlet, useParams } from "@tanstack/react-router";
+import { createFileRoute, notFound, Outlet } from "@tanstack/react-router";
 
 import LeftSidebar from "@/components/left-sidebar";
 import RightPanel from "@/components/note/right-panel";
 import Toolbar from "@/components/toolbar";
-import { SessionProvider } from "@/contexts";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 
 const PATH = "/app/note/$id";
@@ -38,22 +37,18 @@ export const Route = createFileRoute(PATH)({
 });
 
 function Component() {
-  const { id } = useParams({ from: PATH });
-
   return (
-    <SessionProvider id={id}>
-      <div className="relative flex h-screen w-screen overflow-hidden">
-        <LeftSidebar />
-        <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
-          <Toolbar />
-          <div className="flex h-full overflow-hidden">
-            <div className="flex-1">
-              <Outlet />
-            </div>
-            <RightPanel />
+    <div className="relative flex h-screen w-screen overflow-hidden">
+      <LeftSidebar />
+      <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
+        <Toolbar />
+        <div className="flex h-full overflow-hidden">
+          <div className="flex-1">
+            <Outlet />
           </div>
+          <RightPanel />
         </div>
       </div>
-    </SessionProvider>
+    </div>
   );
 }

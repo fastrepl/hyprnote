@@ -2,7 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import { useMatch } from "@tanstack/react-router";
 import { SquarePenIcon } from "lucide-react";
 
-import { useNewNote, useSession2 } from "@/contexts";
+import { useNewNote, useSession } from "@/contexts";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import Shortcut from "../../shortcut";
@@ -16,7 +16,7 @@ export function NewNoteButton() {
     return null;
   }
 
-  const disabled = useSession2(match.params.id, (s) =>
+  const disabled = useSession(match.params.id, (s) =>
     !s.session?.title
     && !s.session?.raw_memo_html
     && !s.session?.enhanced_memo_html);

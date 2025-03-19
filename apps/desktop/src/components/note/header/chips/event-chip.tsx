@@ -1,4 +1,4 @@
-import { useSession2 } from "@/contexts";
+import { useSession } from "@/contexts";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarIcon } from "lucide-react";
 
@@ -14,7 +14,7 @@ interface EventChipProps {
 }
 
 export function EventChip({ sessionId }: EventChipProps) {
-  const { sessionCreatedAt } = useSession2(sessionId, (s) => ({
+  const { sessionCreatedAt } = useSession(sessionId, (s) => ({
     sessionCreatedAt: s.session.created_at,
   }));
 

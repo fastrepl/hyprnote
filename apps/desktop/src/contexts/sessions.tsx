@@ -47,9 +47,7 @@ export const useSessions = <T,>(
   return useStore(store, useShallow(selector));
 };
 
-// TODO: 'useSession2' will replace `useSession`. It is better since it only need SessionsProvider.
-// `SessionProvider` is not what we want since it is not accessable outside of note(session)route.
-export const useSession2 = <T,>(
+export const useSession = <T,>(
   id: string,
   selector: Parameters<
     typeof useStore<ReturnType<typeof createSessionStore>, T>
@@ -58,7 +56,7 @@ export const useSession2 = <T,>(
   const sessionsStore = useContext(SessionsContext);
 
   if (!sessionsStore) {
-    throw new Error("'useSession2' must be used within a 'SessionsProvider'");
+    throw new Error("'useSession' must be used within a 'SessionsProvider'");
   }
 
   const sessionStore = sessionsStore.getState().sessions[id];

@@ -1,4 +1,4 @@
-import { useOngoingSession, useSession2 } from "@/contexts";
+import { useOngoingSession, useSession } from "@/contexts";
 import { useMatch } from "@tanstack/react-router";
 import { type ChangeEvent, useCallback } from "react";
 import Chips from "./chips";
@@ -19,7 +19,7 @@ export function NoteHeader({ onNavigateToEditor, editable, sessionId }: NoteHead
     pause: s.pause,
   }));
 
-  const sessionStore = useSession2(sessionId, (s) => ({
+  const sessionStore = useSession(sessionId, (s) => ({
     sessionInView: s.session,
     updateTitle: s.updateTitle,
     persistSession: s.persistSession,

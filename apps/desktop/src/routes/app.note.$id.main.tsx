@@ -3,7 +3,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect } from "react";
 
 import EditorArea from "@/components/note/editor-area";
-import { useSession2 } from "@/contexts";
+import { useSession } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
 
 const PATH = "/app/note/$id/main";
@@ -15,7 +15,7 @@ export const Route = createFileRoute(PATH)({
 function Component() {
   const { id: sessionId } = useParams({ from: PATH });
 
-  const { getSession } = useSession2(sessionId, (s) => ({
+  const { getSession } = useSession(sessionId, (s) => ({
     sessionId: s.session.id,
     getSession: s.getSession,
   }));

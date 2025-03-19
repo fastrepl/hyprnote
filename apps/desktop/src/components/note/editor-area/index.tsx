@@ -12,7 +12,7 @@ import Renderer from "@hypr/tiptap/renderer";
 import { cn } from "@hypr/ui/lib/utils";
 import { modelProvider } from "@hypr/utils";
 
-import { useOngoingSession, useSession2 } from "@/contexts";
+import { useOngoingSession, useSession } from "@/contexts";
 import { ENHANCE_SYSTEM_TEMPLATE_KEY, ENHANCE_USER_TEMPLATE_KEY } from "@/templates";
 import { NoteHeader } from "../header";
 import { EnhanceControls } from "./enhanced-controls";
@@ -26,7 +26,7 @@ interface EditorAreaProps {
 export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
   const [showRaw, setShowRaw] = useState(true);
 
-  const sessionStore = useSession2(sessionId, (s) => ({
+  const sessionStore = useSession(sessionId, (s) => ({
     session: s.session,
     updateRawNote: s.updateRawNote,
     updateEnhancedNote: s.updateEnhancedNote,

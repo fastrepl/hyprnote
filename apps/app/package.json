@@ -29,7 +29,7 @@
     "@clerk/clerk-react": "^5.24.1",
     "@hypr/tiptap": "workspace:^",
     "@hypr/ui": "workspace:^",
-    "@nangohq/frontend": "^0.53.2",
+    "@nangohq/frontend": "^0.54.0",
     "@remixicon/react": "^4.6.0",
     "@sentry/react": "^8.55.0",
     "@tanstack/react-query": "^5.67.2",

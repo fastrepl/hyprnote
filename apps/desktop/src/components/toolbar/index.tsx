@@ -1,4 +1,4 @@
-import { useMatch, useSearch } from "@tanstack/react-router";
+import { useMatch } from "@tanstack/react-router";
 
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
 import { cn } from "@hypr/ui/lib/utils";

@@ -1,7 +1,7 @@
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
 import { cn } from "@hypr/ui/lib/utils";
 import { useMatch } from "@tanstack/react-router";
-import { SearchBar, SearchIconButton } from "../search";
+import { SearchBar } from "../search-bar";
 import { LeftSidebarButton } from "./buttons/left-sidebar-button";
 import { RightPanelButton } from "./buttons/right-panel-button";
 import { ShareButton } from "./buttons/share-button";
@@ -37,7 +37,6 @@ export default function Toolbar() {
           className="flex w-40 items-center justify-end"
           data-tauri-drag-region
         >
-          <SearchIconButton />
           {isInNote && <ShareButton />}
           <RightPanelButton />
         </div>

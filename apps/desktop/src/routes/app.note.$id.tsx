@@ -38,17 +38,11 @@ export const Route = createFileRoute(PATH)({
 
 function Component() {
   return (
-    <div className="relative flex h-screen w-screen overflow-hidden">
-      <LeftSidebar />
-      <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
-        <Toolbar />
-        <div className="flex h-full overflow-hidden">
-          <div className="flex-1">
-            <Outlet />
-          </div>
-          <RightPanel />
-        </div>
+    <div className="flex h-full overflow-hidden">
+      <div className="flex-1">
+        <Outlet />
       </div>
+      <RightPanel />
     </div>
   );
 }

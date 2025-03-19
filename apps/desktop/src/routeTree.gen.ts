@@ -15,7 +15,6 @@ import { Route as OnboardingImport } from './routes/onboarding'
 import { Route as LoginImport } from './routes/login'
 import { Route as AppImport } from './routes/app'
 import { Route as AppIndexImport } from './routes/app.index'
-import { Route as AppNoteImport } from './routes/app.note'
 import { Route as AppNewImport } from './routes/app.new'
 import { Route as AppCalendarImport } from './routes/app.calendar'
 import { Route as AppOrganizationIdImport } from './routes/app.organization.$id'
@@ -54,12 +53,6 @@ const AppIndexRoute = AppIndexImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 
-const AppNoteRoute = AppNoteImport.update({
-  id: '/note',
-  path: '/note',
-  getParentRoute: () => AppRoute,
-} as any)
-
 const AppNewRoute = AppNewImport.update({
   id: '/new',
   path: '/new',
@@ -79,9 +72,9 @@ const AppOrganizationIdRoute = AppOrganizationIdImport.update({
 } as any)
 
 const AppNoteIdRoute = AppNoteIdImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AppNoteRoute,
+  id: '/note/$id',
+  path: '/note/$id',
+  getParentRoute: () => AppRoute,
 } as any)
 
 const AppHumanIdRoute = AppHumanIdImport.update({
@@ -165,13 +158,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppNewImport
       parentRoute: typeof AppImport
     }
-    '/app/note': {
-      id: '/app/note'
-      path: '/note'
-      fullPath: '/app/note'
-      preLoaderRoute: typeof AppNoteImport
-      parentRoute: typeof AppImport
-    }
     '/app/': {
       id: '/app/'
       path: '/'
@@ -188,10 +174,10 @@ declare module '@tanstack/react-router' {
     }
     '/app/note/$id': {
       id: '/app/note/$id'
-      path: '/$id'
+      path: '/note/$id'
       fullPath: '/app/note/$id'
       preLoaderRoute: typeof AppNoteIdImport
-      parentRoute: typeof AppNoteImport
+      parentRoute: typeof AppImport
     }
     '/app/organization/$id': {
       id: '/app/organization/$id'
@@ -247,31 +233,6 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
-interface AppNoteIdRouteChildren {
-  AppNoteIdMainRoute: typeof AppNoteIdMainRoute
-  AppNoteIdSubRoute: typeof AppNoteIdSubRoute
-}
-
-const AppNoteIdRouteChildren: AppNoteIdRouteChildren = {
-  AppNoteIdMainRoute: AppNoteIdMainRoute,
-  AppNoteIdSubRoute: AppNoteIdSubRoute,
-}
-
-const AppNoteIdRouteWithChildren = AppNoteIdRoute._addFileChildren(
-  AppNoteIdRouteChildren,
-)
-
-interface AppNoteRouteChildren {
-  AppNoteIdRoute: typeof AppNoteIdRouteWithChildren
-}
-
-const AppNoteRouteChildren: AppNoteRouteChildren = {
-  AppNoteIdRoute: AppNoteIdRouteWithChildren,
-}
-
-const AppNoteRouteWithChildren =
-  AppNoteRoute._addFileChildren(AppNoteRouteChildren)
-
 interface AppHumanIdRouteChildren {
   AppHumanIdMainRoute: typeof AppHumanIdMainRoute
   AppHumanIdSubRoute: typeof AppHumanIdSubRoute
@@ -284,6 +245,20 @@ const AppHumanIdRouteChildren: AppHumanIdRouteChildren = {
 
 const AppHumanIdRouteWithChildren = AppHumanIdRoute._addFileChildren(
   AppHumanIdRouteChildren,
+)
+
+interface AppNoteIdRouteChildren {
+  AppNoteIdMainRoute: typeof AppNoteIdMainRoute
+  AppNoteIdSubRoute: typeof AppNoteIdSubRoute
+}
+
+const AppNoteIdRouteChildren: AppNoteIdRouteChildren = {
+  AppNoteIdMainRoute: AppNoteIdMainRoute,
+  AppNoteIdSubRoute: AppNoteIdSubRoute,
+}
+
+const AppNoteIdRouteWithChildren = AppNoteIdRoute._addFileChildren(
+  AppNoteIdRouteChildren,
 )
 
 interface AppOrganizationIdRouteChildren {
@@ -302,18 +277,18 @@ const AppOrganizationIdRouteWithChildren =
 interface AppRouteChildren {
   AppCalendarRoute: typeof AppCalendarRoute
   AppNewRoute: typeof AppNewRoute
-  AppNoteRoute: typeof AppNoteRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
   AppHumanIdRoute: typeof AppHumanIdRouteWithChildren
+  AppNoteIdRoute: typeof AppNoteIdRouteWithChildren
   AppOrganizationIdRoute: typeof AppOrganizationIdRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppCalendarRoute: AppCalendarRoute,
   AppNewRoute: AppNewRoute,
-  AppNoteRoute: AppNoteRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
   AppHumanIdRoute: AppHumanIdRouteWithChildren,
+  AppNoteIdRoute: AppNoteIdRouteWithChildren,
   AppOrganizationIdRoute: AppOrganizationIdRouteWithChildren,
 }
 
@@ -325,7 +300,6 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/new': typeof AppNewRoute
-  '/app/note': typeof AppNoteRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/app/human/$id': typeof AppHumanIdRouteWithChildren
   '/app/note/$id': typeof AppNoteIdRouteWithChildren
@@ -343,7 +317,6 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/new': typeof AppNewRoute
-  '/app/note': typeof AppNoteRouteWithChildren
   '/app': typeof AppIndexRoute
   '/app/human/$id': typeof AppHumanIdRouteWithChildren
   '/app/note/$id': typeof AppNoteIdRouteWithChildren
@@ -363,7 +336,6 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/new': typeof AppNewRoute
-  '/app/note': typeof AppNoteRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/app/human/$id': typeof AppHumanIdRouteWithChildren
   '/app/note/$id': typeof AppNoteIdRouteWithChildren
@@ -384,7 +356,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/app/calendar'
     | '/app/new'
-    | '/app/note'
     | '/app/'
     | '/app/human/$id'
     | '/app/note/$id'
@@ -401,7 +372,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/app/calendar'
     | '/app/new'
-    | '/app/note'
     | '/app'
     | '/app/human/$id'
     | '/app/note/$id'
@@ -419,7 +389,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/app/calendar'
     | '/app/new'
-    | '/app/note'
     | '/app/'
     | '/app/human/$id'
     | '/app/note/$id'
@@ -465,9 +434,9 @@ export const routeTree = rootRoute
       "children": [
         "/app/calendar",
         "/app/new",
-        "/app/note",
         "/app/",
         "/app/human/$id",
+        "/app/note/$id",
         "/app/organization/$id"
       ]
     },
@@ -485,13 +454,6 @@ export const routeTree = rootRoute
       "filePath": "app.new.tsx",
       "parent": "/app"
     },
-    "/app/note": {
-      "filePath": "app.note.tsx",
-      "parent": "/app",
-      "children": [
-        "/app/note/$id"
-      ]
-    },
     "/app/": {
       "filePath": "app.index.tsx",
       "parent": "/app"
@@ -506,7 +468,7 @@ export const routeTree = rootRoute
     },
     "/app/note/$id": {
       "filePath": "app.note.$id.tsx",
-      "parent": "/app/note",
+      "parent": "/app",
       "children": [
         "/app/note/$id/main",
         "/app/note/$id/sub"

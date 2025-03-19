@@ -18,5 +18,11 @@ export const Route = createFileRoute("/app/human/$id")({
 });
 
 function Component() {
-  return <Outlet />;
+  return (
+    <div className="flex h-full overflow-hidden">
+      <div className="flex-1">
+        <Outlet />
+      </div>
+    </div>
+  );
 }

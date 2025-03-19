@@ -1,6 +1,8 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useEffect } from "react";
 
+import LeftSidebar from "@/components/left-sidebar";
+import Toolbar from "@/components/toolbar";
 import {
   HyprProvider,
   LeftSidebarProvider,
@@ -53,6 +55,13 @@ function Component() {
                 <NewNoteProvider>
                   <SearchProvider>
                     <Outlet />
+                    <div className="relative flex h-screen w-screen overflow-hidden">
+                      <LeftSidebar />
+                      <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
+                        <Toolbar />
+                        <Outlet />
+                      </div>
+                    </div>
                   </SearchProvider>
                 </NewNoteProvider>
               </SettingsPanelProvider>

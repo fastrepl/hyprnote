@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -10,6 +9,7 @@ import { commands as dbCommands, type ConfigNotification } from "@hypr/plugin-db
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Switch } from "@hypr/ui/components/ui/switch";
+import { Trans } from "@lingui/react/macro";
 
 const CALL_PLATFORMS = [
   "zoom",
@@ -63,6 +63,7 @@ export default function NotificationsComponent() {
     values: {
       before: config.data?.notification.before ?? true,
       auto: config.data?.notification.auto ?? true,
+      ignoredPlatforms: config.data?.notification.ignoredPlatforms ?? [],
     },
   });
 
@@ -71,6 +72,7 @@ export default function NotificationsComponent() {
       const newNotification: ConfigNotification = {
         before: v.before ?? true,
         auto: v.auto ?? true,
+        ignoredPlatforms: v.ignoredPlatforms ?? [],
       };
 
       if (!config.data) {

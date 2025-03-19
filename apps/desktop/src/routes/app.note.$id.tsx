@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, notFound, Outlet, useParams } from "@tanstack/react-router";
 
 import LeftSidebar from "@/components/left-sidebar";
 import RightPanel from "@/components/note/right-panel";
@@ -6,9 +6,11 @@ import Toolbar from "@/components/toolbar";
 import { SessionProvider } from "@/contexts";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 
-export const Route = createFileRoute("/app/note/$id")({
+const PATH = "/app/note/$id";
+
+export const Route = createFileRoute(PATH)({
   component: Component,
-  loader: ({ context: { queryClient }, params: { id } }) => {
+  beforeLoad: ({ context: { queryClient, sessionsStore }, params: { id } }) => {
     return queryClient.fetchQuery({
       queryKey: ["session", id],
       queryFn: async () => {
@@ -25,21 +27,21 @@ export const Route = createFileRoute("/app/note/$id")({
         }
 
         if (!session) {
-          console.log("failed_to_find_session", id);
-          throw redirect({ to: "/app" });
+          throw notFound();
         }
 
-        return { session };
+        const { insert } = sessionsStore.getState();
+        insert(session);
       },
     });
   },
 });
 
 function Component() {
-  const { session } = Route.useLoaderData();
+  const { id } = useParams({ from: PATH });
 
   return (
-    <SessionProvider session={session}>
+    <SessionProvider id={id}>
       <div className="relative flex h-screen w-screen overflow-hidden">
         <LeftSidebar />
         <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">

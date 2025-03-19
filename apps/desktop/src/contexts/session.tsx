@@ -1,9 +1,8 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext } from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
 import { createSessionStore } from "@/stores/session";
-import { type Session } from "@hypr/plugin-db";
 import { useSessions } from "./sessions";
 
 const SessionContext = createContext<
@@ -14,26 +13,15 @@ const SessionContext = createContext<
 
 export const SessionProvider = ({
   children,
-  session,
+  id,
 }: {
   children: React.ReactNode;
-  session: Session;
+  id: string;
 }) => {
-  const [store, setStore] = useState<ReturnType<typeof createSessionStore> | null>(null);
-
-  const insertSession = useSessions((s) => s.insert);
-
-  useEffect(() => {
-    const s = insertSession(session);
-    setStore(s);
-  }, [insertSession, session]);
-
-  if (!store) {
-    return null;
-  }
+  const sessionStore = useSessions((s) => s.sessions[id]);
 
   return (
-    <SessionContext.Provider value={store}>
+    <SessionContext.Provider value={sessionStore}>
       {children}
     </SessionContext.Provider>
   );

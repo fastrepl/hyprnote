@@ -141,10 +141,10 @@ export function NotesList() {
         <button
           className="bg-blue-500 text-white p-2 rounded-md"
           onClick={() => {
-            navigate({ to: "/app" });
+            navigate({ to: "/app/new" });
           }}
         >
-          Go to note
+          Create new note
         </button>
       </div>
     );

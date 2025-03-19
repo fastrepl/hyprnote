@@ -1,16 +1,43 @@
+import {
+  HyprProvider,
+  LeftSidebarProvider,
+  NewNoteProvider,
+  OngoingSessionProvider,
+  RightPanelProvider,
+  SessionsProvider,
+  SettingsPanelProvider,
+} from "@/contexts";
+import { registerTemplates } from "@/templates";
+import { events as windowsEvents } from "@hypr/plugin-windows";
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect } from "react";
 
-import { HyprProvider } from "@/contexts";
-import { registerTemplates } from "@/templates";
-import { events as windowsEvents } from "@hypr/plugin-windows";
+import DinoGameExtension from "@hypr/extension-dino-game";
+import SummaryExtension from "@hypr/extension-summary";
+import TranscriptExtension from "@hypr/extension-transcript";
+
+function initExtensions() {
+  [
+    ...Object.values(SummaryExtension),
+    ...Object.values(TranscriptExtension),
+    ...Object.values(DinoGameExtension),
+  ].forEach((group) => {
+    group.items.forEach((item) => {
+      item.init();
+    });
+  });
+}
 
 export const Route = createFileRoute("/app")({
   component: Component,
+  loader: async ({ context: { sessionsStore } }) => {
+    return sessionsStore;
+  },
 });
 
 function Component() {
+  const store = Route.useLoaderData();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,23 +59,19 @@ function Component() {
 
   return (
     <HyprProvider>
-      <Outlet />
+      <SessionsProvider store={store}>
+        <OngoingSessionProvider>
+          <LeftSidebarProvider>
+            <RightPanelProvider>
+              <SettingsPanelProvider>
+                <NewNoteProvider>
+                  <Outlet />
+                </NewNoteProvider>
+              </SettingsPanelProvider>
+            </RightPanelProvider>
+          </LeftSidebarProvider>
+        </OngoingSessionProvider>
+      </SessionsProvider>
     </HyprProvider>
   );
-}
-
-import DinoGameExtension from "@hypr/extension-dino-game";
-import SummaryExtension from "@hypr/extension-summary";
-import TranscriptExtension from "@hypr/extension-transcript";
-
-function initExtensions() {
-  [
-    ...Object.values(SummaryExtension),
-    ...Object.values(TranscriptExtension),
-    ...Object.values(DinoGameExtension),
-  ].forEach((group) => {
-    group.items.forEach((item) => {
-      item.init();
-    });
-  });
 }

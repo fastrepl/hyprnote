@@ -1,11 +1,10 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type LinkProps, useNavigate } from "@tanstack/react-router";
+import { type LinkProps, useMatch, useNavigate } from "@tanstack/react-router";
 import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { useSession, useSessions } from "@/contexts";
-import { useStore2 } from "@/utils";
+import { useSession2 } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import {
@@ -27,9 +26,11 @@ export function NoteItem({
   isLive?: boolean;
 }) {
   const navigate = useNavigate();
+  const { params: { id: activeSessionId } } = useMatch({ from: "/app/note/$id" });
 
-  const activeSession = useSession((s) => s.session);
-  const currentSession = useStore2(useSessions((s) => s.sessions[sessionId]), (s) => s.session);
+  const activeSession = useSession2(activeSessionId, (s) => s.session);
+  const currentSession = useSession2(sessionId, (s) => s.session);
+
   const currentSessionEvent = useQuery({
     queryKey: ["event", currentSession.id],
     queryFn: () => dbCommands.sessionGetEvent(currentSession.id),

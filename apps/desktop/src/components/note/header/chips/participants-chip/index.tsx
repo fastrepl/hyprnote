@@ -1,14 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Users2Icon } from "lucide-react";
 
-import { useSession } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { ParticipantsList } from "./participants-list";
 
-export function ParticipantsChip() {
-  const sessionId = useSession((s) => s.session.id);
+interface ParticipantsChipProps {
+  sessionId: string;
+}
 
+export function ParticipantsChip({ sessionId }: ParticipantsChipProps) {
   const participants = useQuery({
     queryKey: ["participants", sessionId],
     queryFn: () => dbCommands.sessionListParticipants(sessionId),

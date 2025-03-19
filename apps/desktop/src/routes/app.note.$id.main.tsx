@@ -1,17 +1,21 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect } from "react";
 
 import EditorArea from "@/components/note/editor-area";
-import { useSession } from "@/contexts";
+import { useSession2 } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
 
-export const Route = createFileRoute("/app/note/$id/main")({
+const PATH = "/app/note/$id/main";
+
+export const Route = createFileRoute(PATH)({
   component: Component,
 });
 
 function Component() {
-  const { sessionId, getSession } = useSession((s) => ({
+  const { id: sessionId } = useParams({ from: PATH });
+
+  const { getSession } = useSession2(sessionId, (s) => ({
     sessionId: s.session.id,
     getSession: s.getSession,
   }));
@@ -49,7 +53,7 @@ function Component() {
   return (
     <main className="flex h-full overflow-hidden bg-white">
       <div className="h-full flex-1 pt-6">
-        <EditorArea editable={true} />
+        <EditorArea editable={true} sessionId={sessionId} />
       </div>
     </main>
   );

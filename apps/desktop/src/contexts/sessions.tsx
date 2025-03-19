@@ -2,7 +2,7 @@ import { createContext, useContext, useRef } from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
-import { createSessionsStore, SessionsStore } from "@/stores";
+import { createSessionsStore, createSessionStore, SessionsStore } from "@/stores";
 
 const SessionsContext = createContext<
   ReturnType<
@@ -45,4 +45,26 @@ export const useSessions = <T,>(
   }
 
   return useStore(store, useShallow(selector));
+};
+
+// TODO: 'useSession2' will replace `useSession`. It is better since it only need SessionsProvider.
+// `SessionProvider` is not what we want since it is not accessable outside of note(session)route.
+export const useSession2 = <T,>(
+  id: string,
+  selector: Parameters<
+    typeof useStore<ReturnType<typeof createSessionStore>, T>
+  >[1],
+) => {
+  const sessionsStore = useContext(SessionsContext);
+
+  if (!sessionsStore) {
+    throw new Error("'useSession2' must be used within a 'SessionsProvider'");
+  }
+
+  const sessionStore = sessionsStore.getState().sessions[id];
+  if (!sessionStore) {
+    throw new Error(`session(id=${id}) not exists in sessions store`);
+  }
+
+  return useStore(sessionStore, useShallow(selector));
 };

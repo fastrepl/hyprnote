@@ -1,4 +1,4 @@
-import { useOngoingSession, useSession } from "@/contexts";
+import { useOngoingSession, useSession2 } from "@/contexts";
 import { useMatch } from "@tanstack/react-router";
 import { type ChangeEvent, useCallback } from "react";
 import Chips from "./chips";
@@ -8,9 +8,10 @@ import TitleInput from "./title-input";
 interface NoteHeaderProps {
   onNavigateToEditor?: () => void;
   editable?: boolean;
+  sessionId: string;
 }
 
-export function NoteHeader({ onNavigateToEditor, editable }: NoteHeaderProps) {
+export function NoteHeader({ onNavigateToEditor, editable, sessionId }: NoteHeaderProps) {
   const ongoingSessionStore = useOngoingSession((s) => ({
     onGoingSessionId: s.sessionId,
     listening: s.listening,
@@ -18,7 +19,7 @@ export function NoteHeader({ onNavigateToEditor, editable }: NoteHeaderProps) {
     pause: s.pause,
   }));
 
-  const sessionStore = useSession((s) => ({
+  const sessionStore = useSession2(sessionId, (s) => ({
     sessionInView: s.session,
     updateTitle: s.updateTitle,
     persistSession: s.persistSession,

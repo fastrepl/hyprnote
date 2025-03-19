@@ -1,4 +1,3 @@
-import { useSession } from "@/contexts";
 import { useQuery } from "@tanstack/react-query";
 import { TagsIcon } from "lucide-react";
 import { useState } from "react";
@@ -6,9 +5,12 @@ import { useState } from "react";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 
-export function TagChip() {
+interface TagChipProps {
+  sessionId: string;
+}
+
+export function TagChip({ sessionId }: TagChipProps) {
   const [open, setOpen] = useState(false);
-  const sessionId = useSession((s) => s.session.id);
 
   const tags = useQuery({
     queryKey: ["tags"],

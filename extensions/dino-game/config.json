@@ -1,6 +1,6 @@
 {
   "$schema": "../definition.schema.json",
-  "id": "dino-game",
+  "id": "@hypr/extension-dino-game",
   "title": "Dino Game",
   "description": "A fun game where you control a dinosaur and avoid obstacles.",
   "implemented": true,

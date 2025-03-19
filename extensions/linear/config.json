@@ -1,8 +1,8 @@
 {
   "$schema": "../definition.schema.json",
-  "id": "transcript",
-  "title": "Transcript",
-  "description": "Converts your meeting content to text in real time and even identifies who’s speaking. If needed, you can manually edit the text and correct speaker names.",
+  "id": "@hypr/extension-linear",
+  "title": "Linear",
+  "description": "Converts your meeting content to text in real time and even identifies who's speaking. If needed, you can manually edit the text and correct speaker names.",
   "implemented": true,
   "default": true,
   "cloud_only": false,

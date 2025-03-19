@@ -1,7 +1,11 @@
 {
   "$schema": "../definition.schema.json",
-  "default_enabled": false,
-  "name": "Obsidian",
+  "id": "@hypr/extension-obsidian",
+  "title": "Obsidian",
   "description": "Obsidian extension",
+  "implemented": true,
+  "default": false,
+  "cloud_only": false,
+  "plugins": [],
   "tags": ["obsidian"]
 }

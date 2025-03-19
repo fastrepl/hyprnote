@@ -1,6 +1,6 @@
 {
   "$schema": "../definition.schema.json",
-  "id": "calculator",
+  "id": "@hypr/extension-calculator",
   "title": "Calculator",
   "description": "Conduct simple calculations on the spot.",
   "implemented": false,

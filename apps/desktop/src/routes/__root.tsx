@@ -1,5 +1,8 @@
+import { events as windowsEvents } from "@hypr/plugin-windows";
 import { CatchNotFound, createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import { lazy, Suspense } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { lazy, Suspense, useEffect } from "react";
 
 import { CatchNotFoundFallback, NotFoundComponent } from "@/components/control";
 import type { Context } from "@/types";
@@ -12,6 +15,21 @@ export const Route = createRootRouteWithContext<Context>()({
 const POSITION = "bottom-right";
 
 function Component() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
+    const webview = getCurrentWebviewWindow();
+    windowsEvents.navigate(webview).listen(({ payload }) => {
+      navigate({ to: payload.path });
+    }).then((fn) => {
+      unlisten = fn;
+    });
+
+    return () => unlisten?.();
+  }, [navigate]);
+
   return (
     <>
       <CatchNotFound fallback={(e) => <CatchNotFoundFallback error={e} />}>

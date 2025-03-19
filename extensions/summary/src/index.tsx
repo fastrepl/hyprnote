@@ -1,8 +1,24 @@
 import type { Extension } from "@hypr/extension-utils";
-import BulletStyledSummary from "./widgets/bullet";
+import { commands as templateCommands } from "@hypr/plugin-template";
 
-const extension: Extension = {
-  bullet: BulletStyledSummary,
-};
+import systemTemplate from "../../system.jinja?raw";
+import userTemplate from "../../user.jinja?raw";
 
-export default extension;
+import Bullet, { TEMPLATE_LIVE_SUMMARY_SYSTEM, TEMPLATE_LIVE_SUMMARY_USER } from "./widgets/bullet";
+
+export default {
+  id: "@hypr/extension-summary",
+  widgetGroups: [Bullet],
+  init: async () => {
+    await Promise.all([
+      templateCommands.registerTemplate(
+        TEMPLATE_LIVE_SUMMARY_USER,
+        userTemplate,
+      ),
+      templateCommands.registerTemplate(
+        TEMPLATE_LIVE_SUMMARY_SYSTEM,
+        systemTemplate,
+      ),
+    ]);
+  },
+} satisfies Extension;

@@ -1,7 +1,8 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { WidgetHeader, type WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
 import { Maximize2Icon } from "lucide-react";
 import { useState } from "react";
+
+import { Button } from "@hypr/ui/components/ui/button";
+import { WidgetHeader, type WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
 import { mockRelatedTickets } from "../../mock";
 import { Ticket } from "../../type";
 import TicketCard from "../components/ticket-card";

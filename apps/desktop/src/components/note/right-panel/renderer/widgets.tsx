@@ -2,7 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import React from "react";
 import type { Layout } from "react-grid-layout";
 
-import type { WidgetGroup, WidgetType } from "@hypr/extension-utils";
+import type { WidgetType } from "@hypr/extension-utils";
 import { ExtensionName, importExtension } from "./extensions";
 
 const componentCache: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {};
@@ -16,8 +16,9 @@ function getLazyWidget(widgetConfig: WidgetConfig): React.LazyExoticComponent<Re
   const LazyComponent = React.lazy(async () => {
     try {
       const extensionImport = await importExtension(widgetConfig.extensionName);
-      const widgetGroup: WidgetGroup = extensionImport.default[widgetConfig.groupName];
-      const item = widgetGroup.items.find(item => item.type === widgetConfig.widgetType);
+
+      const widgetGroup = extensionImport.default.widgetGroups.find(({ id }) => id === widgetConfig.groupName);
+      const item = widgetGroup?.items.find(({ type }) => type === widgetConfig.widgetType);
 
       if (!item || !item.component) {
         throw new Error(

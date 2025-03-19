@@ -5,7 +5,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import GridLayout, { Layout } from "react-grid-layout";
 
-import type { WidgetGroup } from "@hypr/extension-utils";
 import { ExtensionName, importExtension } from "./extensions";
 import { getID, getSize, SuspenseWidget, WidgetConfig } from "./widgets";
 
@@ -28,10 +27,10 @@ export default function WidgetRenderer({ widgets }: { widgets: WidgetConfig[] })
   const [widgetsWithFullVersion, setWidgetsWithFullVersion] = useState<Record<string, boolean>>({});
 
   const hasFullWidgetForGroup = useCallback(
-    async (extensionName: ExtensionName, groupName: string) => {
+    async (extensionName: ExtensionName, groupName: string): Promise<boolean> => {
       const extensionImport = await importExtension(extensionName);
-      const widgetGroup: WidgetGroup = extensionImport.default[groupName];
-      return widgetGroup.items.some(item => item.type === "full");
+      const widgetGroup = extensionImport.default.widgetGroups.find(({ id }) => id === groupName);
+      return !!widgetGroup?.items.some(({ type }) => type === "full");
     },
     [],
   );

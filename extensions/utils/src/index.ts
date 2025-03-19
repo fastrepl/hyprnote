@@ -4,7 +4,9 @@ import type { WidgetFullSize, WidgetOneByOne, WidgetTwoByOne, WidgetTwoByTwo } f
 import { assert, type TypeEqualityGuard } from "./types";
 
 export type Extension = {
-  [key: string]: WidgetGroup;
+  id: string;
+  init: () => Promise<void>;
+  widgetGroups: Array<WidgetGroup>;
 };
 
 export type WidgetGroup = {
@@ -17,24 +19,19 @@ export type WidgetType = WidgetItem["type"];
 assert<TypeEqualityGuard<WidgetType, ExtensionWidgetKind>>();
 
 export type WidgetItem =
-  & {
-    init: () => Promise<void>;
+  | {
+    type: "oneByOne";
+    component: WidgetOneByOne;
   }
-  & (
-    | {
-      type: "oneByOne";
-      component: WidgetOneByOne;
-    }
-    | {
-      type: "twoByOne";
-      component: WidgetTwoByOne;
-    }
-    | {
-      type: "twoByTwo";
-      component: WidgetTwoByTwo;
-    }
-    | {
-      type: "full";
-      component: WidgetFullSize;
-    }
-  );
+  | {
+    type: "twoByOne";
+    component: WidgetTwoByOne;
+  }
+  | {
+    type: "twoByTwo";
+    component: WidgetTwoByTwo;
+  }
+  | {
+    type: "full";
+    component: WidgetFullSize;
+  };

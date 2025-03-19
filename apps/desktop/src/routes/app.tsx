@@ -68,13 +68,7 @@ function Component() {
 }
 
 function initExtensions() {
-  [
-    ...Object.values(SummaryExtension),
-    ...Object.values(TranscriptExtension),
-    ...Object.values(DinoGameExtension),
-  ].forEach((group) => {
-    group.items.forEach((item) => {
-      item.init();
-    });
-  });
+  DinoGameExtension.init();
+  SummaryExtension.init();
+  TranscriptExtension.init();
 }

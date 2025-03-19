@@ -24,11 +24,11 @@ const rendered = await commands.render("<TEMPLATE_NAME>", { a: 1 });
 For templates included in [extensions](/extensions/index.md), [`init`](https://github.com/fastrepl/hyprnote/blob/main/extensions/types.ts) function is perfect place to register them.
 
 ```ts
-const extension: Extension = {
-  init: async (app) => {
-    await app.registerTemplate("<TEMPLATE_NAME>", "<TEMPLATE_CONTENT>");
-  }
-};
+export default {
+  id: "@hypr/extension-template",
+  init: async () => {},
+  widgetGroups: [],
+} satisfies Extension;
 ```
 
 Templates included in [plugins](/plugins/index.md) are automatically registered on app initialization though `register_template` provided by `TemplatePluginExt`.

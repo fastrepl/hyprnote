@@ -1,5 +1,7 @@
 import { type Extension } from "@hypr/extension-utils";
 
-const extension: Extension = {};
-
-export default extension;
+export default {
+  id: "@hypr/extension-obsidian",
+  widgetGroups: [],
+  init: async () => {},
+} satisfies Extension;

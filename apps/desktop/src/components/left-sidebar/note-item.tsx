@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type LinkProps, useMatch, useNavigate } from "@tanstack/react-router";
+import { type LinkProps, useNavigate } from "@tanstack/react-router";
 import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -16,20 +16,19 @@ import {
 } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/ui/lib/utils";
 import { format } from "@hypr/utils/datetime";
-import SoundIndicator from "../sound-indicator";
+
+interface NoteItemProps {
+  activeSessionId: string;
+  currentSessionId: string;
+}
 
 export function NoteItem({
-  sessionId,
-  isLive,
-}: {
-  sessionId: string;
-  isLive?: boolean;
-}) {
+  activeSessionId,
+  currentSessionId,
+}: NoteItemProps) {
   const navigate = useNavigate();
-  const { params: { id: activeSessionId } } = useMatch({ from: "/app/note/$id" });
-
   const activeSession = useSession(activeSessionId, (s) => s.session);
-  const currentSession = useSession(sessionId, (s) => s.session);
+  const currentSession = useSession(currentSessionId, (s) => s.session);
 
   const currentSessionEvent = useQuery({
     queryKey: ["event", currentSession.id],
@@ -51,7 +50,7 @@ export function NoteItem({
 
   const handleClick = () => {
     navigate({
-      to: "/app/note/$id/main",
+      to: "/app/note/$id",
       params: { id: currentSession.id },
     });
   };
@@ -116,7 +115,6 @@ export function NoteItem({
               <div className="font-medium text-sm">
                 {currentSession.title || "Untitled"}
               </div>
-              {isLive && <SoundIndicator theme={"light"} />}
             </div>
 
             <div className="flex items-center gap-3 text-xs text-neutral-500">

@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { useMatch } from "@tanstack/react-router";
+import { useParams } from "@tanstack/react-router";
 import { SquarePenIcon } from "lucide-react";
 
 import { useNewNote, useSession } from "@/contexts";
@@ -8,18 +8,23 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/
 import Shortcut from "../../shortcut";
 
 export function NewNoteButton() {
-  const { createNewNote } = useNewNote();
+  const param = useParams({ from: "/app/note/$id", shouldThrow: false });
+  return param ? <NewNoteButtonInNote /> : null;
+}
 
-  const match = useMatch({ from: "/app/note/$id/main" });
+function NewNoteButtonInNote() {
+  const param = useParams({ from: "/app/note/$id", shouldThrow: true });
 
-  if (!match) {
-    return null;
-  }
-
-  const disabled = useSession(match.params.id, (s) =>
+  const disabled = useSession(param.id, (s) =>
     !s.session?.title
     && !s.session?.raw_memo_html
     && !s.session?.enhanced_memo_html);
+
+  return <ActualButton disabled={disabled} />;
+}
+
+function ActualButton({ disabled }: { disabled: boolean }) {
+  const { createNewNote } = useNewNote();
 
   return (
     <Tooltip>

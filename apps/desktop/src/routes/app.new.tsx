@@ -42,7 +42,7 @@ export const Route = createFileRoute("/app/new")({
       });
 
       return redirect({
-        to: "/app/note/$id/main",
+        to: "/app/note/$id",
         params: { id: session.id },
       });
     } catch (error) {

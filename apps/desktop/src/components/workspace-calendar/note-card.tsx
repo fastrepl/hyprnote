@@ -15,7 +15,7 @@ export function NoteCard({ session, showTime = false }: { session: Session; show
     setOpen(false);
 
     const props = {
-      to: "/app/note/$id/main",
+      to: "/app/note/$id",
       params: { id },
     } as const satisfies LinkProps;
 

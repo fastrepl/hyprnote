@@ -34,8 +34,8 @@ export function NoteHeader({ onNavigateToEditor, editable, sessionId }: NoteHead
     ongoingSessionStore.start(sessionStore.sessionInView?.id ?? "");
   }, [sessionStore.sessionInView, ongoingSessionStore.start]);
 
-  const match = useMatch({ from: "/app/note/$id/main", shouldThrow: false });
-  const isInNoteMain = match !== undefined;
+  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
+  const isInNoteMain = noteMatch?.search.window === "main";
 
   return (
     <>

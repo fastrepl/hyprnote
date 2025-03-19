@@ -8,13 +8,11 @@ import {
 
 const NotFound = () => {
   return (
-    <div className="flex h-full w-full items-center justify-center">
-      <div className="flex flex-col items-center justify-center gap-2">
-        <p>Oops! Nothing here.</p>
-        <Link to="/app">
-          <Button variant="outline">Go to home</Button>
-        </Link>
-      </div>
+    <div className="flex flex-col items-center justify-center gap-2 min-h-screen h-full w-full">
+      <p>Oops! Nothing here.</p>
+      <Link to="/app">
+        <Button variant="outline">Go to home</Button>
+      </Link>
     </div>
   );
 };

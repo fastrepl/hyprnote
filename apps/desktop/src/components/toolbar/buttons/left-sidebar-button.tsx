@@ -1,12 +1,13 @@
+import { Trans } from "@lingui/react/macro";
+import { useQuery } from "@tanstack/react-query";
+import { type as getOsType } from "@tauri-apps/plugin-os";
+import { CalendarDaysIcon, ChevronsLeftIcon, MenuIcon } from "lucide-react";
+
 import { useLeftSidebar } from "@/contexts";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
-import { Trans } from "@lingui/react/macro";
-import { useQuery } from "@tanstack/react-query";
-import { type as getOsType } from "@tauri-apps/plugin-os";
-import { CalendarDaysIcon, ChevronsLeftIcon, MenuIcon } from "lucide-react";
 import Shortcut from "../../shortcut";
 
 export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {

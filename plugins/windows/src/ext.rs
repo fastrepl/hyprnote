@@ -75,8 +75,8 @@ impl HyprWindow {
             Err(_) => {
                 let url = match self {
                     Self::Main => "/app/new",
-                    Self::Note(id) => &format!("/app/note/{}/sub", id),
-                    Self::Calendar => "/app/calendar",
+                    Self::Note(id) => &format!("/app/note/{}?window=sub", id),
+                    Self::Calendar => "/app/calendar?window=sub",
                 };
                 (self.window_builder(app, url).build()?, true)
             }

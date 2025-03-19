@@ -1,4 +1,4 @@
-import { useMatch } from "@tanstack/react-router";
+import { useMatch, useSearch } from "@tanstack/react-router";
 import { motion } from "motion/react";
 
 import { useHyprSearch, useLeftSidebar, useOngoingSession } from "@/contexts";
@@ -20,20 +20,23 @@ export default function LeftSidebar() {
     matches: s.matches,
   }));
 
-  const noteMainMatch = useMatch({ from: "/app/note/$id/main", shouldThrow: false });
-  const noteSubMatch = useMatch({ from: "/app/note/$id/sub", shouldThrow: false });
+  const search = useSearch({ strict: false });
+  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
 
-  const isInOngoingNoteMain = noteMainMatch?.params.id === sessionId;
-  const isInOngoingNoteSub = noteSubMatch?.params.id === sessionId;
+  const isInOngoingNoteMain = noteMatch?.params.id === sessionId;
+  const isInOngoingNoteSub = noteMatch?.params.id === sessionId;
   const isInOngoingNote = isInOngoingNoteMain || isInOngoingNoteSub;
   const inMeetingAndNotInNote = listening && sessionId !== null && !isInOngoingNote;
-  const show = noteMainMatch !== undefined && isExpanded;
+
+  if (search.window === "sub") {
+    return null;
+  }
 
   return (
     <motion.nav
       layout
-      initial={{ width: show ? 240 : 0, opacity: show ? 1 : 0 }}
-      animate={{ width: show ? 240 : 0, opacity: show ? 1 : 0 }}
+      initial={{ width: isExpanded ? 240 : 0, opacity: isExpanded ? 1 : 0 }}
+      animate={{ width: isExpanded ? 240 : 0, opacity: isExpanded ? 1 : 0 }}
       transition={{ duration: 0.2 }}
       className="h-full flex flex-col overflow-hidden border-r bg-neutral-50"
     >

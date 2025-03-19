@@ -1,5 +1,5 @@
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { createFileRoute, notFound, Outlet } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/app/human/$id")({
   component: Component,
@@ -18,10 +18,12 @@ export const Route = createFileRoute("/app/human/$id")({
 });
 
 function Component() {
+  const { human } = Route.useLoaderData();
+
   return (
     <div className="flex h-full overflow-hidden">
       <div className="flex-1">
-        <Outlet />
+        <pre>{JSON.stringify(human, null, 2)}</pre>
       </div>
     </div>
   );

@@ -6,12 +6,11 @@ import { useRightPanel } from "@/contexts";
 import WidgetRenderer from "./renderer";
 
 export default function RightPanel() {
-  const { isExpanded, hidePanel } = useRightPanel();
-  const match = useMatch({ from: "/app/note/$id/main", shouldThrow: false });
-
-  const show = match !== undefined && isExpanded;
-
   const [isMobile, setIsMobile] = useState(false);
+  const { isExpanded, hidePanel } = useRightPanel();
+
+  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
+  const show = noteMatch?.search.window === "main" && isExpanded;
 
   useEffect(() => {
     const checkViewport = () => {

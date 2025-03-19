@@ -1,4 +1,4 @@
-use super::{Organization, UserDatabase};
+use super::{ListOrganizationFilter, Organization, UserDatabase};
 
 impl UserDatabase {
     pub async fn upsert_organization(
@@ -19,10 +19,22 @@ impl UserDatabase {
         Ok(organization)
     }
 
-    pub async fn list_organizations(&self) -> Result<Vec<Organization>, crate::Error> {
+    pub async fn list_organizations(
+        &self,
+        filter: Option<ListOrganizationFilter>,
+    ) -> Result<Vec<Organization>, crate::Error> {
         let conn = self.conn()?;
 
-        let mut rows = conn.query("SELECT * FROM organizations", ()).await?;
+        let mut rows = match &filter {
+            None => conn.query("SELECT * FROM organizations", ()).await?,
+            Some(ListOrganizationFilter::Search((max, q))) => {
+                conn.query(
+                    "SELECT * FROM organizations WHERE name LIKE ? LIMIT ?",
+                    vec![format!("%{}%", q), max.to_string()],
+                )
+                .await?
+            }
+        };
 
         let mut items = Vec::new();
         while let Some(row) = rows.next().await? {
@@ -85,7 +97,7 @@ mod tests {
     async fn test_list_organizations() {
         let db = setup_db().await;
 
-        let organizations = db.list_organizations().await.unwrap();
+        let organizations = db.list_organizations(None).await.unwrap();
         assert!(organizations.len() == 0);
     }
 }

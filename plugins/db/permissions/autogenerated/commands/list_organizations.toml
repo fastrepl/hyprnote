@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-list-organizations"
+description = "Enables the list_organizations command without any pre-configured scope."
+commands.allow = ["list_organizations"]
+
+[[permission]]
+identifier = "deny-list-organizations"
+description = "Denies the list_organizations command without any pre-configured scope."
+commands.deny = ["list_organizations"]

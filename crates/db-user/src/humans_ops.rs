@@ -1,6 +1,6 @@
 use hypr_db_core::SqlTable;
 
-use super::{Human, UserDatabase};
+use super::{Human, ListHumanFilter, UserDatabase};
 
 impl UserDatabase {
     pub async fn get_human(&self, id: impl Into<String>) -> Result<Option<Human>, crate::Error> {
@@ -45,10 +45,26 @@ impl UserDatabase {
         Ok(human)
     }
 
-    pub async fn list_humans(&self) -> Result<Vec<Human>, crate::Error> {
+    pub async fn list_humans(
+        &self,
+        filter: Option<ListHumanFilter>,
+    ) -> Result<Vec<Human>, crate::Error> {
         let conn = self.conn()?;
 
-        let mut rows = conn.query("SELECT * FROM humans", ()).await?;
+        let mut rows = match &filter {
+            None => {
+                let sql = format!("SELECT * FROM {}", Human::sql_table());
+                conn.query(&sql, ()).await?
+            }
+            Some(ListHumanFilter::Search((max, q))) => {
+                let sql = format!(
+                    "SELECT * FROM {} WHERE full_name LIKE ? LIMIT ?",
+                    Human::sql_table()
+                );
+                conn.query(&sql, vec![format!("%{}%", q), max.to_string()])
+                    .await?
+            }
+        };
 
         let mut humans = Vec::new();
         while let Some(row) = rows.next().await? {
@@ -67,7 +83,7 @@ mod tests {
     async fn test_humans() {
         let db = setup_db().await;
 
-        let humans = db.list_humans().await.unwrap();
+        let humans = db.list_humans(None).await.unwrap();
         assert!(humans.len() == 0);
 
         let human = Human {
@@ -78,7 +94,7 @@ mod tests {
         let human = db.upsert_human(human).await.unwrap();
         assert_eq!(human.full_name, Some("test".to_string()));
 
-        let humans = db.list_humans().await.unwrap();
+        let humans = db.list_humans(None).await.unwrap();
         assert!(humans.len() == 1);
     }
 }

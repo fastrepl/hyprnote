@@ -13,6 +13,13 @@ user_common_derives! {
     }
 }
 
+user_common_derives! {
+    pub enum ListHumanFilter {
+        #[serde(rename = "search")]
+        Search((u8, String)),
+    }
+}
+
 impl Default for Human {
     fn default() -> Self {
         Self {

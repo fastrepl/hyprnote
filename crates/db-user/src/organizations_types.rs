@@ -7,3 +7,10 @@ user_common_derives! {
         pub description: Option<String>,
     }
 }
+
+user_common_derives! {
+    pub enum ListOrganizationFilter {
+        #[serde(rename = "search")]
+        Search((u8, String)),
+    }
+}

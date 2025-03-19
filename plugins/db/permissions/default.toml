@@ -27,8 +27,10 @@ permissions = [
     # user
     "allow-get-human",
     "allow-upsert-human",
+    "allow-list-humans",
     "allow-get-organization",
     "allow-get-organization-by-user-id",
+    "allow-list-organizations",
     "allow-upsert-organization",
     # chat
     "allow-list-chat-groups",

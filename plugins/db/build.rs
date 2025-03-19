@@ -25,9 +25,11 @@ const COMMANDS: &[&str] = &[
     // user
     "get_human",
     "upsert_human",
+    "list_humans",
     "upsert_organization",
     "get_organization",
     "get_organization_by_user_id",
+    "list_organizations",
     // chat
     "list_chat_groups",
     "list_chat_messages",

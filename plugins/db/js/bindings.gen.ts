@@ -67,6 +67,9 @@ async getHuman(id: string) : Promise<Human | null> {
 async upsertHuman(human: Human) : Promise<Human> {
     return await TAURI_INVOKE("plugin:db|upsert_human", { human });
 },
+async listHumans(filter: ListHumanFilter | null) : Promise<Human[]> {
+    return await TAURI_INVOKE("plugin:db|list_humans", { filter });
+},
 async getOrganization(id: string) : Promise<Organization | null> {
     return await TAURI_INVOKE("plugin:db|get_organization", { id });
 },
@@ -75,6 +78,9 @@ async getOrganizationByUserId(userId: string) : Promise<Organization | null> {
 },
 async upsertOrganization(organization: Organization) : Promise<Organization> {
     return await TAURI_INVOKE("plugin:db|upsert_organization", { organization });
+},
+async listOrganizations(filter: ListOrganizationFilter | null) : Promise<Organization[]> {
+    return await TAURI_INVOKE("plugin:db|list_organizations", { filter });
 },
 async listChatGroups(userId: string) : Promise<ChatGroup[]> {
     return await TAURI_INVOKE("plugin:db|list_chat_groups", { userId });
@@ -127,6 +133,8 @@ export type ExtensionDefinition = { id: string; title: string; description: stri
 export type GetSessionFilter = { id: string } | { calendarEventId: string } | { tagId: string }
 export type Human = { id: string; organization_id: string | null; is_user: boolean; full_name: string | null; email: string | null; job_title: string | null; linkedin_username: string | null }
 export type ListEventFilter = { userId: string } | { dateRange: { userId: string; range: [string, string] } }
+export type ListHumanFilter = { search: [number, string] }
+export type ListOrganizationFilter = { search: [number, string] }
 export type ListSessionFilter = { pagination: { limit: number; offset: number } } | { search: [number, string] } | { recentlyVisited: [number] } | { dateRange: [string, string] }
 export type Organization = { id: string; name: string; description: string | null }
 export type Platform = "Apple" | "Google"

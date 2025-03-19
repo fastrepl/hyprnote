@@ -22,8 +22,10 @@ Default permissions for the plugin
 - `allow-set-config`
 - `allow-get-human`
 - `allow-upsert-human`
+- `allow-list-humans`
 - `allow-get-organization`
 - `allow-get-organization-by-user-id`
+- `allow-list-organizations`
 - `allow-upsert-organization`
 - `allow-list-chat-groups`
 - `allow-list-chat-messages`
@@ -403,6 +405,58 @@ Enables the list_events command without any pre-configured scope.
 <td>
 
 Denies the list_events command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-list-humans`
+
+</td>
+<td>
+
+Enables the list_humans command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-list-humans`
+
+</td>
+<td>
+
+Denies the list_humans command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-list-organizations`
+
+</td>
+<td>
+
+Enables the list_organizations command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-list-organizations`
+
+</td>
+<td>
+
+Denies the list_organizations command without any pre-configured scope.
 
 </td>
 </tr>

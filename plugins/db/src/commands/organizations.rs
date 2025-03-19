@@ -1,6 +1,26 @@
 #[tauri::command]
 #[specta::specta]
 #[tracing::instrument(skip(state))]
+pub async fn list_organizations(
+    state: tauri::State<'_, crate::ManagedState>,
+    filter: Option<hypr_db_user::ListOrganizationFilter>,
+) -> Result<Vec<hypr_db_user::Organization>, String> {
+    let guard = state.lock().await;
+
+    let db = guard
+        .db
+        .as_ref()
+        .ok_or(crate::Error::NoneDatabase)
+        .map_err(|e| e.to_string())?;
+
+    db.list_organizations(filter)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+#[tracing::instrument(skip(state))]
 pub async fn get_organization(
     state: tauri::State<'_, crate::ManagedState>,
     id: String,

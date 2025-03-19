@@ -435,6 +435,26 @@
           "const": "deny-list-events"
         },
         {
+          "description": "Enables the list_humans command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-humans"
+        },
+        {
+          "description": "Denies the list_humans command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-humans"
+        },
+        {
+          "description": "Enables the list_organizations command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-organizations"
+        },
+        {
+          "description": "Denies the list_organizations command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-organizations"
+        },
+        {
           "description": "Enables the list_session_tags command without any pre-configured scope.",
           "type": "string",
           "const": "allow-list-session-tags"

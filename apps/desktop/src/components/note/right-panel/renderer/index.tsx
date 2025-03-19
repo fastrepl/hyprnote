@@ -2,7 +2,7 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
-import React, { Suspense, useCallback, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useState } from "react";
 import GridLayout, { Layout } from "react-grid-layout";
 
 import type { WidgetGroup, WidgetType } from "@hypr/extension-utils";
@@ -10,20 +10,16 @@ import { ExtensionName, importExtension } from "./extensions";
 
 const componentCache: Record<string, React.LazyExoticComponent<any>> = {};
 
-function getLazyWidget(
-  extensionName: ExtensionName,
-  groupName: string,
-  widgetType: WidgetType,
-): React.LazyExoticComponent<any> {
-  const id = `${extensionName}-${groupName}-${widgetType}`;
+function getLazyWidget(widgetConfig: WidgetConfig): React.LazyExoticComponent<any> {
+  const id = getID(widgetConfig);
   if (componentCache[id]) {
     return componentCache[id];
   }
 
   const LazyComponent = React.lazy(async () => {
-    const extensionImport = await importExtension(extensionName);
-    const widgetGroup: WidgetGroup = extensionImport.default[groupName];
-    const item = widgetGroup.items.find(item => item.type === widgetType);
+    const extensionImport = await importExtension(widgetConfig.extensionName);
+    const widgetGroup: WidgetGroup = extensionImport.default[widgetConfig.groupName];
+    const item = widgetGroup.items.find(item => item.type === widgetConfig.widgetType);
     if (!item) {
       throw new Error(`Widget ${id} not found`);
     }
@@ -34,71 +30,31 @@ function getLazyWidget(
   return LazyComponent;
 }
 
-export class WidgetErrorBoundary extends React.Component<
-  { children: React.ReactNode; fallback?: React.ReactNode },
-  { hasError: boolean; error?: Error }
-> {
-  constructor(props: { children: React.ReactNode; fallback?: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback || (
-        <div className="widget-error p-4 bg-red-50 text-red-500 rounded">
-          Failed to load widget: {this.state.error?.message || "Unknown error"}
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
-const WidgetFallback = () => {
-  return (
-    <div className="widget-fallback p-4 bg-gray-50 text-gray-500 rounded">
-      Failed to load widget
-    </div>
-  );
-};
-
 export const SuspenseWidget = ({
-  extensionName,
-  groupName,
-  widgetType,
+  widgetConfig,
   queryClient,
   callbacks,
 }: {
-  extensionName: ExtensionName;
-  groupName: string;
-  widgetType: WidgetType;
+  widgetConfig: WidgetConfig;
   queryClient: QueryClient;
   callbacks: {
     onMaximize?: () => void;
     onMinimize?: () => void;
   };
 }) => {
-  const LazyWidget = getLazyWidget(extensionName, groupName, widgetType);
+  const LazyWidget = getLazyWidget(widgetConfig);
+  const { widgetType } = widgetConfig;
 
   const props = {
     queryClient,
-    ...(widgetType.includes("full") ? { onMinimize: callbacks.onMinimize } : {}),
-    ...(widgetType.includes("2x2") && widgetType.includes("transcript")
-      ? { onMaximize: callbacks.onMaximize }
-      : {}),
+    ...(widgetType === "full" ? { onMinimize: callbacks.onMinimize } : {}),
+    ...(widgetType !== "full" && callbacks.onMaximize ? { onMaximize: callbacks.onMaximize } : {}),
   };
 
   return (
-    <WidgetErrorBoundary>
-      <Suspense fallback={<WidgetFallback />}>
-        <LazyWidget {...props as any} />
-      </Suspense>
-    </WidgetErrorBoundary>
+    <Suspense fallback={<div>loading...</div>}>
+      <LazyWidget {...props as any} />
+    </Suspense>
   );
 };
 
@@ -127,6 +83,7 @@ export default function WidgetRenderer({ widgets }: { widgets: WidgetConfig[] })
   const [layout, setLayout] = useState<Layout[]>(initialLayout);
   const [showFull, setShowFull] = useState(false);
   const [fullWidgetConfig, setFullWidgetConfig] = useState<WidgetConfig | null>(null);
+  const [widgetsWithFullVersion, setWidgetsWithFullVersion] = useState<Record<string, boolean>>({});
 
   const handleLayoutChange = useCallback((newLayout: Layout[]) => {
     setLayout(newLayout);
@@ -142,14 +99,43 @@ export default function WidgetRenderer({ widgets }: { widgets: WidgetConfig[] })
     setFullWidgetConfig(null);
   }, []);
 
+  const getFullWidgetConfig = useCallback((baseConfig: WidgetConfig): WidgetConfig => {
+    return {
+      ...baseConfig,
+      widgetType: "full",
+    };
+  }, []);
+
+  const hasFullWidgetForGroup = useCallback(async (extensionName: ExtensionName, groupName: string) => {
+    const extensionImport = await importExtension(extensionName);
+    const widgetGroup: WidgetGroup = extensionImport.default[groupName];
+
+    return widgetGroup.items.some(item => item.type === "full");
+  }, []);
+
+  useEffect(() => {
+    const checkFullWidgets = async () => {
+      const results: Record<string, boolean> = {};
+
+      for (const widget of widgets) {
+        const key = getID(widget);
+        if (!results[key]) {
+          results[key] = await hasFullWidgetForGroup(widget.extensionName, widget.groupName);
+        }
+      }
+
+      setWidgetsWithFullVersion(results);
+    };
+
+    checkFullWidgets();
+  }, [widgets, hasFullWidgetForGroup]);
+
   return (
     <>
       {showFull && fullWidgetConfig
         ? (
           <SuspenseWidget
-            extensionName={fullWidgetConfig.extensionName}
-            groupName={fullWidgetConfig.groupName}
-            widgetType="full"
+            widgetConfig={getFullWidgetConfig(fullWidgetConfig)}
             queryClient={queryClient}
             callbacks={{ onMinimize: handleMinimize }}
           />
@@ -170,12 +156,10 @@ export default function WidgetRenderer({ widgets }: { widgets: WidgetConfig[] })
             {widgets.map(widget => (
               <div key={getID(widget)}>
                 <SuspenseWidget
-                  extensionName={widget.extensionName}
-                  groupName={widget.groupName}
-                  widgetType={widget.widgetType}
+                  widgetConfig={widget}
                   queryClient={queryClient}
                   callbacks={{
-                    ...(widget.widgetType === "twoByTwo" && widget.extensionName === "@hypr/extension-transcript"
+                    ...(widget.widgetType !== "full" && widgetsWithFullVersion[getID(widget)]
                       ? { onMaximize: () => handleMaximize(widget) }
                       : {}),
                   }}

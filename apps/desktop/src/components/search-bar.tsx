@@ -1,4 +1,4 @@
-import { useSearch } from "@/contexts/search";
+import { useHyprSearch } from "@/contexts/search";
 import { SearchIcon, XIcon } from "lucide-react";
 import Shortcut from "./shortcut";
 
@@ -8,7 +8,7 @@ export function SearchBar() {
     searchInputRef,
     focusSearch,
     setSearchQuery,
-  } = useSearch((s) => ({
+  } = useHyprSearch((s) => ({
     searchQuery: s.query,
     searchInputRef: s.searchInputRef,
     focusSearch: s.focusSearch,

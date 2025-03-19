@@ -1,17 +1,23 @@
 import { useMatch } from "@tanstack/react-router";
 import { motion } from "motion/react";
 
-import { useLeftSidebar, useOngoingSession } from "@/contexts";
+import { useHyprSearch, useLeftSidebar, useOngoingSession } from "@/contexts";
 import SettingsButton from "../settings-panel";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
 import { AllList } from "./notes-list";
 import OngoingSession from "./ongoing-session";
+import { SearchList } from "./search-list";
 
 export default function LeftSidebar() {
   const { isExpanded } = useLeftSidebar();
   const { listening, sessionId } = useOngoingSession((s) => ({
     listening: s.listening,
     sessionId: s.sessionId,
+  }));
+
+  const { isSearching, matches } = useHyprSearch((s) => ({
+    isSearching: !!s.query,
+    matches: s.matches,
   }));
 
   const noteMainMatch = useMatch({ from: "/app/note/$id/main", shouldThrow: false });
@@ -40,13 +46,23 @@ export default function LeftSidebar() {
 
       {inMeetingAndNotInNote && <OngoingSession sessionId={sessionId} />}
 
-      <div className="flex-1 h-full overflow-y-auto">
-        <AllList />
-      </div>
+      {isSearching
+        ? (
+          <div className="flex-1 h-full overflow-y-auto">
+            <SearchList matches={matches} />
+          </div>
+        )
+        : (
+          <>
+            <div className="flex-1 h-full overflow-y-auto">
+              <AllList />
+            </div>
 
-      <div className="flex items-center p-2 border-t">
-        <SettingsButton />
-      </div>
+            <div className="flex items-center p-2 border-t">
+              <SettingsButton />
+            </div>
+          </>
+        )}
     </motion.nav>
   );
 }

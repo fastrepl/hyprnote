@@ -4,6 +4,7 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
 import { createSearchStore, SearchStore } from "@/stores/search";
+import { useHypr } from "./hypr";
 
 const SearchContext = createContext<ReturnType<typeof createSearchStore> | null>(null);
 
@@ -14,9 +15,11 @@ export function SearchProvider({
   children: React.ReactNode;
   store?: SearchStore;
 }) {
+  const { userId } = useHypr();
+
   const storeRef = useRef<ReturnType<typeof createSearchStore> | null>(null);
   if (!storeRef.current) {
-    storeRef.current = store || createSearchStore();
+    storeRef.current = store || createSearchStore(userId);
   }
 
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -66,13 +69,13 @@ export function SearchProvider({
   );
 }
 
-export function useSearch<T>(
+export function useHyprSearch<T>(
   selector: Parameters<typeof useStore<ReturnType<typeof createSearchStore>, T>>[1],
 ) {
   const store = useContext(SearchContext);
 
   if (!store) {
-    throw new Error("'useSearch' must be used within a 'SearchProvider'");
+    throw new Error("'useHyprSearch' must be used within a 'SearchProvider'");
   }
 
   return useStore(store, useShallow(selector));

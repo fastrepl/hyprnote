@@ -1,7 +1,8 @@
-import { type SearchMatch } from "@/stores/search";
-import { formatRemainingTime } from "@hypr/utils/datetime";
 import { useNavigate } from "@tanstack/react-router";
 import { BuildingIcon, CalendarIcon, FileTextIcon, UserIcon } from "lucide-react";
+
+import { type SearchMatch } from "@/stores/search";
+import { formatRemainingTime } from "@hypr/utils/datetime";
 
 export default function SearchList({ matches }: { matches: SearchMatch[] }) {
   if (matches.length === 0) {

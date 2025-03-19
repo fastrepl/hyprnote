@@ -1,7 +1,8 @@
-import { useHypr } from "@/contexts";
-import { commands as dbCommands } from "@hypr/plugin-db";
 import { useQuery } from "@tanstack/react-query";
 import { isFuture } from "date-fns";
+
+import { useHypr } from "@/contexts";
+import { commands as dbCommands } from "@hypr/plugin-db";
 import EventItem from "./event-item";
 
 export default function EventsList() {

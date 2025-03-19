@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+
 import { NoteItem } from "./all-list/note-item";
 
 export default function OngoingSession({ sessionId }: { sessionId: string }) {
@@ -14,8 +15,8 @@ export default function OngoingSession({ sessionId }: { sessionId: string }) {
         className="px-3 pb-4 mb-4 border-b border-border"
       >
         <NoteItem
-          sessionId={sessionId}
-          isLive
+          currentSessionId={sessionId}
+          activeSessionId={sessionId}
         />
       </motion.div>
     </>

@@ -1,11 +1,12 @@
-import { useSessions } from "@/contexts";
-import { commands as dbCommands, type Session } from "@hypr/plugin-db";
-import { formatRelative } from "@hypr/utils/datetime";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMatch, useNavigate } from "@tanstack/react-router";
 import { endOfMonth, startOfMonth, subMonths } from "date-fns";
 import { motion } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
+
+import { useSessions } from "@/contexts";
+import { commands as dbCommands, type Session } from "@hypr/plugin-db";
+import { formatRelative } from "@hypr/utils/datetime";
 import { NoteItem } from "./note-item";
 
 export default function NotesList() {

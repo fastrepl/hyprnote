@@ -1,5 +1,7 @@
-import { useHyprSearch } from "@/contexts/search";
+import clsx from "clsx";
 import { SearchIcon, XIcon } from "lucide-react";
+
+import { useHyprSearch } from "@/contexts/search";
 import Shortcut from "./shortcut";
 
 export function SearchBar() {
@@ -7,17 +9,24 @@ export function SearchBar() {
     searchQuery,
     searchInputRef,
     focusSearch,
+    clearSearch,
     setSearchQuery,
   } = useHyprSearch((s) => ({
     searchQuery: s.query,
     searchInputRef: s.searchInputRef,
     focusSearch: s.focusSearch,
+    clearSearch: s.clearSearch,
     setSearchQuery: s.setQuery,
   }));
 
   return (
     <div
-      className="w-72 hidden sm:flex flex-row items-center gap-2 h-[34px] rounded-md border border-border px-2 py-2 bg-transparent transition-colors duration-200 hover:bg-white text-neutral-500 hover:text-neutral-600"
+      className={clsx([
+        "w-72 hidden sm:flex flex-row items-center gap-2 h-[34px]",
+        "text-neutral-500 hover:text-neutral-600",
+        "border border-border rounded-md px-2 py-2 bg-transparent hover:bg-white",
+        "transition-colors duration-200",
+      ])}
       onClick={() => focusSearch()}
     >
       <SearchIcon className="h-4 w-4 text-neutral-500" />
@@ -30,19 +39,12 @@ export function SearchBar() {
         className="flex-1 bg-transparent outline-none text-xs"
       />
       {searchQuery && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setSearchQuery("");
-          }}
-          className="text-neutral-400 hover:text-neutral-600"
-        >
-          <XIcon className="h-4 w-4" />
-        </button>
+        <XIcon
+          onClick={() => clearSearch()}
+          className="h-4 w-4 text-neutral-400 hover:text-neutral-600"
+        />
       )}
-      {!searchQuery && (
-        <Shortcut macDisplay="⌘K" windowsDisplay="Ctrl+K" />
-      )}
+      {!searchQuery && <Shortcut macDisplay="⌘K" windowsDisplay="Ctrl+K" />}
     </div>
   );
 }

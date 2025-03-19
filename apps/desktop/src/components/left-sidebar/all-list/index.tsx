@@ -1,4 +1,5 @@
 import { AnimatePresence, LayoutGroup } from "motion/react";
+
 import EventsList from "./events-list";
 import NotesList from "./notes-list";
 

@@ -10,7 +10,7 @@ export default function UpdateToastNotification() {
     enabled: process.env.NODE_ENV === "production",
     queryKey: ["check-for-update"],
     queryFn: () => check(),
-    refetchInterval: 1000 * 60, // Check every minute
+    refetchInterval: 1000 * 60,
   });
 
   useEffect(() => {

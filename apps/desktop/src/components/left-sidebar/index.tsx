@@ -1,6 +1,7 @@
-import { useHyprSearch, useLeftSidebar, useOngoingSession } from "@/contexts";
 import { useMatch, useSearch } from "@tanstack/react-router";
 import { motion } from "motion/react";
+
+import { useHyprSearch, useLeftSidebar, useOngoingSession } from "@/contexts";
 import SettingsButton from "../settings-panel";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
 import AllList from "./all-list";
@@ -9,9 +10,9 @@ import SearchList from "./search-list";
 
 export default function LeftSidebar() {
   const { isExpanded } = useLeftSidebar();
-  const { listening, sessionId } = useOngoingSession((s) => ({
+  const { listening, ongoingSessionId } = useOngoingSession((s) => ({
     listening: s.listening,
-    sessionId: s.sessionId,
+    ongoingSessionId: s.sessionId,
   }));
 
   const { isSearching, matches } = useHyprSearch((s) => ({
@@ -22,10 +23,10 @@ export default function LeftSidebar() {
   const search = useSearch({ strict: false });
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
 
-  const isInOngoingNoteMain = noteMatch?.params.id === sessionId;
-  const isInOngoingNoteSub = noteMatch?.params.id === sessionId;
+  const isInOngoingNoteMain = noteMatch?.params.id === ongoingSessionId;
+  const isInOngoingNoteSub = noteMatch?.params.id === ongoingSessionId;
   const isInOngoingNote = isInOngoingNoteMain || isInOngoingNoteSub;
-  const inMeetingAndNotInNote = listening && sessionId !== null && !isInOngoingNote;
+  const inMeetingAndNotInNote = listening && ongoingSessionId !== null && !isInOngoingNote;
 
   if (search.window === "sub") {
     return null;
@@ -46,7 +47,7 @@ export default function LeftSidebar() {
         <LeftSidebarButton type="sidebar" />
       </div>
 
-      {inMeetingAndNotInNote && <OngoingSession sessionId={sessionId} />}
+      {inMeetingAndNotInNote && <OngoingSession sessionId={ongoingSessionId} />}
 
       {isSearching
         ? (

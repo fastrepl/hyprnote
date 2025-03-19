@@ -11,7 +11,10 @@ const schema = z.object({
 
 export const Route = createFileRoute("/app/new")({
   validateSearch: zodValidator(schema),
-  beforeLoad: async ({ context: { queryClient }, search }) => {
+  beforeLoad: async ({
+    context: { queryClient, sessionsStore },
+    search,
+  }) => {
     const id = await authCommands.getFromStore("auth-user-id");
 
     if (!id) {
@@ -34,6 +37,10 @@ export const Route = createFileRoute("/app/new")({
       };
 
       const session = await dbCommands.upsertSession(emptySession);
+
+      const { insert } = sessionsStore.getState();
+      insert(session);
+
       queryClient.invalidateQueries({
         queryKey: ["sessions"],
         predicate(query) {

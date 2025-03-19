@@ -1,75 +1,14 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { useMatch, useNavigate } from "@tanstack/react-router";
-import { endOfMonth, isFuture, startOfMonth, subMonths } from "date-fns";
-import { AnimatePresence, LayoutGroup, motion } from "motion/react";
-import { useCallback, useEffect, useRef } from "react";
-
-import { useHypr, useSessions } from "@/contexts";
+import { useSessions } from "@/contexts";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 import { formatRelative } from "@hypr/utils/datetime";
-
-import { EventItem } from "./event-item";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useMatch, useNavigate } from "@tanstack/react-router";
+import { endOfMonth, startOfMonth, subMonths } from "date-fns";
+import { motion } from "motion/react";
+import { useCallback, useEffect, useRef } from "react";
 import { NoteItem } from "./note-item";
 
-export function EventsList() {
-  const { userId } = useHypr();
-
-  const events = useQuery({
-    queryKey: ["events"],
-    queryFn: async () => {
-      const events = await dbCommands.listEvents({ userId });
-      const upcomingEvents = events
-        .filter((event) => {
-          return isFuture(new Date(event.start_date));
-        })
-        .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
-        .slice(0, 3);
-
-      return upcomingEvents;
-    },
-  });
-
-  if (!events.data || events.data.length === 0) {
-    return null;
-  }
-
-  return (
-    <section className="border-b mb-4 border-border">
-      <h2 className="font-bold text-neutral-600 mb-1">
-        Upcoming
-      </h2>
-
-      <div>
-        {events.data.map((event) => <EventItem key={event.id} event={event} />)}
-      </div>
-    </section>
-  );
-}
-
-const groupSessions = (sessions: Session[]): [string, Session[]][] => {
-  const grouped = sessions.reduce<Record<string, Session[]>>((acc, session) => {
-    const key = formatRelative(session.created_at);
-    return {
-      ...acc,
-      [key]: [...(acc[key] ?? []), session],
-    };
-  }, {});
-
-  const groupedAndSorted = Object.entries(grouped).map(([key, sessions]) => {
-    const sorted = sessions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    return [key, sorted] as [string, Session[]];
-  });
-
-  return groupedAndSorted.sort(([_, sessionsA], [__, sessionsB]) => {
-    if (sessionsA.length === 0 || sessionsB.length === 0) return 0;
-
-    const newestA = new Date(sessionsA[0].created_at).getTime();
-    const newestB = new Date(sessionsB[0].created_at).getTime();
-    return newestB - newestA;
-  });
-};
-
-export function NotesList() {
+export default function NotesList() {
   const insertSession = useSessions((s) => s.insert);
   const sessionsStore = useSessions((s) => s.sessions);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -193,16 +132,25 @@ export function NotesList() {
   );
 }
 
-export function AllList() {
-  return (
-    <div className="h-full overflow-y-auto space-y-4 px-3 pb-4">
-      <EventsList />
+const groupSessions = (sessions: Session[]): [string, Session[]][] => {
+  const grouped = sessions.reduce<Record<string, Session[]>>((acc, session) => {
+    const key = formatRelative(session.created_at);
+    return {
+      ...acc,
+      [key]: [...(acc[key] ?? []), session],
+    };
+  }, {});
 
-      <LayoutGroup>
-        <AnimatePresence initial={false}>
-          <NotesList />
-        </AnimatePresence>
-      </LayoutGroup>
-    </div>
-  );
-}
+  const groupedAndSorted = Object.entries(grouped).map(([key, sessions]) => {
+    const sorted = sessions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return [key, sorted] as [string, Session[]];
+  });
+
+  return groupedAndSorted.sort(([_, sessionsA], [__, sessionsB]) => {
+    if (sessionsA.length === 0 || sessionsB.length === 0) return 0;
+
+    const newestA = new Date(sessionsA[0].created_at).getTime();
+    const newestB = new Date(sessionsB[0].created_at).getTime();
+    return newestB - newestA;
+  });
+};

@@ -3,7 +3,7 @@ import { formatRemainingTime } from "@hypr/utils/datetime";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
-export function EventItem({ event }: { event: Event }) {
+export default function EventItem({ event }: { event: Event }) {
   const navigate = useNavigate();
 
   const session = useQuery({

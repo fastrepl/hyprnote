@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { NoteItem } from "./note-item";
+import { NoteItem } from "./all-list/note-item";
 
 export default function OngoingSession({ sessionId }: { sessionId: string }) {
   return (

@@ -1,12 +1,11 @@
+import { useHyprSearch, useLeftSidebar, useOngoingSession } from "@/contexts";
 import { useMatch, useSearch } from "@tanstack/react-router";
 import { motion } from "motion/react";
-
-import { useHyprSearch, useLeftSidebar, useOngoingSession } from "@/contexts";
 import SettingsButton from "../settings-panel";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
-import { AllList } from "./notes-list";
+import AllList from "./all-list";
 import OngoingSession from "./ongoing-session";
-import { SearchList } from "./search-list";
+import SearchList from "./search-list";
 
 export default function LeftSidebar() {
   const { isExpanded } = useLeftSidebar();

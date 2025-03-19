@@ -1,45 +1,40 @@
-import { createContext, useCallback, useContext, useRef, useState } from "react";
+import { createContext, useContext, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/shallow";
 
-interface SearchContextType {
-  searchQuery: string;
-  searchInputRef: React.RefObject<HTMLInputElement>;
-  focusSearch: () => void;
-  clearSearch: () => void;
-  setSearchQuery: (query: string) => void;
-}
+import { createSearchStore, SearchStore } from "@/stores/search";
 
-const SearchContext = createContext<SearchContextType | null>(null);
+const SearchContext = createContext<ReturnType<typeof createSearchStore> | null>(null);
 
 export function SearchProvider({
   children,
+  store,
 }: {
   children: React.ReactNode;
+  store?: SearchStore;
 }) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const storeRef = useRef<ReturnType<typeof createSearchStore> | null>(null);
+  if (!storeRef.current) {
+    storeRef.current = store || createSearchStore();
+  }
+
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const focusSearch = useCallback(() => {
-    // Focus the input after a small delay to ensure the DOM has updated
-    setTimeout(() => {
-      searchInputRef.current?.focus();
-    }, 10);
-  }, []);
+  if (storeRef.current && searchInputRef.current !== storeRef.current.getState().searchInputRef?.current) {
+    storeRef.current.getState().setSearchInputRef(searchInputRef);
+  }
 
-  const clearSearch = useCallback(() => {
-    setSearchQuery("");
-    searchInputRef.current?.blur();
-  }, []);
-
-  // Set up keyboard shortcut (Cmd+K or Ctrl+K) to focus search
   useHotkeys(
     "mod+k",
     (event) => {
       event.preventDefault();
-      if (document.activeElement === searchInputRef.current) {
-        clearSearch();
+      const store = storeRef.current!;
+      const state = store.getState();
+      if (document.activeElement === state.searchInputRef?.current) {
+        state.clearSearch();
       } else {
-        focusSearch();
+        state.focusSearch();
       }
     },
     {
@@ -48,13 +43,14 @@ export function SearchProvider({
     },
   );
 
-  // Set up Escape key to clear search
   useHotkeys(
     "escape",
     (event) => {
-      if (document.activeElement === searchInputRef.current || searchQuery) {
+      const store = storeRef.current!;
+      const state = store.getState();
+      if (document.activeElement === state.searchInputRef?.current || state.query) {
         event.preventDefault();
-        clearSearch();
+        state.clearSearch();
       }
     },
     {
@@ -64,24 +60,20 @@ export function SearchProvider({
   );
 
   return (
-    <SearchContext.Provider
-      value={{
-        searchQuery,
-        searchInputRef,
-        focusSearch,
-        clearSearch,
-        setSearchQuery,
-      }}
-    >
+    <SearchContext.Provider value={storeRef.current}>
       {children}
     </SearchContext.Provider>
   );
 }
 
-export function useSearch() {
-  const context = useContext(SearchContext);
-  if (!context) {
-    throw new Error("useSearch must be used within SearchProvider");
+export function useSearch<T>(
+  selector: Parameters<typeof useStore<ReturnType<typeof createSearchStore>, T>>[1],
+) {
+  const store = useContext(SearchContext);
+
+  if (!store) {
+    throw new Error("'useSearch' must be used within a 'SearchProvider'");
   }
-  return context;
+
+  return useStore(store, useShallow(selector));
 }

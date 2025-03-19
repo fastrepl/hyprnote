@@ -1,8 +1,6 @@
 import { createFileRoute, notFound, Outlet } from "@tanstack/react-router";
 
-import LeftSidebar from "@/components/left-sidebar";
 import RightPanel from "@/components/note/right-panel";
-import Toolbar from "@/components/toolbar";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 
 const PATH = "/app/note/$id";

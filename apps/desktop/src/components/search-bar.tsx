@@ -8,7 +8,12 @@ export function SearchBar() {
     searchInputRef,
     focusSearch,
     setSearchQuery,
-  } = useSearch();
+  } = useSearch((s) => ({
+    searchQuery: s.query,
+    searchInputRef: s.searchInputRef,
+    focusSearch: s.focusSearch,
+    setSearchQuery: s.setQuery,
+  }));
 
   return (
     <div

@@ -40,7 +40,9 @@ export function SearchBar() {
           <XIcon className="h-4 w-4" />
         </button>
       )}
-      <Shortcut macDisplay="⌘K" windowsDisplay="Ctrl+K" />
+      {!searchQuery && (
+        <Shortcut macDisplay="⌘K" windowsDisplay="Ctrl+K" />
+      )}
     </div>
   );
 }

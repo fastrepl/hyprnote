@@ -16,7 +16,6 @@ export default function NotesList() {
   const lastItemRef = useRef<HTMLElement | null>(null);
 
   const sessions = useInfiniteQuery({
-    // TODO: consider new cache key.
     queryKey: ["sessions"],
     queryFn: async ({ pageParam: { monthOffset } }) => {
       const now = new Date();

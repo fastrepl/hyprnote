@@ -41,11 +41,8 @@ export const Route = createFileRoute("/app/new")({
       const { insert } = sessionsStore.getState();
       insert(session);
 
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: ["sessions"],
-        predicate(query) {
-          return query.queryKey[0] === "event-session";
-        },
       });
 
       return redirect({

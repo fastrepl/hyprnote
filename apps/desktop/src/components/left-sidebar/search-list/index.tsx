@@ -1,4 +1,5 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useMatch, useNavigate } from "@tanstack/react-router";
+import { clsx } from "clsx";
 import { BuildingIcon, CalendarIcon, FileTextIcon, UserIcon } from "lucide-react";
 
 import { type SearchMatch } from "@/stores/search";
@@ -13,7 +14,6 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
     );
   }
 
-  // Group matches by type
   const sessionMatches = matches.filter(match => match.type === "session");
   const eventMatches = matches.filter(match => match.type === "event");
   const humanMatches = matches.filter(match => match.type === "human");
@@ -80,9 +80,11 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
   );
 }
 
-function SessionMatch({ match }: { match: SearchMatch & { type: "session" } }) {
+function SessionMatch({ match: { item: session } }: { match: SearchMatch & { type: "session" } }) {
   const navigate = useNavigate();
-  const session = match.item;
+
+  const match = useMatch({ from: "/app/note/$id", shouldThrow: false });
+  const isActive = match?.params.id === session.id;
 
   const handleClick = () => {
     navigate({
@@ -94,7 +96,10 @@ function SessionMatch({ match }: { match: SearchMatch & { type: "session" } }) {
   return (
     <button
       onClick={handleClick}
-      className="w-full text-left group flex items-start py-2 hover:bg-neutral-100 rounded-lg px-2"
+      className={clsx([
+        "w-full text-left group flex items-start py-2 rounded-lg px-2",
+        isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
+      ])}
     >
       <div className="flex flex-col items-start gap-1">
         <div className="font-medium text-sm line-clamp-1">{session.title || "Untitled Note"}</div>
@@ -129,9 +134,11 @@ function EventMatch({ match }: { match: SearchMatch & { type: "event" } }) {
   );
 }
 
-function HumanMatch({ match }: { match: SearchMatch & { type: "human" } }) {
+function HumanMatch({ match: { item: human } }: { match: SearchMatch & { type: "human" } }) {
   const navigate = useNavigate();
-  const human = match.item;
+  const match = useMatch({ from: "/app/human/$id", shouldThrow: false });
+
+  const isActive = match?.params.id === human.id;
 
   const handleClick = () => {
     navigate({
@@ -143,7 +150,10 @@ function HumanMatch({ match }: { match: SearchMatch & { type: "human" } }) {
   return (
     <button
       onClick={handleClick}
-      className="w-full text-left group flex items-start py-2 hover:bg-neutral-100 rounded-lg px-2"
+      className={clsx([
+        "w-full text-left group flex items-start py-2 rounded-lg px-2",
+        isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
+      ])}
     >
       <div className="flex flex-col items-start gap-1">
         <div className="font-medium text-sm line-clamp-1">{human.full_name || "Unnamed Person"}</div>
@@ -155,9 +165,10 @@ function HumanMatch({ match }: { match: SearchMatch & { type: "human" } }) {
   );
 }
 
-function OrganizationMatch({ match }: { match: SearchMatch & { type: "organization" } }) {
+function OrganizationMatch({ match: { item: organization } }: { match: SearchMatch & { type: "organization" } }) {
   const navigate = useNavigate();
-  const organization = match.item;
+  const match = useMatch({ from: "/app/organization/$id", shouldThrow: false });
+  const isActive = match?.params.id === organization.id;
 
   const handleClick = () => {
     navigate({
@@ -169,7 +180,10 @@ function OrganizationMatch({ match }: { match: SearchMatch & { type: "organizati
   return (
     <button
       onClick={handleClick}
-      className="w-full text-left group flex items-start py-2 hover:bg-neutral-100 rounded-lg px-2"
+      className={clsx([
+        "w-full text-left group flex items-start py-2 rounded-lg px-2",
+        isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
+      ])}
     >
       <div className="flex flex-col items-start gap-1">
         <div className="font-medium text-sm line-clamp-1">{organization.name}</div>

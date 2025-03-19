@@ -36,11 +36,26 @@ export const createSearchStore = (userId: string) => {
     matches: [],
     searchInputRef: null,
     setQuery: async (query: string) => {
-      const sessions = await dbCommands.listSessions({ pagination: { limit: 3, offset: 0 } });
-      const matches: SearchMatch[] = sessions.map((session) => ({
-        type: "session",
-        item: session,
-      }));
+      const [sessions, humans, organizations] = await Promise.all([
+        dbCommands.listSessions({ pagination: { limit: 3, offset: 0 } }),
+        dbCommands.listHumans({ search: [3, query] }),
+        dbCommands.listOrganizations({ search: [3, query] }),
+      ]);
+
+      const matches: SearchMatch[] = [
+        ...sessions.map((session) => ({
+          type: "session" as const,
+          item: session,
+        })),
+        ...humans.map((human) => ({
+          type: "human" as const,
+          item: human,
+        })),
+        ...organizations.map((organization) => ({
+          type: "organization" as const,
+          item: organization,
+        })),
+      ];
 
       set({ query, matches });
     },

@@ -54,7 +54,6 @@ function Component() {
               <SettingsPanelProvider>
                 <NewNoteProvider>
                   <SearchProvider>
-                    <Outlet />
                     <div className="relative flex h-screen w-screen overflow-hidden">
                       <LeftSidebar />
                       <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">

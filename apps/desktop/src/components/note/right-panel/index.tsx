@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 import { useRightPanel } from "@/contexts";
-import WidgetRenderer, { WidgetConfig } from "./renderer";
+import WidgetRenderer, { type WidgetConfig } from "./renderer";
 
 export default function RightPanel() {
   const [isMobile, setIsMobile] = useState(false);

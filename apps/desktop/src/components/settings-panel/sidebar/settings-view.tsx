@@ -7,6 +7,7 @@ import {
   CreditCardIcon,
   FileTextIcon,
   SettingsIcon,
+  SparklesIcon,
   UserIcon,
   UsersIcon,
 } from "lucide-react";
@@ -34,6 +35,21 @@ export function SettingsView({ active, setActive }: SettingsViewProps) {
                 <SettingsIcon className="h-4 w-4" />
                 <span className="hidden md:inline-block">
                   <Trans>General</Trans>
+                </span>
+              </button>
+            </li>
+
+            <li>
+              <button
+                onClick={() => setActive("Local AI")}
+                className={cn(
+                  "h-9 flex w-full items-center justify-center md:justify-start gap-2 rounded-lg p-2 text-sm text-neutral-600 focus:outline-none",
+                  active === "Local AI" ? "bg-neutral-200" : "hover:bg-neutral-100",
+                )}
+              >
+                <SparklesIcon className="h-4 w-4" />
+                <span className="hidden md:inline-block">
+                  <Trans>Local AI</Trans>
                 </span>
               </button>
             </li>

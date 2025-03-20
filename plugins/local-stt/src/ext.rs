@@ -3,7 +3,6 @@ use tauri::{Manager, Runtime};
 
 #[derive(serde::Serialize, specta::Type)]
 pub struct Status {
-    pub model_loaded: bool,
     pub server_running: bool,
 }
 
@@ -20,7 +19,6 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let s = state.lock().await;
 
         Status {
-            model_loaded: s.model.is_some(),
             server_running: s.server.is_some(),
         }
     }

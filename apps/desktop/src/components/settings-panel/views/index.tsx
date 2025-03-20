@@ -1,3 +1,4 @@
+import { Trans } from "@lingui/react/macro";
 import { type ReactNode, useEffect, useRef } from "react";
 
 import { type ExtensionDefinition, type Template } from "@hypr/plugin-db";
@@ -8,7 +9,6 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@hypr/ui/components/ui/breadcrumb";
-import { Trans } from "@lingui/react/macro";
 import { type NavNames } from "../types";
 
 interface SettingsPanelBodyProps {
@@ -90,7 +90,12 @@ export function SettingsPanelBody({
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-none" ref={contentRef}>{children}</div>
+      <div
+        ref={contentRef}
+        className="flex-1 overflow-y-auto px-4 py-6 scrollbar-none"
+      >
+        {children}
+      </div>
     </main>
   );
 }

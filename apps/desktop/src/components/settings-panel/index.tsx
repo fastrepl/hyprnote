@@ -1,7 +1,8 @@
+import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
-
 import { SettingsIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+
 import { SettingsSidebar } from "./sidebar";
 import type { NavNames } from "./types";
 import { SettingsPanelBody } from "./views";
@@ -9,25 +10,27 @@ import BillingComponent from "./views/billing";
 import CalendarComponent from "./views/calendar";
 import ExtensionsComponent from "./views/extensions";
 import GeneralComponent from "./views/general";
+import LocalAIComponent from "./views/local-ai";
 import NotificationsComponent from "./views/notifications";
 import ProfileComponent from "./views/profile";
 import TeamComponent from "./views/team";
 import TemplateEditor from "./views/template";
 
-import { useSettingsPanel } from "@/contexts";
+import { useHypr, useSettingsPanel } from "@/contexts";
 import { commands as dbCommands, type ExtensionDefinition, type Template } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
-import { Trans } from "@lingui/react/macro";
 
 export default function SettingsPanel() {
-  const { isOpen, open, close } = useSettingsPanel();
-  const [active, setActive] = useState<NavNames | "Profile">("General");
   const [searchQuery, setSearchQuery] = useState("");
+  const [active, setActive] = useState<NavNames | "Profile">("General");
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
     null,
   );
   const [selectedExtension, setSelectedExtension] = useState<ExtensionDefinition | null>(null);
+
+  const { userId } = useHypr();
+  const { isOpen, open, close } = useSettingsPanel();
 
   const templates = useQuery({
     queryKey: ["settings", "templates"],
@@ -107,10 +110,7 @@ export default function SettingsPanel() {
                   disabled={false}
                   template={selectedTemplate}
                   onTemplateUpdate={handleUpdateTemplate}
-                  isCreator={
-                    // TODO: Replace with actual user ID check
-                    selectedTemplate.user_id === "current_user_id"
-                  }
+                  isCreator={selectedTemplate.user_id === userId}
                 />
               )}
               {active === "Extensions" && (
@@ -119,6 +119,7 @@ export default function SettingsPanel() {
               {active === "Team" && <TeamComponent />}
               {active === "Billing" && <BillingComponent />}
               {active === "Profile" && <ProfileComponent />}
+              {active === "Local AI" && <LocalAIComponent />}
             </SettingsPanelBody>
           </div>
         </ModalBody>

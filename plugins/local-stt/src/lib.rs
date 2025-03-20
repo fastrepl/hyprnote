@@ -15,7 +15,6 @@ pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 #[derive(Default)]
 pub struct State {
     pub api_base: Option<String>,
-    pub model: Option<rwhisper::Whisper>,
     pub server: Option<crate::server::ServerHandle>,
 }
 

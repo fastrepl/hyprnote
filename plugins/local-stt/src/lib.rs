@@ -71,7 +71,39 @@ mod test {
     }
 
     #[tokio::test]
+    #[ignore]
+    // cargo test test_local_stt -p tauri-plugin-local-stt -- --ignored --nocapture
     async fn test_local_stt() {
-        let _app = create_app(tauri::test::mock_builder());
+        use futures_util::StreamExt;
+        use tauri_plugin_listener::ListenClientBuilder;
+
+        let app = create_app(tauri::test::mock_builder());
+
+        let on_progress = tauri::ipc::Channel::new(|_| Ok(()));
+        app.load_model(on_progress).await.unwrap();
+
+        let state = app.state::<SharedState>();
+
+        let server = crate::server::run_server(state.inner().clone())
+            .await
+            .unwrap();
+
+        let listen_client = ListenClientBuilder::default()
+            .api_base(format!("http://{}", server.addr))
+            .api_key("NONE")
+            .language(codes_iso_639::part_1::LanguageCode::En)
+            .build();
+
+        let audio_source = rodio::Decoder::new_wav(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap();
+
+        let listen_stream = listen_client.from_audio(audio_source).await.unwrap();
+        let mut listen_stream = Box::pin(listen_stream);
+
+        while let Some(chunk) = listen_stream.next().await {
+            println!("{:?}", chunk);
+        }
     }
 }

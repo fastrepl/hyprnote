@@ -17,13 +17,13 @@
   },
   "dependencies": {
     "@hypr/extension-utils": "workspace:^",
-    "@hypr/plugin-listener": "workspace:^",
     "@hypr/plugin-db": "workspace:^",
+    "@hypr/plugin-listener": "workspace:^",
     "@hypr/plugin-template": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@tanstack/react-query": "^5.67.2",
     "@tauri-apps/api": "^2.3.0",
-    "@tauri-apps/plugin-http": "^2.3.0",
+    "@tauri-apps/plugin-http": "^2.4.2",
     "lucide-react": "^0.474.0",
     "motion": "^12.4.10",
     "zod": "^3.24.2"

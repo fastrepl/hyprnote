@@ -61,7 +61,6 @@ export const createSessionStore = (session: Session) => {
         return;
       }
 
-      console.log("persisting session", session);
       await dbCommands.upsertSession(session);
     },
   }));

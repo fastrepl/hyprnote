@@ -110,7 +110,12 @@ async fn websocket(socket: WebSocket, _params: ListenParams, model: rwhisper::Wh
         });
 
         let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
-        ws_sender.send(msg).await.unwrap();
+        match ws_sender.send(msg).await {
+            Ok(_) => {}
+            Err(e) => {
+                tracing::warn!("websocket_send_error: {}", e);
+            }
+        }
     }
 
     ws_sender.close().await.unwrap();

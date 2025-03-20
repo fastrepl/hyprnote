@@ -22,7 +22,7 @@
     "@hypr/ui": "workspace:^",
     "@tanstack/react-query": "^5.67.2",
     "@tauri-apps/api": "^2.3.0",
-    "@tauri-apps/plugin-http": "^2.3.0",
+    "@tauri-apps/plugin-http": "^2.4.2",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.474.0",
     "motion": "^12.4.10",

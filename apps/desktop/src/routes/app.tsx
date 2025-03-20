@@ -32,19 +32,12 @@ export const Route = createFileRoute("/app")({
   },
 });
 
-import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-
 function Component() {
   const store = Route.useLoaderData();
 
   useEffect(() => {
     registerTemplates();
     initExtensions();
-
-    localSttCommands.startServer();
-    return () => {
-      localSttCommands.stopServer();
-    };
   }, []);
 
   return (

@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Channel } from "@tauri-apps/api/core";
+import { generateText } from "ai";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import { modelProvider } from "@hypr/utils";
 
 export default function LocalAI() {
   const queryClient = useQueryClient();
@@ -57,6 +59,23 @@ export default function LocalAI() {
     },
   });
 
+  const checkLLM = useMutation({
+    mutationFn: async () => {
+      const provider = await modelProvider();
+      const { text } = await generateText({
+        model: provider.languageModel("any"),
+        messages: [{ role: "user", content: "hi" }],
+      });
+
+      if (!text) {
+        throw new Error("no text");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["local-llm", "status"] });
+    },
+  });
+
   return (
     <div>
       <h1>Local AI</h1>
@@ -83,6 +102,13 @@ export default function LocalAI() {
         onClick={() => toggleLocalLlmModel.mutate()}
       >
         {localLlmStatus.data?.model_loaded ? "Unload Model" : "Load Model"}
+      </button>
+
+      <button
+        className="bg-blue-500 text-white p-2 rounded-md"
+        onClick={() => checkLLM.mutate()}
+      >
+        Check LLM
       </button>
     </div>
   );

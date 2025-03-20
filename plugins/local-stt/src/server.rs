@@ -3,11 +3,15 @@ use axum::{
         ws::{Message, WebSocket, WebSocketUpgrade},
         Query, State as AxumState,
     },
+    http::StatusCode,
     response::IntoResponse,
     routing::get,
     Router,
 };
-use std::net::{Ipv4Addr, SocketAddr};
+use std::{
+    net::{Ipv4Addr, SocketAddr},
+    path::PathBuf,
+};
 use tower_http::cors::{self, CorsLayer};
 
 use futures_util::{stream::SplitStream, SinkExt, Stream, StreamExt};
@@ -19,18 +23,24 @@ pub struct ServerHandle {
     pub shutdown: tokio::sync::watch::Sender<()>,
 }
 
-pub async fn run_server(state: crate::SharedState) -> anyhow::Result<ServerHandle> {
-    let app = Router::new()
+#[derive(Clone)]
+pub struct ServerState {
+    pub cache_dir: PathBuf,
+    pub model_type: rwhisper::WhisperSource,
+}
+
+pub async fn run_server(state: ServerState) -> anyhow::Result<ServerHandle> {
+    let router = Router::new()
         .route("/health", get(health))
         // should match our app server
         .route("/api/native/listen/realtime", get(listen))
-        .with_state(state)
         .layer(
             CorsLayer::new()
                 .allow_origin(cors::Any)
                 .allow_methods(cors::Any)
                 .allow_headers(cors::Any),
-        );
+        )
+        .with_state(state);
 
     let listener =
         tokio::net::TcpListener::bind(SocketAddr::from((Ipv4Addr::LOCALHOST, 0))).await?;
@@ -45,7 +55,7 @@ pub async fn run_server(state: crate::SharedState) -> anyhow::Result<ServerHandl
     };
 
     tokio::spawn(async move {
-        axum::serve(listener, app)
+        axum::serve(listener, router)
             .with_graceful_shutdown(async move {
                 shutdown_rx.changed().await.ok();
             })
@@ -63,31 +73,27 @@ async fn health() -> impl IntoResponse {
 async fn listen(
     Query(params): Query<ListenParams>,
     ws: WebSocketUpgrade,
-    AxumState(state): AxumState<crate::SharedState>,
-) -> impl IntoResponse {
-    ws.on_upgrade(|socket| websocket(socket, state, params))
+    AxumState(state): AxumState<ServerState>,
+) -> Result<impl IntoResponse, StatusCode> {
+    let model = crate::model::model_builder(state.cache_dir)
+        .with_language(None)
+        .with_source(state.model_type)
+        .build()
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok(ws.on_upgrade(move |socket| websocket(socket, params, model)))
 }
 
-async fn websocket(socket: WebSocket, state: crate::SharedState, _params: ListenParams) {
+async fn websocket(socket: WebSocket, _params: ListenParams, model: rwhisper::Whisper) {
     tracing::info!("websocket_connected");
 
     let (mut ws_sender, ws_receiver) = socket.split();
-
     let mut stream = {
-        let state = state.lock().await;
-
-        if let Some(model) = state.model.as_ref() {
-            let audio_source = WebSocketAudioSource::new(ws_receiver, 16 * 1000);
-            let chunked = crate::chunker::FixedChunkStream::new(
-                audio_source,
-                std::time::Duration::from_secs(10),
-            );
-
-            rwhisper::TranscribeChunkedAudioStreamExt::transcribe(chunked, model.clone())
-        } else {
-            tracing::error!("model_not_loaded");
-            return;
-        }
+        let audio_source = WebSocketAudioSource::new(ws_receiver, 16 * 1000);
+        let chunked =
+            crate::chunker::FixedChunkStream::new(audio_source, std::time::Duration::from_secs(10));
+        rwhisper::TranscribeChunkedAudioStreamExt::transcribe(chunked, model)
     };
 
     tracing::info!("stream_started");
@@ -162,61 +168,24 @@ impl kalosm_sound::AsyncSource for WebSocketAudioSource {
 mod tests {
     use super::*;
 
-    use futures_util::StreamExt;
-    use tauri_plugin_listener::ListenClientBuilder;
-
-    #[tokio::test]
-    #[ignore]
-    // cargo test test_listen -p tauri-plugin-local-stt -- --ignored --nocapture
-    async fn test_listen() {
-        let state = crate::SharedState::default();
-        {
-            let mut state = state.lock().await;
-            state.model = Some(
-                crate::model::model_builder(
-                    dirs::home_dir()
-                        .unwrap()
-                        .join("Library/Application Support/com.hyprnote.dev/"),
-                )
-                .with_source(rwhisper::WhisperSource::QuantizedDistilLargeV3)
-                .build()
-                .await
-                .unwrap(),
-            );
-        }
-
-        let server = run_server(state).await.unwrap();
-
-        let listen_client = ListenClientBuilder::default()
-            .api_base(format!("http://{}", server.addr))
-            .api_key("NONE")
-            .language(codes_iso_639::part_1::LanguageCode::En)
-            .build();
-
-        let audio_source = rodio::Decoder::new_wav(std::io::BufReader::new(
-            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
-        .unwrap();
-
-        let listen_stream = listen_client.from_audio(audio_source).await.unwrap();
-        let mut listen_stream = Box::pin(listen_stream);
-
-        while let Some(chunk) = listen_stream.next().await {
-            println!("{:?}", chunk);
-        }
-    }
-
     #[tokio::test]
     async fn test_health() {
-        let state = crate::SharedState::default();
-        let server = run_server(state).await.unwrap();
+        let state = ServerState {
+            cache_dir: "/Users/yujonglee/Library/Application Support/com.hyprnote.dev/".into(),
+            model_type: rwhisper::WhisperSource::QuantizedDistilLargeV3,
+        };
 
+        let server = run_server(state).await.unwrap();
         let client = reqwest::Client::new();
-        let response = client
-            .get(format!("http://{}/health", server.addr))
-            .send()
-            .await
-            .unwrap();
-        assert_eq!(response.status(), axum::http::StatusCode::OK);
+
+        assert_eq!(
+            client
+                .get(format!("http://{}/health", server.addr))
+                .send()
+                .await
+                .unwrap()
+                .status(),
+            axum::http::StatusCode::OK
+        );
     }
 }

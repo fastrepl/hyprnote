@@ -8,21 +8,6 @@ pub async fn get_status<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<S
 
 #[tauri::command]
 #[specta::specta]
-pub async fn load_model<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    on_progress: tauri::ipc::Channel<u8>,
-) -> Result<u8, String> {
-    app.load_model(on_progress).await
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn unload_model<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    app.unload_model().await
-}
-
-#[tauri::command]
-#[specta::specta]
 pub async fn start_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
     app.start_server().await
 }

@@ -26,8 +26,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::get_status::<Wry>,
-            commands::load_model::<Wry>,
-            commands::unload_model::<Wry>,
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
         ])
@@ -78,18 +76,16 @@ mod test {
         use tauri_plugin_listener::ListenClientBuilder;
 
         let app = create_app(tauri::test::mock_builder());
+        app.start_server().await.unwrap();
 
-        let on_progress = tauri::ipc::Channel::new(|_| Ok(()));
-        app.load_model(on_progress).await.unwrap();
-
-        let state = app.state::<SharedState>();
-
-        let server = crate::server::run_server(state.inner().clone())
-            .await
-            .unwrap();
+        let api_base = {
+            let state = app.state::<SharedState>();
+            let s = state.lock().await;
+            s.api_base.as_ref().unwrap().clone()
+        };
 
         let listen_client = ListenClientBuilder::default()
-            .api_base(format!("http://{}", server.addr))
+            .api_base(api_base)
             .api_key("NONE")
             .language(codes_iso_639::part_1::LanguageCode::En)
             .build();
@@ -105,5 +101,7 @@ mod test {
         while let Some(chunk) = listen_stream.next().await {
             println!("{:?}", chunk);
         }
+
+        app.stop_server().await.unwrap();
     }
 }

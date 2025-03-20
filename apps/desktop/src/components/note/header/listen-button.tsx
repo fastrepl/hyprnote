@@ -36,7 +36,7 @@ export default function ListenButton({
       className="p-2"
     >
       {isListening && isCurrent ? <Ear size={20} /> : <EarOff size={20} />}
-      {isListening && isCurrent && <SoundIndicator />}
+      {isListening && isCurrent && <SoundIndicator theme="dark" />}
     </Button>
   );
 

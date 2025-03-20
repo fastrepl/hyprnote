@@ -31,7 +31,7 @@ export const createOngoingSessionStore = () => {
         })
       );
 
-      const channel: State["channel"] = new Channel();
+      const channel = new Channel<SessionEvent>();
 
       channel.onmessage = (event) => {
         set((state) =>

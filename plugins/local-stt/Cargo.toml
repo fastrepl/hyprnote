@@ -17,7 +17,6 @@ tauri-plugin-listener = { path = "../listener" }
 
 bytes = { workspace = true }
 codes-iso-639 = { workspace = true }
-dirs = { workspace = true }
 futures-core = { workspace = true }
 reqwest = { workspace = true }
 rodio = { workspace = true, features = ["wav"] }
@@ -26,7 +25,7 @@ tracing = { workspace = true }
 
 [dependencies]
 hypr-db-user = { workspace = true }
-hypr-listener-interface = { path = "../listener-interface", package = "listener-interface" }
+hypr-listener-interface = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
@@ -41,7 +40,7 @@ tracing = { workspace = true }
 
 axum = { workspace = true, features = ["ws"] }
 futures-util = { workspace = true }
-tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+tokio = { workspace = true, features = ["rt", "macros"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }
 
 rodio = { workspace = true, features = ["wav"] }

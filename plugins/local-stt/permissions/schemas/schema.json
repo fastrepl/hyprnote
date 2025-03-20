@@ -295,24 +295,24 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the get_status command without any pre-configured scope.",
+          "description": "Enables the download_model command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-get-status"
+          "const": "allow-download-model"
         },
         {
-          "description": "Denies the get_status command without any pre-configured scope.",
+          "description": "Denies the download_model command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-get-status"
+          "const": "deny-download-model"
         },
         {
-          "description": "Enables the load_model command without any pre-configured scope.",
+          "description": "Enables the is_server_running command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-load-model"
+          "const": "allow-is-server-running"
         },
         {
-          "description": "Denies the load_model command without any pre-configured scope.",
+          "description": "Denies the is_server_running command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-load-model"
+          "const": "deny-is-server-running"
         },
         {
           "description": "Enables the start_server command without any pre-configured scope.",
@@ -333,16 +333,6 @@
           "description": "Denies the stop_server command without any pre-configured scope.",
           "type": "string",
           "const": "deny-stop-server"
-        },
-        {
-          "description": "Enables the unload_model command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-unload-model"
-        },
-        {
-          "description": "Denies the unload_model command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-unload-model"
         },
         {
           "description": "Default permissions for the plugin",

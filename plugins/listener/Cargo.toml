@@ -22,7 +22,7 @@ specta-typescript = { workspace = true }
 uuid = { workspace = true }
 
 [dependencies]
-hypr-listener-interface = { path = "../listener-interface", package = "listener-interface" }
+hypr-listener-interface = { workspace = true }
 tauri-plugin-auth = { path = "../auth" }
 tauri-plugin-connector = { path = "../connector" }
 

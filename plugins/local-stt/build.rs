@@ -1,9 +1,8 @@
 const COMMANDS: &[&str] = &[
-    "get_status",
-    "load_model",
-    "unload_model",
+    "is_server_running",
     "start_server",
     "stop_server",
+    "download_model",
 ];
 
 fn main() {

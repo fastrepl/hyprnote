@@ -8,7 +8,7 @@ dotenv = { workspace = true }
 
 [dependencies]
 hypr-auth-interface = { path = "../../../plugins/auth-interface", package = "auth-interface" }
-hypr-listener-interface = { path = "../../../plugins/listener-interface", package = "listener-interface" }
+hypr-listener-interface = { workspace = true }
 
 hypr-analytics = { path = "../../../crates/analytics", package = "analytics" }
 hypr-buffer = { path = "../../../crates/buffer", package = "buffer" }

@@ -1,9 +1,8 @@
 [default]
 description = "Default permissions for the plugin"
 permissions = [
-    "allow-get-status",
-    "allow-load-model",
-    "allow-unload-model",
+    "allow-is-server-running",
     "allow-start-server",
     "allow-stop-server",
+    "allow-download-model",
 ]

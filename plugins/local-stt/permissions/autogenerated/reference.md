@@ -2,11 +2,10 @@
 
 Default permissions for the plugin
 
-- `allow-get-status`
-- `allow-load-model`
-- `allow-unload-model`
+- `allow-is-server-running`
 - `allow-start-server`
 - `allow-stop-server`
+- `allow-download-model`
 
 ## Permission Table
 
@@ -20,25 +19,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`local-stt:allow-get-status`
+`local-stt:allow-download-model`
 
 </td>
 <td>
 
-Enables the get_status command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-stt:deny-get-status`
-
-</td>
-<td>
-
-Denies the get_status command without any pre-configured scope.
+Enables the download_model command without any pre-configured scope.
 
 </td>
 </tr>
@@ -46,12 +32,12 @@ Denies the get_status command without any pre-configured scope.
 <tr>
 <td>
 
-`local-stt:allow-load-model`
+`local-stt:deny-download-model`
 
 </td>
 <td>
 
-Enables the load_model command without any pre-configured scope.
+Denies the download_model command without any pre-configured scope.
 
 </td>
 </tr>
@@ -59,12 +45,25 @@ Enables the load_model command without any pre-configured scope.
 <tr>
 <td>
 
-`local-stt:deny-load-model`
+`local-stt:allow-is-server-running`
 
 </td>
 <td>
 
-Denies the load_model command without any pre-configured scope.
+Enables the is_server_running command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-is-server-running`
+
+</td>
+<td>
+
+Denies the is_server_running command without any pre-configured scope.
 
 </td>
 </tr>
@@ -117,32 +116,6 @@ Enables the stop_server command without any pre-configured scope.
 <td>
 
 Denies the stop_server command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-stt:allow-unload-model`
-
-</td>
-<td>
-
-Enables the unload_model command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-stt:deny-unload-model`
-
-</td>
-<td>
-
-Denies the unload_model command without any pre-configured scope.
 
 </td>
 </tr>

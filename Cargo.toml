@@ -17,6 +17,7 @@ hypr-data = { path = "crates/data", package = "data" }
 hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }
 hypr-db-user = { path = "crates/db-user", package = "db-user" }
+hypr-listener-interface = { path = "plugins/listener-interface", package = "listener-interface" }
 hypr-loops = { path = "crates/loops", package = "loops" }
 hypr-nango = { path = "crates/nango", package = "nango" }
 hypr-turso = { path = "crates/turso", package = "turso" }

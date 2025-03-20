@@ -1,0 +1,24 @@
+[package]
+name = "tauri-plugin-local-ai"
+version = "0.1.0"
+authors = ["You"]
+edition = "2021"
+description = ""
+
+[dependencies]
+hypr-data = { workspace = true }
+
+tauri = { workspace = true, features = ["test"] }
+tauri-plugin-listener = { workspace = true }
+tauri-plugin-local-llm = { workspace = true }
+tauri-plugin-local-stt = { workspace = true }
+
+async-openai = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true, features = ["rt", "macros"] }
+
+codes-iso-639 = { workspace = true }
+dirs = { workspace = true }
+rodio = { workspace = true, features = ["wav"] }
+
+kalosm-llama = { workspace = true }

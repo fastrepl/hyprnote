@@ -11,7 +11,7 @@ export default function LocalAI() {
 
   const localSttStatus = useQuery({
     queryKey: ["local-stt", "status"],
-    queryFn: async () => localSttCommands.getStatus(),
+    queryFn: async () => localSttCommands.isServerRunning(),
   });
 
   const localLlmStatus = useQuery({
@@ -21,7 +21,7 @@ export default function LocalAI() {
 
   const toggleLocalStt = useMutation({
     mutationFn: async () => {
-      if (localSttStatus.data?.server_running) {
+      if (localSttStatus.data) {
         await localSttCommands.stopServer();
       } else {
         await localSttCommands.startServer();
@@ -86,7 +86,7 @@ export default function LocalAI() {
         className="bg-blue-500 text-white p-2 rounded-md"
         onClick={() => toggleLocalStt.mutate()}
       >
-        {localSttStatus.data?.server_running ? "Stop Server" : "Start Server"}
+        {localSttStatus.data ? "Stop Server" : "Start Server"}
       </button>
 
       <h2>Local LLM</h2>

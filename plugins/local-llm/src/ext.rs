@@ -1,4 +1,6 @@
 use std::future::Future;
+use std::path::PathBuf;
+
 use tauri::{ipc::Channel, Manager, Runtime};
 
 #[derive(serde::Serialize, specta::Type)]
@@ -9,7 +11,11 @@ pub struct Status {
 
 pub trait LocalLlmPluginExt<R: Runtime> {
     fn get_status(&self) -> impl Future<Output = Status>;
-    fn load_model(&self, on_progress: Channel<u8>) -> impl Future<Output = Result<u8, String>>;
+    fn load_model(
+        &self,
+        p: impl Into<PathBuf>,
+        f: Channel<u8>,
+    ) -> impl Future<Output = Result<u8, String>>;
     fn unload_model(&self) -> impl Future<Output = Result<(), String>>;
     fn start_server(&self) -> impl Future<Output = Result<(), String>>;
     fn stop_server(&self) -> impl Future<Output = Result<(), String>>;
@@ -28,8 +34,11 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn load_model(&self, on_progress: Channel<u8>) -> Result<u8, String> {
-        let data_dir = self.path().app_data_dir().unwrap();
+    async fn load_model(
+        &self,
+        cache_dir: impl Into<PathBuf>,
+        on_progress: Channel<u8>,
+    ) -> Result<u8, String> {
         let state = self.state::<crate::SharedState>();
 
         {
@@ -40,11 +49,13 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
             }
         }
 
-        let model =
-            crate::model::model_builder(data_dir, kalosm_llama::LlamaSource::llama_3_2_3b_chat())
-                .build_with_loading_handler(crate::model::make_progress_handler(on_progress))
-                .await
-                .map_err(|e| e.to_string())?;
+        let model = crate::model::model_builder(
+            cache_dir.into(),
+            kalosm_llama::LlamaSource::llama_3_2_3b_chat(),
+        )
+        .build_with_loading_handler(crate::model::make_progress_handler(on_progress))
+        .await
+        .map_err(|e| e.to_string())?;
 
         {
             let mut s = state.lock().await;

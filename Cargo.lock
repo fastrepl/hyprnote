@@ -12101,6 +12101,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-local-ai"
+version = "0.1.0"
+dependencies = [
+ "async-openai",
+ "codes-iso-639",
+ "data",
+ "dirs 6.0.0",
+ "futures-util",
+ "kalosm-llama",
+ "rodio",
+ "tauri",
+ "tauri-plugin-listener",
+ "tauri-plugin-local-llm",
+ "tauri-plugin-local-stt",
+ "tokio",
+]
+
+[[package]]
 name = "tauri-plugin-local-llm"
 version = "0.1.0"
 dependencies = [
@@ -12139,7 +12157,6 @@ dependencies = [
  "codes-iso-639",
  "data",
  "db-user",
- "dirs 6.0.0",
  "futures-core",
  "futures-util",
  "kalosm-common",

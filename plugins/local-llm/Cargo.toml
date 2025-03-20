@@ -34,7 +34,7 @@ axum = { workspace = true }
 
 futures-core = { workspace = true }
 futures-util = { workspace = true }
-tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+tokio = { workspace = true, features = ["rt", "macros"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }
 
 kalosm-model-types = { workspace = true }

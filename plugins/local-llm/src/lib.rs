@@ -75,6 +75,8 @@ mod test {
     }
 
     #[tokio::test]
+    #[ignore]
+    // cargo test test_local_llm -p tauri-plugin-local-llm -- --ignored --nocapture
     async fn test_local_llm() {
         let app = create_app(tauri::test::mock_builder());
         app.start_server().await.unwrap();
@@ -115,9 +117,10 @@ mod test {
             .unwrap();
         assert_eq!(res.status(), axum::http::StatusCode::SERVICE_UNAVAILABLE);
 
+        let cache_dir = app.path().data_dir().unwrap().join("com.hyprnote.dev");
         let channel = tauri::ipc::Channel::new(|_progress: tauri::ipc::InvokeResponseBody| Ok(()));
 
-        let _ = app.load_model(channel).await.unwrap();
+        let _ = app.load_model(cache_dir, channel).await.unwrap();
 
         let res = client
             .post(format!("{}/chat/completions", api_base))

@@ -1,35 +1,31 @@
 use std::future::Future;
-use tauri::{Manager, Runtime};
+use std::path::PathBuf;
 
-#[derive(serde::Serialize, specta::Type)]
-pub struct Status {
-    pub server_running: bool,
-}
+use tauri::{ipc::Channel, Manager, Runtime};
 
 pub trait LocalSttPluginExt<R: Runtime> {
-    fn get_status(&self) -> impl Future<Output = Status>;
-    fn start_server(&self) -> impl Future<Output = Result<(), String>>;
+    fn is_server_running(&self) -> impl Future<Output = bool>;
+    fn api_base(&self) -> impl Future<Output = Option<String>>;
+    fn start_server(&self, p: impl Into<PathBuf>) -> impl Future<Output = Result<(), String>>;
     fn stop_server(&self) -> impl Future<Output = Result<(), String>>;
+    fn download_model(&self, f: Option<Channel<u8>>) -> impl Future<Output = Result<(), String>>;
 }
 
 impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
-    async fn get_status(&self) -> Status {
+    async fn is_server_running(&self) -> bool {
         let state = self.state::<crate::SharedState>();
         let s = state.lock().await;
 
-        Status {
-            server_running: s.server.is_some(),
-        }
+        s.server.is_some()
     }
 
     #[tracing::instrument(skip_all)]
-    async fn start_server(&self) -> Result<(), String> {
+    async fn start_server(&self, cache_dir: impl Into<PathBuf>) -> Result<(), String> {
         let state = self.state::<crate::SharedState>();
-        let data_dir = self.path().app_data_dir().unwrap();
 
         let server = crate::server::run_server(crate::server::ServerState {
-            cache_dir: data_dir,
+            cache_dir: cache_dir.into(),
             model_type: rwhisper::WhisperSource::QuantizedDistilLargeV3,
         })
         .await
@@ -53,5 +49,18 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             let _ = server.shutdown.send(());
         }
         Ok(())
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn api_base(&self) -> Option<String> {
+        let state = self.state::<crate::SharedState>();
+        let s = state.lock().await;
+
+        s.api_base.clone()
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn download_model(&self, f: Option<Channel<u8>>) -> Result<(), String> {
+        todo!()
     }
 }

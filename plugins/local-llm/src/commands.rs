@@ -1,4 +1,5 @@
 use crate::{LocalLlmPluginExt, Status};
+use tauri::Manager;
 
 #[tauri::command]
 #[specta::specta]
@@ -12,7 +13,8 @@ pub async fn load_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     on_progress: tauri::ipc::Channel<u8>,
 ) -> Result<u8, String> {
-    app.load_model(on_progress).await
+    let data_dir = app.path().app_data_dir().unwrap();
+    app.load_model(data_dir, on_progress).await
 }
 
 #[tauri::command]

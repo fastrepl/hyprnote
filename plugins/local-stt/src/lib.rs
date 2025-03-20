@@ -24,9 +24,10 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::get_status::<Wry>,
+            commands::is_server_running::<Wry>,
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
+            commands::download_model::<Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
@@ -75,13 +76,10 @@ mod test {
         use tauri_plugin_listener::ListenClientBuilder;
 
         let app = create_app(tauri::test::mock_builder());
-        app.start_server().await.unwrap();
+        let cache_dir = app.path().data_dir().unwrap().join("com.hyprnote.dev");
 
-        let api_base = {
-            let state = app.state::<SharedState>();
-            let s = state.lock().await;
-            s.api_base.as_ref().unwrap().clone()
-        };
+        app.start_server(cache_dir).await.unwrap();
+        let api_base = app.api_base().await.unwrap();
 
         let listen_client = ListenClientBuilder::default()
             .api_base(api_base)

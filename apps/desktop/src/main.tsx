@@ -8,7 +8,9 @@ import type { Context } from "@/types";
 import { Toaster } from "@hypr/ui/components/ui/sonner";
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 import { ThemeProvider } from "@hypr/ui/contexts/theme";
-import UpdateToastNotification from "./components/update-toast";
+
+import ModelDownloadNotification from "./components/toast/model";
+import OtaNotification from "./components/toast/ota";
 
 import { messages as enMessages } from "./locales/en/messages";
 import { messages as koMessages } from "./locales/ko/messages";
@@ -72,7 +74,8 @@ function App() {
   return (
     <>
       <RouterProvider router={router} context={context} />
-      <UpdateToastNotification />
+      <OtaNotification />
+      <ModelDownloadNotification />
     </>
   );
 }
@@ -88,7 +91,7 @@ if (!rootElement.innerHTML) {
           <QueryClientProvider client={queryClient}>
             <I18nProvider i18n={i18n}>
               <App />
-              <Toaster position="bottom-left" />
+              <Toaster position="bottom-left" expand={true} />
             </I18nProvider>
           </QueryClientProvider>
         </ThemeProvider>

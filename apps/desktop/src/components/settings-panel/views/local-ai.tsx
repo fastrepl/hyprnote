@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Channel } from "@tauri-apps/api/core";
 import { generateText } from "ai";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
@@ -9,53 +8,57 @@ import { modelProvider } from "@hypr/utils";
 export default function LocalAI() {
   const queryClient = useQueryClient();
 
-  const localSttStatus = useQuery({
-    queryKey: ["local-stt", "status"],
+  const sttRunning = useQuery({
+    queryKey: ["local-stt", "running"],
     queryFn: async () => localSttCommands.isServerRunning(),
   });
 
-  const localLlmStatus = useQuery({
-    queryKey: ["local-llm", "status"],
-    queryFn: async () => localLlmCommands.getStatus(),
+  const llmRunning = useQuery({
+    queryKey: ["local-llm", "running"],
+    queryFn: async () => localLlmCommands.isServerRunning(),
+  });
+
+  const llmLoaded = useQuery({
+    queryKey: ["local-llm", "loaded"],
+    queryFn: async () => localLlmCommands.isModelLoaded(),
   });
 
   const toggleLocalStt = useMutation({
     mutationFn: async () => {
-      if (localSttStatus.data) {
+      if (sttRunning.data) {
         await localSttCommands.stopServer();
       } else {
         await localSttCommands.startServer();
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["local-stt", "status"] });
+      queryClient.invalidateQueries({ queryKey: ["local-stt", "running"] });
     },
   });
 
   const toggleLocalLlmServer = useMutation({
     mutationFn: async () => {
-      if (localLlmStatus.data?.server_running) {
+      if (llmRunning.data) {
         await localLlmCommands.stopServer();
       } else {
         await localLlmCommands.startServer();
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["local-llm", "status"] });
+      queryClient.invalidateQueries({ queryKey: ["local-llm", "running"] });
     },
   });
 
   const toggleLocalLlmModel = useMutation({
     mutationFn: async () => {
-      if (localLlmStatus.data?.model_loaded) {
+      if (llmLoaded.data) {
         await localLlmCommands.unloadModel();
       } else {
-        const channel = new Channel<number>();
-        await localLlmCommands.loadModel(channel);
+        await localLlmCommands.loadModel();
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["local-llm", "status"] });
+      queryClient.invalidateQueries({ queryKey: ["local-llm", "loaded"] });
     },
   });
 
@@ -82,27 +85,27 @@ export default function LocalAI() {
       <h1>Local AI</h1>
 
       <h2>Local STT</h2>
-      <div>{JSON.stringify(localSttStatus.data)}</div>
+      <div>{JSON.stringify(sttRunning.data)}</div>
       <button
         className="bg-blue-500 text-white p-2 rounded-md"
         onClick={() => toggleLocalStt.mutate()}
       >
-        {localSttStatus.data ? "Stop Server" : "Start Server"}
+        {sttRunning.data ? "Stop Server" : "Start Server"}
       </button>
 
       <h2>Local LLM</h2>
-      <div>{JSON.stringify(localLlmStatus.data)}</div>
+      <div>{JSON.stringify(llmRunning.data)}</div>
       <button
         className="bg-blue-500 text-white p-2 rounded-md"
         onClick={() => toggleLocalLlmServer.mutate()}
       >
-        {localLlmStatus.data?.server_running ? "Stop Server" : "Start Server"}
+        {llmRunning.data ? "Stop Server" : "Start Server"}
       </button>
       <button
         className="bg-blue-500 text-white p-2 rounded-md"
         onClick={() => toggleLocalLlmModel.mutate()}
       >
-        {localLlmStatus.data?.model_loaded ? "Unload Model" : "Load Model"}
+        {llmLoaded.data ? "Unload Model" : "Load Model"}
       </button>
 
       <button

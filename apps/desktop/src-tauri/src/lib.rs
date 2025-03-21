@@ -18,7 +18,8 @@ pub async fn main() {
                     .add_directive(tracing::Level::INFO.into())
                     .add_directive("ort=error".parse().unwrap())
                     .add_directive("hyper=error".parse().unwrap())
-                    .add_directive("rustls=error".parse().unwrap()),
+                    .add_directive("rustls=error".parse().unwrap())
+                    .add_directive("llama-cpp-2=error".parse().unwrap()),
             )
             .init();
     }

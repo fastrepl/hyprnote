@@ -3,8 +3,7 @@ use llama_cpp_2::{
     llama_backend::LlamaBackend,
     llama_batch::LlamaBatch,
     model::{
-        params::LlamaModelParams,
-        {AddBos, LlamaModel, Special},
+        params::LlamaModelParams, AddBos, LlamaChatMessage, LlamaChatTemplate, LlamaModel, Special,
     },
     sampling::LlamaSampler,
     send_logs_to_tracing, LogOptions,
@@ -15,7 +14,7 @@ pub use error::*;
 
 const DEFAULT_MAX_TOKENS: usize = 1024;
 const CONTEXT_SIZE: u32 = 2048;
-const SAMPLER_SEED: u32 = 82;
+const SAMPLER_SEED: u32 = 1234;
 
 pub struct Llama {
     task_sender: tokio::sync::mpsc::UnboundedSender<Task>,
@@ -23,7 +22,7 @@ pub struct Llama {
 
 enum Task {
     Generate {
-        prompt: String,
+        request: LlamaRequest,
         response_sender: tokio::sync::mpsc::UnboundedSender<String>,
     },
 }
@@ -35,6 +34,7 @@ impl Llama {
         let backend = LlamaBackend::init()?;
         let params = LlamaModelParams::default();
         let model = LlamaModel::load_from_file(&backend, model_path.into(), &params)?;
+        let tpl = LlamaChatTemplate::new("llama3").unwrap();
 
         let (task_sender, mut task_receiver) = tokio::sync::mpsc::unbounded_channel::<Task>();
 
@@ -43,9 +43,13 @@ impl Llama {
                 while let Some(task) = task_receiver.blocking_recv() {
                     match task {
                         Task::Generate {
-                            prompt,
+                            request,
                             response_sender,
                         } => {
+                            let prompt = model
+                                .apply_chat_template(&tpl, &request.messages, true)
+                                .unwrap();
+
                             let mut ctx = model
                                 .new_context(
                                     &backend,
@@ -108,18 +112,58 @@ impl Llama {
         Ok(Self { task_sender })
     }
 
-    pub fn generate_stream(&self, task: &str) -> impl futures_util::Stream<Item = String> {
+    pub fn generate_stream(
+        &self,
+        request: LlamaRequest,
+    ) -> impl futures_util::Stream<Item = String> {
         let (response_sender, response_receiver) = tokio::sync::mpsc::unbounded_channel::<String>();
 
-        self.task_sender
-            .send(Task::Generate {
-                prompt: task.to_string(),
-                response_sender,
-            })
-            .unwrap();
+        let task = Task::Generate {
+            request,
+            response_sender,
+        };
+
+        self.task_sender.send(task).unwrap();
 
         futures_util::stream::unfold(response_receiver, |mut rx| async move {
             rx.recv().await.map(|token| (token, rx))
         })
+    }
+}
+
+pub struct LlamaRequest {
+    pub messages: [LlamaChatMessage; 2],
+}
+
+#[derive(Default)]
+pub struct LlamaRequestBuilder {
+    pub system_message: Option<String>,
+    pub user_message: Option<String>,
+}
+
+impl LlamaRequest {
+    pub fn builder() -> LlamaRequestBuilder {
+        LlamaRequestBuilder::default()
+    }
+}
+
+impl LlamaRequestBuilder {
+    pub fn system_message(mut self, message: impl Into<String>) -> Self {
+        self.system_message = Some(message.into());
+        self
+    }
+
+    pub fn user_message(mut self, message: impl Into<String>) -> Self {
+        self.user_message = Some(message.into());
+        self
+    }
+
+    pub fn build(self) -> LlamaRequest {
+        LlamaRequest {
+            messages: [
+                LlamaChatMessage::new("system".into(), self.system_message.unwrap()).unwrap(),
+                LlamaChatMessage::new("user".into(), self.user_message.unwrap()).unwrap(),
+            ],
+        }
     }
 }

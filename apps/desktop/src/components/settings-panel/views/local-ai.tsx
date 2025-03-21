@@ -64,9 +64,10 @@ export default function LocalAI() {
       const provider = await modelProvider();
       const { text } = await generateText({
         model: provider.languageModel("any"),
-        messages: [{ role: "user", content: "hi" }],
+        messages: [{ role: "user", content: "generate just 3 sentences" }],
       });
 
+      console.log(text);
       if (!text) {
         throw new Error("no text");
       }

@@ -173,7 +173,7 @@ fn build_response(
     model: &hypr_llama::Llama,
     request: &CreateChatCompletionRequest,
 ) -> impl futures_util::Stream<Item = String> {
-    let _system_message_content = request
+    let system_message_content = request
         .messages
         .iter()
         .find(|msg| matches!(msg, ChatCompletionRequestMessage::System(_)))
@@ -186,7 +186,14 @@ fn build_response(
         .and_then(extract_text_content)
         .unwrap();
 
-    model.generate_stream(user_message_content)
+    let request = hypr_llama::LlamaRequest::builder()
+        .system_message(
+            system_message_content.unwrap_or(&"You are a helpful assistant.".to_string()),
+        )
+        .user_message(user_message_content)
+        .build();
+
+    model.generate_stream(request)
 }
 
 fn extract_text_content(message: &ChatCompletionRequestMessage) -> Option<&String> {

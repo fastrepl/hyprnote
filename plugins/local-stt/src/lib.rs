@@ -4,7 +4,6 @@ mod chunker;
 mod commands;
 mod error;
 mod ext;
-mod model;
 mod server;
 
 pub use error::*;

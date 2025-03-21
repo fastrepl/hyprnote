@@ -75,7 +75,8 @@ async fn listen(
     ws: WebSocketUpgrade,
     AxumState(state): AxumState<ServerState>,
 ) -> Result<impl IntoResponse, StatusCode> {
-    let model = crate::model::model_builder(state.cache_dir)
+    let model = rwhisper::WhisperBuilder::default()
+        .with_cache(kalosm_common::Cache::new(state.cache_dir))
         .with_language(None)
         .with_source(state.model_type)
         .build()

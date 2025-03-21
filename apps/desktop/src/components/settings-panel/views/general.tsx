@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { commands as dbCommands, type ConfigGeneral } from "@hypr/plugin-db";
-import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import {
   Form,
   FormControl,

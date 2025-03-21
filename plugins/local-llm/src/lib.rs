@@ -23,7 +23,10 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::get_status::<Wry>,
+            commands::is_server_running::<Wry>,
+            commands::is_model_loaded::<Wry>,
+            commands::is_model_downloaded::<Wry>,
+            commands::download_model::<Wry>,
             commands::load_model::<Wry>,
             commands::unload_model::<Wry>,
             commands::start_server::<Wry>,

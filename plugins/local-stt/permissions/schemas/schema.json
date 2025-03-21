@@ -305,6 +305,16 @@
           "const": "deny-download-model"
         },
         {
+          "description": "Enables the is_model_downloaded command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-is-model-downloaded"
+        },
+        {
+          "description": "Denies the is_model_downloaded command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-is-model-downloaded"
+        },
+        {
           "description": "Enables the is_server_running command without any pre-configured scope.",
           "type": "string",
           "const": "allow-is-server-running"

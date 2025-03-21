@@ -1,7 +1,7 @@
 use std::future::Future;
 use std::path::PathBuf;
 
-use tauri::{Manager, Runtime};
+use tauri::{ipc::Channel, Manager, Runtime};
 
 #[derive(serde::Serialize, specta::Type)]
 pub struct Status {
@@ -12,6 +12,11 @@ pub struct Status {
 pub trait LocalLlmPluginExt<R: Runtime> {
     fn api_base(&self) -> impl Future<Output = Option<String>>;
     fn get_status(&self) -> impl Future<Output = Status>;
+    fn download_model(
+        &self,
+        path: PathBuf,
+        channel: Channel<u8>,
+    ) -> impl Future<Output = Result<(), String>>;
     fn load_model(&self, p: impl Into<PathBuf>) -> impl Future<Output = Result<(), crate::Error>>;
     fn unload_model(&self) -> impl Future<Output = Result<(), String>>;
     fn start_server(&self) -> impl Future<Output = Result<(), String>>;
@@ -35,6 +40,29 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
             model_loaded: s.model.is_some(),
             server_running: s.server.is_some(),
         }
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn download_model(&self, path: PathBuf, channel: Channel<u8>) -> Result<(), String> {
+        let url = "https://pub-8987485129c64debb63bff7f35a2e5fd.r2.dev/v0/lmstudio-community/Llama-3.2-3B-Instruct-GGUF/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf";
+
+        tokio::spawn(async move {
+            let callback = |downloaded: u64, total_size: u64| {
+                let percent = (downloaded as f64 / total_size as f64) * 100.0;
+                let _ = channel.send(percent as u8);
+            };
+
+            match hypr_file::download_file_with_callback(url, path, callback).await {
+                Ok(_) => {
+                    let _ = channel.send(100);
+                }
+                Err(e) => {
+                    tracing::error!("Failed to download model: {}", e);
+                }
+            }
+        });
+
+        Ok(())
     }
 
     #[tracing::instrument(skip_all)]

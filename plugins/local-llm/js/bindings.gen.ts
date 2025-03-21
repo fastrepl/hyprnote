@@ -7,11 +7,20 @@
 
 
 export const commands = {
-async getStatus() : Promise<Status> {
-    return await TAURI_INVOKE("plugin:local-llm|get_status");
+async isServerRunning() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:local-llm|is_server_running");
 },
-async loadModel(onProgress: TAURI_CHANNEL<number>) : Promise<number> {
-    return await TAURI_INVOKE("plugin:local-llm|load_model", { onProgress });
+async isModelLoaded() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:local-llm|is_model_loaded");
+},
+async isModelDownloaded() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:local-llm|is_model_downloaded");
+},
+async downloadModel(channel: TAURI_CHANNEL<number>) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-llm|download_model", { channel });
+},
+async loadModel() : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-llm|load_model");
 },
 async unloadModel() : Promise<null> {
     return await TAURI_INVOKE("plugin:local-llm|unload_model");
@@ -34,7 +43,6 @@ async stopServer() : Promise<null> {
 
 /** user-defined types **/
 
-export type Status = { model_loaded: boolean; server_running: boolean }
 export type TAURI_CHANNEL<TSend> = null
 
 /** tauri-specta globals **/

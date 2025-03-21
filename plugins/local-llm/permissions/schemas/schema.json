@@ -295,14 +295,44 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the get_status command without any pre-configured scope.",
+          "description": "Enables the download_model command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-get-status"
+          "const": "allow-download-model"
         },
         {
-          "description": "Denies the get_status command without any pre-configured scope.",
+          "description": "Denies the download_model command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-get-status"
+          "const": "deny-download-model"
+        },
+        {
+          "description": "Enables the is_model_downloaded command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-is-model-downloaded"
+        },
+        {
+          "description": "Denies the is_model_downloaded command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-is-model-downloaded"
+        },
+        {
+          "description": "Enables the is_model_loaded command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-is-model-loaded"
+        },
+        {
+          "description": "Denies the is_model_loaded command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-is-model-loaded"
+        },
+        {
+          "description": "Enables the is_server_running command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-is-server-running"
+        },
+        {
+          "description": "Denies the is_server_running command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-is-server-running"
         },
         {
           "description": "Enables the load_model command without any pre-configured scope.",

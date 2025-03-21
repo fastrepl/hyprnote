@@ -28,7 +28,7 @@ impl ServerHandle {
     }
 }
 
-pub async fn run_server(state: crate::SharedState) -> anyhow::Result<ServerHandle> {
+pub async fn run_server(state: crate::SharedState) -> Result<ServerHandle, crate::Error> {
     let app = Router::new()
         .route("/health", get(health))
         .route("/chat/completions", post(chat_completions))

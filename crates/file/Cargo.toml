@@ -10,7 +10,7 @@ thiserror = { workspace = true }
 
 futures-core = { workspace = true }
 futures-util = { workspace = true }
-reqwest = { workspace = true, features = ["multipart"] }
+reqwest = { workspace = true, features = ["multipart", "stream"] }
 tokio = { workspace = true, features = ["rt", "macros", "fs"] }
 
 [dev-dependencies]

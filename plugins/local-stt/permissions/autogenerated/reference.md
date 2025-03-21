@@ -3,9 +3,10 @@
 Default permissions for the plugin
 
 - `allow-is-server-running`
+- `allow-is-model-downloaded`
+- `allow-download-model`
 - `allow-start-server`
 - `allow-stop-server`
-- `allow-download-model`
 
 ## Permission Table
 
@@ -38,6 +39,32 @@ Enables the download_model command without any pre-configured scope.
 <td>
 
 Denies the download_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-is-model-downloaded`
+
+</td>
+<td>
+
+Enables the is_model_downloaded command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-is-model-downloaded`
+
+</td>
+<td>
+
+Denies the is_model_downloaded command without any pre-configured scope.
 
 </td>
 </tr>

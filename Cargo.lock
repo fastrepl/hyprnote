@@ -12160,10 +12160,10 @@ dependencies = [
 name = "tauri-plugin-local-llm"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "async-openai",
  "axum 0.8.1",
  "dirs 6.0.0",
+ "file",
  "futures-core",
  "futures-util",
  "llama",
@@ -12192,6 +12192,7 @@ dependencies = [
  "codes-iso-639",
  "data",
  "db-user",
+ "file",
  "futures-core",
  "futures-util",
  "kalosm-common",

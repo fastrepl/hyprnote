@@ -3,7 +3,7 @@ name = "tauri-plugin-local-llm"
 version = "0.1.0"
 authors = ["You"]
 edition = "2021"
-exclude = ["/generated", "/node_modules"]
+exclude = ["/node_modules"]
 links = "tauri-plugin-local-llm"
 rust-version = "1.77.2"
 description = ""
@@ -17,9 +17,9 @@ reqwest = { workspace = true, features = ["json", "stream"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
+hypr-file = { workspace = true }
 hypr-llama = { workspace = true }
 
-anyhow = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
@@ -36,5 +36,6 @@ axum = { workspace = true }
 
 futures-core = { workspace = true }
 futures-util = { workspace = true }
+reqwest = { workspace = true, features = ["stream"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }

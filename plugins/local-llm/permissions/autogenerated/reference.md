@@ -2,11 +2,14 @@
 
 Default permissions for the plugin
 
+- `allow-is-server-running`
+- `allow-is-model-loaded`
+- `allow-is-model-downloaded`
+- `allow-download-model`
 - `allow-load-model`
 - `allow-unload-model`
 - `allow-start-server`
 - `allow-stop-server`
-- `allow-get-status`
 
 ## Permission Table
 
@@ -20,12 +23,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`local-llm:allow-get-status`
+`local-llm:allow-download-model`
 
 </td>
 <td>
 
-Enables the get_status command without any pre-configured scope.
+Enables the download_model command without any pre-configured scope.
 
 </td>
 </tr>
@@ -33,12 +36,90 @@ Enables the get_status command without any pre-configured scope.
 <tr>
 <td>
 
-`local-llm:deny-get-status`
+`local-llm:deny-download-model`
 
 </td>
 <td>
 
-Denies the get_status command without any pre-configured scope.
+Denies the download_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:allow-is-model-downloaded`
+
+</td>
+<td>
+
+Enables the is_model_downloaded command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-is-model-downloaded`
+
+</td>
+<td>
+
+Denies the is_model_downloaded command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:allow-is-model-loaded`
+
+</td>
+<td>
+
+Enables the is_model_loaded command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-is-model-loaded`
+
+</td>
+<td>
+
+Denies the is_model_loaded command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:allow-is-server-running`
+
+</td>
+<td>
+
+Enables the is_server_running command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-is-server-running`
+
+</td>
+<td>
+
+Denies the is_server_running command without any pre-configured scope.
 
 </td>
 </tr>

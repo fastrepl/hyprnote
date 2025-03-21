@@ -12,7 +12,7 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
-hypr-data = { path = "../../crates/data", package = "data" }
+hypr-data = { workspace = true }
 tauri-plugin-listener = { path = "../listener" }
 
 bytes = { workspace = true }
@@ -25,6 +25,7 @@ tracing = { workspace = true }
 
 [dependencies]
 hypr-db-user = { workspace = true }
+hypr-file = { workspace = true }
 hypr-listener-interface = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }

@@ -3922,6 +3922,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "find_cuda_helper"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9f9e65c593dd01ac77daad909ea4ad17f0d6d1776193fc8ea766356177abdad"
+dependencies = [
+ "glob",
+]
+
+[[package]]
 name = "findshlibs"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6153,16 +6162,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kalosm-streams"
-version = "0.4.0"
-source = "git+https://github.com/floneum/floneum?rev=464bfed472ea500ed5411fb2233fca401b57220a#464bfed472ea500ed5411fb2233fca401b57220a"
-dependencies = [
- "futures-channel",
- "futures-util",
- "pin-project-lite",
-]
-
-[[package]]
 name = "keyboard-types"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6575,6 +6574,44 @@ name = "litrs"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4ce301924b7887e9d637144fdade93f9dfff9b60981d4ac161db09720d39aa5"
+
+[[package]]
+name = "llama"
+version = "0.1.0"
+dependencies = [
+ "encoding_rs",
+ "futures-util",
+ "llama-cpp-2",
+ "serde",
+ "thiserror 2.0.12",
+]
+
+[[package]]
+name = "llama-cpp-2"
+version = "0.1.102"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a419bb48efa0f8389a82301f1f64e2874568a3fbf6f62f8ddab5324382b82768"
+dependencies = [
+ "enumflags2",
+ "llama-cpp-sys-2",
+ "thiserror 1.0.69",
+ "tracing",
+ "tracing-core",
+]
+
+[[package]]
+name = "llama-cpp-sys-2"
+version = "0.1.102"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0522f9894e22dd988dd2e34222bda7acba53a0dcce744ca6d8ddce905ba33a4e"
+dependencies = [
+ "bindgen 0.69.5",
+ "cc",
+ "cmake",
+ "find_cuda_helper",
+ "glob",
+ "walkdir",
+]
 
 [[package]]
 name = "llm-samplers"
@@ -12128,10 +12165,7 @@ dependencies = [
  "dirs 6.0.0",
  "futures-core",
  "futures-util",
- "kalosm-common",
- "kalosm-llama",
- "kalosm-model-types",
- "kalosm-streams",
+ "llama",
  "reqwest 0.12.14",
  "serde",
  "serde_json",

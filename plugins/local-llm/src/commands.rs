@@ -9,12 +9,9 @@ pub async fn get_status<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<S
 
 #[tauri::command]
 #[specta::specta]
-pub async fn load_model<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    on_progress: tauri::ipc::Channel<u8>,
-) -> Result<u8, String> {
-    let data_dir = app.path().app_data_dir().unwrap();
-    app.load_model(data_dir, on_progress).await
+pub async fn load_model<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
+    let model_path = app.path().app_data_dir().unwrap().join("llm.gguf");
+    app.load_model(model_path).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

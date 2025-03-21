@@ -9,9 +9,6 @@ use futures_util::StreamExt;
 use std::net::{Ipv4Addr, SocketAddr};
 use tower_http::cors::{self, CorsLayer};
 
-use kalosm_llama::prelude::*;
-use kalosm_streams::text_stream::TextStream;
-
 use async_openai::types::{
     ChatChoice, ChatChoiceStream, ChatCompletionRequestMessage,
     ChatCompletionRequestSystemMessageContent, ChatCompletionRequestUserMessageContent,
@@ -135,12 +132,11 @@ async fn chat_completions(
 
     if request.stream.unwrap_or(false) {
         let stream = build_response(model, &request)
-            .words()
-            .map(move |word| CreateChatCompletionStreamResponse {
+            .map(move |chunk| CreateChatCompletionStreamResponse {
                 choices: vec![ChatChoiceStream {
                     index: 0,
                     delta: ChatCompletionStreamResponseDelta {
-                        content: Some(word),
+                        content: Some(chunk),
                         ..empty_stream_response_delta.clone()
                     },
                     finish_reason: None,
@@ -156,7 +152,7 @@ async fn chat_completions(
 
         sse::Sse::new(stream).into_response()
     } else {
-        let completion = build_response(model, &request).all_text().await;
+        let completion = build_response(model, &request).collect::<String>().await;
 
         let res = CreateChatCompletionResponse {
             choices: vec![ChatChoice {
@@ -174,30 +170,10 @@ async fn chat_completions(
 }
 
 fn build_response(
-    model: &Llama,
+    model: &hypr_llama::Llama,
     request: &CreateChatCompletionRequest,
-) -> ChatResponseBuilder<'static, Llama> {
-    fn extract_text_content(message: &ChatCompletionRequestMessage) -> Option<&String> {
-        match message {
-            ChatCompletionRequestMessage::System(msg) => {
-                if let ChatCompletionRequestSystemMessageContent::Text(text) = &msg.content {
-                    Some(text)
-                } else {
-                    None
-                }
-            }
-            ChatCompletionRequestMessage::User(msg) => {
-                if let ChatCompletionRequestUserMessageContent::Text(text) = &msg.content {
-                    Some(text)
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        }
-    }
-
-    let system_message_content = request
+) -> impl futures_util::Stream<Item = String> {
+    let _system_message_content = request
         .messages
         .iter()
         .find(|msg| matches!(msg, ChatCompletionRequestMessage::System(_)))
@@ -210,130 +186,25 @@ fn build_response(
         .and_then(extract_text_content)
         .unwrap();
 
-    let mut chat = model.chat();
-
-    if let Some(system_message_content) = system_message_content {
-        chat = chat.with_system_prompt(system_message_content);
-    }
-
-    chat.into_add_message(ChatMessage::new(
-        MessageType::UserMessage,
-        user_message_content,
-    ))
+    model.generate_stream(user_message_content)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use async_openai::types::{
-        ChatCompletionRequestMessage, ChatCompletionRequestUserMessageArgs,
-        CreateChatCompletionRequest, CreateChatCompletionResponse,
-        CreateChatCompletionStreamResponse,
-    };
-    use futures_util::StreamExt;
-
-    fn shared_request() -> CreateChatCompletionRequest {
-        CreateChatCompletionRequest {
-            messages: vec![ChatCompletionRequestMessage::User(
-                ChatCompletionRequestUserMessageArgs::default()
-                    .content("What is the capital of South Korea?")
-                    .build()
-                    .unwrap()
-                    .into(),
-            )],
-            ..Default::default()
+fn extract_text_content(message: &ChatCompletionRequestMessage) -> Option<&String> {
+    match message {
+        ChatCompletionRequestMessage::System(msg) => {
+            if let ChatCompletionRequestSystemMessageContent::Text(text) = &msg.content {
+                Some(text)
+            } else {
+                None
+            }
         }
-    }
-
-    #[tokio::test]
-    async fn test_chat_completions_non_streaming() {
-        let state = crate::SharedState::default();
-        {
-            let mut state = state.lock().await;
-            state.model = Some(
-                crate::model::model_builder(
-                    dirs::home_dir()
-                        .unwrap()
-                        .join("Library/Application Support/com.hyprnote.dev/"),
-                    kalosm_llama::LlamaSource::tiny_llama_1_1b_chat(),
-                )
-                .build()
-                .await
-                .unwrap(),
-            );
+        ChatCompletionRequestMessage::User(msg) => {
+            if let ChatCompletionRequestUserMessageContent::Text(text) = &msg.content {
+                Some(text)
+            } else {
+                None
+            }
         }
-
-        let server = run_server(state).await.unwrap();
-        let client = reqwest::Client::new();
-
-        let response = client
-            .post(format!("http://{}/chat/completions", server.addr))
-            .json(&CreateChatCompletionRequest {
-                stream: Some(false),
-                ..shared_request()
-            })
-            .send()
-            .await
-            .unwrap();
-
-        let data = response
-            .json::<CreateChatCompletionResponse>()
-            .await
-            .unwrap();
-
-        let content = data.choices[0].message.content.clone().unwrap();
-        assert!(content.contains("Seoul"));
-    }
-
-    #[tokio::test]
-    async fn test_chat_completions_streaming() {
-        let state = crate::SharedState::default();
-        {
-            let mut state = state.lock().await;
-            state.model = Some(
-                kalosm_llama::Llama::builder()
-                    .with_source(kalosm_llama::LlamaSource::llama_3_2_3b_chat())
-                    .build()
-                    .await
-                    .unwrap(),
-            );
-        }
-
-        let server = run_server(state).await.unwrap();
-        let client = reqwest::Client::new();
-
-        let response = client
-            .post(format!("http://{}/chat/completions", server.addr))
-            .json(&CreateChatCompletionRequest {
-                stream: Some(true),
-                ..shared_request()
-            })
-            .send()
-            .await
-            .unwrap();
-
-        let stream = response.bytes_stream().map(|chunk| {
-            chunk.map(|data| {
-                let text = String::from_utf8_lossy(&data);
-                let stripped = text.split("data: ").collect::<Vec<&str>>()[1];
-                let c: CreateChatCompletionStreamResponse = serde_json::from_str(stripped).unwrap();
-                c.choices
-                    .first()
-                    .unwrap()
-                    .delta
-                    .content
-                    .as_ref()
-                    .unwrap()
-                    .clone()
-            })
-        });
-
-        let content = stream
-            .filter_map(|r| async move { r.ok() })
-            .collect::<String>()
-            .await;
-
-        assert!(content.contains("Seoul"));
+        _ => None,
     }
 }

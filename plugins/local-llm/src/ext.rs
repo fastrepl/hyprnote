@@ -1,7 +1,7 @@
 use std::future::Future;
 use std::path::PathBuf;
 
-use tauri::{ipc::Channel, Manager, Runtime};
+use tauri::{Manager, Runtime};
 
 #[derive(serde::Serialize, specta::Type)]
 pub struct Status {
@@ -10,18 +10,22 @@ pub struct Status {
 }
 
 pub trait LocalLlmPluginExt<R: Runtime> {
+    fn api_base(&self) -> impl Future<Output = Option<String>>;
     fn get_status(&self) -> impl Future<Output = Status>;
-    fn load_model(
-        &self,
-        p: impl Into<PathBuf>,
-        f: Channel<u8>,
-    ) -> impl Future<Output = Result<u8, String>>;
+    fn load_model(&self, p: impl Into<PathBuf>) -> impl Future<Output = Result<(), crate::Error>>;
     fn unload_model(&self) -> impl Future<Output = Result<(), String>>;
     fn start_server(&self) -> impl Future<Output = Result<(), String>>;
     fn stop_server(&self) -> impl Future<Output = Result<(), String>>;
 }
 
 impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
+    #[tracing::instrument(skip_all)]
+    async fn api_base(&self) -> Option<String> {
+        let state = self.state::<crate::SharedState>();
+        let s = state.lock().await;
+        s.api_base.clone()
+    }
+
     #[tracing::instrument(skip_all)]
     async fn get_status(&self) -> Status {
         let state = self.state::<crate::SharedState>();
@@ -34,34 +38,23 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn load_model(
-        &self,
-        cache_dir: impl Into<PathBuf>,
-        on_progress: Channel<u8>,
-    ) -> Result<u8, String> {
+    async fn load_model(&self, model_path: impl Into<PathBuf>) -> Result<(), crate::Error> {
         let state = self.state::<crate::SharedState>();
 
         {
             let s = state.lock().await;
             if s.model.is_some() {
-                tracing::info!("llm_model_already_loaded");
-                return Ok(100);
+                return Ok(());
             }
         }
 
-        let model = crate::model::model_builder(
-            cache_dir.into(),
-            kalosm_llama::LlamaSource::llama_3_2_3b_chat(),
-        )
-        .build_with_loading_handler(crate::model::make_progress_handler(on_progress))
-        .await
-        .map_err(|e| e.to_string())?;
+        let model = hypr_llama::Llama::new(model_path)?;
 
         {
             let mut s = state.lock().await;
             s.model = Some(model);
         }
-        Ok(0)
+        Ok(())
     }
 
     #[tracing::instrument(skip_all)]

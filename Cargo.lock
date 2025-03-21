@@ -6584,6 +6584,7 @@ dependencies = [
  "llama-cpp-2",
  "serde",
  "thiserror 2.0.12",
+ "tokio",
 ]
 
 [[package]]

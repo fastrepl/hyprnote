@@ -8,5 +8,7 @@ encoding_rs = "0.8.35"
 llama-cpp-2 = { version = "0.1.102", features = ["metal"] }
 
 futures-util = { workspace = true }
+tokio = { workspace = true, features = ["rt", "sync"] }
+
 serde = { workspace = true }
 thiserror = { workspace = true }

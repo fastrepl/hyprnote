@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import GridLayout, { Layout } from "react-grid-layout";
 
-import { ExtensionName, importExtension } from "./extensions";
+import { ExtensionName, importExtension } from "@hypr/extension-registry";
 import { getID, getSize, SuspenseWidget, WidgetConfig } from "./widgets";
 
 export type { WidgetConfig };

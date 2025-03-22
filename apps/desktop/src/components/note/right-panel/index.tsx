@@ -1,13 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
-import { useQuery } from "@tanstack/react-query";
-import WidgetRenderer from "./renderer";
-
+import { type ExtensionName } from "@hypr/extension-registry";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { ExtensionName } from "./renderer/extensions";
+import WidgetRenderer from "./renderer";
 
 export default function RightPanel() {
   const [isMobile, setIsMobile] = useState(false);

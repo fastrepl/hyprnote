@@ -16,9 +16,6 @@ import {
   SettingsPanelProvider,
 } from "@/contexts";
 import { registerTemplates } from "@/templates";
-import DinoGameExtension from "@hypr/extension-dino-game";
-import SummaryExtension from "@hypr/extension-summary";
-import TranscriptExtension from "@hypr/extension-transcript";
 
 const schema = z.object({
   window: z.enum(["main", "sub"]).default("main"),
@@ -37,7 +34,6 @@ function Component() {
 
   useEffect(() => {
     registerTemplates();
-    initExtensions();
   }, []);
 
   return (
@@ -65,10 +61,4 @@ function Component() {
       </SessionsProvider>
     </HyprProvider>
   );
-}
-
-function initExtensions() {
-  DinoGameExtension.init();
-  SummaryExtension.init();
-  TranscriptExtension.init();
 }

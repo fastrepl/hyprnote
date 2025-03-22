@@ -1,25 +1,11 @@
-import type { ExtensionDefinition } from "@hypr/plugin-db";
+import { Trans } from "@lingui/react/macro";
 import { ChevronLeftIcon } from "lucide-react";
 import { memo, useCallback } from "react";
+
+import { EXTENSION_CONFIGS } from "@hypr/extension-registry";
+import type { ExtensionDefinition } from "@hypr/plugin-db";
 import { ExtensionList } from "../components/extension-list";
 import type { NavNames } from "../types";
-
-import calculatorConfig from "@hypr/extension-calculator/config.json";
-import clockConfig from "@hypr/extension-clock/config.json";
-import dinoGameConfig from "@hypr/extension-dino-game/config.json";
-import summaryConfig from "@hypr/extension-summary/config.json";
-import timerConfig from "@hypr/extension-timer/config.json";
-import transcriptConfig from "@hypr/extension-transcript/config.json";
-import { Trans } from "@lingui/react/macro";
-
-export const EXTENSION_CONFIGS: ExtensionDefinition[] = [
-  transcriptConfig,
-  summaryConfig,
-  timerConfig,
-  calculatorConfig,
-  clockConfig,
-  dinoGameConfig,
-];
 
 interface ExtensionsViewProps {
   searchQuery: string;

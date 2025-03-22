@@ -4,11 +4,10 @@ import { PlugIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { useHypr } from "@/contexts";
+import { EXTENSION_CONFIGS, type ExtensionName, importExtension } from "@hypr/extension-registry";
 import { commands as dbCommands, type ExtensionDefinition } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { WidgetOneByOneWrapper, WidgetTwoByOneWrapper, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
-import { EXTENSION_CONFIGS } from "../sidebar/extensions-view";
-import { importExtension, type ExtensionName } from "@/components/note/right-panel/renderer/extensions";
 
 interface ExtensionsComponentProps {
   selectedExtension: ExtensionDefinition | null;
@@ -16,12 +15,12 @@ interface ExtensionsComponentProps {
 }
 
 type ExtensionData = {
-  id: string,
+  id: string;
   groups: {
-    id: string,
-    types: string[],
-  }[]
-}
+    id: string;
+    types: string[];
+  }[];
+};
 
 export default function Extensions({ selectedExtension, onExtensionSelect }: ExtensionsComponentProps) {
   const { userId } = useHypr();
@@ -62,7 +61,7 @@ export default function Extensions({ selectedExtension, onExtensionSelect }: Ext
     },
   });
 
-  const implementedExtensions = useMemo(() => EXTENSION_CONFIGS.filter(ext => ext.implemented), []);
+  const implementedExtensions = useMemo(() => EXTENSION_CONFIGS.filter((ext) => ext.implemented), []);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {

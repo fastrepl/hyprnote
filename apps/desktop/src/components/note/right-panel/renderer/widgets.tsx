@@ -2,8 +2,8 @@ import { QueryClient } from "@tanstack/react-query";
 import React from "react";
 import type { Layout } from "react-grid-layout";
 
+import { ExtensionName, importExtension } from "@hypr/extension-registry";
 import type { WidgetType } from "@hypr/extension-utils";
-import { ExtensionName, importExtension } from "./extensions";
 
 const componentCache: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {};
 

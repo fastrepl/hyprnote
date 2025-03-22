@@ -31,6 +31,7 @@ export default function OtaNotification() {
     const update = checkForUpdate.data;
 
     toast({
+      id: "ota-notification",
       title: "Update Available",
       content: `Version ${update.version} is available to install`,
       buttons: [

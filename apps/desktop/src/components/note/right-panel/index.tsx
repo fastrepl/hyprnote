@@ -85,28 +85,16 @@ export default function RightPanel() {
       initial={false}
       animate={{ width: show ? 380 : 0 }}
       transition={{ duration: 0.3 }}
-      className="h-full overflow-y-auto border-l bg-neutral-50 scrollbar-none relative"
+      className="h-full overflow-y-auto border-l bg-neutral-50 scrollbar-none relative flex flex-col items-center"
     >
       <WidgetRenderer widgets={widgets} />
-      {widgets.length > 0
-        ? (
-          <button
-            onClick={handleClickConfigureWidgets}
-            className="absolute bottom-0 w-full p-2 text-center hover:bg-neutral-100"
-          >
-            Configure Widgets
-          </button>
-        )
-        : (
-          <div className="flex h-full w-full items-center justify-center">
-            <button
-              onClick={handleClickConfigureWidgets}
-              className="aspect-square w-3/4 flex items-center justify-center bg-neutral-100 hover:bg-neutral-200 rounded-lg text-xl"
-            >
-              Configure Widgets
-            </button>
-          </div>
-        )}
+
+      <button
+        onClick={handleClickConfigureWidgets}
+        className="px-2 py-1.5 text-xs rounded-full bg-white hover:bg-neutral-200 border border-border transition-all"
+      >
+        Edit Widgets
+      </button>
     </motion.div>
   );
 }

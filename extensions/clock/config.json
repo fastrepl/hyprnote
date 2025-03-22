@@ -1,6 +1,6 @@
 {
   "$schema": "../definition.schema.json",
-  "id": "clock",
+  "id": "@hypr/extension-clock",
   "title": "Clock",
   "description": "Displays the time of various cities around the world.",
   "implemented": true,

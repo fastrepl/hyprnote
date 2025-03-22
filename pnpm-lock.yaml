@@ -1139,7 +1139,7 @@ importers:
     dependencies:
       '@remixicon/react':
         specifier: ^4.6.0
-        version: 4.6.0(react@19.0.0)
+        version: 4.6.0(react@18.3.1)
       '@tiptap/core':
         specifier: ^2.11.5
         version: 2.11.5(@tiptap/pm@2.11.5)
@@ -1163,7 +1163,7 @@ importers:
         version: 2.11.5
       '@tiptap/react':
         specifier: ^2.11.5
-        version: 2.11.5(@tiptap/core@2.11.5(@tiptap/pm@2.11.5))(@tiptap/pm@2.11.5)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        version: 2.11.5(@tiptap/core@2.11.5(@tiptap/pm@2.11.5))(@tiptap/pm@2.11.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tiptap/starter-kit':
         specifier: ^2.11.5
         version: 2.11.5
@@ -1175,10 +1175,10 @@ importers:
         version: 2.1.1
       react:
         specifier: ^18.3.1
-        version: 19.0.0
+        version: 18.3.1
       react-dom:
         specifier: ^18.3.1
-        version: 19.0.0(react@19.0.0)
+        version: 18.3.1(react@18.3.1)
       tippy.js:
         specifier: ^6.3.7
         version: 6.3.7
@@ -10146,10 +10146,6 @@ snapshots:
     dependencies:
       react: 18.3.1
 
-  '@remixicon/react@4.6.0(react@19.0.0)':
-    dependencies:
-      react: 19.0.0
-
   '@rollup/plugin-typescript@11.1.6(rollup@4.35.0)(tslib@2.8.1)(typescript@5.8.2)':
     dependencies:
       '@rollup/pluginutils': 5.1.4(rollup@4.35.0)
@@ -11092,7 +11088,7 @@ snapshots:
       prosemirror-transform: 1.10.3
       prosemirror-view: 1.38.1
 
-  '@tiptap/react@2.11.5(@tiptap/core@2.11.5(@tiptap/pm@2.11.5))(@tiptap/pm@2.11.5)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
+  '@tiptap/react@2.11.5(@tiptap/core@2.11.5(@tiptap/pm@2.11.5))(@tiptap/pm@2.11.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@tiptap/core': 2.11.5(@tiptap/pm@2.11.5)
       '@tiptap/extension-bubble-menu': 2.11.5(@tiptap/core@2.11.5(@tiptap/pm@2.11.5))(@tiptap/pm@2.11.5)
@@ -11100,9 +11096,9 @@ snapshots:
       '@tiptap/pm': 2.11.5
       '@types/use-sync-external-store': 0.0.6
       fast-deep-equal: 3.1.3
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
-      use-sync-external-store: 1.4.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      use-sync-external-store: 1.4.0(react@18.3.1)
 
   '@tiptap/starter-kit@2.11.5':
     dependencies:

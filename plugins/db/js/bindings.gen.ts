@@ -145,19 +145,11 @@ export type ExtensionWidgetKind = "oneByOne" | "twoByOne" | "twoByTwo" | "full"
 export type ExtensionWidgetPosition = { x: number; y: number }
 export type GetSessionFilter = { id: string } | { calendarEventId: string } | { tagId: string }
 export type Human = { id: string; organization_id: string | null; is_user: boolean; full_name: string | null; email: string | null; job_title: string | null; linkedin_username: string | null }
-<<<<<<< HEAD
+export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type ListEventFilter = ({ user_id: string; limit: number | null }) & ({ type: "simple" } | { type: "search"; query: string } | { type: "dateRange"; start: string; end: string })
 export type ListHumanFilter = { search: [number, string] }
 export type ListOrganizationFilter = { search: [number, string] }
 export type ListSessionFilter = ({ user_id: string; limit: number | null }) & ({ type: "search"; query: string } | { type: "recentlyVisited" } | { type: "dateRange"; start: string; end: string })
-||||||| parent of 8015abeb (update missing extensions bindings)
-export type ListEventFilter = { userId: string } | { dateRange: { userId: string; range: [string, string] } }
-export type ListSessionFilter = { pagination: { limit: number; offset: number } } | { search: [number, string] } | { recentlyVisited: [number] } | { dateRange: [string, string] }
-=======
-export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
-export type ListEventFilter = { userId: string } | { dateRange: { userId: string; range: [string, string] } }
-export type ListSessionFilter = { pagination: { limit: number; offset: number } } | { search: [number, string] } | { recentlyVisited: [number] } | { dateRange: [string, string] }
->>>>>>> 8015abeb (update missing extensions bindings)
 export type Organization = { id: string; name: string; description: string | null }
 export type Platform = "Apple" | "Google"
 export type Session = { id: string; created_at: string; visited_at: string; user_id: string; calendar_event_id: string | null; title: string; audio_local_path: string | null; audio_remote_path: string | null; raw_memo_html: string; enhanced_memo_html: string | null; conversations: ConversationChunk[] }

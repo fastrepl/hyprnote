@@ -8,14 +8,40 @@ import { commands as dbCommands, type ExtensionDefinition } from "@hypr/plugin-d
 import { Button } from "@hypr/ui/components/ui/button";
 import { WidgetOneByOneWrapper, WidgetTwoByOneWrapper, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
 import { EXTENSION_CONFIGS } from "../sidebar/extensions-view";
+import { importExtension, type ExtensionName } from "@/components/note/right-panel/renderer/extensions";
 
 interface ExtensionsComponentProps {
   selectedExtension: ExtensionDefinition | null;
   onExtensionSelect: (extension: ExtensionDefinition | null) => void;
 }
 
+type ExtensionData = {
+  id: string,
+  groups: {
+    id: string,
+    types: string[],
+  }[]
+}
+
 export default function Extensions({ selectedExtension, onExtensionSelect }: ExtensionsComponentProps) {
   const { userId } = useHypr();
+
+  const [extensionData, setExtensionData] = useState<ExtensionData | null>(null);
+
+  useEffect(() => {
+    if (selectedExtension?.id) {
+      importExtension(selectedExtension.id as ExtensionName).then((module) => {
+        const data: ExtensionData = {
+          id: selectedExtension.id,
+          groups: module.default.widgetGroups.map((group) => ({
+            id: group.id,
+            types: group.items.map((item) => item.type),
+          })),
+        };
+        setExtensionData(data);
+      });
+    }
+  }, [selectedExtension]);
 
   const extension = useQuery({
     enabled: !!selectedExtension?.id,
@@ -72,6 +98,8 @@ export default function Extensions({ selectedExtension, onExtensionSelect }: Ext
         <button className="p-2 bg-neutral-500 hover:bg-neutral-600 text-neutral-100 rounded-md">
           upsert
         </button>
+
+        <pre>{JSON.stringify(extensionData, null, 2)}</pre>
 
         <p className="text-neutral-600 mb-4">{selectedExtension.description}</p>
 

@@ -19,20 +19,18 @@ export default function RightPanel() {
   const { userId } = useHypr();
 
   const extensions = useQuery({
-    queryKey: ["extensions"],
+    queryKey: ["extensions", userId],
     queryFn: () => dbCommands.listExtensionMappings(userId),
   });
 
   const widgets = useMemo(() => {
     return (extensions.data?.flatMap((extension) => {
-      return extension.widgets.map((widget) => {
-        return {
-          extensionName: extension.extension_id as ExtensionName,
-          groupName: widget.group,
-          widgetType: widget.kind,
-          layout: widget.position,
-        };
-      }) ?? [];
+      return extension.widgets.map((widget) => ({
+        extensionName: extension.extension_id as ExtensionName,
+        groupName: widget.group,
+        widgetType: widget.kind,
+        layout: widget.position,
+      }));
     }) ?? []);
   }, [extensions.data]);
 

@@ -30,6 +30,7 @@ export function SearchBar() {
       onClick={() => focusSearch()}
     >
       <SearchIcon className="h-4 w-4 text-neutral-500" />
+      {/* TODO: add mention operator */}
       <input
         ref={searchInputRef}
         type="text"

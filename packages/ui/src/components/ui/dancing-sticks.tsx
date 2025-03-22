@@ -39,17 +39,38 @@ function EqualizerStick({ baseLength, amplitude, theme }: EqualizerStickProps) {
 type DancingSticksProps = {
   theme?: "light" | "dark";
   amplitude: number;
+  size?: "default" | "long";
 };
 
-export function DancingSticks({ theme = "light", amplitude }: DancingSticksProps) {
+export function DancingSticks({ theme = "light", amplitude, size = "default" }: DancingSticksProps) {
   return (
-    <div className="flex h-4 w-[17px] items-center justify-center gap-[1px]">
-      <EqualizerStick baseLength={50} amplitude={amplitude} theme={theme} />
-      <EqualizerStick baseLength={65} amplitude={amplitude} theme={theme} />
-      <EqualizerStick baseLength={85} amplitude={amplitude} theme={theme} />
-      <EqualizerStick baseLength={100} amplitude={amplitude} theme={theme} />
-      <EqualizerStick baseLength={85} amplitude={amplitude} theme={theme} />
-      <EqualizerStick baseLength={65} amplitude={amplitude} theme={theme} />
+    <div className={`flex h-4 ${size === "long" ? "w-[32px]" : "w-[17px]"} items-center justify-center gap-[1px]`}>
+      {size === "default"
+        ? (
+          <>
+            <EqualizerStick baseLength={50} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={65} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={85} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={100} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={85} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={65} amplitude={amplitude} theme={theme} />
+          </>
+        )
+        : (
+          <>
+            <EqualizerStick baseLength={50} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={65} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={75} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={85} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={95} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={100} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={95} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={85} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={75} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={65} amplitude={amplitude} theme={theme} />
+            <EqualizerStick baseLength={50} amplitude={amplitude} theme={theme} />
+          </>
+        )}
     </div>
   );
 }

@@ -1,11 +1,19 @@
 import clsx from "clsx";
-import { SearchIcon, XIcon } from "lucide-react";
+import {
+  BuildingIcon,
+  CalendarIcon,
+  FileTextIcon,
+  FolderIcon,
+  HashIcon,
+  SearchIcon,
+  UserIcon,
+  XIcon,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { useHyprSearch } from "@/contexts/search";
 import Shortcut from "./shortcut";
 
-// Define types for mention suggestions
 type MentionType = "date" | "people" | "orgs" | "notes" | "folders";
 type TagType = "tag";
 
@@ -22,6 +30,14 @@ type TagSuggestion = {
 };
 
 type Suggestion = MentionSuggestion | TagSuggestion;
+
+const MENTION_SECTIONS = {
+  date: "Dates",
+  people: "People",
+  orgs: "Organizations",
+  notes: "Notes",
+  folders: "Folders",
+};
 
 export function SearchBar() {
   const {
@@ -44,7 +60,6 @@ export function SearchBar() {
   const [mentionType, setMentionType] = useState<"@" | "#" | null>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Mock data for suggestions - in a real app, this would come from your database
   const mockMentionSuggestions: MentionSuggestion[] = [
     { id: "1", type: "date", name: "Today" },
     { id: "2", type: "date", name: "Yesterday" },
@@ -67,70 +82,93 @@ export function SearchBar() {
     { id: "5", type: "tag", name: "project" },
   ];
 
-  // Handle input changes and detect mention operators
+  const groupedMentionSuggestions = (filteredSuggestions: MentionSuggestion[]) => {
+    const grouped: Record<MentionType, MentionSuggestion[]> = {
+      date: [],
+      people: [],
+      orgs: [],
+      notes: [],
+      folders: [],
+    };
+
+    filteredSuggestions.forEach(suggestion => {
+      grouped[suggestion.type].push(suggestion);
+    });
+
+    return grouped;
+  };
+
+  const getFlatSuggestionsList = (suggestions: Suggestion[]) => {
+    if (mentionType === "#") return suggestions;
+
+    const mentionSuggestions = suggestions as MentionSuggestion[];
+    const grouped = groupedMentionSuggestions(mentionSuggestions);
+
+    const flatList: MentionSuggestion[] = [];
+    Object.keys(grouped).forEach(key => {
+      const type = key as MentionType;
+      if (grouped[type].length > 0) {
+        flatList.push(...grouped[type]);
+      }
+    });
+
+    return flatList;
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchQuery(value);
-    
-    // Check for mention operators
-    const lastAtIndex = value.lastIndexOf('@');
-    const lastHashIndex = value.lastIndexOf('#');
-    
+
+    const lastAtIndex = value.lastIndexOf("@");
+    const lastHashIndex = value.lastIndexOf("#");
+
     if (lastAtIndex !== -1 && (lastHashIndex === -1 || lastAtIndex > lastHashIndex)) {
-      // @ operator found
       const mentionTextValue = value.slice(lastAtIndex + 1);
-      setMentionType('@');
-      
-      // Filter suggestions based on mention text
+      setMentionType("@");
+
       const filtered = mockMentionSuggestions.filter(
-        suggestion => suggestion.name.toLowerCase().includes(mentionTextValue.toLowerCase())
+        suggestion => suggestion.name.toLowerCase().includes(mentionTextValue.toLowerCase()),
       );
       setSuggestions(filtered);
       setShowSuggestions(filtered.length > 0);
       setActiveSuggestionIndex(0);
     } else if (lastHashIndex !== -1 && (lastAtIndex === -1 || lastHashIndex > lastAtIndex)) {
-      // # operator found
       const tagTextValue = value.slice(lastHashIndex + 1);
-      setMentionType('#');
-      
-      // Filter suggestions based on tag text
+      setMentionType("#");
+
       const filtered = mockTagSuggestions.filter(
-        suggestion => suggestion.name.toLowerCase().includes(tagTextValue.toLowerCase())
+        suggestion => suggestion.name.toLowerCase().includes(tagTextValue.toLowerCase()),
       );
       setSuggestions(filtered);
       setShowSuggestions(filtered.length > 0);
       setActiveSuggestionIndex(0);
     } else {
-      // No operators or text after operator is empty
       setShowSuggestions(false);
       setMentionType(null);
     }
   };
 
-  // Handle keyboard navigation for suggestions
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showSuggestions) return;
-    
+
+    const flatList = getFlatSuggestionsList(suggestions);
+
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
-        setActiveSuggestionIndex(prev => 
-          prev < suggestions.length - 1 ? prev + 1 : prev
-        );
+        setActiveSuggestionIndex(prev => prev < flatList.length - 1 ? prev + 1 : prev);
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
-        setActiveSuggestionIndex(prev => 
-          prev > 0 ? prev - 1 : 0
-        );
+        setActiveSuggestionIndex(prev => prev > 0 ? prev - 1 : 0);
         break;
-      case 'Enter':
+      case "Enter":
         e.preventDefault();
-        if (suggestions.length > 0) {
-          selectSuggestion(suggestions[activeSuggestionIndex]);
+        if (flatList.length > 0) {
+          selectSuggestion(flatList[activeSuggestionIndex]);
         }
         break;
-      case 'Escape':
+      case "Escape":
         e.preventDefault();
         setShowSuggestions(false);
         break;
@@ -139,26 +177,21 @@ export function SearchBar() {
     }
   };
 
-  // Handle suggestion selection
   const selectSuggestion = (suggestion: Suggestion) => {
     if (!searchInputRef?.current) return;
-    
+
     const currentValue = searchInputRef.current.value;
-    const prefix = mentionType === '@' ? '@' : '#';
-    
-    // Find the last occurrence of the prefix
+    const prefix = mentionType === "@" ? "@" : "#";
+
     const lastPrefixIndex = currentValue.lastIndexOf(prefix);
-    
+
     if (lastPrefixIndex !== -1) {
-      // Replace the text after the prefix with the selected suggestion
-      const newValue = 
-        currentValue.substring(0, lastPrefixIndex) + 
-        prefix + suggestion.name + ' ';
-      
+      const newValue = currentValue.substring(0, lastPrefixIndex)
+        + prefix + suggestion.name + " ";
+
       setSearchQuery(newValue);
       setShowSuggestions(false);
-      
-      // Focus and set cursor position at the end
+
       setTimeout(() => {
         if (searchInputRef?.current) {
           searchInputRef.current.focus();
@@ -169,62 +202,105 @@ export function SearchBar() {
     }
   };
 
-  // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
-        suggestionsRef.current && 
-        !suggestionsRef.current.contains(e.target as Node) &&
-        searchInputRef?.current &&
-        !searchInputRef.current.contains(e.target as Node)
+        suggestionsRef.current
+        && !suggestionsRef.current.contains(e.target as Node)
+        && searchInputRef?.current
+        && !searchInputRef.current.contains(e.target as Node)
       ) {
         setShowSuggestions(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
-  // Render suggestion item with icon based on type
-  const renderSuggestionItem = (suggestion: Suggestion) => {
-    let icon = '🔍';
-    
-    if ('type' in suggestion) {
+  const renderSuggestionIcon = (suggestion: Suggestion) => {
+    if ("type" in suggestion) {
       switch (suggestion.type) {
-        case 'date':
-          icon = '📅';
-          break;
-        case 'people':
-          icon = '👤';
-          break;
-        case 'orgs':
-          icon = '🏢';
-          break;
-        case 'notes':
-          icon = '📝';
-          break;
-        case 'folders':
-          icon = '📁';
-          break;
-        case 'tag':
-          icon = '#️⃣';
-          break;
+        case "date":
+          return <CalendarIcon className="h-4 w-4 text-neutral-500" />;
+        case "people":
+          return <UserIcon className="h-4 w-4 text-neutral-500" />;
+        case "orgs":
+          return <BuildingIcon className="h-4 w-4 text-neutral-500" />;
+        case "notes":
+          return <FileTextIcon className="h-4 w-4 text-neutral-500" />;
+        case "folders":
+          return <FolderIcon className="h-4 w-4 text-neutral-500" />;
+        case "tag":
+          return <HashIcon className="h-4 w-4 text-neutral-500" />;
         default:
-          break;
+          return <SearchIcon className="h-4 w-4 text-neutral-500" />;
       }
     }
-    
+
+    return <SearchIcon className="h-4 w-4 text-neutral-500" />;
+  };
+
+  const renderSuggestionItem = (suggestion: Suggestion, index: number) => {
+    const flatList = getFlatSuggestionsList(suggestions);
+    const isActive = flatList.indexOf(suggestion) === activeSuggestionIndex;
+
     return (
-      <div className="flex items-center">
-        <span className="mr-2">{icon}</span>
-        <span>{suggestion.name}</span>
-        <span className="ml-2 text-xs text-neutral-400">
-          {('type' in suggestion && suggestion.type !== 'tag') ? suggestion.type : ''}
-        </span>
+      <div
+        key={suggestion.id}
+        className={clsx([
+          "px-3 py-2 text-sm cursor-pointer hover:bg-neutral-100",
+          isActive && "bg-neutral-100",
+        ])}
+        onClick={() => selectSuggestion(suggestion)}
+      >
+        <div className="flex items-center">
+          <span className="mr-2">{renderSuggestionIcon(suggestion)}</span>
+          <span>{suggestion.name}</span>
+        </div>
       </div>
+    );
+  };
+
+  const renderMentionSuggestions = () => {
+    if (mentionType !== "@") return null;
+
+    const mentionSuggestions = suggestions as MentionSuggestion[];
+    const grouped = groupedMentionSuggestions(mentionSuggestions);
+
+    return (
+      <>
+        {Object.keys(grouped).map((key) => {
+          const type = key as MentionType;
+          const items = grouped[type];
+
+          if (items.length === 0) return null;
+
+          return (
+            <div key={type}>
+              <div className="px-3 py-1 text-xs font-medium text-neutral-500 bg-neutral-50">
+                {MENTION_SECTIONS[type]}
+              </div>
+              {items.map((suggestion, index) => renderSuggestionItem(suggestion, index))}
+            </div>
+          );
+        })}
+      </>
+    );
+  };
+
+  const renderTagSuggestions = () => {
+    if (mentionType !== "#") return null;
+
+    return (
+      <>
+        <div className="px-3 py-1 text-xs font-medium text-neutral-500 bg-neutral-50">
+          Tags
+        </div>
+        {suggestions.map((suggestion, index) => renderSuggestionItem(suggestion, index))}
+      </>
     );
   };
 
@@ -257,35 +333,19 @@ export function SearchBar() {
         )}
         {!searchQuery && <Shortcut macDisplay="⌘K" windowsDisplay="Ctrl+K" />}
       </div>
-      
+
       {/* Suggestions dropdown */}
       {showSuggestions && (
-        <div 
+        <div
           ref={suggestionsRef}
           className="absolute z-50 mt-1 w-full bg-white border border-border rounded-md shadow-lg max-h-60 overflow-auto"
         >
-          <div className="p-2 text-xs font-medium text-neutral-500 border-b border-border">
-            {mentionType === '@' ? 'Mention suggestions' : 'Tag suggestions'}
-          </div>
-          <div>
-            {suggestions.map((suggestion, index) => (
-              <div
-                key={suggestion.id}
-                className={clsx([
-                  "px-3 py-2 text-sm cursor-pointer hover:bg-neutral-100",
-                  index === activeSuggestionIndex && "bg-neutral-100"
-                ])}
-                onClick={() => selectSuggestion(suggestion)}
-              >
-                {renderSuggestionItem(suggestion)}
-              </div>
-            ))}
-            {suggestions.length === 0 && (
-              <div className="px-3 py-2 text-sm text-neutral-500">
-                No suggestions found
-              </div>
-            )}
-          </div>
+          {mentionType === "@" ? renderMentionSuggestions() : renderTagSuggestions()}
+          {suggestions.length === 0 && (
+            <div className="px-3 py-2 text-sm text-neutral-500">
+              No suggestions found
+            </div>
+          )}
         </div>
       )}
     </div>

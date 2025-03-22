@@ -90,7 +90,13 @@ if (!rootElement.innerHTML) {
           <QueryClientProvider client={queryClient}>
             <I18nProvider i18n={i18n}>
               <App />
-              <Toaster position="bottom-left" expand={true} offset={16} duration={Infinity} swipeDirections={[]} />
+              <Toaster
+                position="bottom-left"
+                expand={process.env.NODE_ENV === "development"}
+                offset={16}
+                duration={Infinity}
+                swipeDirections={[]}
+              />
             </I18nProvider>
           </QueryClientProvider>
         </ThemeProvider>

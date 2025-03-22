@@ -21,13 +21,13 @@ user_common_derives! {
 
 user_common_derives! {
     pub enum ExtensionWidgetKind {
-        #[specta(rename = "oneByOne")]
+        #[serde(rename = "oneByOne")]
         OneByOne,
-        #[specta(rename = "twoByOne")]
+        #[serde(rename = "twoByOne")]
         TwoByOne,
-        #[specta(rename = "twoByTwo")]
+        #[serde(rename = "twoByTwo")]
         TwoByTwo,
-        #[specta(rename = "full")]
+        #[serde(rename = "full")]
         Full,
     }
 }
@@ -43,8 +43,8 @@ impl ExtensionMapping {
     pub fn from_row(row: &libsql::Row) -> Result<Self, serde::de::value::Error> {
         Ok(Self {
             id: row.get(0).expect("id"),
-            user_id: row.get(1).expect("user_id"),
-            extension_id: row.get(2).expect("extension_id"),
+            extension_id: row.get(1).expect("extension_id"),
+            user_id: row.get(2).expect("user_id"),
             config: row
                 .get_str(3)
                 .map(|s| serde_json::from_str(s).unwrap())

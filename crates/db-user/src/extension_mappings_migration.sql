@@ -4,6 +4,5 @@ CREATE TABLE IF NOT EXISTS extension_mappings (
   user_id TEXT NOT NULL,
   config TEXT DEFAULT '{}' NOT NULL,
   position TEXT DEFAULT NULL,
-  FOREIGN KEY (user_id) REFERENCES humans(id),
-  FOREIGN KEY (extension_id) REFERENCES extensions(id)
+  FOREIGN KEY (user_id) REFERENCES humans(id)
 );

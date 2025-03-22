@@ -16,7 +16,7 @@ impl UserDatabase {
                 extension_id,
                 config,
                 position
-            ) VALUES (?, ?, ?, ?, ?, ?) RETURNING *",
+            ) VALUES (?, ?, ?, ?, ?) RETURNING *",
             ExtensionMapping::sql_table()
         );
 

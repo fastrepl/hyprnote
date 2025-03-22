@@ -35,6 +35,9 @@ Default permissions for the plugin
 - `allow-list-session-tags`
 - `allow-assign-tag-to-session`
 - `allow-unassign-tag-from-session`
+- `allow-get-extension-mapping`
+- `allow-list-extension-mappings`
+- `allow-upsert-extension-mapping`
 
 ## Permission Table
 

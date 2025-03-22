@@ -1,4 +1,4 @@
-import { Ear, EarOff, Mic, MicIcon, SpeakerIcon } from "lucide-react";
+import { Ear, EarOff, MicIcon, SpeakerIcon } from "lucide-react";
 import { useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";

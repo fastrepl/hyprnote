@@ -1,6 +1,6 @@
 {
   "$schema": "../definition.schema.json",
-  "id": "timer",
+  "id": "@hypr/extension-timer",
   "title": "Timer",
   "description": "Displays the remaining time for meetings with time constraints",
   "implemented": true,

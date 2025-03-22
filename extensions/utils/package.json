@@ -9,6 +9,7 @@
     "@hypr/ui": "workspace:^"
   },
   "devDependencies": {
+    "@hypr/plugin-db": "workspace:^",
     "typescript": "^5.8.2"
   }
 }

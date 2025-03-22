@@ -108,27 +108,9 @@ importers:
       '@hypr/client':
         specifier: workspace:^
         version: link:../../packages/client
-      '@hypr/extension-calculator':
+      '@hypr/extension-registry':
         specifier: workspace:^
-        version: link:../../extensions/calculator
-      '@hypr/extension-clock':
-        specifier: workspace:^
-        version: link:../../extensions/clock
-      '@hypr/extension-dino-game':
-        specifier: workspace:^
-        version: link:../../extensions/dino-game
-      '@hypr/extension-obsidian':
-        specifier: workspace:^
-        version: link:../../extensions/obsidian
-      '@hypr/extension-summary':
-        specifier: workspace:^
-        version: link:../../extensions/summary
-      '@hypr/extension-timer':
-        specifier: workspace:^
-        version: link:../../extensions/timer
-      '@hypr/extension-transcript':
-        specifier: workspace:^
-        version: link:../../extensions/transcript
+        version: link:../../extensions/registry
       '@hypr/extension-utils':
         specifier: workspace:^
         version: link:../../extensions/utils
@@ -883,6 +865,31 @@ importers:
         specifier: ^5.8.2
         version: 5.8.2
 
+  extensions/registry:
+    dependencies:
+      '@hypr/extension-calculator':
+        specifier: workspace:^
+        version: link:../calculator
+      '@hypr/extension-clock':
+        specifier: workspace:^
+        version: link:../clock
+      '@hypr/extension-dino-game':
+        specifier: workspace:^
+        version: link:../dino-game
+      '@hypr/extension-summary':
+        specifier: workspace:^
+        version: link:../summary
+      '@hypr/extension-timer':
+        specifier: workspace:^
+        version: link:../timer
+      '@hypr/extension-transcript':
+        specifier: workspace:^
+        version: link:../transcript
+    devDependencies:
+      typescript:
+        specifier: ^5.8.2
+        version: 5.8.2
+
   extensions/summary:
     dependencies:
       '@hypr/extension-utils':
@@ -1102,6 +1109,9 @@ importers:
         specifier: workspace:^
         version: link:../../packages/ui
     devDependencies:
+      '@hypr/plugin-db':
+        specifier: workspace:^
+        version: link:../../plugins/db
       typescript:
         specifier: ^5.8.2
         version: 5.8.2

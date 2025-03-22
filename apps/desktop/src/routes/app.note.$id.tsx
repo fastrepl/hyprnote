@@ -1,11 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, notFound, useMatch } from "@tanstack/react-router";
+import { createFileRoute, notFound, useParams } from "@tanstack/react-router";
 import { useEffect } from "react";
 
 import EditorArea from "@/components/note/editor-area";
 import RightPanel from "@/components/note/right-panel";
 import { useSession } from "@/contexts";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
+import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
 const PATH = "/app/note/$id";
 
@@ -41,7 +42,7 @@ export const Route = createFileRoute(PATH)({
 });
 
 function Component() {
-  const { params: { id: sessionId }, search: { window } } = useMatch({ from: PATH });
+  const { id: sessionId } = useParams({ from: PATH });
 
   const { getSession } = useSession(sessionId, (s) => ({
     sessionId: s.session.id,
@@ -83,7 +84,7 @@ function Component() {
       <div className="flex-1">
         <main className="flex h-full overflow-hidden bg-white">
           <div className="h-full flex-1 pt-6">
-            <EditorArea editable={window === "main"} sessionId={sessionId} />
+            <EditorArea editable={getCurrentWebviewWindowLabel() === "main"} sessionId={sessionId} />
           </div>
         </main>
       </div>

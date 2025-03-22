@@ -345,6 +345,16 @@
           "const": "deny-get-config"
         },
         {
+          "description": "Enables the get_extension_mapping command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-extension-mapping"
+        },
+        {
+          "description": "Denies the get_extension_mapping command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-extension-mapping"
+        },
+        {
           "description": "Enables the get_human command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-human"
@@ -433,6 +443,16 @@
           "description": "Denies the list_events command without any pre-configured scope.",
           "type": "string",
           "const": "deny-list-events"
+        },
+        {
+          "description": "Enables the list_extension_mappings command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-extension-mappings"
+        },
+        {
+          "description": "Denies the list_extension_mappings command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-extension-mappings"
         },
         {
           "description": "Enables the list_humans command without any pre-configured scope.",
@@ -573,6 +593,16 @@
           "description": "Denies the upsert_chat_message command without any pre-configured scope.",
           "type": "string",
           "const": "deny-upsert-chat-message"
+        },
+        {
+          "description": "Enables the upsert_extension_mapping command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-upsert-extension-mapping"
+        },
+        {
+          "description": "Denies the upsert_extension_mapping command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-upsert-extension-mapping"
         },
         {
           "description": "Enables the upsert_human command without any pre-configured scope.",

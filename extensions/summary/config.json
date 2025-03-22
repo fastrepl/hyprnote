@@ -1,6 +1,6 @@
 {
   "$schema": "../definition.schema.json",
-  "id": "summary",
+  "id": "@hypr/extension-summary",
   "title": "Summary",
   "description": "Summarizes the meeting content",
   "implemented": true,

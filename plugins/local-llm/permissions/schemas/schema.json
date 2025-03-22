@@ -305,6 +305,16 @@
           "const": "deny-download-model"
         },
         {
+          "description": "Enables the get_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-status"
+        },
+        {
+          "description": "Denies the get_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-status"
+        },
+        {
           "description": "Enables the is_model_downloaded command without any pre-configured scope.",
           "type": "string",
           "const": "allow-is-model-downloaded"

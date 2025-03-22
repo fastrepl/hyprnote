@@ -1,6 +1,8 @@
-import { useOngoingSession, useSession } from "@/contexts";
 import { useMatch } from "@tanstack/react-router";
 import { type ChangeEvent, useCallback } from "react";
+
+import { useOngoingSession, useSession } from "@/contexts";
+import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import Chips from "./chips";
 import ListenButton from "./listen-button";
 import TitleInput from "./title-input";
@@ -35,7 +37,8 @@ export function NoteHeader({ onNavigateToEditor, editable, sessionId }: NoteHead
   }, [sessionStore.sessionInView, ongoingSessionStore.start]);
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
-  const isInNoteMain = noteMatch?.search.window === "main";
+  const windowLabel = getCurrentWebviewWindowLabel();
+  const isInNoteMain = windowLabel === "main" && noteMatch;
 
   return (
     <>

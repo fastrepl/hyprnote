@@ -1,8 +1,8 @@
-import { useMatch, useSearch } from "@tanstack/react-router";
+import { useMatch } from "@tanstack/react-router";
 import { motion } from "motion/react";
 
 import { useHyprSearch, useLeftSidebar, useOngoingSession } from "@/contexts";
-import SettingsButton from "../settings-panel";
+import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
 import AllList from "./all-list";
 import OngoingSession from "./ongoing-session";
@@ -20,7 +20,7 @@ export default function LeftSidebar() {
     matches: s.matches,
   }));
 
-  const search = useSearch({ strict: false });
+  const windowLabel = getCurrentWebviewWindowLabel();
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
 
   const isInOngoingNoteMain = noteMatch?.params.id === ongoingSessionId;
@@ -28,7 +28,7 @@ export default function LeftSidebar() {
   const isInOngoingNote = isInOngoingNoteMain || isInOngoingNoteSub;
   const inMeetingAndNotInNote = listening && ongoingSessionId !== null && !isInOngoingNote;
 
-  if (search.window === "sub") {
+  if (windowLabel !== "main") {
     return null;
   }
 
@@ -59,10 +59,6 @@ export default function LeftSidebar() {
           <>
             <div className="flex-1 h-full overflow-y-auto">
               <AllList />
-            </div>
-
-            <div className="flex items-center p-2 border-t">
-              <SettingsButton />
             </div>
           </>
         )}

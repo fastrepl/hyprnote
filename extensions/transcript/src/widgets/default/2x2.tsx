@@ -1,3 +1,7 @@
+import { Channel } from "@tauri-apps/api/core";
+import { LanguagesIcon, Maximize2Icon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands, type SessionEvent, type TimelineView } from "@hypr/plugin-listener";
 import { Badge } from "@hypr/ui/components/ui/badge";
@@ -12,9 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { WidgetHeader, WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
-import { Channel } from "@tauri-apps/api/core";
-import { LanguagesIcon, Maximize2Icon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import Transcript from "../components/transcript";
 
 const LiveTranscript2x2: WidgetTwoByTwo = ({ onMaximize }) => {
@@ -127,7 +128,7 @@ const LiveTranscript2x2: WidgetTwoByTwo = ({ onMaximize }) => {
               onClick={onMaximize}
               className="p-0"
             >
-              <Maximize2Icon size={16} className="text-black" />
+              <Maximize2Icon size={16} className="text-neutral-900" />
             </Button>,
           ]}
         />

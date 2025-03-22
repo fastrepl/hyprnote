@@ -1,14 +1,15 @@
+import { useQuery } from "@tanstack/react-query";
+import { Channel } from "@tauri-apps/api/core";
+import { generateObject } from "ai";
+import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands, type SessionEvent } from "@hypr/plugin-listener";
 import { commands as templateCommands } from "@hypr/plugin-template";
 import { Button } from "@hypr/ui/components/ui/button";
 import { WidgetHeader, type WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
 import { modelProvider } from "@hypr/utils";
-import { useQuery } from "@tanstack/react-query";
-import { Channel } from "@tauri-apps/api/core";
-import { generateObject } from "ai";
-import { motion } from "motion/react";
-import { useEffect, useState } from "react";
 import {
   type LiveSummaryResponse,
   liveSummaryResponseSchema,

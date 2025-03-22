@@ -1,3 +1,6 @@
+import "@hypr/ui/globals.css";
+import "./styles/globals.css";
+
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -5,12 +8,11 @@ import { CatchBoundary, createRouter, ErrorComponent, RouterProvider } from "@ta
 import ReactDOM from "react-dom/client";
 
 import type { Context } from "@/types";
-import { Toaster } from "@hypr/ui/components/ui/toast";
+import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import { Toaster } from "@hypr/ui/components/ui/sonner";
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 import { ThemeProvider } from "@hypr/ui/contexts/theme";
-
-import ModelDownloadNotification from "./components/toast/model";
-import OtaNotification from "./components/toast/ota";
+import Notifications from "./components/toast";
 
 import { messages as enMessages } from "./locales/en/messages";
 import { messages as koMessages } from "./locales/ko/messages";
@@ -28,9 +30,6 @@ i18n.load({
 
 // TODO: load language from user settings
 i18n.activate("ko");
-
-import "@hypr/ui/globals.css";
-import "./styles/globals.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,11 +70,11 @@ Sentry.init({
 });
 
 function App() {
+  const windowLabel = getCurrentWebviewWindowLabel();
   return (
     <>
       <RouterProvider router={router} context={context} />
-      <OtaNotification />
-      <ModelDownloadNotification />
+      {windowLabel === "main" && <Notifications />}
     </>
   );
 }
@@ -91,7 +90,7 @@ if (!rootElement.innerHTML) {
           <QueryClientProvider client={queryClient}>
             <I18nProvider i18n={i18n}>
               <App />
-              <Toaster position="bottom-left" offset={16} duration={Infinity} swipeDirections={[]} />
+              <Toaster position="bottom-left" expand={true} />
             </I18nProvider>
           </QueryClientProvider>
         </ThemeProvider>

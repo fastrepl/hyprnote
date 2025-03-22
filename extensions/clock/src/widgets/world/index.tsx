@@ -5,9 +5,6 @@ const clockWorld: WidgetGroup = {
   id: "clock-world",
   items: [
     {
-      init: async () => {
-        console.log("WorldClock widget initialized");
-      },
       type: "twoByTwo",
       component: WorldClock2x2,
     },

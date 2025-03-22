@@ -8,7 +8,7 @@ import type { NavNames } from "./types";
 import { SettingsPanelBody } from "./views";
 import BillingComponent from "./views/billing";
 import CalendarComponent from "./views/calendar";
-import ExtensionsComponent from "./views/extensions";
+import ExtensionComponent from "./views/extension";
 import GeneralComponent from "./views/general";
 import LocalAIComponent from "./views/local-ai";
 import NotificationsComponent from "./views/notifications";
@@ -114,7 +114,7 @@ export default function SettingsPanel() {
                 />
               )}
               {active === "Extensions" && (
-                <ExtensionsComponent selectedExtension={selectedExtension} onExtensionSelect={setSelectedExtension} />
+                <ExtensionComponent selectedExtension={selectedExtension} onExtensionSelect={setSelectedExtension} />
               )}
               {active === "Team" && <TeamComponent />}
               {active === "Billing" && <BillingComponent />}

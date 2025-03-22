@@ -14,6 +14,9 @@ pub enum HyprWindow {
     #[serde(rename = "calendar")]
     #[strum(serialize = "calendar")]
     Calendar,
+    #[serde(rename = "settings")]
+    #[strum(serialize = "settings")]
+    Settings,
 }
 
 impl HyprWindow {
@@ -22,6 +25,7 @@ impl HyprWindow {
             Self::Main => "main".into(),
             Self::Note(id) => format!("note-{}", id),
             Self::Calendar => "calendar".into(),
+            Self::Settings => "settings".into(),
         }
     }
 
@@ -60,6 +64,7 @@ impl HyprWindow {
             Self::Main => "Hyprnote".into(),
             Self::Note(_) => "Note".into(),
             Self::Calendar => "Calendar".into(),
+            Self::Settings => "Settings".into(),
         }
     }
 
@@ -75,8 +80,9 @@ impl HyprWindow {
             Err(_) => {
                 let url = match self {
                     Self::Main => "/app/new",
-                    Self::Note(id) => &format!("/app/note/{}?window=sub", id),
-                    Self::Calendar => "/app/calendar?window=sub",
+                    Self::Note(id) => &format!("/app/note/{}", id),
+                    Self::Calendar => "/app/calendar",
+                    Self::Settings => "/app/settings",
                 };
                 (self.window_builder(app, url).build()?, true)
             }
@@ -108,6 +114,22 @@ impl HyprWindow {
                     }
                 }
                 Self::Calendar => {
+                    window.hide()?;
+                    std::thread::sleep(std::time::Duration::from_millis(100));
+
+                    window.set_maximizable(false)?;
+                    window.set_minimizable(false)?;
+                    window.set_size(LogicalSize::new(640.0, 532.0))?;
+                    window.set_min_size(Some(LogicalSize::new(640.0, 532.0)))?;
+
+                    {
+                        let mut cursor = app.cursor_position().unwrap();
+                        cursor.x -= 640.0;
+                        cursor.y -= 30.0;
+                        window.set_position(cursor)?;
+                    }
+                }
+                Self::Settings => {
                     window.hide()?;
                     std::thread::sleep(std::time::Duration::from_millis(100));
 

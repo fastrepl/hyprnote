@@ -1,7 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { type as getOsType } from "@tauri-apps/plugin-os";
-import { CalendarDaysIcon, ChevronsLeftIcon, MenuIcon } from "lucide-react";
+import { CalendarDaysIcon, ChevronsLeftIcon, MenuIcon, SettingsIcon } from "lucide-react";
 
 import { useLeftSidebar } from "@/contexts";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -29,11 +29,26 @@ export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
     windowsCommands.windowShow("calendar");
   };
 
+  const handleClickSettings = () => {
+    windowsCommands.windowShow("settings");
+  };
+
   return (
     <div
       data-tauri-drag-region
       className={cn(osType.data === "macos" && "pl-[68px]")}
     >
+      {isExpanded && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleClickSettings}
+          className="hover:bg-neutral-200"
+        >
+          <SettingsIcon className="size-4" />
+        </Button>
+      )}
+
       {isExpanded && (
         <Button
           variant="ghost"

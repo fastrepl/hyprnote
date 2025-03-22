@@ -18,7 +18,7 @@ export default function RightPanel() {
   const { userId } = useHypr();
 
   const extensions = useQuery({
-    queryKey: ["extensions", userId],
+    queryKey: ["extensions"],
     queryFn: () => dbCommands.listExtensionMappings(userId),
   });
 
@@ -32,27 +32,6 @@ export default function RightPanel() {
       }));
     }) ?? []);
   }, [extensions.data]);
-
-  // const widgets: WidgetConfig[] = [
-  //   {
-  //     extensionName: "@hypr/extension-dino-game",
-  //     groupName: "chromeDino",
-  //     widgetType: "twoByOne",
-  //     layout: { x: 0, y: 0 },
-  //   },
-  //   {
-  //     extensionName: "@hypr/extension-summary",
-  //     groupName: "bullet",
-  //     widgetType: "twoByTwo",
-  //     layout: { x: 0, y: 1 },
-  //   },
-  //   {
-  //     extensionName: "@hypr/extension-transcript",
-  //     groupName: "default",
-  //     widgetType: "twoByTwo",
-  //     layout: { x: 0, y: 3 },
-  //   },
-  // ];
 
   useEffect(() => {
     const checkViewport = () => {

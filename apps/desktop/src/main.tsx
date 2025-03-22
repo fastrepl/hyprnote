@@ -5,7 +5,7 @@ import { CatchBoundary, createRouter, ErrorComponent, RouterProvider } from "@ta
 import ReactDOM from "react-dom/client";
 
 import type { Context } from "@/types";
-import { Toaster } from "@hypr/ui/components/ui/sonner";
+import { Toaster } from "@hypr/ui/components/ui/toast";
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 import { ThemeProvider } from "@hypr/ui/contexts/theme";
 
@@ -91,7 +91,7 @@ if (!rootElement.innerHTML) {
           <QueryClientProvider client={queryClient}>
             <I18nProvider i18n={i18n}>
               <App />
-              <Toaster position="bottom-left" expand={true} />
+              <Toaster position="bottom-left" offset={16} duration={Infinity} swipeDirections={[]} />
             </I18nProvider>
           </QueryClientProvider>
         </ThemeProvider>

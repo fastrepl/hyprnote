@@ -28,7 +28,7 @@ export function CustomToast(props: CustomToastProps) {
       {dismissible && (
         <button
           onClick={() => sonnerToast.dismiss(id)}
-          className="absolute top-2 right-2 p-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-neutral-100 transition-opacity"
+          className="cursor-pointer absolute top-2 right-2 p-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-neutral-100 transition-opacity"
           aria-label="Dismiss"
         >
           <X size={16} />
@@ -63,12 +63,12 @@ export function CustomToast(props: CustomToastProps) {
   );
 }
 
-export function toast(props: Omit<CustomToastProps, "id"> & { id?: string | number }) {
+export function toast(props: CustomToastProps) {
   return sonnerToast.custom(
-    (generatedId) => (
+    (id) => (
       <div className="group overflow-clip">
         <CustomToast
-          id={props.id || generatedId}
+          id={id}
           title={props.title}
           content={props.content}
           buttons={props.buttons}

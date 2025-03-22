@@ -32,7 +32,7 @@ export default function OtaNotification() {
 
     toast({
       title: "Update Available",
-      description: `Version ${update.version} is available to install`,
+      content: `Version ${update.version} is available to install`,
       buttons: [
         {
           label: "Update Now",

@@ -12,14 +12,14 @@ export interface ToastButtonProps {
 export interface CustomToastProps {
   id: string | number;
   title: string;
-  description?: string;
+  content?: React.ReactNode;
   buttons?: ToastButtonProps[];
   dismissible?: boolean;
   children?: React.ReactNode;
 }
 
 export function CustomToast(props: CustomToastProps) {
-  const { id, title, description, buttons = [], dismissible, children } = props;
+  const { id, title, content, buttons = [], dismissible, children } = props;
 
   return (
     <div className="flex flex-col gap-2 p-4 relative">
@@ -35,7 +35,7 @@ export function CustomToast(props: CustomToastProps) {
 
       <div className="font-medium">{title}</div>
 
-      {description && <div className="text-sm text-neutral-600">{description}</div>}
+      {content && <div className="text-sm text-neutral-600">{content}</div>}
 
       {children}
 
@@ -68,7 +68,7 @@ export function toast(toast: Omit<CustomToastProps, "id">) {
         <CustomToast
           id={id}
           title={toast.title}
-          description={toast.description}
+          content={toast.content}
           buttons={toast.buttons}
           dismissible={toast.dismissible}
           children={toast.children}

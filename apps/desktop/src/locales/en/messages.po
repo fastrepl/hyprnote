@@ -40,7 +40,7 @@ msgstr "Add a description..."
 msgid "Add members"
 msgstr "Add members"
 
-#: src/components/note/header/chips/participants-chip/participants-list.tsx:191
+#: src/components/note/header/chips/participants-chip/participants-list.tsx:201
 msgid "Add participant"
 msgstr "Add participant"
 
@@ -49,11 +49,12 @@ msgstr "Add participant"
 msgid "Admin"
 msgstr "Admin"
 
+#: src/components/settings/components/settings-header.tsx:23
 #: src/components/settings/components/main-sidebar.tsx:33
 msgid "AI"
 msgstr "AI"
 
-#: src/routes/onboarding.tsx:76
+#: src/routes/onboarding.tsx:78
 msgid "AI Meeting Notepad that keeps you in flow"
 msgstr "AI Meeting Notepad that keeps you in flow"
 
@@ -87,6 +88,7 @@ msgid "Ask questions about past meetings"
 msgstr "Ask questions about past meetings"
 
 #: src/components/settings/views/index.tsx:53
+#: src/components/settings/components/settings-header.tsx:35
 #: src/components/settings/components/main-sidebar.tsx:45
 msgid "Billing"
 msgstr "Billing"
@@ -100,6 +102,7 @@ msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
 #: src/components/settings/views/index.tsx:43
+#: src/components/settings/components/settings-header.tsx:25
 #: src/components/settings/components/main-sidebar.tsx:35
 msgid "Calendar"
 msgstr "Calendar"
@@ -140,11 +143,11 @@ msgstr "Company Name"
 msgid "Connect"
 msgstr "Connect"
 
-#: src/routes/onboarding.tsx:116
+#: src/routes/onboarding.tsx:118
 msgid "Connect to Calendar"
 msgstr "Connect to Calendar"
 
-#: src/routes/onboarding.tsx:130
+#: src/routes/onboarding.tsx:132
 msgid "Connect to Contacts"
 msgstr "Connect to Contacts"
 
@@ -161,7 +164,7 @@ msgstr "Connect your calendar and track events"
 msgid "Contacts Access"
 msgstr "Contacts Access"
 
-#: src/routes/onboarding.tsx:149
+#: src/routes/onboarding.tsx:151
 msgid "Continue"
 msgstr "Continue"
 
@@ -169,7 +172,7 @@ msgstr "Continue"
 msgid "Create new note"
 msgstr "Create new note"
 
-#: src/components/settings/components/settings-header.tsx:36
+#: src/components/settings/components/settings-header.tsx:63
 msgid "Create new template"
 msgstr "Create new template"
 
@@ -223,11 +226,11 @@ msgstr "Email addresses"
 msgid "Email separated by commas"
 msgstr "Email separated by commas"
 
-#: src/routes/onboarding.tsx:90
+#: src/routes/onboarding.tsx:92
 msgid "Enable Microphone"
 msgstr "Enable Microphone"
 
-#: src/routes/onboarding.tsx:100
+#: src/routes/onboarding.tsx:102
 msgid "Enable System Audio"
 msgstr "Enable System Audio"
 
@@ -240,6 +243,7 @@ msgid "Exclude these apps from auto detection"
 msgstr "Exclude these apps from auto detection"
 
 #: src/components/settings/views/index.tsx:49
+#: src/components/settings/components/settings-header.tsx:31
 #: src/components/settings/components/main-sidebar.tsx:41
 msgid "Extensions"
 msgstr "Extensions"
@@ -269,6 +273,7 @@ msgid "Free Trial"
 msgstr "Free Trial"
 
 #: src/components/settings/views/index.tsx:41
+#: src/components/settings/components/settings-header.tsx:19
 #: src/components/settings/components/main-sidebar.tsx:29
 msgid "General"
 msgstr "General"
@@ -282,7 +287,7 @@ msgstr "Get Started"
 msgid "Grant Access"
 msgstr "Grant Access"
 
-#: src/routes/onboarding.tsx:127
+#: src/routes/onboarding.tsx:129
 msgid "How about your contacts?"
 msgstr "How about your contacts?"
 
@@ -393,7 +398,7 @@ msgstr "New window"
 msgid "No members found"
 msgstr "No members found"
 
-#: src/routes/app.human.$id.tsx:303
+#: src/routes/app.human.$id.tsx:304
 msgid "No past notes with this contact"
 msgstr "No past notes with this contact"
 
@@ -405,11 +410,12 @@ msgstr "No recent notes for this organization"
 msgid "No upcoming events for this organization"
 msgstr "No upcoming events for this organization"
 
-#: src/routes/app.human.$id.tsx:263
+#: src/routes/app.human.$id.tsx:264
 msgid "No upcoming events with this contact"
 msgstr "No upcoming events with this contact"
 
 #: src/components/settings/views/index.tsx:45
+#: src/components/settings/components/settings-header.tsx:27
 #: src/components/settings/components/main-sidebar.tsx:37
 msgid "Notifications"
 msgstr "Notifications"
@@ -435,7 +441,7 @@ msgstr "Open Note"
 msgid "Optional for participant suggestions"
 msgstr "Optional for participant suggestions"
 
-#: src/routes/onboarding.tsx:109
+#: src/routes/onboarding.tsx:111
 msgid "Optional Permissions"
 msgstr "Optional Permissions"
 
@@ -444,7 +450,7 @@ msgstr "Optional Permissions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/routes/app.human.$id.tsx:271
+#: src/routes/app.human.$id.tsx:272
 msgid "Past Notes"
 msgstr "Past Notes"
 
@@ -457,6 +463,7 @@ msgid "Pro"
 msgstr "Pro"
 
 #: src/components/settings/views/index.tsx:55
+#: src/components/settings/components/settings-header.tsx:21
 #: src/components/settings/components/main-sidebar.tsx:31
 msgid "Profile"
 msgstr "Profile"
@@ -469,7 +476,7 @@ msgstr "Publish your note"
 msgid "Recent Notes"
 msgstr "Recent Notes"
 
-#: src/routes/onboarding.tsx:81
+#: src/routes/onboarding.tsx:83
 msgid "Required Permissions"
 msgstr "Required Permissions"
 
@@ -536,8 +543,8 @@ msgid "Single sign-on for all users"
 msgstr "Single sign-on for all users"
 
 #: src/routes/login.tsx:161
-msgid "Skip to use locally"
-msgstr "Skip to use locally"
+#~ msgid "Skip to use locally"
+#~ msgstr "Skip to use locally"
 
 #: src/components/settings/views/billing.tsx:68
 msgid "Start Annual Plan"
@@ -547,19 +554,19 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/note/header/listen-button.tsx:49
+#: src/components/note/header/listen-button.tsx:80
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/note/header/listen-button.tsx:103
+#: src/components/note/header/listen-button.tsx:156
 msgid "Stop"
 msgstr "Stop"
 
-#: src/components/note/header/listen-button.tsx:92
+#: src/components/note/header/listen-button.tsx:145
 msgid "Stop listening to the meeting?"
 msgstr "Stop listening to the meeting?"
 
-#: src/components/note/header/listen-button.tsx:65
+#: src/components/note/header/listen-button.tsx:96
 msgid "Stop recording"
 msgstr "Stop recording"
 
@@ -569,6 +576,7 @@ msgstr "Synchronization across multiple devices"
 
 #: src/components/settings/views/index.tsx:51
 #: src/components/settings/views/billing.tsx:46
+#: src/components/settings/components/settings-header.tsx:33
 #: src/components/settings/components/main-sidebar.tsx:43
 msgid "Team"
 msgstr "Team"
@@ -586,6 +594,7 @@ msgid "Template Selector"
 msgstr "Template Selector"
 
 #: src/components/settings/views/index.tsx:47
+#: src/components/settings/components/settings-header.tsx:29
 #: src/components/settings/components/main-sidebar.tsx:39
 msgid "Templates"
 msgstr "Templates"
@@ -618,11 +627,11 @@ msgstr "Toggle left sidebar"
 msgid "Toggle right panel"
 msgstr "Toggle right panel"
 
-#: src/routes/onboarding.tsx:85
+#: src/routes/onboarding.tsx:87
 msgid "Transcribe my voice"
 msgstr "Transcribe my voice"
 
-#: src/routes/onboarding.tsx:95
+#: src/routes/onboarding.tsx:97
 msgid "Transcribe other people's voice"
 msgstr "Transcribe other people's voice"
 
@@ -638,7 +647,7 @@ msgstr "Type or paste in emails below, separated by commas. Your workspace will 
 msgid "Type to search..."
 msgstr "Type to search..."
 
-#: src/routes/app.human.$id.tsx:121
+#: src/routes/app.human.$id.tsx:122
 msgid "Unnamed Contact"
 msgstr "Unnamed Contact"
 
@@ -655,7 +664,7 @@ msgid "Untitled Template"
 msgstr "Untitled Template"
 
 #: src/routes/app.organization.$id.tsx:202
-#: src/routes/app.human.$id.tsx:228
+#: src/routes/app.human.$id.tsx:229
 msgid "Upcoming Events"
 msgstr "Upcoming Events"
 
@@ -681,11 +690,11 @@ msgid "View in calendar"
 msgstr "View in calendar"
 
 #: src/routes/app.organization.$id.tsx:266
-#: src/routes/app.human.$id.tsx:292
+#: src/routes/app.human.$id.tsx:293
 msgid "View Note"
 msgstr "View Note"
 
-#: src/routes/onboarding.tsx:113
+#: src/routes/onboarding.tsx:115
 msgid "Want to keep track of events?"
 msgstr "Want to keep track of events?"
 

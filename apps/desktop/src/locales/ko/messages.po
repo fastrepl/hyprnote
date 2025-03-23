@@ -40,7 +40,7 @@ msgstr "설명을 추가하세요..."
 msgid "Add members"
 msgstr "팀원을 추가하세요."
 
-#: src/components/note/header/chips/participants-chip/participants-list.tsx:191
+#: src/components/note/header/chips/participants-chip/participants-list.tsx:201
 msgid "Add participant"
 msgstr "참석자를 추가하세요."
 
@@ -49,11 +49,12 @@ msgstr "참석자를 추가하세요."
 msgid "Admin"
 msgstr "관리자"
 
+#: src/components/settings/components/settings-header.tsx:23
 #: src/components/settings/components/main-sidebar.tsx:33
 msgid "AI"
 msgstr "AI"
 
-#: src/routes/onboarding.tsx:76
+#: src/routes/onboarding.tsx:78
 msgid "AI Meeting Notepad that keeps you in flow"
 msgstr "회의에 집중하도록 도와주는 AI 메모장"
 
@@ -87,6 +88,7 @@ msgid "Ask questions about past meetings"
 msgstr "과거 회의에 대해 질문하세요."
 
 #: src/components/settings/views/index.tsx:53
+#: src/components/settings/components/settings-header.tsx:35
 #: src/components/settings/components/main-sidebar.tsx:45
 msgid "Billing"
 msgstr "결제"
@@ -100,6 +102,7 @@ msgid "Built-in Templates"
 msgstr "기본 템플릿"
 
 #: src/components/settings/views/index.tsx:43
+#: src/components/settings/components/settings-header.tsx:25
 #: src/components/settings/components/main-sidebar.tsx:35
 msgid "Calendar"
 msgstr "캘린더"
@@ -140,11 +143,11 @@ msgstr "회사명"
 msgid "Connect"
 msgstr "연결하기"
 
-#: src/routes/onboarding.tsx:116
+#: src/routes/onboarding.tsx:118
 msgid "Connect to Calendar"
 msgstr "캘린더에 연결하기"
 
-#: src/routes/onboarding.tsx:130
+#: src/routes/onboarding.tsx:132
 msgid "Connect to Contacts"
 msgstr "연락처에 연결하기"
 
@@ -161,7 +164,7 @@ msgstr "캘린더를 연결하고 일정을 추적하세요."
 msgid "Contacts Access"
 msgstr "연락처 접근 권한"
 
-#: src/routes/onboarding.tsx:149
+#: src/routes/onboarding.tsx:151
 msgid "Continue"
 msgstr "계속하기"
 
@@ -169,7 +172,7 @@ msgstr "계속하기"
 msgid "Create new note"
 msgstr "노트 생성"
 
-#: src/components/settings/components/settings-header.tsx:36
+#: src/components/settings/components/settings-header.tsx:63
 msgid "Create new template"
 msgstr "템플릿 생성"
 
@@ -201,7 +204,7 @@ msgstr "자동으로 회의를 감지하세요."
 
 #: src/components/settings/views/general.tsx:134
 msgid "Display language"
-msgstr "표시 언어"
+msgstr "언어"
 
 #: src/components/settings/views/template.tsx:82
 msgid "Duplicate"
@@ -223,11 +226,11 @@ msgstr "이메일 주소"
 msgid "Email separated by commas"
 msgstr "이메일 주소를 쉼표로 구분하여 입력하세요."
 
-#: src/routes/onboarding.tsx:90
+#: src/routes/onboarding.tsx:92
 msgid "Enable Microphone"
 msgstr "마이크 활성화"
 
-#: src/routes/onboarding.tsx:100
+#: src/routes/onboarding.tsx:102
 msgid "Enable System Audio"
 msgstr "시스템 오디오 활성화"
 
@@ -240,6 +243,7 @@ msgid "Exclude these apps from auto detection"
 msgstr "자동 감지에서 제외할 앱을 선택하세요."
 
 #: src/components/settings/views/index.tsx:49
+#: src/components/settings/components/settings-header.tsx:31
 #: src/components/settings/components/main-sidebar.tsx:41
 msgid "Extensions"
 msgstr "익스텐션"
@@ -269,6 +273,7 @@ msgid "Free Trial"
 msgstr "무료 체험"
 
 #: src/components/settings/views/index.tsx:41
+#: src/components/settings/components/settings-header.tsx:19
 #: src/components/settings/components/main-sidebar.tsx:29
 msgid "General"
 msgstr "일반"
@@ -282,7 +287,7 @@ msgstr "시작하기"
 msgid "Grant Access"
 msgstr "접근 권한 부여"
 
-#: src/routes/onboarding.tsx:127
+#: src/routes/onboarding.tsx:129
 msgid "How about your contacts?"
 msgstr "연락처는 어떠세요?"
 
@@ -393,7 +398,7 @@ msgstr "새로운 창에서 열기"
 msgid "No members found"
 msgstr "멤버가 없습니다."
 
-#: src/routes/app.human.$id.tsx:303
+#: src/routes/app.human.$id.tsx:304
 msgid "No past notes with this contact"
 msgstr "이 연락처와의 이전 노트가 없습니다."
 
@@ -405,11 +410,12 @@ msgstr "이 조직에 대한 최근 노트가 없습니다."
 msgid "No upcoming events for this organization"
 msgstr "이 조직에 대한 예정된 일정이 없습니다."
 
-#: src/routes/app.human.$id.tsx:263
+#: src/routes/app.human.$id.tsx:264
 msgid "No upcoming events with this contact"
 msgstr "이 연락처와의 예정된 일정이 없습니다."
 
 #: src/components/settings/views/index.tsx:45
+#: src/components/settings/components/settings-header.tsx:27
 #: src/components/settings/components/main-sidebar.tsx:37
 msgid "Notifications"
 msgstr "알림"
@@ -435,7 +441,7 @@ msgstr "노트 열기"
 msgid "Optional for participant suggestions"
 msgstr "참가자 추천을 위한 선택 사항"
 
-#: src/routes/onboarding.tsx:109
+#: src/routes/onboarding.tsx:111
 msgid "Optional Permissions"
 msgstr "선택적 권한"
 
@@ -444,7 +450,7 @@ msgstr "선택적 권한"
 msgid "Owner"
 msgstr "소유자"
 
-#: src/routes/app.human.$id.tsx:271
+#: src/routes/app.human.$id.tsx:272
 msgid "Past Notes"
 msgstr "이전 노트"
 
@@ -457,6 +463,7 @@ msgid "Pro"
 msgstr "프로"
 
 #: src/components/settings/views/index.tsx:55
+#: src/components/settings/components/settings-header.tsx:21
 #: src/components/settings/components/main-sidebar.tsx:31
 msgid "Profile"
 msgstr "프로필"
@@ -469,7 +476,7 @@ msgstr "노트 발행하기"
 msgid "Recent Notes"
 msgstr "최근 노트"
 
-#: src/routes/onboarding.tsx:81
+#: src/routes/onboarding.tsx:83
 msgid "Required Permissions"
 msgstr "필수 권한"
 
@@ -536,8 +543,8 @@ msgid "Single sign-on for all users"
 msgstr "모든 사용자를 위한 단일 로그인"
 
 #: src/routes/login.tsx:161
-msgid "Skip to use locally"
-msgstr "로컬 사용으로 건너뛰기"
+#~ msgid "Skip to use locally"
+#~ msgstr "로컬 사용으로 건너뛰기"
 
 #: src/components/settings/views/billing.tsx:68
 msgid "Start Annual Plan"
@@ -547,19 +554,19 @@ msgstr "연간 요금제 시작"
 msgid "Start Monthly Plan"
 msgstr "월간 요금제 시작"
 
-#: src/components/note/header/listen-button.tsx:49
+#: src/components/note/header/listen-button.tsx:80
 msgid "Start recording"
 msgstr "녹음 시작"
 
-#: src/components/note/header/listen-button.tsx:103
+#: src/components/note/header/listen-button.tsx:156
 msgid "Stop"
 msgstr "중지"
 
-#: src/components/note/header/listen-button.tsx:92
+#: src/components/note/header/listen-button.tsx:145
 msgid "Stop listening to the meeting?"
 msgstr "회의 듣기를 중지하시겠습니까?"
 
-#: src/components/note/header/listen-button.tsx:65
+#: src/components/note/header/listen-button.tsx:96
 msgid "Stop recording"
 msgstr "녹음 중지"
 
@@ -569,6 +576,7 @@ msgstr "여러 기기 간 동기화"
 
 #: src/components/settings/views/index.tsx:51
 #: src/components/settings/views/billing.tsx:46
+#: src/components/settings/components/settings-header.tsx:33
 #: src/components/settings/components/main-sidebar.tsx:43
 msgid "Team"
 msgstr "팀"
@@ -586,6 +594,7 @@ msgid "Template Selector"
 msgstr "템플릿 선택기"
 
 #: src/components/settings/views/index.tsx:47
+#: src/components/settings/components/settings-header.tsx:29
 #: src/components/settings/components/main-sidebar.tsx:39
 msgid "Templates"
 msgstr "템플릿"
@@ -618,11 +627,11 @@ msgstr "왼쪽 사이드바 전환"
 msgid "Toggle right panel"
 msgstr "오른쪽 패널 전환"
 
-#: src/routes/onboarding.tsx:85
+#: src/routes/onboarding.tsx:87
 msgid "Transcribe my voice"
 msgstr "내 목소리 텍스트 변환"
 
-#: src/routes/onboarding.tsx:95
+#: src/routes/onboarding.tsx:97
 msgid "Transcribe other people's voice"
 msgstr "다른 사람의 목소리 텍스트 변환"
 
@@ -638,7 +647,7 @@ msgstr "이메일을 쉼표로 구분하여 아래에 입력하거나 붙여넣�
 msgid "Type to search..."
 msgstr "검색어 입력..."
 
-#: src/routes/app.human.$id.tsx:121
+#: src/routes/app.human.$id.tsx:122
 msgid "Unnamed Contact"
 msgstr "이름 없는 연락처"
 
@@ -655,7 +664,7 @@ msgid "Untitled Template"
 msgstr "제목 없는 템플릿"
 
 #: src/routes/app.organization.$id.tsx:202
-#: src/routes/app.human.$id.tsx:228
+#: src/routes/app.human.$id.tsx:229
 msgid "Upcoming Events"
 msgstr "예정된 일정"
 
@@ -681,11 +690,11 @@ msgid "View in calendar"
 msgstr "캘린더에서 보기"
 
 #: src/routes/app.organization.$id.tsx:266
-#: src/routes/app.human.$id.tsx:292
+#: src/routes/app.human.$id.tsx:293
 msgid "View Note"
 msgstr "노트 보기"
 
-#: src/routes/onboarding.tsx:113
+#: src/routes/onboarding.tsx:115
 msgid "Want to keep track of events?"
 msgstr "향후 일정을 관리하고 싶으신가요?"
 

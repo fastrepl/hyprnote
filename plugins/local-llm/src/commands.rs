@@ -4,33 +4,22 @@ use tauri::{ipc::Channel, Manager};
 #[tauri::command]
 #[specta::specta]
 pub async fn is_server_running<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> bool {
-    let s = app.get_status().await;
-    s.server_running
+    app.is_server_running().await
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn is_model_loaded<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> bool {
-    let s = app.get_status().await;
-    s.model_loaded
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn is_model_downloaded<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> bool {
+pub async fn is_model_downloaded<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<bool, String> {
     let path = app.path().app_data_dir().unwrap().join("llm.gguf");
 
     if !path.exists() {
-        return false;
+        return Ok(false);
     }
 
-    match path.metadata() {
-        Ok(metadata) => {
-            let size = metadata.len();
-            size > 1_000_000
-        }
-        Err(_) => false,
-    }
+    let checksum = hypr_file::calculate_file_checksum(&path).map_err(|e| e.to_string())?;
+    Ok(checksum == 2831308098)
 }
 
 #[tauri::command]
@@ -41,19 +30,6 @@ pub async fn download_model<R: tauri::Runtime>(
 ) -> Result<(), String> {
     let path = app.path().app_data_dir().unwrap().join("llm.gguf");
     app.download_model(path, channel).await
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn load_model<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    let model_path = app.path().app_data_dir().unwrap().join("llm.gguf");
-    app.load_model(model_path).await.map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn unload_model<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    app.unload_model().await
 }
 
 #[tauri::command]

@@ -93,9 +93,9 @@ async fn websocket(socket: WebSocket, _params: ListenParams, model: rwhisper::Wh
     let mut stream = {
         let audio_source = WebSocketAudioSource::new(ws_receiver, 16 * 1000);
         let chunked =
-            crate::chunker::FixedChunkStream::new(audio_source, std::time::Duration::from_secs(15));
+            crate::chunker::FixedChunkStream::new(audio_source, std::time::Duration::from_secs(12));
 
-        rwhisper::TranscribeChunkedAudioStreamExt::transcribe(chunked, model).timestamped()
+        rwhisper::TranscribeChunkedAudioStreamExt::transcribe(chunked, model)
     };
 
     tracing::info!("stream_started");
@@ -104,6 +104,11 @@ async fn websocket(socket: WebSocket, _params: ListenParams, model: rwhisper::Wh
         let text = chunk.text().to_string();
         let start = chunk.start() as u64;
         let duration = chunk.duration() as u64;
+
+        if chunk.confidence() < 0.8 && text.len() < 12 {
+            tracing::warn!("skipping_transcript: {}", text);
+            continue;
+        }
 
         let data = ListenOutputChunk::Transcribe(hypr_db_user::TranscriptChunk {
             text,
@@ -120,7 +125,7 @@ async fn websocket(socket: WebSocket, _params: ListenParams, model: rwhisper::Wh
         }
     }
 
-    ws_sender.close().await.unwrap();
+    let _ = ws_sender.close().await;
     tracing::info!("websocket_disconnected");
 }
 
@@ -179,7 +184,7 @@ mod tests {
     async fn test_health() {
         let state = ServerState {
             cache_dir: "/Users/yujonglee/Library/Application Support/com.hyprnote.dev/".into(),
-            model_type: rwhisper::WhisperSource::QuantizedDistilLargeV3,
+            model_type: rwhisper::WhisperSource::QuantizedLargeV3Turbo,
         };
 
         let server = run_server(state).await.unwrap();

@@ -3,22 +3,14 @@ use std::path::PathBuf;
 
 use tauri::{ipc::Channel, Manager, Runtime};
 
-#[derive(serde::Serialize, specta::Type)]
-pub struct Status {
-    pub model_loaded: bool,
-    pub server_running: bool,
-}
-
 pub trait LocalLlmPluginExt<R: Runtime> {
     fn api_base(&self) -> impl Future<Output = Option<String>>;
-    fn get_status(&self) -> impl Future<Output = Status>;
+    fn is_server_running(&self) -> impl Future<Output = bool>;
     fn download_model(
         &self,
         path: PathBuf,
         channel: Channel<u8>,
     ) -> impl Future<Output = Result<(), String>>;
-    fn load_model(&self, p: impl Into<PathBuf>) -> impl Future<Output = Result<(), crate::Error>>;
-    fn unload_model(&self) -> impl Future<Output = Result<(), String>>;
     fn start_server(&self) -> impl Future<Output = Result<(), String>>;
     fn stop_server(&self) -> impl Future<Output = Result<(), String>>;
 }
@@ -32,14 +24,10 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn get_status(&self) -> Status {
+    async fn is_server_running(&self) -> bool {
         let state = self.state::<crate::SharedState>();
         let s = state.lock().await;
-
-        Status {
-            model_loaded: s.model.is_some(),
-            server_running: s.server.is_some(),
-        }
+        s.server.is_some()
     }
 
     #[tracing::instrument(skip_all)]
@@ -62,40 +50,15 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn load_model(&self, model_path: impl Into<PathBuf>) -> Result<(), crate::Error> {
-        let state = self.state::<crate::SharedState>();
-
-        {
-            let s = state.lock().await;
-            if s.model.is_some() {
-                return Ok(());
-            }
-        }
-
-        let model = hypr_llama::Llama::new(model_path)?;
-
-        {
-            let mut s = state.lock().await;
-            s.model = Some(model);
-        }
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn unload_model(&self) -> Result<(), String> {
-        let state = self.state::<crate::SharedState>();
-
-        {
-            let mut s = state.lock().await;
-            s.model.take();
-        }
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
     async fn start_server(&self) -> Result<(), String> {
         let state = self.state::<crate::SharedState>();
-        let server = crate::server::run_server(state.inner().clone())
+
+        let model_manager = {
+            let s = state.lock().await;
+            crate::ModelManager::new(s.model_path.clone())
+        };
+
+        let server = crate::server::run_server(model_manager)
             .await
             .map_err(|e| e.to_string())?;
 

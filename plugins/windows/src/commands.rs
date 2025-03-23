@@ -16,7 +16,8 @@ pub async fn window_get_floating(
     app: tauri::AppHandle<tauri::Wry>,
     window: HyprWindow,
 ) -> Result<bool, String> {
-    Ok(app.window_get_floating(window).map_err(|e| e.to_string())?)
+    let v = app.window_get_floating(window).map_err(|e| e.to_string())?;
+    Ok(v)
 }
 
 #[tauri::command]

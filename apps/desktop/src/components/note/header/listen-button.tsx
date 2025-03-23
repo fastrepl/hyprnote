@@ -1,12 +1,14 @@
-import { Ear, EarOff, MicIcon, SpeakerIcon } from "lucide-react";
-import { useState } from "react";
+import { Trans } from "@lingui/react/macro";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { EarIcon, EarOffIcon, MicIcon, SpeakerIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
 
+import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-import { Trans } from "@lingui/react/macro";
 
 interface ListenButtonProps {
   isListening: boolean;
@@ -22,6 +24,7 @@ export default function ListenButton({
   isCurrent,
 }: ListenButtonProps) {
   const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleClick = () => {
     if (!(isListening && isCurrent)) {
@@ -29,13 +32,44 @@ export default function ListenButton({
     }
   };
 
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["mic-muted"] });
+    queryClient.invalidateQueries({ queryKey: ["speaker-muted"] });
+  }, [isListening]);
+
+  const micMuted = useQuery({
+    queryKey: ["mic-muted"],
+    queryFn: () => listenerCommands.getMicMuted(),
+  });
+
+  const speakerMuted = useQuery({
+    queryKey: ["speaker-muted"],
+    queryFn: () => listenerCommands.getSpeakerMuted(),
+  });
+
+  // TOOD
+  useMutation({
+    mutationFn: () => listenerCommands.setMicMuted(!micMuted.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mic-muted"] });
+    },
+  });
+
+  // TODO
+  useMutation({
+    mutationFn: () => listenerCommands.setSpeakerMuted(!speakerMuted.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["speaker-muted"] });
+    },
+  });
+
   const button = (
     <Button
       variant={isListening && isCurrent ? "default" : "outline"}
       onClick={handleClick}
       className="p-2"
     >
-      {isListening && isCurrent ? <Ear size={20} /> : <EarOff size={20} />}
+      {isListening && isCurrent ? <EarIcon size={20} /> : <EarOffIcon size={20} />}
       {isListening && isCurrent && <SoundIndicator theme="dark" />}
     </Button>
   );

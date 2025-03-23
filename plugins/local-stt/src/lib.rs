@@ -79,7 +79,7 @@ mod test {
             .with_huggingface_token(Some("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".to_string()));
 
         rwhisper::Whisper::builder()
-            .with_source(rwhisper::WhisperSource::QuantizedDistilLargeV3)
+            .with_source(rwhisper::WhisperSource::QuantizedLargeV3Turbo)
             .with_cache(cache)
             .build_with_loading_handler(|progress| {
                 println!("{:?}", progress);
@@ -115,9 +115,11 @@ mod test {
         let listen_stream = listen_client.from_audio(audio_source).await.unwrap();
         let mut listen_stream = Box::pin(listen_stream);
 
+        println!("started");
         while let Some(chunk) = listen_stream.next().await {
             println!("{:?}", chunk);
         }
+        println!("stopped");
 
         app.stop_server().await.unwrap();
     }

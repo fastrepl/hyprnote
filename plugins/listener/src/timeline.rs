@@ -141,7 +141,7 @@ impl Timeline {
         let filtered_transcripts = self.transcripts.iter().filter(|t| {
             filter
                 .last_n_seconds
-                .map_or(true, |n| t.end >= max_end.saturating_sub(n * 1000))
+                .is_none_or(|n| t.end >= max_end.saturating_sub(n * 1000))
         });
 
         for transcript in filtered_transcripts {

@@ -15,14 +15,14 @@ impl Database {
     pub fn conn(&self) -> Result<libsql::Connection, crate::Error> {
         match self {
             Database::InMemory(conn) => Ok(conn.clone()),
-            Database::NotInMemory(db) => db.connect().map_err(|e| Into::into(e)),
+            Database::NotInMemory(db) => db.connect().map_err(Into::into),
         }
     }
 
     pub async fn sync(&self) -> Result<(), crate::Error> {
         match self {
             Database::InMemory(_) => Ok(()),
-            Database::NotInMemory(db) => db.sync().await.map_err(|e| Into::into(e)).map(|_| ()),
+            Database::NotInMemory(db) => db.sync().await.map_err(Into::into).map(|_| ()),
         }
     }
 }

@@ -124,32 +124,6 @@ Denies the is_server_running command without any pre-configured scope.
 <tr>
 <td>
 
-`local-stt:allow-load-model`
-
-</td>
-<td>
-
-Enables the load_model command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-stt:deny-load-model`
-
-</td>
-<td>
-
-Denies the load_model command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `local-stt:allow-start-server`
 
 </td>
@@ -195,32 +169,6 @@ Enables the stop_server command without any pre-configured scope.
 <td>
 
 Denies the stop_server command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-stt:allow-unload-model`
-
-</td>
-<td>
-
-Enables the unload_model command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-stt:deny-unload-model`
-
-</td>
-<td>
-
-Denies the unload_model command without any pre-configured scope.
 
 </td>
 </tr>

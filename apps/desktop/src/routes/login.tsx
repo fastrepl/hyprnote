@@ -1,19 +1,16 @@
-import { baseUrl } from "@/client";
+import { Trans, useLingui } from "@lingui/react/macro";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { message } from "@tauri-apps/plugin-dialog";
+import { Pause, Play } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { commands } from "@/types";
-import { commands as authCommands, events, type RequestParams } from "@hypr/plugin-auth";
+import { commands as authCommands, events } from "@hypr/plugin-auth";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
-import { Button } from "@hypr/ui/components/ui/button";
 import { Particles } from "@hypr/ui/components/ui/particles";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
-import { Trans, useLingui } from "@lingui/react/macro";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { message } from "@tauri-apps/plugin-dialog";
-import { open } from "@tauri-apps/plugin-shell";
-import { Pause, Play } from "lucide-react";
-import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/login")({
   component: Component,
@@ -27,7 +24,6 @@ export const Route = createFileRoute("/login")({
 });
 
 function Component() {
-  const { code, fingerprint } = Route.useLoaderData();
   const navigate = useNavigate();
   const { t } = useLingui();
 
@@ -42,7 +38,7 @@ function Component() {
 
       events.authEvent.listen(({ payload }) => {
         if (payload === "success") {
-          commands.setupDb().then(() => {
+          commands.setupDbForCloud().then(() => {
             navigate({ to: "/onboarding", replace: true });
           });
           return;
@@ -65,34 +61,38 @@ function Component() {
     return () => cleanup?.();
   }, []);
 
-  const url = useQuery({
-    queryKey: ["oauth-url", port],
-    enabled: !!port,
-    queryFn: () => {
-      const u = new URL(baseUrl);
+  // const url = useQuery({
+  //   queryKey: ["oauth-url", port],
+  //   enabled: !!port,
+  //   queryFn: () => {
+  //     const u = new URL(baseUrl);
 
-      u.pathname = "/auth/connect";
+  //     u.pathname = "/auth/connect";
 
-      const params: RequestParams = {
-        c: code,
-        f: fingerprint,
-        p: port!,
-      };
-      u.searchParams.set("c", params.c);
-      u.searchParams.set("f", params.f);
-      u.searchParams.set("p", params.p.toString());
+  //     const params: RequestParams = {
+  //       c: code,
+  //       f: fingerprint,
+  //       p: port!,
+  //     };
+  //     u.searchParams.set("c", params.c);
+  //     u.searchParams.set("f", params.f);
+  //     u.searchParams.set("p", params.p.toString());
 
-      return u.toString();
-    },
-  });
+  //     return u.toString();
+  //   },
+  // });
 
-  const handleSignIn = () => {
-    if (url.data) {
-      open(url.data);
-    } else {
-      message("Failed to start authentication process!");
-    }
+  const handleStartLocal = () => {
+    navigate({ to: "/onboarding" });
   };
+
+  // const handleStartCloud = () => {
+  //   if (url.data) {
+  //     open(url.data);
+  //   } else {
+  //     message("Failed to start authentication process!");
+  //   }
+  // }
 
   return (
     <main className="relative flex h-screen flex-col items-center justify-center overflow-auto p-4">
@@ -119,14 +119,14 @@ function Component() {
             animation="slideUp"
             by="word"
             once
-            className="mb-12 text-center text-lg font-medium text-neutral-600 md:text-xl lg:text-2xl"
+            className="mb-16 text-center text-lg font-medium text-neutral-600 md:text-xl lg:text-2xl"
           >
             {t`AI notepad for meetings`}
           </TextAnimate>
 
           <PushableButton
             disabled={port === null}
-            onClick={handleSignIn}
+            onClick={handleStartLocal}
             className="mb-4 w-full"
           >
             <Trans>Get Started</Trans>
@@ -134,7 +134,15 @@ function Component() {
         </div>
       </div>
 
-      <SkipToUseLocally />
+      {
+        /* <Button
+        variant="ghost"
+        className="mt-8 absolute bottom-2 z-10"
+        onClick={handleStartLocal}
+      >
+        <Trans>Skip to use locally</Trans>
+      </Button> */
+      }
 
       <Particles
         className="absolute inset-0 z-0"
@@ -144,22 +152,6 @@ function Component() {
         refresh
       />
     </main>
-  );
-}
-
-function SkipToUseLocally() {
-  const navigate = useNavigate();
-
-  return (
-    <Button
-      variant="ghost"
-      className="mt-8 absolute bottom-2 z-10"
-      onClick={() => {
-        navigate({ to: "/onboarding" });
-      }}
-    >
-      <Trans>Skip to use locally</Trans>
-    </Button>
   );
 }
 

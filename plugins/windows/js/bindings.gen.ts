@@ -39,7 +39,7 @@ navigate: "plugin:windows:navigate"
 
 /** user-defined types **/
 
-export type HyprWindow = "main" | { note: string } | "calendar" | "settings"
+export type HyprWindow = "main" | { note: string } | { human: string } | { organization: string } | "calendar" | "settings" | { video: string }
 export type Navigate = { path: string }
 
 /** tauri-specta globals **/

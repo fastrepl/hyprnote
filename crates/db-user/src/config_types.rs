@@ -51,7 +51,7 @@ impl Default for ConfigGeneral {
     fn default() -> Self {
         Self {
             autostart: true,
-            display_language: LanguageCode::Ko,
+            display_language: LanguageCode::En,
             jargons: vec![],
             tags: vec![],
         }

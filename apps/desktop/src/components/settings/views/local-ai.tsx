@@ -18,11 +18,6 @@ export default function LocalAI() {
     queryFn: async () => localLlmCommands.isServerRunning(),
   });
 
-  const llmLoaded = useQuery({
-    queryKey: ["local-llm", "loaded"],
-    queryFn: async () => localLlmCommands.isModelLoaded(),
-  });
-
   const toggleLocalStt = useMutation({
     mutationFn: async () => {
       if (sttRunning.data) {
@@ -49,19 +44,6 @@ export default function LocalAI() {
     },
   });
 
-  const toggleLocalLlmModel = useMutation({
-    mutationFn: async () => {
-      if (llmLoaded.data) {
-        await localLlmCommands.unloadModel();
-      } else {
-        await localLlmCommands.loadModel();
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["local-llm", "loaded"] });
-    },
-  });
-
   const checkLLM = useMutation({
     mutationFn: async () => {
       const provider = await modelProvider();
@@ -74,6 +56,9 @@ export default function LocalAI() {
       if (!text) {
         throw new Error("no text");
       }
+    },
+    onError: (error) => {
+      console.error(error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["local-llm", "status"] });
@@ -100,12 +85,6 @@ export default function LocalAI() {
         onClick={() => toggleLocalLlmServer.mutate()}
       >
         {llmRunning.data ? "Stop Server" : "Start Server"}
-      </button>
-      <button
-        className="bg-blue-500 text-white p-2 rounded-md"
-        onClick={() => toggleLocalLlmModel.mutate()}
-      >
-        {llmLoaded.data ? "Unload Model" : "Load Model"}
       </button>
 
       <button

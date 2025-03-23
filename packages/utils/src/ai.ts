@@ -8,7 +8,9 @@ import { fetch as customFetch } from "@hypr/utils";
 
 const getModel = async (model: string) => {
   const apiBase = await connectorCommands.getApiBase("auto-llm");
-  const apiKey = await authCommands.getFromVault("remote-server");
+  const apiKey = apiBase?.includes("localhost") || apiBase?.includes("127.0.0.1")
+    ? undefined
+    : await authCommands.getFromVault("remote-server");
 
   if (!apiBase) {
     throw new Error("no_api_base");
@@ -16,7 +18,7 @@ const getModel = async (model: string) => {
 
   const openai = createOpenAI({
     baseURL: apiBase,
-    apiKey: apiKey ?? undefined,
+    apiKey: apiKey ?? "SOMETHING_NON_EMPTY",
     fetch: customFetch,
   });
 

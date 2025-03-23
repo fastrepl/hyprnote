@@ -21,6 +21,10 @@ export default function ModelDownloadNotification() {
   });
 
   useEffect(() => {
+    if (!checkForModelDownload.data) {
+      return;
+    }
+
     if (checkForModelDownload.data?.stt && checkForModelDownload.data?.llm) {
       return;
     }

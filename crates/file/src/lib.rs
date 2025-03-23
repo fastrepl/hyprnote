@@ -7,7 +7,11 @@ pub use remote::*;
 pub use types::*;
 
 use futures_util::StreamExt;
-use std::{io::Write, path::Path};
+use std::{
+    fs::File,
+    io::{BufReader, Read, Write},
+    path::Path,
+};
 
 pub async fn download_file_with_callback<F: Fn(u64, u64)>(
     url: impl reqwest::IntoUrl,
@@ -17,7 +21,7 @@ pub async fn download_file_with_callback<F: Fn(u64, u64)>(
     let client = reqwest::Client::new();
 
     let res = client.get(url.into_url()?).send().await?;
-    let total_size = res.content_length().unwrap_or(std::u64::MAX);
+    let total_size = res.content_length().unwrap_or(u64::MAX);
 
     if let Some(parent) = output_path.as_ref().parent() {
         std::fs::create_dir_all(parent)?;
@@ -36,4 +40,50 @@ pub async fn download_file_with_callback<F: Fn(u64, u64)>(
     }
 
     Ok(())
+}
+
+pub fn calculate_file_checksum(path: impl AsRef<Path>) -> Result<u32, Error> {
+    let file = File::open(path)?;
+    let mut reader = BufReader::new(file);
+    let mut hasher = crc32fast::Hasher::new();
+
+    let mut buffer = [0; 65536]; // 64KB buffer
+
+    loop {
+        let bytes_read = reader.read(&mut buffer)?;
+        if bytes_read == 0 {
+            // eof
+            break;
+        }
+        hasher.update(&buffer[..bytes_read]);
+    }
+
+    Ok(hasher.finalize())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[ignore]
+    fn test_calculate_file_checksum() {
+        let files = vec![
+            dirs::data_dir().unwrap().join(
+                "com.hyprnote.dev/Demonthos/candle-quantized-whisper-large-v3-turbo/main//config.json",
+            ),
+            dirs::data_dir().unwrap().join(
+                "com.hyprnote.dev/Demonthos/candle-quantized-whisper-large-v3-turbo/main//model.gguf",
+            ),
+            dirs::data_dir().unwrap().join(
+                "com.hyprnote.dev/Demonthos/candle-quantized-whisper-large-v3-turbo/main//tokenizer.json",
+            ),
+            dirs::data_dir().unwrap().join("com.hyprnote.dev/llm.gguf"),
+        ];
+
+        for file in files {
+            let checksum = calculate_file_checksum(&file).unwrap();
+            println!("[{:?}]\n{}\n\n", file, checksum);
+        }
+    }
 }

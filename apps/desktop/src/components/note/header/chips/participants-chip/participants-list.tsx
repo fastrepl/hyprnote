@@ -5,6 +5,7 @@ import { Mail, PenIcon } from "lucide-react";
 import { KeyboardEvent, useMemo, useState } from "react";
 
 import { type Human } from "@hypr/plugin-db";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { getInitials } from "@hypr/utils";
@@ -98,6 +99,10 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
     }
   };
 
+  const handleClickHuman = (human: Human) => {
+    windowsCommands.windowShow({ human: human.id });
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <div className="text-xs font-medium">Participants</div>
@@ -116,7 +121,12 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
                       {member.full_name ? getInitials(member.full_name) : "?"}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="text-sm">{member.full_name}</div>
+                  <button
+                    className="cursor-pointer text-sm hover:underline"
+                    onClick={() => handleClickHuman(member)}
+                  >
+                    {member.full_name}
+                  </button>
                 </div>
 
                 <div className="flex items-center gap-1 transition-colors">

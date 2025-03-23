@@ -3,11 +3,8 @@
 Default permissions for the plugin
 
 - `allow-is-server-running`
-- `allow-is-model-loaded`
 - `allow-is-model-downloaded`
 - `allow-download-model`
-- `allow-load-model`
-- `allow-unload-model`
 - `allow-start-server`
 - `allow-stop-server`
 
@@ -101,32 +98,6 @@ Denies the is_model_downloaded command without any pre-configured scope.
 <tr>
 <td>
 
-`local-llm:allow-is-model-loaded`
-
-</td>
-<td>
-
-Enables the is_model_loaded command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-llm:deny-is-model-loaded`
-
-</td>
-<td>
-
-Denies the is_model_loaded command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `local-llm:allow-is-server-running`
 
 </td>
@@ -146,32 +117,6 @@ Enables the is_server_running command without any pre-configured scope.
 <td>
 
 Denies the is_server_running command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-llm:allow-load-model`
-
-</td>
-<td>
-
-Enables the load_model command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-llm:deny-load-model`
-
-</td>
-<td>
-
-Denies the load_model command without any pre-configured scope.
 
 </td>
 </tr>
@@ -224,32 +169,6 @@ Enables the stop_server command without any pre-configured scope.
 <td>
 
 Denies the stop_server command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-llm:allow-unload-model`
-
-</td>
-<td>
-
-Enables the unload_model command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-llm:deny-unload-model`
-
-</td>
-<td>
-
-Denies the unload_model command without any pre-configured scope.
 
 </td>
 </tr>

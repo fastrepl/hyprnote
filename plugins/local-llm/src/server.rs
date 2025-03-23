@@ -28,11 +28,11 @@ impl ServerHandle {
     }
 }
 
-pub async fn run_server(state: crate::SharedState) -> Result<ServerHandle, crate::Error> {
+pub async fn run_server(model_manager: crate::ModelManager) -> Result<ServerHandle, crate::Error> {
     let app = Router::new()
         .route("/health", get(health))
         .route("/chat/completions", post(chat_completions))
-        .with_state(state)
+        .with_state(model_manager)
         .layer(
             CorsLayer::new()
                 .allow_origin(cors::Any)
@@ -69,7 +69,7 @@ async fn health() -> impl IntoResponse {
 }
 
 async fn chat_completions(
-    AxumState(state): AxumState<crate::SharedState>,
+    AxumState(model_manager): AxumState<crate::ModelManager>,
     Json(request): Json<CreateChatCompletionRequest>,
 ) -> Response {
     #[allow(deprecated)]
@@ -123,15 +123,13 @@ async fn chat_completions(
         refusal: None,
     };
 
-    let state = state.lock().await;
-
-    let model = match &state.model {
-        Some(model) => model,
-        None => return StatusCode::SERVICE_UNAVAILABLE.into_response(),
+    let model = match model_manager.get_model().await {
+        Ok(model) => model,
+        Err(_) => return StatusCode::SERVICE_UNAVAILABLE.into_response(),
     };
 
     if request.stream.unwrap_or(false) {
-        let stream = build_response(model, &request)
+        let stream = build_response(&model, &request)
             .map(move |chunk| CreateChatCompletionStreamResponse {
                 choices: vec![ChatChoiceStream {
                     index: 0,
@@ -152,7 +150,7 @@ async fn chat_completions(
 
         sse::Sse::new(stream).into_response()
     } else {
-        let completion = build_response(model, &request).collect::<String>().await;
+        let completion = build_response(&model, &request).collect::<String>().await;
 
         let res = CreateChatCompletionResponse {
             choices: vec![ChatChoice {

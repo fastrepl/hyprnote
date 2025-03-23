@@ -78,9 +78,9 @@ impl Handle {
         };
 
         if let Ok(true) = rx.recv() {
-            self.calendar_access_granted = true;
+            self.contacts_access_granted = true;
         } else {
-            self.calendar_access_granted = false;
+            self.contacts_access_granted = false;
         }
     }
 

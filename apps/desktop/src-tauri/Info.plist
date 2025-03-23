@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
   <key>NSMicrophoneUsageDescription</key>
-  <string>This app requires access to your microphone to record your voice during online meetings.</string>
+  <string>This app requires access to your microphone to record your voice during the meeting.</string>
   <key>NSAudioCaptureUsageDescription</key>
-  <string>This app requires access to the microphone to capture audio from other participants in the online meeting.</string>
-  <key>NSCalendarsUsageDescription</key>
-  <string>This app requires access to your calendar to read events.</string>
+  <string>This app requires access to the system audio to record voice from other participants in the meeting.</string>
+  <key>NSContactsUsageDescription</key>
+  <string>This app requires contacts access to function properly.</string>
   <key>NSCalendarsFullAccessUsageDescription</key>
   <string>This app requires access to your calendar to read events.</string>
 </dict>

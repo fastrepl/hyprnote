@@ -20,6 +20,7 @@ rodio = { workspace = true, features = ["vorbis"] }
 tokio-stream = { workspace = true }
 
 kalosm-sound = { workspace = true, default-features = false }
+ringbuf = "0.4.7"
 
 [target.'cfg(target_os = "macos")'.dependencies.cidre]
 git = "https://github.com/yury/cidre"

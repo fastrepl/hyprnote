@@ -79,7 +79,7 @@ impl WebSocketClient {
                     msg = ws_receiver.next() => {
                         match msg {
                             Some(Ok(msg)) => {
-                                let _ = activity_tx.send(());
+                                let _ = activity_tx.send(()).await;
 
                                 match msg {
                                     Message::Text(_) | Message::Binary(_) => {

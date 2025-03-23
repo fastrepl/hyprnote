@@ -10,20 +10,11 @@ export const commands = {
 async isServerRunning() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-llm|is_server_running");
 },
-async isModelLoaded() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:local-llm|is_model_loaded");
-},
 async isModelDownloaded() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-llm|is_model_downloaded");
 },
 async downloadModel(channel: TAURI_CHANNEL<number>) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-llm|download_model", { channel });
-},
-async loadModel() : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-llm|load_model");
-},
-async unloadModel() : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-llm|unload_model");
 },
 async startServer() : Promise<null> {
     return await TAURI_INVOKE("plugin:local-llm|start_server");

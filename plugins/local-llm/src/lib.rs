@@ -1,22 +1,35 @@
+use std::sync::Arc;
 use tauri::{Manager, Wry};
+use tokio::sync::Mutex;
 
 mod commands;
 mod error;
 mod ext;
+mod manager;
 mod server;
 
 pub use error::*;
 pub use ext::*;
+use manager::ModelManager;
 
 const PLUGIN_NAME: &str = "local-llm";
 
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 
-#[derive(Default)]
 pub struct State {
     pub api_base: Option<String>,
-    pub model: Option<hypr_llama::Llama>,
     pub server: Option<crate::server::ServerHandle>,
+    pub model_path: std::path::PathBuf,
+}
+
+impl State {
+    pub fn new(model_path: std::path::PathBuf) -> Self {
+        Self {
+            api_base: None,
+            server: None,
+            model_path,
+        }
+    }
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -24,11 +37,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::is_server_running::<Wry>,
-            commands::is_model_loaded::<Wry>,
             commands::is_model_downloaded::<Wry>,
             commands::download_model::<Wry>,
-            commands::load_model::<Wry>,
-            commands::unload_model::<Wry>,
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
         ])
@@ -41,7 +51,9 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            app.manage(SharedState::default());
+            let model_path = app.path().app_data_dir().unwrap().join("llm.gguf");
+            let state: SharedState = Arc::new(Mutex::new(State::new(model_path)));
+            app.manage(state);
             Ok(())
         })
         .build()
@@ -87,65 +99,6 @@ mod test {
             .join("llm.gguf")
     }
 
-    #[tokio::test]
-    #[ignore]
-    // cargo test test_dynamic_loading -p tauri-plugin-local-llm -- --ignored --nocapture
-    async fn test_dynamic_loading() {
-        let app = create_app(tauri::test::mock_builder());
-        app.start_server().await.unwrap();
-
-        let api_base = app.api_base().await.unwrap();
-        let client = reqwest::Client::new();
-
-        let req = CreateChatCompletionRequest {
-            model: "llama3.2".to_string(),
-            messages: vec![ChatCompletionRequestMessage::User(
-                ChatCompletionRequestUserMessage {
-                    content: ChatCompletionRequestUserMessageContent::Text(
-                        "Hello, world!".to_string(),
-                    ),
-                    ..Default::default()
-                },
-            )],
-            ..Default::default()
-        };
-
-        let res = client
-            .get(format!("{}/health", api_base))
-            .send()
-            .await
-            .unwrap();
-        assert_eq!(res.status(), axum::http::StatusCode::OK);
-
-        let res = client
-            .post(format!("{}/chat/completions", api_base))
-            .json(&req)
-            .send()
-            .await
-            .unwrap();
-        assert_eq!(res.status(), axum::http::StatusCode::SERVICE_UNAVAILABLE);
-
-        let _ = app.load_model(model_path(&app)).await.unwrap();
-
-        let res = client
-            .post(format!("{}/chat/completions", api_base))
-            .json(&req)
-            .send()
-            .await
-            .unwrap();
-        assert_eq!(res.status(), axum::http::StatusCode::OK);
-
-        let _ = app.unload_model().await.unwrap();
-
-        let res = client
-            .post(format!("{}/chat/completions", api_base))
-            .json(&req)
-            .send()
-            .await
-            .unwrap();
-        assert_eq!(res.status(), axum::http::StatusCode::SERVICE_UNAVAILABLE);
-    }
-
     fn shared_request() -> CreateChatCompletionRequest {
         CreateChatCompletionRequest {
             messages: vec![ChatCompletionRequestMessage::User(
@@ -164,7 +117,6 @@ mod test {
     // cargo test test_non_streaming_response -p tauri-plugin-local-llm -- --ignored --nocapture
     async fn test_non_streaming_response() {
         let app = create_app(tauri::test::mock_builder());
-        app.load_model(model_path(&app)).await.unwrap();
         app.start_server().await.unwrap();
         let api_base = app.api_base().await.unwrap();
 
@@ -194,7 +146,6 @@ mod test {
     // cargo test test_streaming_response -p tauri-plugin-local-llm -- --ignored --nocapture
     async fn test_streaming_response() {
         let app = create_app(tauri::test::mock_builder());
-        app.load_model(model_path(&app)).await.unwrap();
         app.start_server().await.unwrap();
         let api_base = app.api_base().await.unwrap();
 

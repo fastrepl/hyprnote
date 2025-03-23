@@ -335,16 +335,6 @@
           "const": "deny-is-server-running"
         },
         {
-          "description": "Enables the load_model command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-load-model"
-        },
-        {
-          "description": "Denies the load_model command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-load-model"
-        },
-        {
           "description": "Enables the start_server command without any pre-configured scope.",
           "type": "string",
           "const": "allow-start-server"
@@ -363,16 +353,6 @@
           "description": "Denies the stop_server command without any pre-configured scope.",
           "type": "string",
           "const": "deny-stop-server"
-        },
-        {
-          "description": "Enables the unload_model command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-unload-model"
-        },
-        {
-          "description": "Denies the unload_model command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-unload-model"
         },
         {
           "description": "Default permissions for the plugin",

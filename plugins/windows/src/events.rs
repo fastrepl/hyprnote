@@ -6,10 +6,8 @@ pub fn on_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: &tau
     match event {
         tauri::WindowEvent::CloseRequested { api, .. } => {
             if let Ok(w) = window.label().parse::<HyprWindow>() {
-                if w == HyprWindow::Main {
-                    if let Ok(_) = window.hide() {
-                        api.prevent_close();
-                    }
+                if w == HyprWindow::Main && window.hide().is_ok() {
+                    api.prevent_close();
                 }
             }
         }

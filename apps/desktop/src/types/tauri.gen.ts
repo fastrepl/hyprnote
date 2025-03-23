@@ -7,8 +7,14 @@
 
 
 export const commands = {
-async setupDb() : Promise<null> {
-    return await TAURI_INVOKE("setup_db");
+async isOnboardingNeeded() : Promise<boolean> {
+    return await TAURI_INVOKE("is_onboarding_needed");
+},
+async setOnboardingNeeded(v: boolean) : Promise<null> {
+    return await TAURI_INVOKE("set_onboarding_needed", { v });
+},
+async setupDbForCloud() : Promise<null> {
+    return await TAURI_INVOKE("setup_db_for_cloud");
 }
 }
 

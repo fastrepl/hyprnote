@@ -5,6 +5,7 @@ import { type as getOsType } from "@tauri-apps/plugin-os";
 import { MicIcon, Volume2Icon } from "lucide-react";
 import { useEffect } from "react";
 
+import { commands } from "@/types";
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
@@ -21,6 +22,7 @@ function Component() {
   const { t } = useLingui();
 
   useEffect(() => {
+    commands.setOnboardingNeeded(false);
     return () => {
       sfxCommands.stop("BGM");
     };

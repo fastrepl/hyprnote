@@ -14,6 +14,7 @@ reqwest = { workspace = true, features = ["multipart", "stream"] }
 tokio = { workspace = true, features = ["rt", "macros", "fs"] }
 
 [dev-dependencies]
+dirs = { workspace = true }
 hypr-s3 = { path = "../../crates/s3", package = "s3" }
 tempfile = { workspace = true }
 testcontainers-modules = { workspace = true, features = ["minio"] }

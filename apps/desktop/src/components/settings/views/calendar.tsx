@@ -51,14 +51,12 @@ function OutlookIcon() {
 }
 
 function Integration({ type }: { type: CalendarIntegration }) {
-  // For Apple Calendar, check both calendar and contacts access
   const calendarAccess = useQuery({
     queryKey: ["settings", "calendarAccess"],
     queryFn: async () => type === "apple-calendar" ? appleCalendarCommands.calendarAccessStatus() : false,
     enabled: type === "apple-calendar",
   });
 
-  // For OAuth integrations (Google, Outlook), check if integration exists
   const integrations = useQuery({
     ...getApiDesktopUserIntegrationsOptions({ client }),
     enabled: type !== "apple-calendar",
@@ -68,7 +66,6 @@ function Integration({ type }: { type: CalendarIntegration }) {
     ? !!calendarAccess.data
     : !!integrations.data?.find((i) => i === type);
 
-  // Set the default value to open the accordion if not connected
   const defaultValue = !isConnected ? "item-1" : undefined;
 
   return (

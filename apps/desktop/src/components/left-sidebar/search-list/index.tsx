@@ -1,10 +1,10 @@
 import { BuildingIcon, CalendarIcon, FileTextIcon, UserIcon } from "lucide-react";
 
 import { type SearchMatch } from "@/stores/search";
-import { SessionMatch } from "./session-match";
 import { EventMatch } from "./event-match";
 import { HumanMatch } from "./human-match";
 import { OrganizationMatch } from "./organization-match";
+import { SessionMatch } from "./session-match";
 
 export default function SearchList({ matches }: { matches: SearchMatch[] }) {
   if (matches.length === 0) {

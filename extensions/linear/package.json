@@ -19,6 +19,7 @@
     "@hypr/extension-utils": "workspace:^",
     "@hypr/plugin-db": "workspace:^",
     "@hypr/ui": "workspace:^",
+    "@hypr/utils": "workspace:^",
     "@tanstack/react-query": "^5.67.2",
     "@tauri-apps/api": "^2.3.0",
     "@tauri-apps/plugin-http": "^2.4.2",

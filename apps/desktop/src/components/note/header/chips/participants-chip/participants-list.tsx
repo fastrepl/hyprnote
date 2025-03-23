@@ -1,11 +1,13 @@
-import { type Human } from "@hypr/plugin-db";
-import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { useLingui } from "@lingui/react/macro";
 import { RiCornerDownLeftLine, RiLinkedinBoxFill } from "@remixicon/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Mail, PenIcon } from "lucide-react";
 import { KeyboardEvent, useMemo, useState } from "react";
+
+import { type Human } from "@hypr/plugin-db";
+import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { getInitials } from "@hypr/utils";
 import { EditParticipantForm } from "./edit-participant-form";
 
 interface ParticipantsListProps {
@@ -26,14 +28,6 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
   useMemo(() => {
     setLocalParticipants(participants);
   }, [participants]);
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
 
   const groupedParticipants = useMemo(() => {
     const groups: Record<string, Human[]> = {

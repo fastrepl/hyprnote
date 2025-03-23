@@ -23,27 +23,31 @@ export default function Toolbar() {
       data-tauri-drag-region
       className={cn([
         "flex w-full items-center justify-between min-h-11 p-1 px-2 border-b",
-        isNote ? "border-border bg-neutral-50" : "border-transparent bg-transparent",
+        isMain ? "border-border bg-neutral-50" : "border-transparent bg-transparent",
       ])}
     >
-      {isNote && (
-        <div className="w-40 flex items-center" data-tauri-drag-region>
-          <LeftSidebarButton type="toolbar" />
-          <NewNoteButton />
-        </div>
-      )}
+      <div className="w-40 flex items-center justify-start" data-tauri-drag-region>
+        {isNote && (
+          <>
+            <LeftSidebarButton type="toolbar" />
+            <NewNoteButton />
+          </>
+        )}
+      </div>
 
       <SearchBar />
 
-      {isMain && (
-        <div
-          className="flex w-40 items-center justify-end"
-          data-tauri-drag-region
-        >
-          <ShareButton />
-          {isNote && <RightPanelButton />}
-        </div>
-      )}
+      <div
+        className="flex w-40 items-center justify-end"
+        data-tauri-drag-region
+      >
+        {isMain && (
+          <>
+            {isNote && <ShareButton />}
+            <RightPanelButton />
+          </>
+        )}
+      </div>
     </header>
   );
 }

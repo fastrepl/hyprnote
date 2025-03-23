@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { BottomSheet, BottomSheetContent } from "@hypr/ui/components/ui/bottom-sheet";
+import { getInitials } from "@hypr/utils";
 
 // Define the Participant interface since it's not exported from @hypr/plugin-db
 interface Participant {
@@ -13,14 +14,12 @@ interface ParticipantsSheetProps {
   open: boolean;
   onClose: () => void;
   groupedParticipants: Record<string, Participant[]>;
-  getInitials: (name: string) => string;
 }
 
 export function ParticipantsSheet({
   open,
   onClose,
   groupedParticipants,
-  getInitials,
 }: ParticipantsSheetProps) {
   return (
     <BottomSheet open={open} onClose={onClose}>

@@ -19,6 +19,7 @@
     "@hypr/plugin-misc": "workspace:^",
     "@hypr/plugin-template": "workspace:^",
     "@hypr/tiptap": "workspace:^",
+    "@hypr/utils": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@stackflow/config": "^1.2.1",
     "@stackflow/core": "^1.2.0",

@@ -3,6 +3,7 @@ import type { Session } from "../../client";
 
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { getInitials } from "@hypr/utils";
 
 interface SessionInfoProps {
   session: Session;
@@ -37,14 +38,6 @@ export function SessionInfo({ session }: SessionInfoProps) {
     day: "numeric",
     year: "numeric",
   });
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
 
   const groupedParticipants = {
     "Acme Inc": mockParticipants.filter(p => p.organization_id === "Acme Inc"),

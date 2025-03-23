@@ -50,7 +50,6 @@ export const NoteView: ActivityComponentType<"NoteView"> = () => {
     handlePublishNote,
     handleViewInCalendar,
     formatEventTime,
-    getInitials,
     audioLevel,
   } = useNote({ session });
 
@@ -115,7 +114,6 @@ export const NoteView: ActivityComponentType<"NoteView"> = () => {
         open={participantsSheetOpen}
         onClose={() => setParticipantsSheetOpen(false)}
         groupedParticipants={groupedParticipants}
-        getInitials={getInitials}
       />
 
       <CalendarEventSheet

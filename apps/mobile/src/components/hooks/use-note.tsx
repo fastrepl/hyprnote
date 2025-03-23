@@ -1,5 +1,6 @@
 import { type Session } from "@hypr/plugin-db";
 import { useEffect, useState } from "react";
+import { getInitials } from "@hypr/utils";
 
 const mockParticipants = [
   {
@@ -125,14 +126,6 @@ export function useNote({ session }: UseNoteProps) {
     return `${startFormat} - ${endFormat}`;
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
-
   return {
     participantsSheetOpen,
     setParticipantsSheetOpen,
@@ -158,6 +151,5 @@ export function useNote({ session }: UseNoteProps) {
     handleViewInCalendar,
     handlePublishNote,
     formatEventTime,
-    getInitials,
   };
 }

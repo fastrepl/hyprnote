@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@hypr/ui/components/ui/avat
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Card } from "@hypr/ui/components/ui/card";
+import { getInitials } from "@hypr/utils";
 import { ExternalLink, Plus } from "lucide-react";
 import type { Ticket } from "../../type";
 import { PriorityIcons } from "./priority";
@@ -42,15 +43,6 @@ export default function TicketCard({ ticket }: { ticket: Ticket }) {
         return StatusIcons.Backlog;
     }
   })();
-
-  const getInitials = (name: string) => {
-    if (name === "Unassigned") return "UN";
-    return name
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase();
-  };
 
   const handleCardClick = () => {
     if (ticket.link) {

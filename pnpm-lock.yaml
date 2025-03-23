@@ -17,6 +17,9 @@ importers:
       '@hypr/ui':
         specifier: workspace:^
         version: link:../../packages/ui
+      '@hypr/utils':
+        specifier: workspace:^
+        version: link:../../packages/utils
       '@nangohq/frontend':
         specifier: ^0.53.2
         version: 0.53.2
@@ -461,6 +464,9 @@ importers:
       '@hypr/ui':
         specifier: workspace:^
         version: link:../../packages/ui
+      '@hypr/utils':
+        specifier: workspace:^
+        version: link:../../packages/utils
       '@stackflow/config':
         specifier: ^1.2.1
         version: 1.2.1
@@ -711,6 +717,9 @@ importers:
       '@hypr/ui':
         specifier: workspace:^
         version: link:../../packages/ui
+      '@hypr/utils':
+        specifier: workspace:^
+        version: link:../../packages/utils
       '@tanstack/react-query':
         specifier: ^5.67.2
         version: 5.67.2(react@19.0.0)

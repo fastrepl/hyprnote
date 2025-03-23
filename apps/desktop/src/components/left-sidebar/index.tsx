@@ -1,8 +1,11 @@
 import { useMatch } from "@tanstack/react-router";
+import { CalendarDaysIcon, SettingsIcon } from "lucide-react";
 import { motion } from "motion/react";
 
 import { useHyprSearch, useLeftSidebar, useOngoingSession } from "@/contexts";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { Button } from "@hypr/ui/components/ui/button";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
 import AllList from "./all-list";
 import OngoingSession from "./ongoing-session";
@@ -32,6 +35,14 @@ export default function LeftSidebar() {
     return null;
   }
 
+  const handleClickSettings = () => {
+    windowsCommands.windowShow("settings");
+  };
+
+  const handleClickCalendar = () => {
+    windowsCommands.windowShow("calendar");
+  };
+
   return (
     <motion.nav
       layout
@@ -44,6 +55,24 @@ export default function LeftSidebar() {
         data-tauri-drag-region
         className="flex items-center justify-end min-h-11 px-2"
       >
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleClickSettings}
+          className="hover:bg-neutral-200"
+        >
+          <SettingsIcon className="size-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleClickCalendar}
+          className="hover:bg-neutral-200"
+        >
+          <CalendarDaysIcon className="size-4" />
+        </Button>
+
         <LeftSidebarButton type="sidebar" />
       </div>
 

@@ -135,12 +135,12 @@ impl HyprWindow {
 
                     window.set_maximizable(false)?;
                     window.set_minimizable(false)?;
-                    window.set_size(LogicalSize::new(640.0, 532.0))?;
-                    window.set_min_size(Some(LogicalSize::new(640.0, 532.0)))?;
+                    window.set_size(LogicalSize::new(800.0, 600.0))?;
+                    window.set_min_size(Some(LogicalSize::new(800.0, 600.0)))?;
 
                     {
                         let mut cursor = app.cursor_position().unwrap();
-                        cursor.x -= 640.0;
+                        cursor.x -= 800.0;
                         cursor.y -= 30.0;
                         window.set_position(cursor)?;
                     }

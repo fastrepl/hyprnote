@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-import { getInitials } from "@hypr/utils";
+import { extractWebsiteUrl, getInitials } from "@hypr/utils";
 
 export const Route = createFileRoute("/app/human/$id")({
   component: Component,
@@ -41,33 +41,7 @@ function Component() {
   const { human, organization } = Route.useLoaderData();
 
   const getOrganizationWebsite = () => {
-    if (!organization?.description) return null;
-
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const matches = organization.description.match(urlRegex);
-
-    if (!matches) return null;
-
-    const personalDomains = [
-      "gmail.com",
-      "yahoo.com",
-      "hotmail.com",
-      "outlook.com",
-      "icloud.com",
-      "aol.com",
-      "protonmail.com",
-      "mail.com",
-      "zoho.com",
-      "yandex.com",
-      "gmx.com",
-      "tutanota.com",
-    ];
-
-    const validUrls = matches.filter(url => {
-      return !personalDomains.some(domain => url.includes(domain));
-    });
-
-    return validUrls.length > 0 ? validUrls[0] : null;
+    return organization ? extractWebsiteUrl(organization.description) : null;
   };
 
   const { data: upcomingEvents = [] } = useQuery({

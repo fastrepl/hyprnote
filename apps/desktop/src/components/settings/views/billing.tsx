@@ -1,52 +1,10 @@
-import { Trans } from "@lingui/react/macro";
-import { ExternalLinkIcon } from "lucide-react";
+import { Trans, useLingui } from "@lingui/react/macro";
+import { CheckIcon, ExternalLinkIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@hypr/ui/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
-
-const pricingPlans = [
-  {
-    name: "Free",
-    description: "For those who are serious about their privacy",
-    monthlyPrice: 0,
-    annualPrice: 0,
-    features: [
-      "Works both in-person and remotely",
-      "Format notes using templates",
-      "Ask questions about past meetings",
-      "Live summary of the meeting",
-      "Works offline",
-    ],
-  },
-  {
-    name: "Pro",
-    description: "For those who are serious about their performance",
-    monthlyPrice: 19,
-    annualPrice: 15,
-    features: [
-      "Integration with other apps like Notion and Google Calendar",
-      "Long-term memory for past meetings and attendees",
-      "Much better AI performance",
-      "Meeting note sharing via links",
-      "Synchronization across multiple devices",
-    ],
-  },
-  {
-    name: "Team",
-    description: "For fast growing teams like energetic startups",
-    monthlyPrice: 25,
-    annualPrice: 20,
-    features: [
-      "Search & ask across all notes in workspace",
-      "Collaborate with others in meetings",
-      "Single sign-on for all users",
-    ],
-    isPerSeat: true,
-    comingSoon: true,
-  },
-];
 
 interface BillingProps {
   currentPlan?: string;
@@ -55,16 +13,59 @@ interface BillingProps {
 
 export default function Billing({ currentPlan, trialDaysLeft }: BillingProps) {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+  const { t } = useLingui();
+
+  const pricingPlans = [
+    {
+      name: t`Free`,
+      description: t`For those who are serious about their privacy`,
+      monthlyPrice: 0,
+      annualPrice: 0,
+      features: [
+        t`Works both in-person and remotely`,
+        t`Format notes using templates`,
+        t`Ask questions about past meetings`,
+        t`Live summary of the meeting`,
+        t`Works offline`,
+      ],
+    },
+    {
+      name: t`Pro`,
+      description: t`For those who are serious about their performance`,
+      monthlyPrice: 19,
+      annualPrice: 15,
+      features: [
+        t`Integration with other apps like Notion and Google Calendar`,
+        t`Long-term memory for past meetings and attendees`,
+        t`Much better AI performance`,
+        t`Meeting note sharing via links`,
+        t`Synchronization across multiple devices`,
+      ],
+    },
+    {
+      name: t`Team`,
+      description: t`For fast growing teams like energetic startups`,
+      monthlyPrice: 25,
+      annualPrice: 20,
+      features: [
+        t`Search & ask across all notes in workspace`,
+        t`Collaborate with others in meetings`,
+        t`Single sign-on for all users`,
+      ],
+      isPerSeat: true,
+      comingSoon: true,
+    },
+  ];
 
   const getButtonText = (planName: string) => {
     const plan = planName.toLowerCase();
-    if (plan === "team") return "Coming Soon";
-    if (currentPlan === plan) return "Current Plan";
-    if (currentPlan === "basic" && plan === "pro") return "Upgrade";
-    if (trialDaysLeft && plan === "pro") return "Free Trial";
+    if (plan === "team") return t`Coming Soon`;
+    if (currentPlan === plan) return t`Current Plan`;
+    if (currentPlan === "basic" && plan === "pro") return t`Upgrade`;
+    if (trialDaysLeft && plan === "pro") return t`Free Trial`;
     return billingCycle === "monthly"
-      ? "Start Monthly Plan"
-      : "Start Annual Plan";
+      ? t`Start Monthly Plan`
+      : t`Start Annual Plan`;
   };
 
   const getButtonProps = (planName: string) => {
@@ -101,7 +102,7 @@ export default function Billing({ currentPlan, trialDaysLeft }: BillingProps) {
       <div className="space-y-6">
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm font-medium">
-            <Trans>There&apos;s a plan for everyone</Trans>
+            <Trans>There's a plan for everyone</Trans>
           </p>
 
           <Tabs
@@ -154,18 +155,7 @@ export default function Billing({ currentPlan, trialDaysLeft }: BillingProps) {
                     {plan.features.map((feature) => (
                       <div key={feature} className="flex items-center">
                         <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 text-green-500"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
+                          <CheckIcon className="h-5 w-5 text-green-500" />
                         </div>
                         <span className="ml-2">{feature}</span>
                       </div>

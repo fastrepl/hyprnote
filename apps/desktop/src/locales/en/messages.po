@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"POT-Creation-Date: 2024-12-31 07:47+0900\n"
+"POT-Creation-Date: 2025-03-23 17:50+0900\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -14,52 +14,44 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
-#: src/components/settings-panel/views/calendar.tsx:116
+#: src/components/settings/views/calendar.tsx:116
 msgid "{0}"
 msgstr "{0}"
 
-#: src/components/note/NoteHeader.tsx:52
-#~ msgid "{0} ~ {1}"
-#~ msgstr "{0} ~ {1}"
+#. placeholder {0}: members.length
+#: src/routes/app.organization.$id.tsx:126
+msgid "{0} members"
+msgstr "{0} members"
 
-#: src/components/settings-panel/sidebar/settings-view.tsx:36
-#~ msgid "{nameKey}"
-#~ msgstr "{nameKey}"
+#: src/components/settings/components/settings-header.tsx:19
+#~ msgid "{current}"
+#~ msgstr "{current}"
 
-#: src/components/settings/calendar.tsx:226
-#~ msgid "<0>{0}</0><1>{1}</1>"
-#~ msgstr "<0>{0}</0><1>{1}</1>"
-
-#: src/components/settings-panel/views/calendar.tsx:190
-#: src/components/settings-panel/views/calendar.tsx:222
+#: src/components/settings/views/calendar.tsx:190
+#: src/components/settings/views/calendar.tsx:222
 msgid "Access granted"
 msgstr "Access granted"
 
-#: src/components/settings-panel/views/template.tsx:115
+#: src/components/settings/views/template.tsx:115
 msgid "Add a description..."
 msgstr "Add a description..."
 
-#: src/components/settings-panel/views/team.tsx:91
+#: src/components/settings/views/team.tsx:92
 msgid "Add members"
 msgstr "Add members"
 
-#: src/components/settings-panel/views/tags.tsx:196
-#~ msgid "Add new tag"
-#~ msgstr "Add new tag"
-
-#: src/components/note/header/chips/participants-chip/participants-list.tsx:197
+#: src/components/note/header/chips/participants-chip/participants-list.tsx:191
 msgid "Add participant"
 msgstr "Add participant"
 
-#: src/components/settings-panel/views/tags.tsx:92
-#: src/components/settings-panel/views/tags.tsx:236
-#~ msgid "Add tag"
-#~ msgstr "Add tag"
-
-#: src/components/settings-panel/views/team.tsx:139
-#: src/components/settings-panel/views/team.tsx:226
+#: src/components/settings/views/team.tsx:140
+#: src/components/settings/views/team.tsx:227
 msgid "Admin"
 msgstr "Admin"
+
+#: src/components/settings/components/main-sidebar.tsx:33
+msgid "AI"
+msgstr "AI"
 
 #: src/routes/onboarding.tsx:76
 msgid "AI Meeting Notepad that keeps you in flow"
@@ -73,7 +65,12 @@ msgstr "AI notepad for meetings"
 msgid "All Participants"
 msgstr "All Participants"
 
-#: src/components/settings-panel/views/billing.tsx:112
+#. placeholder {0}: members.length - 5
+#: src/routes/app.organization.$id.tsx:189
+msgid "and {0} more members"
+msgstr "and {0} more members"
+
+#: src/components/settings/views/billing.tsx:123
 msgid "Annual"
 msgstr "Annual"
 
@@ -81,67 +78,65 @@ msgstr "Annual"
 msgid "Anyone with the link can view this page"
 msgstr "Anyone with the link can view this page"
 
-#: src/components/settings-panel/views/profile.tsx:163
+#: src/components/settings/views/profile.tsx:163
 msgid "Apple"
 msgstr "Apple"
 
-#: src/components/settings-panel/views/notifications.tsx:104
-#~ msgid "Automatic meeting detection"
-#~ msgstr "Automatic meeting detection"
+#: src/components/settings/views/billing.tsx:27
+msgid "Ask questions about past meetings"
+msgstr "Ask questions about past meetings"
 
-#: src/components/settings-panel/sidebar/template-view.tsx:43
-#: src/components/settings-panel/sidebar/extensions-view.tsx:59
-msgid "Back to Settings"
-msgstr "Back to Settings"
-
-#: src/components/settings-panel/views/index.tsx:53
-#: src/components/settings-panel/sidebar/settings-view.tsx:130
+#: src/components/settings/views/index.tsx:53
+#: src/components/settings/components/main-sidebar.tsx:45
 msgid "Billing"
 msgstr "Billing"
 
-#: src/components/settings-panel/views/index.tsx:43
-#: src/components/settings-panel/sidebar/settings-view.tsx:51
+#: src/components/settings/views/billing.tsx:96
+msgid "Billing features are currently under development and will be available in a future update."
+msgstr "Billing features are currently under development and will be available in a future update."
+
+#: src/components/settings/components/templates-sidebar.tsx:68
+msgid "Built-in Templates"
+msgstr "Built-in Templates"
+
+#: src/components/settings/views/index.tsx:43
+#: src/components/settings/components/main-sidebar.tsx:35
 msgid "Calendar"
 msgstr "Calendar"
 
-#: src/components/settings-panel/views/calendar.tsx:186
+#: src/components/settings/views/calendar.tsx:186
 msgid "Calendar Access"
 msgstr "Calendar Access"
 
-#: src/components/settings-panel/views/calendar.tsx:124
+#: src/components/settings/views/calendar.tsx:124
 msgid "Calendar connected"
 msgstr "Calendar connected"
 
-#: src/components/settings/calendar.tsx:189
-#~ msgid "Calendar connected. Hyprnote will periodically sync your calendar events."
-#~ msgstr "Calendar connected. Hyprnote will periodically sync your calendar events."
-
-#: src/components/settings-panel/views/calendar.tsx:53
-#~ msgid "Calendars"
-#~ msgstr "Calendars"
-
-#: src/components/settings-panel/views/tags.tsx:226
-#~ msgid "Cancel"
-#~ msgstr "Cancel"
-
-#: src/components/settings-panel/views/profile.tsx:138
+#: src/components/settings/views/profile.tsx:138
 msgid "CEO"
 msgstr "CEO"
 
-#: src/components/settings-panel/views/team.tsx:66
-#: src/components/settings-panel/sidebar/settings-view.tsx:115
+#: src/components/settings/views/billing.tsx:52
+msgid "Collaborate with others in meetings"
+msgstr "Collaborate with others in meetings"
+
+#: src/components/settings/views/team.tsx:67
+#: src/components/settings/views/billing.tsx:62
+#: src/components/settings/views/billing.tsx:93
+#: src/components/settings/components/main-sidebar.tsx:50
+#: src/components/settings/components/extensions-sidebar.tsx:54
 msgid "Coming Soon"
 msgstr "Coming Soon"
 
-#: src/components/settings-panel/views/profile.tsx:180
+#: src/components/settings/views/profile.tsx:180
 msgid "Company Description"
 msgstr "Company Description"
 
-#: src/components/settings-panel/views/profile.tsx:155
+#: src/components/settings/views/profile.tsx:155
 msgid "Company Name"
 msgstr "Company Name"
 
-#: src/components/settings-panel/views/calendar.tsx:143
+#: src/components/settings/views/calendar.tsx:143
 msgid "Connect"
 msgstr "Connect"
 
@@ -153,20 +148,16 @@ msgstr "Connect to Calendar"
 msgid "Connect to Contacts"
 msgstr "Connect to Contacts"
 
-#: src/components/settings-panel/views/calendar.tsx:129
-#~ msgid "Connect to sync your meetings"
-#~ msgstr "Connect to sync your meetings"
-
 #. placeholder {0}: type === "google-calendar" ? "Google" : "Outlook"
-#: src/components/settings-panel/views/calendar.tsx:126
+#: src/components/settings/views/calendar.tsx:126
 msgid "Connect your {0} calendar to track upcoming events"
 msgstr "Connect your {0} calendar to track upcoming events"
 
-#: src/components/settings-panel/views/calendar.tsx:191
+#: src/components/settings/views/calendar.tsx:191
 msgid "Connect your calendar and track events"
 msgstr "Connect your calendar and track events"
 
-#: src/components/settings-panel/views/calendar.tsx:218
+#: src/components/settings/views/calendar.tsx:218
 msgid "Contacts Access"
 msgstr "Contacts Access"
 
@@ -174,45 +165,45 @@ msgstr "Contacts Access"
 msgid "Continue"
 msgstr "Continue"
 
-#: src/components/settings-panel/views/tags.tsx:199
-#~ msgid "Create a new tag to help organize and categorize your notes."
-#~ msgstr "Create a new tag to help organize and categorize your notes."
-
 #: src/components/toolbar/buttons/new-note-button.tsx:45
 msgid "Create new note"
 msgstr "Create new note"
+
+#: src/components/settings/components/settings-header.tsx:36
+msgid "Create new template"
+msgstr "Create new template"
 
 #: src/components/workspace-calendar/event-card.tsx:115
 msgid "Create Note"
 msgstr "Create Note"
 
-#: src/components/settings-panel/sidebar/template-view.tsx:76
-msgid "Create Template"
-msgstr "Create Template"
+#: src/components/settings/views/billing.tsx:63
+msgid "Current Plan"
+msgstr "Current Plan"
 
-#: src/components/settings-panel/views/template.tsx:86
-#: src/components/settings-panel/views/team.tsx:162
+#: src/components/settings/views/template.tsx:86
+#: src/components/settings/views/team.tsx:163
 #: src/components/left-sidebar/all-list/note-item.tsx:156
 msgid "Delete"
 msgstr "Delete"
 
-#: src/components/settings-panel/components/template-sections.tsx:125
+#: src/components/settings/components/template-sections.tsx:125
 msgid "Describe the content and purpose of this section"
 msgstr "Describe the content and purpose of this section"
 
-#: src/components/settings-panel/views/template.tsx:109
+#: src/components/settings/views/template.tsx:109
 msgid "Description"
 msgstr "Description"
 
-#: src/components/settings-panel/views/notifications.tsx:151
+#: src/components/settings/views/notifications.tsx:151
 msgid "Detect meetings automatically"
 msgstr "Detect meetings automatically"
 
-#: src/components/settings-panel/views/general.tsx:133
+#: src/components/settings/views/general.tsx:134
 msgid "Display language"
 msgstr "Display language"
 
-#: src/components/settings-panel/views/template.tsx:82
+#: src/components/settings/views/template.tsx:82
 msgid "Duplicate"
 msgstr "Duplicate"
 
@@ -224,7 +215,7 @@ msgstr "Email"
 msgid "Email address"
 msgstr "Email address"
 
-#: src/components/settings-panel/views/team.tsx:198
+#: src/components/settings/views/team.tsx:199
 msgid "Email addresses"
 msgstr "Email addresses"
 
@@ -240,21 +231,45 @@ msgstr "Enable Microphone"
 msgid "Enable System Audio"
 msgstr "Enable System Audio"
 
-#: src/components/settings-panel/components/template-sections.tsx:119
+#: src/components/settings/components/template-sections.tsx:119
 msgid "Enter a section title"
 msgstr "Enter a section title"
 
-#: src/components/settings-panel/views/notifications.tsx:176
+#: src/components/settings/views/notifications.tsx:176
 msgid "Exclude these apps from auto detection"
 msgstr "Exclude these apps from auto detection"
 
-#: src/components/settings-panel/views/index.tsx:49
-#: src/components/settings-panel/sidebar/settings-view.tsx:96
+#: src/components/settings/views/index.tsx:49
+#: src/components/settings/components/main-sidebar.tsx:41
 msgid "Extensions"
 msgstr "Extensions"
 
-#: src/components/settings-panel/views/index.tsx:41
-#: src/components/settings-panel/sidebar/settings-view.tsx:36
+#: src/components/settings/views/billing.tsx:47
+msgid "For fast growing teams like energetic startups"
+msgstr "For fast growing teams like energetic startups"
+
+#: src/components/settings/views/billing.tsx:34
+msgid "For those who are serious about their performance"
+msgstr "For those who are serious about their performance"
+
+#: src/components/settings/views/billing.tsx:21
+msgid "For those who are serious about their privacy"
+msgstr "For those who are serious about their privacy"
+
+#: src/components/settings/views/billing.tsx:26
+msgid "Format notes using templates"
+msgstr "Format notes using templates"
+
+#: src/components/settings/views/billing.tsx:20
+msgid "Free"
+msgstr "Free"
+
+#: src/components/settings/views/billing.tsx:65
+msgid "Free Trial"
+msgstr "Free Trial"
+
+#: src/components/settings/views/index.tsx:41
+#: src/components/settings/components/main-sidebar.tsx:29
 msgid "General"
 msgstr "General"
 
@@ -262,8 +277,8 @@ msgstr "General"
 msgid "Get Started"
 msgstr "Get Started"
 
-#: src/components/settings-panel/views/calendar.tsx:204
-#: src/components/settings-panel/views/calendar.tsx:236
+#: src/components/settings/views/calendar.tsx:204
+#: src/components/settings/views/calendar.tsx:236
 msgid "Grant Access"
 msgstr "Grant Access"
 
@@ -279,7 +294,7 @@ msgstr "Hypercharge"
 msgid "HYPRNOTE"
 msgstr "HYPRNOTE"
 
-#: src/components/settings-panel/views/general.tsx:111
+#: src/components/settings/views/general.tsx:112
 msgid "Hyprnote will be opened automatically when you start your computer."
 msgstr "Hyprnote will be opened automatically when you start your computer."
 
@@ -287,19 +302,19 @@ msgstr "Hyprnote will be opened automatically when you start your computer."
 msgid "In calendar view"
 msgstr "In calendar view"
 
-#: src/components/settings/calendar.tsx:64
-#~ msgid "Integrations"
-#~ msgstr "Integrations"
+#: src/components/settings/views/billing.tsx:38
+msgid "Integration with other apps like Notion and Google Calendar"
+msgstr "Integration with other apps like Notion and Google Calendar"
 
 #: src/components/share-and-permission/invite-list.tsx:30
 msgid "Invite"
 msgstr "Invite"
 
-#: src/components/settings-panel/views/team.tsx:186
+#: src/components/settings/views/team.tsx:187
 msgid "Invite members"
 msgstr "Invite members"
 
-#: src/components/settings-panel/views/general.tsx:171
+#: src/components/settings/views/general.tsx:172
 msgid "Jargons"
 msgstr "Jargons"
 
@@ -307,22 +322,25 @@ msgstr "Jargons"
 msgid "Job title"
 msgstr "Job title"
 
-#: src/components/settings-panel/views/profile.tsx:134
+#: src/components/settings/views/profile.tsx:134
 #: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:117
 msgid "Job Title"
 msgstr "Job Title"
 
-#: src/components/settings-panel/views/billing.tsx:192
+#: src/components/settings/views/billing.tsx:192
 msgid "Learn more about our pricing plans"
 msgstr "Learn more about our pricing plans"
 
-#: src/components/settings-panel/views/profile.tsx:205
+#: src/components/settings/views/profile.tsx:205
 #: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:138
 msgid "LinkedIn Username"
 msgstr "LinkedIn Username"
 
-#: src/components/settings-panel/views/extensions.tsx:35
-#: src/components/settings-panel/views/extension.tsx:35
+#: src/components/settings/views/billing.tsx:28
+msgid "Live summary of the meeting"
+msgstr "Live summary of the meeting"
+
+#: src/components/settings/views/extension.tsx:101
 msgid "Loading extension details..."
 msgstr "Loading extension details..."
 
@@ -330,78 +348,81 @@ msgstr "Loading extension details..."
 msgid "Loading..."
 msgstr "Loading..."
 
+#: src/components/settings/views/billing.tsx:39
+msgid "Long-term memory for past meetings and attendees"
+msgstr "Long-term memory for past meetings and attendees"
+
 #: src/components/share-and-permission/publish.tsx:24
 msgid "Make it public"
 msgstr "Make it public"
 
-#: src/components/settings-panel/views/notifications.tsx:80
-#~ msgid "Meeting notifications"
-#~ msgstr "Meeting notifications"
+#: src/components/settings/views/billing.tsx:41
+msgid "Meeting note sharing via links"
+msgstr "Meeting note sharing via links"
 
-#: src/components/settings-panel/views/team.tsx:142
-#: src/components/settings-panel/views/team.tsx:229
+#: src/components/settings/views/team.tsx:143
+#: src/components/settings/views/team.tsx:230
 msgid "Member"
 msgstr "Member"
 
-#: src/components/settings-panel/views/billing.tsx:106
+#: src/routes/app.organization.$id.tsx:166
+msgid "Members"
+msgstr "Members"
+
+#: src/components/settings/views/billing.tsx:117
 msgid "Monthly"
 msgstr "Monthly"
 
-#: src/components/settings-panel/components/template-list.tsx:55
+#: src/components/settings/views/billing.tsx:40
+msgid "Much better AI performance"
+msgstr "Much better AI performance"
+
+#: src/components/settings/components/template-list.tsx:56
 msgid "My Templates"
 msgstr "My Templates"
-
-#: src/components/settings-panel/views/calendar.tsx:72
-#~ msgid "New"
-#~ msgstr "New"
 
 #: src/routes/app.index.tsx:13
 msgid "New note"
 msgstr "New note"
 
-#: src/components/toolbar/new-note-button.tsx:45
-#~ msgid "New Note"
-#~ msgstr "New Note<<<<<<< HEAD"
-
 #: src/components/left-sidebar/all-list/note-item.tsx:136
 msgid "New window"
 msgstr "New window"
 
-#: src/components/settings-panel/views/team.tsx:172
+#: src/components/settings/views/team.tsx:173
 msgid "No members found"
 msgstr "No members found"
 
-#: src/components/SearchModal.tsx:78
-#~ msgid "No results"
-#~ msgstr "No results"
+#: src/routes/app.human.$id.tsx:303
+msgid "No past notes with this contact"
+msgstr "No past notes with this contact"
 
-#: src/components/settings-panel/views/extensions.tsx:63
-#: src/components/settings-panel/views/extension.tsx:63
-msgid "no tags"
-msgstr "no tags"
+#: src/routes/app.organization.$id.tsx:277
+msgid "No recent notes for this organization"
+msgstr "No recent notes for this organization"
 
-#: src/components/settings-panel/views/tags.tsx:182
-#~ msgid "No tags found"
-#~ msgstr "No tags found"
+#: src/routes/app.organization.$id.tsx:237
+msgid "No upcoming events for this organization"
+msgstr "No upcoming events for this organization"
 
-#: src/components/settings-panel/views/tags.tsx:102
-#~ msgid "Notes"
-#~ msgstr "Notes"
+#: src/routes/app.human.$id.tsx:263
+msgid "No upcoming events with this contact"
+msgstr "No upcoming events with this contact"
 
-#: src/components/settings-panel/views/index.tsx:45
-#: src/components/settings-panel/sidebar/settings-view.tsx:66
+#: src/components/settings/views/index.tsx:45
+#: src/components/settings/components/main-sidebar.tsx:37
 msgid "Notifications"
 msgstr "Notifications"
 
-#: src/components/settings-panel/views/notifications.tsx:126
+#: src/components/settings/views/notifications.tsx:126
 msgid "Notify upcoming events"
 msgstr "Notify upcoming events"
 
-#: src/components/settings-panel/components/template-list.tsx:90
+#: src/components/settings/components/template-list.tsx:91
 msgid "Official Templates"
 msgstr "Official Templates"
 
-#: src/components/settings-panel/views/general.tsx:108
+#: src/components/settings/views/general.tsx:109
 msgid "Open Hyprnote on startup"
 msgstr "Open Hyprnote on startup"
 
@@ -410,7 +431,7 @@ msgstr "Open Hyprnote on startup"
 msgid "Open Note"
 msgstr "Open Note"
 
-#: src/components/settings-panel/views/calendar.tsx:223
+#: src/components/settings/views/calendar.tsx:223
 msgid "Optional for participant suggestions"
 msgstr "Optional for participant suggestions"
 
@@ -418,17 +439,25 @@ msgstr "Optional for participant suggestions"
 msgid "Optional Permissions"
 msgstr "Optional Permissions"
 
-#: src/components/settings-panel/views/team.tsx:136
-#: src/components/settings-panel/views/team.tsx:223
+#: src/components/settings/views/team.tsx:137
+#: src/components/settings/views/team.tsx:224
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/share-and-permission/participants-selector.tsx:34
+#: src/routes/app.human.$id.tsx:271
+msgid "Past Notes"
+msgstr "Past Notes"
+
+#: src/components/share-and-permission/participants-selector.tsx:35
 msgid "people"
 msgstr "people"
 
-#: src/components/settings-panel/views/index.tsx:55
-#: src/components/settings-panel/sidebar/settings-view.tsx:150
+#: src/components/settings/views/billing.tsx:33
+msgid "Pro"
+msgstr "Pro"
+
+#: src/components/settings/views/index.tsx:55
+#: src/components/settings/components/main-sidebar.tsx:31
 msgid "Profile"
 msgstr "Profile"
 
@@ -436,24 +465,16 @@ msgstr "Profile"
 msgid "Publish your note"
 msgstr "Publish your note"
 
-#: src/components/home/PastNotes.tsx:16
-#~ msgid "Recent Notes"
-#~ msgstr "Recent Notes"
-
-#: src/components/settings-panel/views/calendar.tsx:192
-#~ msgid "Required for syncing calendar events"
-#~ msgstr "Required for syncing calendar events"
+#: src/routes/app.organization.$id.tsx:245
+msgid "Recent Notes"
+msgstr "Recent Notes"
 
 #: src/routes/onboarding.tsx:81
 msgid "Required Permissions"
 msgstr "Required Permissions"
 
-#: src/components/toolbar/session-indicator.tsx:12
-#~ msgid "Return to session"
-#~ msgstr "Return to session"
-
-#: src/components/settings-panel/views/team.tsx:101
-#: src/components/settings-panel/views/team.tsx:210
+#: src/components/settings/views/team.tsx:102
+#: src/components/settings/views/team.tsx:211
 msgid "Role"
 msgstr "Role"
 
@@ -465,85 +486,94 @@ msgstr "Save Changes"
 msgid "Saving..."
 msgstr "Saving..."
 
-#: src/components/search/search-bar.tsx:10
-#~ msgid "Search"
-#~ msgstr "Search"
+#: src/components/settings/views/billing.tsx:51
+msgid "Search & ask across all notes in workspace"
+msgstr "Search & ask across all notes in workspace"
 
-#: src/components/settings-panel/components/extension-list.tsx:52
+#: src/components/settings/components/extension-list.tsx:53
 msgid "Search extensions..."
 msgstr "Search extensions..."
 
-#: src/components/settings-panel/views/team.tsx:201
+#: src/components/settings/views/team.tsx:202
 msgid "Search names or emails"
 msgstr "Search names or emails"
 
-#: src/components/settings-panel/components/template-list.tsx:42
+#: src/components/settings/components/templates-sidebar.tsx:33
+#: src/components/settings/components/template-list.tsx:43
 msgid "Search templates..."
 msgstr "Search templates..."
 
-#: src/components/settings-panel/views/template.tsx:121
+#: src/components/settings/views/template.tsx:121
 msgid "Sections"
 msgstr "Sections"
 
-#: src/components/settings-panel/views/notifications.tsx:179
+#: src/components/settings/views/notifications.tsx:179
 msgid "Select apps that should not trigger meeting notifications"
 msgstr "Select apps that should not trigger meeting notifications"
 
-#: src/components/settings-panel/views/general.tsx:148
+#: src/components/settings/views/general.tsx:149
 msgid "Select language"
 msgstr "Select language"
 
-#: src/components/settings-panel/views/team.tsx:237
+#: src/components/settings/views/team.tsx:238
 msgid "Send invite"
 msgstr "Send invite"
 
-#: src/components/settings-panel/index.tsx:77
-#: src/components/settings-panel/views/index.tsx:71
+#: src/components/settings/views/index.tsx:71
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/settings-panel/views/notifications.tsx:129
+#: src/components/settings/views/notifications.tsx:129
 msgid "Show notifications 1 minute before events start based on your calendars"
 msgstr "Show notifications 1 minute before events start based on your calendars"
 
-#: src/components/settings-panel/views/notifications.tsx:154
+#: src/components/settings/views/notifications.tsx:154
 msgid "Show notifications whenever a microphone is being used"
 msgstr "Show notifications whenever a microphone is being used"
+
+#: src/components/settings/views/billing.tsx:53
+msgid "Single sign-on for all users"
+msgstr "Single sign-on for all users"
 
 #: src/routes/login.tsx:161
 msgid "Skip to use locally"
 msgstr "Skip to use locally"
 
+#: src/components/settings/views/billing.tsx:68
+msgid "Start Annual Plan"
+msgstr "Start Annual Plan"
+
+#: src/components/settings/views/billing.tsx:67
+msgid "Start Monthly Plan"
+msgstr "Start Monthly Plan"
+
 #: src/components/note/header/listen-button.tsx:49
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/note/header/listen-button.tsx:82
+#: src/components/note/header/listen-button.tsx:103
 msgid "Stop"
 msgstr "Stop"
 
-#: src/components/note/header/listen-button.tsx:71
+#: src/components/note/header/listen-button.tsx:92
 msgid "Stop listening to the meeting?"
 msgstr "Stop listening to the meeting?"
 
-#: src/components/note/header/listen-button.tsx:64
+#: src/components/note/header/listen-button.tsx:65
 msgid "Stop recording"
 msgstr "Stop recording"
 
-#: src/components/settings-panel/views/tags.tsx:99
-#~ msgid "Tag"
-#~ msgstr "Tag"
+#: src/components/settings/views/billing.tsx:42
+msgid "Synchronization across multiple devices"
+msgstr "Synchronization across multiple devices"
 
-#: src/components/settings-panel/views/tags.tsx:208
-#~ msgid "Tag name"
-#~ msgstr "Tag name"
-
-#: src/components/settings-panel/views/index.tsx:51
-#: src/components/settings-panel/sidebar/settings-view.tsx:111
+#: src/components/settings/views/index.tsx:51
+#: src/components/settings/views/billing.tsx:46
+#: src/components/settings/components/main-sidebar.tsx:43
 msgid "Team"
 msgstr "Team"
 
-#: src/components/settings-panel/views/team.tsx:69
+#: src/components/settings/views/team.tsx:70
 msgid "Team management features are currently under development and will be available in a future update."
 msgstr "Team management features are currently under development and will be available in a future update."
 
@@ -555,24 +585,24 @@ msgstr "Teamspace"
 msgid "Template Selector"
 msgstr "Template Selector"
 
-#: src/components/settings-panel/views/index.tsx:47
-#: src/components/settings-panel/sidebar/settings-view.tsx:81
+#: src/components/settings/views/index.tsx:47
+#: src/components/settings/components/main-sidebar.tsx:39
 msgid "Templates"
 msgstr "Templates"
 
-#: src/components/settings-panel/views/billing.tsx:94
+#: src/components/settings/views/billing.tsx:105
 msgid "There's a plan for everyone"
 msgstr "There's a plan for everyone"
 
-#: src/components/settings-panel/views/profile.tsx:183
+#: src/components/settings/views/profile.tsx:183
 msgid "This is a short description of your company."
 msgstr "This is a short description of your company."
 
-#: src/components/settings-panel/views/general.tsx:136
+#: src/components/settings/views/general.tsx:137
 msgid "This is the language you mostly use."
 msgstr "This is the language you mostly use."
 
-#: src/components/settings-panel/views/profile.tsx:158
+#: src/components/settings/views/profile.tsx:158
 msgid "This is the name of the company you work for."
 msgstr "This is the name of the company you work for."
 
@@ -580,7 +610,7 @@ msgstr "This is the name of the company you work for."
 msgid "Today"
 msgstr "Today"
 
-#: src/components/toolbar/buttons/left-sidebar-button.tsx:61
+#: src/components/toolbar/buttons/left-sidebar-button.tsx:45
 msgid "Toggle left sidebar"
 msgstr "Toggle left sidebar"
 
@@ -596,36 +626,53 @@ msgstr "Transcribe my voice"
 msgid "Transcribe other people's voice"
 msgstr "Transcribe other people's voice"
 
-#: src/components/settings-panel/views/general.tsx:179
+#: src/components/settings/views/general.tsx:180
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 
-#: src/components/settings-panel/views/team.tsx:189
+#: src/components/settings/views/team.tsx:190
 msgid "Type or paste in emails below, separated by commas. Your workspace will be billed by members."
 msgstr "Type or paste in emails below, separated by commas. Your workspace will be billed by members."
 
-#: src/components/settings-panel/views/team.tsx:80
+#: src/components/settings/views/team.tsx:81
 msgid "Type to search..."
 msgstr "Type to search..."
+
+#: src/routes/app.human.$id.tsx:121
+msgid "Unnamed Contact"
+msgstr "Unnamed Contact"
+
+#: src/routes/app.organization.$id.tsx:122
+msgid "Unnamed Organization"
+msgstr "Unnamed Organization"
 
 #: src/components/note/header/title-input.tsx:59
 msgid "Untitled"
 msgstr "Untitled"
 
-#: src/components/settings-panel/views/template.tsx:68
+#: src/components/settings/views/template.tsx:68
 msgid "Untitled Template"
 msgstr "Untitled Template"
 
-#: src/components/settings-panel/views/team.tsx:98
+#: src/routes/app.organization.$id.tsx:202
+#: src/routes/app.human.$id.tsx:228
+msgid "Upcoming Events"
+msgstr "Upcoming Events"
+
+#: src/components/settings/views/billing.tsx:64
+msgid "Upgrade"
+msgstr "Upgrade"
+
+#: src/components/settings/views/team.tsx:99
 msgid "User"
 msgstr "User"
 
-#: src/components/settings-panel/views/profile.tsx:218
+#: src/components/settings/views/profile.tsx:218
 #: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:151
 msgid "username"
 msgstr "username"
 
-#: src/components/settings-panel/views/profile.tsx:114
+#: src/components/settings/views/profile.tsx:114
 msgid "Username"
 msgstr "Username"
 
@@ -633,27 +680,40 @@ msgstr "Username"
 msgid "View in calendar"
 msgstr "View in calendar"
 
+#: src/routes/app.organization.$id.tsx:266
+#: src/routes/app.human.$id.tsx:292
+msgid "View Note"
+msgstr "View Note"
+
 #: src/routes/onboarding.tsx:113
 msgid "Want to keep track of events?"
 msgstr "Want to keep track of events?"
 
-#: src/components/settings-panel/views/profile.tsx:188
+#: src/components/settings/views/profile.tsx:188
 msgid "We think different."
 msgstr "We think different."
 
-#: src/routes/login.tsx:52
-#~ msgid "Welcome to"
-#~ msgstr "Welcome to"
+#: src/components/settings/views/billing.tsx:25
+msgid "Works both in-person and remotely"
+msgstr "Works both in-person and remotely"
 
-#: src/components/settings-panel/views/general.tsx:174
+#: src/components/settings/views/billing.tsx:29
+msgid "Works offline"
+msgstr "Works offline"
+
+#: src/components/settings/views/general.tsx:175
 msgid "You can make Hyprnote takes these words into account when transcribing."
 msgstr "You can make Hyprnote takes these words into account when transcribing."
 
-#: src/components/settings-panel/views/profile.tsx:208
+#: src/components/settings/views/profile.tsx:208
 #: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:141
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"
 msgstr "Your LinkedIn username (the part after linkedin.com/in/)"
 
-#: src/components/settings-panel/views/profile.tsx:118
+#: src/components/settings/views/profile.tsx:118
 msgid "Your Name"
 msgstr "Your Name"
+
+#: src/components/settings/components/templates-sidebar.tsx:45
+msgid "Your Templates"
+msgstr "Your Templates"

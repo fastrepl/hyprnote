@@ -16,7 +16,7 @@ export function SettingsHeader({ current, onCreateTemplate }: SettingsHeaderProp
       <div className="w-40" data-tauri-drag-region></div>
 
       <h1 className="text-md font-semibold capitalize" data-tauri-drag-region>
-        <Trans>{current}</Trans>
+        {current}
       </h1>
 
       <div className="flex w-40 items-center justify-end" data-tauri-drag-region>

@@ -1,3 +1,4 @@
+import { Trans } from "@lingui/react/macro";
 import { BlocksIcon, SearchIcon } from "lucide-react";
 
 import { type ExtensionDefinition } from "@hypr/plugin-db";
@@ -48,7 +49,11 @@ export function ExtensionsSidebar({
               <BlocksIcon className="h-4 w-4" />
               <div className="flex flex-1 items-center justify-between">
                 <span>{extension.title}</span>
-                {!extension.implemented && <span className="text-xs text-neutral-400">Coming Soon</span>}
+                {!extension.implemented && (
+                  <span className="text-xs text-neutral-400">
+                    <Trans>Coming Soon</Trans>
+                  </span>
+                )}
               </div>
             </button>
           ))}

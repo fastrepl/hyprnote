@@ -31,7 +31,8 @@ export const ParticipantsSelector = ({
             <Trans>All Participants</Trans>
           </div>
           <div className="text-xs text-neutral-600">
-            <Trans>Teamspace</Trans> · {participants.length} <Trans>people</Trans>
+            <Trans>Teamspace</Trans> · {participants.length}
+            <Trans>people</Trans>
           </div>
         </div>
       </div>

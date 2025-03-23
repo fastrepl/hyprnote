@@ -12,7 +12,7 @@ import {
   RightPanelProvider,
   SearchProvider,
   SessionsProvider,
-  SettingsPanelProvider,
+  SettingsProvider,
 } from "@/contexts";
 import { registerTemplates } from "@/templates";
 import { commands } from "@/types";
@@ -47,7 +47,7 @@ function Component() {
           <OngoingSessionProvider>
             <LeftSidebarProvider>
               <RightPanelProvider>
-                <SettingsPanelProvider>
+                <SettingsProvider>
                   <NewNoteProvider>
                     <SearchProvider>
                       <div className="relative flex h-screen w-screen overflow-hidden">
@@ -59,7 +59,7 @@ function Component() {
                       </div>
                     </SearchProvider>
                   </NewNoteProvider>
-                </SettingsPanelProvider>
+                </SettingsProvider>
               </RightPanelProvider>
             </LeftSidebarProvider>
           </OngoingSessionProvider>

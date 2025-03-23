@@ -74,18 +74,18 @@ export default function RightPanel() {
           transition={{ duration: 0.3 }}
           className="absolute right-0 top-0 z-40 h-full w-[380px] overflow-y-auto border-l bg-neutral-50 scrollbar-none shadow-lg flex flex-col"
         >
-          {widgets.length > 0 ? (
-            <WidgetRenderer widgets={widgets} />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <button
-                onClick={handleClickConfigureWidgets}
-                className="px-3 py-2 text-sm rounded-full bg-white hover:bg-neutral-200 border border-border transition-all"
-              >
-                Configure Widgets
-              </button>
-            </div>
-          )}
+          {widgets.length > 0
+            ? <WidgetRenderer widgets={widgets} />
+            : (
+              <div className="flex items-center justify-center h-full">
+                <button
+                  onClick={handleClickConfigureWidgets}
+                  className="px-3 py-2 text-sm rounded-full bg-white hover:bg-neutral-200 border border-border transition-all"
+                >
+                  Configure Widgets
+                </button>
+              </div>
+            )}
         </motion.div>
       </div>
     );
@@ -98,18 +98,18 @@ export default function RightPanel() {
       transition={{ duration: 0.3 }}
       className="h-full overflow-y-auto border-l bg-neutral-50 scrollbar-none flex flex-col"
     >
-      {widgets.length > 0 ? (
-        <WidgetRenderer widgets={widgets} />
-      ) : (
-        <div className="flex items-center justify-center h-full">
-          <button
-            onClick={handleClickConfigureWidgets}
-            className="px-3 py-2 text-sm rounded-full bg-white hover:bg-neutral-200 border border-border transition-all"
-          >
-            Configure Widgets
-          </button>
-        </div>
-      )}
+      {widgets.length > 0
+        ? <WidgetRenderer widgets={widgets} />
+        : (
+          <div className="flex items-center justify-center h-full">
+            <button
+              onClick={handleClickConfigureWidgets}
+              className="px-3 py-2 text-sm rounded-full bg-white hover:bg-neutral-200 border border-border transition-all"
+            >
+              Configure Widgets
+            </button>
+          </div>
+        )}
     </motion.div>
   );
 }

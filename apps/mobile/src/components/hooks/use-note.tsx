@@ -1,6 +1,5 @@
 import { type Session } from "@hypr/plugin-db";
 import { useEffect, useState } from "react";
-import { getInitials } from "@hypr/utils";
 
 const mockParticipants = [
   {

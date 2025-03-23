@@ -6,6 +6,9 @@ import { useHyprSearch, useLeftSidebar, useOngoingSession } from "@/contexts";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { Trans } from "@lingui/react/macro";
+import Shortcut from "../shortcut";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
 import AllList from "./all-list";
 import OngoingSession from "./ongoing-session";
@@ -55,23 +58,39 @@ export default function LeftSidebar() {
         data-tauri-drag-region
         className="flex items-center justify-end min-h-11 px-2"
       >
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleClickSettings}
-          className="hover:bg-neutral-200"
-        >
-          <SettingsIcon className="size-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleClickSettings}
+              className="hover:bg-neutral-200"
+            >
+              <SettingsIcon className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <Trans>
+              Open settings <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
+            </Trans>
+          </TooltipContent>
+        </Tooltip>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleClickCalendar}
-          className="hover:bg-neutral-200"
-        >
-          <CalendarDaysIcon className="size-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleClickCalendar}
+              className="hover:bg-neutral-200"
+            >
+              <CalendarDaysIcon className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <Trans>Open calendar view</Trans>
+          </TooltipContent>
+        </Tooltip>
 
         <LeftSidebarButton type="sidebar" />
       </div>

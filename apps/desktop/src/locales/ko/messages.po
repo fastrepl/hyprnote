@@ -40,7 +40,7 @@ msgstr "설명을 추가하세요..."
 msgid "Add members"
 msgstr "팀원을 추가하세요."
 
-#: src/components/note/header/chips/participants-chip/participants-list.tsx:201
+#: src/components/note/header/chips/participants-chip/participants-list.tsx:229
 msgid "Add participant"
 msgstr "참석자를 추가하세요."
 
@@ -210,11 +210,11 @@ msgstr "언어"
 msgid "Duplicate"
 msgstr "복제"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:96
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:97
 msgid "Email"
 msgstr "이메일"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:100
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:101
 msgid "Email address"
 msgstr "이메일"
 
@@ -323,27 +323,35 @@ msgstr "멤버 초대하기"
 msgid "Jargons"
 msgstr "전문 용어"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:121
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:122
 msgid "Job title"
 msgstr "직책"
 
 #: src/components/settings/views/profile.tsx:134
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:117
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:118
 msgid "Job Title"
 msgstr "직책"
+
+#: src/components/settings/views/ai.tsx:316
+msgid "Language Model"
+msgstr "언어 모델"
 
 #: src/components/settings/views/billing.tsx:192
 msgid "Learn more about our pricing plans"
 msgstr "요금제에 대해 더 알아보세요."
 
 #: src/components/settings/views/profile.tsx:205
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:138
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:139
 msgid "LinkedIn Username"
 msgstr "링크드인 사용자명"
 
 #: src/components/settings/views/billing.tsx:28
 msgid "Live summary of the meeting"
 msgstr "실시간 회의 요약"
+
+#: src/components/settings/views/ai.tsx:240
+msgid "Load Model"
+msgstr "모델 로드"
 
 #: src/components/settings/views/extension.tsx:101
 msgid "Loading extension details..."
@@ -352,6 +360,14 @@ msgstr "익스텐션 정보 로딩 중..."
 #: src/components/workspace-calendar/event-card.tsx:112
 msgid "Loading..."
 msgstr "로딩 중..."
+
+#: src/components/settings/views/ai.tsx:198
+msgid "Local Language Model"
+msgstr "로컬 언어 모델"
+
+#: src/components/settings/views/ai.tsx:95
+msgid "Local Speech-to-Text"
+msgstr "로컬 음성-텍스트 변환"
 
 #: src/components/settings/views/billing.tsx:39
 msgid "Long-term memory for past meetings and attendees"
@@ -373,6 +389,14 @@ msgstr "멤버"
 #: src/routes/app.organization.$id.tsx:166
 msgid "Members"
 msgstr "멤버"
+
+#: src/components/settings/views/ai.tsx:274
+msgid "Model is working correctly"
+msgstr "모델이 올바르게 작동합니다."
+
+#: src/components/settings/views/ai.tsx:203
+msgid "Model loaded and ready"
+msgstr "모델 로드 완료 및 준비 완료"
 
 #: src/components/settings/views/billing.tsx:117
 msgid "Monthly"
@@ -493,11 +517,23 @@ msgstr "필수 권한"
 msgid "Role"
 msgstr "역할"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:167
+#: src/components/settings/views/ai.tsx:205
+msgid "Run language models locally for enhanced privacy"
+msgstr "향상된 개인 정보 보호를 위해 언어 모델을 로컬에서 실행"
+
+#: src/components/settings/views/ai.tsx:100
+msgid "Run speech recognition locally for enhanced privacy"
+msgstr "향상된 개인 정보 보호를 위해 음성 인식을 로컬에서 실행"
+
+#: src/components/settings/views/ai.tsx:320
+msgid "Running"
+msgstr "실행 중"
+
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:166
 msgid "Save Changes"
 msgstr "변경사항 저장"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:167
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:166
 msgid "Saving..."
 msgstr "저장 중..."
 
@@ -534,6 +570,12 @@ msgstr "언어 선택"
 msgid "Send invite"
 msgstr "초대장 보내기"
 
+#: src/components/settings/views/ai.tsx:99
+#: src/components/settings/views/ai.tsx:204
+msgid "Server is running"
+msgstr "서버가 실행 중입니다."
+
+#: src/components/settings/index.tsx:80
 #: src/components/settings/views/index.tsx:71
 msgid "Settings"
 msgstr "설정"
@@ -554,6 +596,10 @@ msgstr "모든 사용자를 위한 단일 로그인"
 #~ msgid "Skip to use locally"
 #~ msgstr "로컬 사용으로 건너뛰기"
 
+#: src/components/settings/views/ai.tsx:316
+msgid "Speech-to-Text"
+msgstr "음성-텍스트 변환"
+
 #: src/components/settings/views/billing.tsx:68
 msgid "Start Annual Plan"
 msgstr "연간 요금제 시작"
@@ -566,6 +612,11 @@ msgstr "월간 요금제 시작"
 msgid "Start recording"
 msgstr "녹음 시작"
 
+#: src/components/settings/views/ai.tsx:116
+#: src/components/settings/views/ai.tsx:256
+msgid "Start Server"
+msgstr "서버 시작"
+
 #: src/components/note/header/listen-button.tsx:156
 msgid "Stop"
 msgstr "중지"
@@ -577,6 +628,11 @@ msgstr "회의 듣기를 중지하시겠습니까?"
 #: src/components/note/header/listen-button.tsx:96
 msgid "Stop recording"
 msgstr "녹음 중지"
+
+#: src/components/settings/views/ai.tsx:115
+#: src/components/settings/views/ai.tsx:225
+msgid "Stop Server"
+msgstr "서버 중지"
 
 #: src/components/settings/views/billing.tsx:42
 msgid "Synchronization across multiple devices"
@@ -606,6 +662,18 @@ msgstr "템플릿 선택기"
 #: src/components/settings/components/main-sidebar.tsx:39
 msgid "Templates"
 msgstr "템플릿"
+
+#: src/components/settings/views/ai.tsx:270
+msgid "Test Language Model"
+msgstr "언어 모델 테스트"
+
+#: src/components/settings/views/ai.tsx:297
+msgid "Test Model"
+msgstr "모델 테스트"
+
+#: src/components/settings/views/ai.tsx:294
+msgid "Testing..."
+msgstr "테스트 중..."
 
 #: src/components/settings/views/billing.tsx:105
 msgid "There's a plan for everyone"
@@ -685,13 +753,17 @@ msgid "User"
 msgstr "사용자"
 
 #: src/components/settings/views/profile.tsx:218
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:151
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:152
 msgid "username"
 msgstr "사용자명"
 
 #: src/components/settings/views/profile.tsx:114
 msgid "Username"
 msgstr "사용자명"
+
+#: src/components/settings/views/ai.tsx:275
+msgid "Verify that your local language model is working correctly"
+msgstr "로컬 언어 모델이 올바르게 작동하는지 확인하세요."
 
 #: src/components/note/header/chips/event-chip.tsx:43
 msgid "View in calendar"
@@ -723,7 +795,7 @@ msgid "You can make Hyprnote takes these words into account when transcribing."
 msgstr "하이퍼노트가 텍스트 변환 시 이러한 단어들을 고려하도록 설정할 수 있습니다."
 
 #: src/components/settings/views/profile.tsx:208
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:141
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:142
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"
 msgstr "링크드인 사용자명 (linkedin.com/in/ 뒤에 오는 부분)"
 

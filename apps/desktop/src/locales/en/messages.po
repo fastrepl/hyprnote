@@ -40,7 +40,7 @@ msgstr "Add a description..."
 msgid "Add members"
 msgstr "Add members"
 
-#: src/components/note/header/chips/participants-chip/participants-list.tsx:201
+#: src/components/note/header/chips/participants-chip/participants-list.tsx:229
 msgid "Add participant"
 msgstr "Add participant"
 
@@ -210,11 +210,11 @@ msgstr "Display language"
 msgid "Duplicate"
 msgstr "Duplicate"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:96
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:97
 msgid "Email"
 msgstr "Email"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:100
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:101
 msgid "Email address"
 msgstr "Email address"
 
@@ -323,27 +323,35 @@ msgstr "Invite members"
 msgid "Jargons"
 msgstr "Jargons"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:121
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:122
 msgid "Job title"
 msgstr "Job title"
 
 #: src/components/settings/views/profile.tsx:134
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:117
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:118
 msgid "Job Title"
 msgstr "Job Title"
+
+#: src/components/settings/views/ai.tsx:316
+msgid "Language Model"
+msgstr "Language Model"
 
 #: src/components/settings/views/billing.tsx:192
 msgid "Learn more about our pricing plans"
 msgstr "Learn more about our pricing plans"
 
 #: src/components/settings/views/profile.tsx:205
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:138
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:139
 msgid "LinkedIn Username"
 msgstr "LinkedIn Username"
 
 #: src/components/settings/views/billing.tsx:28
 msgid "Live summary of the meeting"
 msgstr "Live summary of the meeting"
+
+#: src/components/settings/views/ai.tsx:240
+msgid "Load Model"
+msgstr "Load Model"
 
 #: src/components/settings/views/extension.tsx:101
 msgid "Loading extension details..."
@@ -352,6 +360,14 @@ msgstr "Loading extension details..."
 #: src/components/workspace-calendar/event-card.tsx:112
 msgid "Loading..."
 msgstr "Loading..."
+
+#: src/components/settings/views/ai.tsx:198
+msgid "Local Language Model"
+msgstr "Local Language Model"
+
+#: src/components/settings/views/ai.tsx:95
+msgid "Local Speech-to-Text"
+msgstr "Local Speech-to-Text"
 
 #: src/components/settings/views/billing.tsx:39
 msgid "Long-term memory for past meetings and attendees"
@@ -373,6 +389,14 @@ msgstr "Member"
 #: src/routes/app.organization.$id.tsx:166
 msgid "Members"
 msgstr "Members"
+
+#: src/components/settings/views/ai.tsx:274
+msgid "Model is working correctly"
+msgstr "Model is working correctly"
+
+#: src/components/settings/views/ai.tsx:203
+msgid "Model loaded and ready"
+msgstr "Model loaded and ready"
 
 #: src/components/settings/views/billing.tsx:117
 msgid "Monthly"
@@ -493,11 +517,23 @@ msgstr "Required Permissions"
 msgid "Role"
 msgstr "Role"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:167
+#: src/components/settings/views/ai.tsx:205
+msgid "Run language models locally for enhanced privacy"
+msgstr "Run language models locally for enhanced privacy"
+
+#: src/components/settings/views/ai.tsx:100
+msgid "Run speech recognition locally for enhanced privacy"
+msgstr "Run speech recognition locally for enhanced privacy"
+
+#: src/components/settings/views/ai.tsx:320
+msgid "Running"
+msgstr "Running"
+
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:166
 msgid "Save Changes"
 msgstr "Save Changes"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:167
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:166
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -534,6 +570,12 @@ msgstr "Select language"
 msgid "Send invite"
 msgstr "Send invite"
 
+#: src/components/settings/views/ai.tsx:99
+#: src/components/settings/views/ai.tsx:204
+msgid "Server is running"
+msgstr "Server is running"
+
+#: src/components/settings/index.tsx:80
 #: src/components/settings/views/index.tsx:71
 msgid "Settings"
 msgstr "Settings"
@@ -554,6 +596,10 @@ msgstr "Single sign-on for all users"
 #~ msgid "Skip to use locally"
 #~ msgstr "Skip to use locally"
 
+#: src/components/settings/views/ai.tsx:316
+msgid "Speech-to-Text"
+msgstr "Speech-to-Text"
+
 #: src/components/settings/views/billing.tsx:68
 msgid "Start Annual Plan"
 msgstr "Start Annual Plan"
@@ -566,6 +612,11 @@ msgstr "Start Monthly Plan"
 msgid "Start recording"
 msgstr "Start recording"
 
+#: src/components/settings/views/ai.tsx:116
+#: src/components/settings/views/ai.tsx:256
+msgid "Start Server"
+msgstr "Start Server"
+
 #: src/components/note/header/listen-button.tsx:156
 msgid "Stop"
 msgstr "Stop"
@@ -577,6 +628,11 @@ msgstr "Stop listening to the meeting?"
 #: src/components/note/header/listen-button.tsx:96
 msgid "Stop recording"
 msgstr "Stop recording"
+
+#: src/components/settings/views/ai.tsx:115
+#: src/components/settings/views/ai.tsx:225
+msgid "Stop Server"
+msgstr "Stop Server"
 
 #: src/components/settings/views/billing.tsx:42
 msgid "Synchronization across multiple devices"
@@ -606,6 +662,18 @@ msgstr "Template Selector"
 #: src/components/settings/components/main-sidebar.tsx:39
 msgid "Templates"
 msgstr "Templates"
+
+#: src/components/settings/views/ai.tsx:270
+msgid "Test Language Model"
+msgstr "Test Language Model"
+
+#: src/components/settings/views/ai.tsx:297
+msgid "Test Model"
+msgstr "Test Model"
+
+#: src/components/settings/views/ai.tsx:294
+msgid "Testing..."
+msgstr "Testing..."
 
 #: src/components/settings/views/billing.tsx:105
 msgid "There's a plan for everyone"
@@ -685,13 +753,17 @@ msgid "User"
 msgstr "User"
 
 #: src/components/settings/views/profile.tsx:218
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:151
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:152
 msgid "username"
 msgstr "username"
 
 #: src/components/settings/views/profile.tsx:114
 msgid "Username"
 msgstr "Username"
+
+#: src/components/settings/views/ai.tsx:275
+msgid "Verify that your local language model is working correctly"
+msgstr "Verify that your local language model is working correctly"
 
 #: src/components/note/header/chips/event-chip.tsx:43
 msgid "View in calendar"
@@ -723,7 +795,7 @@ msgid "You can make Hyprnote takes these words into account when transcribing."
 msgstr "You can make Hyprnote takes these words into account when transcribing."
 
 #: src/components/settings/views/profile.tsx:208
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:141
+#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:142
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"
 msgstr "Your LinkedIn username (the part after linkedin.com/in/)"
 

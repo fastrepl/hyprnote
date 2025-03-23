@@ -1,8 +1,3 @@
-/**
- * Extracts a website URL from an organization description
- * @param description The organization description text
- * @returns The first valid website URL found in the description, or null if none found
- */
 export function extractWebsiteUrl(description?: string | null): string | null {
   if (!description) return null;
 

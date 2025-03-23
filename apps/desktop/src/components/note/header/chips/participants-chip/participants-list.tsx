@@ -1,10 +1,11 @@
 import { useLingui } from "@lingui/react/macro";
 import { RiCornerDownLeftLine, RiLinkedinBoxFill } from "@remixicon/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Mail, PenIcon } from "lucide-react";
 import { KeyboardEvent, useMemo, useState } from "react";
 
-import { type Human } from "@hypr/plugin-db";
+import { type Human, type Organization } from "@hypr/plugin-db";
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
@@ -45,6 +46,29 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
 
     return groups;
   }, [localParticipants]);
+
+  const organizationIds = useMemo(() => {
+    return Object.keys(groupedParticipants).filter(id => id !== "No Organization");
+  }, [groupedParticipants]);
+
+  const { data: organizationsMap } = useQuery({
+    queryKey: ["organizations", organizationIds],
+    queryFn: async () => {
+      if (organizationIds.length === 0) return {};
+
+      const organizations = await Promise.all(
+        organizationIds.map(id => dbCommands.getOrganization(id).catch(() => null)),
+      );
+
+      return organizations.reduce((acc, org, index) => {
+        if (org) {
+          acc[organizationIds[index]] = org;
+        }
+        return acc;
+      }, {} as Record<string, Organization>);
+    },
+    enabled: organizationIds.length > 0,
+  });
 
   const addParticipantMutation = useMutation({
     mutationFn: async (name: string) => {
@@ -109,7 +133,11 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
       <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto">
         {Object.entries(groupedParticipants).map(([orgId, members]) => (
           <div key={orgId}>
-            {orgId !== "No Organization" && <div className="text-xs text-neutral-400 mt-2 mb-1">{orgId}</div>}
+            {orgId !== "No Organization" && (
+              <div className="text-xs text-neutral-400 mt-2 mb-1">
+                {organizationsMap?.[orgId]?.name || orgId}
+              </div>
+            )}
             {members.map((member) => (
               <div
                 key={member.id}

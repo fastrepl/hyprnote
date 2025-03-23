@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { type Human } from "@hypr/plugin-db";
+import { Button } from "@hypr/ui/components/ui/button";
 import {
   Form,
   FormControl,
@@ -158,15 +159,12 @@ export function EditParticipantForm({
             )}
           />
 
-          <div className="flex justify-end pt-2">
-            <button
-              type="submit"
-              disabled={updateParticipantMutation.isPending}
-              className="px-3 py-1 bg-neutral-700 hover:bg-neutral-600 text-neutral-100 rounded-md text-xs font-medium transition-colors"
-            >
-              {updateParticipantMutation.isPending ? <Trans>Saving...</Trans> : <Trans>Save Changes</Trans>}
-            </button>
-          </div>
+          <Button
+            type="submit"
+            disabled={updateParticipantMutation.isPending}
+          >
+            {updateParticipantMutation.isPending ? <Trans>Saving...</Trans> : <Trans>Save Changes</Trans>}
+          </Button>
         </form>
       </Form>
     </div>

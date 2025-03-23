@@ -1,8 +1,9 @@
-import type { ExtensionDefinition } from "@hypr/plugin-db";
-import { cn } from "@hypr/ui/lib/utils";
 import { useLingui } from "@lingui/react/macro";
 import { SearchIcon } from "lucide-react";
 import { type ReactNode, useCallback, useMemo } from "react";
+
+import type { ExtensionDefinition } from "@hypr/plugin-db";
+import { cn } from "@hypr/ui/lib/utils";
 
 interface ExtensionListProps {
   searchQuery: string;

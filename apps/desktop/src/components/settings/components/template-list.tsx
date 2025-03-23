@@ -1,9 +1,10 @@
-import { type Template } from "@hypr/plugin-db";
-import { cn } from "@hypr/ui/lib/utils";
 import { useLingui } from "@lingui/react/macro";
 import { Trans } from "@lingui/react/macro";
 import { HeartIcon, SearchIcon, TagIcon, ZapIcon } from "lucide-react";
 import { type ReactNode } from "react";
+
+import { type Template } from "@hypr/plugin-db";
+import { cn } from "@hypr/ui/lib/utils";
 
 interface TemplateListProps {
   searchQuery: string;

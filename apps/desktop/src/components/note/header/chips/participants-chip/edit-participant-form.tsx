@@ -51,7 +51,7 @@ export function EditParticipantForm({
 
   const updateParticipantMutation = useMutation({
     mutationFn: async (values: Schema) => {
-      // Simulate API call
+      // TODO: Implement update participant
       await new Promise(resolve => setTimeout(resolve, 300));
 
       const updatedParticipant = {

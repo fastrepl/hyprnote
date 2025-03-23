@@ -1,16 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import { LinkProps } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
 import { type ExtensionName } from "@hypr/extension-registry";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { commands as windowsCommands, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import WidgetRenderer from "./renderer";
 
 export default function RightPanel() {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(false);
   const { isExpanded, hidePanel } = useRightPanel();
   const { userId } = useHypr();
 
@@ -32,24 +31,9 @@ export default function RightPanel() {
     }) ?? []);
   }, [extensions.data]);
 
-  const handleClickConfigureWidgets = () => {
-    const params = {
-      to: "/app/settings",
-      search: { current: "extensions" },
-    } as const satisfies LinkProps;
-
-    const url = `${params.to}?current=${params.search.current}`;
-
-    windowsCommands.windowShow("settings").then(() => {
-      setTimeout(() => {
-        windowsCommands.windowEmitNavigate("settings", url);
-      }, 200);
-    });
-  };
-
   useEffect(() => {
     const checkViewport = () => {
-      setIsMobile(window.innerWidth < 760);
+      setIsNarrow(window.innerWidth < 760);
     };
 
     checkViewport();
@@ -58,7 +42,7 @@ export default function RightPanel() {
     return () => window.removeEventListener("resize", checkViewport);
   }, []);
 
-  if (isMobile) {
+  if (isNarrow) {
     return (
       <div className="relative h-full">
         {show && (
@@ -72,7 +56,7 @@ export default function RightPanel() {
           initial={false}
           animate={{ x: show ? 0 : "100%" }}
           transition={{ duration: 0.3 }}
-          className="absolute right-0 top-0 z-40 h-full w-[380px] overflow-y-auto border-l bg-neutral-50 scrollbar-none shadow-lg"
+          className="absolute right-0 top-0 z-40 h-full w-[380px] overflow-y-auto border-l bg-neutral-50 scrollbar-none shadow-lg flex flex-col"
         >
           <WidgetRenderer widgets={widgets} />
         </motion.div>
@@ -85,16 +69,9 @@ export default function RightPanel() {
       initial={false}
       animate={{ width: show ? 380 : 0 }}
       transition={{ duration: 0.3 }}
-      className="h-full overflow-y-auto border-l bg-neutral-50 scrollbar-none relative flex flex-col items-center"
+      className="h-full overflow-y-auto border-l bg-neutral-50 scrollbar-none flex flex-col"
     >
       <WidgetRenderer widgets={widgets} />
-
-      <button
-        onClick={handleClickConfigureWidgets}
-        className="px-2 py-1.5 text-xs rounded-full bg-white hover:bg-neutral-200 border border-border transition-all"
-      >
-        Edit Widgets
-      </button>
     </motion.div>
   );
 }

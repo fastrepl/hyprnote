@@ -71,8 +71,9 @@ export default function LeftSidebar() {
           </TooltipTrigger>
           <TooltipContent>
             <Trans>
-              Open settings <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
-            </Trans>
+              Open settings
+            </Trans>{" "}
+            <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
           </TooltipContent>
         </Tooltip>
 

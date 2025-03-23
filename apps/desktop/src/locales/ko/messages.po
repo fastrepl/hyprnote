@@ -428,6 +428,10 @@ msgstr "예정된 일정을 알림"
 msgid "Official Templates"
 msgstr "공식 템플릿"
 
+#: src/components/left-sidebar/index.tsx:92
+msgid "Open calendar view"
+msgstr "캘린더 뷰 열기"
+
 #: src/components/settings/views/general.tsx:109
 msgid "Open Hyprnote on startup"
 msgstr "시작 시 하이퍼노트 열기"
@@ -436,6 +440,10 @@ msgstr "시작 시 하이퍼노트 열기"
 #: src/components/workspace-calendar/event-card.tsx:102
 msgid "Open Note"
 msgstr "노트 열기"
+
+#: src/components/left-sidebar/index.tsx:73
+msgid "Open settings"
+msgstr "설정 열기"
 
 #: src/components/settings/views/calendar.tsx:223
 msgid "Optional for participant suggestions"

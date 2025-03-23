@@ -428,6 +428,10 @@ msgstr "Notify upcoming events"
 msgid "Official Templates"
 msgstr "Official Templates"
 
+#: src/components/left-sidebar/index.tsx:92
+msgid "Open calendar view"
+msgstr "Open calendar view"
+
 #: src/components/settings/views/general.tsx:109
 msgid "Open Hyprnote on startup"
 msgstr "Open Hyprnote on startup"
@@ -436,6 +440,10 @@ msgstr "Open Hyprnote on startup"
 #: src/components/workspace-calendar/event-card.tsx:102
 msgid "Open Note"
 msgstr "Open Note"
+
+#: src/components/left-sidebar/index.tsx:73
+msgid "Open settings"
+msgstr "Open settings"
 
 #: src/components/settings/views/calendar.tsx:223
 msgid "Optional for participant suggestions"

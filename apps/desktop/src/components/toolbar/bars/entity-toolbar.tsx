@@ -10,7 +10,7 @@ export function EntityToolbar({ title }: EntityToolbarProps) {
     >
       <div className="w-40 flex items-center justify-start" data-tauri-drag-region />
       <div className="flex-1 flex justify-center" data-tauri-drag-region>
-        <h1 className="text-lg font-medium truncate max-w-md" data-tauri-drag-region>
+        <h1 className="font-medium" data-tauri-drag-region>
           {title}
         </h1>
       </div>

@@ -4,7 +4,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Calendar, ExternalLink, FileText, Users } from "lucide-react";
 
-import RightPanel from "@/components/note/right-panel";
+import RightPanel from "@/components/right-panel";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Button } from "@hypr/ui/components/ui/button";

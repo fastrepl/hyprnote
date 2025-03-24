@@ -14,9 +14,9 @@ import { modelProvider } from "@hypr/utils";
 
 import { useOngoingSession, useSession } from "@/contexts";
 import { ENHANCE_SYSTEM_TEMPLATE_KEY, ENHANCE_USER_TEMPLATE_KEY } from "@/templates";
-import { NoteHeader } from "../header";
 import { EnhanceControls } from "./enhanced-controls";
 import { EnhanceOnlyButton } from "./enhanced-only-button";
+import { NoteHeader } from "./note-header";
 
 interface EditorAreaProps {
   editable: boolean;

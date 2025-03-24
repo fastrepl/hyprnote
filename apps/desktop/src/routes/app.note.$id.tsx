@@ -2,8 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useParams } from "@tanstack/react-router";
 import { useEffect } from "react";
 
-import EditorArea from "@/components/note/editor-area";
-import RightPanel from "@/components/note/right-panel";
+import EditorArea from "@/components/editor-area";
+import RightPanel from "@/components/right-panel";
 import { useSession } from "@/contexts";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";

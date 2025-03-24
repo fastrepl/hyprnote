@@ -1,53 +1,52 @@
 import { useMatch } from "@tanstack/react-router";
 
-import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { cn } from "@hypr/ui/lib/utils";
-import { SearchBar } from "../search-bar";
-import { LeftSidebarButton } from "./buttons/left-sidebar-button";
-import { RightPanelButton } from "./buttons/right-panel-button";
-import { ShareButton } from "./buttons/share-button";
+import { CalendarToolbar } from "./calendar-toolbar";
+import { EntityToolbar } from "./entity-toolbar";
+import { MainToolbar } from "./main-toolbar";
+import { NoteToolbar } from "./note-toolbar";
 
 export default function Toolbar() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
+  const organizationMatch = useMatch({ from: "/app/organization/$id", shouldThrow: false });
+  const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
+  const calendarMatch = useMatch({ from: "/app/calendar", shouldThrow: false });
 
   const isMain = getCurrentWebviewWindowLabel() === "main";
   const isNote = !!noteMatch;
+  const isOrg = !!organizationMatch;
+  const isHuman = !!humanMatch;
+  const isCalendar = !!calendarMatch;
 
+  // Handle calendar view
+  if (isCalendar) {
+    const date = calendarMatch?.search?.date ? new Date(calendarMatch.search.date as string) : new Date();
+    return <CalendarToolbar date={date} />;
+  }
+
+  // Non-main window - specific views
   if (!isMain) {
+    // For note view - show only share button
+    if (isNote) {
+      return <NoteToolbar />;
+    }
+    
+    // For org view - show organization name in center
+    if (isOrg) {
+      const { organization } = organizationMatch?.loaderData || { organization: { name: "" } };
+      return <EntityToolbar title={organization?.name || ""} />;
+    }
+    
+    // For human view - show human name in center
+    if (isHuman) {
+      const { human } = humanMatch?.loaderData || { human: { full_name: "" } };
+      return <EntityToolbar title={human?.full_name || ""} />;
+    }
+    
+    // For other views in non-main window, don't render
     return null;
   }
 
-  return (
-    <header
-      data-tauri-drag-region
-      className={cn([
-        "flex w-full items-center justify-between min-h-11 p-1 px-2 border-b",
-        isMain ? "border-border bg-neutral-50" : "border-transparent bg-transparent",
-      ])}
-    >
-      <div className="w-40 flex items-center justify-start" data-tauri-drag-region>
-        {isNote && (
-          <>
-            <LeftSidebarButton type="toolbar" />
-            <NewNoteButton />
-          </>
-        )}
-      </div>
-
-      <SearchBar />
-
-      <div
-        className="flex w-40 items-center justify-end"
-        data-tauri-drag-region
-      >
-        {isMain && (
-          <>
-            {isNote && <ShareButton />}
-            <RightPanelButton />
-          </>
-        )}
-      </div>
-    </header>
-  );
+  // Main window - default behavior
+  return <MainToolbar />;
 }

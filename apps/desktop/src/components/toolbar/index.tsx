@@ -1,10 +1,7 @@
 import { useMatch } from "@tanstack/react-router";
 
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { CalendarToolbar } from "./calendar-toolbar";
-import { EntityToolbar } from "./entity-toolbar";
-import { MainToolbar } from "./main-toolbar";
-import { NoteToolbar } from "./note-toolbar";
+import { CalendarToolbar, EntityToolbar, MainToolbar, NoteToolbar } from "./bars";
 
 export default function Toolbar() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });

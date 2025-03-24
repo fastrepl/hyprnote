@@ -1,15 +1,19 @@
 import { useMatch } from "@tanstack/react-router";
 
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
+import { NewWindowButton } from "@/components/toolbar/buttons/new-window-button";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { cn } from "@hypr/ui/lib/utils";
-import { SearchBar } from "../search-bar";
-import { LeftSidebarButton } from "./buttons/left-sidebar-button";
-import { RightPanelButton } from "./buttons/right-panel-button";
-import { ShareButton } from "./buttons/share-button";
+import { SearchBar } from "../../search-bar";
+import { LeftSidebarButton } from "../buttons/left-sidebar-button";
+import { RightPanelButton } from "../buttons/right-panel-button";
+import { ShareButton } from "../buttons/share-button";
 
 export function MainToolbar() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
+  const organizationMatch = useMatch({ from: "/app/organization/$id", shouldThrow: false });
+  const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
+  
   const isNote = !!noteMatch;
   const isMain = getCurrentWebviewWindowLabel() === "main";
 
@@ -39,6 +43,7 @@ export function MainToolbar() {
         {isMain && (
           <>
             {isNote && <ShareButton />}
+            {(organizationMatch || humanMatch) && <NewWindowButton />}
             <RightPanelButton />
           </>
         )}

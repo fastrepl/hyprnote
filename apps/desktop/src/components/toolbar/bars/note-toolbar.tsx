@@ -1,4 +1,4 @@
-import { ShareButton } from "./buttons/share-button";
+import { ShareButton } from "../buttons/share-button";
 
 export function NoteToolbar() {
   return (

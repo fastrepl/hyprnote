@@ -1,5 +1,8 @@
+import {
+  formatRelative as originalFormatRelative,
+  formatRemainingTime as originalFormatRemainingTime,
+} from "@hypr/utils/datetime";
 import { i18n } from "@lingui/core";
-import { formatRemainingTime as originalFormatRemainingTime, formatRelative as originalFormatRelative } from "@hypr/utils/datetime";
 
 /**
  * Internationalized version of formatRemainingTime
@@ -40,7 +43,7 @@ export function formatRemainingTime(date: Date): string {
 export function formatRelative(date: string, t?: string): string {
   const d = new Date(date);
   const now = new Date();
-  
+
   // Calculate the difference in days
   const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -66,4 +69,4 @@ export function formatRelative(date: string, t?: string): string {
 }
 
 // Export the original functions as fallbacks
-export { originalFormatRemainingTime, originalFormatRelative };
+export { originalFormatRelative, originalFormatRemainingTime };

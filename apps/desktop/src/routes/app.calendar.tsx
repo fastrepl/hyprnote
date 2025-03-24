@@ -1,7 +1,6 @@
-import { useLingui } from "@lingui/react/macro";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
-import { addMonths, endOfMonth, startOfMonth, subMonths } from "date-fns";
+import { endOfMonth, startOfMonth } from "date-fns";
 import { z } from "zod";
 
 import WorkspaceCalendar from "@/components/workspace-calendar";
@@ -72,36 +71,6 @@ export const Route = createFileRoute("/app/calendar")({
 
 function Component() {
   const { sessions, events, date } = Route.useLoaderData();
-  const navigate = useNavigate();
-  const { i18n } = useLingui();
-
-  const today = new Date();
-
-  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-  const handlePreviousMonth = () => {
-    navigate({
-      to: "/app/calendar",
-      search: { date: subMonths(date, 1).toISOString() },
-      replace: true,
-    });
-  };
-
-  const handleNextMonth = () => {
-    navigate({
-      to: "/app/calendar",
-      search: { date: addMonths(date, 1).toISOString() },
-      replace: true,
-    });
-  };
-
-  const handleToday = () => {
-    navigate({
-      to: "/app/calendar",
-      search: { date: today.toISOString() },
-      replace: true,
-    });
-  };
 
   return (
     <div className="flex h-screen w-screen overflow-hidden flex-col bg-white text-neutral-700">

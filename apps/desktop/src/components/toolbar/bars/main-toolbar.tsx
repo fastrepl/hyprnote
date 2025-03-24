@@ -13,7 +13,7 @@ export function MainToolbar() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const organizationMatch = useMatch({ from: "/app/organization/$id", shouldThrow: false });
   const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
-  
+
   const isNote = !!noteMatch;
   const isMain = getCurrentWebviewWindowLabel() === "main";
 

@@ -14,7 +14,7 @@ export function CalendarToolbar({ date }: CalendarToolbarProps) {
   const { i18n } = useLingui();
   const navigate = useNavigate();
   const today = new Date();
-  
+
   const handlePreviousMonth = () => {
     const prevMonth = subMonths(date, 1);
     navigate({

@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
-import { commands as dbCommands, type Event } from "@hypr/plugin-db";
 import { formatRemainingTime } from "@/utils/i18n-datetime";
+import { commands as dbCommands, type Event } from "@hypr/plugin-db";
 
 export default function EventItem({ event }: { event: Event }) {
   const navigate = useNavigate();

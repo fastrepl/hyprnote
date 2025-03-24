@@ -2,12 +2,12 @@ import {
   BellIcon,
   BlocksIcon,
   CalendarIcon,
-  CreditCardIcon,
+  // CreditCardIcon,
   FileTextIcon,
   SettingsIcon,
   SparklesIcon,
   UserIcon,
-  UsersIcon,
+  // UsersIcon,
 } from "lucide-react";
 
 import { type Tab } from "./types";
@@ -28,10 +28,10 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <FileTextIcon className="h-4 w-4" />;
     case "extensions":
       return <BlocksIcon className="h-4 w-4" />;
-    case "team":
-      return <UsersIcon className="h-4 w-4" />;
-    case "billing":
-      return <CreditCardIcon className="h-4 w-4" />;
+    // case "team":
+    //   return <UsersIcon className="h-4 w-4" />;
+    // case "billing":
+    //   return <CreditCardIcon className="h-4 w-4" />;
     default:
       return null;
   }

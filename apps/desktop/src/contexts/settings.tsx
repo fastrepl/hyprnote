@@ -23,7 +23,7 @@ export function SettingsProvider({
     "mod+,",
     (event) => {
       event.preventDefault();
-      windowsCommands.windowShow("settings");
+      open();
     },
     {
       splitKey: "!",

@@ -1,7 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type LinkProps, useNavigate } from "@tanstack/react-router";
-import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, TrashIcon } from "lucide-react";
+import { AppWindowMacIcon, CalendarDaysIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { useSession } from "@/contexts";
@@ -133,8 +133,7 @@ export function NoteItem({
           onClick={handleOpenWindow}
         >
           <AppWindowMacIcon size={16} className="mr-2" />
-          <Trans>New window</Trans>
-          <ArrowUpRight size={16} className="ml-2" />
+          <Trans>Open in new window</Trans>
         </ContextMenuItem>
 
         <ContextMenuItem
@@ -142,8 +141,7 @@ export function NoteItem({
           onClick={handleOpenCalendar}
         >
           <CalendarDaysIcon size={16} className="mr-2" />
-          <Trans>In calendar view</Trans>
-          <ArrowUpRight size={16} className="ml-2" />
+          <Trans>Open in calendar view</Trans>
         </ContextMenuItem>
 
         <ContextMenuSeparator />

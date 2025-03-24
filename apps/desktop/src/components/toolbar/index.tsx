@@ -18,35 +18,28 @@ export default function Toolbar() {
   const isHuman = !!humanMatch;
   const isCalendar = !!calendarMatch;
 
-  // Handle calendar view
   if (isCalendar) {
     const date = calendarMatch?.search?.date ? new Date(calendarMatch.search.date as string) : new Date();
     return <CalendarToolbar date={date} />;
   }
 
-  // Non-main window - specific views
   if (!isMain) {
-    // For note view - show only share button
     if (isNote) {
       return <NoteToolbar />;
     }
-    
-    // For org view - show organization name in center
+
     if (isOrg) {
       const { organization } = organizationMatch?.loaderData || { organization: { name: "" } };
       return <EntityToolbar title={organization?.name || ""} />;
     }
-    
-    // For human view - show human name in center
+
     if (isHuman) {
       const { human } = humanMatch?.loaderData || { human: { full_name: "" } };
       return <EntityToolbar title={human?.full_name || ""} />;
     }
-    
-    // For other views in non-main window, don't render
+
     return null;
   }
 
-  // Main window - default behavior
   return <MainToolbar />;
 }

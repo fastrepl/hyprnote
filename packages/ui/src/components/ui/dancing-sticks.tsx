@@ -21,7 +21,7 @@ function EqualizerStick({ baseLength, amplitude, theme }: EqualizerStickProps) {
 
   return (
     <motion.div
-      className={cn("rounded-full bg-neutral-800", theme === "dark" && "bg-neutral-200")}
+      className={cn("rounded-full", theme === "dark" ? "bg-neutral-200" : "bg-neutral-800")}
       style={{ width: "2px" }}
       animate={{
         height: getRandomValues(16, 6, scaledBaseLength),
@@ -42,35 +42,34 @@ type DancingSticksProps = {
   size?: "default" | "long";
 };
 
+const STICK_PATTERNS = {
+  default: [50, 65, 85, 100, 85, 65],
+  long: [50, 65, 75, 85, 95, 100, 95, 85, 75, 65, 50],
+};
+
 export function DancingSticks({ theme = "light", amplitude, size = "default" }: DancingSticksProps) {
+  const isFlat = amplitude === 0;
+  const pattern = STICK_PATTERNS[size];
+  const width = size === "long" ? "w-[32px]" : "w-[17px]";
+
+  if (isFlat) {
+    return (
+      <div className={`flex h-4 ${width} items-center justify-center`}>
+        <div className={cn(`${width} h-px rounded-full`, theme === "dark" ? "bg-neutral-200" : "bg-neutral-800")} />
+      </div>
+    );
+  }
+
   return (
-    <div className={`flex h-4 ${size === "long" ? "w-[32px]" : "w-[17px]"} items-center justify-center gap-[1px]`}>
-      {size === "default"
-        ? (
-          <>
-            <EqualizerStick baseLength={50} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={65} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={85} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={100} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={85} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={65} amplitude={amplitude} theme={theme} />
-          </>
-        )
-        : (
-          <>
-            <EqualizerStick baseLength={50} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={65} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={75} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={85} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={95} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={100} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={95} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={85} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={75} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={65} amplitude={amplitude} theme={theme} />
-            <EqualizerStick baseLength={50} amplitude={amplitude} theme={theme} />
-          </>
-        )}
+    <div className={`flex h-4 ${width} items-center justify-center gap-[1px]`}>
+      {pattern.map((baseLength, index) => (
+        <EqualizerStick
+          key={`${size}-${index}`}
+          baseLength={baseLength}
+          amplitude={amplitude}
+          theme={theme}
+        />
+      ))}
     </div>
   );
 }

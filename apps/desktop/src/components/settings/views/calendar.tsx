@@ -51,26 +51,9 @@ function OutlookIcon() {
 }
 
 function Integration({ type }: { type: CalendarIntegration }) {
-  const calendarAccess = useQuery({
-    queryKey: ["settings", "calendarAccess"],
-    queryFn: async () => type === "apple-calendar" ? appleCalendarCommands.calendarAccessStatus() : false,
-    enabled: type === "apple-calendar",
-  });
-
-  const integrations = useQuery({
-    ...getApiDesktopUserIntegrationsOptions({ client }),
-    enabled: type !== "apple-calendar",
-  });
-
-  const isConnected = type === "apple-calendar"
-    ? !!calendarAccess.data
-    : !!integrations.data?.find((i) => i === type);
-
-  const defaultValue = !isConnected ? "item-1" : undefined;
-
   return (
-    <Accordion type="single" collapsible defaultValue={defaultValue}>
-      <AccordionItem value="item-1">
+    <Accordion type="single" collapsible defaultValue={"apple"}>
+      <AccordionItem value="apple">
         <AccordionTrigger>
           <CalendarIconWithText type={type} />
         </AccordionTrigger>

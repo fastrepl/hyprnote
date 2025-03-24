@@ -118,7 +118,7 @@ export function NoteItem({
             </div>
 
             <div className="flex items-center gap-3 text-xs text-neutral-500">
-              <span className="font-medium">{format(sessionDate, "M/d/yy")}</span>
+              <span className="font-medium">{format(sessionDate, "h:mm a")}</span>
               <span className="text-xs">
                 {html2text(currentSession.enhanced_memo_html || currentSession.raw_memo_html)}
               </span>

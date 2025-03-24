@@ -13,8 +13,69 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:16
+msgid "{days} day{plural} later"
+msgstr "{days}일 후"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:21
+msgid "{hours} hour{plural} later"
+msgstr "{hours}시간 후"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:26
+msgid "{minutes} minutes later"
+msgstr "{minutes}분 후"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:30
+msgid "Starting soon"
+msgstr "곧 시작"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:32
+msgid "In progress"
+msgstr "진행 중"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:50
+msgid "Today"
+msgstr "오늘"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:52
+msgid "Yesterday"
+msgstr "어제"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:54
+msgid "2 days ago"
+msgstr "2일 전"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:56
+#: src/utils/i18n-datetime.ts:64
+msgid "{days} days ago"
+msgstr "{days}일 전"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:58
+msgid "Last week"
+msgstr "지난 주"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:60
+msgid "2 weeks ago"
+msgstr "2주 전"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:62
+msgid "3 weeks ago"
+msgstr "3주 전"
+
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
-#: src/components/settings/views/calendar.tsx:116
+#: src/components/settings/views/calendar.tsx:113
 msgid "{0}"
 msgstr "{0}"
 
@@ -27,8 +88,8 @@ msgstr "멤버 {0}명"
 #~ msgid "{current}"
 #~ msgstr "{현재}"
 
-#: src/components/settings/views/calendar.tsx:190
-#: src/components/settings/views/calendar.tsx:222
+#: src/components/settings/views/calendar.tsx:187
+#: src/components/settings/views/calendar.tsx:219
 msgid "Access granted"
 msgstr "접근 권한이 승인되었습니다."
 
@@ -40,7 +101,7 @@ msgstr "설명을 추가하세요..."
 msgid "Add members"
 msgstr "팀원을 추가하세요."
 
-#: src/components/note/header/chips/participants-chip/participants-list.tsx:229
+#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:229
 msgid "Add participant"
 msgstr "참석자를 추가하세요."
 
@@ -87,7 +148,6 @@ msgstr "애플"
 msgid "Ask questions about past meetings"
 msgstr "과거 회의에 대해 질문하세요."
 
-#: src/components/settings/views/index.tsx:53
 #: src/components/settings/components/settings-header.tsx:35
 #: src/components/settings/components/main-sidebar.tsx:45
 msgid "Billing"
@@ -101,17 +161,16 @@ msgstr "결제 기능은 현재 개발 중이며 향후 업데이트에서 제�
 msgid "Built-in Templates"
 msgstr "기본 템플릿"
 
-#: src/components/settings/views/index.tsx:43
 #: src/components/settings/components/settings-header.tsx:25
 #: src/components/settings/components/main-sidebar.tsx:35
 msgid "Calendar"
 msgstr "캘린더"
 
-#: src/components/settings/views/calendar.tsx:186
+#: src/components/settings/views/calendar.tsx:183
 msgid "Calendar Access"
 msgstr "캘린더 접근 권한"
 
-#: src/components/settings/views/calendar.tsx:124
+#: src/components/settings/views/calendar.tsx:121
 msgid "Calendar connected"
 msgstr "캘린더가 연결되었습니다."
 
@@ -126,7 +185,6 @@ msgstr "회의에서 다른 사람들과 협업하세요."
 #: src/components/settings/views/team.tsx:67
 #: src/components/settings/views/billing.tsx:62
 #: src/components/settings/views/billing.tsx:93
-#: src/components/settings/components/main-sidebar.tsx:50
 #: src/components/settings/components/extensions-sidebar.tsx:54
 msgid "Coming Soon"
 msgstr "곧 출시 예정"
@@ -139,7 +197,7 @@ msgstr "회사 설명"
 msgid "Company Name"
 msgstr "회사명"
 
-#: src/components/settings/views/calendar.tsx:143
+#: src/components/settings/views/calendar.tsx:140
 msgid "Connect"
 msgstr "연결하기"
 
@@ -152,15 +210,15 @@ msgid "Connect to Contacts"
 msgstr "연락처에 연결하기"
 
 #. placeholder {0}: type === "google-calendar" ? "Google" : "Outlook"
-#: src/components/settings/views/calendar.tsx:126
+#: src/components/settings/views/calendar.tsx:123
 msgid "Connect your {0} calendar to track upcoming events"
 msgstr "{0} 캘린더를 연결하여 예정된 일정을 추적하세요."
 
-#: src/components/settings/views/calendar.tsx:191
+#: src/components/settings/views/calendar.tsx:188
 msgid "Connect your calendar and track events"
 msgstr "캘린더를 연결하고 일정을 추적하세요."
 
-#: src/components/settings/views/calendar.tsx:218
+#: src/components/settings/views/calendar.tsx:215
 msgid "Contacts Access"
 msgstr "연락처 접근 권한"
 
@@ -210,11 +268,11 @@ msgstr "언어"
 msgid "Duplicate"
 msgstr "복제"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:97
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:97
 msgid "Email"
 msgstr "이메일"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:101
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:101
 msgid "Email address"
 msgstr "이메일"
 
@@ -242,7 +300,6 @@ msgstr "섹션 제목을 입력하세요."
 msgid "Exclude these apps from auto detection"
 msgstr "자동 감지에서 제외할 앱을 선택하세요."
 
-#: src/components/settings/views/index.tsx:49
 #: src/components/settings/components/settings-header.tsx:31
 #: src/components/settings/components/main-sidebar.tsx:41
 msgid "Extensions"
@@ -272,7 +329,6 @@ msgstr "무료"
 msgid "Free Trial"
 msgstr "무료 체험"
 
-#: src/components/settings/views/index.tsx:41
 #: src/components/settings/components/settings-header.tsx:19
 #: src/components/settings/components/main-sidebar.tsx:29
 msgid "General"
@@ -282,8 +338,8 @@ msgstr "일반"
 msgid "Get Started"
 msgstr "시작하기"
 
-#: src/components/settings/views/calendar.tsx:204
-#: src/components/settings/views/calendar.tsx:236
+#: src/components/settings/views/calendar.tsx:201
+#: src/components/settings/views/calendar.tsx:233
 msgid "Grant Access"
 msgstr "접근 권한 부여"
 
@@ -291,7 +347,7 @@ msgstr "접근 권한 부여"
 msgid "How about your contacts?"
 msgstr "연락처는 어떠세요?"
 
-#: src/components/note/editor-area/enhanced-only-button.tsx:18
+#: src/components/editor-area/enhanced-only-button.tsx:18
 msgid "Hypercharge"
 msgstr "하이퍼차지"
 
@@ -323,12 +379,12 @@ msgstr "멤버 초대하기"
 msgid "Jargons"
 msgstr "전문 용어"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:122
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:122
 msgid "Job title"
 msgstr "직책"
 
 #: src/components/settings/views/profile.tsx:134
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:118
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:118
 msgid "Job Title"
 msgstr "직책"
 
@@ -341,7 +397,7 @@ msgid "Learn more about our pricing plans"
 msgstr "요금제에 대해 더 알아보세요."
 
 #: src/components/settings/views/profile.tsx:205
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:139
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:139
 msgid "LinkedIn Username"
 msgstr "링크드인 사용자명"
 
@@ -353,7 +409,7 @@ msgstr "실시간 회의 요약"
 msgid "Load Model"
 msgstr "모델 로드"
 
-#: src/components/settings/views/extension.tsx:101
+#: src/components/settings/views/extension.tsx:100
 msgid "Loading extension details..."
 msgstr "익스텐션 정보 로딩 중..."
 
@@ -438,7 +494,6 @@ msgstr "이 조직에 대한 예정된 일정이 없습니다."
 msgid "No upcoming events with this contact"
 msgstr "이 연락처와의 예정된 일정이 없습니다."
 
-#: src/components/settings/views/index.tsx:45
 #: src/components/settings/components/settings-header.tsx:27
 #: src/components/settings/components/main-sidebar.tsx:37
 msgid "Notifications"
@@ -469,7 +524,7 @@ msgstr "노트 열기"
 msgid "Open settings"
 msgstr "설정 열기"
 
-#: src/components/settings/views/calendar.tsx:223
+#: src/components/settings/views/calendar.tsx:220
 msgid "Optional for participant suggestions"
 msgstr "참가자 추천을 위한 선택 사항"
 
@@ -494,7 +549,6 @@ msgstr "명"
 msgid "Pro"
 msgstr "프로"
 
-#: src/components/settings/views/index.tsx:55
 #: src/components/settings/components/settings-header.tsx:21
 #: src/components/settings/components/main-sidebar.tsx:31
 msgid "Profile"
@@ -529,11 +583,11 @@ msgstr "향상된 개인 정보 보호를 위해 음성 인식을 로컬에서 �
 msgid "Running"
 msgstr "실행 중"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:166
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:166
 msgid "Save Changes"
 msgstr "변경사항 저장"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:166
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:166
 msgid "Saving..."
 msgstr "저장 중..."
 
@@ -553,6 +607,10 @@ msgstr "이름 또는 이메일 검색"
 #: src/components/settings/components/template-list.tsx:43
 msgid "Search templates..."
 msgstr "템플릿 검색..."
+
+#: src/components/search-bar.tsx:63
+msgid "Search..."
+msgstr "검색..."
 
 #: src/components/settings/views/template.tsx:121
 msgid "Sections"
@@ -577,8 +635,8 @@ msgstr "서버가 실행 중입니다."
 
 #: src/components/settings/index.tsx:80
 #: src/components/settings/views/index.tsx:71
-msgid "Settings"
-msgstr "설정"
+#~ msgid "Settings"
+#~ msgstr "설정"
 
 #: src/components/settings/views/notifications.tsx:129
 msgid "Show notifications 1 minute before events start based on your calendars"
@@ -608,7 +666,7 @@ msgstr "연간 요금제 시작"
 msgid "Start Monthly Plan"
 msgstr "월간 요금제 시작"
 
-#: src/components/note/header/listen-button.tsx:80
+#: src/components/editor-area/note-header/listen-button.tsx:80
 msgid "Start recording"
 msgstr "녹음 시작"
 
@@ -617,15 +675,15 @@ msgstr "녹음 시작"
 msgid "Start Server"
 msgstr "서버 시작"
 
-#: src/components/note/header/listen-button.tsx:156
+#: src/components/editor-area/note-header/listen-button.tsx:156
 msgid "Stop"
 msgstr "중지"
 
-#: src/components/note/header/listen-button.tsx:145
+#: src/components/editor-area/note-header/listen-button.tsx:145
 msgid "Stop listening to the meeting?"
 msgstr "회의 듣기를 중지하시겠습니까?"
 
-#: src/components/note/header/listen-button.tsx:96
+#: src/components/editor-area/note-header/listen-button.tsx:96
 msgid "Stop recording"
 msgstr "녹음 중지"
 
@@ -638,7 +696,6 @@ msgstr "서버 중지"
 msgid "Synchronization across multiple devices"
 msgstr "여러 기기 간 동기화"
 
-#: src/components/settings/views/index.tsx:51
 #: src/components/settings/views/billing.tsx:46
 #: src/components/settings/components/settings-header.tsx:33
 #: src/components/settings/components/main-sidebar.tsx:43
@@ -653,11 +710,10 @@ msgstr "팀 관리 기능은 현재 개발 중이며 향후 업데이트에서 �
 msgid "Teamspace"
 msgstr "팀스페이스"
 
-#: src/components/note/editor-area/enhanced-controls.tsx:38
+#: src/components/editor-area/enhanced-controls.tsx:38
 msgid "Template Selector"
 msgstr "템플릿 선택기"
 
-#: src/components/settings/views/index.tsx:47
 #: src/components/settings/components/settings-header.tsx:29
 #: src/components/settings/components/main-sidebar.tsx:39
 msgid "Templates"
@@ -731,13 +787,17 @@ msgstr "이름 없는 연락처"
 msgid "Unnamed Organization"
 msgstr "이름 없는 조직"
 
-#: src/components/note/header/title-input.tsx:59
+#: src/components/editor-area/note-header/title-input.tsx:59
 msgid "Untitled"
 msgstr "제목 없음"
 
 #: src/components/settings/views/template.tsx:68
 msgid "Untitled Template"
 msgstr "제목 없는 템플릿"
+
+#: src/components/left-sidebar/all-list/events-list.tsx:38
+msgid "Upcoming"
+msgstr "예정된 일정"
 
 #: src/routes/app.organization.$id.tsx:202
 #: src/routes/app.human.$id.tsx:229
@@ -753,7 +813,7 @@ msgid "User"
 msgstr "사용자"
 
 #: src/components/settings/views/profile.tsx:218
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:152
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:152
 msgid "username"
 msgstr "사용자명"
 
@@ -765,7 +825,7 @@ msgstr "사용자명"
 msgid "Verify that your local language model is working correctly"
 msgstr "로컬 언어 모델이 올바르게 작동하는지 확인하세요."
 
-#: src/components/note/header/chips/event-chip.tsx:43
+#: src/components/editor-area/note-header/chips/event-chip.tsx:43
 msgid "View in calendar"
 msgstr "캘린더에서 보기"
 
@@ -795,7 +855,7 @@ msgid "You can make Hyprnote takes these words into account when transcribing."
 msgstr "하이퍼노트가 텍스트 변환 시 이러한 단어들을 고려하도록 설정할 수 있습니다."
 
 #: src/components/settings/views/profile.tsx:208
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:142
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:142
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"
 msgstr "링크드인 사용자명 (linkedin.com/in/ 뒤에 오는 부분)"
 

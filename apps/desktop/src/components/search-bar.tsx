@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react/macro";
 import clsx from "clsx";
 import { SearchIcon, XIcon } from "lucide-react";
 import { useEffect } from "react";
@@ -19,6 +20,7 @@ export function SearchBar() {
     clearSearch: s.clearSearch,
     setSearchQuery: s.setQuery,
   }));
+  const { t } = useLingui();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -58,7 +60,7 @@ export function SearchBar() {
           type="text"
           value={searchQuery}
           onChange={handleInputChange}
-          placeholder="Search..."
+          placeholder={t`Search...`}
           className="flex-1 bg-transparent outline-none text-xs"
         />
         {searchQuery && (

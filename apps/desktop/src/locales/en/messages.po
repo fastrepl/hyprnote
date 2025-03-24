@@ -13,8 +13,69 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:16
+msgid "{days} day{plural} later"
+msgstr "{days} day{plural} later"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:21
+msgid "{hours} hour{plural} later"
+msgstr "{hours} hour{plural} later"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:26
+msgid "{minutes} minutes later"
+msgstr "{minutes} minutes later"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:30
+msgid "Starting soon"
+msgstr "Starting soon"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:32
+msgid "In progress"
+msgstr "In progress"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:50
+msgid "Today"
+msgstr "Today"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:52
+msgid "Yesterday"
+msgstr "Yesterday"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:54
+msgid "2 days ago"
+msgstr "2 days ago"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:56
+#: src/utils/i18n-datetime.ts:64
+msgid "{days} days ago"
+msgstr "{days} days ago"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:58
+msgid "Last week"
+msgstr "Last week"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:60
+msgid "2 weeks ago"
+msgstr "2 weeks ago"
+
+#. js-lingui-explicit-id
+#: src/utils/i18n-datetime.ts:62
+msgid "3 weeks ago"
+msgstr "3 weeks ago"
+
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
-#: src/components/settings/views/calendar.tsx:116
+#: src/components/settings/views/calendar.tsx:113
 msgid "{0}"
 msgstr "{0}"
 
@@ -27,8 +88,8 @@ msgstr "{0} members"
 #~ msgid "{current}"
 #~ msgstr "{current}"
 
-#: src/components/settings/views/calendar.tsx:190
-#: src/components/settings/views/calendar.tsx:222
+#: src/components/settings/views/calendar.tsx:187
+#: src/components/settings/views/calendar.tsx:219
 msgid "Access granted"
 msgstr "Access granted"
 
@@ -40,7 +101,7 @@ msgstr "Add a description..."
 msgid "Add members"
 msgstr "Add members"
 
-#: src/components/note/header/chips/participants-chip/participants-list.tsx:229
+#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:229
 msgid "Add participant"
 msgstr "Add participant"
 
@@ -87,7 +148,6 @@ msgstr "Apple"
 msgid "Ask questions about past meetings"
 msgstr "Ask questions about past meetings"
 
-#: src/components/settings/views/index.tsx:53
 #: src/components/settings/components/settings-header.tsx:35
 #: src/components/settings/components/main-sidebar.tsx:45
 msgid "Billing"
@@ -101,17 +161,16 @@ msgstr "Billing features are currently under development and will be available i
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
-#: src/components/settings/views/index.tsx:43
 #: src/components/settings/components/settings-header.tsx:25
 #: src/components/settings/components/main-sidebar.tsx:35
 msgid "Calendar"
 msgstr "Calendar"
 
-#: src/components/settings/views/calendar.tsx:186
+#: src/components/settings/views/calendar.tsx:183
 msgid "Calendar Access"
 msgstr "Calendar Access"
 
-#: src/components/settings/views/calendar.tsx:124
+#: src/components/settings/views/calendar.tsx:121
 msgid "Calendar connected"
 msgstr "Calendar connected"
 
@@ -126,7 +185,6 @@ msgstr "Collaborate with others in meetings"
 #: src/components/settings/views/team.tsx:67
 #: src/components/settings/views/billing.tsx:62
 #: src/components/settings/views/billing.tsx:93
-#: src/components/settings/components/main-sidebar.tsx:50
 #: src/components/settings/components/extensions-sidebar.tsx:54
 msgid "Coming Soon"
 msgstr "Coming Soon"
@@ -139,7 +197,7 @@ msgstr "Company Description"
 msgid "Company Name"
 msgstr "Company Name"
 
-#: src/components/settings/views/calendar.tsx:143
+#: src/components/settings/views/calendar.tsx:140
 msgid "Connect"
 msgstr "Connect"
 
@@ -152,15 +210,15 @@ msgid "Connect to Contacts"
 msgstr "Connect to Contacts"
 
 #. placeholder {0}: type === "google-calendar" ? "Google" : "Outlook"
-#: src/components/settings/views/calendar.tsx:126
+#: src/components/settings/views/calendar.tsx:123
 msgid "Connect your {0} calendar to track upcoming events"
 msgstr "Connect your {0} calendar to track upcoming events"
 
-#: src/components/settings/views/calendar.tsx:191
+#: src/components/settings/views/calendar.tsx:188
 msgid "Connect your calendar and track events"
 msgstr "Connect your calendar and track events"
 
-#: src/components/settings/views/calendar.tsx:218
+#: src/components/settings/views/calendar.tsx:215
 msgid "Contacts Access"
 msgstr "Contacts Access"
 
@@ -210,11 +268,11 @@ msgstr "Display language"
 msgid "Duplicate"
 msgstr "Duplicate"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:97
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:97
 msgid "Email"
 msgstr "Email"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:101
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:101
 msgid "Email address"
 msgstr "Email address"
 
@@ -242,7 +300,6 @@ msgstr "Enter a section title"
 msgid "Exclude these apps from auto detection"
 msgstr "Exclude these apps from auto detection"
 
-#: src/components/settings/views/index.tsx:49
 #: src/components/settings/components/settings-header.tsx:31
 #: src/components/settings/components/main-sidebar.tsx:41
 msgid "Extensions"
@@ -272,7 +329,6 @@ msgstr "Free"
 msgid "Free Trial"
 msgstr "Free Trial"
 
-#: src/components/settings/views/index.tsx:41
 #: src/components/settings/components/settings-header.tsx:19
 #: src/components/settings/components/main-sidebar.tsx:29
 msgid "General"
@@ -282,8 +338,8 @@ msgstr "General"
 msgid "Get Started"
 msgstr "Get Started"
 
-#: src/components/settings/views/calendar.tsx:204
-#: src/components/settings/views/calendar.tsx:236
+#: src/components/settings/views/calendar.tsx:201
+#: src/components/settings/views/calendar.tsx:233
 msgid "Grant Access"
 msgstr "Grant Access"
 
@@ -291,7 +347,7 @@ msgstr "Grant Access"
 msgid "How about your contacts?"
 msgstr "How about your contacts?"
 
-#: src/components/note/editor-area/enhanced-only-button.tsx:18
+#: src/components/editor-area/enhanced-only-button.tsx:18
 msgid "Hypercharge"
 msgstr "Hypercharge"
 
@@ -323,12 +379,12 @@ msgstr "Invite members"
 msgid "Jargons"
 msgstr "Jargons"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:122
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:122
 msgid "Job title"
 msgstr "Job title"
 
 #: src/components/settings/views/profile.tsx:134
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:118
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:118
 msgid "Job Title"
 msgstr "Job Title"
 
@@ -341,7 +397,7 @@ msgid "Learn more about our pricing plans"
 msgstr "Learn more about our pricing plans"
 
 #: src/components/settings/views/profile.tsx:205
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:139
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:139
 msgid "LinkedIn Username"
 msgstr "LinkedIn Username"
 
@@ -353,7 +409,7 @@ msgstr "Live summary of the meeting"
 msgid "Load Model"
 msgstr "Load Model"
 
-#: src/components/settings/views/extension.tsx:101
+#: src/components/settings/views/extension.tsx:100
 msgid "Loading extension details..."
 msgstr "Loading extension details..."
 
@@ -438,7 +494,6 @@ msgstr "No upcoming events for this organization"
 msgid "No upcoming events with this contact"
 msgstr "No upcoming events with this contact"
 
-#: src/components/settings/views/index.tsx:45
 #: src/components/settings/components/settings-header.tsx:27
 #: src/components/settings/components/main-sidebar.tsx:37
 msgid "Notifications"
@@ -469,7 +524,7 @@ msgstr "Open Note"
 msgid "Open settings"
 msgstr "Open settings"
 
-#: src/components/settings/views/calendar.tsx:223
+#: src/components/settings/views/calendar.tsx:220
 msgid "Optional for participant suggestions"
 msgstr "Optional for participant suggestions"
 
@@ -494,7 +549,6 @@ msgstr "people"
 msgid "Pro"
 msgstr "Pro"
 
-#: src/components/settings/views/index.tsx:55
 #: src/components/settings/components/settings-header.tsx:21
 #: src/components/settings/components/main-sidebar.tsx:31
 msgid "Profile"
@@ -529,11 +583,11 @@ msgstr "Run speech recognition locally for enhanced privacy"
 msgid "Running"
 msgstr "Running"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:166
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:166
 msgid "Save Changes"
 msgstr "Save Changes"
 
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:166
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:166
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -553,6 +607,10 @@ msgstr "Search names or emails"
 #: src/components/settings/components/template-list.tsx:43
 msgid "Search templates..."
 msgstr "Search templates..."
+
+#: src/components/search-bar.tsx:63
+msgid "Search..."
+msgstr "Search..."
 
 #: src/components/settings/views/template.tsx:121
 msgid "Sections"
@@ -577,8 +635,8 @@ msgstr "Server is running"
 
 #: src/components/settings/index.tsx:80
 #: src/components/settings/views/index.tsx:71
-msgid "Settings"
-msgstr "Settings"
+#~ msgid "Settings"
+#~ msgstr "Settings"
 
 #: src/components/settings/views/notifications.tsx:129
 msgid "Show notifications 1 minute before events start based on your calendars"
@@ -608,7 +666,7 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/note/header/listen-button.tsx:80
+#: src/components/editor-area/note-header/listen-button.tsx:80
 msgid "Start recording"
 msgstr "Start recording"
 
@@ -617,15 +675,15 @@ msgstr "Start recording"
 msgid "Start Server"
 msgstr "Start Server"
 
-#: src/components/note/header/listen-button.tsx:156
+#: src/components/editor-area/note-header/listen-button.tsx:156
 msgid "Stop"
 msgstr "Stop"
 
-#: src/components/note/header/listen-button.tsx:145
+#: src/components/editor-area/note-header/listen-button.tsx:145
 msgid "Stop listening to the meeting?"
 msgstr "Stop listening to the meeting?"
 
-#: src/components/note/header/listen-button.tsx:96
+#: src/components/editor-area/note-header/listen-button.tsx:96
 msgid "Stop recording"
 msgstr "Stop recording"
 
@@ -638,7 +696,6 @@ msgstr "Stop Server"
 msgid "Synchronization across multiple devices"
 msgstr "Synchronization across multiple devices"
 
-#: src/components/settings/views/index.tsx:51
 #: src/components/settings/views/billing.tsx:46
 #: src/components/settings/components/settings-header.tsx:33
 #: src/components/settings/components/main-sidebar.tsx:43
@@ -653,11 +710,10 @@ msgstr "Team management features are currently under development and will be ava
 msgid "Teamspace"
 msgstr "Teamspace"
 
-#: src/components/note/editor-area/enhanced-controls.tsx:38
+#: src/components/editor-area/enhanced-controls.tsx:38
 msgid "Template Selector"
 msgstr "Template Selector"
 
-#: src/components/settings/views/index.tsx:47
 #: src/components/settings/components/settings-header.tsx:29
 #: src/components/settings/components/main-sidebar.tsx:39
 msgid "Templates"
@@ -731,13 +787,17 @@ msgstr "Unnamed Contact"
 msgid "Unnamed Organization"
 msgstr "Unnamed Organization"
 
-#: src/components/note/header/title-input.tsx:59
+#: src/components/editor-area/note-header/title-input.tsx:59
 msgid "Untitled"
 msgstr "Untitled"
 
 #: src/components/settings/views/template.tsx:68
 msgid "Untitled Template"
 msgstr "Untitled Template"
+
+#: src/components/left-sidebar/all-list/events-list.tsx:38
+msgid "Upcoming"
+msgstr "Upcoming"
 
 #: src/routes/app.organization.$id.tsx:202
 #: src/routes/app.human.$id.tsx:229
@@ -753,7 +813,7 @@ msgid "User"
 msgstr "User"
 
 #: src/components/settings/views/profile.tsx:218
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:152
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:152
 msgid "username"
 msgstr "username"
 
@@ -765,7 +825,7 @@ msgstr "Username"
 msgid "Verify that your local language model is working correctly"
 msgstr "Verify that your local language model is working correctly"
 
-#: src/components/note/header/chips/event-chip.tsx:43
+#: src/components/editor-area/note-header/chips/event-chip.tsx:43
 msgid "View in calendar"
 msgstr "View in calendar"
 
@@ -795,7 +855,7 @@ msgid "You can make Hyprnote takes these words into account when transcribing."
 msgstr "You can make Hyprnote takes these words into account when transcribing."
 
 #: src/components/settings/views/profile.tsx:208
-#: src/components/note/header/chips/participants-chip/edit-participant-form.tsx:142
+#: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:142
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"
 msgstr "Your LinkedIn username (the part after linkedin.com/in/)"
 

@@ -1,4 +1,5 @@
 import * as FNS_TZ from "@date-fns/tz";
+import { i18n } from "@lingui/core";
 import * as FNS from "date-fns";
 // import * as FNS_LOCALE from "date-fns/locale";
 
@@ -19,15 +20,23 @@ export function formatRemainingTime(date: Date): string {
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
   if (days > 0) {
-    return `${days} day${days > 1 ? "s" : ""} later`;
+    return i18n._("{days} day{plural} later", {
+      days,
+      plural: days > 1 ? "s" : "",
+    });
   } else if (hours > 0) {
-    return `${hours} hour${hours > 1 ? "s" : ""} later`;
+    return i18n._("{hours} hour{plural} later", {
+      hours,
+      plural: hours > 1 ? "s" : "",
+    });
   } else if (minutes > 1) {
-    return `${minutes} minutes later`;
+    return i18n._("{minutes} minutes later", {
+      minutes,
+    });
   } else if (minutes > 0) {
-    return "Starting soon";
+    return i18n._("Starting soon");
   } else {
-    return "In progress";
+    return i18n._("In progress");
   }
 }
 
@@ -41,21 +50,21 @@ export const formatRelative = (date: string, t?: string) => {
   const diffInDays = FNS.differenceInCalendarDays(startOfToday, startOfDay, { in: tz });
 
   if (diffInDays === 0) {
-    return "Today";
+    return i18n._("Today");
   } else if (diffInDays === 1) {
-    return "Yesterday";
+    return i18n._("Yesterday");
   } else if (diffInDays === 2) {
-    return "2 days ago";
+    return i18n._("2 days ago");
   } else if (diffInDays < 7) {
-    return `${diffInDays} days ago`;
+    return i18n._("{days} days ago", { days: diffInDays });
   } else if (diffInDays < 14) {
-    return "Last week";
+    return i18n._("Last week");
   } else if (diffInDays < 21) {
-    return "2 weeks ago";
+    return i18n._("2 weeks ago");
   } else if (diffInDays < 30) {
-    return "3 weeks ago";
+    return i18n._("3 weeks ago");
   } else {
-    return `${diffInDays} days ago`;
+    return i18n._("{days} days ago", { days: diffInDays });
   }
 };
 
@@ -75,7 +84,7 @@ export const differenceInBusinessDays = (
   return FNS.differenceInBusinessDays(d1, d2, { in: FNS_TZ.tz(t || timezone()) });
 };
 
-// TODO: use FNS_LOCALE
+// This function is now deprecated in favor of formatRelative which uses Lingui
 export const renderDaysDiff = (diff: number, t?: string) => {
   const tz = t || timezone();
 

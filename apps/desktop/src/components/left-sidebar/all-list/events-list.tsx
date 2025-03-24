@@ -1,3 +1,4 @@
+import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { isFuture } from "date-fns";
 
@@ -34,7 +35,7 @@ export default function EventsList() {
   return (
     <section className="border-b mb-4 border-border">
       <h2 className="font-bold text-neutral-600 mb-1">
-        Upcoming
+        <Trans>Upcoming</Trans>
       </h2>
 
       <div>

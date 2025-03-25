@@ -39,14 +39,6 @@ export default function LeftSidebar() {
     return null;
   }
 
-  const handleClickSettings = () => {
-    windowsCommands.windowShow("settings");
-  };
-
-  const handleClickCalendar = () => {
-    windowsCommands.windowShow("calendar");
-  };
-
   return (
     <motion.nav
       layout
@@ -55,47 +47,7 @@ export default function LeftSidebar() {
       transition={{ duration: 0.2 }}
       className="h-full flex flex-col overflow-hidden border-r bg-neutral-50"
     >
-      <div
-        data-tauri-drag-region
-        className="flex items-center justify-end min-h-11 px-2"
-      >
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleClickSettings}
-              className="hover:bg-neutral-200"
-            >
-              <SettingsIcon className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <Trans>
-              Open settings
-            </Trans>{" "}
-            <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleClickCalendar}
-              className="hover:bg-neutral-200"
-            >
-              <CalendarDaysIcon className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <Trans>Open calendar view</Trans>
-          </TooltipContent>
-        </Tooltip>
-
-        <LeftSidebarButton type="sidebar" />
-      </div>
+      <TopArea />
 
       {inMeetingAndNotInNote && <OngoingSession sessionId={ongoingSessionId} />}
 
@@ -106,20 +58,71 @@ export default function LeftSidebar() {
           </div>
         )
         : (
-          <>
-            <div className="flex-1 h-full overflow-y-auto">
-              <div className="h-full space-y-4 px-3 pb-4">
-                <EventsList />
-
-                <LayoutGroup>
-                  <AnimatePresence initial={false}>
-                    <NotesList />
-                  </AnimatePresence>
-                </LayoutGroup>
+          <LayoutGroup>
+            <AnimatePresence initial={false}>
+              <div className="flex-1 h-full overflow-y-auto">
+                <div className="h-full space-y-4 px-3 pb-4">
+                  <EventsList />
+                  <NotesList />
+                </div>
               </div>
-            </div>
-          </>
+            </AnimatePresence>
+          </LayoutGroup>
         )}
     </motion.nav>
+  );
+}
+
+function TopArea() {
+  const handleClickSettings = () => {
+    windowsCommands.windowShow("settings");
+  };
+
+  const handleClickCalendar = () => {
+    windowsCommands.windowShow("calendar");
+  };
+
+  return (
+    <div
+      data-tauri-drag-region
+      className="flex items-center justify-end min-h-11 px-2"
+    >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleClickSettings}
+            className="hover:bg-neutral-200"
+          >
+            <SettingsIcon className="size-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <Trans>
+            Open settings
+          </Trans>{" "}
+          <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleClickCalendar}
+            className="hover:bg-neutral-200"
+          >
+            <CalendarDaysIcon className="size-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <Trans>Open calendar view</Trans>
+        </TooltipContent>
+      </Tooltip>
+
+      <LeftSidebarButton type="sidebar" />
+    </div>
   );
 }

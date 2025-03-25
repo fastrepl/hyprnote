@@ -12,6 +12,7 @@ pub trait DatabasePluginExt<R: tauri::Runtime> {
         &self,
         user_id: impl Into<String>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
+    fn db_update_session(&self) -> impl Future<Output = Result<(), crate::Error>>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
@@ -70,6 +71,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
             db.upsert_human(human).await?;
         }
 
+        Ok(())
+    }
+
+    async fn db_update_session(&self) -> Result<(), crate::Error> {
         Ok(())
     }
 }

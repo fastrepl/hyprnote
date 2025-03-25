@@ -2,9 +2,11 @@ use std::future::Future;
 use std::sync::Arc;
 
 use futures_util::StreamExt;
-use hypr_audio::AsyncSource;
 use tauri::ipc::Channel;
 use tokio::sync::{mpsc, Mutex};
+
+use hypr_audio::AsyncSource;
+use tauri_plugin_db::DatabasePluginExt;
 
 use crate::{
     SessionEvent, SessionEventStarted, SessionEventTimelineView, TimelineFilter, TimelineView,
@@ -344,6 +346,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
                     match result {
                         crate::ListenOutputChunk::Transcribe(chunk) => {
+                            app.db_update_session().await.unwrap();
                             timeline.add_transcription(chunk);
                         }
                         crate::ListenOutputChunk::Diarize(chunk) => {

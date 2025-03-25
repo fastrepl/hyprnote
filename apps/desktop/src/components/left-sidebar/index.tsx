@@ -51,10 +51,7 @@ export default function LeftSidebar() {
       });
 
       const sessions = await Promise.all(events.map((event) => dbCommands.getSession({ calendarEventId: event.id })));
-      const eventsWithSessions = events.map((event, index) => ({ ...event, session: sessions[index] }));
-      return eventsWithSessions.filter((event) =>
-        !(event.session?.id && ongoingSessionId && event.session.id === ongoingSessionId)
-      );
+      return events.map((event, index) => ({ ...event, session: sessions[index] }));
     },
   });
 

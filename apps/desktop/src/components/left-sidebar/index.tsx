@@ -33,9 +33,9 @@ export default function LeftSidebar() {
 
   const windowLabel = getCurrentWebviewWindowLabel();
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
-
-  const isInOngoingNoteMain = noteMatch?.params.id === ongoingSessionId;
-  const isInOngoingNoteSub = noteMatch?.params.id === ongoingSessionId;
+  const activeSessionId = noteMatch?.params.id;
+  const isInOngoingNoteMain = activeSessionId === ongoingSessionId;
+  const isInOngoingNoteSub = activeSessionId === ongoingSessionId;
   const isInOngoingNote = isInOngoingNoteMain || isInOngoingNoteSub;
   const inMeetingAndNotInNote = (status === "active") && ongoingSessionId !== null && !isInOngoingNote;
 
@@ -82,7 +82,13 @@ export default function LeftSidebar() {
             <AnimatePresence initial={false}>
               <div className="flex-1 h-full overflow-y-auto">
                 <div className="h-full space-y-4 px-3 pb-4">
-                  <EventsList events={events.data} />
+                  <EventsList
+                    events={events.data?.filter((event) =>
+                      !(event.session?.id && ongoingSessionId && event.session.id === ongoingSessionId
+                        && event.session.id !== activeSessionId)
+                    )}
+                    activeSessionId={activeSessionId}
+                  />
                   <NotesList
                     filter={(session) => events.data?.every((event) => event.session?.id !== session.id) ?? true}
                     ongoingSessionId={ongoingSessionId}

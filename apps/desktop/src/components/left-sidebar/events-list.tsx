@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { useMatch, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { clsx } from "clsx";
 
 import { formatRemainingTime } from "@/utils/i18n-datetime";
@@ -7,14 +7,15 @@ import { type Event, type Session } from "@hypr/plugin-db";
 
 type EventWithSession = Event & { session: Session | null };
 
-export default function EventsList({ events }: { events?: EventWithSession[] | null }) {
-  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
+interface EventsListProps {
+  events?: EventWithSession[] | null;
+  activeSessionId?: string;
+}
 
+export default function EventsList({ events, activeSessionId }: EventsListProps) {
   if (!events || events.length === 0) {
     return null;
   }
-
-  const activeSessionId = noteMatch?.params.id;
 
   return (
     <section className="border-b mb-4 border-border">

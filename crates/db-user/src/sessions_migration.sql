@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
   visited_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
   user_id TEXT NOT NULL,
-  calendar_event_id TEXT DEFAULT NULL,
+  calendar_event_id TEXT DEFAULT NULL UNIQUE,
   title TEXT NOT NULL,
   audio_local_path TEXT DEFAULT NULL,
   audio_remote_path TEXT DEFAULT NULL,

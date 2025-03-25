@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { EarIcon, EarOffIcon, Loader2Icon, MicIcon, MicOffIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
+import { EarIcon, EarOffIcon, MicIcon, MicOffIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
@@ -8,6 +8,7 @@ import { useOngoingSession } from "@/contexts";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 
 interface ListenButtonProps {
@@ -24,117 +25,148 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     status: s.status,
   }));
 
-  const micMuted = useQuery({
+  const { data: isMicMuted, refetch: refetchMicMuted } = useQuery({
     queryKey: ["mic-muted"],
     queryFn: () => listenerCommands.getMicMuted(),
   });
 
-  const speakerMuted = useQuery({
+  const { data: isSpeakerMuted, refetch: refetchSpeakerMuted } = useQuery({
     queryKey: ["speaker-muted"],
     queryFn: () => listenerCommands.getSpeakerMuted(),
   });
 
   useEffect(() => {
-    micMuted.refetch();
-    speakerMuted.refetch();
-  }, [ongoingSessionStore.status]);
+    refetchMicMuted();
+    refetchSpeakerMuted();
+  }, [ongoingSessionStore.status, refetchMicMuted, refetchSpeakerMuted]);
 
   const toggleMicMuted = useMutation({
-    mutationFn: () => listenerCommands.setMicMuted(!micMuted.data),
-    onSuccess: () => micMuted.refetch(),
+    mutationFn: async () => {
+      await listenerCommands.setMicMuted(!isMicMuted);
+      return undefined;
+    },
+    onSuccess: () => {
+      refetchMicMuted();
+    },
   });
 
   const toggleSpeakerMuted = useMutation({
-    mutationFn: () => listenerCommands.setSpeakerMuted(!speakerMuted.data),
-    onSuccess: () => speakerMuted.refetch(),
+    mutationFn: async () => {
+      await listenerCommands.setSpeakerMuted(!isSpeakerMuted);
+      return undefined;
+    },
+    onSuccess: () => {
+      refetchSpeakerMuted();
+    },
   });
 
-  const handleClick = () => {
+  const handleStartSession = () => {
     if (ongoingSessionStore.status === "inactive") {
       ongoingSessionStore.start(sessionId);
     }
+  };
+
+  const handleStopSession = () => {
+    ongoingSessionStore.pause();
+    setOpen(false);
   };
 
   if (ongoingSessionStore.status === "active" && !ongoingSessionStore.isCurrent) {
     return null;
   }
 
-  if (ongoingSessionStore.status === "loading") {
-    return (
-      <Button variant="outline" size="icon" onClick={handleClick}>
-        <Loader2Icon className="animate-spin" size={20} />
-      </Button>
-    );
-  }
-
-  if (ongoingSessionStore.status === "inactive") {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            onClick={handleClick}
-            className="p-2"
-          >
-            <EarOffIcon size={20} />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" align="end">
-          <p>
-            <Trans>Start recording</Trans>
-          </p>
-        </TooltipContent>
-      </Tooltip>
-    );
-  }
-
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
+    <>
+      {ongoingSessionStore.status === "loading" && (
+        <Button variant="outline" className="p-2" disabled>
+          <div className="flex items-center justify-center size-">
+            <Spinner />
+          </div>
+        </Button>
+      )}
+
+      {ongoingSessionStore.status === "inactive" && (
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Button
-              variant="default"
-              onClick={handleClick}
+              variant="outline"
+              onClick={handleStartSession}
               className="p-2"
             >
-              <EarIcon size={20} />
-              <SoundIndicator theme="dark" />
+              <EarOffIcon size={20} />
             </Button>
-          </PopoverTrigger>
-        </TooltipTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" align="end">
+            <p>
+              <Trans>Start recording</Trans>
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      )}
 
-        <TooltipContent side="bottom" align="end">
-          <p>
-            <Trans>Stop recording</Trans>
-          </p>
-        </TooltipContent>
-      </Tooltip>
+      {ongoingSessionStore.status === "active" && (
+        <Popover open={open} onOpenChange={setOpen}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <PopoverTrigger asChild>
+                <Button variant="default" className="p-2">
+                  <EarIcon size={20} />
+                  <SoundIndicator theme="dark" />
+                </Button>
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="end">
+              <p>
+                <Trans>Stop recording</Trans>
+              </p>
+            </TooltipContent>
+          </Tooltip>
 
-      <PopoverContent className="w-60" align="end">
-        <div className="flex w-full justify-between mb-4">
-          <Button variant="ghost" size="icon" onClick={() => toggleMicMuted.mutate()} className="w-full">
-            {micMuted.data ? <MicOffIcon className="text-neutral-500" size={20} /> : <MicIcon size={20} />}
-            <SoundIndicator theme="light" input="mic" size="long" />
-          </Button>
+          <PopoverContent className="w-60" align="end">
+            <div className="flex w-full justify-between mb-4">
+              <AudioControlButton
+                isMuted={isMicMuted}
+                onToggle={() => toggleMicMuted.mutate()}
+                type="mic"
+              />
+              <AudioControlButton
+                isMuted={isSpeakerMuted}
+                onToggle={() => toggleSpeakerMuted.mutate()}
+                type="speaker"
+              />
+            </div>
 
-          <Button variant="ghost" size="icon" onClick={() => toggleSpeakerMuted.mutate()} className="w-full">
-            {speakerMuted.data ? <VolumeOffIcon className="text-neutral-500" size={20} /> : <Volume2Icon size={20} />}
-            <SoundIndicator theme="light" input="speaker" size="long" />
-          </Button>
-        </div>
+            <Button
+              variant="destructive"
+              onClick={handleStopSession}
+              className="w-full"
+            >
+              <Trans>Stop listening</Trans>
+            </Button>
+          </PopoverContent>
+        </Popover>
+      )}
+    </>
+  );
+}
 
-        <Button
-          variant="destructive"
-          onClick={() => {
-            ongoingSessionStore.pause();
-            setOpen(false);
-          }}
-          className=" w-full"
-        >
-          <Trans>Stop listening</Trans>
-        </Button>
-      </PopoverContent>
-    </Popover>
+function AudioControlButton({
+  isMuted,
+  onToggle,
+  type,
+}: {
+  isMuted?: boolean;
+  onToggle: () => void;
+  type: "mic" | "speaker";
+}) {
+  const Icon = type === "mic"
+    ? (isMuted ? MicOffIcon : MicIcon)
+    : (isMuted ? VolumeOffIcon : Volume2Icon);
+
+  return (
+    <Button variant="ghost" size="icon" onClick={onToggle} className="w-full">
+      <Icon className={isMuted ? "text-neutral-500" : ""} size={20} />
+      <SoundIndicator theme="light" input={type} size="long" />
+    </Button>
   );
 }

@@ -11,7 +11,6 @@ import type { Context } from "@/types";
 import { Toaster } from "@hypr/ui/components/ui/toast";
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 import { ThemeProvider } from "@hypr/ui/contexts/theme";
-import { SettingsProvider } from "./contexts/settings";
 
 import { messages as enMessages } from "./locales/en/messages";
 import { messages as koMessages } from "./locales/ko/messages";
@@ -78,17 +77,15 @@ if (!rootElement.innerHTML) {
         <ThemeProvider defaultTheme="light">
           <QueryClientProvider client={queryClient}>
             <I18nProvider i18n={i18n}>
-              <SettingsProvider>
-                <RouterProvider router={router} context={context} />
+              <RouterProvider router={router} context={context} />
 
-                <Toaster
-                  position="bottom-left"
-                  expand={process.env.NODE_ENV === "development"}
-                  offset={16}
-                  duration={Infinity}
-                  swipeDirections={[]}
-                />
-              </SettingsProvider>
+              <Toaster
+                position="bottom-left"
+                expand={process.env.NODE_ENV === "development"}
+                offset={16}
+                duration={Infinity}
+                swipeDirections={[]}
+              />
             </I18nProvider>
           </QueryClientProvider>
         </ThemeProvider>

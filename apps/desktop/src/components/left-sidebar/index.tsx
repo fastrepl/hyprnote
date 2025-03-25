@@ -1,6 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
+import { addDays } from "date-fns";
 import { CalendarDaysIcon, SettingsIcon } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 
@@ -9,7 +10,6 @@ import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as windowsCommands, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-import { addDays } from "date-fns";
 import Shortcut from "../shortcut";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
 import EventsList from "./events-list";
@@ -20,6 +20,7 @@ import SearchList from "./search-list";
 export default function LeftSidebar() {
   const { userId } = useHypr();
   const { isExpanded } = useLeftSidebar();
+
   const { status, ongoingSessionId } = useOngoingSession((s) => ({
     status: s.status,
     ongoingSessionId: s.sessionId,
@@ -50,7 +51,10 @@ export default function LeftSidebar() {
       });
 
       const sessions = await Promise.all(events.map((event) => dbCommands.getSession({ calendarEventId: event.id })));
-      return events.map((event, index) => ({ ...event, session: sessions[index] }));
+      const eventsWithSessions = events.map((event, index) => ({ ...event, session: sessions[index] }));
+      return eventsWithSessions.filter((event) =>
+        !(event.session?.id && ongoingSessionId && event.session.id === ongoingSessionId)
+      );
     },
   });
 
@@ -82,7 +86,7 @@ export default function LeftSidebar() {
               <div className="flex-1 h-full overflow-y-auto">
                 <div className="h-full space-y-4 px-3 pb-4">
                   <EventsList events={events.data ?? []} />
-                  <NotesList />
+                  <NotesList ongoingSessionId={ongoingSessionId} />
                 </div>
               </div>
             </AnimatePresence>

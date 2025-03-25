@@ -7,7 +7,7 @@ import { motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useSession } from "@/contexts";
-import { useHypr, useOngoingSession, useSessions } from "@/contexts";
+import { useHypr, useSessions } from "@/contexts";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import {
@@ -21,16 +21,20 @@ import { cn } from "@hypr/ui/lib/utils";
 import { format } from "@hypr/utils/datetime";
 import { formatRelative } from "@hypr/utils/datetime";
 
-export default function NotesList() {
+interface NotesListProps {
+  ongoingSessionId?: string | null;
+}
+
+export default function NotesList({ ongoingSessionId }: NotesListProps) {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastItemRef = useRef<HTMLElement | null>(null);
 
+  const { insertSession, sessionsStore } = useSessions((s) => ({
+    insertSession: s.insert,
+    sessionsStore: s.sessions,
+  }));
+
   const { userId } = useHypr();
-  const insertSession = useSessions((s) => s.insert);
-  const sessionsStore = useSessions((s) => s.sessions);
-
-  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
-
   const sessions = useInfiniteQuery({
     queryKey: ["sessions"],
     queryFn: async ({ pageParam: { monthOffset } }) => {

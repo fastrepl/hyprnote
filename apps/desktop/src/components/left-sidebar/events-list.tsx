@@ -2,7 +2,6 @@ import { Trans } from "@lingui/react/macro";
 import { useMatch, useNavigate } from "@tanstack/react-router";
 import { clsx } from "clsx";
 
-import { useOngoingSession } from "@/contexts";
 import { formatRemainingTime } from "@/utils/i18n-datetime";
 import { type Event, type Session } from "@hypr/plugin-db";
 
@@ -10,7 +9,6 @@ type EventWithSession = Event & { session: Session | null };
 
 export default function EventsList({ events }: { events: EventWithSession[] }) {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
-  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
 
   if (events.length === 0) {
     return null;
@@ -26,7 +24,6 @@ export default function EventsList({ events }: { events: EventWithSession[] }) {
 
       <div>
         {events
-          .filter((event) => !(event.session?.id && ongoingSessionId && event.session.id === ongoingSessionId))
           .map((event) => <EventItem key={event.id} event={event} activeSessionId={activeSessionId} />)}
       </div>
     </section>

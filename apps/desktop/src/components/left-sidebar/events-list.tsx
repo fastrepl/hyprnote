@@ -7,10 +7,10 @@ import { type Event, type Session } from "@hypr/plugin-db";
 
 type EventWithSession = Event & { session: Session | null };
 
-export default function EventsList({ events }: { events: EventWithSession[] }) {
+export default function EventsList({ events }: { events?: EventWithSession[] | null }) {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
 
-  if (events.length === 0) {
+  if (!events || events.length === 0) {
     return null;
   }
 

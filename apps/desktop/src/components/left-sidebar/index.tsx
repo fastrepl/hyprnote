@@ -82,7 +82,7 @@ export default function LeftSidebar() {
             <AnimatePresence initial={false}>
               <div className="flex-1 h-full overflow-y-auto">
                 <div className="h-full space-y-4 px-3 pb-4">
-                  <EventsList events={events.data ?? []} />
+                  <EventsList events={events.data} />
                   <NotesList
                     filter={(session) => events.data?.every((event) => event.session?.id !== session.id) ?? true}
                     ongoingSessionId={ongoingSessionId}

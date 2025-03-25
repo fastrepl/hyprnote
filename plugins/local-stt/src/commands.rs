@@ -37,6 +37,7 @@ pub async fn download_model<R: tauri::Runtime>(
         .await
         .map_err(|e| e.to_string())
 }
+
 #[tauri::command]
 #[specta::specta]
 pub async fn start_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {

@@ -4,6 +4,7 @@ mod chunker;
 mod commands;
 mod error;
 mod ext;
+mod model;
 mod server;
 
 pub use error::*;
@@ -79,7 +80,7 @@ mod test {
             .with_huggingface_token(Some("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".to_string()));
 
         rwhisper::Whisper::builder()
-            .with_source(rwhisper::WhisperSource::QuantizedLargeV3Turbo)
+            .with_source(rwhisper::WhisperSource::QuantizedTiny)
             .with_cache(cache)
             .build_with_loading_handler(|progress| {
                 println!("{:?}", progress);

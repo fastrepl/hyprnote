@@ -21,7 +21,7 @@ function EqualizerStick({ baseLength, amplitude, theme }: EqualizerStickProps) {
 
   return (
     <motion.div
-      className={cn("rounded-full", theme === "dark" ? "bg-neutral-200" : "bg-neutral-800")}
+      className={cn("rounded-full", theme === "light" ? "bg-neutral-200" : "bg-neutral-900")}
       style={{ width: "2px" }}
       animate={{
         height: getRandomValues(16, 6, scaledBaseLength),
@@ -55,7 +55,7 @@ export function DancingSticks({ theme = "light", amplitude, size = "default" }: 
   if (isFlat) {
     return (
       <div className={`flex h-4 ${width} items-center justify-center`}>
-        <div className={cn(`${width} h-px rounded-full`, theme === "dark" ? "bg-neutral-200" : "bg-neutral-800")} />
+        <div className={cn(`${width} h-px rounded-full`, theme === "light" ? "bg-neutral-200" : "bg-neutral-900")} />
       </div>
     );
   }

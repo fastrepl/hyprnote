@@ -79,8 +79,8 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     <>
       {ongoingSessionStore.status === "loading" && (
         <Button variant="outline" className="p-2" disabled>
-          <div className="flex items-center justify-center size-">
-            <Spinner />
+          <div className="flex items-center justify-center size-5">
+            <Spinner color="black" />
           </div>
         </Button>
       )}
@@ -111,7 +111,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
               <PopoverTrigger asChild>
                 <Button variant="default" className="p-2">
                   <EarIcon size={20} />
-                  <SoundIndicator theme="dark" />
+                  <SoundIndicator theme="light" />
                 </Button>
               </PopoverTrigger>
             </TooltipTrigger>
@@ -166,7 +166,7 @@ function AudioControlButton({
   return (
     <Button variant="ghost" size="icon" onClick={onToggle} className="w-full">
       <Icon className={isMuted ? "text-neutral-500" : ""} size={20} />
-      <SoundIndicator theme="light" input={type} size="long" />
+      <SoundIndicator input={type} size="long" />
     </Button>
   );
 }

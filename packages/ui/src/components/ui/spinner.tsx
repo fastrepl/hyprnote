@@ -7,7 +7,7 @@ interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
-  ({ size = 20, color = "currentColor", className, ...props }, ref) => {
+  ({ size = 16, color = "currentColor", className, ...props }, ref) => {
     const segments = Array.from({ length: 12 });
 
     return (

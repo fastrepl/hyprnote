@@ -1,13 +1,14 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { generateText } from "ai";
-import { Check, Cpu, Download, FlaskConical, Loader2, Mic } from "lucide-react";
+import { Check, Cpu, FlaskConical, Mic } from "lucide-react";
 import { useState } from "react";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { modelProvider } from "@hypr/utils";
 
 const AI_FEATURES = ["speech-to-text", "language-model"] as const;
@@ -110,7 +111,7 @@ function SpeechToTextDetails(
             className="min-w-20 text-center"
           >
             {toggleLocalStt.isPending
-              ? <Loader2 className="h-4 w-4 animate-spin" />
+              ? <Spinner />
               : isRunning
               ? <Trans>Stop Server</Trans>
               : <Trans>Start Server</Trans>}
@@ -146,18 +147,6 @@ function LanguageModelDetails(
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["local-llm", "running"] });
-      queryClient.invalidateQueries({ queryKey: ["local-llm", "model-loaded"] });
-    },
-  });
-
-  const loadModel = useMutation({
-    mutationFn: async () => {
-      // This is a placeholder - replace with actual implementation
-      // when the API is available
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      return true;
-    },
-    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["local-llm", "model-loaded"] });
     },
   });
@@ -221,7 +210,7 @@ function LanguageModelDetails(
                       className="min-w-20 text-center"
                     >
                       {toggleLocalLlmServer.isPending
-                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        ? <Spinner />
                         : <Trans>Stop Server</Trans>}
                     </Button>
                   </div>
@@ -230,16 +219,11 @@ function LanguageModelDetails(
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => loadModel.mutate()}
-                    disabled={loadModel.isPending}
+                    disabled
                     className="min-w-20 text-center"
                   >
-                    {loadModel.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (
-                      <>
-                        <Download className="mr-1 h-3 w-3" />
-                        <Trans>Load Model</Trans>
-                      </>
-                    )}
+                    <Spinner className="mr-2" />
+                    <Trans>Loading...</Trans>
                   </Button>
                 )
             )
@@ -252,7 +236,7 @@ function LanguageModelDetails(
                 className="min-w-20 text-center"
               >
                 {toggleLocalLlmServer.isPending
-                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  ? <Spinner />
                   : <Trans>Start Server</Trans>}
               </Button>
             )}
@@ -290,7 +274,7 @@ function LanguageModelDetails(
                   {checkLLM.isPending
                     ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Spinner className="mr-2" />
                         <Trans>Testing...</Trans>
                       </>
                     )

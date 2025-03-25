@@ -43,6 +43,28 @@ const retroGrid = {
   },
 };
 
+const spinner = {
+  keyframes: {
+    "ios-opacity-spin": {
+      "0%, 100%": { opacity: "1" },
+      "8.33%": { opacity: "0.9" },
+      "16.67%": { opacity: "0.8" },
+      "25%": { opacity: "0.7" },
+      "33.33%": { opacity: "0.6" },
+      "41.67%": { opacity: "0.5" },
+      "50%": { opacity: "0.4" },
+      "58.33%": { opacity: "0.3" },
+      "66.67%": { opacity: "0.2" },
+      "75%": { opacity: "0.1" },
+      "83.33%": { opacity: "0.05" },
+      "91.67%": { opacity: "0.025" },
+    },
+  },
+  animation: {
+    "ios-opacity-spin": "ios-opacity-spin 1s linear infinite",
+  },
+};
+
 // https://github.com/shadcn-ui/ui/blob/1081536246b44b6664f4c99bc3f1b3614e632841/tailwind.config.cjs
 const shadcn = {
   colors: {
@@ -129,11 +151,13 @@ const config = {
         ...shimmerButton.animation,
         ...retroGrid.animation,
         ...shadcn.animation,
+        ...spinner.animation,
       },
       keyframes: {
         ...shimmerButton.keyframes,
         ...retroGrid.keyframes,
         ...shadcn.keyframes,
+        ...spinner.keyframes,
       },
       colors: shadcn.colors,
       borderRadius: shadcn.borderRadius,

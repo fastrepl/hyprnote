@@ -22,10 +22,11 @@ import { format } from "@hypr/utils/datetime";
 import { formatRelative } from "@hypr/utils/datetime";
 
 interface NotesListProps {
+  filter: (session: Session) => boolean;
   ongoingSessionId?: string | null;
 }
 
-export default function NotesList({ ongoingSessionId }: NotesListProps) {
+export default function NotesList({ ongoingSessionId, filter }: NotesListProps) {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastItemRef = useRef<HTMLElement | null>(null);
 
@@ -117,6 +118,7 @@ export default function NotesList({ ongoingSessionId }: NotesListProps) {
               {items
                 .filter((session) => sessionsStore[session.id])
                 .filter((session) => !(session.id !== activeSessionId && session.id === ongoingSessionId))
+                .filter(filter)
                 .map((session: Session) => (
                   <motion.div
                     key={session.id}

@@ -40,14 +40,14 @@ export default function LeftSidebar() {
   const inMeetingAndNotInNote = (status === "active") && ongoingSessionId !== null && !isInOngoingNote;
 
   const events = useQuery({
-    queryKey: ["events"],
+    queryKey: ["events", ongoingSessionId],
     queryFn: async () => {
       const events = await dbCommands.listEvents({
         type: "dateRange",
         user_id: userId,
         limit: 3,
         start: new Date().toISOString(),
-        end: addDays(new Date(), 30).toISOString(),
+        end: addDays(new Date(), 40).toISOString(),
       });
 
       const sessions = await Promise.all(events.map((event) => dbCommands.getSession({ calendarEventId: event.id })));
@@ -86,7 +86,10 @@ export default function LeftSidebar() {
               <div className="flex-1 h-full overflow-y-auto">
                 <div className="h-full space-y-4 px-3 pb-4">
                   <EventsList events={events.data ?? []} />
-                  <NotesList ongoingSessionId={ongoingSessionId} />
+                  <NotesList
+                    filter={(session) => events.data?.every((event) => event.session?.id !== session.id) ?? true}
+                    ongoingSessionId={ongoingSessionId}
+                  />
                 </div>
               </div>
             </AnimatePresence>

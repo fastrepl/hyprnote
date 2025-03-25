@@ -2,6 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import { useMatch } from "@tanstack/react-router";
 import { CalendarDaysIcon, SettingsIcon } from "lucide-react";
 import { motion } from "motion/react";
+import { AnimatePresence, LayoutGroup } from "motion/react";
 
 import { useHyprSearch, useLeftSidebar, useOngoingSession } from "@/contexts";
 import { commands as windowsCommands, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
@@ -9,7 +10,8 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import Shortcut from "../shortcut";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
-import AllList from "./all-list";
+import EventsList from "./events-list";
+import NotesList from "./notes-list";
 import OngoingSession from "./ongoing-session";
 import SearchList from "./search-list";
 
@@ -106,7 +108,15 @@ export default function LeftSidebar() {
         : (
           <>
             <div className="flex-1 h-full overflow-y-auto">
-              <AllList />
+              <div className="h-full space-y-4 px-3 pb-4">
+                <EventsList />
+
+                <LayoutGroup>
+                  <AnimatePresence initial={false}>
+                    <NotesList />
+                  </AnimatePresence>
+                </LayoutGroup>
+              </div>
             </div>
           </>
         )}

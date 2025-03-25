@@ -1,36 +1,38 @@
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
-import { isFuture } from "date-fns";
+import { useMatch } from "@tanstack/react-router";
+import { addDays } from "date-fns";
 
-import { useHypr } from "@/contexts";
+import { useHypr, useOngoingSession } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import EventItem from "./event-item";
 
 export default function EventsList() {
-  const { userId } = useHypr();
+  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
+  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
 
+  const { userId } = useHypr();
   const events = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
       const events = await dbCommands.listEvents({
-        type: "simple",
+        type: "dateRange",
         user_id: userId,
-        limit: 50,
+        limit: 3,
+        start: new Date().toISOString(),
+        end: addDays(new Date(), 30).toISOString(),
       });
-      const upcomingEvents = events
-        .filter((event) => {
-          return isFuture(new Date(event.start_date));
-        })
-        .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
-        .slice(0, 3);
 
-      return upcomingEvents;
+      const sessions = await Promise.all(events.map((event) => dbCommands.getSession({ calendarEventId: event.id })));
+      return events.map((event, index) => ({ ...event, session: sessions[index] }));
     },
   });
 
   if (!events.data || events.data.length === 0) {
     return null;
   }
+
+  const activeSessionId = noteMatch?.params.id;
 
   return (
     <section className="border-b mb-4 border-border">
@@ -39,7 +41,9 @@ export default function EventsList() {
       </h2>
 
       <div>
-        {events.data.map((event) => <EventItem key={event.id} event={event} />)}
+        {events.data
+          .filter((event) => !(event.session?.id && ongoingSessionId && event.session.id === ongoingSessionId))
+          .map((event) => <EventItem key={event.id} event={event} activeSessionId={activeSessionId} />)}
       </div>
     </section>
   );

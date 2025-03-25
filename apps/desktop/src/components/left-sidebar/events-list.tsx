@@ -1,35 +1,18 @@
 import { Trans } from "@lingui/react/macro";
-import { useQuery } from "@tanstack/react-query";
 import { useMatch, useNavigate } from "@tanstack/react-router";
 import { clsx } from "clsx";
-import { addDays } from "date-fns";
 
-import { useHypr, useOngoingSession } from "@/contexts";
+import { useOngoingSession } from "@/contexts";
 import { formatRemainingTime } from "@/utils/i18n-datetime";
-import { commands as dbCommands, type Event, type Session } from "@hypr/plugin-db";
+import { type Event, type Session } from "@hypr/plugin-db";
 
-export default function EventsList() {
+type EventWithSession = Event & { session: Session | null };
+
+export default function EventsList({ events }: { events: EventWithSession[] }) {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const ongoingSessionId = useOngoingSession((s) => s.sessionId);
 
-  const { userId } = useHypr();
-  const events = useQuery({
-    queryKey: ["events"],
-    queryFn: async () => {
-      const events = await dbCommands.listEvents({
-        type: "dateRange",
-        user_id: userId,
-        limit: 3,
-        start: new Date().toISOString(),
-        end: addDays(new Date(), 30).toISOString(),
-      });
-
-      const sessions = await Promise.all(events.map((event) => dbCommands.getSession({ calendarEventId: event.id })));
-      return events.map((event, index) => ({ ...event, session: sessions[index] }));
-    },
-  });
-
-  if (!events.data || events.data.length === 0) {
+  if (events.length === 0) {
     return null;
   }
 
@@ -42,7 +25,7 @@ export default function EventsList() {
       </h2>
 
       <div>
-        {events.data
+        {events
           .filter((event) => !(event.session?.id && ongoingSessionId && event.session.id === ongoingSessionId))
           .map((event) => <EventItem key={event.id} event={event} activeSessionId={activeSessionId} />)}
       </div>
@@ -51,7 +34,7 @@ export default function EventsList() {
 }
 
 function EventItem(
-  { event, activeSessionId }: { event: Event & { session: Session | null }; activeSessionId?: string },
+  { event, activeSessionId }: { event: EventWithSession; activeSessionId?: string },
 ) {
   const navigate = useNavigate();
 

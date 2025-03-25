@@ -1,13 +1,15 @@
 import { Trans } from "@lingui/react/macro";
+import { useQuery } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { CalendarDaysIcon, SettingsIcon } from "lucide-react";
-import { motion } from "motion/react";
-import { AnimatePresence, LayoutGroup } from "motion/react";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 
-import { useHyprSearch, useLeftSidebar, useOngoingSession } from "@/contexts";
+import { useHypr, useHyprSearch, useLeftSidebar, useOngoingSession } from "@/contexts";
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as windowsCommands, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { addDays } from "date-fns";
 import Shortcut from "../shortcut";
 import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
 import EventsList from "./events-list";
@@ -16,6 +18,7 @@ import OngoingSession from "./ongoing-session";
 import SearchList from "./search-list";
 
 export default function LeftSidebar() {
+  const { userId } = useHypr();
   const { isExpanded } = useLeftSidebar();
   const { status, ongoingSessionId } = useOngoingSession((s) => ({
     status: s.status,
@@ -34,6 +37,22 @@ export default function LeftSidebar() {
   const isInOngoingNoteSub = noteMatch?.params.id === ongoingSessionId;
   const isInOngoingNote = isInOngoingNoteMain || isInOngoingNoteSub;
   const inMeetingAndNotInNote = (status === "active") && ongoingSessionId !== null && !isInOngoingNote;
+
+  const events = useQuery({
+    queryKey: ["events"],
+    queryFn: async () => {
+      const events = await dbCommands.listEvents({
+        type: "dateRange",
+        user_id: userId,
+        limit: 3,
+        start: new Date().toISOString(),
+        end: addDays(new Date(), 30).toISOString(),
+      });
+
+      const sessions = await Promise.all(events.map((event) => dbCommands.getSession({ calendarEventId: event.id })));
+      return events.map((event, index) => ({ ...event, session: sessions[index] }));
+    },
+  });
 
   if (windowLabel !== "main") {
     return null;
@@ -62,7 +81,7 @@ export default function LeftSidebar() {
             <AnimatePresence initial={false}>
               <div className="flex-1 h-full overflow-y-auto">
                 <div className="h-full space-y-4 px-3 pb-4">
-                  <EventsList />
+                  <EventsList events={events.data ?? []} />
                   <NotesList />
                 </div>
               </div>

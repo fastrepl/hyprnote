@@ -345,6 +345,16 @@
           "const": "deny-get-config"
         },
         {
+          "description": "Enables the get_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-event"
+        },
+        {
+          "description": "Denies the get_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-event"
+        },
+        {
           "description": "Enables the get_extension_mapping command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-extension-mapping"

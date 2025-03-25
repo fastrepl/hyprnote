@@ -18,6 +18,7 @@ const COMMANDS: &[&str] = &[
     "upsert_template",
     "delete_template",
     // event
+    "get_event",
     "list_events",
     // config
     "get_config",

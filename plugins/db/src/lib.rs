@@ -22,6 +22,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::events::get_event,
             commands::events::list_events,
             commands::calendars::list_calendars,
             commands::calendars::upsert_calendar,

@@ -17,6 +17,7 @@ Default permissions for the plugin
 - `allow-list-templates`
 - `allow-upsert-template`
 - `allow-delete-template`
+- `allow-get-event`
 - `allow-list-events`
 - `allow-get-config`
 - `allow-set-config`
@@ -174,6 +175,32 @@ Enables the get_config command without any pre-configured scope.
 <td>
 
 Denies the get_config command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-get-event`
+
+</td>
+<td>
+
+Enables the get_event command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-get-event`
+
+</td>
+<td>
+
+Denies the get_event command without any pre-configured scope.
 
 </td>
 </tr>

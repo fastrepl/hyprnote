@@ -7,6 +7,9 @@
 
 
 export const commands = {
+async getEvent(id: string) : Promise<Event | null> {
+    return await TAURI_INVOKE("plugin:db|get_event", { id });
+},
 async listEvents(filter: ListEventFilter | null) : Promise<Event[]> {
     return await TAURI_INVOKE("plugin:db|list_events", { filter });
 },

@@ -12,30 +12,32 @@ import { Switch } from "@hypr/ui/components/ui/switch";
 import { Trans } from "@lingui/react/macro";
 
 const CALL_PLATFORMS = [
-  "zoom",
-  "meet",
-  "teams",
-  "webex",
-  "slack",
-  "goto",
-  "cal.com",
-  "jitsi",
-  "zoho",
-  "discord",
-  "skype",
-  "facetime",
-  "whatsapp",
-  "messenger",
-  "openphone",
-  "telegram",
-  "kakao",
-  "line",
-  "chrome",
-  "safari",
-  "firefox",
-  "edge",
-  "brave",
-  "opera",
+  "Zoom",
+  "MS Teams",
+  "Cisco Webex",
+  "Slack",
+  "GoTo",
+  "Jitsi",
+  "Zoho",
+  "Discord",
+  "Skype",
+  "Facetime",
+  "WhatsApp",
+  "Messenger",
+  "OpenPhone",
+  "Telegram",
+  "KakaoTalk",
+  "Line",
+  "Chrome",
+  "Safari",
+  "Firefox",
+  "Edge",
+  "Brave",
+  "Opera",
+  "Arc",
+  "Zen",
+  "SigmaOS",
+  "Notion",
 ];
 
 const schema = z.object({
@@ -206,7 +208,7 @@ export default function NotificationsComponent() {
                                         {isSelected && <span className="text-xs">✓</span>}
                                       </div>
                                       <span className="text-sm">
-                                        {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                                        {platform}
                                       </span>
                                     </div>
                                   );

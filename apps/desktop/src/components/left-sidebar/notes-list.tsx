@@ -8,7 +8,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useSession } from "@/contexts";
 import { useHypr, useSessions } from "@/contexts";
-import { formatTimeAgo } from "@/utils/i18n-datetime";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import {
@@ -19,8 +18,7 @@ import {
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/ui/lib/utils";
-import { format, isToday } from "@hypr/utils/datetime";
-import { formatRelative } from "@hypr/utils/datetime";
+import { format, formatRelative, formatTimeAgo, isToday } from "@hypr/utils/datetime";
 
 interface NotesListProps {
   filter: (session: Session) => boolean;

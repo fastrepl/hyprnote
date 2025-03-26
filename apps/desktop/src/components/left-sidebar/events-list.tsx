@@ -2,7 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import { useNavigate } from "@tanstack/react-router";
 import { clsx } from "clsx";
 
-import { formatUpcomingTime } from "@/utils/i18n-datetime";
+import { formatUpcomingTime } from "@hypr/utils/datetime";
 import { type Event, type Session } from "@hypr/plugin-db";
 
 type EventWithSession = Event & { session: Session | null };

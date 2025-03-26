@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { RiCornerDownLeftLine, RiLinkedinBoxFill } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircleMinus, Mail, PenIcon } from "lucide-react";
+import { CircleMinus, Mail, PenIcon, PlusIcon } from "lucide-react";
 import { KeyboardEvent, useMemo, useState } from "react";
 
 import { type Human, type Organization } from "@hypr/plugin-db";
@@ -251,22 +251,28 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
         ))}
       </div>
 
-      <div className="flex items-center gap-2 border-t border-border pt-2 mt-1">
-        <input
-          type="text"
-          value={newParticipantInput}
-          onChange={(e) => setNewParticipantInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={t`Add participant`}
-          className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-neutral-500"
-        />
-        <button
-          onClick={handleAddParticipants}
-          disabled={!newParticipantInput.trim()}
-          className={`p-1 rounded ${newParticipantInput.trim() ? "text-green-500" : "text-neutral-500"}`}
-        >
-          <RiCornerDownLeftLine className="size-4" />
-        </button>
+      <div className="flex items-center gap-2 border-t border-border pt-4">
+        <div className="flex items-center flex-1 gap-1">
+          <span className="text-neutral-500">
+            <PlusIcon className="size-4" />
+          </span>
+          <input
+            type="text"
+            value={newParticipantInput}
+            onChange={(e) => setNewParticipantInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={t`Add participant`}
+            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-500"
+          />
+          {newParticipantInput.trim() !== "" && (
+            <button
+              onClick={handleAddParticipants}
+              className="text-neutral-500 hover:text-neutral-700 transition-colors"
+            >
+              <RiCornerDownLeftLine className="size-4" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

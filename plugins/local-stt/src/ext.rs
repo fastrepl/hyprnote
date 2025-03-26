@@ -15,13 +15,9 @@ pub trait LocalSttPluginExt<R: Runtime> {
     fn is_server_running(&self) -> impl Future<Output = bool>;
     fn start_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
     fn stop_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
-    fn download_config(&self, path: PathBuf) -> impl Future<Output = Result<(), String>>;
-    fn download_tokenizer(&self, path: PathBuf) -> impl Future<Output = Result<(), String>>;
-    fn download_model(
-        &self,
-        path: PathBuf,
-        channel: Channel<u8>,
-    ) -> impl Future<Output = Result<(), String>>;
+    fn download_config(&self) -> impl Future<Output = Result<(), crate::Error>>;
+    fn download_tokenizer(&self) -> impl Future<Output = Result<(), crate::Error>>;
+    fn download_model(&self, c: Channel<u8>) -> impl Future<Output = Result<(), crate::Error>>;
 }
 
 impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
@@ -35,30 +31,24 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn is_model_downloaded(&self) -> Result<bool, crate::Error> {
-        let base_path = self
-            .path()
-            .app_data_dir()
-            .unwrap()
-            .join("Demonthos/candle-quantized-whisper-large-v3-turbo/main/");
+        let model = {
+            let state = self.state::<crate::SharedState>();
+            let s = state.lock().await;
+            s.model.clone()
+        };
 
-        let model_path = base_path.join("model.gguf");
-        let config_path = base_path.join("config.json");
-        let tokenizer_path = base_path.join("tokenizer.json");
-
-        if [&model_path, &config_path, &tokenizer_path]
-            .iter()
-            .any(|p| !p.exists())
-        {
-            return Ok(false);
-        }
+        let data_dir = self.path().app_data_dir()?;
 
         for (path, expected) in [
-            (model_path, 800664009),
-            (config_path, 472563957),
-            (tokenizer_path, 1395948910),
+            (model.model_path(&data_dir), model.model_checksum()),
+            (model.config_path(&data_dir), model.config_checksum()),
+            (model.tokenizer_path(&data_dir), model.tokenizer_checksum()),
         ] {
-            let actual = hypr_file::calculate_file_checksum(path)?;
+            if !path.exists() {
+                return Ok(false);
+            }
 
+            let actual = hypr_file::calculate_file_checksum(path)?;
             if actual != expected {
                 return Ok(false);
             }
@@ -77,11 +67,17 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn start_server(&self) -> Result<(), crate::Error> {
+        let model = {
+            let state = self.state::<crate::SharedState>();
+            let s = state.lock().await;
+            s.model.clone()
+        };
+
         let cache_dir = self.path().app_data_dir()?;
 
         let server_state = crate::ServerStateBuilder::default()
             .model_cache_dir(cache_dir)
-            .model_type(rwhisper::WhisperSource::QuantizedLargeV3Turbo)
+            .model_type(model.into())
             .build();
 
         let server = crate::run_server(server_state).await?;
@@ -108,14 +104,26 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn download_config(&self, path: PathBuf) -> Result<(), String> {
-        let url = "https://pub-8987485129c64debb63bff7f35a2e5fd.r2.dev/v0/Demonthos/candle-quantized-whisper-large-v3-turbo/main/config.json";
+    async fn download_config(&self) -> Result<(), crate::Error> {
+        let model = {
+            let state = self.state::<crate::SharedState>();
+            let s = state.lock().await;
+            s.model.clone()
+        };
+
+        let data_dir = self.path().app_data_dir()?;
 
         tokio::spawn(async move {
             let callback = |_: u64, _: u64| {};
 
-            if let Err(e) = hypr_file::download_file_with_callback(url, path, callback).await {
-                tracing::error!("Failed to download config: {}", e);
+            if let Err(e) = hypr_file::download_file_with_callback(
+                model.config_url(),
+                model.config_path(data_dir),
+                callback,
+            )
+            .await
+            {
+                tracing::error!("config_download_error: {}", e);
             }
         });
 
@@ -123,14 +131,26 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn download_tokenizer(&self, path: PathBuf) -> Result<(), String> {
-        let url = "https://pub-8987485129c64debb63bff7f35a2e5fd.r2.dev/v0/Demonthos/candle-quantized-whisper-large-v3-turbo/main/tokenizer.json";
+    async fn download_tokenizer(&self) -> Result<(), crate::Error> {
+        let model = {
+            let state = self.state::<crate::SharedState>();
+            let s = state.lock().await;
+            s.model.clone()
+        };
+
+        let data_dir = self.path().app_data_dir()?;
 
         tokio::spawn(async move {
             let callback = |_: u64, _: u64| {};
 
-            if let Err(e) = hypr_file::download_file_with_callback(url, path, callback).await {
-                tracing::error!("Failed to download tokenizer: {}", e);
+            if let Err(e) = hypr_file::download_file_with_callback(
+                model.tokenizer_url(),
+                model.tokenizer_path(data_dir),
+                callback,
+            )
+            .await
+            {
+                tracing::error!("tokenizer_download_error: {}", e);
             }
         });
 
@@ -138,8 +158,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn download_model(&self, path: PathBuf, channel: Channel<u8>) -> Result<(), String> {
-        let url = "https://pub-8987485129c64debb63bff7f35a2e5fd.r2.dev/v0/Demonthos/candle-quantized-whisper-large-v3-turbo/main/model.gguf";
+    async fn download_model(&self, channel: Channel<u8>) -> Result<(), crate::Error> {
+        let model = {
+            let state = self.state::<crate::SharedState>();
+            let s = state.lock().await;
+            s.model.clone()
+        };
+
+        let data_dir = self.path().app_data_dir()?;
 
         tokio::spawn(async move {
             let callback = |downloaded: u64, total_size: u64| {
@@ -147,8 +173,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 let _ = channel.send(percent as u8);
             };
 
-            if let Err(e) = hypr_file::download_file_with_callback(url, path, callback).await {
-                tracing::error!("Failed to download model: {}", e);
+            if let Err(e) = hypr_file::download_file_with_callback(
+                model.model_url(),
+                model.model_path(data_dir),
+                callback,
+            )
+            .await
+            {
+                tracing::error!("model_download_error: {}", e);
             }
         });
 

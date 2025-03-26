@@ -1,6 +1,6 @@
 use crate::LocalSttPluginExt;
 
-use tauri::{ipc::Channel, Manager};
+use tauri::ipc::Channel;
 
 #[tauri::command]
 #[specta::specta]
@@ -22,20 +22,9 @@ pub async fn download_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     channel: Channel<u8>,
 ) -> Result<(), String> {
-    let base = app
-        .path()
-        .app_data_dir()
-        .unwrap()
-        .join("Demonthos/candle-quantized-whisper-large-v3-turbo/main/");
-
-    app.download_config(base.join("config.json")).await.unwrap();
-    app.download_tokenizer(base.join("tokenizer.json"))
-        .await
-        .unwrap();
-
-    app.download_model(base.join("model.gguf"), channel)
-        .await
-        .map_err(|e| e.to_string())
+    app.download_config().await.map_err(|e| e.to_string())?;
+    app.download_tokenizer().await.map_err(|e| e.to_string())?;
+    app.download_model(channel).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

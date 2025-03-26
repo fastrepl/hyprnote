@@ -1,5 +1,4 @@
-use tauri::Manager;
-
+#[derive(Debug, Clone)]
 pub enum SupportedModel {
     QuantizedLargeV3Turbo,
 }
@@ -13,13 +12,20 @@ impl From<rwhisper::WhisperSource> for SupportedModel {
     }
 }
 
+impl From<SupportedModel> for rwhisper::WhisperSource {
+    fn from(model: SupportedModel) -> Self {
+        match model {
+            SupportedModel::QuantizedLargeV3Turbo => rwhisper::WhisperSource::QuantizedLargeV3Turbo,
+        }
+    }
+}
+
 impl SupportedModel {
-    pub fn model_path<R: tauri::Runtime>(&self, app: impl Manager<R>) -> std::path::PathBuf {
+    pub fn model_path(&self, data_dir: impl Into<std::path::PathBuf>) -> std::path::PathBuf {
         match self {
-            SupportedModel::QuantizedLargeV3Turbo => {
-                let base = app.path().data_dir().unwrap().join("com.hyprnote.dev");
-                base.join("Demonthos/candle-quantized-whisper-large-v3-turbo/main/model.gguf")
-            }
+            SupportedModel::QuantizedLargeV3Turbo => data_dir
+                .into()
+                .join("Demonthos/candle-quantized-whisper-large-v3-turbo/main/model.gguf"),
         }
     }
 
@@ -35,12 +41,11 @@ impl SupportedModel {
         }
     }
 
-    pub fn config_path<R: tauri::Runtime>(&self, app: impl Manager<R>) -> std::path::PathBuf {
+    pub fn config_path(&self, data_dir: impl Into<std::path::PathBuf>) -> std::path::PathBuf {
         match self {
-            SupportedModel::QuantizedLargeV3Turbo => {
-                let base = app.path().data_dir().unwrap().join("com.hyprnote.dev");
-                base.join("Demonthos/candle-quantized-whisper-large-v3-turbo/main/config.json")
-            }
+            SupportedModel::QuantizedLargeV3Turbo => data_dir
+                .into()
+                .join("Demonthos/candle-quantized-whisper-large-v3-turbo/main/config.json"),
         }
     }
 
@@ -56,12 +61,11 @@ impl SupportedModel {
         }
     }
 
-    pub fn tokenizer_path<R: tauri::Runtime>(&self, app: impl Manager<R>) -> std::path::PathBuf {
+    pub fn tokenizer_path(&self, data_dir: impl Into<std::path::PathBuf>) -> std::path::PathBuf {
         match self {
-            SupportedModel::QuantizedLargeV3Turbo => {
-                let base = app.path().data_dir().unwrap().join("com.hyprnote.dev");
-                base.join("Demonthos/candle-quantized-whisper-large-v3-turbo/main/tokenizer.json")
-            }
+            SupportedModel::QuantizedLargeV3Turbo => data_dir
+                .into()
+                .join("Demonthos/candle-quantized-whisper-large-v3-turbo/main/tokenizer.json"),
         }
     }
 

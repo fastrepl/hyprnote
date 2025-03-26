@@ -9,14 +9,25 @@ mod server;
 
 pub use error::*;
 pub use ext::*;
+use model::*;
 use server::*;
 
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 
-#[derive(Default)]
 pub struct State {
+    pub model: SupportedModel,
     pub api_base: Option<String>,
     pub server: Option<crate::server::ServerHandle>,
+}
+
+impl Default for State {
+    fn default() -> Self {
+        Self {
+            model: SupportedModel::QuantizedLargeV3Turbo,
+            api_base: None,
+            server: None,
+        }
+    }
 }
 
 const PLUGIN_NAME: &str = "local-stt";

@@ -1,4 +1,4 @@
-import { ClockIcon, PlusIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
@@ -28,7 +28,8 @@ export function FloatingActionButtons({ onNewChat, onViewHistory }: FloatingActi
           </TooltipContent>
         </Tooltip>
 
-        <Tooltip>
+        {
+          /* <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
@@ -42,7 +43,8 @@ export function FloatingActionButtons({ onNewChat, onViewHistory }: FloatingActi
           <TooltipContent side="bottom" align="end">
             <p>View History</p>
           </TooltipContent>
-        </Tooltip>
+        </Tooltip> */
+        }
       </div>
     </TooltipProvider>
   );

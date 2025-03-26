@@ -10,57 +10,15 @@ import {
   Message,
 } from "../components/chat";
 
+import { useRightPanel } from "@/contexts";
+
 export function ChatView() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isAnimating, setIsAnimating] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-
-  const [chatHistory] = useState<ChatSession[]>([
-    {
-      id: "1",
-      title: "New chat",
-      lastMessageDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-      messages: [],
-    },
-    {
-      id: "2",
-      title: "New chat",
-      lastMessageDate: new Date(2025, 1, 13),
-      messages: [],
-    },
-    {
-      id: "3",
-      title: "Summarize Hyprnote AI",
-      lastMessageDate: new Date(2025, 1, 5),
-      messages: [],
-    },
-    {
-      id: "4",
-      title: "New chat",
-      lastMessageDate: new Date(2025, 1, 5),
-      messages: [],
-    },
-    {
-      id: "5",
-      title: "New chat",
-      lastMessageDate: new Date(2025, 1, 5),
-      messages: [],
-    },
-    {
-      id: "6",
-      title: "New chat",
-      lastMessageDate: new Date(2025, 0, 3),
-      messages: [],
-    },
-    {
-      id: "7",
-      title: "New chat",
-      lastMessageDate: new Date(2024, 11, 31),
-      messages: [],
-    },
-  ]);
+  const { isExpanded } = useRightPanel();
 
   useEffect(() => {
     const animationInterval = setInterval(() => {
@@ -73,6 +31,20 @@ export function ChatView() {
 
     return () => clearInterval(animationInterval);
   }, []);
+
+  useEffect(() => {
+    // Focus the input field when the chat view is visible and panel is expanded
+    if (isExpanded) {
+      const focusTimeout = setTimeout(() => {
+        const chatInput = document.querySelector(".right-panel-container textarea");
+        if (chatInput) {
+          (chatInput as HTMLTextAreaElement).focus();
+        }
+      }, 200);
+
+      return () => clearTimeout(focusTimeout);
+    }
+  }, [isExpanded]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
@@ -161,6 +133,51 @@ export function ChatView() {
     }
   };
 
+  const [chatHistory] = useState<ChatSession[]>([
+    {
+      id: "1",
+      title: "New chat",
+      lastMessageDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+      messages: [],
+    },
+    {
+      id: "2",
+      title: "New chat",
+      lastMessageDate: new Date(2025, 1, 13),
+      messages: [],
+    },
+    {
+      id: "3",
+      title: "Summarize Hyprnote AI",
+      lastMessageDate: new Date(2025, 1, 5),
+      messages: [],
+    },
+    {
+      id: "4",
+      title: "New chat",
+      lastMessageDate: new Date(2025, 1, 5),
+      messages: [],
+    },
+    {
+      id: "5",
+      title: "New chat",
+      lastMessageDate: new Date(2025, 1, 5),
+      messages: [],
+    },
+    {
+      id: "6",
+      title: "New chat",
+      lastMessageDate: new Date(2025, 0, 3),
+      messages: [],
+    },
+    {
+      id: "7",
+      title: "New chat",
+      lastMessageDate: new Date(2024, 11, 31),
+      messages: [],
+    },
+  ]);
+
   if (showHistory) {
     return (
       <ChatHistoryView
@@ -196,6 +213,7 @@ export function ChatView() {
         onChange={handleInputChange}
         onSubmit={handleSubmit}
         onKeyDown={handleKeyDown}
+        autoFocus={true}
       />
     </div>
   );

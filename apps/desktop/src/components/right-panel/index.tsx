@@ -44,7 +44,7 @@ export default function RightPanel() {
           initial={false}
           animate={{ x: show ? 0 : "100%" }}
           transition={{ duration: 0.3 }}
-          className="absolute right-0 top-0 z-40 h-full w-[380px] overflow-y-auto border-l bg-neutral-50 scrollbar-none shadow-lg flex flex-col"
+          className="right-panel-container absolute right-0 top-0 z-40 h-full w-[380px] overflow-y-auto border-l bg-neutral-50 scrollbar-none shadow-lg flex flex-col"
         >
           {renderContent()}
         </motion.div>
@@ -57,7 +57,7 @@ export default function RightPanel() {
       initial={false}
       animate={{ width: show ? 380 : 0 }}
       transition={{ duration: 0.3 }}
-      className="h-full overflow-y-auto border-l bg-neutral-50 scrollbar-none flex flex-col"
+      className="right-panel-container h-full overflow-y-auto border-l bg-neutral-50 scrollbar-none flex flex-col"
     >
       {renderContent()}
     </motion.div>

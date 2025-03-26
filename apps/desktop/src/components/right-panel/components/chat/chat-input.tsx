@@ -7,9 +7,10 @@ interface ChatInputProps {
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onSubmit: () => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  autoFocus?: boolean;
 }
 
-export function ChatInput({ inputValue, onChange, onSubmit, onKeyDown }: ChatInputProps) {
+export function ChatInput({ inputValue, onChange, onSubmit, onKeyDown, autoFocus = false }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize textarea based on content
@@ -25,13 +26,16 @@ export function ChatInput({ inputValue, onChange, onSubmit, onKeyDown }: ChatInp
     textarea.style.height = `${newHeight}px`;
   }, [inputValue]);
 
-  // Set initial height
+  // Set initial height and focus if autoFocus is true
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = "40px";
+      if (autoFocus) {
+        textarea.focus();
+      }
     }
-  }, []);
+  }, [autoFocus]);
 
   return (
     <div className="pb-4 px-4">

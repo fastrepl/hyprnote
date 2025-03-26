@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 export type RightPanelView = "chat" | "widget";
@@ -20,9 +20,16 @@ export function RightPanelProvider({
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentView, setCurrentView] = useState<RightPanelView>("chat");
+  const previouslyFocusedElement = useRef<HTMLElement | null>(null);
 
   const hidePanel = useCallback(() => {
     setIsExpanded(false);
+    // Return focus to the previously focused element when hiding the panel
+    setTimeout(() => {
+      if (previouslyFocusedElement.current) {
+        previouslyFocusedElement.current.focus();
+      }
+    }, 0);
   }, []);
 
   const switchView = useCallback((view: RightPanelView) => {
@@ -33,9 +40,53 @@ export function RightPanelProvider({
     if (view && isExpanded && currentView !== view) {
       // If panel is expanded and we're switching to a different view
       setCurrentView(view);
+      
+      // Focus chat input when switching to chat view
+      if (view === "chat") {
+        setTimeout(() => {
+          const chatInput = document.querySelector(".right-panel-container textarea");
+          if (chatInput) {
+            (chatInput as HTMLTextAreaElement).focus();
+          }
+        }, 350); // Allow time for view change and animation
+      }
     } else {
-      // Otherwise toggle the expanded state
-      setIsExpanded((prev) => !prev);
+      // Store the active element before toggling
+      if (!isExpanded) {
+        // Save the currently focused element before expanding the panel
+        previouslyFocusedElement.current = document.activeElement as HTMLElement;
+        
+        // Toggle the expanded state first
+        setIsExpanded(true);
+        
+        // If expanding to chat view, focus the chat input after animation
+        const targetView = view || currentView;
+        if (targetView === "chat") {
+          setTimeout(() => {
+            const focusInput = () => {
+              const chatInput = document.querySelector(".right-panel-container textarea");
+              if (chatInput) {
+                (chatInput as HTMLTextAreaElement).focus();
+              } else {
+                // If not found, try again after a short delay (panel might still be animating)
+                setTimeout(focusInput, 50);
+              }
+            };
+            focusInput();
+          }, 350); // Increased delay to ensure panel is expanded
+        }
+      } else {
+        // Toggle panel state first (collapse)
+        setIsExpanded(false);
+        
+        // Return focus to the previously focused element when collapsing
+        setTimeout(() => {
+          if (previouslyFocusedElement.current) {
+            previouslyFocusedElement.current.focus();
+          }
+        }, 350); // Sync with animation duration
+      }
+
       // If a view is specified, set it
       if (view) {
         setCurrentView(view);
@@ -51,10 +102,18 @@ export function RightPanelProvider({
       if (isExpanded && currentView === "widget") {
         // If already expanded and in widget view, collapse
         setIsExpanded(false);
+        // Return focus to the previously focused element
+        setTimeout(() => {
+          if (previouslyFocusedElement.current) {
+            previouslyFocusedElement.current.focus();
+          }
+        }, 0);
       } else if (isExpanded && currentView !== "widget") {
         // If expanded but in a different view, switch to widget view
         setCurrentView("widget");
       } else {
+        // Store the active element before expanding
+        previouslyFocusedElement.current = document.activeElement as HTMLElement;
         // If collapsed, expand with widget view
         setIsExpanded(true);
         setCurrentView("widget");
@@ -74,10 +133,18 @@ export function RightPanelProvider({
       if (isExpanded && currentView === "chat") {
         // If already expanded and in chat view, collapse
         setIsExpanded(false);
+        // Return focus to the previously focused element
+        setTimeout(() => {
+          if (previouslyFocusedElement.current) {
+            previouslyFocusedElement.current.focus();
+          }
+        }, 0);
       } else if (isExpanded && currentView !== "chat") {
         // If expanded but in a different view, switch to chat view
         setCurrentView("chat");
       } else {
+        // Store the active element before expanding
+        previouslyFocusedElement.current = document.activeElement as HTMLElement;
         // If collapsed, expand with chat view
         setIsExpanded(true);
         setCurrentView("chat");

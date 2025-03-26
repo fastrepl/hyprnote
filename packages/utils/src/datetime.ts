@@ -49,22 +49,31 @@ export const formatRelative = (date: string, t?: string) => {
   const startOfToday = FNS.startOfDay(now);
   const diffInDays = FNS.differenceInCalendarDays(startOfToday, startOfDay, { in: tz });
 
+  // Get day of week
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dayOfWeek = daysOfWeek[d.getDay()];
+
   if (diffInDays === 0) {
-    return i18n._("Today");
+    return i18n._("Today ({dayOfWeek})", { dayOfWeek });
   } else if (diffInDays === 1) {
-    return i18n._("Yesterday");
-  } else if (diffInDays === 2) {
-    return i18n._("2 days ago");
+    return i18n._("Yesterday ({dayOfWeek})", { dayOfWeek });
   } else if (diffInDays < 7) {
-    return i18n._("{days} days ago", { days: diffInDays });
-  } else if (diffInDays < 14) {
-    return i18n._("Last week");
-  } else if (diffInDays < 21) {
-    return i18n._("2 weeks ago");
-  } else if (diffInDays < 30) {
-    return i18n._("3 weeks ago");
+    return i18n._("{days} days ago ({dayOfWeek})", { days: diffInDays, dayOfWeek });
   } else {
-    return i18n._("{days} days ago", { days: diffInDays });
+    // For dates older than a week, use localized date format
+    const currentYear = now.getFullYear();
+    const dateYear = d.getFullYear();
+    
+    // If it's the current year, don't show the year
+    if (dateYear === currentYear) {
+      // Format like "Apr 13 (Wed)"
+      const formattedDate = FNS.format(d, "MMM d", { in: tz });
+      return i18n._("{date} ({dayOfWeek})", { date: formattedDate, dayOfWeek });
+    } else {
+      // Format like "May 19, 2024 (Wed)"
+      const formattedDate = FNS.format(d, "MMM d, yyyy", { in: tz });
+      return i18n._("{date} ({dayOfWeek})", { date: formattedDate, dayOfWeek });
+    }
   }
 };
 

@@ -2,7 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import { useNavigate } from "@tanstack/react-router";
 import { clsx } from "clsx";
 
-import { formatRemainingTime } from "@/utils/i18n-datetime";
+import { formatUpcomingTime } from "@/utils/i18n-datetime";
 import { type Event, type Session } from "@hypr/plugin-db";
 
 type EventWithSession = Event & { session: Session | null };
@@ -60,7 +60,7 @@ function EventItem(
       <div className="flex flex-col items-start gap-1">
         <div className="font-medium text-sm line-clamp-1">{event.name}</div>
         <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
-          <span>{formatRemainingTime(new Date(event.start_date))}</span>
+          <span>{formatUpcomingTime(new Date(event.start_date))}</span>
         </div>
       </div>
     </button>

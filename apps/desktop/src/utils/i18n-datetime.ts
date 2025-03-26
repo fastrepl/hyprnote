@@ -3,6 +3,7 @@ import {
   formatRemainingTime as originalFormatRemainingTime,
 } from "@hypr/utils/datetime";
 import { i18n } from "@lingui/core";
+import { format } from "date-fns";
 
 /**
  * Internationalized version of formatRemainingTime
@@ -49,22 +50,31 @@ export function formatRelative(date: string, t?: string): string {
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const diffInDays = Math.floor((startOfToday.getTime() - startOfDay.getTime()) / (1000 * 60 * 60 * 24));
 
+  // Get day of week
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dayOfWeek = daysOfWeek[d.getDay()];
+
   if (diffInDays === 0) {
-    return i18n._("Today");
+    return i18n._("Today ({dayOfWeek})", { dayOfWeek });
   } else if (diffInDays === 1) {
-    return i18n._("Yesterday");
-  } else if (diffInDays === 2) {
-    return i18n._("2 days ago");
+    return i18n._("Yesterday ({dayOfWeek})", { dayOfWeek });
   } else if (diffInDays < 7) {
-    return i18n._("{days} days ago", { days: diffInDays });
-  } else if (diffInDays < 14) {
-    return i18n._("Last week");
-  } else if (diffInDays < 21) {
-    return i18n._("2 weeks ago");
-  } else if (diffInDays < 30) {
-    return i18n._("3 weeks ago");
+    return i18n._("{days} days ago ({dayOfWeek})", { days: diffInDays, dayOfWeek });
   } else {
-    return i18n._("{days} days ago", { days: diffInDays });
+    // For dates older than a week, use localized date format
+    const currentYear = now.getFullYear();
+    const dateYear = d.getFullYear();
+    
+    // If it's the current year, don't show the year
+    if (dateYear === currentYear) {
+      // Format like "Apr 13 (Wed)"
+      const formattedDate = format(d, "MMM d");
+      return i18n._("{date} ({dayOfWeek})", { date: formattedDate, dayOfWeek });
+    } else {
+      // Format like "May 19, 2024 (Wed)"
+      const formattedDate = format(d, "MMM d, yyyy");
+      return i18n._("{date} ({dayOfWeek})", { date: formattedDate, dayOfWeek });
+    }
   }
 }
 
@@ -85,10 +95,10 @@ export function formatTimeAgo(date: Date | string): string {
   const months = Math.floor(days / 30);
   const years = Math.floor(days / 365);
 
-  if (seconds < 30) {
+  if (seconds < 5) {
     return i18n._("just now");
   } else if (seconds < 60) {
-    return i18n._("less than a minute ago");
+    return i18n._("{seconds} seconds ago", { seconds });
   } else if (minutes === 1) {
     return i18n._("1 minute ago");
   } else if (minutes < 60) {
@@ -113,6 +123,45 @@ export function formatTimeAgo(date: Date | string): string {
     return i18n._("1 year ago");
   } else {
     return i18n._("{years} years ago", { years });
+  }
+}
+
+/**
+ * Formats an upcoming date relative to now in a human-readable format with i18n support
+ * Examples: "in progress", "in 5 seconds", "in 10 minutes", "in 2 hours", "2 days later", etc.
+ */
+export function formatUpcomingTime(date: Date | string): string {
+  const futureDate = typeof date === "string" ? new Date(date) : date;
+  const now = new Date();
+  const diff = futureDate.getTime() - now.getTime();
+
+  // If the date is in the past, return "in progress"
+  if (diff <= 0) {
+    return i18n._("in progress");
+  }
+
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const weeks = Math.floor(days / 7);
+
+  if (seconds < 60) {
+    return i18n._("in {seconds} seconds", { seconds });
+  } else if (minutes === 1) {
+    return i18n._("in 1 minute");
+  } else if (minutes < 60) {
+    return i18n._("in {minutes} minutes", { minutes });
+  } else if (hours === 1) {
+    return i18n._("in 1 hour");
+  } else if (hours < 24) {
+    return i18n._("in {hours} hours", { hours });
+  } else if (days === 1) {
+    return i18n._("1 day later");
+  } else if (days < 7) {
+    return i18n._("{days} days later", { days });
+  } else {
+    return i18n._("{weeks} weeks later", { weeks });
   }
 }
 

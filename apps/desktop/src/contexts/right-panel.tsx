@@ -40,7 +40,7 @@ export function RightPanelProvider({
     if (view && isExpanded && currentView !== view) {
       // If panel is expanded and we're switching to a different view
       setCurrentView(view);
-      
+
       // Focus chat input when switching to chat view
       if (view === "chat") {
         setTimeout(() => {
@@ -55,10 +55,10 @@ export function RightPanelProvider({
       if (!isExpanded) {
         // Save the currently focused element before expanding the panel
         previouslyFocusedElement.current = document.activeElement as HTMLElement;
-        
+
         // Toggle the expanded state first
         setIsExpanded(true);
-        
+
         // If expanding to chat view, focus the chat input after animation
         const targetView = view || currentView;
         if (targetView === "chat") {
@@ -78,7 +78,7 @@ export function RightPanelProvider({
       } else {
         // Toggle panel state first (collapse)
         setIsExpanded(false);
-        
+
         // Return focus to the previously focused element when collapsing
         setTimeout(() => {
           if (previouslyFocusedElement.current) {

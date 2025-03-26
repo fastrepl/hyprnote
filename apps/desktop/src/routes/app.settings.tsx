@@ -14,15 +14,15 @@ import {
   TemplatesSidebar,
 } from "@/components/settings/components";
 import {
-  LocalAI,
   Calendar,
   Extensions,
   General,
   Lab,
+  LocalAI,
   Notifications,
   Permissions,
   Profile,
-  TemplateEditor
+  TemplateEditor,
 } from "@/components/settings/views";
 import { useHypr } from "@/contexts";
 import { EXTENSION_CONFIGS } from "@hypr/extension-registry";

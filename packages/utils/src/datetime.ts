@@ -63,7 +63,7 @@ export const formatRelative = (date: string, t?: string) => {
     // For dates older than a week, use localized date format
     const currentYear = now.getFullYear();
     const dateYear = d.getFullYear();
-    
+
     // If it's the current year, don't show the year
     if (dateYear === currentYear) {
       // Format like "Apr 13 (Wed)"

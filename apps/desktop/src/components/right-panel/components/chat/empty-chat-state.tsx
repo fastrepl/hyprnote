@@ -18,7 +18,7 @@ function EmptyChatStateBase({ isAnimating, onQuickAction, onFocusInput }: EmptyC
   };
 
   return (
-    <div 
+    <div
       className="flex flex-col items-center justify-center h-full p-4 text-center"
       onClick={handleContainerClick}
     >

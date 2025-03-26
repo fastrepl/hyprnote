@@ -39,19 +39,14 @@ export function MainSidebar({ current, onTabClick }: MainSidebarProps) {
                   ? <Trans>Templates</Trans>
                   : tab === "extensions"
                   ? <Trans>Extensions</Trans>
-                  : tab === "team"
-                  ? <Trans>Team</Trans>
-                  : tab === "billing"
-                  ? <Trans>Billing</Trans>
+                  // : tab === "team"
+                  // ? <Trans>Team</Trans>
+                  // : tab === "billing"
+                  // ? <Trans>Billing</Trans>
+                  : tab === "lab"
+                  ? <Trans>Lab</Trans>
                   : null}
               </span>
-              {
-                /* {(tab === "team" || tab === "billing") && (
-                <span className="ml-auto text-xs text-neutral-400">
-                  <Trans>Coming Soon</Trans>
-                </span>
-              )} */
-              }
             </button>
           ))}
         </div>

@@ -4,6 +4,7 @@ import {
   CalendarIcon,
   // CreditCardIcon,
   FileTextIcon,
+  FlaskConicalIcon,
   SettingsIcon,
   SparklesIcon,
   UserIcon,
@@ -28,10 +29,12 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <FileTextIcon className="h-4 w-4" />;
     case "extensions":
       return <BlocksIcon className="h-4 w-4" />;
-    // case "team":
-    //   return <UsersIcon className="h-4 w-4" />;
-    // case "billing":
-    //   return <CreditCardIcon className="h-4 w-4" />;
+      // case "team":
+      //   return <UsersIcon className="h-4 w-4" />;
+      // case "billing":
+      //   return <CreditCardIcon className="h-4 w-4" />;
+    case "lab":
+      return <FlaskConicalIcon className="h-4 w-4" />;
     default:
       return null;
   }

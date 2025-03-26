@@ -8,6 +8,7 @@ export const TABS = [
   "extensions",
   // "team",
   // "billing",
+  "lab",
 ] as const;
 
 export type Tab = typeof TABS[number];

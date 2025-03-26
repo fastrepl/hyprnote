@@ -1,0 +1,10 @@
+export { default as LocalAI } from "./ai";
+export { default as Billing } from "./billing";
+export { default as Calendar } from "./calendar";
+export { default as Extensions } from "./extension";
+export { default as General } from "./general";
+export { default as Lab } from "./lab";
+export { default as Notifications } from "./notifications";
+export { default as Profile } from "./profile";
+export { default as Team } from "./team";
+export { default as TemplateEditor } from "./template";

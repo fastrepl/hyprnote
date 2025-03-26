@@ -1,5 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+
+import { commands as flagsCommands } from "@hypr/plugin-flags";
 
 export type RightPanelView = "chat" | "widget";
 
@@ -21,6 +24,11 @@ export function RightPanelProvider({
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentView, setCurrentView] = useState<RightPanelView>("chat");
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
+
+  const noteChatQuery = useQuery({
+    queryKey: ["flags", "ChatRightPanel"],
+    queryFn: () => flagsCommands.isEnabled("ChatRightPanel"),
+  });
 
   const hidePanel = useCallback(() => {
     setIsExpanded(false);
@@ -94,7 +102,6 @@ export function RightPanelProvider({
     }
   }, [isExpanded, currentView]);
 
-  // Handle cmd+r hotkey for widget panel
   useHotkeys(
     "mod+r",
     (event) => {
@@ -125,11 +132,15 @@ export function RightPanelProvider({
     },
   );
 
-  // Handle cmd+j hotkey for chat panel
   useHotkeys(
     "mod+j",
     (event) => {
+      if (!noteChatQuery.data) {
+        return;
+      }
+
       event.preventDefault();
+
       if (isExpanded && currentView === "chat") {
         // If already expanded and in chat view, collapse
         setIsExpanded(false);

@@ -43,7 +43,7 @@ user_common_derives! {
         #[serde(serialize_with = "serialize_language_code", deserialize_with = "deserialize_language_code")]
         pub display_language: LanguageCode,
         pub jargons: Vec<String>,
-        pub tags: Vec<String>,
+        pub telemetry_consent: bool,
     }
 }
 
@@ -53,7 +53,7 @@ impl Default for ConfigGeneral {
             autostart: true,
             display_language: LanguageCode::En,
             jargons: vec![],
-            tags: vec![],
+            telemetry_consent: true,
         }
     }
 }

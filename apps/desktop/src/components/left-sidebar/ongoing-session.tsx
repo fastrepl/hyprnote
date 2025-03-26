@@ -2,7 +2,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
 
 import { useHyprSearch, useSession } from "@/contexts";
-import { cn } from "@hypr/ui/lib/utils";
 
 export default function OngoingSession({
   sessionId,
@@ -37,18 +36,15 @@ export default function OngoingSession({
     >
       <button
         onClick={handleClick}
-        className={cn(
-          "group flex items-start gap-3 w-full text-left transition-all",
-          "bg-neutral-900 hover:bg-neutral-700 p-2 rounded-lg",
-        )}
+        className="w-full flex items-center justify-between transition-all bg-neutral-900 hover:bg-neutral-700 px-3 py-2.5 rounded-lg hover:scale-95"
       >
-        <div className="flex flex-col items-start gap-1">
-          <div className="flex items-center justify-between w-full">
-            <div className="font-medium text-sm text-neutral-300 max-w-[180px] truncate">
-              {session.title || "Untitled"}
-            </div>
-            <div className="text-xs text-neutral-400 animate-pulse w-2 h-2 rounded-full bg-white"></div>
-          </div>
+        <div className="font-medium text-sm text-neutral-300 max-w-[180px] truncate">
+          {session.title || "Untitled"}
+        </div>
+
+        <div className="relative h-2 w-2">
+          <div className="absolute inset-0 rounded-full bg-white/30"></div>
+          <div className="absolute inset-0 rounded-full bg-white animate-ping"></div>
         </div>
       </button>
     </motion.div>

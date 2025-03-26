@@ -5,8 +5,9 @@ import { NewWindowButton } from "@/components/toolbar/buttons/new-window-button"
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { cn } from "@hypr/ui/lib/utils";
 import { SearchBar } from "../../search-bar";
+import { ChatPanelButton } from "../buttons/chat-panel-button";
 import { LeftSidebarButton } from "../buttons/left-sidebar-button";
-import { RightPanelButton } from "../buttons/right-panel-button";
+import { WidgetPanelButton } from "../buttons/widget-panel-button";
 
 export function MainToolbar() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
@@ -43,7 +44,8 @@ export function MainToolbar() {
           <>
             {/* {isNote && <ShareButton />} */}
             {(organizationMatch || humanMatch) && <NewWindowButton />}
-            <RightPanelButton />
+            <ChatPanelButton />
+            <WidgetPanelButton />
           </>
         )}
       </div>

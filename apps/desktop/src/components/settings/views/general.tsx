@@ -27,8 +27,8 @@ const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = ["en", "ko"];
 const schema = z.object({
   autostart: z.boolean().optional(),
   displayLanguage: z.enum(SUPPORTED_LANGUAGES as [string, ...string[]]),
+  telemetryConsent: z.boolean().optional(),
   jargons: z.string(),
-  tags: z.array(z.string()),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -50,8 +50,8 @@ export default function General() {
     values: {
       autostart: config.data?.general.autostart ?? false,
       displayLanguage: config.data?.general.display_language ?? "en",
+      telemetryConsent: config.data?.general.telemetry_consent ?? true,
       jargons: (config.data?.general.jargons ?? []).join(", "),
-      tags: config.data?.general.tags ?? [],
     },
   });
 
@@ -62,11 +62,12 @@ export default function General() {
         return;
       }
 
+      // TODO: remove tags
       const nextGeneral: ConfigGeneral = {
         autostart: v.autostart ?? true,
         display_language: v.displayLanguage,
+        telemetry_consent: v.telemetryConsent ?? true,
         jargons: v.jargons.split(",").map((jargon) => jargon.trim()),
-        tags: v.tags,
       };
 
       try {
@@ -109,7 +110,7 @@ export default function General() {
                     <Trans>Open Hyprnote on startup</Trans>
                   </FormLabel>
                   <FormDescription>
-                    <Trans>Hyprnote will be opened automatically when you start your computer.</Trans>
+                    <Trans>Hyprnote will be opened automatically when you start your computer</Trans>
                   </FormDescription>
                 </div>
 
@@ -134,7 +135,7 @@ export default function General() {
                     <Trans>Display language</Trans>
                   </FormLabel>
                   <FormDescription>
-                    <Trans>This is the language you mostly use.</Trans>
+                    <Trans>This is the language you mostly use</Trans>
                   </FormDescription>
                 </div>
                 <Select
@@ -146,7 +147,7 @@ export default function General() {
                 >
                   <FormControl>
                     <SelectTrigger className="max-w-[100px] focus:outline-none focus:ring-0 focus:ring-offset-0">
-                      <SelectValue placeholder={t`Select language`} />
+                      <SelectValue placeholder={t({ id: "Select language" })} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent align="end">
@@ -164,6 +165,31 @@ export default function General() {
 
           <FormField
             control={form.control}
+            name="telemetryConsent"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div>
+                  <FormLabel>
+                    <Trans>Share usage data</Trans>
+                  </FormLabel>
+                  <FormDescription>
+                    <Trans>Help us improve Hyprnote by sharing anonymous usage data</Trans>
+                  </FormDescription>
+                </div>
+
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    color="gray"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="jargons"
             render={({ field }) => (
               <FormItem>
@@ -172,12 +198,12 @@ export default function General() {
                     <Trans>Jargons</Trans>
                   </FormLabel>
                   <FormDescription>
-                    <Trans>You can make Hyprnote takes these words into account when transcribing.</Trans>
+                    <Trans>You can make Hyprnote takes these words into account when transcribing</Trans>
                   </FormDescription>
                 </div>
                 <FormControl>
                   <Input
-                    placeholder={t`Type jargons (e.g., Blitz Meeting, PaC Squad)`}
+                    placeholder={t({ id: "Type jargons (e.g., Blitz Meeting, PaC Squad)" })}
                     {...field}
                     value={field.value ?? ""}
                     className="focus-visible:ring-0 focus-visible:ring-offset-0"

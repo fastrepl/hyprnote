@@ -13,13 +13,11 @@ import { modelProvider } from "@hypr/utils";
 export default function LocalAI() {
   const queryClient = useQueryClient();
 
-  // For speech-to-text
   const sttRunning = useQuery({
     queryKey: ["local-stt", "running"],
     queryFn: async () => localSttCommands.isServerRunning(),
   });
 
-  // For language model
   const llmRunning = useQuery({
     queryKey: ["local-llm", "running"],
     queryFn: async () => localLlmCommands.isServerRunning(),
@@ -103,72 +101,62 @@ function SpeechToTextDetails(
 function LanguageModelContainer(
   { isRunning, queryClient }: { isRunning: boolean; queryClient: ReturnType<typeof useQueryClient> },
 ) {
-  // Check if model is loaded
-  const modelLoadedQuery = useQuery({
-    queryKey: ["local-llm", "model-loaded"],
-    queryFn: async () => localLlmCommands.isModelDownloaded(),
-    enabled: isRunning,
-  });
-
-  const modelLoaded = !!modelLoadedQuery.data;
-
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-lg border p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex size-6 items-center justify-center">
-            <Languages className="h-4 w-4" />
-          </div>
-          <div>
-            <div className="text-sm font-medium">
-              <Trans>Local Language Model</Trans>
+      <div className="flex flex-col rounded-lg border p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex size-6 items-center justify-center">
+              <Languages className="h-4 w-4" />
             </div>
-            <div className="text-xs text-muted-foreground">
-              <Trans>Run language models locally for enhanced privacy</Trans>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {isRunning && modelLoaded
-            ? (
-              <div className="flex items-center gap-1.5">
-                <div className="relative h-2 w-2">
-                  <div className="absolute inset-0 rounded-full bg-green-500/30"></div>
-                  <div className="absolute inset-0 rounded-full bg-green-500 animate-ping"></div>
-                </div>
-                <span className="text-xs text-green-600">
-                  <Trans>Active</Trans>
-                </span>
+            <div>
+              <div className="text-sm font-medium">
+                <Trans>Local Language Model</Trans>
               </div>
-            )
-            : (
-              <LocalLlmButton
-                isRunning={isRunning}
-                modelLoaded={modelLoaded}
-                queryClient={queryClient}
-              />
-            )}
+              <div className="text-xs text-muted-foreground">
+                <Trans>Run language models locally for enhanced privacy</Trans>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {isRunning
+              ? (
+                <div className="flex items-center gap-1.5">
+                  <div className="relative h-2 w-2">
+                    <div className="absolute inset-0 rounded-full bg-green-500/30"></div>
+                    <div className="absolute inset-0 rounded-full bg-green-500 animate-ping"></div>
+                  </div>
+                  <span className="text-xs text-green-600">
+                    <Trans>Active</Trans>
+                  </span>
+                </div>
+              )
+              : (
+                <LocalLlmButton
+                  isRunning={isRunning}
+                  queryClient={queryClient}
+                />
+              )}
+          </div>
         </div>
+
+        {isRunning && (
+          <div className="mt-4 border-t pt-4">
+            <TestModelButton
+              isRunning={isRunning}
+            />
+          </div>
+        )}
       </div>
-      {isRunning && modelLoaded && (
-        <div className="ml-4">
-          <TestModelButton
-            isRunning={isRunning}
-            modelLoaded={modelLoaded}
-          />
-        </div>
-      )}
     </div>
   );
 }
 
 function LocalLlmButton({
   isRunning,
-  modelLoaded,
   queryClient,
 }: {
   isRunning: boolean;
-  modelLoaded: boolean;
   queryClient: ReturnType<typeof useQueryClient>;
 }) {
   const toggleLocalLlmServer = useMutation({
@@ -179,7 +167,6 @@ function LocalLlmButton({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["local-llm", "running"] });
-      queryClient.invalidateQueries({ queryKey: ["local-llm", "model-loaded"] });
     },
   });
 
@@ -188,10 +175,10 @@ function LocalLlmButton({
       variant="outline"
       size="sm"
       onClick={() => toggleLocalLlmServer.mutate()}
-      disabled={toggleLocalLlmServer.isPending || (isRunning && !modelLoaded)}
+      disabled={toggleLocalLlmServer.isPending}
       className="min-w-20 text-center"
     >
-      {toggleLocalLlmServer.isPending || (isRunning && !modelLoaded)
+      {toggleLocalLlmServer.isPending
         ? (
           <>
             <Spinner className="mr-2" />
@@ -203,7 +190,7 @@ function LocalLlmButton({
   );
 }
 
-function TestModelButton({ isRunning, modelLoaded }: { isRunning: boolean; modelLoaded: boolean }) {
+function TestModelButton({ isRunning }: { isRunning: boolean }) {
   const [testSuccess, setTestSuccess] = useState(false);
 
   const checkLLM = useMutation({
@@ -229,10 +216,10 @@ function TestModelButton({ isRunning, modelLoaded }: { isRunning: boolean; model
     },
   });
 
-  if (!isRunning || !modelLoaded) return null;
+  if (!isRunning) return null;
 
   return (
-    <div className="flex items-center justify-between rounded-lg border p-4 mt-4">
+    <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div className="flex size-6 items-center justify-center">
           <FlaskConical className="h-4 w-4" />

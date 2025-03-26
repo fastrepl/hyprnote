@@ -153,7 +153,7 @@ function AppleCalendarIntegrationDetails() {
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex items-center justify-between rounded-lg border p-4">
         <div className="flex items-center gap-3">
           <img

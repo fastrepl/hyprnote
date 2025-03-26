@@ -80,7 +80,7 @@ export default function RightPanel() {
               <div className="flex items-center justify-center h-full">
                 <button
                   onClick={handleClickConfigureWidgets}
-                  className="px-3 py-2 text-sm rounded-full bg-white hover:bg-neutral-200 border border-border transition-all"
+                  className="px-2 py-1.5 text-xs rounded-full bg-white hover:bg-neutral-200 border border-border transition-all shadow-md hover:shadow-sm transform hover:translate-y-0.5 active:translate-y-1 active:shadow-none"
                 >
                   Configure Widgets
                 </button>
@@ -104,7 +104,7 @@ export default function RightPanel() {
           <div className="flex items-center justify-center h-full">
             <button
               onClick={handleClickConfigureWidgets}
-              className="px-3 py-2 text-sm rounded-full bg-white hover:bg-neutral-200 border border-border transition-all"
+              className="px-2 py-1.5 text-xs rounded-full bg-white hover:bg-neutral-200 border border-border transition-all shadow-md hover:shadow-sm transform hover:translate-y-0.5 active:translate-y-1 active:shadow-none"
             >
               Configure Widgets
             </button>

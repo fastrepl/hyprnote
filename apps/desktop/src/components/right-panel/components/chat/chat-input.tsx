@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
-import { ArrowUpIcon } from "lucide-react";
 import { Button } from "@hypr/ui/components/ui/button";
+import { ArrowUpIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface ChatInputProps {
   inputValue: string;

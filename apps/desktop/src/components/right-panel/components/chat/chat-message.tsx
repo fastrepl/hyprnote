@@ -1,5 +1,5 @@
-import { Trans } from "@lingui/react/macro";
 import { cn } from "@hypr/ui/lib/utils";
+import { Trans } from "@lingui/react/macro";
 import { Message } from "./types";
 
 interface ChatMessageProps {

@@ -9,7 +9,7 @@ import Shortcut from "../../shortcut";
 
 export function WidgetPanelButton() {
   const { isExpanded, currentView, togglePanel } = useRightPanel();
-  
+
   const isActive = isExpanded && currentView === "widget";
 
   const handleClick = () => {

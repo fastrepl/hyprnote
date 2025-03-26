@@ -10,7 +10,7 @@ import Shortcut from "../../shortcut";
 export function ChatPanelButton() {
   const { isExpanded, currentView, togglePanel } = useRightPanel();
   const [isAnimating, setIsAnimating] = useState(false);
-  
+
   const isActive = isExpanded && currentView === "chat";
 
   useEffect(() => {

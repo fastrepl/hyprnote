@@ -1,6 +1,6 @@
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
-import { ArrowLeftIcon, SearchIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon, SearchIcon } from "lucide-react";
 import { ChatHistoryItem } from "./chat-history-item";
 import { ChatSession } from "./types";
 

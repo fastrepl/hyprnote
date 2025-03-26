@@ -5,6 +5,7 @@ import {
   // CreditCardIcon,
   FileTextIcon,
   FlaskConicalIcon,
+  LockIcon,
   SettingsIcon,
   SparklesIcon,
   UserIcon,
@@ -25,6 +26,8 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <CalendarIcon className="h-4 w-4" />;
     case "notifications":
       return <BellIcon className="h-4 w-4" />;
+    case "permissions":
+      return <LockIcon className="h-4 w-4" />;
     case "templates":
       return <FileTextIcon className="h-4 w-4" />;
     case "extensions":

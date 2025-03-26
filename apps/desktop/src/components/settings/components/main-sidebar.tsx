@@ -35,6 +35,8 @@ export function MainSidebar({ current, onTabClick }: MainSidebarProps) {
                   ? <Trans>Calendar</Trans>
                   : tab === "notifications"
                   ? <Trans>Notifications</Trans>
+                  : tab === "permissions"
+                  ? <Trans>Permissions</Trans>
                   : tab === "templates"
                   ? <Trans>Templates</Trans>
                   : tab === "extensions"

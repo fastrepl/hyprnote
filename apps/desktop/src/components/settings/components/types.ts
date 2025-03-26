@@ -4,6 +4,7 @@ export const TABS = [
   "ai",
   "calendar",
   "notifications",
+  "permissions",
   "templates",
   "extensions",
   // "team",

@@ -20,6 +20,7 @@ import {
   General,
   Lab,
   Notifications,
+  Permissions,
   Profile,
   TemplateEditor
 } from "@/components/settings/views";
@@ -203,6 +204,7 @@ function Component() {
               {current === "ai" && <LocalAI />}
               {current === "calendar" && <Calendar />}
               {current === "notifications" && <Notifications />}
+              {current === "permissions" && <Permissions />}
               {current === "templates" && (
                 <TemplateEditor
                   disabled={false}

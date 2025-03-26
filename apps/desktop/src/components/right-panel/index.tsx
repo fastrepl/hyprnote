@@ -7,11 +7,12 @@ import { useHypr, useRightPanel } from "@/contexts";
 import { type ExtensionName } from "@hypr/extension-registry";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as windowsCommands, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import ChatView from "./chat-view";
 import WidgetRenderer from "./renderer";
 
 export default function RightPanel() {
   const [isNarrow, setIsNarrow] = useState(false);
-  const { isExpanded, hidePanel } = useRightPanel();
+  const { isExpanded, currentView, hidePanel } = useRightPanel();
   const { userId } = useHypr();
 
   const show = getCurrentWebviewWindowLabel() === "main" && isExpanded;
@@ -58,6 +59,25 @@ export default function RightPanel() {
     return () => window.removeEventListener("resize", checkViewport);
   }, []);
 
+  const renderContent = () => {
+    if (currentView === "widget") {
+      return widgets.length > 0
+        ? <WidgetRenderer widgets={widgets} />
+        : (
+          <div className="flex items-center justify-center h-full">
+            <button
+              onClick={handleClickConfigureWidgets}
+              className="px-2 py-1.5 text-xs rounded-full bg-white hover:bg-neutral-200 border border-border transition-all shadow-md hover:shadow-sm transform hover:translate-y-0.5 active:translate-y-1 active:shadow-none"
+            >
+              Configure Widgets
+            </button>
+          </div>
+        );
+    } else {
+      return <ChatView />;
+    }
+  };
+
   if (isNarrow) {
     return (
       <div className="relative h-full">
@@ -74,18 +94,7 @@ export default function RightPanel() {
           transition={{ duration: 0.3 }}
           className="absolute right-0 top-0 z-40 h-full w-[380px] overflow-y-auto border-l bg-neutral-50 scrollbar-none shadow-lg flex flex-col"
         >
-          {widgets.length > 0
-            ? <WidgetRenderer widgets={widgets} />
-            : (
-              <div className="flex items-center justify-center h-full">
-                <button
-                  onClick={handleClickConfigureWidgets}
-                  className="px-2 py-1.5 text-xs rounded-full bg-white hover:bg-neutral-200 border border-border transition-all shadow-md hover:shadow-sm transform hover:translate-y-0.5 active:translate-y-1 active:shadow-none"
-                >
-                  Configure Widgets
-                </button>
-              </div>
-            )}
+          {renderContent()}
         </motion.div>
       </div>
     );
@@ -98,18 +107,7 @@ export default function RightPanel() {
       transition={{ duration: 0.3 }}
       className="h-full overflow-y-auto border-l bg-neutral-50 scrollbar-none flex flex-col"
     >
-      {widgets.length > 0
-        ? <WidgetRenderer widgets={widgets} />
-        : (
-          <div className="flex items-center justify-center h-full">
-            <button
-              onClick={handleClickConfigureWidgets}
-              className="px-2 py-1.5 text-xs rounded-full bg-white hover:bg-neutral-200 border border-border transition-all shadow-md hover:shadow-sm transform hover:translate-y-0.5 active:translate-y-1 active:shadow-none"
-            >
-              Configure Widgets
-            </button>
-          </div>
-        )}
+      {renderContent()}
     </motion.div>
   );
 }

@@ -8,7 +8,13 @@ import { cn } from "@hypr/ui/lib/utils";
 import Shortcut from "../../shortcut";
 
 export function WidgetPanelButton() {
-  const { isExpanded, togglePanel } = useRightPanel();
+  const { isExpanded, currentView, togglePanel } = useRightPanel();
+  
+  const isActive = isExpanded && currentView === "widget";
+
+  const handleClick = () => {
+    togglePanel("widget");
+  };
 
   return (
     <Tooltip>
@@ -16,8 +22,8 @@ export function WidgetPanelButton() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={togglePanel}
-          className={cn("hover:bg-neutral-200 text-xs", isExpanded && "bg-neutral-200")}
+          onClick={handleClick}
+          className={cn("hover:bg-neutral-200 text-xs", isActive && "bg-neutral-200")}
         >
           <LayoutGridIcon className="size-4" />
         </Button>

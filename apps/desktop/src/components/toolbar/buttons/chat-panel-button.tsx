@@ -8,8 +8,10 @@ import { cn } from "@hypr/ui/lib/utils";
 import Shortcut from "../../shortcut";
 
 export function ChatPanelButton() {
-  const { isExpanded, togglePanel } = useRightPanel();
+  const { isExpanded, currentView, togglePanel } = useRightPanel();
   const [isAnimating, setIsAnimating] = useState(false);
+  
+  const isActive = isExpanded && currentView === "chat";
 
   useEffect(() => {
     const animationInterval = setInterval(() => {
@@ -23,14 +25,18 @@ export function ChatPanelButton() {
     return () => clearInterval(animationInterval);
   }, []);
 
+  const handleClick = () => {
+    togglePanel("chat");
+  };
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
           variant="ghost"
           size="icon"
-          onClick={togglePanel}
-          className={cn("hover:bg-neutral-200 text-xs size-7 p-0", isExpanded && "bg-neutral-200")}
+          onClick={handleClick}
+          className={cn("hover:bg-neutral-200 text-xs size-7 p-0", isActive && "bg-neutral-200")}
         >
           <div className="relative w-6 aspect-square flex items-center justify-center">
             <img

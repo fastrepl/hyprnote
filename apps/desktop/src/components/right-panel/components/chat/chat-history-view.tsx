@@ -56,12 +56,10 @@ export function ChatHistoryView({
 
         {chatHistory
           .filter(chat => {
-            // Filter by search term if one exists
             if (!searchValue) return true;
             return chat.title.toLowerCase().includes(searchValue.toLowerCase());
           })
           .map((chat, index) => {
-            // Check if this chat should have a divider after it
             const chatDate = new Date(chat.lastMessageDate);
             const nextChat = chatHistory[index + 1];
             const isLastInSection = !nextChat

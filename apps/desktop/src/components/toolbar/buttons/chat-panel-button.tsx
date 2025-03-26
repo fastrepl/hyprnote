@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 
 import { useRightPanel } from "@/contexts";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/
 import { cn } from "@hypr/ui/lib/utils";
 import Shortcut from "../../shortcut";
 
-export function ChatPanelButton() {
+function ChatPanelButtonBase() {
   const { isExpanded, currentView, togglePanel } = useRightPanel();
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -55,3 +55,5 @@ export function ChatPanelButton() {
     </Tooltip>
   );
 }
+
+export const ChatPanelButton = memo(ChatPanelButtonBase);

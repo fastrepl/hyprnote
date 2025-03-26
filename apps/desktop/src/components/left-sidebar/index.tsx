@@ -64,7 +64,7 @@ export default function LeftSidebar() {
       layout
       initial={{ width: isExpanded ? 240 : 0, opacity: isExpanded ? 1 : 0 }}
       animate={{ width: isExpanded ? 240 : 0, opacity: isExpanded ? 1 : 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.10 }}
       className="h-full flex flex-col overflow-hidden border-r bg-neutral-50"
     >
       <TopArea />

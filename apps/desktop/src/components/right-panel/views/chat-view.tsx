@@ -33,7 +33,6 @@ export function ChatView() {
   }, []);
 
   useEffect(() => {
-    // Focus the input field when the chat view is visible and panel is expanded
     if (isExpanded) {
       const focusTimeout = setTimeout(() => {
         const chatInput = document.querySelector(".right-panel-container textarea");
@@ -82,8 +81,30 @@ export function ChatView() {
   };
 
   const handleQuickAction = (prompt: string) => {
-    setInputValue(prompt);
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: prompt,
+      isUser: true,
+      timestamp: new Date(),
+    };
 
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
+
+    setTimeout(() => {
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "This is a sample response from the AI assistant.",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    }, 1000);
+
+    document.querySelector("textarea")?.focus();
+  };
+
+  const handleFocusInput = () => {
     document.querySelector("textarea")?.focus();
   };
 
@@ -204,6 +225,7 @@ export function ChatView() {
           <EmptyChatState
             isAnimating={isAnimating}
             onQuickAction={handleQuickAction}
+            onFocusInput={handleFocusInput}
           />
         )
         : <ChatMessagesView messages={messages} />}

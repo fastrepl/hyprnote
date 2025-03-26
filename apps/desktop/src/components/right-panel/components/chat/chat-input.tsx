@@ -13,20 +13,17 @@ interface ChatInputProps {
 export function ChatInput({ inputValue, onChange, onSubmit, onKeyDown, autoFocus = false }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-resize textarea based on content
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    // Reset height to auto to get the correct scrollHeight
     textarea.style.height = "auto";
-    // Set minimum height to 40px (one line) and expand if needed
-    const baseHeight = 40; // matches min-h-[40px]
+
+    const baseHeight = 40;
     const newHeight = Math.max(textarea.scrollHeight, baseHeight);
     textarea.style.height = `${newHeight}px`;
   }, [inputValue]);
 
-  // Set initial height and focus if autoFocus is true
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {

@@ -70,13 +70,22 @@ mod tests {
     fn test_calculate_file_checksum() {
         let files = vec![
             dirs::data_dir().unwrap().join(
-                "com.hyprnote.dev/Demonthos/candle-quantized-whisper-large-v3-turbo/main//config.json",
+                "com.hyprnote.dev/lmz/candle-whisper/main/config-tiny.json",
             ),
             dirs::data_dir().unwrap().join(
-                "com.hyprnote.dev/Demonthos/candle-quantized-whisper-large-v3-turbo/main//model.gguf",
+                "com.hyprnote.dev/lmz/candle-whisper/main/model-tiny-q80.gguf",
             ),
             dirs::data_dir().unwrap().join(
-                "com.hyprnote.dev/Demonthos/candle-quantized-whisper-large-v3-turbo/main//tokenizer.json",
+                "com.hyprnote.dev/lmz/candle-whisper/main/tokenizer-tiny.json",
+            ),
+            dirs::data_dir().unwrap().join(
+                "com.hyprnote.dev/Demonthos/candle-quantized-whisper-large-v3-turbo/main/config.json",
+            ),
+            dirs::data_dir().unwrap().join(
+                "com.hyprnote.dev/Demonthos/candle-quantized-whisper-large-v3-turbo/main/model.gguf",
+            ),
+            dirs::data_dir().unwrap().join(
+                "com.hyprnote.dev/Demonthos/candle-quantized-whisper-large-v3-turbo/main/tokenizer.json",
             ),
             dirs::data_dir().unwrap().join("com.hyprnote.dev/llm.gguf"),
         ];

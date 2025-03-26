@@ -23,7 +23,7 @@ pub struct State {
 impl Default for State {
     fn default() -> Self {
         Self {
-            model: SupportedModel::QuantizedLargeV3Turbo,
+            model: SupportedModel::QuantizedTiny,
             api_base: None,
             server: None,
         }

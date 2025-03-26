@@ -1,7 +1,7 @@
-import { useLingui } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { RiCornerDownLeftLine, RiLinkedinBoxFill } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Mail, PenIcon } from "lucide-react";
+import { CircleMinus, Mail, PenIcon } from "lucide-react";
 import { KeyboardEvent, useMemo, useState } from "react";
 
 import { type Human, type Organization } from "@hypr/plugin-db";
@@ -9,6 +9,7 @@ import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { getInitials } from "@hypr/utils";
 import { EditParticipantForm } from "./edit-participant-form";
 
@@ -94,6 +95,19 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
     },
   });
 
+  const removeParticipantMutation = useMutation({
+    mutationFn: async (participantId: string) => {
+      return participantId;
+    },
+    onSuccess: (participantId) => {
+      setLocalParticipants((prev) => prev.filter((p) => p.id !== participantId));
+      queryClient.setQueryData(
+        ["participants", sessionId!],
+        (oldData: Human[] | undefined) => oldData ? oldData.filter(p => p.id !== participantId) : [],
+      );
+    },
+  });
+
   const handleAddParticipants = async () => {
     if (!sessionId || !newParticipantInput.trim()) return;
 
@@ -127,6 +141,11 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
     windowsCommands.windowShow({ human: human.id });
   };
 
+  const handleRemoveParticipant = (e: React.MouseEvent, participantId: string) => {
+    e.stopPropagation();
+    removeParticipantMutation.mutateAsync(participantId);
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <div className="text-xs font-medium">Participants</div>
@@ -141,20 +160,35 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
             {members.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between gap-2 py-1 px-1 rounded group"
+                className="flex items-center justify-between gap-2 py-1 px-1 rounded group hover:bg-neutral-100 cursor-pointer"
+                onClick={() => handleClickHuman(member)}
               >
-                <div className="flex items-center gap-2">
-                  <Avatar className="size-6">
-                    <AvatarFallback className="text-xs">
-                      {member.full_name ? getInitials(member.full_name) : "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <button
-                    className="cursor-pointer text-sm hover:underline"
-                    onClick={() => handleClickHuman(member)}
-                  >
+                <div className="flex items-center gap-2 relative">
+                  <div className="relative size-6 flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center justify-center group-hover:opacity-0 transition-opacity">
+                      <Avatar className="size-6">
+                        <AvatarFallback className="text-xs">
+                          {member.full_name ? getInitials(member.full_name) : "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <button
+                          onClick={(e) => handleRemoveParticipant(e, member.id)}
+                          className="absolute inset-0 flex items-center justify-center rounded-full text-red-400 opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-600"
+                        >
+                          <CircleMinus className="size-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={10}>
+                        <Trans>Remove {member.full_name} from list</Trans>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <span className="text-sm">
                     {member.full_name}
-                  </button>
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-1 transition-colors">
@@ -164,7 +198,6 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-neutral-400 transition-colors hover:text-neutral-600"
-                      title={member.email}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Mail className="size-4" />
@@ -176,7 +209,6 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-neutral-400 transition-colors hover:text-neutral-600"
-                      title={`linkedin.com/in/${member.linkedin_username}`}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <RiLinkedinBoxFill className="size-4" />
@@ -198,7 +230,6 @@ export function ParticipantsList({ participants, sessionId }: ParticipantsListPr
                         <button
                           onClick={(e) => e.stopPropagation()}
                           className="text-neutral-400 transition-colors hover:text-neutral-600"
-                          title="Edit participant info"
                         >
                           <PenIcon className="size-4" />
                         </button>

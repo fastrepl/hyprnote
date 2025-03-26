@@ -1,15 +1,14 @@
 import { Trans } from "@lingui/react/macro";
-import { PanelRightCloseIcon, PanelRightOpenIcon } from "lucide-react";
+import { LayoutGridIcon } from "lucide-react";
 
 import { useRightPanel } from "@/contexts";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { cn } from "@hypr/ui/lib/utils";
 import Shortcut from "../../shortcut";
 
-export function RightPanelButton() {
+export function WidgetPanelButton() {
   const { isExpanded, togglePanel } = useRightPanel();
-
-  const Icon = isExpanded ? PanelRightCloseIcon : PanelRightOpenIcon;
 
   return (
     <Tooltip>
@@ -18,14 +17,14 @@ export function RightPanelButton() {
           variant="ghost"
           size="icon"
           onClick={togglePanel}
-          className="hover:bg-neutral-200"
+          className={cn("hover:bg-neutral-200 text-xs", isExpanded && "bg-neutral-200")}
         >
-          <Icon className="size-4" />
+          <LayoutGridIcon className="size-4" />
         </Button>
       </TooltipTrigger>
       <TooltipContent>
         <p>
-          <Trans>Toggle right panel</Trans> <Shortcut macDisplay="⌘R" windowsDisplay="Ctrl+R" />
+          <Trans>Toggle widget panel</Trans> <Shortcut macDisplay="⌘R" windowsDisplay="Ctrl+R" />
         </p>
       </TooltipContent>
     </Tooltip>

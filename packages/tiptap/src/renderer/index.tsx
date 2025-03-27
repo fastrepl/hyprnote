@@ -1,10 +1,8 @@
 import "../styles/tiptap.css";
 
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
-import clsx from "clsx";
 import { forwardRef, useEffect } from "react";
 import * as shared from "../shared";
-import { editorStyle } from "../shared/editorStyle";
 
 export const extensions = [...shared.extensions];
 
@@ -17,11 +15,6 @@ const Renderer = forwardRef<{ editor: TiptapEditor | null }, RendererProps>(
     const editor = useEditor({
       extensions,
       editable: false,
-      editorProps: {
-        attributes: {
-          class: clsx(editorStyle),
-        },
-      },
     });
 
     useEffect(() => {

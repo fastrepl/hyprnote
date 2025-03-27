@@ -1,10 +1,8 @@
 import "../styles/tiptap.css";
 
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
-import clsx from "clsx";
 import { forwardRef, useEffect } from "react";
 import * as shared from "../shared";
-import { editorStyle } from "../shared/editorStyle";
 
 export type { TiptapEditor };
 export const extensions = [...shared.extensions];
@@ -33,11 +31,6 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         editor.view.dom.setAttribute("autocapitalize", "off");
       },
       onUpdate,
-      editorProps: {
-        attributes: {
-          class: clsx(editorStyle),
-        },
-      },
       autofocus: autoFocus,
     });
 

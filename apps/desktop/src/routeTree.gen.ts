@@ -12,8 +12,6 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as VideoImport } from './routes/video'
-import { Route as OnboardingImport } from './routes/onboarding'
-import { Route as LoginImport } from './routes/login'
 import { Route as AppImport } from './routes/app'
 import { Route as AppIndexImport } from './routes/app.index'
 import { Route as AppSettingsImport } from './routes/app.settings'
@@ -28,18 +26,6 @@ import { Route as AppHumanIdImport } from './routes/app.human.$id'
 const VideoRoute = VideoImport.update({
   id: '/video',
   path: '/video',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const OnboardingRoute = OnboardingImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const LoginRoute = LoginImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -100,20 +86,6 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AppImport
-      parentRoute: typeof rootRoute
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginImport
-      parentRoute: typeof rootRoute
-    }
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingImport
       parentRoute: typeof rootRoute
     }
     '/video': {
@@ -201,8 +173,6 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
-  '/login': typeof LoginRoute
-  '/onboarding': typeof OnboardingRoute
   '/video': typeof VideoRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/new': typeof AppNewRoute
@@ -214,8 +184,6 @@ export interface FileRoutesByFullPath {
 }
 
 export interface FileRoutesByTo {
-  '/login': typeof LoginRoute
-  '/onboarding': typeof OnboardingRoute
   '/video': typeof VideoRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/new': typeof AppNewRoute
@@ -229,8 +197,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/app': typeof AppRouteWithChildren
-  '/login': typeof LoginRoute
-  '/onboarding': typeof OnboardingRoute
   '/video': typeof VideoRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/new': typeof AppNewRoute
@@ -245,8 +211,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/app'
-    | '/login'
-    | '/onboarding'
     | '/video'
     | '/app/calendar'
     | '/app/new'
@@ -257,8 +221,6 @@ export interface FileRouteTypes {
     | '/app/organization/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/login'
-    | '/onboarding'
     | '/video'
     | '/app/calendar'
     | '/app/new'
@@ -270,8 +232,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/app'
-    | '/login'
-    | '/onboarding'
     | '/video'
     | '/app/calendar'
     | '/app/new'
@@ -285,15 +245,11 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
-  LoginRoute: typeof LoginRoute
-  OnboardingRoute: typeof OnboardingRoute
   VideoRoute: typeof VideoRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
-  LoginRoute: LoginRoute,
-  OnboardingRoute: OnboardingRoute,
   VideoRoute: VideoRoute,
 }
 
@@ -308,8 +264,6 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/app",
-        "/login",
-        "/onboarding",
         "/video"
       ]
     },
@@ -324,12 +278,6 @@ export const routeTree = rootRoute
         "/app/note/$id",
         "/app/organization/$id"
       ]
-    },
-    "/login": {
-      "filePath": "login.tsx"
-    },
-    "/onboarding": {
-      "filePath": "onboarding.tsx"
     },
     "/video": {
       "filePath": "video.tsx"

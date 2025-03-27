@@ -1,7 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useNavigate } from "@tanstack/react-router";
 import { message } from "@tauri-apps/plugin-dialog";
-import { Pause, Play } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { commands } from "@/types";
@@ -35,7 +34,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           if (payload === "success") {
             commands.setupDbForCloud().then(() => {
               onClose();
-              navigate({ to: "/onboarding", replace: true });
+              // navigate({ to: "/onboarding", replace: true });
             });
             return;
           }
@@ -58,9 +57,18 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     return () => cleanup?.();
   }, [isOpen, onClose, navigate]);
 
+  useEffect(() => {
+    if (isOpen) {
+      commands.setOnboardingNeeded(false);
+      sfxCommands.play("BGM");
+    } else {
+      sfxCommands.stop("BGM");
+    }
+  }, [isOpen]);
+
   const handleStartLocal = () => {
     onClose();
-    navigate({ to: "/onboarding" });
+    // navigate({ to: "/onboarding" });
   };
 
   return (
@@ -72,10 +80,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     >
       <ModalBody className="p-0">
         <div className="relative flex h-full w-full flex-col items-center justify-center p-8">
-          <div className="fixed right-4 top-4 z-10">
-            <PlayPauseButton />
-          </div>
-
           <div className="z-10 flex w-full max-w-xl mx-auto flex-col items-center justify-center">
             <div className="flex flex-col items-center">
               <TextAnimate
@@ -116,26 +120,5 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </div>
       </ModalBody>
     </Modal>
-  );
-}
-
-function PlayPauseButton() {
-  const [isPlaying, setIsPlaying] = useState(true);
-
-  useEffect(() => {
-    if (isPlaying) {
-      sfxCommands.play("BGM");
-    } else {
-      sfxCommands.stop("BGM");
-    }
-  }, [isPlaying]);
-
-  return (
-    <button
-      className="rounded-full p-2 transition-colors hover:bg-neutral-100"
-      onClick={() => setIsPlaying(!isPlaying)}
-    >
-      {isPlaying ? <Pause className="h-4 w-4 text-neutral-600" /> : <Play className="h-4 w-4 text-neutral-600" />}
-    </button>
   );
 }

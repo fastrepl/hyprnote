@@ -2,7 +2,7 @@
   word-break: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
-  padding-bottom: 1rem;
+  padding-bottom: 1.5rem;
   hyphens: auto;
 
   :first-child {

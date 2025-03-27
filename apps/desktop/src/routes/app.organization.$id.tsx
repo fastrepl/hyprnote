@@ -3,12 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Calendar, ExternalLink, FileText, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import RightPanel from "@/components/right-panel";
+import { useEditMode } from "@/contexts/edit-mode-context";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
+import { Input } from "@hypr/ui/components/ui/input";
+import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { getInitials } from "@hypr/utils";
 
 export const Route = createFileRoute("/app/organization/$id")({
@@ -29,6 +33,8 @@ export const Route = createFileRoute("/app/organization/$id")({
 
 function Component() {
   const { organization } = Route.useLoaderData();
+  const { isEditing } = useEditMode();
+  const [editedOrganization, setEditedOrganization] = useState(organization);
 
   const { data: members = [] } = useQuery({
     queryKey: ["organization", organization.id, "members"],
@@ -91,10 +97,34 @@ function Component() {
     enabled: members.length > 0,
   });
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setEditedOrganization(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Update edited organization when isEditing changes to false (save is clicked)
+  useEffect(() => {
+    if (!isEditing) {
+      // Save changes
+      try {
+        // Uncomment and use the appropriate API when available
+        // await dbCommands.updateOrganization(organization.id, editedOrganization);
+        console.log("Would save organization:", editedOrganization);
+      } catch (error) {
+        console.error("Failed to update organization:", error);
+      }
+    }
+  }, [isEditing, editedOrganization, organization.id]);
+
+  // Reset form when organization data changes
+  useEffect(() => {
+    setEditedOrganization(organization);
+  }, [organization]);
+
   return (
     <div className="flex h-full overflow-hidden">
-      <div className="flex-1 overflow-auto">
-        <main className="bg-white">
+      <div className="flex-1 overflow-auto flex flex-col">
+        <main className="bg-white flex-1 overflow-auto">
           <div className="max-w-lg mx-auto px-4 lg:px-6 pt-6 pb-20">
             <div className="mb-6 flex flex-col items-center gap-8">
               <div className="flex items-center gap-4">
@@ -107,10 +137,23 @@ function Component() {
                 </div>
 
                 <div className="flex flex-col items-start gap-1">
-                  <h1 className="text-lg font-semibold">
-                    {organization.name || <Trans>Unnamed Organization</Trans>}
-                  </h1>
-                  {members.length > 0 && (
+                  {isEditing ? (
+                    <div className="w-full">
+                      <Input 
+                        id="name" 
+                        name="name"
+                        value={editedOrganization.name || ""} 
+                        onChange={handleInputChange}
+                        placeholder="Organization Name"
+                        className="text-lg font-medium border-none shadow-none px-0 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      />
+                    </div>
+                  ) : (
+                    <h1 className="text-lg font-semibold">
+                      {organization.name || <Trans>Unnamed Organization</Trans>}
+                    </h1>
+                  )}
+                  {!isEditing && members.length > 0 && (
                     <p className="text-sm font-medium text-neutral-500">
                       <Trans>{members.length} members</Trans>
                     </p>
@@ -119,8 +162,34 @@ function Component() {
               </div>
 
               <div className="flex justify-center gap-4">
-                {organization.description && <p className="text-sm text-muted-foreground">{organization.description}
-                </p>}
+                {isEditing ? (
+                  <div className="w-full">
+                    <table className="w-full">
+                      <tbody>
+                        <tr>
+                          <td className="py-2 pr-4 w-1/3 text-sm font-medium text-gray-500">
+                            <div className="flex items-center gap-2">
+                              <FileText className="size-4 text-gray-400" />
+                              <span>Description</span>
+                            </div>
+                          </td>
+                          <td className="py-2">
+                            <Textarea 
+                              id="description" 
+                              name="description"
+                              value={editedOrganization.description || ""} 
+                              onChange={handleInputChange}
+                              placeholder="Organization Description"
+                              className="border-none shadow-none px-0 min-h-[80px] resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                            />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  organization.description && <p className="text-sm text-muted-foreground">{organization.description}</p>
+                )}
               </div>
             </div>
 

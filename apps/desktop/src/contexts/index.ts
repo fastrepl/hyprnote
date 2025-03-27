@@ -7,3 +7,4 @@ export * from "./right-panel";
 export * from "./search";
 export * from "./sessions";
 export * from "./settings";
+export * from "./edit-mode-context";

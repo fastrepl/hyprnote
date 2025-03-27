@@ -1,16 +1,19 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { RiLinkedinFill } from "@remixicon/react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { Building, Calendar, ExternalLink, FileText, Globe, Mail } from "lucide-react";
+import { Building, Calendar, CircleMinus, ExternalLink, FileText, Globe, Mail, Plus, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import RightPanel from "@/components/right-panel";
-import { commands as dbCommands, type Human, type Session } from "@hypr/plugin-db";
+import { useEditMode } from "@/contexts/edit-mode-context";
+import { commands as dbCommands, type Human, type Organization, type Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
+import { Input } from "@hypr/ui/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { extractWebsiteUrl, getInitials } from "@hypr/utils";
 
@@ -41,15 +44,71 @@ export const Route = createFileRoute("/app/human/$id")({
 
 function Component() {
   const { human, organization } = Route.useLoaderData();
+  const { isEditing } = useEditMode();
+  const [editedHuman, setEditedHuman] = useState<Human>(human);
+  const [orgSearchQuery, setOrgSearchQuery] = useState("");
+  const [showOrgSearch, setShowOrgSearch] = useState(false);
+  const queryClient = useQueryClient();
+  const { t } = useLingui();
 
   const getOrganizationWebsite = () => {
     return organization ? extractWebsiteUrl(human.email) : null;
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setEditedHuman(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Search for organizations based on the query
+  const { data: orgSearchResults = [] } = useQuery({
+    queryKey: ["search-organizations", orgSearchQuery],
+    queryFn: async () => {
+      if (!orgSearchQuery.trim()) return [];
+      return dbCommands.listOrganizations({ search: [4, orgSearchQuery] });
+    },
+    enabled: !!orgSearchQuery.trim() && showOrgSearch,
+  });
+
+  // Mutation to update the human's organization
+  const updateOrgMutation = useMutation({
+    mutationFn: async (organizationId: string | null) => {
+      const updatedHuman = { ...editedHuman, organization_id: organizationId };
+      await dbCommands.upsertHuman(updatedHuman);
+      return updatedHuman;
+    },
+    onSuccess: (updatedHuman) => {
+      setEditedHuman(updatedHuman);
+      queryClient.invalidateQueries({ queryKey: ["human", human.id] });
+      setOrgSearchQuery("");
+      setShowOrgSearch(false);
+    },
+  });
+
+  // Update edited human when isEditing changes to false (save is clicked)
+  useEffect(() => {
+    if (!isEditing) {
+      // Save changes
+      try {
+        // Update human data
+        dbCommands.upsertHuman(editedHuman);
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ["human", human.id] });
+      } catch (error) {
+        console.error("Failed to update human:", error);
+      }
+    }
+  }, [isEditing, editedHuman, human.id, queryClient]);
+
+  // Reset form when human data changes
+  useEffect(() => {
+    setEditedHuman(human);
+  }, [human]);
+
   return (
     <div className="flex h-full overflow-hidden">
-      <div className="flex-1 overflow-auto">
-        <main className="bg-white">
+      <div className="flex-1 overflow-auto flex flex-col">
+        <main className="bg-white flex-1 overflow-auto">
           <div className="max-w-lg mx-auto px-4 lg:px-6 pt-6 pb-20">
             <div className="mb-6 flex flex-col items-center gap-8">
               <div className="flex items-center gap-4">
@@ -60,11 +119,143 @@ function Component() {
                 </Avatar>
 
                 <div className="flex flex-col items-start gap-1">
-                  <h1 className="text-lg font-semibold">
-                    {human.full_name || <Trans>Unnamed Contact</Trans>}
-                  </h1>
-                  {human.job_title && <div className="text-sm font-medium text-neutral-500">{human.job_title}</div>}
-                  {organization && (
+                  {isEditing
+                    ? (
+                      <div className="w-full space-y-2">
+                        <Input
+                          id="full_name"
+                          name="full_name"
+                          value={editedHuman.full_name || ""}
+                          onChange={handleInputChange}
+                          placeholder="Full Name"
+                          className="text-lg font-medium border-none shadow-none px-0 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                        <Input
+                          id="job_title"
+                          name="job_title"
+                          value={editedHuman.job_title || ""}
+                          onChange={handleInputChange}
+                          placeholder="Job Title"
+                          className="text-sm border-none shadow-none px-0 h-7 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                        <div className="flex items-center gap-2">
+                          {organization
+                            ? (
+                              <div className="flex items-center gap-2 w-full">
+                                <div className="text-sm text-gray-700 flex-1">{organization.name}</div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditedHuman(prev => ({ ...prev, organization_id: null }));
+                                  }}
+                                  className="text-gray-400 hover:text-red-500 transition-colors"
+                                >
+                                  <CircleMinus className="size-4" />
+                                </button>
+                              </div>
+                            )
+                            : (
+                              <button
+                                type="button"
+                                onClick={() => setShowOrgSearch(true)}
+                                className="text-sm text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1"
+                              >
+                                <Plus className="size-3" />
+                                <span>Add organization</span>
+                              </button>
+                            )}
+                        </div>
+                        {showOrgSearch && !organization && (
+                          <div className="flex flex-col gap-2 pl-6 mt-1">
+                            <div className="flex items-center w-full gap-2">
+                              <span className="text-neutral-500 flex-shrink-0">
+                                <Search className="size-4" />
+                              </span>
+                              <input
+                                type="text"
+                                value={orgSearchQuery}
+                                onChange={(e) => setOrgSearchQuery(e.target.value)}
+                                placeholder={t`Search organization`}
+                                className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400 border-none shadow-none px-0 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                autoFocus
+                              />
+                            </div>
+
+                            {orgSearchQuery.trim() && (
+                              <div className="flex flex-col w-full rounded border border-neutral-200 overflow-hidden">
+                                {orgSearchResults?.map((org) => (
+                                  <button
+                                    key={org.id}
+                                    type="button"
+                                    className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
+                                    onClick={() => {
+                                      setEditedHuman(prev => ({ ...prev, organization_id: org.id }));
+                                      setOrgSearchQuery("");
+                                      setShowOrgSearch(false);
+                                    }}
+                                  >
+                                    <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-blue-100 text-blue-600 rounded-full">
+                                      <Building className="size-3" />
+                                    </span>
+                                    <span className="font-medium text-neutral-900 truncate">{org.name}</span>
+                                  </button>
+                                ))}
+
+                                {(!orgSearchResults?.length) && (
+                                  <button
+                                    type="button"
+                                    className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
+                                    onClick={async () => {
+                                      try {
+                                        // Create the new organization
+                                        const newOrg: Organization = {
+                                          id: crypto.randomUUID(),
+                                          name: orgSearchQuery.trim(),
+                                          description: null,
+                                        };
+
+                                        // Save to database
+                                        await dbCommands.upsertOrganization(newOrg);
+
+                                        // Update the human with the new organization
+                                        setEditedHuman(prev => ({ ...prev, organization_id: newOrg.id }));
+
+                                        // Clear search
+                                        setOrgSearchQuery("");
+                                        setShowOrgSearch(false);
+                                      } catch (error) {
+                                        console.error("Failed to create organization:", error);
+                                      }
+                                    }}
+                                  >
+                                    <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-200 rounded-full">
+                                      <Plus className="size-3" />
+                                    </span>
+                                    <span className="flex items-center gap-1 font-medium text-neutral-600">
+                                      <Trans>Create</Trans>
+                                      <span className="text-neutral-900 truncate max-w-[140px]">
+                                        &quot;{orgSearchQuery.trim()}&quot;
+                                      </span>
+                                    </span>
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                    : (
+                      <>
+                        <h1 className="text-lg font-semibold">
+                          {human.full_name || <Trans>Unnamed Contact</Trans>}
+                        </h1>
+                        {human.job_title && (
+                          <div className="text-sm font-medium text-neutral-500">{human.job_title}</div>
+                        )}
+                      </>
+                    )}
+                  {organization && !isEditing && (
                     <button
                       className="text-sm font-medium text-neutral-500 flex items-center gap-1 hover:scale-95 transition-all hover:text-neutral-700"
                       onClick={() => windowsCommands.windowShow({ organization: organization.id })}
@@ -76,75 +267,122 @@ function Component() {
                 </div>
               </div>
 
-              <div className="flex justify-center gap-4">
-                {human.email && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <a href={`mailto:${human.email}`}>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                          >
-                            <Mail className="h-5 w-5" />
-                          </Button>
-                        </a>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-sm">{human.email}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
+              {isEditing
+                ? (
+                  <div className="w-full">
+                    <table className="w-full">
+                      <tbody>
+                        <tr className="border-b border-gray-100">
+                          <td className="py-2 pr-4 w-1/3 text-sm font-medium text-gray-500">
+                            <div className="flex items-center gap-2">
+                              <Mail className="size-4 text-gray-400" />
+                              <span>Email</span>
+                            </div>
+                          </td>
+                          <td className="py-2">
+                            <Input
+                              id="email"
+                              name="email"
+                              value={editedHuman.email || ""}
+                              onChange={handleInputChange}
+                              placeholder="Email Address"
+                              className="border-none text-sm shadow-none px-0 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 pr-4 w-1/3 text-sm font-medium text-gray-500">
+                            <div className="flex items-center gap-2">
+                              <RiLinkedinFill className="size-4 text-gray-400" />
+                              <span>LinkedIn</span>
+                            </div>
+                          </td>
+                          <td className="py-2">
+                            <Input
+                              id="linkedin_username"
+                              name="linkedin_username"
+                              value={editedHuman.linkedin_username || ""}
+                              onChange={handleInputChange}
+                              placeholder="LinkedIn Username"
+                              className="border-none text-sm shadow-none px-0 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                )
+                : (
+                  <div className="flex justify-center gap-4">
+                    {human.email && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <a href={`mailto:${human.email}`}>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                              >
+                                <Mail className="h-5 w-5" />
+                              </Button>
+                            </a>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-sm">{human.email}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
 
-                {human.linkedin_username && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <a
-                          href={`https://linkedin.com/in/${human.linkedin_username}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Button
-                            variant="outline"
-                            size="icon"
-                          >
-                            <RiLinkedinFill className="h-5 w-5" />
-                          </Button>
-                        </a>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-sm">LinkedIn: {human.linkedin_username}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
+                    {human.linkedin_username && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <a
+                              href={`https://linkedin.com/in/${human.linkedin_username}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Button
+                                variant="outline"
+                                size="icon"
+                              >
+                                <RiLinkedinFill className="h-5 w-5" />
+                              </Button>
+                            </a>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-sm">LinkedIn: {human.linkedin_username}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
 
-                {organization && getOrganizationWebsite() !== null && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <a
-                          href={getOrganizationWebsite()!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Button
-                            variant="outline"
-                            size="icon"
-                          >
-                            <Globe className="h-5 w-5" />
-                          </Button>
-                        </a>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-sm">{organization.name} Website</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                    {organization && getOrganizationWebsite() !== null && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <a
+                              href={getOrganizationWebsite()!}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Button
+                                variant="outline"
+                                size="icon"
+                              >
+                                <Globe className="h-5 w-5" />
+                              </Button>
+                            </a>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-sm">{organization.name} Website</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
                 )}
-              </div>
             </div>
             <UpcomingEvents human={human} />
             <PastNotes human={human} />

@@ -17,7 +17,7 @@ interface ParticipantsListProps {
 
 export function ParticipantsList({ sessionId }: ParticipantsListProps) {
   const groupedParticipants = useQuery({
-    queryKey: ["participants", sessionId],
+    queryKey: ["grouped-participants", sessionId],
     queryFn: async () => {
       const participants = await dbCommands.sessionListParticipants(sessionId);
       const ret: Record<string, Human[]> = {};
@@ -37,9 +37,7 @@ export function ParticipantsList({ sessionId }: ParticipantsListProps) {
 
       <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto">
         {Object.entries(groupedParticipants.data ?? {}).map(([orgId, members]) => (
-          <>
-            <OrganizationWithParticipants key={orgId} orgId={orgId} members={members} sessionId={sessionId} />
-          </>
+          <OrganizationWithParticipants key={orgId} orgId={orgId} members={members} sessionId={sessionId} />
         ))}
       </div>
 
@@ -61,8 +59,7 @@ function OrganizationWithParticipants(
       <div className="text-xs text-neutral-400 mt-2 mb-1">
         {organization.data?.name ?? "No organization"}
       </div>
-      {Array.isArray(members)
-        && members.map((member) => <ParticipentItem key={member.id} member={member} sessionId={sessionId} />)}
+      {members.map((member) => <ParticipentItem key={member.id} member={member} sessionId={sessionId} />)}
     </div>
   );
 }
@@ -72,7 +69,7 @@ function ParticipentItem({ member, sessionId }: { member: Human; sessionId: stri
 
   const removeParticipantMutation = useMutation({
     mutationFn: ({ id }: { id: string }) => dbCommands.sessionRemoveParticipant(sessionId, id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["participants", sessionId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["grouped-participants", sessionId] }),
   });
 
   const handleClickHuman = (human: Human) => {
@@ -80,7 +77,7 @@ function ParticipentItem({ member, sessionId }: { member: Human; sessionId: stri
   };
 
   const handleRemoveParticipant = (id: string) => {
-    removeParticipantMutation.mutateAsync({ id: id });
+    removeParticipantMutation.mutate({ id: id });
   };
 
   return (
@@ -180,7 +177,8 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
       await dbCommands.upsertHuman(newParticipant);
       await dbCommands.sessionAddParticipant(sessionId, newParticipant.id);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["participants", sessionId] }),
+    onError: console.error,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["grouped-participants", sessionId] }),
   });
 
   const handleAddParticipants = () => {

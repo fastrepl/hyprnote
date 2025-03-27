@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Users2Icon } from "lucide-react";
 
-import { commands as authCommands } from "@hypr/plugin-auth";
+import { useHypr } from "@/contexts";
 import { commands as dbCommands, type Human } from "@hypr/plugin-db";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { ParticipantsList } from "./participants-list";
@@ -11,10 +11,7 @@ interface ParticipantsChipProps {
 }
 
 export function ParticipantsChip({ sessionId }: ParticipantsChipProps) {
-  const userId = useQuery({
-    queryKey: ["userId"],
-    queryFn: () => authCommands.getFromStore("auth-user-id"),
-  });
+  const { userId } = useHypr();
 
   const participants = useQuery({
     queryKey: ["participants", sessionId],
@@ -22,10 +19,9 @@ export function ParticipantsChip({ sessionId }: ParticipantsChipProps) {
   });
 
   const theUser = useQuery({
-    enabled: !!userId.data,
-    queryKey: ["human", userId.data],
+    queryKey: ["human", userId],
     queryFn: async () => {
-      const human = await dbCommands.getHuman(userId.data!) as Human;
+      const human = await dbCommands.getHuman(userId) as Human;
       return human;
     },
   });

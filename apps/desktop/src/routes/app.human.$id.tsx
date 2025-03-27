@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { RiAedFill, RiLinkedinFill } from "@remixicon/react";
+import { RiLinkedinFill } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { format } from "date-fns";
@@ -53,28 +53,11 @@ function Component() {
           <div className="max-w-lg mx-auto px-4 lg:px-6 pt-6 pb-20">
             <div className="mb-6 flex flex-col items-center gap-8">
               <div className="flex items-center gap-4">
-                <div className="relative">
-                  <Avatar className="h-24 w-24">
-                    <AvatarFallback className="text-xl font-medium">
-                      {getInitials(human.full_name || "")}
-                    </AvatarFallback>
-                  </Avatar>
-                  {!human.is_user && (
-                    <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <RiAedFill size={24} className="text-amber-500" />
-                          </TooltipTrigger>
-
-                          <TooltipContent side="bottom">
-                            <p className="text-sm">Uses Hyprnote</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  )}
-                </div>
+                <Avatar className="h-24 w-24">
+                  <AvatarFallback className="text-xl font-medium">
+                    {getInitials(human.full_name || "")}
+                  </AvatarFallback>
+                </Avatar>
 
                 <div className="flex flex-col items-start gap-1">
                   <h1 className="text-lg font-semibold">

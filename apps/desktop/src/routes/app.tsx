@@ -1,18 +1,21 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useEffect } from "react";
 
 import LeftSidebar from "@/components/left-sidebar";
+import { LoginModal } from "@/components/login-modal";
 import Notifications from "@/components/toast";
 import Toolbar from "@/components/toolbar";
 import {
   HyprProvider,
   LeftSidebarProvider,
+  LoginModalProvider,
   NewNoteProvider,
   OngoingSessionProvider,
   RightPanelProvider,
   SearchProvider,
   SessionsProvider,
   SettingsProvider,
+  useLoginModal,
 } from "@/contexts";
 import { registerTemplates } from "@/templates";
 import { commands } from "@/types";
@@ -23,8 +26,10 @@ export const Route = createFileRoute("/app")({
   beforeLoad: async () => {
     const isOnboardingNeeded = await commands.isOnboardingNeeded();
     if (isOnboardingNeeded) {
-      throw redirect({ to: "/login" });
+      // Instead of redirecting to login page, we'll show the login modal
+      return { showLoginModal: true };
     }
+    return { showLoginModal: false };
   },
   loader: async ({ context: { sessionsStore } }) => {
     return sessionsStore;
@@ -33,7 +38,7 @@ export const Route = createFileRoute("/app")({
 
 function Component() {
   const store = Route.useLoaderData();
-
+  const { showLoginModal } = Route.useRouteContext();
   const windowLabel = getCurrentWebviewWindowLabel();
 
   useEffect(() => {
@@ -50,13 +55,16 @@ function Component() {
                 <SettingsProvider>
                   <NewNoteProvider>
                     <SearchProvider>
-                      <div className="relative flex h-screen w-screen overflow-hidden">
-                        <LeftSidebar />
-                        <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
-                          <Toolbar />
-                          <Outlet />
+                      <LoginModalProvider>
+                        <div className="relative flex h-screen w-screen overflow-hidden">
+                          <LeftSidebar />
+                          <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
+                            <Toolbar />
+                            <Outlet />
+                          </div>
                         </div>
-                      </div>
+                        <LoginModalWithProvider showLoginModal={showLoginModal} />
+                      </LoginModalProvider>
                     </SearchProvider>
                   </NewNoteProvider>
                 </SettingsProvider>
@@ -67,5 +75,20 @@ function Component() {
       </HyprProvider>
       {windowLabel === "main" && <Notifications />}
     </>
+  );
+}
+
+function LoginModalWithProvider({ showLoginModal }: { showLoginModal: boolean }) {
+  const { isLoginModalOpen, closeLoginModal, setShouldShowLoginModal } = useLoginModal();
+  
+  useEffect(() => {
+    setShouldShowLoginModal(showLoginModal);
+  }, [showLoginModal, setShouldShowLoginModal]);
+  
+  return (
+    <LoginModal 
+      isOpen={isLoginModalOpen} 
+      onClose={closeLoginModal} 
+    />
   );
 }

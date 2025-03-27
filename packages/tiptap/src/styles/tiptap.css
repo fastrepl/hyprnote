@@ -145,22 +145,62 @@
     padding: 0;
 
     li {
-      align-items: flex-start;
+      align-items: center;
       display: flex;
+      margin-bottom: 0.25rem;
 
       > label {
         flex: 0 0 auto;
         margin-right: 0.5rem;
         user-select: none;
+        position: relative;
+        display: inline-flex;
+        align-items: center;
       }
 
       > div {
         flex: 1 1 auto;
+        margin-top: 0;
       }
     }
 
     input[type="checkbox"] {
       cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ccc;
+      border-radius: 4px;
+      margin: 0;
+      transition: all 0.2s ease;
+      position: relative;
+
+      &:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+      }
+
+      &:checked::after {
+        content: "";
+        position: absolute;
+        left: 5px;
+        top: 2px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+
+      &:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+      }
+
+      &:hover:not(:checked) {
+        border-color: #9ca3af;
+      }
     }
 
     ul[data-type="taskList"] {

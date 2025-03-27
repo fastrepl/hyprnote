@@ -24,9 +24,12 @@ export function ParticipantsChip({ sessionId }: ParticipantsChipProps) {
   return (
     <Popover>
       <PopoverTrigger>
-        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 text-xs">
+        <div className="flex flex-row items-center gap-1 rounded-md px-2 py-1.5 hover:bg-neutral-100 text-xs">
           <Users2Icon size={14} />
-          {previewHuman?.full_name ?? ""}
+          <span>{previewHuman?.full_name ?? "Add participants"}</span>
+          <span className="text-neutral-400">
+            {participants.data?.length ?? 0}
+          </span>
         </div>
       </PopoverTrigger>
 

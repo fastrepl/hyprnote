@@ -1,5 +1,5 @@
-import { useMatch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useMatch } from "@tanstack/react-router";
 
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
 import { NewWindowButton } from "@/components/toolbar/buttons/new-window-button";

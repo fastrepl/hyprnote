@@ -2,7 +2,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 
-import { commands as authCommands } from "@hypr/plugin-auth";
 import { commands as dbCommands } from "@hypr/plugin-db";
 
 const schema = z.object({
@@ -12,15 +11,9 @@ const schema = z.object({
 export const Route = createFileRoute("/app/new")({
   validateSearch: zodValidator(schema),
   beforeLoad: async ({
-    context: { queryClient, sessionsStore },
+    context: { queryClient, sessionsStore, userId },
     search: { calendarEventId },
   }) => {
-    const id = await authCommands.getFromStore("auth-user-id");
-
-    if (!id) {
-      throw redirect({ to: "/login" });
-    }
-
     try {
       const sessionId = crypto.randomUUID();
 
@@ -32,7 +25,7 @@ export const Route = createFileRoute("/app/new")({
 
         const session = await dbCommands.upsertSession({
           id: sessionId,
-          user_id: id,
+          user_id: userId,
           created_at: new Date().toISOString(),
           visited_at: new Date().toISOString(),
           calendar_event_id: event?.id ?? null,
@@ -41,6 +34,7 @@ export const Route = createFileRoute("/app/new")({
           enhanced_memo_html: null,
           conversations: [],
         });
+        await dbCommands.sessionAddParticipant(sessionId, userId);
 
         const { insert } = sessionsStore.getState();
         insert(session);
@@ -51,7 +45,7 @@ export const Route = createFileRoute("/app/new")({
       } else {
         const session = await dbCommands.upsertSession({
           id: sessionId,
-          user_id: id,
+          user_id: userId,
           created_at: new Date().toISOString(),
           visited_at: new Date().toISOString(),
           calendar_event_id: null,
@@ -60,6 +54,7 @@ export const Route = createFileRoute("/app/new")({
           enhanced_memo_html: null,
           conversations: [],
         });
+        await dbCommands.sessionAddParticipant(sessionId, userId);
 
         const { insert } = sessionsStore.getState();
         insert(session);

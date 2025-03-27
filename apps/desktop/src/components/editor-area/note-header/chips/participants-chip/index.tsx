@@ -47,10 +47,6 @@ export function ParticipantsChip({ sessionId }: ParticipantsChipProps) {
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <ParticipantsList
-          participants={[
-            ...(participants.data ?? []),
-            theUser.data!,
-          ]}
           sessionId={sessionId}
         />
       </PopoverContent>

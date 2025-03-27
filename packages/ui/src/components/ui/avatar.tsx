@@ -1,6 +1,7 @@
-import { cn } from "@hypr/ui/lib/utils";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as React from "react";
+
+import { cn } from "../../lib/utils";
 
 interface AvatarProps extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> {
   variant?: "rounded" | "circle";

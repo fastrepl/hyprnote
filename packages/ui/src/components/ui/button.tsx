@@ -1,5 +1,6 @@
-import { cn } from "@hypr/ui/lib/utils";
 import * as React from "react";
+
+import { cn } from "../../lib/utils";
 
 type ButtonVariant = "default" | "destructive" | "outline" | "ghost";
 type ButtonSize = "sm" | "md" | "lg" | "icon";

@@ -1,5 +1,6 @@
-import clsx from "clsx";
 import React, { useEffect, useRef, useState } from "react";
+
+import { cn } from "../../lib/utils";
 
 const DURATION = 600;
 const MAX_WORM_LENGTH = 0.6;
@@ -85,7 +86,7 @@ export const Splash: React.FC<SplashProps> = ({
   }, [progress]);
 
   return (
-    <div className={clsx("flex items-center justify-center", className)}>
+    <div className={cn("flex items-center justify-center", className)}>
       <div className="relative">
         <svg
           xmlns="http://www.w3.org/2000/svg"

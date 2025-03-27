@@ -1,7 +1,7 @@
 import { AnimatePresence, motion, MotionProps, Variants } from "motion/react";
 import { ElementType } from "react";
 
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "../../lib/utils";
 
 type AnimationType = "text" | "word" | "character" | "line";
 type AnimationVariant =

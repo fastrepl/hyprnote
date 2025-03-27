@@ -1,5 +1,6 @@
-import { cn } from "@hypr/ui/lib/utils";
 import { motion } from "motion/react";
+
+import { cn } from "../../lib/utils";
 
 const getRandomValues = (max: number, length: number, baseLength: number) => {
   const values: number[] = [];

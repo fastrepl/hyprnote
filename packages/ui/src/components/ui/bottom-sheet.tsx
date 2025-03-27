@@ -1,6 +1,7 @@
-import { cn } from "@hypr/ui/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
 import * as React from "react";
+
+import { cn } from "../../lib/utils";
 
 interface BottomSheetProps {
   open: boolean;

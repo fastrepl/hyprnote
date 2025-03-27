@@ -6,6 +6,7 @@ import { LoginModal } from "@/components/login-modal";
 import Notifications from "@/components/toast";
 import Toolbar from "@/components/toolbar";
 import {
+  EditModeProvider,
   HyprProvider,
   LeftSidebarProvider,
   NewNoteProvider,
@@ -47,17 +48,19 @@ function Component() {
                 <SettingsProvider>
                   <NewNoteProvider>
                     <SearchProvider>
-                      <div className="relative flex h-screen w-screen overflow-hidden">
-                        <LeftSidebar />
-                        <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
-                          <Toolbar />
-                          <Outlet />
+                      <EditModeProvider>
+                        <div className="relative flex h-screen w-screen overflow-hidden">
+                          <LeftSidebar />
+                          <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
+                            <Toolbar />
+                            <Outlet />
+                          </div>
                         </div>
-                      </div>
-                      <LoginModal
-                        isOpen={isLoginModalOpen}
-                        onClose={() => setIsLoginModalOpen(false)}
-                      />
+                        <LoginModal
+                          isOpen={isLoginModalOpen}
+                          onClose={() => setIsLoginModalOpen(false)}
+                        />
+                      </EditModeProvider>
                     </SearchProvider>
                   </NewNoteProvider>
                 </SettingsProvider>

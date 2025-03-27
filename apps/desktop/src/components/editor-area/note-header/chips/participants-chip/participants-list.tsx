@@ -69,7 +69,10 @@ function ParticipentItem({ member, sessionId }: { member: Human; sessionId: stri
 
   const removeParticipantMutation = useMutation({
     mutationFn: ({ id }: { id: string }) => dbCommands.sessionRemoveParticipant(sessionId, id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["grouped-participants", sessionId] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        predicate: (query) => (query.queryKey[0] as string).includes("participants") && query.queryKey[1] === sessionId,
+      }),
   });
 
   const handleClickHuman = (human: Human) => {
@@ -178,7 +181,10 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
       await dbCommands.sessionAddParticipant(sessionId, newParticipant.id);
     },
     onError: console.error,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["grouped-participants", sessionId] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        predicate: (query) => (query.queryKey[0] as string).includes("participants") && query.queryKey[1] === sessionId,
+      }),
   });
 
   const handleAddParticipants = () => {

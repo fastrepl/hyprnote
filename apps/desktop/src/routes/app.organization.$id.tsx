@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Calendar, ExternalLink, FileText, Users } from "lucide-react";
@@ -8,12 +8,14 @@ import { useEffect, useState } from "react";
 import RightPanel from "@/components/right-panel";
 import { useEditMode } from "@/contexts/edit-mode-context";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { getInitials } from "@hypr/utils";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 export const Route = createFileRoute("/app/organization/$id")({
   component: Component,
@@ -33,8 +35,11 @@ export const Route = createFileRoute("/app/organization/$id")({
 
 function Component() {
   const { organization } = Route.useLoaderData();
-  const { isEditing } = useEditMode();
+  const { isEditing, setIsEditing } = useEditMode();
   const [editedOrganization, setEditedOrganization] = useState(organization);
+  const queryClient = useQueryClient();
+
+  const isMain = getCurrentWebviewWindowLabel() === "main";
 
   const { data: members = [] } = useQuery({
     queryKey: ["organization", organization.id, "members"],
@@ -124,7 +129,29 @@ function Component() {
   return (
     <div className="flex h-full overflow-hidden">
       <div className="flex-1 overflow-auto flex flex-col">
-        <main className="bg-white flex-1 overflow-auto">
+        <main className="bg-white flex-1 overflow-auto relative">
+          {isMain && (
+            <div className="absolute top-4 right-4 z-10">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (isEditing) {
+                    // Save changes
+                    try {
+                      dbCommands.upsertOrganization(editedOrganization);
+                      queryClient.invalidateQueries({ queryKey: ["organization", organization.id] });
+                    } catch (error) {
+                      console.error("Failed to update organization:", error);
+                    }
+                  }
+                  setIsEditing(!isEditing);
+                }}
+              >
+                {isEditing ? "Save" : "Edit"}
+              </Button>
+            </div>
+          )}
           <div className="max-w-lg mx-auto px-4 lg:px-6 pt-6 pb-20">
             <div className="mb-6 flex flex-col items-center gap-8">
               <div className="flex items-center gap-4">
@@ -137,59 +164,41 @@ function Component() {
                 </div>
 
                 <div className="flex flex-col items-start gap-1">
-                  {isEditing ? (
-                    <div className="w-full">
-                      <Input 
-                        id="name" 
-                        name="name"
-                        value={editedOrganization.name || ""} 
-                        onChange={handleInputChange}
-                        placeholder="Organization Name"
-                        className="text-lg font-medium border-none shadow-none px-0 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"
-                      />
-                    </div>
-                  ) : (
-                    <h1 className="text-lg font-semibold">
-                      {organization.name || <Trans>Unnamed Organization</Trans>}
-                    </h1>
-                  )}
-                  {!isEditing && members.length > 0 && (
-                    <p className="text-sm font-medium text-neutral-500">
-                      <Trans>{members.length} members</Trans>
-                    </p>
-                  )}
+                  {isEditing
+                    ? (
+                      <div className="w-full">
+                        <Input
+                          id="name"
+                          name="name"
+                          value={editedOrganization.name || ""}
+                          onChange={handleInputChange}
+                          placeholder="Organization Name"
+                          className="text-lg font-medium border-none shadow-none px-0 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                        <Textarea
+                          id="description"
+                          name="description"
+                          value={editedOrganization.description || ""}
+                          onChange={handleInputChange}
+                          placeholder="Organization Description"
+                          className="text-sm border-none shadow-none px-0 min-h-[60px] resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                      </div>
+                    )
+                    : (
+                      <>
+                        <h1 className="text-lg font-medium">
+                          {organization.name || <Trans>Unnamed Organization</Trans>}
+                        </h1>
+                        {organization.description && (
+                          <div className="text-sm text-gray-700">{organization.description}</div>
+                        )}
+                      </>
+                    )}
                 </div>
               </div>
 
               <div className="flex justify-center gap-4">
-                {isEditing ? (
-                  <div className="w-full">
-                    <table className="w-full">
-                      <tbody>
-                        <tr>
-                          <td className="py-2 pr-4 w-1/3 text-sm font-medium text-gray-500">
-                            <div className="flex items-center gap-2">
-                              <FileText className="size-4 text-gray-400" />
-                              <span>Description</span>
-                            </div>
-                          </td>
-                          <td className="py-2">
-                            <Textarea 
-                              id="description" 
-                              name="description"
-                              value={editedOrganization.description || ""} 
-                              onChange={handleInputChange}
-                              placeholder="Organization Description"
-                              className="border-none shadow-none px-0 min-h-[80px] resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                            />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  organization.description && <p className="text-sm text-muted-foreground">{organization.description}</p>
-                )}
               </div>
             </div>
 
@@ -198,14 +207,16 @@ function Component() {
                 <h2 className="mb-4 flex items-center gap-2 font-semibold">
                   <Users className="size-5" />
                   <Trans>Members</Trans>
+                  <span className="inline-flex items-center justify-center rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">
+                    {members.length}
+                  </span>
                 </h2>
                 <div className="space-y-2">
                   {members.slice(0, 5).map((member) => (
-                    <Link
+                    <button
                       key={member.id}
-                      to="/app/human/$id"
-                      params={{ id: member.id }}
-                      className="flex items-center p-2 rounded-md hover:bg-muted"
+                      onClick={() => windowsCommands.windowShow({ human: member.id })}
+                      className="flex items-center p-2 rounded-md hover:bg-muted w-full text-left"
                     >
                       <Avatar className="h-8 w-8 mr-2">
                         <AvatarFallback className="text-xs">
@@ -216,7 +227,7 @@ function Component() {
                         <p className="text-sm font-medium">{member.full_name}</p>
                         {member.job_title && <p className="text-xs text-muted-foreground">{member.job_title}</p>}
                       </div>
-                    </Link>
+                    </button>
                   ))}
                   {members.length > 5 && (
                     <p className="text-xs text-muted-foreground text-center mt-2">

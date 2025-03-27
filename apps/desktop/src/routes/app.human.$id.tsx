@@ -3,13 +3,13 @@ import { RiLinkedinFill } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { Building, Calendar, CircleMinus, ExternalLink, FileText, Globe, Mail, Plus, Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Building, Calendar, CircleMinus, ExternalLink, FileText, Globe, Mail, Plus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import RightPanel from "@/components/right-panel";
 import { useEditMode } from "@/contexts/edit-mode-context";
 import { commands as dbCommands, type Human, type Organization, type Session } from "@hypr/plugin-db";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { commands as windowsCommands, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
@@ -44,12 +44,15 @@ export const Route = createFileRoute("/app/human/$id")({
 
 function Component() {
   const { human, organization } = Route.useLoaderData();
-  const { isEditing } = useEditMode();
+  const { isEditing, setIsEditing } = useEditMode();
   const [editedHuman, setEditedHuman] = useState<Human>(human);
   const [orgSearchQuery, setOrgSearchQuery] = useState("");
   const [showOrgSearch, setShowOrgSearch] = useState(false);
   const queryClient = useQueryClient();
   const { t } = useLingui();
+  const orgSearchRef = useRef<HTMLDivElement>(null);
+
+  const isMain = getCurrentWebviewWindowLabel() === "main";
 
   const getOrganizationWebsite = () => {
     return organization ? extractWebsiteUrl(human.email) : null;
@@ -59,6 +62,20 @@ function Component() {
     const { name, value } = e.target;
     setEditedHuman(prev => ({ ...prev, [name]: value }));
   };
+
+  // Handle clicks outside the organization search
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (orgSearchRef.current && !orgSearchRef.current.contains(event.target as Node)) {
+        setShowOrgSearch(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Search for organizations based on the query
   const { data: orgSearchResults = [] } = useQuery({
@@ -108,7 +125,29 @@ function Component() {
   return (
     <div className="flex h-full overflow-hidden">
       <div className="flex-1 overflow-auto flex flex-col">
-        <main className="bg-white flex-1 overflow-auto">
+        <main className="bg-white flex-1 overflow-auto relative">
+          {isMain && (
+            <div className="absolute top-4 right-4 z-10">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (isEditing) {
+                    // Save changes
+                    try {
+                      dbCommands.upsertHuman(editedHuman);
+                      queryClient.invalidateQueries({ queryKey: ["human", human.id] });
+                    } catch (error) {
+                      console.error("Failed to update human:", error);
+                    }
+                  }
+                  setIsEditing(!isEditing);
+                }}
+              >
+                {isEditing ? "Save" : "Edit"}
+              </Button>
+            </div>
+          )}
           <div className="max-w-lg mx-auto px-4 lg:px-6 pt-6 pb-20">
             <div className="mb-6 flex flex-col items-center gap-8">
               <div className="flex items-center gap-4">
@@ -155,109 +194,103 @@ function Component() {
                               </div>
                             )
                             : (
-                              <button
-                                type="button"
-                                onClick={() => setShowOrgSearch(true)}
-                                className="text-sm text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1"
-                              >
-                                <Plus className="size-3" />
-                                <span>Add organization</span>
-                              </button>
-                            )}
-                        </div>
-                        {showOrgSearch && !organization && (
-                          <div className="flex flex-col gap-2 pl-6 mt-1">
-                            <div className="flex items-center w-full gap-2">
-                              <span className="text-neutral-500 flex-shrink-0">
-                                <Search className="size-4" />
-                              </span>
-                              <input
-                                type="text"
-                                value={orgSearchQuery}
-                                onChange={(e) => setOrgSearchQuery(e.target.value)}
-                                placeholder={t`Search organization`}
-                                className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400 border-none shadow-none px-0 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                autoFocus
-                              />
-                            </div>
-
-                            {orgSearchQuery.trim() && (
-                              <div className="flex flex-col w-full rounded border border-neutral-200 overflow-hidden">
-                                {orgSearchResults?.map((org) => (
-                                  <button
-                                    key={org.id}
-                                    type="button"
-                                    className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
-                                    onClick={() => {
-                                      setEditedHuman(prev => ({ ...prev, organization_id: org.id }));
-                                      setOrgSearchQuery("");
-                                      setShowOrgSearch(false);
+                              <div className="w-full" ref={orgSearchRef}>
+                                <div className="flex items-center">
+                                  <input
+                                    type="text"
+                                    value={orgSearchQuery}
+                                    onChange={(e) => {
+                                      setOrgSearchQuery(e.target.value);
+                                      setShowOrgSearch(true);
                                     }}
-                                  >
-                                    <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-blue-100 text-blue-600 rounded-full">
-                                      <Building className="size-3" />
-                                    </span>
-                                    <span className="font-medium text-neutral-900 truncate">{org.name}</span>
-                                  </button>
-                                ))}
+                                    onFocus={() => setShowOrgSearch(true)}
+                                    placeholder={t`Organization`}
+                                    className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400 border-none shadow-none px-0 h-7 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                  />
+                                </div>
 
-                                {(!orgSearchResults?.length) && (
-                                  <button
-                                    type="button"
-                                    className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
-                                    onClick={async () => {
-                                      try {
-                                        // Create the new organization
-                                        const newOrg: Organization = {
-                                          id: crypto.randomUUID(),
-                                          name: orgSearchQuery.trim(),
-                                          description: null,
-                                        };
+                                {showOrgSearch && orgSearchQuery.trim() && (
+                                  <div className="relative">
+                                    <div className="absolute z-10 w-full mt-1 bg-white rounded-md border border-border overflow-hidden">
+                                      {orgSearchResults?.length > 0 && (
+                                        <div className="max-h-60 overflow-auto">
+                                          {orgSearchResults.map((org) => (
+                                            <button
+                                              key={org.id}
+                                              type="button"
+                                              className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
+                                              onClick={() => {
+                                                setEditedHuman(prev => ({ ...prev, organization_id: org.id }));
+                                                setOrgSearchQuery("");
+                                                setShowOrgSearch(false);
+                                              }}
+                                            >
+                                              <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-blue-100 text-blue-600 rounded-full">
+                                                <Building className="size-3" />
+                                              </span>
+                                              <span className="font-medium text-neutral-900 truncate">{org.name}</span>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
 
-                                        // Save to database
-                                        await dbCommands.upsertOrganization(newOrg);
+                                      {(!orgSearchResults?.length) && (
+                                        <button
+                                          type="button"
+                                          className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
+                                          onClick={async () => {
+                                            try {
+                                              // Create the new organization
+                                              const newOrg: Organization = {
+                                                id: crypto.randomUUID(),
+                                                name: orgSearchQuery.trim(),
+                                                description: null,
+                                              };
 
-                                        // Update the human with the new organization
-                                        setEditedHuman(prev => ({ ...prev, organization_id: newOrg.id }));
+                                              // Save to database
+                                              await dbCommands.upsertOrganization(newOrg);
 
-                                        // Clear search
-                                        setOrgSearchQuery("");
-                                        setShowOrgSearch(false);
-                                      } catch (error) {
-                                        console.error("Failed to create organization:", error);
-                                      }
-                                    }}
-                                  >
-                                    <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-200 rounded-full">
-                                      <Plus className="size-3" />
-                                    </span>
-                                    <span className="flex items-center gap-1 font-medium text-neutral-600">
-                                      <Trans>Create</Trans>
-                                      <span className="text-neutral-900 truncate max-w-[140px]">
-                                        &quot;{orgSearchQuery.trim()}&quot;
-                                      </span>
-                                    </span>
-                                  </button>
+                                              // Update the human with the new organization
+                                              setEditedHuman(prev => ({ ...prev, organization_id: newOrg.id }));
+
+                                              // Clear search
+                                              setOrgSearchQuery("");
+                                              setShowOrgSearch(false);
+                                            } catch (error) {
+                                              console.error("Failed to create organization:", error);
+                                            }
+                                          }}
+                                        >
+                                          <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-200 rounded-full">
+                                            <Plus className="size-3" />
+                                          </span>
+                                          <span className="flex items-center gap-1 font-medium text-neutral-600">
+                                            <Trans>Create</Trans>
+                                            <span className="text-neutral-900 truncate max-w-[140px]">
+                                              &quot;{orgSearchQuery.trim()}&quot;
+                                            </span>
+                                          </span>
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
                                 )}
                               </div>
                             )}
-                          </div>
-                        )}
+                        </div>
                       </div>
                     )
                     : (
                       <>
-                        <h1 className="text-lg font-semibold">
+                        <h1 className="text-lg font-medium">
                           {human.full_name || <Trans>Unnamed Contact</Trans>}
                         </h1>
-                        {human.job_title && (
-                          <div className="text-sm font-medium text-neutral-500">{human.job_title}</div>
-                        )}
+                        {human.job_title && <div className="text-sm text-gray-700">{human.job_title}</div>}
                       </>
                     )}
                   {organization && !isEditing && (
                     <button
-                      className="text-sm font-medium text-neutral-500 flex items-center gap-1 hover:scale-95 transition-all hover:text-neutral-700"
+                      className="text-sm font-medium text-gray-700 flex items-center gap-1 hover:scale-95 transition-all hover:text-neutral-900"
                       onClick={() => windowsCommands.windowShow({ organization: organization.id })}
                     >
                       <Building size={14} />

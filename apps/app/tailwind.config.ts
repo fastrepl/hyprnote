@@ -1,11 +1,7 @@
-import typography from "@tailwindcss/typography";
 import type { Config } from "tailwindcss";
-
-import Tiptap from "@hypr/tiptap/editor/tailwind.config";
 
 const config = {
   content: [
-    ...Tiptap.content,
     "src/**/*.{js,ts,jsx,tsx}",
     "index.html",
   ],
@@ -16,7 +12,6 @@ const config = {
       },
     },
   },
-  plugins: [typography({ target: "modern" })],
 } satisfies Config;
 
 export default config;

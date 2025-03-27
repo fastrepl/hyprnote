@@ -1,5 +1,3 @@
-import Tiptap from "@hypr/tiptap/editor/tailwind.config";
-
 import type { Config } from "tailwindcss";
 
 import ExtensionCalculator from "@hypr/extension-calculator/tailwind.config";
@@ -11,7 +9,6 @@ import ExtensionTranscript from "@hypr/extension-transcript/tailwind.config";
 
 const config = {
   content: [
-    ...Tiptap.content,
     ...ExtensionCalculator.content,
     ...ExtensionSummary.content,
     ...ExtensionTranscript.content,

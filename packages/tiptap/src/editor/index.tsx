@@ -55,13 +55,9 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           }
         }
 
-        if (e.key === "Tab" && e.shiftKey) {
+        // Prevent Tab and Shift+Tab from moving focus out of the editor
+        if (e.key === "Tab") {
           e.preventDefault();
-
-          const titleInput = document.getElementById("note-title-input") as HTMLElement;
-          if (titleInput) {
-            titleInput.focus();
-          }
         }
 
         if (e.key === "ArrowUp" && editor?.state.selection.empty) {

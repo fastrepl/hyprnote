@@ -5,10 +5,7 @@
   "type": "module",
   "exports": {
     "./editor": "./src/editor/index.tsx",
-    "./editor/tailwind.config": "./src/editor/tailwind.config.ts",
-    "./renderer": "./src/renderer/index.tsx",
-    "./renderer/tailwind.config": "./src/renderer/tailwind.config.ts",
-    "./renderer/style.css": "./src/renderer/style.css"
+    "./renderer": "./src/renderer/index.tsx"
   },
   "peerDependencies": {
     "react": "^18.3.1",
@@ -31,12 +28,12 @@
     "@tiptap/react": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
     "@tiptap/suggestion": "^2.11.5",
+    "clsx": "^2.1.1",
     "tippy.js": "^6.3.7"
   },
   "devDependencies": {
     "@types/node": "^22.13.13",
     "@types/react": "^18.3.20",
-    "@types/react-dom": "^18.3.5",
-    "tailwindcss": "^3.4.17"
+    "@types/react-dom": "^18.3.5"
   }
 }

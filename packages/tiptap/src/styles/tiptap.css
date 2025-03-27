@@ -36,14 +36,26 @@
     word-break: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
+    min-height: 1.5rem;
+    position: relative;
 
     /* placeholder */
-    &.is-editor-empty:first-child::before {
-      color: #d1d5db;
+    &.is-empty {
+      min-height: 1.5rem;
+      display: block;
+    }
+
+    &.is-empty::before {
+      color: #ebebeb;
       content: attr(data-placeholder);
-      float: left;
-      height: 0;
+      position: absolute;
       pointer-events: none;
+      margin-left: 0.15rem;
+    }
+
+    &:empty::after {
+      content: "\00a0";
+      visibility: hidden;
     }
   }
 
@@ -240,4 +252,8 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.ProseMirror {
+  caret-color: black;
 }

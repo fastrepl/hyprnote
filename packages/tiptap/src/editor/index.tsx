@@ -27,6 +27,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
     const editor = useEditor({
       extensions,
       editable,
+      content: initialContent || '<p></p>',
       onCreate: ({ editor }) => {
         editor.view.dom.setAttribute("spellcheck", "false");
         editor.view.dom.setAttribute("autocomplete", "off");

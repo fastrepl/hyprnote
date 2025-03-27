@@ -17,8 +17,14 @@ export const extensions = [
   }),
   Underline,
   Placeholder.configure({
-    placeholder: "Take notes about the meeting...",
-    emptyEditorClass: "is-editor-empty",
+    placeholder: ({ node }) => {
+      if (node.type.name === "paragraph") {
+        return "Start taking notes...";
+      }
+      return "";
+    },
+    emptyNodeClass: "is-empty",
+    showOnlyWhenEditable: true,
   }),
   Mention({ trigger: "#" }),
   Link.configure({

@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
 import { createContext, useContext } from "react";
 
 import { commands as authCommands } from "@hypr/plugin-auth";
@@ -11,7 +10,6 @@ export interface HyprContext {
 const HyprContext = createContext<HyprContext | null>(null);
 
 export function HyprProvider({ children }: { children: React.ReactNode }) {
-  const navigate = useNavigate();
   const userId = useQuery({
     queryKey: ["userId"],
     queryFn: () => authCommands.getFromStore("auth-user-id"),
@@ -26,13 +24,8 @@ export function HyprProvider({ children }: { children: React.ReactNode }) {
     return <div>Failed to fetch user id</div>;
   }
 
-  if (!userId.data) {
-    navigate({ to: "/login" });
-    return null;
-  }
-
   return (
-    <HyprContext.Provider value={{ userId: userId.data }}>
+    <HyprContext.Provider value={{ userId: userId.data! }}>
       {children}
     </HyprContext.Provider>
   );

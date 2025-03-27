@@ -22,14 +22,6 @@ export default function RightPanel() {
     return () => window.removeEventListener("resize", checkViewport);
   }, []);
 
-  const renderContent = () => {
-    if (currentView === "widget") {
-      return <WidgetsView />;
-    } else {
-      return <ChatView />;
-    }
-  };
-
   if (isNarrow) {
     return (
       <div className="relative h-full">
@@ -46,7 +38,7 @@ export default function RightPanel() {
           transition={{ duration: 0.14 }}
           className="right-panel-container absolute right-0 top-0 z-40 h-full w-[380px] overflow-y-auto border-l bg-neutral-50 scrollbar-none shadow-lg flex flex-col"
         >
-          {renderContent()}
+          {(currentView === "widget") ? <WidgetsView /> : <ChatView />}
         </motion.div>
       </div>
     );
@@ -59,7 +51,7 @@ export default function RightPanel() {
       transition={{ duration: 0.14 }}
       className="right-panel-container h-full overflow-y-auto border-l bg-neutral-50 scrollbar-none flex flex-col"
     >
-      {renderContent()}
+      {(currentView === "widget") ? <WidgetsView /> : <ChatView />}
     </motion.div>
   );
 }

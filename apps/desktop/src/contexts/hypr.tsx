@@ -24,8 +24,12 @@ export function HyprProvider({ children }: { children: React.ReactNode }) {
     return <div>Failed to fetch user id</div>;
   }
 
+  if (!userId.data) {
+    return null;
+  }
+
   return (
-    <HyprContext.Provider value={{ userId: userId.data! }}>
+    <HyprContext.Provider value={{ userId: userId.data }}>
       {children}
     </HyprContext.Provider>
   );

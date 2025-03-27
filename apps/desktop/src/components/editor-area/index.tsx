@@ -1,7 +1,6 @@
 import { Button } from "@hypr/ui/components/ui/button";
 import { Trans } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
-import { smoothStream, streamText } from "ai";
 import { AlignLeft, Loader2, Zap } from "lucide-react";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
@@ -17,7 +16,7 @@ import { commands as templateCommands } from "@hypr/plugin-template";
 import Editor, { TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
 import { cn } from "@hypr/ui/lib/utils";
-import { modelProvider } from "@hypr/utils";
+import { modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { NoteHeader } from "./note-header";
 
 interface EditorAreaProps {

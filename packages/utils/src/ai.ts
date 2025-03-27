@@ -6,7 +6,18 @@ import { commands as connectorCommands } from "@hypr/plugin-connector";
 
 import { fetch as customFetch } from "@hypr/utils";
 
-const getModel = async (model: string) => {
+export { generateText, smoothStream, streamText } from "ai";
+
+import { useChat as useChat$1 } from "@ai-sdk/react";
+
+export const useChat = (options: Parameters<typeof useChat$1>[0]) => {
+  return useChat$1({
+    fetch: customFetch,
+    ...options,
+  });
+};
+
+export const getModel = async (model: string) => {
   const apiBase = await connectorCommands.getApiBase("auto-llm");
   const apiKey = apiBase?.includes("localhost") || apiBase?.includes("127.0.0.1")
     ? undefined

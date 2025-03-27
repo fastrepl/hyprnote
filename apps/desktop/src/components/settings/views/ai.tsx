@@ -1,6 +1,5 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { generateText } from "ai";
 import { Check, FlaskConical, Languages, Mic } from "lucide-react";
 import { useState } from "react";
 
@@ -8,7 +7,7 @@ import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { modelProvider } from "@hypr/utils";
+import { generateText, modelProvider } from "@hypr/utils/ai";
 
 export default function LocalAI() {
   const queryClient = useQueryClient();

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { useRightPanel } from "@/contexts";
 import {
   ChatHistoryView,
   ChatInput,
@@ -9,8 +10,6 @@ import {
   FloatingActionButtons,
   Message,
 } from "../components/chat";
-
-import { useRightPanel } from "@/contexts";
 
 export function ChatView() {
   const [messages, setMessages] = useState<Message[]>([]);

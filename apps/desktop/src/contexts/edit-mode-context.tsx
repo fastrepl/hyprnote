@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, ReactNode, useContext, useState } from "react";
 
 interface EditModeContextType {
   isEditing: boolean;
@@ -25,7 +25,7 @@ export function EditModeProvider({ children }: { children: ReactNode }) {
 export function useEditMode() {
   const context = useContext(EditModeContext);
   if (context === undefined) {
-    throw new Error('useEditMode must be used within an EditModeProvider');
+    throw new Error("useEditMode must be used within an EditModeProvider");
   }
   return context;
 }

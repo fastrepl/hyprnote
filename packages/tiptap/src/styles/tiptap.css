@@ -95,38 +95,45 @@
     list-style-type: disc;
     padding-left: 1.5rem;
     margin-bottom: 0.25rem;
+    display: block;
+    position: relative;
   }
 
   /* Second-level bullets - hollow circles */
   ul ul {
-    list-style-type: circle; /* Hollow bullets for second level */
+    list-style-type: circle;
   }
 
   /* Third-level bullets - square */
   ul ul ul {
-    list-style-type: square; /* Square bullets for third level */
+    list-style-type: square;
   }
 
   ol {
     list-style-type: decimal;
     padding-left: 1.5rem;
     margin-bottom: 0.25rem;
+    display: block;
+    position: relative;
   }
 
   /* Second-level ordered items - lowercase alphabets */
   ol ol {
-    list-style-type: lower-alpha; /* a, b, c, ... */
+    list-style-type: lower-alpha;
   }
 
   /* Third-level ordered items - lowercase Roman numerals */
   ol ol ol {
-    list-style-type: lower-roman; /* i, ii, iii, ... */
+    list-style-type: lower-roman;
   }
 
   ul li,
   ol li {
     display: list-item;
     margin-bottom: 0.25rem;
+    list-style-position: outside;
+    visibility: visible;
+    position: relative;
   }
 
   ul li::marker,
@@ -136,6 +143,7 @@
 
   li p {
     margin: 0 0 0.25rem 0;
+    display: inline;
   }
 
   /* task list */
@@ -168,8 +176,8 @@
       cursor: pointer;
       appearance: none;
       -webkit-appearance: none;
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border: 2px solid #ccc;
       border-radius: 4px;
       margin: 0;
@@ -184,8 +192,8 @@
       &:checked::after {
         content: "";
         position: absolute;
-        left: 5px;
-        top: 2px;
+        left: 4.5px;
+        top: 1px;
         width: 5px;
         height: 10px;
         border: solid white;

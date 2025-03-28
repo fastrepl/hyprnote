@@ -22,8 +22,8 @@ export function NoteCard({ session, showTime = false }: { session: Session; show
 
     const url = props.to.replace("$id", props.params.id);
 
-    windowsCommands.windowEmitNavigate("main", url).then(() => {
-      windowsCommands.windowShow("main");
+    windowsCommands.windowEmitNavigate({ type: "main" }, url).then(() => {
+      windowsCommands.windowShow({ type: "main" });
     });
   };
 

@@ -175,7 +175,7 @@ export function ProfileHeader({
         {organization && !isEditing && (
           <button
             className="text-sm font-medium text-gray-700 flex items-center gap-1 hover:scale-95 transition-all hover:text-neutral-900"
-            onClick={() => windowsCommands.windowShow({ organization: organization.id })}
+            onClick={() => windowsCommands.windowShow({ type: "organization", value: organization.id })}
           >
             <Building size={14} />
             {organization.name}

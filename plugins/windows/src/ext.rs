@@ -1,44 +1,89 @@
-use tauri::{AppHandle, LogicalSize, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+use tauri::{
+    AppHandle, LogicalPosition, LogicalSize, Manager, WebviewUrl, WebviewWindow,
+    WebviewWindowBuilder,
+};
 use tauri_specta::Event;
 
 use crate::{events, WindowState};
 
-#[derive(Debug, serde::Deserialize, specta::Type, strum::EnumString, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type, PartialEq, Eq, Hash)]
+#[serde(tag = "type", content = "value")]
 pub enum HyprWindow {
     #[serde(rename = "main")]
-    #[strum(serialize = "main")]
     Main,
     #[serde(rename = "note")]
-    #[strum(serialize = "note")]
     Note(String),
     #[serde(rename = "human")]
-    #[strum(serialize = "human")]
     Human(String),
     #[serde(rename = "organization")]
-    #[strum(serialize = "organization")]
     Organization(String),
     #[serde(rename = "calendar")]
-    #[strum(serialize = "calendar")]
     Calendar,
     #[serde(rename = "settings")]
-    #[strum(serialize = "settings")]
     Settings,
     #[serde(rename = "video")]
-    #[strum(serialize = "video")]
     Video(String),
+}
+
+impl std::fmt::Display for HyprWindow {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Main => write!(f, "main"),
+            Self::Note(id) => write!(f, "note-{}", id),
+            Self::Human(id) => write!(f, "human-{}", id),
+            Self::Organization(id) => write!(f, "organization-{}", id),
+            Self::Calendar => write!(f, "calendar"),
+            Self::Settings => write!(f, "settings"),
+            Self::Video(id) => write!(f, "video-{}", id),
+        }
+    }
+}
+
+impl std::str::FromStr for HyprWindow {
+    type Err = strum::ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "main" => return Ok(Self::Main),
+            "calendar" => return Ok(Self::Calendar),
+            "settings" => return Ok(Self::Settings),
+            _ => {}
+        }
+
+        if let Some((prefix, id)) = s.split_once('-') {
+            match prefix {
+                "note" => return Ok(Self::Note(id.to_string())),
+                "human" => return Ok(Self::Human(id.to_string())),
+                "organization" => return Ok(Self::Organization(id.to_string())),
+                "video" => return Ok(Self::Video(id.to_string())),
+                _ => {}
+            }
+        }
+
+        Err(strum::ParseError::VariantNotFound)
+    }
+}
+
+#[derive(
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    specta::Type,
+    strum::EnumString,
+    PartialEq,
+    Eq,
+    Hash,
+)]
+pub enum KnownPosition {
+    #[serde(rename = "left-half")]
+    LeftHalf,
+    #[serde(rename = "right-half")]
+    RightHalf,
 }
 
 impl HyprWindow {
     pub fn label(&self) -> String {
-        match self {
-            Self::Main => "main".into(),
-            Self::Note(id) => format!("note-{}", id),
-            Self::Human(id) => format!("human-{}", id),
-            Self::Organization(id) => format!("organization-{}", id),
-            Self::Calendar => "calendar".into(),
-            Self::Settings => "settings".into(),
-            Self::Video(id) => format!("video-{}", id),
-        }
+        self.to_string()
     }
 
     pub fn emit_navigate(
@@ -89,6 +134,38 @@ impl HyprWindow {
             .ok_or(crate::Error::WindowNotFound(label))
     }
 
+    pub fn position(
+        &self,
+        app: &AppHandle<tauri::Wry>,
+        pos: KnownPosition,
+    ) -> Result<(), crate::Error> {
+        let window = self.get(app)?;
+
+        let monitor = window
+            .current_monitor()?
+            .ok_or(crate::Error::MonitorNotFound)?;
+
+        let monitor_size = monitor.size();
+        let window_size = window.outer_size()?;
+
+        let scale_factor = window.scale_factor()?;
+        let logical_monitor_width = monitor_size.width as f64 / scale_factor;
+        let logical_monitor_height = monitor_size.height as f64 / scale_factor;
+        let logical_window_width = window_size.width as f64 / scale_factor;
+        let logical_window_height = window_size.height as f64 / scale_factor;
+
+        let split_point = logical_monitor_width * 0.5;
+        let overlap = -4.0;
+
+        let y = (logical_monitor_height - logical_window_height) / 2.0;
+        let x = match pos {
+            KnownPosition::LeftHalf => split_point - logical_window_width + overlap,
+            KnownPosition::RightHalf => split_point - overlap,
+        };
+
+        window.set_position(LogicalPosition::new(x, y))?;
+        Ok(())
+    }
     pub fn show(&self, app: &AppHandle<tauri::Wry>) -> Result<WebviewWindow, crate::Error> {
         let (window, created) = match self.get(app) {
             Ok(window) => (window, false),
@@ -100,7 +177,7 @@ impl HyprWindow {
                     Self::Organization(id) => &format!("/app/organization/{}", id),
                     Self::Calendar => "/app/calendar",
                     Self::Settings => "/app/settings",
-                    Self::Video(id) => &format!("/app/video?id={}", id),
+                    Self::Video(id) => &format!("/video?id={}", id),
                 };
                 (self.window_builder(app, url).build()?, true)
             }
@@ -204,17 +281,11 @@ impl HyprWindow {
                     window.hide()?;
                     std::thread::sleep(std::time::Duration::from_millis(100));
 
+                    window.set_resizable(false)?;
                     window.set_maximizable(false)?;
                     window.set_minimizable(false)?;
-                    window.set_size(LogicalSize::new(640.0, 532.0))?;
-                    window.set_min_size(Some(LogicalSize::new(640.0, 532.0)))?;
-
-                    {
-                        let mut cursor = app.cursor_position().unwrap();
-                        cursor.x -= 640.0;
-                        cursor.y -= 30.0;
-                        window.set_position(cursor)?;
-                    }
+                    window.set_size(LogicalSize::new(640.0, 360.0))?;
+                    window.set_min_size(Some(LogicalSize::new(640.0, 360.0)))?;
                 }
             };
         }
@@ -248,6 +319,8 @@ impl HyprWindow {
 
 pub trait WindowsPluginExt<R: tauri::Runtime> {
     fn window_show(&self, window: HyprWindow) -> Result<WebviewWindow, crate::Error>;
+    fn window_position(&self, window: HyprWindow, pos: KnownPosition) -> Result<(), crate::Error>;
+
     fn window_get_floating(&self, window: HyprWindow) -> Result<bool, crate::Error>;
     fn window_set_floating(&self, window: HyprWindow, v: bool) -> Result<(), crate::Error>;
 
@@ -267,6 +340,10 @@ pub trait WindowsPluginExt<R: tauri::Runtime> {
 impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
     fn window_show(&self, window: HyprWindow) -> Result<WebviewWindow, crate::Error> {
         window.show(self)
+    }
+
+    fn window_position(&self, window: HyprWindow, pos: KnownPosition) -> Result<(), crate::Error> {
+        window.position(self, pos)
     }
 
     fn window_get_floating(&self, window: HyprWindow) -> Result<bool, crate::Error> {

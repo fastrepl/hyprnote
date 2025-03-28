@@ -3,6 +3,7 @@
 Default permissions for the plugin
 
 - `allow-window-show`
+- `allow-window-position`
 - `allow-window-get-floating`
 - `allow-window-set-floating`
 - `allow-window-navigate`
@@ -91,6 +92,32 @@ Enables the window_navigate command without any pre-configured scope.
 <td>
 
 Denies the window_navigate command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:allow-window-position`
+
+</td>
+<td>
+
+Enables the window_position command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:deny-window-position`
+
+</td>
+<td>
+
+Denies the window_position command without any pre-configured scope.
 
 </td>
 </tr>

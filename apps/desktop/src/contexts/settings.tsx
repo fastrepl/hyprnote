@@ -16,7 +16,7 @@ export function SettingsProvider({
   children: React.ReactNode;
 }) {
   const open = useCallback(() => {
-    windowsCommands.windowShow("settings");
+    windowsCommands.windowShow({ type: "settings" });
   }, []);
 
   useHotkeys(

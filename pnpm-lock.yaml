@@ -189,6 +189,9 @@ importers:
       '@mux/mux-player-react':
         specifier: ^3.3.1
         version: 3.3.1(@types/react-dom@18.3.5(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mux/mux-video':
+        specifier: ^0.24.4
+        version: 0.24.4
       '@radix-ui/react-dialog':
         specifier: ^1.1.6
         version: 1.1.6(@types/react-dom@18.3.5(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -325,6 +328,9 @@ importers:
       '@lingui/vite-plugin':
         specifier: ^5.3.0
         version: 5.3.0(typescript@5.8.2)(vite@5.4.15(@types/node@22.13.13))
+      '@mux/mux-player':
+        specifier: ^3.3.1
+        version: 3.3.1(react@18.3.1)
       '@tanstack/router-plugin':
         specifier: ^1.114.27
         version: 1.114.27(@tanstack/react-router@1.114.27(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(vite@5.4.15(@types/node@22.13.13))

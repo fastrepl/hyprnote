@@ -26,9 +26,13 @@ pub struct State {
 fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
     tauri_specta::Builder::<tauri::Wry>::new()
         .plugin_name(PLUGIN_NAME)
-        .events(tauri_specta::collect_events![events::Navigate])
+        .events(tauri_specta::collect_events![
+            events::Navigate,
+            events::WindowDestroyed,
+        ])
         .commands(tauri_specta::collect_commands![
             commands::window_show,
+            commands::window_position,
             commands::window_get_floating,
             commands::window_set_floating,
             commands::window_navigate,

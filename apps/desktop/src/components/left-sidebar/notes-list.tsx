@@ -186,7 +186,7 @@ function NoteItem({
   };
 
   const handleOpenWindow = () => {
-    windowsCommands.windowShow({ note: currentSession.id });
+    windowsCommands.windowShow({ type: "note", value: currentSession.id });
   };
 
   const handleOpenCalendar = () => {
@@ -197,8 +197,8 @@ function NoteItem({
 
     const url = props.to.concat(`?sessionId=${props.search.sessionId}`);
 
-    windowsCommands.windowEmitNavigate("calendar", url).then(() => {
-      windowsCommands.windowShow("calendar");
+    windowsCommands.windowEmitNavigate({ type: "calendar" }, url).then(() => {
+      windowsCommands.windowShow({ type: "calendar" });
     });
   };
   const html2text = (html: string) => {

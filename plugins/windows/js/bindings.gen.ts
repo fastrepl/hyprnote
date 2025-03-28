@@ -10,6 +10,9 @@ export const commands = {
 async windowShow(window: HyprWindow) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|window_show", { window });
 },
+async windowPosition(window: HyprWindow, pos: KnownPosition) : Promise<null> {
+    return await TAURI_INVOKE("plugin:windows|window_position", { window, pos });
+},
 async windowGetFloating(window: HyprWindow) : Promise<boolean> {
     return await TAURI_INVOKE("plugin:windows|window_get_floating", { window });
 },
@@ -28,9 +31,11 @@ async windowEmitNavigate(window: HyprWindow, path: string) : Promise<null> {
 
 
 export const events = __makeEvents__<{
-navigate: Navigate
+navigate: Navigate,
+windowDestroyed: WindowDestroyed
 }>({
-navigate: "plugin:windows:navigate"
+navigate: "plugin:windows:navigate",
+windowDestroyed: "plugin:windows:window-destroyed"
 })
 
 /** user-defined constants **/
@@ -39,8 +44,10 @@ navigate: "plugin:windows:navigate"
 
 /** user-defined types **/
 
-export type HyprWindow = "main" | { note: string } | { human: string } | { organization: string } | "calendar" | "settings" | { video: string }
+export type HyprWindow = { type: "main" } | { type: "note"; value: string } | { type: "human"; value: string } | { type: "organization"; value: string } | { type: "calendar" } | { type: "settings" } | { type: "video"; value: string }
+export type KnownPosition = "left-half" | "right-half"
 export type Navigate = { path: string }
+export type WindowDestroyed = { window: HyprWindow }
 
 /** tauri-specta globals **/
 

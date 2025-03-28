@@ -6,7 +6,11 @@ import EditorArea from "@/components/editor-area";
 import RightPanel from "@/components/right-panel";
 import { useOngoingSession, useSession } from "@/contexts";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
-import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import {
+  commands as windowsCommands,
+  events as windowsEvents,
+  getCurrentWebviewWindowLabel,
+} from "@hypr/plugin-windows";
 
 const PATH = "/app/note/$id";
 
@@ -39,14 +43,33 @@ export const Route = createFileRoute(PATH)({
       },
     });
   },
+  loader: async ({ params: { id } }) => {
+    return { isDemo: true, video: "cVEAlhaghbBcj1eZDW202URXSJq3ewZb02l7C9jG5mKrY" };
+  },
   component: Component,
 });
 
 function Component() {
+  const { isDemo, video } = Route.useLoaderData();
   const { id: sessionId } = useParams({ from: PATH });
 
   const { getSession } = useSession(sessionId, (s) => ({ getSession: s.get }));
-  const getOngoingSession = useOngoingSession((s) => s.get);
+  const { getOngoingSession, pauseOngoingSession } = useOngoingSession((s) => ({
+    getOngoingSession: s.get,
+    pauseOngoingSession: s.pause,
+  }));
+
+  useEffect(() => {
+    if (!isDemo) {
+      return;
+    }
+
+    windowsEvents.windowDestroyed.listen(({ payload }) => {
+      if (payload.window.type === "video") {
+        pauseOngoingSession();
+      }
+    });
+  }, [isDemo]);
 
   useEffect(() => {
     const isEmpty = (s: string | null) => s === "<p></p>" || !s;
@@ -66,6 +89,17 @@ function Component() {
       }
     };
   }, [getSession]);
+
+  useEffect(() => {
+    if (!isDemo) {
+      return;
+    }
+
+    windowsCommands.windowShow({ type: "video", value: video }).then(() => {
+      windowsCommands.windowPosition({ type: "video", value: video }, "left-half");
+      windowsCommands.windowPosition({ type: "main" }, "right-half");
+    });
+  }, [isDemo]);
 
   const queryClient = useQueryClient();
 

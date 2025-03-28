@@ -325,6 +325,16 @@
           "const": "deny-window-navigate"
         },
         {
+          "description": "Enables the window_position command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-window-position"
+        },
+        {
+          "description": "Denies the window_position command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-window-position"
+        },
+        {
           "description": "Enables the window_set_floating command without any pre-configured scope.",
           "type": "string",
           "const": "allow-window-set-floating"

@@ -35,9 +35,9 @@ export function WidgetsView() {
 
     const url = `${params.to}?current=${params.search.current}`;
 
-    windowsCommands.windowShow("settings").then(() => {
+    windowsCommands.windowShow({ type: "settings" }).then(() => {
       setTimeout(() => {
-        windowsCommands.windowEmitNavigate("settings", url);
+        windowsCommands.windowEmitNavigate({ type: "settings" }, url);
       }, 500);
     });
   };

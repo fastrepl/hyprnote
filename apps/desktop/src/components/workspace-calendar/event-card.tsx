@@ -30,8 +30,8 @@ export function EventCard({ event, showTime = false }: { event: Event; showTime?
 
       const url = props.to.replace("$id", props.params.id);
 
-      windowsCommands.windowEmitNavigate("main", url).then(() => {
-        windowsCommands.windowShow("main");
+      windowsCommands.windowEmitNavigate({ type: "main" }, url).then(() => {
+        windowsCommands.windowShow({ type: "main" });
       });
     } else {
       const props = {
@@ -41,8 +41,8 @@ export function EventCard({ event, showTime = false }: { event: Event; showTime?
 
       const url = props.to.concat(`?calendarEventId=${props.search.calendarEventId}`);
 
-      windowsCommands.windowEmitNavigate("main", url).then(() => {
-        windowsCommands.windowShow("main");
+      windowsCommands.windowEmitNavigate({ type: "main" }, url).then(() => {
+        windowsCommands.windowShow({ type: "main" });
       });
     }
   };

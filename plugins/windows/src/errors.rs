@@ -6,6 +6,8 @@ pub enum Error {
     TauriError(#[from] tauri::Error),
     #[error("window not found: {0}")]
     WindowNotFound(String),
+    #[error("monitor not found")]
+    MonitorNotFound,
 }
 
 impl Serialize for Error {

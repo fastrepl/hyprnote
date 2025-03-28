@@ -104,11 +104,11 @@ export default function LeftSidebar() {
 
 function TopArea() {
   const handleClickSettings = () => {
-    windowsCommands.windowShow("settings");
+    windowsCommands.windowShow({ type: "settings" });
   };
 
   const handleClickCalendar = () => {
-    windowsCommands.windowShow("calendar");
+    windowsCommands.windowShow({ type: "calendar" });
   };
 
   return (

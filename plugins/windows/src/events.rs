@@ -1,13 +1,18 @@
 use tauri::Manager;
+use tauri_specta::Event;
 
 use crate::HyprWindow;
 
 pub fn on_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: &tauri::WindowEvent) {
     match event {
         tauri::WindowEvent::CloseRequested { api, .. } => {
-            if let Ok(w) = window.label().parse::<HyprWindow>() {
-                if w == HyprWindow::Main && window.hide().is_ok() {
-                    api.prevent_close();
+            match window.label().parse::<HyprWindow>() {
+                Err(e) => tracing::warn!("window_parse_error: {:?}", e),
+                Ok(w) => {
+                    println!("CloseRequested event received: {:?}", w);
+                    if w == HyprWindow::Main && window.hide().is_ok() {
+                        api.prevent_close();
+                    }
                 }
             }
         }
@@ -15,11 +20,16 @@ pub fn on_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: &tau
             let app = window.app_handle();
             let state = app.state::<crate::ManagedState>();
 
-            {
-                let mut guard = state.lock().unwrap();
+            match window.label().parse::<HyprWindow>() {
+                Err(e) => tracing::warn!("window_parse_error: {:?}", e),
+                Ok(w) => {
+                    {
+                        let mut guard = state.lock().unwrap();
+                        guard.windows.remove(&w);
+                    }
 
-                if let Ok(w) = window.label().parse::<HyprWindow>() {
-                    guard.windows.remove(&w);
+                    let event = WindowDestroyed { window: w };
+                    let _ = event.emit(app);
                 }
             }
         }
@@ -30,4 +40,9 @@ pub fn on_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: &tau
 #[derive(serde::Serialize, Clone, specta::Type, tauri_specta::Event)]
 pub struct Navigate {
     pub path: String,
+}
+
+#[derive(serde::Serialize, Clone, specta::Type, tauri_specta::Event)]
+pub struct WindowDestroyed {
+    pub window: HyprWindow,
 }

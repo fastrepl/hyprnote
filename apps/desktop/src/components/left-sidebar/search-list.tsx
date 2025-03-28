@@ -159,7 +159,7 @@ function HumanMatch({ match: { item: human } }: { match: SearchMatch & { type: "
   };
 
   const handleOpenWindow = () => {
-    windowsCommands.windowShow({ human: human.id });
+    windowsCommands.windowShow({ type: "human", value: human.id });
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -220,7 +220,7 @@ function OrganizationMatch(
   };
 
   const handleOpenWindow = () => {
-    windowsCommands.windowShow({ organization: organization.id });
+    windowsCommands.windowShow({ type: "organization", value: organization.id });
   };
 
   const handleOpenChange = (open: boolean) => {

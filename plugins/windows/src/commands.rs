@@ -1,4 +1,4 @@
-use crate::{HyprWindow, WindowsPluginExt};
+use crate::{HyprWindow, KnownPosition, WindowsPluginExt};
 
 #[tauri::command]
 #[specta::specta]
@@ -10,6 +10,17 @@ pub async fn window_show(
     Ok(())
 }
 
+#[tauri::command]
+#[specta::specta]
+pub async fn window_position(
+    app: tauri::AppHandle<tauri::Wry>,
+    window: HyprWindow,
+    pos: KnownPosition,
+) -> Result<(), String> {
+    app.window_position(window, pos)
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
 #[tauri::command]
 #[specta::specta]
 pub async fn window_get_floating(

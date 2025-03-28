@@ -12,9 +12,9 @@ export function NewWindowButton() {
 
   const handleClick = () => {
     if (organizationMatch?.params.id) {
-      windowsCommands.windowShow({ organization: organizationMatch.params.id });
+      windowsCommands.windowShow({ type: "organization", value: organizationMatch.params.id });
     } else if (humanMatch?.params.id) {
-      windowsCommands.windowShow({ human: humanMatch.params.id });
+      windowsCommands.windowShow({ type: "human", value: humanMatch.params.id });
     }
   };
 

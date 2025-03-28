@@ -32,7 +32,7 @@ export function MembersList({ organizationId }: MembersListProps) {
         {members.slice(0, 5).map((member) => (
           <button
             key={member.id}
-            onClick={() => windowsCommands.windowShow({ human: member.id })}
+            onClick={() => windowsCommands.windowShow({ type: "human", value: member.id })}
             className="flex items-center p-2 rounded-md hover:bg-muted w-full text-left"
           >
             <Avatar className="h-8 w-8 mr-2">

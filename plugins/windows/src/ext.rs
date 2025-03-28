@@ -171,8 +171,10 @@ impl HyprWindow {
     }
 
     fn destroy(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
-        let window = self.get(app)?;
-        window.destroy()?;
+        if let Ok(window) = self.get(app) {
+            window.destroy()?;
+        }
+
         Ok(())
     }
 

@@ -525,6 +525,16 @@
           "const": "deny-list-templates"
         },
         {
+          "description": "Enables the onboarding_session_id command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-onboarding-session-id"
+        },
+        {
+          "description": "Denies the onboarding_session_id command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-onboarding-session-id"
+        },
+        {
           "description": "Enables the session_add_participant command without any pre-configured scope.",
           "type": "string",
           "const": "allow-session-add-participant"

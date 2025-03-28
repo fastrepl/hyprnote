@@ -3,6 +3,7 @@ const COMMANDS: &[&str] = &[
     "list_calendars",
     "upsert_calendar",
     // session
+    "onboarding_session_id",
     "visit_session",
     "upsert_session",
     "list_sessions",

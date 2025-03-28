@@ -36,7 +36,7 @@ function Component() {
       <MuxPlayer
         ref={player}
         playbackId={id}
-        autoPlay={false}
+        autoPlay={true}
         style={styles}
         loading="viewport"
       />

@@ -4,6 +4,10 @@ use super::{
 };
 
 impl UserDatabase {
+    pub async fn onboarding_session_id(&self) -> String {
+        "df1d8c52-6d9d-4471-aff1-5dbd35899cbe".to_string()
+    }
+
     pub async fn get_session(
         &self,
         filter: GetSessionFilter,

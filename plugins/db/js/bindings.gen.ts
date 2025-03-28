@@ -34,6 +34,9 @@ async upsertTemplate(template: Template) : Promise<Template> {
 async deleteTemplate(id: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:db|delete_template", { id });
 },
+async onboardingSessionId() : Promise<string> {
+    return await TAURI_INVOKE("plugin:db|onboarding_session_id");
+},
 async listSessions(filter: ListSessionFilter | null) : Promise<Session[]> {
     return await TAURI_INVOKE("plugin:db|list_sessions", { filter });
 },

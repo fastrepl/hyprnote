@@ -1,6 +1,24 @@
 #[tauri::command]
 #[specta::specta]
 #[tracing::instrument(skip(state))]
+pub async fn onboarding_session_id(
+    state: tauri::State<'_, crate::ManagedState>,
+) -> Result<String, String> {
+    let guard = state.lock().await;
+
+    let db = guard
+        .db
+        .as_ref()
+        .ok_or(crate::Error::NoneDatabase)
+        .map_err(|e| e.to_string())?;
+
+    let id = db.onboarding_session_id().await;
+    Ok(id)
+}
+
+#[tauri::command]
+#[specta::specta]
+#[tracing::instrument(skip(state))]
 pub async fn upsert_session(
     state: tauri::State<'_, crate::ManagedState>,
     session: hypr_db_user::Session,

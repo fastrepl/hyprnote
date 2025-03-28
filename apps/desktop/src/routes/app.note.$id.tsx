@@ -44,7 +44,8 @@ export const Route = createFileRoute(PATH)({
     });
   },
   loader: async ({ params: { id } }) => {
-    return { isDemo: true, video: "cVEAlhaghbBcj1eZDW202URXSJq3ewZb02l7C9jG5mKrY" };
+    const onboardingSessionId = await dbCommands.onboardingSessionId();
+    return { isDemo: id === onboardingSessionId, video: "cVEAlhaghbBcj1eZDW202URXSJq3ewZb02l7C9jG5mKrY" };
   },
   component: Component,
 });
@@ -54,11 +55,22 @@ function Component() {
   const { id: sessionId } = useParams({ from: PATH });
 
   const { getSession } = useSession(sessionId, (s) => ({ getSession: s.get }));
-  const { getOngoingSession, pauseOngoingSession, ongoingSessionStatus } = useOngoingSession((s) => ({
+  const { getOngoingSession, startOngoingSession, pauseOngoingSession, ongoingSessionStatus } = useOngoingSession((
+    s,
+  ) => ({
     getOngoingSession: s.get,
+    startOngoingSession: s.start,
     pauseOngoingSession: s.pause,
     ongoingSessionStatus: s.status,
   }));
+
+  useEffect(() => {
+    if (!isDemo) {
+      return;
+    }
+
+    startOngoingSession(sessionId);
+  }, [isDemo]);
 
   useEffect(() => {
     if (!isDemo) {
@@ -91,9 +103,7 @@ function Component() {
     }
 
     if (ongoingSessionStatus === "inactive") {
-      windowsCommands.windowDestroy({ type: "video", value: video }).then(() => {
-        windowsCommands.windowPosition({ type: "main" }, "center");
-      });
+      windowsCommands.windowDestroy({ type: "video", value: video });
     }
   }, [isDemo, ongoingSessionStatus]);
 

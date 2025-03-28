@@ -3,6 +3,66 @@ use super::{
     Session, Tag, UserDatabase,
 };
 
+pub async fn seed2(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), crate::Error> {
+    let user_id = user_id.into();
+
+    let default_calendar = Calendar {
+        id: uuid::Uuid::new_v4().to_string(),
+        user_id: user_id.clone(),
+        tracking_id: uuid::Uuid::new_v4().to_string(),
+        name: "Default".to_string(),
+        platform: Platform::Apple,
+        selected: false,
+    };
+
+    let onboarding_event = Event {
+        id: uuid::Uuid::new_v4().to_string(),
+        user_id: user_id.clone(),
+        tracking_id: uuid::Uuid::new_v4().to_string(),
+        name: "Onboarding".to_string(),
+        note: "".to_string(),
+        calendar_id: default_calendar.id.clone(),
+        start_date: chrono::Utc::now() + chrono::Duration::minutes(3),
+        end_date: chrono::Utc::now() + chrono::Duration::minutes(10),
+        google_event_url: None,
+    };
+
+    let onboarding_session_id = db.onboarding_session_id().await;
+
+    let session_1 = Session {
+        id: uuid::Uuid::new_v4().to_string(),
+        user_id: user_id.clone(),
+        title: "User Manual".to_string(),
+        created_at: chrono::Utc::now(),
+        visited_at: chrono::Utc::now(),
+        calendar_event_id: None,
+        raw_memo_html: "TODO".to_string(),
+        enhanced_memo_html: None,
+        conversations: vec![],
+    };
+
+    let session_2 = Session {
+        id: onboarding_session_id,
+        user_id: user_id.clone(),
+        title: "Hyprnote Onboarding".to_string(),
+        created_at: chrono::Utc::now() + chrono::Duration::days(2),
+        visited_at: chrono::Utc::now() + chrono::Duration::days(2),
+        calendar_event_id: Some(onboarding_event.id.clone()),
+        raw_memo_html: "TODO".to_string(),
+        enhanced_memo_html: None,
+        conversations: vec![],
+    };
+
+    let _ = db.upsert_calendar(default_calendar).await?;
+    let _ = db.upsert_event(onboarding_event).await?;
+
+    for session in [session_1, session_2] {
+        let _ = db.upsert_session(session).await?;
+    }
+
+    Ok(())
+}
+
 pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), crate::Error> {
     let now = chrono::Utc::now();
 

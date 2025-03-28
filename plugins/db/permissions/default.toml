@@ -2,6 +2,7 @@
 description = "Default permissions for the plugin"
 permissions = [
     # session
+    "allow-onboarding-session-id",
     "allow-upsert-session",
     "allow-list-sessions",
     "allow-get-session",

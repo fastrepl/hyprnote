@@ -11,13 +11,13 @@ interface FloatingActionButtonsProps {
 export function FloatingActionButtons({ onNewChat, onViewHistory }: FloatingActionButtonsProps) {
   return (
     <TooltipProvider>
-      <div className="absolute top-4 right-4 z-10 flex group border rounded-lg overflow-clip divide-x bg-background/40 group-hover:bg-background transition-colors">
+      <div className="absolute top-4 right-4 z-10 flex group border rounded-lg overflow-clip divide-x bg-background/40 transition-colors">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className="opacity-20 group-hover:opacity-100 transition-opacity rounded-none"
+              className="opacity-20 group-hover:opacity-100 transition-opacity rounded-none hover:bg-white"
               onClick={onNewChat}
             >
               <PlusIcon className="h-4 w-4" />
@@ -34,7 +34,7 @@ export function FloatingActionButtons({ onNewChat, onViewHistory }: FloatingActi
             <Button
               variant="ghost"
               size="icon"
-              className="opacity-20 group-hover:opacity-100 transition-opacity rounded-none"
+              className="opacity-20 group-hover:opacity-100 transition-opacity rounded-none hover:bg-white"
               onClick={onViewHistory}
             >
               <ClockIcon className="h-4 w-4" />

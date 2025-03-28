@@ -17,7 +17,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       >
         {message.isUser ? <Trans>User:</Trans> : <Trans>Assistant:</Trans>}
       </div>
-      <div className="text-sm whitespace-pre-wrap">
+      <div className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-full">
         {message.content}
       </div>
     </div>

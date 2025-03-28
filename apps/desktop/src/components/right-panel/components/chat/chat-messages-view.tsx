@@ -14,7 +14,7 @@ export function ChatMessagesView({ messages }: ChatMessagesViewProps) {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex-1 flex flex-col overflow-y-auto p-4 gap-4 scrollbar-none">
       {messages.map((message) => <ChatMessage key={message.id} message={message} />)}
       <div ref={messagesEndRef} />
     </div>

@@ -10,6 +10,9 @@ export const commands = {
 async windowShow(window: HyprWindow) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|window_show", { window });
 },
+async windowDestroy(window: HyprWindow) : Promise<null> {
+    return await TAURI_INVOKE("plugin:windows|window_destroy", { window });
+},
 async windowPosition(window: HyprWindow, pos: KnownPosition) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|window_position", { window, pos });
 },
@@ -45,7 +48,7 @@ windowDestroyed: "plugin:windows:window-destroyed"
 /** user-defined types **/
 
 export type HyprWindow = { type: "main" } | { type: "note"; value: string } | { type: "human"; value: string } | { type: "organization"; value: string } | { type: "calendar" } | { type: "settings" } | { type: "video"; value: string }
-export type KnownPosition = "left-half" | "right-half"
+export type KnownPosition = "left-half" | "right-half" | "center"
 export type Navigate = { path: string }
 export type WindowDestroyed = { window: HyprWindow }
 

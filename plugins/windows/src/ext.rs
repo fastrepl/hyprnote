@@ -79,6 +79,8 @@ pub enum KnownPosition {
     LeftHalf,
     #[serde(rename = "right-half")]
     RightHalf,
+    #[serde(rename = "center")]
+    Center,
 }
 
 impl HyprWindow {
@@ -161,11 +163,19 @@ impl HyprWindow {
         let x = match pos {
             KnownPosition::LeftHalf => split_point - logical_window_width + overlap,
             KnownPosition::RightHalf => split_point - overlap,
+            KnownPosition::Center => split_point - logical_window_width / 2.0,
         };
 
         window.set_position(LogicalPosition::new(x, y))?;
         Ok(())
     }
+
+    fn destroy(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
+        let window = self.get(app)?;
+        window.destroy()?;
+        Ok(())
+    }
+
     pub fn show(&self, app: &AppHandle<tauri::Wry>) -> Result<WebviewWindow, crate::Error> {
         let (window, created) = match self.get(app) {
             Ok(window) => (window, false),
@@ -319,6 +329,7 @@ impl HyprWindow {
 
 pub trait WindowsPluginExt<R: tauri::Runtime> {
     fn window_show(&self, window: HyprWindow) -> Result<WebviewWindow, crate::Error>;
+    fn window_destroy(&self, window: HyprWindow) -> Result<(), crate::Error>;
     fn window_position(&self, window: HyprWindow, pos: KnownPosition) -> Result<(), crate::Error>;
 
     fn window_get_floating(&self, window: HyprWindow) -> Result<bool, crate::Error>;
@@ -340,6 +351,10 @@ pub trait WindowsPluginExt<R: tauri::Runtime> {
 impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
     fn window_show(&self, window: HyprWindow) -> Result<WebviewWindow, crate::Error> {
         window.show(self)
+    }
+
+    fn window_destroy(&self, window: HyprWindow) -> Result<(), crate::Error> {
+        window.destroy(self)
     }
 
     fn window_position(&self, window: HyprWindow, pos: KnownPosition) -> Result<(), crate::Error> {

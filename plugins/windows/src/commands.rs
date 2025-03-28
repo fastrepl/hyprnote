@@ -12,6 +12,16 @@ pub async fn window_show(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn window_destroy(
+    app: tauri::AppHandle<tauri::Wry>,
+    window: HyprWindow,
+) -> Result<(), String> {
+    app.window_destroy(window).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn window_position(
     app: tauri::AppHandle<tauri::Wry>,
     window: HyprWindow,

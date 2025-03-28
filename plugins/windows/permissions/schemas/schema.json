@@ -295,6 +295,16 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the window_destroy command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-window-destroy"
+        },
+        {
+          "description": "Denies the window_destroy command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-window-destroy"
+        },
+        {
           "description": "Enables the window_emit_navigate command without any pre-configured scope.",
           "type": "string",
           "const": "allow-window-emit-navigate"

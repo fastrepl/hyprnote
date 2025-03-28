@@ -3,6 +3,7 @@
 Default permissions for the plugin
 
 - `allow-window-show`
+- `allow-window-destroy`
 - `allow-window-position`
 - `allow-window-get-floating`
 - `allow-window-set-floating`
@@ -17,6 +18,32 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`windows:allow-window-destroy`
+
+</td>
+<td>
+
+Enables the window_destroy command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:deny-window-destroy`
+
+</td>
+<td>
+
+Denies the window_destroy command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>

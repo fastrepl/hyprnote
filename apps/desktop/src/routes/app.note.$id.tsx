@@ -54,9 +54,10 @@ function Component() {
   const { id: sessionId } = useParams({ from: PATH });
 
   const { getSession } = useSession(sessionId, (s) => ({ getSession: s.get }));
-  const { getOngoingSession, pauseOngoingSession } = useOngoingSession((s) => ({
+  const { getOngoingSession, pauseOngoingSession, ongoingSessionStatus } = useOngoingSession((s) => ({
     getOngoingSession: s.get,
     pauseOngoingSession: s.pause,
+    ongoingSessionStatus: s.status,
   }));
 
   useEffect(() => {
@@ -64,12 +65,37 @@ function Component() {
       return;
     }
 
+    let unlisten: () => void;
+
     windowsEvents.windowDestroyed.listen(({ payload }) => {
       if (payload.window.type === "video") {
         pauseOngoingSession();
       }
+    }).then((u) => {
+      unlisten = u;
     });
+
+    return () => unlisten?.();
   }, [isDemo]);
+
+  useEffect(() => {
+    if (!isDemo) {
+      return;
+    }
+
+    if (ongoingSessionStatus === "active") {
+      windowsCommands.windowShow({ type: "video", value: video }).then(() => {
+        windowsCommands.windowPosition({ type: "video", value: video }, "left-half");
+        windowsCommands.windowPosition({ type: "main" }, "right-half");
+      });
+    }
+
+    if (ongoingSessionStatus === "inactive") {
+      windowsCommands.windowDestroy({ type: "video", value: video }).then(() => {
+        windowsCommands.windowPosition({ type: "main" }, "center");
+      });
+    }
+  }, [isDemo, ongoingSessionStatus]);
 
   useEffect(() => {
     const isEmpty = (s: string | null) => s === "<p></p>" || !s;
@@ -89,17 +115,6 @@ function Component() {
       }
     };
   }, [getSession]);
-
-  useEffect(() => {
-    if (!isDemo) {
-      return;
-    }
-
-    windowsCommands.windowShow({ type: "video", value: video }).then(() => {
-      windowsCommands.windowPosition({ type: "video", value: video }, "left-half");
-      windowsCommands.windowPosition({ type: "main" }, "right-half");
-    });
-  }, [isDemo]);
 
   const queryClient = useQueryClient();
 

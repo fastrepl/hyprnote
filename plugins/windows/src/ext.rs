@@ -118,7 +118,7 @@ impl HyprWindow {
                     window.set_minimizable(true)?;
 
                     window.set_size(LogicalSize::new(800.0, 600.0))?;
-                    window.set_min_size(Some(LogicalSize::new(480.0, 360.0)))?;
+                    window.set_min_size(Some(LogicalSize::new(620.0, 500.0)))?;
                 }
                 Self::Note(_) => {
                     window.hide()?;

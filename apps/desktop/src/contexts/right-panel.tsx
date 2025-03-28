@@ -22,7 +22,7 @@ export function RightPanelProvider({
   children: React.ReactNode;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [currentView, setCurrentView] = useState<RightPanelView>("chat");
+  const [currentView, setCurrentView] = useState<RightPanelView>("widget");
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
 
   const noteChatQuery = useQuery({

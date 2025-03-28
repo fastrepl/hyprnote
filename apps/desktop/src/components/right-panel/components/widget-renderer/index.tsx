@@ -96,6 +96,7 @@ export default function WidgetRenderer({ widgets }: { widgets: WidgetConfig[] })
       isResizable={false}
       compactType="vertical"
       draggableCancel=".not-draggable"
+      className="overflow-y-auto"
     >
       {widgets.map(widget => (
         <div key={getID(widget)}>

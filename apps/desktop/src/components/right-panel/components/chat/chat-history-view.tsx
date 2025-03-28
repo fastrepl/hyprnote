@@ -11,7 +11,6 @@ interface ChatHistoryViewProps {
   onSelectChat: (chatId: string) => void;
   onNewChat: () => void;
   onBackToChat: () => void;
-  formatDate: (date: Date) => string;
 }
 
 export function ChatHistoryView({
@@ -21,7 +20,6 @@ export function ChatHistoryView({
   onSelectChat,
   onNewChat,
   onBackToChat,
-  formatDate,
 }: ChatHistoryViewProps) {
   return (
     <div className="flex flex-col h-full">
@@ -70,7 +68,6 @@ export function ChatHistoryView({
                 <ChatHistoryItem
                   chat={chat}
                   onSelect={onSelectChat}
-                  formatDate={formatDate}
                 />
 
                 {isLastInSection && index < chatHistory.length - 1 && (

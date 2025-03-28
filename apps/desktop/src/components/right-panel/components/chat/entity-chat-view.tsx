@@ -1,114 +1,64 @@
-import { useMatch, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-
-import { BadgeType, Message } from "@/components/right-panel/components/chat";
-import { useSession } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import {
+  BadgeType,
+  ChatHistoryView,
+  ChatInput,
+  ChatMessagesView,
+  EmptyChatState,
+  FloatingActionButtons,
+  Message,
+} from "../../components/chat";
+import { ActiveEntityInfo } from "./types";
+import { getMockChatHistory } from "./utils";
 
-interface ActiveNoteInfo {
-  id: string;
-  title: string;
+interface EntityChatViewProps {
+  entityId: string;
+  entityType: BadgeType;
 }
 
-interface ActiveEntityInfo {
-  id: string;
-  name: string;
-  type: BadgeType;
-}
-
-export function useChat() {
-  // Chat state
+export function EntityChatView({ entityId, entityType }: EntityChatViewProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [showHistory, setShowHistory] = useState(false);
   const [searchValue, setSearchValue] = useState("");
 
-  // Entity state
-  const [activeNote, setActiveNote] = useState<ActiveNoteInfo | null>(null);
   const [activeEntity, setActiveEntity] = useState<ActiveEntityInfo | null>(null);
   const [chatSourceEntity, setChatSourceEntity] = useState<ActiveEntityInfo | null>(null);
 
-  // Derived state
   const hasActiveChat = messages.length > 0;
 
-  // Reference to track entity changes
   const previousEntityRef = useRef<string | null>(null);
 
-  // Router hooks
-  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
-  const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
-  const organizationMatch = useMatch({ from: "/app/organization/$id", shouldThrow: false });
   const navigate = useNavigate();
 
-  // Get note session if on a note page
-  const noteId = noteMatch?.status === "success" && noteMatch.params.id;
-  const sessionStore = noteId
-    ? useSession(noteId, (s) => ({
-      session: s.session,
-    }))
-    : null;
-
-  // Update active entity when route changes
   useEffect(() => {
     const updateActiveEntity = async () => {
       let newEntity: ActiveEntityInfo | null = null;
 
-      if (noteMatch?.status === "success" && noteMatch.params.id) {
-        try {
-          const noteId = noteMatch.params.id;
-
-          if (!activeNote || activeNote.id !== noteId) {
-            setActiveNote({
-              id: noteId,
-              title: "Untitled",
-            });
-          }
-
-          if (sessionStore?.session?.title) {
-            setActiveNote(prev => ({
-              ...prev!,
-              title: sessionStore.session.title || "Untitled",
-            }));
-          }
-
-          newEntity = {
-            id: noteId,
-            name: sessionStore?.session?.title || "Untitled",
-            type: "note",
-          };
-        } catch (error) {
-          console.error("Error updating note:", error);
-        }
-      } else if (humanMatch?.status === "success" && humanMatch.params.id) {
-        try {
-          const humanId = humanMatch.params.id;
-          const human = await dbCommands.getHuman(humanId);
-
+      try {
+        if (entityType === "human") {
+          const human = await dbCommands.getHuman(entityId);
           if (human) {
             newEntity = {
-              id: humanId,
+              id: entityId,
               name: human.full_name || "Unknown Contact",
               type: "human",
             };
           }
-        } catch (error) {
-          console.error("Error fetching human data:", error);
-        }
-      } else if (organizationMatch?.status === "success" && organizationMatch.params.id) {
-        try {
-          const orgId = organizationMatch.params.id;
-          const organization = await dbCommands.getOrganization(orgId);
-
+        } else if (entityType === "organization") {
+          const organization = await dbCommands.getOrganization(entityId);
           if (organization) {
             newEntity = {
-              id: orgId,
+              id: entityId,
               name: organization.name || "Unknown Organization",
               type: "organization",
             };
           }
-        } catch (error) {
-          console.error("Error fetching organization data:", error);
         }
+      } catch (error) {
+        console.error(`Error fetching ${entityType} data:`, error);
       }
 
       if (newEntity) {
@@ -122,7 +72,7 @@ export function useChat() {
     };
 
     updateActiveEntity();
-  }, [noteMatch, humanMatch, organizationMatch, sessionStore, activeNote, messages.length, chatSourceEntity]);
+  }, [entityId, entityType, messages.length, chatSourceEntity]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
@@ -178,12 +128,11 @@ export function useChat() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
 
     setTimeout(() => {
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "This is a sample response from the AI assistant.",
+        content: "This is a sample response to your quick action.",
         isUser: false,
         timestamp: new Date(),
       };
@@ -241,52 +190,67 @@ export function useChat() {
     }
   };
 
-  const formatDate = (date: Date) => {
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  const chatHistory = getMockChatHistory();
 
-    if (diffDays < 30) {
-      const weeks = Math.floor(diffDays / 7);
-      if (weeks > 0) {
-        return `${weeks}w`;
-      }
+  if (showHistory) {
+    return (
+      <ChatHistoryView
+        chatHistory={chatHistory}
+        searchValue={searchValue}
+        onSearchChange={handleSearchChange}
+        onSelectChat={handleSelectChat}
+        onNewChat={handleNewChat}
+        onBackToChat={handleBackToChat}
+      />
+    );
+  }
 
-      return `${diffDays}d`;
-    } else {
-      const month = date.toLocaleString("default", { month: "short" });
-      const day = date.getDate();
+  if (hasActiveChat) {
+    return (
+      <div className="flex-1 flex flex-col relative overflow-hidden">
+        <FloatingActionButtons
+          onNewChat={handleNewChat}
+          onViewHistory={handleViewHistory}
+        />
 
-      if (date.getFullYear() === now.getFullYear()) {
-        return `${month} ${day}`;
-      }
+        <ChatMessagesView messages={messages} />
 
-      return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
-    }
-  };
+        <ChatInput
+          inputValue={inputValue}
+          onChange={handleInputChange}
+          onSubmit={handleSubmit}
+          onKeyDown={handleKeyDown}
+          autoFocus={true}
+          noteTitle={chatSourceEntity ? chatSourceEntity.name : activeEntity?.name}
+          badgeType={chatSourceEntity ? chatSourceEntity.type : activeEntity?.type}
+          onNoteBadgeClick={handleNoteBadgeClick}
+        />
+      </div>
+    );
+  }
 
-  return {
-    // State
-    messages,
-    inputValue,
-    showHistory,
-    searchValue,
-    activeNote,
-    activeEntity,
-    chatSourceEntity,
-    hasActiveChat,
+  return (
+    <div className="flex-1 flex flex-col relative overflow-hidden">
+      <FloatingActionButtons
+        onNewChat={handleNewChat}
+        onViewHistory={handleViewHistory}
+      />
 
-    // Handlers
-    handleInputChange,
-    handleSubmit,
-    handleKeyDown,
-    handleQuickAction,
-    handleFocusInput,
-    handleNewChat,
-    handleViewHistory,
-    handleSearchChange,
-    handleSelectChat,
-    handleBackToChat,
-    handleNoteBadgeClick,
-    formatDate,
-  };
+      <EmptyChatState
+        onQuickAction={handleQuickAction}
+        onFocusInput={handleFocusInput}
+      />
+
+      <ChatInput
+        inputValue={inputValue}
+        onChange={handleInputChange}
+        onSubmit={handleSubmit}
+        onKeyDown={handleKeyDown}
+        autoFocus={true}
+        noteTitle={activeEntity?.name}
+        badgeType={activeEntity?.type}
+        onNoteBadgeClick={handleNoteBadgeClick}
+      />
+    </div>
+  );
 }

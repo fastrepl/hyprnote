@@ -3,7 +3,6 @@ import { createFileRoute, redirect, useParams } from "@tanstack/react-router";
 import { useEffect } from "react";
 
 import EditorArea from "@/components/editor-area";
-import RightPanel from "@/components/right-panel";
 import { useOngoingSession, useSession } from "@/contexts";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
@@ -89,7 +88,6 @@ function Component() {
           </div>
         </main>
       </div>
-      <RightPanel />
     </div>
   );
 }

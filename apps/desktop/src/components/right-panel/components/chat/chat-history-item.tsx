@@ -1,12 +1,12 @@
 import { ChatSession } from "./types";
+import { formatDate } from "./utils";
 
 interface ChatHistoryItemProps {
   chat: ChatSession;
   onSelect: (chatId: string) => void;
-  formatDate: (date: Date) => string;
 }
 
-export function ChatHistoryItem({ chat, onSelect, formatDate }: ChatHistoryItemProps) {
+export function ChatHistoryItem({ chat, onSelect }: ChatHistoryItemProps) {
   return (
     <button
       onClick={() => onSelect(chat.id)}

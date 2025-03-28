@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+hypr-buffer = { workspace = true }
 hypr-calendar-interface = { path = "../calendar-interface", package = "calendar-interface" }
 hypr-db-core = { workspace = true }
 

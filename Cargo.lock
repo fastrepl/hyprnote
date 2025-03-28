@@ -3045,6 +3045,7 @@ dependencies = [
 name = "db-user"
 version = "0.1.0"
 dependencies = [
+ "buffer",
  "calendar-interface",
  "chrono",
  "codes-iso-639",

@@ -3,6 +3,9 @@ use super::{
     Session, Tag, UserDatabase,
 };
 
+const USER_MANUAL_MD: &str = include_str!("../assets/manual.md");
+const ONBOARDING_MD: &str = include_str!("../assets/onboarding.md");
+
 pub async fn seed2(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), crate::Error> {
     let user_id = user_id.into();
 
@@ -36,7 +39,7 @@ pub async fn seed2(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), 
         created_at: chrono::Utc::now(),
         visited_at: chrono::Utc::now(),
         calendar_event_id: None,
-        raw_memo_html: "TODO".to_string(),
+        raw_memo_html: hypr_buffer::md_to_html(USER_MANUAL_MD).unwrap(),
         enhanced_memo_html: None,
         conversations: vec![],
     };
@@ -48,7 +51,7 @@ pub async fn seed2(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), 
         created_at: chrono::Utc::now() + chrono::Duration::days(2),
         visited_at: chrono::Utc::now() + chrono::Duration::days(2),
         calendar_event_id: Some(onboarding_event.id.clone()),
-        raw_memo_html: "TODO".to_string(),
+        raw_memo_html: hypr_buffer::md_to_html(ONBOARDING_MD).unwrap(),
         enhanced_memo_html: None,
         conversations: vec![],
     };

@@ -38,17 +38,29 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn setup_db_for_local(&self) -> Result<(), String> {
-        let db = {
+        let (db, db_created) = {
             if cfg!(debug_assertions) {
-                hypr_db_core::DatabaseBuilder::default().memory()
+                (
+                    hypr_db_core::DatabaseBuilder::default()
+                        .memory()
+                        .build()
+                        .await
+                        .unwrap(),
+                    true,
+                )
             } else {
                 let local_db_path = self.db_local_path();
-                hypr_db_core::DatabaseBuilder::default().local(local_db_path)
+
+                (
+                    hypr_db_core::DatabaseBuilder::default()
+                        .local(local_db_path)
+                        .build()
+                        .await
+                        .unwrap(),
+                    false,
+                )
             }
-        }
-        .build()
-        .await
-        .unwrap();
+        };
 
         self.db_attach(db).await.unwrap();
 
@@ -79,12 +91,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
                 let s = state.lock().await;
                 let user_db = s.db.as_ref().unwrap();
 
-                #[cfg(debug_assertions)]
-                {
+                if db_created {
                     hypr_db_user::seed(user_db, &user_id).await.unwrap();
                 }
 
-                if user_id_just_created {
+                if db_created || user_id_just_created {
                     hypr_db_user::seed2(user_db, &user_id).await.unwrap();
                 }
             }

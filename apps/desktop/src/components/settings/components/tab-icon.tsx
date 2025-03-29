@@ -1,9 +1,9 @@
 import {
-  BellIcon,
+  // BellIcon,
   BlocksIcon,
   CalendarIcon,
   // CreditCardIcon,
-  FileTextIcon,
+  // FileTextIcon,
   FlaskConicalIcon,
   LockIcon,
   SettingsIcon,

@@ -24,12 +24,12 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <SparklesIcon className="h-4 w-4" />;
     case "calendar":
       return <CalendarIcon className="h-4 w-4" />;
-    case "notifications":
-      return <BellIcon className="h-4 w-4" />;
+    // case "notifications":
+    //   return <BellIcon className="h-4 w-4" />;
     case "permissions":
       return <LockIcon className="h-4 w-4" />;
-    case "templates":
-      return <FileTextIcon className="h-4 w-4" />;
+    // case "templates":
+    //   return <FileTextIcon className="h-4 w-4" />;
     case "extensions":
       return <BlocksIcon className="h-4 w-4" />;
       // case "team":

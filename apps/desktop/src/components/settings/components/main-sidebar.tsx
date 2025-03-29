@@ -33,12 +33,12 @@ export function MainSidebar({ current, onTabClick }: MainSidebarProps) {
                   ? <Trans>AI</Trans>
                   : tab === "calendar"
                   ? <Trans>Calendar</Trans>
-                  : tab === "notifications"
-                  ? <Trans>Notifications</Trans>
+                  // : tab === "notifications"
+                  // ? <Trans>Notifications</Trans>
                   : tab === "permissions"
                   ? <Trans>Permissions</Trans>
-                  : tab === "templates"
-                  ? <Trans>Templates</Trans>
+                  // : tab === "templates"
+                  // ? <Trans>Templates</Trans>
                   : tab === "extensions"
                   ? <Trans>Extensions</Trans>
                   // : tab === "team"

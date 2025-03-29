@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+// import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { ArrowLeft } from "lucide-react";
@@ -11,7 +11,7 @@ import {
   SettingsHeader,
   type Tab,
   TABS,
-  TemplatesSidebar,
+  // TemplatesSidebar,
 } from "@/components/settings/components";
 import {
   Calendar,
@@ -19,15 +19,16 @@ import {
   General,
   Lab,
   LocalAI,
-  Notifications,
+  // Notifications,
   Permissions,
   Profile,
-  TemplateEditor,
+  // TemplateEditor,
 } from "@/components/settings/views";
-import { useHypr } from "@/contexts";
+// import { useHypr } from "@/contexts";
 import { EXTENSION_CONFIGS } from "@hypr/extension-registry";
-import { type ExtensionDefinition, type Template } from "@hypr/plugin-db";
-import { commands as dbCommands } from "@hypr/plugin-db";
+// import { type ExtensionDefinition, type Template } from "@hypr/plugin-db";
+import { type ExtensionDefinition } from "@hypr/plugin-db";
+// import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Trans } from "@lingui/react/macro";
 
@@ -44,25 +45,25 @@ export const Route = createFileRoute(PATH)({
 function Component() {
   const { current } = useSearch({ from: PATH });
   const navigate = useNavigate();
-  const { userId } = useHypr();
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  // const { userId } = useHypr();
+  // const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [selectedExtension, setSelectedExtension] = useState<ExtensionDefinition | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const { data: templatesData } = useQuery({
-    queryKey: ["templates"],
-    queryFn: () => dbCommands.listTemplates(),
-  });
+  // const { data: templatesData } = useQuery({
+  //   queryKey: ["templates"],
+  //   queryFn: () => dbCommands.listTemplates(),
+  // });
 
-  const customTemplates = useMemo(() => {
-    if (!templatesData || !userId) return [];
-    return templatesData.filter(template => template.user_id === userId);
-  }, [templatesData, userId]);
+  // const customTemplates = useMemo(() => {
+  //   if (!templatesData || !userId) return [];
+  //   return templatesData.filter(template => template.user_id === userId);
+  // }, [templatesData, userId]);
 
-  const builtinTemplates = useMemo(() => {
-    if (!templatesData || !userId) return [];
-    return templatesData.filter(template => template.user_id !== userId);
-  }, [templatesData, userId]);
+  // const builtinTemplates = useMemo(() => {
+  //   if (!templatesData || !userId) return [];
+  //   return templatesData.filter(template => template.user_id !== userId);
+  // }, [templatesData, userId]);
 
   const extensionsList = useMemo(() => {
     return EXTENSION_CONFIGS.map(config => ({
@@ -82,25 +83,25 @@ function Component() {
     setSearchQuery("");
   };
 
-  const filteredCustomTemplates = useMemo(() => {
-    if (!searchQuery) return customTemplates;
-    const query = searchQuery.toLowerCase();
-    return customTemplates.filter(template =>
-      template.title.toLowerCase().includes(query)
-      || template.description.toLowerCase().includes(query)
-      || template.tags.some(tag => tag.toLowerCase().includes(query))
-    );
-  }, [customTemplates, searchQuery]);
+  // const filteredCustomTemplates = useMemo(() => {
+  //   if (!searchQuery) return customTemplates;
+  //   const query = searchQuery.toLowerCase();
+  //   return customTemplates.filter(template =>
+  //     template.title.toLowerCase().includes(query)
+  //     || template.description.toLowerCase().includes(query)
+  //     || template.tags.some(tag => tag.toLowerCase().includes(query))
+  //   );
+  // }, [customTemplates, searchQuery]);
 
-  const filteredBuiltinTemplates = useMemo(() => {
-    if (!searchQuery) return builtinTemplates;
-    const query = searchQuery.toLowerCase();
-    return builtinTemplates.filter(template =>
-      template.title.toLowerCase().includes(query)
-      || template.description.toLowerCase().includes(query)
-      || template.tags.some(tag => tag.toLowerCase().includes(query))
-    );
-  }, [builtinTemplates, searchQuery]);
+  // const filteredBuiltinTemplates = useMemo(() => {
+  //   if (!searchQuery) return builtinTemplates;
+  //   const query = searchQuery.toLowerCase();
+  //   return builtinTemplates.filter(template =>
+  //     template.title.toLowerCase().includes(query)
+  //     || template.description.toLowerCase().includes(query)
+  //     || template.tags.some(tag => tag.toLowerCase().includes(query))
+  //   );
+  // }, [builtinTemplates, searchQuery]);
 
   const filteredExtensions = useMemo(() => {
     if (!searchQuery) return extensionsList;
@@ -118,22 +119,22 @@ function Component() {
     setSearchQuery(e.target.value);
   }, []);
 
-  const handleCreateTemplate = useCallback(() => {
-    const newTemplate: Template = {
-      id: crypto.randomUUID(),
-      user_id: userId,
-      title: "Untitled Template",
-      description: "",
-      tags: [],
-      sections: [],
-    };
+  // const handleCreateTemplate = useCallback(() => {
+  //   const newTemplate: Template = {
+  //     id: crypto.randomUUID(),
+  //     user_id: userId,
+  //     title: "Untitled Template",
+  //     description: "",
+  //     tags: [],
+  //     sections: [],
+  //   };
 
-    setSelectedTemplate(newTemplate.id);
-    handleClickTab("templates");
-  }, [userId, handleClickTab]);
+  //   setSelectedTemplate(newTemplate.id);
+  //   handleClickTab("templates");
+  // }, [userId, handleClickTab]);
 
-  const handleTemplateUpdate = useCallback((updatedTemplate: Template) => {
-  }, []);
+  // const handleTemplateUpdate = useCallback((updatedTemplate: Template) => {
+  // }, []);
 
   return (
     <div className="relative flex h-screen w-screen overflow-hidden">
@@ -144,7 +145,8 @@ function Component() {
               data-tauri-drag-region
               className="flex items-center h-11 justify-end px-2"
             >
-              {(current === "templates" || current === "extensions") && (
+              {/* {(current === "templates" || current === "extensions") && ( */}
+              {current === "extensions" && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -159,7 +161,8 @@ function Component() {
               )}
             </div>
 
-            {current !== "templates" && current !== "extensions"
+            {/* {current !== "templates" && current !== "extensions" */}
+            {current !== "extensions"
               ? (
                 <MainSidebar
                   current={current}
@@ -168,7 +171,8 @@ function Component() {
               )
               : (
                 <div className="flex h-full flex-col">
-                  {current === "templates" && (
+                  {
+                    /* {current === "templates" && (
                     <TemplatesSidebar
                       searchQuery={searchQuery}
                       onSearchChange={handleSearchChange}
@@ -177,7 +181,8 @@ function Component() {
                       selectedTemplate={selectedTemplate}
                       onTemplateSelect={setSelectedTemplate}
                     />
-                  )}
+                  )} */
+                  }
 
                   {current === "extensions" && (
                     <ExtensionsSidebar
@@ -195,7 +200,7 @@ function Component() {
           <div className="flex-1 flex h-full w-full flex-col overflow-hidden">
             <SettingsHeader
               current={current}
-              onCreateTemplate={current === "templates" ? handleCreateTemplate : undefined}
+              // onCreateTemplate={current === "templates" ? handleCreateTemplate : undefined}
             />
 
             <div className="flex-1 overflow-auto p-6">
@@ -203,9 +208,10 @@ function Component() {
               {current === "profile" && <Profile />}
               {current === "ai" && <LocalAI />}
               {current === "calendar" && <Calendar />}
-              {current === "notifications" && <Notifications />}
+              {/* {current === "notifications" && <Notifications />} */}
               {current === "permissions" && <Permissions />}
-              {current === "templates" && (
+              {
+                /* {current === "templates" && (
                 <TemplateEditor
                   disabled={false}
                   template={customTemplates.find(template => template.id === selectedTemplate)
@@ -219,7 +225,8 @@ function Component() {
                   }}
                   onTemplateUpdate={handleTemplateUpdate}
                 />
-              )}
+              )} */
+              }
               {current === "extensions" && (
                 <Extensions
                   selectedExtension={selectedExtension}

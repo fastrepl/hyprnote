@@ -18,10 +18,11 @@ export interface CustomToastProps {
   buttons?: ToastButtonProps[];
   dismissible?: boolean;
   children?: React.ReactNode;
+  duration?: number;
 }
 
 export function CustomToast(props: CustomToastProps) {
-  const { id, title, content, buttons = [], dismissible, children } = props;
+  const { id, title, content, buttons = [], dismissible, children, duration } = props;
 
   return (
     <div className="flex flex-col gap-2 p-4 relative">
@@ -79,7 +80,7 @@ export function toast(props: CustomToastProps) {
     ),
     {
       id: props.id,
-      duration: props.dismissible === false ? Infinity : undefined,
+      duration: props.dismissible === false ? Infinity : props.duration,
     },
   );
 }

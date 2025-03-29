@@ -8,6 +8,7 @@ import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { toast } from "@hypr/ui/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useOngoingSession } from "@hypr/utils/contexts";
 
@@ -60,9 +61,19 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     },
   });
 
+  // TODO: Inactivity detection will be handled in the server
+
   const handleStartSession = () => {
     if (ongoingSessionStore.status === "inactive") {
       ongoingSessionStore.start(sessionId);
+
+      toast({
+        id: "recording-consent",
+        title: "Recording Started",
+        content: "Ensure you have consent from everyone in the meeting",
+        dismissible: true,
+        duration: 3000,
+      });
     }
   };
 

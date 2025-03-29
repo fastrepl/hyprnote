@@ -31,7 +31,7 @@ export function NoteHeader({ onNavigateToEditor, editable, sessionId }: NoteHead
 
   return (
     <>
-      <div className="flex flex-row items-center justify-between sm:pl-8 px-4">
+      <div className="flex flex-row items-center justify-between pl-8 pr-4">
         <TitleInput
           editable={editable}
           value={sessionStore.sessionInView?.title ?? ""}

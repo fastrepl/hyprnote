@@ -12265,6 +12265,7 @@ dependencies = [
  "tauri-plugin",
  "tauri-plugin-auth",
  "tauri-plugin-connector",
+ "tauri-plugin-db",
  "tauri-plugin-local-stt",
  "tauri-specta",
  "thiserror 2.0.12",

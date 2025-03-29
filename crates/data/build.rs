@@ -35,17 +35,13 @@ fn main() {
 
     std::fs::write(
         "src/english_3/transcription.json",
-        serde_json::to_string_pretty(&transcripts)
-            .unwrap()
-            .as_bytes(),
+        serde_json::to_string_pretty(&transcripts).unwrap() + "\n",
     )
     .unwrap();
 
     std::fs::write(
         "src/english_3/diarization.json",
-        serde_json::to_string_pretty(&diarizations)
-            .unwrap()
-            .as_bytes(),
+        serde_json::to_string_pretty(&diarizations).unwrap() + "\n",
     )
     .unwrap();
 }

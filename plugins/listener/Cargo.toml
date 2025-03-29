@@ -11,7 +11,6 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
-hypr-data = { path = "../../crates/data", package = "data" }
 tauri-plugin-local-stt = { path = "../local-stt" }
 
 rodio = { workspace = true, features = ["wav"] }
@@ -23,9 +22,11 @@ uuid = { workspace = true }
 hypr-listener-interface = { workspace = true }
 tauri-plugin-auth = { path = "../auth" }
 tauri-plugin-connector = { path = "../connector" }
+tauri-plugin-db = { workspace = true }
 
 hypr-audio = { path = "../../crates/audio", package = "audio" }
 hypr-audio-utils = { path = "../../crates/audio-utils", package = "audio-utils" }
+hypr-data = { workspace = true }
 hypr-db-core = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-timeline = { workspace = true }

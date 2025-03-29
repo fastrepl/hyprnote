@@ -97,6 +97,7 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
     },
     onSuccess: () => {
       sessionStore.persistSession();
+      setShowRaw(false);
     },
     onError: (error) => {
       console.error(error);
@@ -117,15 +118,18 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
   );
 
   const handleClickEnhance = useCallback(() => {
-    analyticsCommands.event({
-      event: "enhance_note_clicked",
-      distinct_id: userId,
-      session_id: sessionId,
-    });
+    try {
+      analyticsCommands.event({
+        event: "enhance_note_clicked",
+        distinct_id: userId,
+        session_id: sessionId,
+      });
+    } catch (error) {
+      console.error(error);
+    }
 
     enhance.mutate();
-    setShowRaw(false);
-  }, [enhance, setShowRaw]);
+  }, [enhance]);
 
   const editorRef = useRef<{ editor: TiptapEditor }>(null);
 

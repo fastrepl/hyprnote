@@ -4,8 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-hypr-onnx = { path = "../onnx", package = "onnx" }
+kalosm-sound = { workspace = true, default-features = false }
+tokio = { workspace = true, features = ["rt-multi-thread"] }
 
-dasp = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-thiserror = { workspace = true }
+silero = { git = "https://github.com/emotechlab/silero-rs", rev = "99dc5ea" }

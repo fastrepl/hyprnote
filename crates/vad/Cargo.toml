@@ -3,9 +3,14 @@ name = "vad"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
-hypr-onnx = { path = "../onnx", package = "onnx" }
+[dev-dependencies]
+hound = { workspace = true }
+hypr-data = { workspace = true }
+rodio = { workspace = true, features = ["wav"] }
 
-dasp = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-thiserror = { workspace = true }
+[dependencies]
+futures-util = { workspace = true }
+kalosm-sound = { workspace = true, default-features = false }
+silero = { git = "https://github.com/emotechlab/silero-rs", rev = "99dc5ea" }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+tracing = { workspace = true }

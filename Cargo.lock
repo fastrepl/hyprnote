@@ -10590,6 +10590,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "rubato"
+version = "0.16.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cdd96992d7e24b3d7f35fdfe02af037a356ac90d41b466945cf3333525a86eea"
+dependencies = [
+ "num-complex",
+ "num-integer",
+ "num-traits",
+ "realfft",
+]
+
+[[package]]
 name = "rust-ini"
 version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11663,6 +11675,19 @@ checksum = "74233d3b3b2f6d4b006dc19dee745e73e2a6bfb6f93607cd3b02bd5b00797d7c"
 dependencies = [
  "digest 0.10.7",
  "rand_core 0.6.4",
+]
+
+[[package]]
+name = "silero"
+version = "0.1.0"
+source = "git+https://github.com/emotechlab/silero-rs?rev=99dc5ea#99dc5eaa4e2b74308a2366c757984cd58f275183"
+dependencies = [
+ "anyhow",
+ "ndarray",
+ "ort",
+ "rubato",
+ "thiserror 2.0.12",
+ "tracing",
 ]
 
 [[package]]
@@ -14642,10 +14667,14 @@ dependencies = [
 name = "vad"
 version = "0.1.0"
 dependencies = [
- "dasp",
- "onnx",
- "serde",
- "thiserror 2.0.12",
+ "data",
+ "futures-util",
+ "hound",
+ "kalosm-sound",
+ "rodio",
+ "silero",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

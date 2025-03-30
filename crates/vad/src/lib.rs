@@ -1,145 +1,124 @@
-use hypr_onnx::{ndarray, ort};
+// https://github.com/floneum/floneum/blob/52967ae/interfaces/kalosm-sound/src/transform/voice_audio_detector.rs
 
-const MODEL: &[u8] = include_bytes!("../data/model.onnx");
+use std::{
+    pin::Pin,
+    task::{Context, Poll},
+    time::Duration,
+};
 
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-    #[error("only trained on this sample rate")]
-    NotTrainedOnThisSampleRate,
-    #[error("only trained on this chunk size")]
-    NotTrainedOnThisChunkSize,
-    #[error("chunk size too small considering sample rate")]
-    InvalidRatio,
-}
+use futures_util::{ready, Stream};
+use kalosm_sound::AsyncSource;
+use silero::{VadConfig, VadSession, VadTransition};
 
-#[derive(Debug, Default)]
-pub struct VoiceActivityDetectorBuilder {
-    pub chunk_size: Option<usize>,
-    pub sample_rate: Option<i64>,
-}
-
-impl VoiceActivityDetectorBuilder {
-    pub fn chunk_size(mut self, chunk_size: usize) -> Self {
-        self.chunk_size = Some(chunk_size);
-        self
-    }
-
-    pub fn sample_rate(mut self, sample_rate: i64) -> Self {
-        self.sample_rate = Some(sample_rate);
-        self
-    }
-
-    pub fn build(self) -> Result<VoiceActivityDetector, Error> {
-        let chunk_size = self.chunk_size.unwrap();
-        let sample_rate = self.sample_rate.unwrap();
-
-        if sample_rate != 16000 && sample_rate != 8000 {
-            return Err(Error::NotTrainedOnThisSampleRate);
-        }
-
-        if sample_rate == 16000 && ![512, 768, 1024].contains(&chunk_size) {
-            return Err(Error::NotTrainedOnThisChunkSize);
-        }
-
-        if sample_rate == 8000 && ![256, 512, 768].contains(&chunk_size) {
-            return Err(Error::NotTrainedOnThisChunkSize);
-        }
-
-        if sample_rate > (31.25 * chunk_size as f32) as i64 {
-            return Err(Error::InvalidRatio);
-        }
-
-        let h = ndarray::Array3::<f32>::zeros((2, 1, 64));
-        let c = ndarray::Array3::<f32>::zeros((2, 1, 64));
-
-        let session = hypr_onnx::load_model(MODEL).unwrap();
-
-        Ok(VoiceActivityDetector {
-            chunk_size,
-            sample_rate,
-            session,
-            h,
-            c,
-        })
-    }
-}
-
-#[derive(Debug)]
-pub struct VoiceActivityDetector {
+pub struct VoiceActivityRechunker<S> {
+    source: S,
+    vad: VadSession,
+    buffer: Vec<f32>,
     chunk_size: usize,
-    sample_rate: i64,
-    session: hypr_onnx::ort::session::Session,
-    h: ndarray::Array3<f32>,
-    c: ndarray::Array3<f32>,
 }
 
-impl VoiceActivityDetector {
-    pub fn builder() -> VoiceActivityDetectorBuilder {
-        VoiceActivityDetectorBuilder::default()
-    }
+impl<S> VoiceActivityRechunker<S>
+where
+    S: AsyncSource + Unpin,
+{
+    pub fn new(source: S) -> Self {
+        let sample_rate = source.sample_rate() as usize;
+        let chunk_size = 30 * sample_rate / 1000; // 30ms
 
-    // https://github.com/nkeenan38/voice_activity_detector/blob/fd6cb6285a8cb15c11a8b35b9a9b94d2cb2fd6a4/src/vad.rs#L39
-    pub fn predict<S, I>(&mut self, samples: I) -> f32
-    where
-        S: dasp::sample::ToSample<f32>,
-        I: IntoIterator<Item = S>,
-    {
-        let mut input = ndarray::Array2::<f32>::zeros((1, self.chunk_size));
-        for (i, sample) in samples.into_iter().take(self.chunk_size).enumerate() {
-            input[[0, i]] = sample.to_sample_();
+        let vad_config = VadConfig {
+            sample_rate,
+            post_speech_pad: Duration::from_millis(100),
+            ..VadConfig::default()
+        };
+        let vad = VadSession::new(vad_config).unwrap();
+
+        Self {
+            source,
+            vad,
+            buffer: Vec::with_capacity(chunk_size * 2),
+            chunk_size,
+        }
+    }
+}
+
+impl<S: AsyncSource + Unpin> Stream for VoiceActivityRechunker<S> {
+    type Item = Vec<f32>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let this = self.get_mut();
+
+        while this.buffer.len() < this.chunk_size {
+            let stream = this.source.as_stream();
+            let mut stream = std::pin::pin!(stream);
+
+            let sample = ready!(stream.as_mut().poll_next(cx));
+
+            match sample {
+                Some(sample) => this.buffer.push(sample),
+                None => {
+                    if !this.buffer.is_empty() {
+                        break;
+                    }
+                    return Poll::Ready(None);
+                }
+            }
         }
 
-        let sample_rate = ndarray::arr1::<i64>(&[self.sample_rate]);
+        let data = this
+            .buffer
+            .drain(..this.chunk_size.min(this.buffer.len()))
+            .collect::<Vec<_>>();
 
-        let inputs = ort::inputs![
-            "input" => input.view(),
-            "sr" => sample_rate.view(),
-            "h" => self.h.view(),
-            "c" => self.c.view(),
-        ]
-        .unwrap();
+        let transitions = match this.vad.process(&data) {
+            Ok(transitions) => transitions,
+            Err(e) => {
+                tracing::error!("Error in voice activity detector: {}", e);
+                return Poll::Ready(None);
+            }
+        };
 
-        let outputs = self.session.run(inputs).unwrap();
+        for transition in transitions {
+            if let VadTransition::SpeechEnd { samples, .. } = transition {
+                return Poll::Ready(Some(samples));
+            }
+        }
 
-        let hn = outputs
-            .get("hn")
-            .unwrap()
-            .try_extract_tensor::<f32>()
-            .unwrap();
-        let cn = outputs
-            .get("cn")
-            .unwrap()
-            .try_extract_tensor::<f32>()
-            .unwrap();
-
-        self.h.assign(&hn.view());
-        self.c.assign(&cn.view());
-
-        let output = outputs
-            .get("output")
-            .unwrap()
-            .try_extract_tensor::<f32>()
-            .unwrap();
-        let probability = output.view()[[0, 0]];
-
-        probability
+        cx.waker().wake_by_ref();
+        Poll::Pending
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use futures_util::StreamExt;
 
-    #[test]
-    fn test_vad() {
-        let mut vad = VoiceActivityDetector::builder()
-            .chunk_size(1024)
-            .sample_rate(16000)
-            .build()
-            .unwrap();
+    #[tokio::test]
+    async fn test_voice_activity_rechunker() {
+        let audio_source = rodio::Decoder::new_wav(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap();
 
-        assert!(vad.predict(vec![0.0; 512]) < 0.1);
-        assert!(vad.predict(vec![0.0; 1024]) < 0.1);
-        assert!(vad.predict(vec![0.0; 2048]) < 0.1);
+        let rechunker = VoiceActivityRechunker::new(audio_source);
+        let chunks = rechunker.collect::<Vec<_>>().await;
+
+        let mut i = 0;
+        for chunk in chunks {
+            let spec = hound::WavSpec {
+                channels: 1,
+                sample_rate: 16000,
+                bits_per_sample: 32,
+                sample_format: hound::SampleFormat::Float,
+            };
+            let file = std::fs::File::create(format!("chunk_{}.wav", i)).unwrap();
+            let mut writer = hound::WavWriter::new(file, spec).unwrap();
+            for sample in chunk {
+                writer.write_sample(sample).unwrap();
+            }
+            writer.finalize().unwrap();
+
+            i += 1;
+        }
     }
 }

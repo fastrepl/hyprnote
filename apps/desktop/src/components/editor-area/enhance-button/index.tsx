@@ -1,5 +1,6 @@
-import { useOngoingSession } from "@/contexts";
+import { useOngoingSession } from "@hypr/utils/contexts";
 import { Session } from "@hypr/plugin-db";
+
 import { EnhanceControls } from "./enhance-controls";
 import { EnhanceOnlyButton } from "./enhance-only-button";
 

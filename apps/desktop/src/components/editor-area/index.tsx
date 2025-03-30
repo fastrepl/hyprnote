@@ -45,13 +45,17 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
   }));
 
   const [initialContent, setInitialContent] = useState("");
+  const [editorKey, setEditorKey] = useState(sessionStore.session?.id || "default");
 
   useEffect(() => {
     const content = showRaw
       ? sessionStore.session?.raw_memo_html
       : sessionStore.session?.enhanced_memo_html;
 
-    editorRef.current?.editor?.commands?.setContent("");
+    if (sessionStore.session?.id) {
+      setEditorKey(sessionStore.session.id + (showRaw ? "-raw" : "-enhanced"));
+    }
+
     setInitialContent(content ?? "");
   }, [sessionStore.session?.id, showRaw]);
 
@@ -184,6 +188,7 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
           {editable
             ? (
               <Editor
+                key={editorKey}
                 ref={editorRef}
                 handleChange={handleChangeNote}
                 initialContent={initialContent}

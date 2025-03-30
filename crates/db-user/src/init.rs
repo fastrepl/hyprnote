@@ -35,7 +35,7 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
     let session_1 = Session {
         id: uuid::Uuid::new_v4().to_string(),
         user_id: user_id.clone(),
-        title: "User Manual".to_string(),
+        title: "Welcome to Hyprnote".to_string(),
         created_at: chrono::Utc::now(),
         visited_at: chrono::Utc::now(),
         calendar_event_id: None,
@@ -47,7 +47,7 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
     let session_2 = Session {
         id: onboarding_session_id,
         user_id: user_id.clone(),
-        title: "Hyprnote Onboarding".to_string(),
+        title: "Onboarding".to_string(),
         created_at: chrono::Utc::now() + chrono::Duration::days(2),
         visited_at: chrono::Utc::now() + chrono::Duration::days(2),
         calendar_event_id: Some(onboarding_event.id.clone()),

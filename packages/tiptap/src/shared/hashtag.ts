@@ -3,15 +3,12 @@ import { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
-// Regular expression to match hashtags
-// This matches words that start with # and contain letters, numbers, or underscores
-const HASHTAG_REGEX = /#(\w+)/g;
+const HASHTAG_REGEX = /#([\p{L}\p{N}_\p{Emoji}\p{Emoji_Component}]+)/gu;
 
 export const Hashtag = Extension.create({
   name: "hashtag",
 
   addProseMirrorPlugins() {
-    // Decoration plugin to style manually typed hashtags
     const decorationPlugin = new Plugin({
       key: new PluginKey("hashtagDecoration"),
       props: {

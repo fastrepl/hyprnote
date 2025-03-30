@@ -25,6 +25,8 @@
     font-size: 1.25rem;
     margin-top: 0;
     margin-bottom: 0.25rem;
+    min-height: 1.5rem;
+    position: relative;
   }
 
   /* focus states */
@@ -277,5 +279,5 @@
 }
 
 .ProseMirror {
-  caret-color: black;
+  caret-color: #374151;
 }

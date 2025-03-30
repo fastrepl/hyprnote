@@ -31,8 +31,8 @@ async getSpeakerMuted() : Promise<boolean> {
 async setSpeakerMuted(muted: boolean) : Promise<null> {
     return await TAURI_INVOKE("plugin:listener|set_speaker_muted", { muted });
 },
-async getTimeline(filter: TimelineFilter) : Promise<TimelineView> {
-    return await TAURI_INVOKE("plugin:listener|get_timeline", { filter });
+async getTimeline(sessionId: string, filter: TimelineFilter) : Promise<TimelineView> {
+    return await TAURI_INVOKE("plugin:listener|get_timeline", { sessionId, filter });
 },
 async subscribe(channel: TAURI_CHANNEL<SessionEvent>) : Promise<null> {
     return await TAURI_INVOKE("plugin:listener|subscribe", { channel });

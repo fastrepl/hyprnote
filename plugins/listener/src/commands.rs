@@ -1,4 +1,5 @@
 use crate::{ListenerPluginExt, SessionEvent};
+use hypr_timeline::{Timeline, TimelineFilter, TimelineView};
 
 #[tauri::command]
 #[specta::specta]
@@ -78,8 +79,48 @@ pub async fn set_speaker_muted<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn get_timeline<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    filter: hypr_timeline::TimelineFilter,
-) -> Result<hypr_timeline::TimelineView, String> {
+    db_plugin_state: tauri::State<'_, tauri_plugin_db::ManagedState>,
+    session_id: String,
+    filter: TimelineFilter,
+) -> Result<TimelineView, String> {
+    let (requested_session, onboarding_session_id) = {
+        let state = db_plugin_state.lock().await;
+
+        let requested_session = state
+            .db
+            .as_ref()
+            .unwrap()
+            .get_session(hypr_db_user::GetSessionFilter::Id(session_id))
+            .await
+            .map_err(|e| e.to_string())?
+            .unwrap();
+
+        let onboarding_session_id = state.db.as_ref().unwrap().onboarding_session_id();
+
+        (requested_session, onboarding_session_id)
+    };
+
+    if requested_session.id == onboarding_session_id {
+        let (transcripts, diarizations): (
+            Vec<hypr_listener_interface::TranscriptChunk>,
+            Vec<hypr_listener_interface::DiarizationChunk>,
+        ) = (
+            serde_json::from_str(hypr_data::english_3::TRANSCRIPTION_JSON).unwrap(),
+            serde_json::from_str(hypr_data::english_3::DIARIZATION_JSON).unwrap(),
+        );
+
+        let mut timeline = Timeline::default();
+
+        for t in transcripts {
+            timeline.add_transcription(t);
+        }
+        for d in diarizations {
+            timeline.add_diarization(d);
+        }
+
+        return Ok(timeline.view(filter));
+    }
+
     let timeline = app.get_timeline(filter).await;
     Ok(timeline)
 }

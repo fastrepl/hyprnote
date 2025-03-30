@@ -54,9 +54,11 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
       const config = await dbCommands.getConfig();
       const provider = await modelProvider();
 
-      const timeline = await listenerCommands.getTimeline({
+      console.log("getTimeline");
+      const timeline = await listenerCommands.getTimeline(sessionId, {
         last_n_seconds: null,
       });
+      console.log("timeline", timeline);
 
       const systemMessage = await templateCommands.render(
         ENHANCE_SYSTEM_TEMPLATE_KEY,
@@ -211,9 +213,9 @@ function EnhanceButton(
     timeline: s.timeline,
   }));
 
-  if (!ongoingSessionStore.timeline?.items.length) {
-    return null;
-  }
+  // if (!ongoingSessionStore.timeline?.items.length) {
+  //   return null;
+  // }
 
   return (session.enhanced_memo_html || enhanceStatus === "pending")
     ? (

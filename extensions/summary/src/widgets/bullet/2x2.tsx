@@ -62,9 +62,10 @@ const Widget: WidgetTwoByTwo = ({ queryClient }) => {
           return null;
         }
 
-        const timeline_view = await listenerCommands.getTimeline({
-          last_n_seconds: 100,
-        });
+        // TODO
+        // const timeline_view = await listenerCommands.getTimeline({
+        //   last_n_seconds: 100,
+        // });
 
         const systemMessageContent = await templateCommands.render(
           TEMPLATE_LIVE_SUMMARY_SYSTEM,
@@ -76,7 +77,7 @@ const Widget: WidgetTwoByTwo = ({ queryClient }) => {
         const userMessageContent = await templateCommands.render(
           TEMPLATE_LIVE_SUMMARY_USER,
           {
-            timeline: timeline_view,
+            timeline: { items: [] },
           } satisfies LiveSummaryUserInput,
         );
 

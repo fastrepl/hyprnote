@@ -1,3 +1,13 @@
+@import "./hashtag.css";
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 .tiptap {
   word-break: break-word;
   overflow-wrap: break-word;
@@ -77,11 +87,11 @@
 
   /* inline code */
   code {
-    background-color: #f5f5f5;
     border-radius: 0.4rem;
     color: var(--black);
     font-size: 0.85rem;
     padding: 0.25em 0.3em;
+    border: 1px solid #e5e5e5;
   }
 
   /* blockquote */

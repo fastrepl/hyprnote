@@ -17,7 +17,6 @@
     "@tiptap/extension-highlight": "^2.11.5",
     "@tiptap/extension-link": "^2.11.5",
     "@tiptap/extension-list-keymap": "^2.11.5",
-    "@tiptap/extension-mention": "^2.11.5",
     "@tiptap/extension-placeholder": "^2.11.5",
     "@tiptap/extension-strike": "^2.11.5",
     "@tiptap/extension-task-item": "^2.11.5",

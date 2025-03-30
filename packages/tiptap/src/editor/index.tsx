@@ -1,4 +1,5 @@
 import "../styles/tiptap.css";
+import "../styles/hashtag.css";
 
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect } from "react";

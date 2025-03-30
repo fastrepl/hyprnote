@@ -6,7 +6,8 @@ import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
 import Underline from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
-import { Mention } from "./mention";
+
+import { Hashtag } from "./hashtag";
 
 // TODO: Dark mode
 export const extensions = [
@@ -26,7 +27,7 @@ export const extensions = [
     emptyNodeClass: "is-empty",
     showOnlyWhenEditable: true,
   }),
-  Mention({ trigger: "#" }),
+  Hashtag,
   Link.configure({
     openOnClick: false,
     autolink: true,

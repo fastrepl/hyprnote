@@ -32,6 +32,19 @@ function Component() {
 
   const isMain = getCurrentWebviewWindowLabel() === "main";
 
+  useEffect(() => {
+    const preventBackNavigation = (e: KeyboardEvent) => {
+      if (e.metaKey && e.key === "ArrowLeft") {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("keydown", preventBackNavigation);
+    return () => {
+      window.removeEventListener("keydown", preventBackNavigation);
+    };
+  }, []);
+
   const { data: members = [] } = useQuery({
     queryKey: ["organization", organization.id, "members"],
     queryFn: () => dbCommands.listOrganizationMembers(organization.id),

@@ -6614,8 +6614,10 @@ dependencies = [
  "encoding_rs",
  "futures-util",
  "llama-cpp-2",
+ "reqwest 0.12.14",
  "serde",
  "thiserror 2.0.12",
+ "tokenizers",
  "tokio",
 ]
 

@@ -1,3 +1,5 @@
+use std::sync::{Arc, OnceLock};
+
 use llama_cpp_2::{
     context::params::LlamaContextParams,
     llama_backend::LlamaBackend,
@@ -15,6 +17,8 @@ pub use message::*;
 
 const DEFAULT_MAX_TOKENS: i32 = 1024;
 
+static LLAMA_BACKEND: OnceLock<Arc<LlamaBackend>> = OnceLock::new();
+
 pub struct Llama {
     task_sender: tokio::sync::mpsc::UnboundedSender<Task>,
 }
@@ -30,7 +34,13 @@ impl Llama {
     pub fn new(model_path: impl Into<std::path::PathBuf>) -> Result<Self, crate::Error> {
         send_logs_to_tracing(LogOptions::default().with_logs_enabled(true));
 
-        let backend = LlamaBackend::init()?;
+        let backend = LLAMA_BACKEND
+            .get_or_init(|| {
+                let backend = LlamaBackend::init().unwrap();
+                Arc::new(backend)
+            })
+            .clone();
+
         let params = LlamaModelParams::default();
         let model = LlamaModel::load_from_file(&backend, model_path.into(), &params)?;
         let tpl = LlamaChatTemplate::new("llama3").unwrap();
@@ -149,15 +159,69 @@ mod tests {
         Llama::new(model_path).unwrap()
     }
 
+    struct Tokenizer {
+        tokenizer: tokenizers::Tokenizer,
+    }
+
+    impl Tokenizer {
+        async fn new() -> Self {
+            let url = "https://pub-8987485129c64debb63bff7f35a2e5fd.r2.dev/v0/lmstudio-community/Llama-3.2-3B-Instruct-GGUF/main/tokenizer.json";
+            let bytes = reqwest::get(url).await.unwrap().bytes().await.unwrap();
+            let tokenizer = tokenizers::Tokenizer::from_bytes(&bytes).unwrap();
+            Self { tokenizer }
+        }
+
+        fn count_tokens(&self, text: &str) -> usize {
+            self.tokenizer.encode(text, true).unwrap().len()
+        }
+    }
+
+    static TOKENIZER: tokio::sync::OnceCell<Arc<Tokenizer>> = tokio::sync::OnceCell::const_new();
+
+    async fn get_tokenizer() -> Arc<Tokenizer> {
+        TOKENIZER
+            .get_or_init(|| async {
+                let tokenizer = Tokenizer::new().await;
+                Arc::new(tokenizer)
+            })
+            .await
+            .clone()
+    }
+
     #[tokio::test]
     async fn test_simple() {
         let llama = get_model();
+        let tokenizer = get_tokenizer().await;
 
-        let request = LlamaRequest::new(vec![LlamaChatMessage::new(
-            "user".into(),
-            "Hello, how are you?".into(),
-        )
-        .unwrap()]);
+        let prompt = "Hello, how are you?";
+
+        let tokens_count = tokenizer.count_tokens(prompt);
+        assert_eq!(tokens_count, 7);
+
+        let request = LlamaRequest::new(vec![
+            LlamaChatMessage::new("user".into(), prompt.into()).unwrap()
+        ]);
+
+        let response: String = llama.generate_stream(request).unwrap().collect().await;
+        assert!(response.len() > 4);
+    }
+
+    #[tokio::test]
+    async fn test_long() {
+        let llama = get_model();
+        let tokenizer = get_tokenizer().await;
+
+        let prompt = std::iter::repeat("Hello, how are you?")
+            .take(400)
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        let tokens_count = tokenizer.count_tokens(&prompt);
+        assert_eq!(tokens_count, 2401);
+
+        let request = LlamaRequest::new(vec![
+            LlamaChatMessage::new("user".into(), prompt.into()).unwrap()
+        ]);
 
         let response: String = llama.generate_stream(request).unwrap().collect().await;
         assert!(response.len() > 4);

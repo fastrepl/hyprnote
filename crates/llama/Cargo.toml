@@ -5,6 +5,8 @@ edition = "2021"
 
 [dev-dependencies]
 dirs = { workspace = true }
+reqwest = { workspace = true }
+tokenizers = "0.21.1"
 
 [dependencies]
 encoding_rs = "0.8.35"

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 
 import EditorArea from "@/components/editor-area";
@@ -100,6 +100,8 @@ function Component() {
 function OnboardingSupport({ session }: { session: Session }) {
   const video = "cVEAlhaghbBcj1eZDW202URXSJq3ewZb02l7C9jG5mKrY";
 
+  const navigate = useNavigate();
+
   const onboardingSessionId = useQuery({
     queryKey: ["onboarding-session-id"],
     queryFn: () => dbCommands.onboardingSessionId(),
@@ -124,30 +126,32 @@ function OnboardingSupport({ session }: { session: Session }) {
     ongoingSessionStatus: s.status,
   }));
 
+  // Normally, we do stuffs only when "enabled" is true.
+  // But here, we want to "stop-and-go-back" from anywhere, when onboarding video is destroyed.
   useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
-    startOngoingSession(session.id);
-  }, [enabled]);
-
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
     let unlisten: () => void;
 
-    windowsEvents.windowDestroyed.listen(({ payload }) => {
-      if (payload.window.type === "video") {
+    windowsEvents.windowDestroyed.listen(({ payload: { window } }) => {
+      if (window.type === "video" && window.value === video) {
         pauseOngoingSession();
+
+        if (onboardingSessionId.data) {
+          navigate({ to: "/app/note/$id", params: { id: onboardingSessionId.data } });
+        }
       }
     }).then((u) => {
       unlisten = u;
     });
 
     return () => unlisten?.();
+  }, []);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    startOngoingSession(session.id);
   }, [enabled]);
 
   useEffect(() => {

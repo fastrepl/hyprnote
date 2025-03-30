@@ -54,11 +54,9 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
       const config = await dbCommands.getConfig();
       const provider = await modelProvider();
 
-      console.log("getTimeline");
       const timeline = await listenerCommands.getTimeline(sessionId, {
         last_n_seconds: null,
       });
-      console.log("timeline", timeline);
 
       const systemMessage = await templateCommands.render(
         ENHANCE_SYSTEM_TEMPLATE_KEY,

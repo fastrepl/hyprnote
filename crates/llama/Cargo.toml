@@ -3,6 +3,9 @@ name = "llama"
 version = "0.1.0"
 edition = "2021"
 
+[dev-dependencies]
+dirs = { workspace = true }
+
 [dependencies]
 encoding_rs = "0.8.35"
 llama-cpp-2 = { version = "0.1.102", features = ["metal"] }

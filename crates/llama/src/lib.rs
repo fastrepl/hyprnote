@@ -14,8 +14,6 @@ mod message;
 pub use message::*;
 
 const DEFAULT_MAX_TOKENS: i32 = 1024;
-const CONTEXT_SIZE: usize = 2048;
-const SAMPLER_SEED: u32 = 1234;
 
 pub struct Llama {
     task_sender: tokio::sync::mpsc::UnboundedSender<Task>,
@@ -55,12 +53,15 @@ impl Llama {
                                 .new_context(
                                     &backend,
                                     LlamaContextParams::default()
-                                        .with_n_ctx(std::num::NonZeroU32::new(CONTEXT_SIZE as u32)),
+                                        .with_n_ctx(std::num::NonZeroU32::new(4096 * 2))
+                                        .with_n_batch(4096),
                                 )
                                 .unwrap();
 
                             let tokens_list = model.str_to_token(&prompt, AddBos::Always).unwrap();
-                            let mut batch = LlamaBatch::new(CONTEXT_SIZE, 1);
+
+                            let batch_size = tokens_list.len().max(256);
+                            let mut batch = LlamaBatch::new(batch_size, 1);
 
                             let last_index = (tokens_list.len() - 1) as i32;
                             for (i, token) in (0_i32..).zip(tokens_list.into_iter()) {
@@ -73,7 +74,7 @@ impl Llama {
                             let mut n_cur = batch.n_tokens();
                             let mut decoder = encoding_rs::UTF_8.new_decoder();
                             let mut sampler = LlamaSampler::chain_simple([
-                                LlamaSampler::dist(SAMPLER_SEED),
+                                LlamaSampler::dist(1234),
                                 LlamaSampler::greedy(),
                             ]);
 
@@ -131,5 +132,34 @@ impl Llama {
         });
 
         Ok(stream)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use futures_util::StreamExt;
+    use llama_cpp_2::model::LlamaChatMessage;
+
+    fn get_model() -> Llama {
+        let model_path = dirs::data_dir()
+            .unwrap()
+            .join("com.hyprnote.dev")
+            .join("llm.gguf");
+        Llama::new(model_path).unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_simple() {
+        let llama = get_model();
+
+        let request = LlamaRequest::new(vec![LlamaChatMessage::new(
+            "user".into(),
+            "Hello, how are you?".into(),
+        )
+        .unwrap()]);
+
+        let response: String = llama.generate_stream(request).unwrap().collect().await;
+        assert!(response.len() > 4);
     }
 }

@@ -6610,6 +6610,7 @@ name = "llama"
 version = "0.1.0"
 dependencies = [
  "async-openai",
+ "dirs 6.0.0",
  "encoding_rs",
  "futures-util",
  "llama-cpp-2",

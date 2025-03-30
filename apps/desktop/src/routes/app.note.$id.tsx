@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect, useParams } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useEffect, useMemo } from "react";
 
 import EditorArea from "@/components/editor-area";
 import RightPanel from "@/components/right-panel";
@@ -12,9 +12,7 @@ import {
   getCurrentWebviewWindowLabel,
 } from "@hypr/plugin-windows";
 
-const PATH = "/app/note/$id";
-
-export const Route = createFileRoute(PATH)({
+export const Route = createFileRoute("/app/note/$id")({
   beforeLoad: ({ context: { queryClient, sessionsStore }, params: { id } }) => {
     return queryClient.fetchQuery({
       queryKey: ["session", id],
@@ -43,76 +41,20 @@ export const Route = createFileRoute(PATH)({
       },
     });
   },
-  loader: async ({ params: { id } }) => {
-    const onboardingSessionId = await dbCommands.onboardingSessionId();
-    return { isDemo: id === onboardingSessionId, video: "cVEAlhaghbBcj1eZDW202URXSJq3ewZb02l7C9jG5mKrY" };
-  },
   component: Component,
 });
 
 function Component() {
-  const { isDemo, video } = Route.useLoaderData();
-  const { id: sessionId } = useParams({ from: PATH });
+  const { id: sessionId } = Route.useParams();
 
-  const { getSession } = useSession(sessionId, (s) => ({ getSession: s.get }));
-  const { getOngoingSession, startOngoingSession, pauseOngoingSession, ongoingSessionStatus } = useOngoingSession((
-    s,
-  ) => ({
-    getOngoingSession: s.get,
-    startOngoingSession: s.start,
-    pauseOngoingSession: s.pause,
-    ongoingSessionStatus: s.status,
-  }));
-
-  useEffect(() => {
-    if (!isDemo) {
-      return;
-    }
-
-    startOngoingSession(sessionId);
-  }, [isDemo]);
-
-  useEffect(() => {
-    if (!isDemo) {
-      return;
-    }
-
-    let unlisten: () => void;
-
-    windowsEvents.windowDestroyed.listen(({ payload }) => {
-      if (payload.window.type === "video") {
-        pauseOngoingSession();
-      }
-    }).then((u) => {
-      unlisten = u;
-    });
-
-    return () => unlisten?.();
-  }, [isDemo]);
-
-  useEffect(() => {
-    if (!isDemo) {
-      return;
-    }
-
-    if (ongoingSessionStatus === "active") {
-      windowsCommands.windowShow({ type: "video", value: video }).then(() => {
-        windowsCommands.windowPosition({ type: "video", value: video }, "left-half");
-        windowsCommands.windowResizeDefault({ type: "video", value: video });
-        windowsCommands.windowPosition({ type: "main" }, "right-half");
-      });
-    }
-
-    if (ongoingSessionStatus === "inactive") {
-      windowsCommands.windowDestroy({ type: "video", value: video });
-    }
-  }, [isDemo, ongoingSessionStatus]);
+  const { getLatestSession, session } = useSession(sessionId, (s) => ({ getLatestSession: s.get, session: s.session }));
+  const getOngoingSession = useOngoingSession((s) => s.get);
 
   useEffect(() => {
     const isEmpty = (s: string | null) => s === "<p></p>" || !s;
 
     return () => {
-      const { session } = getSession();
+      const { session } = getLatestSession();
       const { sessionId: ongoingSessionId } = getOngoingSession();
 
       const shouldDelete = !session.title
@@ -125,7 +67,7 @@ function Component() {
         mutation.mutate();
       }
     };
-  }, [getSession]);
+  }, [getLatestSession]);
 
   const queryClient = useQueryClient();
 
@@ -145,6 +87,7 @@ function Component() {
       <div className="flex-1">
         <main className="flex h-full overflow-hidden bg-white">
           <div className="h-full flex-1 pt-6">
+            <OnboardingSupport session={session} />
             <EditorArea editable={getCurrentWebviewWindowLabel() === "main"} sessionId={sessionId} />
           </div>
         </main>
@@ -152,4 +95,78 @@ function Component() {
       <RightPanel />
     </div>
   );
+}
+
+function OnboardingSupport({ session }: { session: Session }) {
+  const video = "cVEAlhaghbBcj1eZDW202URXSJq3ewZb02l7C9jG5mKrY";
+
+  const onboardingSessionId = useQuery({
+    queryKey: ["onboarding-session-id"],
+    queryFn: () => dbCommands.onboardingSessionId(),
+  });
+
+  const enabled = useMemo(() => {
+    const isOnboardingSession = onboardingSessionId.data === session.id;
+    const alreadyEnhanced = !!session.enhanced_memo_html;
+
+    return isOnboardingSession && !alreadyEnhanced;
+  }, [
+    onboardingSessionId.data,
+    session.id,
+    session.enhanced_memo_html,
+  ]);
+
+  const { startOngoingSession, pauseOngoingSession, ongoingSessionStatus } = useOngoingSession((
+    s,
+  ) => ({
+    startOngoingSession: s.start,
+    pauseOngoingSession: s.pause,
+    ongoingSessionStatus: s.status,
+  }));
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    startOngoingSession(session.id);
+  }, [enabled]);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    let unlisten: () => void;
+
+    windowsEvents.windowDestroyed.listen(({ payload }) => {
+      if (payload.window.type === "video") {
+        pauseOngoingSession();
+      }
+    }).then((u) => {
+      unlisten = u;
+    });
+
+    return () => unlisten?.();
+  }, [enabled]);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    if (ongoingSessionStatus === "active") {
+      windowsCommands.windowShow({ type: "video", value: video }).then(() => {
+        windowsCommands.windowPosition({ type: "video", value: video }, "left-half");
+        windowsCommands.windowResizeDefault({ type: "video", value: video });
+        windowsCommands.windowPosition({ type: "main" }, "right-half");
+      });
+    }
+
+    if (ongoingSessionStatus === "inactive") {
+      windowsCommands.windowDestroy({ type: "video", value: video });
+    }
+  }, [enabled, ongoingSessionStatus]);
+
+  return null;
 }

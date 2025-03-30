@@ -235,7 +235,11 @@ function EnhanceButton(
     timeline: s.timeline,
   }));
 
-  // if (!ongoingSessionStore.timeline?.items.length) {
+  if (ongoingSessionStore.status !== "inactive") {
+    return null;
+  }
+
+  // if (!session.conversations.length) {
   //   return null;
   // }
 

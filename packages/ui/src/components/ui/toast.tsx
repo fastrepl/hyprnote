@@ -22,7 +22,7 @@ export interface CustomToastProps {
 }
 
 export function CustomToast(props: CustomToastProps) {
-  const { id, title, content, buttons = [], dismissible, children, duration } = props;
+  const { id, title, content, buttons = [], dismissible, children } = props;
 
   return (
     <div className="flex flex-col gap-2 p-4 relative">

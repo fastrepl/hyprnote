@@ -11,12 +11,11 @@ export const extensions = [...shared.extensions];
 interface EditorProps {
   handleChange: (content: HTMLContent) => void;
   initialContent: HTMLContent;
-  autoFocus?: boolean;
   editable?: boolean;
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
-  ({ handleChange, initialContent, autoFocus = true, editable = true }, ref) => {
+  ({ handleChange, initialContent, editable = true }, ref) => {
     const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
       if (!editor.isInitialized) {
         return;
@@ -35,7 +34,6 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         editor.view.dom.setAttribute("autocapitalize", "off");
       },
       onUpdate,
-      autofocus: autoFocus,
     });
 
     useEffect(() => {

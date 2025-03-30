@@ -245,6 +245,19 @@
     padding: 0.1rem 0.3rem;
     color: #bc7700;
   }
+
+  /* Hashtag styling - added directly to ensure it's applied */
+  .hashtag {
+    color: #f59e0b; /* Amber color */
+    text-decoration: underline;
+    text-decoration-color: #f59e0b;
+    display: inline;
+    padding: 0 2px;
+    border-radius: 0;
+    background: none;
+    border: none;
+    font-weight: 500;
+  }
 }
 
 .tiptap-animate

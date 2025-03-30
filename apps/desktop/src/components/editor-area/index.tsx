@@ -1,6 +1,7 @@
 import { Button } from "@hypr/ui/components/ui/button";
 import { Trans } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
+import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { AlignLeft, Loader2, Zap } from "lucide-react";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
@@ -26,9 +27,15 @@ interface EditorAreaProps {
 
 export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
   const [showRaw, setShowRaw] = useState(true);
-  const { userId } = useHypr();
+  const { userId, onboardingSessionId } = useHypr();
 
-  const ongoingSessionTimeline = useOngoingSession((s) => s.timeline);
+  const { ongoingSessionTimeline, ongoingSessionStatus } = useOngoingSession((s) => ({
+    ongoingSessionStatus: s.status,
+    ongoingSessionTimeline: s.timeline,
+  }));
+
+  const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
+
   const sessionStore = useSession(sessionId, (s) => ({
     session: s.session,
     updateRawNote: s.updateRawNote,
@@ -103,6 +110,23 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
       console.error(error);
     },
   });
+
+  // Auto-enhancing. Only needed while onboarding.
+  useEffect(() => {
+    if (sessionId !== onboardingSessionId) {
+      return;
+    }
+
+    const justFinishedListening = prevOngoingSessionStatus === "active" && ongoingSessionStatus === "inactive";
+
+    if (justFinishedListening && !sessionStore.session.enhanced_memo_html) {
+      setTimeout(() => {
+        if (enhance.status === "idle") {
+          enhance.mutate();
+        }
+      }, 1800);
+    }
+  }, [ongoingSessionStatus, prevOngoingSessionStatus, enhance.status, sessionStore.session.enhanced_memo_html]);
 
   const handleChangeNote = useCallback(
     (content: string) => {

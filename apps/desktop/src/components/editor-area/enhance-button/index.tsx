@@ -1,5 +1,5 @@
-import { useOngoingSession } from "@hypr/utils/contexts";
 import { Session } from "@hypr/plugin-db";
+import { useOngoingSession } from "@hypr/utils/contexts";
 
 import { EnhanceControls } from "./enhance-controls";
 import { EnhanceOnlyButton } from "./enhance-only-button";
@@ -24,7 +24,7 @@ export function EnhanceButton({
     timeline: s.timeline,
   }));
 
-  if (!ongoingSessionStore.timeline?.items.length) {
+  if (ongoingSessionStore.status !== "inactive") {
     return null;
   }
 
@@ -37,10 +37,7 @@ export function EnhanceButton({
         handleRunEnhance={handleClick}
       />
     )
-    : (
-      <EnhanceOnlyButton
-        handleRunEnhance={handleClick}
-        enhanceStatus={enhanceStatus}
-      />
-    );
+    : session.conversations.length
+    ? <EnhanceOnlyButton handleRunEnhance={handleClick} enhanceStatus={enhanceStatus} />
+    : null;
 }

@@ -1,5 +1,5 @@
 import { TagsIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 
@@ -10,7 +10,7 @@ interface TagChipProps {
 
 export function TagChip({ sessionId, hashtags = [] }: TagChipProps) {
   const [open, setOpen] = useState(false);
-  
+
   // Add debugging to see what hashtags we're receiving
   useEffect(() => {
     console.log("TagChip received hashtags:", hashtags);

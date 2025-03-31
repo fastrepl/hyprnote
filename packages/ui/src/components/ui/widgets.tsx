@@ -111,11 +111,11 @@ const WidgetFullSizeWrapper = ({
   onMinimize: () => void;
 }) => (
   <div className="flex items-center justify-center w-full h-full p-[10px]">
-    <WidgetWrapper 
-      width="calc(100% - 20px)" 
-      height="calc(100% - 20px)" 
+    <WidgetWrapper
+      width="calc(100% - 20px)"
+      height="calc(100% - 20px)"
       style={{ maxWidth: "100%" }}
-      {...props} 
+      {...props}
     />
   </div>
 );

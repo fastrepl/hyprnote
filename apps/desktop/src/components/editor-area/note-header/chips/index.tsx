@@ -1,5 +1,6 @@
 import { EventChip } from "./event-chip";
 import { ParticipantsChip } from "./participants-chip";
+import { PastNotesChip } from "./past-notes-chip";
 import { TagChip } from "./tag-chip";
 
 interface ChipsProps {
@@ -13,6 +14,7 @@ export default function Chips({ sessionId, hashtags = [] }: ChipsProps) {
       <EventChip sessionId={sessionId} />
       <ParticipantsChip sessionId={sessionId} />
       <TagChip sessionId={sessionId} hashtags={hashtags} />
+      <PastNotesChip sessionId={sessionId} />
     </div>
   );
 }

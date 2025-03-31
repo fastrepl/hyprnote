@@ -200,7 +200,6 @@ function TestModelButton({ isRunning }: { isRunning: boolean }) {
         messages: [{ role: "user", content: "generate just 3 sentences" }],
       });
 
-      console.log(text);
       if (!text) {
         throw new Error("no text");
       }

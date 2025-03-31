@@ -52,7 +52,6 @@ export const createOngoingSessionStore = () => {
             }
 
             if (event.type === "timelineView") {
-              console.log("timelineView", event.timeline);
               draft.timeline = event.timeline;
             }
 

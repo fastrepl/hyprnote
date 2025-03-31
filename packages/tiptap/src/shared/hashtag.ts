@@ -31,14 +31,12 @@ export function extractHashtags(content: string): string[] {
 
   textNodes.forEach(node => {
     const text = node.textContent || "";
-    console.log("Processing text node:", text);
 
     HASHTAG_REGEX.lastIndex = 0;
 
     let match;
     while ((match = HASHTAG_REGEX.exec(text)) !== null) {
       const tag = match[1].trim();
-      console.log("Found hashtag:", tag);
 
       if (tag) {
         hashtags.push(tag);
@@ -47,7 +45,6 @@ export function extractHashtags(content: string): string[] {
   });
 
   const uniqueTags = [...new Set(hashtags)];
-  console.log("Final extracted hashtags:", uniqueTags, "count:", uniqueTags.length);
   return uniqueTags;
 }
 

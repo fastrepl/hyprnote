@@ -122,7 +122,6 @@ export function ChatView() {
   };
 
   const handleSelectChat = (chatId: string) => {
-    console.log(`Selected chat: ${chatId}`);
     setShowHistory(false);
   };
 

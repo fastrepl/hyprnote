@@ -87,7 +87,6 @@ export default function Extensions({ selectedExtension, onExtensionSelect }: Ext
       await queryClient.refetchQueries({ queryKey: ["extensions"] });
       await queryClient.refetchQueries({ queryKey: ["extension-mapping", selectedExtension?.id] });
       await windowsCommands.windowShow({ type: "main" });
-      console.log("extensions is now refetchQueries");
     },
   });
 

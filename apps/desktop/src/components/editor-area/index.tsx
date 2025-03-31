@@ -129,20 +129,16 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
     }
   }, [ongoingSessionStatus, prevOngoingSessionStatus, enhance.status, sessionStore.session.enhanced_memo_html]);
 
-  // Extract hashtags on initial load
   useEffect(() => {
     if (sessionId && rawContent) {
       const extractedTags = extractHashtags(rawContent);
-      console.log("Initial hashtag extraction:", extractedTags);
       setHashtags(extractedTags);
     }
   }, [sessionId, rawContent]);
 
   const handleChangeNote = useCallback(
     (content: string) => {
-      // Extract hashtags from content and update state directly
       const extractedTags = extractHashtags(content);
-      console.log("Extracted hashtags:", extractedTags, "from content:", content);
       setHashtags(extractedTags);
 
       if (showRaw) {

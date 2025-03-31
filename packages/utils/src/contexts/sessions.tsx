@@ -2,6 +2,7 @@ import React, { createContext, useContext, useRef } from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
+import { type Session } from "@hypr/plugin-db";
 import { createSessionsStore, createSessionStore, SessionsStore } from "../stores";
 
 const SessionsContext = createContext<
@@ -48,7 +49,7 @@ export const useSessions = <T,>(
 };
 
 export const useSession = <T,>(
-  id: string,
+  sessionLocator: string | Session,
   selector: Parameters<
     typeof useStore<ReturnType<typeof createSessionStore>, T>
   >[1],
@@ -59,10 +60,17 @@ export const useSession = <T,>(
     throw new Error("'useSession' must be used within a 'SessionsProvider'");
   }
 
-  const sessionStore = sessionsStore.getState().sessions[id];
-  if (!sessionStore) {
-    throw new Error(`session(id=${id}) not exists in sessions store`);
+  const sessionId = typeof sessionLocator === "string" ? sessionLocator : sessionLocator.id;
+
+  const { sessions, insert } = sessionsStore.getState();
+
+  if (sessions[sessionId]) {
+    return useStore(sessions[sessionId], useShallow(selector));
   }
 
-  return useStore(sessionStore, useShallow(selector));
+  if (typeof sessionLocator === "string") {
+    throw new Error(`session(id=${sessionId}) not exists in sessions store. Consider passing Session object instead.`);
+  }
+
+  return useStore(insert(sessionLocator), useShallow(selector));
 };

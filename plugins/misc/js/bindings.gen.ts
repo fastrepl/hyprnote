@@ -12,9 +12,6 @@ async getFingerprint() : Promise<string> {
 },
 async opinionatedMdToHtml(text: string) : Promise<string> {
     return await TAURI_INVOKE("plugin:misc|opinionated_md_to_html", { text });
-},
-async listTemplateNames() : Promise<TemplateName[]> {
-    return await TAURI_INVOKE("plugin:misc|list_template_names");
 }
 }
 
@@ -28,7 +25,7 @@ async listTemplateNames() : Promise<TemplateName[]> {
 
 /** user-defined types **/
 
-export type TemplateName = "misc:create-title-system" | "misc:create-title-user" | "misc:enhance-system" | "misc:enhance-user" | "misc:postprocess-enhance-system" | "misc:postprocess-enhance-user"
+
 
 /** tauri-specta globals **/
 

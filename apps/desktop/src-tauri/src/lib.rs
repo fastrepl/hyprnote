@@ -99,14 +99,6 @@ pub async fn main() {
             specta_builder.mount_events(&app);
 
             {
-                use tauri_plugin_template::TemplatePluginExt;
-                for (name, template) in tauri_plugin_misc::TEMPLATES {
-                    app.register_template(name.to_string(), template.to_string())
-                        .unwrap();
-                }
-            }
-
-            {
                 use tauri_plugin_autostart::ManagerExt;
                 let autostart_manager = app.autolaunch();
                 autostart_manager.enable().unwrap();

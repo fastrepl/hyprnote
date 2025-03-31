@@ -1,8 +1,5 @@
 mod commands;
 mod ext;
-mod model;
-
-pub use model::*;
 
 const PLUGIN_NAME: &str = "misc";
 
@@ -11,8 +8,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::get_fingerprint::<tauri::Wry>,
-            commands::opinionated_md_to_html::<tauri::Wry>,
-            commands::list_template_names::<tauri::Wry>,
+            commands::opinionated_md_to_html::<tauri::Wry>
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

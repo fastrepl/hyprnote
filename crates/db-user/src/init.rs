@@ -4,7 +4,7 @@ use super::{
 };
 
 const USER_MANUAL_MD: &str = include_str!("../assets/manual.md");
-const ONBOARDING_MD: &str = include_str!("../assets/onboarding.md");
+const ONBOARDING_RAW_MD: &str = include_str!("../assets/onboarding-raw.md");
 
 pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), crate::Error> {
     let user_id = user_id.into();
@@ -51,7 +51,7 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         created_at: chrono::Utc::now() + chrono::Duration::days(2),
         visited_at: chrono::Utc::now() + chrono::Duration::days(2),
         calendar_event_id: Some(onboarding_event.id.clone()),
-        raw_memo_html: hypr_buffer::opinionated_md_to_html(ONBOARDING_MD).unwrap(),
+        raw_memo_html: hypr_buffer::opinionated_md_to_html(ONBOARDING_RAW_MD).unwrap(),
         enhanced_memo_html: None,
         conversations: vec![],
     };

@@ -3,7 +3,13 @@ use super::{
     ListSessionFilterSpecific, Session, UserDatabase,
 };
 
+const ONBOARDING_ENHANCED_MD: &str = include_str!("../assets/onboarding-enhanced.md");
+
 impl UserDatabase {
+    pub fn onboarding_session_enhanced_memo_html(&self) -> String {
+        hypr_buffer::opinionated_md_to_html(ONBOARDING_ENHANCED_MD).unwrap()
+    }
+
     pub fn onboarding_session_id(&self) -> String {
         "df1d8c52-6d9d-4471-aff1-5dbd35899cbe".to_string()
     }

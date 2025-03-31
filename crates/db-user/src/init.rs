@@ -9,6 +9,78 @@ const ONBOARDING_RAW_MD: &str = include_str!("../assets/onboarding-raw.md");
 pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), crate::Error> {
     let user_id = user_id.into();
 
+    // let fastrepl_org = Organization {
+    //     id: uuid::Uuid::new_v4().to_string(),
+    //     name: "Fastrepl".to_string(),
+    //     description: Some("https://github.com/fastrepl".to_string()),
+    // };
+
+    // let fastrepl_members = vec![
+    //     Human {
+    //         id: uuid::Uuid::new_v4().to_string(),
+    //         full_name: Some("Yujong Lee".to_string()),
+    //         email: Some("yujonglee@hyprnote.com".to_string()),
+    //         organization_id: Some(fastrepl_org.id.clone()),
+    //         is_user: false,
+    //         job_title: Some("Co-Founder".to_string()),
+    //         linkedin_username: Some("yujong1ee".to_string()),
+    //     },
+    //     Human {
+    //         id: uuid::Uuid::new_v4().to_string(),
+    //         full_name: Some("John Jeong".to_string()),
+    //         email: Some("john@hyprnote.com".to_string()),
+    //         organization_id: Some(fastrepl_org.id.clone()),
+    //         is_user: false,
+    //         job_title: Some("Co-Founder".to_string()),
+    //         linkedin_username: Some("johntopia".to_string()),
+    //     },
+    // ];
+
+    let onboarding_org = Organization {
+        id: uuid::Uuid::new_v4().to_string(),
+        name: "Dunder Mifflin".to_string(),
+        description: None,
+    };
+
+    let onboarding_participants = vec![
+        Human {
+            id: uuid::Uuid::new_v4().to_string(),
+            full_name: Some("Michael Scott".to_string()),
+            email: None,
+            organization_id: Some(onboarding_org.id.clone()),
+            is_user: false,
+            job_title: None,
+            linkedin_username: None,
+        },
+        Human {
+            id: uuid::Uuid::new_v4().to_string(),
+            full_name: Some("Ryan Howard".to_string()),
+            email: None,
+            organization_id: Some(onboarding_org.id.clone()),
+            is_user: false,
+            job_title: None,
+            linkedin_username: None,
+        },
+        Human {
+            id: uuid::Uuid::new_v4().to_string(),
+            full_name: Some("Daryl Philbin".to_string()),
+            email: None,
+            organization_id: Some(onboarding_org.id.clone()),
+            is_user: false,
+            job_title: None,
+            linkedin_username: None,
+        },
+        Human {
+            id: uuid::Uuid::new_v4().to_string(),
+            full_name: Some("Toby Flenderson".to_string()),
+            email: None,
+            organization_id: Some(onboarding_org.id.clone()),
+            is_user: false,
+            job_title: None,
+            linkedin_username: None,
+        },
+    ];
+
     let default_calendar = Calendar {
         id: uuid::Uuid::new_v4().to_string(),
         user_id: user_id.clone(),
@@ -32,7 +104,7 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
 
     let onboarding_session_id = db.onboarding_session_id();
 
-    let session_1 = Session {
+    let manual_session = Session {
         id: uuid::Uuid::new_v4().to_string(),
         user_id: user_id.clone(),
         title: "Welcome to Hyprnote".to_string(),
@@ -44,7 +116,7 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         conversations: vec![],
     };
 
-    let session_2 = Session {
+    let onboarding_session = Session {
         id: onboarding_session_id,
         user_id: user_id.clone(),
         title: "Onboarding".to_string(),
@@ -59,9 +131,27 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
     let _ = db.upsert_calendar(default_calendar).await?;
     let _ = db.upsert_event(onboarding_event).await?;
 
-    for session in [session_1, session_2] {
-        let _ = db.upsert_session(session).await?;
+    for session in [&manual_session, &onboarding_session] {
+        let _ = db.upsert_session(session.clone()).await?;
     }
+
+    for org in [onboarding_org] {
+        let _ = db.upsert_organization(org).await?;
+    }
+
+    for participant in onboarding_participants.clone() {
+        let _ = db.upsert_human(participant).await?;
+    }
+
+    for participant in onboarding_participants {
+        let _ = db
+            .session_add_participant(onboarding_session.id.clone(), participant.id)
+            .await?;
+    }
+
+    let _ = db
+        .session_add_participant(manual_session.id.clone(), user_id.clone())
+        .await?;
 
     Ok(())
 }
@@ -72,8 +162,8 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
 
     let org_1 = Organization {
         id: uuid::Uuid::new_v4().to_string(),
-        name: "Fastrepl".to_string(),
-        description: Some("Fastrepl = fast + read-eval-print-loop".to_string()),
+        name: "Some Company".to_string(),
+        description: None,
     };
 
     let org_2 = Organization {

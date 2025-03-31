@@ -29,11 +29,20 @@ export function ParticipantsList({ sessionId }: ParticipantsListProps) {
         ret[group] = [...(ret[group] || []), participant];
       });
 
-      return ret;
+      Object.keys(ret).forEach((group) => {
+        ret[group].sort((a, b) => {
+          const nameA = a.full_name ?? "";
+          const nameB = b.full_name ?? "";
+          return nameB.localeCompare(nameA);
+        });
+      });
+
+      return Object.entries(ret)
+        .sort(([_, membersA], [__, membersB]) => membersB.length - membersA.length);
     },
   });
 
-  if (!Object.keys(groupedParticipants.data ?? {}).length) {
+  if (!groupedParticipants.data?.length) {
     return <ParticipantAddControl sessionId={sessionId} />;
   }
 
@@ -42,7 +51,7 @@ export function ParticipantsList({ sessionId }: ParticipantsListProps) {
       <div className="text-sm font-medium text-neutral-700">Participants</div>
 
       <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
-        {Object.entries(groupedParticipants.data ?? {}).map(([orgId, members]) => (
+        {groupedParticipants.data.map(([orgId, members]) => (
           <OrganizationWithParticipants key={orgId} orgId={orgId} members={members} sessionId={sessionId} />
         ))}
       </div>

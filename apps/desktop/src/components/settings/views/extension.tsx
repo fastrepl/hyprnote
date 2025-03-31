@@ -1,6 +1,5 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MinusIcon, PlusIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { useHypr } from "@/contexts";
@@ -141,40 +140,63 @@ function RenderGroup({
   activeWidgets: ExtensionMapping["widgets"];
 }) {
   const isWidgetActive = (groupId: string, widgetKind: ExtensionWidgetKind) => {
-    return activeWidgets.some(widget => widget.group === groupId && widget.kind === widgetKind);
+    return activeWidgets.some((widget) => widget.group === groupId && widget.kind === widgetKind);
   };
 
   return (
-    <div className="flex flex-col gap-3">
-      <h4 className="text-lg font-semibold text-neutral-700 mb-2">
-        {group.id}
+    <div className="mb-4">
+      <h4 className="text-sm font-medium mb-2">
+        <Trans>Group {group.id}</Trans>
       </h4>
 
       <div>
         {group.types.map((type: Omit<ExtensionWidgetKind, "full">) => (
-          <div key={type as string}>
+          <div key={type as string} className="relative">
             {type === "oneByOne" && (
-              <WidgetOneByOneWrapper>
+              <WidgetOneByOneWrapper className="group relative">
                 <div className="flex items-center justify-center h-full text-neutral-600">Example 1×1</div>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm">
+                  <Button
+                    variant={isWidgetActive(group.id, type as ExtensionWidgetKind) ? "destructive" : "default"}
+                    size="sm"
+                    onClick={() => handler({ groupId: group.id, widgetKind: type })}
+                    className="font-medium"
+                  >
+                    {isWidgetActive(group.id, type as ExtensionWidgetKind) ? "Remove" : "Add"}
+                  </Button>
+                </div>
               </WidgetOneByOneWrapper>
             )}
             {type === "twoByOne" && (
-              <WidgetTwoByOneWrapper>
+              <WidgetTwoByOneWrapper className="group relative">
                 <div className="flex items-center justify-center h-full text-neutral-600">Example 2×1</div>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm">
+                  <Button
+                    variant={isWidgetActive(group.id, type as ExtensionWidgetKind) ? "destructive" : "default"}
+                    size="sm"
+                    onClick={() => handler({ groupId: group.id, widgetKind: type })}
+                    className="font-medium"
+                  >
+                    {isWidgetActive(group.id, type as ExtensionWidgetKind) ? "Remove" : "Add"}
+                  </Button>
+                </div>
               </WidgetTwoByOneWrapper>
             )}
             {type === "twoByTwo" && (
-              <WidgetTwoByTwoWrapper>
+              <WidgetTwoByTwoWrapper className="group relative">
                 <div className="flex items-center justify-center h-full text-neutral-600">Example 2×2</div>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm">
+                  <Button
+                    variant={isWidgetActive(group.id, type as ExtensionWidgetKind) ? "destructive" : "default"}
+                    size="sm"
+                    onClick={() => handler({ groupId: group.id, widgetKind: type })}
+                    className="font-medium"
+                  >
+                    {isWidgetActive(group.id, type as ExtensionWidgetKind) ? "Remove" : "Add"}
+                  </Button>
+                </div>
               </WidgetTwoByTwoWrapper>
             )}
-            <Button
-              variant={isWidgetActive(group.id, type as ExtensionWidgetKind) ? "default" : "outline"}
-              size="icon"
-              onClick={() => handler({ groupId: group.id, widgetKind: type })}
-            >
-              {isWidgetActive(group.id, type as ExtensionWidgetKind) ? <MinusIcon /> : <PlusIcon />}
-            </Button>
           </div>
         ))}
       </div>

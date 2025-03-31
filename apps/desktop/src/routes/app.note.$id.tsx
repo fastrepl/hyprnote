@@ -151,7 +151,9 @@ function OnboardingSupport({ session }: { session: Session }) {
       return;
     }
 
-    startOngoingSession(session.id);
+    if (ongoingSessionStatus === "inactive") {
+      startOngoingSession(session.id);
+    }
   }, [enabled]);
 
   useEffect(() => {

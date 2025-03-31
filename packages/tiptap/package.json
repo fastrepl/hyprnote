@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./editor": "./src/editor/index.tsx",
-    "./renderer": "./src/renderer/index.tsx"
+    "./renderer": "./src/renderer/index.tsx",
+    "./shared": "./src/shared/index.ts"
   },
   "peerDependencies": {
     "react": "^18.3.1",

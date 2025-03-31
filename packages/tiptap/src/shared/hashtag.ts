@@ -3,7 +3,30 @@ import { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
-const HASHTAG_REGEX = /#([\p{L}\p{N}_\p{Emoji}\p{Emoji_Component}]+)/gu;
+export const HASHTAG_REGEX = /#([\p{L}\p{N}_\p{Emoji}\p{Emoji_Component}]+)/gu;
+
+/**
+ * Extracts hashtags from HTML content
+ * @param content HTML content from the editor
+ * @returns Array of unique hashtag strings without the # symbol
+ */
+export function extractHashtags(content: string): string[] {
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = content;
+
+  const textContent = tempDiv.textContent || "";
+
+  const hashtags: string[] = [];
+  let match;
+
+  HASHTAG_REGEX.lastIndex = 0;
+
+  while ((match = HASHTAG_REGEX.exec(textContent)) !== null) {
+    hashtags.push(match[1]);
+  }
+
+  return [...new Set(hashtags)];
+}
 
 export const Hashtag = Extension.create({
   name: "hashtag",

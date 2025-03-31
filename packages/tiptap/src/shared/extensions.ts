@@ -22,6 +22,11 @@ export const extensions = [
       if (node.type.name === "paragraph") {
         return "Start taking notes...";
       }
+
+      if (node.type.name === "heading") {
+        return "Heading";
+      }
+
       return "";
     },
     emptyNodeClass: "is-empty",

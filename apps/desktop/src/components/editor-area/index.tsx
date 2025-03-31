@@ -39,6 +39,7 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
     sessionId,
     (s) => [s.session?.raw_memo_html ?? "", s.updateRawNote],
   );
+  const hashtags = useMemo(() => extractHashtags(rawContent), [rawContent]);
 
   const [enhancedContent, setEnhancedContent] = useSession(
     sessionId,
@@ -52,8 +53,6 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
 
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
   const editorKey = useMemo(() => `session-${sessionId}-${showRaw ? "raw" : "enhanced"}`, [sessionId, showRaw]);
-
-  const [hashtags, setHashtags] = useState<string[]>([]);
 
   const enhance = useMutation({
     mutationFn: async () => {
@@ -129,18 +128,8 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
     }
   }, [ongoingSessionStatus, prevOngoingSessionStatus, enhance.status, sessionStore.session.enhanced_memo_html]);
 
-  useEffect(() => {
-    if (sessionId && rawContent) {
-      const extractedTags = extractHashtags(rawContent);
-      setHashtags(extractedTags);
-    }
-  }, [sessionId, rawContent]);
-
   const handleChangeNote = useCallback(
     (content: string) => {
-      const extractedTags = extractHashtags(content);
-      setHashtags(extractedTags);
-
       if (showRaw) {
         setRawContent(content);
       } else {
@@ -150,10 +139,11 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
     [showRaw, setRawContent, setEnhancedContent],
   );
 
-  const noteContent = useMemo(() => {
-    return showRaw ? rawContent : enhancedContent;
+  const noteContent = useMemo(
+    () => showRaw ? rawContent : enhancedContent,
     // Excluding rawContent from deps list is intentional. We don't want to rerender the entire editor during editing.
-  }, [showRaw, enhancedContent]);
+    [showRaw, enhancedContent],
+  );
 
   const handleClickEnhance = useCallback(() => {
     try {

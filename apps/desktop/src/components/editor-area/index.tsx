@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
 import { ENHANCE_SYSTEM_TEMPLATE_KEY, ENHANCE_USER_TEMPLATE_KEY } from "@/templates";
@@ -11,8 +11,9 @@ import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands } from "@hypr/plugin-template";
-import Editor, { TiptapEditor } from "@hypr/tiptap/editor";
+import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
+import { extractHashtags } from "@hypr/tiptap/shared";
 import { cn } from "@hypr/ui/lib/utils";
 import { modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
@@ -51,6 +52,8 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
 
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
   const editorKey = useMemo(() => `session-${sessionId}-${showRaw ? "raw" : "enhanced"}`, [sessionId, showRaw]);
+
+  const [hashtags, setHashtags] = useState<string[]>([]);
 
   const enhance = useMutation({
     mutationFn: async () => {
@@ -126,8 +129,22 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
     }
   }, [ongoingSessionStatus, prevOngoingSessionStatus, enhance.status, sessionStore.session.enhanced_memo_html]);
 
+  // Extract hashtags on initial load
+  useEffect(() => {
+    if (sessionId && rawContent) {
+      const extractedTags = extractHashtags(rawContent);
+      console.log("Initial hashtag extraction:", extractedTags);
+      setHashtags(extractedTags);
+    }
+  }, [sessionId, rawContent]);
+
   const handleChangeNote = useCallback(
     (content: string) => {
+      // Extract hashtags from content and update state directly
+      const extractedTags = extractHashtags(content);
+      console.log("Extracted hashtags:", extractedTags, "from content:", content);
+      setHashtags(extractedTags);
+
       if (showRaw) {
         setRawContent(content);
       } else {
@@ -170,6 +187,7 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
         sessionId={sessionId}
         editable={editable}
         onNavigateToEditor={safelyFocusEditor}
+        hashtags={hashtags}
       />
 
       <div

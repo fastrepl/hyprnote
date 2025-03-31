@@ -11,9 +11,10 @@ interface NoteHeaderProps {
   onNavigateToEditor?: () => void;
   editable?: boolean;
   sessionId: string;
+  hashtags?: string[];
 }
 
-export function NoteHeader({ onNavigateToEditor, editable, sessionId }: NoteHeaderProps) {
+export function NoteHeader({ onNavigateToEditor, editable, sessionId, hashtags = [] }: NoteHeaderProps) {
   const sessionStore = useSession(sessionId, (s) => ({
     sessionInView: s.session,
     updateTitle: s.updateTitle,
@@ -40,7 +41,7 @@ export function NoteHeader({ onNavigateToEditor, editable, sessionId }: NoteHead
         />
         {isInNoteMain && <ListenButton sessionId={sessionId} />}
       </div>
-      <Chips />
+      <Chips sessionId={sessionId} hashtags={hashtags} />
     </>
   );
 }

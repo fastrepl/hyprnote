@@ -32,8 +32,6 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
     ongoingSessionTimeline: s.timeline,
   }));
 
-  const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
-
   const [showRaw, setShowRaw] = useSession(sessionId, (s) => [s.showRaw, s.setShowRaw]);
 
   const [rawContent, setRawContent] = useSession(
@@ -59,6 +57,8 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
       const config = await dbCommands.getConfig();
       const provider = await modelProvider();
 
+      const onboardingOutputExample = await dbCommands.onboardingSessionEnhancedMemoHtml();
+
       const timeline = await listenerCommands.getTimeline(sessionId, {
         last_n_seconds: null,
       });
@@ -75,6 +75,7 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
         {
           editor: sessionStore.session?.raw_memo_html ?? "",
           timeline: timeline,
+          ...(onboardingOutputExample ? { example: onboardingOutputExample } : {}),
         },
       );
 
@@ -85,7 +86,7 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
           { role: "user", content: userMessage },
         ],
         experimental_transform: [
-          smoothStream({ delayInMs: 100, chunking: "line" }),
+          smoothStream({ delayInMs: 80, chunking: "line" }),
         ],
       });
 
@@ -106,7 +107,8 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
     },
   });
 
-  // Auto-enhancing. Only needed while onboarding.
+  // For auto-enhancing. Only needed while onboarding.
+  const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
   useEffect(() => {
     if (sessionId !== onboardingSessionId) {
       return;

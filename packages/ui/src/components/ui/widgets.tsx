@@ -109,7 +109,16 @@ const WidgetFullSizeWrapper = ({
 }: Omit<WidgetWrapperPropsFullSize, "width" | "height" | "onMaximize"> & {
   queryClient?: QueryClient;
   onMinimize: () => void;
-}) => <WidgetWrapper width="360px" height="100%" {...props} />;
+}) => (
+  <div className="flex items-center justify-center w-full h-full p-[10px]">
+    <WidgetWrapper 
+      width="calc(100% - 20px)" 
+      height="calc(100% - 20px)" 
+      style={{ maxWidth: "100%" }}
+      {...props} 
+    />
+  </div>
+);
 
 type WidgetTwoByTwo = (
   props: Omit<Parameters<typeof WidgetTwoByTwoWrapper>[0], "children">,

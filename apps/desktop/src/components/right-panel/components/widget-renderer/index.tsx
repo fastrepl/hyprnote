@@ -104,7 +104,7 @@ export default function WidgetRenderer({ widgets, handleUpdateLayout }: WidgetRe
               duration: 0.25,
               ease: "easeInOut"
             }}
-            className="absolute inset-0 z-10"
+            className="absolute inset-0 z-10 flex items-center justify-center"
           >
             <SuspenseWidget
               widgetConfig={getFullWidgetConfig(fullWidgetConfig)}

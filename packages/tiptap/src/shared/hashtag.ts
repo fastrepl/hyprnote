@@ -14,18 +14,41 @@ export function extractHashtags(content: string): string[] {
   const tempDiv = document.createElement("div");
   tempDiv.innerHTML = content;
 
-  const textContent = tempDiv.textContent || "";
-
   const hashtags: string[] = [];
-  let match;
+  const textNodes: Node[] = [];
 
-  HASHTAG_REGEX.lastIndex = 0;
-
-  while ((match = HASHTAG_REGEX.exec(textContent)) !== null) {
-    hashtags.push(match[1]);
+  function getTextNodes(node: Node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      textNodes.push(node);
+    } else {
+      for (let i = 0; i < node.childNodes.length; i++) {
+        getTextNodes(node.childNodes[i]);
+      }
+    }
   }
 
-  return [...new Set(hashtags)];
+  getTextNodes(tempDiv);
+
+  textNodes.forEach(node => {
+    const text = node.textContent || "";
+    console.log("Processing text node:", text);
+
+    HASHTAG_REGEX.lastIndex = 0;
+
+    let match;
+    while ((match = HASHTAG_REGEX.exec(text)) !== null) {
+      const tag = match[1].trim();
+      console.log("Found hashtag:", tag);
+
+      if (tag) {
+        hashtags.push(tag);
+      }
+    }
+  });
+
+  const uniqueTags = [...new Set(hashtags)];
+  console.log("Final extracted hashtags:", uniqueTags, "count:", uniqueTags.length);
+  return uniqueTags;
 }
 
 export const Hashtag = Extension.create({

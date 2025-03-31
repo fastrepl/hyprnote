@@ -4,6 +4,7 @@ import "react-resizable/css/styles.css";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import GridLayout, { Layout } from "react-grid-layout";
+import { AnimatePresence, motion } from "motion/react";
 
 import { ExtensionName, importExtension } from "@hypr/extension-registry";
 import { getID, getSize, SuspenseWidget, WidgetConfig } from "./widgets";
@@ -67,8 +68,19 @@ export default function WidgetRenderer({ widgets, handleUpdateLayout }: WidgetRe
   }), []);
 
   const toggleFullWidget = useCallback((widgetConfig: WidgetConfig | null) => {
-    setFullWidgetConfig(widgetConfig);
-    setShowFull(!!widgetConfig);
+    if (widgetConfig) {
+      setFullWidgetConfig(widgetConfig);
+      // Small delay to ensure smooth transition
+      setTimeout(() => {
+        setShowFull(true);
+      }, 10);
+    } else {
+      setShowFull(false);
+      // Delay clearing the widget config to allow the animation to complete
+      setTimeout(() => {
+        setFullWidgetConfig(null);
+      }, 300);
+    }
   }, []);
 
   const handleMaximize = useCallback((widgetConfig: WidgetConfig) => {
@@ -79,40 +91,66 @@ export default function WidgetRenderer({ widgets, handleUpdateLayout }: WidgetRe
     toggleFullWidget(null);
   }, [toggleFullWidget]);
 
-  if (showFull && fullWidgetConfig) {
-    return (
-      <SuspenseWidget
-        widgetConfig={getFullWidgetConfig(fullWidgetConfig)}
-        queryClient={queryClient}
-        callbacks={{ onMinimize: handleMinimize }}
-      />
-    );
-  }
-
   return (
-    <GridLayout
-      layout={layout}
-      cols={2}
-      rowHeight={160}
-      width={380}
-      margin={[20, 20]}
-      onLayoutChange={handleLayoutChange}
-      isDraggable={true}
-      isResizable={false}
-      compactType="vertical"
-      draggableCancel=".not-draggable"
-    >
-      {widgets.map(widget => (
-        <div key={getID(widget)}>
-          <SuspenseWidget
-            widgetConfig={widget}
-            queryClient={queryClient}
-            callbacks={widget.widgetType !== "full" && widgetsWithFullVersion[getID(widget)]
-              ? { onMaximize: () => handleMaximize(widget) }
-              : {}}
-          />
-        </div>
-      ))}
-    </GridLayout>
+    <div className="relative w-full h-full">
+      <AnimatePresence mode="wait">
+        {showFull && fullWidgetConfig ? (
+          <motion.div
+            key="full-widget"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ 
+              duration: 0.25,
+              ease: "easeInOut"
+            }}
+            className="absolute inset-0 z-10"
+          >
+            <SuspenseWidget
+              widgetConfig={getFullWidgetConfig(fullWidgetConfig)}
+              queryClient={queryClient}
+              callbacks={{ onMinimize: handleMinimize }}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="grid-layout"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ 
+              duration: 0.25,
+              ease: "easeInOut"
+            }}
+            className="w-full h-full"
+          >
+            <GridLayout
+              layout={layout}
+              cols={2}
+              rowHeight={160}
+              width={380}
+              margin={[20, 20]}
+              onLayoutChange={handleLayoutChange}
+              isDraggable={true}
+              isResizable={false}
+              compactType="vertical"
+              draggableCancel=".not-draggable"
+            >
+              {widgets.map(widget => (
+                <div key={getID(widget)}>
+                  <SuspenseWidget
+                    widgetConfig={widget}
+                    queryClient={queryClient}
+                    callbacks={widget.widgetType !== "full" && widgetsWithFullVersion[getID(widget)]
+                      ? { onMaximize: () => handleMaximize(widget) }
+                      : {}}
+                  />
+                </div>
+              ))}
+            </GridLayout>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

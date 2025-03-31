@@ -27,6 +27,25 @@
     margin-bottom: 0.25rem;
     min-height: 1.5rem;
     position: relative;
+
+    /* placeholder */
+    &.is-empty {
+      min-height: 1.5rem;
+      display: block;
+    }
+
+    &.is-empty::before {
+      color: #ebebeb;
+      content: attr(data-placeholder);
+      position: absolute;
+      pointer-events: none;
+      margin-left: 0.15rem;
+    }
+
+    &:empty::after {
+      content: "\00a0";
+      visibility: hidden;
+    }
   }
 
   /* focus states */

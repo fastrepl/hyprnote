@@ -1,20 +1,19 @@
 import { Trans } from "@lingui/react/macro";
-import { memo } from "react";
+import { memo, useCallback } from "react";
 
 interface EmptyChatStateProps {
   onQuickAction: (prompt: string) => void;
   onFocusInput: () => void;
 }
 
-function EmptyChatStateBase({ onQuickAction, onFocusInput }: EmptyChatStateProps) {
-  const handleContainerClick = () => {
+export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatStateProps) => {
+  const handleContainerClick = useCallback(() => {
     onFocusInput();
-  };
+  }, [onFocusInput]);
 
-  const handleButtonClick = (prompt: string) => (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleButtonClick = useCallback((prompt: string) => (e: React.MouseEvent) => {
     onQuickAction(prompt);
-  };
+  }, [onQuickAction]);
 
   return (
     <div
@@ -52,6 +51,4 @@ function EmptyChatStateBase({ onQuickAction, onFocusInput }: EmptyChatStateProps
       </div>
     </div>
   );
-}
-
-export const EmptyChatState = memo(EmptyChatStateBase);
+});

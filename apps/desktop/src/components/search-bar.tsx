@@ -51,13 +51,14 @@ export function SearchBar() {
         placeholder={t`Search...`}
         className="flex-1 bg-transparent outline-none text-xs"
       />
-      {searchQuery && (
-        <XIcon
-          onClick={() => clearSearch()}
-          className="h-4 w-4 text-neutral-400 hover:text-neutral-600"
-        />
-      )}
-      {!searchQuery && <Shortcut macDisplay="⌘K" windowsDisplay="Ctrl+K" />}
+      {searchQuery
+        ? (
+          <XIcon
+            onClick={() => clearSearch()}
+            className="h-4 w-4 text-neutral-400 hover:text-neutral-600"
+          />
+        )
+        : <Shortcut macDisplay="⌘K" windowsDisplay="Ctrl+K" />}
     </div>
   );
 }

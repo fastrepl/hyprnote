@@ -31,50 +31,7 @@ export function ChatView() {
   const [activeEntity, setActiveEntity] = useState<ActiveEntityInfo | null>(null);
   const [hasChatStarted, setHasChatStarted] = useState(false);
 
-  const [chatHistory] = useState<ChatSession[]>([
-    {
-      id: "1",
-      title: "New chat",
-      lastMessageDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-      messages: [],
-    },
-    {
-      id: "2",
-      title: "New chat",
-      lastMessageDate: new Date(2025, 1, 13),
-      messages: [],
-    },
-    {
-      id: "3",
-      title: "Summarize Hyprnote AI",
-      lastMessageDate: new Date(2025, 1, 5),
-      messages: [],
-    },
-    {
-      id: "4",
-      title: "New chat",
-      lastMessageDate: new Date(2025, 1, 5),
-      messages: [],
-    },
-    {
-      id: "5",
-      title: "New chat",
-      lastMessageDate: new Date(2025, 1, 5),
-      messages: [],
-    },
-    {
-      id: "6",
-      title: "New chat",
-      lastMessageDate: new Date(2025, 0, 3),
-      messages: [],
-    },
-    {
-      id: "7",
-      title: "New chat",
-      lastMessageDate: new Date(2024, 11, 31),
-      messages: [],
-    },
-  ]);
+  const [chatHistory, _setChatHistory] = useState<ChatSession[]>([]);
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });

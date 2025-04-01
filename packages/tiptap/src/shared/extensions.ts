@@ -91,7 +91,5 @@ export const extensions = [
   }),
   Highlight,
   ListKeymap,
-  ScrollPadding.configure({
-    bottomPadding: 24, // 24px 패딩을 설정합니다
-  }),
+  ScrollPadding.configure({ bottomPadding: 24 }),
 ];

@@ -13,7 +13,7 @@ import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands } from "@hypr/plugin-template";
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
-import { extractHashtags } from "@hypr/tiptap/shared";
+import { EDITOR_CONTENT_AREA_ID, extractHashtags } from "@hypr/tiptap/shared";
 import { cn } from "@hypr/ui/lib/utils";
 import { modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
@@ -178,7 +178,7 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
       />
 
       <div
-        id="editor-content-area"
+        id={EDITOR_CONTENT_AREA_ID}
         className={cn([
           "h-full overflow-y-auto",
           enhance.status === "pending" && "tiptap-animate",

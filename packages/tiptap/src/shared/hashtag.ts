@@ -5,11 +5,6 @@ import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
 export const HASHTAG_REGEX = /#([\p{L}\p{N}_\p{Emoji}\p{Emoji_Component}]+)/gu;
 
-/**
- * Extracts hashtags from HTML content
- * @param content HTML content from the editor
- * @returns Array of unique hashtag strings without the # symbol
- */
 export function extractHashtags(content: string): string[] {
   const tempDiv = document.createElement("div");
   tempDiv.innerHTML = content;

@@ -40,7 +40,15 @@ export function broadcastQueryClient(queryClient: QueryClient) {
       }
 
       if ((event.payload.queryKey as string[]).some((key) => key?.includes("extension"))) {
-        queryClient.refetchQueries({ queryKey: ["extensions"] });
+        queryClient.refetchQueries({
+          predicate: (query) => query.queryKey.some((key) => typeof key === "string" && key.includes("extension")),
+        });
+      }
+
+      if ((event.payload.queryKey as string[]).some((key) => key?.includes("flags"))) {
+        queryClient.refetchQueries({
+          predicate: (query) => query.queryKey.some((key) => typeof key === "string" && key.includes("flags")),
+        });
       }
     });
   };

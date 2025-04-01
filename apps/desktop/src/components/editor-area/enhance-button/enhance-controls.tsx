@@ -36,7 +36,7 @@ export function EnhanceControls({
           "rounded-l-xl border-l border-y",
           "border-border px-4 py-2.5 transition-all ease-in-out",
           showRaw
-            ? "bg-primary text-primary-foreground"
+            ? "bg-primary text-primary-foreground border-black"
             : "bg-background text-neutral-200",
         )}
       >
@@ -51,7 +51,7 @@ export function EnhanceControls({
           "border border-border px-4 py-2.5 transition-all ease-in-out",
           showRaw
             ? "bg-background text-neutral-200"
-            : "bg-primary text-primary-foreground",
+            : "bg-primary text-primary-foreground border-black",
         )}
       >
         {enhanceStatus === "pending" ? <Loader2 className="animate-spin" size={20} /> : <Zap size={20} />}

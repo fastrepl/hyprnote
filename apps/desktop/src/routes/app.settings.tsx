@@ -150,7 +150,7 @@ function Component() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="hover:bg-neutral-200"
+                  className="hover:bg-neutral-200 text-neutral-600 hover:text-neutral-600"
                   onClick={() => handleClickTab("general")}
                 >
                   <ArrowLeft className="h-4 w-4" />

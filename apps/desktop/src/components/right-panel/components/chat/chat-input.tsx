@@ -24,7 +24,6 @@ export function ChatInput(
 ) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Fetch entity data based on type and id
   const { data: noteData } = useQuery({
     queryKey: ["session", entityId],
     queryFn: async () => entityId ? dbCommands.getSession({ id: entityId }) : null,
@@ -43,7 +42,6 @@ export function ChatInput(
     enabled: !!entityId && entityType === "organization",
   });
 
-  // Determine entity title based on data and type
   const getEntityTitle = () => {
     if (!entityId) {
       return "";
@@ -96,7 +94,6 @@ export function ChatInput(
     }
   };
 
-  // Get the entity title
   const entityTitle = getEntityTitle();
 
   return (

@@ -86,19 +86,19 @@ export function ChatView() {
         const noteId = noteMatch.params.id;
         setActiveEntity({
           id: noteId,
-          type: "note"
+          type: "note",
         });
       } else if (humanMatch) {
         const humanId = humanMatch.params.id;
         setActiveEntity({
           id: humanId,
-          type: "human"
+          type: "human",
         });
       } else if (organizationMatch) {
         const orgId = organizationMatch.params.id;
         setActiveEntity({
           id: orgId,
-          type: "organization"
+          type: "organization",
         });
       } else {
         setActiveEntity(null);

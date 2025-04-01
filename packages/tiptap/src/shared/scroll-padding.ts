@@ -19,7 +19,7 @@ export const ScrollPadding = Extension.create({
       new Plugin({
         key: new PluginKey("scrollPadding"),
 
-        appendTransaction(transactions: readonly Transaction[], oldState: EditorState, newState: EditorState) {
+        appendTransaction(transactions: readonly Transaction[], _oldState: EditorState, _newState: EditorState) {
           const docChanged = transactions.some((tr: Transaction) => tr.docChanged);
           if (!docChanged) {
             return null;

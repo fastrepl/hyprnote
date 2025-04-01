@@ -3,7 +3,6 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 
 import EditorArea from "@/components/editor-area";
-import RightPanel from "@/components/right-panel";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 import {
   commands as windowsCommands,
@@ -93,7 +92,6 @@ function Component() {
           </div>
         </main>
       </div>
-      <RightPanel />
     </div>
   );
 }

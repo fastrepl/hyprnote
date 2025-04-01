@@ -3,7 +3,6 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { ContactInfo, EditButton, PastNotes, ProfileHeader, UpcomingEvents } from "@/components/human-profile";
-import RightPanel from "@/components/right-panel";
 import { useEditMode } from "@/contexts/edit-mode-context";
 import { commands as dbCommands, type Human } from "@hypr/plugin-db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
@@ -100,8 +99,8 @@ function Component() {
 
   return (
     <div className="flex h-full overflow-hidden">
-      <div className="flex-1 overflow-auto flex flex-col">
-        <main className="bg-white flex-1 overflow-auto relative">
+      <div className="flex-1">
+        <main className="flex h-full overflow-auto bg-white relative">
           {isMain && (
             <div className="absolute top-4 right-4 z-10">
               <EditButton
@@ -142,7 +141,6 @@ function Component() {
           </div>
         </main>
       </div>
-      <RightPanel />
     </div>
   );
 }

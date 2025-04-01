@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import LeftSidebar from "@/components/left-sidebar";
 import { LoginModal } from "@/components/login-modal";
+import RightPanel from "@/components/right-panel";
 import Notifications from "@/components/toast";
 import Toolbar from "@/components/toolbar";
 import {
@@ -56,7 +57,12 @@ function Component() {
                           <LeftSidebar />
                           <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
                             <Toolbar />
-                            <Outlet />
+                            <div className="flex-1 relative overflow-hidden flex">
+                              <div className="flex-1 overflow-hidden">
+                                <Outlet />
+                              </div>
+                              <RightPanel />
+                            </div>
                           </div>
                         </div>
                         <LoginModal

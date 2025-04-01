@@ -93,7 +93,7 @@ pub async fn get_timeline<R: tauri::Runtime>(
             .get_session(hypr_db_user::GetSessionFilter::Id(session_id))
             .await
             .map_err(|e| e.to_string())?
-            .unwrap();
+            .ok_or("session_not_found")?;
 
         let onboarding_session_id = state.db.as_ref().unwrap().onboarding_session_id();
 

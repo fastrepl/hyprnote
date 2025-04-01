@@ -1,10 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import LiveTranscriptFull from "../widgets/default/full";
-import { mockTranscriptIPC } from "./mocks";
-
-const queryClient = new QueryClient();
+import MockProvider from "../widgets/default/mock";
 
 const meta = {
   title: "Transcript/Default/Full",
@@ -22,12 +19,10 @@ export const Main: Story = {
   },
   decorators: [
     (Story: any) => {
-      mockTranscriptIPC();
-
       return (
-        <QueryClientProvider client={queryClient}>
+        <MockProvider>
           <div style={{ height: "80vh" }}>{Story()}</div>
-        </QueryClientProvider>
+        </MockProvider>
       );
     },
   ],

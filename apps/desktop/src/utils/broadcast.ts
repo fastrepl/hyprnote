@@ -39,7 +39,7 @@ export function broadcastQueryClient(queryClient: QueryClient) {
         return;
       }
 
-      if ((event.payload.queryKey as string[]).some((key) => key.includes("extension"))) {
+      if ((event.payload.queryKey as string[]).some((key) => key?.includes("extension"))) {
         queryClient.refetchQueries({ queryKey: ["extensions"] });
       }
     });

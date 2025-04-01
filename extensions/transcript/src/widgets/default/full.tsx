@@ -4,6 +4,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { WidgetFullSize, WidgetFullSizeWrapper } from "@hypr/ui/components/ui/widgets";
 import { useSessions } from "@hypr/utils/contexts";
 import { TranscriptWidget } from "../../components/transcripts";
+import MockProvider from "./mock";
 
 const TranscriptFull: WidgetFullSize = ({ onMinimize }) => {
   const sessionId = useSessions((s) => s.currentSessionId);
@@ -19,14 +20,23 @@ const TranscriptFull: WidgetFullSize = ({ onMinimize }) => {
     </Button>
   );
 
+  if (!sessionId) {
+    const id = crypto.randomUUID();
+    return (
+      <MockProvider sessionId={id}>
+        <WidgetFullSizeWrapper onMinimize={onMinimize}>
+          <TranscriptWidget sessionId={id} headerAction={minimizeButton} />
+        </WidgetFullSizeWrapper>
+      </MockProvider>
+    );
+  }
+
   return (
     <WidgetFullSizeWrapper onMinimize={onMinimize}>
-      {sessionId && (
-        <TranscriptWidget
-          sessionId={sessionId}
-          headerAction={minimizeButton}
-        />
-      )}
+      <TranscriptWidget
+        sessionId={sessionId}
+        headerAction={minimizeButton}
+      />
     </WidgetFullSizeWrapper>
   );
 };

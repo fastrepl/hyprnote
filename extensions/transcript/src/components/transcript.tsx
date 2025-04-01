@@ -5,13 +5,13 @@ export default function Transcript({
 }: {
   transcript: TimelineView | null;
 }) {
-  if (!transcript) {
+  if (!transcript?.items) {
     return null;
   }
 
   return (
     <div className="flex flex-col space-y-2 pt-2">
-      {transcript.items.map((item, index) => (
+      {transcript?.items.map((item, index) => (
         <div
           key={index}
           className="flex flex-col rounded-lg px-2 py-1 border border-neutral-200"

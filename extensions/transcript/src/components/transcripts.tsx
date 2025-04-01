@@ -39,7 +39,7 @@ export function TranscriptWidget({
     if (scrollRef.current && isLive) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [timeline?.items.length, isLive]);
+  }, [timeline?.items?.length, isLive]);
 
   useEffect(() => {
     listenerCommands.getTimeline(sessionId, {
@@ -57,7 +57,10 @@ export function TranscriptWidget({
     channel.onmessage = (e) => {
       if (e.type === "timelineView") {
         setTimeline((prev) => {
-          if (!prev) return e.timeline;
+          if (!prev) {
+            return e.timeline;
+          }
+
           return {
             items: [...prev.items, ...e.timeline.items],
           };

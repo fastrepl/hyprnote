@@ -1,4 +1,5 @@
 import { events as windowsEvents } from "@hypr/plugin-windows";
+import { useQuery } from "@tanstack/react-query";
 import { CatchNotFound, createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
@@ -16,6 +17,16 @@ const POSITION = "bottom-right";
 
 function Component() {
   const navigate = useNavigate();
+
+  const showDevtools = useQuery({
+    queryKey: ["showDevtools"],
+    queryFn: () => {
+      const flag = (window as any).TANSTACK_DEVTOOLS;
+      return (flag ?? false);
+    },
+    enabled: process.env.NODE_ENV !== "production",
+    refetchInterval: 1000,
+  });
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -35,16 +46,16 @@ function Component() {
       <CatchNotFound fallback={(e) => <CatchNotFoundFallback error={e} />}>
         <Outlet />
       </CatchNotFound>
-      <Suspense>
-        {
-          /* <TanStackRouterDevtools position={POSITION} initialIsOpen={false} />
-        <TanStackQueryDevtools
-          buttonPosition={POSITION}
-          position="bottom"
-          initialIsOpen={false}
-        /> */
-        }
-      </Suspense>
+      {showDevtools.data && (
+        <Suspense>
+          <TanStackRouterDevtools position={POSITION} initialIsOpen={false} />
+          <TanStackQueryDevtools
+            buttonPosition={POSITION}
+            position="bottom"
+            initialIsOpen={false}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

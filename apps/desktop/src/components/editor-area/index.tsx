@@ -180,9 +180,9 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
       <div
         id="editor-content-area"
         className={cn([
-          "h-full overflow-y-auto pb-6",
+          "h-full overflow-y-auto",
           enhance.status === "pending" && "tiptap-animate",
-          ongoingSessionTimeline?.items?.length && "pb-16",
+          ongoingSessionTimeline?.items?.length && "pb-10",
         ])}
         onClick={(e) => {
           e.stopPropagation();

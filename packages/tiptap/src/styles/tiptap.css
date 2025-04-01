@@ -13,6 +13,7 @@
   overflow-wrap: break-word;
   white-space: pre-wrap;
   hyphens: auto;
+  padding-bottom: 24px;
 
   :first-child {
     margin-top: 0;

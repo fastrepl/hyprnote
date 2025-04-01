@@ -8,6 +8,7 @@ import Underline from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
 
 import { Hashtag } from "./hashtag";
+import { ScrollPadding } from "./scroll-padding";
 
 // TODO: Dark mode
 export const extensions = [
@@ -90,4 +91,7 @@ export const extensions = [
   }),
   Highlight,
   ListKeymap,
+  ScrollPadding.configure({
+    bottomPadding: 24, // 24px 패딩을 설정합니다
+  }),
 ];

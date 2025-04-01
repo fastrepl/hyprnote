@@ -1,6 +1,9 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { ArrowUpIcon } from "lucide-react";
+import { ArrowUpIcon, BuildingIcon, FileTextIcon, UserIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
+
+import { Badge } from "@hypr/ui/components/ui/badge";
+import { Button } from "@hypr/ui/components/ui/button";
+import { BadgeType } from "../../views";
 
 interface ChatInputProps {
   inputValue: string;
@@ -8,9 +11,15 @@ interface ChatInputProps {
   onSubmit: () => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   autoFocus?: boolean;
+  noteTitle?: string;
+  badgeType?: BadgeType;
+  onNoteBadgeClick?: () => void;
 }
 
-export function ChatInput({ inputValue, onChange, onSubmit, onKeyDown, autoFocus = false }: ChatInputProps) {
+export function ChatInput(
+  { inputValue, onChange, onSubmit, onKeyDown, autoFocus = false, noteTitle, badgeType = "note", onNoteBadgeClick }:
+    ChatInputProps,
+) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -36,21 +45,43 @@ export function ChatInput({ inputValue, onChange, onSubmit, onKeyDown, autoFocus
     }
   }, [autoFocus]);
 
+  const getBadgeIcon = () => {
+    switch (badgeType) {
+      case "human":
+        return <UserIcon className="size-3" />;
+      case "organization":
+        return <BuildingIcon className="size-3" />;
+      case "note":
+      default:
+        return <FileTextIcon className="size-3" />;
+    }
+  };
+
   return (
-    <div className="pb-4 px-4">
-      <div className="relative">
-        <textarea
-          ref={textareaRef}
-          value={inputValue}
-          onChange={onChange}
-          onKeyDown={onKeyDown}
-          placeholder="Type a message..."
-          className="w-full resize-none overflow-hidden rounded-lg border border-input bg-background px-3 py-2 pr-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px]"
-          rows={1}
-        />
+    <div className="border border-b-0 border-input mx-4 rounded-t-lg overflow-clip flex flex-col bg-white">
+      <textarea
+        ref={textareaRef}
+        value={inputValue}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        placeholder="Type a message..."
+        className="w-full resize-none overflow-hidden px-3 py-2 pr-10 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px]"
+        rows={1}
+      />
+      <div className="flex items-center justify-between pb-2 px-3">
+        {noteTitle
+          ? (
+            <Badge
+              className="mr-2 bg-white text-black border border-border inline-flex items-center gap-1 hover:bg-neutral-100 cursor-pointer"
+              onClick={onNoteBadgeClick}
+            >
+              {getBadgeIcon()} {noteTitle}
+            </Badge>
+          )
+          : <div></div>}
+
         <Button
           size="icon"
-          className="absolute right-2 bottom-2 h-6 w-6"
           onClick={onSubmit}
           disabled={!inputValue.trim()}
         >

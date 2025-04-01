@@ -180,7 +180,7 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
       <div
         id="editor-content-area"
         className={cn([
-          "h-full overflow-y-auto",
+          "h-full overflow-y-auto pb-6",
           enhance.status === "pending" && "tiptap-animate",
           ongoingSessionTimeline?.items?.length && "pb-16",
         ])}

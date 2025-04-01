@@ -65,11 +65,5 @@ export const Route = createFileRoute("/app/calendar")({
 function Component() {
   const { sessions, events, date } = Route.useLoaderData();
 
-  return (
-    <div className="flex h-screen w-screen overflow-hidden flex-col bg-white text-neutral-700">
-      <div className="flex-1 h-full">
-        <WorkspaceCalendar month={date} sessions={sessions} events={events} />
-      </div>
-    </div>
-  );
+  return <WorkspaceCalendar month={date} sessions={sessions} events={events} />;
 }

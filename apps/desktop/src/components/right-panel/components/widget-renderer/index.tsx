@@ -99,7 +99,7 @@ export default function WidgetRenderer({ widgets, handleUpdateLayout }: WidgetRe
   }, [toggleFullWidget]);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full overflow-y-auto scrollbar-none">
       <AnimatePresence mode="wait">
         {showFull && fullWidgetConfig
           ? (
@@ -144,6 +144,7 @@ export default function WidgetRenderer({ widgets, handleUpdateLayout }: WidgetRe
                 isResizable={false}
                 compactType="vertical"
                 draggableCancel=".not-draggable"
+                className="overflow-y-auto"
               >
                 {widgets.map(widget => (
                   <div key={getID(widget)}>

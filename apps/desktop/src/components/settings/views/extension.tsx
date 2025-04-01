@@ -2,6 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
+import { SuspenseWidget } from "@/components/right-panel/components/widget-renderer/widgets";
 import { useHypr } from "@/contexts";
 import { EXTENSION_CONFIGS, type ExtensionName, importExtension } from "@hypr/extension-registry";
 import {
@@ -12,7 +13,6 @@ import {
 } from "@hypr/plugin-db";
 import { commands as windowsCommands, events as windowsEvents } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
-import { WidgetOneByOneWrapper, WidgetTwoByOneWrapper, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
 
 interface ExtensionsComponentProps {
   selectedExtension: ExtensionDefinition | null;
@@ -123,6 +123,7 @@ export default function Extensions({ selectedExtension, onExtensionSelect }: Ext
             group={group}
             handler={toggleWidgetInsideExtensionGroup.mutate}
             activeWidgets={extension.data?.widgets || []}
+            extensionId={selectedExtension.id as ExtensionName}
           />
         ))}
       </div>
@@ -134,11 +135,14 @@ function RenderGroup({
   group,
   handler,
   activeWidgets,
+  extensionId,
 }: {
   group: ExtensionData["groups"][number];
   handler: (args: any) => void;
   activeWidgets: ExtensionMapping["widgets"];
+  extensionId: ExtensionName;
 }) {
+  const queryClient = useQueryClient();
   const isWidgetActive = (groupId: string, widgetKind: ExtensionWidgetKind) => {
     return activeWidgets.some((widget) => widget.group === groupId && widget.kind === widgetKind);
   };
@@ -153,9 +157,20 @@ function RenderGroup({
         {group.types.map((type: Omit<ExtensionWidgetKind, "full">) => (
           <div key={type as string} className="relative">
             {type === "oneByOne" && (
-              <WidgetOneByOneWrapper className="group relative">
-                <div className="flex items-center justify-center h-full text-neutral-600">Example 1×1</div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm">
+              <div className="group relative" style={{ width: "160px", height: "160px" }}>
+                <div className="pointer-events-none w-full h-full overflow-hidden rounded-2xl">
+                  <SuspenseWidget
+                    widgetConfig={{
+                      extensionName: extensionId,
+                      groupName: group.id,
+                      widgetType: type as ExtensionWidgetKind,
+                      layout: null,
+                    }}
+                    queryClient={queryClient}
+                    callbacks={{}}
+                  />
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm rounded-2xl">
                   <Button
                     variant={isWidgetActive(group.id, type as ExtensionWidgetKind) ? "destructive" : "default"}
                     size="sm"
@@ -165,12 +180,23 @@ function RenderGroup({
                     {isWidgetActive(group.id, type as ExtensionWidgetKind) ? "Remove" : "Add"}
                   </Button>
                 </div>
-              </WidgetOneByOneWrapper>
+              </div>
             )}
             {type === "twoByOne" && (
-              <WidgetTwoByOneWrapper className="group relative">
-                <div className="flex items-center justify-center h-full text-neutral-600">Example 2×1</div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm">
+              <div className="group relative" style={{ width: "340px", height: "160px" }}>
+                <div className="pointer-events-none w-full h-full overflow-hidden rounded-2xl">
+                  <SuspenseWidget
+                    widgetConfig={{
+                      extensionName: extensionId,
+                      groupName: group.id,
+                      widgetType: type as ExtensionWidgetKind,
+                      layout: null,
+                    }}
+                    queryClient={queryClient}
+                    callbacks={{}}
+                  />
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm rounded-2xl">
                   <Button
                     variant={isWidgetActive(group.id, type as ExtensionWidgetKind) ? "destructive" : "default"}
                     size="sm"
@@ -180,12 +206,23 @@ function RenderGroup({
                     {isWidgetActive(group.id, type as ExtensionWidgetKind) ? "Remove" : "Add"}
                   </Button>
                 </div>
-              </WidgetTwoByOneWrapper>
+              </div>
             )}
             {type === "twoByTwo" && (
-              <WidgetTwoByTwoWrapper className="group relative">
-                <div className="flex items-center justify-center h-full text-neutral-600">Example 2×2</div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm">
+              <div className="group relative" style={{ width: "340px", height: "340px" }}>
+                <div className="pointer-events-none w-full h-full overflow-hidden rounded-2xl">
+                  <SuspenseWidget
+                    widgetConfig={{
+                      extensionName: extensionId,
+                      groupName: group.id,
+                      widgetType: type as ExtensionWidgetKind,
+                      layout: null,
+                    }}
+                    queryClient={queryClient}
+                    callbacks={{}}
+                  />
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm rounded-2xl">
                   <Button
                     variant={isWidgetActive(group.id, type as ExtensionWidgetKind) ? "destructive" : "default"}
                     size="sm"
@@ -195,7 +232,7 @@ function RenderGroup({
                     {isWidgetActive(group.id, type as ExtensionWidgetKind) ? "Remove" : "Add"}
                   </Button>
                 </div>
-              </WidgetTwoByTwoWrapper>
+              </div>
             )}
           </div>
         ))}

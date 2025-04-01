@@ -156,6 +156,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn start_session(&self, session_id: impl Into<String>) -> Result<(), crate::Error> {
+        self.stop_session().await?;
+
         let app = self.app_handle();
         let state = self.state::<crate::SharedState>();
 

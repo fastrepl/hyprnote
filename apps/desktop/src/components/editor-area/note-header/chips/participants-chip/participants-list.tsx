@@ -17,6 +17,8 @@ interface ParticipantsListProps {
   sessionId: string;
 }
 
+const NO_ORGANIZATION_ID = "__NO_ORGANIZATION__";
+
 export function ParticipantsList({ sessionId }: ParticipantsListProps) {
   const groupedParticipants = useQuery({
     queryKey: ["grouped-participants", sessionId],
@@ -25,7 +27,7 @@ export function ParticipantsList({ sessionId }: ParticipantsListProps) {
       const ret: Record<string, Human[]> = {};
 
       participants.forEach((participant) => {
-        const group = participant.organization_id ?? "";
+        const group = participant.organization_id ?? NO_ORGANIZATION_ID;
         ret[group] = [...(ret[group] || []), participant];
       });
 
@@ -66,7 +68,13 @@ function OrganizationWithParticipants(
 ) {
   const organization = useQuery({
     queryKey: ["organization", orgId],
-    queryFn: () => dbCommands.getOrganization(orgId),
+    queryFn: () => {
+      if (orgId === NO_ORGANIZATION_ID) {
+        return null;
+      }
+
+      return dbCommands.getOrganization(orgId);
+    },
   });
 
   return (

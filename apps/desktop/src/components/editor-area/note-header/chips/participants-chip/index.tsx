@@ -12,20 +12,22 @@ interface ParticipantsChipProps {
 export function ParticipantsChip({ sessionId }: ParticipantsChipProps) {
   const participants = useQuery({
     queryKey: ["participants", sessionId],
-    queryFn: () => dbCommands.sessionListParticipants(sessionId),
+    queryFn: async () => {
+      const participants = await dbCommands.sessionListParticipants(sessionId);
+      return participants.sort((a, b) => {
+        if (a.is_user && !b.is_user) {
+          return 1;
+        }
+        if (!a.is_user && b.is_user) {
+          return -1;
+        }
+        return 0;
+      });
+    },
   });
 
-  const previewHuman = ((participants.data ?? []).sort((a, b) => {
-    if (a.is_user && !b.is_user) {
-      return 1;
-    }
-    if (!a.is_user && b.is_user) {
-      return -1;
-    }
-    return 0;
-  })).at(0);
-
   const count = participants.data?.length ?? 0;
+  const previewHuman = (participants.data ?? []).at(0);
 
   return (
     <Popover>

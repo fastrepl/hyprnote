@@ -1,3 +1,5 @@
+use crate::{ExtensionMapping, ExtensionWidget, ExtensionWidgetKind};
+
 use super::{
     Calendar, ChatGroup, ChatMessage, ChatMessageRole, Event, Human, Organization, Platform,
     Session, Tag, UserDatabase,
@@ -150,6 +152,19 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
 
     db.session_add_participant(manual_session.id.clone(), user_id.clone())
         .await?;
+
+    db.upsert_extension_mapping(ExtensionMapping {
+        id: uuid::Uuid::new_v4().to_string(),
+        user_id: user_id.clone(),
+        extension_id: "@hypr/extension-transcript".to_string(),
+        config: serde_json::Value::from(r#"{}"#),
+        widgets: vec![ExtensionWidget {
+            kind: ExtensionWidgetKind::TwoByTwo,
+            group: "transcript-default".to_string(),
+            position: None,
+        }],
+    })
+    .await?;
 
     Ok(())
 }

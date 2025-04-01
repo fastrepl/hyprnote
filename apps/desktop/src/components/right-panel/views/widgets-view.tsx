@@ -12,7 +12,7 @@ import { parseID } from "../components/widget-renderer/widgets";
 
 export function WidgetsView() {
   const { userId } = useHypr();
-  const { id: sessionId } = useMatch({ from: "/app/note/$id", shouldThrow: true });
+  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
 
   const extensions = useQuery({
     queryKey: ["extensions"],
@@ -75,6 +75,16 @@ export function WidgetsView() {
       }, 500);
     });
   };
+
+  if (!noteMatch) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-sm text-neutral-500">Widgets are only available in note view.</div>
+      </div>
+    );
+  }
+
+  const { params: { id: sessionId } } = noteMatch;
 
   return widgets?.length
     ? (

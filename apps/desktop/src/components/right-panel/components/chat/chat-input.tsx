@@ -1,6 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { ArrowUpIcon, BuildingIcon, FileTextIcon, UserIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
 
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { BadgeType } from "../../views";
@@ -11,16 +13,53 @@ interface ChatInputProps {
   onSubmit: () => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   autoFocus?: boolean;
-  noteTitle?: string;
-  badgeType?: BadgeType;
+  entityId?: string;
+  entityType?: BadgeType;
   onNoteBadgeClick?: () => void;
 }
 
 export function ChatInput(
-  { inputValue, onChange, onSubmit, onKeyDown, autoFocus = false, noteTitle, badgeType = "note", onNoteBadgeClick }:
+  { inputValue, onChange, onSubmit, onKeyDown, autoFocus = false, entityId, entityType = "note", onNoteBadgeClick }:
     ChatInputProps,
 ) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Fetch entity data based on type and id
+  const { data: noteData } = useQuery({
+    queryKey: ["session", entityId],
+    queryFn: async () => entityId ? dbCommands.getSession({ id: entityId }) : null,
+    enabled: !!entityId && entityType === "note",
+  });
+
+  const { data: humanData } = useQuery({
+    queryKey: ["human", entityId],
+    queryFn: async () => entityId ? dbCommands.getHuman(entityId) : null,
+    enabled: !!entityId && entityType === "human",
+  });
+
+  const { data: organizationData } = useQuery({
+    queryKey: ["organization", entityId],
+    queryFn: async () => entityId ? dbCommands.getOrganization(entityId) : null,
+    enabled: !!entityId && entityType === "organization",
+  });
+
+  // Determine entity title based on data and type
+  const getEntityTitle = () => {
+    if (!entityId) {
+      return "";
+    }
+
+    switch (entityType) {
+      case "note":
+        return noteData?.title || "Untitled";
+      case "human":
+        return humanData?.full_name || "";
+      case "organization":
+        return organizationData?.name || "";
+      default:
+        return "";
+    }
+  };
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -46,7 +85,7 @@ export function ChatInput(
   }, [autoFocus]);
 
   const getBadgeIcon = () => {
-    switch (badgeType) {
+    switch (entityType) {
       case "human":
         return <UserIcon className="size-3" />;
       case "organization":
@@ -56,6 +95,9 @@ export function ChatInput(
         return <FileTextIcon className="size-3" />;
     }
   };
+
+  // Get the entity title
+  const entityTitle = getEntityTitle();
 
   return (
     <div className="border border-b-0 border-input mx-4 rounded-t-lg overflow-clip flex flex-col bg-white">
@@ -69,13 +111,13 @@ export function ChatInput(
         rows={1}
       />
       <div className="flex items-center justify-between pb-2 px-3">
-        {noteTitle
+        {entityId
           ? (
             <Badge
               className="mr-2 bg-white text-black border border-border inline-flex items-center gap-1 hover:bg-neutral-100 cursor-pointer"
               onClick={onNoteBadgeClick}
             >
-              {getBadgeIcon()} {noteTitle}
+              {getBadgeIcon()} {entityTitle}
             </Badge>
           )
           : <div></div>}

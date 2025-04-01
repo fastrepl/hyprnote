@@ -36,12 +36,14 @@ function Component() {
         <Outlet />
       </CatchNotFound>
       <Suspense>
-        <TanStackRouterDevtools position={POSITION} initialIsOpen={false} />
+        {
+          /* <TanStackRouterDevtools position={POSITION} initialIsOpen={false} />
         <TanStackQueryDevtools
           buttonPosition={POSITION}
           position="bottom"
           initialIsOpen={false}
-        />
+        /> */
+        }
       </Suspense>
     </>
   );

@@ -14,7 +14,6 @@ import {
 
 interface ActiveEntityInfo {
   id: string;
-  name: string;
   type: BadgeType;
 }
 
@@ -30,11 +29,7 @@ export function ChatView() {
   const [searchValue, setSearchValue] = useState("");
 
   const [activeEntity, setActiveEntity] = useState<ActiveEntityInfo | null>(null);
-  const [chatSourceEntity, setChatSourceEntity] = useState<ActiveEntityInfo | null>(null);
-
-  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
-  const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
-  const organizationMatch = useMatch({ from: "/app/organization/$id", shouldThrow: false });
+  const [hasChatStarted, setHasChatStarted] = useState(false);
 
   const [chatHistory] = useState<ChatSession[]>([
     {
@@ -81,6 +76,36 @@ export function ChatView() {
     },
   ]);
 
+  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
+  const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
+  const organizationMatch = useMatch({ from: "/app/organization/$id", shouldThrow: false });
+
+  useEffect(() => {
+    if (!hasChatStarted) {
+      if (noteMatch) {
+        const noteId = noteMatch.params.id;
+        setActiveEntity({
+          id: noteId,
+          type: "note"
+        });
+      } else if (humanMatch) {
+        const humanId = humanMatch.params.id;
+        setActiveEntity({
+          id: humanId,
+          type: "human"
+        });
+      } else if (organizationMatch) {
+        const orgId = organizationMatch.params.id;
+        setActiveEntity({
+          id: orgId,
+          type: "organization"
+        });
+      } else {
+        setActiveEntity(null);
+      }
+    }
+  }, [noteMatch, humanMatch, organizationMatch, hasChatStarted]);
+
   useEffect(() => {
     if (isExpanded) {
       const focusTimeout = setTimeout(() => {
@@ -101,6 +126,10 @@ export function ChatView() {
   const handleSubmit = () => {
     if (!inputValue.trim()) {
       return;
+    }
+
+    if (!hasChatStarted && activeEntity) {
+      setHasChatStarted(true);
     }
 
     const userMessage: Message = {
@@ -163,6 +192,7 @@ export function ChatView() {
     setMessages([]);
     setInputValue("");
     setShowHistory(false);
+    setHasChatStarted(false);
   };
 
   const handleViewHistory = () => {
@@ -205,22 +235,8 @@ export function ChatView() {
   };
 
   const handleNoteBadgeClick = () => {
-    if (chatSourceEntity) {
-      if (chatSourceEntity.type === "note") {
-        navigate({ to: `/app/note/$id`, params: { id: chatSourceEntity.id } });
-      } else if (chatSourceEntity.type === "human") {
-        navigate({ to: `/app/human/$id`, params: { id: chatSourceEntity.id } });
-      } else if (chatSourceEntity.type === "organization") {
-        navigate({ to: `/app/organization/$id`, params: { id: chatSourceEntity.id } });
-      }
-    } else if (activeEntity) {
-      if (activeEntity.type === "note") {
-        navigate({ to: `/app/note/$id`, params: { id: activeEntity.id } });
-      } else if (activeEntity.type === "human") {
-        navigate({ to: `/app/human/$id`, params: { id: activeEntity.id } });
-      } else if (activeEntity.type === "organization") {
-        navigate({ to: `/app/organization/$id`, params: { id: activeEntity.id } });
-      }
+    if (activeEntity) {
+      navigate({ to: `/app/${activeEntity.type}/$id`, params: { id: activeEntity.id } });
     }
   };
 
@@ -260,8 +276,8 @@ export function ChatView() {
         onSubmit={handleSubmit}
         onKeyDown={handleKeyDown}
         autoFocus={true}
-        noteTitle={chatSourceEntity ? chatSourceEntity.name : activeEntity?.name}
-        badgeType={chatSourceEntity ? chatSourceEntity.type : activeEntity?.type}
+        entityId={activeEntity?.id}
+        entityType={activeEntity?.type}
         onNoteBadgeClick={handleNoteBadgeClick}
       />
     </div>

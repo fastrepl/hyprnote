@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpIcon, BuildingIcon, FileTextIcon, UserIcon } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
+import { useRightPanel } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -22,7 +23,7 @@ export function ChatInput(
   { inputValue, onChange, onSubmit, onKeyDown, autoFocus = false, entityId, entityType = "note", onNoteBadgeClick }:
     ChatInputProps,
 ) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { chatInputRef } = useRightPanel();
 
   const { data: noteData } = useQuery({
     queryKey: ["session", entityId],
@@ -60,7 +61,7 @@ export function ChatInput(
   };
 
   useEffect(() => {
-    const textarea = textareaRef.current;
+    const textarea = chatInputRef.current;
     if (!textarea) {
       return;
     }
@@ -70,17 +71,17 @@ export function ChatInput(
     const baseHeight = 40;
     const newHeight = Math.max(textarea.scrollHeight, baseHeight);
     textarea.style.height = `${newHeight}px`;
-  }, [inputValue]);
+  }, [inputValue, chatInputRef]);
 
   useEffect(() => {
-    const textarea = textareaRef.current;
+    const textarea = chatInputRef.current;
     if (textarea) {
       textarea.style.height = "40px";
       if (autoFocus) {
         textarea.focus();
       }
     }
-  }, [autoFocus]);
+  }, [autoFocus, chatInputRef]);
 
   const getBadgeIcon = () => {
     switch (entityType) {
@@ -99,7 +100,7 @@ export function ChatInput(
   return (
     <div className="border border-b-0 border-input mx-4 rounded-t-lg overflow-clip flex flex-col bg-white">
       <textarea
-        ref={textareaRef}
+        ref={chatInputRef}
         value={inputValue}
         onChange={onChange}
         onKeyDown={onKeyDown}

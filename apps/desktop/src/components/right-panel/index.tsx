@@ -13,7 +13,7 @@ export default function RightPanel() {
       initial={false}
       animate={{ width: show ? 380 : 0 }}
       transition={{ duration: 0.14 }}
-      className="right-panel-container h-full border-l bg-neutral-50 overflow-hidden"
+      className="h-full border-l bg-neutral-50 overflow-hidden"
     >
       {(currentView === "widget") ? <WidgetsView /> : <ChatView />}
     </motion.div>

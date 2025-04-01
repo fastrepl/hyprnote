@@ -13,6 +13,7 @@ interface RightPanelContextType {
   togglePanel: (view?: RightPanelView) => void;
   hidePanel: () => void;
   switchView: (view: RightPanelView) => void;
+  chatInputRef: React.RefObject<HTMLTextAreaElement>;
 }
 
 const RightPanelContext = createContext<RightPanelContextType | null>(null);
@@ -25,6 +26,7 @@ export function RightPanelProvider({
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentView, setCurrentView] = useState<RightPanelView>("widget");
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
   const noteChatQuery = useQuery({
     queryKey: ["flags", "ChatRightPanel"],
@@ -51,9 +53,8 @@ export function RightPanelProvider({
 
       if (view === "chat") {
         setTimeout(() => {
-          const chatInput = document.querySelector(".right-panel-container textarea");
-          if (chatInput) {
-            (chatInput as HTMLTextAreaElement).focus();
+          if (chatInputRef.current) {
+            chatInputRef.current.focus();
           }
         }, 350);
       }
@@ -67,9 +68,8 @@ export function RightPanelProvider({
         if (targetView === "chat") {
           setTimeout(() => {
             const focusInput = () => {
-              const chatInput = document.querySelector(".right-panel-container textarea");
-              if (chatInput) {
-                (chatInput as HTMLTextAreaElement).focus();
+              if (chatInputRef.current) {
+                chatInputRef.current.focus();
               } else {
                 setTimeout(focusInput, 50);
               }
@@ -153,7 +153,17 @@ export function RightPanelProvider({
   );
 
   return (
-    <RightPanelContext.Provider value={{ isExpanded, currentView, togglePanel, hidePanel, switchView, setIsExpanded }}>
+    <RightPanelContext.Provider
+      value={{
+        isExpanded,
+        currentView,
+        togglePanel,
+        hidePanel,
+        switchView,
+        setIsExpanded,
+        chatInputRef,
+      }}
+    >
       {children}
     </RightPanelContext.Provider>
   );

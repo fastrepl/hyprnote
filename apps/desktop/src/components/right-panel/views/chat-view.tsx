@@ -21,7 +21,7 @@ export type BadgeType = "note" | "human" | "organization";
 
 export function ChatView() {
   const navigate = useNavigate();
-  const { isExpanded } = useRightPanel();
+  const { isExpanded, chatInputRef } = useRightPanel();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -66,15 +66,14 @@ export function ChatView() {
   useEffect(() => {
     if (isExpanded) {
       const focusTimeout = setTimeout(() => {
-        const chatInput = document.querySelector(".right-panel-container textarea");
-        if (chatInput) {
-          (chatInput as HTMLTextAreaElement).focus();
+        if (chatInputRef.current) {
+          chatInputRef.current.focus();
         }
       }, 200);
 
       return () => clearTimeout(focusTimeout);
     }
-  }, [isExpanded]);
+  }, [isExpanded, chatInputRef]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
@@ -138,11 +137,15 @@ export function ChatView() {
       setMessages((prev) => [...prev, aiMessage]);
     }, 1000);
 
-    document.querySelector("textarea")?.focus();
+    if (chatInputRef.current) {
+      chatInputRef.current.focus();
+    }
   };
 
   const handleFocusInput = () => {
-    document.querySelector("textarea")?.focus();
+    if (chatInputRef.current) {
+      chatInputRef.current.focus();
+    }
   };
 
   const handleNewChat = () => {

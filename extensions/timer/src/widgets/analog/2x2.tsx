@@ -146,7 +146,7 @@ const DiscTimer2x2: WidgetTwoByTwo = () => {
         {/* Button controls in corners - Only show Play/Pause when timer is not complete */}
         {!isTimeUp && (
           <button
-            className="absolute top-2 left-2 z-20 p-1 cursor-pointer bg-white/70 rounded-full hover:bg-white/90 flex items-center justify-center"
+            className="absolute top-2 left-2 p-1 cursor-pointer bg-white/70 rounded-full hover:bg-white/90 flex items-center justify-center"
             onClick={toggleTimer}
             style={{ width: 32, height: 32, border: "none" }}
           >
@@ -156,7 +156,7 @@ const DiscTimer2x2: WidgetTwoByTwo = () => {
 
         {/* Always show Reset button - positioned in right corner */}
         <button
-          className="absolute top-2 right-2 z-20 p-1 cursor-pointer bg-white/70 rounded-full hover:bg-white/90 flex items-center justify-center"
+          className="absolute top-2 right-2 p-1 cursor-pointer bg-white/70 rounded-full hover:bg-white/90 flex items-center justify-center"
           onClick={resetTimer}
           style={{ width: 32, height: 32, border: "none" }}
         >
@@ -164,7 +164,7 @@ const DiscTimer2x2: WidgetTwoByTwo = () => {
         </button>
 
         {/* Timer Display and Input */}
-        <div className="absolute inset-0 flex items-center justify-center z-10">
+        <div className="absolute inset-0 flex items-center justify-center">
           {isTimeUp
             ? <div className="text-2xl font-bold text-gray-600">Time's up!</div>
             : isEditing
@@ -199,12 +199,12 @@ const DiscTimer2x2: WidgetTwoByTwo = () => {
         </div>
 
         {/* Explanatory text */}
-        <div className="absolute bottom-2 left-2 text-xs text-gray-500 z-10">
+        <div className="absolute bottom-2 left-2 text-xs text-gray-500">
           in minutes
         </div>
 
         {/* Explanatory text */}
-        <div className="absolute bottom-2 right-2 text-xs text-gray-500 z-10">
+        <div className="absolute bottom-2 right-2 text-xs text-gray-500">
           range: 1-60
         </div>
 

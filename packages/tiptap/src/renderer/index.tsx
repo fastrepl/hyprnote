@@ -15,6 +15,7 @@ const Renderer = forwardRef<{ editor: TiptapEditor | null }, RendererProps>(
     const editor = useEditor({
       extensions,
       editable: false,
+      shouldRerenderOnTransaction: false,
     });
 
     useEffect(() => {

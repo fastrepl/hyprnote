@@ -33,6 +33,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         editor.view.dom.setAttribute("autocapitalize", "off");
       },
       onUpdate,
+      shouldRerenderOnTransaction: false,
     });
 
     useEffect(() => {

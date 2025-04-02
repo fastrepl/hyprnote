@@ -7,7 +7,6 @@ import { z } from "zod";
 
 import { useHypr } from "@/contexts";
 import { commands as dbCommands, type Human, type Organization } from "@hypr/plugin-db";
-import { Button } from "@hypr/ui/components/ui/button";
 import {
   Form,
   FormControl,

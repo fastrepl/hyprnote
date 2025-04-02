@@ -97,9 +97,10 @@ impl UserDatabase {
 
         let sql = format!(
             "SELECT o.* FROM {} o
-                INNER JOIN users u ON u.organization_id = o.id
+                INNER JOIN {} u ON u.organization_id = o.id
                 WHERE u.id = ?",
-            Organization::sql_table()
+            Organization::sql_table(),
+            Human::sql_table()
         );
         let mut rows = conn.query(&sql, vec![id]).await?;
 

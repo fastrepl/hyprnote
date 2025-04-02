@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { useHypr } from "@/contexts";
 import { commands as dbCommands, type Human, type Organization } from "@hypr/plugin-db";
+import { Button } from "@hypr/ui/components/ui/button";
 import {
   Form,
   FormControl,
@@ -61,6 +62,7 @@ export default function ProfileComponent() {
       companyDescription: config.data?.organization.description ?? undefined,
       linkedinUserName: config.data?.human?.linkedin_username ?? undefined,
     },
+    mode: "onTouched", // Only validate after field has been touched and blurred
   });
 
   const mutation = useMutation({
@@ -96,8 +98,15 @@ export default function ProfileComponent() {
     },
   });
 
+  // Use a more focused approach to handle form submission
   useEffect(() => {
-    const subscription = form.watch(() => form.handleSubmit((v) => mutation.mutate(v))());
+    // Only submit when form is dirty and valid
+    const subscription = form.watch((value, { name }) => {
+      if (form.formState.isDirty && form.formState.isValid) {
+        form.handleSubmit((v) => mutation.mutate(v))();
+      }
+    });
+
     return () => subscription.unsubscribe();
   }, [mutation]);
 

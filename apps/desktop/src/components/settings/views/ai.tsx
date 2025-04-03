@@ -90,8 +90,10 @@ function SpeechToTextDetails({
   const setCurrentModel = useMutation({
     mutationFn: async (model: SupportedModel) => {
       // If trying to set to a model that's not downloaded yet
-      if ((model === "QuantizedTinyEn" && !speedModelStatus.data) || 
-          (model === "QuantizedLargeV3Turbo" && !qualityModelStatus.data)) {
+      if (
+        (model === "QuantizedTinyEn" && !speedModelStatus.data)
+        || (model === "QuantizedLargeV3Turbo" && !qualityModelStatus.data)
+      ) {
         setIsDownloading(true);
         const channel = new Channel<number>();
 
@@ -238,32 +240,34 @@ function SpeechToTextDetails({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => speedModelStatus.data 
-                          ? setCurrentModel.mutate("QuantizedTinyEn") 
-                          : downloadSpeedModel.mutate()}
+                        onClick={() =>
+                          speedModelStatus.data
+                            ? setCurrentModel.mutate("QuantizedTinyEn")
+                            : downloadSpeedModel.mutate()}
                         disabled={currentModel.data === "QuantizedTinyEn" || isDownloading}
                         className="flex items-center gap-2"
                       >
                         <Trans>Speed (tiny-en)</Trans>
                         {currentModel.data === "QuantizedTinyEn" && <Check className="h-3 w-3 ml-2" />}
                         {!speedModelStatus.data && (
-                          downloadSpeedModel.isPending 
-                            ? <Spinner className="h-3 w-3 ml-2" /> 
+                          downloadSpeedModel.isPending
+                            ? <Spinner className="h-3 w-3 ml-2" />
                             : <Download className="h-3 w-3 ml-2" />
                         )}
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => qualityModelStatus.data 
-                          ? setCurrentModel.mutate("QuantizedLargeV3Turbo") 
-                          : downloadQualityModel.mutate()}
+                        onClick={() =>
+                          qualityModelStatus.data
+                            ? setCurrentModel.mutate("QuantizedLargeV3Turbo")
+                            : downloadQualityModel.mutate()}
                         disabled={currentModel.data === "QuantizedLargeV3Turbo" || isDownloading}
                         className="flex items-center gap-2"
                       >
                         <Trans>Quality (v3 large)</Trans>
                         {currentModel.data === "QuantizedLargeV3Turbo" && <Check className="h-3 w-3 ml-2" />}
                         {!qualityModelStatus.data && (
-                          downloadQualityModel.isPending 
-                            ? <Spinner className="h-3 w-3 ml-2" /> 
+                          downloadQualityModel.isPending
+                            ? <Spinner className="h-3 w-3 ml-2" />
                             : <Download className="h-3 w-3 ml-2" />
                         )}
                       </DropdownMenuItem>

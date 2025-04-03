@@ -36,12 +36,26 @@ export const getApiKey = async () => {
 };
 
 // https://twenty.com/developers/rest-api/core#/operations/findManyPeople
-export const findManyPeople = async (email: string) => {
+export const findManyPeople = async (query?: string) => {
   const key = await getApiKey();
 
-  const filter = `emails.primaryEmail[eq]:${encodeURIComponent(email)}`;
+  let url = `${BASE}/people?depth=0`;
 
-  const response = await fetch(`${BASE}/people?depth=0&filter=${filter}`, {
+  // Only add filter if query is provided
+  if (query && query.trim()) {
+    // Create filters for partial matching on email field
+    const filters = [
+      `emails.primaryEmail[ilike]:${encodeURIComponent(`%${query}%`)}`,
+      // `name.firstName[ilike]:${encodeURIComponent(`%${query}%`)}`,
+      // `name.lastName[ilike]:${encodeURIComponent(`%${query}%`)}`
+    ];
+
+    // Combine filters with OR operator
+    const combinedFilter = filters.join(" OR ");
+    url += `&filter=${combinedFilter}`;
+  }
+
+  const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${key}`,
     },

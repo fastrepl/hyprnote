@@ -14,7 +14,9 @@ export const useTwentyNotes = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchResults, setSearchResults] = useState<Array<any>>([]);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const hasFetchedInitialResults = useRef(false);
 
   // Check if meeting is ongoing
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
@@ -34,21 +36,64 @@ export const useTwentyNotes = () => {
     };
   }, []);
 
+  // Fetch all people on initial load
+  useEffect(() => {
+    const fetchInitialPeople = async () => {
+      if (!hasFetchedInitialResults.current && !isMeetingActive) {
+        try {
+          setIsLoading(true);
+          const people = await twenty.findManyPeople();
+          setSearchResults(people || []);
+          hasFetchedInitialResults.current = true;
+        } catch (error) {
+          console.error("Failed to fetch initial people:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchInitialPeople();
+  }, [isMeetingActive]);
+
   // Search for people in Twenty
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
-
-    if (!query.trim()) {
-      setSearchResults([]);
-      return;
-    }
+    setIsLoading(true);
 
     try {
-      const people = await twenty.findManyPeople(query);
-      setSearchResults(people || []);
+      if (!query.trim()) {
+        // Fetch all people when query is empty
+        const people = await twenty.findManyPeople();
+        setSearchResults(people || []);
+      } else {
+        const people = await twenty.findManyPeople(query);
+        setSearchResults(people || []);
+      }
     } catch (error) {
       console.error("Failed to find people:", error);
       setSearchResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch all people when search input is focused
+  const handleSearchFocus = async () => {
+    setShowSearchResults(true);
+    
+    if (!hasFetchedInitialResults.current) {
+      setIsLoading(true);
+      try {
+        const people = await twenty.findManyPeople();
+        setSearchResults(people || []);
+        hasFetchedInitialResults.current = true;
+      } catch (error) {
+        console.error("Failed to fetch all people:", error);
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -106,9 +151,11 @@ export const useTwentyNotes = () => {
     showSearchResults,
     searchResults,
     isCreatingNote,
+    isLoading,
     searchRef,
     isMeetingActive,
     handleSearch,
+    handleSearchFocus,
     handleSelectPerson,
     handleRemovePerson,
     handleCreateNote,

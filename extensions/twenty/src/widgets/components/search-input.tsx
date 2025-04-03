@@ -1,26 +1,30 @@
-import { Search } from "lucide-react";
+import { Loader, Search, User } from "lucide-react";
 import { Dispatch, SetStateAction, RefObject } from "react";
 
 interface SearchInputProps {
   searchQuery: string;
   handleSearch: (query: string) => Promise<void>;
+  handleSearchFocus: () => Promise<void>;
   setShowSearchResults: Dispatch<SetStateAction<boolean>>;
   isMeetingActive: boolean;
   searchRef: RefObject<HTMLDivElement>;
   showSearchResults: boolean;
   searchResults: Array<any>;
   handleSelectPerson: (person: any) => void;
+  isLoading: boolean;
 }
 
 export const SearchInput = ({
   searchQuery,
   handleSearch,
+  handleSearchFocus,
   setShowSearchResults,
   isMeetingActive,
   searchRef,
   showSearchResults,
   searchResults,
   handleSelectPerson,
+  isLoading,
 }: SearchInputProps) => {
   return (
     <div className="w-full mb-4" ref={searchRef}>
@@ -33,33 +37,36 @@ export const SearchInput = ({
             handleSearch(e.target.value);
             setShowSearchResults(true);
           }}
-          onFocus={() => setShowSearchResults(true)}
+          onFocus={() => handleSearchFocus()}
           placeholder="Search by name or email"
           className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400 border border-input rounded-md pl-9 pr-3 py-2 h-9 focus-visible:ring-0 focus-visible:ring-offset-0"
           disabled={isMeetingActive}
         />
       </div>
 
-      {showSearchResults && searchQuery.trim() && (
+      {showSearchResults && (
         <div className="relative">
           <div className="absolute z-10 w-full mt-1 bg-white rounded-md border border-border overflow-hidden">
-            {searchResults.length > 0
-              ? (
-                <div className="max-h-60 overflow-auto">
-                  {searchResults.map((person) => (
-                    <SearchResultItem 
-                      key={person.id} 
-                      person={person} 
-                      handleSelectPerson={handleSelectPerson} 
-                    />
-                  ))}
-                </div>
-              )
-              : (
-                <div className="px-3 py-2 text-sm text-neutral-500">
-                  No results found
-                </div>
-              )}
+            {isLoading ? (
+              <div className="flex items-center justify-center p-4">
+                <Loader className="size-4 text-neutral-500 animate-spin mr-2" />
+                <span className="text-sm text-neutral-500">Loading...</span>
+              </div>
+            ) : searchResults.length > 0 ? (
+              <div className="max-h-60 overflow-auto">
+                {searchResults.map((person) => (
+                  <SearchResultItem 
+                    key={person.id} 
+                    person={person} 
+                    handleSelectPerson={handleSelectPerson} 
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="px-3 py-2 text-sm text-neutral-500">
+                No results found
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -93,6 +100,3 @@ const SearchResultItem = ({ person, handleSelectPerson }: SearchResultItemProps)
     </button>
   );
 };
-
-// Add missing import
-import { User } from "lucide-react";

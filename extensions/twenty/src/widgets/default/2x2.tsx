@@ -1,9 +1,9 @@
 import { WidgetHeader, type WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
 import { useSessions } from "@hypr/utils/contexts";
 
-import { CreateNoteButton } from "../components/notes/CreateNoteButton";
-import { ParticipantsList } from "../components/participants/ParticipantsList";
-import { SearchInput } from "../components/search/SearchInput";
+import { CreateNoteButton } from "../components/create-note-button";
+import { ParticipantsList } from "../components/participants-list";
+import { SearchInput } from "../components/search-input";
 import { useTwentyNotes } from "../hooks/useTwentyNotes";
 
 const Twenty2x2: WidgetTwoByTwo = () => {
@@ -14,9 +14,11 @@ const Twenty2x2: WidgetTwoByTwo = () => {
     showSearchResults,
     searchResults,
     isCreatingNote,
+    isLoading,
     searchRef,
     isMeetingActive,
     handleSearch,
+    handleSearchFocus,
     handleSelectPerson,
     handleRemovePerson,
     handleCreateNote,
@@ -44,12 +46,14 @@ const Twenty2x2: WidgetTwoByTwo = () => {
           <SearchInput
             searchQuery={searchQuery}
             handleSearch={handleSearch}
+            handleSearchFocus={handleSearchFocus}
             setShowSearchResults={setShowSearchResults}
             isMeetingActive={isMeetingActive}
             searchRef={searchRef}
             showSearchResults={showSearchResults}
             searchResults={searchResults}
             handleSelectPerson={handleSelectPerson}
+            isLoading={isLoading}
           />
 
           <ParticipantsList

@@ -6,6 +6,7 @@ import { assert, type TypeEqualityGuard } from "./utils";
 export type Extension = {
   id: string;
   init: () => Promise<void>;
+  configComponent?: React.ReactNode;
   widgetGroups: Array<WidgetGroup>;
 };
 

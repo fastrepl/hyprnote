@@ -10,11 +10,11 @@ export const commands = {
 async isServerRunning() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-stt|is_server_running");
 },
-async isModelDownloaded() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:local-stt|is_model_downloaded");
+async isModelDownloaded(model: SupportedModel) : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:local-stt|is_model_downloaded", { model });
 },
-async downloadModel(channel: TAURI_CHANNEL<number>) : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-stt|download_model", { channel });
+async downloadModel(model: SupportedModel, channel: TAURI_CHANNEL<number>) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|download_model", { model, channel });
 },
 async startServer() : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|start_server");

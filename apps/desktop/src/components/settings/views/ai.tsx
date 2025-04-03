@@ -82,7 +82,7 @@ function SpeechToTextDetails(
           }
         };
 
-        await localSttCommands.downloadModel(channel);
+        await localSttCommands.downloadModel(model, channel);
         return;
       }
 
@@ -323,7 +323,7 @@ function TestModelButton({ isRunning }: { isRunning: boolean }) {
       const provider = await modelProvider();
       const { text } = await generateText({
         model: provider.languageModel("any"),
-        messages: [{ role: "user", content: "generate just 3 sentences" }],
+        messages: [{ role: "user", content: "generate just 1 sentences" }],
       });
 
       if (!text) {

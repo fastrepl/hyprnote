@@ -11,12 +11,18 @@ export default function ModelDownloadNotification() {
   const checkForModelDownload = useQuery({
     queryKey: ["check-model-downloaded"],
     queryFn: async () => {
+      const currentSttModel = await localSttCommands.getCurrentModel();
+
       const [stt, llm] = await Promise.all([
-        localSttCommands.isModelDownloaded(),
+        localSttCommands.isModelDownloaded(currentSttModel),
         localLlmCommands.isModelDownloaded(),
       ]);
 
-      return { stt, llm };
+      return { 
+        currentSttModel,
+        sttModelDownloaded: stt,
+        llmModelDownloaded: llm,
+      };
     },
   });
 
@@ -25,7 +31,7 @@ export default function ModelDownloadNotification() {
       return;
     }
 
-    if (checkForModelDownload.data?.stt && checkForModelDownload.data?.llm) {
+    if (checkForModelDownload.data?.sttModelDownloaded && checkForModelDownload.data?.llmModelDownloaded) {
       return;
     }
 
@@ -42,8 +48,8 @@ export default function ModelDownloadNotification() {
           onClick: () => {
             sonnerToast.dismiss("model-download-needed");
 
-            if (!checkForModelDownload.data?.stt) {
-              localSttCommands.downloadModel(sttChannel);
+            if (!checkForModelDownload.data?.sttModelDownloaded) {
+              localSttCommands.downloadModel(checkForModelDownload.data?.currentSttModel, sttChannel);
 
               toast(
                 {
@@ -72,7 +78,7 @@ export default function ModelDownloadNotification() {
               );
             }
 
-            if (!checkForModelDownload.data?.llm) {
+            if (!checkForModelDownload.data?.llmModelDownloaded) {
               localLlmCommands.downloadModel(llmChannel);
 
               toast(

@@ -12,19 +12,23 @@ pub async fn is_server_running<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> b
 #[specta::specta]
 pub async fn is_model_downloaded<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
+    model: crate::SupportedModel,
 ) -> Result<bool, String> {
-    app.is_model_downloaded().await.map_err(|e| e.to_string())
+    app.is_model_downloaded(model)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
 pub async fn download_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
+    model: crate::SupportedModel,
     channel: Channel<u8>,
 ) -> Result<(), String> {
-    app.download_config().await.map_err(|e| e.to_string())?;
-    app.download_tokenizer().await.map_err(|e| e.to_string())?;
-    app.download_model(channel).await.map_err(|e| e.to_string())
+    app.download_model(model, channel)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SuspenseWidget } from "@/components/right-panel/components/widget-renderer/widgets";
 import { useHypr } from "@/contexts";
 import { EXTENSION_CONFIGS, type ExtensionName, importExtension } from "@hypr/extension-registry";
+import type { Extension } from "@hypr/extension-types";
 import {
   commands as dbCommands,
   type ExtensionDefinition,
@@ -19,18 +20,10 @@ interface ExtensionsComponentProps {
   onExtensionSelect: (extension: ExtensionDefinition | null) => void;
 }
 
-type ExtensionData = {
-  id: string;
-  groups: {
-    id: string;
-    types: string[];
-  }[];
-};
-
 export default function Extensions({ selectedExtension, onExtensionSelect }: ExtensionsComponentProps) {
   const { userId } = useHypr();
   const queryClient = useQueryClient();
-  const [extensionData, setExtensionData] = useState<ExtensionData | null>(null);
+  const [extensionInView, setExtensionInView] = useState<Extension | null>(null);
 
   useEffect(() => {
     windowsCommands.windowResizeDefault({ type: "main" }).then(() => {
@@ -46,15 +39,7 @@ export default function Extensions({ selectedExtension, onExtensionSelect }: Ext
   useEffect(() => {
     if (selectedExtension?.id) {
       importExtension(selectedExtension.id as ExtensionName).then((module) => {
-        const groups = module.default.widgetGroups.map((group) => ({
-          id: group.id,
-          types: group.items.map((item) => item.type).filter((type) => type !== "full"),
-        }));
-
-        setExtensionData({
-          id: selectedExtension.id,
-          groups,
-        });
+        setExtensionInView(module.default);
       });
     }
   }, [selectedExtension]);
@@ -113,11 +98,22 @@ export default function Extensions({ selectedExtension, onExtensionSelect }: Ext
     );
   }
 
+  const hasMultipleGroups = extensionInView?.widgetGroups && extensionInView.widgetGroups.length > 1;
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="border-b pb-4 border-border">
+      <div className={hasMultipleGroups ? "border-b pb-4 border-border" : ""}>
         <h3 className="text-2xl font-semibold text-neutral-700 mb-2">{selectedExtension.title}</h3>
-        {extensionData?.groups.map((group) => (
+        
+        {/* Display configComponent if it exists */}
+        {extensionInView?.configComponent && (
+          <div className="mb-4">
+            {extensionInView.configComponent}
+          </div>
+        )}
+        
+        {/* Display widget groups */}
+        {extensionInView?.widgetGroups.map((group) => (
           <RenderGroup
             key={group.id}
             group={group}
@@ -137,7 +133,7 @@ function RenderGroup({
   activeWidgets,
   extensionId,
 }: {
-  group: ExtensionData["groups"][number];
+  group: Extension["widgetGroups"][number];
   handler: (args: any) => void;
   activeWidgets: ExtensionMapping["widgets"];
   extensionId: ExtensionName;
@@ -149,16 +145,16 @@ function RenderGroup({
 
   return (
     <div className="mb-4">
-      {group.types.map((type: Omit<ExtensionWidgetKind, "full">) => (
-        <div key={type as string} className="relative">
-          {type === "oneByOne" && (
+      {group.items.map((item) => (
+        <div key={item.type as string} className="relative">
+          {item.type === "oneByOne" && (
             <div className="group relative" style={{ width: "160px", height: "160px" }}>
               <div className="pointer-events-none w-full h-full overflow-hidden rounded-2xl">
                 <SuspenseWidget
                   widgetConfig={{
                     extensionName: extensionId,
                     groupName: group.id,
-                    widgetType: type as ExtensionWidgetKind,
+                    widgetType: item.type as ExtensionWidgetKind,
                     layout: null,
                   }}
                   queryClient={queryClient}
@@ -167,24 +163,24 @@ function RenderGroup({
               </div>
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm rounded-2xl">
                 <Button
-                  variant={isWidgetActive(group.id, type as ExtensionWidgetKind) ? "destructive" : "default"}
+                  variant={isWidgetActive(group.id, item.type as ExtensionWidgetKind) ? "destructive" : "default"}
                   size="sm"
-                  onClick={() => handler({ groupId: group.id, widgetKind: type })}
+                  onClick={() => handler({ groupId: group.id, widgetKind: item.type })}
                   className="font-medium"
                 >
-                  {isWidgetActive(group.id, type as ExtensionWidgetKind) ? "Remove" : "Add"}
+                  {isWidgetActive(group.id, item.type as ExtensionWidgetKind) ? "Remove" : "Add"}
                 </Button>
               </div>
             </div>
           )}
-          {type === "twoByOne" && (
+          {item.type === "twoByOne" && (
             <div className="group relative" style={{ width: "340px", height: "160px" }}>
               <div className="pointer-events-none w-full h-full overflow-hidden rounded-2xl">
                 <SuspenseWidget
                   widgetConfig={{
                     extensionName: extensionId,
                     groupName: group.id,
-                    widgetType: type as ExtensionWidgetKind,
+                    widgetType: item.type as ExtensionWidgetKind,
                     layout: null,
                   }}
                   queryClient={queryClient}
@@ -193,24 +189,24 @@ function RenderGroup({
               </div>
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm rounded-2xl">
                 <Button
-                  variant={isWidgetActive(group.id, type as ExtensionWidgetKind) ? "destructive" : "default"}
+                  variant={isWidgetActive(group.id, item.type as ExtensionWidgetKind) ? "destructive" : "default"}
                   size="sm"
-                  onClick={() => handler({ groupId: group.id, widgetKind: type })}
+                  onClick={() => handler({ groupId: group.id, widgetKind: item.type })}
                   className="font-medium"
                 >
-                  {isWidgetActive(group.id, type as ExtensionWidgetKind) ? "Remove" : "Add"}
+                  {isWidgetActive(group.id, item.type as ExtensionWidgetKind) ? "Remove" : "Add"}
                 </Button>
               </div>
             </div>
           )}
-          {type === "twoByTwo" && (
+          {item.type === "twoByTwo" && (
             <div className="group relative" style={{ width: "340px", height: "340px" }}>
               <div className="pointer-events-none w-full h-full overflow-hidden rounded-2xl">
                 <SuspenseWidget
                   widgetConfig={{
                     extensionName: extensionId,
                     groupName: group.id,
-                    widgetType: type as ExtensionWidgetKind,
+                    widgetType: item.type as ExtensionWidgetKind,
                     layout: null,
                   }}
                   queryClient={queryClient}
@@ -219,12 +215,12 @@ function RenderGroup({
               </div>
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm rounded-2xl">
                 <Button
-                  variant={isWidgetActive(group.id, type as ExtensionWidgetKind) ? "destructive" : "default"}
+                  variant={isWidgetActive(group.id, item.type as ExtensionWidgetKind) ? "destructive" : "default"}
                   size="sm"
-                  onClick={() => handler({ groupId: group.id, widgetKind: type })}
+                  onClick={() => handler({ groupId: group.id, widgetKind: item.type })}
                   className="font-medium"
                 >
-                  {isWidgetActive(group.id, type as ExtensionWidgetKind) ? "Remove" : "Add"}
+                  {isWidgetActive(group.id, item.type as ExtensionWidgetKind) ? "Remove" : "Add"}
                 </Button>
               </div>
             </div>

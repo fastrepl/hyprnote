@@ -1,4 +1,4 @@
-import { User, XIcon } from "lucide-react";
+import { Search, User, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -124,10 +124,11 @@ function Inner() {
   };
 
   return (
-    <div className="p-4 h-full flex flex-col">
+    <div className="p-4 pt-0 h-full flex flex-col">
       {/* Search input with dropdown results */}
       <div className="w-full mb-4" ref={searchRef}>
-        <div className="flex items-center">
+        <div className="flex items-center relative">
+          <Search className="absolute left-3 size-4 text-neutral-400" />
           <input
             type="text"
             value={searchQuery}
@@ -137,7 +138,7 @@ function Inner() {
             }}
             onFocus={() => setShowSearchResults(true)}
             placeholder="Search by name or email"
-            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400 border border-input rounded-md px-3 py-2 h-9 focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400 border border-input rounded-md pl-9 pr-3 py-2 h-9 focus-visible:ring-0 focus-visible:ring-offset-0"
             disabled={isMeetingActive}
           />
         </div>

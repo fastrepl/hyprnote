@@ -21,7 +21,12 @@ export const setApiKey = async (key: string) => {
   await authCommands.setInVault("twenty-api-key", key);
 };
 
-const getApiKey = async () => {
+export const getApiKey = async () => {
+  // In development mode, use environment variable if available
+  if (import.meta.env.DEV && import.meta.env.VITE_TWENTY_API_KEY) {
+    return import.meta.env.VITE_TWENTY_API_KEY;
+  }
+
   const key = await authCommands.getFromVault("twenty-api-key");
   if (!key) {
     throw new Error("no_twenty_api_key");

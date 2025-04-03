@@ -18,7 +18,7 @@ export default function ModelDownloadNotification() {
         localLlmCommands.isModelDownloaded(),
       ]);
 
-      return { 
+      return {
         currentSttModel,
         sttModelDownloaded: stt,
         llmModelDownloaded: llm,

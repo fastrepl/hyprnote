@@ -10,7 +10,8 @@ mod store;
 
 pub use error::*;
 pub use ext::*;
-use model::*;
+pub use model::*;
+
 use server::*;
 use store::*;
 

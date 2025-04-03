@@ -20,8 +20,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn setup_local_ai(&self) -> Result<(), String> {
         {
-            use tauri_plugin_local_stt::LocalSttPluginExt;
-            if let Ok(true) = self.is_model_downloaded().await {
+            use tauri_plugin_local_stt::{LocalSttPluginExt, SupportedModel};
+
+            let current_model = self
+                .get_current_model()
+                .unwrap_or(SupportedModel::QuantizedLargeV3Turbo);
+
+            if let Ok(true) = self.is_model_downloaded(current_model).await {
                 self.start_server().await.unwrap();
             }
         }

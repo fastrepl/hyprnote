@@ -12,7 +12,7 @@ export const ParticipantsList = ({
   isMeetingActive,
 }: ParticipantsListProps) => {
   return (
-    <div className="flex-grow overflow-auto mb-4 border border-border rounded-md">
+    <div className="flex-1 flex flex-col overflow-y-auto border border-border rounded-md scrollbar-none">
       {selectedPeople.length > 0
         ? (
           <ul className="divide-y divide-border">

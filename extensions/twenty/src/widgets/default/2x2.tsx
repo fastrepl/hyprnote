@@ -41,35 +41,43 @@ const Twenty2x2: WidgetTwoByTwo = () => {
           actions={[]}
         />
       </div>
-      {sessionId && (
-        <div className="p-4 pt-0 h-full flex flex-col">
-          <SearchInput
-            searchQuery={searchQuery}
-            handleSearch={handleSearch}
-            handleSearchFocus={handleSearchFocus}
-            setShowSearchResults={setShowSearchResults}
-            isMeetingActive={isMeetingActive}
-            searchRef={searchRef}
-            showSearchResults={showSearchResults}
-            searchResults={searchResults}
-            handleSelectPerson={handleSelectPerson}
-            isLoading={isLoading}
-          />
+      {sessionId
+        ? (
+          <div className="overflow-y-auto flex-1 p-4 pt-0 gap-3 flex flex-col">
+            <SearchInput
+              searchQuery={searchQuery}
+              handleSearch={handleSearch}
+              handleSearchFocus={handleSearchFocus}
+              setShowSearchResults={setShowSearchResults}
+              isMeetingActive={isMeetingActive}
+              searchRef={searchRef}
+              showSearchResults={showSearchResults}
+              searchResults={searchResults}
+              handleSelectPerson={handleSelectPerson}
+              isLoading={isLoading}
+            />
 
-          <ParticipantsList
-            selectedPeople={selectedPeople}
-            handleRemovePerson={handleRemovePerson}
-            isMeetingActive={isMeetingActive}
-          />
+            <ParticipantsList
+              selectedPeople={selectedPeople}
+              handleRemovePerson={handleRemovePerson}
+              isMeetingActive={isMeetingActive}
+            />
 
-          <CreateNoteButton
-            handleCreateNote={handleCreateNote}
-            isCreatingNote={isCreatingNote}
-            isMeetingActive={isMeetingActive}
-            selectedPeopleCount={selectedPeople.length}
-          />
-        </div>
-      )}
+            <CreateNoteButton
+              handleCreateNote={handleCreateNote}
+              isCreatingNote={isCreatingNote}
+              isMeetingActive={isMeetingActive}
+              selectedPeopleCount={selectedPeople.length}
+            />
+          </div>
+        )
+        : (
+          <div className="flex items-center justify-center h-full p-4">
+            <div className="text-center text-neutral-500">
+              <p>No active session</p>
+            </div>
+          </div>
+        )}
     </WidgetTwoByTwoWrapper>
   );
 };

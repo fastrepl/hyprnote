@@ -1,5 +1,5 @@
 import { Loader, Search, User } from "lucide-react";
-import { Dispatch, SetStateAction, RefObject } from "react";
+import { Dispatch, RefObject, SetStateAction } from "react";
 
 interface SearchInputProps {
   searchQuery: string;
@@ -27,7 +27,7 @@ export const SearchInput = ({
   isLoading,
 }: SearchInputProps) => {
   return (
-    <div className="w-full mb-4" ref={searchRef}>
+    <div className="w-full" ref={searchRef}>
       <div className="flex items-center relative">
         <Search className="absolute left-3 size-4 text-neutral-400" />
         <input
@@ -47,26 +47,30 @@ export const SearchInput = ({
       {showSearchResults && (
         <div className="relative">
           <div className="absolute z-10 w-full mt-1 bg-white rounded-md border border-border overflow-hidden">
-            {isLoading ? (
-              <div className="flex items-center justify-center p-4">
-                <Loader className="size-4 text-neutral-500 animate-spin mr-2" />
-                <span className="text-sm text-neutral-500">Loading...</span>
-              </div>
-            ) : searchResults.length > 0 ? (
-              <div className="max-h-60 overflow-auto">
-                {searchResults.map((person) => (
-                  <SearchResultItem 
-                    key={person.id} 
-                    person={person} 
-                    handleSelectPerson={handleSelectPerson} 
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="px-3 py-2 text-sm text-neutral-500">
-                No results found
-              </div>
-            )}
+            {isLoading
+              ? (
+                <div className="flex items-center justify-center p-4">
+                  <Loader className="size-4 text-neutral-500 animate-spin mr-2" />
+                  <span className="text-sm text-neutral-500">Loading...</span>
+                </div>
+              )
+              : searchResults.length > 0
+              ? (
+                <div className="max-h-48 overflow-y-auto scrollbar-none">
+                  {searchResults.map((person) => (
+                    <SearchResultItem
+                      key={person.id}
+                      person={person}
+                      handleSelectPerson={handleSelectPerson}
+                    />
+                  ))}
+                </div>
+              )
+              : (
+                <div className="px-3 py-2 text-sm text-neutral-500">
+                  No results found
+                </div>
+              )}
           </div>
         </div>
       )}

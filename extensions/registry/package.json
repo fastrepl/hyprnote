@@ -11,7 +11,8 @@
     "@hypr/extension-dino-game": "workspace:^",
     "@hypr/extension-summary": "workspace:^",
     "@hypr/extension-timer": "workspace:^",
-    "@hypr/extension-transcript": "workspace:^"
+    "@hypr/extension-transcript": "workspace:^",
+    "@hypr/extension-twenty": "workspace:^"
   },
   "devDependencies": {
     "typescript": "^5.8.2"

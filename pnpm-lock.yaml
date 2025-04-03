@@ -138,6 +138,9 @@ importers:
       '@hypr/extension-transcript':
         specifier: workspace:^
         version: link:../../extensions/transcript
+      '@hypr/extension-twenty':
+        specifier: workspace:^
+        version: link:../../extensions/twenty
       '@hypr/extension-types':
         specifier: workspace:^
         version: link:../../extensions/types
@@ -845,6 +848,9 @@ importers:
       '@hypr/extension-transcript':
         specifier: workspace:^
         version: link:../transcript
+      '@hypr/extension-twenty':
+        specifier: workspace:^
+        version: link:../twenty
     devDependencies:
       typescript:
         specifier: ^5.8.2
@@ -1068,6 +1074,9 @@ importers:
       '@blocknote/core':
         specifier: ^0.26.0
         version: 0.26.0(@types/hast@3.0.4)
+      '@hookform/resolvers':
+        specifier: ^3.10.0
+        version: 3.10.0(react-hook-form@7.54.2(react@19.0.0))
       '@hypr/extension-types':
         specifier: workspace:^
         version: link:../types
@@ -1088,10 +1097,13 @@ importers:
         version: link:../../packages/utils
       '@tanstack/react-query':
         specifier: ^5.69.0
-        version: 5.69.0(react@18.3.1)
+        version: 5.69.0(react@19.0.0)
       '@tauri-apps/api':
         specifier: ^2.4.0
         version: 2.4.0
+      react-hook-form:
+        specifier: ^7.54.2
+        version: 7.54.2(react@19.0.0)
       zod:
         specifier: ^3.24.2
         version: 3.24.2
@@ -1104,10 +1116,10 @@ importers:
         version: 8.6.9(storybook@8.6.9(prettier@3.5.3))
       '@storybook/react':
         specifier: ^8.6.9
-        version: 8.6.9(@storybook/test@8.6.9(storybook@8.6.9(prettier@3.5.3)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(storybook@8.6.9(prettier@3.5.3))(typescript@5.8.2)
+        version: 8.6.9(@storybook/test@8.6.9(storybook@8.6.9(prettier@3.5.3)))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(storybook@8.6.9(prettier@3.5.3))(typescript@5.8.2)
       '@storybook/react-vite':
         specifier: ^8.6.9
-        version: 8.6.9(@storybook/test@8.6.9(storybook@8.6.9(prettier@3.5.3)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.37.0)(storybook@8.6.9(prettier@3.5.3))(typescript@5.8.2)(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(tsx@4.19.3)(yaml@2.7.0))
+        version: 8.6.9(@storybook/test@8.6.9(storybook@8.6.9(prettier@3.5.3)))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.37.0)(storybook@8.6.9(prettier@3.5.3))(typescript@5.8.2)(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(tsx@4.19.3)(yaml@2.7.0))
       '@types/node':
         specifier: ^22.13.13
         version: 22.13.13
@@ -10115,6 +10127,10 @@ snapshots:
     dependencies:
       react-hook-form: 7.54.2(react@18.3.1)
 
+  '@hookform/resolvers@3.10.0(react-hook-form@7.54.2(react@19.0.0))':
+    dependencies:
+      react-hook-form: 7.54.2(react@19.0.0)
+
   '@huggingface/languages@1.0.0': {}
 
   '@humanfs/core@0.19.1': {}
@@ -17119,6 +17135,10 @@ snapshots:
   react-hook-form@7.54.2(react@18.3.1):
     dependencies:
       react: 18.3.1
+
+  react-hook-form@7.54.2(react@19.0.0):
+    dependencies:
+      react: 19.0.0
 
   react-hotkeys-hook@4.6.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:

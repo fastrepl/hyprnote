@@ -25,6 +25,7 @@
     "@hypr/extension-dino-game": "workspace:^",
     "@hypr/extension-registry": "workspace:^",
     "@hypr/extension-summary": "workspace:^",
+    "@hypr/extension-twenty": "workspace:^",
     "@hypr/extension-timer": "workspace:^",
     "@hypr/extension-transcript": "workspace:^",
     "@hypr/extension-types": "workspace:^",

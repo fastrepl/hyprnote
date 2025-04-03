@@ -6,6 +6,7 @@ import ExtensionDinoGame from "@hypr/extension-dino-game/tailwind.config";
 import ExtensionSummary from "@hypr/extension-summary/tailwind.config";
 import ExtensionTimer from "@hypr/extension-timer/tailwind.config";
 import ExtensionTranscript from "@hypr/extension-transcript/tailwind.config";
+import ExtensionTwenty from "@hypr/extension-twenty/tailwind.config";
 
 const config = {
   content: [
@@ -15,6 +16,7 @@ const config = {
     ...ExtensionClock.content,
     ...ExtensionDinoGame.content,
     ...ExtensionTimer.content,
+    ...ExtensionTwenty.content,
     "src/**/*.{js,ts,jsx,tsx}",
     "index.html",
   ],

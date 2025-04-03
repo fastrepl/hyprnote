@@ -4,7 +4,8 @@ export type ExtensionName =
   | "@hypr/extension-transcript"
   | "@hypr/extension-timer"
   | "@hypr/extension-clock"
-  | "@hypr/extension-calculator";
+  | "@hypr/extension-calculator"
+  | "@hypr/extension-twenty";
 
 export function importExtension(name: ExtensionName) {
   switch (name) {
@@ -20,6 +21,8 @@ export function importExtension(name: ExtensionName) {
       return import("@hypr/extension-clock");
     case "@hypr/extension-calculator":
       return import("@hypr/extension-calculator");
+    case "@hypr/extension-twenty":
+      return import("@hypr/extension-twenty");
     default:
       throw new Error(`Unknown extension: ${name}`);
   }
@@ -31,6 +34,7 @@ import dinoGameConfig from "@hypr/extension-dino-game/config.json";
 import summaryConfig from "@hypr/extension-summary/config.json";
 import timerConfig from "@hypr/extension-timer/config.json";
 import transcriptConfig from "@hypr/extension-transcript/config.json";
+import twentyConfig from "@hypr/extension-twenty/config.json";
 
 export const EXTENSION_CONFIGS = [
   calculatorConfig,
@@ -39,4 +43,5 @@ export const EXTENSION_CONFIGS = [
   summaryConfig,
   timerConfig,
   transcriptConfig,
+  twentyConfig,
 ];

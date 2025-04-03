@@ -18,7 +18,6 @@ use store::*;
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 
 pub struct State {
-    pub model: SupportedModel,
     pub api_base: Option<String>,
     pub server: Option<crate::server::ServerHandle>,
 }
@@ -26,7 +25,6 @@ pub struct State {
 impl Default for State {
     fn default() -> Self {
         Self {
-            model: SupportedModel::QuantizedLargeV3Turbo,
             api_base: None,
             server: None,
         }
@@ -56,11 +54,6 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let mut state = State::default();
-            state.model = app
-                .get_current_model()
-                .unwrap_or(SupportedModel::QuantizedLargeV3Turbo);
-
             app.manage(SharedState::default());
             Ok(())
         })

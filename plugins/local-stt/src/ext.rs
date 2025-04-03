@@ -79,13 +79,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn start_server(&self) -> Result<(), crate::Error> {
-        let model = {
-            let state = self.state::<crate::SharedState>();
-            let s = state.lock().await;
-            s.model.clone()
-        };
-
         let cache_dir = self.path().app_data_dir()?;
+        let model = self.get_current_model()?;
 
         let server_state = crate::ServerStateBuilder::default()
             .model_cache_dir(cache_dir)

@@ -1,7 +1,8 @@
 import { User, XIcon } from "lucide-react";
+import type { Person } from "../../client";
 
 interface ParticipantsListProps {
-  selectedPeople: Array<{ id: string; name: string; email: string }>;
+  selectedPeople: Array<Person>;
   handleRemovePerson: (id: string) => void;
   isMeetingActive: boolean;
 }
@@ -36,21 +37,36 @@ export const ParticipantsList = ({
 };
 
 interface ParticipantItemProps {
-  person: { id: string; name: string; email: string };
+  person: Person;
   handleRemovePerson: (id: string) => void;
   isMeetingActive: boolean;
 }
 
 const ParticipantItem = ({ person, handleRemovePerson, isMeetingActive }: ParticipantItemProps) => {
+  const fullName = `${person.name.firstName} ${person.name.lastName}`;
+  const email = person.emails.primaryEmail;
+  
   return (
     <li className="flex items-center justify-between p-2 hover:bg-neutral-50">
       <div className="flex items-center gap-2">
-        <div className="flex-shrink-0 size-8 flex items-center justify-center bg-blue-100 text-blue-600 rounded-full">
-          <User className="size-4" />
+        <div className="flex-shrink-0 size-10 flex items-center justify-center rounded-full overflow-hidden">
+          {person.avatarUrl
+            ? (
+              <img
+                src={person.avatarUrl}
+                alt={fullName}
+                className="size-full object-cover"
+              />
+            )
+            : (
+              <div className="size-full flex items-center justify-center bg-blue-100 text-blue-600">
+                <User className="size-5" />
+              </div>
+            )}
         </div>
         <div>
-          <p className="text-sm font-medium">{person.name}</p>
-          <p className="text-xs text-neutral-500">{person.email}</p>
+          <p className="text-sm font-medium">{fullName}</p>
+          <p className="text-xs text-neutral-500">{email}</p>
         </div>
       </div>
       <button

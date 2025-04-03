@@ -1,12 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useOngoingSession } from "@hypr/utils/contexts";
 import * as twenty from "../../client";
-
-export interface Person {
-  id: string;
-  name: string;
-  email: string;
-}
+import type { Person } from "../../client";
 
 export const useTwentyNotes = () => {
   const [selectedPeople, setSelectedPeople] = useState<Array<Person>>([]);
@@ -97,14 +92,10 @@ export const useTwentyNotes = () => {
     }
   };
 
-  const handleSelectPerson = (person: any) => {
+  const handleSelectPerson = (person: Person) => {
     // Check if person is already selected
     if (!selectedPeople.some(p => p.id === person.id)) {
-      setSelectedPeople([...selectedPeople, {
-        id: person.id,
-        name: `${person.name.firstName} ${person.name.lastName}`,
-        email: person.emails.primaryEmail,
-      }]);
+      setSelectedPeople([...selectedPeople, person]);
     }
     setSearchQuery("");
     setShowSearchResults(false);

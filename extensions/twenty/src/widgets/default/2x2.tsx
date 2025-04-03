@@ -53,6 +53,7 @@ const Twenty2x2: WidgetTwoByTwo = () => {
               searchRef={searchRef}
               showSearchResults={showSearchResults}
               searchResults={searchResults}
+              selectedPeople={selectedPeople}
               handleSelectPerson={handleSelectPerson}
               isLoading={isLoading}
             />

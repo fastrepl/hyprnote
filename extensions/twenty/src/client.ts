@@ -5,13 +5,11 @@ import { fetch } from "@hypr/utils";
 
 const BASE = "https://api.twenty.com/rest";
 
-type Person = {
+export type Person = {
   id: string;
   avatarUrl: string;
-  jobTitle: string;
   emails: { primaryEmail: string };
   name: { firstName: string; lastName: string };
-  company: { name: string };
 };
 
 type Note = {

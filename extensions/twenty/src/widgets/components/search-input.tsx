@@ -1,5 +1,6 @@
 import { Loader, Search, User } from "lucide-react";
 import { Dispatch, RefObject, SetStateAction } from "react";
+import type { Person } from "../../client";
 
 interface SearchInputProps {
   searchQuery: string;
@@ -9,8 +10,9 @@ interface SearchInputProps {
   isMeetingActive: boolean;
   searchRef: RefObject<HTMLDivElement>;
   showSearchResults: boolean;
-  searchResults: Array<any>;
-  handleSelectPerson: (person: any) => void;
+  searchResults: Array<Person>;
+  selectedPeople: Array<Person>;
+  handleSelectPerson: (person: Person) => void;
   isLoading: boolean;
 }
 
@@ -23,9 +25,14 @@ export const SearchInput = ({
   searchRef,
   showSearchResults,
   searchResults,
+  selectedPeople,
   handleSelectPerson,
   isLoading,
 }: SearchInputProps) => {
+  const filteredResults = searchResults.filter(
+    (person) => !selectedPeople.some((selected) => selected.id === person.id)
+  );
+
   return (
     <div className="w-full" ref={searchRef}>
       <div className="flex items-center relative">
@@ -54,10 +61,10 @@ export const SearchInput = ({
                   <span className="text-sm text-neutral-500">Loading...</span>
                 </div>
               )
-              : searchResults.length > 0
+              : filteredResults.length > 0
               ? (
                 <div className="max-h-48 overflow-y-auto scrollbar-none">
-                  {searchResults.map((person) => (
+                  {filteredResults.map((person) => (
                     <SearchResultItem
                       key={person.id}
                       person={person}
@@ -68,7 +75,9 @@ export const SearchInput = ({
               )
               : (
                 <div className="px-3 py-2 text-sm text-neutral-500">
-                  No results found
+                  {searchResults.length > 0 && filteredResults.length === 0
+                    ? "All matching people are already selected"
+                    : "No results found"}
                 </div>
               )}
           </div>
@@ -79,26 +88,39 @@ export const SearchInput = ({
 };
 
 interface SearchResultItemProps {
-  person: any;
-  handleSelectPerson: (person: any) => void;
+  person: Person;
+  handleSelectPerson: (person: Person) => void;
 }
 
 const SearchResultItem = ({ person, handleSelectPerson }: SearchResultItemProps) => {
+  const fullName = `${person.name.firstName} ${person.name.lastName}`;
+  const email = person.emails.primaryEmail;
+  
   return (
     <button
       type="button"
       className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
       onClick={() => handleSelectPerson(person)}
     >
-      <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-blue-100 text-blue-600 rounded-full">
-        <User className="size-3" />
-      </span>
+      <div className="flex-shrink-0 size-8 flex items-center justify-center mr-2 rounded-full overflow-hidden">
+        {person.avatarUrl ? (
+          <img 
+            src={person.avatarUrl} 
+            alt={fullName}
+            className="size-full object-cover" 
+          />
+        ) : (
+          <div className="size-full flex items-center justify-center bg-blue-100 text-blue-600">
+            <User className="size-4" />
+          </div>
+        )}
+      </div>
       <div className="flex flex-col">
         <span className="font-medium text-neutral-900 truncate">
-          {person.name.firstName} {person.name.lastName}
+          {fullName}
         </span>
         <span className="text-xs text-neutral-500 truncate">
-          {person.emails.primaryEmail}
+          {email}
         </span>
       </div>
     </button>

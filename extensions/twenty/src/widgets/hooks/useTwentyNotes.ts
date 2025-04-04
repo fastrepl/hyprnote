@@ -1,23 +1,35 @@
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
 import { ops as twenty, type Person } from "../../client";
 
 export const useTwentyNotes = (sessionId: string) => {
   const session = useSession(sessionId, (s) => s.session);
-
   const [selectedPeople, setSelectedPeople] = useState<Array<Person>>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
-  const [searchResults, setSearchResults] = useState<Array<any>>([]);
-
-  const [isLoading, setIsLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const hasFetchedInitialResults = useRef(false);
 
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const isMeetingActive = ongoingSessionStatus === "active";
+
+  const [shouldFetchData, setShouldFetchData] = useState(false);
+
+  const { data: searchResults = [], isLoading } = useQuery<Person[], Error>({
+    queryKey: ["people", searchQuery],
+    queryFn: () =>
+      searchQuery.trim()
+        ? twenty.findManyPeople(searchQuery)
+        : twenty.findManyPeople(),
+    enabled: shouldFetchData || showSearchResults,
+  });
+
+  useEffect(() => {
+    if (searchResults.length > 0 && !shouldFetchData) {
+      setShouldFetchData(true);
+    }
+  }, [searchResults, shouldFetchData]);
 
   const createNoteMutation = useMutation({
     mutationFn: async () => {
@@ -50,61 +62,13 @@ export const useTwentyNotes = (sessionId: string) => {
     };
   }, []);
 
-  useEffect(() => {
-    const fetchInitialPeople = async () => {
-      if (!hasFetchedInitialResults.current && !isMeetingActive) {
-        try {
-          setIsLoading(true);
-          const people = await twenty.findManyPeople();
-          setSearchResults(people || []);
-          hasFetchedInitialResults.current = true;
-        } catch (error) {
-          console.error("Failed to fetch initial people:", error);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchInitialPeople();
-  }, [isMeetingActive]);
-
-  const handleSearch = async (query: string) => {
+  const handleSearch = (query: string) => {
     setSearchQuery(query);
-    setIsLoading(true);
-
-    try {
-      if (!query.trim()) {
-        const people = await twenty.findManyPeople();
-        setSearchResults(people || []);
-      } else {
-        const people = await twenty.findManyPeople(query);
-        setSearchResults(people || []);
-      }
-    } catch (error) {
-      console.error("Failed to find people:", error);
-      setSearchResults([]);
-    } finally {
-      setIsLoading(false);
-    }
+    setShowSearchResults(true);
   };
 
-  const handleSearchFocus = async () => {
+  const handleSearchFocus = () => {
     setShowSearchResults(true);
-
-    if (!hasFetchedInitialResults.current) {
-      setIsLoading(true);
-      try {
-        const people = await twenty.findManyPeople();
-        setSearchResults(people || []);
-        hasFetchedInitialResults.current = true;
-      } catch (error) {
-        console.error("Failed to fetch all people:", error);
-        setSearchResults([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
   };
 
   const handleSelectPerson = (person: Person) => {

@@ -1,17 +1,36 @@
 import { WidgetHeader, type WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
 import { useOngoingSession, useSessions } from "@hypr/utils/contexts";
+import { useQuery } from "@tanstack/react-query";
 
+import { ops as twenty } from "../../client";
 import { CreateNoteButton } from "../components/create-note-button";
 import { ParticipantsList } from "../components/participants-list";
 import { SearchInput } from "../components/search-input";
 import { useTwentyNotes } from "../hooks/useTwentyNotes";
 
 const Twenty2x2: WidgetTwoByTwo = () => {
+  const key = useQuery({
+    queryKey: ["vault", "twenty-api-key"],
+    queryFn: () => twenty.getApiKey(),
+  });
+
   const sessionId = useSessions((s) => s.currentSessionId);
 
   return (
     <WidgetTwoByTwoWrapper>
-      {sessionId && <Inner sessionId={sessionId} />}
+      {!sessionId
+        ? (
+          <div className="flex items-center justify-center h-full p-4">
+            <p>No active session</p>
+          </div>
+        )
+        : !key.data
+        ? (
+          <div className="flex items-center justify-center h-full p-4">
+            <p>No API key found for Twenty</p>
+          </div>
+        )
+        : <Inner sessionId={sessionId} />}
     </WidgetTwoByTwoWrapper>
   );
 };
@@ -46,7 +65,7 @@ function Inner({ sessionId }: { sessionId: string }) {
 
   return (
     <>
-      <div className="p-4 pb-0">
+      <div className="p-4 pb-2">
         <WidgetHeader
           title={
             <div className="flex items-center gap-2">
@@ -62,7 +81,7 @@ function Inner({ sessionId }: { sessionId: string }) {
       </div>
       {sessionId
         ? (
-          <div className="overflow-y-auto flex-1 p-4 pt-0 gap-3 flex flex-col">
+          <div className="overflow-y-auto flex-1 p-4 pt-0 gap-2 flex flex-col">
             <SearchInput
               searchQuery={searchQuery}
               handleSearch={handleSearch}

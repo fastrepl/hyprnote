@@ -5,8 +5,8 @@ import type { Person } from "../../client";
 
 interface SearchInputProps {
   searchQuery: string;
-  handleSearch: (query: string) => Promise<void>;
-  handleSearchFocus: () => Promise<void>;
+  handleSearch: (query: string) => void;
+  handleSearchFocus: () => void;
   setShowSearchResults: Dispatch<SetStateAction<boolean>>;
   isMeetingActive: boolean;
   searchRef: RefObject<HTMLDivElement>;

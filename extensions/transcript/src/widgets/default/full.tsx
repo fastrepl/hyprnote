@@ -33,12 +33,10 @@ const TranscriptFull: WidgetFullSize = ({ onMinimize }) => {
       });
     };
 
-    // Always scroll for new items when live
     if (isLive && timeline?.items?.length) {
       scrollToBottom();
     }
 
-    // Also scroll on initial load
     if (!isLive && timeline?.items?.length) {
       scrollToBottom();
     }

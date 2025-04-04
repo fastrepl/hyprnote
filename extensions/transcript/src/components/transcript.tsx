@@ -1,6 +1,7 @@
-import { TimelineView } from "@hypr/plugin-listener";
 import { EarIcon } from "lucide-react";
 import { forwardRef } from "react";
+
+import { TimelineView } from "@hypr/plugin-listener";
 import { parseDialogue } from "../utils";
 
 const Transcript = forwardRef<

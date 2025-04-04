@@ -33,12 +33,10 @@ const Transcript2x2: WidgetTwoByTwo = ({ onMaximize }) => {
       });
     };
 
-    // Always scroll for new items when live
     if (isLive && timeline?.items?.length) {
       scrollToBottom();
     }
 
-    // Also scroll on initial load
     if (!isLive && timeline?.items?.length) {
       scrollToBottom();
     }

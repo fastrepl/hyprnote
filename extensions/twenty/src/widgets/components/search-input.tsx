@@ -30,7 +30,7 @@ export const SearchInput = ({
   isLoading,
 }: SearchInputProps) => {
   const filteredResults = searchResults.filter(
-    (person) => !selectedPeople.some((selected) => selected.id === person.id)
+    (person) => !selectedPeople.some((selected) => selected.id === person.id),
   );
 
   return (
@@ -95,7 +95,7 @@ interface SearchResultItemProps {
 const SearchResultItem = ({ person, handleSelectPerson }: SearchResultItemProps) => {
   const fullName = `${person.name.firstName} ${person.name.lastName}`;
   const email = person.emails.primaryEmail;
-  
+
   return (
     <button
       type="button"
@@ -103,17 +103,19 @@ const SearchResultItem = ({ person, handleSelectPerson }: SearchResultItemProps)
       onClick={() => handleSelectPerson(person)}
     >
       <div className="flex-shrink-0 size-8 flex items-center justify-center mr-2 rounded-full overflow-hidden">
-        {person.avatarUrl ? (
-          <img 
-            src={person.avatarUrl} 
-            alt={fullName}
-            className="size-full object-cover" 
-          />
-        ) : (
-          <div className="size-full flex items-center justify-center bg-blue-100 text-blue-600">
-            <User className="size-4" />
-          </div>
-        )}
+        {person.avatarUrl
+          ? (
+            <img
+              src={person.avatarUrl}
+              alt={fullName}
+              className="size-full object-cover"
+            />
+          )
+          : (
+            <div className="size-full flex items-center justify-center bg-blue-100 text-blue-600">
+              <User className="size-4" />
+            </div>
+          )}
       </div>
       <div className="flex flex-col">
         <span className="font-medium text-neutral-900 truncate">

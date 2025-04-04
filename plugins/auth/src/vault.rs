@@ -58,8 +58,8 @@ impl VaultData {
 }
 
 impl Vault {
-    pub fn init(&self, account_id: impl AsRef<str>) -> Result<(), crate::Error> {
-        let entry = keyring::Entry::new("hyprnote", account_id.as_ref()).unwrap();
+    pub fn init(&self, user_id: impl AsRef<str>) -> Result<(), crate::Error> {
+        let entry = keyring::Entry::new("hyprnote", user_id.as_ref()).unwrap();
         self.entry.lock().unwrap().replace(entry);
         Ok(())
     }

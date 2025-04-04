@@ -315,6 +315,16 @@
           "const": "deny-get-from-vault"
         },
         {
+          "description": "Enables the init_vault command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-init-vault"
+        },
+        {
+          "description": "Denies the init_vault command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-init-vault"
+        },
+        {
           "description": "Enables the reset_vault command without any pre-configured scope.",
           "type": "string",
           "const": "allow-reset-vault"

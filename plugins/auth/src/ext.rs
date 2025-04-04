@@ -45,7 +45,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
                     Ok(params) => {
                         tracing::info!(params = ?params, "auth_callback");
 
-                        vault.init(&params.account_id).unwrap();
+                        vault.init(&params.user_id).unwrap();
 
                         for (key, value) in [
                             (VaultKey::RemoteServer, params.server_token),
@@ -80,9 +80,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
         tauri_plugin_oauth::cancel(port).map_err(|err| err.to_string())
     }
 
-    fn init_vault(&self, account_id: impl AsRef<str>) -> Result<(), String> {
+    fn init_vault(&self, user_id: impl AsRef<str>) -> Result<(), String> {
         let vault = self.state::<Vault>();
-        vault.init(account_id).map_err(|err| err.to_string())
+        vault.init(user_id).map_err(|err| err.to_string())
     }
 
     fn reset_vault(&self) -> Result<(), String> {

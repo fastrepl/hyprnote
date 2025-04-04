@@ -4,6 +4,8 @@ Default permissions for the plugin
 
 - `allow-start-oauth-server`
 - `allow-stop-oauth-server`
+- `allow-init-vault`
+- `allow-reset-vault`
 - `allow-get-from-store`
 - `allow-get-from-vault`
 - `allow-set-in-store`
@@ -66,6 +68,32 @@ Enables the get_from_vault command without any pre-configured scope.
 <td>
 
 Denies the get_from_vault command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`auth:allow-init-vault`
+
+</td>
+<td>
+
+Enables the init_vault command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`auth:deny-init-vault`
+
+</td>
+<td>
+
+Denies the init_vault command without any pre-configured scope.
 
 </td>
 </tr>

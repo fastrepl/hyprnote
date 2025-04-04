@@ -13,6 +13,9 @@ async startOauthServer() : Promise<number> {
 async stopOauthServer(port: number) : Promise<null> {
     return await TAURI_INVOKE("plugin:auth|stop_oauth_server", { port });
 },
+async initVault(userId: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:auth|init_vault", { userId });
+},
 async resetVault() : Promise<null> {
     return await TAURI_INVOKE("plugin:auth|reset_vault");
 },

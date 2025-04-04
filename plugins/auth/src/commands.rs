@@ -17,6 +17,15 @@ pub fn stop_oauth_server<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub fn init_vault<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    user_id: String,
+) -> Result<(), String> {
+    app.init_vault(user_id)
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn reset_vault<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
     app.reset_vault()
 }

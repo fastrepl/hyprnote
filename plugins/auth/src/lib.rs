@@ -27,6 +27,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             commands::start_oauth_server::<tauri::Wry>,
             commands::stop_oauth_server::<tauri::Wry>,
+            commands::init_vault::<tauri::Wry>,
             commands::reset_vault::<tauri::Wry>,
             commands::get_from_vault::<tauri::Wry>,
             commands::get_from_store::<tauri::Wry>,

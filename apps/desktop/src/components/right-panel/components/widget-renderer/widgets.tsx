@@ -16,6 +16,7 @@ function getLazyWidget(widgetConfig: WidgetConfig): React.LazyExoticComponent<Re
   const LazyComponent = React.lazy(async () => {
     try {
       const extensionImport = await importExtension(widgetConfig.extensionName);
+      extensionImport.default.init();
 
       const widgetGroup = extensionImport.default.widgetGroups.find(({ id }) => id === widgetConfig.groupName);
       const item = widgetGroup?.items.find(({ type }) => type === widgetConfig.widgetType);

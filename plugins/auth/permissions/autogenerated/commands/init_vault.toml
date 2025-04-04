@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-init-vault"
+description = "Enables the init_vault command without any pre-configured scope."
+commands.allow = ["init_vault"]
+
+[[permission]]
+identifier = "deny-init-vault"
+description = "Denies the init_vault command without any pre-configured scope."
+commands.deny = ["init_vault"]

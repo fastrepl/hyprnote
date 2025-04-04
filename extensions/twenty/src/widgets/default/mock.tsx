@@ -62,7 +62,7 @@ export default function MockProvider({
 const mockTwentyIPC = (): () => void => {
   mockIPC((cmd, _args) => {
     if (cmd == "plugin:auth|get_from_vault") {
-      return "test";
+      return null;
     }
 
     if (cmd == "plugin:auth|set_in_vault") {

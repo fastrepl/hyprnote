@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { EarIcon, EarOffIcon, MicIcon, MicOffIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
+import { MicIcon, MicOffIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession } from "@hypr/utils/contexts";
 
 interface ListenButtonProps {
@@ -99,13 +100,20 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
       {ongoingSessionStore.status === "inactive" && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              onClick={handleStartSession}
-              className="p-2"
-            >
-              <EarOffIcon size={20} />
-            </Button>
+            <div className="w-9 h-9 flex items-center justify-center">
+              <button
+                onClick={handleStartSession}
+                className="w-9 h-9 rounded-full bg-red-600 border-none cursor-pointer relative outline-none p-0 group"
+              >
+                <span
+                  className="absolute inset-0 rounded-full bg-red-500 transform -translate-y-[3px] transition-transform duration-50 flex items-center justify-center group-active:translate-y-[-1px]"
+                  style={{
+                    boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.4) inset",
+                  }}
+                >
+                </span>
+              </button>
+            </div>
           </TooltipTrigger>
           <TooltipContent side="bottom" align="end">
             <p>
@@ -120,8 +128,13 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <PopoverTrigger asChild>
-                <Button variant="default" className="p-2">
-                  <EarIcon size={20} />
+                <Button variant="default" className={cn("p-2 h-9", "pr-3")}>
+                  <div className="relative flex items-center justify-center h-5 w-5">
+                    <div className="relative h-2 w-2">
+                      <div className="absolute inset-0 rounded-full bg-white/30"></div>
+                      <div className="absolute inset-0 rounded-full bg-white animate-ping"></div>
+                    </div>
+                  </div>
                   <SoundIndicator theme="light" />
                 </Button>
               </PopoverTrigger>

@@ -5,31 +5,21 @@ import { useEffect, useRef, useState } from "react";
 import { ops as twenty, type Person } from "../../client";
 
 export const useTwentyNotes = (sessionId: string) => {
-  const session = useSession(sessionId, (s) => s.session);
-  const [selectedPeople, setSelectedPeople] = useState<Array<Person>>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSearchResults, setShowSearchResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const session = useSession(sessionId, (s) => s.session);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedPeople, setSelectedPeople] = useState<Array<Person>>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const isMeetingActive = ongoingSessionStatus === "active";
 
-  const [shouldFetchData, setShouldFetchData] = useState(false);
-
   const { data: searchResults = [], isLoading } = useQuery<Person[], Error>({
     queryKey: ["people", searchQuery],
-    queryFn: () =>
-      searchQuery.trim()
-        ? twenty.findManyPeople(searchQuery)
-        : twenty.findManyPeople(),
-    enabled: shouldFetchData || showSearchResults,
+    queryFn: () => twenty.findManyPeople(searchQuery),
+    staleTime: 5000,
   });
-
-  useEffect(() => {
-    if (searchResults.length > 0 && !shouldFetchData) {
-      setShouldFetchData(true);
-    }
-  }, [searchResults, shouldFetchData]);
 
   const createNoteMutation = useMutation({
     mutationFn: async () => {

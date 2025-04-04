@@ -1,5 +1,6 @@
 import { Loader, Search, User } from "lucide-react";
 import { Dispatch, RefObject, SetStateAction } from "react";
+
 import type { Person } from "../../client";
 
 interface SearchInputProps {

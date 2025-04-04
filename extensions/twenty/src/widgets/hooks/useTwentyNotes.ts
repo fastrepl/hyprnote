@@ -2,8 +2,7 @@ import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
-import * as twenty from "../../client";
-import type { Person } from "../../client";
+import { ops as twenty, type Person } from "../../client";
 
 export const useTwentyNotes = (sessionId: string) => {
   const session = useSession(sessionId, (s) => s.session);

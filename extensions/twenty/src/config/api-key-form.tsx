@@ -8,7 +8,7 @@ import { z } from "zod";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { getApiKey, setApiKey } from "../client";
+import { ops as twenty } from "../client";
 
 const apiKeySchema = z.object({
   apiKey: z.string().min(2, "API key must be at least 2 characters"),
@@ -27,12 +27,12 @@ export default function ApiKeyForm() {
 
   const getKeyQuery = useQuery({
     queryKey: ["vault", "twenty-api-key"],
-    queryFn: () => getApiKey(),
+    queryFn: () => twenty.getApiKey(),
   });
 
   const setKeyMutation = useMutation({
     mutationFn: async (form: z.infer<typeof apiKeySchema>) => {
-      await setApiKey(form.apiKey);
+      await twenty.setApiKey(form.apiKey);
       return form;
     },
     onSuccess: (form) => {

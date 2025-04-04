@@ -5,7 +5,7 @@ import { fetch } from "@hypr/utils";
 
 const BASE = "https://api.twenty.com/rest";
 
-export type Person = {
+type Person = {
   id: string;
   avatarUrl: string;
   emails: { primaryEmail: string };
@@ -18,11 +18,11 @@ type Note = {
   bodyV2: { blocknote: any };
 };
 
-export const setApiKey = async (key: string) => {
+const setApiKey = async (key: string) => {
   await authCommands.setInVault("twenty-api-key", key);
 };
 
-export const getApiKey = async () => {
+const getApiKey = async () => {
   if (import.meta.env.DEV && import.meta.env.VITE_TWENTY_API_KEY) {
     return import.meta.env.VITE_TWENTY_API_KEY;
   }
@@ -36,7 +36,7 @@ export const getApiKey = async () => {
 };
 
 // https://twenty.com/developers/rest-api/core#/operations/findManyPeople
-export const findManyPeople = async (query?: string) => {
+const findManyPeople = async (query?: string) => {
   const key = await getApiKey();
 
   let url = `${BASE}/people?depth=0`;
@@ -60,7 +60,7 @@ export const findManyPeople = async (query?: string) => {
 };
 
 // https://twenty.com/developers/rest-api/core#/operations/createOneNote
-export const createOneNote = async (title: string, body: string) => {
+const createOneNote = async (title: string, body: string) => {
   const key = await getApiKey();
 
   const editor = BlockNoteEditor.create();
@@ -89,7 +89,7 @@ export const createOneNote = async (title: string, body: string) => {
 };
 
 // https://twenty.com/developers/rest-api/core#/operations/createManyNoteTargets
-export const createManyNoteTargets = async (noteId: string, personIds: string[]) => {
+const createManyNoteTargets = async (noteId: string, personIds: string[]) => {
   const key = await getApiKey();
 
   const response = await fetch(`${BASE}/batch/noteTargets`, {
@@ -105,3 +105,13 @@ export const createManyNoteTargets = async (noteId: string, personIds: string[])
   const { data } = await response.json();
   return data;
 };
+
+export const ops = {
+  setApiKey,
+  getApiKey,
+  findManyPeople,
+  createOneNote,
+  createManyNoteTargets,
+};
+
+export type { Note, Person };

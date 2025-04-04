@@ -1,5 +1,5 @@
 import { WidgetHeader, type WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
-import { useSessions } from "@hypr/utils/contexts";
+import { useOngoingSession, useSessions } from "@hypr/utils/contexts";
 
 import { CreateNoteButton } from "../components/create-note-button";
 import { ParticipantsList } from "../components/participants-list";
@@ -17,6 +17,8 @@ const Twenty2x2: WidgetTwoByTwo = () => {
 };
 
 function Inner({ sessionId }: { sessionId: string }) {
+  const ongoingSessionStatus = useOngoingSession((s) => s.status);
+
   const {
     selectedPeople,
     searchQuery,
@@ -33,6 +35,14 @@ function Inner({ sessionId }: { sessionId: string }) {
     handleCreateNote,
     setShowSearchResults,
   } = useTwentyNotes(sessionId);
+
+  if (ongoingSessionStatus === "active") {
+    return (
+      <div className="flex items-center justify-center h-full p-4">
+        <p>Meeting is still active</p>
+      </div>
+    );
+  }
 
   return (
     <>

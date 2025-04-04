@@ -14,6 +14,41 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
+#: src/components/settings/views/general.tsx:150
+msgid "Select language"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/components/settings/views/general.tsx:206
+msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:23
+msgid "{days} day{plural} later"
+msgstr "{days}일 후"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:28
+msgid "{hours} hour{plural} later"
+msgstr "{hours}시간 후"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:33
+msgid "{minutes} minutes later"
+msgstr "{minutes}분 후"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:37
+msgid "Starting soon"
+msgstr "곧 시작"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:39
+msgid "In progress"
+msgstr "진행 중"
+
+#. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:57
 msgid "Today ({dayOfWeek})"
 msgstr ""
@@ -63,6 +98,16 @@ msgstr ""
 #: ../../packages/utils/src/datetime.ts:128
 msgid "{hours} hours ago"
 msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:130
+msgid "Yesterday"
+msgstr "어제"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:132
+msgid "{days} days ago"
+msgstr "{days}일 전"
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:134
@@ -140,51 +185,6 @@ msgid "{weeks} weeks later"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:150
-msgid "Select language"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:206
-msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:23
-msgid "{days} day{plural} later"
-msgstr "{days}일 후"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:28
-msgid "{hours} hour{plural} later"
-msgstr "{hours}시간 후"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:33
-msgid "{minutes} minutes later"
-msgstr "{minutes}분 후"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:37
-msgid "Starting soon"
-msgstr "곧 시작"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:39
-msgid "In progress"
-msgstr "진행 중"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:130
-msgid "Yesterday"
-msgstr "어제"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:132
-msgid "{days} days ago"
-msgstr "{days}일 전"
-
-#. js-lingui-explicit-id
 #: src/utils/i18n-datetime.ts:50
 #~ msgid "Today"
 #~ msgstr "오늘"
@@ -230,13 +230,13 @@ msgstr ""
 msgid "{title}"
 msgstr ""
 
-#: src/components/settings/views/calendar.tsx:170
-#: src/components/settings/views/calendar.tsx:202
+#: src/components/settings/views/calendar.tsx:180
+#: src/components/settings/views/calendar.tsx:212
 msgid "Access granted"
 msgstr "접근 권한이 승인되었습니다."
 
-#: src/components/settings/views/ai.tsx:88
-#: src/components/settings/views/ai.tsx:145
+#: src/components/settings/views/ai.tsx:183
+#: src/components/settings/views/ai.tsx:318
 msgid "Active"
 msgstr ""
 
@@ -287,7 +287,7 @@ msgstr "연간"
 msgid "Anyone with the link can view this page"
 msgstr "링크를 가진 모든 사람이 이 페이지를 볼 수 있습니다."
 
-#: src/components/settings/views/profile.tsx:163
+#: src/components/settings/views/profile.tsx:165
 msgid "Apple"
 msgstr "애플"
 
@@ -320,7 +320,7 @@ msgstr "기본 템플릿"
 msgid "Calendar"
 msgstr "캘린더"
 
-#: src/components/settings/views/calendar.tsx:166
+#: src/components/settings/views/calendar.tsx:176
 msgid "Calendar Access"
 msgstr "캘린더 접근 권한"
 
@@ -328,13 +328,13 @@ msgstr "캘린더 접근 권한"
 msgid "Calendar connected"
 msgstr "캘린더가 연결되었습니다."
 
-#: src/components/settings/views/profile.tsx:138
+#: src/components/settings/views/profile.tsx:140
 msgid "CEO"
 msgstr "대표"
 
-#: src/components/settings/views/ai.tsx:179
-#~ msgid "Choose between speed and quality for speech recognition"
-#~ msgstr ""
+#: src/components/settings/views/ai.tsx:220
+msgid "Choose between speed and quality for speech recognition"
+msgstr ""
 
 #: src/components/settings/views/billing.tsx:52
 msgid "Collaborate with others in meetings"
@@ -347,11 +347,11 @@ msgstr "회의에서 다른 사람들과 협업하세요."
 msgid "Coming Soon"
 msgstr "곧 출시 예정"
 
-#: src/components/settings/views/profile.tsx:180
+#: src/components/settings/views/profile.tsx:182
 msgid "Company Description"
 msgstr "회사 설명"
 
-#: src/components/settings/views/profile.tsx:155
+#: src/components/settings/views/profile.tsx:157
 msgid "Company Name"
 msgstr "회사명"
 
@@ -372,11 +372,11 @@ msgstr "연결하기"
 msgid "Connect your {0} calendar to track upcoming events"
 msgstr "{0} 캘린더를 연결하여 예정된 일정을 추적하세요."
 
-#: src/components/settings/views/calendar.tsx:171
+#: src/components/settings/views/calendar.tsx:181
 msgid "Connect your calendar and track events"
 msgstr "캘린더를 연결하고 일정을 추적하세요."
 
-#: src/components/settings/views/calendar.tsx:198
+#: src/components/settings/views/calendar.tsx:208
 msgid "Contacts Access"
 msgstr "연락처 접근 권한"
 
@@ -517,8 +517,8 @@ msgstr "일반"
 msgid "Get Started"
 msgstr "시작하기"
 
-#: src/components/settings/views/calendar.tsx:184
-#: src/components/settings/views/calendar.tsx:216
+#: src/components/settings/views/calendar.tsx:194
+#: src/components/settings/views/calendar.tsx:226
 msgid "Grant Access"
 msgstr "접근 권한 부여"
 
@@ -578,7 +578,7 @@ msgstr "전문 용어"
 msgid "Job title"
 msgstr "직책"
 
-#: src/components/settings/views/profile.tsx:134
+#: src/components/settings/views/profile.tsx:136
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:118
 msgid "Job Title"
 msgstr "직책"
@@ -588,8 +588,8 @@ msgid "Key decisions"
 msgstr ""
 
 #: src/components/settings/components/main-sidebar.tsx:49
-msgid "Lab"
-msgstr ""
+#~ msgid "Lab"
+#~ msgstr ""
 
 #: src/components/settings/views/ai.tsx:316
 #~ msgid "Language Model"
@@ -599,7 +599,7 @@ msgstr ""
 msgid "Learn more about our pricing plans"
 msgstr "요금제에 대해 더 알아보세요."
 
-#: src/components/settings/views/profile.tsx:205
+#: src/components/settings/views/profile.tsx:207
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:139
 msgid "LinkedIn Username"
 msgstr "링크드인 사용자명"
@@ -617,16 +617,16 @@ msgid "Loading extension details..."
 msgstr "익스텐션 정보 로딩 중..."
 
 #: src/components/workspace-calendar/event-card.tsx:112
-#: src/components/settings/views/ai.tsx:104
-#: src/components/settings/views/ai.tsx:200
+#: src/components/settings/views/ai.tsx:199
+#: src/components/settings/views/ai.tsx:373
 msgid "Loading..."
 msgstr "로딩 중..."
 
-#: src/components/settings/views/ai.tsx:129
+#: src/components/settings/views/ai.tsx:302
 msgid "Local Language Model"
 msgstr "로컬 언어 모델"
 
-#: src/components/settings/views/ai.tsx:72
+#: src/components/settings/views/ai.tsx:167
 msgid "Local Speech-to-Text"
 msgstr "로컬 음성-텍스트 변환"
 
@@ -655,7 +655,7 @@ msgstr "멤버"
 msgid "Microphone Access"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:249
+#: src/components/settings/views/ai.tsx:422
 msgid "Model is working correctly"
 msgstr "모델이 올바르게 작동합니다."
 
@@ -663,9 +663,9 @@ msgstr "모델이 올바르게 작동합니다."
 #~ msgid "Model loaded and ready"
 #~ msgstr "모델 로드 완료 및 준비 완료"
 
-#: src/components/settings/views/ai.tsx:176
-#~ msgid "Model Selection"
-#~ msgstr ""
+#: src/components/settings/views/ai.tsx:217
+msgid "Model Selection"
+msgstr ""
 
 #: src/components/settings/views/billing.tsx:125
 msgid "Monthly"
@@ -747,7 +747,7 @@ msgstr "노트 열기"
 msgid "Open settings"
 msgstr "설정 열기"
 
-#: src/components/settings/views/calendar.tsx:203
+#: src/components/settings/views/calendar.tsx:213
 msgid "Optional for participant suggestions"
 msgstr "참가자 추천을 위한 선택 사항"
 
@@ -763,6 +763,11 @@ msgstr "소유자"
 #: src/routes/app.human.$id.tsx:272
 #~ msgid "Past Notes"
 #~ msgstr "이전 노트"
+
+#: src/components/editor-area/note-header/listen-button.tsx:159
+#: src/components/editor-area/note-header/listen-button.tsx:184
+msgid "Pause recording"
+msgstr ""
 
 #: src/components/share-and-permission/participants-selector.tsx:35
 msgid "people"
@@ -785,13 +790,13 @@ msgstr "프로필"
 msgid "Publish your note"
 msgstr "노트 발행하기"
 
-#: src/components/settings/views/ai.tsx:196
-#~ msgid "Quality"
-#~ msgstr ""
+#: src/components/settings/views/ai.tsx:237
+msgid "Quality"
+msgstr ""
 
-#: src/components/settings/views/ai.tsx:213
-#~ msgid "Quality (v3 large)"
-#~ msgstr ""
+#: src/components/settings/views/ai.tsx:266
+msgid "Quality (v3 large)"
+msgstr ""
 
 #: src/components/organization-profile/recent-notes.tsx:42
 msgid "Recent Notes"
@@ -818,16 +823,24 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
+#: src/components/editor-area/note-header/listen-button.tsx:111
+msgid "Resume"
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:116
+msgid "Resume recording"
+msgstr ""
+
 #: src/components/settings/views/team.tsx:104
 #: src/components/settings/views/team.tsx:213
 msgid "Role"
 msgstr "역할"
 
-#: src/components/settings/views/ai.tsx:132
+#: src/components/settings/views/ai.tsx:305
 msgid "Run language models locally for enhanced privacy"
 msgstr "향상된 개인 정보 보호를 위해 언어 모델을 로컬에서 실행"
 
-#: src/components/settings/views/ai.tsx:75
+#: src/components/settings/views/ai.tsx:170
 msgid "Run speech recognition locally for enhanced privacy"
 msgstr "향상된 개인 정보 보호를 위해 음성 인식을 로컬에서 실행"
 
@@ -914,13 +927,13 @@ msgstr "모든 사용자를 위한 단일 로그인"
 #~ msgid "Speech-to-Text"
 #~ msgstr "음성-텍스트 변환"
 
-#: src/components/settings/views/ai.tsx:196
-#~ msgid "Speed"
-#~ msgstr ""
+#: src/components/settings/views/ai.tsx:237
+msgid "Speed"
+msgstr ""
 
-#: src/components/settings/views/ai.tsx:206
-#~ msgid "Speed (tiny-en)"
-#~ msgstr ""
+#: src/components/settings/views/ai.tsx:250
+msgid "Speed (tiny-en)"
+msgstr ""
 
 #: src/components/settings/views/billing.tsx:76
 msgid "Start Annual Plan"
@@ -930,12 +943,12 @@ msgstr "연간 요금제 시작"
 msgid "Start Monthly Plan"
 msgstr "월간 요금제 시작"
 
-#: src/components/editor-area/note-header/listen-button.tsx:112
+#: src/components/editor-area/note-header/listen-button.tsx:135
 msgid "Start recording"
 msgstr "녹음 시작"
 
-#: src/components/settings/views/ai.tsx:107
-#: src/components/settings/views/ai.tsx:203
+#: src/components/settings/views/ai.tsx:202
+#: src/components/settings/views/ai.tsx:376
 msgid "Start Server"
 msgstr "서버 시작"
 
@@ -944,16 +957,16 @@ msgstr "서버 시작"
 #~ msgstr "중지"
 
 #: src/components/editor-area/note-header/listen-button.tsx:155
-msgid "Stop listening"
-msgstr ""
+#~ msgid "Stop listening"
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:145
 #~ msgid "Stop listening to the meeting?"
 #~ msgstr "회의 듣기를 중지하시겠습니까?"
 
 #: src/components/editor-area/note-header/listen-button.tsx:131
-msgid "Stop recording"
-msgstr "녹음 중지"
+#~ msgid "Stop recording"
+#~ msgstr "녹음 중지"
 
 #: src/components/settings/views/ai.tsx:115
 #: src/components/settings/views/ai.tsx:225
@@ -993,15 +1006,15 @@ msgstr "팀스페이스"
 msgid "Templates"
 msgstr "템플릿"
 
-#: src/components/settings/views/ai.tsx:245
+#: src/components/settings/views/ai.tsx:418
 msgid "Test Language Model"
 msgstr "언어 모델 테스트"
 
-#: src/components/settings/views/ai.tsx:272
+#: src/components/settings/views/ai.tsx:445
 msgid "Test Model"
 msgstr "모델 테스트"
 
-#: src/components/settings/views/ai.tsx:269
+#: src/components/settings/views/ai.tsx:442
 msgid "Testing..."
 msgstr "테스트 중..."
 
@@ -1009,7 +1022,7 @@ msgstr "테스트 중..."
 msgid "There's a plan for everyone"
 msgstr "모두를 위한 요금제가 있습니다."
 
-#: src/components/settings/views/profile.tsx:183
+#: src/components/settings/views/profile.tsx:185
 msgid "This is a short description of your company."
 msgstr "회사에 대한 간략한 설명입니다."
 
@@ -1021,7 +1034,7 @@ msgstr ""
 #~ msgid "This is the language you mostly use."
 #~ msgstr "주로 사용하는 언어입니다."
 
-#: src/components/settings/views/profile.tsx:158
+#: src/components/settings/views/profile.tsx:160
 msgid "This is the name of the company you work for."
 msgstr "귀하가 근무하는 회사의 이름입니다."
 
@@ -1101,16 +1114,16 @@ msgstr "사용자"
 msgid "User:"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:218
+#: src/components/settings/views/profile.tsx:220
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:152
 msgid "username"
 msgstr "사용자명"
 
-#: src/components/settings/views/profile.tsx:114
+#: src/components/settings/views/profile.tsx:116
 msgid "Username"
 msgstr "사용자명"
 
-#: src/components/settings/views/ai.tsx:250
+#: src/components/settings/views/ai.tsx:423
 msgid "Verify that your local language model is working correctly"
 msgstr "로컬 언어 모델이 올바르게 작동하는지 확인하세요."
 
@@ -1126,7 +1139,7 @@ msgstr "노트 보기"
 #~ msgid "Want to keep track of events?"
 #~ msgstr "향후 일정을 관리하고 싶으신가요?"
 
-#: src/components/settings/views/profile.tsx:188
+#: src/components/settings/views/profile.tsx:190
 msgid "We think different."
 msgstr "우리는 다르게 생각합니다."
 
@@ -1146,12 +1159,12 @@ msgstr ""
 #~ msgid "You can make Hyprnote takes these words into account when transcribing."
 #~ msgstr "하이퍼노트가 텍스트 변환 시 이러한 단어들을 고려하도록 설정할 수 있습니다."
 
-#: src/components/settings/views/profile.tsx:208
+#: src/components/settings/views/profile.tsx:210
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:142
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"
 msgstr "링크드인 사용자명 (linkedin.com/in/ 뒤에 오는 부분)"
 
-#: src/components/settings/views/profile.tsx:118
+#: src/components/settings/views/profile.tsx:120
 msgid "Your Name"
 msgstr "이름"
 

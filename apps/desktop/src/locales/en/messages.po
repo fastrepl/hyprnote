@@ -14,6 +14,41 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
+#: src/components/settings/views/general.tsx:150
+msgid "Select language"
+msgstr "Select language"
+
+#. js-lingui-explicit-id
+#: src/components/settings/views/general.tsx:206
+msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
+msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:23
+msgid "{days} day{plural} later"
+msgstr "{days} day{plural} later"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:28
+msgid "{hours} hour{plural} later"
+msgstr "{hours} hour{plural} later"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:33
+msgid "{minutes} minutes later"
+msgstr "{minutes} minutes later"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:37
+msgid "Starting soon"
+msgstr "Starting soon"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:39
+msgid "In progress"
+msgstr "In progress"
+
+#. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:57
 msgid "Today ({dayOfWeek})"
 msgstr "Today ({dayOfWeek})"
@@ -63,6 +98,16 @@ msgstr "1 hour ago"
 #: ../../packages/utils/src/datetime.ts:128
 msgid "{hours} hours ago"
 msgstr "{hours} hours ago"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:130
+msgid "Yesterday"
+msgstr "Yesterday"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:132
+msgid "{days} days ago"
+msgstr "{days} days ago"
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:134
@@ -140,51 +185,6 @@ msgid "{weeks} weeks later"
 msgstr "{weeks} weeks later"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:150
-msgid "Select language"
-msgstr "Select language"
-
-#. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:206
-msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
-msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:23
-msgid "{days} day{plural} later"
-msgstr "{days} day{plural} later"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:28
-msgid "{hours} hour{plural} later"
-msgstr "{hours} hour{plural} later"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:33
-msgid "{minutes} minutes later"
-msgstr "{minutes} minutes later"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:37
-msgid "Starting soon"
-msgstr "Starting soon"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:39
-msgid "In progress"
-msgstr "In progress"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:130
-msgid "Yesterday"
-msgstr "Yesterday"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:132
-msgid "{days} days ago"
-msgstr "{days} days ago"
-
-#. js-lingui-explicit-id
 #: src/utils/i18n-datetime.ts:50
 #~ msgid "Today"
 #~ msgstr "Today"
@@ -230,13 +230,13 @@ msgstr "{description}"
 msgid "{title}"
 msgstr "{title}"
 
-#: src/components/settings/views/calendar.tsx:170
-#: src/components/settings/views/calendar.tsx:202
+#: src/components/settings/views/calendar.tsx:180
+#: src/components/settings/views/calendar.tsx:212
 msgid "Access granted"
 msgstr "Access granted"
 
-#: src/components/settings/views/ai.tsx:88
-#: src/components/settings/views/ai.tsx:145
+#: src/components/settings/views/ai.tsx:183
+#: src/components/settings/views/ai.tsx:318
 msgid "Active"
 msgstr "Active"
 
@@ -287,7 +287,7 @@ msgstr "Annual"
 msgid "Anyone with the link can view this page"
 msgstr "Anyone with the link can view this page"
 
-#: src/components/settings/views/profile.tsx:163
+#: src/components/settings/views/profile.tsx:165
 msgid "Apple"
 msgstr "Apple"
 
@@ -320,7 +320,7 @@ msgstr "Built-in Templates"
 msgid "Calendar"
 msgstr "Calendar"
 
-#: src/components/settings/views/calendar.tsx:166
+#: src/components/settings/views/calendar.tsx:176
 msgid "Calendar Access"
 msgstr "Calendar Access"
 
@@ -328,13 +328,13 @@ msgstr "Calendar Access"
 msgid "Calendar connected"
 msgstr "Calendar connected"
 
-#: src/components/settings/views/profile.tsx:138
+#: src/components/settings/views/profile.tsx:140
 msgid "CEO"
 msgstr "CEO"
 
-#: src/components/settings/views/ai.tsx:179
-#~ msgid "Choose between speed and quality for speech recognition"
-#~ msgstr "Choose between speed and quality for speech recognition"
+#: src/components/settings/views/ai.tsx:220
+msgid "Choose between speed and quality for speech recognition"
+msgstr "Choose between speed and quality for speech recognition"
 
 #: src/components/settings/views/billing.tsx:52
 msgid "Collaborate with others in meetings"
@@ -347,11 +347,11 @@ msgstr "Collaborate with others in meetings"
 msgid "Coming Soon"
 msgstr "Coming Soon"
 
-#: src/components/settings/views/profile.tsx:180
+#: src/components/settings/views/profile.tsx:182
 msgid "Company Description"
 msgstr "Company Description"
 
-#: src/components/settings/views/profile.tsx:155
+#: src/components/settings/views/profile.tsx:157
 msgid "Company Name"
 msgstr "Company Name"
 
@@ -372,11 +372,11 @@ msgstr "Connect"
 msgid "Connect your {0} calendar to track upcoming events"
 msgstr "Connect your {0} calendar to track upcoming events"
 
-#: src/components/settings/views/calendar.tsx:171
+#: src/components/settings/views/calendar.tsx:181
 msgid "Connect your calendar and track events"
 msgstr "Connect your calendar and track events"
 
-#: src/components/settings/views/calendar.tsx:198
+#: src/components/settings/views/calendar.tsx:208
 msgid "Contacts Access"
 msgstr "Contacts Access"
 
@@ -517,8 +517,8 @@ msgstr "General"
 msgid "Get Started"
 msgstr "Get Started"
 
-#: src/components/settings/views/calendar.tsx:184
-#: src/components/settings/views/calendar.tsx:216
+#: src/components/settings/views/calendar.tsx:194
+#: src/components/settings/views/calendar.tsx:226
 msgid "Grant Access"
 msgstr "Grant Access"
 
@@ -578,7 +578,7 @@ msgstr "Jargons"
 msgid "Job title"
 msgstr "Job title"
 
-#: src/components/settings/views/profile.tsx:134
+#: src/components/settings/views/profile.tsx:136
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:118
 msgid "Job Title"
 msgstr "Job Title"
@@ -588,8 +588,8 @@ msgid "Key decisions"
 msgstr "Key decisions"
 
 #: src/components/settings/components/main-sidebar.tsx:49
-msgid "Lab"
-msgstr "Lab"
+#~ msgid "Lab"
+#~ msgstr "Lab"
 
 #: src/components/settings/views/ai.tsx:316
 #~ msgid "Language Model"
@@ -599,7 +599,7 @@ msgstr "Lab"
 msgid "Learn more about our pricing plans"
 msgstr "Learn more about our pricing plans"
 
-#: src/components/settings/views/profile.tsx:205
+#: src/components/settings/views/profile.tsx:207
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:139
 msgid "LinkedIn Username"
 msgstr "LinkedIn Username"
@@ -617,16 +617,16 @@ msgid "Loading extension details..."
 msgstr "Loading extension details..."
 
 #: src/components/workspace-calendar/event-card.tsx:112
-#: src/components/settings/views/ai.tsx:104
-#: src/components/settings/views/ai.tsx:200
+#: src/components/settings/views/ai.tsx:199
+#: src/components/settings/views/ai.tsx:373
 msgid "Loading..."
 msgstr "Loading..."
 
-#: src/components/settings/views/ai.tsx:129
+#: src/components/settings/views/ai.tsx:302
 msgid "Local Language Model"
 msgstr "Local Language Model"
 
-#: src/components/settings/views/ai.tsx:72
+#: src/components/settings/views/ai.tsx:167
 msgid "Local Speech-to-Text"
 msgstr "Local Speech-to-Text"
 
@@ -655,7 +655,7 @@ msgstr "Members"
 msgid "Microphone Access"
 msgstr "Microphone Access"
 
-#: src/components/settings/views/ai.tsx:249
+#: src/components/settings/views/ai.tsx:422
 msgid "Model is working correctly"
 msgstr "Model is working correctly"
 
@@ -663,9 +663,9 @@ msgstr "Model is working correctly"
 #~ msgid "Model loaded and ready"
 #~ msgstr "Model loaded and ready"
 
-#: src/components/settings/views/ai.tsx:176
-#~ msgid "Model Selection"
-#~ msgstr "Model Selection"
+#: src/components/settings/views/ai.tsx:217
+msgid "Model Selection"
+msgstr "Model Selection"
 
 #: src/components/settings/views/billing.tsx:125
 msgid "Monthly"
@@ -747,7 +747,7 @@ msgstr "Open Note"
 msgid "Open settings"
 msgstr "Open settings"
 
-#: src/components/settings/views/calendar.tsx:203
+#: src/components/settings/views/calendar.tsx:213
 msgid "Optional for participant suggestions"
 msgstr "Optional for participant suggestions"
 
@@ -763,6 +763,11 @@ msgstr "Owner"
 #: src/routes/app.human.$id.tsx:272
 #~ msgid "Past Notes"
 #~ msgstr "Past Notes"
+
+#: src/components/editor-area/note-header/listen-button.tsx:159
+#: src/components/editor-area/note-header/listen-button.tsx:184
+msgid "Pause recording"
+msgstr "Pause recording"
 
 #: src/components/share-and-permission/participants-selector.tsx:35
 msgid "people"
@@ -785,13 +790,13 @@ msgstr "Profile"
 msgid "Publish your note"
 msgstr "Publish your note"
 
-#: src/components/settings/views/ai.tsx:196
-#~ msgid "Quality"
-#~ msgstr "Quality"
+#: src/components/settings/views/ai.tsx:237
+msgid "Quality"
+msgstr "Quality"
 
-#: src/components/settings/views/ai.tsx:213
-#~ msgid "Quality (v3 large)"
-#~ msgstr "Quality (v3 large)"
+#: src/components/settings/views/ai.tsx:266
+msgid "Quality (v3 large)"
+msgstr "Quality (v3 large)"
 
 #: src/components/organization-profile/recent-notes.tsx:42
 msgid "Recent Notes"
@@ -818,16 +823,24 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
+#: src/components/editor-area/note-header/listen-button.tsx:111
+msgid "Resume"
+msgstr "Resume"
+
+#: src/components/editor-area/note-header/listen-button.tsx:116
+msgid "Resume recording"
+msgstr "Resume recording"
+
 #: src/components/settings/views/team.tsx:104
 #: src/components/settings/views/team.tsx:213
 msgid "Role"
 msgstr "Role"
 
-#: src/components/settings/views/ai.tsx:132
+#: src/components/settings/views/ai.tsx:305
 msgid "Run language models locally for enhanced privacy"
 msgstr "Run language models locally for enhanced privacy"
 
-#: src/components/settings/views/ai.tsx:75
+#: src/components/settings/views/ai.tsx:170
 msgid "Run speech recognition locally for enhanced privacy"
 msgstr "Run speech recognition locally for enhanced privacy"
 
@@ -914,13 +927,13 @@ msgstr "Single sign-on for all users"
 #~ msgid "Speech-to-Text"
 #~ msgstr "Speech-to-Text"
 
-#: src/components/settings/views/ai.tsx:196
-#~ msgid "Speed"
-#~ msgstr "Speed"
+#: src/components/settings/views/ai.tsx:237
+msgid "Speed"
+msgstr "Speed"
 
-#: src/components/settings/views/ai.tsx:206
-#~ msgid "Speed (tiny-en)"
-#~ msgstr "Speed (tiny-en)"
+#: src/components/settings/views/ai.tsx:250
+msgid "Speed (tiny-en)"
+msgstr "Speed (tiny-en)"
 
 #: src/components/settings/views/billing.tsx:76
 msgid "Start Annual Plan"
@@ -930,12 +943,12 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:112
+#: src/components/editor-area/note-header/listen-button.tsx:135
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/settings/views/ai.tsx:107
-#: src/components/settings/views/ai.tsx:203
+#: src/components/settings/views/ai.tsx:202
+#: src/components/settings/views/ai.tsx:376
 msgid "Start Server"
 msgstr "Start Server"
 
@@ -944,16 +957,16 @@ msgstr "Start Server"
 #~ msgstr "Stop"
 
 #: src/components/editor-area/note-header/listen-button.tsx:155
-msgid "Stop listening"
-msgstr "Stop listening"
+#~ msgid "Stop listening"
+#~ msgstr "Stop listening"
 
 #: src/components/editor-area/note-header/listen-button.tsx:145
 #~ msgid "Stop listening to the meeting?"
 #~ msgstr "Stop listening to the meeting?"
 
 #: src/components/editor-area/note-header/listen-button.tsx:131
-msgid "Stop recording"
-msgstr "Stop recording"
+#~ msgid "Stop recording"
+#~ msgstr "Stop recording"
 
 #: src/components/settings/views/ai.tsx:115
 #: src/components/settings/views/ai.tsx:225
@@ -993,15 +1006,15 @@ msgstr "Teamspace"
 msgid "Templates"
 msgstr "Templates"
 
-#: src/components/settings/views/ai.tsx:245
+#: src/components/settings/views/ai.tsx:418
 msgid "Test Language Model"
 msgstr "Test Language Model"
 
-#: src/components/settings/views/ai.tsx:272
+#: src/components/settings/views/ai.tsx:445
 msgid "Test Model"
 msgstr "Test Model"
 
-#: src/components/settings/views/ai.tsx:269
+#: src/components/settings/views/ai.tsx:442
 msgid "Testing..."
 msgstr "Testing..."
 
@@ -1009,7 +1022,7 @@ msgstr "Testing..."
 msgid "There's a plan for everyone"
 msgstr "There's a plan for everyone"
 
-#: src/components/settings/views/profile.tsx:183
+#: src/components/settings/views/profile.tsx:185
 msgid "This is a short description of your company."
 msgstr "This is a short description of your company."
 
@@ -1021,7 +1034,7 @@ msgstr "This is the language you mostly use"
 #~ msgid "This is the language you mostly use."
 #~ msgstr "This is the language you mostly use."
 
-#: src/components/settings/views/profile.tsx:158
+#: src/components/settings/views/profile.tsx:160
 msgid "This is the name of the company you work for."
 msgstr "This is the name of the company you work for."
 
@@ -1101,16 +1114,16 @@ msgstr "User"
 msgid "User:"
 msgstr "User:"
 
-#: src/components/settings/views/profile.tsx:218
+#: src/components/settings/views/profile.tsx:220
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:152
 msgid "username"
 msgstr "username"
 
-#: src/components/settings/views/profile.tsx:114
+#: src/components/settings/views/profile.tsx:116
 msgid "Username"
 msgstr "Username"
 
-#: src/components/settings/views/ai.tsx:250
+#: src/components/settings/views/ai.tsx:423
 msgid "Verify that your local language model is working correctly"
 msgstr "Verify that your local language model is working correctly"
 
@@ -1126,7 +1139,7 @@ msgstr "View Note"
 #~ msgid "Want to keep track of events?"
 #~ msgstr "Want to keep track of events?"
 
-#: src/components/settings/views/profile.tsx:188
+#: src/components/settings/views/profile.tsx:190
 msgid "We think different."
 msgstr "We think different."
 
@@ -1146,12 +1159,12 @@ msgstr "You can make Hyprnote takes these words into account when transcribing"
 #~ msgid "You can make Hyprnote takes these words into account when transcribing."
 #~ msgstr "You can make Hyprnote takes these words into account when transcribing."
 
-#: src/components/settings/views/profile.tsx:208
+#: src/components/settings/views/profile.tsx:210
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:142
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"
 msgstr "Your LinkedIn username (the part after linkedin.com/in/)"
 
-#: src/components/settings/views/profile.tsx:118
+#: src/components/settings/views/profile.tsx:120
 msgid "Your Name"
 msgstr "Your Name"
 

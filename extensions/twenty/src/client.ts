@@ -41,17 +41,11 @@ export const findManyPeople = async (query?: string) => {
 
   let url = `${BASE}/people?depth=0`;
 
-  // Only add filter if query is provided
   if (query && query.trim()) {
-    // Create filters for partial matching on email field
-    const filters = [
+    const combinedFilter = [
       `emails.primaryEmail[ilike]:${encodeURIComponent(`%${query}%`)}`,
-      // `name.firstName[ilike]:${encodeURIComponent(`%${query}%`)}`,
-      // `name.lastName[ilike]:${encodeURIComponent(`%${query}%`)}`
-    ];
+    ].join(" OR ");
 
-    // Combine filters with OR operator
-    const combinedFilter = filters.join(" OR ");
     url += `&filter=${combinedFilter}`;
   }
 
@@ -90,8 +84,8 @@ export const createOneNote = async (title: string, body: string) => {
     }),
   });
 
-  const { data } = await res.json();
-  return data as Note;
+  const { data: { createNote } } = await res.json();
+  return createNote as Note;
 };
 
 // https://twenty.com/developers/rest-api/core#/operations/createManyNoteTargets

@@ -1,7 +1,7 @@
 import { Button } from "@hypr/ui/components/ui/button";
 
 interface CreateNoteButtonProps {
-  handleCreateNote: () => Promise<void>;
+  handleCreateNote: () => void;
   isCreatingNote: boolean;
   isMeetingActive: boolean;
   selectedPeopleCount: number;

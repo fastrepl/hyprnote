@@ -1,20 +1,42 @@
-import { useOngoingSession } from "@hypr/utils/contexts";
+import { useOngoingSession, useSession } from "@hypr/utils/contexts";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+
 import * as twenty from "../../client";
 import type { Person } from "../../client";
 
-export const useTwentyNotes = () => {
+export const useTwentyNotes = (sessionId: string) => {
+  const session = useSession(sessionId, (s) => s.session);
+
   const [selectedPeople, setSelectedPeople] = useState<Array<Person>>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchResults, setSearchResults] = useState<Array<any>>([]);
-  const [isCreatingNote, setIsCreatingNote] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const hasFetchedInitialResults = useRef(false);
 
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const isMeetingActive = ongoingSessionStatus === "active";
+
+  const createNoteMutation = useMutation({
+    mutationFn: async () => {
+      const note = await twenty.createOneNote(
+        session.title,
+        `${session.enhanced_memo_html}\n\nNotes from meeting on ${new Date().toLocaleDateString()}`,
+      );
+
+      await twenty.createManyNoteTargets(
+        note.id,
+        selectedPeople.map(person => person.id),
+      );
+    },
+    onError: console.error,
+    onSuccess: () => {
+      setSelectedPeople([]);
+    },
+  });
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -98,48 +120,20 @@ export const useTwentyNotes = () => {
     setSelectedPeople(selectedPeople.filter(person => person.id !== id));
   };
 
-  const handleCreateNote = async () => {
-    if (selectedPeople.length === 0) {
-      return;
-    }
-
-    setIsCreatingNote(true);
-    try {
-      const noteTitle = "Meeting Notes";
-      const note = await twenty.createOneNote(
-        noteTitle,
-        `Notes from meeting on ${new Date().toLocaleDateString()}`,
-      );
-
-      if (note && note.id) {
-        await twenty.createManyNoteTargets(
-          note.id,
-          selectedPeople.map(person => person.id),
-        );
-      }
-
-      setSelectedPeople([]);
-    } catch (error) {
-      console.error("Failed to create note:", error);
-    } finally {
-      setIsCreatingNote(false);
-    }
-  };
-
   return {
     selectedPeople,
     searchQuery,
     showSearchResults,
     searchResults,
-    isCreatingNote,
     isLoading,
     searchRef,
     isMeetingActive,
+    isCreatingNote: createNoteMutation.isPending,
     handleSearch,
     handleSearchFocus,
     handleSelectPerson,
     handleRemovePerson,
-    handleCreateNote,
+    handleCreateNote: () => createNoteMutation.mutate({}),
     setShowSearchResults,
     setSearchQuery,
   };

@@ -1,76 +1,60 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CheckCircle } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { CheckCircle } from "lucide-react";
 import { getApiKey, setApiKey } from "../client";
 
 const apiKeySchema = z.object({
   apiKey: z.string().min(2, "API key must be at least 2 characters"),
 });
 
-type ApiKeyFormValues = z.infer<typeof apiKeySchema>;
-
-export const ApiKeyForm = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [existingKey, setExistingKey] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export default function ApiKeyForm() {
   const [isEditing, setIsEditing] = useState(false);
+  const queryClient = useQueryClient();
 
-  const form = useForm<ApiKeyFormValues>({
+  const form = useForm({
     resolver: zodResolver(apiKeySchema),
     defaultValues: {
       apiKey: "",
     },
   });
 
-  useEffect(() => {
-    const checkExistingKey = async () => {
-      try {
-        const key = await getApiKey();
-        setExistingKey(key);
-      } catch (error) {
-        setExistingKey(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const getKeyQuery = useQuery({
+    queryKey: ["vault", "twenty-api-key"],
+    queryFn: () => getApiKey(),
+  });
 
-    checkExistingKey();
-  }, [submitSuccess]);
-
-  const handleSubmit = async (values: ApiKeyFormValues) => {
-    if (isSubmitting) {
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      await setApiKey(values.apiKey);
-      setSubmitSuccess(true);
-      setExistingKey(values.apiKey);
+  const setKeyMutation = useMutation({
+    mutationFn: async (form: z.infer<typeof apiKeySchema>) => {
+      await setApiKey(form.apiKey);
+      return form;
+    },
+    onSuccess: (form) => {
       setIsEditing(false);
+      queryClient.setQueryData(["vault", "twenty-api-key"], form.apiKey);
+    },
+    onError: console.error,
+  });
 
-      setTimeout(() => {
-        setSubmitSuccess(false);
-      }, 3000);
-    } catch (error) {
-      console.error("Failed to save API key:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const hasStoredKey = Boolean(getKeyQuery.data);
+  const isDirty = form.formState.isDirty;
+  const showEditMode = isEditing || !hasStoredKey || isDirty;
+
+  const handleSubmit = form.handleSubmit((values) => {
+    setKeyMutation.mutate(values);
+  });
 
   return (
     <div>
-      <form onSubmit={form.handleSubmit(handleSubmit)}>
+      <form onSubmit={handleSubmit}>
         <div className="flex w-80 items-center space-x-2">
-          {existingKey && !isEditing
+          {!showEditMode
             ? (
               <>
                 <Input
@@ -92,16 +76,16 @@ export const ApiKeyForm = () => {
               <>
                 <Input
                   type="password"
-                  placeholder="Enter your Twenty API key"
+                  placeholder={hasStoredKey ? "Enter new Twenty API key" : "Enter your Twenty API key"}
                   className="focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                   {...form.register("apiKey")}
                 />
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={setKeyMutation.isPending || (!isDirty && hasStoredKey)}
                 >
-                  {isSubmitting && <Spinner />}
-                  {isSubmitting ? "Saving..." : "Save"}
+                  {setKeyMutation.isPending && <Spinner className="mr-2 h-4 w-4" />}
+                  {setKeyMutation.isPending ? "Saving..." : "Save"}
                 </Button>
               </>
             )}
@@ -113,21 +97,21 @@ export const ApiKeyForm = () => {
           </p>
         )}
 
-        {submitSuccess && (
+        {setKeyMutation.isSuccess && (
           <p className="mt-2 text-sm text-green-600">
             API key saved successfully!
           </p>
         )}
       </form>
 
-      {isLoading
+      {getKeyQuery.isPending
         ? (
           <div className="mt-3 flex items-center">
             <Spinner className="mr-2 h-4 w-4" />
             <span className="text-sm text-gray-500">Checking for existing API key...</span>
           </div>
         )
-        : existingKey && !isEditing
+        : hasStoredKey && !showEditMode
         ? (
           <div className="mt-3 flex items-start">
             <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
@@ -140,6 +124,4 @@ export const ApiKeyForm = () => {
         : null}
     </div>
   );
-};
-
-export default ApiKeyForm;
+}

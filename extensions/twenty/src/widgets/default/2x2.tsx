@@ -8,25 +8,34 @@ import { useTwentyNotes } from "../hooks/useTwentyNotes";
 
 const Twenty2x2: WidgetTwoByTwo = () => {
   const sessionId = useSessions((s) => s.currentSessionId);
+
+  return (
+    <WidgetTwoByTwoWrapper>
+      {sessionId && <Inner sessionId={sessionId} />}
+    </WidgetTwoByTwoWrapper>
+  );
+};
+
+function Inner({ sessionId }: { sessionId: string }) {
   const {
     selectedPeople,
     searchQuery,
     showSearchResults,
     searchResults,
-    isCreatingNote,
     isLoading,
     searchRef,
     isMeetingActive,
+    isCreatingNote,
     handleSearch,
     handleSearchFocus,
     handleSelectPerson,
     handleRemovePerson,
     handleCreateNote,
     setShowSearchResults,
-  } = useTwentyNotes();
+  } = useTwentyNotes(sessionId);
 
   return (
-    <WidgetTwoByTwoWrapper>
+    <>
       <div className="p-4 pb-0">
         <WidgetHeader
           title={
@@ -79,8 +88,8 @@ const Twenty2x2: WidgetTwoByTwo = () => {
             </div>
           </div>
         )}
-    </WidgetTwoByTwoWrapper>
+    </>
   );
-};
+}
 
 export default Twenty2x2;

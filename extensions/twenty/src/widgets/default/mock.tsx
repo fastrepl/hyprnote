@@ -34,11 +34,11 @@ export default function MockProvider({
     id: sessionId ?? crypto.randomUUID(),
     created_at: new Date().toISOString(),
     visited_at: new Date().toISOString(),
-    user_id: "1",
-    calendar_event_id: "1",
-    title: "Test Session",
+    user_id: crypto.randomUUID(),
+    calendar_event_id: crypto.randomUUID(),
+    title: "@hypr/extension-twenty",
     raw_memo_html: "Test Transcript",
-    enhanced_memo_html: null,
+    enhanced_memo_html: "# Enhanced Memo",
     conversations: [],
   };
   sessionsStore.setState({

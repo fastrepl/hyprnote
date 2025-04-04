@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useOngoingSession } from "@hypr/utils/contexts";
 
 export default function SoundIndicator(
-  { theme = "light", input = "all", size = "default" }: {
-    theme?: "light" | "dark";
+  { color = "#e5e5e5", input = "all", size = "default" }: {
+    color?: string;
     input?: "all" | "mic" | "speaker";
     size?: "default" | "long";
   },
@@ -27,5 +27,5 @@ export default function SoundIndicator(
     setAmplitude(Math.min(sample, 1));
   }, [mic, speaker, input]);
 
-  return <DancingSticks amplitude={amplitude} theme={theme} size={size} />;
+  return <DancingSticks amplitude={amplitude} color={color} size={size} />;
 }

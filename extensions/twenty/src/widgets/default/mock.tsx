@@ -1,4 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { isTauri } from "@tauri-apps/api/core";
+import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
+import { useEffect } from "react";
 
 import { Session } from "@hypr/plugin-db";
 import { OngoingSessionProvider } from "@hypr/utils/contexts";
@@ -14,6 +17,17 @@ export default function MockProvider({
   children: React.ReactNode;
   sessionId?: string;
 }) {
+  useEffect(() => {
+    let cleanup: (() => void) | undefined = undefined;
+
+    // Will cause "Attempted to assign to read only property" in Tauri env
+    if (!isTauri()) {
+      cleanup = mockTwentyIPC();
+    }
+
+    return () => cleanup?.();
+  }, []);
+
   const sessionsStore = createSessionsStore();
 
   const session: Session = {
@@ -44,3 +58,19 @@ export default function MockProvider({
     </QueryClientProvider>
   );
 }
+
+const mockTwentyIPC = (): () => void => {
+  mockIPC((cmd, _args) => {
+    if (cmd == "plugin:auth|get_from_vault") {
+      return "test";
+    }
+
+    if (cmd == "plugin:auth|set_in_vault") {
+      return null;
+    }
+
+    console.warn(`'${cmd}' is not mocked`);
+  });
+
+  return () => clearMocks();
+};

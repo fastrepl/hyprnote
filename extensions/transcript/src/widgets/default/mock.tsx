@@ -62,23 +62,19 @@ export default function MockProvider({
 }
 
 const mockTranscriptIPC = (): (() => void) | undefined => {
-  try {
-    mockIPC((cmd, args) => {
-      if (cmd == "plugin:listener|get_timeline_view") {
-        return handleGetTimeline();
-      }
+  mockIPC((cmd, args) => {
+    if (cmd == "plugin:listener|get_timeline_view") {
+      return handleGetTimeline();
+    }
 
-      if (cmd == "plugin:listener|subscribe") {
-        return handleListenerSubscribe((args as any).channel as Channel<SessionEvent>);
-      }
+    if (cmd == "plugin:listener|subscribe") {
+      return handleListenerSubscribe((args as any).channel as Channel<SessionEvent>);
+    }
 
-      console.warn(`'${cmd}' is not mocked`);
-      return () => clearMocks();
-    });
-  } catch (error) {
-    console.warn("Failed to mock IPC:", error);
-    return () => {};
-  }
+    console.warn(`'${cmd}' is not mocked`);
+  });
+
+  return () => clearMocks();
 };
 
 const handleGetTimeline = () => {

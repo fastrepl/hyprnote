@@ -23,7 +23,6 @@ export const setApiKey = async (key: string) => {
 };
 
 export const getApiKey = async () => {
-  // In development mode, use environment variable from .env.local if available
   if (import.meta.env.DEV && import.meta.env.VITE_TWENTY_API_KEY) {
     return import.meta.env.VITE_TWENTY_API_KEY;
   }

@@ -92,9 +92,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     <>
       {ongoingSessionStore.status === "loading" && (
         <div className="w-9 h-9 flex items-center justify-center">
-          <button className="w-9 h-9 rounded-full bg-red-500 border-none cursor-pointer outline-none p-0 flex items-center justify-center">
-            <Spinner color="white" />
-          </button>
+          <Spinner color="black" />
         </div>
       )}
       {showResumeButton && (

@@ -764,8 +764,8 @@ msgstr "Owner"
 #~ msgid "Past Notes"
 #~ msgstr "Past Notes"
 
-#: src/components/editor-area/note-header/listen-button.tsx:159
-#: src/components/editor-area/note-header/listen-button.tsx:184
+#: src/components/editor-area/note-header/listen-button.tsx:156
+#: src/components/editor-area/note-header/listen-button.tsx:181
 msgid "Pause recording"
 msgstr "Pause recording"
 
@@ -823,11 +823,11 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/editor-area/note-header/listen-button.tsx:111
+#: src/components/editor-area/note-header/listen-button.tsx:108
 msgid "Resume"
 msgstr "Resume"
 
-#: src/components/editor-area/note-header/listen-button.tsx:116
+#: src/components/editor-area/note-header/listen-button.tsx:113
 msgid "Resume recording"
 msgstr "Resume recording"
 
@@ -943,7 +943,7 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:135
+#: src/components/editor-area/note-header/listen-button.tsx:132
 msgid "Start recording"
 msgstr "Start recording"
 

@@ -764,8 +764,8 @@ msgstr "소유자"
 #~ msgid "Past Notes"
 #~ msgstr "이전 노트"
 
-#: src/components/editor-area/note-header/listen-button.tsx:159
-#: src/components/editor-area/note-header/listen-button.tsx:184
+#: src/components/editor-area/note-header/listen-button.tsx:156
+#: src/components/editor-area/note-header/listen-button.tsx:181
 msgid "Pause recording"
 msgstr ""
 
@@ -823,11 +823,11 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:111
+#: src/components/editor-area/note-header/listen-button.tsx:108
 msgid "Resume"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:116
+#: src/components/editor-area/note-header/listen-button.tsx:113
 msgid "Resume recording"
 msgstr ""
 
@@ -943,7 +943,7 @@ msgstr "연간 요금제 시작"
 msgid "Start Monthly Plan"
 msgstr "월간 요금제 시작"
 
-#: src/components/editor-area/note-header/listen-button.tsx:135
+#: src/components/editor-area/note-header/listen-button.tsx:132
 msgid "Start recording"
 msgstr "녹음 시작"
 

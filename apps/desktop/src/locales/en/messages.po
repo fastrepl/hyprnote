@@ -252,7 +252,7 @@ msgstr "Add a description..."
 msgid "Add members"
 msgstr "Add members"
 
-#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:299
+#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:307
 msgid "Add participant"
 msgstr "Add participant"
 
@@ -393,7 +393,7 @@ msgstr "Contacts Access"
 #~ msgstr "Continue"
 
 #: src/components/human-profile/profile-header.tsx:152
-#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:387
+#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:395
 msgid "Create"
 msgstr "Create"
 
@@ -1103,7 +1103,7 @@ msgstr "Unnamed Contact"
 msgid "Unnamed Organization"
 msgstr "Unnamed Organization"
 
-#: src/components/editor-area/note-header/title-input.tsx:59
+#: src/components/editor-area/note-header/title-input.tsx:33
 msgid "Untitled"
 msgstr "Untitled"
 

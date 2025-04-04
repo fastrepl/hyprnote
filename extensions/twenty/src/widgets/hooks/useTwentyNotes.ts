@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
 import { useOngoingSession } from "@hypr/utils/contexts";
+import { useEffect, useRef, useState } from "react";
 import * as twenty from "../../client";
 import type { Person } from "../../client";
 
@@ -13,11 +13,9 @@ export const useTwentyNotes = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const hasFetchedInitialResults = useRef(false);
 
-  // Check if meeting is ongoing
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const isMeetingActive = ongoingSessionStatus === "active";
 
-  // Handle clicks outside of search results
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -31,7 +29,6 @@ export const useTwentyNotes = () => {
     };
   }, []);
 
-  // Fetch all people on initial load
   useEffect(() => {
     const fetchInitialPeople = async () => {
       if (!hasFetchedInitialResults.current && !isMeetingActive) {
@@ -51,14 +48,12 @@ export const useTwentyNotes = () => {
     fetchInitialPeople();
   }, [isMeetingActive]);
 
-  // Search for people in Twenty
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     setIsLoading(true);
 
     try {
       if (!query.trim()) {
-        // Fetch all people when query is empty
         const people = await twenty.findManyPeople();
         setSearchResults(people || []);
       } else {
@@ -73,10 +68,9 @@ export const useTwentyNotes = () => {
     }
   };
 
-  // Fetch all people when search input is focused
   const handleSearchFocus = async () => {
     setShowSearchResults(true);
-    
+
     if (!hasFetchedInitialResults.current) {
       setIsLoading(true);
       try {
@@ -93,7 +87,6 @@ export const useTwentyNotes = () => {
   };
 
   const handleSelectPerson = (person: Person) => {
-    // Check if person is already selected
     if (!selectedPeople.some(p => p.id === person.id)) {
       setSelectedPeople([...selectedPeople, person]);
     }
@@ -112,14 +105,12 @@ export const useTwentyNotes = () => {
 
     setIsCreatingNote(true);
     try {
-      // Create a note with a default title
       const noteTitle = "Meeting Notes";
       const note = await twenty.createOneNote(
         noteTitle,
         `Notes from meeting on ${new Date().toLocaleDateString()}`,
       );
 
-      // Link the note to the selected people
       if (note && note.id) {
         await twenty.createManyNoteTargets(
           note.id,
@@ -127,7 +118,6 @@ export const useTwentyNotes = () => {
         );
       }
 
-      // Reset selection after successful creation
       setSelectedPeople([]);
     } catch (error) {
       console.error("Failed to create note:", error);

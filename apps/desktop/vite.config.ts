@@ -21,8 +21,8 @@ export default defineConfig(async () => ({
     DynamicPublicDirectory(
       [
         {
-          input: "*/assets/**",
-          output: "/",
+          input: "*/assets/**/*",
+          output: "/assets",
           flatten: true,
         },
       ],

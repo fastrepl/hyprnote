@@ -4,7 +4,7 @@ import tailwind from "tailwindcss";
 
 export default {
   stories: ["../src/stories/*.stories.@(js|jsx|mjs|ts|tsx)"],
-  staticDirs: ["../public"],
+  staticDirs: ["../public", "../assets"],
   addons: ["@storybook/addon-essentials", "@storybook/addon-interactions"],
   framework: {
     name: "@storybook/react-vite",

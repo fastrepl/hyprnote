@@ -32,7 +32,7 @@ const Twenty2x2: WidgetTwoByTwo = () => {
           title={
             <div className="flex items-center gap-2">
               <img
-                src="../assets/twenty-icon.jpg"
+                src="/assets/twenty-icon.jpg"
                 className="size-5 rounded-md"
               />
               Create note

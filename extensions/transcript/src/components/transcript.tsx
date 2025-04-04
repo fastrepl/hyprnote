@@ -1,4 +1,5 @@
 import { TimelineView } from "@hypr/plugin-listener";
+import { EarIcon } from "lucide-react";
 import { forwardRef } from "react";
 import { parseDialogue } from "../utils";
 
@@ -6,8 +7,9 @@ const Transcript = forwardRef<
   HTMLDivElement,
   {
     transcript: TimelineView | null;
+    isLive: boolean;
   }
->(({ transcript }, ref) => {
+>(({ transcript, isLive }, ref) => {
   if (!transcript?.items) {
     return null;
   }
@@ -25,6 +27,11 @@ const Transcript = forwardRef<
           ))}
         </div>
       ))}
+      {isLive && (
+        <div className="flex items-center gap-2 justify-center py-2 text-neutral-400">
+          <EarIcon size={14} /> Listening... (there might be a delay)
+        </div>
+      )}
     </div>
   );
 });

@@ -64,7 +64,7 @@ const TranscriptFull: WidgetFullSize = ({ onMinimize }) => {
               title={
                 <div className="flex items-center gap-2">
                   Transcript
-                  {isLive && <Badge variant="destructive">LIVE</Badge>}
+                  {isLive && <Badge variant="destructive" className="hover:bg-destructive">LIVE</Badge>}
                 </div>
               }
               actions={[
@@ -91,7 +91,7 @@ const TranscriptFull: WidgetFullSize = ({ onMinimize }) => {
             />
           </div>
 
-          <Transcript ref={transcriptRef} transcript={timeline} />
+          <Transcript ref={transcriptRef} transcript={timeline} isLive={isLive} />
         </>
       )}
     </WidgetFullSizeWrapper>

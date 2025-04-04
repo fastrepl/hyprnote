@@ -620,7 +620,7 @@ msgstr "실시간 회의 요약"
 #~ msgid "Load Model"
 #~ msgstr "모델 로드"
 
-#: src/components/settings/views/extension.tsx:109
+#: src/components/settings/views/extension.tsx:94
 msgid "Loading extension details..."
 msgstr "익스텐션 정보 로딩 중..."
 

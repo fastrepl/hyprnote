@@ -620,7 +620,7 @@ msgstr "Live summary of the meeting"
 #~ msgid "Load Model"
 #~ msgstr "Load Model"
 
-#: src/components/settings/views/extension.tsx:109
+#: src/components/settings/views/extension.tsx:94
 msgid "Loading extension details..."
 msgstr "Loading extension details..."
 

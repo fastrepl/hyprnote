@@ -37,24 +37,31 @@ const getApiKey = async () => {
 
 // https://twenty.com/developers/rest-api/core#/operations/findManyPeople
 const findManyPeople = async (query?: string) => {
-  const key = await getApiKey();
-
-  let url = `${BASE}/people?depth=0`;
-
-  if (query && query.trim()) {
-    const combinedFilter = [
-      `emails.primaryEmail[ilike]:${encodeURIComponent(`%${query}%`)}`,
-    ].join(" OR ");
-
-    url += `&filter=${combinedFilter}`;
+  if (!query || query.trim() === "") {
+    return [];
   }
 
-  const response = await fetch(url, {
+  const key = await getApiKey();
+
+  const filterParts = [
+    `name.firstName[ilike]:${query}`,
+    `name.lastName[ilike]:${query}`,
+    `emails.primaryEmail[ilike]:${query}`,
+  ];
+  const filter = `or(${filterParts.join(",")})`;
+
+  const url = new URL(`${BASE}/people`);
+  url.search = new URLSearchParams({
+    limit: "10",
+    depth: "0",
+    filter,
+  }).toString();
+
+  const response = await fetch(url.toString(), {
     headers: {
       Authorization: `Bearer ${key}`,
     },
   });
-
   const { data: { people } } = await response.json();
   return people as Person[];
 };

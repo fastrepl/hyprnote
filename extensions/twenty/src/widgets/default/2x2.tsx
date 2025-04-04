@@ -1,5 +1,5 @@
 import { WidgetHeader, type WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
-import { useOngoingSession, useSessions } from "@hypr/utils/contexts";
+import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { useQuery } from "@tanstack/react-query";
 
 import { ops as twenty } from "../../client";
@@ -36,6 +36,7 @@ const Twenty2x2: WidgetTwoByTwo = () => {
 };
 
 function Inner({ sessionId }: { sessionId: string }) {
+  const enhancedNote = useSession(sessionId, (s) => s.session.enhanced_memo_html);
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
 
   const {
@@ -58,7 +59,15 @@ function Inner({ sessionId }: { sessionId: string }) {
   if (ongoingSessionStatus === "active") {
     return (
       <div className="flex items-center justify-center h-full p-4">
-        <p>Meeting is still active</p>
+        <p>(Twenty) Meeting is still active</p>
+      </div>
+    );
+  }
+
+  if (!enhancedNote) {
+    return (
+      <div className="flex items-center justify-center h-full p-4">
+        <p>(Twenty) No enhanced note found.</p>
       </div>
     );
   }

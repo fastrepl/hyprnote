@@ -27,7 +27,6 @@ export function LoginModalProvider({ children }: LoginModalProviderProps) {
   const [shouldShowLoginModal, setShouldShowLoginModal] = useState(true);
 
   useEffect(() => {
-    // Check if the login modal has been dismissed before
     const hasLoginBeenDismissed = localStorage.getItem("loginModalDismissed") === "true";
 
     if (shouldShowLoginModal && !hasLoginBeenDismissed) {
@@ -38,7 +37,6 @@ export function LoginModalProvider({ children }: LoginModalProviderProps) {
   const openLoginModal = () => setIsLoginModalOpen(true);
 
   const closeLoginModal = () => {
-    // Save the preference to localStorage
     localStorage.setItem("loginModalDismissed", "true");
     setIsLoginModalOpen(false);
   };

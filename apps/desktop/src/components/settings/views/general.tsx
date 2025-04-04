@@ -89,10 +89,8 @@ export default function General() {
     return () => subscription.unsubscribe();
   }, [mutation]);
 
-  // Handle language change specifically
   const handleLanguageChange = (value: string) => {
     form.setValue("displayLanguage", value as ISO_639_1_CODE);
-    // Activate the new language in i18n
     i18n.activate(value);
   };
 

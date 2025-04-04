@@ -1,7 +1,6 @@
 import * as FNS_TZ from "@date-fns/tz";
 import { i18n } from "@lingui/core";
 import * as FNS from "date-fns";
-// import * as FNS_LOCALE from "date-fns/locale";
 
 export const format = (
   date: Parameters<typeof FNS.format>[0],
@@ -49,7 +48,6 @@ export const formatRelative = (date: string, t?: string) => {
   const startOfToday = FNS.startOfDay(now);
   const diffInDays = FNS.differenceInCalendarDays(startOfToday, startOfDay, { in: tz });
 
-  // Get day of week
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const dayOfWeek = daysOfWeek[d.getDay()];
 
@@ -60,17 +58,13 @@ export const formatRelative = (date: string, t?: string) => {
   } else if (diffInDays < 7) {
     return i18n._("{days} days ago ({dayOfWeek})", { days: diffInDays, dayOfWeek });
   } else {
-    // For dates older than a week, use localized date format
     const currentYear = now.getFullYear();
     const dateYear = d.getFullYear();
 
-    // If it's the current year, don't show the year
     if (dateYear === currentYear) {
-      // Format like "Apr 13 (Wed)"
       const formattedDate = FNS.format(d, "MMM d", { in: tz });
       return i18n._("{date} ({dayOfWeek})", { date: formattedDate, dayOfWeek });
     } else {
-      // Format like "May 19, 2024 (Wed)"
       const formattedDate = FNS.format(d, "MMM d, yyyy", { in: tz });
       return i18n._("{date} ({dayOfWeek})", { date: formattedDate, dayOfWeek });
     }
@@ -154,7 +148,6 @@ export function formatUpcomingTime(date: Date | string): string {
   const now = new Date();
   const diff = futureDate.getTime() - now.getTime();
 
-  // If the date is in the past, return "in progress"
   if (diff <= 0) {
     return i18n._("in progress");
   }

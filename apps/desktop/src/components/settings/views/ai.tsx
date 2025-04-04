@@ -67,7 +67,6 @@ function SpeechToTextDetails({
     enabled: isRunning,
   });
 
-  // Query to check if the speed model is downloaded
   const speedModelStatus = useQuery({
     queryKey: ["local-stt", "model-downloaded", "QuantizedTinyEn"],
     queryFn: async () => {
@@ -77,7 +76,6 @@ function SpeechToTextDetails({
     enabled: isRunning,
   });
 
-  // Query to check if the quality model is downloaded
   const qualityModelStatus = useQuery({
     queryKey: ["local-stt", "model-downloaded", "QuantizedLargeV3Turbo"],
     queryFn: async () => {
@@ -89,7 +87,6 @@ function SpeechToTextDetails({
 
   const setCurrentModel = useMutation({
     mutationFn: async (model: SupportedModel) => {
-      // If trying to set to a model that's not downloaded yet
       if (
         (model === "QuantizedTinyEn" && !speedModelStatus.data)
         || (model === "QuantizedLargeV3Turbo" && !qualityModelStatus.data)

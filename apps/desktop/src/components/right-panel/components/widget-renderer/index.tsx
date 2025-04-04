@@ -77,13 +77,13 @@ export default function WidgetRenderer({ widgets, handleUpdateLayout }: WidgetRe
   const toggleFullWidget = useCallback((widgetConfig: WidgetConfig | null) => {
     if (widgetConfig) {
       setFullWidgetConfig(widgetConfig);
-      // Small delay to ensure smooth transition
+
       setTimeout(() => {
         setShowFull(true);
       }, 10);
     } else {
       setShowFull(false);
-      // Delay clearing the widget config to allow the animation to complete
+
       setTimeout(() => {
         setFullWidgetConfig(null);
       }, 300);

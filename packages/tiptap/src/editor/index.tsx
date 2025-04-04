@@ -63,12 +63,9 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           }
         }
 
-        // Prevent Tab and Shift+Tab from moving focus out of the editor
         if (e.key === "Tab") {
           e.preventDefault();
         }
-
-        // Arrow up navigation to title input logic has been removed
       };
 
       if (editor) {

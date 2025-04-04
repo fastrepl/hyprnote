@@ -29,7 +29,6 @@ export const Route = createFileRoute("/app/note/$id")({
         }
 
         if (!session) {
-          // This is needed to support case where search is performed from empty session, and come back.
           return redirect({ to: "/app/new" });
         }
 

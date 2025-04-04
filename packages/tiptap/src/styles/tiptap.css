@@ -1,5 +1,3 @@
-@import "./hashtag.css";
-
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -14,6 +12,7 @@
   white-space: pre-wrap;
   hyphens: auto;
   padding-bottom: 24px;
+  caret-color: #374151;
 
   :first-child {
     margin-top: 0;
@@ -29,23 +28,12 @@
     min-height: 1.5rem;
     position: relative;
 
-    /* placeholder */
-    &.is-empty {
-      min-height: 1.5rem;
-      display: block;
-    }
-
     &.is-empty::before {
-      color: #ebebeb;
+      color: #e5e5e5;
       content: attr(data-placeholder);
-      position: absolute;
+      float: left;
+      height: 0;
       pointer-events: none;
-      margin-left: 0.15rem;
-    }
-
-    &:empty::after {
-      content: "\00a0";
-      visibility: hidden;
     }
   }
 
@@ -70,23 +58,12 @@
     min-height: 1.5rem;
     position: relative;
 
-    /* placeholder */
-    &.is-empty {
-      min-height: 1.5rem;
-      display: block;
-    }
-
     &.is-empty::before {
-      color: #ebebeb;
+      color: #e5e5e5;
       content: attr(data-placeholder);
-      position: absolute;
+      float: left;
+      height: 0;
       pointer-events: none;
-      margin-left: 0.15rem;
-    }
-
-    &:empty::after {
-      content: "\00a0";
-      visibility: hidden;
     }
   }
 
@@ -98,12 +75,16 @@
     font-family: "JetBrainsMono", monospace;
     margin: 0 0 0.25rem 0;
     padding: 0.75rem 1rem;
+    caret-color: white;
 
     code {
       background: none;
       color: inherit;
       font-size: 0.8rem;
       padding: 0;
+      border: none;
+      font-size: 0.9rem;
+      line-height: 1.5;
     }
   }
 
@@ -296,8 +277,4 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.ProseMirror {
-  caret-color: #374151;
 }

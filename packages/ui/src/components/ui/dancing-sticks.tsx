@@ -1,7 +1,5 @@
 import { motion } from "motion/react";
 
-import { cn } from "../../lib/utils";
-
 const getRandomValues = (max: number, length: number, baseLength: number) => {
   const values: number[] = [];
   for (let i = 0; i < length - 1; i++) {

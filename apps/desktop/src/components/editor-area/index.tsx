@@ -169,7 +169,7 @@ export default function EditorArea({ editable, sessionId }: EditorAreaProps) {
   }, []);
 
   return (
-    <div className="relative flex h-full flex-col">
+    <div className="relative flex h-full flex-col w-full">
       <NoteHeader
         sessionId={sessionId}
         editable={editable}

@@ -31,17 +31,18 @@ export function NoteHeader({ onNavigateToEditor, editable, sessionId, hashtags =
   const isInNoteMain = windowLabel === "main" && noteMatch;
 
   return (
-    <>
-      <div className="flex flex-row items-center justify-between pl-8 pr-4">
+    <div className="flex items-center w-full pl-8 pr-6 pb-4 gap-4">
+      <div className="flex-1 space-y-1">
         <TitleInput
           editable={editable}
           value={sessionStore.sessionInView?.title ?? ""}
           onChange={handleTitleChange}
           onNavigateToEditor={onNavigateToEditor}
         />
-        {isInNoteMain && <ListenButton sessionId={sessionId} />}
+        <Chips sessionId={sessionId} hashtags={hashtags} />
       </div>
-      <Chips sessionId={sessionId} hashtags={hashtags} />
-    </>
+
+      {isInNoteMain && <ListenButton sessionId={sessionId} />}
+    </div>
   );
 }

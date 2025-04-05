@@ -1295,6 +1295,9 @@ importers:
       '@hypr/plugin-sse':
         specifier: workspace:^
         version: link:../../plugins/sse
+      '@hypr/plugin-windows':
+        specifier: workspace:^
+        version: link:../../plugins/windows
       '@lingui/core':
         specifier: ^5.3.0
         version: 5.3.0(@lingui/babel-plugin-lingui-macro@5.3.0(babel-plugin-macros@3.1.0)(typescript@5.8.3))(babel-plugin-macros@3.1.0)

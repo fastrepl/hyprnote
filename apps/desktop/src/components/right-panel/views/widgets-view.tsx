@@ -6,7 +6,7 @@ import type { Layout } from "react-grid-layout";
 import { useHypr } from "@/contexts";
 import { type ExtensionName } from "@hypr/extension-registry";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { safeNavigate } from "@hypr/utils/navigation";
 import WidgetRenderer from "../components/widget-renderer";
 import { parseID } from "../components/widget-renderer/widgets";
 
@@ -69,11 +69,7 @@ export function WidgetsView() {
 
     const url = `${params.to}?current=${params.search.current}`;
 
-    windowsCommands.windowShow({ type: "settings" }).then(() => {
-      setTimeout(() => {
-        windowsCommands.windowEmitNavigate({ type: "settings" }, url);
-      }, 500);
-    });
+    safeNavigate({ type: "settings" }, url);
   };
 
   if (!noteMatch) {

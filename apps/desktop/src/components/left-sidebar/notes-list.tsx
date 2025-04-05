@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useHypr } from "@/contexts";
 import { commands as dbCommands, type Event, type Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { safeNavigate } from "@hypr/utils/navigation";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -206,16 +207,14 @@ function NoteItem({
   };
 
   const handleOpenCalendar = () => {
-    const props = {
+    const params = {
       to: "/app/calendar",
-      search: { sessionId: currentSession.id },
+      search: { date: format(currentSession.created_at, "yyyy-MM-dd") },
     } as const satisfies LinkProps;
 
-    const url = props.to.concat(`?sessionId=${props.search.sessionId}`);
+    const url = `${params.to}?date=${params.search.date}`;
 
-    windowsCommands.windowEmitNavigate({ type: "calendar" }, url).then(() => {
-      windowsCommands.windowShow({ type: "calendar" });
-    });
+    safeNavigate({ type: "calendar" }, url);
   };
   const html2text = (html: string) => {
     return html.replace(/<[^>]*>?/g, "");

@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import { useHypr } from "@/contexts/hypr";
 import { commands as dbCommands, type Human } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { safeNavigate } from "@hypr/utils/navigation";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { getInitials } from "@hypr/utils";
@@ -125,11 +126,7 @@ function ParticipentItem({
 
       const url = `${params.to}?current=${params.search.current}`;
 
-      windowsCommands.windowShow({ type: "settings" }).then(() => {
-        setTimeout(() => {
-          windowsCommands.windowEmitNavigate({ type: "settings" }, url);
-        }, 500);
-      });
+      safeNavigate({ type: "settings" }, url);
       return;
     }
 

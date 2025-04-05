@@ -4,26 +4,23 @@ import {
   WidgetTwoByTwoWrapper,
 } from "@hypr/ui/components/ui/widgets";
 import { useSessions } from "@hypr/utils/contexts";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 import { CreateNoteButton } from "../components/create-note-button";
 import { ParticipantsList } from "../components/participants-list";
 import { SearchInput } from "../components/search-input";
 import { useTwentyNotes } from "../hooks/useTwentyNotes";
+import { safeNavigate } from "@hypr/utils/navigation";
 
 const Twenty2x2: WidgetTwoByTwo = () => {
   const sessionId = useSessions((s) => s.currentSessionId);
 
   const handleOpenTwentySettings = () => {
-    // Navigate to the settings page with the extensions tab selected
-    // and specifically open the Twenty extension
-    const url = "/app/settings?current=extensions&extension=twenty";
-    
-    windowsCommands.windowShow({ type: "settings" }).then(() => {
-      setTimeout(() => {
-        windowsCommands.windowEmitNavigate({ type: "settings" }, url);
-      }, 500);
-    });
+    const extensionId = "@hypr/extension-twenty";
+    const url = `/app/settings?current=extensions&extension=${encodeURIComponent(
+      extensionId
+    )}`;
+
+    safeNavigate({ type: "settings" }, url);
   };
 
   return (

@@ -7,7 +7,7 @@ import { useState } from "react";
 
 import type { Event } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { safeNavigate } from "@hypr/utils/navigation";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 
@@ -30,9 +30,7 @@ export function EventCard({ event, showTime = false }: { event: Event; showTime?
 
       const url = props.to.replace("$id", props.params.id);
 
-      windowsCommands.windowEmitNavigate({ type: "main" }, url).then(() => {
-        windowsCommands.windowShow({ type: "main" });
-      });
+      safeNavigate({ type: "main" }, url);
     } else {
       const props = {
         to: "/app/new",
@@ -41,9 +39,7 @@ export function EventCard({ event, showTime = false }: { event: Event; showTime?
 
       const url = props.to.concat(`?calendarEventId=${props.search.calendarEventId}`);
 
-      windowsCommands.windowEmitNavigate({ type: "main" }, url).then(() => {
-        windowsCommands.windowShow({ type: "main" });
-      });
+      safeNavigate({ type: "main" }, url);
     }
   };
 

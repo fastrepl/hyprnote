@@ -5,6 +5,7 @@
     "./datetime": "./src/datetime.ts",
     "./ai": "./src/ai.ts",
     "./contexts": "./src/contexts/index.ts",
+    "./navigation": "./src/navigation.ts",
     "./stores": "./src/stores/index.ts"
   },
   "scripts": {
@@ -20,6 +21,7 @@
     "@hypr/plugin-db": "workspace:^",
     "@hypr/plugin-listener": "workspace:^",
     "@hypr/plugin-sse": "workspace:^",
+    "@hypr/plugin-windows": "workspace:^",
     "@lingui/core": "^5.3.0",
     "@tauri-apps/api": "^2.4.1",
     "@tauri-apps/plugin-http": "^2.4.3",

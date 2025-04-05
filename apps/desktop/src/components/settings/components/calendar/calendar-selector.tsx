@@ -3,16 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { type Calendar } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { Button } from "@hypr/ui/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@hypr/ui/components/ui/dropdown-menu";
 import { CalendarCogIcon } from "lucide-react";
+import { Checkbox } from "@hypr/ui/components/ui/checkbox";
 
 export function CalendarSelector() {
   const queryClient = useQueryClient();
@@ -35,13 +27,14 @@ export function CalendarSelector() {
   const calendars = calendarsQuery.data || [];
   const selectedCount = calendars.filter((cal) => cal.selected).length;
 
+  console.log(JSON.stringify(calendars, null, 2));
+
   return (
-    <div className="flex items-center justify-between">
+    <div className="space-y-3">
       <div className="flex items-center gap-3">
         <div className="flex size-6 items-center justify-center">
           <CalendarCogIcon size={16} />
         </div>
-
         <div>
           <div className="text-sm font-medium">
             <Trans>Select Calendars</Trans>
@@ -52,41 +45,35 @@ export function CalendarSelector() {
         </div>
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="min-w-[100px]">
-            <Trans>Choose</Trans>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>
-            <Trans>Your Calendars</Trans>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {calendarsQuery.isLoading ? (
-            <div className="flex items-center justify-center py-2">
-              <Trans>Loading...</Trans>
-            </div>
-          ) : calendars.length === 0 ? (
-            <div className="flex items-center justify-center py-2 text-sm text-muted-foreground">
-              <Trans>No calendars found</Trans>
-            </div>
-          ) : (
-            calendars.map((calendar) => (
-              <DropdownMenuCheckboxItem
-                key={calendar.id}
+      <div className="space-y-2 mt-2 pl-9">
+        {calendarsQuery.isLoading ? (
+          <div className="text-sm text-muted-foreground">
+            <Trans>Loading...</Trans>
+          </div>
+        ) : calendars.length === 0 ? (
+          <div className="text-sm text-muted-foreground">
+            <Trans>No calendars found</Trans>
+          </div>
+        ) : (
+          calendars.map((calendar) => (
+            <div key={calendar.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`calendar-${calendar.id}`}
                 checked={calendar.selected}
                 onCheckedChange={() =>
                   toggleCalendarSelectedMutation.mutate(calendar)
                 }
-                className="cursor-pointer"
+              />
+              <label
+                htmlFor={`calendar-${calendar.id}`}
+                className="text-sm cursor-pointer"
               >
                 {calendar.name}
-              </DropdownMenuCheckboxItem>
-            ))
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+              </label>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }

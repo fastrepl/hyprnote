@@ -34,6 +34,7 @@ import { Trans } from "@lingui/react/macro";
 
 const schema = z.object({
   current: z.enum(TABS).default("general"),
+  extension: z.string().optional(),
 });
 
 const PATH = "/app/settings";
@@ -43,11 +44,10 @@ export const Route = createFileRoute(PATH)({
 });
 
 function Component() {
-  const { current } = useSearch({ from: PATH });
+  const { current, extension } = useSearch({ from: PATH });
   const navigate = useNavigate();
   // const { userId } = useHypr();
   // const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [selectedExtension, setSelectedExtension] = useState<ExtensionDefinition | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   // const { data: templatesData } = useQuery({
@@ -77,6 +77,17 @@ function Component() {
       implemented: true,
     } as ExtensionDefinition));
   }, []);
+
+  // URL 파라미터에서 초기 extension 값 계산
+  const initialExtension = useMemo(() => {
+    if (extension && current === "extensions") {
+      return extensionsList.find(ext => ext.id === extension) || null;
+    }
+    return null;
+  }, [extension, current, extensionsList]);
+
+  // 선택된 extension 상태 (초기값은 URL에서 가져옴)
+  const [selectedExtension, setSelectedExtension] = useState<ExtensionDefinition | null>(initialExtension);
 
   const handleClickTab = (tab: Tab) => {
     navigate({ to: PATH, search: { current: tab } });

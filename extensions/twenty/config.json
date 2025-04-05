@@ -6,6 +6,6 @@
   "implemented": true,
   "default": true,
   "cloud_only": false,
-  "plugins": ["listener", "db"],
+  "plugins": ["listener", "db", "windows"],
   "tags": ["CRM"]
 }

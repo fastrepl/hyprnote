@@ -4,6 +4,7 @@ import {
   WidgetTwoByTwoWrapper,
 } from "@hypr/ui/components/ui/widgets";
 import { useSessions } from "@hypr/utils/contexts";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 import { CreateNoteButton } from "../components/create-note-button";
 import { ParticipantsList } from "../components/participants-list";
@@ -13,17 +14,32 @@ import { useTwentyNotes } from "../hooks/useTwentyNotes";
 const Twenty2x2: WidgetTwoByTwo = () => {
   const sessionId = useSessions((s) => s.currentSessionId);
 
+  const handleOpenTwentySettings = () => {
+    // Navigate to the settings page with the extensions tab selected
+    // and specifically open the Twenty extension
+    const url = "/app/settings?current=extensions&extension=twenty";
+    
+    windowsCommands.windowShow({ type: "settings" }).then(() => {
+      setTimeout(() => {
+        windowsCommands.windowEmitNavigate({ type: "settings" }, url);
+      }, 500);
+    });
+  };
+
   return (
     <WidgetTwoByTwoWrapper>
       <div className="p-4 pb-2">
         <WidgetHeader
           title={
             <div className="flex items-center gap-2">
-              <img
-                src="/assets/twenty-icon.jpg"
-                className="size-5 rounded-md"
-              />
-              Create note
+              <button onClick={handleOpenTwentySettings}>
+                <img
+                  src="/assets/twenty-icon.jpg"
+                  className="size-5 rounded-md cursor-pointer"
+                  title="Configure Twenty extension"
+                />
+              </button>
+              Upload note to Twenty
             </div>
           }
           actions={[]}

@@ -974,6 +974,9 @@ importers:
       '@hypr/plugin-listener':
         specifier: workspace:^
         version: link:../../plugins/listener
+      '@hypr/plugin-windows':
+        specifier: workspace:^
+        version: link:../../plugins/windows
       '@hypr/ui':
         specifier: workspace:^
         version: link:../../packages/ui

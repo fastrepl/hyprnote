@@ -112,7 +112,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
             <button
               disabled={!modelDownloaded.data}
               onClick={handleStartSession}
-              className="w-14 h-9 rounded-full bg-red-100 border-2 transition-all hover:scale-95 border-red-400 cursor-pointer outline-none p-0 flex items-center justify-center"
+              className="w-16 h-9 rounded-full bg-red-100 border-2 transition-all hover:scale-95 border-red-400 cursor-pointer outline-none p-0 flex items-center justify-center text-xs text-red-600 font-medium"
               style={{
                 boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
               }}

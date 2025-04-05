@@ -3,7 +3,7 @@
 <p align="center">
 	<h1 align="center"><b>Hyprnote</b></h1>
 	<p align="center">
-		Hackable AI notepad for meetings, with <strong>local AI support and extensions.</strong>
+		AI notepad for meetings. <strong>Local-first & Extensible</strong>.
     <br />
     <br />
     <b>Download for </b>
@@ -20,12 +20,14 @@
   <a href="https://x.com/tryhyprnote" target="_blank"><img src="https://img.shields.io/static/v1?label=Follow%20us%20on&message=X&color=black&logo=x" alt="X"></a>
 </p>
 
-## What does Hyprnote do?
+## Introduction
 
-- Records and transcribes your meetings
+**What does Hyprnote do?**
+
+- Records and transcribes your meetings  
 - Generates **powerful summaries** from your raw meeting notes
-- Works **offline** using **open source models**
 
-## Features
+**What’s special about it?**
 
-- [x] Apple Calendar integration
+- <ins>Works **offline**</ins> using **open-source models** (_Whisper_ & _Llama_)  
+- Highly [extensible](https://docs.hyprnote.com/extensions/), powered by [plugins](https://docs.hyprnote.com/plugins/)

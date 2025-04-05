@@ -39,35 +39,94 @@ export function formatRemainingTime(date: Date): string {
   }
 }
 
-export const formatRelative = (date: string, t?: string) => {
-  const tz = FNS_TZ.tz(t ?? timezone());
-  const d = new Date(date);
-  const now = new Date();
-
-  const startOfDay = FNS.startOfDay(d);
-  const startOfToday = FNS.startOfDay(now);
-  const diffInDays = FNS.differenceInCalendarDays(startOfToday, startOfDay, { in: tz });
-
-  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const dayOfWeek = daysOfWeek[d.getDay()];
-
-  if (diffInDays === 0) {
-    return i18n._("Today ({dayOfWeek})", { dayOfWeek });
-  } else if (diffInDays === 1) {
-    return i18n._("Yesterday ({dayOfWeek})", { dayOfWeek });
-  } else if (diffInDays < 7) {
-    return i18n._("{days} days ago ({dayOfWeek})", { days: diffInDays, dayOfWeek });
-  } else {
-    const currentYear = now.getFullYear();
-    const dateYear = d.getFullYear();
-
-    if (dateYear === currentYear) {
-      const formattedDate = FNS.format(d, "MMM d", { in: tz });
-      return i18n._("{date} ({dayOfWeek})", { date: formattedDate, dayOfWeek });
-    } else {
-      const formattedDate = FNS.format(d, "MMM d, yyyy", { in: tz });
-      return i18n._("{date} ({dayOfWeek})", { date: formattedDate, dayOfWeek });
+export const formatRelative = (date: string | null | undefined, t?: string) => {
+  if (!date) {
+    return i18n._("Unknown date");
+  }
+  
+  try {
+    const tz = FNS_TZ.tz(t ?? timezone());
+    const d = new Date(date);
+    
+    // Check for invalid date
+    if (isNaN(d.getTime())) {
+      return i18n._("Invalid date");
     }
+    
+    const now = new Date();
+
+    const startOfDay = FNS.startOfDay(d);
+    const startOfToday = FNS.startOfDay(now);
+    const diffInDays = FNS.differenceInCalendarDays(startOfToday, startOfDay, { in: tz });
+
+    if (diffInDays === 0) {
+      return i18n._("Today");
+    } else if (diffInDays === 1) {
+      return i18n._("Yesterday");
+    } else if (diffInDays < 7) {
+      return i18n._("{days} days ago", { days: diffInDays });
+    } else {
+      const currentYear = now.getFullYear();
+      const dateYear = d.getFullYear();
+
+      if (dateYear === currentYear) {
+        const formattedDate = FNS.format(d, "MMM d", { in: tz });
+        return i18n._("{date}", { date: formattedDate });
+      } else {
+        const formattedDate = FNS.format(d, "MMM d, yyyy", { in: tz });
+        return i18n._("{date}", { date: formattedDate });
+      }
+    }
+  } catch (error) {
+    console.error("Error formatting relative date:", error);
+    return i18n._("Date error");
+  }
+};
+
+export const formatRelativeWithDay = (date: string | null | undefined, t?: string) => {
+  if (!date) {
+    return i18n._("Unknown date");
+  }
+  
+  try {
+    const tz = FNS_TZ.tz(t ?? timezone());
+    const d = new Date(date);
+    
+    // Check for invalid date
+    if (isNaN(d.getTime())) {
+      return i18n._("Invalid date");
+    }
+    
+    const now = new Date();
+
+    const startOfDay = FNS.startOfDay(d);
+    const startOfToday = FNS.startOfDay(now);
+    const diffInDays = FNS.differenceInCalendarDays(startOfToday, startOfDay, { in: tz });
+
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dayOfWeek = daysOfWeek[d.getDay()];
+
+    if (diffInDays === 0) {
+      return i18n._("Today ({dayOfWeek})", { dayOfWeek });
+    } else if (diffInDays === 1) {
+      return i18n._("Yesterday ({dayOfWeek})", { dayOfWeek });
+    } else if (diffInDays < 7) {
+      return i18n._("{days} days ago ({dayOfWeek})", { days: diffInDays, dayOfWeek });
+    } else {
+      const currentYear = now.getFullYear();
+      const dateYear = d.getFullYear();
+
+      if (dateYear === currentYear) {
+        const formattedDate = FNS.format(d, "MMM d", { in: tz });
+        return i18n._("{date} ({dayOfWeek})", { date: formattedDate, dayOfWeek });
+      } else {
+        const formattedDate = FNS.format(d, "MMM d, yyyy", { in: tz });
+        return i18n._("{date} ({dayOfWeek})", { date: formattedDate, dayOfWeek });
+      }
+    }
+  } catch (error) {
+    console.error("Error formatting relative date with day:", error);
+    return i18n._("Date error");
   }
 };
 

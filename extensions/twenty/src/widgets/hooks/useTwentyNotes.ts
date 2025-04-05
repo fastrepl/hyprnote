@@ -1,4 +1,4 @@
-import { useOngoingSession } from "@hypr/utils/contexts";
+import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
@@ -14,6 +14,12 @@ export const useTwentyNotes = (sessionId: string) => {
 
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const isMeetingActive = ongoingSessionStatus === "active";
+
+  const enhancedNote = useSession(
+    sessionId,
+    (s) => s.session.enhanced_memo_html,
+  );
+  const isEnhanced = Boolean(enhancedNote);
 
   const { data: searchResults = [], isLoading } = useQuery<Person[], Error>({
     queryKey: ["people", searchQuery],
@@ -88,6 +94,7 @@ export const useTwentyNotes = (sessionId: string) => {
     searchRef,
     isMeetingActive,
     isCreatingNote: createNoteMutation.isPending,
+    isEnhanced,
     handleSearch,
     handleSearchFocus,
     handleSelectPerson,

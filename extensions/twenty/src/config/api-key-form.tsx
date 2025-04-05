@@ -28,6 +28,7 @@ export default function ApiKeyForm() {
   const getKeyQuery = useQuery({
     queryKey: ["vault", "twenty-api-key"],
     queryFn: () => twenty.getApiKey(),
+    refetchOnWindowFocus: false,
   });
 
   const setKeyMutation = useMutation({
@@ -52,17 +53,27 @@ export default function ApiKeyForm() {
 
   return (
     <div>
-      <form onSubmit={handleSubmit}>
-        <div className="flex w-80 items-center space-x-2">
-          {!showEditMode
-            ? (
+      {getKeyQuery.isPending ? (
+        <div className="mt-3 flex items-center">
+          <Spinner className="mr-2 h-4 w-4" />
+          <span className="text-sm text-gray-500">
+            Checking for existing API key...
+          </span>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit}>
+          <div className="flex items-center space-x-2">
+            {!showEditMode ? (
               <>
-                <Input
-                  type="text"
-                  value="••••••••••••••••"
-                  disabled
-                  className="bg-gray-50 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
+                {hasStoredKey && (
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="size-5 text-green-500" />
+                    <p className="text-sm font-medium text-gray-700">
+                      API key configured
+                    </p>
+                  </div>
+                )}
+
                 <Button
                   type="button"
                   variant="outline"
@@ -71,57 +82,60 @@ export default function ApiKeyForm() {
                   Change
                 </Button>
               </>
-            )
-            : (
+            ) : (
               <>
                 <Input
                   type="password"
-                  placeholder={hasStoredKey ? "Enter new Twenty API key" : "Enter your Twenty API key"}
-                  className="focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  placeholder={
+                    hasStoredKey
+                      ? "Enter new Twenty API key"
+                      : "Enter your Twenty API key"
+                  }
+                  className="focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 w-64"
                   {...form.register("apiKey")}
                 />
+
                 <Button
                   type="submit"
-                  disabled={setKeyMutation.isPending || (!isDirty && hasStoredKey)}
+                  disabled={
+                    setKeyMutation.isPending || (!isDirty && hasStoredKey)
+                  }
                 >
-                  {setKeyMutation.isPending && <Spinner className="mr-2 h-4 w-4" />}
+                  {setKeyMutation.isPending && (
+                    <Spinner className="mr-2 h-4 w-4" />
+                  )}
                   {setKeyMutation.isPending ? "Saving..." : "Save"}
                 </Button>
+
+                {hasStoredKey && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsEditing(false);
+                      form.reset();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                )}
               </>
             )}
-        </div>
-
-        {form.formState.errors.apiKey && (
-          <p className="mt-1 text-sm text-red-600">
-            {form.formState.errors.apiKey.message}
-          </p>
-        )}
-
-        {setKeyMutation.isSuccess && (
-          <p className="mt-2 text-sm text-green-600">
-            API key saved successfully!
-          </p>
-        )}
-      </form>
-
-      {getKeyQuery.isPending
-        ? (
-          <div className="mt-3 flex items-center">
-            <Spinner className="mr-2 h-4 w-4" />
-            <span className="text-sm text-gray-500">Checking for existing API key...</span>
           </div>
-        )
-        : hasStoredKey && !showEditMode
-        ? (
-          <div className="mt-3 flex items-start">
-            <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
-            <div>
-              <p className="text-sm font-medium text-gray-700">API key configured</p>
-              <p className="text-xs text-gray-500">Your Twenty API key is securely stored</p>
-            </div>
-          </div>
-        )
-        : null}
+
+          {form.formState.errors.apiKey && (
+            <p className="mt-1 text-sm text-red-600">
+              {form.formState.errors.apiKey.message}
+            </p>
+          )}
+
+          {setKeyMutation.isSuccess && (
+            <p className="mt-2 text-sm text-green-600">
+              API key saved successfully!
+            </p>
+          )}
+        </form>
+      )}
     </div>
   );
 }

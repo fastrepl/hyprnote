@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
+import { safeNavigate } from "@hypr/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,16 +14,29 @@ import {
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { WidgetHeader } from "@hypr/ui/components/ui/widgets";
-import { WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
+import {
+  WidgetTwoByTwo,
+  WidgetTwoByTwoWrapper,
+} from "@hypr/ui/components/ui/widgets";
 import { useSessions } from "@hypr/utils/contexts";
 import Transcript from "../../components/transcript";
 import { useTranscript } from "../../hooks/useTranscript";
 
 const Transcript2x2: WidgetTwoByTwo = ({ onMaximize }) => {
   const sessionId = useSessions((s) => s.currentSessionId);
-  const { timeline, isLive, selectedLanguage, handleLanguageChange } = useTranscript(sessionId);
+  const { timeline, isLive, selectedLanguage, handleLanguageChange } =
+    useTranscript(sessionId);
 
   const transcriptRef = useRef<HTMLDivElement>(null);
+
+  const handleOpenTranscriptSettings = () => {
+    const extensionId = "@hypr/extension-transcript";
+    const url = `/app/settings?current=extensions&extension=${encodeURIComponent(
+      extensionId
+    )}`;
+
+    safeNavigate({ type: "settings" }, url);
+  };
 
   useEffect(() => {
     const scrollToBottom = () => {
@@ -62,26 +76,41 @@ const Transcript2x2: WidgetTwoByTwo = ({ onMaximize }) => {
             <WidgetHeader
               title={
                 <div className="flex items-center gap-2">
+                  <button onClick={handleOpenTranscriptSettings}>
+                    <img
+                      src="/assets/transcript-icon.jpg"
+                      className="size-5 rounded-md cursor-pointer"
+                      title="Configure Transcript extension"
+                    />
+                  </button>
                   Transcript
-                  {isLive && <Badge variant="destructive" className="hover:bg-destructive">LIVE</Badge>}
+                  {isLive && (
+                    <Badge
+                      variant="destructive"
+                      className="hover:bg-destructive"
+                    >
+                      LIVE
+                    </Badge>
+                  )}
                 </div>
               }
               actions={[
                 <DropdownMenu key="language">
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="p-0"
-                    >
+                    <Button variant="ghost" size="icon" className="p-0">
                       <LanguagesIcon size={16} className="text-black" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end">
                     <DropdownMenuLabel>Select Language</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup value={selectedLanguage} onValueChange={handleLanguageChange}>
-                      <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
+                    <DropdownMenuRadioGroup
+                      value={selectedLanguage}
+                      onValueChange={handleLanguageChange}
+                    >
+                      <DropdownMenuRadioItem value="en">
+                        English
+                      </DropdownMenuRadioItem>
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>,
@@ -90,7 +119,11 @@ const Transcript2x2: WidgetTwoByTwo = ({ onMaximize }) => {
             />
           </div>
 
-          <Transcript ref={transcriptRef} transcript={timeline} isLive={isLive} />
+          <Transcript
+            ref={transcriptRef}
+            transcript={timeline}
+            isLive={isLive}
+          />
         </>
       )}
     </WidgetTwoByTwoWrapper>

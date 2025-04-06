@@ -1,14 +1,18 @@
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
+import { Trans } from "@lingui/react/macro";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMatch } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import GridLayout, { Layout } from "react-grid-layout";
 
 import { ExtensionName, importExtension } from "@hypr/extension-registry";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
-import { getID, getSize, SuspenseWidget, WidgetConfig } from "./widgets";
+
+import { ConfigureWidgetsButton } from "./configure-widgets-button";
+import { getID, getSize, SuspenseWidget, type WidgetConfig } from "./widgets";
 
 export type { WidgetConfig };
 
@@ -17,17 +21,28 @@ interface WidgetRendererProps {
   handleUpdateLayout: (layout: Pick<Layout, "x" | "y" | "i">[]) => void;
 }
 
-export default function WidgetRenderer({ widgets, handleUpdateLayout }: WidgetRendererProps) {
+export default function WidgetRenderer({
+  widgets,
+  handleUpdateLayout,
+}: WidgetRendererProps) {
   const queryClient = useQueryClient();
+  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
 
   const layout = useMemo(() => {
-    return widgets
-      .map((w) => ({ ...(w.layout ?? { x: 0, y: 0 }), i: getID(w), ...getSize(w.widgetType) }));
+    return widgets.map((w) => ({
+      ...(w.layout ?? { x: 0, y: 0 }),
+      i: getID(w),
+      ...getSize(w.widgetType),
+    }));
   }, [widgets]);
 
   const [showFull, setShowFull] = useState(false);
-  const [fullWidgetConfig, setFullWidgetConfig] = useState<WidgetConfig | null>(null);
-  const [widgetsWithFullVersion, setWidgetsWithFullVersion] = useState<Record<string, boolean>>({});
+  const [fullWidgetConfig, setFullWidgetConfig] = useState<WidgetConfig | null>(
+    null,
+  );
+  const [widgetsWithFullVersion, setWidgetsWithFullVersion] = useState<
+    Record<string, boolean>
+  >({});
 
   const isSettingsVisible = useQuery({
     queryKey: ["is-settings-visible"],
@@ -36,9 +51,14 @@ export default function WidgetRenderer({ widgets, handleUpdateLayout }: WidgetRe
   });
 
   const hasFullWidgetForGroup = useCallback(
-    async (extensionName: ExtensionName, groupName: string): Promise<boolean> => {
+    async (
+      extensionName: ExtensionName,
+      groupName: string,
+    ): Promise<boolean> => {
       const extensionImport = await importExtension(extensionName);
-      const widgetGroup = extensionImport.default.widgetGroups.find(({ id }) => id === groupName);
+      const widgetGroup = extensionImport.default.widgetGroups.find(
+        ({ id }) => id === groupName,
+      );
       return !!widgetGroup?.items.some(({ type }) => type === "full");
     },
     [],
@@ -51,7 +71,10 @@ export default function WidgetRenderer({ widgets, handleUpdateLayout }: WidgetRe
       for (const widget of widgets) {
         const key = getID(widget);
         if (!results[key]) {
-          results[key] = await hasFullWidgetForGroup(widget.extensionName, widget.groupName);
+          results[key] = await hasFullWidgetForGroup(
+            widget.extensionName,
+            widget.groupName,
+          );
         }
       }
 
@@ -62,17 +85,22 @@ export default function WidgetRenderer({ widgets, handleUpdateLayout }: WidgetRe
   }, [widgets, hasFullWidgetForGroup]);
 
   const handleLayoutChange = useCallback((newLayout: Layout[]) => {
-    handleUpdateLayout(newLayout.map(({ i, x, y }) => ({
-      x,
-      y,
-      i,
-    })));
+    handleUpdateLayout(
+      newLayout.map(({ i, x, y }) => ({
+        x,
+        y,
+        i,
+      })),
+    );
   }, []);
 
-  const getFullWidgetConfig = useMemo(() => (baseConfig: WidgetConfig): WidgetConfig => ({
-    ...baseConfig,
-    widgetType: "full",
-  }), []);
+  const getFullWidgetConfig = useMemo(
+    () => (baseConfig: WidgetConfig): WidgetConfig => ({
+      ...baseConfig,
+      widgetType: "full",
+    }),
+    [],
+  );
 
   const toggleFullWidget = useCallback((widgetConfig: WidgetConfig | null) => {
     if (widgetConfig) {
@@ -90,13 +118,26 @@ export default function WidgetRenderer({ widgets, handleUpdateLayout }: WidgetRe
     }
   }, []);
 
-  const handleMaximize = useCallback((widgetConfig: WidgetConfig) => {
-    toggleFullWidget(widgetConfig);
-  }, [toggleFullWidget]);
+  const handleMaximize = useCallback(
+    (widgetConfig: WidgetConfig) => {
+      toggleFullWidget(widgetConfig);
+    },
+    [toggleFullWidget],
+  );
 
   const handleMinimize = useCallback(() => {
     toggleFullWidget(null);
   }, [toggleFullWidget]);
+
+  if (!noteMatch) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-sm text-neutral-500">
+          Widgets are only available in note view.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-full overflow-y-auto scrollbar-none">
@@ -131,7 +172,6 @@ export default function WidgetRenderer({ widgets, handleUpdateLayout }: WidgetRe
                 duration: 0.25,
                 ease: "easeInOut",
               }}
-              className="w-full h-full"
             >
               <GridLayout
                 layout={layout}
@@ -144,20 +184,26 @@ export default function WidgetRenderer({ widgets, handleUpdateLayout }: WidgetRe
                 isResizable={false}
                 compactType="vertical"
                 draggableCancel=".not-draggable"
-                className="overflow-y-auto"
               >
-                {widgets.map(widget => (
+                {widgets.map((widget) => (
                   <div key={getID(widget)}>
                     <SuspenseWidget
                       widgetConfig={widget}
                       queryClient={queryClient}
-                      callbacks={widget.widgetType !== "full" && widgetsWithFullVersion[getID(widget)]
+                      callbacks={widget.widgetType !== "full"
+                          && widgetsWithFullVersion[getID(widget)]
                         ? { onMaximize: () => handleMaximize(widget) }
                         : {}}
                     />
                   </div>
                 ))}
               </GridLayout>
+
+              <div className="flex items-center justify-center">
+                <ConfigureWidgetsButton>
+                  <Trans>Edit Widgets</Trans>
+                </ConfigureWidgetsButton>
+              </div>
             </motion.div>
           )}
       </AnimatePresence>

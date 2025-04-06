@@ -1,13 +1,14 @@
+import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { LinkProps, useMatch } from "@tanstack/react-router";
+import { useMatch } from "@tanstack/react-router";
 import { useMemo } from "react";
 import type { Layout } from "react-grid-layout";
 
 import { useHypr } from "@/contexts";
 import { type ExtensionName } from "@hypr/extension-registry";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { safeNavigate } from "@hypr/utils/navigation";
 import WidgetRenderer from "../components/widget-renderer";
+import { ConfigureWidgetsButton } from "../components/widget-renderer/configure-widgets-button";
 import { parseID } from "../components/widget-renderer/widgets";
 
 export function WidgetsView() {
@@ -35,17 +36,20 @@ export function WidgetsView() {
       const updates = args.map(async (arg) => {
         const { extensionName, groupName, widgetType } = parseID(arg.i);
 
-        const extension = extensions.data?.find(ext =>
-          ext.extension_id === extensionName
-          && ext.widgets.some(w => w.group === groupName && w.kind === widgetType)
+        const extension = extensions.data?.find(
+          (ext) =>
+            ext.extension_id === extensionName
+            && ext.widgets.some(
+              (w) => w.group === groupName && w.kind === widgetType,
+            ),
         );
 
         if (!extension) {
           return null;
         }
 
-        const updatedWidgets = extension.widgets.map(widget =>
-          (widget.group === groupName && widget.kind === widgetType)
+        const updatedWidgets = extension.widgets.map((widget) =>
+          widget.group === groupName && widget.kind === widgetType
             ? { ...widget, position: { x: arg.x, y: arg.y } }
             : widget
         );
@@ -61,26 +65,19 @@ export function WidgetsView() {
     onSuccess: () => extensions.refetch(),
   });
 
-  const handleClickConfigureWidgets = () => {
-    const params = {
-      to: "/app/settings",
-      search: { tab: "extensions" },
-    } as const satisfies LinkProps;
-
-    const url = `${params.to}?tab=${params.search.tab}`;
-
-    safeNavigate({ type: "settings" }, url);
-  };
-
   if (!noteMatch) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-sm text-neutral-500">Widgets are only available in note view.</div>
+        <div className="text-sm text-neutral-500">
+          Widgets are only available in note view.
+        </div>
       </div>
     );
   }
 
-  const { params: { id: sessionId } } = noteMatch;
+  const {
+    params: { id: sessionId },
+  } = noteMatch;
 
   return widgets?.length
     ? (
@@ -92,12 +89,9 @@ export function WidgetsView() {
     )
     : (
       <div className="flex items-center justify-center h-full">
-        <button
-          onClick={handleClickConfigureWidgets}
-          className="px-2 py-1.5 text-xs rounded-full bg-white hover:bg-neutral-200 border border-border transition-all shadow-md hover:shadow-sm transform hover:translate-y-0.5 active:translate-y-1 active:shadow-none"
-        >
-          Configure Widgets
-        </button>
+        <ConfigureWidgetsButton>
+          <Trans>Configure Widgets</Trans>
+        </ConfigureWidgetsButton>
       </div>
     );
 }

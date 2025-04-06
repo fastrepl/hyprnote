@@ -14,10 +14,10 @@ export function ConfigureWidgetsButton({
   const handleClickConfigureWidgets = () => {
     const params = {
       to: "/app/settings",
-      search: { current: "extensions" },
+      search: { tab: "extensions" },
     } as const satisfies LinkProps;
 
-    const url = `${params.to}?current=${params.search.current}`;
+    const url = `${params.to}?current=${params.search.tab}`;
 
     windowsCommands.windowShow({ type: "settings" }).then(() => {
       setTimeout(() => {

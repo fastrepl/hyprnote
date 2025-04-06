@@ -1,11 +1,14 @@
-export type ExtensionName =
-  | "@hypr/extension-dino-game"
-  | "@hypr/extension-summary"
-  | "@hypr/extension-transcript"
-  | "@hypr/extension-timer"
-  | "@hypr/extension-clock"
-  | "@hypr/extension-calculator"
-  | "@hypr/extension-twenty";
+export const ExtensionNames = [
+  "@hypr/extension-transcript",
+  "@hypr/extension-twenty",
+  "@hypr/extension-summary",
+  "@hypr/extension-dino-game",
+  "@hypr/extension-timer",
+  "@hypr/extension-clock",
+  "@hypr/extension-calculator",
+] as const;
+
+export type ExtensionName = typeof ExtensionNames[number];
 
 export function importExtension(name: ExtensionName) {
   switch (name) {

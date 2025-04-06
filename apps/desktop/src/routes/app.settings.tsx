@@ -1,4 +1,3 @@
-// import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { ArrowLeft } from "lucide-react";
@@ -24,17 +23,14 @@ import {
   Profile,
   // TemplateEditor,
 } from "@/components/settings/views";
-// import { useHypr } from "@/contexts";
-import { EXTENSION_CONFIGS } from "@hypr/extension-registry";
-// import { type ExtensionDefinition, type Template } from "@hypr/plugin-db";
+import { EXTENSION_CONFIGS, ExtensionName, ExtensionNames } from "@hypr/extension-registry";
 import { type ExtensionDefinition } from "@hypr/plugin-db";
-// import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Trans } from "@lingui/react/macro";
 
 const schema = z.object({
-  current: z.enum(TABS).default("general"),
-  extension: z.string().optional(),
+  tab: z.enum(TABS).default("general"),
+  extension: z.enum(ExtensionNames).default(ExtensionNames[0]),
 });
 
 const PATH = "/app/settings";
@@ -44,26 +40,9 @@ export const Route = createFileRoute(PATH)({
 });
 
 function Component() {
-  const { current, extension } = useSearch({ from: PATH });
   const navigate = useNavigate();
-  // const { userId } = useHypr();
-  // const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const search = useSearch({ from: PATH });
   const [searchQuery, setSearchQuery] = useState<string>("");
-
-  // const { data: templatesData } = useQuery({
-  //   queryKey: ["templates"],
-  //   queryFn: () => dbCommands.listTemplates(),
-  // });
-
-  // const customTemplates = useMemo(() => {
-  //   if (!templatesData || !userId) return [];
-  //   return templatesData.filter(template => template.user_id === userId);
-  // }, [templatesData, userId]);
-
-  // const builtinTemplates = useMemo(() => {
-  //   if (!templatesData || !userId) return [];
-  //   return templatesData.filter(template => template.user_id !== userId);
-  // }, [templatesData, userId]);
 
   const extensionsList = useMemo(() => {
     return EXTENSION_CONFIGS.map(config => ({
@@ -78,41 +57,10 @@ function Component() {
     } as ExtensionDefinition));
   }, []);
 
-  // URL 파라미터에서 초기 extension 값 계산
-  const initialExtension = useMemo(() => {
-    if (extension && current === "extensions") {
-      return extensionsList.find(ext => ext.id === extension) || null;
-    }
-    return null;
-  }, [extension, current, extensionsList]);
-
-  // 선택된 extension 상태 (초기값은 URL에서 가져옴)
-  const [selectedExtension, setSelectedExtension] = useState<ExtensionDefinition | null>(initialExtension);
-
   const handleClickTab = (tab: Tab) => {
-    navigate({ to: PATH, search: { current: tab } });
+    navigate({ to: PATH, search: { ...search, tab } });
     setSearchQuery("");
   };
-
-  // const filteredCustomTemplates = useMemo(() => {
-  //   if (!searchQuery) return customTemplates;
-  //   const query = searchQuery.toLowerCase();
-  //   return customTemplates.filter(template =>
-  //     template.title.toLowerCase().includes(query)
-  //     || template.description.toLowerCase().includes(query)
-  //     || template.tags.some(tag => tag.toLowerCase().includes(query))
-  //   );
-  // }, [customTemplates, searchQuery]);
-
-  // const filteredBuiltinTemplates = useMemo(() => {
-  //   if (!searchQuery) return builtinTemplates;
-  //   const query = searchQuery.toLowerCase();
-  //   return builtinTemplates.filter(template =>
-  //     template.title.toLowerCase().includes(query)
-  //     || template.description.toLowerCase().includes(query)
-  //     || template.tags.some(tag => tag.toLowerCase().includes(query))
-  //   );
-  // }, [builtinTemplates, searchQuery]);
 
   const filteredExtensions = useMemo(() => {
     if (!searchQuery) {
@@ -132,22 +80,13 @@ function Component() {
     setSearchQuery(e.target.value);
   }, []);
 
-  // const handleCreateTemplate = useCallback(() => {
-  //   const newTemplate: Template = {
-  //     id: crypto.randomUUID(),
-  //     user_id: userId,
-  //     title: "Untitled Template",
-  //     description: "",
-  //     tags: [],
-  //     sections: [],
-  //   };
+  const handleExtensionSelect = useCallback((extension: ExtensionName) => {
+    navigate({ to: PATH, search: { ...search, extension } });
+  }, [navigate, search]);
 
-  //   setSelectedTemplate(newTemplate.id);
-  //   handleClickTab("templates");
-  // }, [userId, handleClickTab]);
-
-  // const handleTemplateUpdate = useCallback((updatedTemplate: Template) => {
-  // }, []);
+  const selectedExtension = useMemo(() => {
+    return filteredExtensions.find(extension => extension.id === search.extension)!;
+  }, [filteredExtensions, search.extension]);
 
   return (
     <div className="relative flex h-screen w-screen overflow-hidden">
@@ -159,7 +98,7 @@ function Component() {
               className="flex items-center h-11 justify-end px-2"
             >
               {/* {(current === "templates" || current === "extensions") && ( */}
-              {current === "extensions" && (
+              {search.tab === "extensions" && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -175,10 +114,10 @@ function Component() {
             </div>
 
             {/* {current !== "templates" && current !== "extensions" */}
-            {current !== "extensions"
+            {search.tab !== "extensions"
               ? (
                 <MainSidebar
-                  current={current}
+                  current={search.tab}
                   onTabClick={handleClickTab}
                 />
               )
@@ -197,13 +136,13 @@ function Component() {
                   )} */
                   }
 
-                  {current === "extensions" && (
+                  {search.tab === "extensions" && (
                     <ExtensionsSidebar
                       searchQuery={searchQuery}
                       onSearchChange={handleSearchChange}
                       extensions={filteredExtensions}
-                      selectedExtension={selectedExtension}
-                      onExtensionSelect={setSelectedExtension}
+                      selectedExtension={search.extension}
+                      onExtensionSelect={handleExtensionSelect}
                     />
                   )}
                 </div>
@@ -212,17 +151,17 @@ function Component() {
 
           <div className="flex-1 flex h-full w-full flex-col overflow-hidden">
             <SettingsHeader
-              current={current}
+              current={search.tab}
               // onCreateTemplate={current === "templates" ? handleCreateTemplate : undefined}
             />
 
             <div className="flex-1 overflow-auto p-6">
-              {current === "general" && <General />}
-              {current === "profile" && <Profile />}
-              {current === "ai" && <LocalAI />}
-              {current === "calendar" && <Calendar />}
+              {search.tab === "general" && <General />}
+              {search.tab === "profile" && <Profile />}
+              {search.tab === "ai" && <LocalAI />}
+              {search.tab === "calendar" && <Calendar />}
               {/* {current === "notifications" && <Notifications />} */}
-              {current === "permissions" && <Permissions />}
+              {search.tab === "permissions" && <Permissions />}
               {
                 /* {current === "templates" && (
                 <TemplateEditor
@@ -240,10 +179,10 @@ function Component() {
                 />
               )} */
               }
-              {current === "extensions" && (
+              {search.tab === "extensions" && (
                 <Extensions
                   selectedExtension={selectedExtension}
-                  onExtensionSelect={setSelectedExtension}
+                  onExtensionSelect={handleExtensionSelect}
                 />
               )}
               {

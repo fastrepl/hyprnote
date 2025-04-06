@@ -12,12 +12,7 @@ const Twenty2x2: WidgetTwoByTwo = () => {
 
   const handleOpenTwentySettings = () => {
     const extensionId = "@hypr/extension-twenty";
-    const url = `/app/settings?current=extensions&extension=${
-      encodeURIComponent(
-        extensionId,
-      )
-    }`;
-
+    const url = `/app/settings?tab=extensions&extension=${extensionId}`;
     safeNavigate({ type: "settings" }, url);
   };
 

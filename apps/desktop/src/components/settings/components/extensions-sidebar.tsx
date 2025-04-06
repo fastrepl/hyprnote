@@ -1,6 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { BlocksIcon, SearchIcon } from "lucide-react";
 
+import type { ExtensionName } from "@hypr/extension-registry";
 import { type ExtensionDefinition } from "@hypr/plugin-db";
 import { cn } from "@hypr/ui/lib/utils";
 
@@ -8,8 +9,8 @@ interface ExtensionsSidebarProps {
   searchQuery: string;
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   extensions: ExtensionDefinition[];
-  selectedExtension: ExtensionDefinition | null;
-  onExtensionSelect: (extension: ExtensionDefinition) => void;
+  selectedExtension: ExtensionName;
+  onExtensionSelect: (extension: ExtensionName) => void;
 }
 
 export function ExtensionsSidebar({
@@ -41,9 +42,9 @@ export function ExtensionsSidebar({
               key={extension.id}
               className={cn(
                 "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
-                selectedExtension?.id === extension.id && "bg-neutral-100 font-medium",
+                selectedExtension === extension.id && "bg-neutral-100 font-medium",
               )}
-              onClick={() => onExtensionSelect(extension)}
+              onClick={() => onExtensionSelect(extension as unknown as ExtensionName)}
               disabled={!extension.implemented}
             >
               <BlocksIcon className="h-4 w-4" />

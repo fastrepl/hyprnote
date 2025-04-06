@@ -16,8 +16,8 @@ import { commands as windowsCommands, events as windowsEvents } from "@hypr/plug
 import { Button } from "@hypr/ui/components/ui/button";
 
 interface ExtensionsComponentProps {
-  selectedExtension: ExtensionDefinition | null;
-  onExtensionSelect: (extension: ExtensionDefinition | null) => void;
+  selectedExtension: ExtensionDefinition;
+  onExtensionSelect: (extension: ExtensionName) => void;
 }
 
 export default function Extensions({
@@ -102,7 +102,7 @@ export default function Extensions({
 
   useEffect(() => {
     if (!selectedExtension && implementedExtensions.length > 0) {
-      onExtensionSelect(implementedExtensions[0]);
+      onExtensionSelect(implementedExtensions[0].id as ExtensionName);
       return;
     }
 
@@ -111,7 +111,7 @@ export default function Extensions({
       && !selectedExtension.implemented
       && implementedExtensions.length > 0
     ) {
-      onExtensionSelect(implementedExtensions[0]);
+      onExtensionSelect(implementedExtensions[0].id as ExtensionName);
     }
   }, [selectedExtension, onExtensionSelect, implementedExtensions]);
 

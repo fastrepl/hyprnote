@@ -1,17 +1,19 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CalendarCogIcon } from "lucide-react";
 
+import { useHypr } from "@/contexts";
 import { type Calendar } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Checkbox } from "@hypr/ui/components/ui/checkbox";
-import { CalendarCogIcon } from "lucide-react";
 
 export function CalendarSelector() {
   const queryClient = useQueryClient();
+  const { userId } = useHypr();
 
   const calendarsQuery = useQuery({
     queryKey: ["calendars"],
-    queryFn: () => dbCommands.listCalendars(),
+    queryFn: () => dbCommands.listCalendars(userId),
     enabled: true,
   });
 

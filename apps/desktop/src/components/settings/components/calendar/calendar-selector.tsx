@@ -27,8 +27,6 @@ export function CalendarSelector() {
   const calendars = calendarsQuery.data || [];
   const selectedCount = calendars.filter((cal) => cal.selected).length;
 
-  console.log(JSON.stringify(calendars, null, 2));
-
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">

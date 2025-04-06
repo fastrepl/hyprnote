@@ -7,27 +7,30 @@ import { parseDialogue } from "../utils";
 const Transcript = forwardRef<
   HTMLDivElement,
   {
-    transcript: TimelineView | null;
+    transcript: TimelineView;
     isLive: boolean;
   }
 >(({ transcript, isLive }, ref) => {
-  if (!transcript?.items) {
-    return null;
-  }
-
   return (
-    <div ref={ref} className="flex-1 scrollbar-none px-4 flex flex-col gap-2 overflow-y-auto text-sm pb-4">
-      {transcript?.items.map((item, index) => (
-        <div
-          key={index}
-        >
-          {parseDialogue(item.text).map((segment, segIndex) => (
-            <p key={segIndex} className={segIndex > 0 ? "mt-1" : ""}>
-              {segment.text}
-            </p>
-          ))}
+    <div
+      ref={ref}
+      className="flex-1 scrollbar-none px-4 flex flex-col gap-2 overflow-y-auto text-sm pb-4"
+    >
+      {transcript.items.length > 0 ? (
+        transcript.items.map((item, index) => (
+          <div key={index}>
+            {parseDialogue(item.text).map((segment, segIndex) => (
+              <p key={segIndex} className={segIndex > 0 ? "mt-1" : ""}>
+                {segment.text}
+              </p>
+            ))}
+          </div>
+        ))
+      ) : !isLive ? (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-neutral-400">Meeting is not active</p>
         </div>
-      ))}
+      ) : null}
       {isLive && (
         <div className="flex items-center gap-2 justify-center py-2 text-neutral-400">
           <EarIcon size={14} /> Listening... (there might be a delay)

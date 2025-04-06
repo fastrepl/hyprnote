@@ -119,11 +119,13 @@ const Transcript2x2: WidgetTwoByTwo = ({ onMaximize }) => {
             />
           </div>
 
-          <Transcript
-            ref={transcriptRef}
-            transcript={timeline}
-            isLive={isLive}
-          />
+          {timeline && (
+            <Transcript
+              ref={transcriptRef}
+              transcript={timeline}
+              isLive={isLive}
+            />
+          )}
         </>
       )}
     </WidgetTwoByTwoWrapper>

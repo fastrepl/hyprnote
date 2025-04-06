@@ -9,10 +9,10 @@ import React, { useState } from "react";
 import { useHypr } from "@/contexts/hypr";
 import { commands as dbCommands, type Human } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
-import { safeNavigate } from "@hypr/utils/navigation";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { getInitials } from "@hypr/utils";
+import { safeNavigate } from "@hypr/utils/navigation";
 
 interface ParticipantsListProps {
   sessionId: string;

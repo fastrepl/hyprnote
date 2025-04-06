@@ -43,16 +43,16 @@ export const formatRelative = (date: string | null | undefined, t?: string) => {
   if (!date) {
     return i18n._("Unknown date");
   }
-  
+
   try {
     const tz = FNS_TZ.tz(t ?? timezone());
     const d = new Date(date);
-    
+
     // Check for invalid date
     if (isNaN(d.getTime())) {
       return i18n._("Invalid date");
     }
-    
+
     const now = new Date();
 
     const startOfDay = FNS.startOfDay(d);
@@ -87,16 +87,16 @@ export const formatRelativeWithDay = (date: string | null | undefined, t?: strin
   if (!date) {
     return i18n._("Unknown date");
   }
-  
+
   try {
     const tz = FNS_TZ.tz(t ?? timezone());
     const d = new Date(date);
-    
+
     // Check for invalid date
     if (isNaN(d.getTime())) {
       return i18n._("Invalid date");
     }
-    
+
     const now = new Date();
 
     const startOfDay = FNS.startOfDay(d);

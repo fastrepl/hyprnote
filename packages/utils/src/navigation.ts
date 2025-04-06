@@ -9,18 +9,18 @@ import type { HyprWindow } from "@hypr/plugin-windows";
 export const safeNavigate = async (
   window: HyprWindow,
   url: string,
-  maxAttempts = 50
+  maxAttempts = 50,
 ): Promise<void> => {
   // First ensure the window is shown
   await windowsCommands.windowShow(window);
 
   // Then check visibility before navigating
   let attempts = 0;
-  
+
   const checkAndNavigate = async (): Promise<void> => {
     try {
       const isVisible = await windowsCommands.windowIsVisible(window);
-      
+
       if (isVisible) {
         await windowsCommands.windowEmitNavigate(window, url);
         return;

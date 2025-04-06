@@ -43,12 +43,7 @@ const TranscriptFull: WidgetFullSize = ({ onMinimize }) => {
   }, [timeline?.items, isLive]);
 
   const minimizeButton = (
-    <Button
-      key="minimize"
-      variant="ghost"
-      size="icon"
-      onClick={onMinimize}
-    >
+    <Button key="minimize" variant="ghost" size="icon" onClick={onMinimize}>
       <Minimize2Icon className="h-4 w-4 text-black" />
     </Button>
   );
@@ -62,25 +57,33 @@ const TranscriptFull: WidgetFullSize = ({ onMinimize }) => {
               title={
                 <div className="flex items-center gap-2">
                   Transcript
-                  {isLive && <Badge variant="destructive" className="hover:bg-destructive">LIVE</Badge>}
+                  {isLive && (
+                    <Badge
+                      variant="destructive"
+                      className="hover:bg-destructive"
+                    >
+                      LIVE
+                    </Badge>
+                  )}
                 </div>
               }
               actions={[
                 <DropdownMenu key="language">
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="p-0"
-                    >
+                    <Button variant="ghost" size="icon" className="p-0">
                       <LanguagesIcon size={16} className="text-black" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end">
                     <DropdownMenuLabel>Select Language</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup value={selectedLanguage} onValueChange={handleLanguageChange}>
-                      <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
+                    <DropdownMenuRadioGroup
+                      value={selectedLanguage}
+                      onValueChange={handleLanguageChange}
+                    >
+                      <DropdownMenuRadioItem value="en">
+                        English
+                      </DropdownMenuRadioItem>
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>,
@@ -89,7 +92,13 @@ const TranscriptFull: WidgetFullSize = ({ onMinimize }) => {
             />
           </div>
 
-          <Transcript ref={transcriptRef} transcript={timeline} isLive={isLive} />
+          {timeline && (
+            <Transcript
+              ref={transcriptRef}
+              transcript={timeline}
+              isLive={isLive}
+            />
+          )}
         </>
       )}
     </WidgetFullSizeWrapper>

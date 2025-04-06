@@ -5,9 +5,9 @@ import { Pen } from "lucide-react";
 import { useState } from "react";
 
 import { type Session } from "@hypr/plugin-db";
-import { safeNavigate } from "@hypr/utils/navigation";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { safeNavigate } from "@hypr/utils/navigation";
 
 export function NoteCard({ session, showTime = false }: { session: Session; showTime?: boolean }) {
   const [open, setOpen] = useState(false);

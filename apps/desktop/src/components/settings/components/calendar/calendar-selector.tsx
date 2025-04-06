@@ -3,8 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { type Calendar } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { CalendarCogIcon } from "lucide-react";
 import { Checkbox } from "@hypr/ui/components/ui/checkbox";
+import { CalendarCogIcon } from "lucide-react";
 
 export function CalendarSelector() {
   const queryClient = useQueryClient();
@@ -16,8 +16,7 @@ export function CalendarSelector() {
   });
 
   const toggleCalendarSelectedMutation = useMutation({
-    mutationFn: (calendar: Calendar) =>
-      dbCommands.toggleCalendarSelected(calendar.tracking_id),
+    mutationFn: (calendar: Calendar) => dbCommands.toggleCalendarSelected(calendar.tracking_id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["calendars"] });
     },
@@ -44,33 +43,35 @@ export function CalendarSelector() {
       </div>
 
       <div className="space-y-2 mt-2 pl-9">
-        {calendarsQuery.isLoading ? (
-          <div className="text-sm text-muted-foreground">
-            <Trans>Loading...</Trans>
-          </div>
-        ) : calendars.length === 0 ? (
-          <div className="text-sm text-muted-foreground">
-            <Trans>No calendars found</Trans>
-          </div>
-        ) : (
-          calendars.map((calendar) => (
-            <div key={calendar.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={`calendar-${calendar.id}`}
-                checked={calendar.selected}
-                onCheckedChange={() =>
-                  toggleCalendarSelectedMutation.mutate(calendar)
-                }
-              />
-              <label
-                htmlFor={`calendar-${calendar.id}`}
-                className="text-sm cursor-pointer"
-              >
-                {calendar.name}
-              </label>
+        {calendarsQuery.isLoading
+          ? (
+            <div className="text-sm text-muted-foreground">
+              <Trans>Loading...</Trans>
             </div>
-          ))
-        )}
+          )
+          : calendars.length === 0
+          ? (
+            <div className="text-sm text-muted-foreground">
+              <Trans>No calendars found</Trans>
+            </div>
+          )
+          : (
+            calendars.map((calendar) => (
+              <div key={calendar.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`calendar-${calendar.id}`}
+                  checked={calendar.selected}
+                  onCheckedChange={() => toggleCalendarSelectedMutation.mutate(calendar)}
+                />
+                <label
+                  htmlFor={`calendar-${calendar.id}`}
+                  className="text-sm cursor-pointer"
+                >
+                  {calendar.name}
+                </label>
+              </div>
+            ))
+          )}
       </div>
     </div>
   );

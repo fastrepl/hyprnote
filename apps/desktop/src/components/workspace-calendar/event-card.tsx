@@ -7,9 +7,9 @@ import { useState } from "react";
 
 import type { Event } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { safeNavigate } from "@hypr/utils/navigation";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { safeNavigate } from "@hypr/utils/navigation";
 
 export function EventCard({ event, showTime = false }: { event: Event; showTime?: boolean }) {
   const session = useQuery({

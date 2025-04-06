@@ -1,24 +1,22 @@
-import {
-  WidgetHeader,
-  type WidgetTwoByTwo,
-  WidgetTwoByTwoWrapper,
-} from "@hypr/ui/components/ui/widgets";
+import { WidgetHeader, type WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
 import { useSessions } from "@hypr/utils/contexts";
 
+import { safeNavigate } from "@hypr/utils/navigation";
 import { CreateNoteButton } from "../components/create-note-button";
 import { ParticipantsList } from "../components/participants-list";
 import { SearchInput } from "../components/search-input";
 import { useTwentyNotes } from "../hooks/useTwentyNotes";
-import { safeNavigate } from "@hypr/utils/navigation";
 
 const Twenty2x2: WidgetTwoByTwo = () => {
   const sessionId = useSessions((s) => s.currentSessionId);
 
   const handleOpenTwentySettings = () => {
     const extensionId = "@hypr/extension-twenty";
-    const url = `/app/settings?current=extensions&extension=${encodeURIComponent(
-      extensionId
-    )}`;
+    const url = `/app/settings?current=extensions&extension=${
+      encodeURIComponent(
+        extensionId,
+      )
+    }`;
 
     safeNavigate({ type: "settings" }, url);
   };

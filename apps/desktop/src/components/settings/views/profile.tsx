@@ -6,11 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useHypr } from "@/contexts";
-import {
-  commands as dbCommands,
-  type Human,
-  type Organization,
-} from "@hypr/plugin-db";
+import { commands as dbCommands, type Human, type Organization } from "@hypr/plugin-db";
 import {
   Form,
   FormControl,

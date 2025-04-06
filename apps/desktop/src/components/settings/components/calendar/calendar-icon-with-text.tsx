@@ -5,13 +5,11 @@ import { type CalendarIntegration } from "@/types";
 export function CalendarIconWithText({ type }: { type: CalendarIntegration }) {
   return (
     <div className="flex flex-row items-center gap-2">
-      {type === "apple-calendar" ? (
-        <AppleIcon size={16} />
-      ) : type === "google-calendar" ? (
-        <GoogleIcon />
-      ) : (
-        <OutlookIcon />
-      )}
+      {type === "apple-calendar"
+        ? <AppleIcon size={16} />
+        : type === "google-calendar"
+        ? <GoogleIcon />
+        : <OutlookIcon />}
       <span className="text-sm">
         {type === "apple-calendar"
           ? "Apple"

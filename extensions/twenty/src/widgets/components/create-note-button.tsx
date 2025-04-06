@@ -1,10 +1,5 @@
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@hypr/ui/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 
 interface CreateNoteButtonProps {
   handleCreateNote: () => void;
@@ -21,11 +16,10 @@ export const CreateNoteButton = ({
   selectedPeopleCount,
   isEnhanced,
 }: CreateNoteButtonProps) => {
-  const isDisabled =
-    selectedPeopleCount === 0 ||
-    isCreatingNote ||
-    isMeetingActive ||
-    !isEnhanced;
+  const isDisabled = selectedPeopleCount === 0
+    || isCreatingNote
+    || isMeetingActive
+    || !isEnhanced;
 
   let tooltipContent = "";
   if (isCreatingNote) {

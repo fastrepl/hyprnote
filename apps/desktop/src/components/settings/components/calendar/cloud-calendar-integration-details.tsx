@@ -2,11 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { open } from "@tauri-apps/plugin-shell";
 
-import {
-  client,
-  getApiDesktopUserIntegrationsOptions,
-  getIntegrationURL,
-} from "@/client";
+import { client, getApiDesktopUserIntegrationsOptions, getIntegrationURL } from "@/client";
 import { type CalendarIntegration } from "@/types";
 import { Button } from "@hypr/ui/components/ui/button";
 import { GoogleIcon, OutlookIcon } from "./calendar-icon-with-text";
@@ -44,31 +40,29 @@ export function CloudCalendarIntegrationDetails({
               </Trans>
             </div>
             <div className="text-xs text-muted-foreground">
-              {integration ? (
-                <Trans>Calendar connected</Trans>
-              ) : (
+              {integration ? <Trans>Calendar connected</Trans> : (
                 <Trans>
-                  Connect your{" "}
-                  {type === "google-calendar" ? "Google" : "Outlook"} calendar
-                  to track upcoming events
+                  Connect your {type === "google-calendar" ? "Google" : "Outlook"} calendar to track upcoming events
                 </Trans>
               )}
             </div>
           </div>
         </div>
         <div>
-          {integration ? (
-            "✅"
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClickConnect}
-              className="min-w-12 text-center"
-            >
-              <Trans>Connect</Trans>
-            </Button>
-          )}
+          {integration
+            ? (
+              "✅"
+            )
+            : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClickConnect}
+                className="min-w-12 text-center"
+              >
+                <Trans>Connect</Trans>
+              </Button>
+            )}
         </div>
       </div>
     </div>

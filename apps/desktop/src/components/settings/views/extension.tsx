@@ -4,11 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { SuspenseWidget } from "@/components/right-panel/components/widget-renderer/widgets";
 import { useHypr } from "@/contexts";
-import {
-  EXTENSION_CONFIGS,
-  type ExtensionName,
-  importExtension,
-} from "@hypr/extension-registry";
+import { EXTENSION_CONFIGS, type ExtensionName, importExtension } from "@hypr/extension-registry";
 import type { Extension } from "@hypr/extension-types";
 import {
   commands as dbCommands,
@@ -16,10 +12,7 @@ import {
   type ExtensionMapping,
   type ExtensionWidgetKind,
 } from "@hypr/plugin-db";
-import {
-  commands as windowsCommands,
-  events as windowsEvents,
-} from "@hypr/plugin-windows";
+import { commands as windowsCommands, events as windowsEvents } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 
 interface ExtensionsComponentProps {
@@ -34,7 +27,7 @@ export default function Extensions({
   const { userId } = useHypr();
   const queryClient = useQueryClient();
   const [extensionInView, setExtensionInView] = useState<Extension | null>(
-    null
+    null,
   );
 
   useEffect(() => {
@@ -65,8 +58,7 @@ export default function Extensions({
   const extension = useQuery({
     enabled: !!selectedExtension?.id,
     queryKey: ["extension-mapping", selectedExtension?.id],
-    queryFn: () =>
-      dbCommands.getExtensionMapping(userId, selectedExtension?.id!),
+    queryFn: () => dbCommands.getExtensionMapping(userId, selectedExtension?.id!),
   });
 
   const toggleWidgetInsideExtensionGroup = useMutation({
@@ -75,15 +67,15 @@ export default function Extensions({
       widgetKind: ExtensionWidgetKind;
     }) => {
       const widgets = extension.data?.widgets.find(
-        (widget) => widget.group === args.groupId
-      )
+          (widget) => widget.group === args.groupId,
+        )
         ? extension.data?.widgets.filter(
-            (widget) => widget.group !== args.groupId
-          )
+          (widget) => widget.group !== args.groupId,
+        )
         : [
-            ...(extension.data?.widgets ?? []),
-            { group: args.groupId, kind: args.widgetKind, position: null },
-          ];
+          ...(extension.data?.widgets ?? []),
+          { group: args.groupId, kind: args.widgetKind, position: null },
+        ];
 
       const mapping: ExtensionMapping = {
         id: extension.data?.id ?? crypto.randomUUID(),
@@ -105,7 +97,7 @@ export default function Extensions({
 
   const implementedExtensions = useMemo(
     () => EXTENSION_CONFIGS.filter((ext) => ext.implemented),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -115,9 +107,9 @@ export default function Extensions({
     }
 
     if (
-      selectedExtension &&
-      !selectedExtension.implemented &&
-      implementedExtensions.length > 0
+      selectedExtension
+      && !selectedExtension.implemented
+      && implementedExtensions.length > 0
     ) {
       onExtensionSelect(implementedExtensions[0]);
     }
@@ -138,8 +130,7 @@ export default function Extensions({
     );
   }
 
-  const hasMultipleGroups =
-    extensionInView?.widgetGroups && extensionInView.widgetGroups.length > 1;
+  const hasMultipleGroups = extensionInView?.widgetGroups && extensionInView.widgetGroups.length > 1;
 
   return (
     <div className="flex flex-col gap-4">
@@ -149,9 +140,7 @@ export default function Extensions({
         </h3>
 
         {/* Display configComponent if it exists */}
-        {extensionInView?.configComponent && (
-          <div className="mb-8">{extensionInView.configComponent}</div>
-        )}
+        {extensionInView?.configComponent && <div className="mb-8">{extensionInView.configComponent}</div>}
 
         {/* Display widget groups */}
         {extensionInView?.widgetGroups.map((group) => (
@@ -182,7 +171,7 @@ function RenderGroup({
   const queryClient = useQueryClient();
   const isWidgetActive = (groupId: string, widgetKind: ExtensionWidgetKind) => {
     return activeWidgets.some(
-      (widget) => widget.group === groupId && widget.kind === widgetKind
+      (widget) => widget.group === groupId && widget.kind === widgetKind,
     );
   };
 
@@ -209,15 +198,11 @@ function RenderGroup({
               </div>
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm rounded-2xl">
                 <Button
-                  variant={
-                    isWidgetActive(group.id, item.type as ExtensionWidgetKind)
-                      ? "destructive"
-                      : "default"
-                  }
+                  variant={isWidgetActive(group.id, item.type as ExtensionWidgetKind)
+                    ? "destructive"
+                    : "default"}
                   size="sm"
-                  onClick={() =>
-                    handler({ groupId: group.id, widgetKind: item.type })
-                  }
+                  onClick={() => handler({ groupId: group.id, widgetKind: item.type })}
                   className="font-medium"
                 >
                   {isWidgetActive(group.id, item.type as ExtensionWidgetKind)
@@ -246,15 +231,11 @@ function RenderGroup({
               </div>
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm rounded-2xl">
                 <Button
-                  variant={
-                    isWidgetActive(group.id, item.type as ExtensionWidgetKind)
-                      ? "destructive"
-                      : "default"
-                  }
+                  variant={isWidgetActive(group.id, item.type as ExtensionWidgetKind)
+                    ? "destructive"
+                    : "default"}
                   size="sm"
-                  onClick={() =>
-                    handler({ groupId: group.id, widgetKind: item.type })
-                  }
+                  onClick={() => handler({ groupId: group.id, widgetKind: item.type })}
                   className="font-medium"
                 >
                   {isWidgetActive(group.id, item.type as ExtensionWidgetKind)
@@ -283,15 +264,11 @@ function RenderGroup({
               </div>
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/5 backdrop-blur-sm rounded-2xl">
                 <Button
-                  variant={
-                    isWidgetActive(group.id, item.type as ExtensionWidgetKind)
-                      ? "destructive"
-                      : "default"
-                  }
+                  variant={isWidgetActive(group.id, item.type as ExtensionWidgetKind)
+                    ? "destructive"
+                    : "default"}
                   size="sm"
-                  onClick={() =>
-                    handler({ groupId: group.id, widgetKind: item.type })
-                  }
+                  onClick={() => handler({ groupId: group.id, widgetKind: item.type })}
                   className="font-medium"
                 >
                   {isWidgetActive(group.id, item.type as ExtensionWidgetKind)

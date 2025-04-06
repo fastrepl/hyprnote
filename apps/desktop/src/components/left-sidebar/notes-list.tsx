@@ -9,7 +9,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useHypr } from "@/contexts";
 import { commands as dbCommands, type Event, type Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
-import { safeNavigate } from "@hypr/utils/navigation";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -20,6 +19,7 @@ import {
 import { cn } from "@hypr/ui/lib/utils";
 import { useSession, useSessions } from "@hypr/utils/contexts";
 import { format, formatRelative, formatTimeAgo, isToday } from "@hypr/utils/datetime";
+import { safeNavigate } from "@hypr/utils/navigation";
 
 interface NotesListProps {
   filter: (session: Session) => boolean;

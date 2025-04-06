@@ -83,9 +83,7 @@ export default function General() {
   });
 
   useEffect(() => {
-    const subscription = form.watch(() =>
-      form.handleSubmit((v) => mutation.mutate(v))()
-    );
+    const subscription = form.watch(() => form.handleSubmit((v) => mutation.mutate(v))());
     return () => subscription.unsubscribe();
   }, [mutation]);
 
@@ -104,8 +102,7 @@ export default function General() {
                   </FormLabel>
                   <FormDescription>
                     <Trans>
-                      Hyprnote will be opened automatically when you start your
-                      computer
+                      Hyprnote will be opened automatically when you start your computer
                     </Trans>
                   </FormDescription>
                 </div>
@@ -159,8 +156,7 @@ export default function General() {
                   </FormLabel>
                   <FormDescription>
                     <Trans>
-                      You can make Hyprnote takes these words into account when
-                      transcribing
+                      You can make Hyprnote takes these words into account when transcribing
                     </Trans>
                   </FormDescription>
                 </div>

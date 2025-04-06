@@ -94,7 +94,7 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
                         id: uuid::Uuid::new_v4().to_string(),
                         tracking_id: e.id.clone(),
                         user_id: user_id.clone(),
-                        calendar_id: "TODO".to_string(),
+                        calendar_id: Some("TODO".to_string()),
                         name: e.name.clone(),
                         note: e.note.clone(),
                         start_date: e.start_date,

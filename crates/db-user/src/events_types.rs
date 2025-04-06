@@ -7,7 +7,7 @@ user_common_derives! {
         pub id: String,
         pub user_id: String,
         pub tracking_id: String,
-        pub calendar_id: String,
+        pub calendar_id: Option<String>,
         pub name: String,
         pub note: String,
         pub start_date: DateTime<Utc>,

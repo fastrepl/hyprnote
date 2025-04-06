@@ -121,9 +121,9 @@ minijinja-contrib = "2.7.0"
 tracing = "0.1.41"
 tracing-subscriber = "0.3.19"
 
-apalis = "0.6.4"
-apalis-cron = "0.6.4"
-apalis-sql = "0.6.4"
+apalis = "0.7.0"
+apalis-cron = "0.7.0"
+apalis-sql = "0.7.0"
 
 specta = "2.0.0-rc.21"
 specta-typescript = "0.0.9"

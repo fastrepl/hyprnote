@@ -136,6 +136,9 @@ impl CalendarSource for Handle {
                 let id = unsafe { calendar.calendarIdentifier() };
                 let title = unsafe { calendar.title() };
 
+                let source = unsafe { calendar.source().unwrap() };
+                let _source_title = unsafe { source.as_ref().title() };
+
                 Calendar {
                     id: id.to_string(),
                     platform: Platform::Apple,

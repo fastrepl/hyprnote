@@ -47,9 +47,9 @@ impl UserDatabase {
             timeline.add_diarization(d);
         }
 
-        return Ok(timeline.view(hypr_timeline::TimelineFilter {
+        Ok(timeline.view(hypr_timeline::TimelineFilter {
             last_n_seconds: None,
-        }));
+        }))
     }
 
     pub async fn get_timeline_view(

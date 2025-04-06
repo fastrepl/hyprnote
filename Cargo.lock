@@ -247,9 +247,9 @@ dependencies = [
 
 [[package]]
 name = "apalis"
-version = "0.6.4"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "703ea57243268f2f84c09ad0c06fac49448b341b906a2f5ee01546600c329960"
+checksum = "4f3c13b1a2646be21cfd231fc8835dedbc7d5d648d68297fd2e97d75758bee97"
 dependencies = [
  "apalis-core",
  "futures",
@@ -266,9 +266,9 @@ dependencies = [
 
 [[package]]
 name = "apalis-core"
-version = "0.6.4"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ade84ea7d39131db019fb646ebff22a11ab3445c9e9deac026413980d2a9b924"
+checksum = "b88bff4c16a47ab5d8907985957f31b0a937aa1b212dd4d6ab57a8706cf1d9c0"
 dependencies = [
  "futures",
  "futures-timer",
@@ -281,9 +281,9 @@ dependencies = [
 
 [[package]]
 name = "apalis-cron"
-version = "0.6.4"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10a4f1693932680587901f2b07f9dbdd599909cc7e7c8844f68cc19d699d801f"
+checksum = "1d63c29635c96e90f40f302eec0a51d0839cdfa380d58e7cca60284235aa488b"
 dependencies = [
  "apalis-core",
  "async-stream",

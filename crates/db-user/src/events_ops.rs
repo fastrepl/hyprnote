@@ -167,7 +167,7 @@ mod tests {
             id: uuid::Uuid::new_v4().to_string(),
             user_id: human.id.clone(),
             tracking_id: "event_test".to_string(),
-            calendar_id: calendar.id,
+            calendar_id: Some(calendar.id.clone()),
             name: "test".to_string(),
             note: "test".to_string(),
             start_date: chrono::Utc::now(),

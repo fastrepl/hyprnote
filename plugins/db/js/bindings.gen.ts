@@ -13,8 +13,8 @@ async getEvent(id: string) : Promise<Event | null> {
 async listEvents(filter: ListEventFilter | null) : Promise<Event[]> {
     return await TAURI_INVOKE("plugin:db|list_events", { filter });
 },
-async listCalendars() : Promise<Calendar[]> {
-    return await TAURI_INVOKE("plugin:db|list_calendars");
+async listCalendars(userId: string) : Promise<Calendar[]> {
+    return await TAURI_INVOKE("plugin:db|list_calendars", { userId });
 },
 async upsertCalendar(calendar: Calendar) : Promise<Calendar> {
     return await TAURI_INVOKE("plugin:db|upsert_calendar", { calendar });

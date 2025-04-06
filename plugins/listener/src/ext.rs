@@ -132,8 +132,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         let state = self.state::<crate::SharedState>();
         let s = state.lock().await;
 
-        if s.listen_stream_handle.is_some() {}
-
         match s.listen_stream_handle {
             None => Err(crate::Error::SessionNotStarted),
             Some(_) => {

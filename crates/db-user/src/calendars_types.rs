@@ -29,3 +29,12 @@ impl From<hypr_calendar_interface::Platform> for Platform {
         }
     }
 }
+
+impl From<Platform> for hypr_calendar_interface::Platform {
+    fn from(platform: Platform) -> Self {
+        match platform {
+            Platform::Apple => hypr_calendar_interface::Platform::Apple,
+            Platform::Google => hypr_calendar_interface::Platform::Google,
+        }
+    }
+}

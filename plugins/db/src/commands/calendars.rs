@@ -3,6 +3,7 @@
 #[tracing::instrument(skip(state))]
 pub async fn list_calendars(
     state: tauri::State<'_, crate::ManagedState>,
+    user_id: String,
 ) -> Result<Vec<hypr_db_user::Calendar>, String> {
     let guard = state.lock().await;
 
@@ -12,7 +13,7 @@ pub async fn list_calendars(
         .ok_or(crate::Error::NoneDatabase)
         .map_err(|e| e.to_string())?;
 
-    db.list_calendars().await.map_err(|e| e.to_string())
+    db.list_calendars(&user_id).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

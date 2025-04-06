@@ -21,13 +21,33 @@ import { useTranscript } from "../../hooks/useTranscript";
 
 const Transcript2x2: WidgetTwoByTwo = ({ onMaximize }) => {
   const sessionId = useSessions((s) => s.currentSessionId);
+
+  return (
+    <WidgetTwoByTwoWrapper>
+      {sessionId
+        ? <Inner sessionId={sessionId} onMaximize={onMaximize} />
+        : (
+          <div className="p-4 pb-0">
+            Session not found
+          </div>
+        )}
+    </WidgetTwoByTwoWrapper>
+  );
+};
+
+function Inner({ sessionId, onMaximize }: { sessionId: string } & Parameters<WidgetTwoByTwo>["0"]) {
   const { timeline, isLive, selectedLanguage, handleLanguageChange } = useTranscript(sessionId);
 
   const transcriptRef = useRef<HTMLDivElement>(null);
 
   const handleOpenTranscriptSettings = () => {
     const extensionId = "@hypr/extension-transcript";
-    const url = `/app/settings?tab=extensions&extension=${extensionId}`;
+    const url = `/app/settings?current=extensions&extension=${
+      encodeURIComponent(
+        extensionId,
+      )
+    }`;
+
     safeNavigate({ type: "settings" }, url);
   };
 
@@ -123,6 +143,6 @@ const Transcript2x2: WidgetTwoByTwo = ({ onMaximize }) => {
       )}
     </WidgetTwoByTwoWrapper>
   );
-};
+}
 
 export default Transcript2x2;

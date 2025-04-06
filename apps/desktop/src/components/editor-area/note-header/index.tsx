@@ -16,14 +16,13 @@ interface NoteHeaderProps {
 
 export function NoteHeader({ onNavigateToEditor, editable, sessionId, hashtags = [] }: NoteHeaderProps) {
   const sessionStore = useSession(sessionId, (s) => ({
-    sessionInView: s.session,
+    session: s.session,
     updateTitle: s.updateTitle,
     persistSession: s.persistSession,
   }));
 
   const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
     sessionStore.updateTitle(e.target.value);
-    sessionStore.persistSession();
   };
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
@@ -35,7 +34,7 @@ export function NoteHeader({ onNavigateToEditor, editable, sessionId, hashtags =
       <div className="flex-1 space-y-1">
         <TitleInput
           editable={editable}
-          value={sessionStore.sessionInView?.title ?? ""}
+          value={sessionStore.session.title}
           onChange={handleTitleChange}
           onNavigateToEditor={onNavigateToEditor}
         />

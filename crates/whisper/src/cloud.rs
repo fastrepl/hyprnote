@@ -45,7 +45,7 @@ impl WhisperClientBuilder {
                 pairs.append_pair("temperature", "0");
 
                 if let Some(language) = self.language {
-                    pairs.append_pair("language", &language.code());
+                    pairs.append_pair("language", language.code());
                 }
             }
 

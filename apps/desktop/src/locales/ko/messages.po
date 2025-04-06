@@ -14,12 +14,31 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:148
-msgid "Select language"
+#: ../../packages/utils/src/datetime.ts:44
+#: ../../packages/utils/src/datetime.ts:88
+msgid "Unknown date"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:204
+#: ../../packages/utils/src/datetime.ts:53
+#: ../../packages/utils/src/datetime.ts:97
+msgid "Invalid date"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:74
+#: ../../packages/utils/src/datetime.ts:77
+msgid "{date}"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:82
+#: ../../packages/utils/src/datetime.ts:129
+msgid "Date error"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/components/settings/views/general.tsx:165
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -49,145 +68,152 @@ msgid "In progress"
 msgstr "진행 중"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:55
-msgid "Today ({dayOfWeek})"
-msgstr ""
+#: ../../packages/utils/src/datetime.ts:63
+msgid "Today"
+msgstr "오늘"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:57
-msgid "Yesterday ({dayOfWeek})"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:59
-msgid "{days} days ago ({dayOfWeek})"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:66
-#: ../../packages/utils/src/datetime.ts:69
-msgid "{date} ({dayOfWeek})"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:112
-msgid "just now"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:114
-msgid "{seconds} seconds ago"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:116
-msgid "1 minute ago"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:118
-msgid "{minutes} minutes ago"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:120
-msgid "1 hour ago"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:122
-msgid "{hours} hours ago"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:124
+#: ../../packages/utils/src/datetime.ts:65
+#: ../../packages/utils/src/datetime.ts:183
 msgid "Yesterday"
 msgstr "어제"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:126
+#: ../../packages/utils/src/datetime.ts:67
+#: ../../packages/utils/src/datetime.ts:185
 msgid "{days} days ago"
 msgstr "{days}일 전"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:128
+#: ../../packages/utils/src/datetime.ts:110
+msgid "Today ({dayOfWeek})"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:112
+msgid "Yesterday ({dayOfWeek})"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:114
+msgid "{days} days ago ({dayOfWeek})"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:121
+#: ../../packages/utils/src/datetime.ts:124
+msgid "{date} ({dayOfWeek})"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:171
+msgid "just now"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:173
+msgid "{seconds} seconds ago"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:175
+msgid "1 minute ago"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:177
+msgid "{minutes} minutes ago"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:179
+msgid "1 hour ago"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:181
+msgid "{hours} hours ago"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:187
 msgid "1 week ago"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:130
+#: ../../packages/utils/src/datetime.ts:189
 msgid "{weeks} weeks ago"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:132
+#: ../../packages/utils/src/datetime.ts:191
 msgid "1 month ago"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:134
+#: ../../packages/utils/src/datetime.ts:193
 msgid "{months} months ago"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:136
+#: ../../packages/utils/src/datetime.ts:195
 msgid "1 year ago"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:138
+#: ../../packages/utils/src/datetime.ts:197
 msgid "{years} years ago"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:152
+#: ../../packages/utils/src/datetime.ts:211
 msgid "in progress"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:162
+#: ../../packages/utils/src/datetime.ts:221
 msgid "in {seconds} seconds"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:164
+#: ../../packages/utils/src/datetime.ts:223
 msgid "in 1 minute"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:166
+#: ../../packages/utils/src/datetime.ts:225
 msgid "in {minutes} minutes"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:168
+#: ../../packages/utils/src/datetime.ts:227
 msgid "in 1 hour"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:170
+#: ../../packages/utils/src/datetime.ts:229
 msgid "in {hours} hours"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:172
+#: ../../packages/utils/src/datetime.ts:231
 msgid "1 day later"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:174
+#: ../../packages/utils/src/datetime.ts:233
 msgid "{days} days later"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:176
+#: ../../packages/utils/src/datetime.ts:235
 msgid "{weeks} weeks later"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: src/utils/i18n-datetime.ts:50
-#~ msgid "Today"
-#~ msgstr "오늘"
+#: src/components/settings/views/general.tsx:148
+#~ msgid "Select language"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: src/utils/i18n-datetime.ts:54
@@ -210,7 +236,7 @@ msgstr ""
 #~ msgstr "3주 전"
 
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
-#: src/components/settings/views/calendar.tsx:106
+#: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 msgid "{0}"
 msgstr "{0}"
 
@@ -226,7 +252,7 @@ msgstr "{0}"
 msgid "{description}"
 msgstr ""
 
-#: src/components/settings/views/calendar.tsx:275
+#: src/components/settings/components/calendar/calendar-selector.tsx:40
 msgid "{selectedCount} calendars selected"
 msgstr ""
 
@@ -234,13 +260,14 @@ msgstr ""
 msgid "{title}"
 msgstr ""
 
-#: src/components/settings/views/calendar.tsx:190
-#: src/components/settings/views/calendar.tsx:222
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:65
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:114
 msgid "Access granted"
 msgstr "접근 권한이 승인되었습니다."
 
 #: src/components/settings/views/ai.tsx:180
 #: src/components/settings/views/ai.tsx:315
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:78
 msgid "Active"
 msgstr ""
 
@@ -252,7 +279,7 @@ msgstr "설명을 추가하세요..."
 msgid "Add members"
 msgstr "팀원을 추가하세요."
 
-#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:307
+#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:304
 msgid "Add participant"
 msgstr "참석자를 추가하세요."
 
@@ -291,7 +318,7 @@ msgstr "연간"
 msgid "Anyone with the link can view this page"
 msgstr "링크를 가진 모든 사람이 이 페이지를 볼 수 있습니다."
 
-#: src/components/settings/views/profile.tsx:165
+#: src/components/settings/views/profile.tsx:167
 msgid "Apple"
 msgstr "애플"
 
@@ -303,7 +330,7 @@ msgstr "과거 회의에 대해 질문하세요."
 msgid "Assistant:"
 msgstr ""
 
-#: src/routes/app.settings.tsx:160
+#: src/routes/app.settings.tsx:171
 msgid "Back to Settings"
 msgstr ""
 
@@ -324,21 +351,21 @@ msgstr "기본 템플릿"
 msgid "Calendar"
 msgstr "캘린더"
 
-#: src/components/settings/views/calendar.tsx:186
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:61
 msgid "Calendar Access"
 msgstr "캘린더 접근 권한"
 
-#: src/components/settings/views/calendar.tsx:114
+#: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:43
 msgid "Calendar connected"
 msgstr "캘린더가 연결되었습니다."
 
-#: src/components/settings/views/profile.tsx:140
+#: src/components/settings/views/profile.tsx:142
 msgid "CEO"
 msgstr "대표"
 
 #: src/components/settings/views/calendar.tsx:283
-msgid "Choose"
-msgstr ""
+#~ msgid "Choose"
+#~ msgstr ""
 
 #: src/components/settings/views/ai.tsx:217
 msgid "Choose between speed and quality for speech recognition"
@@ -355,15 +382,23 @@ msgstr "회의에서 다른 사람들과 협업하세요."
 msgid "Coming Soon"
 msgstr "곧 출시 예정"
 
+#: src/components/settings/views/profile.tsx:184
+msgid "Company description"
+msgstr ""
+
 #: src/components/settings/views/profile.tsx:182
-msgid "Company Description"
-msgstr "회사 설명"
+#~ msgid "Company Description"
+#~ msgstr "회사 설명"
+
+#: src/components/settings/views/profile.tsx:159
+msgid "Company name"
+msgstr ""
 
 #: src/components/settings/views/profile.tsx:157
-msgid "Company Name"
-msgstr "회사명"
+#~ msgid "Company Name"
+#~ msgstr "회사명"
 
-#: src/components/settings/views/calendar.tsx:133
+#: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:63
 msgid "Connect"
 msgstr "연결하기"
 
@@ -376,15 +411,15 @@ msgstr "연결하기"
 #~ msgstr "연락처에 연결하기"
 
 #. placeholder {0}: type === "google-calendar" ? "Google" : "Outlook"
-#: src/components/settings/views/calendar.tsx:116
+#: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:44
 msgid "Connect your {0} calendar to track upcoming events"
 msgstr "{0} 캘린더를 연결하여 예정된 일정을 추적하세요."
 
-#: src/components/settings/views/calendar.tsx:191
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:66
 msgid "Connect your calendar and track events"
 msgstr "캘린더를 연결하고 일정을 추적하세요."
 
-#: src/components/settings/views/calendar.tsx:218
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:110
 msgid "Contacts Access"
 msgstr "연락처 접근 권한"
 
@@ -393,7 +428,7 @@ msgstr "연락처 접근 권한"
 #~ msgstr "계속하기"
 
 #: src/components/human-profile/profile-header.tsx:152
-#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:395
+#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:392
 msgid "Create"
 msgstr ""
 
@@ -409,7 +444,7 @@ msgstr "노트 생성"
 #~ msgid "Create new template"
 #~ msgstr "템플릿 생성"
 
-#: src/components/workspace-calendar/event-card.tsx:115
+#: src/components/workspace-calendar/event-card.tsx:111
 msgid "Create Note"
 msgstr "노트 생성"
 
@@ -419,7 +454,7 @@ msgstr "현재 요금제"
 
 #: src/components/settings/views/template.tsx:86
 #: src/components/settings/views/team.tsx:165
-#: src/components/left-sidebar/notes-list.tsx:300
+#: src/components/left-sidebar/notes-list.tsx:299
 msgid "Delete"
 msgstr "삭제"
 
@@ -436,8 +471,8 @@ msgid "Detect meetings automatically"
 msgstr "자동으로 회의를 감지하세요."
 
 #: src/components/settings/views/general.tsx:133
-msgid "Display language"
-msgstr "언어"
+#~ msgid "Display language"
+#~ msgstr "언어"
 
 #: src/components/settings/views/template.tsx:82
 msgid "Duplicate"
@@ -516,6 +551,10 @@ msgstr "무료"
 msgid "Free Trial"
 msgstr "무료 체험"
 
+#: src/components/settings/views/profile.tsx:118
+msgid "Full name"
+msgstr ""
+
 #: src/components/settings/components/settings-header.tsx:20
 #: src/components/settings/components/main-sidebar.tsx:29
 msgid "General"
@@ -525,12 +564,12 @@ msgstr "일반"
 msgid "Get Started"
 msgstr "시작하기"
 
-#: src/components/settings/views/calendar.tsx:204
-#: src/components/settings/views/calendar.tsx:236
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:89
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:130
 msgid "Grant Access"
 msgstr "접근 권한 부여"
 
-#: src/components/settings/views/general.tsx:174
+#: src/components/settings/views/general.tsx:131
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr ""
 
@@ -554,7 +593,7 @@ msgstr "하이퍼노트"
 #~ msgid "Hyprnote Assistant"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:111
+#: src/components/settings/views/general.tsx:104
 msgid "Hyprnote will be opened automatically when you start your computer"
 msgstr ""
 
@@ -578,15 +617,15 @@ msgstr "초대하기"
 msgid "Invite members"
 msgstr "멤버 초대하기"
 
-#: src/components/settings/views/general.tsx:196
+#: src/components/settings/views/general.tsx:155
 msgid "Jargons"
 msgstr "전문 용어"
 
+#: src/components/settings/views/profile.tsx:138
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:122
 msgid "Job title"
 msgstr "직책"
 
-#: src/components/settings/views/profile.tsx:136
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:118
 msgid "Job Title"
 msgstr "직책"
@@ -607,7 +646,10 @@ msgstr ""
 msgid "Learn more about our pricing plans"
 msgstr "요금제에 대해 더 알아보세요."
 
-#: src/components/settings/views/profile.tsx:207
+#: src/components/settings/views/profile.tsx:209
+msgid "LinkedIn username"
+msgstr ""
+
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:139
 msgid "LinkedIn Username"
 msgstr "링크드인 사용자명"
@@ -620,14 +662,14 @@ msgstr "실시간 회의 요약"
 #~ msgid "Load Model"
 #~ msgstr "모델 로드"
 
-#: src/components/settings/views/extension.tsx:94
+#: src/components/settings/views/extension.tsx:126
 msgid "Loading extension details..."
 msgstr "익스텐션 정보 로딩 중..."
 
-#: src/components/workspace-calendar/event-card.tsx:112
-#: src/components/settings/views/calendar.tsx:294
+#: src/components/workspace-calendar/event-card.tsx:108
 #: src/components/settings/views/ai.tsx:196
 #: src/components/settings/views/ai.tsx:370
+#: src/components/settings/components/calendar/calendar-selector.tsx:49
 msgid "Loading..."
 msgstr "로딩 중..."
 
@@ -696,7 +738,7 @@ msgstr "노트 생성"
 #~ msgid "New window"
 #~ msgstr "새로운 창에서 열기"
 
-#: src/components/settings/views/calendar.tsx:300
+#: src/components/settings/components/calendar/calendar-selector.tsx:55
 msgid "No calendars found"
 msgstr ""
 
@@ -736,23 +778,23 @@ msgstr "공식 템플릿"
 msgid "Open calendar view"
 msgstr "캘린더 뷰 열기"
 
-#: src/components/settings/views/general.tsx:108
+#: src/components/settings/views/general.tsx:101
 msgid "Open Hyprnote on startup"
 msgstr "시작 시 하이퍼노트 열기"
 
-#: src/components/left-sidebar/notes-list.tsx:290
+#: src/components/left-sidebar/notes-list.tsx:289
 msgid "Open in calendar view"
 msgstr ""
 
 #: src/components/toolbar/buttons/new-window-button.tsx:35
 #: src/components/left-sidebar/search-list.tsx:199
 #: src/components/left-sidebar/search-list.tsx:257
-#: src/components/left-sidebar/notes-list.tsx:282
+#: src/components/left-sidebar/notes-list.tsx:281
 msgid "Open in new window"
 msgstr ""
 
-#: src/components/workspace-calendar/note-card.tsx:80
-#: src/components/workspace-calendar/event-card.tsx:102
+#: src/components/workspace-calendar/note-card.tsx:78
+#: src/components/workspace-calendar/event-card.tsx:98
 msgid "Open Note"
 msgstr "노트 열기"
 
@@ -760,7 +802,7 @@ msgstr "노트 열기"
 msgid "Open settings"
 msgstr "설정 열기"
 
-#: src/components/settings/views/calendar.tsx:223
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:115
 msgid "Optional for participant suggestions"
 msgstr "참가자 추천을 위한 선택 사항"
 
@@ -777,8 +819,8 @@ msgstr "소유자"
 #~ msgid "Past Notes"
 #~ msgstr "이전 노트"
 
-#: src/components/editor-area/note-header/listen-button.tsx:169
-#: src/components/editor-area/note-header/listen-button.tsx:194
+#: src/components/editor-area/note-header/listen-button.tsx:173
+#: src/components/editor-area/note-header/listen-button.tsx:198
 msgid "Pause recording"
 msgstr ""
 
@@ -816,7 +858,7 @@ msgid "Recent Notes"
 msgstr "최근 노트"
 
 #. placeholder {0}: member.full_name
-#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:188
+#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:185
 msgid "Remove {0} from list"
 msgstr ""
 
@@ -836,11 +878,11 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:120
+#: src/components/editor-area/note-header/listen-button.tsx:124
 msgid "Resume"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:125
+#: src/components/editor-area/note-header/listen-button.tsx:129
 msgid "Resume recording"
 msgstr ""
 
@@ -898,7 +940,7 @@ msgstr "섹션"
 msgid "Select apps that should not trigger meeting notifications"
 msgstr "회의 알림을 발생시키지 않을 앱을 선택하세요."
 
-#: src/components/settings/views/calendar.tsx:272
+#: src/components/settings/components/calendar/calendar-selector.tsx:37
 msgid "Select Calendars"
 msgstr ""
 
@@ -920,7 +962,7 @@ msgstr "초대장 보내기"
 #~ msgid "Settings"
 #~ msgstr "설정"
 
-#: src/components/settings/views/general.tsx:171
+#: src/components/settings/views/general.tsx:128
 msgid "Share usage data"
 msgstr ""
 
@@ -960,7 +1002,7 @@ msgstr "연간 요금제 시작"
 msgid "Start Monthly Plan"
 msgstr "월간 요금제 시작"
 
-#: src/components/editor-area/note-header/listen-button.tsx:145
+#: src/components/editor-area/note-header/listen-button.tsx:149
 msgid "Start recording"
 msgstr "녹음 시작"
 
@@ -1039,19 +1081,19 @@ msgstr "테스트 중..."
 msgid "There's a plan for everyone"
 msgstr "모두를 위한 요금제가 있습니다."
 
-#: src/components/settings/views/profile.tsx:185
+#: src/components/settings/views/profile.tsx:187
 msgid "This is a short description of your company."
 msgstr "회사에 대한 간략한 설명입니다."
 
 #: src/components/settings/views/general.tsx:136
-msgid "This is the language you mostly use"
-msgstr ""
+#~ msgid "This is the language you mostly use"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:137
 #~ msgid "This is the language you mostly use."
 #~ msgstr "주로 사용하는 언어입니다."
 
-#: src/components/settings/views/profile.tsx:160
+#: src/components/settings/views/profile.tsx:162
 msgid "This is the name of the company you work for."
 msgstr "귀하가 근무하는 회사의 이름입니다."
 
@@ -1131,20 +1173,20 @@ msgstr "사용자"
 msgid "User:"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:220
+#: src/components/settings/views/profile.tsx:224
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:152
 msgid "username"
 msgstr "사용자명"
 
 #: src/components/settings/views/profile.tsx:116
-msgid "Username"
-msgstr "사용자명"
+#~ msgid "Username"
+#~ msgstr "사용자명"
 
 #: src/components/settings/views/ai.tsx:420
 msgid "Verify that your local language model is working correctly"
 msgstr "로컬 언어 모델이 올바르게 작동하는지 확인하세요."
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:43
+#: src/components/editor-area/note-header/chips/event-chip.tsx:41
 msgid "View in calendar"
 msgstr "캘린더에서 보기"
 
@@ -1156,7 +1198,7 @@ msgstr "노트 보기"
 #~ msgid "Want to keep track of events?"
 #~ msgstr "향후 일정을 관리하고 싶으신가요?"
 
-#: src/components/settings/views/profile.tsx:190
+#: src/components/settings/views/profile.tsx:192
 msgid "We think different."
 msgstr "우리는 다르게 생각합니다."
 
@@ -1168,7 +1210,7 @@ msgstr "대면 및 원격으로 모두 사용 가능"
 msgid "Works offline"
 msgstr "오프라인에서도 작동"
 
-#: src/components/settings/views/general.tsx:199
+#: src/components/settings/views/general.tsx:158
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr ""
 
@@ -1177,15 +1219,15 @@ msgstr ""
 #~ msgstr "하이퍼노트가 텍스트 변환 시 이러한 단어들을 고려하도록 설정할 수 있습니다."
 
 #: src/components/settings/views/calendar.tsx:288
-msgid "Your Calendars"
-msgstr ""
+#~ msgid "Your Calendars"
+#~ msgstr ""
 
-#: src/components/settings/views/profile.tsx:210
+#: src/components/settings/views/profile.tsx:212
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:142
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"
 msgstr "링크드인 사용자명 (linkedin.com/in/ 뒤에 오는 부분)"
 
-#: src/components/settings/views/profile.tsx:120
+#: src/components/settings/views/profile.tsx:122
 msgid "Your Name"
 msgstr "이름"
 

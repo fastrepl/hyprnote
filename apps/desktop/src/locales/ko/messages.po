@@ -14,30 +14,6 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:44
-#: ../../packages/utils/src/datetime.ts:88
-msgid "Unknown date"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:53
-#: ../../packages/utils/src/datetime.ts:97
-msgid "Invalid date"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:74
-#: ../../packages/utils/src/datetime.ts:77
-msgid "{date}"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:82
-#: ../../packages/utils/src/datetime.ts:129
-msgid "Date error"
-msgstr ""
-
-#. js-lingui-explicit-id
 #: src/components/settings/views/general.tsx:165
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
@@ -68,6 +44,18 @@ msgid "In progress"
 msgstr "진행 중"
 
 #. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:44
+#: ../../packages/utils/src/datetime.ts:88
+msgid "Unknown date"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:53
+#: ../../packages/utils/src/datetime.ts:97
+msgid "Invalid date"
+msgstr ""
+
+#. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:63
 msgid "Today"
 msgstr "오늘"
@@ -83,6 +71,18 @@ msgstr "어제"
 #: ../../packages/utils/src/datetime.ts:185
 msgid "{days} days ago"
 msgstr "{days}일 전"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:74
+#: ../../packages/utils/src/datetime.ts:77
+msgid "{date}"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:82
+#: ../../packages/utils/src/datetime.ts:129
+msgid "Date error"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:110
@@ -330,7 +330,7 @@ msgstr "과거 회의에 대해 질문하세요."
 msgid "Assistant:"
 msgstr ""
 
-#: src/routes/app.settings.tsx:171
+#: src/routes/app.settings.tsx:110
 msgid "Back to Settings"
 msgstr ""
 
@@ -378,7 +378,7 @@ msgstr "회의에서 다른 사람들과 협업하세요."
 #: src/components/settings/views/team.tsx:69
 #: src/components/settings/views/billing.tsx:63
 #: src/components/settings/views/billing.tsx:101
-#: src/components/settings/components/extensions-sidebar.tsx:54
+#: src/components/settings/components/extensions-sidebar.tsx:55
 msgid "Coming Soon"
 msgstr "곧 출시 예정"
 

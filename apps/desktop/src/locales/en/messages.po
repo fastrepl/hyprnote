@@ -14,30 +14,6 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:44
-#: ../../packages/utils/src/datetime.ts:88
-msgid "Unknown date"
-msgstr "Unknown date"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:53
-#: ../../packages/utils/src/datetime.ts:97
-msgid "Invalid date"
-msgstr "Invalid date"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:74
-#: ../../packages/utils/src/datetime.ts:77
-msgid "{date}"
-msgstr "{date}"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:82
-#: ../../packages/utils/src/datetime.ts:129
-msgid "Date error"
-msgstr "Date error"
-
-#. js-lingui-explicit-id
 #: src/components/settings/views/general.tsx:165
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
@@ -68,6 +44,18 @@ msgid "In progress"
 msgstr "In progress"
 
 #. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:44
+#: ../../packages/utils/src/datetime.ts:88
+msgid "Unknown date"
+msgstr "Unknown date"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:53
+#: ../../packages/utils/src/datetime.ts:97
+msgid "Invalid date"
+msgstr "Invalid date"
+
+#. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:63
 msgid "Today"
 msgstr "Today"
@@ -83,6 +71,18 @@ msgstr "Yesterday"
 #: ../../packages/utils/src/datetime.ts:185
 msgid "{days} days ago"
 msgstr "{days} days ago"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:74
+#: ../../packages/utils/src/datetime.ts:77
+msgid "{date}"
+msgstr "{date}"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:82
+#: ../../packages/utils/src/datetime.ts:129
+msgid "Date error"
+msgstr "Date error"
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:110
@@ -330,7 +330,7 @@ msgstr "Ask questions about past meetings"
 msgid "Assistant:"
 msgstr "Assistant:"
 
-#: src/routes/app.settings.tsx:171
+#: src/routes/app.settings.tsx:110
 msgid "Back to Settings"
 msgstr "Back to Settings"
 
@@ -378,7 +378,7 @@ msgstr "Collaborate with others in meetings"
 #: src/components/settings/views/team.tsx:69
 #: src/components/settings/views/billing.tsx:63
 #: src/components/settings/views/billing.tsx:101
-#: src/components/settings/components/extensions-sidebar.tsx:54
+#: src/components/settings/components/extensions-sidebar.tsx:55
 msgid "Coming Soon"
 msgstr "Coming Soon"
 

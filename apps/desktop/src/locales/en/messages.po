@@ -250,15 +250,15 @@ msgstr "{0}"
 
 #: src/components/settings/views/lab.tsx:97
 msgid "{description}"
-msgstr "{description}"
+msgstr "{description}<<<<<<< HEAD"
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:40
+#: src/components/settings/components/calendar/calendar-selector.tsx:42
 msgid "{selectedCount} calendars selected"
 msgstr "{selectedCount} calendars selected"
 
 #: src/components/settings/views/lab.tsx:94
 msgid "{title}"
-msgstr "{title}"
+msgstr "{title}<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:65
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:114
@@ -349,11 +349,11 @@ msgstr "Built-in Templates"
 #: src/components/settings/components/settings-header.tsx:26
 #: src/components/settings/components/main-sidebar.tsx:35
 msgid "Calendar"
-msgstr "Calendar"
+msgstr "Calendar<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:61
 msgid "Calendar Access"
-msgstr "Calendar Access"
+msgstr "Calendar Access<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:43
 msgid "Calendar connected"
@@ -361,11 +361,11 @@ msgstr "Calendar connected"
 
 #: src/components/settings/views/profile.tsx:142
 msgid "CEO"
-msgstr "CEO"
+msgstr "CEO<<<<<<< HEAD"
 
-#: src/components/settings/views/calendar.tsx:283
+#: src/components/settings/views/calendar.tsx:285
 #~ msgid "Choose"
-#~ msgstr "Choose"
+#~ msgstr "Choose>>>>>>> b3962015 (i18n and format)"
 
 #: src/components/settings/views/ai.tsx:217
 msgid "Choose between speed and quality for speech recognition"
@@ -396,7 +396,11 @@ msgstr "Company name"
 
 #: src/components/settings/views/profile.tsx:157
 #~ msgid "Company Name"
-#~ msgstr "Company Name"
+#~ msgstr "Company Name<<<<<<< HEAD"
+
+#: src/components/right-panel/views/widgets-view.tsx:93
+msgid "Configure Widgets"
+msgstr "Configure Widgets"
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:63
 msgid "Connect"
@@ -413,11 +417,11 @@ msgstr "Connect"
 #. placeholder {0}: type === "google-calendar" ? "Google" : "Outlook"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:44
 msgid "Connect your {0} calendar to track upcoming events"
-msgstr "Connect your {0} calendar to track upcoming events"
+msgstr "Connect your {0} calendar to track upcoming events<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:66
 msgid "Connect your calendar and track events"
-msgstr "Connect your calendar and track events"
+msgstr "Connect your calendar and track events<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:110
 msgid "Contacts Access"
@@ -477,6 +481,10 @@ msgstr "Detect meetings automatically"
 #: src/components/settings/views/template.tsx:82
 msgid "Duplicate"
 msgstr "Duplicate"
+
+#: src/components/right-panel/components/widget-renderer/index.tsx:204
+msgid "Edit Widgets"
+msgstr "Edit Widgets"
 
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:97
 msgid "Email"
@@ -562,7 +570,7 @@ msgstr "General"
 
 #: src/components/login-modal.tsx:107
 msgid "Get Started"
-msgstr "Get Started"
+msgstr "Get Started<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:89
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:130
@@ -664,12 +672,12 @@ msgstr "Live summary of the meeting"
 
 #: src/components/settings/views/extension.tsx:126
 msgid "Loading extension details..."
-msgstr "Loading extension details..."
+msgstr "Loading extension details...<<<<<<< HEAD"
 
 #: src/components/workspace-calendar/event-card.tsx:108
 #: src/components/settings/views/ai.tsx:196
 #: src/components/settings/views/ai.tsx:370
-#: src/components/settings/components/calendar/calendar-selector.tsx:49
+#: src/components/settings/components/calendar/calendar-selector.tsx:51
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -736,9 +744,9 @@ msgstr "New note"
 
 #: src/components/left-sidebar/all-list/note-item.tsx:136
 #~ msgid "New window"
-#~ msgstr "New window"
+#~ msgstr "New window<<<<<<< HEAD"
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:55
+#: src/components/settings/components/calendar/calendar-selector.tsx:57
 msgid "No calendars found"
 msgstr "No calendars found"
 
@@ -800,7 +808,7 @@ msgstr "Open Note"
 
 #: src/components/left-sidebar/index.tsx:133
 msgid "Open settings"
-msgstr "Open settings"
+msgstr "Open settings<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:115
 msgid "Optional for participant suggestions"
@@ -938,9 +946,9 @@ msgstr "Sections"
 
 #: src/components/settings/views/notifications.tsx:181
 msgid "Select apps that should not trigger meeting notifications"
-msgstr "Select apps that should not trigger meeting notifications"
+msgstr "Select apps that should not trigger meeting notifications<<<<<<< HEAD"
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:37
+#: src/components/settings/components/calendar/calendar-selector.tsx:39
 msgid "Select Calendars"
 msgstr "Select Calendars"
 
@@ -1216,11 +1224,11 @@ msgstr "You can make Hyprnote takes these words into account when transcribing"
 
 #: src/components/settings/views/general.tsx:175
 #~ msgid "You can make Hyprnote takes these words into account when transcribing."
-#~ msgstr "You can make Hyprnote takes these words into account when transcribing."
+#~ msgstr "You can make Hyprnote takes these words into account when transcribing.<<<<<<< HEAD"
 
-#: src/components/settings/views/calendar.tsx:288
+#: src/components/settings/views/calendar.tsx:290
 #~ msgid "Your Calendars"
-#~ msgstr "Your Calendars"
+#~ msgstr "Your Calendars>>>>>>> b3962015 (i18n and format)"
 
 #: src/components/settings/views/profile.tsx:212
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:142

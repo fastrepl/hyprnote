@@ -250,15 +250,15 @@ msgstr "{0}"
 
 #: src/components/settings/views/lab.tsx:97
 msgid "{description}"
-msgstr ""
+msgstr "<<<<<<< HEAD"
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:40
+#: src/components/settings/components/calendar/calendar-selector.tsx:42
 msgid "{selectedCount} calendars selected"
 msgstr ""
 
 #: src/components/settings/views/lab.tsx:94
 msgid "{title}"
-msgstr ""
+msgstr "<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:65
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:114
@@ -349,11 +349,11 @@ msgstr "기본 템플릿"
 #: src/components/settings/components/settings-header.tsx:26
 #: src/components/settings/components/main-sidebar.tsx:35
 msgid "Calendar"
-msgstr "캘린더"
+msgstr "캘린더<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:61
 msgid "Calendar Access"
-msgstr "캘린더 접근 권한"
+msgstr "캘린더 접근 권한<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:43
 msgid "Calendar connected"
@@ -361,11 +361,11 @@ msgstr "캘린더가 연결되었습니다."
 
 #: src/components/settings/views/profile.tsx:142
 msgid "CEO"
-msgstr "대표"
+msgstr "대표<<<<<<< HEAD"
 
-#: src/components/settings/views/calendar.tsx:283
+#: src/components/settings/views/calendar.tsx:285
 #~ msgid "Choose"
-#~ msgstr ""
+#~ msgstr ">>>>>>> b3962015 (i18n and format)"
 
 #: src/components/settings/views/ai.tsx:217
 msgid "Choose between speed and quality for speech recognition"
@@ -396,7 +396,11 @@ msgstr ""
 
 #: src/components/settings/views/profile.tsx:157
 #~ msgid "Company Name"
-#~ msgstr "회사명"
+#~ msgstr "회사명<<<<<<< HEAD"
+
+#: src/components/right-panel/views/widgets-view.tsx:93
+msgid "Configure Widgets"
+msgstr ""
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:63
 msgid "Connect"
@@ -413,11 +417,11 @@ msgstr "연결하기"
 #. placeholder {0}: type === "google-calendar" ? "Google" : "Outlook"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:44
 msgid "Connect your {0} calendar to track upcoming events"
-msgstr "{0} 캘린더를 연결하여 예정된 일정을 추적하세요."
+msgstr "{0} 캘린더를 연결하여 예정된 일정을 추적하세요.<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:66
 msgid "Connect your calendar and track events"
-msgstr "캘린더를 연결하고 일정을 추적하세요."
+msgstr "캘린더를 연결하고 일정을 추적하세요.<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:110
 msgid "Contacts Access"
@@ -477,6 +481,10 @@ msgstr "자동으로 회의를 감지하세요."
 #: src/components/settings/views/template.tsx:82
 msgid "Duplicate"
 msgstr "복제"
+
+#: src/components/right-panel/components/widget-renderer/index.tsx:204
+msgid "Edit Widgets"
+msgstr ""
 
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:97
 msgid "Email"
@@ -562,7 +570,7 @@ msgstr "일반"
 
 #: src/components/login-modal.tsx:107
 msgid "Get Started"
-msgstr "시작하기"
+msgstr "시작하기<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:89
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:130
@@ -664,12 +672,12 @@ msgstr "실시간 회의 요약"
 
 #: src/components/settings/views/extension.tsx:126
 msgid "Loading extension details..."
-msgstr "익스텐션 정보 로딩 중..."
+msgstr "익스텐션 정보 로딩 중...<<<<<<< HEAD"
 
 #: src/components/workspace-calendar/event-card.tsx:108
 #: src/components/settings/views/ai.tsx:196
 #: src/components/settings/views/ai.tsx:370
-#: src/components/settings/components/calendar/calendar-selector.tsx:49
+#: src/components/settings/components/calendar/calendar-selector.tsx:51
 msgid "Loading..."
 msgstr "로딩 중..."
 
@@ -736,9 +744,9 @@ msgstr "노트 생성"
 
 #: src/components/left-sidebar/all-list/note-item.tsx:136
 #~ msgid "New window"
-#~ msgstr "새로운 창에서 열기"
+#~ msgstr "새로운 창에서 열기<<<<<<< HEAD"
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:55
+#: src/components/settings/components/calendar/calendar-selector.tsx:57
 msgid "No calendars found"
 msgstr ""
 
@@ -800,7 +808,7 @@ msgstr "노트 열기"
 
 #: src/components/left-sidebar/index.tsx:133
 msgid "Open settings"
-msgstr "설정 열기"
+msgstr "설정 열기<<<<<<< HEAD"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:115
 msgid "Optional for participant suggestions"
@@ -938,9 +946,9 @@ msgstr "섹션"
 
 #: src/components/settings/views/notifications.tsx:181
 msgid "Select apps that should not trigger meeting notifications"
-msgstr "회의 알림을 발생시키지 않을 앱을 선택하세요."
+msgstr "회의 알림을 발생시키지 않을 앱을 선택하세요.<<<<<<< HEAD"
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:37
+#: src/components/settings/components/calendar/calendar-selector.tsx:39
 msgid "Select Calendars"
 msgstr ""
 
@@ -1216,11 +1224,11 @@ msgstr ""
 
 #: src/components/settings/views/general.tsx:175
 #~ msgid "You can make Hyprnote takes these words into account when transcribing."
-#~ msgstr "하이퍼노트가 텍스트 변환 시 이러한 단어들을 고려하도록 설정할 수 있습니다."
+#~ msgstr "하이퍼노트가 텍스트 변환 시 이러한 단어들을 고려하도록 설정할 수 있습니다.<<<<<<< HEAD"
 
-#: src/components/settings/views/calendar.tsx:288
+#: src/components/settings/views/calendar.tsx:290
 #~ msgid "Your Calendars"
-#~ msgstr ""
+#~ msgstr ">>>>>>> b3962015 (i18n and format)"
 
 #: src/components/settings/views/profile.tsx:212
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:142

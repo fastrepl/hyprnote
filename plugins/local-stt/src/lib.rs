@@ -80,27 +80,12 @@ mod test {
     fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
         let mut ctx = tauri::test::mock_context(tauri::test::noop_assets());
         ctx.config_mut().identifier = "com.hyprnote.dev".to_string();
-        builder.plugin(init()).build(ctx).unwrap()
-    }
 
-    #[tokio::test]
-    #[ignore]
-    // cargo test test_download_model -p tauri-plugin-local-stt -- --ignored --nocapture
-    async fn test_download_model() {
-        let app = create_app(tauri::test::mock_builder());
-        let cache_dir = app.path().data_dir().unwrap().join("com.hyprnote.dev");
-
-        let cache = kalosm_common::Cache::new(cache_dir)
-            .with_huggingface_token(Some("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".to_string()));
-
-        rwhisper::Whisper::builder()
-            .with_source(rwhisper::WhisperSource::QuantizedTinyEn)
-            .with_cache(cache)
-            .build_with_loading_handler(|progress| {
-                println!("{:?}", progress);
-            })
-            .await
-            .unwrap();
+        builder
+            .plugin(init())
+            .plugin(tauri_plugin_store::Builder::default().build())
+            .build(ctx)
+            .unwrap()
     }
 
     #[tokio::test]

@@ -32,7 +32,6 @@
     "template:default",
     "local-llm:default",
     "local-stt:default",
-    "apple-calendar:default",
     "misc:default",
     "sse:default",
     "connector:default",
@@ -44,6 +43,10 @@
     "store2:default",
     "analytics:default",
     "flags:default",
+    {
+      "identifier": "apple-calendar:default",
+      "platforms": ["macos"]
+    },
     {
       "identifier": "http:default",
       "allow": [

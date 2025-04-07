@@ -17,7 +17,7 @@ export function EntityToolbar({ title, isEditing = false, onEditToggle, entityTy
       <div className="flex-1 flex justify-center items-center gap-2" data-tauri-drag-region>
         {entityType === "human" && <User className="size-4 text-neutral-500" />}
         {entityType === "organization" && <Building className="size-4 text-neutral-500" />}
-        <h1 className="font-medium" data-tauri-drag-region>
+        <h1 className="font-medium truncate" data-tauri-drag-region>
           {title}
         </h1>
       </div>

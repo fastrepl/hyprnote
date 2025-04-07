@@ -4,12 +4,10 @@ import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { FileText } from "lucide-react";
 
-import { commands as dbCommands, type Session } from "@hypr/plugin-db";
+import { commands as dbCommands, type Human, type Session } from "@hypr/plugin-db";
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
 
-import type { PastNotesProps } from "./types";
-
-export function PastNotes({ human }: PastNotesProps) {
+export function PastNotes({ human }: { human: Human }) {
   const { data: sessions = [] } = useQuery({
     queryKey: ["sessions", "human", human.id],
     queryFn: async () => {

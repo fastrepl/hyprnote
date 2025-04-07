@@ -12985,6 +12985,7 @@ dependencies = [
  "tokio",
  "tower-http 0.6.2",
  "tracing",
+ "whisper2",
 ]
 
 [[package]]
@@ -15172,10 +15173,12 @@ dependencies = [
 name = "whisper2"
 version = "0.1.0"
 dependencies = [
+ "cpal",
  "data",
  "dirs 6.0.0",
  "futures-util",
  "llama",
+ "rodio",
  "tokio",
  "whisper-rs",
 ]

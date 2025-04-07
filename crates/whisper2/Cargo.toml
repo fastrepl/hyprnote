@@ -12,4 +12,7 @@ futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [dependencies]
-whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "f5ee632", features = ["metal", "tracing_backend"] }
+cpal = { workspace = true }
+futures-util = { workspace = true }
+rodio = { workspace = true }
+whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "f5ee632", features = ["raw-api", "metal", "tracing_backend"] }

@@ -51,8 +51,10 @@ rodio = { workspace = true, features = ["wav"] }
 kalosm-common = { workspace = true }
 kalosm-sound = { workspace = true, default-features = false }
 rwhisper = { workspace = true }
+whisper2 = { path = "../../crates/whisper2" }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 kalosm-common = { workspace = true, features = ["metal"] }
 kalosm-sound = { workspace = true, default-features = false, features = ["metal"] }
 rwhisper = { workspace = true, features = ["metal"] }
+whisper2 = { path = "../../crates/whisper2" }

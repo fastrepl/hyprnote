@@ -133,26 +133,22 @@ async fn listen(
         .try_acquire_connection()
         .ok_or(StatusCode::TOO_MANY_REQUESTS)?;
 
-    let model = rwhisper::WhisperBuilder::default()
-        .with_cache(kalosm_common::Cache::new(state.model_cache_dir))
-        .with_language(Some(rwhisper::WhisperLanguage::English))
-        .with_source(state.model_type)
-        .build()
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    // let model_path = format!("{}/model.bin", state.model_cache_dir);
+    let model_path = "/Users/yujonglee/dev/company/hyprnote/crates/whisper2/model.bin";
+    let model = whisper2::Whisper::new(model_path);
 
     Ok(ws.on_upgrade(move |socket| websocket(socket, model, guard)))
 }
 
 #[tracing::instrument(skip_all)]
-async fn websocket(socket: WebSocket, model: rwhisper::Whisper, _guard: ConnectionGuard) {
+async fn websocket(socket: WebSocket, model: whisper2::Whisper, _guard: ConnectionGuard) {
     let (mut ws_sender, ws_receiver) = socket.split();
     let mut stream = {
         let audio_source = WebSocketAudioSource::new(ws_receiver, 16 * 1000);
         let chunked =
             crate::chunker::FixedChunkStream::new(audio_source, std::time::Duration::from_secs(12));
 
-        rwhisper::TranscribeChunkedAudioStreamExt::transcribe(chunked, model)
+        whisper2::TranscribeChunkedAudioStreamExt::transcribe(chunked, model)
     };
 
     while let Some(chunk) = stream.next().await {

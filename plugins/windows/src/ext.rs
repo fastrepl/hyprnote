@@ -231,6 +231,7 @@ impl HyprWindow {
         };
 
         if created {
+            #[cfg(target_os = "macos")]
             {
                 use tauri_plugin_decorum::WebviewWindowExt;
                 window.set_traffic_lights_inset(12.0, 20.0)?;

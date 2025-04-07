@@ -1,14 +1,7 @@
 use std::future::Future;
-use std::path::PathBuf;
 
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_store2::StorePluginExt;
-
-#[derive(Debug, Clone)]
-pub struct ModelConfig {
-    pub dir: PathBuf,
-    pub source: rwhisper::WhisperSource,
-}
 
 pub trait LocalSttPluginExt<R: Runtime> {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
@@ -80,11 +73,10 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn start_server(&self) -> Result<(), crate::Error> {
         let cache_dir = self.path().app_data_dir()?;
-        let model = self.get_current_model()?;
+        let _model = self.get_current_model()?;
 
         let server_state = crate::ServerStateBuilder::default()
             .model_cache_dir(cache_dir)
-            .model_type(model.into())
             .build();
 
         let server = crate::run_server(server_state).await?;

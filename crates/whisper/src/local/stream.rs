@@ -7,7 +7,7 @@ use cpal::FromSample;
 use futures_util::{Stream, StreamExt};
 use rodio::Source;
 
-use crate::{Segment, Whisper};
+use super::{Segment, Whisper};
 
 pub struct ChunkedTranscriptionTask<S> {
     stream: S,

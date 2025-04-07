@@ -5,27 +5,6 @@ pub enum SupportedModel {
     QuantizedLargeV3Turbo,
 }
 
-impl From<rwhisper::WhisperSource> for SupportedModel {
-    fn from(source: rwhisper::WhisperSource) -> Self {
-        match source {
-            rwhisper::WhisperSource::QuantizedTiny => SupportedModel::QuantizedTiny,
-            rwhisper::WhisperSource::QuantizedTinyEn => SupportedModel::QuantizedTinyEn,
-            rwhisper::WhisperSource::QuantizedLargeV3Turbo => SupportedModel::QuantizedLargeV3Turbo,
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl From<SupportedModel> for rwhisper::WhisperSource {
-    fn from(model: SupportedModel) -> Self {
-        match model {
-            SupportedModel::QuantizedTiny => rwhisper::WhisperSource::QuantizedTiny,
-            SupportedModel::QuantizedTinyEn => rwhisper::WhisperSource::QuantizedTinyEn,
-            SupportedModel::QuantizedLargeV3Turbo => rwhisper::WhisperSource::QuantizedLargeV3Turbo,
-        }
-    }
-}
-
 impl SupportedModel {
     pub fn model_path(&self, data_dir: impl Into<std::path::PathBuf>) -> std::path::PathBuf {
         match self {

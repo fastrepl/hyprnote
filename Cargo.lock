@@ -12969,7 +12969,6 @@ dependencies = [
  "listener-interface",
  "reqwest 0.12.15",
  "rodio",
- "rwhisper",
  "serde",
  "serde_json",
  "specta",
@@ -12985,7 +12984,7 @@ dependencies = [
  "tokio",
  "tower-http 0.6.2",
  "tracing",
- "whisper2",
+ "whisper",
 ]
 
 [[package]]
@@ -15140,12 +15139,18 @@ dependencies = [
  "audio-utils",
  "bytes",
  "codes-iso-639",
+ "cpal",
+ "data",
+ "dirs 6.0.0",
  "futures-util",
  "kalosm-sound",
- "rwhisper",
+ "llama",
+ "rodio",
  "serde",
  "serde_json",
+ "tokio",
  "url",
+ "whisper-rs",
  "ws",
 ]
 
@@ -15167,20 +15172,6 @@ dependencies = [
  "cfg-if",
  "cmake",
  "fs_extra",
-]
-
-[[package]]
-name = "whisper2"
-version = "0.1.0"
-dependencies = [
- "cpal",
- "data",
- "dirs 6.0.0",
- "futures-util",
- "llama",
- "rodio",
- "tokio",
- "whisper-rs",
 ]
 
 [[package]]

@@ -29,6 +29,7 @@ hypr-loops = { path = "crates/loops", package = "loops" }
 hypr-nango = { path = "crates/nango", package = "nango" }
 hypr-timeline = { path = "crates/timeline", package = "timeline" }
 hypr-turso = { path = "crates/turso", package = "turso" }
+hypr-whisper = { path = "crates/whisper", package = "whisper" }
 hypr-ws = { path = "crates/ws", package = "ws" }
 
 tauri = "2"

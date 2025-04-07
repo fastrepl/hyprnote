@@ -5,8 +5,16 @@ edition = "2021"
 
 [features]
 default = ["local", "cloud"]
-local = ["dep:rwhisper"]
+local = ["dep:whisper-rs"]
 cloud = []
+
+[dev-dependencies]
+hypr-data = { workspace = true }
+hypr-llama = { workspace = true }
+
+dirs = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [dependencies]
 hypr-audio-utils = { path = "../audio-utils", package = "audio-utils" }
@@ -14,14 +22,16 @@ hypr-ws = { path = "../ws", package = "ws" }
 
 bytes = { workspace = true }
 codes-iso-639 = { workspace = true }
+cpal = { workspace = true }
 futures-util = { workspace = true }
 kalosm-sound = { workspace = true, default-features = false }
+rodio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 url = { workspace = true }
 
 [target.'cfg(not(target_os = "macos"))'.dependencies]
-rwhisper = { workspace = true, optional = true }
+whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "f5ee632", features = ["raw-api", "tracing_backend"], optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-rwhisper = { workspace = true, features = ["metal"], optional = true }
+whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "f5ee632", features = ["raw-api", "metal", "tracing_backend"], optional = true }

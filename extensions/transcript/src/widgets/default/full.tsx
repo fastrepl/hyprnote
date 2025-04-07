@@ -1,46 +1,29 @@
-import { LanguagesIcon, Minimize2Icon } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { Minimize2Icon } from "lucide-react";
 
-import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@hypr/ui/components/ui/dropdown-menu";
 import { WidgetHeader } from "@hypr/ui/components/ui/widgets";
-import { WidgetFullSize, WidgetFullSizeWrapper } from "@hypr/ui/components/ui/widgets";
+import {
+  WidgetFullSize,
+  WidgetFullSizeWrapper,
+} from "@hypr/ui/components/ui/widgets";
+import { safeNavigate } from "@hypr/utils";
 import { useSessions } from "@hypr/utils/contexts";
-import Transcript from "../../components/transcript";
-import { useTranscript } from "../../hooks/useTranscript";
+
+import {
+  TranscriptContent,
+  LanguageSelector,
+  TranscriptBody,
+} from "../../components";
 
 const TranscriptFull: WidgetFullSize = ({ onMinimize }) => {
   const sessionId = useSessions((s) => s.currentSessionId);
-  const { timeline, isLive, selectedLanguage, handleLanguageChange } = useTranscript(sessionId);
 
-  const transcriptRef = useRef<HTMLDivElement>(null);
+  const handleOpenTranscriptSettings = () => {
+    const extensionId = "@hypr/extension-transcript";
+    const url = `/app/settings?tab=extensions&extension=${extensionId}`;
 
-  useEffect(() => {
-    const scrollToBottom = () => {
-      requestAnimationFrame(() => {
-        if (transcriptRef.current) {
-          transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight;
-        }
-      });
-    };
-
-    if (isLive && timeline?.items?.length) {
-      scrollToBottom();
-    }
-
-    if (!isLive && timeline?.items?.length) {
-      scrollToBottom();
-    }
-  }, [timeline?.items, isLive]);
+    safeNavigate({ type: "settings" }, url);
+  };
 
   const minimizeButton = (
     <Button key="minimize" variant="ghost" size="icon" onClick={onMinimize}>
@@ -50,56 +33,38 @@ const TranscriptFull: WidgetFullSize = ({ onMinimize }) => {
 
   return (
     <WidgetFullSizeWrapper onMinimize={onMinimize}>
-      {sessionId && (
-        <>
-          <div className="p-4 pb-0">
-            <WidgetHeader
-              title={
-                <div className="flex items-center gap-2">
-                  Transcript
-                  {isLive && (
-                    <Badge
-                      variant="destructive"
-                      className="hover:bg-destructive"
-                    >
-                      LIVE
-                    </Badge>
-                  )}
-                </div>
-              }
-              actions={[
-                <DropdownMenu key="language">
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="p-0">
-                      <LanguagesIcon size={16} className="text-black" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end">
-                    <DropdownMenuLabel>Select Language</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup
-                      value={selectedLanguage}
-                      onValueChange={handleLanguageChange}
-                    >
-                      <DropdownMenuRadioItem value="en">
-                        English
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>,
-                minimizeButton,
-              ]}
-            />
-          </div>
+      <div className="p-4 pb-0">
+        <WidgetHeader
+          title={
+            <div className="flex items-center gap-2">
+              <button onClick={handleOpenTranscriptSettings}>
+                <img
+                  src="/assets/transcript-icon.jpg"
+                  className="size-5 rounded-md cursor-pointer"
+                  title="Configure Transcript extension"
+                />
+              </button>
+              Transcript
+              {sessionId && (
+                <TranscriptContent sessionId={sessionId} showLiveBadge={true} />
+              )}
+            </div>
+          }
+          actions={[
+            sessionId && (
+              <LanguageSelector key="language" sessionId={sessionId} />
+            ),
+            minimizeButton,
+          ].filter(Boolean)}
+        />
+      </div>
 
-          {timeline && (
-            <Transcript
-              ref={transcriptRef}
-              transcript={timeline}
-              isLive={isLive}
-            />
-          )}
-        </>
+      {sessionId ? (
+        <TranscriptBody sessionId={sessionId} />
+      ) : (
+        <div className="flex items-center justify-center h-full text-neutral-400 p-4">
+          Session not found
+        </div>
       )}
     </WidgetFullSizeWrapper>
   );

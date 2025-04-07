@@ -24,6 +24,7 @@ const props = defineProps<{
       :key="tag"
       type="default"
       :text="tag.charAt(0).toUpperCase() + tag.slice(1)"
+      class="border border-gray-200 dark:border-gray-700"
     />
   </div>
 </template>

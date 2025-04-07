@@ -14,6 +14,8 @@ tags: [local, realtime, STT, speech-to-text, AI]
 
 <ExtensionTags :frontmatter="$frontmatter" />
 
+<Image alt="Transcript Widget" src="/extensions/transcript.png" imageClass="mt-6 max-w-[360px]" />
+
 ## Resources
 
 <ul>

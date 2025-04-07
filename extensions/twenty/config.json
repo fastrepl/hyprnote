@@ -4,7 +4,7 @@
   "title": "Twenty",
   "description": "Twenty CRM integration",
   "implemented": true,
-  "default": true,
+  "default": false,
   "cloud_only": false,
   "plugins": ["listener", "db", "windows"],
   "tags": ["CRM"]

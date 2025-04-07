@@ -1,18 +1,20 @@
 ---
-title: Weather
-description: Displays the weather of the configured location.
-source: https://github.com/fastrepl/hypr/tree/main/extensions/weather
-implemented: false
+title: Twenty
+description: Twenty CRM integration
+source: https://github.com/fastrepl/hypr/tree/main/extensions/twenty
+implemented: true
 default: false
 cloud_only: false
-plugins: []
-tags: [utility]
+plugins: [listener, db, windows]
+tags: [CRM]
 ---
 <TitleWithContributors :title="$frontmatter.title" />
 
 **{{ $frontmatter.description }}**
 
 <ExtensionTags :frontmatter="$frontmatter" />
+
+<Image alt="Twenty Widget" src="/extensions/twenty.png" imageClass="mt-6 max-w-[360px]" />
 
 ## Resources
 

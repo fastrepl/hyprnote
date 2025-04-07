@@ -34,12 +34,15 @@
 
 ## Hypercharge your notes
 Casually jot stuff down and Hyprnote will craft a meeting note based on your memos.
+
 ![Hypercharge](https://github.com/user-attachments/assets/a78f54ff-29ca-4226-93b4-62cbc1acced7)
 
 ## Offline & Privacy
 Hyprnote is local-first which means you can be off the grid and it's perfectly fine.
+
 ![Local-first](https://github.com/user-attachments/assets/e5014024-3f6a-457a-8f1c-3b183883b782)
 
 ## 100% Customizable
 Hyprnote is similar to VS Code. You can add or create extensions based on your circumstances.
+
 ![Customization](https://github.com/user-attachments/assets/341d2e6c-a2c7-432b-95b8-fdc2018838d5)

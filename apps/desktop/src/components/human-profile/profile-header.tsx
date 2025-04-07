@@ -13,15 +13,17 @@ export function ProfileHeader({
   human,
   organization,
   isEditing,
-  handleInputChange,
-  setEditedHuman,
 }: {
   human: Human;
   organization: Organization | null;
   isEditing: boolean;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setEditedHuman: React.Dispatch<React.SetStateAction<Human>>;
 }) {
+  const [editedHuman, setEditedHuman] = useState<Human>(human);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(e.target.value);
+  };
+
   const humanQuery = useQuery({
     initialData: human,
     queryKey: ["human", human.id],

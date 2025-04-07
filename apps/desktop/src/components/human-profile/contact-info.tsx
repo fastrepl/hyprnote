@@ -5,26 +5,31 @@ import { commands as dbCommands, type Human, type Organization } from "@hypr/plu
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { extractWebsiteUrl } from "@hypr/utils";
 import { useQuery } from "@tanstack/react-query";
 
 export function ContactInfo({
   human,
   organization,
   isEditing,
-  handleInputChange,
-  getOrganizationWebsite,
 }: {
   human: Human;
   organization: Organization | null;
   isEditing: boolean;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  getOrganizationWebsite: () => string | null;
 }) {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(e.target.value);
+  };
+
   const humanQuery = useQuery({
     initialData: human,
     queryKey: ["human", human.id],
     queryFn: () => dbCommands.getHuman(human.id),
   });
+
+  const getOrganizationWebsite = () => {
+    return organization ? extractWebsiteUrl(humanQuery.data?.email) : null;
+  };
 
   if (isEditing) {
     return (

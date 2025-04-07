@@ -21,6 +21,7 @@ use hypr_listener_interface::{ListenInputChunk, ListenOutputChunk, ListenParams,
 
 #[derive(Default)]
 pub struct ServerStateBuilder {
+    pub model_type: Option<crate::SupportedModel>,
     pub model_cache_dir: Option<PathBuf>,
 }
 
@@ -30,8 +31,14 @@ impl ServerStateBuilder {
         self
     }
 
+    pub fn model_type(mut self, model_type: crate::SupportedModel) -> Self {
+        self.model_type = Some(model_type);
+        self
+    }
+
     pub fn build(self) -> ServerState {
         ServerState {
+            model_type: self.model_type.unwrap(),
             model_cache_dir: self.model_cache_dir.unwrap(),
             num_connections: Arc::new(AtomicUsize::new(0)),
         }
@@ -40,6 +47,7 @@ impl ServerStateBuilder {
 
 #[derive(Clone)]
 pub struct ServerState {
+    model_type: crate::SupportedModel,
     model_cache_dir: PathBuf,
     num_connections: Arc<AtomicUsize>,
 }
@@ -125,9 +133,8 @@ async fn listen(
         .try_acquire_connection()
         .ok_or(StatusCode::TOO_MANY_REQUESTS)?;
 
-    // let model_path = format!("{}/model.bin", state.model_cache_dir);
-    let model_path = "/Users/yujonglee/dev/company/hyprnote/crates/whisper/model.bin";
-    let model = hypr_whisper::local::Whisper::new(model_path);
+    let model_path = state.model_type.model_path(&state.model_cache_dir);
+    let model = hypr_whisper::local::Whisper::new(model_path.to_str().unwrap());
 
     Ok(ws.on_upgrade(move |socket| websocket(socket, model, guard)))
 }

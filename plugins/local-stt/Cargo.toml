@@ -49,9 +49,7 @@ tower-http = { workspace = true, features = ["cors", "trace"] }
 rodio = { workspace = true, features = ["wav"] }
 
 [target.'cfg(not(target_os = "macos"))'.dependencies]
-kalosm-common = { workspace = true }
 kalosm-sound = { workspace = true, default-features = false }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-kalosm-common = { workspace = true, features = ["metal"] }
 kalosm-sound = { workspace = true, default-features = false, features = ["metal"] }

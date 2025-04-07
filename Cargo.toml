@@ -140,7 +140,6 @@ kalosm-llama = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 kalosm-model-types = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 kalosm-sound = { git = "https://github.com/floneum/floneum", rev = "52967ae", default-features = false }
 kalosm-streams = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
-rwhisper = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 
 deepgram = { version = "0.6.6", default-features = false }
 libsql = "0.9.1"

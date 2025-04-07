@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building, CircleMinus, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -10,25 +10,19 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { getInitials } from "@hypr/utils";
 
 export function ProfileHeader({
+  isEditing,
   human,
   organization,
-  isEditing,
 }: {
+  isEditing: boolean;
   human: Human;
   organization: Organization | null;
-  isEditing: boolean;
 }) {
-  const [editedHuman, setEditedHuman] = useState<Human>(human);
+  const queryClient = useQueryClient();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log(e.target.value);
   };
-
-  const humanQuery = useQuery({
-    initialData: human,
-    queryKey: ["human", human.id],
-    queryFn: () => dbCommands.getHuman(human.id),
-  });
 
   const orgSearchResults: Organization[] = [];
   const orgSearchRef = useRef<HTMLDivElement>(null);
@@ -47,6 +41,22 @@ export function ProfileHeader({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [orgSearchRef, setShowOrgSearch]);
+
+  const humanQuery = useQuery({
+    initialData: human,
+    queryKey: ["human", human.id],
+    queryFn: () => dbCommands.getHuman(human.id),
+  });
+
+  const updateOrgOfHuman = useMutation({
+    mutationFn: ({ organizationId }: { organizationId: string | null }) => {
+      const newHuman = { ...human, organization_id: organizationId };
+      return dbCommands.upsertHuman(newHuman);
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(["human", human.id], data);
+    },
+  });
 
   return (
     <div className="flex items-center gap-4">
@@ -83,9 +93,7 @@ export function ProfileHeader({
                       <div className="text-sm text-gray-700 flex-1">{organization.name}</div>
                       <button
                         type="button"
-                        onClick={() => {
-                          setEditedHuman(prev => ({ ...prev, organization_id: null }));
-                        }}
+                        onClick={() => updateOrgOfHuman.mutate({ organizationId: null })}
                         className="text-gray-400 hover:text-red-500 transition-colors"
                       >
                         <CircleMinus className="size-4" />
@@ -119,7 +127,7 @@ export function ProfileHeader({
                                     type="button"
                                     className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
                                     onClick={() => {
-                                      setEditedHuman(prev => ({ ...prev, organization_id: org.id }));
+                                      updateOrgOfHuman.mutate({ organizationId: org.id });
                                       setOrgSearchQuery("");
                                       setShowOrgSearch(false);
                                     }}
@@ -146,8 +154,7 @@ export function ProfileHeader({
                                     };
 
                                     await dbCommands.upsertOrganization(newOrg);
-
-                                    setEditedHuman(prev => ({ ...prev, organization_id: newOrg.id }));
+                                    updateOrgOfHuman.mutate({ organizationId: newOrg.id });
 
                                     setOrgSearchQuery("");
                                     setShowOrgSearch(false);

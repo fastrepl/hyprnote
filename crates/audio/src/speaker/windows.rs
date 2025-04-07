@@ -1,3 +1,5 @@
+use futures_util::Stream;
+
 pub struct SpeakerInput {}
 
 impl SpeakerInput {
@@ -22,7 +24,7 @@ impl SpeakerStream {
     }
 }
 
-impl futures_core::Stream for SpeakerStream {
+impl Stream for SpeakerStream {
     type Item = f32;
 
     fn poll_next(

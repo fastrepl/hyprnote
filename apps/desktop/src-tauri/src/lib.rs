@@ -137,6 +137,7 @@ pub async fn main() {
     HyprWindow::Main.show(&app_handle).unwrap();
 
     app.run(|app, event| {
+        #[cfg(target_os = "macos")]
         if let tauri::RunEvent::Reopen { .. } = event {
             HyprWindow::Main.show(&app).unwrap();
         }

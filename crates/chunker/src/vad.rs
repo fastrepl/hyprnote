@@ -7,7 +7,7 @@ use std::{
 };
 
 use futures_util::{ready, Stream};
-use kalosm_sound::AsyncSource;
+use kalosm_sound::{rodio::buffer::SamplesBuffer, AsyncSource};
 use silero::{VadConfig, VadSession, VadTransition};
 
 pub struct VoiceActivityRechunker<S> {
@@ -15,6 +15,7 @@ pub struct VoiceActivityRechunker<S> {
     vad: VadSession,
     buffer: Vec<f32>,
     chunk_size: usize,
+    sample_rate: usize,
 }
 
 impl<S> VoiceActivityRechunker<S>
@@ -27,8 +28,12 @@ where
 
         let vad_config = VadConfig {
             sample_rate,
+            positive_speech_threshold: 0.4,
+            negative_speech_threshold: 0.25,
             post_speech_pad: Duration::from_millis(100),
-            ..VadConfig::default()
+            pre_speech_pad: Duration::from_millis(500),
+            redemption_time: Duration::from_millis(500),
+            min_speech_time: Duration::from_millis(90),
         };
         let vad = VadSession::new(vad_config).unwrap();
 
@@ -37,12 +42,13 @@ where
             vad,
             buffer: Vec::with_capacity(chunk_size * 2),
             chunk_size,
+            sample_rate,
         }
     }
 }
 
 impl<S: AsyncSource + Unpin> Stream for VoiceActivityRechunker<S> {
-    type Item = Vec<f32>;
+    type Item = SamplesBuffer<f32>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.get_mut();
@@ -72,14 +78,18 @@ impl<S: AsyncSource + Unpin> Stream for VoiceActivityRechunker<S> {
         let transitions = match this.vad.process(&data) {
             Ok(transitions) => transitions,
             Err(e) => {
-                tracing::error!("Error in voice activity detector: {}", e);
+                tracing::error!("vad_error: {}", e);
                 return Poll::Ready(None);
             }
         };
 
         for transition in transitions {
             if let VadTransition::SpeechEnd { samples, .. } = transition {
-                return Poll::Ready(Some(samples));
+                return Poll::Ready(Some(SamplesBuffer::new(
+                    1,
+                    this.sample_rate as u32,
+                    samples,
+                )));
             }
         }
 

@@ -2,18 +2,11 @@ import { Minimize2Icon } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { WidgetHeader } from "@hypr/ui/components/ui/widgets";
-import {
-  WidgetFullSize,
-  WidgetFullSizeWrapper,
-} from "@hypr/ui/components/ui/widgets";
+import { WidgetFullSize, WidgetFullSizeWrapper } from "@hypr/ui/components/ui/widgets";
 import { safeNavigate } from "@hypr/utils";
 import { useSessions } from "@hypr/utils/contexts";
 
-import {
-  TranscriptContent,
-  LanguageSelector,
-  TranscriptBody,
-} from "../../components";
+import { LanguageSelector, TranscriptBody, TranscriptContent } from "../../components";
 
 const TranscriptFull: WidgetFullSize = ({ onMinimize }) => {
   const sessionId = useSessions((s) => s.currentSessionId);
@@ -45,27 +38,23 @@ const TranscriptFull: WidgetFullSize = ({ onMinimize }) => {
                 />
               </button>
               Transcript
-              {sessionId && (
-                <TranscriptContent sessionId={sessionId} showLiveBadge={true} />
-              )}
+              {sessionId && <TranscriptContent sessionId={sessionId} showLiveBadge={true} />}
             </div>
           }
           actions={[
-            sessionId && (
-              <LanguageSelector key="language" sessionId={sessionId} />
-            ),
+            sessionId && <LanguageSelector key="language" sessionId={sessionId} />,
             minimizeButton,
           ].filter(Boolean)}
         />
       </div>
 
-      {sessionId ? (
-        <TranscriptBody sessionId={sessionId} />
-      ) : (
-        <div className="flex items-center justify-center h-full text-neutral-400 p-4">
-          Session not found
-        </div>
-      )}
+      {sessionId
+        ? <TranscriptBody sessionId={sessionId} />
+        : (
+          <div className="flex items-center justify-center h-full text-neutral-400 p-4">
+            Session not found
+          </div>
+        )}
     </WidgetFullSizeWrapper>
   );
 };

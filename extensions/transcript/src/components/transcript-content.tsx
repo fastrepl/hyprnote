@@ -8,13 +8,15 @@ interface TranscriptContentProps {
 
 export function TranscriptContent({ sessionId, showLiveBadge }: TranscriptContentProps) {
   const { isLive } = useTranscript(sessionId);
-  
-  return showLiveBadge && isLive ? (
-    <Badge
-      variant="destructive"
-      className="hover:bg-destructive"
-    >
-      LIVE
-    </Badge>
-  ) : null;
+
+  return showLiveBadge && isLive
+    ? (
+      <Badge
+        variant="destructive"
+        className="hover:bg-destructive"
+      >
+        LIVE
+      </Badge>
+    )
+    : null;
 }

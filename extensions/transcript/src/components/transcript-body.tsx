@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import Transcript from "./transcript";
 import { useTranscript } from "../hooks/useTranscript";
+import Transcript from "./transcript";
 
 interface TranscriptBodyProps {
   sessionId: string;
@@ -24,11 +24,13 @@ export function TranscriptBody({ sessionId }: TranscriptBodyProps) {
     }
   }, [timeline?.items, isLive]);
 
-  return timeline ? (
-    <Transcript
-      ref={transcriptRef}
-      transcript={timeline}
-      isLive={isLive}
-    />
-  ) : null;
+  return timeline
+    ? (
+      <Transcript
+        ref={transcriptRef}
+        transcript={timeline}
+        isLive={isLive}
+      />
+    )
+    : null;
 }

@@ -19,13 +19,13 @@ extension-name/
 │   │   └── <widget-name-1>/        # Example widget 1 implementation
 │   │   │   ├── 1x1-1.tsx           # First 1x1 layout widget
 │   │   │   ├── 1x1-2.tsx           # Second 1x1 layout widget
-│   │   │   └── init.ts             # Widget initialization
+│   │   │   └── index.tsx           # Widget group
 │   │   └── <widget-name-2>/        
 │   │       ├── 2x2.tsx             
 │   │       ├── full.tsx            
-│   │       └── init.ts             
+│   │       └── index.tsx             
 │   ├── globals.css                 # Global styles
-│   ├── index.tsx                   # Extension entry point
+│   ├── index.tsx                   # Extension entry point and initialization
 │   ├── types.ts                    # Type definitions
 │   └── utils.ts                    # Utility functions
 ├── config.json                     # Extension configuration

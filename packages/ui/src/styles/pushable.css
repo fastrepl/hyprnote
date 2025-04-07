@@ -1,5 +1,5 @@
 .pushable {
-  background: linear-gradient(135deg, #f59e0b, #1e3a8a);
+  background: #1a1a1a;
   border: none;
   border-radius: 12px;
   padding: 0;
@@ -16,7 +16,7 @@
   padding: 12px 42px;
   border-radius: 12px;
   font-size: 1.25rem;
-  background: linear-gradient(135deg, #fbbf24, #2563eb);
+  background: #333333;
   color: white;
   transform: translateY(-6px);
   transition: transform 50ms;

@@ -1,4 +1,4 @@
-<img src="https://github.com/user-attachments/assets/b839e2a9-58f6-455c-9b6a-e57c90264e04" alt="gh_cover">
+![Banner](https://github.com/user-attachments/assets/c2a4d139-9c42-4019-aa82-2a760bf0d4d7)
 
 <p align="center">
 	<h1 align="center"><b>Hyprnote</b></h1>
@@ -31,3 +31,13 @@
 
 - <ins>Works **offline**</ins> using **open-source models** (_Whisper_ & _Llama_)  
 - Highly [extensible](https://docs.hyprnote.com/extensions/), powered by [plugins](https://docs.hyprnote.com/plugins/)
+
+## Hypercharge your notes
+Casually jot stuff down and Hyprnote will craft a meeting note based on your memos.
+![Hypercharge](https://github.com/user-attachments/assets/a78f54ff-29ca-4226-93b4-62cbc1acced7)
+
+## Offline & Privacy
+Hyprnote is local-first which means you can be off the grid and it's perfectly fine.
+
+## Customization
+Hyprnote is similar to VS Code. You can add or create extensions based on your circumstances.

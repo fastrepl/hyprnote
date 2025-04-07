@@ -1,11 +1,12 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { ContactInfo, EditButton, PastNotes, ProfileHeader, UpcomingEvents } from "@/components/human-profile";
+import { ContactInfo, PastNotes, ProfileHeader, UpcomingEvents } from "@/components/human-profile";
 import { useEditMode } from "@/contexts/edit-mode-context";
 import { commands as dbCommands, type Human } from "@hypr/plugin-db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import { Button } from "@hypr/ui/components/ui/button";
 import { extractWebsiteUrl } from "@hypr/utils";
 
 export const Route = createFileRoute("/app/human/$id")({
@@ -35,12 +36,11 @@ export const Route = createFileRoute("/app/human/$id")({
 
 function Component() {
   const { human, organization } = Route.useLoaderData();
+
+  const queryClient = useQueryClient();
+
   const { isEditing, setIsEditing } = useEditMode();
   const [editedHuman, setEditedHuman] = useState<Human>(human);
-  const [orgSearchQuery, setOrgSearchQuery] = useState("");
-  const [showOrgSearch, setShowOrgSearch] = useState(false);
-  const queryClient = useQueryClient();
-  const orgSearchRef = useRef<HTMLDivElement>(null);
 
   const isMain = getCurrentWebviewWindowLabel() === "main";
 
@@ -66,17 +66,6 @@ function Component() {
     setEditedHuman(prev => ({ ...prev, [name]: value }));
   };
 
-  const { data: orgSearchResults = [] } = useQuery({
-    queryKey: ["search-organizations", orgSearchQuery],
-    queryFn: async () => {
-      if (!orgSearchQuery.trim()) {
-        return [];
-      }
-      return dbCommands.listOrganizations({ search: [4, orgSearchQuery] });
-    },
-    enabled: !!orgSearchQuery.trim() && showOrgSearch,
-  });
-
   const handleSave = () => {
     try {
       dbCommands.upsertHuman(editedHuman);
@@ -91,7 +80,7 @@ function Component() {
     if (!isEditing) {
       handleSave();
     }
-  }, [isEditing, editedHuman, human.id, queryClient]);
+  }, [isEditing]);
 
   useEffect(() => {
     setEditedHuman(human);
@@ -103,11 +92,18 @@ function Component() {
         <main className="flex h-full overflow-auto bg-white relative">
           {isMain && (
             <div className="absolute top-4 right-4 z-10">
-              <EditButton
-                isEditing={isEditing}
-                setIsEditing={setIsEditing}
-                onSave={handleSave}
-              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (isEditing) {
+                    handleSave();
+                  }
+                  setIsEditing(!isEditing);
+                }}
+              >
+                {isEditing ? "Save" : "Edit"}
+              </Button>
             </div>
           )}
           <div className="max-w-lg mx-auto px-4 lg:px-6 pt-6 pb-20">
@@ -116,22 +112,14 @@ function Component() {
                 human={human}
                 organization={organization}
                 isEditing={isEditing}
-                editedHuman={editedHuman}
                 handleInputChange={handleInputChange}
                 setEditedHuman={setEditedHuman}
-                orgSearchQuery={orgSearchQuery}
-                setOrgSearchQuery={setOrgSearchQuery}
-                showOrgSearch={showOrgSearch}
-                setShowOrgSearch={setShowOrgSearch}
-                orgSearchResults={orgSearchResults}
-                orgSearchRef={orgSearchRef}
               />
 
               <ContactInfo
                 human={human}
                 organization={organization}
                 isEditing={isEditing}
-                editedHuman={editedHuman}
                 handleInputChange={handleInputChange}
                 getOrganizationWebsite={getOrganizationWebsite}
               />

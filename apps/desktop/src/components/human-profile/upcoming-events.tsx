@@ -3,12 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Calendar, ExternalLink } from "lucide-react";
 
-import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as dbCommands, Human } from "@hypr/plugin-db";
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
 
-import type { UpcomingEventsProps } from "./types";
-
-export function UpcomingEvents({ human }: UpcomingEventsProps) {
+export function UpcomingEvents({ human }: { human: Human }) {
   const { data: upcomingEvents = [] } = useQuery({
     queryKey: ["events", "upcoming", human.id],
     queryFn: async () => {

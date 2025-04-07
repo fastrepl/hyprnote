@@ -1,20 +1,31 @@
 import { RiLinkedinFill } from "@remixicon/react";
 import { Globe, Mail } from "lucide-react";
 
+import { commands as dbCommands, type Human, type Organization } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-
-import type { ContactInfoProps } from "./types";
+import { useQuery } from "@tanstack/react-query";
 
 export function ContactInfo({
   human,
   organization,
   isEditing,
-  editedHuman,
   handleInputChange,
   getOrganizationWebsite,
-}: ContactInfoProps) {
+}: {
+  human: Human;
+  organization: Organization | null;
+  isEditing: boolean;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  getOrganizationWebsite: () => string | null;
+}) {
+  const humanQuery = useQuery({
+    initialData: human,
+    queryKey: ["human", human.id],
+    queryFn: () => dbCommands.getHuman(human.id),
+  });
+
   if (isEditing) {
     return (
       <div className="w-full">
@@ -31,7 +42,7 @@ export function ContactInfo({
                 <Input
                   id="email"
                   name="email"
-                  value={editedHuman.email || ""}
+                  value={humanQuery.data?.email || ""}
                   onChange={handleInputChange}
                   placeholder="Email Address"
                   className="border-none text-sm shadow-none px-0 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -49,7 +60,7 @@ export function ContactInfo({
                 <Input
                   id="linkedin_username"
                   name="linkedin_username"
-                  value={editedHuman.linkedin_username || ""}
+                  value={humanQuery.data?.linkedin_username || ""}
                   onChange={handleInputChange}
                   placeholder="LinkedIn Username"
                   className="border-none text-sm shadow-none px-0 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"

@@ -7,7 +7,6 @@ import { useEditMode } from "@/contexts/edit-mode-context";
 import { commands as dbCommands, type Human } from "@hypr/plugin-db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
-import { extractWebsiteUrl } from "@hypr/utils";
 
 export const Route = createFileRoute("/app/human/$id")({
   component: Component,
@@ -37,34 +36,11 @@ export const Route = createFileRoute("/app/human/$id")({
 function Component() {
   const { human, organization } = Route.useLoaderData();
 
-  const queryClient = useQueryClient();
-
   const { isEditing, setIsEditing } = useEditMode();
   const [editedHuman, setEditedHuman] = useState<Human>(human);
 
+  const queryClient = useQueryClient();
   const isMain = getCurrentWebviewWindowLabel() === "main";
-
-  useEffect(() => {
-    const preventBackNavigation = (e: KeyboardEvent) => {
-      if (e.metaKey && e.key === "ArrowLeft") {
-        e.preventDefault();
-      }
-    };
-
-    window.addEventListener("keydown", preventBackNavigation);
-    return () => {
-      window.removeEventListener("keydown", preventBackNavigation);
-    };
-  }, []);
-
-  const getOrganizationWebsite = () => {
-    return organization ? extractWebsiteUrl(human.email) : null;
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setEditedHuman(prev => ({ ...prev, [name]: value }));
-  };
 
   const handleSave = () => {
     try {
@@ -76,11 +52,13 @@ function Component() {
     }
   };
 
-  useEffect(() => {
-    if (!isEditing) {
+  const handleEditToggle = () => {
+    if (isEditing) {
       handleSave();
     }
-  }, [isEditing]);
+
+    setIsEditing(!isEditing);
+  };
 
   useEffect(() => {
     setEditedHuman(human);
@@ -95,12 +73,7 @@ function Component() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  if (isEditing) {
-                    handleSave();
-                  }
-                  setIsEditing(!isEditing);
-                }}
+                onClick={handleEditToggle}
               >
                 {isEditing ? "Save" : "Edit"}
               </Button>
@@ -109,19 +82,15 @@ function Component() {
           <div className="max-w-lg mx-auto px-4 lg:px-6 pt-6 pb-20">
             <div className="mb-6 flex flex-col items-center gap-8">
               <ProfileHeader
+                isEditing={isEditing}
                 human={human}
                 organization={organization}
-                isEditing={isEditing}
-                handleInputChange={handleInputChange}
-                setEditedHuman={setEditedHuman}
               />
 
               <ContactInfo
+                isEditing={isEditing}
                 human={human}
                 organization={organization}
-                isEditing={isEditing}
-                handleInputChange={handleInputChange}
-                getOrganizationWebsite={getOrganizationWebsite}
               />
             </div>
             <UpcomingEvents human={human} />

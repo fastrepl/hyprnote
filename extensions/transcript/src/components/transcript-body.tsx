@@ -24,13 +24,5 @@ export function TranscriptBody({ sessionId }: TranscriptBodyProps) {
     }
   }, [timeline?.items, isLive]);
 
-  return timeline
-    ? (
-      <Transcript
-        ref={transcriptRef}
-        transcript={timeline}
-        isLive={isLive}
-      />
-    )
-    : null;
+  return timeline ? <Transcript ref={transcriptRef} transcript={timeline} isLive={isLive} /> : null;
 }

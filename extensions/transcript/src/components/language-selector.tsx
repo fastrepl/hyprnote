@@ -1,3 +1,5 @@
+import { LanguagesIcon } from "lucide-react";
+
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -8,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
-import { LanguagesIcon } from "lucide-react";
 import { useTranscript } from "../hooks/useTranscript";
 
 interface LanguageSelectorProps {
@@ -32,9 +33,7 @@ export function LanguageSelector({ sessionId }: LanguageSelectorProps) {
           value={selectedLanguage}
           onValueChange={handleLanguageChange}
         >
-          <DropdownMenuRadioItem value="en">
-            English
-          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>

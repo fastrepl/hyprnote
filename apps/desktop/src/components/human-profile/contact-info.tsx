@@ -1,4 +1,5 @@
 import { RiLinkedinFill } from "@remixicon/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Globe, Mail } from "lucide-react";
 
 import { commands as dbCommands, type Human, type Organization } from "@hypr/plugin-db";
@@ -6,7 +7,6 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { extractWebsiteUrl } from "@hypr/utils";
-import { useQuery } from "@tanstack/react-query";
 
 export function ContactInfo({
   human,
@@ -17,9 +17,7 @@ export function ContactInfo({
   organization: Organization | null;
   isEditing: boolean;
 }) {
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.value);
-  };
+  const queryClient = useQueryClient();
 
   const humanQuery = useQuery({
     initialData: human,
@@ -27,8 +25,19 @@ export function ContactInfo({
     queryFn: () => dbCommands.getHuman(human.id),
   });
 
+  const updateHuman = useMutation({
+    mutationFn: (human: Human) => dbCommands.upsertHuman(human),
+    onSuccess: (data) => {
+      queryClient.setQueryData(["human", human.id], data);
+    },
+  });
+
   const getOrganizationWebsite = () => {
     return organization ? extractWebsiteUrl(humanQuery.data?.email) : null;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(e.target.value);
   };
 
   if (isEditing) {

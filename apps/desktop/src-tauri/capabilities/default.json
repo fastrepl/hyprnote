@@ -3,6 +3,7 @@
   "identifier": "default",
   "description": "Capability for Hyprnote",
   "windows": ["*"],
+  "platforms": ["macOS", "windows", "linux"],
   "withGlobalTauri": true,
   "permissions": [
     "core:default",
@@ -43,10 +44,6 @@
     "store2:default",
     "analytics:default",
     "flags:default",
-    {
-      "identifier": "apple-calendar:default",
-      "platforms": ["macos"]
-    },
     {
       "identifier": "http:default",
       "allow": [

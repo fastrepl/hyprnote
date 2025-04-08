@@ -2,6 +2,7 @@ use std::future::Future;
 use tauri::Manager;
 
 pub trait DatabasePluginExt<R: tauri::Runtime> {
+    fn db_user_id(&self) -> impl Future<Output = Result<Option<String>, crate::Error>>;
     fn db_local_path(&self) -> Result<String, crate::Error>;
     fn db_attach(
         &self,
@@ -12,6 +13,10 @@ pub trait DatabasePluginExt<R: tauri::Runtime> {
         &self,
         user_id: impl Into<String>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
+    fn db_get_config(
+        &self,
+        user_id: impl Into<String>,
+    ) -> impl Future<Output = Result<Option<hypr_db_user::Config>, crate::Error>>;
     fn db_get_session(
         &self,
         session_id: impl Into<String>,
@@ -23,6 +28,12 @@ pub trait DatabasePluginExt<R: tauri::Runtime> {
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
+    async fn db_user_id(&self) -> Result<Option<String>, crate::Error> {
+        let state = self.state::<crate::ManagedState>();
+        let guard = state.lock().await;
+        Ok(guard.user_id.clone())
+    }
+
     fn db_local_path(&self) -> Result<String, crate::Error> {
         let v = {
             let app = self.app_handle();
@@ -105,5 +116,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
         db.upsert_session(session).await?;
 
         Ok(())
+    }
+
+    async fn db_get_config(
+        &self,
+        user_id: impl Into<String>,
+    ) -> Result<Option<hypr_db_user::Config>, crate::Error> {
+        let state = self.state::<crate::ManagedState>();
+        let guard = state.lock().await;
+
+        let db = guard.db.as_ref().ok_or(crate::Error::NoneDatabase)?;
+        let config = db.get_config(user_id.into()).await?;
+        Ok(config)
     }
 }

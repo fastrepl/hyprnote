@@ -5,6 +5,8 @@ import { zodValidator } from "@tanstack/zod-adapter";
 import { useRef } from "react";
 import { z } from "zod";
 
+import { commands as windowsCommands, events as windowsEvents } from "@hypr/plugin-windows";
+
 const schema = z.object({
   id: z.string(),
 });
@@ -27,6 +29,21 @@ function Component() {
     "aspectRatio": "16 / 9",
   } as React.CSSProperties;
 
+  const handleEnded = () => {
+    const fn = async () => {
+      await windowsCommands.windowShow({ type: "main" });
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      await windowsEvents.mainWindowState.emit({
+        left_sidebar_expanded: true,
+        right_panel_expanded: false,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      await windowsCommands.windowDestroy({ type: "video", value: id });
+    };
+
+    fn().catch(console.error);
+  };
+
   return (
     <div
       data-tauri-drag-region
@@ -39,6 +56,7 @@ function Component() {
         autoPlay={true}
         style={styles}
         loading="viewport"
+        onEnded={handleEnded}
       />
     </div>
   );

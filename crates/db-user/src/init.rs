@@ -1,4 +1,7 @@
-use crate::{ExtensionMapping, ExtensionWidget, ExtensionWidgetKind};
+use crate::{
+    Config, ConfigAI, ConfigGeneral, ConfigNotification, ExtensionMapping, ExtensionWidget,
+    ExtensionWidgetKind,
+};
 
 use super::{
     Calendar, ChatGroup, ChatMessage, ChatMessageRole, Event, Human, Organization, Platform,
@@ -169,6 +172,27 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
             group: "transcript-default".to_string(),
             position: None,
         }],
+    })
+    .await?;
+
+    db.set_config(Config {
+        id: uuid::Uuid::new_v4().to_string(),
+        user_id: user_id.clone(),
+        general: ConfigGeneral {
+            jargons: vec![
+                "smart notepad".to_string(),
+                "offline".to_string(),
+                "privacy".to_string(),
+                "X".to_string(),
+                "CRM".to_string(),
+                "Twenty".to_string(),
+                "Discord".to_string(),
+                "Hyprnote".to_string(),
+            ],
+            ..Default::default()
+        },
+        notification: ConfigNotification::default(),
+        ai: ConfigAI::default(),
     })
     .await?;
 

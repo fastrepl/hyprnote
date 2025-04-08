@@ -32,17 +32,44 @@
 - <ins>Works **offline**</ins> using **open-source models** (_Whisper_ & _Llama_)  
 - Highly [extensible](https://docs.hyprnote.com/extensions/), powered by [plugins](https://docs.hyprnote.com/plugins/)
 
-## Hypercharge your notes
+## Highlights
+
+### Hypercharge your notes
 Casually jot stuff down and Hyprnote will craft a meeting note based on your memos.
 
-![Hypercharge](https://github.com/user-attachments/assets/1615a9f0-7a30-44c1-b142-0d1774a84e89)
+<img src="https://github.com/user-attachments/assets/1615a9f0-7a30-44c1-b142-0d1774a84e89" width="720" />
 
-## Offline & Privacy
+### Offline & Privacy
 Hyprnote is local-first which means you can be off the grid and it's perfectly fine.
 
-![Local-first](https://github.com/user-attachments/assets/e5014024-3f6a-457a-8f1c-3b183883b782)
+<img src="https://github.com/user-attachments/assets/e5014024-3f6a-457a-8f1c-3b183883b782" width="720" />
 
-## 100% Customizable
-Hyprnote is similar to VS Code. You can add or create extensions based on your circumstances.
+### Extensions & Plugins
+Just like VSCode, You can add or create extensions based on your circumstances.
 
-![Customization](https://github.com/user-attachments/assets/341d2e6c-a2c7-432b-95b8-fdc2018838d5)
+<img src="https://github.com/user-attachments/assets/341d2e6c-a2c7-432b-95b8-fdc2018838d5" width="720" />
+
+<br />
+<br />
+
+For example, [transcript extension](https://docs.hyprnote.com/extensions/transcript.html) is powered by [listener plugin](https://docs.hyprnote.com/plugins/listener.html).
+
+```ts
+useEffect(() => {
+  const channel = new Channel<SessionEvent>();
+  listenerCommands.subscribe(channel);
+
+  channel.onmessage = (e) => {
+    if (e.type === "started") {
+      setIsLive(true);
+    }
+    if (e.type === "stopped") {
+      setIsLive(false);
+    }
+  };
+
+  return () => {
+    listenerCommands.unsubscribe(channel);
+  };
+}, []);
+```

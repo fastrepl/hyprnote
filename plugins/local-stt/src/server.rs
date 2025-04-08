@@ -125,7 +125,7 @@ async fn health() -> impl IntoResponse {
 }
 
 async fn listen(
-    Query(_): Query<ListenParams>,
+    Query(params): Query<ListenParams>,
     ws: WebSocketUpgrade,
     AxumState(state): AxumState<ServerState>,
 ) -> Result<impl IntoResponse, StatusCode> {
@@ -134,7 +134,12 @@ async fn listen(
         .ok_or(StatusCode::TOO_MANY_REQUESTS)?;
 
     let model_path = state.model_type.model_path(&state.model_cache_dir);
-    let model = hypr_whisper::local::Whisper::new(model_path.to_str().unwrap());
+
+    let model = hypr_whisper::local::Whisper::builder()
+        .model_path(model_path.to_str().unwrap())
+        .static_prompt(&params.static_prompt)
+        .dynamic_prompt(&params.dynamic_prompt)
+        .build();
 
     Ok(ws.on_upgrade(move |socket| websocket(socket, model, guard)))
 }

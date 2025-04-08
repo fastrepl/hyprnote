@@ -10,7 +10,7 @@ use crate::{ListenInputChunk, ListenOutputChunk};
 pub struct ListenClientBuilder {
     api_base: Option<String>,
     api_key: Option<String>,
-    language: Option<codes_iso_639::part_1::LanguageCode>,
+    params: Option<hypr_listener_interface::ListenParams>,
 }
 
 impl ListenClientBuilder {
@@ -24,8 +24,8 @@ impl ListenClientBuilder {
         self
     }
 
-    pub fn language(mut self, language: codes_iso_639::part_1::LanguageCode) -> Self {
-        self.language = Some(language);
+    pub fn params(mut self, params: hypr_listener_interface::ListenParams) -> Self {
+        self.params = Some(params);
         self
     }
 
@@ -33,12 +33,16 @@ impl ListenClientBuilder {
         let uri = {
             let mut url: url::Url = self.api_base.unwrap().parse().unwrap();
 
-            let language = self.language.unwrap().code();
+            let params = self.params.unwrap_or_default();
+            let language = params.language.code();
             let language =
                 language.chars().next().unwrap().to_uppercase().to_string() + &language[1..];
 
             url.set_path("/api/native/listen/realtime");
-            url.query_pairs_mut().append_pair("language", &language);
+            url.query_pairs_mut()
+                .append_pair("language", &language)
+                .append_pair("static_prompt", &params.static_prompt)
+                .append_pair("dynamic_prompt", &params.dynamic_prompt);
 
             if url.host_str().unwrap().contains("127.0.0.1") {
                 url.set_scheme("ws").unwrap();

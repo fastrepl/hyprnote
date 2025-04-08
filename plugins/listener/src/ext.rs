@@ -461,7 +461,10 @@ async fn setup_listen_client<R: tauri::Runtime>(
     Ok(crate::client::ListenClient::builder()
         .api_base(api_base)
         .api_key(api_key)
-        .language(codes_iso_639::part_1::LanguageCode::En)
+        .params(hypr_listener_interface::ListenParams {
+            language: codes_iso_639::part_1::LanguageCode::En,
+            ..Default::default()
+        })
         .build())
 }
 
@@ -470,8 +473,6 @@ async fn update_session<R: tauri::Runtime>(
     session: &mut hypr_db_user::Session,
     transcript: hypr_listener_interface::TranscriptChunk,
 ) -> Result<(), crate::Error> {
-    use tauri_plugin_db::DatabasePluginExt;
-
     session.conversations.push(hypr_db_user::ConversationChunk {
         transcripts: vec![transcript],
         diarizations: vec![],
@@ -479,6 +480,10 @@ async fn update_session<R: tauri::Runtime>(
         end: chrono::Utc::now(),
     });
 
-    app.db_upsert_session(session.clone()).await.unwrap();
+    {
+        use tauri_plugin_db::DatabasePluginExt;
+        app.db_upsert_session(session.clone()).await.unwrap();
+    }
+
     Ok(())
 }

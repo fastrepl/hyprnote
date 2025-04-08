@@ -101,7 +101,10 @@ mod test {
         let listen_client = ListenClientBuilder::default()
             .api_base(api_base)
             .api_key("NONE")
-            .language(codes_iso_639::part_1::LanguageCode::En)
+            .params(hypr_listener_interface::ListenParams {
+                language: codes_iso_639::part_1::LanguageCode::En,
+                ..Default::default()
+            })
             .build();
 
         let audio_source = rodio::Decoder::new_wav(std::io::BufReader::new(

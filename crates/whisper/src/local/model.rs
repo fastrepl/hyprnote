@@ -5,23 +5,31 @@ use whisper_rs::{
     WhisperToken,
 };
 
-pub struct Whisper {
-    state: WhisperState,
-    prompt: String,
-    eot: WhisperToken,
+#[derive(Default)]
+pub struct WhisperBuilder {
+    model_path: Option<String>,
+    static_prompt: Option<String>,
+    dynamic_prompt: Option<String>,
 }
 
-impl Whisper {
-    pub fn new(model_path: impl AsRef<str>) -> Self {
-        {
-            unsafe extern "C" fn noop_callback(
-                _level: whisper_rs::whisper_rs_sys::ggml_log_level,
-                _text: *const ::std::os::raw::c_char,
-                _user_data: *mut ::std::os::raw::c_void,
-            ) {
-            }
-            unsafe { whisper_rs::set_log_callback(Some(noop_callback), std::ptr::null_mut()) };
-        }
+impl WhisperBuilder {
+    pub fn model_path(mut self, model_path: impl Into<String>) -> Self {
+        self.model_path = Some(model_path.into());
+        self
+    }
+
+    pub fn static_prompt(mut self, static_prompt: impl Into<String>) -> Self {
+        self.static_prompt = Some(static_prompt.into());
+        self
+    }
+
+    pub fn dynamic_prompt(mut self, dynamic_prompt: impl Into<String>) -> Self {
+        self.dynamic_prompt = Some(dynamic_prompt.into());
+        self
+    }
+
+    pub fn build(self) -> Whisper {
+        unsafe { Self::suppress_log() };
 
         let context_param = {
             let mut p = WhisperContextParameters::default();
@@ -29,15 +37,41 @@ impl Whisper {
             p
         };
 
-        let ctx = WhisperContext::new_with_params(model_path.as_ref(), context_param).unwrap();
+        let model_path = self.model_path.unwrap();
+
+        let ctx = WhisperContext::new_with_params(&model_path, context_param).unwrap();
         let state = ctx.create_state().unwrap();
         let eot = ctx.token_eot();
 
-        Self {
+        Whisper {
+            static_prompt: self.static_prompt.unwrap_or_default(),
+            dynamic_prompt: self.dynamic_prompt.unwrap_or_default(),
             state,
-            prompt: "".to_string(),
             eot,
         }
+    }
+
+    unsafe fn suppress_log() {
+        unsafe extern "C" fn noop_callback(
+            _level: whisper_rs::whisper_rs_sys::ggml_log_level,
+            _text: *const ::std::os::raw::c_char,
+            _user_data: *mut ::std::os::raw::c_void,
+        ) {
+        }
+        unsafe { whisper_rs::set_log_callback(Some(noop_callback), std::ptr::null_mut()) };
+    }
+}
+
+pub struct Whisper {
+    static_prompt: String,
+    dynamic_prompt: String,
+    state: WhisperState,
+    eot: WhisperToken,
+}
+
+impl Whisper {
+    pub fn builder() -> WhisperBuilder {
+        WhisperBuilder::default()
     }
 
     pub fn transcribe(&mut self, audio: &[f32]) -> Vec<Segment> {
@@ -45,7 +79,12 @@ impl Whisper {
             let mut p = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
             p.set_translate(false);
             p.set_language(Some("en"));
-            p.set_initial_prompt(self.prompt.as_str());
+
+            let parts = [self.static_prompt.trim(), self.dynamic_prompt.trim()];
+            let joined = parts.join("\n");
+            let initial_prompt = joined.trim();
+
+            p.set_initial_prompt(&initial_prompt);
 
             p.set_n_threads(1);
             p.set_token_timestamps(true);
@@ -81,7 +120,7 @@ impl Whisper {
             });
         }
 
-        self.prompt = segments
+        self.dynamic_prompt = segments
             .iter()
             .map(|s| s.text())
             .collect::<Vec<&str>>()
@@ -167,7 +206,9 @@ mod tests {
 
     #[test]
     fn test_whisper() {
-        let mut whisper = Whisper::new(concat!(env!("CARGO_MANIFEST_DIR"), "/model.bin"));
+        let mut whisper = Whisper::builder()
+            .model_path(concat!(env!("CARGO_MANIFEST_DIR"), "/model.bin"))
+            .build();
 
         let audio: Vec<f32> = hypr_data::english_1::AUDIO
             .chunks_exact(2)
@@ -186,7 +227,10 @@ mod tests {
             .join("llm.gguf");
 
         let llama = hypr_llama::Llama::new(llama_path).unwrap();
-        let mut whisper = Whisper::new(concat!(env!("CARGO_MANIFEST_DIR"), "/model.bin"));
+
+        let mut whisper = Whisper::builder()
+            .model_path(concat!(env!("CARGO_MANIFEST_DIR"), "/model.bin"))
+            .build();
 
         let request = hypr_llama::LlamaRequest::new(vec![hypr_llama::LlamaChatMessage::new(
             "user".into(),

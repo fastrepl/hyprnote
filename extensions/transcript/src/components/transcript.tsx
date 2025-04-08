@@ -2,7 +2,6 @@ import { EarIcon } from "lucide-react";
 import { forwardRef } from "react";
 
 import { TimelineView } from "@hypr/plugin-listener";
-import { parseDialogue } from "../utils";
 
 const Transcript = forwardRef<
   HTMLDivElement,
@@ -20,11 +19,7 @@ const Transcript = forwardRef<
         ? (
           transcript.items.map((item, index) => (
             <div key={index}>
-              {parseDialogue(item.text).map((segment, segIndex) => (
-                <p key={segIndex} className={segIndex > 0 ? "mt-1" : ""}>
-                  {segment.text}
-                </p>
-              ))}
+              <p>{item.text}</p>
             </div>
           ))
         )

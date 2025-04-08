@@ -41,15 +41,7 @@ export function useTranscript(sessionId: string | null) {
 
     channel.onmessage = (e) => {
       if (e.type === "timelineView") {
-        setTimeline((prev) => {
-          if (!prev) {
-            return e.timeline;
-          }
-
-          return {
-            items: [...prev.items, ...e.timeline.items],
-          };
-        });
+        setTimeline(e.timeline);
       }
     };
 

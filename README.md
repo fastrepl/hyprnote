@@ -35,7 +35,7 @@
 ## Hypercharge your notes
 Casually jot stuff down and Hyprnote will craft a meeting note based on your memos.
 
-![Hypercharge](https://github.com/user-attachments/assets/a78f54ff-29ca-4226-93b4-62cbc1acced7)
+![Hypercharge](https://github.com/user-attachments/assets/1615a9f0-7a30-44c1-b142-0d1774a84e89)
 
 ## Offline & Privacy
 Hyprnote is local-first which means you can be off the grid and it's perfectly fine.

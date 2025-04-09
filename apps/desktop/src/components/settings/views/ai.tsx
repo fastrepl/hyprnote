@@ -68,18 +68,18 @@ function SpeechToTextDetails({
   });
 
   const speedModelStatus = useQuery({
-    queryKey: ["local-stt", "model-downloaded", "QuantizedTinyEn"],
+    queryKey: ["local-stt", "model-downloaded", "QuantizedBaseEn"],
     queryFn: async () => {
-      const isDownloaded = await localSttCommands.isModelDownloaded("QuantizedTinyEn");
+      const isDownloaded = await localSttCommands.isModelDownloaded("QuantizedBaseEn");
       return isDownloaded;
     },
     enabled: isRunning,
   });
 
   const qualityModelStatus = useQuery({
-    queryKey: ["local-stt", "model-downloaded", "QuantizedLargeV3Turbo"],
+    queryKey: ["local-stt", "model-downloaded", "QuantizedSmallEn"],
     queryFn: async () => {
-      const isDownloaded = await localSttCommands.isModelDownloaded("QuantizedLargeV3Turbo");
+      const isDownloaded = await localSttCommands.isModelDownloaded("QuantizedSmallEn");
       return isDownloaded;
     },
     enabled: isRunning,
@@ -88,8 +88,8 @@ function SpeechToTextDetails({
   const setCurrentModel = useMutation({
     mutationFn: async (model: SupportedModel) => {
       if (
-        (model === "QuantizedTinyEn" && !speedModelStatus.data)
-        || (model === "QuantizedLargeV3Turbo" && !qualityModelStatus.data)
+        (model === "QuantizedBaseEn" && !speedModelStatus.data)
+        || (model === "QuantizedSmallEn" && !qualityModelStatus.data)
       ) {
         setIsDownloading(true);
         const channel = new Channel<number>();
@@ -143,11 +143,11 @@ function SpeechToTextDetails({
         setDownloadProgress(progress);
         if (progress >= 100) {
           setIsDownloading(false);
-          queryClient.invalidateQueries({ queryKey: ["local-stt", "model-downloaded", "QuantizedLargeV3Turbo"] });
+          queryClient.invalidateQueries({ queryKey: ["local-stt", "model-downloaded", "QuantizedSmallEn"] });
         }
       };
 
-      await localSttCommands.downloadModel("QuantizedLargeV3Turbo", channel);
+      await localSttCommands.downloadModel("QuantizedSmallEn", channel);
     },
   });
 
@@ -231,7 +231,7 @@ function SpeechToTextDetails({
                         disabled={!isRunning || setCurrentModel.isPending}
                       >
                         {setCurrentModel.isPending ? <Spinner /> : null}
-                        {currentModel.data === "QuantizedLargeV3Turbo" ? <Trans>Quality</Trans> : <Trans>Speed</Trans>}
+                        {currentModel.data === "QuantizedSmallEn" ? <Trans>Quality</Trans> : <Trans>Speed</Trans>}
                         <ChevronDown className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -255,13 +255,13 @@ function SpeechToTextDetails({
                       <DropdownMenuItem
                         onClick={() =>
                           qualityModelStatus.data
-                            ? setCurrentModel.mutate("QuantizedLargeV3Turbo")
+                            ? setCurrentModel.mutate("QuantizedSmallEn")
                             : downloadQualityModel.mutate()}
-                        disabled={currentModel.data === "QuantizedLargeV3Turbo" || isDownloading}
+                        disabled={currentModel.data === "QuantizedSmallEn" || isDownloading}
                         className="flex items-center gap-2"
                       >
-                        <Trans>Quality (v3 large)</Trans>
-                        {currentModel.data === "QuantizedLargeV3Turbo" && <Check className="h-3 w-3 ml-2" />}
+                        <Trans>Quality (small-en)</Trans>
+                        {currentModel.data === "QuantizedSmallEn" && <Check className="h-3 w-3 ml-2" />}
                         {!qualityModelStatus.data && (
                           downloadQualityModel.isPending
                             ? <Spinner className="h-3 w-3 ml-2" />

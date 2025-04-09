@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:165
+#: src/components/settings/views/general.tsx:168
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -281,7 +281,7 @@ msgstr ""
 msgid "Anyone with the link can view this page"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:167
+#: src/components/settings/views/profile.tsx:168
 msgid "Apple"
 msgstr ""
 
@@ -322,7 +322,7 @@ msgstr ""
 msgid "Calendar connected"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:142
+#: src/components/settings/views/profile.tsx:143
 msgid "CEO"
 msgstr ""
 
@@ -341,11 +341,11 @@ msgstr ""
 msgid "Coming Soon"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:184
+#: src/components/settings/views/profile.tsx:185
 msgid "Company description"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:159
+#: src/components/settings/views/profile.tsx:160
 msgid "Company name"
 msgstr ""
 
@@ -405,7 +405,7 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:153
+#: src/components/settings/views/notifications.tsx:156
 msgid "Detect meetings automatically"
 msgstr ""
 
@@ -445,7 +445,7 @@ msgstr ""
 msgid "Enter a section title"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:178
+#: src/components/settings/views/notifications.tsx:181
 msgid "Exclude these apps from auto detection"
 msgstr ""
 
@@ -482,7 +482,7 @@ msgstr ""
 msgid "Free Trial"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:118
+#: src/components/settings/views/profile.tsx:119
 msgid "Full name"
 msgstr ""
 
@@ -500,7 +500,7 @@ msgstr ""
 msgid "Grant Access"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:131
+#: src/components/settings/views/general.tsx:132
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr ""
 
@@ -512,7 +512,7 @@ msgstr ""
 msgid "HYPRNOTE"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:104
+#: src/components/settings/views/general.tsx:105
 msgid "Hyprnote will be opened automatically when you start your computer"
 msgstr ""
 
@@ -528,11 +528,11 @@ msgstr ""
 msgid "Invite members"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:155
+#: src/components/settings/views/general.tsx:156
 msgid "Jargons"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:138
+#: src/components/settings/views/profile.tsx:139
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:122
 msgid "Job title"
 msgstr ""
@@ -549,7 +549,7 @@ msgstr ""
 msgid "Learn more about our pricing plans"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:209
+#: src/components/settings/views/profile.tsx:210
 msgid "LinkedIn username"
 msgstr ""
 
@@ -657,7 +657,7 @@ msgstr ""
 msgid "Notifications"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:128
+#: src/components/settings/views/notifications.tsx:131
 msgid "Notify upcoming events"
 msgstr ""
 
@@ -669,7 +669,7 @@ msgstr ""
 msgid "Open calendar view"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:101
+#: src/components/settings/views/general.tsx:102
 msgid "Open Hyprnote on startup"
 msgstr ""
 
@@ -807,7 +807,7 @@ msgstr ""
 msgid "Sections"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:181
+#: src/components/settings/views/notifications.tsx:184
 msgid "Select apps that should not trigger meeting notifications"
 msgstr ""
 
@@ -819,15 +819,15 @@ msgstr ""
 msgid "Send invite"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:128
+#: src/components/settings/views/general.tsx:129
 msgid "Share usage data"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:131
+#: src/components/settings/views/notifications.tsx:134
 msgid "Show notifications 1 minute before events start based on your calendars"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:156
+#: src/components/settings/views/notifications.tsx:159
 msgid "Show notifications whenever a microphone is being used"
 msgstr ""
 
@@ -905,11 +905,11 @@ msgstr ""
 msgid "There's a plan for everyone"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:187
+#: src/components/settings/views/profile.tsx:188
 msgid "This is a short description of your company."
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:162
+#: src/components/settings/views/profile.tsx:163
 msgid "This is the name of the company you work for."
 msgstr ""
 
@@ -973,7 +973,7 @@ msgstr ""
 msgid "User:"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:224
+#: src/components/settings/views/profile.tsx:225
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:152
 msgid "username"
 msgstr ""
@@ -990,7 +990,7 @@ msgstr ""
 msgid "View Note"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:192
+#: src/components/settings/views/profile.tsx:193
 msgid "We think different."
 msgstr ""
 
@@ -1002,16 +1002,16 @@ msgstr ""
 msgid "Works offline"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:158
+#: src/components/settings/views/general.tsx:159
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:212
+#: src/components/settings/views/profile.tsx:213
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:142
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"
 msgstr ""
 
-#: src/components/settings/views/profile.tsx:122
+#: src/components/settings/views/profile.tsx:123
 msgid "Your Name"
 msgstr ""
 

@@ -733,8 +733,12 @@ msgid "Quality"
 msgstr "Quality"
 
 #: src/components/settings/views/ai.tsx:263
-msgid "Quality (v3 large)"
-msgstr "Quality (v3 large)"
+msgid "Quality (small-en)"
+msgstr "Quality (small-en)"
+
+#: src/components/settings/views/ai.tsx:263
+#~ msgid "Quality (v3 large)"
+#~ msgstr "Quality (v3 large)"
 
 #: src/components/organization-profile/recent-notes.tsx:42
 msgid "Recent Notes"

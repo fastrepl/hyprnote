@@ -13,6 +13,9 @@ async isServerRunning() : Promise<boolean> {
 async isModelDownloaded() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-llm|is_model_downloaded");
 },
+async isModelDownloading() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:local-llm|is_model_downloading");
+},
 async downloadModel(channel: TAURI_CHANNEL<number>) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-llm|download_model", { channel });
 },

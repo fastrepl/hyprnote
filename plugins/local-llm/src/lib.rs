@@ -20,6 +20,7 @@ pub struct State {
     pub api_base: Option<String>,
     pub server: Option<crate::server::ServerHandle>,
     pub model_path: std::path::PathBuf,
+    pub download_task: Option<tokio::task::JoinHandle<()>>,
 }
 
 impl State {
@@ -28,6 +29,7 @@ impl State {
             api_base: None,
             server: None,
             model_path,
+            download_task: None,
         }
     }
 }
@@ -38,6 +40,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             commands::is_server_running::<Wry>,
             commands::is_model_downloaded::<Wry>,
+            commands::is_model_downloading::<Wry>,
             commands::download_model::<Wry>,
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,

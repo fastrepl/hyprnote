@@ -19,6 +19,14 @@ pub async fn is_model_downloaded<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn is_model_downloading<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<bool, String> {
+    Ok(app.is_model_downloading().await)
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn download_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     channel: Channel<u8>,

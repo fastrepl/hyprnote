@@ -9,7 +9,7 @@ export const TABS = [
   "extensions",
   // "team",
   // "billing",
-  "lab",
+  // "lab",
 ] as const;
 
 export type Tab = typeof TABS[number];

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Channel } from "@tauri-apps/api/core";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
@@ -24,10 +24,24 @@ export default function ModelDownloadNotification() {
         llmModelDownloaded: llm,
       };
     },
+    refetchInterval: 1000,
   });
 
-  const [sttDownloadStarted, setSttDownloadStarted] = useState(false);
-  const [llmDownloadStarted, setLlmDownloadStarted] = useState(false);
+  const sttModelDownloading = useQuery({
+    queryKey: ["stt-model-downloading"],
+    queryFn: async () => {
+      return localSttCommands.isModelDownloading();
+    },
+    refetchInterval: 1000,
+  });
+
+  const llmModelDownloading = useQuery({
+    queryKey: ["llm-model-downloading"],
+    queryFn: async () => {
+      return localLlmCommands.isModelDownloading();
+    },
+    refetchInterval: 1000,
+  });
 
   useEffect(() => {
     if (!checkForModelDownload.data) {
@@ -51,8 +65,7 @@ export default function ModelDownloadNotification() {
           onClick: () => {
             sonnerToast.dismiss("model-download-needed");
 
-            if (!checkForModelDownload.data?.sttModelDownloaded && !sttDownloadStarted) {
-              setSttDownloadStarted(true);
+            if (!checkForModelDownload.data?.sttModelDownloaded && !sttModelDownloading.data) {
               localSttCommands.downloadModel(checkForModelDownload.data?.currentSttModel, sttChannel);
 
               toast(
@@ -65,6 +78,7 @@ export default function ModelDownloadNotification() {
                       <DownloadProgress
                         channel={sttChannel}
                         onComplete={() => {
+                          sonnerToast.dismiss("stt-model-download");
                           localSttCommands.startServer();
                         }}
                       />
@@ -75,8 +89,7 @@ export default function ModelDownloadNotification() {
               );
             }
 
-            if (!checkForModelDownload.data?.llmModelDownloaded && !llmDownloadStarted) {
-              setLlmDownloadStarted(true);
+            if (!checkForModelDownload.data?.llmModelDownloaded && !llmModelDownloading.data) {
               localLlmCommands.downloadModel(llmChannel);
 
               toast(
@@ -89,6 +102,7 @@ export default function ModelDownloadNotification() {
                       <DownloadProgress
                         channel={llmChannel}
                         onComplete={() => {
+                          sonnerToast.dismiss("llm-model-download");
                           localLlmCommands.startServer();
                         }}
                       />

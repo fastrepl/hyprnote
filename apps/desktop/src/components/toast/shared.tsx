@@ -14,7 +14,9 @@ export const DownloadProgress = ({
 
   useEffect(() => {
     channel.onmessage = (v) => {
-      setProgress(v);
+      if (v > progress) {
+        setProgress(v);
+      }
 
       if (v >= 100 && onComplete) {
         onComplete();

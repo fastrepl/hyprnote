@@ -13,6 +13,9 @@ async isServerRunning() : Promise<boolean> {
 async isModelDownloaded(model: SupportedModel) : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-stt|is_model_downloaded", { model });
 },
+async isModelDownloading() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:local-stt|is_model_downloading");
+},
 async downloadModel(model: SupportedModel, channel: TAURI_CHANNEL<number>) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|download_model", { model, channel });
 },
@@ -40,7 +43,7 @@ async setCurrentModel(model: SupportedModel) : Promise<null> {
 
 /** user-defined types **/
 
-export type SupportedModel = "QuantizedTiny" | "QuantizedTinyEn" | "QuantizedLargeV3Turbo"
+export type SupportedModel = "QuantizedTinyEn" | "QuantizedBaseEn" | "QuantizedSmallEn"
 export type TAURI_CHANNEL<TSend> = null
 
 /** tauri-specta globals **/

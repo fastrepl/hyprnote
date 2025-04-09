@@ -3,6 +3,8 @@ use std::future::Future;
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_store2::StorePluginExt;
 
+use hypr_file::{download_file_with_callback, DownloadProgress};
+
 pub trait LocalSttPluginExt<R: Runtime> {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
     fn api_base(&self) -> impl Future<Output = Option<String>>;
@@ -18,6 +20,7 @@ pub trait LocalSttPluginExt<R: Runtime> {
         channel: Channel<u8>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
 
+    fn is_model_downloading(&self) -> impl Future<Output = bool>;
     fn is_model_downloaded(
         &self,
         model: crate::SupportedModel,
@@ -107,14 +110,24 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     ) -> Result<(), crate::Error> {
         let data_dir = self.path().app_data_dir()?;
 
-        tokio::spawn(async move {
-            if let Err(e) = hypr_file::download_file_with_callback(
-                model.model_url(),
-                model.model_path(&data_dir),
-                |downloaded: u64, total_size: u64| {
+        let task = tokio::spawn(async move {
+            let callback = |progress: DownloadProgress| match progress {
+                DownloadProgress::Started => {
+                    let _ = channel.send(0);
+                }
+                DownloadProgress::Progress(downloaded, total_size) => {
                     let percent = (downloaded as f64 / total_size as f64) * 100.0;
                     let _ = channel.send(percent as u8);
-                },
+                }
+                DownloadProgress::Finished => {
+                    let _ = channel.send(100);
+                }
+            };
+
+            if let Err(e) = download_file_with_callback(
+                model.model_url(),
+                model.model_path(&data_dir),
+                callback,
             )
             .await
             {
@@ -122,7 +135,24 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             }
         });
 
+        {
+            let state = self.state::<crate::SharedState>();
+            let mut s = state.lock().await;
+
+            if let Some(task) = s.download_task.take() {
+                task.abort();
+            }
+            s.download_task = Some(task);
+        }
+
         Ok(())
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn is_model_downloading(&self) -> bool {
+        let state = self.state::<crate::SharedState>();
+        let s = state.lock().await;
+        s.download_task.is_some()
     }
 
     #[tracing::instrument(skip_all)]

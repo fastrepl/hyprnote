@@ -13,7 +13,13 @@ use std::{
     path::Path,
 };
 
-pub async fn download_file_with_callback<F: Fn(u64, u64)>(
+pub enum DownloadProgress {
+    Started,
+    Progress(u64, u64),
+    Finished,
+}
+
+pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
     url: impl reqwest::IntoUrl,
     output_path: impl AsRef<Path>,
     progress_callback: F,
@@ -31,13 +37,16 @@ pub async fn download_file_with_callback<F: Fn(u64, u64)>(
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
 
+    progress_callback(DownloadProgress::Started);
     while let Some(item) = stream.next().await {
         let chunk = item?;
         file.write_all(&chunk)?;
 
         downloaded += chunk.len() as u64;
-        progress_callback(downloaded, total_size);
+        progress_callback(DownloadProgress::Progress(downloaded, total_size));
     }
+
+    progress_callback(DownloadProgress::Finished);
 
     Ok(())
 }

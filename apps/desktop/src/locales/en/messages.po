@@ -285,6 +285,10 @@ msgstr "Anyone with the link can view this page"
 msgid "Apple"
 msgstr "Apple"
 
+#: src/components/toolbar/buttons/delete-note-button.tsx:64
+msgid "Are you sure you want to delete this note?"
+msgstr "Are you sure you want to delete this note?"
+
 #: src/components/settings/views/billing.tsx:27
 msgid "Ask questions about past meetings"
 msgstr "Ask questions about past meetings"
@@ -391,11 +395,16 @@ msgstr "Create Note"
 msgid "Current Plan"
 msgstr "Current Plan"
 
+#: src/components/toolbar/buttons/delete-note-button.tsx:69
 #: src/components/settings/views/template.tsx:86
 #: src/components/settings/views/team.tsx:165
 #: src/components/left-sidebar/notes-list.tsx:299
 msgid "Delete"
 msgstr "Delete"
+
+#: src/components/toolbar/buttons/delete-note-button.tsx:57
+msgid "Delete note"
+msgstr "Delete note"
 
 #: src/components/settings/components/template-sections.tsx:125
 msgid "Describe the content and purpose of this section"
@@ -702,8 +711,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:196
-#: src/components/editor-area/note-header/listen-button.tsx:221
+#: src/components/editor-area/note-header/listen-button.tsx:212
 msgid "Pause recording"
 msgstr "Pause recording"
 

@@ -5,10 +5,7 @@ import { AnimatePresence } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
-import {
-  ENHANCE_SYSTEM_TEMPLATE_KEY,
-  ENHANCE_USER_TEMPLATE_KEY,
-} from "@/templates";
+import { ENHANCE_SYSTEM_TEMPLATE_KEY, ENHANCE_USER_TEMPLATE_KEY } from "@/templates";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
@@ -57,7 +54,7 @@ export default function EditorArea({
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
   const editorKey = useMemo(
     () => `session-${sessionId}-${showRaw ? "raw" : "enhanced"}`,
-    [sessionId, showRaw]
+    [sessionId, showRaw],
   );
 
   useEffect(() => {
@@ -83,13 +80,13 @@ export default function EditorArea({
         setEnhancedContent(content);
       }
     },
-    [showRaw, setRawContent, setEnhancedContent]
+    [showRaw, setRawContent, setEnhancedContent],
   );
 
   const noteContent = useMemo(
     () => (showRaw ? rawContent : enhancedContent),
     // Replacing 'rawContent' with 'editorKey' in deps list is intentional. We don't want to rerender the entire editor during editing.
-    [showRaw, enhancedContent, editorKey]
+    [showRaw, enhancedContent, editorKey],
   );
 
   const handleClickEnhance = useCallback(() => {
@@ -125,17 +122,17 @@ export default function EditorArea({
         }}
       >
         <div>
-          {editable ? (
-            <Editor
-              key={editorKey}
-              ref={editorRef}
-              handleChange={handleChangeNote}
-              initialContent={noteContent}
-              editable={enhance.status !== "pending"}
-            />
-          ) : (
-            <Renderer ref={editorRef} initialContent={noteContent} />
-          )}
+          {editable
+            ? (
+              <Editor
+                key={editorKey}
+                ref={editorRef}
+                handleChange={handleChangeNote}
+                initialContent={noteContent}
+                editable={enhance.status !== "pending"}
+              />
+            )
+            : <Renderer ref={editorRef} initialContent={noteContent} />}
         </div>
       </div>
 
@@ -185,18 +182,16 @@ export function useEnhanceMutation({
       const provider = await modelProvider();
 
       const participants = await dbCommands.sessionListParticipants(sessionId);
-      const onboardingOutputExample =
-        await dbCommands.onboardingSessionEnhancedMemoMd();
+      const onboardingOutputExample = await dbCommands.onboardingSessionEnhancedMemoMd();
 
-      const fn =
-        sessionId === onboardingSessionId
-          ? dbCommands.getTimelineViewOnboarding
-          : dbCommands.getTimelineView;
+      const fn = sessionId === onboardingSessionId
+        ? dbCommands.getTimelineViewOnboarding
+        : dbCommands.getTimelineView;
       const timeline = await fn(sessionId);
 
       const systemMessage = await templateCommands.render(
         ENHANCE_SYSTEM_TEMPLATE_KEY,
-        { config }
+        { config },
       );
 
       const userMessage = await templateCommands.render(
@@ -208,7 +203,7 @@ export function useEnhanceMutation({
           ...(sessionId === onboardingSessionId
             ? { example: onboardingOutputExample }
             : {}),
-        }
+        },
       );
 
       const { text, textStream } = streamText({
@@ -263,7 +258,7 @@ export function useAutoEnhanceForOnboarding({
 
   const enhancedMemoHtml = useSession(
     sessionId,
-    (s) => s.session.enhanced_memo_html
+    (s) => s.session.enhanced_memo_html,
   );
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
@@ -279,9 +274,8 @@ export function useAutoEnhanceForOnboarding({
       session_id: sessionId,
     });
 
-    const justFinishedListening =
-      prevOngoingSessionStatus === "active" &&
-      ongoingSessionStatus === "inactive";
+    const justFinishedListening = prevOngoingSessionStatus === "active"
+      && ongoingSessionStatus === "inactive";
 
     if (justFinishedListening && !enhancedMemoHtml) {
       setTimeout(() => {

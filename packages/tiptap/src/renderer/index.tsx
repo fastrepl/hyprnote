@@ -1,6 +1,11 @@
 import "../styles/tiptap.css";
 
-import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
+import {
+  type Editor as TiptapEditor,
+  EditorContent,
+  type HTMLContent,
+  useEditor,
+} from "@tiptap/react";
 import { forwardRef, useEffect } from "react";
 import * as shared from "../shared";
 
@@ -16,6 +21,10 @@ const Renderer = forwardRef<{ editor: TiptapEditor | null }, RendererProps>(
       extensions,
       editable: false,
       shouldRerenderOnTransaction: false,
+      editorProps: {
+        scrollThreshold: 32,
+        scrollMargin: 32,
+      },
     });
 
     useEffect(() => {
@@ -35,7 +44,7 @@ const Renderer = forwardRef<{ editor: TiptapEditor | null }, RendererProps>(
         <EditorContent editor={editor} />
       </div>
     );
-  },
+  }
 );
 
 Renderer.displayName = "Renderer";

@@ -15,7 +15,9 @@ type State = {
 type Actions = {
   get: () => State & Actions;
   start: (sessionId: string) => void;
+  stop: () => void;
   pause: () => void;
+  resume: () => void;
 };
 
 const initialState: State = {
@@ -73,20 +75,25 @@ export const createOngoingSessionStore = () => {
         set(initialState);
       });
     },
-    pause: () => {
+    stop: () => {
       const { channel } = get();
 
-      try {
-        listenerCommands.stopSession();
-
-        if (channel) {
-          listenerCommands.unsubscribe(channel);
-        }
-      } catch (error) {
-        console.error(error);
+      if (channel) {
+        listenerCommands.unsubscribe(channel);
       }
 
+      listenerCommands.stopSession();
       set(initialState);
+    },
+    pause: () => {
+      listenerCommands.pauseSession().then(() => {
+        set({ status: "inactive" });
+      });
+    },
+    resume: () => {
+      listenerCommands.resumeSession().then(() => {
+        set({ status: "active" });
+      });
     },
   }));
 };

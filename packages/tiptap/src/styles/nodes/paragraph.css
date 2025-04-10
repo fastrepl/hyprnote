@@ -1,0 +1,20 @@
+.tiptap {
+  p {
+    color: #000000;
+    margin-top: 0;
+    margin-bottom: 0.25rem;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    min-height: 1.5rem;
+    position: relative;
+
+    &.is-empty::before {
+      color: #e5e5e5;
+      content: attr(data-placeholder);
+      float: left;
+      height: 0;
+      pointer-events: none;
+    }
+  }
+}

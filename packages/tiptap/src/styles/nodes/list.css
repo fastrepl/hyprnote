@@ -1,0 +1,74 @@
+.tiptap {
+  ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin-bottom: 0.25rem;
+    display: block;
+    position: relative;
+
+    &.is-empty::before {
+      color: #e5e5e5;
+      content: attr(data-placeholder);
+      float: left;
+      height: 0;
+      pointer-events: none;
+    }
+
+    ul {
+      list-style-type: circle;
+      margin-top: 0.25rem;
+
+      ul {
+        list-style-type: square;
+        margin-top: 0.25rem;
+      }
+    }
+  }
+
+  /* Ordered lists */
+  ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+    margin-bottom: 0.25rem;
+    display: block;
+    position: relative;
+
+    &.is-empty::before {
+      color: #e5e5e5;
+      content: attr(data-placeholder);
+      float: left;
+      height: 0;
+      pointer-events: none;
+    }
+
+    /* Nested ordered lists */
+    ol {
+      list-style-type: lower-alpha;
+      margin-top: 0.25rem;
+
+      ol {
+        list-style-type: lower-roman;
+        margin-top: 0.25rem;
+      }
+    }
+  }
+
+  ul li,
+  ol li {
+    display: list-item;
+    margin-bottom: 0.25rem;
+    list-style-position: outside;
+    visibility: visible;
+    position: relative;
+  }
+
+  ul li::marker,
+  ol li::marker {
+    color: currentColor;
+  }
+
+  li p {
+    margin: 0 0 0.25rem 0;
+    display: inline;
+  }
+}

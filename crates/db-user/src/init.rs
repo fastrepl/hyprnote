@@ -8,7 +8,8 @@ use super::{
     Session, Tag, UserDatabase,
 };
 
-const USER_MANUAL_MD: &str = include_str!("../assets/manual.md");
+const EDITOR_BASICS_MD: &str = include_str!("../assets/editor-basics.md");
+const KEYBOARD_SHORTCUTS_MD: &str = include_str!("../assets/keyboard-shortcuts.md");
 const ONBOARDING_RAW_HTML: &str = include_str!("../assets/onboarding-raw.html");
 const THANK_YOU_MD: &str = include_str!("../assets/thank-you.md");
 
@@ -71,14 +72,38 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
 
     let onboarding_session_id = db.onboarding_session_id();
 
-    let manual_session = Session {
+    let thank_you_session = Session {
         id: uuid::Uuid::new_v4().to_string(),
         user_id: user_id.clone(),
-        title: "Welcome to Hyprnote".to_string(),
+        title: "Thank you".to_string(),
         created_at: chrono::Utc::now(),
         visited_at: chrono::Utc::now(),
         calendar_event_id: None,
-        raw_memo_html: hypr_buffer::opinionated_md_to_html(USER_MANUAL_MD).unwrap(),
+        raw_memo_html: hypr_buffer::opinionated_md_to_html(THANK_YOU_MD).unwrap(),
+        enhanced_memo_html: None,
+        conversations: vec![],
+    };
+
+    let keyboard_shortcuts_session = Session {
+        id: uuid::Uuid::new_v4().to_string(),
+        user_id: user_id.clone(),
+        title: "Keyboard Shortcuts".to_string(),
+        created_at: chrono::Utc::now(),
+        visited_at: chrono::Utc::now(),
+        calendar_event_id: None,
+        raw_memo_html: hypr_buffer::opinionated_md_to_html(KEYBOARD_SHORTCUTS_MD).unwrap(),
+        enhanced_memo_html: None,
+        conversations: vec![],
+    };
+
+    let editor_basics_session = Session {
+        id: uuid::Uuid::new_v4().to_string(),
+        user_id: user_id.clone(),
+        title: "Editor Basics".to_string(),
+        created_at: chrono::Utc::now(),
+        visited_at: chrono::Utc::now(),
+        calendar_event_id: None,
+        raw_memo_html: hypr_buffer::opinionated_md_to_html(EDITOR_BASICS_MD).unwrap(),
         enhanced_memo_html: None,
         conversations: vec![],
     };
@@ -95,22 +120,15 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         conversations: vec![],
     };
 
-    let thank_you_session = Session {
-        id: uuid::Uuid::new_v4().to_string(),
-        user_id: user_id.clone(),
-        title: "Thank you".to_string(),
-        created_at: chrono::Utc::now(),
-        visited_at: chrono::Utc::now(),
-        calendar_event_id: None,
-        raw_memo_html: hypr_buffer::opinionated_md_to_html(THANK_YOU_MD).unwrap(),
-        enhanced_memo_html: None,
-        conversations: vec![],
-    };
-
     let _ = db.upsert_calendar(default_calendar).await?;
     let _ = db.upsert_event(onboarding_event).await?;
 
-    for session in [&manual_session, &onboarding_session, &thank_you_session] {
+    for session in [
+        &thank_you_session,
+        &keyboard_shortcuts_session,
+        &editor_basics_session,
+        &onboarding_session,
+    ] {
         let _ = db.upsert_session(session.clone()).await?;
     }
 
@@ -123,7 +141,9 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
     }
 
     for participant in fastrepl_members {
-        db.session_add_participant(&manual_session.id, &participant.id)
+        db.session_add_participant(&editor_basics_session.id, &participant.id)
+            .await?;
+        db.session_add_participant(&keyboard_shortcuts_session.id, &participant.id)
             .await?;
         db.session_add_participant(&thank_you_session.id, &participant.id)
             .await?;

@@ -1,4 +1,3 @@
-use include_url_macro::include_url;
 use std::sync::{Arc, OnceLock};
 
 use llama_cpp_2::{
@@ -11,9 +10,10 @@ use llama_cpp_2::{
 };
 
 mod error;
-pub use error::*;
-
+mod grammar;
 mod message;
+
+pub use error::*;
 pub use message::*;
 
 const TEMPLATE_NAME: &str = "llama3";
@@ -22,18 +22,6 @@ const DEFAULT_MAX_INPUT_TOKENS: u32 = 1024 * 8;
 const DEFAULT_MAX_OUTPUT_TOKENS: u32 = 1024 * 2;
 
 static LLAMA_BACKEND: OnceLock<Arc<LlamaBackend>> = OnceLock::new();
-
-#[allow(dead_code)]
-const JSON_ARR_GRAMMAR: &str = include_url!(
-    "https://raw.githubusercontent.com/ggml-org/llama.cpp/7a84777/grammars/json_arr.gbnf"
-);
-
-#[allow(dead_code)]
-const JSON_GRAMMAR: &str =
-    include_url!("https://raw.githubusercontent.com/ggml-org/llama.cpp/7a84777/grammars/json.gbnf");
-
-#[allow(dead_code)]
-const MARKDOWN_GRAMMAR: &str = include_str!("./markdown.gbnf");
 
 pub struct Llama {
     task_sender: tokio::sync::mpsc::UnboundedSender<Task>,
@@ -109,7 +97,7 @@ impl Llama {
                             let mut n_cur = batch.n_tokens();
                             let mut decoder = encoding_rs::UTF_8.new_decoder();
                             let mut sampler = LlamaSampler::chain_simple([
-                                LlamaSampler::grammar(&model, MARKDOWN_GRAMMAR, "root"),
+                                LlamaSampler::grammar(&model, grammar::MARKDOWN_GRAMMAR, "root"),
                                 LlamaSampler::penalties(0, 1.5, 0.0, 0.0),
                                 LlamaSampler::dist(1234),
                             ]);

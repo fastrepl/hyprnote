@@ -15,6 +15,10 @@ pub fn opinionated_md_to_html(text: impl AsRef<str>) -> Result<String, Error> {
     md_to_html(&md)
 }
 
+pub fn opinionated_md_to_md(text: impl AsRef<str>) -> Result<String, Error> {
+    md_to_md(text)
+}
+
 fn md_to_md(text: impl AsRef<str>) -> Result<String, Error> {
     let mut text = text.as_ref().to_string();
 

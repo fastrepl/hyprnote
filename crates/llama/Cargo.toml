@@ -5,15 +5,18 @@ edition = "2021"
 
 [dev-dependencies]
 dirs = { workspace = true }
+hypr-buffer = { workspace = true }
 
 [dependencies]
+include_url_macro = { workspace = true }
+
 encoding_rs = "0.8.35"
+gbnf = "0.1.7"
 llama-cpp-2 = { git = "https://github.com/utilityai/llama-cpp-rs", features = ["metal"], branch = "update-llama-cpp-2025-04-06" }
 
 async-openai = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt", "sync"] }
 
-include_url_macro = "0.1.0"
 serde = { workspace = true }
 thiserror = { workspace = true }

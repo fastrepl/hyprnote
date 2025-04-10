@@ -1,21 +1,24 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Channel } from "@tauri-apps/api/core";
-import { Check, ChevronDown, Download, FlaskConical, Languages, Mic, Wand2 } from "lucide-react";
+import { Languages, Server } from "lucide-react";
 import { useState } from "react";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
-import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@hypr/ui/components/ui/dropdown-menu";
-import { Progress } from "@hypr/ui/components/ui/progress";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { generateText, modelProvider } from "@hypr/utils/ai";
+import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
+import { Label } from "@hypr/ui/components/ui/label";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@hypr/ui/components/ui/accordion";
+
+// Import the TranscribingModel and EnhancingModel from the correct path
+import { TranscribingModel } from "../components/ai/transcribing-model";
+import { EnhancingModel } from "../components/ai/enhancing-model";
 
 export default function LocalAI() {
   const queryClient = useQueryClient();
@@ -34,247 +37,36 @@ export default function LocalAI() {
 
   return (
     <div className="space-y-6">
-      <SpeechToTextDetails isRunning={!!sttRunning.data} queryClient={queryClient} />
-      <LanguageModelContainer isRunning={!!llmRunning.data} queryClient={queryClient} />
-    </div>
-  );
-}
-
-function SpeechToTextDetails({
-  isRunning,
-  queryClient,
-}: {
-  isRunning: boolean;
-  queryClient: ReturnType<typeof useQueryClient>;
-}) {
-  const [downloadProgress, setDownloadProgress] = useState(0);
-  const [isDownloading, setIsDownloading] = useState(false);
-
-  const toggleLocalStt = useMutation({
-    mutationFn: async () => {
-      if (!isRunning) {
-        await localSttCommands.startServer();
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["local-stt", "running"] });
-    },
-  });
-
-  const currentModel = useQuery({
-    queryKey: ["local-stt", "current-model"],
-    queryFn: () => localSttCommands.getCurrentModel(),
-    enabled: isRunning,
-  });
-
-  const speedModelStatus = useQuery({
-    queryKey: ["local-stt", "model-downloaded", "QuantizedBaseEn"],
-    queryFn: async () => {
-      const isDownloaded = await localSttCommands.isModelDownloaded("QuantizedBaseEn");
-      return isDownloaded;
-    },
-    enabled: isRunning,
-  });
-
-  const qualityModelStatus = useQuery({
-    queryKey: ["local-stt", "model-downloaded", "QuantizedSmallEn"],
-    queryFn: async () => {
-      const isDownloaded = await localSttCommands.isModelDownloaded("QuantizedSmallEn");
-      return isDownloaded;
-    },
-    enabled: isRunning,
-  });
-
-  const setCurrentModel = useMutation({
-    mutationFn: async (model: SupportedModel) => {
-      if (
-        (model === "QuantizedBaseEn" && !speedModelStatus.data)
-        || (model === "QuantizedSmallEn" && !qualityModelStatus.data)
-      ) {
-        setIsDownloading(true);
-        const channel = new Channel<number>();
-
-        channel.onmessage = (progress) => {
-          setDownloadProgress(progress);
-          if (progress >= 100) {
-            setIsDownloading(false);
-            localSttCommands.setCurrentModel(model);
-            queryClient.invalidateQueries({ queryKey: ["local-stt", "current-model"] });
-            queryClient.invalidateQueries({ queryKey: ["local-stt", "model-downloaded", model] });
-          }
-        };
-
-        await localSttCommands.downloadModel(model, channel);
-        return;
-      }
-
-      await localSttCommands.setCurrentModel(model);
-    },
-    onSuccess: () => {
-      if (!isDownloading) {
-        queryClient.invalidateQueries({ queryKey: ["local-stt", "current-model"] });
-      }
-    },
-  });
-
-  const downloadSpeedModel = useMutation({
-    mutationFn: async () => {
-      setIsDownloading(true);
-      const channel = new Channel<number>();
-
-      channel.onmessage = (progress) => {
-        setDownloadProgress(progress);
-        if (progress >= 100) {
-          setIsDownloading(false);
-          queryClient.invalidateQueries({ queryKey: ["local-stt", "model-downloaded", "QuantizedTinyEn"] });
-        }
-      };
-
-      await localSttCommands.downloadModel("QuantizedTinyEn", channel);
-    },
-  });
-
-  const downloadQualityModel = useMutation({
-    mutationFn: async () => {
-      setIsDownloading(true);
-      const channel = new Channel<number>();
-
-      channel.onmessage = (progress) => {
-        setDownloadProgress(progress);
-        if (progress >= 100) {
-          setIsDownloading(false);
-          queryClient.invalidateQueries({ queryKey: ["local-stt", "model-downloaded", "QuantizedSmallEn"] });
-        }
-      };
-
-      await localSttCommands.downloadModel("QuantizedSmallEn", channel);
-    },
-  });
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-col rounded-lg border p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex size-6 items-center justify-center">
-              <Mic className="h-4 w-4" />
+      <Accordion type="single" collapsible defaultValue="local">
+        <AccordionItem value="local">
+          <AccordionTrigger>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-medium">
+                <Trans>Local AI</Trans>
+              </h3>
             </div>
-            <div>
-              <div className="text-sm font-medium">
-                <Trans>Local Speech-to-Text</Trans>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                <Trans>Run speech recognition locally for enhanced privacy</Trans>
-              </div>
+          </AccordionTrigger>
+          <AccordionContent className="px-2 pt-4">
+            <div className="space-y-6">
+              <p className="text-sm text-muted-foreground">
+                <Trans>
+                  Configure local AI models for enhanced privacy and offline
+                  capabilities
+                </Trans>
+              </p>
+              
+              <TranscribingModel
+                isRunning={!!sttRunning.data}
+                queryClient={queryClient}
+              />
+              <EnhancingModel
+                isRunning={!!llmRunning.data}
+                queryClient={queryClient}
+              />
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {isRunning
-              ? (
-                <div className="flex items-center gap-1.5">
-                  <div className="relative h-2 w-2">
-                    <div className="absolute inset-0 rounded-full bg-green-500/30"></div>
-                    <div className="absolute inset-0 rounded-full bg-green-500 animate-ping"></div>
-                  </div>
-                  <span className="text-xs text-green-600">
-                    <Trans>Active</Trans>
-                  </span>
-                </div>
-              )
-              : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => toggleLocalStt.mutate()}
-                  disabled={toggleLocalStt.isPending}
-                  className="min-w-20 text-center"
-                >
-                  {toggleLocalStt.isPending
-                    ? (
-                      <>
-                        <Spinner />
-                        <Trans>Loading...</Trans>
-                      </>
-                    )
-                    : <Trans>Start Server</Trans>}
-                </Button>
-              )}
-          </div>
-        </div>
-
-        {isRunning && (
-          <div className="mt-4 border-t pt-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex size-6 items-center justify-center">
-                  <Wand2 className="h-4 w-4" />
-                </div>
-                <div>
-                  <div className="text-sm font-medium">
-                    <Trans>Model Selection</Trans>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    <Trans>Choose between speed and quality for speech recognition</Trans>
-                  </div>
-                </div>
-              </div>
-
-              {isDownloading
-                ? <Progress value={downloadProgress} className="h-2 w-20" />
-                : (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild disabled={!isRunning || setCurrentModel.isPending}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="min-w-20 text-center"
-                        disabled={!isRunning || setCurrentModel.isPending}
-                      >
-                        {setCurrentModel.isPending ? <Spinner /> : null}
-                        {currentModel.data === "QuantizedSmallEn" ? <Trans>Quality</Trans> : <Trans>Speed</Trans>}
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() =>
-                          speedModelStatus.data
-                            ? setCurrentModel.mutate("QuantizedTinyEn")
-                            : downloadSpeedModel.mutate()}
-                        disabled={currentModel.data === "QuantizedTinyEn" || isDownloading}
-                        className="flex items-center gap-2"
-                      >
-                        <Trans>Speed (tiny-en)</Trans>
-                        {currentModel.data === "QuantizedTinyEn" && <Check className="h-3 w-3 ml-2" />}
-                        {!speedModelStatus.data && (
-                          downloadSpeedModel.isPending
-                            ? <Spinner className="h-3 w-3 ml-2" />
-                            : <Download className="h-3 w-3 ml-2" />
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          qualityModelStatus.data
-                            ? setCurrentModel.mutate("QuantizedSmallEn")
-                            : downloadQualityModel.mutate()}
-                        disabled={currentModel.data === "QuantizedSmallEn" || isDownloading}
-                        className="flex items-center gap-2"
-                      >
-                        <Trans>Quality (small-en)</Trans>
-                        {currentModel.data === "QuantizedSmallEn" && <Check className="h-3 w-3 ml-2" />}
-                        {!qualityModelStatus.data && (
-                          downloadQualityModel.isPending
-                            ? <Spinner className="h-3 w-3 ml-2" />
-                            : <Download className="h-3 w-3 ml-2" />
-                        )}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-            </div>
-          </div>
-        )}
-      </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }
@@ -286,50 +78,77 @@ function LanguageModelContainer({
   isRunning: boolean;
   queryClient: ReturnType<typeof useQueryClient>;
 }) {
+  const [activeAccordion, setActiveAccordion] =
+    useState<string>("local-models");
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col rounded-lg border p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="flex size-6 items-center justify-center">
               <Languages className="h-4 w-4" />
             </div>
             <div>
               <div className="text-sm font-medium">
-                <Trans>Local Language Model</Trans>
+                <Trans>Enhancing model</Trans>
               </div>
               <div className="text-xs text-muted-foreground">
-                <Trans>Run language models locally for enhanced privacy</Trans>
+                <Trans>Run AI models locally for enhanced privacy</Trans>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {isRunning
-              ? (
-                <div className="flex items-center gap-1.5">
-                  <div className="relative h-2 w-2">
-                    <div className="absolute inset-0 rounded-full bg-green-500/30"></div>
-                    <div className="absolute inset-0 rounded-full bg-green-500 animate-ping"></div>
-                  </div>
-                  <span className="text-xs text-green-600">
-                    <Trans>Active</Trans>
-                  </span>
+            {isRunning ? (
+              <div className="flex items-center gap-1.5">
+                <div className="relative h-2 w-2">
+                  <div className="absolute inset-0 rounded-full bg-green-500/30"></div>
+                  <div className="absolute inset-0 rounded-full bg-green-500 animate-ping"></div>
                 </div>
-              )
-              : (
-                <LocalLlmButton
-                  isRunning={isRunning}
-                  queryClient={queryClient}
-                />
-              )}
+                <span className="text-xs text-green-600">
+                  <Trans>Active</Trans>
+                </span>
+              </div>
+            ) : (
+              <LocalLlmButton isRunning={isRunning} queryClient={queryClient} />
+            )}
           </div>
         </div>
 
         {isRunning && (
-          <div className="mt-4 border-t pt-4">
-            <TestModelButton
-              isRunning={isRunning}
-            />
+          <div className="mt-2">
+            <Accordion
+              type="single"
+              collapsible
+              value={activeAccordion}
+              onValueChange={setActiveAccordion}
+              className="w-full"
+            >
+              <AccordionItem value="local-models" className="border-b-0">
+                <AccordionTrigger className="py-2 text-sm">
+                  <Trans>Local Models</Trans>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="pt-2 pb-1">
+                    <ModelSelectionDropdown isRunning={isRunning} />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="ollama" className="border-b-0">
+                <AccordionTrigger className="py-2 text-sm">
+                  <Trans>Ollama</Trans>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="pt-2 pb-1">
+                    <OllamaConnectionButton
+                      isRunning={isRunning}
+                      queryClient={queryClient}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         )}
       </div>
@@ -363,40 +182,127 @@ function LocalLlmButton({
       disabled={toggleLocalLlmServer.isPending}
       className="min-w-20 text-center"
     >
-      {toggleLocalLlmServer.isPending
-        ? (
-          <>
-            <Spinner />
-            <Trans>Loading...</Trans>
-          </>
-        )
-        : <Trans>Start Server</Trans>}
+      {toggleLocalLlmServer.isPending ? (
+        <>
+          <Spinner />
+          <Trans>Loading...</Trans>
+        </>
+      ) : (
+        <Trans>Start Server</Trans>
+      )}
     </Button>
   );
 }
 
-function TestModelButton({ isRunning }: { isRunning: boolean }) {
-  const [testSuccess, setTestSuccess] = useState(false);
+function ModelSelectionDropdown({ isRunning }: { isRunning: boolean }) {
+  const [selectedModel, setSelectedModel] = useState("default");
 
-  const checkLLM = useMutation({
-    mutationFn: async () => {
-      const provider = await modelProvider();
-      const { text } = await generateText({
-        model: provider.languageModel("any"),
-        messages: [{ role: "user", content: "generate just 1 sentences" }],
-      });
-
-      if (!text) {
-        throw new Error("no text");
+  const ollamaModels = useQuery({
+    queryKey: ["ollama", "models"],
+    queryFn: async () => {
+      try {
+        const models = await localLlmCommands.listOllamaModels();
+        return models.length > 0 ? models : ["default"];
+      } catch (error) {
+        console.error("Failed to fetch Ollama models:", error);
+        return ["default"];
       }
-      return text;
     },
-    onError: (error) => {
-      console.error(error);
-      setTestSuccess(false);
-    },
-    onSuccess: () => {
-      setTestSuccess(true);
+    enabled: isRunning,
+  });
+
+  // Determine the current model to display
+  const availableModels = ollamaModels.data || ["default"];
+
+  if (!isRunning) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between mb-2">
+        <h4 className="text-sm font-medium">
+          <Trans>Available Models</Trans>
+        </h4>
+        <div className="text-xs text-muted-foreground">
+          <Trans>Choose from our curated AI models</Trans>
+        </div>
+      </div>
+
+      <RadioGroup
+        value={selectedModel}
+        onValueChange={setSelectedModel}
+        disabled={ollamaModels.isLoading}
+        className="space-y-2"
+      >
+        {ollamaModels.isLoading ? (
+          <div className="flex items-center gap-2 py-1">
+            <Spinner className="h-4 w-4" />
+            <span className="text-sm text-muted-foreground">
+              <Trans>Loading models...</Trans>
+            </span>
+          </div>
+        ) : (
+          availableModels.map((model) => (
+            <div key={model} className="flex items-center space-x-2">
+              <RadioGroupItem value={model} id={`model-${model}`} />
+              <Label
+                htmlFor={`model-${model}`}
+                className="flex items-center cursor-pointer"
+              >
+                <span>{model}</span>
+              </Label>
+            </div>
+          ))
+        )}
+      </RadioGroup>
+    </div>
+  );
+}
+
+function OllamaConnectionButton({
+  isRunning,
+  queryClient,
+}: {
+  isRunning: boolean;
+  queryClient: ReturnType<typeof useQueryClient>;
+}) {
+  const [isConnected, setIsConnected] = useState(false);
+  const [hasModels, setHasModels] = useState(false);
+
+  const ollamaConnection = useMutation({
+    mutationFn: async () => {
+      if (isConnected) {
+        // Disconnect from Ollama
+        // Implement actual disconnect logic here
+        setIsConnected(false);
+        return;
+      }
+
+      // Connect to Ollama
+      // Check if Ollama is running and has at least one model
+      try {
+        // Implement actual connection logic here
+        // This is a placeholder for the actual implementation
+        const ollamaRunning = true; // Replace with actual check
+        const ollamaHasModels = true; // Replace with actual check
+
+        if (!ollamaRunning) {
+          throw new Error("Ollama is not running");
+        }
+
+        if (!ollamaHasModels) {
+          setHasModels(false);
+          throw new Error("No models installed in Ollama");
+        }
+
+        setHasModels(true);
+        setIsConnected(true);
+        return true;
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
     },
   });
 
@@ -408,40 +314,45 @@ function TestModelButton({ isRunning }: { isRunning: boolean }) {
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div className="flex size-6 items-center justify-center">
-          <FlaskConical className="h-4 w-4" />
+          <Server className="h-4 w-4" />
         </div>
         <div>
-          <div className="text-sm font-medium">
-            <Trans>Test Language Model</Trans>
-          </div>
+          <div className="text-sm font-medium">Ollama</div>
           <div className="text-xs text-muted-foreground">
-            {testSuccess
-              ? <Trans>Model is working correctly</Trans>
-              : <Trans>Verify that your local language model is working correctly</Trans>}
+            {isConnected ? (
+              <Trans>Connected to Ollama</Trans>
+            ) : (
+              <Trans>
+                Ollama must be running with at least one model installed
+              </Trans>
+            )}
           </div>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        {testSuccess
-          ? <Check className="text-green-500 h-4 w-4" />
-          : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => checkLLM.mutate()}
-              disabled={checkLLM.isPending}
-              className="min-w-20 text-center"
-            >
-              {checkLLM.isPending
-                ? (
-                  <>
-                    <Spinner />
-                    <Trans>Testing...</Trans>
-                  </>
-                )
-                : <Trans>Test Model</Trans>}
-            </Button>
+        {!hasModels && ollamaConnection.isError && (
+          <span className="text-xs text-red-500">
+            <Trans>No models found</Trans>
+          </span>
+        )}
+        <Button
+          variant={isConnected ? "destructive" : "outline"}
+          size="sm"
+          onClick={() => ollamaConnection.mutate()}
+          disabled={ollamaConnection.isPending}
+          className="w-20 text-center"
+        >
+          {ollamaConnection.isPending ? (
+            <>
+              <Spinner />
+              <Trans>Loading...</Trans>
+            </>
+          ) : isConnected ? (
+            <Trans>Disconnect</Trans>
+          ) : (
+            <Trans>Connect</Trans>
           )}
+        </Button>
       </div>
     </div>
   );

@@ -1,11 +1,6 @@
 import "../styles/tiptap.css";
 
-import {
-  type Editor as TiptapEditor,
-  EditorContent,
-  type HTMLContent,
-  useEditor,
-} from "@tiptap/react";
+import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect } from "react";
 import * as shared from "../shared";
 
@@ -93,7 +88,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         <EditorContent editor={editor} />
       </div>
     );
-  }
+  },
 );
 
 Editor.displayName = "Editor";

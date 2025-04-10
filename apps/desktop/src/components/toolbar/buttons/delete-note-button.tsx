@@ -4,16 +4,8 @@ import { Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@hypr/ui/components/ui/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@hypr/ui/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useSession } from "@hypr/utils/contexts";
 
 export function DeleteNoteButton() {
@@ -28,9 +20,9 @@ function DeleteNoteButtonInNote() {
   const hasContent = useSession(
     param.id,
     (s) =>
-      !!s.session?.title ||
-      !!s.session?.raw_memo_html ||
-      !!s.session?.enhanced_memo_html
+      !!s.session?.title
+      || !!s.session?.raw_memo_html
+      || !!s.session?.enhanced_memo_html,
   );
 
   // TODO

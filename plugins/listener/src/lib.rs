@@ -9,11 +9,13 @@ mod commands;
 mod error;
 mod events;
 mod ext;
+mod session;
 
 pub use client::*;
 pub use error::*;
 pub use events::*;
 pub use ext::ListenerPluginExt;
+pub use session::*;
 
 pub use hypr_listener_interface::*;
 

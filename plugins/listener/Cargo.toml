@@ -50,6 +50,7 @@ futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 hound = { workspace = true }
+statig = { version = "0.3.0", features = ["async"] }
 
 [target."cfg(target_os = \"macos\")".dependencies]
 objc2 = "0.6"

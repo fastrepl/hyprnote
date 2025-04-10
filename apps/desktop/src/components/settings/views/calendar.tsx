@@ -1,5 +1,10 @@
 import { type CalendarIntegration } from "@/types";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@hypr/ui/components/ui/accordion";
 import {
   AppleCalendarIntegrationDetails,
   CalendarIconWithText,
@@ -15,7 +20,7 @@ const supportedIntegrations: CalendarIntegration[] = [
 export default function Calendar() {
   return (
     <div className="-mt-3">
-      <ul className="flex flex-col px-1">
+      <ul className="flex flex-col">
         {supportedIntegrations.map((type) => (
           <li key={type}>
             <Integration type={type} />
@@ -34,9 +39,11 @@ function Integration({ type }: { type: CalendarIntegration }) {
           <CalendarIconWithText type={type} />
         </AccordionTrigger>
         <AccordionContent className="px-2">
-          {type === "apple-calendar"
-            ? <AppleCalendarIntegrationDetails />
-            : <CloudCalendarIntegrationDetails type={type} />}
+          {type === "apple-calendar" ? (
+            <AppleCalendarIntegrationDetails />
+          ) : (
+            <CloudCalendarIntegrationDetails type={type} />
+          )}
         </AccordionContent>
       </AccordionItem>
     </Accordion>

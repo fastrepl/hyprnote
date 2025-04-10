@@ -8,12 +8,6 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
 import { Label } from "@hypr/ui/components/ui/label";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@hypr/ui/components/ui/accordion";
 
 interface EnhancingModelProps {
   isRunning: boolean;
@@ -51,7 +45,19 @@ export function EnhancingModel({
     enabled: isRunning,
   });
 
+  const connectToOllama = useMutation({
+    mutationFn: async () => {
+      // This would be the actual connection logic
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ollama", "models"] });
+    },
+  });
+
   const availableModels = ollamaModels.data || ["default"];
+  const isOllamaConnected = ollamaModels.data && ollamaModels.data.length > 0;
 
   return (
     <div className="space-y-4">
@@ -94,94 +100,68 @@ export function EnhancingModel({
         </div>
 
         {isRunning && (
-          <div className="mt-2 space-y-4">
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="local-models">
-                <AccordionTrigger>
-                  <Trans>Local Models</Trans>
-                </AccordionTrigger>
-                <AccordionContent className="py-4">
-                  <div className="space-y-4">
-                    {/* Ollama Connection Section */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Server className="h-4 w-4" />
-                          <h4 className="text-sm font-medium">
-                            <Trans>Ollama Connection</Trans>
-                          </h4>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          {ollamaModels.data && ollamaModels.data.length > 0 ? (
-                            <div className="flex items-center gap-1.5">
-                              <div className="relative h-2 w-2">
-                                <div className="absolute inset-0 rounded-full bg-green-500/30"></div>
-                                <div className="absolute inset-0 rounded-full bg-green-500 animate-ping"></div>
-                              </div>
-                              <span className="text-xs text-green-600">
-                                <Trans>Connected</Trans>
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              <Trans>Not connected</Trans>
-                            </span>
-                          )}
-                        </div>
-                      </div>
+          <div className="mt-2 pl-2">
+            <div className="space-y-4">
+              {/* Local Models Section */}
+              {availableModels.length > 0 && (
+                <RadioGroup
+                  value={selectedModel}
+                  onValueChange={setSelectedModel}
+                  disabled={ollamaModels.isLoading}
+                  className="space-y-2"
+                >
+                  {availableModels.map((model) => (
+                    <div key={model} className="flex items-center space-x-2">
+                      <RadioGroupItem value={model} id={`model-${model}`} />
+                      <Label
+                        htmlFor={`model-${model}`}
+                        className="flex items-center cursor-pointer"
+                      >
+                        <span>{model}</span>
+                      </Label>
                     </div>
+                  ))}
+                </RadioGroup>
+              )}
 
-                    {/* Model Selection Section */}
-                    {ollamaModels.data && ollamaModels.data.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="text-sm font-medium">
-                            <Trans>Available Models</Trans>
-                          </h4>
-                          <div className="text-xs text-muted-foreground">
-                            <Trans>Choose from our curated AI models</Trans>
-                          </div>
-                        </div>
+              <div className="relative">
+                <div className="border-t border-gray-200 dark:border-gray-700 absolute top-1/2 left-0 right-0"></div>
+                <div className="relative flex justify-center">
+                  <span className="bg-background px-2 text-xs text-muted-foreground">
+                    <Trans>or</Trans>
+                  </span>
+                </div>
+              </div>
 
-                        <RadioGroup
-                          value={selectedModel}
-                          onValueChange={setSelectedModel}
-                          disabled={ollamaModels.isLoading}
-                          className="space-y-2"
-                        >
-                          {ollamaModels.isLoading ? (
-                            <div className="flex items-center gap-2 py-1">
-                              <Spinner className="h-4 w-4" />
-                              <span className="text-sm text-muted-foreground">
-                                <Trans>Loading models...</Trans>
-                              </span>
-                            </div>
-                          ) : (
-                            availableModels.map((model) => (
-                              <div
-                                key={model}
-                                className="flex items-center space-x-2"
-                              >
-                                <RadioGroupItem
-                                  value={model}
-                                  id={`model-${model}`}
-                                />
-                                <Label
-                                  htmlFor={`model-${model}`}
-                                  className="flex items-center cursor-pointer"
-                                >
-                                  <span>{model}</span>
-                                </Label>
-                              </div>
-                            ))
-                          )}
-                        </RadioGroup>
-                      </div>
-                    )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+              {/* Ollama Connection Button */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Server className="h-4 w-4" />
+                  <span className="text-sm">
+                    <Trans>Connect to Ollama</Trans>
+                  </span>
+                </div>
+
+                <Button
+                  variant={isOllamaConnected ? "outline" : "default"}
+                  size="sm"
+                  onClick={() => !isOllamaConnected && connectToOllama.mutate()}
+                  disabled={ollamaModels.isLoading || connectToOllama.isPending}
+                  className="w-20 text-center"
+                >
+                  {ollamaModels.isLoading || connectToOllama.isPending ? (
+                    <>
+                      <Spinner className="mr-1 h-3 w-3" />
+                      <Trans>Connecting...</Trans>
+                    </>
+                  ) : isOllamaConnected ? (
+                    <Trans>Connected</Trans>
+                  ) : (
+                    <Trans>Connect</Trans>
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </div>

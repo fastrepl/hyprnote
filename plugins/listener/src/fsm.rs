@@ -400,7 +400,7 @@ impl Session {
 
     fn on_transition(&mut self, source: &State, target: &State) {
         #[cfg(debug_assertions)]
-        println!("transitioned from `{:?}` to `{:?}`", source, target);
+        tracing::info!("transitioned from `{:?}` to `{:?}`", source, target);
 
         if let Some(tx) = &self.session_state_tx {
             let _ = tx.send(target.clone());

@@ -22,6 +22,7 @@ pub struct Session {
     mic_stream_handle: Option<tokio::task::JoinHandle<()>>,
     speaker_stream_handle: Option<tokio::task::JoinHandle<()>>,
     listen_stream_handle: Option<tokio::task::JoinHandle<()>>,
+    session_state_tx: Option<tokio::sync::watch::Sender<State>>,
 }
 
 impl Session {
@@ -35,6 +36,7 @@ impl Session {
             mic_stream_handle: None,
             speaker_stream_handle: None,
             listen_stream_handle: None,
+            session_state_tx: None,
         }
     }
 
@@ -69,9 +71,12 @@ impl Session {
 
         let (mic_muted_tx, mic_muted_rx) = tokio::sync::watch::channel(false);
         let (speaker_muted_tx, speaker_muted_rx) = tokio::sync::watch::channel(false);
+        let (session_state_tx, session_state_rx) =
+            tokio::sync::watch::channel(State::RunningActive {});
 
         self.mic_muted_tx = Some(mic_muted_tx);
         self.speaker_muted_tx = Some(speaker_muted_tx);
+        self.session_state_tx = Some(session_state_tx);
 
         let listen_client = setup_listen_client(&self.app, jargons).await?;
 
@@ -161,6 +166,10 @@ impl Session {
             while let (Some(mic_chunk), Some(speaker_chunk)) =
                 (mic_rx.recv().await, speaker_rx.recv().await)
             {
+                if let State::RunningPaused {} = *session_state_rx.borrow() {
+                    continue;
+                }
+
                 let event = crate::SessionEventAudioAmplitude::from((&mic_chunk, &speaker_chunk));
 
                 Session::broadcast(&channels, SessionEvent::AudioAmplitude(event))
@@ -392,6 +401,10 @@ impl Session {
     fn on_transition(&mut self, source: &State, target: &State) {
         #[cfg(debug_assertions)]
         println!("transitioned from `{:?}` to `{:?}`", source, target);
+
+        if let Some(tx) = &self.session_state_tx {
+            let _ = tx.send(target.clone());
+        }
     }
 }
 

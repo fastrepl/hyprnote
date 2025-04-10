@@ -4,7 +4,6 @@
 
 /* Node styles */
 @import "./nodes/heading.css";
-@import "./nodes/paragraph.css";
 @import "./nodes/code.css";
 @import "./nodes/blockquote.css";
 @import "./nodes/link.css";

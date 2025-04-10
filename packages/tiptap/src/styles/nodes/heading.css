@@ -1,0 +1,19 @@
+.tiptap {
+  h1 {
+    color: #374151;
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 0.25rem;
+    min-height: 1.5rem;
+    position: relative;
+
+    &.is-empty::before {
+      color: #e5e5e5;
+      content: attr(data-placeholder);
+      float: left;
+      height: 0;
+      pointer-events: none;
+    }
+  }
+}

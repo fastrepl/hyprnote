@@ -1,5 +1,6 @@
 export * from "./bindings.gen";
 
-export const INACTIVE = "__LISTENER_TODO__inactive";
-export const RUNNING_ACTIVE = "__LISTENER_TODO__running_active";
-export const RUNNING_PAUSED = "__LISTENER_TODO__running_paused";
+export type State =
+  | "__LISTENER_TODO__inactive"
+  | "__LISTENER_TODO__running_active"
+  | "__LISTENER_TODO__running_paused";

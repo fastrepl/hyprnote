@@ -1,6 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { MicIcon, MicOffIcon, PauseIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
+import clsx from "clsx";
+import { MicIcon, MicOffIcon, PauseIcon, StopCircleIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
@@ -128,11 +129,12 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
         <button
           disabled={!modelDownloaded.data}
           onClick={handleStartSession}
-          className={`w-16 h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium ${
+          className={clsx(
+            "w-16 h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium",
             isEnhanced
               ? "bg-neutral-200 border-2 border-neutral-400 text-neutral-600 opacity-30 hover:opacity-100 hover:bg-red-100 hover:text-red-600 hover:border-red-400"
-              : "bg-red-100 border-2 border-red-400 text-red-600"
-          }`}
+              : "bg-red-100 border-2 border-red-400 text-red-600",
+          )}
           style={{
             boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
           }}
@@ -146,7 +148,10 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
             <button
               disabled={!modelDownloaded.data}
               onClick={handleStartSession}
-              className="w-9 h-9 rounded-full bg-red-500 border-2 transition-all hover:scale-95 border-neutral-400 cursor-pointer outline-none p-0 flex items-center justify-center"
+              className={clsx([
+                "w-9 h-9 rounded-full border-2 transition-all hover:scale-95  cursor-pointer outline-none p-0 flex items-center justify-center",
+                !modelDownloaded.data ? "bg-neutral-200 border-neutral-400" : "bg-red-500 border-neutral-400",
+              ])}
               style={{
                 boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
               }}
@@ -198,14 +203,24 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
               />
             </div>
 
-            <Button
-              variant="destructive"
-              onClick={handleStopSession}
-              className="w-full"
-            >
-              <PauseIcon size={16} />
-              <Trans>Pause recording</Trans>
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleStopSession}
+                className="w-full"
+              >
+                <PauseIcon size={16} />
+                <Trans>Pause</Trans>
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleStopSession}
+                className="w-full"
+              >
+                <StopCircleIcon size={16} />
+                <Trans>Stop</Trans>
+              </Button>
+            </div>
           </PopoverContent>
         </Popover>
       )}

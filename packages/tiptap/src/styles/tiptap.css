@@ -1,17 +1,32 @@
 /* Base styles */
-@import './scrollbar.css';
-@import './base.css';
+@import "./scrollbar.css";
+@import "./base.css";
 
 /* Node styles */
-@import './nodes/heading.css';
-@import './nodes/paragraph.css';
-@import './nodes/code.css';
-@import './nodes/blockquote.css';
-@import './nodes/link.css';
-@import './nodes/list.css';
-@import './nodes/task-list.css';
-@import './nodes/mark.css';
-@import './nodes/hashtag.css';
+@import "./nodes/heading.css";
+@import "./nodes/paragraph.css";
+@import "./nodes/code.css";
+@import "./nodes/blockquote.css";
+@import "./nodes/link.css";
+@import "./nodes/list.css";
+@import "./nodes/task-list.css";
+@import "./nodes/mark.css";
+@import "./nodes/hashtag.css";
 
 /* Animation styles */
-@import './animation.css';
+@import "./animation.css";
+
+.ProseMirror .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #e5e5e5;
+  pointer-events: none;
+  height: 0;
+}
+.ProseMirror .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #e5e5e5;
+  pointer-events: none;
+  height: 0;
+}

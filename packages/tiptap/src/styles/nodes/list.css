@@ -6,14 +6,6 @@
     display: block;
     position: relative;
 
-    &.is-empty::before {
-      color: #e5e5e5;
-      content: attr(data-placeholder);
-      float: left;
-      height: 0;
-      pointer-events: none;
-    }
-
     ul {
       list-style-type: circle;
       margin-top: 0.25rem;
@@ -32,14 +24,6 @@
     margin-bottom: 0.25rem;
     display: block;
     position: relative;
-
-    &.is-empty::before {
-      color: #e5e5e5;
-      content: attr(data-placeholder);
-      float: left;
-      height: 0;
-      pointer-events: none;
-    }
 
     /* Nested ordered lists */
     ol {

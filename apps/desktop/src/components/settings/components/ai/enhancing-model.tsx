@@ -5,9 +5,9 @@ import { useState } from "react";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
 import { Label } from "@hypr/ui/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 
 interface EnhancingModelProps {
   isRunning: boolean;
@@ -68,34 +68,36 @@ export function EnhancingModel({
             <Trans>Enhancing Model</Trans>
           </div>
           <div className="flex items-center gap-2">
-            {isRunning ? (
-              <div className="flex items-center gap-1.5">
-                <div className="relative h-2 w-2">
-                  <div className="absolute inset-0 rounded-full bg-green-500/30"></div>
-                  <div className="absolute inset-0 rounded-full bg-green-500 animate-ping"></div>
+            {isRunning
+              ? (
+                <div className="flex items-center gap-1.5">
+                  <div className="relative h-2 w-2">
+                    <div className="absolute inset-0 rounded-full bg-green-500/30"></div>
+                    <div className="absolute inset-0 rounded-full bg-green-500 animate-ping"></div>
+                  </div>
+                  <span className="text-xs text-green-600">
+                    <Trans>Active</Trans>
+                  </span>
                 </div>
-                <span className="text-xs text-green-600">
-                  <Trans>Active</Trans>
-                </span>
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => toggleLocalLlm.mutate()}
-                disabled={toggleLocalLlm.isPending}
-                className="min-w-20 text-center"
-              >
-                {toggleLocalLlm.isPending ? (
-                  <>
-                    <Spinner />
-                    <Trans>Loading...</Trans>
-                  </>
-                ) : (
-                  <Trans>Start Server</Trans>
-                )}
-              </Button>
-            )}
+              )
+              : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => toggleLocalLlm.mutate()}
+                  disabled={toggleLocalLlm.isPending}
+                  className="min-w-20 text-center"
+                >
+                  {toggleLocalLlm.isPending
+                    ? (
+                      <>
+                        <Spinner />
+                        <Trans>Loading...</Trans>
+                      </>
+                    )
+                    : <Trans>Start Server</Trans>}
+                </Button>
+              )}
           </div>
         </div>
 
@@ -149,16 +151,16 @@ export function EnhancingModel({
                   disabled={ollamaModels.isLoading || connectToOllama.isPending}
                   className="w-20 text-center"
                 >
-                  {ollamaModels.isLoading || connectToOllama.isPending ? (
-                    <>
-                      <Spinner className="mr-1 h-3 w-3" />
-                      <Trans>Connecting...</Trans>
-                    </>
-                  ) : isOllamaConnected ? (
-                    <Trans>Connected</Trans>
-                  ) : (
-                    <Trans>Connect</Trans>
-                  )}
+                  {ollamaModels.isLoading || connectToOllama.isPending
+                    ? (
+                      <>
+                        <Spinner className="mr-1 h-3 w-3" />
+                        <Trans>Connecting...</Trans>
+                      </>
+                    )
+                    : isOllamaConnected
+                    ? <Trans>Connected</Trans>
+                    : <Trans>Connect</Trans>}
                 </Button>
               </div>
             </div>

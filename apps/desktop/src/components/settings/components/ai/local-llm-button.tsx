@@ -1,6 +1,5 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { Button } from "@hypr/ui/components/ui/button";

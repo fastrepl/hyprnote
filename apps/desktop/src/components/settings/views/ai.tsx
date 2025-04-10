@@ -3,16 +3,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@hypr/ui/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 
-import { TranscribingModel } from "../components/ai/transcribing-model";
-import { EnhancingModel } from "../components/ai/enhancing-model";
 import { CpuIcon } from "lucide-react";
+import { EnhancingModel } from "../components/ai/enhancing-model";
+import { TranscribingModel } from "../components/ai/transcribing-model";
 
 export default function LocalAI() {
   const queryClient = useQueryClient();

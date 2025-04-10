@@ -4,15 +4,12 @@ import { Channel } from "@tauri-apps/api/core";
 import { Download, Mic } from "lucide-react";
 import { useState } from "react";
 
-import {
-  commands as localSttCommands,
-  SupportedModel,
-} from "@hypr/plugin-local-stt";
+import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Progress } from "@hypr/ui/components/ui/progress";
-import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
 import { Label } from "@hypr/ui/components/ui/label";
+import { Progress } from "@hypr/ui/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 
 interface TranscribingModelProps {
   isRunning: boolean;
@@ -26,8 +23,7 @@ export function TranscribingModel({
   const [speedModelProgress, setSpeedModelProgress] = useState(0);
   const [qualityModelProgress, setQualityModelProgress] = useState(0);
   const [isSpeedModelDownloading, setIsSpeedModelDownloading] = useState(false);
-  const [isQualityModelDownloading, setIsQualityModelDownloading] =
-    useState(false);
+  const [isQualityModelDownloading, setIsQualityModelDownloading] = useState(false);
 
   const toggleLocalStt = useMutation({
     mutationFn: async () => {
@@ -50,7 +46,7 @@ export function TranscribingModel({
     queryKey: ["local-stt", "model-downloaded", "QuantizedBaseEn"],
     queryFn: async () => {
       const isDownloaded = await localSttCommands.isModelDownloaded(
-        "QuantizedBaseEn"
+        "QuantizedBaseEn",
       );
       return isDownloaded;
     },
@@ -61,7 +57,7 @@ export function TranscribingModel({
     queryKey: ["local-stt", "model-downloaded", "QuantizedSmallEn"],
     queryFn: async () => {
       const isDownloaded = await localSttCommands.isModelDownloaded(
-        "QuantizedSmallEn"
+        "QuantizedSmallEn",
       );
       return isDownloaded;
     },
@@ -172,34 +168,36 @@ export function TranscribingModel({
             <Trans>Transcribing Model</Trans>
           </div>
           <div className="flex items-center gap-2">
-            {isRunning ? (
-              <div className="flex items-center gap-1.5">
-                <div className="relative h-2 w-2">
-                  <div className="absolute inset-0 rounded-full bg-green-500/30"></div>
-                  <div className="absolute inset-0 rounded-full bg-green-500 animate-ping"></div>
+            {isRunning
+              ? (
+                <div className="flex items-center gap-1.5">
+                  <div className="relative h-2 w-2">
+                    <div className="absolute inset-0 rounded-full bg-green-500/30"></div>
+                    <div className="absolute inset-0 rounded-full bg-green-500 animate-ping"></div>
+                  </div>
+                  <span className="text-xs text-green-600">
+                    <Trans>Active</Trans>
+                  </span>
                 </div>
-                <span className="text-xs text-green-600">
-                  <Trans>Active</Trans>
-                </span>
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => toggleLocalStt.mutate()}
-                disabled={toggleLocalStt.isPending}
-                className="min-w-20 text-center"
-              >
-                {toggleLocalStt.isPending ? (
-                  <>
-                    <Spinner />
-                    <Trans>Loading...</Trans>
-                  </>
-                ) : (
-                  <Trans>Start Server</Trans>
-                )}
-              </Button>
-            )}
+              )
+              : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => toggleLocalStt.mutate()}
+                  disabled={toggleLocalStt.isPending}
+                  className="min-w-20 text-center"
+                >
+                  {toggleLocalStt.isPending
+                    ? (
+                      <>
+                        <Spinner />
+                        <Trans>Loading...</Trans>
+                      </>
+                    )
+                    : <Trans>Start Server</Trans>}
+                </Button>
+              )}
           </div>
         </div>
 
@@ -207,9 +205,7 @@ export function TranscribingModel({
           <div className="mt-2 pl-2">
             <RadioGroup
               value={currentModel.data || ""}
-              disabled={
-                !isRunning || setCurrentModel.isPending || anyDownloading
-              }
+              disabled={!isRunning || setCurrentModel.isPending || anyDownloading}
               className="space-y-2"
             >
               <div className="flex items-center space-x-2">
@@ -220,8 +216,7 @@ export function TranscribingModel({
                   onClick={() =>
                     speedModelStatus.data
                       ? setCurrentModel.mutate("QuantizedTinyEn")
-                      : downloadSpeedModel.mutate()
-                  }
+                      : downloadSpeedModel.mutate()}
                 />
                 <Label
                   htmlFor="speed-model"
@@ -230,27 +225,29 @@ export function TranscribingModel({
                   <span>
                     <Trans>Speed (base-en)</Trans>
                   </span>
-                  {!speedModelStatus.data &&
-                    (isSpeedModelDownloading ? (
-                      <div className="flex items-center ml-2 w-24">
-                        <Progress
-                          value={speedModelProgress}
-                          className="h-2 w-16 mr-1"
-                        />
-                        <span className="text-xs text-muted-foreground">
-                          {speedModelProgress}%
-                        </span>
-                      </div>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 ml-2 text-xs flex items-center gap-1 px-2"
-                      >
-                        <Download className="h-3 w-3" />
-                        <Trans>Needs download</Trans>
-                      </Button>
-                    ))}
+                  {!speedModelStatus.data
+                    && (isSpeedModelDownloading
+                      ? (
+                        <div className="flex items-center ml-2 w-24">
+                          <Progress
+                            value={speedModelProgress}
+                            className="h-2 w-16 mr-1"
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            {speedModelProgress}%
+                          </span>
+                        </div>
+                      )
+                      : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 ml-2 text-xs flex items-center gap-1 px-2"
+                        >
+                          <Download className="h-3 w-3" />
+                          <Trans>Needs download</Trans>
+                        </Button>
+                      ))}
                 </Label>
               </div>
 
@@ -262,8 +259,7 @@ export function TranscribingModel({
                   onClick={() =>
                     qualityModelStatus.data
                       ? setCurrentModel.mutate("QuantizedSmallEn")
-                      : downloadQualityModel.mutate()
-                  }
+                      : downloadQualityModel.mutate()}
                 />
                 <Label
                   htmlFor="quality-model"
@@ -272,27 +268,29 @@ export function TranscribingModel({
                   <span>
                     <Trans>Quality (small-en)</Trans>
                   </span>
-                  {!qualityModelStatus.data &&
-                    (isQualityModelDownloading ? (
-                      <div className="flex items-center ml-2 w-24">
-                        <Progress
-                          value={qualityModelProgress}
-                          className="h-2 w-16 mr-1"
-                        />
-                        <span className="text-xs text-muted-foreground">
-                          {qualityModelProgress}%
-                        </span>
-                      </div>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 ml-2 text-xs flex items-center gap-1 px-2"
-                      >
-                        <Download className="h-3 w-3" />
-                        <Trans>Needs download</Trans>
-                      </Button>
-                    ))}
+                  {!qualityModelStatus.data
+                    && (isQualityModelDownloading
+                      ? (
+                        <div className="flex items-center ml-2 w-24">
+                          <Progress
+                            value={qualityModelProgress}
+                            className="h-2 w-16 mr-1"
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            {qualityModelProgress}%
+                          </span>
+                        </div>
+                      )
+                      : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 ml-2 text-xs flex items-center gap-1 px-2"
+                        >
+                          <Download className="h-3 w-3" />
+                          <Trans>Needs download</Trans>
+                        </Button>
+                      ))}
                 </Label>
               </div>
             </RadioGroup>

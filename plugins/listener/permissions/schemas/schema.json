@@ -343,6 +343,18 @@
           "markdownDescription": "Denies the get_speaker_muted command without any pre-configured scope."
         },
         {
+          "description": "Enables the get_state command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-state",
+          "markdownDescription": "Enables the get_state command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_state command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-state",
+          "markdownDescription": "Denies the get_state command without any pre-configured scope."
+        },
+        {
           "description": "Enables the get_timeline command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-timeline",
@@ -379,6 +391,18 @@
           "markdownDescription": "Denies the open_system_audio_access_settings command without any pre-configured scope."
         },
         {
+          "description": "Enables the pause_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-pause-session",
+          "markdownDescription": "Enables the pause_session command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the pause_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-pause-session",
+          "markdownDescription": "Denies the pause_session command without any pre-configured scope."
+        },
+        {
           "description": "Enables the request_microphone_access command without any pre-configured scope.",
           "type": "string",
           "const": "allow-request-microphone-access",
@@ -401,6 +425,18 @@
           "type": "string",
           "const": "deny-request-system-audio-access",
           "markdownDescription": "Denies the request_system_audio_access command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the resume_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-resume-session",
+          "markdownDescription": "Enables the resume_session command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the resume_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-resume-session",
+          "markdownDescription": "Denies the resume_session command without any pre-configured scope."
         },
         {
           "description": "Enables the set_mic_muted command without any pre-configured scope.",
@@ -475,10 +511,10 @@
           "markdownDescription": "Denies the unsubscribe command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-start-session`\n- `allow-subscribe`\n- `allow-unsubscribe`\n- `allow-stop-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-subscribe`\n- `allow-unsubscribe`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-pause-session`\n- `allow-resume-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-start-session`\n- `allow-subscribe`\n- `allow-unsubscribe`\n- `allow-stop-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-subscribe`\n- `allow-unsubscribe`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-pause-session`\n- `allow-resume-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`"
         }
       ]
     }

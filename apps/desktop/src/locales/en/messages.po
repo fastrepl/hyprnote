@@ -702,8 +702,11 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:196
-#: src/components/editor-area/note-header/listen-button.tsx:221
+#: src/components/editor-area/note-header/listen-button.tsx:213
+msgid "Pause"
+msgstr "Pause"
+
+#: src/components/editor-area/note-header/listen-button.tsx:187
 msgid "Pause recording"
 msgstr "Pause recording"
 
@@ -761,7 +764,7 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/editor-area/note-header/listen-button.tsx:155
+#: src/components/editor-area/note-header/listen-button.tsx:142
 msgid "Resume"
 msgstr "Resume"
 
@@ -855,7 +858,7 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:172
+#: src/components/editor-area/note-header/listen-button.tsx:163
 msgid "Start recording"
 msgstr "Start recording"
 
@@ -863,6 +866,10 @@ msgstr "Start recording"
 #: src/components/settings/views/ai.tsx:373
 msgid "Start Server"
 msgstr "Start Server"
+
+#: src/components/editor-area/note-header/listen-button.tsx:221
+msgid "Stop"
+msgstr "Stop"
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:31
 msgid "Summarize meeting"

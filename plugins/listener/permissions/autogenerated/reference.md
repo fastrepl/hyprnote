@@ -10,14 +10,17 @@ Default permissions for the plugin
 - `allow-request-system-audio-access`
 - `allow-open-microphone-access-settings`
 - `allow-open-system-audio-access-settings`
-- `allow-start-session`
 - `allow-subscribe`
 - `allow-unsubscribe`
+- `allow-start-session`
 - `allow-stop-session`
+- `allow-pause-session`
+- `allow-resume-session`
 - `allow-get-mic-muted`
 - `allow-set-mic-muted`
 - `allow-get-speaker-muted`
 - `allow-set-speaker-muted`
+- `allow-get-state`
 
 ## Permission Table
 
@@ -135,6 +138,32 @@ Denies the get_speaker_muted command without any pre-configured scope.
 <tr>
 <td>
 
+`listener:allow-get-state`
+
+</td>
+<td>
+
+Enables the get_state command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-get-state`
+
+</td>
+<td>
+
+Denies the get_state command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `listener:allow-get-timeline`
 
 </td>
@@ -213,6 +242,32 @@ Denies the open_system_audio_access_settings command without any pre-configured 
 <tr>
 <td>
 
+`listener:allow-pause-session`
+
+</td>
+<td>
+
+Enables the pause_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-pause-session`
+
+</td>
+<td>
+
+Denies the pause_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `listener:allow-request-microphone-access`
 
 </td>
@@ -258,6 +313,32 @@ Enables the request_system_audio_access command without any pre-configured scope
 <td>
 
 Denies the request_system_audio_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-resume-session`
+
+</td>
+<td>
+
+Enables the resume_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-resume-session`
+
+</td>
+<td>
+
+Denies the resume_session command without any pre-configured scope.
 
 </td>
 </tr>

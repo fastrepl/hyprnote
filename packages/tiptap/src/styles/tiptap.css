@@ -264,7 +264,7 @@
 }
 
 .tiptap-animate
-  :is(h1, h2, h3, h4, h5, h6, p, ul, ol, blockquote, pre, hr):not(.tiptap-no-animate) {
+  :is(h1, p, ul, ol, blockquote, pre, hr):not(.tiptap-no-animate) {
   animation: show 500ms linear forwards;
 }
 

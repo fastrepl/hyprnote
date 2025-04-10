@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-pause-session"
+description = "Enables the pause_session command without any pre-configured scope."
+commands.allow = ["pause_session"]
+
+[[permission]]
+identifier = "deny-pause-session"
+description = "Denies the pause_session command without any pre-configured scope."
+commands.deny = ["pause_session"]

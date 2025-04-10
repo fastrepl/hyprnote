@@ -7,7 +7,7 @@ use tauri::{ipc::Channel, Manager};
 use futures_util::StreamExt;
 use tokio::sync::{mpsc, Mutex};
 
-use crate::{ListenerPluginExt, SessionEvent, SessionEventStarted, SessionEventTimelineView};
+use crate::{SessionEvent, SessionEventStarted, SessionEventTimelineView};
 use hypr_audio::AsyncSource;
 use hypr_timeline::{Timeline, TimelineFilter};
 
@@ -27,7 +27,7 @@ pub struct Session {
 impl Session {
     pub fn new(app: tauri::AppHandle) -> Self {
         Self {
-            app: app,
+            app,
             channels: Arc::new(Mutex::new(HashMap::new())),
             mic_muted_tx: None,
             speaker_muted_tx: None,
@@ -133,7 +133,6 @@ impl Session {
         }));
 
         let app_dir = self.app.path().app_data_dir().unwrap();
-        let app = self.app.clone();
         let channels = self.channels.clone();
 
         tokio::spawn(async move {
@@ -314,9 +313,15 @@ pub enum Event {
     Resume,
     Subscribe(Channel<SessionEvent>),
     Unsubscribe(Channel<SessionEvent>),
+    MicMuted(bool),
+    SpeakerMuted(bool),
 }
 
-#[state_machine(initial = "State::inactive()", state(derive(Debug, PartialEq)))]
+#[state_machine(
+    initial = "State::inactive()",
+    on_transition = "Self::on_transition",
+    state(derive(Debug, Clone, PartialEq))
+)]
 impl Session {
     #[superstate]
     async fn common(&mut self, event: &Event) -> Response<State> {
@@ -329,6 +334,18 @@ impl Session {
             Event::Unsubscribe(channel) => {
                 let mut channels = self.channels.lock().await;
                 channels.remove(&channel.id());
+                Handled
+            }
+            Event::MicMuted(muted) => {
+                if let Some(tx) = self.mic_muted_tx.take() {
+                    let _ = tx.send(*muted);
+                }
+                Handled
+            }
+            Event::SpeakerMuted(muted) => {
+                if let Some(tx) = self.speaker_muted_tx.take() {
+                    let _ = tx.send(*muted);
+                }
                 Handled
             }
             _ => Super,
@@ -370,5 +387,32 @@ impl Session {
     #[action]
     async fn enter_inactive(&mut self) {
         self.teardown_resources().await;
+    }
+
+    fn on_transition(&mut self, source: &State, target: &State) {
+        #[cfg(debug_assertions)]
+        println!("transitioned from `{:?}` to `{:?}`", source, target);
+    }
+}
+
+impl serde::Serialize for State {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            State::Inactive {} => serializer.serialize_str("__LISTENER_TODO__inactive"),
+            State::RunningActive {} => serializer.serialize_str("__LISTENER_TODO__running_active"),
+            State::RunningPaused {} => serializer.serialize_str("__LISTENER_TODO__running_paused"),
+        }
+    }
+}
+
+impl specta::Type for State {
+    fn inline(
+        _type_map: &mut specta::TypeCollection,
+        _generics: specta::Generics,
+    ) -> specta::DataType {
+        specta::datatype::PrimitiveType::String.into()
     }
 }

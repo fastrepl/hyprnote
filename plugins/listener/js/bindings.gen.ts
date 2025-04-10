@@ -48,6 +48,15 @@ async startSession(sessionId: string) : Promise<null> {
 },
 async stopSession() : Promise<null> {
     return await TAURI_INVOKE("plugin:listener|stop_session");
+},
+async pauseSession() : Promise<null> {
+    return await TAURI_INVOKE("plugin:listener|pause_session");
+},
+async resumeSession() : Promise<null> {
+    return await TAURI_INVOKE("plugin:listener|resume_session");
+},
+async getState() : Promise<string> {
+    return await TAURI_INVOKE("plugin:listener|get_state");
 }
 }
 

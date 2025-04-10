@@ -42,6 +42,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::unsubscribe::<tauri::Wry>,
             commands::start_session::<tauri::Wry>,
             commands::stop_session::<tauri::Wry>,
+            commands::pause_session::<tauri::Wry>,
+            commands::resume_session::<tauri::Wry>,
+            commands::get_state::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

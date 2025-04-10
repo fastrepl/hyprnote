@@ -19,20 +19,18 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn open_microphone_access_settings(&self) -> impl Future<Output = Result<(), crate::Error>>;
     fn open_system_audio_access_settings(&self) -> impl Future<Output = Result<(), crate::Error>>;
 
-    fn subscribe(&self, c: Channel<SessionEvent>)
-        -> impl Future<Output = Result<(), crate::Error>>;
-    fn unsubscribe(&self, c: Channel<SessionEvent>) -> impl Future<Output = ()>;
-
     fn get_mic_muted(&self) -> impl Future<Output = bool>;
     fn get_speaker_muted(&self) -> impl Future<Output = bool>;
     fn set_mic_muted(&self, muted: bool) -> impl Future<Output = ()>;
     fn set_speaker_muted(&self, muted: bool) -> impl Future<Output = ()>;
 
-    fn stop_session(&self) -> impl Future<Output = Result<(), crate::Error>>;
-    fn start_session(
-        &self,
-        id: impl Into<String>,
-    ) -> impl Future<Output = Result<(), crate::Error>>;
+    fn get_state(&self) -> impl Future<Output = crate::fsm::State>;
+    fn subscribe(&self, c: Channel<SessionEvent>) -> impl Future<Output = ()>;
+    fn unsubscribe(&self, c: Channel<SessionEvent>) -> impl Future<Output = ()>;
+    fn stop_session(&self) -> impl Future<Output = ()>;
+    fn start_session(&self, id: impl Into<String>) -> impl Future<Output = ()>;
+    fn pause_session(&self) -> impl Future<Output = ()>;
+    fn resume_session(&self) -> impl Future<Output = ()>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
@@ -121,7 +119,14 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn subscribe(&self, channel: Channel<SessionEvent>) -> Result<(), crate::Error> {
+    async fn get_state(&self) -> crate::fsm::State {
+        let state = self.state::<crate::SharedState>();
+        let guard = state.lock().await;
+        guard.fsm.state().clone()
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn subscribe(&self, channel: Channel<SessionEvent>) {
         let state = self.state::<crate::SharedState>();
 
         {
@@ -129,8 +134,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
             let event = crate::fsm::Event::Subscribe(channel);
             guard.fsm.handle(&event).await;
         }
-
-        Ok(())
     }
 
     #[tracing::instrument(skip_all)]
@@ -146,27 +149,79 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_mic_muted(&self) -> bool {
+        // TODO
         true
     }
 
     #[tracing::instrument(skip_all)]
     async fn get_speaker_muted(&self) -> bool {
+        // TODO
         true
     }
 
     #[tracing::instrument(skip_all)]
-    async fn set_mic_muted(&self, muted: bool) {}
+    async fn set_mic_muted(&self, muted: bool) {
+        let state = self.state::<crate::SharedState>();
 
-    #[tracing::instrument(skip_all)]
-    async fn set_speaker_muted(&self, muted: bool) {}
-
-    #[tracing::instrument(skip_all)]
-    async fn start_session(&self, session_id: impl Into<String>) -> Result<(), crate::Error> {
-        Ok(())
+        {
+            let mut guard = state.lock().await;
+            let event = crate::fsm::Event::MicMuted(muted);
+            guard.fsm.handle(&event).await;
+        }
     }
 
     #[tracing::instrument(skip_all)]
-    async fn stop_session(&self) -> Result<(), crate::Error> {
-        Ok(())
+    async fn set_speaker_muted(&self, muted: bool) {
+        let state = self.state::<crate::SharedState>();
+
+        {
+            let mut guard = state.lock().await;
+            let event = crate::fsm::Event::SpeakerMuted(muted);
+            guard.fsm.handle(&event).await;
+        }
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn start_session(&self, session_id: impl Into<String>) {
+        let state = self.state::<crate::SharedState>();
+
+        {
+            let mut guard = state.lock().await;
+            let event = crate::fsm::Event::Start(session_id.into());
+            guard.fsm.handle(&event).await;
+        }
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn stop_session(&self) {
+        let state = self.state::<crate::SharedState>();
+
+        {
+            let mut guard = state.lock().await;
+            let event = crate::fsm::Event::Stop;
+            guard.fsm.handle(&event).await;
+        }
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn pause_session(&self) {
+        let state = self.state::<crate::SharedState>();
+
+        {
+            let mut guard = state.lock().await;
+            let event = crate::fsm::Event::Pause;
+            guard.fsm.handle(&event).await;
+        }
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn resume_session(&self) {
+        let state = self.state::<crate::SharedState>();
+
+        {
+            let mut guard = state.lock().await;
+            let event = crate::fsm::Event::Resume;
+            guard.fsm.handle(&event).await;
+        }
     }
 }

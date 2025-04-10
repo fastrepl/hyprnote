@@ -1,16 +1,30 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { MicIcon, MicOffIcon, PauseIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
+import {
+  MicIcon,
+  MicOffIcon,
+  PauseIcon,
+  Volume2Icon,
+  VolumeOffIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { toast } from "@hypr/ui/components/ui/toast";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 
 interface ListenButtonProps {
@@ -26,7 +40,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     queryFn: async () => {
       const currentModel = await localSttCommands.getCurrentModel();
       const isDownloaded = await localSttCommands.isModelDownloaded(
-        currentModel,
+        currentModel
       );
       return isDownloaded;
     },
@@ -42,9 +56,10 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
 
   const startedBefore = useSession(
     sessionId,
-    (s) => s.session.conversations.length > 0,
+    (s) => s.session.conversations.length > 0
   );
-  const showResumeButton = ongoingSessionStore.status === "inactive" && startedBefore;
+  const showResumeButton =
+    ongoingSessionStore.status === "inactive" && startedBefore;
 
   const sessionData = useSession(sessionId, (s) => ({
     session: s.session,
@@ -111,8 +126,8 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
   };
 
   if (
-    ongoingSessionStore.status === "active"
-    && !ongoingSessionStore.isCurrent
+    ongoingSessionStore.status === "active" &&
+    !ongoingSessionStore.isCurrent
   ) {
     return null;
   }
@@ -150,8 +165,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
               style={{
                 boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
               }}
-            >
-            </button>
+            ></button>
           </TooltipTrigger>
           <TooltipContent side="bottom" align="end">
             <p>
@@ -163,26 +177,17 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
 
       {ongoingSessionStore.status === "active" && (
         <Popover open={open} onOpenChange={setOpen}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <PopoverTrigger asChild>
-                <button
-                  onClick={handleStartSession}
-                  className="w-14 h-9 rounded-full bg-red-100 border-2 transition-all hover:scale-95 border-red-400 cursor-pointer outline-none p-0 flex items-center justify-center"
-                  style={{
-                    boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
-                  }}
-                >
-                  <SoundIndicator color="#ef4444" size="long" />
-                </button>
-              </PopoverTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" align="end">
-              <p>
-                <Trans>Pause recording</Trans>
-              </p>
-            </TooltipContent>
-          </Tooltip>
+          <PopoverTrigger asChild>
+            <button
+              onClick={handleStartSession}
+              className="w-14 h-9 rounded-full bg-red-100 border-2 transition-all hover:scale-95 border-red-400 cursor-pointer outline-none p-0 flex items-center justify-center"
+              style={{
+                boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
+              }}
+            >
+              <SoundIndicator color="#ef4444" size="long" />
+            </button>
+          </PopoverTrigger>
 
           <PopoverContent className="w-60" align="end">
             <div className="flex w-full justify-between mb-4">
@@ -222,13 +227,14 @@ function AudioControlButton({
   onToggle: () => void;
   type: "mic" | "speaker";
 }) {
-  const Icon = type === "mic"
-    ? isMuted
-      ? MicOffIcon
-      : MicIcon
-    : isMuted
-    ? VolumeOffIcon
-    : Volume2Icon;
+  const Icon =
+    type === "mic"
+      ? isMuted
+        ? MicOffIcon
+        : MicIcon
+      : isMuted
+      ? VolumeOffIcon
+      : Volume2Icon;
 
   return (
     <Button variant="ghost" size="icon" onClick={onToggle} className="w-full">

@@ -37,20 +37,6 @@
     }
   }
 
-  ul li,
-  ol li {
-    display: list-item;
-    margin-bottom: 0.25rem;
-    list-style-position: outside;
-    visibility: visible;
-    position: relative;
-  }
-
-  ul li::marker,
-  ol li::marker {
-    color: currentColor;
-  }
-
   li p {
     margin: 0 0 0.25rem 0;
     display: inline;

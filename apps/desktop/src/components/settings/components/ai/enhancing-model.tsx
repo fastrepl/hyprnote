@@ -6,7 +6,6 @@ import { useState } from "react";
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { Input } from "@hypr/ui/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
 import { Label } from "@hypr/ui/components/ui/label";
 import {
@@ -26,7 +25,6 @@ export function EnhancingModel({
   queryClient,
 }: EnhancingModelProps) {
   const [selectedModel, setSelectedModel] = useState("default");
-  const [isConnecting, setIsConnecting] = useState(false);
 
   const toggleLocalLlm = useMutation({
     mutationFn: async () => {
@@ -53,25 +51,15 @@ export function EnhancingModel({
     enabled: isRunning,
   });
 
-  // Determine the available models to display
   const availableModels = ollamaModels.data || ["default"];
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col rounded-lg border p-4">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex size-6 items-center justify-center">
-              <Languages className="h-4 w-4" />
-            </div>
-            <div>
-              <div className="text-sm font-medium">
-                <Trans>Enhancing Model</Trans>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                <Trans>Run language models locally for enhanced privacy</Trans>
-              </div>
-            </div>
+          <div className="flex items-center gap-3 text-sm font-medium">
+            <Languages className="h-4 w-4" />
+            <Trans>Enhancing Model</Trans>
           </div>
           <div className="flex items-center gap-2">
             {isRunning ? (
@@ -170,8 +158,14 @@ export function EnhancingModel({
                             </div>
                           ) : (
                             availableModels.map((model) => (
-                              <div key={model} className="flex items-center space-x-2">
-                                <RadioGroupItem value={model} id={`model-${model}`} />
+                              <div
+                                key={model}
+                                className="flex items-center space-x-2"
+                              >
+                                <RadioGroupItem
+                                  value={model}
+                                  id={`model-${model}`}
+                                />
                                 <Label
                                   htmlFor={`model-${model}`}
                                   className="flex items-center cursor-pointer"

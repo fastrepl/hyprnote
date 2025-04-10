@@ -4,7 +4,10 @@ import { Channel } from "@tauri-apps/api/core";
 import { Download, Mic } from "lucide-react";
 import { useState } from "react";
 
-import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
+import {
+  commands as localSttCommands,
+  SupportedModel,
+} from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Progress } from "@hypr/ui/components/ui/progress";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
@@ -164,20 +167,9 @@ export function TranscribingModel({
     <div className="space-y-4">
       <div className="flex flex-col rounded-lg border p-4">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex size-6 items-center justify-center">
-              <Mic className="h-4 w-4" />
-            </div>
-            <div>
-              <div className="text-sm font-medium">
-                <Trans>Transcribing Model</Trans>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                <Trans>
-                  Run voice transcription locally for enhanced privacy
-                </Trans>
-              </div>
-            </div>
+          <div className="flex items-center gap-3 text-sm font-medium">
+            <Mic className="h-4 w-4" />
+            <Trans>Transcribing Model</Trans>
           </div>
           <div className="flex items-center gap-2">
             {isRunning ? (
@@ -212,7 +204,7 @@ export function TranscribingModel({
         </div>
 
         {isRunning && (
-          <div className="mt-2">
+          <div className="mt-2 pl-2">
             <RadioGroup
               value={currentModel.data || ""}
               disabled={

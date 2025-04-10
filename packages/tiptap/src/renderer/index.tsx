@@ -16,6 +16,10 @@ const Renderer = forwardRef<{ editor: TiptapEditor | null }, RendererProps>(
       extensions,
       editable: false,
       shouldRerenderOnTransaction: false,
+      editorProps: {
+        scrollThreshold: 32,
+        scrollMargin: 32,
+      },
     });
 
     useEffect(() => {

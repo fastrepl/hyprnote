@@ -1,0 +1,11 @@
+.tiptap {
+  a {
+    color: #3b82f6;
+    cursor: pointer;
+    text-decoration: underline;
+
+    &:hover {
+      color: #1d4ed8;
+    }
+  }
+}

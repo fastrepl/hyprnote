@@ -100,7 +100,7 @@ impl Llama {
                                 LlamaSampler::grammar(&model, grammar::MARKDOWN_GRAMMAR, "root"),
                                 LlamaSampler::temp(0.5),
                                 LlamaSampler::penalties(0, 1.2, 0.2, 0.0),
-                                LlamaSampler::dist(1234),
+                                LlamaSampler::mirostat_v2(1234, 4.0, 0.1),
                             ]);
 
                             while n_cur <= last_index + DEFAULT_MAX_OUTPUT_TOKENS as i32 {
@@ -170,11 +170,11 @@ mod tests {
             .unwrap()
             .join("com.hyprnote.dev")
             .join("llm.gguf");
+
         Llama::new(model_path).unwrap()
     }
 
-    #[tokio::test]
-    async fn test_simple2() {
+    fn english_4_messages() -> Vec<LlamaChatMessage> {
         let timeline_view = {
             let (transcripts, diarizations): (
                 Vec<hypr_listener_interface::TranscriptChunk>,
@@ -218,33 +218,26 @@ mod tests {
             &env,
             hypr_template::PredefinedTemplate::EnhanceUser.into(),
             &serde_json::json!({
-                "editor": "Hello, world!",
+                "editor": "privacy aspect seems interesting",
                 "timeline": timeline_view,
-                "participants": Vec::<String>::new(),
+                "participants": vec!["yujonglee".to_string()],
             })
             .as_object()
             .unwrap(),
         )
         .unwrap();
 
-        println!("{}", system);
-        println!("{}", user);
+        vec![
+            LlamaChatMessage::new("system".into(), system.into()).unwrap(),
+            LlamaChatMessage::new("user".into(), user.into()).unwrap(),
+        ]
     }
 
-    // cargo test test_simple -p llama -- --nocapture
-    #[tokio::test]
-    async fn test_simple() {
+    async fn print_stream(model: &Llama, request: LlamaRequest) {
         use futures_util::pin_mut;
         use std::io::{self, Write};
 
-        let llama = get_model();
-        let prompt = "Generate a random meeting summary note.";
-
-        let request = LlamaRequest::new(vec![
-            LlamaChatMessage::new("user".into(), prompt.into()).unwrap()
-        ]);
-
-        let stream = llama.generate_stream(request).unwrap();
+        let stream = model.generate_stream(request).unwrap();
         pin_mut!(stream);
 
         while let Some(token) = stream.next().await {
@@ -252,5 +245,14 @@ mod tests {
             io::stdout().flush().unwrap();
         }
         println!();
+    }
+
+    // cargo test test_english_4 -p llama -- --nocapture
+    #[tokio::test]
+    async fn test_english_4() {
+        let llama = get_model();
+        let request = LlamaRequest::new(english_4_messages());
+
+        print_stream(&llama, request).await;
     }
 }

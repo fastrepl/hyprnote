@@ -1,17 +1,15 @@
-import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { MicIcon, MicOffIcon, PauseIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
+import { MicIcon, MicOffIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { Popover, PopoverContent } from "@hypr/ui/components/ui/popover";
 import { toast } from "@hypr/ui/components/ui/toast";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
+import { ActiveRecordButton, InitialRecordButton, LoadingButton, ResumeButton, StopRecordingButton } from "./buttons";
 
 interface ListenButtonProps {
   sessionId: string;
@@ -19,6 +17,14 @@ interface ListenButtonProps {
 
 export default function ListenButton({ sessionId }: ListenButtonProps) {
   const [open, setOpen] = useState(false);
+
+  const ongoingSessionStore = useOngoingSession((s) => ({
+    start: s.start,
+    pause: s.pause,
+    isCurrent: s.sessionId === sessionId,
+    status: s.status,
+    timeline: s.timeline,
+  }));
 
   const modelDownloaded = useQuery({
     queryKey: ["check-stt-model-downloaded"],
@@ -31,14 +37,6 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
       return isDownloaded;
     },
   });
-
-  const ongoingSessionStore = useOngoingSession((s) => ({
-    start: s.start,
-    pause: s.pause,
-    isCurrent: s.sessionId === sessionId,
-    status: s.status,
-    timeline: s.timeline,
-  }));
 
   const startedBefore = useSession(
     sessionId,
@@ -119,70 +117,26 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
 
   return (
     <>
-      {ongoingSessionStore.status === "loading" && (
-        <div className="w-9 h-9 flex items-center justify-center">
-          <Spinner color="black" />
-        </div>
-      )}
+      {ongoingSessionStore.status === "loading" && <LoadingButton />}
+
       {showResumeButton && (
-        <button
+        <ResumeButton
           disabled={!modelDownloaded.data}
           onClick={handleStartSession}
-          className={`w-16 h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium ${
-            isEnhanced
-              ? "bg-neutral-200 border-2 border-neutral-400 text-neutral-600 opacity-30 hover:opacity-100 hover:bg-red-100 hover:text-red-600 hover:border-red-400"
-              : "bg-red-100 border-2 border-red-400 text-red-600"
-          }`}
-          style={{
-            boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
-          }}
-        >
-          <Trans>Resume</Trans>
-        </button>
+          isEnhanced={!!isEnhanced}
+        />
       )}
+
       {ongoingSessionStore.status === "inactive" && !showResumeButton && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              disabled={!modelDownloaded.data}
-              onClick={handleStartSession}
-              className="w-9 h-9 rounded-full bg-red-500 border-2 transition-all hover:scale-95 border-neutral-400 cursor-pointer outline-none p-0 flex items-center justify-center"
-              style={{
-                boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
-              }}
-            >
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" align="end">
-            <p>
-              <Trans>Start recording</Trans>
-            </p>
-          </TooltipContent>
-        </Tooltip>
+        <InitialRecordButton
+          disabled={!modelDownloaded.data}
+          onClick={handleStartSession}
+        />
       )}
 
       {ongoingSessionStore.status === "active" && (
         <Popover open={open} onOpenChange={setOpen}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <PopoverTrigger asChild>
-                <button
-                  onClick={handleStartSession}
-                  className="w-14 h-9 rounded-full bg-red-100 border-2 transition-all hover:scale-95 border-red-400 cursor-pointer outline-none p-0 flex items-center justify-center"
-                  style={{
-                    boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
-                  }}
-                >
-                  <SoundIndicator color="#ef4444" size="long" />
-                </button>
-              </PopoverTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" align="end">
-              <p>
-                <Trans>Pause recording</Trans>
-              </p>
-            </TooltipContent>
-          </Tooltip>
+          <ActiveRecordButton onClick={handleStartSession} />
 
           <PopoverContent className="w-60" align="end">
             <div className="flex w-full justify-between mb-4">
@@ -198,14 +152,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
               />
             </div>
 
-            <Button
-              variant="destructive"
-              onClick={handleStopSession}
-              className="w-full"
-            >
-              <PauseIcon size={16} />
-              <Trans>Pause recording</Trans>
-            </Button>
+            <StopRecordingButton onClick={handleStopSession} />
           </PopoverContent>
         </Popover>
       )}

@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import LeftSidebar from "@/components/left-sidebar";
 import { LoginModal } from "@/components/login-modal";
@@ -34,14 +34,13 @@ export const Route = createFileRoute("/app")({
 
 function Component() {
   const { sessionsStore, isOnboardingNeeded } = Route.useLoaderData();
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(isOnboardingNeeded);
 
   useEffect(() => {
     registerTemplates();
   }, []);
 
   const windowLabel = getCurrentWebviewWindowLabel();
-  const showNotifications = windowLabel === "main" && !isLoginModalOpen;
+  const showNotifications = windowLabel === "main" && !isOnboardingNeeded;
 
   return (
     <>
@@ -69,8 +68,12 @@ function Component() {
                           </div>
                         </div>
                         <LoginModal
-                          isOpen={isLoginModalOpen}
-                          onClose={() => setIsLoginModalOpen(false)}
+                          isOpen={isOnboardingNeeded}
+                          onClose={() => {
+                            commands.setOnboardingNeeded(false);
+                            // Force a reload of the route to update isOnboardingNeeded from the loader
+                            window.location.reload();
+                          }}
                         />
                       </EditModeProvider>
                     </SearchProvider>

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Channel } from "@tauri-apps/api/core";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
@@ -8,6 +8,8 @@ import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { DownloadProgress } from "./shared";
 
 export default function ModelDownloadNotification() {
+  const [toastShown, setToastShown] = useState(false);
+
   const checkForModelDownload = useQuery({
     queryKey: ["check-model-downloaded"],
     queryFn: async () => {
@@ -49,6 +51,15 @@ export default function ModelDownloadNotification() {
     }
 
     if (checkForModelDownload.data?.sttModelDownloaded && checkForModelDownload.data?.llmModelDownloaded) {
+      // Both models are downloaded, reset the toast shown flag to allow future notifications if needed
+      if (toastShown) {
+        setToastShown(false);
+      }
+      return;
+    }
+
+    // If we're already downloading models or have shown the toast, don't show it again
+    if (toastShown || sttModelDownloading.data || llmModelDownloading.data) {
       return;
     }
 
@@ -63,6 +74,7 @@ export default function ModelDownloadNotification() {
         {
           label: "Download Models",
           onClick: () => {
+            setToastShown(true);
             sonnerToast.dismiss("model-download-needed");
 
             if (!checkForModelDownload.data?.sttModelDownloaded && !sttModelDownloading.data) {
@@ -118,7 +130,7 @@ export default function ModelDownloadNotification() {
       ],
       dismissible: false,
     });
-  }, [checkForModelDownload.data]);
+  }, [checkForModelDownload.data, sttModelDownloading.data, llmModelDownloading.data, toastShown]);
 
   return null;
 }

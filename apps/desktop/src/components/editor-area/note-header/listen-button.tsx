@@ -1,21 +1,62 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { MicIcon, MicOffIcon, PauseIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
+import {
+  MicIcon,
+  MicOffIcon,
+  PauseIcon,
+  Volume2Icon,
+  VolumeOffIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@hypr/ui/components/ui/hover-card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { toast } from "@hypr/ui/components/ui/toast";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 
 interface ListenButtonProps {
   sessionId: string;
 }
+
+// TODO
+const useMicrophones = () => {
+  const [selectedMic, setSelectedMic] = useState<string>("default");
+
+  // Mock data for available microphones
+  const microphones = [
+    { id: "default", name: "System Default" },
+    { id: "headset", name: "Logitech G Pro X Headset" },
+    { id: "webcam", name: "Logitech C920 Webcam" },
+    { id: "usb", name: "Blue Yeti USB Microphone" },
+    { id: "bluetooth", name: "AirPods Pro" },
+  ];
+
+  return {
+    microphones,
+    selectedMic,
+    setSelectedMic,
+    isLoading: false,
+    error: null,
+  };
+};
 
 export default function ListenButton({ sessionId }: ListenButtonProps) {
   const [open, setOpen] = useState(false);
@@ -26,7 +67,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     queryFn: async () => {
       const currentModel = await localSttCommands.getCurrentModel();
       const isDownloaded = await localSttCommands.isModelDownloaded(
-        currentModel,
+        currentModel
       );
       return isDownloaded;
     },
@@ -42,9 +83,10 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
 
   const startedBefore = useSession(
     sessionId,
-    (s) => s.session.conversations.length > 0,
+    (s) => s.session.conversations.length > 0
   );
-  const showResumeButton = ongoingSessionStore.status === "inactive" && startedBefore;
+  const showResumeButton =
+    ongoingSessionStore.status === "inactive" && startedBefore;
 
   const sessionData = useSession(sessionId, (s) => ({
     session: s.session,
@@ -110,9 +152,12 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     setOpen(false);
   };
 
+  // Add the microphones hook
+  const { microphones, selectedMic, setSelectedMic } = useMicrophones();
+
   if (
-    ongoingSessionStore.status === "active"
-    && !ongoingSessionStore.isCurrent
+    ongoingSessionStore.status === "active" &&
+    !ongoingSessionStore.isCurrent
   ) {
     return null;
   }
@@ -124,6 +169,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
           <Spinner color="black" />
         </div>
       )}
+
       {showResumeButton && (
         <button
           disabled={!modelDownloaded.data}
@@ -140,9 +186,10 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
           <Trans>Resume</Trans>
         </button>
       )}
+
       {ongoingSessionStore.status === "inactive" && !showResumeButton && (
-        <Tooltip>
-          <TooltipTrigger asChild>
+        <HoverCard openDelay={300} closeDelay={200}>
+          <HoverCardTrigger asChild>
             <button
               disabled={!modelDownloaded.data}
               onClick={handleStartSession}
@@ -150,15 +197,41 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
               style={{
                 boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
               }}
-            >
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" align="end">
-            <p>
-              <Trans>Start recording</Trans>
-            </p>
-          </TooltipContent>
-        </Tooltip>
+            ></button>
+          </HoverCardTrigger>
+          <HoverCardContent className="w-60" align="end" side="bottom">
+            <div className="space-y-2">
+              <div className="font-medium">
+                <Trans>Select Microphone</Trans>
+              </div>
+
+              <div>
+                {microphones.map((mic) => (
+                  <div
+                    key={mic.id}
+                    className={`flex items-center space-x-3 rounded-md p-2 hover:bg-neutral-100 cursor-pointer ${
+                      selectedMic === mic.id ? "bg-neutral-50" : ""
+                    }`}
+                    onClick={() => setSelectedMic(mic.id)}
+                  >
+                    <div
+                      className={`h-4 w-4 rounded-full border border-neutral-300 flex items-center justify-center ${
+                        selectedMic === mic.id ? "border-primary" : ""
+                      }`}
+                    >
+                      {selectedMic === mic.id && (
+                        <div className="h-2 w-2 rounded-full bg-primary" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-xs">{mic.name}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </HoverCardContent>
+        </HoverCard>
       )}
 
       {ongoingSessionStore.status === "active" && (
@@ -222,13 +295,14 @@ function AudioControlButton({
   onToggle: () => void;
   type: "mic" | "speaker";
 }) {
-  const Icon = type === "mic"
-    ? isMuted
-      ? MicOffIcon
-      : MicIcon
-    : isMuted
-    ? VolumeOffIcon
-    : Volume2Icon;
+  const Icon =
+    type === "mic"
+      ? isMuted
+        ? MicOffIcon
+        : MicIcon
+      : isMuted
+      ? VolumeOffIcon
+      : Volume2Icon;
 
   return (
     <Button variant="ghost" size="icon" onClick={onToggle} className="w-full">

@@ -702,8 +702,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:182
-#: src/components/editor-area/note-header/listen-button.tsx:207
+#: src/components/editor-area/note-header/listen-button/buttons.tsx:88
 msgid "Pause recording"
 msgstr ""
 
@@ -761,7 +760,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:140
+#: src/components/editor-area/note-header/listen-button/buttons.tsx:43
 msgid "Resume"
 msgstr ""
 
@@ -819,6 +818,10 @@ msgstr ""
 msgid "Select Calendars"
 msgstr ""
 
+#: src/components/editor-area/note-header/listen-button/microphone-selector.tsx:40
+msgid "Select Microphone"
+msgstr ""
+
 #: src/components/settings/views/team.tsx:240
 msgid "Send invite"
 msgstr ""
@@ -856,8 +859,8 @@ msgid "Start Monthly Plan"
 msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:158
-msgid "Start recording"
-msgstr ""
+#~ msgid "Start recording"
+#~ msgstr ""
 
 #: src/components/settings/views/ai.tsx:199
 #: src/components/settings/views/ai.tsx:373

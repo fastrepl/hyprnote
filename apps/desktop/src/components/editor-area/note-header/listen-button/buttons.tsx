@@ -2,10 +2,10 @@ import { Trans } from "@lingui/react/macro";
 import { PauseIcon } from "lucide-react";
 
 import SoundIndicator from "@/components/sound-indicator";
-import { MicrophoneSelector } from "./microphone-selector";
 import { Button } from "@hypr/ui/components/ui/button";
 import { PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { MicrophoneSelector } from "./microphone-selector";
 
 interface ButtonBaseProps {
   disabled?: boolean;
@@ -56,7 +56,8 @@ export const InitialRecordButton = ({ disabled, onClick }: ButtonBaseProps) => {
         style={{
           boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
         }}
-      ></button>
+      >
+      </button>
     </MicrophoneSelector>
   );
 };

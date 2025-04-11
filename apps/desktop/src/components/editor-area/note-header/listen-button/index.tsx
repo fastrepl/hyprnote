@@ -1,29 +1,15 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-  MicIcon,
-  MicOffIcon,
-  Volume2Icon,
-  VolumeOffIcon,
-} from "lucide-react";
+import { MicIcon, MicOffIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
-import { 
-  ActiveRecordButton, 
-  InitialRecordButton, 
-  LoadingButton, 
-  ResumeButton, 
-  StopRecordingButton 
-} from "./buttons";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-} from "@hypr/ui/components/ui/popover";
+import { Popover, PopoverContent } from "@hypr/ui/components/ui/popover";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
+import { ActiveRecordButton, InitialRecordButton, LoadingButton, ResumeButton, StopRecordingButton } from "./buttons";
 
 interface ListenButtonProps {
   sessionId: string;
@@ -46,7 +32,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     queryFn: async () => {
       const currentModel = await localSttCommands.getCurrentModel();
       const isDownloaded = await localSttCommands.isModelDownloaded(
-        currentModel
+        currentModel,
       );
       return isDownloaded;
     },
@@ -54,10 +40,9 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
 
   const startedBefore = useSession(
     sessionId,
-    (s) => s.session.conversations.length > 0
+    (s) => s.session.conversations.length > 0,
   );
-  const showResumeButton =
-    ongoingSessionStore.status === "inactive" && startedBefore;
+  const showResumeButton = ongoingSessionStore.status === "inactive" && startedBefore;
 
   const sessionData = useSession(sessionId, (s) => ({
     session: s.session,
@@ -124,8 +109,8 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
   };
 
   if (
-    ongoingSessionStore.status === "active" &&
-    !ongoingSessionStore.isCurrent
+    ongoingSessionStore.status === "active"
+    && !ongoingSessionStore.isCurrent
   ) {
     return null;
   }
@@ -135,7 +120,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
       {ongoingSessionStore.status === "loading" && <LoadingButton />}
 
       {showResumeButton && (
-        <ResumeButton 
+        <ResumeButton
           disabled={!modelDownloaded.data}
           onClick={handleStartSession}
           isEnhanced={!!isEnhanced}
@@ -184,14 +169,13 @@ function AudioControlButton({
   onToggle: () => void;
   type: "mic" | "speaker";
 }) {
-  const Icon =
-    type === "mic"
-      ? isMuted
-        ? MicOffIcon
-        : MicIcon
-      : isMuted
-      ? VolumeOffIcon
-      : Volume2Icon;
+  const Icon = type === "mic"
+    ? isMuted
+      ? MicOffIcon
+      : MicIcon
+    : isMuted
+    ? VolumeOffIcon
+    : Volume2Icon;
 
   return (
     <Button variant="ghost" size="icon" onClick={onToggle} className="w-full">

@@ -1,10 +1,6 @@
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@hypr/ui/components/ui/hover-card";
 import { Trans } from "@lingui/react/macro";
 import React, { useState } from "react";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@hypr/ui/components/ui/hover-card";
 
 // TODO
 export const useMicrophones = () => {
@@ -58,9 +54,7 @@ export const MicrophoneSelector = ({
                     selectedMic === mic.id ? "border-primary" : ""
                   }`}
                 >
-                  {selectedMic === mic.id && (
-                    <div className="h-2 w-2 rounded-full bg-primary" />
-                  )}
+                  {selectedMic === mic.id && <div className="h-2 w-2 rounded-full bg-primary" />}
                 </div>
                 <div className="flex-1">
                   <div className="font-medium text-xs">{mic.name}</div>

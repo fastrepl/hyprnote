@@ -69,6 +69,16 @@ mod tests {
                 valid: false,
                 debug: false,
             },
+            TestCase {
+                grammar: MARKDOWN_GRAMMAR,
+                intent: "content should not start with bold text. we prevent '*'(but allow '-') to achieve this.",
+                text: indoc::indoc! {r#"
+                # Enhanced Meeting Notes
+
+                **What Hyprnote Does**"#},
+                valid: false,
+                debug: false,
+            },
         ];
 
         let gbnf = gbnf_validator::Validator::new().unwrap();

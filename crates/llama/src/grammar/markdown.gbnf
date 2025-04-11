@@ -2,4 +2,4 @@ root ::= section+
 section ::= header "\n\n" content
 header ::= "# " title
 title ::= [^#`\n]+
-content ::= [^#[^] [^#`[^]*
+content ::= [^#[^*] [^#`[^]*

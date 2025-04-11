@@ -702,7 +702,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button/buttons.tsx:88
+#: src/components/editor-area/note-header/listen-button/buttons.tsx:87
 msgid "Pause recording"
 msgstr "Pause recording"
 
@@ -818,7 +818,7 @@ msgstr "Select apps that should not trigger meeting notifications"
 msgid "Select Calendars"
 msgstr "Select Calendars"
 
-#: src/components/editor-area/note-header/listen-button/microphone-selector.tsx:40
+#: src/components/editor-area/note-header/listen-button/microphone-selector.tsx:41
 msgid "Select Microphone"
 msgstr "Select Microphone"
 

@@ -702,7 +702,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button/buttons.tsx:88
+#: src/components/editor-area/note-header/listen-button/buttons.tsx:87
 msgid "Pause recording"
 msgstr ""
 
@@ -818,7 +818,7 @@ msgstr ""
 msgid "Select Calendars"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button/microphone-selector.tsx:40
+#: src/components/editor-area/note-header/listen-button/microphone-selector.tsx:41
 msgid "Select Microphone"
 msgstr ""
 

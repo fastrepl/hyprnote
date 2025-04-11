@@ -49,7 +49,7 @@ export const extensions = [
           return false;
         }
 
-        const disallowedProtocols = ["ftp", "file", "mailto"];
+        const disallowedProtocols = ["ftp", "file"];
         const protocol = parsedUrl.protocol.replace(":", "");
 
         if (disallowedProtocols.includes(protocol)) {
@@ -59,13 +59,6 @@ export const extensions = [
         const allowedProtocols = ctx.protocols.map(p => (typeof p === "string" ? p : p.scheme));
 
         if (!allowedProtocols.includes(protocol)) {
-          return false;
-        }
-
-        const disallowedDomains = ["example-phishing.com", "malicious-site.net"];
-        const domain = parsedUrl.hostname;
-
-        if (disallowedDomains.includes(domain)) {
           return false;
         }
 

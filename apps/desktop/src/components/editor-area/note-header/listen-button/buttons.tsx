@@ -56,8 +56,7 @@ export const InitialRecordButton = ({ disabled, onClick }: ButtonBaseProps) => {
         style={{
           boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
         }}
-      >
-      </button>
+      ></button>
     </MicrophoneSelector>
   );
 };
@@ -80,7 +79,6 @@ export const ActiveRecordButton = ({ onClick }: ButtonBaseProps) => {
   );
 };
 
-// Stop recording button
 export const StopRecordingButton = ({ onClick }: { onClick: () => void }) => {
   return (
     <Button variant="destructive" onClick={onClick} className="w-full">

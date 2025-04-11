@@ -17,6 +17,7 @@ mod tests {
 
     struct TestCase {
         pub grammar: &'static str,
+        pub intent: &'static str,
         pub text: &'static str,
         pub valid: bool,
         pub debug: bool,
@@ -27,6 +28,7 @@ mod tests {
         let test_cases = vec![
             TestCase {
                 grammar: MARKDOWN_GRAMMAR,
+                intent: "should start with a heading",
                 text: indoc::indoc! {r#"
                 Here's a response:
 
@@ -36,11 +38,35 @@ mod tests {
             },
             TestCase {
                 grammar: MARKDOWN_GRAMMAR,
+                intent: "header-content pair is required",
                 text: indoc::indoc! {r#"
                 # This is a test
                 
-                12"#},
-                valid: true,
+                ## This is a test"#},
+                valid: false,
+                debug: false,
+            },
+            TestCase {
+                grammar: MARKDOWN_GRAMMAR,
+                intent: "footnote is not allowed. Currently we prevent both '[' and '^' to achieve this.",
+                text: indoc::indoc! {r#"
+                # This is a test
+
+                Hi Hello. [^1]"#},
+                valid: false,
+                debug: false,
+            },
+            TestCase {
+                grammar: MARKDOWN_GRAMMAR,
+                intent: "codeblock is not allowed. Currently we prevent '`' to achieve this.",
+                text: indoc::indoc! {r#"
+                # This is a test
+
+                Hi Hello. `code`.
+                ```code
+                123
+                ```"#},
+                valid: false,
                 debug: false,
             },
         ];
@@ -53,7 +79,7 @@ mod tests {
                 Ok(valid_actual) => {
                     if valid_actual != test_case.valid {
                         println!("{}", "=".repeat(80));
-                        println!("{}_failed", i);
+                        println!("{}_failed. intent: {}", i, test_case.intent);
                         debug_grammar_failure_point(&gbnf, test_case.grammar, test_case.text);
                         println!("\n{}", "=".repeat(80));
 
@@ -62,7 +88,7 @@ mod tests {
 
                     if test_case.debug {
                         println!("{}", "=".repeat(80));
-                        println!("{}_passed", i);
+                        println!("{}_passed. intent: {}", i, test_case.intent);
                         debug_grammar_failure_point(&gbnf, test_case.grammar, test_case.text);
                         println!("\n{}", "=".repeat(80));
                     }

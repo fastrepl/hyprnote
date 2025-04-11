@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect } from "react";
 
@@ -33,6 +33,7 @@ export const Route = createFileRoute("/app")({
 });
 
 function Component() {
+  const router = useRouter();
   const { sessionsStore, isOnboardingNeeded } = Route.useLoaderData();
 
   useEffect(() => {
@@ -71,8 +72,7 @@ function Component() {
                           isOpen={isOnboardingNeeded}
                           onClose={() => {
                             commands.setOnboardingNeeded(false);
-                            // Force a reload of the route to update isOnboardingNeeded from the loader
-                            window.location.reload();
+                            router.invalidate();
                           }}
                         />
                       </EditModeProvider>

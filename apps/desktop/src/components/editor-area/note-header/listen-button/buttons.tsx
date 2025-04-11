@@ -56,7 +56,8 @@ export const InitialRecordButton = ({ disabled, onClick }: ButtonBaseProps) => {
         style={{
           boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
         }}
-      ></button>
+      >
+      </button>
     </MicrophoneSelector>
   );
 };

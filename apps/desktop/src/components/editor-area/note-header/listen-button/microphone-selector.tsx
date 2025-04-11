@@ -1,6 +1,7 @@
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@hypr/ui/components/ui/hover-card";
 import { Trans } from "@lingui/react/macro";
 import React, { useState } from "react";
+
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@hypr/ui/components/ui/hover-card";
 
 // TODO
 export const useMicrophones = () => {

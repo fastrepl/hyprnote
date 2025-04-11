@@ -1,5 +1,8 @@
 root ::= section+
 section ::= header "\n\n" content
-header ::= "# " title
-title ::= [^#`\n]+
+header ::= "# " char+
 content ::= [^#[^*] [^#`[^]*
+
+char ::= letter | digit | " "
+letter ::= [a-zA-Z]
+digit ::= [0-9]

@@ -19,7 +19,7 @@ pub use message::*;
 const TEMPLATE_NAME: &str = "llama3";
 
 const DEFAULT_MAX_INPUT_TOKENS: u32 = 1024 * 8;
-const DEFAULT_MAX_OUTPUT_TOKENS: u32 = 1024 * 2;
+const DEFAULT_MAX_OUTPUT_TOKENS: u32 = 1024;
 
 static LLAMA_BACKEND: OnceLock<Arc<LlamaBackend>> = OnceLock::new();
 
@@ -99,7 +99,7 @@ impl Llama {
                             let mut sampler = LlamaSampler::chain_simple([
                                 LlamaSampler::grammar(&model, grammar::MARKDOWN_GRAMMAR, "root"),
                                 LlamaSampler::temp(0.5),
-                                LlamaSampler::penalties(0, 1.5, 0.2, 0.0),
+                                LlamaSampler::penalties(0, 1.2, 0.2, 0.0),
                                 LlamaSampler::dist(1234),
                             ]);
 
@@ -171,6 +171,64 @@ mod tests {
             .join("com.hyprnote.dev")
             .join("llm.gguf");
         Llama::new(model_path).unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_simple2() {
+        let timeline_view = {
+            let (transcripts, diarizations): (
+                Vec<hypr_listener_interface::TranscriptChunk>,
+                Vec<hypr_listener_interface::DiarizationChunk>,
+            ) = (
+                serde_json::from_str(hypr_data::english_4::TRANSCRIPTION_JSON).unwrap(),
+                serde_json::from_str(hypr_data::english_4::DIARIZATION_JSON).unwrap(),
+            );
+
+            let mut timeline = hypr_timeline::Timeline::default();
+
+            for t in transcripts {
+                timeline.add_transcription(t);
+            }
+            for d in diarizations {
+                timeline.add_diarization(d);
+            }
+
+            timeline.view(hypr_timeline::TimelineFilter::default())
+        };
+
+        let mut env = hypr_template::minijinja::Environment::new();
+        hypr_template::init(&mut env);
+
+        let system = hypr_template::render(
+            &env,
+            hypr_template::PredefinedTemplate::EnhanceSystem.into(),
+            &serde_json::json!({
+                "config": {
+                    "general": {
+                        "display_language": "en"
+                    }
+                }
+            })
+            .as_object()
+            .unwrap(),
+        )
+        .unwrap();
+
+        let user = hypr_template::render(
+            &env,
+            hypr_template::PredefinedTemplate::EnhanceUser.into(),
+            &serde_json::json!({
+                "editor": "Hello, world!",
+                "timeline": timeline_view,
+                "participants": Vec::<String>::new(),
+            })
+            .as_object()
+            .unwrap(),
+        )
+        .unwrap();
+
+        println!("{}", system);
+        println!("{}", user);
     }
 
     // cargo test test_simple -p llama -- --nocapture

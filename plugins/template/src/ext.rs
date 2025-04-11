@@ -1,7 +1,7 @@
 pub trait TemplatePluginExt<R: tauri::Runtime> {
     fn render(
         &self,
-        name: impl AsRef<str>,
+        name: impl Into<hypr_template::Template>,
         ctx: serde_json::Map<String, serde_json::Value>,
     ) -> Result<String, String>;
     fn register_template(
@@ -15,19 +15,18 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::TemplatePluginExt<R> for T 
     #[tracing::instrument(skip_all)]
     fn render(
         &self,
-        name: impl AsRef<str>,
+        name: impl Into<hypr_template::Template>,
         ctx: serde_json::Map<String, serde_json::Value>,
     ) -> Result<String, String> {
         let state = self.state::<crate::ManagedState>();
-        let s = state.lock().unwrap();
-        let tpl = s
-            .env
-            .get_template(name.as_ref())
-            .map_err(|e| e.to_string())?;
 
-        tpl.render(&ctx)
-            .map(|s| s.trim().to_string())
-            .map_err(|e| e.to_string())
+        {
+            let guard = state.lock().unwrap();
+
+            hypr_template::render(&guard.env, name.into(), &ctx)
+                .map(|s| s.trim().to_string())
+                .map_err(|e| e.to_string())
+        }
     }
 
     #[tracing::instrument(skip_all)]
@@ -37,10 +36,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::TemplatePluginExt<R> for T 
         template: impl Into<String>,
     ) -> Result<(), String> {
         let state = self.state::<crate::ManagedState>();
-        let mut state = state.lock().unwrap();
-        state
-            .env
-            .add_template_owned(name.into(), template.into())
-            .map_err(|e| e.to_string())
+
+        {
+            let mut guard = state.lock().unwrap();
+            guard
+                .env
+                .add_template_owned(name.into(), template.into())
+                .map_err(|e| e.to_string())
+        }
     }
 }

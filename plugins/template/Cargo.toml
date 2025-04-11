@@ -14,16 +14,12 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
+hypr-template = { workspace = true }
+
 serde = { workspace = true }
 serde_json = { workspace = true }
-specta = { workspace = true, features = ["serde_json"] }
-
-codes-iso-639 = { workspace = true }
-thiserror = { workspace = true }
 tracing = { workspace = true }
 
+specta = { workspace = true, features = ["serde_json"] }
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
-
-minijinja = { workspace = true, features = ["loader", "preserve_order", "json"] }
-minijinja-contrib = { workspace = true, features = ["pycompat"] }

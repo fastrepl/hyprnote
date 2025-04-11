@@ -7516,6 +7516,7 @@ dependencies = [
  "async-openai",
  "buffer",
  "colored",
+ "data",
  "dirs 6.0.0",
  "encoding_rs",
  "futures-util",
@@ -7523,9 +7524,14 @@ dependencies = [
  "gbnf-validator",
  "include_url_macro",
  "indoc",
+ "listener-interface",
  "llama-cpp-2",
+ "minijinja",
  "serde",
+ "serde_json",
+ "template",
  "thiserror 2.0.12",
+ "timeline",
  "tokio",
 ]
 
@@ -13448,9 +13454,6 @@ dependencies = [
 name = "tauri-plugin-template"
 version = "0.1.0"
 dependencies = [
- "codes-iso-639",
- "minijinja",
- "minijinja-contrib",
  "serde",
  "serde_json",
  "specta",
@@ -13458,7 +13461,7 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-specta",
- "thiserror 2.0.12",
+ "template",
  "tracing",
 ]
 
@@ -13680,6 +13683,19 @@ dependencies = [
  "once_cell",
  "rustix 1.0.5",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "template"
+version = "0.1.0"
+dependencies = [
+ "codes-iso-639",
+ "minijinja",
+ "minijinja-contrib",
+ "serde",
+ "serde_json",
+ "strum 0.26.3",
+ "thiserror 2.0.12",
 ]
 
 [[package]]

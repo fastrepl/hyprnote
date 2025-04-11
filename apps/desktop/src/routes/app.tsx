@@ -18,7 +18,6 @@ import {
   useLeftSidebar,
   useRightPanel,
 } from "@/contexts";
-import { registerTemplates } from "@/templates";
 import { commands } from "@/types";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { events as windowsEvents, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
@@ -35,10 +34,6 @@ export const Route = createFileRoute("/app")({
 function Component() {
   const router = useRouter();
   const { sessionsStore, isOnboardingNeeded } = Route.useLoaderData();
-
-  useEffect(() => {
-    registerTemplates();
-  }, []);
 
   const windowLabel = getCurrentWebviewWindowLabel();
   const showNotifications = windowLabel === "main" && !isOnboardingNeeded;

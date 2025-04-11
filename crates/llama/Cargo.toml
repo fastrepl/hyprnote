@@ -4,12 +4,18 @@ version = "0.1.0"
 edition = "2021"
 
 [dev-dependencies]
-gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 hypr-buffer = { workspace = true }
+hypr-data = { workspace = true }
+hypr-listener-interface = { workspace = true }
+hypr-template = { workspace = true }
+hypr-timeline = { workspace = true }
 
 colored = "3.0.0"
 dirs = { workspace = true }
+gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 indoc = "2.0.6"
+minijinja = { workspace = true }
+serde_json = { workspace = true }
 
 [dependencies]
 include_url_macro = { workspace = true }

@@ -1,0 +1,102 @@
+use codes_iso_639::part_1::LanguageCode;
+
+mod error;
+pub use error::*;
+
+pub use minijinja;
+
+pub enum Template {
+    Static(PredefinedTemplate),
+    Dynamic(String),
+}
+
+impl From<String> for Template {
+    fn from(value: String) -> Self {
+        Template::Dynamic(value)
+    }
+}
+
+impl From<Template> for String {
+    fn from(value: Template) -> Self {
+        match value {
+            Template::Static(t) => t.to_string(),
+            Template::Dynamic(t) => t,
+        }
+    }
+}
+
+#[derive(Debug, strum::AsRefStr, strum::Display)]
+pub enum PredefinedTemplate {
+    #[strum(serialize = "enhance.system")]
+    EnhanceSystem,
+    #[strum(serialize = "enhance.user")]
+    EnhanceUser,
+}
+
+impl From<PredefinedTemplate> for Template {
+    fn from(value: PredefinedTemplate) -> Self {
+        match value {
+            PredefinedTemplate::EnhanceSystem => {
+                Template::Static(PredefinedTemplate::EnhanceSystem)
+            }
+            PredefinedTemplate::EnhanceUser => Template::Static(PredefinedTemplate::EnhanceUser),
+        }
+    }
+}
+
+const ENHANCE_SYSTEM: &str = include_str!("../assets/enhance.system.jinja");
+const ENHANCE_USER: &str = include_str!("../assets/enhance.user.jinja");
+
+pub fn init(env: &mut minijinja::Environment) {
+    env.set_unknown_method_callback(minijinja_contrib::pycompat::unknown_method_callback);
+
+    env.add_template(PredefinedTemplate::EnhanceSystem.as_ref(), ENHANCE_SYSTEM)
+        .unwrap();
+    env.add_template(PredefinedTemplate::EnhanceUser.as_ref(), ENHANCE_USER)
+        .unwrap();
+
+    env.add_filter("language", filters::language);
+
+    [LanguageCode::En, LanguageCode::Ko]
+        .iter()
+        .for_each(|lang| {
+            env.add_test(
+                lang.language_name().to_lowercase(),
+                testers::language(*lang),
+            );
+        });
+}
+
+pub fn render(
+    env: &minijinja::Environment<'static>,
+    template: Template,
+    ctx: &serde_json::Map<String, serde_json::Value>,
+) -> Result<String, crate::Error> {
+    let tpl = match template {
+        Template::Static(t) => env.get_template(t.as_ref())?,
+        Template::Dynamic(t) => env.get_template(&t)?,
+    };
+
+    tpl.render(ctx).map_err(Into::into)
+}
+
+// https://docs.rs/minijinja/latest/minijinja/filters/trait.Filter.html
+mod filters {
+    use codes_iso_639::part_1::LanguageCode;
+    use std::str::FromStr;
+
+    pub fn language(value: String) -> String {
+        let lang_str = value.to_lowercase();
+        let lang_code = LanguageCode::from_str(&lang_str).unwrap();
+        lang_code.language_name().to_string()
+    }
+}
+
+// https://docs.rs/minijinja/latest/minijinja/tests/index.html
+mod testers {
+    use codes_iso_639::part_1::LanguageCode;
+
+    pub fn language(lang: LanguageCode) -> impl minijinja::tests::Test<bool, (String,)> {
+        move |value: String| value.to_lowercase() == lang.code().to_lowercase()
+    }
+}

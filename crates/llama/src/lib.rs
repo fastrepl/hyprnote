@@ -101,9 +101,9 @@ impl Llama {
                             let mut decoder = encoding_rs::UTF_8.new_decoder();
                             let mut sampler = LlamaSampler::chain_simple([
                                 LlamaSampler::grammar(&model, grammar::MARKDOWN_GRAMMAR, "root"),
-                                LlamaSampler::temp(0.5),
-                                LlamaSampler::penalties(0, 1.2, 0.2, 0.0),
-                                LlamaSampler::mirostat_v2(1234, 4.0, 0.1),
+                                LlamaSampler::temp(0.1),
+                                LlamaSampler::penalties(0, 1.2, 0.1, 0.0),
+                                LlamaSampler::mirostat_v2(1234, 3.0, 0.2),
                             ]);
 
                             while n_cur <= last_index + DEFAULT_MAX_OUTPUT_TOKENS as i32 {
@@ -314,6 +314,6 @@ mod tests {
         let llama = get_model();
         let request = LlamaRequest::new(english_4_messages());
 
-        run(&llama, request, false).await;
+        run(&llama, request, true).await;
     }
 }

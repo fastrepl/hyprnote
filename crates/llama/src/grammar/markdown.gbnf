@@ -1,11 +1,12 @@
 root ::= thinking section+
 section ::= header "\n\n" content
 header ::= "# " char+
-content ::= [^#[^*\n] [^#`[^=]*
+content ::= [^#[^*\n] [^#`^=]*
 
 line ::= "- " char+ "\n"
 thinking ::= "<headers>" line+ "</headers>"
 
-char ::= letter | digit | " "
+char ::= letter | digit | others
 letter ::= [a-zA-Z]
 digit ::= [0-9]
+others ::= "'" | "\"" | "," | "." | " "

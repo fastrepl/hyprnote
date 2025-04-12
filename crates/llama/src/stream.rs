@@ -44,6 +44,11 @@ where
         let mut i = 0;
 
         while i < self.acc.len() {
+            if !self.acc.is_char_boundary(i) {
+                i += 1;
+                continue;
+            }
+
             if let Some((new_in_tag, new_i, tag_found)) =
                 check_tag_boundaries(&self.acc, i, &self.tag, self.in_tag)
             {
@@ -110,6 +115,10 @@ fn check_tag_boundaries(
     target_tag: &str,
     currently_in_tag: bool,
 ) -> Option<(bool, usize, bool)> {
+    if pos >= text.len() || !text.is_char_boundary(pos) {
+        return None;
+    }
+
     if !currently_in_tag && text[pos..].starts_with('<') {
         if let Some(end_pos) = text[pos..].find('>') {
             let tag_end = pos + end_pos;

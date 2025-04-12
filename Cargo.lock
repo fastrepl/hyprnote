@@ -7527,12 +7527,14 @@ dependencies = [
  "listener-interface",
  "llama-cpp-2",
  "minijinja",
+ "rand 0.9.0",
  "serde",
  "serde_json",
  "template",
  "thiserror 2.0.12",
  "timeline",
  "tokio",
+ "tokio-stream",
 ]
 
 [[package]]

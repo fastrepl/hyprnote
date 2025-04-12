@@ -299,7 +299,8 @@ mod tests {
         assert!(hypr_template::ENHANCE_USER_TPL.contains("<headers>"));
     }
 
-    // cargo test test_english_1 -p llama -- --nocapture
+    // cargo test test_english_1 -p llama -- --nocapture --ignored
+    #[ignore]
     #[tokio::test]
     async fn test_english_1() {
         let llama = get_model();
@@ -308,7 +309,8 @@ mod tests {
         run(&llama, request, true).await;
     }
 
-    // cargo test test_english_4 -p llama -- --nocapture
+    // cargo test test_english_4 -p llama -- --nocapture --ignored
+    #[ignore]
     #[tokio::test]
     async fn test_english_4() {
         let llama = get_model();

@@ -30,22 +30,23 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       authCommands.startOauthServer().then((port) => {
         setPort(port);
 
-        events.authEvent.listen(({ payload }) => {
-          if (payload === "success") {
-            commands.setupDbForCloud().then(() => {
-              onClose();
-              // navigate({ to: "/onboarding", replace: true });
-            });
-            return;
-          }
+        events.authEvent
+          .listen(({ payload }) => {
+            if (payload === "success") {
+              commands.setupDbForCloud().then(() => {
+                onClose();
+              });
+              return;
+            }
 
-          if (payload.error) {
-            message("Error occurred while authenticating!");
-            return;
-          }
-        }).then((fn) => {
-          unlisten = fn;
-        });
+            if (payload.error) {
+              message("Error occurred while authenticating!");
+              return;
+            }
+          })
+          .then((fn) => {
+            unlisten = fn;
+          });
 
         cleanup = () => {
           unlisten?.();
@@ -81,14 +82,11 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <div className="relative flex h-full w-full flex-col items-center justify-center p-8">
           <div className="z-10 flex w-full max-w-xl mx-auto flex-col items-center justify-center">
             <div className="flex flex-col items-center">
-              <TextAnimate
-                animation="blurIn"
-                as="h1"
-                once
-                className="mb-6 font-racing-sans text-6xl font-bold md:text-7xl lg:text-8xl"
-              >
-                {t`HYPRNOTE`}
-              </TextAnimate>
+              <img
+                src="/assets/logo.svg"
+                alt="HYPRNOTE"
+                className="mb-6 w-[300px]"
+              />
 
               <TextAnimate
                 animation="slideUp"

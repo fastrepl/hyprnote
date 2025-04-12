@@ -52,6 +52,10 @@ export default function ModelDownloadNotification() {
       return;
     }
 
+    if (sttModelDownloading.data || llmModelDownloading.data) {
+      return;
+    }
+
     const sttChannel = new Channel();
     const llmChannel = new Channel();
 
@@ -118,7 +122,7 @@ export default function ModelDownloadNotification() {
       ],
       dismissible: false,
     });
-  }, [checkForModelDownload.data]);
+  }, [checkForModelDownload.data, sttModelDownloading.data, llmModelDownloading.data]);
 
   return null;
 }

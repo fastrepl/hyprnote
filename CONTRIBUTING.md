@@ -3,7 +3,7 @@
 ```bash
 git clone https://github.com/fastrepl/hyprnote.git
 cd hyprnote
-pnpm install && pnpm -F desktop tauri dev
+pnpm install && turbo -F @hypr/desktop tauri:dev
 ```
 
 ## Formatting

@@ -2,7 +2,6 @@ use std::sync::Mutex;
 use tauri::{Manager, Wry};
 
 mod commands;
-mod engine;
 mod ext;
 
 pub use ext::TemplatePluginExt;
@@ -12,13 +11,13 @@ const PLUGIN_NAME: &str = "template";
 pub type ManagedState = Mutex<State>;
 
 pub struct State {
-    env: minijinja::Environment<'static>,
+    env: hypr_template::minijinja::Environment<'static>,
 }
 
 impl Default for State {
     fn default() -> Self {
         Self {
-            env: minijinja::Environment::new(),
+            env: hypr_template::minijinja::Environment::new(),
         }
     }
 }
@@ -40,7 +39,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
             let mut state = State::default();
-            engine::init(&mut state.env);
+            hypr_template::init(&mut state.env);
             app.manage(Mutex::new(state));
             Ok(())
         })

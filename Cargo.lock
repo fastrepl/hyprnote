@@ -2106,9 +2106,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.18"
+version = "1.2.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "525046617d8376e3db1deffb079e91cef90a89fc3ca5c185bbf8c9ecdd15cd5c"
+checksum = "8e3a13707ac958681c13b39b458c073d0d9bc8a22cb1b2f4c8e55eb72c13f362"
 dependencies = [
  "jobserver",
  "libc",
@@ -2258,9 +2258,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.35"
+version = "4.5.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8aa86934b44c19c50f87cc2790e19f54f7a67aedb64101c2e1a2e5ecfb73944"
+checksum = "2df961d8c8a0d08aa9945718ccf584145eee3f3aa06cddbeac12933781102e04"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -2268,9 +2268,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.35"
+version = "4.5.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2414dbb2dd0695280da6ea9261e327479e9d37b0630f6b53ba2a11c60c679fd9"
+checksum = "132dbda40fb6753878316a489d5a1242a8ef2f0d9e47ba01c951ea8aa7d013a5"
 dependencies = [
  "anstream",
  "anstyle",
@@ -2446,6 +2446,15 @@ name = "colorchoice"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
+
+[[package]]
+name = "colored"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fde0e0ec90c9dfb3b4b1a0891a7dcd0e2bffde2f7efed5fe7c9bb00e5bfb915e"
+dependencies = [
+ "windows-sys 0.59.0",
+]
 
 [[package]]
 name = "combine"
@@ -4286,6 +4295,15 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "gbnf-validator"
+version = "0.1.0"
+source = "git+https://github.com/fastrepl/gbnf-validator?rev=3dec055#3dec0551311840ae8c9a0feb10e556dd18ffe291"
+dependencies = [
+ "anyhow",
+ "tempfile",
 ]
 
 [[package]]
@@ -6665,6 +6683,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "indoc"
+version = "2.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4c7245a08504955605670dbf141fceab975f15ca21570696aebe9d2e71576bd"
+
+[[package]]
 name = "infer"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7287,9 +7311,9 @@ dependencies = [
 
 [[package]]
 name = "libsql"
-version = "0.9.2"
+version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09b9df6f5cc08ca4bb2467793926470210d3d8a916ea28260d6cd892bba6d8b4"
+checksum = "8c4170192e0b9a763e5989010cff4eef19cec0ccad4cd02a07fb175536913b34"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -7327,9 +7351,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-ffi"
-version = "0.9.2"
+version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a1dcc2bf91e8511ece5bc2bac502b78bcbcecef80635dacb30020a40419e5d6"
+checksum = "98ec8f30f1bc5e8d5bd7ec3f185c7a9b138442d9322a6ae93ba76ab9d9981c85"
 dependencies = [
  "bindgen 0.66.1",
  "cc",
@@ -7338,9 +7362,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-hrana"
-version = "0.9.2"
+version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f14cd7d167c01bac254a4296b86a6ac090fd364c39af6c64071efdf07f206db7"
+checksum = "8546265c2df24a95bb65b8e641f3baf8b0c0d103cd42f1ce6724ff248af26f52"
 dependencies = [
  "base64 0.21.7",
  "bytes",
@@ -7350,9 +7374,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-rusqlite"
-version = "0.9.2"
+version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "881b3e3f05c8d3f22be9ccfa4f6a56ad25165a5458615aba8b7586558c694965"
+checksum = "bd58d0d486f6a6f3b7c83f9e43f50f10e908985a9b33846e5912b0d72027fabd"
 dependencies = [
  "bitflags 2.9.0",
  "fallible-iterator 0.2.0",
@@ -7382,9 +7406,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-sys"
-version = "0.9.2"
+version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edae249cc733bb10e134d3c1522b408631f6a8741855caf7179927fd296f5715"
+checksum = "65b071c118871b0b1321955fc409a97e3b6b6757e6e9783f75f294b61231eaf2"
 dependencies = [
  "bytes",
  "libsql-ffi",
@@ -7396,9 +7420,9 @@ dependencies = [
 
 [[package]]
 name = "libsql_replication"
-version = "0.9.2"
+version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0c30add5755085fffd616190ff67703a391ae8324001738d7e6f00d6ea1b180"
+checksum = "7714505f37db747fab3925fbfaab4c8941d483d844a48d32c23a31713f824aa4"
 dependencies = [
  "aes",
  "async-stream",
@@ -7491,14 +7515,23 @@ version = "0.1.0"
 dependencies = [
  "async-openai",
  "buffer",
+ "colored",
+ "data",
  "dirs 6.0.0",
  "encoding_rs",
  "futures-util",
  "gbnf",
+ "gbnf-validator",
  "include_url_macro",
+ "indoc",
+ "listener-interface",
  "llama-cpp-2",
+ "minijinja",
  "serde",
+ "serde_json",
+ "template",
  "thiserror 2.0.12",
+ "timeline",
  "tokio",
 ]
 
@@ -11357,9 +11390,9 @@ dependencies = [
 
 [[package]]
 name = "self_cell"
-version = "1.1.0"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2fdfc24bc566f839a2da4c4295b82db7d25a24253867d5c64355abb5799bdbe"
+checksum = "0f7d95a54511e0c7be3f51e8867aa8cf35148d7b9445d44de2f943e2b206e749"
 
 [[package]]
 name = "semver"
@@ -13421,9 +13454,6 @@ dependencies = [
 name = "tauri-plugin-template"
 version = "0.1.0"
 dependencies = [
- "codes-iso-639",
- "minijinja",
- "minijinja-contrib",
  "serde",
  "serde_json",
  "specta",
@@ -13431,7 +13461,7 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-specta",
- "thiserror 2.0.12",
+ "template",
  "tracing",
 ]
 
@@ -13653,6 +13683,19 @@ dependencies = [
  "once_cell",
  "rustix 1.0.5",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "template"
+version = "0.1.0"
+dependencies = [
+ "codes-iso-639",
+ "minijinja",
+ "minijinja-contrib",
+ "serde",
+ "serde_json",
+ "strum 0.26.3",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -14936,9 +14979,9 @@ dependencies = [
 
 [[package]]
 name = "vergen-gix"
-version = "1.0.8"
+version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "925e88ba2903c080ab7558e1fc9f62f302ec0c2a3589a596e2d0f8a5eac3d8c2"
+checksum = "5f8dfe6eb333a1397e596164ae7326f68e4b95267b41aedc6aa3c81f3426a010"
 dependencies = [
  "anyhow",
  "derive_builder",

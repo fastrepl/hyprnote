@@ -5,7 +5,6 @@ import { AnimatePresence } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
-import { ENHANCE_SYSTEM_TEMPLATE_KEY, ENHANCE_USER_TEMPLATE_KEY } from "@/templates";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
@@ -190,12 +189,12 @@ export function useEnhanceMutation({
       const timeline = await fn(sessionId);
 
       const systemMessage = await templateCommands.render(
-        ENHANCE_SYSTEM_TEMPLATE_KEY,
+        "enhance.system",
         { config },
       );
 
       const userMessage = await templateCommands.render(
-        ENHANCE_USER_TEMPLATE_KEY,
+        "enhance.user",
         {
           editor: rawContent,
           timeline: timeline,
@@ -221,6 +220,7 @@ export function useEnhanceMutation({
       for await (const chunk of textStream) {
         setAnimate(true);
         acc += chunk;
+        console.log("acc", acc);
         const html = await miscCommands.opinionatedMdToHtml(acc);
         setEnhancedContent(html);
       }

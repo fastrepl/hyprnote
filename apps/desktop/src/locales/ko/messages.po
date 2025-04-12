@@ -233,9 +233,9 @@ msgid "Access granted"
 msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:78
-#: src/components/settings/components/ai/transcribing-model.tsx:182
-#: src/components/settings/components/ai/local-llm-button.tsx:38
-#: src/components/settings/components/ai/enhancing-model.tsx:78
+#: src/components/settings/components/ai/transcribing-model.tsx:179
+#: src/components/settings/components/ai/local-llm-button.tsx:37
+#: src/components/settings/components/ai/enhancing-model.tsx:79
 msgid "Active"
 msgstr ""
 
@@ -367,12 +367,12 @@ msgid "Configure Widgets"
 msgstr ""
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:63
-#: src/components/settings/components/ai/ollama-connection.tsx:72
-#: src/components/settings/components/ai/enhancing-model.tsx:160
+#: src/components/settings/components/ai/ollama-connection.tsx:75
+#: src/components/settings/components/ai/enhancing-model.tsx:163
 msgid "Connect"
 msgstr ""
 
-#: src/components/settings/components/ai/enhancing-model.tsx:141
+#: src/components/settings/components/ai/enhancing-model.tsx:143
 msgid "Connect to Ollama"
 msgstr ""
 
@@ -385,13 +385,13 @@ msgstr ""
 msgid "Connect your calendar and track events"
 msgstr ""
 
-#: src/components/settings/components/ai/ollama-connection.tsx:42
-#: src/components/settings/components/ai/enhancing-model.tsx:158
+#: src/components/settings/components/ai/ollama-connection.tsx:43
+#: src/components/settings/components/ai/enhancing-model.tsx:162
 msgid "Connected"
 msgstr ""
 
-#: src/components/settings/components/ai/ollama-connection.tsx:69
-#: src/components/settings/components/ai/enhancing-model.tsx:155
+#: src/components/settings/components/ai/ollama-connection.tsx:72
+#: src/components/settings/components/ai/enhancing-model.tsx:158
 msgid "Connecting..."
 msgstr ""
 
@@ -603,19 +603,19 @@ msgstr ""
 msgid "Loading extension details..."
 msgstr ""
 
-#: src/components/settings/components/ai/model-selection.tsx:59
+#: src/components/settings/components/ai/model-selection.tsx:60
 msgid "Loading models..."
 msgstr ""
 
 #: src/components/workspace-calendar/event-card.tsx:108
 #: src/components/settings/components/calendar/calendar-selector.tsx:51
-#: src/components/settings/components/ai/transcribing-model.tsx:196
-#: src/components/settings/components/ai/local-llm-button.tsx:52
-#: src/components/settings/components/ai/enhancing-model.tsx:92
+#: src/components/settings/components/ai/transcribing-model.tsx:195
+#: src/components/settings/components/ai/local-llm-button.tsx:51
+#: src/components/settings/components/ai/enhancing-model.tsx:95
 msgid "Loading..."
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:40
+#: src/components/settings/views/ai.tsx:35
 msgid "Local AI"
 msgstr ""
 
@@ -672,8 +672,8 @@ msgstr ""
 msgid "My Templates"
 msgstr ""
 
-#: src/components/settings/components/ai/transcribing-model.tsx:251
-#: src/components/settings/components/ai/transcribing-model.tsx:293
+#: src/components/settings/components/ai/transcribing-model.tsx:248
+#: src/components/settings/components/ai/transcribing-model.tsx:291
 msgid "Needs download"
 msgstr ""
 
@@ -705,7 +705,7 @@ msgstr ""
 msgid "No upcoming events with this contact"
 msgstr ""
 
-#: src/components/settings/components/ai/ollama-connection.tsx:47
+#: src/components/settings/components/ai/ollama-connection.tsx:49
 msgid "Not connected"
 msgstr ""
 
@@ -757,7 +757,7 @@ msgstr ""
 msgid "Optional for participant suggestions"
 msgstr ""
 
-#: src/components/settings/components/ai/enhancing-model.tsx:131
+#: src/components/settings/components/ai/enhancing-model.tsx:133
 msgid "or"
 msgstr ""
 
@@ -795,7 +795,7 @@ msgstr ""
 #~ msgid "Quality"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/transcribing-model.tsx:273
+#: src/components/settings/components/ai/transcribing-model.tsx:269
 msgid "Quality (small-en)"
 msgstr ""
 
@@ -906,7 +906,7 @@ msgstr ""
 #~ msgid "Speed"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/transcribing-model.tsx:231
+#: src/components/settings/components/ai/transcribing-model.tsx:226
 msgid "Speed (base-en)"
 msgstr ""
 
@@ -926,9 +926,9 @@ msgstr ""
 msgid "Start recording"
 msgstr ""
 
-#: src/components/settings/components/ai/transcribing-model.tsx:199
-#: src/components/settings/components/ai/local-llm-button.tsx:55
-#: src/components/settings/components/ai/enhancing-model.tsx:95
+#: src/components/settings/components/ai/transcribing-model.tsx:198
+#: src/components/settings/components/ai/local-llm-button.tsx:54
+#: src/components/settings/components/ai/enhancing-model.tsx:98
 msgid "Start Server"
 msgstr ""
 
@@ -1001,7 +1001,7 @@ msgstr ""
 msgid "Toggle widget panel"
 msgstr ""
 
-#: src/components/settings/components/ai/transcribing-model.tsx:172
+#: src/components/settings/components/ai/transcribing-model.tsx:168
 msgid "Transcribing Model"
 msgstr ""
 

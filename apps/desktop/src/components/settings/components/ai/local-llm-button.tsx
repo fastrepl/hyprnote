@@ -27,34 +27,36 @@ export function LocalLlmButton({
 
   return (
     <>
-      {isRunning ? (
-        <div className="flex items-center gap-1.5">
-          <div className="relative h-2 w-2">
-            <div className="absolute inset-0 rounded-full bg-green-500/30"></div>
-            <div className="absolute inset-0 rounded-full bg-green-500 animate-ping"></div>
+      {isRunning
+        ? (
+          <div className="flex items-center gap-1.5">
+            <div className="relative h-2 w-2">
+              <div className="absolute inset-0 rounded-full bg-green-500/30"></div>
+              <div className="absolute inset-0 rounded-full bg-green-500 animate-ping"></div>
+            </div>
+            <span className="text-xs text-green-600">
+              <Trans>Active</Trans>
+            </span>
           </div>
-          <span className="text-xs text-green-600">
-            <Trans>Active</Trans>
-          </span>
-        </div>
-      ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => toggleLocalLlm.mutate()}
-          disabled={toggleLocalLlm.isPending}
-          className="min-w-20 text-center"
-        >
-          {toggleLocalLlm.isPending ? (
-            <>
-              <Spinner />
-              <Trans>Loading...</Trans>
-            </>
-          ) : (
-            <Trans>Start Server</Trans>
-          )}
-        </Button>
-      )}
+        )
+        : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => toggleLocalLlm.mutate()}
+            disabled={toggleLocalLlm.isPending}
+            className="min-w-20 text-center"
+          >
+            {toggleLocalLlm.isPending
+              ? (
+                <>
+                  <Spinner />
+                  <Trans>Loading...</Trans>
+                </>
+              )
+              : <Trans>Start Server</Trans>}
+          </Button>
+        )}
     </>
   );
 }

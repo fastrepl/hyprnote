@@ -5,11 +5,12 @@ import { useNavigate } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { lazy, Suspense, useEffect } from "react";
 
-import { CatchNotFoundFallback, NotFoundComponent } from "@/components/control";
+import { CatchNotFoundFallback, ErrorComponent, NotFoundComponent } from "@/components/control";
 import type { Context } from "@/types";
 
 export const Route = createRootRouteWithContext<Required<Context>>()({
   component: Component,
+  errorComponent: ErrorComponent,
   notFoundComponent: NotFoundComponent,
 });
 

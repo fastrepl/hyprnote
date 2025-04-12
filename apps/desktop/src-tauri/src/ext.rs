@@ -5,6 +5,7 @@ use tauri_plugin_db::DatabasePluginExt;
 use tauri_plugin_store2::{ScopedStore, StorePluginExt};
 
 pub trait AppExt<R: tauri::Runtime> {
+    fn sentry_dsn(&self) -> String;
     fn desktop_store(&self) -> Result<ScopedStore<R, crate::StoreKey>, String>;
     fn setup_local_ai(&self) -> impl Future<Output = Result<(), String>>;
     fn setup_db_for_local(&self) -> impl Future<Output = Result<(), String>>;
@@ -12,6 +13,20 @@ pub trait AppExt<R: tauri::Runtime> {
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
+    fn sentry_dsn(&self) -> String {
+        {
+            #[cfg(not(debug_assertions))]
+            {
+                env!("SENTRY_DSN").to_string()
+            }
+
+            #[cfg(debug_assertions)]
+            {
+                option_env!("SENTRY_DSN").unwrap_or_default().to_string()
+            }
+        }
+    }
+
     #[tracing::instrument(skip_all)]
     fn desktop_store(&self) -> Result<ScopedStore<R, crate::StoreKey>, String> {
         self.scoped_store("desktop").map_err(|e| e.to_string())

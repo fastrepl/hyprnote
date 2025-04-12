@@ -1,4 +1,8 @@
-header ::= "# " content
-section ::= header "\n\n" content
 root ::= section+
-content ::= [^#] .*
+section ::= header "\n\n" content
+header ::= "# " char+
+content ::= [^#[^*\n] [^#`[^=]*
+
+char ::= letter | digit | " "
+letter ::= [a-zA-Z]
+digit ::= [0-9]

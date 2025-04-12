@@ -7,6 +7,9 @@
 
 
 export const commands = {
+async sentryDsn() : Promise<string> {
+    return await TAURI_INVOKE("sentry_dsn");
+},
 async isOnboardingNeeded() : Promise<boolean> {
     return await TAURI_INVOKE("is_onboarding_needed");
 },

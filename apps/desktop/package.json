@@ -70,7 +70,7 @@
     "beautiful-react-hooks": "^5.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "lucide-react": "^0.474.0",
+    "lucide-react": "^0.483.0",
     "motion": "^11.18.2",
     "mutative": "^1.1.0",
     "nanoid": "^5.1.5",

@@ -20,10 +20,6 @@ export function ProfileHeader({
 }) {
   const queryClient = useQueryClient();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.value);
-  };
-
   const orgSearchResults: Organization[] = [];
   const orgSearchRef = useRef<HTMLDivElement>(null);
   const [orgSearchQuery, setOrgSearchQuery] = useState("");
@@ -57,6 +53,13 @@ export function ProfileHeader({
       queryClient.setQueryData(["human", human.id], data);
     },
   });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    queryClient.setQueryData(["human", human.id], (human: Human) => ({
+      ...human,
+      full_name: e.target.value,
+    } satisfies Human));
+  };
 
   return (
     <div className="flex items-center gap-4">

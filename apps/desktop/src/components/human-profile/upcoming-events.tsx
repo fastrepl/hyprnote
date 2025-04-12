@@ -1,13 +1,14 @@
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Calendar, ExternalLink } from "lucide-react";
+import { Calendar, Clock, ExternalLink } from "lucide-react";
 
 import { commands as dbCommands, Human } from "@hypr/plugin-db";
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
+import { EmptyState, LoadingSkeleton, ProfileSectionHeader } from "./common";
 
 export function UpcomingEvents({ human }: { human: Human }) {
-  const { data: upcomingEvents = [] } = useQuery({
+  const { data: upcomingEvents = [], isLoading } = useQuery({
     queryKey: ["events", "upcoming", human.id],
     queryFn: async () => {
       const now = new Date();
@@ -28,25 +29,30 @@ export function UpcomingEvents({ human }: { human: Human }) {
     },
   });
 
+  const isEmpty = !isLoading && upcomingEvents.length === 0;
+
   return (
     <div className="mt-8">
-      <h2 className="mb-4 font-semibold text-zinc-800 flex items-center gap-2">
-        <Calendar className="size-5" />
-        <span>Upcoming Events</span>
-      </h2>
-      {upcomingEvents.length > 0
+      <ProfileSectionHeader
+        title="Upcoming Events"
+        actionLabel="Add Event"
+        hideAction={isEmpty}
+      />
+
+      {isLoading ? <LoadingSkeleton count={2} /> : upcomingEvents.length > 0
         ? (
           <div className="space-y-3">
             {upcomingEvents.map((event) => (
               <Card
                 key={event.id}
-                className="hover:bg-gray-50 transition-colors cursor-pointer border border-gray-200 shadow-sm rounded-lg"
+                className="hover:bg-gray-50 transition-colors cursor-pointer border border-gray-200 shadow-sm rounded-lg overflow-hidden"
               >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-medium text-zinc-900">{event.name}</h3>
-                      <p className="text-sm text-zinc-500 mt-1">
+                      <p className="text-sm text-zinc-500 mt-1 flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5 inline" />
                         {format(new Date(event.start_date), "MMMM do, yyyy")} •{" "}
                         {format(new Date(event.start_date), "h:mm a")} - {format(new Date(event.end_date), "h:mm a")}
                       </p>
@@ -57,7 +63,7 @@ export function UpcomingEvents({ human }: { human: Human }) {
                         href={event.google_event_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-zinc-400 hover:text-zinc-600 transition-colors"
+                        className="text-zinc-400 hover:text-zinc-600 transition-colors ml-2"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <ExternalLink className="h-4 w-4" />
@@ -70,9 +76,10 @@ export function UpcomingEvents({ human }: { human: Human }) {
           </div>
         )
         : (
-          <p className="text-zinc-500">
-            <Trans>No upcoming events with this contact</Trans>
-          </p>
+          <EmptyState
+            icon={<Calendar className="h-14 w-14" />}
+            title={<Trans>No upcoming events with this contact</Trans>}
+          />
         )}
     </div>
   );

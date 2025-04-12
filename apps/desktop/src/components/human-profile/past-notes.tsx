@@ -1,14 +1,18 @@
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, LinkProps, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { FileText } from "lucide-react";
 
 import { commands as dbCommands, type Human, type Session } from "@hypr/plugin-db";
+import { commands as windowsCommands, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
+import { EmptyState, LoadingSkeleton, ProfileSectionHeader } from "./common";
 
 export function PastNotes({ human }: { human: Human }) {
-  const { data: sessions = [] } = useQuery({
+  const navigate = useNavigate();
+
+  const { data: sessions = [], isLoading } = useQuery({
     queryKey: ["sessions", "human", human.id],
     queryFn: async () => {
       const allSessions = await dbCommands.listSessions({
@@ -29,13 +33,31 @@ export function PastNotes({ human }: { human: Human }) {
     },
   });
 
+  const isEmpty = !isLoading && sessions.length === 0;
+
+  const isMain = getCurrentWebviewWindowLabel() === "main";
+
+  const handleCreateNote = () => {
+    if (isMain) {
+      navigate({ to: "/app/new" });
+    } else {
+      const params = { to: "/app/new" } as const satisfies LinkProps;
+
+      windowsCommands.windowEmitNavigate({ type: "main" }, params.to).then(() => {
+        windowsCommands.windowDestroy({ type: "human", value: human.id });
+      });
+    }
+  };
+
   return (
     <div className="mt-12">
-      <h2 className="mb-4 font-semibold text-zinc-800 flex items-center gap-2">
-        <FileText className="size-5" />
-        <span>Past Notes</span>
-      </h2>
-      {sessions.length > 0
+      <ProfileSectionHeader
+        title="Past Notes"
+        actionLabel="New Note"
+        hideAction={isEmpty}
+      />
+
+      {isLoading ? <LoadingSkeleton count={3} /> : sessions.length > 0
         ? (
           <div className="space-y-3">
             {sessions.map((session) => (
@@ -45,7 +67,7 @@ export function PastNotes({ human }: { human: Human }) {
                 params={{ id: session.id }}
                 className="block"
               >
-                <Card className="hover:bg-gray-50 transition-colors cursor-pointer border border-gray-200 shadow-sm rounded-lg">
+                <Card className="hover:bg-gray-50 transition-colors cursor-pointer border border-gray-200 shadow-sm rounded-lg overflow-hidden">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div>
@@ -62,9 +84,15 @@ export function PastNotes({ human }: { human: Human }) {
           </div>
         )
         : (
-          <p className="text-zinc-500">
-            <Trans>No past notes with this contact</Trans>
-          </p>
+          <EmptyState
+            icon={<FileText className="h-14 w-14" />}
+            title={<Trans>No past notes with this contact</Trans>}
+            actionLabel={
+              <Trans>
+                <span onClick={handleCreateNote}>Create Note</span>
+              </Trans>
+            }
+          />
         )}
     </div>
   );

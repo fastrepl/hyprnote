@@ -168,6 +168,38 @@ mod tests {
     use futures_util::StreamExt;
     use llama_cpp_2::model::LlamaChatMessage;
 
+    macro_rules! init_timeline {
+        ($module:ident) => {{
+            let transcripts: Vec<hypr_listener_interface::TranscriptChunk> =
+                serde_json::from_str(hypr_data::$module::TRANSCRIPTION_JSON).unwrap();
+            let diarizations: Vec<hypr_listener_interface::DiarizationChunk> =
+                serde_json::from_str(hypr_data::$module::DIARIZATION_JSON).unwrap();
+
+            let mut timeline = hypr_timeline::Timeline::default();
+            for t in transcripts {
+                timeline.add_transcription(t);
+            }
+            for d in diarizations {
+                timeline.add_diarization(d);
+            }
+            timeline.view(hypr_timeline::TimelineFilter::default())
+        }};
+    }
+
+    async fn print_stream(model: &Llama, request: LlamaRequest) {
+        use futures_util::pin_mut;
+        use std::io::{self, Write};
+
+        let stream = model.generate_stream(request).unwrap();
+        pin_mut!(stream);
+
+        while let Some(token) = stream.next().await {
+            print!("{}", token);
+            io::stdout().flush().unwrap();
+        }
+        println!();
+    }
+
     fn get_model() -> Llama {
         let model_path = dirs::data_dir()
             .unwrap()
@@ -177,86 +209,8 @@ mod tests {
         Llama::new(model_path).unwrap()
     }
 
-    fn english_4_messages() -> Vec<LlamaChatMessage> {
-        let timeline_view = {
-            let (transcripts, diarizations): (
-                Vec<hypr_listener_interface::TranscriptChunk>,
-                Vec<hypr_listener_interface::DiarizationChunk>,
-            ) = (
-                serde_json::from_str(hypr_data::english_4::TRANSCRIPTION_JSON).unwrap(),
-                serde_json::from_str(hypr_data::english_4::DIARIZATION_JSON).unwrap(),
-            );
-
-            let mut timeline = hypr_timeline::Timeline::default();
-
-            for t in transcripts {
-                timeline.add_transcription(t);
-            }
-            for d in diarizations {
-                timeline.add_diarization(d);
-            }
-
-            timeline.view(hypr_timeline::TimelineFilter::default())
-        };
-
-        let mut env = hypr_template::minijinja::Environment::new();
-        hypr_template::init(&mut env);
-
-        let system = hypr_template::render(
-            &env,
-            hypr_template::PredefinedTemplate::EnhanceSystem.into(),
-            &serde_json::json!({
-                "config": {
-                    "general": {
-                        "display_language": "en"
-                    }
-                }
-            })
-            .as_object()
-            .unwrap(),
-        )
-        .unwrap();
-
-        let user = hypr_template::render(
-            &env,
-            hypr_template::PredefinedTemplate::EnhanceUser.into(),
-            &serde_json::json!({
-                "editor": "privacy aspect seems interesting",
-                "timeline": timeline_view,
-                "participants": vec!["yujonglee".to_string()],
-            })
-            .as_object()
-            .unwrap(),
-        )
-        .unwrap();
-
-        vec![
-            LlamaChatMessage::new("system".into(), system.into()).unwrap(),
-            LlamaChatMessage::new("user".into(), user.into()).unwrap(),
-        ]
-    }
-
     fn english_1_messages() -> Vec<LlamaChatMessage> {
-        let timeline_view = {
-            let (transcripts, diarizations): (
-                Vec<hypr_listener_interface::TranscriptChunk>,
-                Vec<hypr_listener_interface::DiarizationChunk>,
-            ) = (
-                serde_json::from_str(hypr_data::english_1::TRANSCRIPTION_JSON).unwrap(),
-                serde_json::from_str(hypr_data::english_1::DIARIZATION_JSON).unwrap(),
-            );
-
-            let mut timeline = hypr_timeline::Timeline::default();
-
-            for t in transcripts {
-                timeline.add_transcription(t);
-            }
-            for d in diarizations {
-                timeline.add_diarization(d);
-            }
-
-            timeline.view(hypr_timeline::TimelineFilter::default())
-        };
+        let timeline_view = init_timeline!(english_1);
 
         let mut env = hypr_template::minijinja::Environment::new();
         hypr_template::init(&mut env);
@@ -295,18 +249,52 @@ mod tests {
         ]
     }
 
-    async fn print_stream(model: &Llama, request: LlamaRequest) {
-        use futures_util::pin_mut;
-        use std::io::{self, Write};
+    fn english_4_messages() -> Vec<LlamaChatMessage> {
+        let timeline_view = init_timeline!(english_4);
 
-        let stream = model.generate_stream(request).unwrap();
-        pin_mut!(stream);
+        let mut env = hypr_template::minijinja::Environment::new();
+        hypr_template::init(&mut env);
 
-        while let Some(token) = stream.next().await {
-            print!("{}", token);
-            io::stdout().flush().unwrap();
-        }
-        println!();
+        let system = hypr_template::render(
+            &env,
+            hypr_template::PredefinedTemplate::EnhanceSystem.into(),
+            &serde_json::json!({
+                "config": {
+                    "general": {
+                        "display_language": "en"
+                    }
+                }
+            })
+            .as_object()
+            .unwrap(),
+        )
+        .unwrap();
+
+        let user = hypr_template::render(
+            &env,
+            hypr_template::PredefinedTemplate::EnhanceUser.into(),
+            &serde_json::json!({
+                "editor": "privacy aspect seems interesting",
+                "timeline": timeline_view,
+                "participants": vec!["yujonglee".to_string()],
+            })
+            .as_object()
+            .unwrap(),
+        )
+        .unwrap();
+
+        vec![
+            LlamaChatMessage::new("system".into(), system.into()).unwrap(),
+            LlamaChatMessage::new("user".into(), user.into()).unwrap(),
+        ]
+    }
+
+    // cargo test test_english_1 -p llama -- --nocapture
+    #[tokio::test]
+    async fn test_english_1() {
+        let llama = get_model();
+        let request = LlamaRequest::new(english_1_messages());
+        print_stream(&llama, request).await;
     }
 
     // cargo test test_english_4 -p llama -- --nocapture
@@ -315,14 +303,6 @@ mod tests {
         let llama = get_model();
         let request = LlamaRequest::new(english_4_messages());
 
-        print_stream(&llama, request).await;
-    }
-
-    // cargo test test_english_1 -p llama -- --nocapture
-    #[tokio::test]
-    async fn test_english_1() {
-        let llama = get_model();
-        let request = LlamaRequest::new(english_1_messages());
         print_stream(&llama, request).await;
     }
 }

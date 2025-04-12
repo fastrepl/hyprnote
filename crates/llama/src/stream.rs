@@ -34,8 +34,7 @@ where
             return Some(self.buffer.remove(0));
         }
         if !self.acc.is_empty() && !self.in_tag {
-            let content = self.acc.clone();
-            self.acc.clear();
+            let content = std::mem::take(&mut self.acc);
             return Some(content);
         }
         None
@@ -48,19 +47,21 @@ where
             if let Some((new_in_tag, new_i, tag_found)) =
                 check_tag_boundaries(&self.acc, i, &self.tag, self.in_tag)
             {
-                if tag_found && !new_in_tag && self.in_tag {
-                    self.in_tag = false;
-                    self.acc = self.acc[new_i..].to_string();
-                    i = 0;
-                    continue;
-                } else if tag_found && new_in_tag && !self.in_tag {
-                    if i > 0 {
-                        self.buffer.push(self.acc[0..i].to_string());
+                if tag_found {
+                    if !new_in_tag && self.in_tag {
+                        self.in_tag = false;
+                        self.acc = self.acc[new_i..].to_string();
+                        i = 0;
+                        continue;
+                    } else if new_in_tag && !self.in_tag {
+                        if i > 0 {
+                            self.buffer.push(self.acc[0..i].to_string());
+                        }
+                        self.in_tag = true;
+                        self.acc = self.acc[new_i..].to_string();
+                        i = 0;
+                        continue;
                     }
-                    self.in_tag = true;
-                    self.acc = self.acc[new_i..].to_string();
-                    i = 0;
-                    continue;
                 }
             }
 
@@ -69,12 +70,15 @@ where
     }
 
     fn manage_buffer(&mut self) -> bool {
+        if self.in_tag {
+            return false;
+        }
+
         let mut did_update = false;
 
-        if !self.in_tag && self.acc.len() > 20 {
+        if self.acc.len() > 20 {
             if !self.acc.contains('<') {
-                self.buffer.push(self.acc.clone());
-                self.acc.clear();
+                self.buffer.push(std::mem::take(&mut self.acc));
                 did_update = true;
             } else if let Some(last_tag_pos) = self.acc.rfind('<') {
                 if last_tag_pos > 0 {
@@ -85,14 +89,13 @@ where
             }
         }
 
-        if !self.in_tag && !self.acc.is_empty() {
-            if !self.acc.contains('<')
-                || (self.acc.contains('<')
-                    && self.acc.contains('>')
-                    && self.acc.matches('<').count() == self.acc.matches('>').count())
-            {
-                self.buffer.push(self.acc.clone());
-                self.acc.clear();
+        if !self.acc.is_empty() {
+            let is_complete = !self.acc.contains('<')
+                || (self.acc.contains('>')
+                    && self.acc.matches('<').count() == self.acc.matches('>').count());
+
+            if is_complete {
+                self.buffer.push(std::mem::take(&mut self.acc));
                 did_update = true;
             }
         }
@@ -102,30 +105,29 @@ where
 }
 
 fn check_tag_boundaries(
-    acc: &str,
-    i: usize,
-    tag: &str,
-    in_tag: bool,
+    text: &str,
+    pos: usize,
+    target_tag: &str,
+    currently_in_tag: bool,
 ) -> Option<(bool, usize, bool)> {
-    if !in_tag && acc[i..].starts_with('<') {
-        let tag_start = i;
+    if !currently_in_tag && text[pos..].starts_with('<') {
+        if let Some(end_pos) = text[pos..].find('>') {
+            let tag_end = pos + end_pos;
+            let tag_content = &text[pos + 1..tag_end];
 
-        if let Some(end_pos) = acc[i..].find('>') {
-            let tag_end = i + end_pos;
-            let tag_content = &acc[tag_start + 1..tag_end];
-
-            if tag_content == tag {
+            if tag_content == target_tag {
                 return Some((true, tag_end + 1, true));
             }
         }
     }
 
-    if in_tag && acc[i..].starts_with("</") {
-        if let Some(end_pos) = acc[i..].find('>') {
-            let tag_end = i + end_pos;
-            let tag_content = &acc[i + 2..tag_end];
+    if currently_in_tag && text[pos..].starts_with("</") {
+        if let Some(end_pos) = text[pos..].find('>') {
+            let tag_end = pos + end_pos;
+            let tag_content = &text[pos + 2..tag_end];
 
-            if tag_content == tag {
+            if tag_content == target_tag {
+                // Found closing tag, return position after the tag
                 return Some((false, tag_end + 1, true));
             }
         }
@@ -139,68 +141,54 @@ where
     S: Stream<Item = String> + Unpin,
 {
     let tag_name = tag.as_ref().to_string();
+    let filter_state = TagFilterState::new(input_stream, tag_name);
+    let is_exhausted = std::rc::Rc::new(std::cell::Cell::new(false));
 
-    struct StreamState<S> {
-        filter_state: TagFilterState<S>,
-        is_exhausted: bool,
-    }
+    futures_util::stream::unfold(filter_state, {
+        let is_exhausted = is_exhausted.clone();
+        move |mut state| {
+            let is_exhausted = is_exhausted.clone();
+            async move {
+                if is_exhausted.get() {
+                    return None;
+                }
 
-    futures_util::stream::unfold(
-        StreamState {
-            filter_state: TagFilterState::new(input_stream, tag_name),
-            is_exhausted: false,
-        },
-        |mut state| async move {
-            // Don't poll an exhausted stream
-            if state.is_exhausted {
-                return None;
-            }
+                if let Some(token) = state.try_return_token() {
+                    return Some((token, state));
+                }
 
-            // First try to return any buffered token
-            if let Some(token) = state.filter_state.try_return_token() {
-                return Some((token, state));
-            }
-
-            loop {
-                // Get next token from the stream
-                match state.filter_state.stream.next().await {
-                    None => {
-                        // Force final processing of accumulator if needed
-                        if !state.filter_state.acc.is_empty() && !state.filter_state.in_tag {
-                            state
-                                .filter_state
-                                .buffer
-                                .push(state.filter_state.acc.clone());
-                            state.filter_state.acc.clear();
-                        }
-
-                        // Return any remaining buffered tokens
-                        if let Some(token) = state.filter_state.try_return_final_token() {
-                            if state.filter_state.buffer.is_empty() {
-                                state.is_exhausted = true;
+                loop {
+                    match state.stream.next().await {
+                        None => {
+                            if !state.acc.is_empty() && !state.in_tag {
+                                state.buffer.push(state.acc.clone());
+                                state.acc.clear();
                             }
-                            return Some((token, state));
+
+                            if let Some(token) = state.try_return_final_token() {
+                                if state.buffer.is_empty() {
+                                    is_exhausted.set(true);
+                                }
+                                return Some((token, state));
+                            }
+
+                            is_exhausted.set(true);
+                            return None;
                         }
+                        Some(token) => {
+                            state.acc.push_str(&token);
+                            state.process_tags();
+                            state.manage_buffer();
 
-                        // Mark stream as exhausted before returning None
-                        state.is_exhausted = true;
-                        return None;
-                    }
-                    Some(token) => {
-                        // Process the token
-                        state.filter_state.acc.push_str(&token);
-                        state.filter_state.process_tags();
-                        state.filter_state.manage_buffer();
-
-                        // Check if we have a token to return
-                        if let Some(token) = state.filter_state.try_return_token() {
-                            return Some((token, state));
+                            if let Some(token) = state.try_return_token() {
+                                return Some((token, state));
+                            }
                         }
                     }
                 }
             }
-        },
-    )
+        }
+    })
 }
 
 #[cfg(test)]

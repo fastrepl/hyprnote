@@ -186,7 +186,7 @@ mod tests {
         }};
     }
 
-    async fn print_stream(model: &Llama, request: LlamaRequest) {
+    async fn run(model: &Llama, request: LlamaRequest, print_stream: bool) {
         use futures_util::pin_mut;
         use std::io::{self, Write};
 
@@ -194,10 +194,15 @@ mod tests {
         pin_mut!(stream);
 
         while let Some(token) = stream.next().await {
-            print!("{}", token);
-            io::stdout().flush().unwrap();
+            if print_stream {
+                print!("{}", token);
+                io::stdout().flush().unwrap();
+            }
         }
-        println!();
+
+        if print_stream {
+            println!();
+        }
     }
 
     fn get_model() -> Llama {
@@ -289,12 +294,18 @@ mod tests {
         ]
     }
 
+    #[test]
+    fn test_tag() {
+        assert!(hypr_template::ENHANCE_USER_TPL.contains("<headers>"));
+    }
+
     // cargo test test_english_1 -p llama -- --nocapture
     #[tokio::test]
     async fn test_english_1() {
         let llama = get_model();
         let request = LlamaRequest::new(english_1_messages());
-        print_stream(&llama, request).await;
+
+        run(&llama, request, true).await;
     }
 
     // cargo test test_english_4 -p llama -- --nocapture
@@ -303,6 +314,6 @@ mod tests {
         let llama = get_model();
         let request = LlamaRequest::new(english_4_messages());
 
-        print_stream(&llama, request).await;
+        run(&llama, request, false).await;
     }
 }

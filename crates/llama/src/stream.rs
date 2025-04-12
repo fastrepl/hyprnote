@@ -208,8 +208,8 @@ mod tests {
             ("Hello <test>excluded content</test> World", "Hello  World"),
             ("<test>At start</test> visible content", " visible content"),
             (
-                "<test>excluded</test> and <otherTag>kept</otherTag> tags",
-                " and <otherTag>kept</otherTag> tags",
+                "<other1>kept</other1> tags <test>excluded</test> and <other2>kept</other2> tags",
+                "<other1>kept</other1> tags  and <other2>kept</other2> tags",
             ),
         ];
 

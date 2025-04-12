@@ -22,7 +22,7 @@ include_url_macro = { workspace = true }
 
 encoding_rs = "0.8.35"
 gbnf = "0.1.7"
-llama-cpp-2 = { git = "https://github.com/utilityai/llama-cpp-rs", features = ["metal"], branch = "update-llama-cpp-2025-04-11" }
+llama-cpp-2 = { git = "https://github.com/utilityai/llama-cpp-rs", features = ["metal"], branch = "update-llama-cpp-2025-04-06" }
 
 async-openai = { workspace = true }
 futures-util = { workspace = true }

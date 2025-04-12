@@ -14,11 +14,6 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:114
-msgid "{days} days later ({dayOfWeek})"
-msgstr ""
-
-#. js-lingui-explicit-id
 #: src/components/settings/views/general.tsx:168
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
@@ -102,6 +97,11 @@ msgstr ""
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:112
 msgid "{days} days ago ({dayOfWeek})"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:114
+msgid "{days} days later ({dayOfWeek})"
 msgstr ""
 
 #. js-lingui-explicit-id
@@ -233,12 +233,10 @@ msgid "{title}"
 msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:65
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:114
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:104
 msgid "Access granted"
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:78
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:127
 #: src/components/settings/components/ai/transcribing-model.tsx:179
 #: src/components/settings/components/ai/local-llm-button.tsx:38
 #: src/components/settings/components/ai/enhancing-model.tsx:79
@@ -266,7 +264,7 @@ msgstr ""
 msgid "AI"
 msgstr ""
 
-#: src/components/login-modal.tsx:99
+#: src/components/login-modal.tsx:97
 msgid "AI notepad for meetings"
 msgstr ""
 
@@ -401,7 +399,7 @@ msgstr ""
 msgid "Connecting..."
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:110
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:100
 msgid "Contacts Access"
 msgstr ""
 
@@ -534,12 +532,12 @@ msgstr ""
 msgid "General"
 msgstr ""
 
-#: src/components/login-modal.tsx:107
+#: src/components/login-modal.tsx:105
 msgid "Get Started"
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:89
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:138
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:79
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:118
 msgid "Grant Access"
 msgstr ""
 
@@ -552,8 +550,8 @@ msgid "How can I help you today?"
 msgstr ""
 
 #: src/components/login-modal.tsx:90
-msgid "HYPRNOTE"
-msgstr ""
+#~ msgid "HYPRNOTE"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:105
 msgid "Hyprnote will be opened automatically when you start your computer"
@@ -761,7 +759,7 @@ msgstr ""
 msgid "Open settings"
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:115
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:105
 msgid "Optional for participant suggestions"
 msgstr ""
 
@@ -1070,7 +1068,7 @@ msgstr ""
 msgid "View calendar"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:40
+#: src/components/editor-area/note-header/chips/event-chip.tsx:43
 msgid "View in calendar"
 msgstr ""
 

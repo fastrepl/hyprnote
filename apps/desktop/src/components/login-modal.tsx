@@ -92,7 +92,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 animation="slideUp"
                 by="word"
                 once
-                className="mb-20 text-center text-lg font-medium text-neutral-600 md:text-xl lg:text-2xl"
+                className="mb-20 text-center text-2xl font-medium text-neutral-600"
               >
                 {t`AI notepad for meetings`}
               </TextAnimate>

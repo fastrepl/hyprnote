@@ -127,7 +127,6 @@ fn check_tag_boundaries(
             let tag_content = &text[pos + 2..tag_end];
 
             if tag_content == target_tag {
-                // Found closing tag, return position after the tag
                 return Some((false, tag_end + 1, true));
             }
         }
@@ -142,48 +141,33 @@ where
 {
     let tag_name = tag.as_ref().to_string();
     let filter_state = TagFilterState::new(input_stream, tag_name);
-    let is_exhausted = std::rc::Rc::new(std::cell::Cell::new(false));
 
-    futures_util::stream::unfold(filter_state, {
-        let is_exhausted = is_exhausted.clone();
-        move |mut state| {
-            let is_exhausted = is_exhausted.clone();
-            async move {
-                if is_exhausted.get() {
+    futures_util::stream::unfold(filter_state, move |mut state| async move {
+        if let Some(token) = state.try_return_token() {
+            return Some((token, state));
+        }
+
+        loop {
+            match state.stream.next().await {
+                None => {
+                    if !state.acc.is_empty() && !state.in_tag {
+                        state.buffer.push(state.acc.clone());
+                        state.acc.clear();
+                    }
+
+                    if let Some(token) = state.try_return_final_token() {
+                        return Some((token, state));
+                    }
+
                     return None;
                 }
+                Some(token) => {
+                    state.acc.push_str(&token);
+                    state.process_tags();
+                    state.manage_buffer();
 
-                if let Some(token) = state.try_return_token() {
-                    return Some((token, state));
-                }
-
-                loop {
-                    match state.stream.next().await {
-                        None => {
-                            if !state.acc.is_empty() && !state.in_tag {
-                                state.buffer.push(state.acc.clone());
-                                state.acc.clear();
-                            }
-
-                            if let Some(token) = state.try_return_final_token() {
-                                if state.buffer.is_empty() {
-                                    is_exhausted.set(true);
-                                }
-                                return Some((token, state));
-                            }
-
-                            is_exhausted.set(true);
-                            return None;
-                        }
-                        Some(token) => {
-                            state.acc.push_str(&token);
-                            state.process_tags();
-                            state.manage_buffer();
-
-                            if let Some(token) = state.try_return_token() {
-                                return Some((token, state));
-                            }
-                        }
+                    if let Some(token) = state.try_return_token() {
+                        return Some((token, state));
                     }
                 }
             }

@@ -8,13 +8,16 @@ use llama_cpp_2::{
     sampling::LlamaSampler,
     send_logs_to_tracing, LogOptions,
 };
+use tokio_stream::wrappers::UnboundedReceiverStream;
 
 mod error;
 mod grammar;
 mod message;
+mod stream;
 
 pub use error::*;
 pub use message::*;
+pub use stream::filter_tag;
 
 const TEMPLATE_NAME: &str = "llama3";
 
@@ -129,6 +132,8 @@ impl Llama {
                                 n_cur += 1;
                                 ctx.decode(&mut batch).unwrap();
                             }
+
+                            drop(response_sender);
                         }
                     }
                 }
@@ -151,11 +156,9 @@ impl Llama {
 
         self.task_sender.send(task)?;
 
-        let stream = futures_util::stream::unfold(response_receiver, |mut rx| async move {
-            rx.recv().await.map(|token| (token, rx))
-        });
+        let stream = UnboundedReceiverStream::new(response_receiver);
 
-        Ok(stream)
+        Ok(stream::filter_tag(Box::pin(stream), "headers"))
     }
 }
 
@@ -233,6 +236,65 @@ mod tests {
         ]
     }
 
+    fn english_1_messages() -> Vec<LlamaChatMessage> {
+        let timeline_view = {
+            let (transcripts, diarizations): (
+                Vec<hypr_listener_interface::TranscriptChunk>,
+                Vec<hypr_listener_interface::DiarizationChunk>,
+            ) = (
+                serde_json::from_str(hypr_data::english_1::TRANSCRIPTION_JSON).unwrap(),
+                serde_json::from_str(hypr_data::english_1::DIARIZATION_JSON).unwrap(),
+            );
+
+            let mut timeline = hypr_timeline::Timeline::default();
+
+            for t in transcripts {
+                timeline.add_transcription(t);
+            }
+            for d in diarizations {
+                timeline.add_diarization(d);
+            }
+
+            timeline.view(hypr_timeline::TimelineFilter::default())
+        };
+
+        let mut env = hypr_template::minijinja::Environment::new();
+        hypr_template::init(&mut env);
+
+        let system = hypr_template::render(
+            &env,
+            hypr_template::PredefinedTemplate::EnhanceSystem.into(),
+            &serde_json::json!({
+                "config": {
+                    "general": {
+                        "display_language": "en"
+                    }
+                }
+            })
+            .as_object()
+            .unwrap(),
+        )
+        .unwrap();
+
+        let user = hypr_template::render(
+            &env,
+            hypr_template::PredefinedTemplate::EnhanceUser.into(),
+            &serde_json::json!({
+                "editor": "googling is the best way to find the answer",
+                "timeline": timeline_view,
+                "participants": vec!["yujonglee".to_string()],
+            })
+            .as_object()
+            .unwrap(),
+        )
+        .unwrap();
+
+        vec![
+            LlamaChatMessage::new("system".into(), system.into()).unwrap(),
+            LlamaChatMessage::new("user".into(), user.into()).unwrap(),
+        ]
+    }
+
     async fn print_stream(model: &Llama, request: LlamaRequest) {
         use futures_util::pin_mut;
         use std::io::{self, Write};
@@ -253,6 +315,14 @@ mod tests {
         let llama = get_model();
         let request = LlamaRequest::new(english_4_messages());
 
+        print_stream(&llama, request).await;
+    }
+
+    // cargo test test_english_1 -p llama -- --nocapture
+    #[tokio::test]
+    async fn test_english_1() {
+        let llama = get_model();
+        let request = LlamaRequest::new(english_1_messages());
         print_stream(&llama, request).await;
     }
 }

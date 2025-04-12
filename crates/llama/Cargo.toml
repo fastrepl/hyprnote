@@ -15,6 +15,7 @@ dirs = { workspace = true }
 gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 indoc = "2.0.6"
 minijinja = { workspace = true }
+rand = "0.9.0"
 serde_json = { workspace = true }
 
 [dependencies]
@@ -27,6 +28,7 @@ llama-cpp-2 = { git = "https://github.com/utilityai/llama-cpp-rs", features = ["
 async-openai = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt", "sync"] }
+tokio-stream = { workspace = true }
 
 serde = { workspace = true }
 thiserror = { workspace = true }

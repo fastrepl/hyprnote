@@ -115,42 +115,43 @@ export default function NotesList({ ongoingSessionId, filter }: NotesListProps) 
   return (
     <>
       {sessions.data?.pages.map((page, pageIndex) =>
-        page.sessions.map(([key, items]: [string, Session[]]) => {
-          const filteredItems = items
-            .filter((session) => sessionsStore[session.id])
-            .filter((session) => !(session.id !== activeSessionId && session.id === ongoingSessionId))
-            .filter(filter);
+        page.sessions
+          .map(([key, items]: [string, Session[]]) => {
+            const filteredItems = items
+              .filter((session) => sessionsStore[session.id])
+              .filter((session) => !(session.id !== activeSessionId && session.id === ongoingSessionId))
+              .filter(filter);
 
-          if (filteredItems.length === 0) {
-            return null;
-          }
+            if (filteredItems.length === 0) {
+              return null;
+            }
 
-          return (
-            <section key={`${key}-${pageIndex}`}>
-              <h2 className="font-bold text-neutral-600 mb-1">
-                {key}
-              </h2>
+            return (
+              <section key={`${key}-${pageIndex}`}>
+                <h2 className="font-bold text-neutral-600 mb-1">
+                  {key}
+                </h2>
 
-              <motion.div layout>
-                {filteredItems.map((session: Session) => (
-                  <motion.div
-                    key={session.id}
-                    layout
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <NoteItem
-                      activeSessionId={activeSessionId}
-                      currentSessionId={session.id}
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
-            </section>
-          );
-        })
+                <motion.div layout>
+                  {filteredItems.map((session: Session) => (
+                    <motion.div
+                      key={session.id}
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <NoteItem
+                        activeSessionId={activeSessionId}
+                        currentSessionId={session.id}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </section>
+            );
+          })
       )}
 
       <div
@@ -302,10 +303,6 @@ function NoteItem({
     </ContextMenu>
   );
 }
-
-// few problems here.
-// Should ensure date is considered as event start date if any
-// we are doing so many filters. also, if filtered result is zero, no header. -> this is actual fix BTW
 
 const groupSessions = (sessions: SessionWithEvent[]): [string, SessionWithEvent[]][] => {
   const grouped = sessions.reduce<Record<string, SessionWithEvent[]>>((acc, session) => {

@@ -234,7 +234,7 @@ msgstr "Access granted"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:78
 #: src/components/settings/components/ai/transcribing-model.tsx:179
-#: src/components/settings/components/ai/local-llm-button.tsx:37
+#: src/components/settings/components/ai/local-llm-button.tsx:38
 #: src/components/settings/components/ai/enhancing-model.tsx:79
 msgid "Active"
 msgstr "Active"
@@ -286,7 +286,7 @@ msgstr "Anyone with the link can view this page"
 msgid "Apple"
 msgstr "Apple"
 
-#: src/components/toolbar/buttons/delete-note-button.tsx:56
+#: src/components/toolbar/buttons/delete-note-button.tsx:37
 msgid "Are you sure you want to delete this note?"
 msgstr "Are you sure you want to delete this note?"
 
@@ -420,16 +420,15 @@ msgstr "Create Note"
 msgid "Current Plan"
 msgstr "Current Plan"
 
-#: src/components/toolbar/buttons/delete-note-button.tsx:61
 #: src/components/settings/views/template.tsx:86
 #: src/components/settings/views/team.tsx:165
-#: src/components/left-sidebar/notes-list.tsx:299
+#: src/components/left-sidebar/notes-list.tsx:300
 msgid "Delete"
 msgstr "Delete"
 
 #: src/components/toolbar/buttons/delete-note-button.tsx:49
-msgid "Delete note"
-msgstr "Delete note"
+#~ msgid "Delete note"
+#~ msgstr "Delete note"
 
 #: src/components/settings/components/template-sections.tsx:125
 msgid "Describe the content and purpose of this section"
@@ -610,7 +609,7 @@ msgstr "Loading models..."
 #: src/components/workspace-calendar/event-card.tsx:108
 #: src/components/settings/components/calendar/calendar-selector.tsx:51
 #: src/components/settings/components/ai/transcribing-model.tsx:195
-#: src/components/settings/components/ai/local-llm-button.tsx:51
+#: src/components/settings/components/ai/local-llm-button.tsx:54
 #: src/components/settings/components/ai/enhancing-model.tsx:95
 msgid "Loading..."
 msgstr "Loading..."
@@ -733,14 +732,14 @@ msgstr "Open calendar view"
 msgid "Open Hyprnote on startup"
 msgstr "Open Hyprnote on startup"
 
-#: src/components/left-sidebar/notes-list.tsx:289
+#: src/components/left-sidebar/notes-list.tsx:290
 msgid "Open in calendar view"
 msgstr "Open in calendar view"
 
 #: src/components/toolbar/buttons/new-window-button.tsx:35
 #: src/components/left-sidebar/search-list.tsx:199
 #: src/components/left-sidebar/search-list.tsx:257
-#: src/components/left-sidebar/notes-list.tsx:281
+#: src/components/left-sidebar/notes-list.tsx:282
 msgid "Open in new window"
 msgstr "Open in new window"
 
@@ -927,7 +926,7 @@ msgid "Start recording"
 msgstr "Start recording"
 
 #: src/components/settings/components/ai/transcribing-model.tsx:198
-#: src/components/settings/components/ai/local-llm-button.tsx:54
+#: src/components/settings/components/ai/local-llm-button.tsx:57
 #: src/components/settings/components/ai/enhancing-model.tsx:98
 msgid "Start Server"
 msgstr "Start Server"

@@ -1,7 +1,7 @@
 root ::= section+
 section ::= header "\n\n" content
 header ::= "# " char+
-content ::= [^#[^*\n] [^#`[^=]*
+content ::= [^#[^*\n] [^#`<[^=]*
 
 char ::= letter | digit | " "
 letter ::= [a-zA-Z]

@@ -1,7 +1,7 @@
 root ::= thinking section+
 section ::= header "\n\n" content
 header ::= "# " char+
-content ::= [^#[^*\n] [^#`^=]*
+content ::= [^#[^*\n] [^#`<[^=]*
 
 line ::= "- " char+ "\n"
 thinking ::= "<headers>" line+ "</headers>"

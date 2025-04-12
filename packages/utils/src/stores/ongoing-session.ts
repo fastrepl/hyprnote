@@ -2,11 +2,11 @@ import { Channel } from "@tauri-apps/api/core";
 import { create as mutate } from "mutative";
 import { createStore } from "zustand";
 
-import { commands as listenerCommands, type SessionEvent, type TimelineView } from "@hypr/plugin-listener";
+import { commands as listenerCommands, type SessionEvent } from "@hypr/plugin-listener";
+import { createSessionsStore } from "./sessions";
 
 type State = {
   sessionId: string | null;
-  timeline: TimelineView | null;
   channel: Channel<SessionEvent> | null;
   status: "active" | "loading" | "inactive";
   amplitude: { mic: number; speaker: number };
@@ -20,13 +20,12 @@ type Actions = {
 
 const initialState: State = {
   sessionId: null,
-  timeline: null,
   status: "inactive",
   channel: null,
   amplitude: { mic: 0, speaker: 0 },
 };
 
-export const createOngoingSessionStore = () => {
+export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof createSessionsStore>) => {
   return createStore<State & Actions>((set, get) => ({
     ...initialState,
     get: () => get(),
@@ -51,10 +50,6 @@ export const createOngoingSessionStore = () => {
               draft.status = "inactive";
             }
 
-            if (event.type === "timelineView") {
-              draft.timeline = event.timeline;
-            }
-
             if (event.type === "audioAmplitude") {
               draft.amplitude = {
                 mic: event.mic,
@@ -74,7 +69,7 @@ export const createOngoingSessionStore = () => {
       });
     },
     pause: () => {
-      const { channel } = get();
+      const { channel, sessionId } = get();
 
       try {
         listenerCommands.stopSession();
@@ -84,6 +79,12 @@ export const createOngoingSessionStore = () => {
         }
       } catch (error) {
         console.error(error);
+      }
+
+      // session stored in sessionStore become stale during ongoing-session. Refresh it here.
+      if (sessionId) {
+        const sessionStore = sessionsStore.getState().sessions[sessionId];
+        sessionStore.getState().refresh();
       }
 
       set(initialState);

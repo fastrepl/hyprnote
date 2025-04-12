@@ -17,7 +17,7 @@
   "dependencies": {
     "@hypr/extension-types": "workspace:^",
     "@hypr/ui": "workspace:*",
-    "@tanstack/react-query": "^5.72.1",
+    "@tanstack/react-query": "^5.72.2",
     "lucide-react": "^0.474.0"
   },
   "devDependencies": {
@@ -25,10 +25,10 @@
     "@storybook/addon-interactions": "^8.6.12",
     "@storybook/react": "^8.6.12",
     "@storybook/react-vite": "^8.6.12",
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.14.1",
     "@types/react": "^18.3.20",
     "autoprefixer": "^10.4.21",
-    "msw": "^2.7.3",
+    "msw": "^2.7.4",
     "msw-storybook-addon": "^2.0.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

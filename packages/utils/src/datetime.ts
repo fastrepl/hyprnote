@@ -83,7 +83,7 @@ export const formatRelative = (date: string | null | undefined, t?: string) => {
   }
 };
 
-export const formatRelativeWithDay = (date: string | null | undefined, t?: string) => {
+export const formatRelativeWithDay = (date: string | null | undefined, t?: string, now = new Date()) => {
   if (!date) {
     return i18n._("Unknown date");
   }
@@ -97,8 +97,6 @@ export const formatRelativeWithDay = (date: string | null | undefined, t?: strin
       return i18n._("Invalid date");
     }
 
-    const now = new Date();
-
     const startOfDay = FNS.startOfDay(d);
     const startOfToday = FNS.startOfDay(now);
     const diffInDays = FNS.differenceInCalendarDays(startOfToday, startOfDay, { in: tz });
@@ -110,8 +108,10 @@ export const formatRelativeWithDay = (date: string | null | undefined, t?: strin
       return i18n._("Today ({dayOfWeek})", { dayOfWeek });
     } else if (diffInDays === 1) {
       return i18n._("Yesterday ({dayOfWeek})", { dayOfWeek });
-    } else if (diffInDays < 7) {
+    } else if (diffInDays > 0 && diffInDays < 7) {
       return i18n._("{days} days ago ({dayOfWeek})", { days: diffInDays, dayOfWeek });
+    } else if (diffInDays < 0 && diffInDays > -7) {
+      return i18n._("{days} days later ({dayOfWeek})", { days: Math.abs(diffInDays), dayOfWeek });
     } else {
       const currentYear = now.getFullYear();
       const dateYear = d.getFullYear();

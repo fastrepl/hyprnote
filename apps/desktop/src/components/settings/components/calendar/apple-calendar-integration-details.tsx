@@ -118,7 +118,15 @@ export function AppleCalendarIntegrationDetails() {
         </div>
         {contactsAccess.data
           ? (
-            "✅"
+            <div className="flex items-center gap-1.5">
+              <div className="relative h-2 w-2">
+                <div className="absolute inset-0 rounded-full bg-green-500/30"></div>
+                <div className="absolute inset-0 rounded-full bg-green-500 animate-ping"></div>
+              </div>
+              <span className="text-xs text-green-600">
+                <Trans>Active</Trans>
+              </span>
+            </div>
           )
           : (
             <Button

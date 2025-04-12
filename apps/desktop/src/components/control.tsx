@@ -31,6 +31,7 @@ export const NotFoundComponent: NotFoundRouteComponent = (_props) => {
 
 export const ErrorComponent: ErrorRouteComponent = ({ error }) => {
   useEffect(() => {
+    console.error(error);
     Sentry.captureException(error);
   }, [error]);
 

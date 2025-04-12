@@ -23,6 +23,7 @@ mod tests {
         pub debug: bool,
     }
 
+    // cargo test test_markdown_grammar -p llama -- --nocapture
     #[test]
     fn test_markdown_grammar() {
         let test_cases = vec![
@@ -53,6 +54,16 @@ mod tests {
                 # This is a test
 
                 Hi Hello. [^1]"#},
+                valid: false,
+                debug: false,
+            },
+            TestCase {
+                grammar: MARKDOWN_GRAMMAR,
+                intent: "html is not allowed. Currently we prevent '<' to achieve this.",
+                text: indoc::indoc! {r#"
+                # This is a test
+
+                Hi! <a href="https://hyprnote.com">Hyprnote</a>"#},
                 valid: false,
                 debug: false,
             },

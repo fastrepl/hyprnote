@@ -32,7 +32,7 @@
     "tippy.js": "^6.3.7"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.14.1",
     "@types/react": "^18.3.20",
     "@types/react-dom": "^18.3.6"
   }

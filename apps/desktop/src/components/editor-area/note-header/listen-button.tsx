@@ -37,7 +37,6 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     pause: s.pause,
     isCurrent: s.sessionId === sessionId,
     status: s.status,
-    timeline: s.timeline,
   }));
 
   const startedBefore = useSession(
@@ -163,26 +162,17 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
 
       {ongoingSessionStore.status === "active" && (
         <Popover open={open} onOpenChange={setOpen}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <PopoverTrigger asChild>
-                <button
-                  onClick={handleStartSession}
-                  className="w-14 h-9 rounded-full bg-red-100 border-2 transition-all hover:scale-95 border-red-400 cursor-pointer outline-none p-0 flex items-center justify-center"
-                  style={{
-                    boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
-                  }}
-                >
-                  <SoundIndicator color="#ef4444" size="long" />
-                </button>
-              </PopoverTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" align="end">
-              <p>
-                <Trans>Pause recording</Trans>
-              </p>
-            </TooltipContent>
-          </Tooltip>
+          <PopoverTrigger asChild>
+            <button
+              onClick={handleStartSession}
+              className="w-14 h-9 rounded-full bg-red-100 border-2 transition-all hover:scale-95 border-red-400 cursor-pointer outline-none p-0 flex items-center justify-center"
+              style={{
+                boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
+              }}
+            >
+              <SoundIndicator color="#ef4444" size="long" />
+            </button>
+          </PopoverTrigger>
 
           <PopoverContent className="w-60" align="end">
             <div className="flex w-full justify-between mb-4">

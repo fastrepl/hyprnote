@@ -3,24 +3,26 @@ import { useMemo } from "react";
 
 import { Session } from "@hypr/plugin-db";
 import { cn } from "@hypr/ui/lib/utils";
-import { useOngoingSession } from "@hypr/utils/contexts";
+import { useOngoingSession, useSession } from "@hypr/utils/contexts";
+import { type MutationStatus, useMutationState } from "@tanstack/react-query";
 
 interface EnhanceButtonProps {
-  handleClick: () => void;
   session: Session;
-  showRaw: boolean;
-  setShowRaw: (showRaw: boolean) => void;
-  enhanceStatus: "error" | "idle" | "pending" | "success";
+  handleEnhance: () => void;
 }
 
-export function EnhanceButton({
-  handleClick,
-  session,
-  showRaw,
-  setShowRaw,
-  enhanceStatus,
-}: EnhanceButtonProps) {
+export function EnhanceButton({ session, handleEnhance }: EnhanceButtonProps) {
+  const [showRaw, setShowRaw] = useSession(session.id, (s) => [s.showRaw, s.setShowRaw]);
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
+
+  const enhances = useMutationState({
+    filters: { mutationKey: ["enhance", session.id], exact: true },
+    select: (mutation) => mutation.state.status,
+  });
+
+  const enhanceStatus = useMemo(() => {
+    return enhances.at(0);
+  }, [enhances]);
 
   const show = useMemo(() => {
     if (ongoingSessionStatus !== "inactive") {
@@ -36,7 +38,7 @@ export function EnhanceButton({
         showRaw={showRaw}
         setShowRaw={setShowRaw}
         enhanceStatus={enhanceStatus}
-        handleRunEnhance={handleClick}
+        handleRunEnhance={handleEnhance}
       />
     )
     : null;
@@ -45,7 +47,7 @@ export function EnhanceButton({
 interface EnhanceControlsProps {
   showRaw: boolean;
   setShowRaw: (showRaw: boolean) => void;
-  enhanceStatus: "error" | "idle" | "pending" | "success";
+  enhanceStatus?: MutationStatus;
   handleRunEnhance: () => void;
 }
 

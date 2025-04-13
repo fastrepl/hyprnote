@@ -116,11 +116,11 @@ function OnboardingSupport({ session }: { session: Session }) {
     session.enhanced_memo_html,
   ]);
 
-  const { startOngoingSession, pauseOngoingSession, ongoingSessionStatus } = useOngoingSession((
+  const { startOngoingSession, stopOngoingSession, ongoingSessionStatus } = useOngoingSession((
     s,
   ) => ({
     startOngoingSession: s.start,
-    pauseOngoingSession: s.pause,
+    stopOngoingSession: s.stop,
     ongoingSessionStatus: s.status,
   }));
 
@@ -131,7 +131,7 @@ function OnboardingSupport({ session }: { session: Session }) {
 
     windowsEvents.windowDestroyed.listen(({ payload: { window } }) => {
       if (window.type === "video" && window.value === video) {
-        pauseOngoingSession();
+        stopOngoingSession();
 
         if (onboardingSessionId.data) {
           navigate({ to: "/app/note/$id", params: { id: onboardingSessionId.data } });

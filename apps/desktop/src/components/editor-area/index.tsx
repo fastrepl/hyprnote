@@ -29,10 +29,7 @@ export default function EditorArea({
     ongoingSessionStatus: s.status,
   }));
 
-  const [showRaw, setShowRaw] = useSession(sessionId, (s) => [
-    s.showRaw,
-    s.setShowRaw,
-  ]);
+  const showRaw = useSession(sessionId, (s) => s.showRaw);
 
   const [rawContent, setRawContent] = useSession(sessionId, (s) => [
     s.session?.raw_memo_html ?? "",
@@ -146,11 +143,8 @@ export default function EditorArea({
           <div className="pointer-events-auto">
             <EnhanceButton
               key={`enhance-button-${sessionId}`}
-              handleClick={handleClickEnhance}
+              handleEnhance={handleClickEnhance}
               session={sessionStore.session}
-              showRaw={showRaw}
-              enhanceStatus={enhance.status}
-              setShowRaw={setShowRaw}
             />
           </div>
         </motion.div>
@@ -175,6 +169,7 @@ export function useEnhanceMutation({
   }));
 
   const enhance = useMutation({
+    mutationKey: ["enhance", sessionId],
     mutationFn: async () => {
       setAnimate(false);
       const config = await dbCommands.getConfig();

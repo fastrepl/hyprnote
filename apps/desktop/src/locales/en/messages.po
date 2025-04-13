@@ -412,7 +412,7 @@ msgstr "Create"
 msgid "Create agenda"
 msgstr "Create agenda"
 
-#: src/components/toolbar/buttons/new-note-button.tsx:46
+#: src/components/toolbar/buttons/new-note-button.tsx:47
 msgid "Create new note"
 msgstr "Create new note"
 
@@ -772,7 +772,7 @@ msgstr "or"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:212
+#: src/components/editor-area/note-header/listen-button.tsx:216
 msgid "Pause"
 msgstr "Pause"
 
@@ -834,7 +834,7 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/editor-area/note-header/listen-button.tsx:141
+#: src/components/editor-area/note-header/listen-button.tsx:145
 msgid "Resume"
 msgstr "Resume"
 
@@ -932,7 +932,7 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:165
+#: src/components/editor-area/note-header/listen-button.tsx:169
 msgid "Start recording"
 msgstr "Start recording"
 
@@ -942,7 +942,7 @@ msgstr "Start recording"
 msgid "Start Server"
 msgstr "Start Server"
 
-#: src/components/editor-area/note-header/listen-button.tsx:220
+#: src/components/editor-area/note-header/listen-button.tsx:224
 msgid "Stop"
 msgstr "Stop"
 

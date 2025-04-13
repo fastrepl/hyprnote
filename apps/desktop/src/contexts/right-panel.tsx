@@ -1,11 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useRef,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { commands as flagsCommands } from "@hypr/plugin-flags";
@@ -67,8 +61,7 @@ export function RightPanelProvider({
         }
       } else {
         if (!isExpanded) {
-          previouslyFocusedElement.current =
-            document.activeElement as HTMLElement;
+          previouslyFocusedElement.current = document.activeElement as HTMLElement;
 
           setIsExpanded(true);
 
@@ -100,7 +93,7 @@ export function RightPanelProvider({
         }
       }
     },
-    [isExpanded, currentView]
+    [isExpanded, currentView],
   );
 
   useHotkeys(
@@ -118,8 +111,7 @@ export function RightPanelProvider({
       } else if (isExpanded && currentView !== "widget") {
         setCurrentView("widget");
       } else {
-        previouslyFocusedElement.current =
-          document.activeElement as HTMLElement;
+        previouslyFocusedElement.current = document.activeElement as HTMLElement;
 
         setIsExpanded(true);
         setCurrentView("widget");
@@ -128,7 +120,7 @@ export function RightPanelProvider({
     {
       enableOnFormTags: true,
       enableOnContentEditable: true,
-    }
+    },
   );
 
   useHotkeys(
@@ -151,8 +143,7 @@ export function RightPanelProvider({
       } else if (isExpanded && currentView !== "chat") {
         setCurrentView("chat");
       } else {
-        previouslyFocusedElement.current =
-          document.activeElement as HTMLElement;
+        previouslyFocusedElement.current = document.activeElement as HTMLElement;
 
         setIsExpanded(true);
         setCurrentView("chat");
@@ -161,7 +152,7 @@ export function RightPanelProvider({
     {
       enableOnFormTags: true,
       enableOnContentEditable: true,
-    }
+    },
   );
 
   return (

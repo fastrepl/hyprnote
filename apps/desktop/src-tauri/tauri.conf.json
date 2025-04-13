@@ -35,9 +35,7 @@
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": [
-          "hypr"
-        ]
+        "schemes": ["hypr"]
       }
     },
     "updater": {

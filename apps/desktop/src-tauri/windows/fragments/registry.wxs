@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <ComponentGroup Id="MyFragmentRegistryEntries">
+      <Component Id="AppRegistryEntries" Guid="*" Directory="INSTALLDIR">
+        <RegistryKey Root="HKCU" Key="Software\Hyprnote">
+          <RegistryValue Name="InstallDir" Value="[INSTALLDIR]" Type="string" KeyPath="yes" />
+          <RegistryValue Name="Version" Value="[ProductVersion]" Type="string" />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix> 

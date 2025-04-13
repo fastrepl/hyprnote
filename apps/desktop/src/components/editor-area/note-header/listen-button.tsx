@@ -35,16 +35,12 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
 
   const ongoingSessionStore = useOngoingSession((s) => ({
     start: s.start,
+    resume: s.resume,
     pause: s.pause,
+    stop: s.stop,
     isCurrent: s.sessionId === sessionId,
     status: s.status,
   }));
-
-  const startedBefore = useSession(
-    sessionId,
-    (s) => s.session.conversations.length > 0,
-  );
-  const showResumeButton = ongoingSessionStore.status === "inactive" && startedBefore;
 
   const sessionData = useSession(sessionId, (s) => ({
     session: s.session,
@@ -88,7 +84,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
   });
 
   useEffect(() => {
-    if (ongoingSessionStore.status === "active") {
+    if (ongoingSessionStore.status === "running_active") {
       toast({
         id: "recording-consent",
         title: "Recording Started",
@@ -105,117 +101,131 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     }
   };
 
-  const handleStopSession = () => {
+  const handleResumeSession = () => {
+    ongoingSessionStore.resume();
+  };
+
+  const handlePauseSession = () => {
     ongoingSessionStore.pause();
     setOpen(false);
   };
 
-  if (
-    ongoingSessionStore.status === "active"
-    && !ongoingSessionStore.isCurrent
-  ) {
-    return null;
+  const handleStopSession = () => {
+    ongoingSessionStore.stop();
+    setOpen(false);
+  };
+
+  if (ongoingSessionStore.status === "loading") {
+    return (
+      <div className="w-9 h-9 flex items-center justify-center">
+        <Spinner color="black" />
+      </div>
+    );
   }
 
-  return (
-    <>
-      {ongoingSessionStore.status === "loading" && (
-        <div className="w-9 h-9 flex items-center justify-center">
-          <Spinner color="black" />
-        </div>
-      )}
-      {showResumeButton && (
-        <button
-          disabled={!modelDownloaded.data}
-          onClick={handleStartSession}
-          className={clsx(
-            "w-16 h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium",
-            isEnhanced
-              ? "bg-neutral-200 border-2 border-neutral-400 text-neutral-600 opacity-30 hover:opacity-100 hover:bg-red-100 hover:text-red-600 hover:border-red-400"
-              : "bg-red-100 border-2 border-red-400 text-red-600",
-          )}
-          style={{
-            boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
-          }}
-        >
-          <Trans>Resume</Trans>
-        </button>
-      )}
-      {ongoingSessionStore.status === "inactive" && !showResumeButton && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              disabled={!modelDownloaded.data}
-              onClick={handleStartSession}
-              className={clsx([
-                "w-9 h-9 rounded-full border-2 transition-all hover:scale-95  cursor-pointer outline-none p-0 flex items-center justify-center",
-                !modelDownloaded.data ? "bg-neutral-200 border-neutral-400" : "bg-red-500 border-neutral-400",
-              ])}
-              style={{
-                boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
-              }}
+  if (ongoingSessionStore.status === "running_paused") {
+    return (
+      <button
+        disabled={!modelDownloaded.data}
+        onClick={handleResumeSession}
+        className={clsx(
+          "w-16 h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium",
+          isEnhanced
+            ? "bg-neutral-200 border-2 border-neutral-400 text-neutral-600 opacity-30 hover:opacity-100 hover:bg-red-100 hover:text-red-600 hover:border-red-400"
+            : "bg-red-100 border-2 border-red-400 text-red-600",
+        )}
+        style={{
+          boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
+        }}
+      >
+        <Trans>Resume</Trans>
+      </button>
+    );
+  }
+
+  if (ongoingSessionStore.status === "inactive") {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            disabled={!modelDownloaded.data}
+            onClick={handleStartSession}
+            className={clsx([
+              "w-9 h-9 rounded-full border-2 transition-all hover:scale-95  cursor-pointer outline-none p-0 flex items-center justify-center",
+              !modelDownloaded.data ? "bg-neutral-200 border-neutral-400" : "bg-red-500 border-neutral-400",
+            ])}
+            style={{
+              boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
+            }}
+          >
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" align="end">
+          <p>
+            <Trans>Start recording</Trans>
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  if (ongoingSessionStore.status === "running_active") {
+    if (!ongoingSessionStore.isCurrent) {
+      return null;
+    }
+
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            onClick={handleStartSession}
+            className="w-14 h-9 rounded-full bg-red-100 border-2 transition-all hover:scale-95 border-red-400 cursor-pointer outline-none p-0 flex items-center justify-center"
+            style={{
+              boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
+            }}
+          >
+            <SoundIndicator color="#ef4444" size="long" />
+          </button>
+        </PopoverTrigger>
+
+        <PopoverContent className="w-60" align="end">
+          <div className="flex w-full justify-between mb-4">
+            <AudioControlButton
+              isMuted={isMicMuted}
+              onToggle={() => toggleMicMuted.mutate()}
+              type="mic"
+            />
+            <AudioControlButton
+              isMuted={isSpeakerMuted}
+              onToggle={() => toggleSpeakerMuted.mutate()}
+              type="speaker"
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handlePauseSession}
+              className="w-full"
             >
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" align="end">
-            <p>
-              <Trans>Start recording</Trans>
-            </p>
-          </TooltipContent>
-        </Tooltip>
-      )}
-
-      {ongoingSessionStore.status === "active" && (
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <button
-              onClick={handleStartSession}
-              className="w-14 h-9 rounded-full bg-red-100 border-2 transition-all hover:scale-95 border-red-400 cursor-pointer outline-none p-0 flex items-center justify-center"
-              style={{
-                boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
-              }}
+              <PauseIcon size={16} />
+              <Trans>Pause</Trans>
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleStopSession}
+              className="w-full"
             >
-              <SoundIndicator color="#ef4444" size="long" />
-            </button>
-          </PopoverTrigger>
+              <StopCircleIcon size={16} />
+              <Trans>Stop</Trans>
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  }
 
-          <PopoverContent className="w-60" align="end">
-            <div className="flex w-full justify-between mb-4">
-              <AudioControlButton
-                isMuted={isMicMuted}
-                onToggle={() => toggleMicMuted.mutate()}
-                type="mic"
-              />
-              <AudioControlButton
-                isMuted={isSpeakerMuted}
-                onToggle={() => toggleSpeakerMuted.mutate()}
-                type="speaker"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={handleStopSession}
-                className="w-full"
-              >
-                <PauseIcon size={16} />
-                <Trans>Pause</Trans>
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleStopSession}
-                className="w-full"
-              >
-                <StopCircleIcon size={16} />
-                <Trans>Stop</Trans>
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
-      )}
-    </>
-  );
+  return <div>Not covered</div>;
 }
 
 function AudioControlButton({

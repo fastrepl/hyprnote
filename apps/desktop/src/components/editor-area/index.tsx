@@ -270,7 +270,7 @@ export function useAutoEnhance({
       session_id: sessionId,
     });
 
-    const justFinishedListening = prevOngoingSessionStatus === "active"
+    const justFinishedListening = prevOngoingSessionStatus === "running_active"
       && ongoingSessionStatus === "inactive";
 
     if (justFinishedListening && !enhancedMemoHtml) {

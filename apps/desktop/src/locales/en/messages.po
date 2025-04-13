@@ -772,7 +772,7 @@ msgstr "or"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:203
+#: src/components/editor-area/note-header/listen-button.tsx:212
 msgid "Pause"
 msgstr "Pause"
 
@@ -932,7 +932,7 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:162
+#: src/components/editor-area/note-header/listen-button.tsx:165
 msgid "Start recording"
 msgstr "Start recording"
 
@@ -942,7 +942,7 @@ msgstr "Start recording"
 msgid "Start Server"
 msgstr "Start Server"
 
-#: src/components/editor-area/note-header/listen-button.tsx:211
+#: src/components/editor-area/note-header/listen-button.tsx:220
 msgid "Stop"
 msgstr "Stop"
 

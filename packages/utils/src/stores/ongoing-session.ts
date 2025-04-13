@@ -2,13 +2,13 @@ import { Channel } from "@tauri-apps/api/core";
 import { create as mutate } from "mutative";
 import { createStore } from "zustand";
 
-import { commands as listenerCommands, type SessionEvent } from "@hypr/plugin-listener";
+import { commands as listenerCommands, type SessionEvent, type State as ListenerState } from "@hypr/plugin-listener";
 import { createSessionsStore } from "./sessions";
 
 type State = {
   sessionId: string | null;
   channel: Channel<SessionEvent> | null;
-  status: "active" | "loading" | "inactive";
+  status: "loading" | ListenerState;
   amplitude: { mic: number; speaker: number };
 };
 
@@ -44,14 +44,6 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       channel.onmessage = (event) => {
         set((state) =>
           mutate(state, (draft) => {
-            if (event.type === "started") {
-              draft.status = "active";
-            }
-
-            if (event.type === "stopped") {
-              draft.status = "inactive";
-            }
-
             if (event.type === "audioAmplitude") {
               draft.amplitude = {
                 mic: event.mic,
@@ -63,7 +55,7 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       };
 
       listenerCommands.startSession(sessionId).then(() => {
-        set({ channel, status: "active" });
+        set({ channel, status: "running_active" });
         listenerCommands.subscribe(channel);
       }).catch((error) => {
         console.error(error);
@@ -71,23 +63,38 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       });
     },
     stop: () => {
-      const { channel } = get();
+      const { sessionId, channel } = get();
 
       if (channel) {
         listenerCommands.unsubscribe(channel);
       }
 
-      listenerCommands.stopSession();
-      set(initialState);
+      listenerCommands.stopSession().then(() => {
+        set(initialState);
+
+        // session stored in sessionStore become stale during ongoing-session. Refresh it here.
+        if (sessionId) {
+          const sessionStore = sessionsStore.getState().sessions[sessionId];
+          sessionStore.getState().refresh();
+        }
+      });
     },
     pause: () => {
+      const { sessionId } = get();
+
       listenerCommands.pauseSession().then(() => {
-        set({ status: "inactive" });
+        set({ status: "running_paused" });
+
+        // session stored in sessionStore become stale during ongoing-session. Refresh it here.
+        if (sessionId) {
+          const sessionStore = sessionsStore.getState().sessions[sessionId];
+          sessionStore.getState().refresh();
+        }
       });
     },
     resume: () => {
       listenerCommands.resumeSession().then(() => {
-        set({ status: "active" });
+        set({ status: "running_active" });
       });
     },
   }));

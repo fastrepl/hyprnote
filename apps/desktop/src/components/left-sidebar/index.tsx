@@ -38,7 +38,7 @@ export default function LeftSidebar() {
   const isInOngoingNoteMain = activeSessionId === ongoingSessionId;
   const isInOngoingNoteSub = activeSessionId === ongoingSessionId;
   const isInOngoingNote = isInOngoingNoteMain || isInOngoingNoteSub;
-  const inMeetingAndNotInNote = (status === "active") && ongoingSessionId !== null && !isInOngoingNote;
+  const inMeetingAndNotInNote = (status === "running_active") && ongoingSessionId !== null && !isInOngoingNote;
 
   const events = useQuery({
     refetchInterval: 5000,

@@ -159,7 +159,7 @@ function OnboardingSupport({ session }: { session: Session }) {
       return;
     }
 
-    if (ongoingSessionStatus === "active") {
+    if (ongoingSessionStatus === "running_active") {
       windowsCommands.windowShow({ type: "video", value: video }).then(() => {
         windowsCommands.windowPosition({ type: "video", value: video }, "left-half");
         windowsCommands.windowPosition({ type: "main" }, "right-half");

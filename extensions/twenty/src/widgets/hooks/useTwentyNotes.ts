@@ -13,7 +13,7 @@ export const useTwentyNotes = (sessionId: string) => {
   const [showSearchResults, setShowSearchResults] = useState(false);
 
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
-  const isMeetingActive = ongoingSessionStatus === "active";
+  const isMeetingActive = ongoingSessionStatus === "running_active";
 
   const enhancedNote = useSession(
     sessionId,

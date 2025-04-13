@@ -29,8 +29,8 @@ export function MainSidebar({ current, onTabClick }: MainSidebarProps) {
                   ? <Trans>General</Trans>
                   : tab === "profile"
                   ? <Trans>Profile</Trans>
-                  : tab === "ai"
-                  ? <Trans>AI</Trans>
+                  // : tab === "ai"
+                  // ? <Trans>AI</Trans>
                   : tab === "calendar"
                   ? <Trans>Calendar</Trans>
                   // : tab === "notifications"

@@ -36,8 +36,8 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
             return Ok(false);
         }
 
-        let checksum = hypr_file::calculate_file_checksum(&path)?;
-        Ok(checksum == 2831308098)
+        let size = hypr_file::file_size(&path)?;
+        Ok(size == 2019377440)
     }
 
     #[tracing::instrument(skip_all)]

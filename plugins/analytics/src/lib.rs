@@ -9,6 +9,8 @@ pub use error::{Error, Result};
 pub use ext::*;
 use store::*;
 
+pub use hypr_analytics;
+
 const PLUGIN_NAME: &str = "analytics";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {

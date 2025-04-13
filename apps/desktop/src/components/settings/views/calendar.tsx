@@ -15,7 +15,7 @@ const supportedIntegrations: CalendarIntegration[] = [
 export default function Calendar() {
   return (
     <div className="-mt-3">
-      <ul className="flex flex-col px-1">
+      <ul className="flex flex-col">
         {supportedIntegrations.map((type) => (
           <li key={type}>
             <Integration type={type} />

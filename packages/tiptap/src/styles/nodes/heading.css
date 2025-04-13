@@ -1,0 +1,11 @@
+.tiptap {
+  h1 {
+    color: #374151;
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 0.25rem;
+    min-height: 1.5rem;
+    position: relative;
+  }
+}

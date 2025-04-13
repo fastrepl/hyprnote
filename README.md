@@ -1,4 +1,4 @@
-![Banner](https://github.com/user-attachments/assets/c2a4d139-9c42-4019-aa82-2a760bf0d4d7)
+![README banner](https://github.com/user-attachments/assets/44ebe793-004e-4313-8e04-2491ab076bea)
 
 <p align="center">
 	<h1 align="center"><b>Hyprnote</b></h1>

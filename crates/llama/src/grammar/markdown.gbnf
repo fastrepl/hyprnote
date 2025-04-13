@@ -1,0 +1,13 @@
+root ::= thinking sectionf section section section? section?
+
+sectionf ::= "# Objective\n\n" content "\n"
+
+section ::= header "\n\n" content "\n"
+header ::= "# " [^*.\n]+
+
+line ::= "- **" [^*\n:]+ "**: " [^*,.\n]+ ".\n"
+content ::= line line line? line? line?
+
+hsf ::= "- Objective\n"
+hd ::= "- " [^*\n]+ "\n"
+thinking ::= "<headers>\n" hsf hd hd? hd? hd? "</headers>"

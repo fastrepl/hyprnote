@@ -9,7 +9,6 @@ import Underline from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
 
 import { Hashtag } from "./hashtag";
-import { ScrollPadding } from "./scroll-padding";
 
 // TODO: Dark mode
 export const extensions = [
@@ -28,6 +27,18 @@ export const extensions = [
 
       if (node.type.name === "heading") {
         return "Heading";
+      }
+
+      if (node.type.name === "orderedList" || node.type.name === "bulletList" || node.type.name === "listItem") {
+        return "List";
+      }
+
+      if (node.type.name === "taskList" || node.type.name === "taskItem") {
+        return "To-do";
+      }
+
+      if (node.type.name === "blockquote") {
+        return "Empty quote";
       }
 
       return "";
@@ -93,5 +104,4 @@ export const extensions = [
   }),
   Highlight,
   ListKeymap,
-  ScrollPadding.configure({ bottomPadding: 24 }),
 ];

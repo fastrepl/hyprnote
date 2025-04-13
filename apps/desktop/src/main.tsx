@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 
 import type { Context } from "@/types";
+import { commands } from "@/types";
 import { commands as authCommands } from "@hypr/plugin-auth";
 import { Toaster } from "@hypr/ui/components/ui/toast";
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
@@ -62,12 +63,14 @@ declare module "@tanstack/react-router" {
   }
 }
 
-// https://docs.sentry.io/platforms/javascript/guides/react/features/tanstack-router/
-Sentry.init({
-  ...defaultOptions,
-  dsn: import.meta.env.VITE_SENTRY_DSN,
-  integrations: [Sentry.tanstackRouterBrowserTracingIntegration(router)],
-  tracesSampleRate: 1.0,
+commands.sentryDsn().then((dsn) => {
+  // https://docs.sentry.io/platforms/javascript/guides/react/features/tanstack-router/
+  Sentry.init({
+    ...defaultOptions,
+    dsn,
+    integrations: [Sentry.tanstackRouterBrowserTracingIntegration(router)],
+    tracesSampleRate: 1.0,
+  });
 });
 
 const rootElement = document.getElementById("root")!;

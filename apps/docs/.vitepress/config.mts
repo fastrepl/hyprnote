@@ -35,10 +35,6 @@ const vitepressConfig: Parameters<typeof defineConfig>[0] = {
         text: "Download",
         items: [
           {
-            text: "Stable",
-            link: "https://cdn.crabnebula.app/download/fastrepl/hyprnote/latest/platform/dmg-aarch64",
-          },
-          {
             text: "Nightly",
             link: "https://cdn.crabnebula.app/download/fastrepl/hyprnote/latest/platform/dmg-aarch64?channel=nightly",
           },

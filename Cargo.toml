@@ -28,6 +28,7 @@ hypr-listener-interface = { path = "plugins/listener-interface", package = "list
 hypr-llama = { path = "crates/llama", package = "llama" }
 hypr-loops = { path = "crates/loops", package = "loops" }
 hypr-nango = { path = "crates/nango", package = "nango" }
+hypr-template = { path = "crates/template", package = "template" }
 hypr-timeline = { path = "crates/timeline", package = "timeline" }
 hypr-turso = { path = "crates/turso", package = "turso" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }
@@ -80,6 +81,7 @@ dirs = "6.0.0"
 dotenv = "0.15.0"
 dotenvy = "0.15.7"
 dotenvy_macro = "0.15.7"
+include_url_macro = "0.1.0"
 itertools = "0.14.0"
 once_cell = "1.20.3"
 schemars = "0.8.21"

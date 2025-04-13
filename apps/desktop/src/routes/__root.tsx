@@ -1,3 +1,6 @@
+// react-scan must be imported before React
+import { scan } from "react-scan";
+
 import { events as windowsEvents } from "@hypr/plugin-windows";
 import { useQuery } from "@tanstack/react-query";
 import { CatchNotFound, createRootRouteWithContext, Outlet } from "@tanstack/react-router";
@@ -5,11 +8,12 @@ import { useNavigate } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { lazy, Suspense, useEffect } from "react";
 
-import { CatchNotFoundFallback, NotFoundComponent } from "@/components/control";
+import { CatchNotFoundFallback, ErrorComponent, NotFoundComponent } from "@/components/control";
 import type { Context } from "@/types";
 
 export const Route = createRootRouteWithContext<Required<Context>>()({
   component: Component,
+  errorComponent: ErrorComponent,
   notFoundComponent: NotFoundComponent,
 });
 
@@ -40,6 +44,12 @@ function Component() {
 
     return () => unlisten?.();
   }, [navigate]);
+
+  useEffect(() => {
+    scan({
+      enabled: true,
+    });
+  }, []);
 
   return (
     <>

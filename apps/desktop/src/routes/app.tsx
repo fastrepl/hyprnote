@@ -1,6 +1,6 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import LeftSidebar from "@/components/left-sidebar";
 import { LoginModal } from "@/components/login-modal";
@@ -18,7 +18,6 @@ import {
   useLeftSidebar,
   useRightPanel,
 } from "@/contexts";
-import { registerTemplates } from "@/templates";
 import { commands } from "@/types";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { events as windowsEvents, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
@@ -33,21 +32,17 @@ export const Route = createFileRoute("/app")({
 });
 
 function Component() {
+  const router = useRouter();
   const { sessionsStore, isOnboardingNeeded } = Route.useLoaderData();
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(isOnboardingNeeded);
-
-  useEffect(() => {
-    registerTemplates();
-  }, []);
 
   const windowLabel = getCurrentWebviewWindowLabel();
-  const showNotifications = windowLabel === "main" && !isLoginModalOpen;
+  const showNotifications = windowLabel === "main" && !isOnboardingNeeded;
 
   return (
     <>
       <HyprProvider>
         <SessionsProvider store={sessionsStore}>
-          <OngoingSessionProvider>
+          <OngoingSessionProvider sessionsStore={sessionsStore}>
             <LeftSidebarProvider>
               <RightPanelProvider>
                 <AudioPermissions />
@@ -69,8 +64,11 @@ function Component() {
                           </div>
                         </div>
                         <LoginModal
-                          isOpen={isLoginModalOpen}
-                          onClose={() => setIsLoginModalOpen(false)}
+                          isOpen={isOnboardingNeeded}
+                          onClose={() => {
+                            commands.setOnboardingNeeded(false);
+                            router.invalidate();
+                          }}
                         />
                       </EditModeProvider>
                     </SearchProvider>

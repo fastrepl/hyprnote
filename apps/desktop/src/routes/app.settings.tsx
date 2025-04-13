@@ -18,7 +18,7 @@ import {
   Extensions,
   General,
   // Lab,
-  LocalAI,
+  // LocalAI,
   // Notifications,
   Permissions,
   Profile,
@@ -158,7 +158,7 @@ function Component() {
             <div className="flex-1 overflow-auto p-6">
               {search.tab === "general" && <General />}
               {search.tab === "profile" && <Profile />}
-              {search.tab === "ai" && <LocalAI />}
+              {/* {search.tab === "ai" && <LocalAI />} */}
               {search.tab === "calendar" && <Calendar />}
               {/* {current === "notifications" && <Notifications />} */}
               {search.tab === "permissions" && <Permissions />}

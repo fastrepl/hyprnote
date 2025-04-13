@@ -51,6 +51,11 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
     Ok(())
 }
 
+pub fn file_size(path: impl AsRef<Path>) -> Result<u32, Error> {
+    let metadata = std::fs::metadata(path.as_ref())?;
+    Ok(metadata.len() as u32)
+}
+
 pub fn calculate_file_checksum(path: impl AsRef<Path>) -> Result<u32, Error> {
     let file = File::open(path)?;
     let mut reader = BufReader::new(file);
@@ -77,40 +82,36 @@ mod tests {
     #[test]
     #[ignore]
     fn test_calculate_file_checksum() {
+        let base = dirs::data_dir().unwrap().join("com.hyprnote.dev");
+
         let files = vec![
-            dirs::data_dir().unwrap().join(
-                "com.hyprnote.dev/lmz/candle-whisper/main/config-tiny.json",
-            ),
-            dirs::data_dir().unwrap().join(
-                "com.hyprnote.dev/lmz/candle-whisper/main/model-tiny-q80.gguf",
-            ),
-            dirs::data_dir().unwrap().join(
-                "com.hyprnote.dev/lmz/candle-whisper/main/tokenizer-tiny.json",
-            ),
-            dirs::data_dir().unwrap().join(
-                "com.hyprnote.dev/lmz/candle-whisper/main/config-tiny-en.json",
-            ),
-            dirs::data_dir().unwrap().join(
-                "com.hyprnote.dev/lmz/candle-whisper/main/model-tiny-en-q80.gguf",
-            ),
-            dirs::data_dir().unwrap().join(
-                "com.hyprnote.dev/lmz/candle-whisper/main/tokenizer-tiny-en.json",
-            ),
-            dirs::data_dir().unwrap().join(
-                "com.hyprnote.dev/Demonthos/candle-quantized-whisper-large-v3-turbo/main/config.json",
-            ),
-            dirs::data_dir().unwrap().join(
-                "com.hyprnote.dev/Demonthos/candle-quantized-whisper-large-v3-turbo/main/model.gguf",
-            ),
-            dirs::data_dir().unwrap().join(
-                "com.hyprnote.dev/Demonthos/candle-quantized-whisper-large-v3-turbo/main/tokenizer.json",
-            ),
-            dirs::data_dir().unwrap().join("com.hyprnote.dev/llm.gguf"),
+            base.join("ggml-tiny.en-q8_0.bin"),
+            base.join("ggml-base.en-q8_0.bin"),
+            base.join("ggml-small.en-q8_0.bin"),
+            base.join("llm.gguf"),
         ];
 
         for file in files {
             let checksum = calculate_file_checksum(&file).unwrap();
             println!("[{:?}]\n{}\n\n", file, checksum);
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn test_file_size() {
+        let base = dirs::data_dir().unwrap().join("com.hyprnote.dev");
+
+        let files = vec![
+            base.join("ggml-tiny.en-q8_0.bin"),
+            base.join("ggml-base.en-q8_0.bin"),
+            base.join("ggml-small.en-q8_0.bin"),
+            base.join("llm.gguf"),
+        ];
+
+        for file in files {
+            let size = file_size(&file).unwrap();
+            println!("[{:?}]\n{}\n\n", file, size);
         }
     }
 }

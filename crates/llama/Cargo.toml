@@ -4,16 +4,31 @@ version = "0.1.0"
 edition = "2021"
 
 [dev-dependencies]
+hypr-buffer = { workspace = true }
+hypr-data = { workspace = true }
+hypr-listener-interface = { workspace = true }
+hypr-template = { workspace = true }
+hypr-timeline = { workspace = true }
+
+colored = "3.0.0"
 dirs = { workspace = true }
+gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
+indoc = "2.0.6"
+minijinja = { workspace = true }
+rand = "0.9.0"
+serde_json = { workspace = true }
 
 [dependencies]
+include_url_macro = { workspace = true }
+
 encoding_rs = "0.8.35"
+gbnf = "0.1.7"
 llama-cpp-2 = { git = "https://github.com/utilityai/llama-cpp-rs", features = ["metal"], branch = "update-llama-cpp-2025-04-06" }
 
 async-openai = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt", "sync"] }
+tokio-stream = { workspace = true }
 
-include_url_macro = "0.1.0"
 serde = { workspace = true }
 thiserror = { workspace = true }

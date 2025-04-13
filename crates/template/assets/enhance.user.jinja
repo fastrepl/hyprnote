@@ -1,0 +1,29 @@
+<participants>
+{{ participants | tojson }}
+</participants>
+
+<raw_note>
+{{ editor }}
+</raw_note>
+
+<transcript>
+{% for item in timeline.items %}
+- {{ item.text }}
+{% endfor %}
+</transcript>
+
+Your job is to write a perfect note based on the above informations.
+Note that above given informations like participants, transcript, etc. are already displayed in the UI, so you don't need to repeat them.
+
+Also, before writing enhanced note, write multiple top-level headers inside <headers></headers> tags, and then write the note based on the headers.
+
+Each items in <headers></headers> tags MUST be used as markdown headers('#') in the final note. No other headers are allowed.
+
+{% if example %}
+Here is an example of what the output should look like:
+
+```md
+{{ example }}
+```
+
+{% endif %}

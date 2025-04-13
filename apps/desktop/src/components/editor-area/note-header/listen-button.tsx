@@ -1,5 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import clsx from "clsx";
 import { MicIcon, MicOffIcon, PauseIcon, StopCircleIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -33,13 +34,16 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     },
   });
 
+  const ongoingSessionStatus = useOngoingSession((s) => s.status);
+  const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
+
   const ongoingSessionStore = useOngoingSession((s) => ({
     start: s.start,
     resume: s.resume,
     pause: s.pause,
     stop: s.stop,
     isCurrent: s.sessionId === sessionId,
-    status: s.status,
+    loading: s.loading,
   }));
 
   const sessionData = useSession(sessionId, (s) => ({
@@ -61,7 +65,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
   useEffect(() => {
     refetchMicMuted();
     refetchSpeakerMuted();
-  }, [ongoingSessionStore.status, refetchMicMuted, refetchSpeakerMuted]);
+  }, [ongoingSessionStatus, refetchMicMuted, refetchSpeakerMuted]);
 
   const toggleMicMuted = useMutation({
     mutationFn: async () => {
@@ -84,7 +88,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
   });
 
   useEffect(() => {
-    if (ongoingSessionStore.status === "running_active") {
+    if (ongoingSessionStatus === "running_active" && prevOngoingSessionStatus === "inactive") {
       toast({
         id: "recording-consent",
         title: "Recording Started",
@@ -93,10 +97,10 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
         duration: 3000,
       });
     }
-  }, [ongoingSessionStore.status]);
+  }, [ongoingSessionStatus]);
 
   const handleStartSession = () => {
-    if (ongoingSessionStore.status === "inactive") {
+    if (ongoingSessionStatus === "inactive") {
       ongoingSessionStore.start(sessionId);
     }
   };
@@ -115,7 +119,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     setOpen(false);
   };
 
-  if (ongoingSessionStore.status === "loading") {
+  if (ongoingSessionStore.loading) {
     return (
       <div className="w-9 h-9 flex items-center justify-center">
         <Spinner color="black" />
@@ -123,7 +127,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     );
   }
 
-  if (ongoingSessionStore.status === "running_paused") {
+  if (ongoingSessionStatus === "running_paused") {
     return (
       <button
         disabled={!modelDownloaded.data}
@@ -143,7 +147,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     );
   }
 
-  if (ongoingSessionStore.status === "inactive") {
+  if (ongoingSessionStatus === "inactive") {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
@@ -169,7 +173,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     );
   }
 
-  if (ongoingSessionStore.status === "running_active") {
+  if (ongoingSessionStatus === "running_active") {
     if (!ongoingSessionStore.isCurrent) {
       return null;
     }
@@ -225,7 +229,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     );
   }
 
-  return <div>Not covered</div>;
+  return <div>.</div>;
 }
 
 function AudioControlButton({

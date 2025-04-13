@@ -52,6 +52,7 @@ impl Session {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all)]
     async fn setup_resources(&mut self, id: impl Into<String>) -> Result<(), crate::Error> {
         use tauri_plugin_db::DatabasePluginExt;
 
@@ -239,6 +240,7 @@ impl Session {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all)]
     async fn teardown_resources(&mut self) {
         if let Some(tx) = self.silence_stream_tx.take() {
             let _ = tx.send(());

@@ -8,7 +8,8 @@ import { createSessionsStore } from "./sessions";
 type State = {
   sessionId: string | null;
   channel: Channel<SessionEvent> | null;
-  status: "loading" | ListenerState;
+  loading: boolean;
+  status: ListenerState;
   amplitude: { mic: number; speaker: number };
 };
 
@@ -23,6 +24,7 @@ type Actions = {
 const initialState: State = {
   sessionId: null,
   status: "inactive",
+  loading: false,
   channel: null,
   amplitude: { mic: 0, speaker: 0 },
 };
@@ -35,7 +37,7 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       set((state) =>
         mutate(state, (draft) => {
           draft.sessionId = sessionId;
-          draft.status = "loading";
+          draft.loading = true;
         })
       );
 
@@ -55,7 +57,7 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       };
 
       listenerCommands.startSession(sessionId).then(() => {
-        set({ channel, status: "running_active" });
+        set({ channel, status: "running_active", loading: false });
         listenerCommands.subscribe(channel);
       }).catch((error) => {
         console.error(error);

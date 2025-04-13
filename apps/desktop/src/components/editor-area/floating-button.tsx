@@ -14,14 +14,11 @@ interface FloatingButtonProps {
 export function FloatingButton({ session, handleEnhance }: FloatingButtonProps) {
   const [showRaw, setShowRaw] = useSession(session.id, (s) => [s.showRaw, s.setShowRaw]);
 
-  const enhances = useMutationState({
+  const enhanceStates = useMutationState({
     filters: { mutationKey: ["enhance", session.id], exact: true },
     select: (mutation) => mutation.state.status,
   });
-
-  const enhanceStatus = useMemo(() => {
-    return enhances.at(0);
-  }, [enhances]);
+  const isEnhancePending = useMemo(() => enhanceStates.some((s) => s === "pending"), [enhanceStates]);
 
   const handleClickLeftButton = () => {
     setShowRaw(true);
@@ -35,14 +32,14 @@ export function FloatingButton({ session, handleEnhance }: FloatingButtonProps) 
     }
   };
 
-  if (!session.enhanced_memo_html && enhanceStatus !== "pending") {
+  if (!session.enhanced_memo_html && !isEnhancePending) {
     return null;
   }
 
   return (
     <div className="flex w-fit flex-row items-center">
       <button
-        disabled={enhanceStatus === "pending"}
+        disabled={isEnhancePending}
         onClick={handleClickLeftButton}
         className={cn(
           "rounded-l-xl border-l border-y",
@@ -56,7 +53,7 @@ export function FloatingButton({ session, handleEnhance }: FloatingButtonProps) 
       </button>
 
       <button
-        disabled={enhanceStatus === "pending"}
+        disabled={isEnhancePending}
         onClick={handleClickRightButton}
         className={cn(
           "rounded-r-xl border-r border-y",
@@ -66,7 +63,7 @@ export function FloatingButton({ session, handleEnhance }: FloatingButtonProps) 
             : "bg-primary text-primary-foreground border-black hover:bg-primary/90",
         )}
       >
-        {enhanceStatus === "pending" ? <Loader2 className="animate-spin" size={20} /> : <Zap size={20} />}
+        {isEnhancePending ? <Loader2 className="animate-spin" size={20} /> : <Zap size={20} />}
       </button>
     </div>
   );

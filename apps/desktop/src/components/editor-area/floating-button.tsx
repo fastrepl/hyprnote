@@ -1,19 +1,18 @@
+import { useMutationState } from "@tanstack/react-query";
 import { AlignLeft, Loader2, Zap } from "lucide-react";
 import { useMemo } from "react";
 
 import { Session } from "@hypr/plugin-db";
 import { cn } from "@hypr/ui/lib/utils";
-import { useOngoingSession, useSession } from "@hypr/utils/contexts";
-import { type MutationStatus, useMutationState } from "@tanstack/react-query";
+import { useSession } from "@hypr/utils/contexts";
 
-interface EnhanceButtonProps {
+interface FloatingButtonProps {
   session: Session;
   handleEnhance: () => void;
 }
 
-export function EnhanceButton({ session, handleEnhance }: EnhanceButtonProps) {
+export function FloatingButton({ session, handleEnhance }: FloatingButtonProps) {
   const [showRaw, setShowRaw] = useSession(session.id, (s) => [s.showRaw, s.setShowRaw]);
-  const ongoingSessionStatus = useOngoingSession((s) => s.status);
 
   const enhances = useMutationState({
     filters: { mutationKey: ["enhance", session.id], exact: true },
@@ -24,39 +23,6 @@ export function EnhanceButton({ session, handleEnhance }: EnhanceButtonProps) {
     return enhances.at(0);
   }, [enhances]);
 
-  const show = useMemo(() => {
-    if (ongoingSessionStatus !== "inactive") {
-      return false;
-    }
-
-    return session.enhanced_memo_html || enhanceStatus === "pending" || session.conversations.length > 0;
-  }, [session.enhanced_memo_html, enhanceStatus, session.conversations, ongoingSessionStatus]);
-
-  return show
-    ? (
-      <EnhanceControls
-        showRaw={showRaw}
-        setShowRaw={setShowRaw}
-        enhanceStatus={enhanceStatus}
-        handleRunEnhance={handleEnhance}
-      />
-    )
-    : null;
-}
-
-interface EnhanceControlsProps {
-  showRaw: boolean;
-  setShowRaw: (showRaw: boolean) => void;
-  enhanceStatus?: MutationStatus;
-  handleRunEnhance: () => void;
-}
-
-export function EnhanceControls({
-  showRaw,
-  setShowRaw,
-  enhanceStatus,
-  handleRunEnhance,
-}: EnhanceControlsProps) {
   const handleClickLeftButton = () => {
     setShowRaw(true);
   };
@@ -65,9 +31,13 @@ export function EnhanceControls({
     if (showRaw) {
       setShowRaw(false);
     } else {
-      handleRunEnhance();
+      handleEnhance();
     }
   };
+
+  if (!session.enhanced_memo_html && enhanceStatus !== "pending") {
+    return null;
+  }
 
   return (
     <div className="flex w-fit flex-row items-center">

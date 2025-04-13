@@ -15,7 +15,7 @@ import { extractHashtags } from "@hypr/tiptap/shared";
 import { cn } from "@hypr/ui/lib/utils";
 import { modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
-import { EnhanceButton } from "./enhance-button";
+import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 
 export default function EditorArea({
@@ -141,8 +141,8 @@ export default function EditorArea({
           transition={{ duration: 0.2 }}
         >
           <div className="pointer-events-auto">
-            <EnhanceButton
-              key={`enhance-button-${sessionId}`}
+            <FloatingButton
+              key={`floating-button-${sessionId}`}
               handleEnhance={handleClickEnhance}
               session={sessionStore.session}
             />

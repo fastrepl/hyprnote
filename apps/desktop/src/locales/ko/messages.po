@@ -1017,11 +1017,11 @@ msgstr ""
 msgid "Toggle chat panel"
 msgstr ""
 
-#: src/components/toolbar/buttons/left-sidebar-button.tsx:37
+#: src/components/toolbar/buttons/left-sidebar-button.tsx:33
 msgid "Toggle left sidebar"
 msgstr ""
 
-#: src/components/toolbar/buttons/widget-panel-button.tsx:33
+#: src/components/toolbar/buttons/widget-panel-button.tsx:36
 msgid "Toggle widget panel"
 msgstr ""
 

@@ -2,18 +2,11 @@ import { Maximize2Icon } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { WidgetHeader } from "@hypr/ui/components/ui/widgets";
-import {
-  WidgetTwoByTwo,
-  WidgetTwoByTwoWrapper,
-} from "@hypr/ui/components/ui/widgets";
+import { WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
 import { safeNavigate } from "@hypr/utils";
 import { useSessions } from "@hypr/utils/contexts";
 
-import {
-  LanguageSelector,
-  TranscriptBody,
-  TranscriptContent,
-} from "../../components";
+import { LanguageSelector, Transcript, TranscriptContent } from "../../components";
 import { useTranscriptWidget } from "../../hooks/useTranscriptWidget";
 
 const Transcript2x2: WidgetTwoByTwo = ({ onMaximize, queryClient }) => {
@@ -56,23 +49,17 @@ const Transcript2x2: WidgetTwoByTwo = ({ onMaximize, queryClient }) => {
                 />
               </button>
               Transcript
-              {sessionId && (
-                <TranscriptContent sessionId={sessionId} showLiveBadge={true} />
-              )}
+              {sessionId && <TranscriptContent sessionId={sessionId} showLiveBadge={true} />}
             </div>
           }
           actions={[
-            sessionId && (
-              <LanguageSelector key="language" sessionId={sessionId} />
-            ),
+            sessionId && <LanguageSelector key="language" sessionId={sessionId} />,
             maximizeButton,
           ].filter(Boolean)}
         />
       </div>
 
-      <div className="flex-1">
-        {sessionId && <TranscriptBody sessionId={sessionId} />}
-      </div>
+      {sessionId && <Transcript sessionId={sessionId} />}
 
       {!sessionId && (
         <div className="absolute inset-0 backdrop-blur-sm bg-white/50 flex items-center justify-center z-10">

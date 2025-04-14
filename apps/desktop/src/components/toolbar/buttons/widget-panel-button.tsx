@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { LayoutGridIcon } from "lucide-react";
+import { PanelRightClose, PanelRightOpen } from "lucide-react";
 
 import { useRightPanel } from "@/contexts";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -23,9 +23,12 @@ export function WidgetPanelButton() {
           variant="ghost"
           size="icon"
           onClick={handleClick}
-          className={cn("hover:bg-neutral-200 text-xs", isActive && "bg-neutral-200")}
+          className={cn(
+            "hover:bg-neutral-300 text-xs",
+            isActive && "bg-neutral-200",
+          )}
         >
-          <LayoutGridIcon className="size-4" />
+          {!isExpanded ? <PanelRightOpen className="size-4" /> : <PanelRightClose className="size-4" />}
         </Button>
       </TooltipTrigger>
       <TooltipContent>

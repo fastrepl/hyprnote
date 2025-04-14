@@ -9,14 +9,13 @@ export function AudioControlButton({
   onToggle,
   type,
 }: AudioControlButtonProps) {
-  const Icon =
-    type === "mic"
-      ? isMuted
-        ? MicOffIcon
-        : MicIcon
-      : isMuted
-      ? VolumeOffIcon
-      : Volume2Icon;
+  const Icon = type === "mic"
+    ? isMuted
+      ? MicOffIcon
+      : MicIcon
+    : isMuted
+    ? VolumeOffIcon
+    : Volume2Icon;
 
   return (
     <Button variant="ghost" size="icon" onClick={onToggle} className="w-full">

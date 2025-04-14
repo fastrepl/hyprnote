@@ -7,13 +7,7 @@ import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 
-import {
-  ActiveRecordButton,
-  EndedButton,
-  InitialRecordButton,
-  LoadingButton,
-  ResumeButton,
-} from "./buttons";
+import { ActiveRecordButton, EndedButton, InitialRecordButton, LoadingButton, ResumeButton } from "./buttons";
 
 interface ListenButtonProps {
   sessionId: string;
@@ -26,7 +20,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
     queryFn: async () => {
       const currentModel = await localSttCommands.getCurrentModel();
       const isDownloaded = await localSttCommands.isModelDownloaded(
-        currentModel
+        currentModel,
       );
       return isDownloaded;
     },
@@ -48,14 +42,14 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
   const isEnhancePending = useEnhancePendingState(sessionId);
   const nonEmptySession = useSession(
     sessionId,
-    (s) => s.session.conversations.length > 0 || s.session.enhanced_memo_html
+    (s) => s.session.conversations.length > 0 || s.session.enhanced_memo_html,
   );
   const meetingEnded = isEnhancePending || nonEmptySession;
 
   useEffect(() => {
     if (
-      ongoingSessionStatus === "running_active" &&
-      prevOngoingSessionStatus === "inactive"
+      ongoingSessionStatus === "running_active"
+      && prevOngoingSessionStatus === "inactive"
     ) {
       toast({
         id: "recording-consent",
@@ -90,8 +84,8 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
   }
 
   if (
-    ongoingSessionStatus === "running_paused" &&
-    ongoingSessionStore.isCurrent
+    ongoingSessionStatus === "running_paused"
+    && ongoingSessionStore.isCurrent
   ) {
     return (
       <ResumeButton

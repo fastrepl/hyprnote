@@ -218,7 +218,7 @@ msgstr ""
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
 #. placeholder {0}: isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
-#: src/components/editor-area/note-header/listen-button.tsx:191
+#: src/components/editor-area/note-header/listen-button/buttons/ended-button.tsx:24
 msgid "{0}"
 msgstr ""
 
@@ -778,7 +778,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:237
+#: src/components/editor-area/note-header/listen-button/buttons/active-record-button.tsx:102
 msgid "Pause"
 msgstr ""
 
@@ -840,7 +840,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:147
+#: src/components/editor-area/note-header/listen-button/buttons/resume-button.tsx:19
 msgid "Resume"
 msgstr ""
 
@@ -942,7 +942,7 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:172
+#: src/components/editor-area/note-header/listen-button/buttons/initial-record-button.tsx:27
 msgid "Start recording"
 msgstr ""
 
@@ -952,7 +952,7 @@ msgstr ""
 msgid "Start Server"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:245
+#: src/components/editor-area/note-header/listen-button/buttons/active-record-button.tsx:113
 msgid "Stop"
 msgstr ""
 

@@ -6,11 +6,7 @@ import { useState } from "react";
 import SoundIndicator from "@/components/sound-indicator";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@hypr/ui/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 
 import { AudioControlButton } from "./audio-control-button";
 import type { BaseButtonProps } from "./types";
@@ -34,13 +30,12 @@ export function ActiveRecordButton({
     staleTime: 0,
   });
 
-  const { data: isSpeakerMuted = false, refetch: refetchSpeakerMuted } =
-    useQuery({
-      queryKey: ["speaker-muted"],
-      queryFn: () => listenerCommands.getSpeakerMuted(),
-      refetchOnWindowFocus: false,
-      staleTime: 0,
-    });
+  const { data: isSpeakerMuted = false, refetch: refetchSpeakerMuted } = useQuery({
+    queryKey: ["speaker-muted"],
+    queryFn: () => listenerCommands.getSpeakerMuted(),
+    refetchOnWindowFocus: false,
+    staleTime: 0,
+  });
 
   const toggleMicMuted = useMutation({
     mutationFn: async () => {

@@ -1,12 +1,8 @@
 import { Trans } from "@lingui/react/macro";
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@hypr/ui/components/ui/tooltip";
-import type { BaseButtonProps } from "./types";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
+import type { BaseButtonProps } from "./types";
 
 export function InitialRecordButton({ disabled, onClick }: BaseButtonProps) {
   return (

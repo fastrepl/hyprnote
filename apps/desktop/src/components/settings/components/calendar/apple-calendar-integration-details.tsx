@@ -5,6 +5,7 @@ import { useCallback } from "react";
 
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
 import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/ui/lib/utils";
 import { CalendarSelector } from "./calendar-selector";
 
 export function AppleCalendarIntegrationDetails() {
@@ -48,7 +49,12 @@ export function AppleCalendarIntegrationDetails() {
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-col rounded-lg border p-4">
+      <div
+        className={cn(
+          "flex flex-col rounded-lg border p-4",
+          !calendarAccess.data && "bg-muted"
+        )}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
@@ -61,24 +67,24 @@ export function AppleCalendarIntegrationDetails() {
                 <Trans>Calendar Access</Trans>
               </div>
               <div className="text-xs text-muted-foreground">
-                {calendarAccess.data
-                  ? <Trans>Access granted</Trans>
-                  : <Trans>Connect your calendar and track events</Trans>}
+                {calendarAccess.data ? (
+                  <Trans>Access granted</Trans>
+                ) : (
+                  <Trans>Connect your calendar and track events</Trans>
+                )}
               </div>
             </div>
           </div>
-          {calendarAccess.data
-            ? "✅"
-            : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRequestCalendarAccess}
-                className="min-w-12 text-center"
-              >
-                <Trans>Grant Access</Trans>
-              </Button>
-            )}
+          {!calendarAccess.data && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRequestCalendarAccess}
+              className="min-w-12 text-center"
+            >
+              <Trans>Grant Access</Trans>
+            </Button>
+          )}
         </div>
 
         {calendarAccess.data && (
@@ -88,7 +94,12 @@ export function AppleCalendarIntegrationDetails() {
         )}
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border p-4">
+      <div
+        className={cn(
+          "flex items-center justify-between rounded-lg border p-4",
+          !contactsAccess.data && "bg-muted"
+        )}
+      >
         <div className="flex items-center gap-3">
           <img
             src="/icons/contacts.png"
@@ -100,24 +111,24 @@ export function AppleCalendarIntegrationDetails() {
               <Trans>Contacts Access</Trans>
             </div>
             <div className="text-xs text-muted-foreground">
-              {contactsAccess.data
-                ? <Trans>Access granted</Trans>
-                : <Trans>Optional for participant suggestions</Trans>}
+              {contactsAccess.data ? (
+                <Trans>Access granted</Trans>
+              ) : (
+                <Trans>Optional for participant suggestions</Trans>
+              )}
             </div>
           </div>
         </div>
-        {contactsAccess.data
-          ? "✅"
-          : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRequestContactsAccess}
-              className="min-w-12 text-center"
-            >
-              <Trans>Grant Access</Trans>
-            </Button>
-          )}
+        {!contactsAccess.data && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRequestContactsAccess}
+            className="min-w-12 text-center"
+          >
+            <Trans>Grant Access</Trans>
+          </Button>
+        )}
       </div>
     </div>
   );

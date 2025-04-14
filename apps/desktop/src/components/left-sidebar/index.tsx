@@ -1,7 +1,7 @@
-import { AnimatePresence, LayoutGroup, motion } from "motion/react";
-import { addDays } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
+import { addDays } from "date-fns";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 
 import { useHypr, useHyprSearch, useLeftSidebar } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -33,10 +33,9 @@ export default function LeftSidebar() {
   const isInOngoingNoteMain = activeSessionId === ongoingSessionId;
   const isInOngoingNoteSub = activeSessionId === ongoingSessionId;
   const isInOngoingNote = isInOngoingNoteMain || isInOngoingNoteSub;
-  const inMeetingAndNotInNote =
-    status === "running_active" &&
-    ongoingSessionId !== null &&
-    !isInOngoingNote;
+  const inMeetingAndNotInNote = status === "running_active"
+    && ongoingSessionId !== null
+    && !isInOngoingNote;
 
   const events = useQuery({
     refetchInterval: 5000,
@@ -51,9 +50,7 @@ export default function LeftSidebar() {
       });
 
       const sessions = await Promise.all(
-        events.map((event) =>
-          dbCommands.getSession({ calendarEventId: event.id })
-        )
+        events.map((event) => dbCommands.getSession({ calendarEventId: event.id })),
       );
       return events.map((event, index) => ({
         ...event,
@@ -78,40 +75,41 @@ export default function LeftSidebar() {
 
       {inMeetingAndNotInNote && <OngoingSession sessionId={ongoingSessionId} />}
 
-      {isSearching ? (
-        <div className="flex-1 h-full overflow-y-auto">
-          <SearchList matches={matches} />
-        </div>
-      ) : (
-        <LayoutGroup>
-          <AnimatePresence initial={false}>
-            <div className="flex-1 h-full overflow-y-auto">
-              <div className="h-full space-y-4 px-3 pb-4">
-                <EventsList
-                  events={events.data?.filter(
-                    (event) =>
-                      !(
-                        event.session?.id &&
-                        ongoingSessionId &&
-                        event.session.id === ongoingSessionId &&
-                        event.session.id !== activeSessionId
-                      )
-                  )}
-                  activeSessionId={activeSessionId}
-                />
-                <NotesList
-                  filter={(session) =>
-                    events.data?.every(
-                      (event) => event.session?.id !== session.id
-                    ) ?? true
-                  }
-                  ongoingSessionId={ongoingSessionId}
-                />
+      {isSearching
+        ? (
+          <div className="flex-1 h-full overflow-y-auto">
+            <SearchList matches={matches} />
+          </div>
+        )
+        : (
+          <LayoutGroup>
+            <AnimatePresence initial={false}>
+              <div className="flex-1 h-full overflow-y-auto">
+                <div className="h-full space-y-4 px-3 pb-4">
+                  <EventsList
+                    events={events.data?.filter(
+                      (event) =>
+                        !(
+                          event.session?.id
+                          && ongoingSessionId
+                          && event.session.id === ongoingSessionId
+                          && event.session.id !== activeSessionId
+                        ),
+                    )}
+                    activeSessionId={activeSessionId}
+                  />
+                  <NotesList
+                    filter={(session) =>
+                      events.data?.every(
+                        (event) => event.session?.id !== session.id,
+                      ) ?? true}
+                    ongoingSessionId={ongoingSessionId}
+                  />
+                </div>
               </div>
-            </div>
-          </AnimatePresence>
-        </LayoutGroup>
-      )}
+            </AnimatePresence>
+          </LayoutGroup>
+        )}
     </motion.nav>
   );
 }

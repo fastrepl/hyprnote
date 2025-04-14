@@ -216,7 +216,9 @@ msgid "{weeks} weeks later"
 msgstr "{weeks} weeks later"
 
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
+#. placeholder {0}: isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
+#: src/components/editor-area/note-header/listen-button.tsx:191
 msgid "{0}"
 msgstr "{0}"
 
@@ -736,7 +738,7 @@ msgstr "Official Templates"
 msgid "Ollama Connection"
 msgstr "Ollama Connection"
 
-#: src/components/left-sidebar/top-area/calendar-button.tsx:30
+#: src/components/left-sidebar/top-area/calendar-button.tsx:26
 msgid "Open calendar view"
 msgstr "Open calendar view"
 
@@ -759,7 +761,7 @@ msgstr "Open in new window"
 msgid "Open Note"
 msgstr "Open Note"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:31
+#: src/components/left-sidebar/top-area/settings-button.tsx:27
 msgid "Open settings"
 msgstr "Open settings"
 
@@ -776,7 +778,7 @@ msgstr "or"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:216
+#: src/components/editor-area/note-header/listen-button.tsx:237
 msgid "Pause"
 msgstr "Pause"
 
@@ -838,7 +840,7 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/editor-area/note-header/listen-button.tsx:145
+#: src/components/editor-area/note-header/listen-button.tsx:147
 msgid "Resume"
 msgstr "Resume"
 
@@ -940,7 +942,7 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:169
+#: src/components/editor-area/note-header/listen-button.tsx:172
 msgid "Start recording"
 msgstr "Start recording"
 
@@ -950,7 +952,7 @@ msgstr "Start recording"
 msgid "Start Server"
 msgstr "Start Server"
 
-#: src/components/editor-area/note-header/listen-button.tsx:224
+#: src/components/editor-area/note-header/listen-button.tsx:245
 msgid "Stop"
 msgstr "Stop"
 
@@ -1015,7 +1017,7 @@ msgstr "Today"
 msgid "Toggle chat panel"
 msgstr "Toggle chat panel"
 
-#: src/components/toolbar/buttons/left-sidebar-button.tsx:37
+#: src/components/toolbar/buttons/left-sidebar-button.tsx:33
 msgid "Toggle left sidebar"
 msgstr "Toggle left sidebar"
 

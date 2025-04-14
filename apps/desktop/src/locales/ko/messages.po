@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:168
+#: src/components/settings/views/general.tsx:175
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -232,9 +232,13 @@ msgstr ""
 msgid "{title}"
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:65
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:104
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:71
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:113
 msgid "Access granted"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:39
+msgid "Access Granted"
 msgstr ""
 
 #: src/components/settings/components/ai/transcribing-model.tsx:179
@@ -306,7 +310,7 @@ msgstr ""
 msgid "Available Models"
 msgstr ""
 
-#: src/routes/app.settings.tsx:110
+#: src/routes/app.settings.tsx:120
 msgid "Back to Settings"
 msgstr ""
 
@@ -323,11 +327,11 @@ msgid "Built-in Templates"
 msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:26
-#: src/components/settings/components/main-sidebar.tsx:35
+#: src/components/settings/components/main-sidebar.tsx:32
 msgid "Calendar"
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:61
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:67
 msgid "Calendar Access"
 msgstr ""
 
@@ -385,7 +389,7 @@ msgstr ""
 msgid "Connect your {0} calendar to track upcoming events"
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:66
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:72
 msgid "Connect your calendar and track events"
 msgstr ""
 
@@ -399,7 +403,7 @@ msgstr ""
 msgid "Connecting..."
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:100
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:109
 msgid "Contacts Access"
 msgstr ""
 
@@ -412,7 +416,7 @@ msgstr ""
 msgid "Create agenda"
 msgstr ""
 
-#: src/components/toolbar/buttons/new-note-button.tsx:46
+#: src/components/toolbar/buttons/new-note-button.tsx:47
 msgid "Create new note"
 msgstr ""
 
@@ -470,7 +474,7 @@ msgstr ""
 msgid "Email separated by commas"
 msgstr ""
 
-#: src/components/settings/views/permissions.tsx:59
+#: src/components/settings/views/sound.tsx:59
 msgid "Enable"
 msgstr ""
 
@@ -491,7 +495,7 @@ msgid "Exclude these apps from auto detection"
 msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:32
-#: src/components/settings/components/main-sidebar.tsx:43
+#: src/components/settings/components/main-sidebar.tsx:38
 msgid "Extensions"
 msgstr ""
 
@@ -528,7 +532,7 @@ msgid "Full name"
 msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:20
-#: src/components/settings/components/main-sidebar.tsx:29
+#: src/components/settings/components/main-sidebar.tsx:28
 msgid "General"
 msgstr ""
 
@@ -536,12 +540,12 @@ msgstr ""
 msgid "Get Started"
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:79
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:118
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:83
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:125
 msgid "Grant Access"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:132
+#: src/components/settings/views/general.tsx:139
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr ""
 
@@ -553,7 +557,7 @@ msgstr ""
 #~ msgid "HYPRNOTE"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:105
+#: src/components/settings/views/general.tsx:112
 msgid "Hyprnote will be opened automatically when you start your computer"
 msgstr ""
 
@@ -569,7 +573,7 @@ msgstr ""
 msgid "Invite members"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:156
+#: src/components/settings/views/general.tsx:163
 msgid "Jargons"
 msgstr ""
 
@@ -651,7 +655,7 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
-#: src/components/settings/views/permissions.tsx:97
+#: src/components/settings/views/sound.tsx:97
 msgid "Microphone Access"
 msgstr ""
 
@@ -736,7 +740,7 @@ msgstr ""
 msgid "Open calendar view"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:102
+#: src/components/settings/views/general.tsx:109
 msgid "Open Hyprnote on startup"
 msgstr ""
 
@@ -759,7 +763,7 @@ msgstr ""
 msgid "Open settings"
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:105
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:114
 msgid "Optional for participant suggestions"
 msgstr ""
 
@@ -772,7 +776,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:212
+#: src/components/editor-area/note-header/listen-button.tsx:216
 msgid "Pause"
 msgstr ""
 
@@ -785,15 +789,15 @@ msgid "people"
 msgstr ""
 
 #: src/components/settings/components/main-sidebar.tsx:39
-msgid "Permissions"
-msgstr ""
+#~ msgid "Permissions"
+#~ msgstr ""
 
 #: src/components/settings/views/billing.tsx:33
 msgid "Pro"
 msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:22
-#: src/components/settings/components/main-sidebar.tsx:31
+#: src/components/settings/components/main-sidebar.tsx:29
 msgid "Profile"
 msgstr ""
 
@@ -822,19 +826,19 @@ msgstr ""
 msgid "Remove {0} from list"
 msgstr ""
 
-#: src/components/settings/views/permissions.tsx:56
+#: src/components/settings/views/sound.tsx:56
 msgid "Requesting..."
 msgstr ""
 
-#: src/components/settings/views/permissions.tsx:107
+#: src/components/settings/views/sound.tsx:107
 msgid "Required to transcribe other people's voice during meetings"
 msgstr ""
 
-#: src/components/settings/views/permissions.tsx:98
+#: src/components/settings/views/sound.tsx:98
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:141
+#: src/components/editor-area/note-header/listen-button.tsx:145
 msgid "Resume"
 msgstr ""
 
@@ -896,7 +900,7 @@ msgstr ""
 msgid "Send invite"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:129
+#: src/components/settings/views/general.tsx:136
 msgid "Share usage data"
 msgstr ""
 
@@ -910,6 +914,10 @@ msgstr ""
 
 #: src/components/settings/views/billing.tsx:53
 msgid "Single sign-on for all users"
+msgstr ""
+
+#: src/components/settings/components/main-sidebar.tsx:35
+msgid "Sound"
 msgstr ""
 
 #: src/components/settings/views/ai.tsx:234
@@ -932,7 +940,7 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:165
+#: src/components/editor-area/note-header/listen-button.tsx:169
 msgid "Start recording"
 msgstr ""
 
@@ -942,7 +950,7 @@ msgstr ""
 msgid "Start Server"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:220
+#: src/components/editor-area/note-header/listen-button.tsx:224
 msgid "Stop"
 msgstr ""
 
@@ -954,7 +962,7 @@ msgstr ""
 msgid "Synchronization across multiple devices"
 msgstr ""
 
-#: src/components/settings/views/permissions.tsx:106
+#: src/components/settings/views/sound.tsx:106
 msgid "System Audio Access"
 msgstr ""
 
@@ -1096,7 +1104,7 @@ msgstr ""
 msgid "Works offline"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:159
+#: src/components/settings/views/general.tsx:166
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr ""
 

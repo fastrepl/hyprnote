@@ -52,7 +52,7 @@ export function AppleCalendarIntegrationDetails() {
       <div
         className={cn(
           "flex flex-col rounded-lg border p-4",
-          !calendarAccess.data && "bg-muted"
+          !calendarAccess.data && "bg-muted",
         )}
       >
         <div className="flex items-center justify-between">
@@ -67,11 +67,9 @@ export function AppleCalendarIntegrationDetails() {
                 <Trans>Calendar Access</Trans>
               </div>
               <div className="text-xs text-muted-foreground">
-                {calendarAccess.data ? (
-                  <Trans>Access granted</Trans>
-                ) : (
-                  <Trans>Connect your calendar and track events</Trans>
-                )}
+                {calendarAccess.data
+                  ? <Trans>Access granted</Trans>
+                  : <Trans>Connect your calendar and track events</Trans>}
               </div>
             </div>
           </div>
@@ -97,7 +95,7 @@ export function AppleCalendarIntegrationDetails() {
       <div
         className={cn(
           "flex items-center justify-between rounded-lg border p-4",
-          !contactsAccess.data && "bg-muted"
+          !contactsAccess.data && "bg-muted",
         )}
       >
         <div className="flex items-center gap-3">
@@ -111,11 +109,9 @@ export function AppleCalendarIntegrationDetails() {
               <Trans>Contacts Access</Trans>
             </div>
             <div className="text-xs text-muted-foreground">
-              {contactsAccess.data ? (
-                <Trans>Access granted</Trans>
-              ) : (
-                <Trans>Optional for participant suggestions</Trans>
-              )}
+              {contactsAccess.data
+                ? <Trans>Access granted</Trans>
+                : <Trans>Optional for participant suggestions</Trans>}
             </div>
           </div>
         </div>

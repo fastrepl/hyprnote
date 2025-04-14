@@ -28,7 +28,7 @@ function PermissionItem({
     <div
       className={cn(
         "flex items-center justify-between rounded-lg border p-4",
-        !done && "bg-muted"
+        !done && "bg-muted",
       )}
     >
       <div className="flex items-center gap-3">
@@ -49,14 +49,14 @@ function PermissionItem({
             disabled={isPending}
             className="min-w-20 text-center"
           >
-            {isPending ? (
-              <>
-                <Spinner className="mr-2" />
-                <Trans>Requesting...</Trans>
-              </>
-            ) : (
-              <Trans>Enable</Trans>
-            )}
+            {isPending
+              ? (
+                <>
+                  <Spinner className="mr-2" />
+                  <Trans>Requesting...</Trans>
+                </>
+              )
+              : <Trans>Enable</Trans>}
           </Button>
         )}
       </div>

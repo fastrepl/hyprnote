@@ -6,10 +6,20 @@ import { useState } from "react";
 
 import { type Session } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
 import { safeNavigate } from "@hypr/utils/navigation";
 
-export function NoteCard({ session, showTime = false }: { session: Session; showTime?: boolean }) {
+export function NoteCard({
+  session,
+  showTime = false,
+}: {
+  session: Session;
+  showTime?: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   const handleClick = (id: string) => {
@@ -37,10 +47,6 @@ export function NoteCard({ session, showTime = false }: { session: Session; show
       : new Date();
   };
 
-  const html2text = (html: string) => {
-    return html.replace(/<[^>]*>?/g, "");
-  };
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -53,27 +59,31 @@ export function NoteCard({ session, showTime = false }: { session: Session; show
 
           {showTime && (
             <div className="text-xs text-neutral-500">
-              {format(getStartDate(), "h:mm a")} - {format(getEndDate(), "h:mm a")}
+              {format(getStartDate(), "h:mm a")} -{" "}
+              {format(getEndDate(), "h:mm a")}
             </div>
           )}
         </div>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-4 bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0">
-        <p className="text-sm mb-2 text-neutral-600">
+        <div className="font-semibold text-lg mb-2 text-neutral-800">
+          {session.title || "Untitled"}
+        </div>
+
+        <p className="text-sm mb-4 text-neutral-600">
           {format(getStartDate(), "MMM d, h:mm a")}
           {" - "}
-          {format(getStartDate(), "yyyy-MM-dd") !== format(getEndDate(), "yyyy-MM-dd")
+          {format(getStartDate(), "yyyy-MM-dd") !==
+          format(getEndDate(), "yyyy-MM-dd")
             ? format(getEndDate(), "MMM d, h:mm a")
             : format(getEndDate(), "h:mm a")}
         </p>
 
-        <div className="font-semibold text-lg mb-1 text-neutral-800">{session.title || "Untitled"}</div>
-
-        <p className="text-sm text-neutral-500 mb-4">
-          {html2text(session.enhanced_memo_html || session.raw_memo_html)}
-        </p>
-
-        <Button className="w-full inline-flex gap-2" size="md" onClick={() => handleClick(session.id)}>
+        <Button
+          className="w-full inline-flex gap-2"
+          size="md"
+          onClick={() => handleClick(session.id)}
+        >
           <Pen className="size-4" />
           <Trans>Open Note</Trans>
         </Button>

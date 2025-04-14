@@ -1,10 +1,14 @@
 import { Trans } from "@lingui/react/macro";
 import { SettingsIcon } from "lucide-react";
 
-import Shortcut from "@/components/shortcut";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
+import Shortcut from "@/components/shortcut";
 
 export function SettingsButton() {
   const handleClickSettings = () => {
@@ -24,7 +28,8 @@ export function SettingsButton() {
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        <Trans>Open settings</Trans> <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
+        <Trans>Open settings</Trans>{" "}
+        <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
       </TooltipContent>
     </Tooltip>
   );

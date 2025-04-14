@@ -5,6 +5,7 @@ import { MicIcon, Volume2Icon } from "lucide-react";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { cn } from "@hypr/ui/lib/utils";
 
 interface PermissionItemProps {
   icon: React.ReactNode;
@@ -24,18 +25,23 @@ function PermissionItem({
   onRequest,
 }: PermissionItemProps) {
   return (
-    <div className="flex items-center justify-between rounded-lg border p-4">
+    <div
+      className={cn(
+        "flex items-center justify-between rounded-lg border p-4",
+        !done && "bg-muted"
+      )}
+    >
       <div className="flex items-center gap-3">
         <div className="flex size-6 items-center justify-center">{icon}</div>
         <div>
           <div className="text-sm font-medium">{title}</div>
-          <div className="text-xs text-muted-foreground">{description}</div>
+          <div className="text-xs text-muted-foreground">
+            {done ? <Trans>Access Granted</Trans> : description}
+          </div>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        {done ? (
-          "✅"
-        ) : (
+        {!done && (
           <Button
             variant="outline"
             size="sm"

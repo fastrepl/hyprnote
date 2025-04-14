@@ -3,17 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { ExternalLinkIcon, Pen } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { useHypr } from "@/contexts";
 import type { Event } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@hypr/ui/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { safeNavigate } from "@hypr/utils/navigation";
 
 export function EventCard({
@@ -32,7 +28,9 @@ export function EventCard({
   const participants = useQuery({
     queryKey: ["participants", session.data?.id],
     queryFn: async () => {
-      if (!session.data?.id) return [];
+      if (!session.data?.id) {
+        return [];
+      }
       const participants = await dbCommands.sessionListParticipants(session.data.id);
       return participants.sort((a, b) => {
         if (a.is_user && !b.is_user) {
@@ -49,7 +47,9 @@ export function EventCard({
 
   const participantsPreview = useMemo(() => {
     const count = participants.data?.length ?? 0;
-    if (count === 0) return null;
+    if (count === 0) {
+      return null;
+    }
 
     return participants.data?.map(participant => {
       if (participant.id === userId && !participant.full_name) {
@@ -80,7 +80,7 @@ export function EventCard({
       } as const satisfies LinkProps;
 
       const url = props.to.concat(
-        `?calendarEventId=${props.search.calendarEventId}`
+        `?calendarEventId=${props.search.calendarEventId}`,
       );
 
       safeNavigate({ type: "main" }, url);
@@ -107,8 +107,7 @@ export function EventCard({
 
           {showTime && (
             <div className="text-xs text-neutral-500">
-              {format(getStartDate(), "h:mm a")} -{" "}
-              {format(getEndDate(), "h:mm a")}
+              {format(getStartDate(), "h:mm a")} - {format(getEndDate(), "h:mm a")}
             </div>
           )}
         </div>
@@ -122,9 +121,7 @@ export function EventCard({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() =>
-              window.open(event.google_event_url as string, "_blank")
-            }
+            onClick={() => window.open(event.google_event_url as string, "_blank")}
           >
             <ExternalLinkIcon size={14} />
           </Button>
@@ -133,8 +130,8 @@ export function EventCard({
         <p className="text-sm text-neutral-600 mb-2">
           {format(getStartDate(), "MMM d, h:mm a")}
           {" - "}
-          {format(getStartDate(), "yyyy-MM-dd") !==
-          format(getEndDate(), "yyyy-MM-dd")
+          {format(getStartDate(), "yyyy-MM-dd")
+              !== format(getEndDate(), "yyyy-MM-dd")
             ? format(getEndDate(), "MMM d, h:mm a")
             : format(getEndDate(), "h:mm a")}
         </p>
@@ -145,32 +142,32 @@ export function EventCard({
           </div>
         )}
 
-        {session.data ? (
-          <Button
-            className="w-full inline-flex gap-2"
-            size="md"
-            onClick={handleClick}
-          >
-            <Pen className="size-4" />
-            <Trans>Open Note</Trans>
-          </Button>
-        ) : (
-          <Button
-            className="w-full inline-flex gap-2"
-            size="md"
-            disabled={session.isLoading}
-            onClick={handleClick}
-          >
-            {session.isLoading ? (
-              <Trans>Loading...</Trans>
-            ) : (
-              <>
-                <Pen className="size-4" />
-                <Trans>Create Note</Trans>
-              </>
-            )}
-          </Button>
-        )}
+        {session.data
+          ? (
+            <Button
+              className="w-full inline-flex gap-2"
+              size="md"
+              onClick={handleClick}
+            >
+              <Pen className="size-4" />
+              <Trans>Open Note</Trans>
+            </Button>
+          )
+          : (
+            <Button
+              className="w-full inline-flex gap-2"
+              size="md"
+              disabled={session.isLoading}
+              onClick={handleClick}
+            >
+              {session.isLoading ? <Trans>Loading...</Trans> : (
+                <>
+                  <Pen className="size-4" />
+                  <Trans>Create Note</Trans>
+                </>
+              )}
+            </Button>
+          )}
       </PopoverContent>
     </Popover>
   );

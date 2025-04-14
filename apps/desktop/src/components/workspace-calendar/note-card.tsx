@@ -3,17 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Pen } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { useHypr } from "@/contexts";
 import { type Session } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@hypr/ui/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { safeNavigate } from "@hypr/utils/navigation";
 
 export function NoteCard({
@@ -44,7 +40,9 @@ export function NoteCard({
 
   const participantsPreview = useMemo(() => {
     const count = participants.data?.length ?? 0;
-    if (count === 0) return null;
+    if (count === 0) {
+      return null;
+    }
 
     return participants.data?.map(participant => {
       if (participant.id === userId && !participant.full_name) {
@@ -91,8 +89,7 @@ export function NoteCard({
 
           {showTime && (
             <div className="text-xs text-neutral-500">
-              {format(getStartDate(), "h:mm a")} -{" "}
-              {format(getEndDate(), "h:mm a")}
+              {format(getStartDate(), "h:mm a")} - {format(getEndDate(), "h:mm a")}
             </div>
           )}
         </div>
@@ -105,8 +102,8 @@ export function NoteCard({
         <p className="text-sm mb-2 text-neutral-600">
           {format(getStartDate(), "MMM d, h:mm a")}
           {" - "}
-          {format(getStartDate(), "yyyy-MM-dd") !==
-          format(getEndDate(), "yyyy-MM-dd")
+          {format(getStartDate(), "yyyy-MM-dd")
+              !== format(getEndDate(), "yyyy-MM-dd")
             ? format(getEndDate(), "MMM d, h:mm a")
             : format(getEndDate(), "h:mm a")}
         </p>

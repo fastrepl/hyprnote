@@ -296,7 +296,7 @@ msgid "Apple"
 msgstr "Apple"
 
 #: src/components/toolbar/buttons/delete-note-button.tsx:37
-#: src/components/left-sidebar/notes-list.tsx:248
+#: src/components/left-sidebar/notes-list.tsx:247
 msgid "Are you sure you want to delete this note?"
 msgstr "Are you sure you want to delete this note?"
 
@@ -422,7 +422,7 @@ msgstr "Create agenda"
 msgid "Create new note"
 msgstr "Create new note"
 
-#: src/components/workspace-calendar/event-card.tsx:111
+#: src/components/workspace-calendar/event-card.tsx:166
 msgid "Create Note"
 msgstr "Create Note"
 
@@ -432,7 +432,7 @@ msgstr "Current Plan"
 
 #: src/components/settings/views/template.tsx:86
 #: src/components/settings/views/team.tsx:165
-#: src/components/left-sidebar/notes-list.tsx:314
+#: src/components/left-sidebar/notes-list.tsx:310
 msgid "Delete"
 msgstr "Delete"
 
@@ -616,7 +616,7 @@ msgstr "Loading extension details..."
 msgid "Loading models..."
 msgstr "Loading models..."
 
-#: src/components/workspace-calendar/event-card.tsx:108
+#: src/components/workspace-calendar/event-card.tsx:163
 #: src/components/settings/components/calendar/calendar-selector.tsx:51
 #: src/components/settings/components/ai/transcribing-model.tsx:195
 #: src/components/settings/components/ai/local-llm-button.tsx:54
@@ -690,7 +690,7 @@ msgstr "Needs download"
 msgid "New note"
 msgstr "New note"
 
-#: src/components/left-sidebar/notes-list.tsx:291
+#: src/components/left-sidebar/notes-list.tsx:287
 msgid "New window"
 msgstr "New window"
 
@@ -756,8 +756,8 @@ msgstr "Open Hyprnote on startup"
 msgid "Open in new window"
 msgstr "Open in new window"
 
-#: src/components/workspace-calendar/note-card.tsx:78
-#: src/components/workspace-calendar/event-card.tsx:98
+#: src/components/workspace-calendar/note-card.tsx:123
+#: src/components/workspace-calendar/event-card.tsx:153
 msgid "Open Note"
 msgstr "Open Note"
 
@@ -778,7 +778,7 @@ msgstr "or"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:237
+#: src/components/editor-area/note-header/listen-button.tsx:240
 msgid "Pause"
 msgstr "Pause"
 
@@ -952,7 +952,7 @@ msgstr "Start recording"
 msgid "Start Server"
 msgstr "Start Server"
 
-#: src/components/editor-area/note-header/listen-button.tsx:245
+#: src/components/editor-area/note-header/listen-button.tsx:248
 msgid "Stop"
 msgstr "Stop"
 
@@ -1082,7 +1082,7 @@ msgstr "username"
 #~ msgid "Verify that your local language model is working correctly"
 #~ msgstr "Verify that your local language model is working correctly"
 
-#: src/components/left-sidebar/notes-list.tsx:302
+#: src/components/left-sidebar/notes-list.tsx:298
 msgid "View calendar"
 msgstr "View calendar"
 

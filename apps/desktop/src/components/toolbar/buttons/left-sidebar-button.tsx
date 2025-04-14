@@ -3,7 +3,11 @@ import { ChevronsLeftIcon, MenuIcon } from "lucide-react";
 
 import { useLeftSidebar } from "@/contexts";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import Shortcut from "../../shortcut";
 
 export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
@@ -30,7 +34,8 @@ export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
         </TooltipTrigger>
         <TooltipContent>
           <p>
-            <Trans>Toggle left sidebar</Trans> <Shortcut macDisplay="⌘L" windowsDisplay="Ctrl+L" />
+            <Trans>Toggle left sidebar</Trans>{" "}
+            <Shortcut macDisplay="⌘L" windowsDisplay="Ctrl+L" />
           </p>
         </TooltipContent>
       </Tooltip>

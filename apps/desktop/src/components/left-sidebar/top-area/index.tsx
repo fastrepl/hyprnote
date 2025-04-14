@@ -18,7 +18,7 @@ export function TopArea() {
       data-tauri-drag-region
       className={cn(
         "flex items-center justify-end min-h-11 pr-2",
-        osType.data === "macos" && "pl-[68px]",
+        osType.data === "macos" && "pl-[68px]"
       )}
     >
       <SettingsButton />

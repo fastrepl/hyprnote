@@ -1017,7 +1017,7 @@ msgstr ""
 msgid "Toggle chat panel"
 msgstr ""
 
-#: src/components/toolbar/buttons/left-sidebar-button.tsx:33
+#: src/components/toolbar/buttons/left-sidebar-button.tsx:37
 msgid "Toggle left sidebar"
 msgstr ""
 

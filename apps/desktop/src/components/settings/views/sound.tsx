@@ -26,45 +26,39 @@ function PermissionItem({
   return (
     <div className="flex items-center justify-between rounded-lg border p-4">
       <div className="flex items-center gap-3">
-        <div className="flex size-6 items-center justify-center">
-          {icon}
-        </div>
+        <div className="flex size-6 items-center justify-center">{icon}</div>
         <div>
-          <div className="text-sm font-medium">
-            {title}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {description}
-          </div>
+          <div className="text-sm font-medium">{title}</div>
+          <div className="text-xs text-muted-foreground">{description}</div>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        {done
-          ? "✅"
-          : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRequest}
-              disabled={isPending}
-              className="min-w-20 text-center"
-            >
-              {isPending
-                ? (
-                  <>
-                    <Spinner className="mr-2" />
-                    <Trans>Requesting...</Trans>
-                  </>
-                )
-                : <Trans>Enable</Trans>}
-            </Button>
-          )}
+        {done ? (
+          "✅"
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRequest}
+            disabled={isPending}
+            className="min-w-20 text-center"
+          >
+            {isPending ? (
+              <>
+                <Spinner className="mr-2" />
+                <Trans>Requesting...</Trans>
+              </>
+            ) : (
+              <Trans>Enable</Trans>
+            )}
+          </Button>
+        )}
       </div>
     </div>
   );
 }
 
-export default function Permissions() {
+export default function Sound() {
   const { t } = useLingui();
 
   const micPermissionStatus = useQuery({

@@ -5,7 +5,7 @@ export { default as Extensions } from "./extension";
 export { default as General } from "./general";
 export { default as Lab } from "./lab";
 export { default as Notifications } from "./notifications";
-export { default as Permissions } from "./permissions";
 export { default as Profile } from "./profile";
+export { default as Sound } from "./sound";
 export { default as Team } from "./team";
 export { default as TemplateEditor } from "./template";

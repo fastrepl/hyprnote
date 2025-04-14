@@ -1,10 +1,13 @@
 import { Trans } from "@lingui/react/macro";
+import { useQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Pen } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
+import { useHypr } from "@/contexts";
 import { type Session } from "@hypr/plugin-db";
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Popover,
@@ -20,7 +23,36 @@ export function NoteCard({
   session: Session;
   showTime?: boolean;
 }) {
+  const { userId } = useHypr();
   const [open, setOpen] = useState(false);
+
+  const participants = useQuery({
+    queryKey: ["participants", session.id],
+    queryFn: async () => {
+      const participants = await dbCommands.sessionListParticipants(session.id);
+      return participants.sort((a, b) => {
+        if (a.is_user && !b.is_user) {
+          return 1;
+        }
+        if (!a.is_user && b.is_user) {
+          return -1;
+        }
+        return 0;
+      });
+    },
+  });
+
+  const participantsPreview = useMemo(() => {
+    const count = participants.data?.length ?? 0;
+    if (count === 0) return null;
+
+    return participants.data?.map(participant => {
+      if (participant.id === userId && !participant.full_name) {
+        return "You";
+      }
+      return participant.full_name ?? "??";
+    });
+  }, [participants.data, userId]);
 
   const handleClick = (id: string) => {
     setOpen(false);
@@ -70,7 +102,7 @@ export function NoteCard({
           {session.title || "Untitled"}
         </div>
 
-        <p className="text-sm mb-4 text-neutral-600">
+        <p className="text-sm mb-2 text-neutral-600">
           {format(getStartDate(), "MMM d, h:mm a")}
           {" - "}
           {format(getStartDate(), "yyyy-MM-dd") !==
@@ -78,6 +110,12 @@ export function NoteCard({
             ? format(getEndDate(), "MMM d, h:mm a")
             : format(getEndDate(), "h:mm a")}
         </p>
+
+        {participantsPreview && participantsPreview.length > 0 && (
+          <div className="text-xs text-neutral-600 mb-4 truncate">
+            {participantsPreview.join(", ")}
+          </div>
+        )}
 
         <Button
           className="w-full inline-flex gap-2"

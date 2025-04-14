@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { ExternalLinkIcon, Pen } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
+import { useHypr } from "@/contexts";
 import type { Event } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -22,10 +23,41 @@ export function EventCard({
   event: Event;
   showTime?: boolean;
 }) {
+  const { userId } = useHypr();
   const session = useQuery({
     queryKey: ["event-session", event.id],
     queryFn: async () => dbCommands.getSession({ calendarEventId: event.id }),
   });
+
+  const participants = useQuery({
+    queryKey: ["participants", session.data?.id],
+    queryFn: async () => {
+      if (!session.data?.id) return [];
+      const participants = await dbCommands.sessionListParticipants(session.data.id);
+      return participants.sort((a, b) => {
+        if (a.is_user && !b.is_user) {
+          return 1;
+        }
+        if (!a.is_user && b.is_user) {
+          return -1;
+        }
+        return 0;
+      });
+    },
+    enabled: !!session.data?.id,
+  });
+
+  const participantsPreview = useMemo(() => {
+    const count = participants.data?.length ?? 0;
+    if (count === 0) return null;
+
+    return participants.data?.map(participant => {
+      if (participant.id === userId && !participant.full_name) {
+        return "You";
+      }
+      return participant.full_name ?? "??";
+    });
+  }, [participants.data, userId]);
 
   const [open, setOpen] = useState(false);
 
@@ -98,7 +130,7 @@ export function EventCard({
           </Button>
         </div>
 
-        <p className="text-sm text-neutral-600 mb-4">
+        <p className="text-sm text-neutral-600 mb-2">
           {format(getStartDate(), "MMM d, h:mm a")}
           {" - "}
           {format(getStartDate(), "yyyy-MM-dd") !==
@@ -106,6 +138,12 @@ export function EventCard({
             ? format(getEndDate(), "MMM d, h:mm a")
             : format(getEndDate(), "h:mm a")}
         </p>
+
+        {participantsPreview && participantsPreview.length > 0 && (
+          <div className="text-xs text-neutral-600 mb-4 truncate">
+            {participantsPreview.join(", ")}
+          </div>
+        )}
 
         {session.data ? (
           <Button

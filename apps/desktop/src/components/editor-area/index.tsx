@@ -81,8 +81,7 @@ export default function EditorArea({
 
   const noteContent = useMemo(
     () => (showRaw ? rawContent : enhancedContent),
-    // Replacing 'rawContent' with 'editorKey' in deps list is intentional. We don't want to rerender the entire editor during editing.
-    [showRaw, enhancedContent, editorKey],
+    [showRaw, enhancedContent, rawContent],
   );
 
   const handleClickEnhance = useCallback(() => {
@@ -109,7 +108,6 @@ export default function EditorArea({
       <div
         className={cn([
           "h-full overflow-y-auto",
-          !showRaw && animate && "tiptap-animate",
           enhancedContent && "pb-10",
         ])}
         onClick={(e) => {
@@ -126,6 +124,7 @@ export default function EditorArea({
                 handleChange={handleChangeNote}
                 initialContent={noteContent}
                 editable={enhance.status !== "pending"}
+                setContentFromOutside={!showRaw && enhance.status === "pending"}
               />
             )
             : <Renderer ref={editorRef} initialContent={noteContent} />}
@@ -171,7 +170,7 @@ export function useEnhanceMutation({
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async () => {
-      setAnimate(false);
+      setAnimate(true);
       const config = await dbCommands.getConfig();
       const participants = await dbCommands.sessionListParticipants(sessionId);
       const onboardingOutputExample = await dbCommands.onboardingSessionEnhancedMemoMd();
@@ -212,11 +211,11 @@ export function useEnhanceMutation({
 
       let acc = "";
       for await (const chunk of textStream) {
-        setAnimate(true);
         acc += chunk;
         const html = await miscCommands.opinionatedMdToHtml(acc);
         setEnhancedContent(html);
       }
+      console.log("acc", acc);
 
       setAnimate(false);
       return text.then(miscCommands.opinionatedMdToHtml);

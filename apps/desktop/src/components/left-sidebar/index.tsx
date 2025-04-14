@@ -1,22 +1,17 @@
-import { Trans } from "@lingui/react/macro";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { addDays } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
-import { addDays } from "date-fns";
-import { CalendarDaysIcon, SettingsIcon } from "lucide-react";
-import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 
 import { useHypr, useHyprSearch, useLeftSidebar } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { commands as windowsCommands, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { Button } from "@hypr/ui/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { useOngoingSession } from "@hypr/utils/contexts";
-import Shortcut from "../shortcut";
-import { LeftSidebarButton } from "../toolbar/buttons/left-sidebar-button";
 import EventsList from "./events-list";
 import NotesList from "./notes-list";
 import OngoingSession from "./ongoing-session";
 import SearchList from "./search-list";
+import { TopArea } from "./top-area";
 
 export default function LeftSidebar() {
   const { userId } = useHypr();
@@ -38,7 +33,10 @@ export default function LeftSidebar() {
   const isInOngoingNoteMain = activeSessionId === ongoingSessionId;
   const isInOngoingNoteSub = activeSessionId === ongoingSessionId;
   const isInOngoingNote = isInOngoingNoteMain || isInOngoingNoteSub;
-  const inMeetingAndNotInNote = (status === "running_active") && ongoingSessionId !== null && !isInOngoingNote;
+  const inMeetingAndNotInNote =
+    status === "running_active" &&
+    ongoingSessionId !== null &&
+    !isInOngoingNote;
 
   const events = useQuery({
     refetchInterval: 5000,
@@ -52,8 +50,15 @@ export default function LeftSidebar() {
         end: addDays(new Date(), 40).toISOString(),
       });
 
-      const sessions = await Promise.all(events.map((event) => dbCommands.getSession({ calendarEventId: event.id })));
-      return events.map((event, index) => ({ ...event, session: sessions[index] }));
+      const sessions = await Promise.all(
+        events.map((event) =>
+          dbCommands.getSession({ calendarEventId: event.id })
+        )
+      );
+      return events.map((event, index) => ({
+        ...event,
+        session: sessions[index],
+      }));
     },
   });
 
@@ -66,94 +71,47 @@ export default function LeftSidebar() {
       layout
       initial={{ width: isExpanded ? 240 : 0, opacity: isExpanded ? 1 : 0 }}
       animate={{ width: isExpanded ? 240 : 0, opacity: isExpanded ? 1 : 0 }}
-      transition={{ duration: 0.10 }}
+      transition={{ duration: 0.1 }}
       className="h-full flex flex-col overflow-hidden border-r bg-neutral-50"
     >
       <TopArea />
 
       {inMeetingAndNotInNote && <OngoingSession sessionId={ongoingSessionId} />}
 
-      {isSearching
-        ? (
-          <div className="flex-1 h-full overflow-y-auto">
-            <SearchList matches={matches} />
-          </div>
-        )
-        : (
-          <LayoutGroup>
-            <AnimatePresence initial={false}>
-              <div className="flex-1 h-full overflow-y-auto">
-                <div className="h-full space-y-4 px-3 pb-4">
-                  <EventsList
-                    events={events.data?.filter((event) =>
-                      !(event.session?.id && ongoingSessionId && event.session.id === ongoingSessionId
-                        && event.session.id !== activeSessionId)
-                    )}
-                    activeSessionId={activeSessionId}
-                  />
-                  <NotesList
-                    filter={(session) => events.data?.every((event) => event.session?.id !== session.id) ?? true}
-                    ongoingSessionId={ongoingSessionId}
-                  />
-                </div>
+      {isSearching ? (
+        <div className="flex-1 h-full overflow-y-auto">
+          <SearchList matches={matches} />
+        </div>
+      ) : (
+        <LayoutGroup>
+          <AnimatePresence initial={false}>
+            <div className="flex-1 h-full overflow-y-auto">
+              <div className="h-full space-y-4 px-3 pb-4">
+                <EventsList
+                  events={events.data?.filter(
+                    (event) =>
+                      !(
+                        event.session?.id &&
+                        ongoingSessionId &&
+                        event.session.id === ongoingSessionId &&
+                        event.session.id !== activeSessionId
+                      )
+                  )}
+                  activeSessionId={activeSessionId}
+                />
+                <NotesList
+                  filter={(session) =>
+                    events.data?.every(
+                      (event) => event.session?.id !== session.id
+                    ) ?? true
+                  }
+                  ongoingSessionId={ongoingSessionId}
+                />
               </div>
-            </AnimatePresence>
-          </LayoutGroup>
-        )}
+            </div>
+          </AnimatePresence>
+        </LayoutGroup>
+      )}
     </motion.nav>
-  );
-}
-
-function TopArea() {
-  const handleClickSettings = () => {
-    windowsCommands.windowShow({ type: "settings" });
-  };
-
-  const handleClickCalendar = () => {
-    windowsCommands.windowShow({ type: "calendar" });
-  };
-
-  return (
-    <div
-      data-tauri-drag-region
-      className="flex items-center justify-end min-h-11 px-2"
-    >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleClickSettings}
-            className="hover:bg-neutral-200"
-          >
-            <SettingsIcon className="size-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <Trans>
-            Open settings
-          </Trans>{" "}
-          <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
-        </TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleClickCalendar}
-            className="hover:bg-neutral-200"
-          >
-            <CalendarDaysIcon className="size-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <Trans>Open calendar view</Trans>
-        </TooltipContent>
-      </Tooltip>
-
-      <LeftSidebarButton type="sidebar" />
-    </div>
   );
 }

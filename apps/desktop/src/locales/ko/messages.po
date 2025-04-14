@@ -736,7 +736,7 @@ msgstr ""
 msgid "Ollama Connection"
 msgstr ""
 
-#: src/components/left-sidebar/index.tsx:152
+#: src/components/left-sidebar/top-area/calendar-button.tsx:30
 msgid "Open calendar view"
 msgstr ""
 
@@ -759,7 +759,7 @@ msgstr ""
 msgid "Open Note"
 msgstr ""
 
-#: src/components/left-sidebar/index.tsx:133
+#: src/components/left-sidebar/top-area/settings-button.tsx:31
 msgid "Open settings"
 msgstr ""
 
@@ -1015,7 +1015,7 @@ msgstr ""
 msgid "Toggle chat panel"
 msgstr ""
 
-#: src/components/toolbar/buttons/left-sidebar-button.tsx:45
+#: src/components/toolbar/buttons/left-sidebar-button.tsx:37
 msgid "Toggle left sidebar"
 msgstr ""
 

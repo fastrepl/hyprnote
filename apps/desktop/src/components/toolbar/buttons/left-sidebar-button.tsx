@@ -1,21 +1,16 @@
 import { Trans } from "@lingui/react/macro";
-import { useQuery } from "@tanstack/react-query";
-import { type as getOsType } from "@tauri-apps/plugin-os";
 import { ChevronsLeftIcon, MenuIcon } from "lucide-react";
 
 import { useLeftSidebar } from "@/contexts";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-import { cn } from "@hypr/ui/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import Shortcut from "../../shortcut";
 
 export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
-  const osType = useQuery({
-    queryKey: ["osType"],
-    queryFn: () => getOsType(),
-    staleTime: Infinity,
-  });
-
   const { isExpanded, togglePanel } = useLeftSidebar();
 
   const ToggleIcon = isExpanded ? ChevronsLeftIcon : MenuIcon;
@@ -25,10 +20,7 @@ export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
   }
 
   return (
-    <div
-      data-tauri-drag-region
-      className={cn(osType.data === "macos" && "pl-[68px]")}
-    >
+    <div data-tauri-drag-region>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -42,7 +34,8 @@ export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
         </TooltipTrigger>
         <TooltipContent>
           <p>
-            <Trans>Toggle left sidebar</Trans> <Shortcut macDisplay="⌘L" windowsDisplay="Ctrl+L" />
+            <Trans>Toggle left sidebar</Trans>{" "}
+            <Shortcut macDisplay="⌘L" windowsDisplay="Ctrl+L" />
           </p>
         </TooltipContent>
       </Tooltip>

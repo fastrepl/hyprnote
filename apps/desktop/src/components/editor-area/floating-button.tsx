@@ -1,8 +1,4 @@
-import {
-  RotateCcwIcon,
-  TypeOutlineIcon,
-  ZapIcon,
-} from "lucide-react";
+import { RefreshCwIcon, TypeOutlineIcon, ZapIcon } from "lucide-react";
 import { useState } from "react";
 
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
@@ -74,10 +70,25 @@ export function FloatingButton({
       >
         {isEnhancePending ? (
           <SplashLoader size={20} strokeWidth={2} />
-        ) : isHovered ? (
-          <RotateCcwIcon size={20} />
         ) : (
-          <ZapIcon size={20} />
+          <div className="relative h-5 w-5">
+            <div
+              className={cn(
+                "absolute inset-0 transition-opacity duration-300",
+                isHovered ? "opacity-100" : "opacity-0"
+              )}
+            >
+              <RefreshCwIcon size={20} />
+            </div>
+            <div
+              className={cn(
+                "absolute inset-0 transition-opacity duration-300",
+                isHovered ? "opacity-0" : "opacity-100"
+              )}
+            >
+              <ZapIcon size={20} />
+            </div>
+          </div>
         )}
       </button>
     </div>

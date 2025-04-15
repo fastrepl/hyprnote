@@ -39,24 +39,39 @@ export function broadcastQueryClient(queryClient: QueryClient) {
         return;
       }
 
-      if ((event.payload.queryKey as string[]).some((key) => key?.includes("extension"))) {
+      const keys = event.payload.queryKey as string[];
+
+      if (keys.some((key) => key?.includes("extension"))) {
         queryClient.refetchQueries({
           predicate: (query) => query.queryKey.some((key) => typeof key === "string" && key.includes("extension")),
         });
       }
 
-      if ((event.payload.queryKey as string[]).some((key) => key?.includes("flags"))) {
+      if (keys.some((key) => key?.includes("flags"))) {
         queryClient.refetchQueries({
           predicate: (query) => query.queryKey.some((key) => typeof key === "string" && key.includes("flags")),
         });
       }
 
-      if ((event.payload.queryKey as string[]).some((key) => key?.includes("profile"))) {
+      if (keys.some((key) => key?.includes("profile"))) {
         queryClient.refetchQueries({
           predicate: (query) =>
             query.queryKey.some((key) =>
               typeof key === "string" && (key.includes("participant") || key.includes("human") || key.includes("org"))
             ),
+        });
+      }
+
+      if (keys[0] === "human") {
+        queryClient.refetchQueries({
+          queryKey: ["human", keys[1]],
+          predicate: (query) => query.queryKey.some((key) => key.includes("grouped-participants")),
+        });
+      }
+
+      if (keys[0] === "org") {
+        queryClient.invalidateQueries({
+          queryKey: ["org", keys[1]],
         });
       }
     });

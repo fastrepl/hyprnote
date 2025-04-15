@@ -1,16 +1,18 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, notFound, useRouter } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { ContactInfo, PastNotes, ProfileHeader, UpcomingEvents } from "@/components/human-profile";
-import { useEditMode } from "@/contexts/edit-mode-context";
+import { useEditMode } from "@/contexts";
 import { commands as dbCommands, type Human } from "@hypr/plugin-db";
-import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { Button } from "@hypr/ui/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@hypr/ui/components/ui/form";
+import { Input } from "@hypr/ui/components/ui/input";
 
 export const Route = createFileRoute("/app/human/$id")({
   component: Component,
-  loader: async ({ context: { queryClient }, params }) => {
+  loader: async ({ context: { queryClient }, params }: { context: { queryClient: any }; params: { id: string } }) => {
     const human = await queryClient.fetchQuery({
       queryKey: ["human", params.id],
       queryFn: () => dbCommands.getHuman(params.id),
@@ -25,7 +27,7 @@ export const Route = createFileRoute("/app/human/$id")({
     }
 
     const organization = await queryClient.fetchQuery({
-      queryKey: ["organization", human.organization_id],
+      queryKey: ["org", human.organization_id],
       queryFn: () => dbCommands.getOrganization(human.organization_id!),
     });
 
@@ -33,71 +35,135 @@ export const Route = createFileRoute("/app/human/$id")({
   },
 });
 
+const formSchema = z.object({
+  full_name: z.string().optional(),
+  job_title: z.string().optional(),
+  email: z.string().email().optional(),
+  linkedin_username: z.string().optional(),
+});
+
+type FormSchema = z.infer<typeof formSchema>;
+
 function Component() {
-  const { human, organization } = Route.useLoaderData();
-
-  const { isEditing, setIsEditing } = useEditMode();
-  const [editedHuman, setEditedHuman] = useState<Human>(human);
-
+  const { human } = Route.useLoaderData();
+  const router = useRouter();
   const queryClient = useQueryClient();
-  const isMain = getCurrentWebviewWindowLabel() === "main";
+  const { isEditing } = useEditMode();
 
-  const handleSave = () => {
-    try {
-      dbCommands.upsertHuman(editedHuman);
+  const humanQuery = useQuery({
+    initialData: human,
+    queryKey: ["human", human.id],
+    queryFn: () => dbCommands.getHuman(human.id),
+  });
 
-      queryClient.invalidateQueries({ queryKey: ["human", human.id] });
-    } catch (error) {
-      console.error("Failed to update human:", error);
-    }
-  };
+  const form = useForm<FormSchema>({
+    resolver: zodResolver(formSchema),
+    values: {
+      full_name: humanQuery.data?.full_name ?? "",
+      job_title: humanQuery.data?.job_title ?? "",
+      email: humanQuery.data?.email ?? "",
+      linkedin_username: humanQuery.data?.linkedin_username ?? "",
+    },
+  });
 
-  const handleEditToggle = () => {
-    if (isEditing) {
-      handleSave();
-    }
+  const updateHumanMutation = useMutation({
+    mutationFn: (data: Partial<Human>) => {
+      if (!humanQuery.data) {
+        return Promise.reject("human_data_not_loaded");
+      }
 
-    setIsEditing(!isEditing);
-  };
+      return dbCommands.upsertHuman({
+        ...humanQuery.data,
+        ...data,
+      });
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(["human", humanQuery.data?.id], data);
+      router.invalidate();
+    },
+  });
 
   useEffect(() => {
-    setEditedHuman(human);
-  }, [human]);
+    if (!isEditing) {
+      form.handleSubmit((v) => updateHumanMutation.mutate(v))();
+    }
+  }, [isEditing]);
 
+  if (!humanQuery.data) {
+    return null;
+  }
+
+  return isEditing
+    ? <HumanEdit form={form} />
+    : <HumanView value={humanQuery.data} />;
+}
+
+function HumanView({ value }: { value: Human }) {
   return (
-    <div className="flex h-full overflow-hidden">
-      <div className="flex-1">
-        <main className="flex h-full overflow-auto bg-white relative">
-          {isMain && (
-            <div className="absolute top-4 right-4 z-10">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleEditToggle}
-              >
-                {isEditing ? "Save" : "Edit"}
-              </Button>
-            </div>
-          )}
-          <div className="max-w-lg mx-auto px-4 lg:px-6 pt-6 pb-20">
-            <div className="mb-6 flex flex-col items-center gap-8">
-              <ProfileHeader
-                isEditing={isEditing}
-                human={human}
-                organization={organization}
-              />
+    <div>
+      <h1>full_name: {value.full_name}</h1>
+      <h1>email: {value.email}</h1>
+      <h1>job_title: {value.job_title}</h1>
+      <h1>linkedin_username: {value.linkedin_username}</h1>
+    </div>
+  );
+}
 
-              <ContactInfo
-                isEditing={isEditing}
-                human={human}
-                organization={organization}
-              />
-            </div>
-            <UpcomingEvents human={human} />
-            <PastNotes human={human} />
-          </div>
-        </main>
-      </div>
+function HumanEdit({ form }: { form: ReturnType<typeof useForm<FormSchema>> }) {
+  return (
+    <div>
+      <Form {...form}>
+        <form className="space-y-8">
+          <FormField
+            control={form.control}
+            name="full_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input placeholder="Full Name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input type="email" placeholder="Email" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="job_title"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input placeholder="Job Title" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="linkedin_username"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input placeholder="LinkedIn Username" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </form>
+      </Form>
     </div>
   );
 }

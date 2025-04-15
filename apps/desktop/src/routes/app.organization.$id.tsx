@@ -11,7 +11,7 @@ export const Route = createFileRoute("/app/organization/$id")({
   component: Component,
   loader: async ({ context: { queryClient }, params }) => {
     const organization = await queryClient.fetchQuery({
-      queryKey: ["organization", params.id],
+      queryKey: ["org", params.id],
       queryFn: () => dbCommands.getOrganization(params.id),
     });
 
@@ -45,7 +45,7 @@ function Component() {
   }, []);
 
   const { data: members = [] } = useQuery({
-    queryKey: ["organization", organization.id, "members"],
+    queryKey: ["org", organization.id, "members"],
     queryFn: () => dbCommands.listOrganizationMembers(organization.id),
   });
 
@@ -57,7 +57,7 @@ function Component() {
   const handleSave = () => {
     try {
       dbCommands.upsertOrganization(editedOrganization);
-      queryClient.invalidateQueries({ queryKey: ["organization", organization.id] });
+      queryClient.invalidateQueries({ queryKey: ["org", organization.id] });
     } catch (error) {
       console.error("Failed to update organization:", error);
     }

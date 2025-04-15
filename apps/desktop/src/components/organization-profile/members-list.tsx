@@ -11,7 +11,7 @@ import type { MembersListProps } from "./types";
 
 export function MembersList({ organizationId }: MembersListProps) {
   const { data: members = [] } = useQuery({
-    queryKey: ["organization", organizationId, "members"],
+    queryKey: ["org", organizationId, "members"],
     queryFn: () => dbCommands.listOrganizationMembers(organizationId),
   });
 

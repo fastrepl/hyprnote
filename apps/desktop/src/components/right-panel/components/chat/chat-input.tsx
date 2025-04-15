@@ -38,7 +38,7 @@ export function ChatInput(
   });
 
   const { data: organizationData } = useQuery({
-    queryKey: ["organization", entityId],
+    queryKey: ["org", entityId],
     queryFn: async () => entityId ? dbCommands.getOrganization(entityId) : null,
     enabled: !!entityId && entityType === "organization",
   });

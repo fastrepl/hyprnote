@@ -68,7 +68,7 @@ function OrganizationWithParticipants(
   { orgId, members, sessionId }: { orgId: string; members: Human[]; sessionId: string },
 ) {
   const organization = useQuery({
-    queryKey: ["organization", orgId],
+    queryKey: ["org", orgId],
     queryFn: () => {
       if (orgId === NO_ORGANIZATION_ID) {
         return null;
@@ -404,7 +404,7 @@ function ParticipantCandidate(
   const queryClient = useQueryClient();
 
   const organization = useQuery({
-    queryKey: ["organization", participant.organization_id],
+    queryKey: ["org", participant.organization_id],
     queryFn: () => participant.organization_id ? dbCommands.getOrganization(participant.organization_id) : null,
   });
 

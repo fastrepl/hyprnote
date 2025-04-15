@@ -17,7 +17,6 @@ import {
   Calendar,
   Extensions,
   General,
-  Profile,
   // Lab,
   // LocalAI,
   // Notifications,
@@ -162,7 +161,6 @@ function Component() {
 
             <div className="flex-1 overflow-auto p-6">
               {search.tab === "general" && <General />}
-              {search.tab === "profile" && <Profile />}
               {/* {search.tab === "ai" && <LocalAI />} */}
               {search.tab === "calendar" && <Calendar />}
               {/* {current === "notifications" && <Notifications />} */}

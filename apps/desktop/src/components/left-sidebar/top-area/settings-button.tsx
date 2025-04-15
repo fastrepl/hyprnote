@@ -1,31 +1,58 @@
 import { Trans } from "@lingui/react/macro";
-import { SettingsIcon } from "lucide-react";
+import { CogIcon, CpuIcon } from "lucide-react";
 
 import Shortcut from "@/components/shortcut";
+import { useHypr } from "@/contexts";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@hypr/ui/components/ui/dropdown-menu";
 
 export function SettingsButton() {
+  const { userId } = useHypr();
+
   const handleClickSettings = () => {
     windowsCommands.windowShow({ type: "settings" });
   };
 
+  const handleClickProfile = () => {
+    windowsCommands.windowShow({ type: "human", value: userId });
+  };
+
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleClickSettings}
-          className="hover:bg-neutral-200"
-        >
-          <SettingsIcon className="size-4" />
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="hover:bg-neutral-200">
+          <CogIcon className="size-4" />
         </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <Trans>Open settings</Trans> <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
-      </TooltipContent>
-    </Tooltip>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="start">
+        <DropdownMenuLabel className="flex items-center gap-2 bg-neutral-600 rounded text-white">
+          <CpuIcon className="size-4" /> <Trans>Local mode</Trans>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem
+          onClick={handleClickSettings}
+          className="cursor-pointer"
+        >
+          <Trans>Settings</Trans>
+          <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleClickProfile}
+          className="cursor-pointer"
+        >
+          <Trans>My Profile</Trans>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -8,7 +8,6 @@ import {
   // FlaskConicalIcon,
   SettingsIcon,
   // SparklesIcon,
-  UserIcon,
   // UsersIcon,
 } from "lucide-react";
 
@@ -18,8 +17,6 @@ export function TabIcon({ tab }: { tab: Tab }) {
   switch (tab) {
     case "general":
       return <SettingsIcon className="h-4 w-4" />;
-    case "profile":
-      return <UserIcon className="h-4 w-4" />;
     // case "ai":
     //   return <SparklesIcon className="h-4 w-4" />;
     case "calendar":

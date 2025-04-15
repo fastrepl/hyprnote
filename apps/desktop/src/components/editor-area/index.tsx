@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -57,7 +57,7 @@ export default function EditorArea({
     sessionStore.refresh();
   }, [sessionStore.refresh, ongoingSessionStatus]);
 
-  const { enhance, animate } = useEnhanceMutation({
+  const enhance = useEnhanceMutation({
     sessionId,
     rawContent,
   });
@@ -160,7 +160,6 @@ export function useEnhanceMutation({
   rawContent: string;
 }) {
   const { userId, onboardingSessionId } = useHypr();
-  const [animate, setAnimate] = useState(false);
 
   const { persistSession, setEnhancedContent } = useSession(sessionId, (s) => ({
     persistSession: s.persistSession,
@@ -170,7 +169,6 @@ export function useEnhanceMutation({
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async () => {
-      setAnimate(true);
       const config = await dbCommands.getConfig();
       const participants = await dbCommands.sessionListParticipants(sessionId);
       const onboardingOutputExample = await dbCommands.onboardingSessionEnhancedMemoMd();
@@ -215,9 +213,7 @@ export function useEnhanceMutation({
         const html = await miscCommands.opinionatedMdToHtml(acc);
         setEnhancedContent(html);
       }
-      console.log("acc", acc);
 
-      setAnimate(false);
       return text.then(miscCommands.opinionatedMdToHtml);
     },
     onSuccess: () => {
@@ -236,7 +232,7 @@ export function useEnhanceMutation({
     },
   });
 
-  return { enhance, animate };
+  return enhance;
 }
 
 export function useAutoEnhance({

@@ -3,8 +3,8 @@ import { useState } from "react";
 
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { Session } from "@hypr/plugin-db";
-import { cn } from "@hypr/ui/lib/utils";
 import { SplashLoader } from "@hypr/ui/components/ui/splash";
+import { cn } from "@hypr/ui/lib/utils";
 import { useSession } from "@hypr/utils/contexts";
 
 interface FloatingButtonProps {
@@ -49,7 +49,7 @@ export function FloatingButton({
           "border-border px-4 py-2.5 transition-all ease-in-out",
           showRaw
             ? "bg-primary text-primary-foreground border-black hover:bg-neutral-800"
-            : "bg-background text-neutral-400 hover:bg-neutral-100"
+            : "bg-background text-neutral-400 hover:bg-neutral-100",
         )}
       >
         <TypeOutlineIcon size={20} />
@@ -65,17 +65,15 @@ export function FloatingButton({
           "border border-border px-4 py-2.5 transition-all ease-in-out",
           showRaw
             ? "bg-background text-neutral-400 hover:bg-neutral-100"
-            : "bg-primary text-primary-foreground border-black hover:bg-neutral-800"
+            : "bg-primary text-primary-foreground border-black hover:bg-neutral-800",
         )}
       >
-        {isEnhancePending ? (
-          <SplashLoader size={20} strokeWidth={2} />
-        ) : (
+        {isEnhancePending ? <SplashLoader size={20} strokeWidth={2} /> : (
           <div className="relative h-5 w-5">
             <div
               className={cn(
                 "absolute inset-0 transition-opacity duration-300",
-                isHovered ? "opacity-100" : "opacity-0"
+                isHovered ? "opacity-100" : "opacity-0",
               )}
             >
               <RefreshCwIcon size={20} />
@@ -83,7 +81,7 @@ export function FloatingButton({
             <div
               className={cn(
                 "absolute inset-0 transition-opacity duration-300",
-                isHovered ? "opacity-0" : "opacity-100"
+                isHovered ? "opacity-0" : "opacity-100",
               )}
             >
               <ZapIcon size={20} />

@@ -55,10 +55,9 @@ export const SplashLoader: React.FC<SplashLoaderProps> = ({
     if (pathRef.current) {
       const length = pathRef.current.getTotalLength();
 
-      const easeInOutProgress =
-        progress < 0.5
-          ? 2 * progress * progress
-          : -1 + (4 - 2 * progress) * progress;
+      const easeInOutProgress = progress < 0.5
+        ? 2 * progress * progress
+        : -1 + (4 - 2 * progress) * progress;
 
       const dynamicWormLength = MAX_WORM_LENGTH * Math.sin(progress * Math.PI);
 
@@ -85,18 +84,12 @@ export const SplashLoader: React.FC<SplashLoaderProps> = ({
           const remainingLength = length - head;
           const adjustedVisibleLength = Math.min(
             finalVisibleLength,
-            2 * remainingLength
+            2 * remainingLength,
           );
-          pathRef.current.style.strokeDasharray = `${adjustedVisibleLength} ${
-            length - adjustedVisibleLength
-          }`;
-          pathRef.current.style.strokeDashoffset = `${
-            length - head + adjustedVisibleLength / 2
-          }`;
+          pathRef.current.style.strokeDasharray = `${adjustedVisibleLength} ${length - adjustedVisibleLength}`;
+          pathRef.current.style.strokeDashoffset = `${length - head + adjustedVisibleLength / 2}`;
         } else {
-          pathRef.current.style.strokeDashoffset = `${
-            length - (head - halfVisibleLength)
-          }`;
+          pathRef.current.style.strokeDashoffset = `${length - (head - halfVisibleLength)}`;
         }
       }
     }

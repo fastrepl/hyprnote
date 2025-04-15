@@ -159,14 +159,22 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_mic_muted(&self) -> bool {
-        // TODO
-        true
+        let state = self.state::<crate::SharedState>();
+
+        {
+            let guard = state.lock().await;
+            guard.fsm.is_mic_muted()
+        }
     }
 
     #[tracing::instrument(skip_all)]
     async fn get_speaker_muted(&self) -> bool {
-        // TODO
-        true
+        let state = self.state::<crate::SharedState>();
+
+        {
+            let guard = state.lock().await;
+            guard.fsm.is_speaker_muted()
+        }
     }
 
     #[tracing::instrument(skip_all)]

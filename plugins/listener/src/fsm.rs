@@ -18,7 +18,9 @@ pub struct Session {
     session_id: Option<String>,
     channels: Arc<Mutex<HashMap<u32, Channel<SessionEvent>>>>,
     mic_muted_tx: Option<tokio::sync::watch::Sender<bool>>,
+    mic_muted_rx: Option<tokio::sync::watch::Receiver<bool>>,
     speaker_muted_tx: Option<tokio::sync::watch::Sender<bool>>,
+    speaker_muted_rx: Option<tokio::sync::watch::Receiver<bool>>,
     silence_stream_tx: Option<std::sync::mpsc::Sender<()>>,
     mic_stream_handle: Option<tokio::task::JoinHandle<()>>,
     speaker_stream_handle: Option<tokio::task::JoinHandle<()>>,
@@ -33,7 +35,9 @@ impl Session {
             session_id: None,
             channels: Arc::new(Mutex::new(HashMap::new())),
             mic_muted_tx: None,
+            mic_muted_rx: None,
             speaker_muted_tx: None,
+            speaker_muted_rx: None,
             silence_stream_tx: None,
             mic_stream_handle: None,
             speaker_stream_handle: None,
@@ -74,13 +78,15 @@ impl Session {
             None => vec![],
         };
 
-        let (mic_muted_tx, mic_muted_rx) = tokio::sync::watch::channel(false);
-        let (speaker_muted_tx, speaker_muted_rx) = tokio::sync::watch::channel(false);
+        let (mic_muted_tx, mic_muted_rx_main) = tokio::sync::watch::channel(false);
+        let (speaker_muted_tx, speaker_muted_rx_main) = tokio::sync::watch::channel(false);
         let (session_state_tx, session_state_rx) =
             tokio::sync::watch::channel(State::RunningActive {});
 
         self.mic_muted_tx = Some(mic_muted_tx);
+        self.mic_muted_rx = Some(mic_muted_rx_main.clone());
         self.speaker_muted_tx = Some(speaker_muted_tx);
+        self.speaker_muted_rx = Some(speaker_muted_rx_main.clone());
         self.session_state_tx = Some(session_state_tx);
 
         let listen_client = setup_listen_client(&self.app, jargons).await?;
@@ -109,6 +115,7 @@ impl Session {
         }
 
         self.mic_stream_handle = Some(tokio::spawn({
+            let mic_muted_rx = mic_muted_rx_main.clone();
             async move {
                 while let Some(actual) = mic_stream.next().await {
                     let maybe_muted = if *mic_muted_rx.borrow() {
@@ -126,6 +133,7 @@ impl Session {
         }));
 
         self.speaker_stream_handle = Some(tokio::spawn({
+            let speaker_muted_rx = speaker_muted_rx_main.clone();
             async move {
                 while let Some(actual) = speaker_stream.next().await {
                     let maybe_muted = if *speaker_muted_rx.borrow() {
@@ -270,6 +278,20 @@ impl Session {
         let mut channels = self.channels.lock().await;
         channels.clear();
     }
+
+    pub fn is_mic_muted(&self) -> bool {
+        self.mic_muted_rx
+            .as_ref()
+            .map(|rx| *rx.borrow())
+            .unwrap_or(false)
+    }
+
+    pub fn is_speaker_muted(&self) -> bool {
+        self.speaker_muted_rx
+            .as_ref()
+            .map(|rx| *rx.borrow())
+            .unwrap_or(false)
+    }
 }
 
 async fn setup_listen_client<R: tauri::Runtime>(
@@ -354,13 +376,13 @@ impl Session {
                 Handled
             }
             Event::MicMuted(muted) => {
-                if let Some(tx) = self.mic_muted_tx.take() {
+                if let Some(tx) = &self.mic_muted_tx {
                     let _ = tx.send(*muted);
                 }
                 Handled
             }
             Event::SpeakerMuted(muted) => {
-                if let Some(tx) = self.speaker_muted_tx.take() {
+                if let Some(tx) = &self.speaker_muted_tx {
                     let _ = tx.send(*muted);
                 }
                 Handled

@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -57,7 +57,7 @@ export default function EditorArea({
     sessionStore.refresh();
   }, [sessionStore.refresh, ongoingSessionStatus]);
 
-  const { enhance, animate } = useEnhanceMutation({
+  const enhance = useEnhanceMutation({
     sessionId,
     rawContent,
   });
@@ -81,8 +81,7 @@ export default function EditorArea({
 
   const noteContent = useMemo(
     () => (showRaw ? rawContent : enhancedContent),
-    // Replacing 'rawContent' with 'editorKey' in deps list is intentional. We don't want to rerender the entire editor during editing.
-    [showRaw, enhancedContent, editorKey],
+    [showRaw, enhancedContent, rawContent],
   );
 
   const handleClickEnhance = useCallback(() => {
@@ -109,7 +108,6 @@ export default function EditorArea({
       <div
         className={cn([
           "h-full overflow-y-auto",
-          !showRaw && animate && "tiptap-animate",
           enhancedContent && "pb-10",
         ])}
         onClick={(e) => {
@@ -126,6 +124,7 @@ export default function EditorArea({
                 handleChange={handleChangeNote}
                 initialContent={noteContent}
                 editable={enhance.status !== "pending"}
+                setContentFromOutside={!showRaw && enhance.status === "pending"}
               />
             )
             : <Renderer ref={editorRef} initialContent={noteContent} />}
@@ -161,7 +160,6 @@ export function useEnhanceMutation({
   rawContent: string;
 }) {
   const { userId, onboardingSessionId } = useHypr();
-  const [animate, setAnimate] = useState(false);
 
   const { persistSession, setEnhancedContent } = useSession(sessionId, (s) => ({
     persistSession: s.persistSession,
@@ -171,7 +169,6 @@ export function useEnhanceMutation({
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async () => {
-      setAnimate(false);
       const config = await dbCommands.getConfig();
       const participants = await dbCommands.sessionListParticipants(sessionId);
       const onboardingOutputExample = await dbCommands.onboardingSessionEnhancedMemoMd();
@@ -212,13 +209,11 @@ export function useEnhanceMutation({
 
       let acc = "";
       for await (const chunk of textStream) {
-        setAnimate(true);
         acc += chunk;
         const html = await miscCommands.opinionatedMdToHtml(acc);
         setEnhancedContent(html);
       }
 
-      setAnimate(false);
       return text.then(miscCommands.opinionatedMdToHtml);
     },
     onSuccess: () => {
@@ -237,7 +232,7 @@ export function useEnhanceMutation({
     },
   });
 
-  return { enhance, animate };
+  return enhance;
 }
 
 export function useAutoEnhance({

@@ -186,14 +186,17 @@ mod tests {
         }};
     }
 
-    async fn run(model: &Llama, request: LlamaRequest, print_stream: bool) {
+    async fn run(model: &Llama, request: LlamaRequest, print_stream: bool) -> String {
         use futures_util::pin_mut;
         use std::io::{self, Write};
 
         let stream = model.generate_stream(request).unwrap();
         pin_mut!(stream);
 
+        let mut acc = String::new();
+
         while let Some(token) = stream.next().await {
+            acc += &token;
             if print_stream {
                 print!("{}", token);
                 io::stdout().flush().unwrap();
@@ -203,6 +206,8 @@ mod tests {
         if print_stream {
             println!();
         }
+
+        acc
     }
 
     fn get_model() -> Llama {

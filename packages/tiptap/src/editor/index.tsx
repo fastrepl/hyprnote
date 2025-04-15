@@ -1,7 +1,7 @@
 import "../styles/tiptap.css";
 
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
-import { forwardRef, useEffect } from "react";
+import { forwardRef, useEffect, useRef } from "react";
 import * as shared from "../shared";
 
 export type { TiptapEditor };
@@ -11,10 +11,13 @@ interface EditorProps {
   handleChange: (content: HTMLContent) => void;
   initialContent: HTMLContent;
   editable?: boolean;
+  setContentFromOutside?: boolean;
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
-  ({ handleChange, initialContent, editable = true }, ref) => {
+  ({ handleChange, initialContent, editable = true, setContentFromOutside = false }, ref) => {
+    const previousContentRef = useRef<HTMLContent>(initialContent);
+
     const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
       if (!editor.isInitialized) {
         return;
@@ -47,10 +50,21 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
     }, [editor]);
 
     useEffect(() => {
-      if (editor) {
-        editor.commands.setContent(initialContent);
+      if (editor && (setContentFromOutside || previousContentRef.current !== initialContent)) {
+        previousContentRef.current = initialContent;
+        if (setContentFromOutside) {
+          const { from, to } = editor.state.selection;
+          editor.commands.setContent(initialContent);
+          editor.commands.markNewContent();
+
+          if (from > 0 && to > 0 && from < editor.state.doc.content.size) {
+            editor.commands.setTextSelection({ from, to });
+          }
+        } else if (!editor.isFocused) {
+          editor.commands.setContent(initialContent);
+        }
       }
-    }, [editor, initialContent]);
+    }, [editor, initialContent, setContentFromOutside]);
 
     useEffect(() => {
       if (editor) {

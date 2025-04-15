@@ -72,20 +72,14 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
   }, [ongoingSessionStatus, refetchMicMuted, refetchSpeakerMuted]);
 
   const toggleMicMuted = useMutation({
-    mutationFn: async () => {
-      await listenerCommands.setMicMuted(!isMicMuted);
-      return undefined;
-    },
+    mutationFn: () => listenerCommands.setMicMuted(!isMicMuted),
     onSuccess: () => {
       refetchMicMuted();
     },
   });
 
   const toggleSpeakerMuted = useMutation({
-    mutationFn: async () => {
-      await listenerCommands.setSpeakerMuted(!isSpeakerMuted);
-      return undefined;
-    },
+    mutationFn: () => listenerCommands.setSpeakerMuted(!isSpeakerMuted),
     onSuccess: () => {
       refetchSpeakerMuted();
     },

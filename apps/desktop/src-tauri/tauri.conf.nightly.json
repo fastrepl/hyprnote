@@ -19,6 +19,11 @@
       "icons/nightly/icon.icns",
       "icons/nightly/icon.ico"
     ],
+    "macOS": {
+      "dmg": {
+        "background": "assets/dmg-background-nightly.png"
+      }
+    },
     "windows": {
       "wix": {
         "language": "en-US",

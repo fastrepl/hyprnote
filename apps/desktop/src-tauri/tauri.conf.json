@@ -22,7 +22,17 @@
     "targets": "all",
     "macOS": {
       "minimumSystemVersion": "14.2",
-      "entitlements": "./Entitlements.plist"
+      "entitlements": "./Entitlements.plist",
+      "dmg": {
+        "appPosition": {
+          "x": 177,
+          "y": 200
+        },
+        "applicationFolderPosition": {
+          "x": 483,
+          "y": 200
+        }
+      }
     },
     "icon": [
       "icons/stable/32x32.png",

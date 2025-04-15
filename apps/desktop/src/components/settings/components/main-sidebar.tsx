@@ -19,29 +19,28 @@ export function MainSidebar({ current, onTabClick }: MainSidebarProps) {
               key={tab}
               className={cn(
                 "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
-                current === tab && "bg-neutral-100 font-medium",
+                current === tab && "bg-neutral-100 font-medium"
               )}
               onClick={() => onTabClick(tab)}
             >
               <TabIcon tab={tab} />
               <span>
-                {tab === "general" ? <Trans>General</Trans> : tab === "profile"
-                  ? <Trans>Profile</Trans> // : tab === "ai"
-                  // ? <Trans>AI</Trans>
-                  : tab === "calendar"
-                  ? <Trans>Calendar</Trans> // : tab === "notifications"
-                  // ? <Trans>Notifications</Trans>
-                  : tab === "sound"
-                  ? <Trans>Sound</Trans> // : tab === "templates"
-                  // ? <Trans>Templates</Trans>
-                  : tab === "extensions"
-                  ? <Trans>Extensions</Trans> // : tab === "team"
-                  // ? <Trans>Team</Trans>
-                  // : tab === "billing"
-                  // ? <Trans>Billing</Trans>
-                  // : tab === "lab"
-                  // ? <Trans>Lab</Trans>
-                  : null}
+                {tab === "general" ? (
+                  <Trans>General</Trans>
+                ) : tab === "calendar" ? (
+                  <Trans>Calendar</Trans> // : tab === "notifications"
+                ) : // ? <Trans>Notifications</Trans>
+                tab === "sound" ? (
+                  <Trans>Sound</Trans> // : tab === "templates"
+                ) : // ? <Trans>Templates</Trans>
+                tab === "extensions" ? (
+                  <Trans>Extensions</Trans> // : tab === "team"
+                ) : // ? <Trans>Team</Trans>
+                // : tab === "billing"
+                // ? <Trans>Billing</Trans>
+                // : tab === "lab"
+                // ? <Trans>Lab</Trans>
+                null}
               </span>
             </button>
           ))}

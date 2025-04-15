@@ -1,5 +1,9 @@
 import { Trans } from "@lingui/react/macro";
-import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  useNavigate,
+  useSearch,
+} from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { ArrowLeft } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
@@ -17,14 +21,17 @@ import {
   Calendar,
   Extensions,
   General,
-  Profile,
   // Lab,
   // LocalAI,
   // Notifications,
   Sound,
   // TemplateEditor,
 } from "@/components/settings/views";
-import { EXTENSION_CONFIGS, ExtensionName, ExtensionNames } from "@hypr/extension-registry";
+import {
+  EXTENSION_CONFIGS,
+  ExtensionName,
+  ExtensionNames,
+} from "@hypr/extension-registry";
 import { type ExtensionDefinition } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 
@@ -46,16 +53,17 @@ function Component() {
 
   const extensionsList = useMemo(() => {
     return EXTENSION_CONFIGS.map(
-      (config) => ({
-        id: config.id,
-        title: config.title,
-        description: config.description || "",
-        tags: config.tags || [],
-        default: config.default || false,
-        cloud_only: config.cloud_only || false,
-        plugins: config.plugins || [],
-        implemented: true,
-      } as ExtensionDefinition),
+      (config) =>
+        ({
+          id: config.id,
+          title: config.title,
+          description: config.description || "",
+          tags: config.tags || [],
+          default: config.default || false,
+          cloud_only: config.cloud_only || false,
+          plugins: config.plugins || [],
+          implemented: true,
+        } as ExtensionDefinition)
     );
   }, []);
 
@@ -72,9 +80,9 @@ function Component() {
     const query = searchQuery.toLowerCase();
     return extensionsList.filter(
       (extension) =>
-        extension.title.toLowerCase().includes(query)
-        || extension.description.toLowerCase().includes(query)
-        || extension.tags.some((tag) => tag.toLowerCase().includes(query)),
+        extension.title.toLowerCase().includes(query) ||
+        extension.description.toLowerCase().includes(query) ||
+        extension.tags.some((tag) => tag.toLowerCase().includes(query))
     );
   }, [extensionsList, searchQuery]);
 
@@ -82,19 +90,19 @@ function Component() {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setSearchQuery(e.target.value);
     },
-    [],
+    []
   );
 
   const handleExtensionSelect = useCallback(
     (extension: ExtensionName) => {
       navigate({ to: PATH, search: { ...search, extension } });
     },
-    [navigate, search],
+    [navigate, search]
   );
 
   const selectedExtension = useMemo(() => {
     return filteredExtensions.find(
-      (extension) => extension.id === search.extension,
+      (extension) => extension.id === search.extension
     )!;
   }, [filteredExtensions, search.extension]);
 
@@ -124,12 +132,11 @@ function Component() {
             </div>
 
             {/* {current !== "templates" && current !== "extensions" */}
-            {search.tab !== "extensions"
-              ? <MainSidebar current={search.tab} onTabClick={handleClickTab} />
-              : (
-                <div className="flex h-full flex-col">
-                  {
-                    /* {current === "templates" && (
+            {search.tab !== "extensions" ? (
+              <MainSidebar current={search.tab} onTabClick={handleClickTab} />
+            ) : (
+              <div className="flex h-full flex-col">
+                {/* {current === "templates" && (
                     <TemplatesSidebar
                       searchQuery={searchQuery}
                       onSearchChange={handleSearchChange}
@@ -138,20 +145,19 @@ function Component() {
                       selectedTemplate={selectedTemplate}
                       onTemplateSelect={setSelectedTemplate}
                     />
-                  )} */
-                  }
+                  )} */}
 
-                  {search.tab === "extensions" && (
-                    <ExtensionsSidebar
-                      searchQuery={searchQuery}
-                      onSearchChange={handleSearchChange}
-                      extensions={filteredExtensions}
-                      selectedExtension={search.extension}
-                      onExtensionSelect={handleExtensionSelect}
-                    />
-                  )}
-                </div>
-              )}
+                {search.tab === "extensions" && (
+                  <ExtensionsSidebar
+                    searchQuery={searchQuery}
+                    onSearchChange={handleSearchChange}
+                    extensions={filteredExtensions}
+                    selectedExtension={search.extension}
+                    onExtensionSelect={handleExtensionSelect}
+                  />
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex-1 flex h-full w-full flex-col overflow-hidden">
@@ -162,13 +168,11 @@ function Component() {
 
             <div className="flex-1 overflow-auto p-6">
               {search.tab === "general" && <General />}
-              {search.tab === "profile" && <Profile />}
               {/* {search.tab === "ai" && <LocalAI />} */}
               {search.tab === "calendar" && <Calendar />}
               {/* {current === "notifications" && <Notifications />} */}
               {search.tab === "sound" && <Sound />}
-              {
-                /* {current === "templates" && (
+              {/* {current === "templates" && (
                 <TemplateEditor
                   disabled={false}
                   template={customTemplates.find(template => template.id === selectedTemplate)
@@ -182,18 +186,15 @@ function Component() {
                   }}
                   onTemplateUpdate={handleTemplateUpdate}
                 />
-              )} */
-              }
+              )} */}
               {search.tab === "extensions" && (
                 <Extensions
                   selectedExtension={selectedExtension}
                   onExtensionSelect={handleExtensionSelect}
                 />
               )}
-              {
-                /* {current === "team" && <Team />}
-              {current === "billing" && <Billing />} */
-              }
+              {/* {current === "team" && <Team />}
+              {current === "billing" && <Billing />} */}
               {/* {current === "lab" && <Lab />} */}
             </div>
           </div>

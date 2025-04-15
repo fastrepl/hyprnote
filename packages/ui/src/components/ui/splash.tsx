@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { cn } from "../../lib/utils";
 
-const DURATION = 600;
+const DURATION = 1500;
 const MAX_WORM_LENGTH = 0.6;
 
 interface SplashProps {
@@ -10,9 +10,16 @@ interface SplashProps {
   repeatCount?: number;
 }
 
-export const Splash: React.FC<SplashProps> = ({
+interface SplashLoaderProps extends SplashProps {
+  size?: number;
+  strokeWidth?: number;
+}
+
+export const SplashLoader: React.FC<SplashLoaderProps> = ({
   className,
   repeatCount = Infinity,
+  size = 64,
+  strokeWidth = 2,
 }) => {
   const [progress, setProgress] = useState(0);
   const pathRef = useRef<SVGPathElement>(null);
@@ -48,9 +55,10 @@ export const Splash: React.FC<SplashProps> = ({
     if (pathRef.current) {
       const length = pathRef.current.getTotalLength();
 
-      const easeInOutProgress = progress < 0.5
-        ? 2 * progress * progress
-        : -1 + (4 - 2 * progress) * progress;
+      const easeInOutProgress =
+        progress < 0.5
+          ? 2 * progress * progress
+          : -1 + (4 - 2 * progress) * progress;
 
       const dynamicWormLength = MAX_WORM_LENGTH * Math.sin(progress * Math.PI);
 
@@ -75,56 +83,82 @@ export const Splash: React.FC<SplashProps> = ({
           pathRef.current.style.strokeDashoffset = `${length}`;
         } else if (head > length - halfVisibleLength) {
           const remainingLength = length - head;
-          const adjustedVisibleLength = Math.min(finalVisibleLength, 2 * remainingLength);
-          pathRef.current.style.strokeDasharray = `${adjustedVisibleLength} ${length - adjustedVisibleLength}`;
-          pathRef.current.style.strokeDashoffset = `${length - head + adjustedVisibleLength / 2}`;
+          const adjustedVisibleLength = Math.min(
+            finalVisibleLength,
+            2 * remainingLength
+          );
+          pathRef.current.style.strokeDasharray = `${adjustedVisibleLength} ${
+            length - adjustedVisibleLength
+          }`;
+          pathRef.current.style.strokeDashoffset = `${
+            length - head + adjustedVisibleLength / 2
+          }`;
         } else {
-          pathRef.current.style.strokeDashoffset = `${length - (head - halfVisibleLength)}`;
+          pathRef.current.style.strokeDashoffset = `${
+            length - (head - halfVisibleLength)
+          }`;
         }
       }
     }
   }, [progress]);
 
   return (
-    <div className={cn("flex items-center justify-center", className)}>
-      <div className="relative">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="64"
-          height="64"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="rgba(0, 0, 0, 0.1)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />
-        </svg>
+    <div className={cn("relative", className)}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="rgba(0, 0, 0, 0.1)"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />
+      </svg>
 
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="64"
-          height="64"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#fbbf24"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="absolute inset-0"
-        >
-          <path
-            ref={pathRef}
-            d="M13 2.17l-9.9 10.2A1 1 0 0 0 4 14h7a1 1 0 0 1 .94 1.35l-1.92 6.02a.5.5 0 0 0 .86.46l9.9-10.2A1 1 0 0 0 20 10h-7a1 1 0 0 1-.94-1.35l1.92-6.02a.5.5 0 0 0-.86-.46z"
-            style={{
-              transformOrigin: "center",
-            }}
-          />
-        </svg>
-      </div>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#fbbf24"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="absolute inset-0"
+      >
+        <path
+          ref={pathRef}
+          d="M13 2.17l-9.9 10.2A1 1 0 0 0 4 14h7a1 1 0 0 1 .94 1.35l-1.92 6.02a.5.5 0 0 0 .86.46l9.9-10.2A1 1 0 0 0 20 10h-7a1 1 0 0 1-.94-1.35l1.92-6.02a.5.5 0 0 0-.86-.46z"
+          style={{
+            transformOrigin: "center",
+          }}
+        />
+      </svg>
     </div>
   );
 };
+
+export const SplashScreen: React.FC<SplashLoaderProps> = ({
+  className,
+  repeatCount = Infinity,
+  size,
+  strokeWidth,
+}) => {
+  return (
+    <div className={cn("flex items-center justify-center", className)}>
+      <SplashLoader
+        repeatCount={repeatCount}
+        size={size}
+        strokeWidth={strokeWidth}
+      />
+    </div>
+  );
+};
+
+export const Splash = SplashScreen;
 
 export default Splash;

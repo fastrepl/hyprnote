@@ -8,7 +8,7 @@ import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 export function useTranscript(sessionId: string | null) {
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const isEnhanced = sessionId ? useSession(sessionId, (s) => !!s.session.enhanced_memo_html) : false;
-  const isLive = useMemo(() => ongoingSessionStatus === "active", [ongoingSessionStatus]);
+  const isLive = useMemo(() => ongoingSessionStatus === "running_active", [ongoingSessionStatus]);
 
   const [timeline, setTimeline] = useState<TimelineView | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string>("en");
@@ -32,7 +32,7 @@ export function useTranscript(sessionId: string | null) {
   }, [sessionId, isEnhanced]);
 
   useEffect(() => {
-    if (ongoingSessionStatus !== "active") {
+    if (ongoingSessionStatus !== "running_active") {
       return;
     }
 

@@ -44,15 +44,18 @@ impl From<PredefinedTemplate> for Template {
     }
 }
 
-const ENHANCE_SYSTEM: &str = include_str!("../assets/enhance.system.jinja");
-const ENHANCE_USER: &str = include_str!("../assets/enhance.user.jinja");
+pub const ENHANCE_SYSTEM_TPL: &str = include_str!("../assets/enhance.system.jinja");
+pub const ENHANCE_USER_TPL: &str = include_str!("../assets/enhance.user.jinja");
 
 pub fn init(env: &mut minijinja::Environment) {
     env.set_unknown_method_callback(minijinja_contrib::pycompat::unknown_method_callback);
 
-    env.add_template(PredefinedTemplate::EnhanceSystem.as_ref(), ENHANCE_SYSTEM)
-        .unwrap();
-    env.add_template(PredefinedTemplate::EnhanceUser.as_ref(), ENHANCE_USER)
+    env.add_template(
+        PredefinedTemplate::EnhanceSystem.as_ref(),
+        ENHANCE_SYSTEM_TPL,
+    )
+    .unwrap();
+    env.add_template(PredefinedTemplate::EnhanceUser.as_ref(), ENHANCE_USER_TPL)
         .unwrap();
 
     env.add_filter("language", filters::language);

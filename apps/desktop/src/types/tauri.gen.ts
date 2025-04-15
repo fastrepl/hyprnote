@@ -18,6 +18,9 @@ async setOnboardingNeeded(v: boolean) : Promise<null> {
 },
 async setupDbForCloud() : Promise<null> {
     return await TAURI_INVOKE("setup_db_for_cloud");
+},
+async setAutostart(autostart: boolean) : Promise<null> {
+    return await TAURI_INVOKE("set_autostart", { autostart });
 }
 }
 

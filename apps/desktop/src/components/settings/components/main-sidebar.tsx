@@ -25,23 +25,17 @@ export function MainSidebar({ current, onTabClick }: MainSidebarProps) {
             >
               <TabIcon tab={tab} />
               <span>
-                {tab === "general"
-                  ? <Trans>General</Trans>
-                  : tab === "profile"
-                  ? <Trans>Profile</Trans>
-                  : tab === "ai"
-                  ? <Trans>AI</Trans>
+                {tab === "general" ? <Trans>General</Trans> : tab === "profile"
+                  ? <Trans>Profile</Trans> // : tab === "ai"
+                  // ? <Trans>AI</Trans>
                   : tab === "calendar"
-                  ? <Trans>Calendar</Trans>
-                  // : tab === "notifications"
+                  ? <Trans>Calendar</Trans> // : tab === "notifications"
                   // ? <Trans>Notifications</Trans>
-                  : tab === "permissions"
-                  ? <Trans>Permissions</Trans>
-                  // : tab === "templates"
+                  : tab === "sound"
+                  ? <Trans>Sound</Trans> // : tab === "templates"
                   // ? <Trans>Templates</Trans>
                   : tab === "extensions"
-                  ? <Trans>Extensions</Trans>
-                  // : tab === "team"
+                  ? <Trans>Extensions</Trans> // : tab === "team"
                   // ? <Trans>Team</Trans>
                   // : tab === "billing"
                   // ? <Trans>Billing</Trans>

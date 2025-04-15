@@ -146,5 +146,4 @@ deepgram = { version = "0.6.6", default-features = false }
 libsql = "0.9.1"
 
 [patch.crates-io]
-# This includes a currently-unreleased fix that ensures the audio stream is actually stopped and released on drop on macOS.
-cpal = { git = "https://github.com/RustAudio/cpal", rev = "f43d36e55494993bbbde3299af0c53e5cdf4d4cf" }
+cpal = { git = "https://github.com/RustAudio/cpal", rev = "51c3b43" }

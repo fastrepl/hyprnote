@@ -15,9 +15,10 @@ serde_json = { workspace = true }
 futures-channel = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
-
-rodio = { workspace = true, features = ["vorbis"] }
 tokio-stream = { workspace = true }
+
+cpal = { workspace = true }
+rodio = { workspace = true, features = ["vorbis"] }
 
 kalosm-sound = { workspace = true, default-features = false }
 ringbuf = "0.4.8"

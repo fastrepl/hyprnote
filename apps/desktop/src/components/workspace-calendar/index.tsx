@@ -18,7 +18,11 @@ type CalendarItem = Event | Session;
 const HEADER_HEIGHT = 32;
 const EVENT_HEIGHT = 20;
 
-export default function WorkspaceCalendar({ sessions, events, month }: WorkspaceCalendarProps) {
+export default function WorkspaceCalendar({
+  sessions,
+  events,
+  month,
+}: WorkspaceCalendarProps) {
   const today = new Date();
 
   const calendarRef = useRef<HTMLDivElement>(null);
@@ -45,7 +49,7 @@ export default function WorkspaceCalendar({ sessions, events, month }: Workspace
     };
 
     const observer = new ResizeObserver((entries) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         const height = entry.contentRect.height;
         if (height > 75 * 6) {
           updateCellHeight(height);
@@ -63,13 +67,17 @@ export default function WorkspaceCalendar({ sessions, events, month }: Workspace
 
   const getSessionsForDay = (date: Date) => {
     return sessions.filter(
-      (session) => format(new Date(session.created_at), "yyyy-MM-dd") === format(date, "yyyy-MM-dd"),
+      (session) =>
+        format(new Date(session.created_at), "yyyy-MM-dd")
+          === format(date, "yyyy-MM-dd"),
     );
   };
 
   const getEventsForDay = (date: Date) => {
     return events.filter(
-      (event) => format(new Date(event.start_date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd"),
+      (event) =>
+        format(new Date(event.start_date), "yyyy-MM-dd")
+          === format(date, "yyyy-MM-dd"),
     );
   };
 
@@ -97,7 +105,10 @@ export default function WorkspaceCalendar({ sessions, events, month }: Workspace
     const monthStart = startOfMonth(currentMonth);
 
     const startDay = getDay(monthStart);
-    const firstDayToShow = subDays(monthStart, startDay === 0 ? 6 : startDay - 1);
+    const firstDayToShow = subDays(
+      monthStart,
+      startDay === 0 ? 6 : startDay - 1,
+    );
 
     const lastDayToShow = addDays(firstDayToShow, 41);
 
@@ -123,17 +134,24 @@ export default function WorkspaceCalendar({ sessions, events, month }: Workspace
         const monthName = isFirstDayOfMonth ? format(day, "MMM") : "";
 
         const totalItems = dayItems.length;
-        const maxPossibleEvents = Math.floor((cellHeight + 1 - HEADER_HEIGHT) / EVENT_HEIGHT);
+        const maxPossibleEvents = Math.floor(
+          (cellHeight + 1 - HEADER_HEIGHT) / EVENT_HEIGHT,
+        );
         const visibleCount = maxPossibleEvents >= 2 && totalItems > maxPossibleEvents
           ? maxPossibleEvents - 1
           : Math.min(totalItems, visibleEvents);
 
         const visibleItemsArray = dayItems
           .sort((a, b) => {
-            const aDate = ("calendar_event_id" in a) ? new Date(a.created_at) : new Date(a.start_date);
-            const bDate = ("calendar_event_id" in b) ? new Date(b.created_at) : new Date(b.start_date);
+            const aDate = "calendar_event_id" in a
+              ? new Date(a.created_at)
+              : new Date(a.start_date);
+            const bDate = "calendar_event_id" in b
+              ? new Date(b.created_at)
+              : new Date(b.start_date);
             return aDate.getTime() - bDate.getTime();
-          }).slice(0, visibleCount);
+          })
+          .slice(0, visibleCount);
 
         const hiddenCount = totalItems > maxPossibleEvents
           ? totalItems - maxPossibleEvents + 1
@@ -150,7 +168,12 @@ export default function WorkspaceCalendar({ sessions, events, month }: Workspace
             )}
           >
             <div className="flex items-center justify-end px-1 text-sm h-8">
-              <div className={cn("flex items-end gap-1", isHighlighted && "items-center")}>
+              <div
+                className={cn(
+                  "flex items-end gap-1",
+                  isHighlighted && "items-center",
+                )}
+              >
                 {isFirstDayOfMonth && (
                   <span
                     className={cn(
@@ -166,7 +189,10 @@ export default function WorkspaceCalendar({ sessions, events, month }: Workspace
                 )}
 
                 <div
-                  className={cn(isHighlighted && "bg-red-500 rounded-full w-6 h-6 flex items-center justify-center")}
+                  className={cn(
+                    isHighlighted
+                      && "bg-red-500 rounded-full w-6 h-6 flex items-center justify-center",
+                  )}
                 >
                   <span
                     className={cn(
@@ -190,18 +216,17 @@ export default function WorkspaceCalendar({ sessions, events, month }: Workspace
                 <>
                   {visibleItemsArray.length > 0 && (
                     <div className="px-1">
-                      {visibleItemsArray
-                        .map((item) => (
-                          <div key={"id" in item ? item.id : ""}>
-                            {"calendar_event_id" in item
-                              ? <NoteCard session={item as Session} />
-                              : <EventCard event={item as Event} />}
-                          </div>
-                        ))}
+                      {visibleItemsArray.map((item) => (
+                        <div key={"id" in item ? item.id : ""}>
+                          {"calendar_event_id" in item
+                            ? <NoteCard session={item as Session} />
+                            : <EventCard event={item as Event} />}
+                        </div>
+                      ))}
                     </div>
                   )}
 
-                  {(hiddenCount > 0) && (
+                  {hiddenCount > 0 && (
                     <Popover>
                       <PopoverTrigger asChild>
                         <div className="text-xs text-neutral-600 rounded py-0.5 cursor-pointer hover:bg-neutral-200 mx-1 h-5">
@@ -209,7 +234,7 @@ export default function WorkspaceCalendar({ sessions, events, month }: Workspace
                         </div>
                       </PopoverTrigger>
                       <PopoverContent
-                        className="w-80 p-4 max-h-80 space-y-1 overflow-y-auto bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0"
+                        className="w-80 p-4 max-h-52 space-y-1 overflow-y-auto bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0"
                         align="start"
                       >
                         <div className="text-lg font-semibold text-neutral-800">
@@ -218,8 +243,12 @@ export default function WorkspaceCalendar({ sessions, events, month }: Workspace
 
                         {dayItems
                           .sort((a, b) => {
-                            const aDate = ("calendar_event_id" in a) ? new Date(a.created_at) : new Date(a.start_date);
-                            const bDate = ("calendar_event_id" in b) ? new Date(b.created_at) : new Date(b.start_date);
+                            const aDate = "calendar_event_id" in a
+                              ? new Date(a.created_at)
+                              : new Date(a.start_date);
+                            const bDate = "calendar_event_id" in b
+                              ? new Date(b.created_at)
+                              : new Date(b.start_date);
                             return aDate.getTime() - bDate.getTime();
                           })
                           .map((item) => (

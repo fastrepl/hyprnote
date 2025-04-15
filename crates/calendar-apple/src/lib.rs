@@ -124,6 +124,10 @@ impl Handle {
 
 impl CalendarSource for Handle {
     async fn list_calendars(&self) -> Result<Vec<Calendar>, Error> {
+        if !self.calendar_access_granted {
+            return Err(anyhow::anyhow!("calendar_access_denied"));
+        }
+
         let calendars = unsafe { self.event_store.calendars() };
 
         let list = calendars
@@ -152,6 +156,10 @@ impl CalendarSource for Handle {
     }
 
     async fn list_events(&self, filter: EventFilter) -> Result<Vec<Event>, Error> {
+        if !self.calendar_access_granted {
+            return Err(anyhow::anyhow!("calendar_access_denied"));
+        }
+
         let predicate = self.events_predicate(&filter);
         let events = unsafe { self.event_store.eventsMatchingPredicate(&predicate) };
 

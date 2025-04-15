@@ -42,7 +42,7 @@ function Component() {
     <>
       <HyprProvider>
         <SessionsProvider store={sessionsStore}>
-          <OngoingSessionProvider>
+          <OngoingSessionProvider sessionsStore={sessionsStore}>
             <LeftSidebarProvider>
               <RightPanelProvider>
                 <AudioPermissions />

@@ -1,8 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-
-import { commands as flagsCommands } from "@hypr/plugin-flags";
 
 export type RightPanelView = "chat" | "widget";
 
@@ -23,15 +20,10 @@ export function RightPanelProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [currentView, setCurrentView] = useState<RightPanelView>("widget");
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
-
-  const noteChatQuery = useQuery({
-    queryKey: ["flags", "ChatRightPanel"],
-    queryFn: () => flagsCommands.isEnabled("ChatRightPanel"),
-  });
 
   const hidePanel = useCallback(() => {
     setIsExpanded(false);
@@ -47,51 +39,54 @@ export function RightPanelProvider({
     setCurrentView(view);
   }, []);
 
-  const togglePanel = useCallback((view?: RightPanelView) => {
-    if (view && isExpanded && currentView !== view) {
-      setCurrentView(view);
+  const togglePanel = useCallback(
+    (view?: RightPanelView) => {
+      if (view && isExpanded && currentView !== view) {
+        setCurrentView(view);
 
-      if (view === "chat") {
-        setTimeout(() => {
-          if (chatInputRef.current) {
-            chatInputRef.current.focus();
-          }
-        }, 350);
-      }
-    } else {
-      if (!isExpanded) {
-        previouslyFocusedElement.current = document.activeElement as HTMLElement;
-
-        setIsExpanded(true);
-
-        const targetView = view || currentView;
-        if (targetView === "chat") {
+        if (view === "chat") {
           setTimeout(() => {
-            const focusInput = () => {
-              if (chatInputRef.current) {
-                chatInputRef.current.focus();
-              } else {
-                setTimeout(focusInput, 50);
-              }
-            };
-            focusInput();
+            if (chatInputRef.current) {
+              chatInputRef.current.focus();
+            }
           }, 350);
         }
       } else {
-        setIsExpanded(false);
+        if (!isExpanded) {
+          previouslyFocusedElement.current = document.activeElement as HTMLElement;
 
-        setTimeout(() => {
-          if (previouslyFocusedElement.current) {
-            previouslyFocusedElement.current.focus();
+          setIsExpanded(true);
+
+          const targetView = view || currentView;
+          if (targetView === "chat") {
+            setTimeout(() => {
+              const focusInput = () => {
+                if (chatInputRef.current) {
+                  chatInputRef.current.focus();
+                } else {
+                  setTimeout(focusInput, 50);
+                }
+              };
+              focusInput();
+            }, 350);
           }
-        }, 350);
-      }
+        } else {
+          setIsExpanded(false);
 
-      if (view) {
-        setCurrentView(view);
+          setTimeout(() => {
+            if (previouslyFocusedElement.current) {
+              previouslyFocusedElement.current.focus();
+            }
+          }, 350);
+        }
+
+        if (view) {
+          setCurrentView(view);
+        }
       }
-    }
-  }, [isExpanded, currentView]);
+    },
+    [isExpanded, currentView],
+  );
 
   useHotkeys(
     "mod+r",
@@ -123,10 +118,6 @@ export function RightPanelProvider({
   useHotkeys(
     "mod+j",
     (event) => {
-      if (!noteChatQuery.data) {
-        return;
-      }
-
       event.preventDefault();
 
       if (isExpanded && currentView === "chat") {

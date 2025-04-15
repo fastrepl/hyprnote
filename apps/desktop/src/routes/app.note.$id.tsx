@@ -3,6 +3,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 
 import EditorArea from "@/components/editor-area";
+import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 import {
   commands as windowsCommands,
@@ -105,6 +106,8 @@ function OnboardingSupport({ session }: { session: Session }) {
     queryFn: () => dbCommands.onboardingSessionId(),
   });
 
+  const isEnhancePending = useEnhancePendingState(session.id);
+
   const enabled = useMemo(() => {
     const isOnboardingSession = onboardingSessionId.data === session.id;
     const alreadyEnhanced = session.enhanced_memo_html !== null;
@@ -116,11 +119,11 @@ function OnboardingSupport({ session }: { session: Session }) {
     session.enhanced_memo_html,
   ]);
 
-  const { startOngoingSession, pauseOngoingSession, ongoingSessionStatus } = useOngoingSession((
+  const { startOngoingSession, stopOngoingSession, ongoingSessionStatus } = useOngoingSession((
     s,
   ) => ({
     startOngoingSession: s.start,
-    pauseOngoingSession: s.pause,
+    stopOngoingSession: s.stop,
     ongoingSessionStatus: s.status,
   }));
 
@@ -131,7 +134,7 @@ function OnboardingSupport({ session }: { session: Session }) {
 
     windowsEvents.windowDestroyed.listen(({ payload: { window } }) => {
       if (window.type === "video" && window.value === video) {
-        pauseOngoingSession();
+        stopOngoingSession();
 
         if (onboardingSessionId.data) {
           navigate({ to: "/app/note/$id", params: { id: onboardingSessionId.data } });
@@ -149,7 +152,7 @@ function OnboardingSupport({ session }: { session: Session }) {
       return;
     }
 
-    if (ongoingSessionStatus === "inactive") {
+    if (ongoingSessionStatus === "inactive" && !isEnhancePending) {
       startOngoingSession(session.id);
     }
   }, [enabled]);
@@ -159,7 +162,7 @@ function OnboardingSupport({ session }: { session: Session }) {
       return;
     }
 
-    if (ongoingSessionStatus === "active") {
+    if (ongoingSessionStatus === "running_active" && !isEnhancePending) {
       windowsCommands.windowShow({ type: "video", value: video }).then(() => {
         windowsCommands.windowPosition({ type: "video", value: video }, "left-half");
         windowsCommands.windowPosition({ type: "main" }, "right-half");

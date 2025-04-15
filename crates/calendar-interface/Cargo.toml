@@ -5,7 +5,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
-thiserror = { workspace = true }
 
 chrono = { workspace = true, features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }

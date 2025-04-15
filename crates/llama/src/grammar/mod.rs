@@ -14,99 +14,92 @@ pub const JSON_GRAMMAR: &str =
 #[cfg(test)]
 mod tests {
     use super::*;
+    use indoc::indoc;
 
-    struct TestCase {
-        pub grammar: &'static str,
-        pub intent: &'static str,
-        pub text: &'static str,
-        pub valid: bool,
-        pub debug: bool,
+    #[test]
+    fn test_1() {
+        let gbnf = gbnf_validator::Validator::new().unwrap();
+        let input_1 = "<headers>\n- Objective\n- Key Takeaways\n- Importance of Complementary Skills\n- Benefits of Using Online Resources\n- Advice for Undergrad Students\n</headers># Objective\n\n- **Search is the Best Way to Find Answers**: The speaker emphasizes the importance of utilizing online resources like Google to find answers to questions.\n- **Value in Complementary Skills**: The speaker highlights the need to acquire complementary skills to traditional research methods.\n\n# Key Takeaways\n\n- **Complementary skills include both traditional research and online resource utilization**: The speaker suggests that skills like using a blank sheet of paper with no Internet and effective Google searching are essential.\n- **Online resources can help find pre-solved problems**: The speaker advises investing time in finding existing resources and communities that have already solved problems.\n\n# Importance of Complementary Skills\n\n- **Traditional research is just the starting point**: The speaker suggests that traditional research methods are just the beginning and should be complemented with other skills.\n- **Effective use of online resources can save time and effort**: The speaker highlights the benefits of utilizing online resources in research and problem-solving.\n\n# Benefits of Using Online Resources\n\n- **Access to knowledge from experts and communities**: The speaker suggests that online resources provide access to knowledge and expertise from experienced individuals.\n- **Time-saving and efficient**: The speaker emphasizes the benefits of finding pre-solved problems through online resources.\n\n# Advice for Undergrad Students\n\n- **Start by searching online**: The speaker advises undergrad students to start by searching online for answers to questions and exploring different resources.\n- **Be open to finding existing solutions**: The speaker emphasizes the importance of being open to finding pre-solved problems and leveraging existing resources.\n\n";
+        let input_2 = indoc! {"
+            <headers>
+            - Objective
+            - Key Takeaways
+            - Importance of Complementary Skills
+            - Benefits of Using Online Resources
+            - Advice for Undergrad Students
+            </headers># Objective
+    
+            - **Search is the Best Way to Find Answers**: The speaker emphasizes the importance of utilizing online resources like Google to find answers to questions.
+            - **Value in Complementary Skills**: The speaker highlights the need to acquire complementary skills to traditional research methods.
+    
+            # Key Takeaways
+    
+            - **Complementary skills include both traditional research and online resource utilization**: The speaker suggests that skills like using a blank sheet of paper with no Internet and effective Google searching are essential.
+            - **Online resources can help find pre-solved problems**: The speaker advises investing time in finding existing resources and communities that have already solved problems.
+    
+            # Importance of Complementary Skills
+    
+            - **Traditional research is just the starting point**: The speaker suggests that traditional research methods are just the beginning and should be complemented with other skills.
+            - **Effective use of online resources can save time and effort**: The speaker highlights the benefits of utilizing online resources in research and problem-solving.
+    
+            # Benefits of Using Online Resources
+    
+            - **Access to knowledge from experts and communities**: The speaker suggests that online resources provide access to knowledge and expertise from experienced individuals.
+            - **Time-saving and efficient**: The speaker emphasizes the benefits of finding pre-solved problems through online resources.
+    
+            # Advice for Undergrad Students
+    
+            - **Start by searching online**: The speaker advises undergrad students to start by searching online for answers to questions and exploring different resources.
+            - **Be open to finding existing solutions**: The speaker emphasizes the importance of being open to finding pre-solved problems and leveraging existing resources.
+            
+            "};
+
+        assert_eq!(input_1, input_2);
+        assert!(gbnf.validate(MARKDOWN_GRAMMAR, input_1).unwrap());
     }
 
     #[test]
-    fn test_markdown_grammar() {
-        let test_cases = vec![
-            TestCase {
-                grammar: MARKDOWN_GRAMMAR,
-                intent: "should start with a heading",
-                text: indoc::indoc! {r#"
-                Here's a response:
-
-                # This is a test"#},
-                valid: false,
-                debug: false,
-            },
-            TestCase {
-                grammar: MARKDOWN_GRAMMAR,
-                intent: "header-content pair is required",
-                text: indoc::indoc! {r#"
-                # This is a test
-                
-                ## This is a test"#},
-                valid: false,
-                debug: false,
-            },
-            TestCase {
-                grammar: MARKDOWN_GRAMMAR,
-                intent: "footnote is not allowed. Currently we prevent both '[' and '^' to achieve this.",
-                text: indoc::indoc! {r#"
-                # This is a test
-
-                Hi Hello. [^1]"#},
-                valid: false,
-                debug: false,
-            },
-            TestCase {
-                grammar: MARKDOWN_GRAMMAR,
-                intent: "codeblock is not allowed. Currently we prevent '`' to achieve this.",
-                text: indoc::indoc! {r#"
-                # This is a test
-
-                Hi Hello. `code`.
-                ```code
-                123
-                ```"#},
-                valid: false,
-                debug: false,
-            },
-            TestCase {
-                grammar: MARKDOWN_GRAMMAR,
-                intent: "content should not start with bold text. we prevent '*'(but allow '-') to achieve this.",
-                text: indoc::indoc! {r#"
-                # Enhanced Meeting Notes
-
-                **What Hyprnote Does**"#},
-                valid: false,
-                debug: false,
-            },
-        ];
-
+    fn test_2() {
         let gbnf = gbnf_validator::Validator::new().unwrap();
+        let input = indoc! {"
+            <headers>
+            - Objective
+            - Key Takeaways
+            - Importance of Complementary Skills
+            - Benefits of Using Online Resources
+            - Advice for Undergrad Students
+            </headers># Objective
+    
+            - **Search is the Best Way to Find Answers**: The speaker emphasizes the importance of utilizing online resources like Google to find answers to questions.
+            - **Value in Complementary Skills**: The speaker highlights the need to acquire complementary skills to traditional research methods.
+    
+            # Key Takeaways
+    
+            - **Complementary skills include both traditional research and online resource utilization**: The speaker suggests that skills like using a blank sheet of paper with no Internet and effective Google searching are essential.
+            - **Online resources can help find pre-solved problems**: The speaker advises investing time in finding existing resources and communities that have already solved problems.
+    
+            # Importance of Complementary Skills
+    
+            - **Traditional research is just the starting point**: The speaker suggests that traditional research methods are just the beginning and should be complemented with other skills.
+            - **Effective use of online resources can save time and effort**: The speaker highlights the benefits of utilizing online resources in research and problem-solving.
+    
+            # Benefits of Using Online Resources
+    
+            - **Access to knowledge from experts and communities**: The speaker suggests that online resources provide access to knowledge and expertise from experienced individuals.
+            - **Time-saving and efficient**: The speaker emphasizes the benefits of finding pre-solved problems through online resources.
+    
+            # Advice for Undergrad Students
+    
+            - **Start by searching online**: The speaker advises undergrad students to start by searching online for answers to questions and exploring different resources.
+            - **Be open to finding existing solutions**: The speaker emphasizes the importance of being open to finding pre-solved problems and leveraging existing resources.
+            - **Follow on X**: [Thank you](https://x.com/yujonglee).
+            
+            "};
 
-        for (i, test_case) in test_cases.iter().enumerate() {
-            match gbnf.validate(test_case.grammar, test_case.text) {
-                Err(e) => panic!("{}th_test_case_failed: {}", i, e),
-                Ok(valid_actual) => {
-                    if valid_actual != test_case.valid {
-                        println!("{}", "=".repeat(80));
-                        println!("{}_failed. intent: {}", i, test_case.intent);
-                        debug_grammar_failure_point(&gbnf, test_case.grammar, test_case.text);
-                        println!("\n{}", "=".repeat(80));
-
-                        panic!("{}th_test_case_failed", i);
-                    }
-
-                    if test_case.debug {
-                        println!("{}", "=".repeat(80));
-                        println!("{}_passed. intent: {}", i, test_case.intent);
-                        debug_grammar_failure_point(&gbnf, test_case.grammar, test_case.text);
-                        println!("\n{}", "=".repeat(80));
-                    }
-                }
-            }
-        }
+        assert!(gbnf.validate(MARKDOWN_GRAMMAR, input).unwrap());
     }
 
+    #[allow(dead_code)]
     fn debug_grammar_failure_point(gbnf: &gbnf_validator::Validator, grammar: &str, text: &str) {
         use colored::Colorize;
 

@@ -13,6 +13,9 @@ const COMMANDS: &[&str] = &[
     "unsubscribe",
     "start_session",
     "stop_session",
+    "pause_session",
+    "resume_session",
+    "get_state",
 ];
 
 fn main() {

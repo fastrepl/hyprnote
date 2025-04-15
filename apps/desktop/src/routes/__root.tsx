@@ -1,12 +1,15 @@
-import { events as windowsEvents } from "@hypr/plugin-windows";
+// react-scan must be imported before React
+import { scan } from "react-scan";
+
 import { useQuery } from "@tanstack/react-query";
-import { CatchNotFound, createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import { useNavigate } from "@tanstack/react-router";
+import { CatchNotFound, createRootRouteWithContext, Outlet, useNavigate } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { lazy, Suspense, useEffect } from "react";
 
 import { CatchNotFoundFallback, ErrorComponent, NotFoundComponent } from "@/components/control";
 import type { Context } from "@/types";
+import { events as windowsEvents } from "@hypr/plugin-windows";
 
 export const Route = createRootRouteWithContext<Required<Context>>()({
   component: Component,
@@ -42,8 +45,15 @@ function Component() {
     return () => unlisten?.();
   }, [navigate]);
 
+  useEffect(() => {
+    scan({
+      enabled: true,
+    });
+  }, []);
+
   return (
     <>
+      <ClipboardHandler />
       <CatchNotFound fallback={(e) => <CatchNotFoundFallback error={e} />}>
         <Outlet />
       </CatchNotFound>
@@ -80,3 +90,19 @@ const TanStackQueryDevtools = process.env.NODE_ENV === "production"
       ) => <res.ReactQueryDevtools {...props} />,
     }))
   );
+
+function ClipboardHandler() {
+  useEffect(() => {
+    const handleCopy = (e: ClipboardEvent) => {
+      const text = e.clipboardData?.getData("text/plain") || "";
+      writeText(text);
+    };
+
+    document.addEventListener("copy", handleCopy);
+    return () => {
+      document.removeEventListener("copy", handleCopy);
+    };
+  }, []);
+
+  return null;
+}

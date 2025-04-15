@@ -8,6 +8,8 @@ pub use mic::*;
 pub use speaker::*;
 pub use stream::*;
 
+pub use cpal;
+
 use futures_util::Stream;
 pub use kalosm_sound::AsyncSource;
 

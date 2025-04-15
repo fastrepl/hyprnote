@@ -50,7 +50,7 @@ user_common_derives! {
 impl Default for ConfigGeneral {
     fn default() -> Self {
         Self {
-            autostart: true,
+            autostart: false,
             display_language: LanguageCode::En,
             jargons: vec![],
             telemetry_consent: true,

@@ -17,4 +17,8 @@
     outline: none;
     box-shadow: none;
   }
+
+  p {
+    margin-bottom: 0.25rem;
+  }
 }

@@ -4,6 +4,7 @@ import { useMatch } from "@tanstack/react-router";
 import { DeleteNoteButton } from "@/components/toolbar/buttons/delete-note-button";
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
 import { NewWindowButton } from "@/components/toolbar/buttons/new-window-button";
+import { useLeftSidebar } from "@/contexts";
 import { commands as flagsCommands } from "@hypr/plugin-flags";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { cn } from "@hypr/ui/lib/utils";
@@ -19,6 +20,7 @@ export function MainToolbar() {
     shouldThrow: false,
   });
   const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
+  const { isExpanded } = useLeftSidebar();
 
   const isNote = !!noteMatch;
   const isMain = getCurrentWebviewWindowLabel() === "main";
@@ -32,10 +34,11 @@ export function MainToolbar() {
     <header
       data-tauri-drag-region
       className={cn([
-        "flex w-full items-center justify-between min-h-11 p-1 px-2 border-b",
+        "flex w-full items-center justify-between min-h-11 py-1 px-2 border-b",
         isMain
           ? "border-border bg-neutral-50"
           : "border-transparent bg-transparent",
+        !isExpanded && "pl-[72px]",
       ])}
     >
       <div

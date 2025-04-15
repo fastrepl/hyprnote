@@ -10,5 +10,23 @@
         "https://cdn.crabnebula.app/update/fastrepl/hyprnote/{{target}}-{{arch}}/{{current_version}}"
       ]
     }
+  },
+  "bundle": {
+    "windows": {
+      "wix": {
+        "language": "en-US",
+        "template": null,
+        "fragmentPaths": ["./windows/fragments/registry.wxs"],
+        "componentRefs": ["MyFragmentRegistryEntries"],
+        "upgradeCode": null
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "installerIcon": "./icons/stable/icon.ico",
+        "displayLanguageSelector": false,
+        "languages": ["en-US"],
+        "installerHooks": "./windows/hooks.nsi"
+      }
+    }
   }
 }

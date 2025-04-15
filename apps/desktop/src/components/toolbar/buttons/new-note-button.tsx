@@ -17,9 +17,10 @@ function NewNoteButtonInNote() {
   const param = useParams({ from: "/app/note/$id", shouldThrow: true });
 
   const disabled = useSession(param.id, (s) =>
-    !s.session?.title
-    && !s.session?.raw_memo_html
-    && !s.session?.enhanced_memo_html);
+    !s.session.title
+    && !s.session.raw_memo_html
+    && !s.session.enhanced_memo_html
+    && !s.session.conversations.length);
 
   return <ActualButton disabled={disabled} />;
 }

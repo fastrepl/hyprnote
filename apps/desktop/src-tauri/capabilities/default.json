@@ -45,6 +45,7 @@
     "analytics:default",
     "flags:default",
     "autostart:default",
+    "clipboard-manager:allow-write-text",
     {
       "identifier": "http:default",
       "allow": [

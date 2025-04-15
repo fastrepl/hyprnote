@@ -12,7 +12,7 @@ pub trait DatabasePluginExt<R: tauri::Runtime> {
     fn db_ensure_user(
         &self,
         user_id: impl Into<String>,
-    ) -> impl Future<Output = Result<(), crate::Error>>;
+    ) -> impl Future<Output = Result<bool, crate::Error>>;
     fn db_get_config(
         &self,
         user_id: impl Into<String>,
@@ -68,7 +68,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
         Ok(())
     }
 
-    async fn db_ensure_user(&self, user_id: impl Into<String>) -> Result<(), crate::Error> {
+    async fn db_ensure_user(&self, user_id: impl Into<String>) -> Result<bool, crate::Error> {
         let state = self.state::<crate::ManagedState>();
         let mut guard = state.lock().await;
 
@@ -77,21 +77,23 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
 
         let db = guard.db.as_ref().ok_or(crate::Error::NoneDatabase)?;
 
-        if db.get_human(&user_id_string).await.unwrap().is_none() {
-            let human = hypr_db_user::Human {
-                id: user_id_string,
-                is_user: true,
-                organization_id: None,
-                full_name: None,
-                email: None,
-                job_title: None,
-                linkedin_username: None,
-            };
+        match db.get_human(&user_id_string).await? {
+            Some(_) => Ok(false),
+            None => {
+                let human = hypr_db_user::Human {
+                    id: user_id_string,
+                    is_user: true,
+                    organization_id: None,
+                    full_name: None,
+                    email: None,
+                    job_title: None,
+                    linkedin_username: None,
+                };
 
-            db.upsert_human(human).await?;
+                db.upsert_human(human).await?;
+                Ok(true)
+            }
         }
-
-        Ok(())
     }
 
     async fn db_get_session(

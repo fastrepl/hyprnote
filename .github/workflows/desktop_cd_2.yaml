@@ -1,0 +1,58 @@
+on:
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  CN_APPLICATION: "fastrepl/hyprnote"
+  RELEASE_CHANNEL: ${{ endsWith(github.event.release.tag_name, 'nightly') && 'nightly' || '' }}
+  TAURI_CONF_PATH: ${{ endsWith(github.event.release.tag_name, 'nightly') && './src-tauri/tauri.conf.nightly.json' || './src-tauri/tauri.conf.stable.json' }}
+jobs:
+  build:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - platform: "macos"
+            runner: "warp-macos-15-arm64-6x"
+            target: "universal-apple-darwin"
+          - platform: "windows"
+            runner: "warp-windows-latest-x64-8x"
+            target: "x86_64-pc-windows-msvc"
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./.github/actions/install_desktop_deps
+        with:
+          target: ${{ matrix.platform }}
+      - uses: ./.github/actions/rust_install
+        with:
+          target: ${{ matrix.platform }}
+      - uses: ./.github/actions/pnpm_install
+      - run: pnpm -F desktop lingui:compile
+      - run: pnpm -F ui build
+      - uses: ./.github/actions/apple_cert
+        if: ${{ matrix.platform == 'macos' }}
+        with:
+          apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
+          apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
+      - run: pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}

@@ -50,11 +50,11 @@ export default function MockProvider({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <OngoingSessionProvider>
-        <SessionsProvider store={sessionsStore}>
+      <SessionsProvider store={sessionsStore}>
+        <OngoingSessionProvider sessionsStore={sessionsStore}>
           {children}
-        </SessionsProvider>
-      </OngoingSessionProvider>
+        </OngoingSessionProvider>
+      </SessionsProvider>
     </QueryClientProvider>
   );
 }

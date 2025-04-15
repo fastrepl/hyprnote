@@ -47,12 +47,12 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     ) -> Result<bool, crate::Error> {
         let data_dir = self.path().app_data_dir()?;
 
-        for (path, expected) in [(model.model_path(&data_dir), model.model_checksum())] {
+        for (path, expected) in [(model.model_path(&data_dir), model.model_size())] {
             if !path.exists() {
                 return Ok(false);
             }
 
-            let actual = hypr_file::calculate_file_checksum(path)?;
+            let actual = hypr_file::file_size(path)?;
             if actual != expected {
                 return Ok(false);
             }

@@ -2,6 +2,16 @@ use crate::{ListenerPluginExt, SessionEvent};
 
 #[tauri::command]
 #[specta::specta]
+pub async fn list_microphone_devices<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<String>, String> {
+    app.list_microphone_devices()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn check_microphone_access<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {
@@ -100,7 +110,8 @@ pub async fn subscribe<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     channel: tauri::ipc::Channel<SessionEvent>,
 ) -> Result<(), String> {
-    app.subscribe(channel).await.map_err(|e| e.to_string())
+    app.subscribe(channel).await;
+    Ok(())
 }
 
 #[tauri::command]
@@ -119,13 +130,35 @@ pub async fn start_session<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,
 ) -> Result<(), String> {
-    app.start_session(session_id)
-        .await
-        .map_err(|e| e.to_string())
+    app.start_session(session_id).await;
+    Ok(())
 }
 
 #[tauri::command]
 #[specta::specta]
 pub async fn stop_session<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    app.stop_session().await.map_err(|e| e.to_string())
+    app.stop_session().await;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn pause_session<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
+    app.pause_session().await;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn resume_session<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
+    app.resume_session().await;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_state<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<crate::fsm::State, String> {
+    Ok(app.get_state().await)
 }

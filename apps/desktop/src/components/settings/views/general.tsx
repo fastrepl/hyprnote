@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { commands } from "@/types";
 import { commands as dbCommands, type ConfigGeneral } from "@hypr/plugin-db";
 import {
   Form,
@@ -80,8 +81,14 @@ export default function General() {
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
-      if (name !== "jargons") {
-        mutation.mutate(form.getValues());
+      if (name === "jargons") {
+        return;
+      }
+
+      mutation.mutate(form.getValues());
+
+      if (name === "autostart") {
+        commands.setAutostart(!!value.autostart);
       }
     });
 

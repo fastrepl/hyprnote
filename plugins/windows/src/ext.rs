@@ -138,7 +138,7 @@ impl HyprWindow {
 
     pub fn get_default_size(&self) -> LogicalSize<f64> {
         match self {
-            Self::Main => LogicalSize::new(800.0, 600.0),
+            Self::Main => LogicalSize::new(910.0, 600.0),
             Self::Note(_) => LogicalSize::new(480.0, 500.0),
             Self::Human(_) => LogicalSize::new(480.0, 500.0),
             Self::Organization(_) => LogicalSize::new(480.0, 500.0),

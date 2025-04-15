@@ -24,23 +24,25 @@ export default function ModelDownloadNotification() {
         llmModelDownloaded: llm,
       };
     },
-    refetchInterval: 1000,
+    refetchInterval: 5000,
   });
 
   const sttModelDownloading = useQuery({
+    enabled: !checkForModelDownload.data?.sttModelDownloaded,
     queryKey: ["stt-model-downloading"],
     queryFn: async () => {
       return localSttCommands.isModelDownloading();
     },
-    refetchInterval: 1000,
+    refetchInterval: 3000,
   });
 
   const llmModelDownloading = useQuery({
+    enabled: !checkForModelDownload.data?.llmModelDownloaded,
     queryKey: ["llm-model-downloading"],
     queryFn: async () => {
       return localLlmCommands.isModelDownloading();
     },
-    refetchInterval: 1000,
+    refetchInterval: 3000,
   });
 
   useEffect(() => {

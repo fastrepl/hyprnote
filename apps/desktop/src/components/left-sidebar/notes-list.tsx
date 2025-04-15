@@ -3,7 +3,7 @@ import { useLingui } from "@lingui/react/macro";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type LinkProps, useMatch, useNavigate } from "@tanstack/react-router";
 import { endOfMonth, startOfMonth, subMonths } from "date-fns";
-import { AppWindowMacIcon, CalendarDaysIcon, TrashIcon } from "lucide-react";
+import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, TrashIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
 
@@ -175,15 +175,17 @@ function NoteItem({
   const { t } = useLingui();
   const navigate = useNavigate();
 
-  const activeSession = useSession(activeSessionId, (s) => s.session);
-  const currentSession = useSession(currentSessionId, (s) => s.session);
+  const currentSession = useSession(currentSessionId, (s) => ({
+    title: s.session.title,
+    created_at: s.session.created_at,
+  }));
 
   const currentSessionEvent = useQuery({
-    queryKey: ["event", currentSession.id],
-    queryFn: () => dbCommands.sessionGetEvent(currentSession.id),
+    queryKey: ["event", currentSessionId],
+    queryFn: () => dbCommands.sessionGetEvent(currentSessionId),
   });
 
-  const isActive = activeSession.id === currentSession.id;
+  const isActive = activeSessionId === currentSessionId;
   const sessionDate = currentSessionEvent.data?.start_date ?? currentSession.created_at;
   const formattedSessionDate = isToday(sessionDate)
     ? formatTimeAgo(sessionDate)
@@ -192,7 +194,7 @@ function NoteItem({
   const queryClient = useQueryClient();
 
   const deleteSession = useMutation({
-    mutationFn: () => dbCommands.deleteSession(currentSession.id),
+    mutationFn: () => dbCommands.deleteSession(currentSessionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       if (isActive) {
@@ -204,12 +206,12 @@ function NoteItem({
   const handleClick = () => {
     navigate({
       to: "/app/note/$id",
-      params: { id: currentSession.id },
+      params: { id: currentSessionId },
     });
   };
 
   const handleOpenWindow = () => {
-    windowsCommands.windowShow({ type: "note", value: currentSession.id });
+    windowsCommands.windowShow({ type: "note", value: currentSessionId });
   };
 
   const handleOpenCalendar = () => {
@@ -221,9 +223,6 @@ function NoteItem({
     const url = `${params.to}?date=${params.search.date}`;
 
     safeNavigate({ type: "calendar" }, url);
-  };
-  const html2text = (html: string) => {
-    return html.replace(/<[^>]*>?/g, "");
   };
 
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -273,9 +272,6 @@ function NoteItem({
 
             <div className="flex items-center gap-3 text-xs text-neutral-500">
               <span className="font-medium">{formattedSessionDate}</span>
-              <span className="text-xs">
-                {html2text(currentSession.enhanced_memo_html || currentSession.raw_memo_html)}
-              </span>
             </div>
           </div>
         </button>
@@ -283,19 +279,25 @@ function NoteItem({
 
       <ContextMenuContent>
         <ContextMenuItem
-          className="cursor-pointer"
+          className="cursor-pointer flex items-center justify-between"
           onClick={handleOpenWindow}
         >
-          <AppWindowMacIcon size={16} className="mr-2" />
-          <Trans>Open in new window</Trans>
+          <div className="flex items-center gap-2">
+            <AppWindowMacIcon size={16} />
+            <Trans>New window</Trans>
+          </div>
+          <ArrowUpRight size={16} className="ml-1 text-zinc-500" />
         </ContextMenuItem>
 
         <ContextMenuItem
-          className="cursor-pointer"
+          className="cursor-pointer flex items-center justify-between"
           onClick={handleOpenCalendar}
         >
-          <CalendarDaysIcon size={16} className="mr-2" />
-          <Trans>Open in calendar view</Trans>
+          <div className="flex items-center gap-2">
+            <CalendarDaysIcon size={16} />
+            <Trans>View calendar</Trans>
+          </div>
+          <ArrowUpRight size={16} className="ml-1 text-zinc-500" />
         </ContextMenuItem>
 
         <ContextMenuSeparator />

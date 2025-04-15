@@ -18,6 +18,22 @@
       "icons/nightly/128x128@2x.png",
       "icons/nightly/icon.icns",
       "icons/nightly/icon.ico"
-    ]
+    ],
+    "windows": {
+      "wix": {
+        "language": "en-US",
+        "template": null,
+        "fragmentPaths": ["./windows/fragments/registry.wxs"],
+        "componentRefs": ["MyFragmentRegistryEntries"],
+        "upgradeCode": null
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "installerIcon": "./icons/nightly/icon.ico",
+        "displayLanguageSelector": false,
+        "languages": ["en-US"],
+        "installerHooks": "./windows/hooks.nsi"
+      }
+    }
   }
 }

@@ -3,19 +3,61 @@ import { useQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { ExternalLinkIcon, Pen } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
+import { useHypr } from "@/contexts";
 import type { Event } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { safeNavigate } from "@hypr/utils/navigation";
 
-export function EventCard({ event, showTime = false }: { event: Event; showTime?: boolean }) {
+export function EventCard({
+  event,
+  showTime = false,
+}: {
+  event: Event;
+  showTime?: boolean;
+}) {
+  const { userId } = useHypr();
   const session = useQuery({
     queryKey: ["event-session", event.id],
     queryFn: async () => dbCommands.getSession({ calendarEventId: event.id }),
   });
+
+  const participants = useQuery({
+    queryKey: ["participants", session.data?.id],
+    queryFn: async () => {
+      if (!session.data?.id) {
+        return [];
+      }
+      const participants = await dbCommands.sessionListParticipants(session.data.id);
+      return participants.sort((a, b) => {
+        if (a.is_user && !b.is_user) {
+          return 1;
+        }
+        if (!a.is_user && b.is_user) {
+          return -1;
+        }
+        return 0;
+      });
+    },
+    enabled: !!session.data?.id,
+  });
+
+  const participantsPreview = useMemo(() => {
+    const count = participants.data?.length ?? 0;
+    if (count === 0) {
+      return null;
+    }
+
+    return participants.data?.map(participant => {
+      if (participant.id === userId && !participant.full_name) {
+        return "You";
+      }
+      return participant.full_name ?? "??";
+    });
+  }, [participants.data, userId]);
 
   const [open, setOpen] = useState(false);
 
@@ -37,7 +79,9 @@ export function EventCard({ event, showTime = false }: { event: Event; showTime?
         search: { calendarEventId: event.id },
       } as const satisfies LinkProps;
 
-      const url = props.to.concat(`?calendarEventId=${props.search.calendarEventId}`);
+      const url = props.to.concat(
+        `?calendarEventId=${props.search.calendarEventId}`,
+      );
 
       safeNavigate({ type: "main" }, url);
     }
@@ -70,22 +114,33 @@ export function EventCard({ event, showTime = false }: { event: Event; showTime?
       </PopoverTrigger>
       <PopoverContent className="w-72 p-4 bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0">
         <div className="flex mb-2 items-center justify-between">
-          <p className="text-sm text-neutral-600">
-            {format(getStartDate(), "MMM d, h:mm a")}
-            {" - "}
-            {format(getStartDate(), "yyyy-MM-dd") !== format(getEndDate(), "yyyy-MM-dd")
-              ? format(getEndDate(), "MMM d, h:mm a")
-              : format(getEndDate(), "h:mm a")}
-          </p>
+          <div className="font-semibold text-lg text-neutral-800">
+            {event.name || "Untitled Event"}
+          </div>
 
-          <Button variant="ghost" size="icon" onClick={() => window.open(event.google_event_url as string, "_blank")}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => window.open(event.google_event_url as string, "_blank")}
+          >
             <ExternalLinkIcon size={14} />
           </Button>
         </div>
 
-        <div className="font-semibold text-lg mb-1 text-neutral-800">{event.name || "Untitled Event"}</div>
+        <p className="text-sm text-neutral-600 mb-2">
+          {format(getStartDate(), "MMM d, h:mm a")}
+          {" - "}
+          {format(getStartDate(), "yyyy-MM-dd")
+              !== format(getEndDate(), "yyyy-MM-dd")
+            ? format(getEndDate(), "MMM d, h:mm a")
+            : format(getEndDate(), "h:mm a")}
+        </p>
 
-        {event.note && <p className="text-sm text-neutral-500 mb-4">{event.note}</p>}
+        {participantsPreview && participantsPreview.length > 0 && (
+          <div className="text-xs text-neutral-600 mb-4 truncate">
+            {participantsPreview.join(", ")}
+          </div>
+        )}
 
         {session.data
           ? (

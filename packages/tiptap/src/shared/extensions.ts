@@ -8,9 +8,10 @@ import TaskList from "@tiptap/extension-task-list";
 import Underline from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
 
+import { StreamingAnimation } from "./animation";
+import { ClipboardTextSerializer } from "./clipboard";
 import { Hashtag } from "./hashtag";
 
-// TODO: Dark mode
 export const extensions = [
   StarterKit.configure({
     heading: {
@@ -104,4 +105,6 @@ export const extensions = [
   }),
   Highlight,
   ListKeymap,
+  StreamingAnimation,
+  ClipboardTextSerializer,
 ];

@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -15,7 +15,7 @@ import { extractHashtags } from "@hypr/tiptap/shared";
 import { cn } from "@hypr/ui/lib/utils";
 import { modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
-import { EnhanceButton } from "./enhance-button";
+import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 
 export default function EditorArea({
@@ -29,10 +29,7 @@ export default function EditorArea({
     ongoingSessionStatus: s.status,
   }));
 
-  const [showRaw, setShowRaw] = useSession(sessionId, (s) => [
-    s.showRaw,
-    s.setShowRaw,
-  ]);
+  const showRaw = useSession(sessionId, (s) => s.showRaw);
 
   const [rawContent, setRawContent] = useSession(sessionId, (s) => [
     s.session?.raw_memo_html ?? "",
@@ -60,12 +57,12 @@ export default function EditorArea({
     sessionStore.refresh();
   }, [sessionStore.refresh, ongoingSessionStatus]);
 
-  const { enhance, animate } = useEnhanceMutation({
+  const enhance = useEnhanceMutation({
     sessionId,
     rawContent,
   });
 
-  useAutoEnhanceForOnboarding({
+  useAutoEnhance({
     sessionId,
     enhanceStatus: enhance.status,
     enhanceMutate: enhance.mutate,
@@ -84,8 +81,7 @@ export default function EditorArea({
 
   const noteContent = useMemo(
     () => (showRaw ? rawContent : enhancedContent),
-    // Replacing 'rawContent' with 'editorKey' in deps list is intentional. We don't want to rerender the entire editor during editing.
-    [showRaw, enhancedContent, editorKey],
+    [showRaw, enhancedContent, rawContent],
   );
 
   const handleClickEnhance = useCallback(() => {
@@ -112,7 +108,6 @@ export default function EditorArea({
       <div
         className={cn([
           "h-full overflow-y-auto",
-          !showRaw && animate && "tiptap-animate",
           enhancedContent && "pb-10",
         ])}
         onClick={(e) => {
@@ -129,6 +124,7 @@ export default function EditorArea({
                 handleChange={handleChangeNote}
                 initialContent={noteContent}
                 editable={enhance.status !== "pending"}
+                setContentFromOutside={!showRaw && enhance.status === "pending"}
               />
             )
             : <Renderer ref={editorRef} initialContent={noteContent} />}
@@ -144,13 +140,10 @@ export default function EditorArea({
           transition={{ duration: 0.2 }}
         >
           <div className="pointer-events-auto">
-            <EnhanceButton
-              key={`enhance-button-${sessionId}`}
-              handleClick={handleClickEnhance}
+            <FloatingButton
+              key={`floating-button-${sessionId}`}
+              handleEnhance={handleClickEnhance}
               session={sessionStore.session}
-              showRaw={showRaw}
-              enhanceStatus={enhance.status}
-              setShowRaw={setShowRaw}
             />
           </div>
         </motion.div>
@@ -167,7 +160,6 @@ export function useEnhanceMutation({
   rawContent: string;
 }) {
   const { userId, onboardingSessionId } = useHypr();
-  const [animate, setAnimate] = useState(false);
 
   const { persistSession, setEnhancedContent } = useSession(sessionId, (s) => ({
     persistSession: s.persistSession,
@@ -175,11 +167,9 @@ export function useEnhanceMutation({
   }));
 
   const enhance = useMutation({
+    mutationKey: ["enhance", sessionId],
     mutationFn: async () => {
-      setAnimate(false);
       const config = await dbCommands.getConfig();
-      const provider = await modelProvider();
-
       const participants = await dbCommands.sessionListParticipants(sessionId);
       const onboardingOutputExample = await dbCommands.onboardingSessionEnhancedMemoMd();
 
@@ -197,7 +187,7 @@ export function useEnhanceMutation({
         "enhance.user",
         {
           editor: rawContent,
-          timeline: timeline,
+          timeline,
           participants,
           ...(sessionId === onboardingSessionId
             ? { example: onboardingOutputExample }
@@ -205,6 +195,7 @@ export function useEnhanceMutation({
         },
       );
 
+      const provider = await modelProvider();
       const { text, textStream } = streamText({
         model: provider.languageModel("any"),
         messages: [
@@ -218,19 +209,18 @@ export function useEnhanceMutation({
 
       let acc = "";
       for await (const chunk of textStream) {
-        setAnimate(true);
         acc += chunk;
-        console.log("acc", acc);
         const html = await miscCommands.opinionatedMdToHtml(acc);
         setEnhancedContent(html);
       }
 
-      setAnimate(false);
       return text.then(miscCommands.opinionatedMdToHtml);
     },
     onSuccess: () => {
       analyticsCommands.event({
-        event: "enhance_note_done",
+        event: sessionId === onboardingSessionId
+          ? "onboarding_enhance_done"
+          : "normal_enhance_done",
         distinct_id: userId,
         session_id: sessionId,
       });
@@ -242,10 +232,10 @@ export function useEnhanceMutation({
     },
   });
 
-  return { enhance, animate };
+  return enhance;
 }
 
-export function useAutoEnhanceForOnboarding({
+export function useAutoEnhance({
   sessionId,
   enhanceStatus,
   enhanceMutate,
@@ -254,7 +244,7 @@ export function useAutoEnhanceForOnboarding({
   enhanceStatus: string;
   enhanceMutate: () => void;
 }) {
-  const { userId, onboardingSessionId } = useHypr();
+  const { userId } = useHypr();
 
   const enhancedMemoHtml = useSession(
     sessionId,
@@ -264,31 +254,25 @@ export function useAutoEnhanceForOnboarding({
   const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
 
   useEffect(() => {
-    if (sessionId !== onboardingSessionId) {
-      return;
-    }
-
     analyticsCommands.event({
       event: "onboarding_session_visited",
       distinct_id: userId,
       session_id: sessionId,
     });
 
-    const justFinishedListening = prevOngoingSessionStatus === "active"
+    const justFinishedListening = prevOngoingSessionStatus === "running_active"
       && ongoingSessionStatus === "inactive";
 
     if (justFinishedListening && !enhancedMemoHtml) {
-      setTimeout(() => {
-        if (enhanceStatus === "idle") {
-          analyticsCommands.event({
-            event: "onboarding_auto_enhance_triggered",
-            distinct_id: userId,
-            session_id: sessionId,
-          });
+      if (enhanceStatus === "idle") {
+        analyticsCommands.event({
+          event: "onboarding_auto_enhance_triggered",
+          distinct_id: userId,
+          session_id: sessionId,
+        });
 
-          enhanceMutate();
-        }
-      }, 1800);
+        enhanceMutate();
+      }
     }
   }, [
     ongoingSessionStatus,
@@ -296,7 +280,6 @@ export function useAutoEnhanceForOnboarding({
     enhanceStatus,
     enhancedMemoHtml,
     sessionId,
-    onboardingSessionId,
     enhanceMutate,
   ]);
 }

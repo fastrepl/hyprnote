@@ -1,9 +1,9 @@
-# What Hyprnote Does
+# Objective
 
-- A smart notepad for people with back-to-back meetings.
-- Listens to the meeting so you don’t have to write everything down.
-- Merges your notes and the transcript into a clean, context-aware summary.
-- Note-taking is optional but helps highlight what’s important to you.
+- Onboard new users to Hyprnote quickly and efficiently.
+- Demonstrate core functionality within the first 5 minutes of use.
+- Guide users through setting up their first meeting note.
+- Help users understand the value of automated transcription and summary features.
 
 # Privacy and Performance
 

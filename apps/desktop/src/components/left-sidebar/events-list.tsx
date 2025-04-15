@@ -72,11 +72,16 @@ function EventItem(
 function EventItemTitle({ event }: { event: EventWithSession }) {
   const sessionId = event.session?.id;
 
-  let title = event.name;
+  return sessionId
+    ? <EventItemTitleWithSession sessionId={sessionId} />
+    : <EventItemTitleWithoutSession event={event} />;
+}
 
-  if (sessionId) {
-    title = useSession(sessionId, (s) => s.session.title);
-  }
+function EventItemTitleWithoutSession({ event }: { event: EventWithSession }) {
+  return <div className="font-medium text-sm line-clamp-1">{event.name}</div>;
+}
 
+function EventItemTitleWithSession({ sessionId }: { sessionId: string }) {
+  const title = useSession(sessionId, (s) => s.session.title);
   return <div className="font-medium text-sm line-clamp-1">{title}</div>;
 }

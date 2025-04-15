@@ -33,3 +33,21 @@ pub fn set_onboarding_needed<R: tauri::Runtime>(
         .set(StoreKey::OnboardingNeeded, v)
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_autostart<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    autostart: bool,
+) -> Result<(), String> {
+    let autostart_manager = {
+        use tauri_plugin_autostart::ManagerExt;
+        app.autolaunch()
+    };
+
+    if autostart {
+        autostart_manager.enable().map_err(|e| e.to_string())
+    } else {
+        autostart_manager.disable().map_err(|e| e.to_string())
+    }
+}

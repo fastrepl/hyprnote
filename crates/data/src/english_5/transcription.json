@@ -1,0 +1,772 @@
+[
+  {
+    "start": 880,
+    "end": 4560,
+    "text": "If if it's like my family, I am deaf I definitely have no subjects."
+  },
+  {
+    "start": 7200,
+    "end": 11360,
+    "text": "Daniel. Hey, Eric. Hello. Welcome welcome back, Eric."
+  },
+  {
+    "start": 11440,
+    "end": 13519,
+    "text": "Thanks so much. Yeah. It's great to be here."
+  },
+  {
+    "start": 13840,
+    "end": 14639,
+    "text": "Hi, Virginia."
+  },
+  {
+    "start": 17335,
+    "end": 18055,
+    "text": "Hello."
+  },
+  {
+    "start": 19095,
+    "end": 34770,
+    "text": "Alright. Let's let's kick off. I wanted to start out with some reminders. First, we have a book club coming up on Inspired in four weeks on August 7. I just reread it myself."
+  },
+  {
+    "start": 34770,
+    "end": 67040,
+    "text": "It's a it's a good read. It's highly aligned with how I think about product management and does a good job of explaining why some of these things are important, that that I also believe to be important. So it's nice to have, another voice explaining all of that. So please do read that. I think I'm gonna update the new hire onboarding doc and ask all new hires to read this as well so that we all everybody in the team is on the same page with respect to this book."
+  },
+  {
+    "start": 70240,
+    "end": 95899,
+    "text": "Let's see. Reminder b. Remember there's this interview spreadsheet CS and sales have populated that with a number of customer contacts for meetings. Please do follow-up on that. I wanna ensure goodwill with that team and follow-up promptly with meetings with these customers so that that team can see that we're taking advantage of it."
+  },
+  {
+    "start": 97659,
+    "end": 119715,
+    "text": "Third reminder, we've got a little engagement survey. I'm gonna run this once a month in q three just to take a pulse given all the change going on. Please do take a minute to fill it out. It's five, you know, quick questions and then one free form where you can share whatever feedback you have. Fabian didn't receive it."
+  },
+  {
+    "start": 119875,
+    "end": 128139,
+    "text": "I I'm pretty sure I went through my emails. I think there was some maybe it's on my end, but I I'm happy to fill it out. But I I I have"
+  },
+  {
+    "start": 128220,
+    "end": 138060,
+    "text": "You didn't get it. Need to get it to you. Alright. I will I'll ask Jessica to resend that to you. Anybody else in the same condition where you did not receive it?"
+  },
+  {
+    "start": 139945,
+    "end": 145385,
+    "text": "I don't recall, but is there a way to put the link to the survey in the agenda?"
+  },
+  {
+    "start": 145785,
+    "end": 163530,
+    "text": "Well, it's it's personal. It's it's tied back to your user ID so we can track, which team you're on and that kind of thing. I do believe it's anonymous, but, nevertheless, everyone has their own custom ID. So I'll ask Jessica to send it to Fabian and Karina. Anybody else?"
+  },
+  {
+    "start": 163530,
+    "end": 174165,
+    "text": "So I just I hadn't seen it, Scott, but I searched my email real quick, and it looks like that's the title of the email. So if you just search for that in your in your Gmail, you should be able to find it if you got it."
+  },
+  {
+    "start": 174965,
+    "end": 195780,
+    "text": "Pulse survey culture ramp? K. If anybody else didn't get it, please ping me. Alright. Next reminder, we, we need we have a goal of at least three customer interviews per PM."
+  },
+  {
+    "start": 195940,
+    "end": 217349,
+    "text": "There's an OKR issue out there. If you haven't updated it lately, please do so. And remember, we have three weeks until q two to hit our goal, so please please do invest the time to get those set up and get at least three done if you haven't already. Next one, category maturity page. Last week, we talked about this."
+  },
+  {
+    "start": 217349,
+    "end": 249640,
+    "text": "Josh did a great job of creating some new views, one of which is sort of this flowchart showing how mature we're gonna be at a given point in time, which raised questions about whether, we were forecasting that accurately. If you haven't already, please go in and either confirm that it's accurate or update it. Thanks to Kenny for creating that issue. Somebody had a direction maturity page. You wanna talk about that?"
+  },
+  {
+    "start": 252135,
+    "end": 255255,
+    "text": "Well, it was just me. Just since you you referenced it, so I was adding the link there. That's all."
+  },
+  {
+    "start": 255255,
+    "end": 255575,
+    "text": "Just for"
+  },
+  {
+    "start": 255575,
+    "end": 256295,
+    "text": "folks if"
+  },
+  {
+    "start": 256295,
+    "end": 256615,
+    "text": "folks haven't"
+  },
+  {
+    "start": 256615,
+    "end": 261095,
+    "text": "seen the updates there for the charts, just check it out. So"
+  },
+  {
+    "start": 261334,
+    "end": 261815,
+    "text": "Got it."
+  },
+  {
+    "start": 261815,
+    "end": 283055,
+    "text": "So it's a good way you can get a sense for, like, you know it's hard it's hard when it's in tabular form, but when it's charted, it's much easier to see, like, if if it's achievable or not based on some of the trends. And there's also if you scroll down, stage level trends as well. So you can see how your stage in particular is trending or set to be trending. So"
+  },
+  {
+    "start": 284975,
+    "end": 289535,
+    "text": "Great. Thanks, Josh. Alright. Some team updates. We hired a couple more PMs."
+  },
+  {
+    "start": 289535,
+    "end": 312995,
+    "text": "We got a good rhythm going on hiring. We hired Gabe Weaver. He originally came through the growth funnel, but we have a really strong candidate for that fourth slot. So we're gonna target Gabe for a third managed PM. The charter of that team is to be defined, but, bottom line, we're gonna have a third group in the managed area, and Gabe will lead that."
+  },
+  {
+    "start": 313555,
+    "end": 351600,
+    "text": "And then Dove Hershkovits, we just hired him as the APM monitoring. He's got a great background in monitoring and has most recently been at Elastic. So thank you to everyone who's been involved in the hiring loop. I know it's taking a lot of energy from everybody, but I think our hiring processes continues to pick up speed. B to b, I worked with with Christie and David Sakamoto to change some language around customer results."
+  },
+  {
+    "start": 352080,
+    "end": 355919,
+    "text": "Just wanted to make sure you all saw that. So there's the MR."
+  },
+  {
+    "start": 356895,
+    "end": 385565,
+    "text": "Hey, Scott. On that one, I just the there's a the diff highlights what is new content, I believe, and there's one section that is great. I can totally understand why we would add that about prioritize ruthlessly. But then the rest is, I guess, a bunch of formatting changes, and I don't know if there's new content in any of the dog fooding. I guess, is the TLDR, the addition of that prioritize ruthlessly, or is there some other point we were trying to make in this change?"
+  },
+  {
+    "start": 385565,
+    "end": 413349,
+    "text": "Oh, it's been a little while. I think there were a number of changes. But before the handbook basically read that internal feedback is worth 10 times more than external feedback. And I understand why we want internal feedback because of dog fooding and using our own product. It's it's a it's a great channel for feedback, but I think it was sending the message that customers weren't nearly as important as internal opinion."
+  },
+  {
+    "start": 414175,
+    "end": 437590,
+    "text": "And both Christy and I want to move off of that position. Like, we should be customer first and treat our own teams as a customer. But let's I don't I don't want people to interpret that our own internal opinion is worth 10 times more than a customer's opinion, if that makes sense. So it was mostly language wherever that showed up in the handbook."
+  },
+  {
+    "start": 439910,
+    "end": 440630,
+    "text": "Gotcha. Okay."
+  },
+  {
+    "start": 440630,
+    "end": 454095,
+    "text": "The one comment I had on this is that some of the tech seems like we should focus on core competencies as opposed to new scope and, like, as in that we should focus first what we're what we're best at. So and I'm not anyways, that that's"
+  },
+  {
+    "start": 454095,
+    "end": 455775,
+    "text": "one thought I had on this. But"
+  },
+  {
+    "start": 456240,
+    "end": 468960,
+    "text": "I don't remember that being the point of it. Maybe it reads that way. I don't know. Feel free to continue to suggest tweaks. The point was let's prioritize and do what matters most first."
+  },
+  {
+    "start": 468960,
+    "end": 483985,
+    "text": "Just it's kinda what I've been preaching the whole time. Like, let's in your area, wherever that is, do what matters first. Don't try to do it all at once. We're gonna have to work our way through. That was the point."
+  },
+  {
+    "start": 486210,
+    "end": 510505,
+    "text": "Yeah. And I'll I don't know if this is a follow-up issue. In in the way you described it, it doesn't seem controversial, but I will say there was a big discussion in a recent initiative, you know, from Sid and other leaders that we should heavily prioritize dogfruiting because there are parts there are teams within the company that were not utilizing our features, and we wanted to make sure that the product team was responsive to requests from them."
+  },
+  {
+    "start": 510505,
+    "end": 512480,
+    "text": "Yep. It's a little bit different"
+  },
+  {
+    "start": 512480,
+    "end": 541360,
+    "text": "than saying it's about our internal opinion. Like, we should we had always said we should validate it. So that clarification is good that we wanna make sure it's about us saying this is in line with where we want to take the product and where we're hearing customers. But if an internal customer wants it, we should we should the original thinking was that we should emphasize it. I just wanna like, if the intent was to make sure we we're just clarifying that same position, but if we're saying, actually, we should kinda pull back from the push for more dog fitting, I think that No."
+  },
+  {
+    "start": 541360,
+    "end": 541920,
+    "text": "Maybe a different"
+  },
+  {
+    "start": 542000,
+    "end": 559235,
+    "text": "I would please don't conflate the two. Okay. We very much still want a dog food. I think the point is when you're thinking of customers for your thing, think of our internal teams early. Like, you can get great feedback from them."
+  },
+  {
+    "start": 559235,
+    "end": 583330,
+    "text": "They have an incentive to work with you. There's very little risk in rolling out things early to them. So treat them like a customer and think of our internal teams early as you're rolling something out. That's still very much the message. But let's not over rotate on internal feedback or internal opinion."
+  },
+  {
+    "start": 583915,
+    "end": 588635,
+    "text": "Let's still seek external feedback too because that's just one customer of many."
+  },
+  {
+    "start": 589355,
+    "end": 590235,
+    "text": "Cool. Great."
+  },
+  {
+    "start": 590235,
+    "end": 591115,
+    "text": "Makes sense? K."
+  },
+  {
+    "start": 591115,
+    "end": 593755,
+    "text": "Yeah. It does. Alright."
+  },
+  {
+    "start": 594235,
+    "end": 624385,
+    "text": "To see customer training discovery training coming soon. Sarah O'Donnell and her team are gonna do a bunch of sort of quick videos on a variety of customer discovery topics, so super excited for that. They should start dropping any day now, I think, starting this week. And so we'll, we'll release those to you as they come out. We'll embed them in the, how we work description on our team page as well."
+  },
+  {
+    "start": 627210,
+    "end": 642915,
+    "text": "Alright. Number three, twelve two kickoff feedback. Josh, thanks for leading the charge. I thought you did a good job of emceeing and sort of adding color commentary, in between. I thought the screenshots definitely helped."
+  },
+  {
+    "start": 643875,
+    "end": 652595,
+    "text": "There were a bunch that did not have them. I was wondering why. Is it just because we're not there yet on many of these? Yeah?"
+  },
+  {
+    "start": 653150,
+    "end": 653870,
+    "text": "K."
+  },
+  {
+    "start": 653950,
+    "end": 666350,
+    "text": "Yeah. I mean, some the commentary, don't know. Or Nicole added that. Yeah. Many of the issues were saying we're gonna do UX front end and back end in the same iteration, so it hasn't started."
+  },
+  {
+    "start": 667055,
+    "end": 676495,
+    "text": "And in some, they're like I I can think of a number where there just aren't appropriate screenshots or at least there weren't screenshots or mock ups created in advance"
+  },
+  {
+    "start": 676735,
+    "end": 677055,
+    "text": "Okay."
+  },
+  {
+    "start": 677134,
+    "end": 680735,
+    "text": "For the purposes of front end working on it because front end was gonna work on it without a mock up."
+  },
+  {
+    "start": 681160,
+    "end": 692360,
+    "text": "Okay. I'd love to get to where we're a bit ahead so that we'll have more of these earlier, and, hopefully, the customer discovery flow will will get us further ahead on that."
+  },
+  {
+    "start": 693015,
+    "end": 700215,
+    "text": "In my case, some of the features also just have no UX component. Yep. There's no UI component that could be screenshotted. It's"
+  },
+  {
+    "start": 700535,
+    "end": 717339,
+    "text": "Understood. Yep. I don't expect everyone I mean, user judgment, if it doesn't need it, fine. But where we do need design, it'd be great to get at least a month ahead. So as we roll into dev, we have that to offer them."
+  },
+  {
+    "start": 719019,
+    "end": 728255,
+    "text": "Scott, just a a quick question to you. How do you feel about presenting, like, Balsamiq or super lo fi mock ups on the kickoff call?"
+  },
+  {
+    "start": 728815,
+    "end": 730095,
+    "text": "I'm fine with that."
+  },
+  {
+    "start": 730415,
+    "end": 749610,
+    "text": "K. Because that that could be an option too for PMs that are waiting for UX to work in the same sprint. And I know that plan's done a pretty good job at least in the past of kinda running ahead of UX and saying, like, hey. This is kinda what I think I want this to look like before spinning UX cycles on on making a more HiFi mock up. So"
+  },
+  {
+    "start": 750045,
+    "end": 756524,
+    "text": "just If you think it does a better job of describing it than the issue itself, then use it."
+  },
+  {
+    "start": 756925,
+    "end": 778450,
+    "text": "I think I think in some cases, like, picture can be worth a thousand words. I mean, no matter how many words you throw at something, it's like you know, for example, one of my things that I I request or I I reported on for the release the kickoff meeting was expanding the epic view in the road map. And, like, those are basically just a bunch of buzzwords put together that you're like, okay. What does that mean? Expand epic in a row."
+  },
+  {
+    "start": 778450,
+    "end": 792845,
+    "text": "And I'm just I literally thought on that one for, like, twenty minutes saying, how do I make this epic how do I make this issue title, like, more descriptive for customer value? And it just came down to, like, that is the functionality we're adding. What does that mean? Oh, here's the screenshot. You can see that we're gonna add a drop down."
+  },
+  {
+    "start": 792845,
+    "end": 811205,
+    "text": "You can see the issues and children epics that are attached to that epic. And in that case, like, I was like, I'm so thankful I have a screenshot even though that one is actually not a HiFi mock up. It's it's more it's more lo fi. It was a little bit pieced together. So, yeah, I I think, like, in general, there's a lot more value if we can show something like that."
+  },
+  {
+    "start": 812085,
+    "end": 829610,
+    "text": "So, you know, product managers, you can you can consider that. You you should feel free that you you know, you're empowered to take a tool that you're comfortable with even if it might even be just like Google Slides and and make something that gets you at least still part of the way there in terms of what you want the experience to look like."
+  },
+  {
+    "start": 829769,
+    "end": 841355,
+    "text": "Yep. Perfect. Three c, I thought the talk track shifted. It was definitely more problem focused. I noticed a number of speakers really trying to zero in on that, which is perfect."
+  },
+  {
+    "start": 841915,
+    "end": 865290,
+    "text": "Some of them could have been more problem focused, I thought. So just keep keep considering that as you as you you know, it's important to be able to pitch these things in ways that people that aren't close to it can understand. And so just think about that. How do I explain this to someone who's cold, who doesn't know a darn thing about this? Why should they care?"
+  },
+  {
+    "start": 865930,
+    "end": 872945,
+    "text": "Getting that crystal in your in your thinking is gonna be important no matter what, so it's time well spent."
+  },
+  {
+    "start": 873904,
+    "end": 890990,
+    "text": "Hey, Scott. This is Karina. Just to add to that, if you don't mind. Yeah. I think this has always been a challenge in product even before I've joined GitLab for many people is how to how to get there on some of this terminology when those of us have deep technical background."
+  },
+  {
+    "start": 891550,
+    "end": 906285,
+    "text": "So my thought would be, is there a way that you can start sharing, you know, or applauding good examples of this so that the product team can start to kinda ruminate on this and and develop that skill if if we're not there yet?"
+  },
+  {
+    "start": 906845,
+    "end": 923980,
+    "text": "Yeah. I thought Luca's were very well framed up. Those those two popped out at me as, yeah, that's the problem we're trying to solve. Check those out. I'll I'll look through for some other examples."
+  },
+  {
+    "start": 928035,
+    "end": 942274,
+    "text": "Thank you for the suggestion. Alright. Three d. We went long. We just had a ton of speakers, which I I love that every that lots of people get a chance to speak."
+  },
+  {
+    "start": 942274,
+    "end": 959805,
+    "text": "So I'm I'm good with that. But we're gonna have to we're gonna have to limit the number of items, probably. So it looks like there's some other ideas in here, perhaps themes. Yeah. I mean, if there are some that relate to each other, you could tell a story."
+  },
+  {
+    "start": 959805,
+    "end": 976120,
+    "text": "Hey. We're trying to prove this, and then a, b, and c tied back to it. I think it's okay to be pretty brief in your description as long as you're hitting what it is. And if somebody's really interested, they can dive deep. Thematic is a good idea."
+  },
+  {
+    "start": 976760,
+    "end": 999130,
+    "text": "Recorded video, if you really wanna go deep, maybe it's technically complex, that's a great idea. And then you can just cover the customer value at a high level and leave the detail to the video. Watch statistics. I think Josh looked this up last time. He I think he said there were a thousand oh, there we go."
+  },
+  {
+    "start": 999130,
+    "end": 1004410,
+    "text": "Kenny's putting them in. So somewhere between 500 and a thousand."
+  },
+  {
+    "start": 1010084,
+    "end": 1032569,
+    "text": "To kinda add to the time, just a feedback, I was timing myself this time, and I had two features listed. And I hit three minutes and fourteen seconds, obviously, because shortened that. So when we talk about you know, I think somebody mentioned doing two or coupling it down. It's interesting that I landed there with the the two that I chose."
+  },
+  {
+    "start": 1032730,
+    "end": 1042124,
+    "text": "Yep. That feels about average, but we've had how many speakers. We'll probably have to be a couple minutes max per person."
+  },
+  {
+    "start": 1043405,
+    "end": 1059130,
+    "text": "I mean, Eric pointed this out in the next line. I I do think we are due for a rethink of how we're Yeah. Doing the kickoff because we're gonna have next month, we're gonna have 25 people trying to give content. And Yep. Even at two minutes, you're already gone."
+  },
+  {
+    "start": 1059130,
+    "end": 1061450,
+    "text": "So Yeah. Maybe we expand it."
+  },
+  {
+    "start": 1061930,
+    "end": 1100934,
+    "text": "I I will give a shout out for Jason. I know because he's on paternity leave created a video, but I I think the original intent of the kickoff was actually just as a company, we had a retrospective and a kickoff a retrospective immediately followed by a kickoff, and we just decided to post that on YouTube. We now post a whole bunch of content on YouTube. So just just having what you would normally do for your kind of, like, grooming or kickoff within your individual group posted to YouTube and us maybe having a specific channel for people who wanted to follow it. Anyway, we should discuss it in an issue and come up with something I do think prior to next release kickoff."
+  },
+  {
+    "start": 1102055,
+    "end": 1105654,
+    "text": "Just to evaluate alternatives to the format?"
+  },
+  {
+    "start": 1106455,
+    "end": 1126195,
+    "text": "Yeah. I I I mean, I don't even if we said every person has one minute, I feel like we're doing a disservice because we're now highlighting much less because we feel like we have a time constraint and need to keep it into one synchronous thirty minute block when there's a need to do that."
+  },
+  {
+    "start": 1126435,
+    "end": 1127075,
+    "text": "Okay."
+  },
+  {
+    "start": 1127555,
+    "end": 1152774,
+    "text": "Yeah. Plus one one to revamping it, I think. I I think we're trying to it's like got so many jobs right now that we're not doing a good job at any particular one of them. I I I think that feels the most important customers are internal and just, like, communicating internally about because, like, people attend that thing, man. We had, like, 50 people on the Zoom call alone, not even considering YouTube."
+  },
+  {
+    "start": 1152775,
+    "end": 1167710,
+    "text": "People were asking about what, you know, what happened to YouTube link and things like that. So it's it's well attended internally. So I think there's just for alignment. So Mhmm. Alone the, you know, marketing value of, like, a sort of, like, a release."
+  },
+  {
+    "start": 1168750,
+    "end": 1177710,
+    "text": "I mean, for professional customers, it kinda feels like you'd be better off having, like, a webinar or livestream on the release day or something like that."
+  },
+  {
+    "start": 1177710,
+    "end": 1185225,
+    "text": "Right. Yeah. Maybe the externally focused one would be more about what we just shipped."
+  },
+  {
+    "start": 1187065,
+    "end": 1219165,
+    "text": "There was a webinar that used to happen called Release Rider. I think I participated in a couple of those, like, three of three of them back to back, and they were pretty poorly attended from what my experience was. And I think they actually got ended by the product marketing team for that reason. I'm sure someone from that team could actually give feedback. But I think one thing about the time limit is it's really hard to motivate problems, particularly, like, in a short amount of time, particularly when they're very technical."
+  },
+  {
+    "start": 1219165,
+    "end": 1248035,
+    "text": "Like Mhmm. As product categories grow in maturity and sophistication, like, the problems become more and more specific that we're solving. And so motivating those specific reasons of why we're going after, like, this specific tiny piece of a very mature category, it's hard to do in thirty seconds in a way that makes sense. If we're wanting to do that better, that's gonna put more and more pressure on, like, communicating a reasonable number of items, I think."
+  },
+  {
+    "start": 1249440,
+    "end": 1265995,
+    "text": "Okay. Thank you all for the feedback. I like the idea of creating an issue and perhaps tweaking the format before next month. I also like the idea of asking internal and external constituents what they like or don't like about the format."
+  },
+  {
+    "start": 1266315,
+    "end": 1295155,
+    "text": "Yeah. Just one final thought on that. Like, I love that it's a half an hour. I almost even, like, take pick particular categories over over over lengthening the time as an example just because I feel the feeling I had a feeling that if you wanna watch it consistently, it's gonna be in that block, but that's just me. So, like, if if, you know, other customers are, you know, saying saying they would like the larger block then then that's the right way to go."
+  },
+  {
+    "start": 1295155,
+    "end": 1305315,
+    "text": "So that's that's where I'd love to get feedback in some fashion to get say, okay, know, here's how we should change it. But we clearly have gone breath wise. We've gone so much broader that it's gonna be hard to cover all those topics in a in a quick amount. Yeah."
+  },
+  {
+    "start": 1308890,
+    "end": 1315770,
+    "text": "Okay. Thanks, Kenny, for starting the issue. James, over to you for number four."
+  },
+  {
+    "start": 1317610,
+    "end": 1346460,
+    "text": "Yeah. I just thought I'd share this. But many I think many on this call haven't heard Mark Kunsback speak about product discovery sprints, but he advocated for this quite a number of times previously from his experience running these at a prior company. So the idea is kind of different to a, I guess, a UX discovery sprint. I think Fabian linked one of the books about that where it's really focused on UX iteration and research."
+  },
+  {
+    "start": 1346620,
+    "end": 1405485,
+    "text": "The product discovery sprint is more focused on kind of like actually building something, iterating on something that's built and trying to get to some sort of MVC really quickly by trying to make the process more synchronous. So the source code group is going to try and do that around file by file diff navigation to solve performance and usability problems in 12 dot three. And I thought it'd be interesting to share that because internally, we've been wrestling with, like, how to make this work well in asyncremote environment. So we're looking at trying to confine the participants in a specific time zone so that we can all be available with a significant amount of overlap, but that's also difficult because we have it kind of excludes automatically 50% of the team who are just geographically remote from any of their peers. We only have one UX designer that's only available in the European time zone."
+  },
+  {
+    "start": 1405485,
+    "end": 1424070,
+    "text": "So, some interesting challenges there. If it goes well, we're going try and replicate it a release or two later on a different problem that also really complicated and hard and we've got to make progress on quickly. But I'll share any findings we have, and if anyone's interested in discussing that with me more, put a meeting in my calendar or drop me a message."
+  },
+  {
+    "start": 1425125,
+    "end": 1451360,
+    "text": "This is great, James. By the way, I think the UX team is gonna run well, let me just say we have the option to run one with Google Ventures, who's one of our investors in that Sprint book that Fabian linked to was written by a guy from GV. They did hundreds of these things for their clients. They know what they're doing. So if we get a chance to do one with them, we should."
+  },
+  {
+    "start": 1453785,
+    "end": 1468809,
+    "text": "We're gonna have to figure out how to do it within our ASIC model though. So whatever you learn from yours, James, please feed that back. Super interesting topic. I think if we could get good at this asynchronously, that would be a breakthrough."
+  },
+  {
+    "start": 1469530,
+    "end": 1487715,
+    "text": "Yeah. I think one other interesting challenge is that the sprint sort of terminology is kind of challenging and, like, it's not sustainable to be doing design sprints or discovery sprints on a daily basis. Yeah. Whether or not we were in person or not, it's not scalable to actually sprint all the time. Mhmm."
+  },
+  {
+    "start": 1487715,
+    "end": 1493554,
+    "text": "So choosing the right tasks, choosing the right time is, I think, one of the other challenges."
+  },
+  {
+    "start": 1493715,
+    "end": 1523925,
+    "text": "I agree. Yeah. You don't wanna do this for everything because, well, if you follow the to the letter, it takes a whole week and you're totally dedicated to it, which is amazing for focus sake, but you can't get anything else done. So depending on how we structure this, it would need to be done for things that are really big unknowns where dedicating a big chunk of time like that is worth it and not everything clears that bar."
+  },
+  {
+    "start": 1525730,
+    "end": 1548595,
+    "text": "Yeah. I think it's also most relevant for for stages that are very in in very at least in the very beginning. Kind of like Yep. That Tyron was, like, one of their biggest example for Google Ventures when they obviously, solving clinical trials for the world is, super complex problem. So they will just figure out what's the easiest thing that we can do so that we can start getting there."
+  },
+  {
+    "start": 1548595,
+    "end": 1549235,
+    "text": "And I think these"
+  },
+  {
+    "start": 1549235,
+    "end": 1553970,
+    "text": "are the problems that that the design sprint sprint is used."
+  },
+  {
+    "start": 1553970,
+    "end": 1573995,
+    "text": "We used it pretty successfully at my blast company around pricing and packaging stuff and ran a bunch of interviews with customers on that. So I've seen it work. Alright. Okay. Christopher, number five."
+  },
+  {
+    "start": 1574795,
+    "end": 1597325,
+    "text": "Yeah. Just wanna call out. We've over the past month, we've had a significant number of outages related to .com and that affected at least one customer revenue potential. And because of that, you know, we've had some some focus from an exec leadership perspective. So I encourage everybody to look at that document and kinda look through it."
+  },
+  {
+    "start": 1597325,
+    "end": 1654985,
+    "text": "And particularly, there's a couple things from an engineering perspective, make you aware of. One is is we started infrastructure to development board where we're gonna start matching issues up and trying to make sure that those get prioritized highly where appropriate, particularly for anything that affects performance around these issues. The other issue that I put in there was one around, that's listed specifically, which is around the fact of prioritizing p performance availability work. So one of the significant features of this particular recent outage last week was is that the Redis server apparently can't handle the load anymore and we started digging into it, we found a bunch of stuff that we hadn't checked, like for instance, as an example, RJ unit tests were basically going and getting cached and there was no limit on the number of unit tests that could actually be cached. So we were getting these like blocks of like several megabytes of data that had to basically be transferred around in Redis."
+  },
+  {
+    "start": 1655145,
+    "end": 1671990,
+    "text": "That's really what's affecting its performance overall from a caching service perspective. So consequently, Scott, I send that to you. I hope that's okay. Yeah. Because it feels like it feels like you need to help out in regards to the fact that, you know, how do we best make sure that we get this this kind of systematically going."
+  },
+  {
+    "start": 1672230,
+    "end": 1680470,
+    "text": "And I just wanna make sure that everybody was aware and just kind of open up for discussion if there were any questions or or any feedback, early feedback on it from that perspective."
+  },
+  {
+    "start": 1681295,
+    "end": 1683934,
+    "text": "I added some comments to it, Christopher."
+  },
+  {
+    "start": 1684335,
+    "end": 1685215,
+    "text": "Okay. I haven't had a"
+  },
+  {
+    "start": 1685215,
+    "end": 1687534,
+    "text": "chance to look. I apologize about that. No problem."
+  },
+  {
+    "start": 1687934,
+    "end": 1694415,
+    "text": "Can I ask, do we and maybe, Mac, this is a question for you? Do we categorize performance issues as bugs?"
+  },
+  {
+    "start": 1696260,
+    "end": 1700820,
+    "text": "We do have a performance label, but they should be under under bugs."
+  },
+  {
+    "start": 1701140,
+    "end": 1702100,
+    "text": "Okay. May"
+  },
+  {
+    "start": 1702100,
+    "end": 1727920,
+    "text": "I Yeah. This is this is an example where oftentimes the way we would treat performance is is a reactionary. This is trying to think about it more in a proactive way. So like as an example, I'll give a horrible example, but when I worked at Amazon tags originally when Amazon was created tags where they were expecting them just to label certain instances and that was it. And it turns out that all customers started using like twenty and thirty or 50 tags and they're like, what the heck is going on?"
+  },
+  {
+    "start": 1727920,
+    "end": 1777054,
+    "text": "And they realized tags were being used to basically assure environmental information, the VMs could, they could put the same drop of code on two different VMs and they could behave differently based on the tag, which was a total novel way for customers to use it. So then they had to basically limit the number of tags they could use because it wasn't scaling with the system effectively. So like, this is kind of another example where like, I think we got to start thinking in terms of, like when we create something new, a new feature of piece of functionality, like what's the cost associated with that, right? Because like it does cost something internal and I'm not asking product managers to necessarily think in terms of the exact bytes, but I am starting to think in terms of like, what are the expectations around it? Because like, as an example, if we went back and looked at JUnit tests and reporting, if we said unlimited, that's a tough engineering call, right?"
+  },
+  {
+    "start": 1777215,
+    "end": 1786809,
+    "text": "Particularly, I guess it's free right now for customers is is my understanding. We also don't have a number of repos mirroring. We don't have a limit on that, and that that seems dangerous."
+  },
+  {
+    "start": 1788090,
+    "end": 1819979,
+    "text": "Yeah. So I guess I would comment, you know, I think the product team is expected to prioritize all things and to understand them deeply, whether they're a security issue or a performance concern. I think what you're highlighting is in order to be proactive, don't know if the product team would immediately know the Yeah. The impact of a proposed change, but maybe that's an opportunity for our infrastructure or SRE stable counterparts to be involved in vetting and looking at issues early in the pipeline to decide whether or not they would"
+  },
+  {
+    "start": 1820460,
+    "end": 1843549,
+    "text": "Yeah. Or or let's say we're implementing a feature like, let's say we were implementing mirroring from scratch. Like, the first question we should be asking is is, like, how many how many mirrors does a customer expected to be able to support and what I wanna start charging for if they get above a certain limit? And, you know, and right now we don't. And you could argue that scaling is just as much a reason for customers to start paying us as feature sets."
+  },
+  {
+    "start": 1844030,
+    "end": 1845150,
+    "text": "That's kind of"
+  },
+  {
+    "start": 1845150,
+    "end": 1846670,
+    "text": "the argument I would be making"
+  },
+  {
+    "start": 1847550,
+    "end": 1850670,
+    "text": "because those things cost money, like whether we like to admit it or not."
+  },
+  {
+    "start": 1852255,
+    "end": 1898479,
+    "text": "Yeah. Christopher, I would I would agree with you on what you're trying to sort of shape up and call out here in the sense of, you know, going through pages, for example, performance of of getting those page loads loaded is not great, and I don't know if we set out originally to track some of those performance things. But I think that performance and and to your point, Kenny, I think performance should be somewhere incorporated as we move forward and something we should be thinking about for scalability across the board. Because, it's just as important as bringing forth that really cool thing to them is that that really cool thing works, and people will stay there to use it."
+  },
+  {
+    "start": 1900799,
+    "end": 1934039,
+    "text": "I I think just as a side note, I think we have something in the product handbook that I read, like, a couple days ago on performance. Something like fast applications are are, like, always, you know, like, more usable, and I think that's that's definitely important. And I also think that GitLab.com is massive, and I think we have 4,000,000 users. And for example, for geo, I know that only by actually, like, interacting with the infrastructure, we are getting feedback on some of the performance bottlenecks that we are just not seeing otherwise. Right?"
+  },
+  {
+    "start": 1934040,
+    "end": 1947695,
+    "text": "And so I think that's actually also really valuable. And in that regard, maybe also, like, again, you know, dogfooding, these things helps. And I think with the combination of CD, we we may hit a lot of those things at the moment."
+  },
+  {
+    "start": 1948279,
+    "end": 1979549,
+    "text": "Yeah. And the dogfooding thing on that front is a little confusing to me. I met with Maren to talk about that, and, you know, there's sort of this mentality of looking at .com first or leading with .com for scalability. And I just it's not really Chris to me where we're going from making sure that we're you know, how we approach making sure that we intact scalability for .com if we're starting with .com or are we starting somewhere else from a dogfooding perspective?"
+  },
+  {
+    "start": 1979550,
+    "end": 2017150,
+    "text": "I'm pretty sure the handbook says that we're meant to well, at least the guidelines used to be that for new features, they were meant to be available on GitLab.com and self hosted at the same time, and that there used to be a production ready checklist that I think the engineering team was responsible for. I know that for when he launched a geo, there was a production readiness process that we had to go through. And certainly, with Gitly, we consider these things. On the source code front, we're regularly considering scale, like moving terabytes of data from the database into object storage and considering all these sorts of things. Performance is very much a feature and should be considered that."
+  },
+  {
+    "start": 2017150,
+    "end": 2068890,
+    "text": "And I think particularly in categories where adoption is still growing and in early stages of maturity, performance, like, understandably is less of a concern because there's lower usage. So, like, solving scale at, like, an enormous level doesn't make sense commercially, like, necessarily when usage is small. So, there is a bit of a juggling act here because we don't want to build a product for billions of users if there's only, I don't know, 20,000 users experimenting with our newest feature. So, there's an iterative approach that needs to be taken, but I would agree that particularly coming from a team that's digging out a lot of technical debt and solving a lot of performance problems all the time, We've probably historically not been very good at picking the right moment to pay off technical debt and address performance problems until they become fires. So"
+  },
+  {
+    "start": 2069449,
+    "end": 2097410,
+    "text": "Yeah. So to that point, just real quick, James. Sorry, Scott. I think some things are obvious, like, we look at our progressive deliveries strategy. I think that we like, if you look at something like feature flags or something like that, like, that's something that I think is going to be like, I wouldn't imagine that that's not gonna be a key feature that we're gonna bring so I feel like that that should be a a gimme on whether adoption has yet struck or not."
+  },
+  {
+    "start": 2098130,
+    "end": 2123059,
+    "text": "But the second thing that is not clear to me, like, again, I was interviewing Maren about dog fooding, is that I noticed that Maren's like, we don't this isn't we weren't they didn't come to us first. And so this is not scalable, or this is not usable for us internally. And so it's like the the approach and process moving forward to dog food in the right spots is not clear to me or, you know, what the best practices have been or if anybody's, you know, cracked that."
+  },
+  {
+    "start": 2123059,
+    "end": 2147795,
+    "text": "Yeah. I can give a concrete example because I did a call with Maran a few months back around confidential merge requests. So we knew that customers wanted to resolve them. We knew that we wanted to do that, and we're trying to get rid of dev.gitlab.org. So I had a video call with him and a bunch of async conversations with, I've got these ideas for what a first iteration looks like, and then we did a few calls and worked through them and worked out which were the things that needed to happen."
+  },
+  {
+    "start": 2147795,
+    "end": 2170605,
+    "text": "And so we're shipping the first iteration of that 12.one. But we coordinated with them and spoke I spoke with Marran quite a lot to make sure whatever we were building was useful and would solve the security problems that they had as well as our own ones. So, yeah, I agree. Needs to be proactive. We're not gonna ship something that's useful or that the infrastructure team is gonna wanna opt into unless we've had a conversation with them in advance."
+  },
+  {
+    "start": 2172365,
+    "end": 2183589,
+    "text": "Alright. Let's one thirty sec. Can I add one, like, last time point? Okay. It's sometimes really important for customers as well that we're running it on GitLab.com before they adopt it."
+  },
+  {
+    "start": 2183589,
+    "end": 2216319,
+    "text": "So, example is we built SSLTLS support in Gitali, but it's not turned on in GitLab.com. So the customer that we built it for isn't using it because they're waiting for our production team to turn it on because they want to see before they turn it on for their enormous instance, have we actually proven it at the world's largest GitLab instance scale. So I think that's one important reason why we always need to make sure that features are on and are getting used on GitLab.com. Just got my we're we're sorry, Scott. A couple of things."
+  },
+  {
+    "start": 2216319,
+    "end": 2236420,
+    "text": "I I think we definitely need to have a stronger definition than done as part of our progressives delivery. Right? And so hard definition done is it needs to run at scale and get that .com successfully and not blow up the cost model, not blow up performance. And if it does, it's just gonna immediately reverted, frankly. And that should be the bar for getting features across the line."
+  },
+  {
+    "start": 2236500,
+    "end": 2254095,
+    "text": "That doesn't mean for new features, you know, that have low usage that, you know obviously, they're impacted by quite small. But these still it needs to be within reason. And I totally agree that you don't wanna overbuild on the first iteration for planning for millions of users. That that doesn't make any sense. But yeah."
+  },
+  {
+    "start": 2254095,
+    "end": 2278695,
+    "text": "I think that's one aspect. I think their aspect is that on your comment, Chris, around pricing, and we can maybe have a follow-up here on, like, a handbook update. But I think it's interesting that customers will absorb the the cost unself managed of of compute. And so for them, if they wanna have a ridiculous number of, you know, mirrors, then, you know, then it's fine because they're they're paying for it. It's our use case."
+  },
+  {
+    "start": 2278695,
+    "end": 2295220,
+    "text": "It's all on their dime. And so maybe a way to think about this is to have some level of controls you can set if you want to have things in some level of sort of I don't have have some way to control that in manner of behavior for when we're covering the cost of those things. But but yeah. Anyways."
+  },
+  {
+    "start": 2296339,
+    "end": 2309625,
+    "text": "Thank you all. Great topic, Christopher. Please pile on that issue with thoughts on how to how to handle this. I like your suggestion on definition of done, Josh. Alright."
+  },
+  {
+    "start": 2309625,
+    "end": 2310984,
+    "text": "Karina, six and seven."
+  },
+  {
+    "start": 2311869,
+    "end": 2376520,
+    "text": "Yes. So I, submitted an MR for the product handbook yesterday, and we're going through this process of, getting more self organized in the release, area and with our engineering and and user design partners. And, you know, one of the things that we recognize, and it's documented in the issue below in number seven, is, you know, one, our delivery percentage is has not been great, which you've heard me talk about. But team has been on a deep ramp that we need to self organize around some method. And what we found in sort of the last prioritization for a release scope is that we have a lot of oversized issues and features that, you know, honestly need a need a beat for a release, to go through user research, maybe look at the code if they've never seen the code look you know, reviewed that piece of code before, or make some recommendations on the best way to solve."
+  },
+  {
+    "start": 2377240,
+    "end": 2432000,
+    "text": "So I put some thinking around, you know, that sort of you know, that dual track mindset, dual track agile kinda launching off of what user experience has recently updated for dual track agile. So feedback on that. And then the second piece is that this experiment we're running is we're leveraging semi dual track agile approach just to organize, our conversation, how we open issues, for areas that we need a discovery beat versus presenting an issue that is actually ready for delivery. One thing that was interesting, Scott, we were talking about, you know, just the, kickoff call and having some, you know you know, images and and more to share. That's definitely where I think we'd like to be with release is getting ahead of that curve and really having some concrete understanding and prototypes of what we're trying to to present and deliver."
+  },
+  {
+    "start": 2433040,
+    "end": 2445705,
+    "text": "But when we looked at sort of kind of going through that process, know, this is really for complex things or heavy lifting because, you know, it is about a twenty to thirty day lead time to commit release."
+  },
+  {
+    "start": 2445785,
+    "end": 2446265,
+    "text": "Mhmm."
+  },
+  {
+    "start": 2446265,
+    "end": 2461110,
+    "text": "So just and so we we have some targets to improve, you know, our hypothesis on leveraging this. You can follow it there if you have input, but it they kinda tie together, but I love input on the handbook piece."
+  },
+  {
+    "start": 2462275,
+    "end": 2487819,
+    "text": "Thank you, Karina, for creating these and sharing these. I think you're on the right track. In parallel, I've been working with, like, Christopher and Eric and Christy to outline a high level description of our software development life cycle, which will have two tracks. This is sort of competing content there or maybe or maybe they could be merged. So thank you for doing this."
+  },
+  {
+    "start": 2487819,
+    "end": 2508200,
+    "text": "I may slow roll it a little bit to make sure that we have one way of describing the flow we'd like to go through, but, thank you very much for getting it kicked off. Any questions for Karina? If not, Josh, over to you."
+  },
+  {
+    "start": 2510120,
+    "end": 2521315,
+    "text": "Yeah. Just a risk announcement. I just went through and renamed the promise label to planning priority. General meeting is largely the same, although we shouldn't be promising features. And so this is just a way to flag it."
+  },
+  {
+    "start": 2522595,
+    "end": 2543960,
+    "text": "And that way, it's a reminder for PMs that this issue had some important select conditional dependencies, and so just be aware of it so you can feel free to use it. I did note in the label text that it should only be applied by product managers and in particular, the responsible product manager for that section. So it shouldn't get applied by TAMs or anyone else. So"
+  },
+  {
+    "start": 2544280,
+    "end": 2553345,
+    "text": "Awesome. I like that terminology a lot better. Thank you, Josh. Alright. Five minutes to spare."
+  },
+  {
+    "start": 2553345,
+    "end": 2559483,
+    "text": "Anything else? If not, have a great Tuesday. Adios."
+  },
+  {
+    "start": 2560682,
+    "end": 2561082,
+    "text": "Thanks."
+  }
+]

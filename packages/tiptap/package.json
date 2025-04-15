@@ -29,11 +29,13 @@
     "@tiptap/react": "^2.11.7",
     "@tiptap/starter-kit": "^2.11.7",
     "clsx": "^2.1.1",
-    "tippy.js": "^6.3.7"
+    "tippy.js": "^6.3.7",
+    "turndown": "^7.2.0"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.14.1",
     "@types/react": "^18.3.20",
-    "@types/react-dom": "^18.3.6"
+    "@types/react-dom": "^18.3.6",
+    "@types/turndown": "^5.0.5"
   }
 }

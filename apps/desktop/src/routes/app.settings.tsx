@@ -17,11 +17,11 @@ import {
   Calendar,
   Extensions,
   General,
-  // Lab,
-  LocalAI,
-  // Notifications,
-  Permissions,
   Profile,
+  // Lab,
+  // LocalAI,
+  // Notifications,
+  Sound,
   // TemplateEditor,
 } from "@/components/settings/views";
 import { EXTENSION_CONFIGS, ExtensionName, ExtensionNames } from "@hypr/extension-registry";
@@ -45,16 +45,18 @@ function Component() {
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const extensionsList = useMemo(() => {
-    return EXTENSION_CONFIGS.map(config => ({
-      id: config.id,
-      title: config.title,
-      description: config.description || "",
-      tags: config.tags || [],
-      default: config.default || false,
-      cloud_only: config.cloud_only || false,
-      plugins: config.plugins || [],
-      implemented: true,
-    } as ExtensionDefinition));
+    return EXTENSION_CONFIGS.map(
+      (config) => ({
+        id: config.id,
+        title: config.title,
+        description: config.description || "",
+        tags: config.tags || [],
+        default: config.default || false,
+        cloud_only: config.cloud_only || false,
+        plugins: config.plugins || [],
+        implemented: true,
+      } as ExtensionDefinition),
+    );
   }, []);
 
   const handleClickTab = (tab: Tab) => {
@@ -76,16 +78,24 @@ function Component() {
     );
   }, [extensionsList, searchQuery]);
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  }, []);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchQuery(e.target.value);
+    },
+    [],
+  );
 
-  const handleExtensionSelect = useCallback((extension: ExtensionName) => {
-    navigate({ to: PATH, search: { ...search, extension } });
-  }, [navigate, search]);
+  const handleExtensionSelect = useCallback(
+    (extension: ExtensionName) => {
+      navigate({ to: PATH, search: { ...search, extension } });
+    },
+    [navigate, search],
+  );
 
   const selectedExtension = useMemo(() => {
-    return filteredExtensions.find(extension => extension.id === search.extension)!;
+    return filteredExtensions.find(
+      (extension) => extension.id === search.extension,
+    )!;
   }, [filteredExtensions, search.extension]);
 
   return (
@@ -115,12 +125,7 @@ function Component() {
 
             {/* {current !== "templates" && current !== "extensions" */}
             {search.tab !== "extensions"
-              ? (
-                <MainSidebar
-                  current={search.tab}
-                  onTabClick={handleClickTab}
-                />
-              )
+              ? <MainSidebar current={search.tab} onTabClick={handleClickTab} />
               : (
                 <div className="flex h-full flex-col">
                   {
@@ -158,10 +163,10 @@ function Component() {
             <div className="flex-1 overflow-auto p-6">
               {search.tab === "general" && <General />}
               {search.tab === "profile" && <Profile />}
-              {search.tab === "ai" && <LocalAI />}
+              {/* {search.tab === "ai" && <LocalAI />} */}
               {search.tab === "calendar" && <Calendar />}
               {/* {current === "notifications" && <Notifications />} */}
-              {search.tab === "permissions" && <Permissions />}
+              {search.tab === "sound" && <Sound />}
               {
                 /* {current === "templates" && (
                 <TemplateEditor

@@ -1,7 +1,5 @@
+use statig::awaitable::IntoStateMachineExt;
 use tauri::Manager;
-
-use std::collections::HashMap;
-use std::sync::Arc;
 use tokio::sync::Mutex;
 
 mod client;
@@ -9,6 +7,7 @@ mod commands;
 mod error;
 mod events;
 mod ext;
+mod fsm;
 
 pub use client::*;
 pub use error::*;
@@ -21,24 +20,15 @@ const PLUGIN_NAME: &str = "listener";
 
 pub type SharedState = Mutex<State>;
 
-#[derive(Default)]
 pub struct State {
-    timeline: Option<Arc<Mutex<hypr_timeline::Timeline>>>,
-    mic_stream_handle: Option<tokio::task::JoinHandle<()>>,
-    speaker_stream_handle: Option<tokio::task::JoinHandle<()>>,
-    listen_stream_handle: Option<tokio::task::JoinHandle<()>>,
-    silence_stream_tx: Option<std::sync::mpsc::Sender<()>>,
-    channels: Arc<Mutex<HashMap<u32, tauri::ipc::Channel<SessionEvent>>>>,
-    mic_muted_tx: Option<tokio::sync::watch::Sender<bool>>,
-    speaker_muted_tx: Option<tokio::sync::watch::Sender<bool>>,
-    mic_muted: Option<bool>,
-    speaker_muted: Option<bool>,
+    fsm: statig::awaitable::StateMachine<fsm::Session>,
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::list_microphone_devices::<tauri::Wry>,
             commands::check_microphone_access::<tauri::Wry>,
             commands::check_system_audio_access::<tauri::Wry>,
             commands::request_microphone_access::<tauri::Wry>,
@@ -53,17 +43,23 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::unsubscribe::<tauri::Wry>,
             commands::start_session::<tauri::Wry>,
             commands::stop_session::<tauri::Wry>,
+            commands::pause_session::<tauri::Wry>,
+            commands::resume_session::<tauri::Wry>,
+            commands::get_state::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
-pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
+pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            app.manage(SharedState::default());
+            let handle = app.app_handle();
+            let fsm = fsm::Session::new(handle.clone()).state_machine();
+            let state: SharedState = Mutex::new(State { fsm });
+            app.manage(state);
             Ok(())
         })
         .build()
@@ -84,18 +80,5 @@ mod test {
                 "./js/bindings.gen.ts",
             )
             .unwrap()
-    }
-
-    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
-        builder
-            .plugin(init())
-            .plugin(tauri_plugin_local_stt::init())
-            .build(tauri::test::mock_context(tauri::test::noop_assets()))
-            .unwrap()
-    }
-
-    #[tokio::test]
-    async fn test_listener() {
-        let _ = create_app(tauri::test::mock_builder());
     }
 }

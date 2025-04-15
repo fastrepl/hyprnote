@@ -2,31 +2,34 @@ import { Channel } from "@tauri-apps/api/core";
 import { create as mutate } from "mutative";
 import { createStore } from "zustand";
 
-import { commands as listenerCommands, type SessionEvent, type TimelineView } from "@hypr/plugin-listener";
+import { commands as listenerCommands, type SessionEvent, type State as ListenerState } from "@hypr/plugin-listener";
+import { createSessionsStore } from "./sessions";
 
 type State = {
   sessionId: string | null;
-  timeline: TimelineView | null;
   channel: Channel<SessionEvent> | null;
-  status: "active" | "loading" | "inactive";
+  loading: boolean;
+  status: ListenerState;
   amplitude: { mic: number; speaker: number };
 };
 
 type Actions = {
   get: () => State & Actions;
   start: (sessionId: string) => void;
+  stop: () => void;
   pause: () => void;
+  resume: () => void;
 };
 
 const initialState: State = {
   sessionId: null,
-  timeline: null,
   status: "inactive",
+  loading: false,
   channel: null,
   amplitude: { mic: 0, speaker: 0 },
 };
 
-export const createOngoingSessionStore = () => {
+export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof createSessionsStore>) => {
   return createStore<State & Actions>((set, get) => ({
     ...initialState,
     get: () => get(),
@@ -34,7 +37,7 @@ export const createOngoingSessionStore = () => {
       set((state) =>
         mutate(state, (draft) => {
           draft.sessionId = sessionId;
-          draft.status = "loading";
+          draft.loading = true;
         })
       );
 
@@ -43,18 +46,6 @@ export const createOngoingSessionStore = () => {
       channel.onmessage = (event) => {
         set((state) =>
           mutate(state, (draft) => {
-            if (event.type === "started") {
-              draft.status = "active";
-            }
-
-            if (event.type === "stopped") {
-              draft.status = "inactive";
-            }
-
-            if (event.type === "timelineView") {
-              draft.timeline = event.timeline;
-            }
-
             if (event.type === "audioAmplitude") {
               draft.amplitude = {
                 mic: event.mic,
@@ -66,27 +57,47 @@ export const createOngoingSessionStore = () => {
       };
 
       listenerCommands.startSession(sessionId).then(() => {
-        set({ channel, status: "active" });
+        set({ channel, status: "running_active", loading: false });
         listenerCommands.subscribe(channel);
       }).catch((error) => {
         console.error(error);
         set(initialState);
       });
     },
-    pause: () => {
-      const { channel } = get();
+    stop: () => {
+      const { sessionId, channel } = get();
 
-      try {
-        listenerCommands.stopSession();
-
-        if (channel) {
-          listenerCommands.unsubscribe(channel);
-        }
-      } catch (error) {
-        console.error(error);
+      if (channel) {
+        listenerCommands.unsubscribe(channel);
       }
 
-      set(initialState);
+      listenerCommands.stopSession().then(() => {
+        set(initialState);
+
+        // session stored in sessionStore become stale during ongoing-session. Refresh it here.
+        if (sessionId) {
+          const sessionStore = sessionsStore.getState().sessions[sessionId];
+          sessionStore.getState().refresh();
+        }
+      });
+    },
+    pause: () => {
+      const { sessionId } = get();
+
+      listenerCommands.pauseSession().then(() => {
+        set({ status: "running_paused" });
+
+        // session stored in sessionStore become stale during ongoing-session. Refresh it here.
+        if (sessionId) {
+          const sessionStore = sessionsStore.getState().sessions[sessionId];
+          sessionStore.getState().refresh();
+        }
+      });
+    },
+    resume: () => {
+      listenerCommands.resumeSession().then(() => {
+        set({ status: "running_active" });
+      });
     },
   }));
 };

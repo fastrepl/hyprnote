@@ -24,6 +24,11 @@
       "minimumSystemVersion": "14.2",
       "entitlements": "./Entitlements.plist",
       "dmg": {
+        "background": "assets/dmg-background-stable.png",
+        "windowSize": {
+          "width": 660,
+          "height": 438
+        },
         "appPosition": {
           "x": 177,
           "y": 200

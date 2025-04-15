@@ -12,11 +12,6 @@
     }
   },
   "bundle": {
-    "macOS": {
-      "dmg": {
-        "background": "assets/dmg-background-stable.png"
-      }
-    },
     "windows": {
       "wix": {
         "language": "en-US",

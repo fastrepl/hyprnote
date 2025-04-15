@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { createFileRoute, notFound, useRouter } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -37,6 +38,7 @@ type FormSchema = z.infer<typeof formSchema>;
 
 function Component() {
   const { organization } = Route.useLoaderData();
+  const router = useRouter();
   const { isEditing } = useEditMode();
 
   const { data: members = [] } = useQuery({
@@ -44,19 +46,30 @@ function Component() {
     queryFn: () => dbCommands.listOrganizationMembers(organization.id),
   });
 
-  const organizationQuery = useQuery({
-    initialData: organization,
-    queryKey: ["org", organization.id],
-    queryFn: () => dbCommands.getOrganization(organization.id),
-  });
-
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     values: {
-      name: organizationQuery.data?.name ?? "",
-      description: organizationQuery.data?.description ?? "",
+      name: organization.name ?? "",
+      description: organization.description ?? "",
     },
   });
+
+  const updateOrganizationMutation = useMutation({
+    mutationFn: (data: Partial<Organization>) =>
+      dbCommands.upsertOrganization({
+        ...organization,
+        ...data,
+      }),
+    onSuccess: () => {
+      router.invalidate();
+    },
+  });
+
+  useEffect(() => {
+    if (!isEditing) {
+      form.handleSubmit((v) => updateOrganizationMutation.mutate(v))();
+    }
+  }, [isEditing]);
 
   return (
     <EditableEntityWrapper>

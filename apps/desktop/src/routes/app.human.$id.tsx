@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, notFound, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -14,7 +14,7 @@ import { Input } from "@hypr/ui/components/ui/input";
 export const Route = createFileRoute("/app/human/$id")({
   component: Component,
   loader: async ({ context: { queryClient }, params }: { context: { queryClient: any }; params: { id: string } }) => {
-    const human = await queryClient.fetchQuery({
+    const human: Human | null = await queryClient.fetchQuery({
       queryKey: ["human", params.id],
       queryFn: () => dbCommands.getHuman(params.id),
     });
@@ -48,38 +48,25 @@ type FormSchema = z.infer<typeof formSchema>;
 function Component() {
   const { human } = Route.useLoaderData();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { isEditing } = useEditMode();
-
-  const humanQuery = useQuery({
-    initialData: human,
-    queryKey: ["human", human.id],
-    queryFn: () => dbCommands.getHuman(human.id),
-  });
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     values: {
-      full_name: humanQuery.data?.full_name ?? "",
-      job_title: humanQuery.data?.job_title ?? "",
-      email: humanQuery.data?.email ?? "",
-      linkedin_username: humanQuery.data?.linkedin_username ?? "",
+      full_name: human.full_name ?? "",
+      job_title: human.job_title ?? "",
+      email: human.email ?? "",
+      linkedin_username: human.linkedin_username ?? "",
     },
   });
 
   const updateHumanMutation = useMutation({
-    mutationFn: (data: Partial<Human>) => {
-      if (!humanQuery.data) {
-        return Promise.reject("human_data_not_loaded");
-      }
-
-      return dbCommands.upsertHuman({
-        ...humanQuery.data,
+    mutationFn: (data: Partial<Human>) =>
+      dbCommands.upsertHuman({
+        ...human,
         ...data,
-      });
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["human", humanQuery.data?.id], data);
+      }),
+    onSuccess: () => {
       router.invalidate();
     },
   });
@@ -90,13 +77,9 @@ function Component() {
     }
   }, [isEditing]);
 
-  if (!humanQuery.data) {
-    return null;
-  }
-
   return (
     <EditableEntityWrapper>
-      {isEditing ? <HumanEdit form={form} /> : <HumanView value={humanQuery.data} />}
+      {isEditing ? <HumanEdit form={form} /> : <HumanView value={human} />}
     </EditableEntityWrapper>
   );
 }

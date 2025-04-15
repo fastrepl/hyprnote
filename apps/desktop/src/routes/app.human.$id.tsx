@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { EditableEntityWrapper } from "@/components/toolbar/bars";
 import { useEditMode } from "@/contexts";
 import { commands as dbCommands, type Human } from "@hypr/plugin-db";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@hypr/ui/components/ui/form";
@@ -93,9 +94,11 @@ function Component() {
     return null;
   }
 
-  return isEditing
-    ? <HumanEdit form={form} />
-    : <HumanView value={humanQuery.data} />;
+  return (
+    <EditableEntityWrapper>
+      {isEditing ? <HumanEdit form={form} /> : <HumanView value={humanQuery.data} />}
+    </EditableEntityWrapper>
+  );
 }
 
 function HumanView({ value }: { value: Human }) {

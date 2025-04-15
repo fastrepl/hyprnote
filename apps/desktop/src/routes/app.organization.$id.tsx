@@ -1,11 +1,16 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { EditButton, MembersList, ProfileHeader, RecentNotes, UpcomingEvents } from "@/components/organization-profile";
+import { MembersList, RecentNotes, UpcomingEvents } from "@/components/organization-profile";
+import { EditableEntityWrapper } from "@/components/toolbar/bars";
 import { useEditMode } from "@/contexts/edit-mode-context";
-import { commands as dbCommands } from "@hypr/plugin-db";
-import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import { commands as dbCommands, type Organization } from "@hypr/plugin-db";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@hypr/ui/components/ui/form";
+import { Input } from "@hypr/ui/components/ui/input";
+import { Textarea } from "@hypr/ui/components/ui/textarea";
 
 export const Route = createFileRoute("/app/organization/$id")({
   component: Component,
@@ -23,88 +28,84 @@ export const Route = createFileRoute("/app/organization/$id")({
   },
 });
 
+const formSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+});
+
+type FormSchema = z.infer<typeof formSchema>;
+
 function Component() {
   const { organization } = Route.useLoaderData();
-  const { isEditing, setIsEditing } = useEditMode();
-  const [editedOrganization, setEditedOrganization] = useState(organization);
-  const queryClient = useQueryClient();
-
-  const isMain = getCurrentWebviewWindowLabel() === "main";
-
-  useEffect(() => {
-    const preventBackNavigation = (e: KeyboardEvent) => {
-      if (e.metaKey && e.key === "ArrowLeft") {
-        e.preventDefault();
-      }
-    };
-
-    window.addEventListener("keydown", preventBackNavigation);
-    return () => {
-      window.removeEventListener("keydown", preventBackNavigation);
-    };
-  }, []);
+  const { isEditing } = useEditMode();
 
   const { data: members = [] } = useQuery({
     queryKey: ["org", organization.id, "members"],
     queryFn: () => dbCommands.listOrganizationMembers(organization.id),
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setEditedOrganization(prev => ({ ...prev, [name]: value }));
-  };
+  const organizationQuery = useQuery({
+    initialData: organization,
+    queryKey: ["org", organization.id],
+    queryFn: () => dbCommands.getOrganization(organization.id),
+  });
 
-  const handleSave = () => {
-    try {
-      dbCommands.upsertOrganization(editedOrganization);
-      queryClient.invalidateQueries({ queryKey: ["org", organization.id] });
-    } catch (error) {
-      console.error("Failed to update organization:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (!isEditing) {
-      handleSave();
-    }
-  }, [isEditing]);
-
-  useEffect(() => {
-    setEditedOrganization(organization);
-  }, [organization]);
+  const form = useForm<FormSchema>({
+    resolver: zodResolver(formSchema),
+    values: {
+      name: organizationQuery.data?.name ?? "",
+      description: organizationQuery.data?.description ?? "",
+    },
+  });
 
   return (
-    <div className="flex h-full overflow-hidden">
-      <div className="flex-1">
-        <main className="flex h-full overflow-auto bg-white relative">
-          {isMain && (
-            <div className="absolute top-4 right-4 z-10">
-              <EditButton
-                isEditing={isEditing}
-                setIsEditing={setIsEditing}
-                onSave={handleSave}
-              />
-            </div>
-          )}
-          <div className="max-w-lg mx-auto px-4 lg:px-6 pt-6 pb-20">
-            <div className="mb-6 flex flex-col items-center gap-8">
-              <ProfileHeader
-                organization={organization}
-                isEditing={isEditing}
-                editedOrganization={editedOrganization}
-                handleInputChange={handleInputChange}
-              />
+    <EditableEntityWrapper>
+      {isEditing ? <OrgEdit form={form} /> : <OrgView value={organization} />}
+      <MembersList organizationId={organization.id} />
+      <UpcomingEvents organizationId={organization.id} members={members} />
+      <RecentNotes organizationId={organization.id} members={members} />
+    </EditableEntityWrapper>
+  );
+}
 
-              <div className="flex justify-center gap-4">
-              </div>
-            </div>
-
-            <MembersList organizationId={organization.id} />
-            <UpcomingEvents organizationId={organization.id} members={members} />
-            <RecentNotes organizationId={organization.id} members={members} />
-          </div>
-        </main>
-      </div>
+function OrgView({ value }: { value: Organization }) {
+  return (
+    <div>
+      <h1>Organization Name: {value.name}</h1>
+    </div>
+  );
+}
+function OrgEdit({ form }: { form: ReturnType<typeof useForm<FormSchema>> }) {
+  return (
+    <div>
+      <Form {...form}>
+        <form className="space-y-8">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input placeholder="Organization Name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Textarea placeholder="Description" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </form>
+      </Form>
     </div>
   );
 }

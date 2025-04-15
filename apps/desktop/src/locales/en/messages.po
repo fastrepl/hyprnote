@@ -261,7 +261,7 @@ msgstr "Add a description..."
 msgid "Add members"
 msgstr "Add members"
 
-#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:304
+#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:290
 msgid "Add participant"
 msgstr "Add participant"
 
@@ -316,7 +316,7 @@ msgstr "Assistant:"
 msgid "Available Models"
 msgstr "Available Models"
 
-#: src/routes/app.settings.tsx:120
+#: src/routes/app.settings.tsx:119
 msgid "Back to Settings"
 msgstr "Back to Settings"
 
@@ -333,7 +333,7 @@ msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
 #: src/components/settings/components/settings-header.tsx:26
-#: src/components/settings/components/main-sidebar.tsx:32
+#: src/components/settings/components/main-sidebar.tsx:30
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -413,7 +413,7 @@ msgstr "Connecting..."
 msgid "Contacts Access"
 msgstr "Contacts Access"
 
-#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:392
+#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:378
 msgid "Create"
 msgstr "Create"
 
@@ -634,6 +634,10 @@ msgstr "Local AI"
 #~ msgid "Local Language Model"
 #~ msgstr "Local Language Model"
 
+#: src/components/left-sidebar/top-area/settings-button.tsx:38
+msgid "Local mode"
+msgstr "Local mode"
+
 #: src/components/settings/views/ai.tsx:164
 #~ msgid "Local Speech-to-Text"
 #~ msgstr "Local Speech-to-Text"
@@ -678,6 +682,10 @@ msgstr "Monthly"
 #: src/components/settings/views/billing.tsx:40
 msgid "Much better AI performance"
 msgstr "Much better AI performance"
+
+#: src/components/left-sidebar/top-area/settings-button.tsx:53
+msgid "My Profile"
+msgstr "My Profile"
 
 #: src/components/settings/components/template-list.tsx:56
 msgid "My Templates"
@@ -764,8 +772,8 @@ msgid "Open Note"
 msgstr "Open Note"
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:27
-msgid "Open settings"
-msgstr "Open settings"
+#~ msgid "Open settings"
+#~ msgstr "Open settings"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:114
 msgid "Optional for participant suggestions"
@@ -801,7 +809,6 @@ msgid "Pro"
 msgstr "Pro"
 
 #: src/components/settings/components/settings-header.tsx:22
-#: src/components/settings/components/main-sidebar.tsx:29
 msgid "Profile"
 msgstr "Profile"
 
@@ -826,7 +833,7 @@ msgid "Recent Notes"
 msgstr "Recent Notes"
 
 #. placeholder {0}: member.full_name
-#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:185
+#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:171
 msgid "Remove {0} from list"
 msgstr "Remove {0} from list"
 
@@ -904,6 +911,10 @@ msgstr "Select Calendars"
 msgid "Send invite"
 msgstr "Send invite"
 
+#: src/components/left-sidebar/top-area/settings-button.tsx:46
+msgid "Settings"
+msgstr "Settings"
+
 #: src/components/settings/views/general.tsx:136
 msgid "Share usage data"
 msgstr "Share usage data"
@@ -920,7 +931,7 @@ msgstr "Show notifications whenever a microphone is being used"
 msgid "Single sign-on for all users"
 msgstr "Single sign-on for all users"
 
-#: src/components/settings/components/main-sidebar.tsx:35
+#: src/components/settings/components/main-sidebar.tsx:34
 msgid "Sound"
 msgstr "Sound"
 

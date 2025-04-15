@@ -413,7 +413,7 @@ msgstr ""
 msgid "Contacts Access"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:392
+#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:402
 msgid "Create"
 msgstr ""
 

@@ -5,7 +5,10 @@ interface EntityToolbarProps {
   onEditToggle?: () => void;
 }
 
-export function EntityToolbar({ isEditing = false, onEditToggle }: EntityToolbarProps) {
+export function EntityToolbar({
+  isEditing = false,
+  onEditToggle,
+}: EntityToolbarProps) {
   const router = useRouter();
   const canGoBack = useCanGoBack();
 
@@ -20,8 +23,10 @@ export function EntityToolbar({ isEditing = false, onEditToggle }: EntityToolbar
       data-tauri-drag-region
       className="flex w-full items-center justify-between min-h-11 p-1 px-2 border-b border-transparent bg-transparent"
     >
-      <div className="w-40 flex items-center justify-start" data-tauri-drag-region />
-      <div className="w-40 flex items-center justify-end gap-2" data-tauri-drag-region>
+      <div
+        className="w-40 flex items-center justify-start pl-[72px]"
+        data-tauri-drag-region
+      >
         {canGoBack && (
           <button
             onClick={handleClickBack}
@@ -30,10 +35,16 @@ export function EntityToolbar({ isEditing = false, onEditToggle }: EntityToolbar
             Back
           </button>
         )}
+      </div>
+
+      <div
+        className="w-40 flex items-center justify-end gap-2"
+        data-tauri-drag-region
+      >
         {onEditToggle && (
           <button
             onClick={onEditToggle}
-            className="px-3 py-1 text-sm font-medium rounded-md bg-neutral-100 hover:bg-neutral-200 transition-colors"
+            className="px-3 py-1 text-sm font-medium rounded-md bg-neutral-100 hover:bg-neutral-200 transition-colors w-14"
           >
             {isEditing ? "Save" : "Edit"}
           </button>

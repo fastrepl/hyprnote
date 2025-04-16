@@ -1,7 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
-import clsx from "clsx";
 import { MicIcon, MicOffIcon, PauseIcon, StopCircleIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -14,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 
 interface ListenButtonProps {
@@ -86,7 +86,10 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
   });
 
   useEffect(() => {
-    if (ongoingSessionStatus === "running_active" && prevOngoingSessionStatus === "inactive") {
+    if (
+      ongoingSessionStatus === "running_active"
+      && prevOngoingSessionStatus === "inactive"
+    ) {
       toast({
         id: "recording-consent",
         title: "Recording Started",
@@ -130,7 +133,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
       <button
         disabled={!modelDownloaded.data}
         onClick={handleResumeSession}
-        className={clsx(
+        className={cn(
           "w-16 h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium",
           "bg-red-100 border-2 border-red-400 text-red-600",
         )}
@@ -151,9 +154,11 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
             <button
               disabled={!modelDownloaded.data}
               onClick={handleStartSession}
-              className={clsx([
+              className={cn([
                 "w-9 h-9 rounded-full border-2 transition-all hover:scale-95  cursor-pointer outline-none p-0 flex items-center justify-center",
-                !modelDownloaded.data ? "bg-neutral-200 border-neutral-400" : "bg-red-500 border-neutral-400",
+                !modelDownloaded.data
+                  ? "bg-neutral-200 border-neutral-400"
+                  : "bg-red-500 border-neutral-400",
               ])}
               style={{
                 boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
@@ -175,10 +180,11 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
           onClick={handleStartSession}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className={clsx(
+          className={cn(
             "w-16 h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium",
             "bg-neutral-200 border-2 border-neutral-400 text-neutral-600 opacity-30",
-            !isEnhancePending && "hover:opacity-100 hover:bg-red-100 hover:text-red-600 hover:border-red-400",
+            !isEnhancePending
+              && "hover:opacity-100 hover:bg-red-100 hover:text-red-600 hover:border-red-400",
           )}
           style={{ boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset" }}
         >
@@ -197,8 +203,7 @@ export default function ListenButton({ sessionId }: ListenButtonProps) {
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
-            onClick={handleStartSession}
-            className={clsx([
+            className={cn([
               open && "hover:scale-95",
               "w-14 h-9 rounded-full bg-red-100 border-2 transition-all border-red-400 cursor-pointer outline-none p-0 flex items-center justify-center",
             ])}

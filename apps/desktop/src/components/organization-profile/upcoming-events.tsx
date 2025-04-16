@@ -8,7 +8,10 @@ import { Card, CardContent } from "@hypr/ui/components/ui/card";
 
 import type { UpcomingEventsProps } from "./types";
 
-export function UpcomingEvents({ organizationId, members }: UpcomingEventsProps) {
+export function UpcomingEvents({
+  organizationId,
+  members,
+}: UpcomingEventsProps) {
   const { data: upcomingEvents = [] } = useQuery({
     queryKey: ["events", "upcoming", "organization", organizationId],
     queryFn: async () => {
@@ -33,7 +36,7 @@ export function UpcomingEvents({ organizationId, members }: UpcomingEventsProps)
 
       const allEvents = memberEvents.flat();
       const uniqueEvents = Array.from(
-        new Map(allEvents.map(event => [event.id, event])).values(),
+        new Map(allEvents.map((event) => [event.id, event])).values(),
       );
 
       return uniqueEvents.slice(0, 10);
@@ -43,13 +46,13 @@ export function UpcomingEvents({ organizationId, members }: UpcomingEventsProps)
 
   return (
     <div className="mt-8">
-      <h2 className="mb-4 flex items-center gap-2 font-semibold">
+      <h2 className="mb-4 flex items-center justify-center gap-2 font-semibold">
         <Calendar className="size-5" />
         <Trans>Upcoming Events</Trans>
       </h2>
       {upcomingEvents.length > 0
         ? (
-          <div className="space-y-4">
+          <div className="space-y-4 max-w-xs mx-auto">
             {upcomingEvents.map((event) => (
               <Card key={event.id}>
                 <CardContent className="p-4">
@@ -79,7 +82,7 @@ export function UpcomingEvents({ organizationId, members }: UpcomingEventsProps)
           </div>
         )
         : (
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-center">
             <Trans>No upcoming events for this organization</Trans>
           </p>
         )}

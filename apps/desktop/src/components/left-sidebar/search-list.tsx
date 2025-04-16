@@ -5,7 +5,6 @@ import { AppWindowMacIcon } from "lucide-react";
 import { useState } from "react";
 
 import { type SearchMatch } from "@/stores/search";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -13,6 +12,7 @@ import {
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/ui/lib/utils";
+import { safeNavigate } from "@hypr/utils";
 import { formatRemainingTime } from "@hypr/utils/datetime";
 
 export default function SearchList({ matches }: { matches: SearchMatch[] }) {
@@ -24,10 +24,12 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
     );
   }
 
-  const sessionMatches = matches.filter(match => match.type === "session");
-  const eventMatches = matches.filter(match => match.type === "event");
-  const humanMatches = matches.filter(match => match.type === "human");
-  const organizationMatches = matches.filter(match => match.type === "organization");
+  const sessionMatches = matches.filter((match) => match.type === "session");
+  const eventMatches = matches.filter((match) => match.type === "event");
+  const humanMatches = matches.filter((match) => match.type === "human");
+  const organizationMatches = matches.filter(
+    (match) => match.type === "organization",
+  );
 
   return (
     <div className="h-full space-y-4 px-3 pb-4">
@@ -39,7 +41,10 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
           </h2>
           <div>
             {sessionMatches.map((match, i) => (
-              <SessionMatch key={`session-${i}`} match={match as SearchMatch & { type: "session" }} />
+              <SessionMatch
+                key={`session-${i}`}
+                match={match as SearchMatch & { type: "session" }}
+              />
             ))}
           </div>
         </section>
@@ -53,7 +58,10 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
           </h2>
           <div>
             {eventMatches.map((match, i) => (
-              <EventMatch key={`event-${i}`} match={match as SearchMatch & { type: "event" }} />
+              <EventMatch
+                key={`event-${i}`}
+                match={match as SearchMatch & { type: "event" }}
+              />
             ))}
           </div>
         </section>
@@ -67,7 +75,10 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
           </h2>
           <div>
             {humanMatches.map((match, i) => (
-              <HumanMatch key={`human-${i}`} match={match as SearchMatch & { type: "human" }} />
+              <HumanMatch
+                key={`human-${i}`}
+                match={match as SearchMatch & { type: "human" }}
+              />
             ))}
           </div>
         </section>
@@ -81,7 +92,10 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
           </h2>
           <div>
             {organizationMatches.map((match, i) => (
-              <OrganizationMatch key={`org-${i}`} match={match as SearchMatch & { type: "organization" }} />
+              <OrganizationMatch
+                key={`org-${i}`}
+                match={match as SearchMatch & { type: "organization" }}
+              />
             ))}
           </div>
         </section>
@@ -90,7 +104,11 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
   );
 }
 
-export function SessionMatch({ match: { item: session } }: { match: SearchMatch & { type: "session" } }) {
+export function SessionMatch({
+  match: { item: session },
+}: {
+  match: SearchMatch & { type: "session" };
+}) {
   const navigate = useNavigate();
 
   const match = useMatch({ from: "/app/note/$id", shouldThrow: false });
@@ -112,7 +130,9 @@ export function SessionMatch({ match: { item: session } }: { match: SearchMatch 
       ])}
     >
       <div className="flex flex-col items-start gap-1">
-        <div className="font-medium text-sm line-clamp-1">{session.title || "Untitled Note"}</div>
+        <div className="font-medium text-sm line-clamp-1">
+          {session.title || "Untitled Note"}
+        </div>
         <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
           {new Date(session.created_at).toLocaleDateString()}
         </div>
@@ -144,7 +164,11 @@ function EventMatch({ match }: { match: SearchMatch & { type: "event" } }) {
   );
 }
 
-function HumanMatch({ match: { item: human } }: { match: SearchMatch & { type: "human" } }) {
+function HumanMatch({
+  match: { item: human },
+}: {
+  match: SearchMatch & { type: "human" };
+}) {
   const navigate = useNavigate();
   const match = useMatch({ from: "/app/human/$id", shouldThrow: false });
   const [isOpen, setIsOpen] = useState(false);
@@ -159,7 +183,7 @@ function HumanMatch({ match: { item: human } }: { match: SearchMatch & { type: "
   };
 
   const handleOpenWindow = () => {
-    windowsCommands.windowShow({ type: "human", value: human.id });
+    safeNavigate({ type: "human", value: human.id }, "");
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -181,7 +205,9 @@ function HumanMatch({ match: { item: human } }: { match: SearchMatch & { type: "
           <div className="flex flex-col items-start gap-1">
             <div className="font-medium text-sm line-clamp-1 flex items-center justify-between w-full">
               <span>{human.full_name || "Unnamed Person"}</span>
-              <span className="text-neutral-500 text-xs font-normal ml-auto">{human.job_title}</span>
+              <span className="text-neutral-500 text-xs font-normal ml-auto">
+                {human.job_title}
+              </span>
             </div>
             <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
               {human.email}
@@ -191,10 +217,7 @@ function HumanMatch({ match: { item: human } }: { match: SearchMatch & { type: "
       </ContextMenuTrigger>
 
       <ContextMenuContent>
-        <ContextMenuItem
-          className="cursor-pointer"
-          onClick={handleOpenWindow}
-        >
+        <ContextMenuItem className="cursor-pointer" onClick={handleOpenWindow}>
           <AppWindowMacIcon size={16} className="mr-2" />
           <Trans>Open in new window</Trans>
         </ContextMenuItem>
@@ -203,9 +226,11 @@ function HumanMatch({ match: { item: human } }: { match: SearchMatch & { type: "
   );
 }
 
-function OrganizationMatch(
-  { match: { item: organization } }: { match: SearchMatch & { type: "organization" } },
-) {
+function OrganizationMatch({
+  match: { item: organization },
+}: {
+  match: SearchMatch & { type: "organization" };
+}) {
   const navigate = useNavigate();
   const match = useMatch({ from: "/app/organization/$id", shouldThrow: false });
   const [isOpen, setIsOpen] = useState(false);
@@ -220,7 +245,7 @@ function OrganizationMatch(
   };
 
   const handleOpenWindow = () => {
-    windowsCommands.windowShow({ type: "organization", value: organization.id });
+    safeNavigate({ type: "organization", value: organization.id }, "");
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -240,7 +265,9 @@ function OrganizationMatch(
           ])}
         >
           <div className="flex flex-col items-start gap-1 w-full overflow-hidden">
-            <div className="font-medium text-sm line-clamp-1 w-full">{organization.name}</div>
+            <div className="font-medium text-sm line-clamp-1 w-full">
+              {organization.name}
+            </div>
             <div className="text-xs text-neutral-500 truncate w-full overflow-hidden text-ellipsis whitespace-nowrap">
               {organization.description}
             </div>
@@ -249,10 +276,7 @@ function OrganizationMatch(
       </ContextMenuTrigger>
 
       <ContextMenuContent>
-        <ContextMenuItem
-          className="cursor-pointer"
-          onClick={handleOpenWindow}
-        >
+        <ContextMenuItem className="cursor-pointer" onClick={handleOpenWindow}>
           <AppWindowMacIcon size={16} className="mr-2" />
           <Trans>Open in new window</Trans>
         </ContextMenuItem>

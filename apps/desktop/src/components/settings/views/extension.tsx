@@ -14,6 +14,7 @@ import {
 } from "@hypr/plugin-db";
 import { commands as windowsCommands, events as windowsEvents } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
+import { safeNavigate } from "@hypr/utils";
 
 interface ExtensionsComponentProps {
   selectedExtension: ExtensionDefinition;
@@ -91,7 +92,7 @@ export default function Extensions({
       await queryClient.refetchQueries({
         queryKey: ["extension-mapping", selectedExtension?.id],
       });
-      await windowsCommands.windowShow({ type: "main" });
+      await safeNavigate({ type: "main" }, "");
     },
   });
 

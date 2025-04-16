@@ -1,8 +1,8 @@
 import { type LinkProps } from "@tanstack/react-router";
 import { ReactNode } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
+import { safeNavigate } from "@hypr/utils";
 
 interface ConfigureWidgetsButtonProps {
   children?: ReactNode;
@@ -19,11 +19,7 @@ export function ConfigureWidgetsButton({
 
     const url = `${params.to}?tab=${params.search.tab}`;
 
-    windowsCommands.windowShow({ type: "settings" }).then(() => {
-      setTimeout(() => {
-        windowsCommands.windowEmitNavigate({ type: "settings" }, url);
-      }, 500);
-    });
+    safeNavigate({ type: "settings" }, url);
   };
 
   return (

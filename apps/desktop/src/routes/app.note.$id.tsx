@@ -10,6 +10,7 @@ import {
   events as windowsEvents,
   getCurrentWebviewWindowLabel,
 } from "@hypr/plugin-windows";
+import { safeNavigate } from "@hypr/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 
 export const Route = createFileRoute("/app/note/$id")({
@@ -163,7 +164,7 @@ function OnboardingSupport({ session }: { session: Session }) {
     }
 
     if (ongoingSessionStatus === "running_active" && !isEnhancePending) {
-      windowsCommands.windowShow({ type: "video", value: video }).then(() => {
+      safeNavigate({ type: "video", value: video }, "").then(() => {
         windowsCommands.windowPosition({ type: "video", value: video }, "left-half");
         windowsCommands.windowPosition({ type: "main" }, "right-half");
         windowsCommands.windowResizeDefault({ type: "video", value: video });

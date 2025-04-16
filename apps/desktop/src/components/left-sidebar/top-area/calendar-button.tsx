@@ -1,13 +1,13 @@
 import { Trans } from "@lingui/react/macro";
 import { CalendarDaysIcon } from "lucide-react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { safeNavigate } from "@hypr/utils";
 
 export function CalendarButton() {
   const handleClickCalendar = () => {
-    windowsCommands.windowShow({ type: "calendar" });
+    safeNavigate({ type: "calendar" }, "");
   };
 
   return (

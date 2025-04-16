@@ -2,19 +2,25 @@ import { Trans } from "@lingui/react/macro";
 import { useMatch } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { safeNavigate } from "@hypr/utils";
 
 export function NewWindowButton() {
-  const organizationMatch = useMatch({ from: "/app/organization/$id", shouldThrow: false });
+  const organizationMatch = useMatch({
+    from: "/app/organization/$id",
+    shouldThrow: false,
+  });
   const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
 
   const handleClick = () => {
     if (organizationMatch?.params.id) {
-      windowsCommands.windowShow({ type: "organization", value: organizationMatch.params.id });
+      safeNavigate(
+        { type: "organization", value: organizationMatch.params.id },
+        "",
+      );
     } else if (humanMatch?.params.id) {
-      windowsCommands.windowShow({ type: "human", value: humanMatch.params.id });
+      safeNavigate({ type: "human", value: humanMatch.params.id }, "");
     }
   };
 

@@ -1,4 +1,4 @@
-import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { safeNavigate } from "@hypr/utils";
 import { createContext, useCallback, useContext } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
@@ -6,17 +6,11 @@ interface SettingsContextType {
   open: () => void;
 }
 
-const SettingsContext = createContext<SettingsContextType | null>(
-  null,
-);
+const SettingsContext = createContext<SettingsContextType | null>(null);
 
-export function SettingsProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const open = useCallback(() => {
-    windowsCommands.windowShow({ type: "settings" });
+    safeNavigate({ type: "settings" }, "");
   }, []);
 
   useHotkeys(

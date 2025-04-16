@@ -7,10 +7,9 @@ import React, { useState } from "react";
 
 import { useHypr } from "@/contexts/hypr";
 import { commands as dbCommands, type Human } from "@hypr/plugin-db";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-import { getInitials } from "@hypr/utils";
+import { getInitials, safeNavigate } from "@hypr/utils";
 
 interface ParticipantsListProps {
   sessionId: string;
@@ -116,7 +115,7 @@ function ParticipentItem({
   });
 
   const handleClickHuman = (human: Human) => {
-    windowsCommands.windowShow({ type: "human", value: human.id });
+    safeNavigate({ type: "human", value: human.id }, "");
   };
 
   const handleRemoveParticipant = (id: string) => {

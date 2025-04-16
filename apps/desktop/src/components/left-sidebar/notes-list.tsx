@@ -9,7 +9,6 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { useHypr } from "@/contexts";
 import { commands as dbCommands, type Event, type Session } from "@hypr/plugin-db";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -18,9 +17,9 @@ import {
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/ui/lib/utils";
+import { safeNavigate } from "@hypr/utils";
 import { useSession, useSessions } from "@hypr/utils/contexts";
 import { format, formatRelative, formatTimeAgo, isToday } from "@hypr/utils/datetime";
-import { safeNavigate } from "@hypr/utils/navigation";
 import { confirm } from "@tauri-apps/plugin-dialog";
 
 interface NotesListProps {
@@ -211,7 +210,7 @@ function NoteItem({
   };
 
   const handleOpenWindow = () => {
-    windowsCommands.windowShow({ type: "note", value: currentSessionId });
+    safeNavigate({ type: "note", value: currentSessionId }, "");
   };
 
   const handleOpenCalendar = () => {

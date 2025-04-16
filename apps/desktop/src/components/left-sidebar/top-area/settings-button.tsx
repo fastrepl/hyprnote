@@ -3,7 +3,6 @@ import { CogIcon, CpuIcon } from "lucide-react";
 
 import Shortcut from "@/components/shortcut";
 import { useHypr } from "@/contexts";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -13,16 +12,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
+import { safeNavigate } from "@hypr/utils";
 
 export function SettingsButton() {
   const { userId } = useHypr();
 
   const handleClickSettings = () => {
-    windowsCommands.windowShow({ type: "settings" });
+    safeNavigate({ type: "settings" }, "");
   };
 
   const handleClickProfile = () => {
-    windowsCommands.windowShow({ type: "human", value: userId });
+    safeNavigate({ type: "human", value: userId }, "");
   };
 
   return (

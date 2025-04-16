@@ -3,9 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Users } from "lucide-react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
-import { getInitials } from "@hypr/utils";
+import { getInitials, safeNavigate } from "@hypr/utils";
 
 import type { MembersListProps } from "./types";
 
@@ -32,7 +31,7 @@ export function MembersList({ organizationId }: MembersListProps) {
         {members.slice(0, 5).map((member) => (
           <button
             key={member.id}
-            onClick={() => windowsCommands.windowShow({ type: "human", value: member.id })}
+            onClick={() => safeNavigate({ type: "human", value: member.id }, "")}
             className="flex items-center p-2 rounded-md hover:bg-muted w-full text-left"
           >
             <Avatar className="h-8 w-8 mr-2">
@@ -42,7 +41,11 @@ export function MembersList({ organizationId }: MembersListProps) {
             </Avatar>
             <div>
               <p className="text-sm font-medium">{member.full_name}</p>
-              {member.job_title && <p className="text-xs text-muted-foreground">{member.job_title}</p>}
+              {member.job_title && (
+                <p className="text-xs text-muted-foreground">
+                  {member.job_title}
+                </p>
+              )}
             </div>
           </button>
         ))}

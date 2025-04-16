@@ -27,7 +27,7 @@ export function RecentNotes({ organizationId, members }: RecentNotesProps) {
 
       const allSessions = memberSessions.flat();
       const uniqueSessions = Array.from(
-        new Map(allSessions.map(session => [session.id, session])).values(),
+        new Map(allSessions.map((session) => [session.id, session])).values(),
       );
 
       return uniqueSessions.slice(0, 10);
@@ -37,13 +37,13 @@ export function RecentNotes({ organizationId, members }: RecentNotesProps) {
 
   return (
     <div className="mt-8">
-      <h2 className="mb-4 flex items-center gap-2 font-semibold">
+      <h2 className="mb-4 flex items-center justify-center gap-2 font-semibold">
         <FileText className="size-5" />
         <Trans>Recent Notes</Trans>
       </h2>
       {sessions.length > 0
         ? (
-          <div className="space-y-4">
+          <div className="space-y-4 max-w-xs mx-auto">
             {sessions.map((session) => (
               <Card key={session.id}>
                 <CardContent className="p-4">
@@ -54,11 +54,7 @@ export function RecentNotes({ organizationId, members }: RecentNotesProps) {
                         {format(new Date(session.created_at), "PPP")}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="ml-2"
-                    >
+                    <Button variant="ghost" size="sm" className="ml-2">
                       <Link to="/app/note/$id" params={{ id: session.id }}>
                         <Trans>View Note</Trans>
                       </Link>
@@ -70,7 +66,7 @@ export function RecentNotes({ organizationId, members }: RecentNotesProps) {
           </div>
         )
         : (
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-center">
             <Trans>No recent notes for this organization</Trans>
           </p>
         )}

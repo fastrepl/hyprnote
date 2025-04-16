@@ -283,7 +283,7 @@ msgid "All Participants"
 msgstr ""
 
 #. placeholder {0}: members.length - 5
-#: src/components/organization-profile/members-list.tsx:51
+#: src/components/organization-profile/members-list.tsx:102
 msgid "and {0} more members"
 msgstr ""
 
@@ -659,7 +659,7 @@ msgstr ""
 msgid "Member"
 msgstr ""
 
-#: src/components/organization-profile/members-list.tsx:26
+#: src/components/organization-profile/members-list.tsx:27
 msgid "Members"
 msgstr ""
 
@@ -716,11 +716,11 @@ msgstr ""
 msgid "No past notes with this contact"
 msgstr ""
 
-#: src/components/organization-profile/recent-notes.tsx:74
+#: src/components/organization-profile/recent-notes.tsx:70
 msgid "No recent notes for this organization"
 msgstr ""
 
-#: src/components/organization-profile/upcoming-events.tsx:83
+#: src/components/organization-profile/upcoming-events.tsx:86
 msgid "No upcoming events for this organization"
 msgstr ""
 
@@ -1070,7 +1070,7 @@ msgstr ""
 msgid "Upcoming"
 msgstr ""
 
-#: src/components/organization-profile/upcoming-events.tsx:48
+#: src/components/organization-profile/upcoming-events.tsx:51
 msgid "Upcoming Events"
 msgstr ""
 
@@ -1102,7 +1102,7 @@ msgstr ""
 msgid "View in calendar"
 msgstr ""
 
-#: src/components/organization-profile/recent-notes.tsx:63
+#: src/components/organization-profile/recent-notes.tsx:59
 msgid "View Note"
 msgstr ""
 

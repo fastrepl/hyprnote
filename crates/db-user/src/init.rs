@@ -320,7 +320,6 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
 
     let sessions = vec![
         Session {
-            id: uuid::Uuid::new_v4().to_string(),
             title: "Session 0".to_string(),
             created_at: now - chrono::Duration::hours(1),
             visited_at: now - chrono::Duration::hours(1),
@@ -330,7 +329,6 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             title: "Session 1".to_string(),
             created_at: now,
             visited_at: now,
-            calendar_event_id: Some(events[0].id.clone()),
             ..new_default_session(&user.id)
         },
         Session {

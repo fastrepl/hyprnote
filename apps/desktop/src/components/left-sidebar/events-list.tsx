@@ -1,6 +1,7 @@
 import { Trans } from "@lingui/react/macro";
-import { useNavigate } from "@tanstack/react-router";
+import { LinkProps, useNavigate } from "@tanstack/react-router";
 import { clsx } from "clsx";
+import { format } from "date-fns";
 import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon } from "lucide-react";
 
 import { type Event, type Session } from "@hypr/plugin-db";
@@ -79,9 +80,13 @@ function EventItem({
 
   const handleOpenCalendar = () => {
     const date = new Date(event.start_date);
-    const formattedDate = date.toISOString().split("T")[0]; // Format as YYYY-MM-DD
 
-    const url = `/app/calendar?date=${formattedDate}`;
+    const params = {
+      to: "/app/calendar",
+      search: { date: format(date, "yyyy-MM-dd") },
+    } as const satisfies LinkProps;
+
+    const url = `${params.to}?date=${params.search.date}`;
     safeNavigate({ type: "calendar" }, url);
   };
 

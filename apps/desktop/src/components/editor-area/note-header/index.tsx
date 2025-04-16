@@ -5,6 +5,7 @@ import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { useSession } from "@hypr/utils/contexts";
 import Chips from "./chips";
 import ListenButton from "./listen-button";
+import OnboardingVideoButton from "./onboarding-video-button";
 import TitleInput from "./title-input";
 
 interface NoteHeaderProps {
@@ -12,9 +13,22 @@ interface NoteHeaderProps {
   editable?: boolean;
   sessionId: string;
   hashtags?: string[];
+  onboardingSupport?: {
+    isOnboardingSession: boolean;
+    videoId: string;
+    ongoingSessionStatus: string;
+    playOnboardingVideo: () => void;
+    stopOnboardingVideo: () => void;
+  } | null;
 }
 
-export function NoteHeader({ onNavigateToEditor, editable, sessionId, hashtags = [] }: NoteHeaderProps) {
+export function NoteHeader({
+  onNavigateToEditor,
+  editable,
+  sessionId,
+  hashtags = [],
+  onboardingSupport,
+}: NoteHeaderProps) {
   const sessionStore = useSession(sessionId, (s) => ({
     session: s.session,
     updateTitle: s.updateTitle,
@@ -41,7 +55,20 @@ export function NoteHeader({ onNavigateToEditor, editable, sessionId, hashtags =
         <Chips sessionId={sessionId} hashtags={hashtags} />
       </div>
 
-      {isInNoteMain && <ListenButton sessionId={sessionId} />}
+      {isInNoteMain && (
+        <>
+          {onboardingSupport
+            ? (
+              <OnboardingVideoButton
+                ongoingSessionStatus={onboardingSupport.ongoingSessionStatus}
+                playVideo={onboardingSupport.playOnboardingVideo}
+                stopVideo={onboardingSupport.stopOnboardingVideo}
+                isEnhanced={!!sessionStore.session.enhanced_memo_html}
+              />
+            )
+            : <ListenButton sessionId={sessionId} />}
+        </>
+      )}
     </div>
   );
 }

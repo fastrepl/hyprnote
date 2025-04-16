@@ -701,6 +701,7 @@ msgid "New note"
 msgstr "New note"
 
 #: src/components/left-sidebar/notes-list.tsx:287
+#: src/components/left-sidebar/events-list.tsx:124
 msgid "New window"
 msgstr "New window"
 
@@ -1066,7 +1067,7 @@ msgstr "Untitled"
 msgid "Untitled Template"
 msgstr "Untitled Template"
 
-#: src/components/left-sidebar/events-list.tsx:24
+#: src/components/left-sidebar/events-list.tsx:37
 msgid "Upcoming"
 msgstr "Upcoming"
 
@@ -1098,6 +1099,7 @@ msgstr "username"
 msgid "View calendar"
 msgstr "View calendar"
 
+#: src/components/left-sidebar/events-list.tsx:136
 #: src/components/editor-area/note-header/chips/event-chip.tsx:43
 msgid "View in calendar"
 msgstr "View in calendar"

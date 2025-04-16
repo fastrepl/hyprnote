@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 
 import EditorArea from "@/components/editor-area";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
@@ -46,9 +46,44 @@ export const Route = createFileRoute("/app/note/$id")({
 
 function Component() {
   const { id: sessionId } = Route.useParams();
+  const navigate = useNavigate();
 
-  const { getLatestSession, session } = useSession(sessionId, (s) => ({ getLatestSession: s.get, session: s.session }));
+  const { getLatestSession } = useSession(sessionId, (s) => ({
+    getLatestSession: s.get,
+    session: s.session,
+  }));
   const getOngoingSession = useOngoingSession((s) => s.get);
+
+  const video = "wGZpAB6610200nRG2uRG2t9bS1008y009RUWUJTnSlevpPc";
+  const onboardingSessionId = useQuery({
+    queryKey: ["onboarding-session-id"],
+    queryFn: () => dbCommands.onboardingSessionId(),
+  });
+  const isEnhancePending = useEnhancePendingState(sessionId);
+  const { startOngoingSession, stopOngoingSession, ongoingSessionStatus } = useOngoingSession((s) => ({
+    startOngoingSession: s.start,
+    stopOngoingSession: s.stop,
+    ongoingSessionStatus: s.status,
+  }));
+
+  const isOnboardingSession = onboardingSessionId.data === sessionId;
+
+  const onboardingSupport = isOnboardingSession
+    ? {
+      isOnboardingSession: true,
+      videoId: video,
+      ongoingSessionStatus,
+      playOnboardingVideo: () => {
+        if (ongoingSessionStatus === "inactive" && !isEnhancePending) {
+          startOngoingSession(sessionId);
+        }
+      },
+      stopOnboardingVideo: () => {
+        stopOngoingSession();
+        windowsCommands.windowDestroy({ type: "video", value: video });
+      },
+    }
+    : null;
 
   useEffect(() => {
     const isEmpty = (s: string | null) => s === "<p></p>" || !s;
@@ -82,89 +117,44 @@ function Component() {
     },
   });
 
-  return (
-    <div className="flex h-full overflow-hidden">
-      <div className="flex-1">
-        <main className="flex h-full overflow-hidden bg-white">
-          <div className="h-full flex-1 pt-6">
-            <OnboardingSupport session={session} />
-            <EditorArea editable={getCurrentWebviewWindowLabel() === "main"} sessionId={sessionId} />
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-}
-
-function OnboardingSupport({ session }: { session: Session }) {
-  const video = "wGZpAB6610200nRG2uRG2t9bS1008y009RUWUJTnSlevpPc";
-
-  const navigate = useNavigate();
-
-  const onboardingSessionId = useQuery({
-    queryKey: ["onboarding-session-id"],
-    queryFn: () => dbCommands.onboardingSessionId(),
-  });
-
-  const isEnhancePending = useEnhancePendingState(session.id);
-
-  const enabled = useMemo(() => {
-    const isOnboardingSession = onboardingSessionId.data === session.id;
-    const alreadyEnhanced = session.enhanced_memo_html !== null;
-
-    return isOnboardingSession && !alreadyEnhanced;
-  }, [
-    onboardingSessionId.data,
-    session.id,
-    session.enhanced_memo_html,
-  ]);
-
-  const { startOngoingSession, stopOngoingSession, ongoingSessionStatus } = useOngoingSession((
-    s,
-  ) => ({
-    startOngoingSession: s.start,
-    stopOngoingSession: s.stop,
-    ongoingSessionStatus: s.status,
-  }));
-
-  // Normally, we do stuffs only when "enabled" is true.
-  // But here, we want to "stop-and-go-back" from anywhere, when onboarding video is destroyed.
   useEffect(() => {
+    if (!isOnboardingSession) {
+      return;
+    }
+
     let unlisten: () => void;
 
-    windowsEvents.windowDestroyed.listen(({ payload: { window } }) => {
-      if (window.type === "video" && window.value === video) {
-        stopOngoingSession();
+    windowsEvents.windowDestroyed
+      .listen(({ payload: { window } }) => {
+        if (window.type === "video" && window.value === video) {
+          stopOngoingSession();
 
-        if (onboardingSessionId.data) {
-          navigate({ to: "/app/note/$id", params: { id: onboardingSessionId.data } });
+          if (onboardingSessionId.data) {
+            navigate({
+              to: "/app/note/$id",
+              params: { id: onboardingSessionId.data },
+            });
+          }
         }
-      }
-    }).then((u) => {
-      unlisten = u;
-    });
+      })
+      .then((u) => {
+        unlisten = u;
+      });
 
     return () => unlisten?.();
-  }, []);
+  }, [isOnboardingSession, onboardingSessionId.data]);
 
   useEffect(() => {
-    if (!enabled) {
+    if (!isOnboardingSession) {
       return;
     }
 
-    if (ongoingSessionStatus === "inactive" && !isEnhancePending) {
-      startOngoingSession(session.id);
-    }
-  }, [enabled]);
-
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
-    if (ongoingSessionStatus === "running_active" && !isEnhancePending) {
+    if (ongoingSessionStatus === "running_active") {
       windowsCommands.windowShow({ type: "video", value: video }).then(() => {
-        windowsCommands.windowPosition({ type: "video", value: video }, "left-half");
+        windowsCommands.windowPosition(
+          { type: "video", value: video },
+          "left-half",
+        );
         windowsCommands.windowPosition({ type: "main" }, "right-half");
         windowsCommands.windowResizeDefault({ type: "video", value: video });
         windowsCommands.windowResizeDefault({ type: "main" });
@@ -174,7 +164,21 @@ function OnboardingSupport({ session }: { session: Session }) {
     if (ongoingSessionStatus === "inactive") {
       windowsCommands.windowDestroy({ type: "video", value: video });
     }
-  }, [enabled, ongoingSessionStatus]);
+  }, [isOnboardingSession, ongoingSessionStatus]);
 
-  return null;
+  return (
+    <div className="flex h-full overflow-hidden">
+      <div className="flex-1">
+        <main className="flex h-full overflow-hidden bg-white">
+          <div className="h-full flex-1 pt-6">
+            <EditorArea
+              editable={getCurrentWebviewWindowLabel() === "main"}
+              sessionId={sessionId}
+              onboardingSupport={onboardingSupport}
+            />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 }

@@ -21,9 +21,17 @@ import { NoteHeader } from "./note-header";
 export default function EditorArea({
   editable,
   sessionId,
+  onboardingSupport,
 }: {
   editable: boolean;
   sessionId: string;
+  onboardingSupport?: {
+    isOnboardingSession: boolean;
+    videoId: string;
+    ongoingSessionStatus: string;
+    playOnboardingVideo: () => void;
+    stopOnboardingVideo: () => void;
+  } | null;
 }) {
   const { ongoingSessionStatus } = useOngoingSession((s) => ({
     ongoingSessionStatus: s.status,
@@ -103,6 +111,7 @@ export default function EditorArea({
         editable={editable}
         onNavigateToEditor={safelyFocusEditor}
         hashtags={hashtags}
+        onboardingSupport={onboardingSupport}
       />
 
       <div

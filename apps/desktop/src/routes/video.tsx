@@ -3,9 +3,10 @@ import type { MuxPlayerElementEventMap } from "@mux/mux-player";
 import MuxPlayer from "@mux/mux-player-react/lazy";
 import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
+import { events as listenerEvents } from "@hypr/plugin-listener";
 import { commands as windowsCommands, events as windowsEvents } from "@hypr/plugin-windows";
 
 const schema = z.object({
@@ -24,6 +25,28 @@ export const Route = createFileRoute("/video")({
 function Component() {
   const { id } = Route.useLoaderData();
   const player = useRef<MuxPlayerElement>(null);
+
+  useEffect(() => {
+    let unlisten: () => void;
+
+    listenerEvents.statusEvent.listen(({ payload }) => {
+      if (payload === "running-paused") {
+        player.current?.pause();
+      }
+
+      if (payload === "running-active") {
+        player.current?.play();
+      }
+
+      if (payload === "inactive") {
+        handleEnded();
+      }
+    }).then((u) => {
+      unlisten = u;
+    });
+
+    return () => unlisten?.();
+  }, []);
 
   const styles = {
     "--bottom-controls": "none",

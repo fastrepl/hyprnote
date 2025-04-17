@@ -5,9 +5,10 @@ use statig::prelude::*;
 use tauri::{ipc::Channel, Manager};
 
 use futures_util::StreamExt;
+use tauri_specta::Event;
 use tokio::sync::{mpsc, Mutex};
 
-use crate::{SessionEvent, SessionEventStarted, SessionEventTimelineView};
+use crate::{SessionEvent, SessionEventStarted, SessionEventTimelineView, StatusEvent};
 use hypr_audio::AsyncSource;
 use hypr_timeline::{Timeline, TimelineFilter};
 
@@ -258,10 +259,6 @@ impl Session {
                     .await
                     .unwrap();
                 }
-
-                Session::broadcast(&channels, SessionEvent::Stopped)
-                    .await
-                    .unwrap();
             }
         }));
 
@@ -361,7 +358,7 @@ async fn update_session<R: tauri::Runtime>(
     Ok(())
 }
 
-pub enum Event {
+pub enum StateEvent {
     Start(String),
     Stop,
     Pause,
@@ -379,25 +376,25 @@ pub enum Event {
 )]
 impl Session {
     #[superstate]
-    async fn common(&mut self, event: &Event) -> Response<State> {
+    async fn common(&mut self, event: &StateEvent) -> Response<State> {
         match event {
-            Event::Subscribe(channel) => {
+            StateEvent::Subscribe(channel) => {
                 let mut channels = self.channels.lock().await;
                 channels.insert(channel.id(), channel.clone());
                 Handled
             }
-            Event::Unsubscribe(channel) => {
+            StateEvent::Unsubscribe(channel) => {
                 let mut channels = self.channels.lock().await;
                 channels.remove(&channel.id());
                 Handled
             }
-            Event::MicMuted(muted) => {
+            StateEvent::MicMuted(muted) => {
                 if let Some(tx) = &self.mic_muted_tx {
                     let _ = tx.send(*muted);
                 }
                 Handled
             }
-            Event::SpeakerMuted(muted) => {
+            StateEvent::SpeakerMuted(muted) => {
                 if let Some(tx) = &self.speaker_muted_tx {
                     let _ = tx.send(*muted);
                 }
@@ -408,41 +405,41 @@ impl Session {
     }
 
     #[state(superstate = "common")]
-    async fn running_active(&mut self, event: &Event) -> Response<State> {
+    async fn running_active(&mut self, event: &StateEvent) -> Response<State> {
         match event {
-            Event::Start(incoming_session_id) => match &self.session_id {
+            StateEvent::Start(incoming_session_id) => match &self.session_id {
                 Some(current_id) if current_id != incoming_session_id => {
                     Transition(State::inactive())
                 }
                 _ => Handled,
             },
-            Event::Stop => Transition(State::inactive()),
-            Event::Pause => Transition(State::running_paused()),
-            Event::Resume => Handled,
+            StateEvent::Stop => Transition(State::inactive()),
+            StateEvent::Pause => Transition(State::running_paused()),
+            StateEvent::Resume => Handled,
             _ => Super,
         }
     }
 
     #[state(superstate = "common")]
-    async fn running_paused(&mut self, event: &Event) -> Response<State> {
+    async fn running_paused(&mut self, event: &StateEvent) -> Response<State> {
         match event {
-            Event::Start(incoming_session_id) => match &self.session_id {
+            StateEvent::Start(incoming_session_id) => match &self.session_id {
                 Some(current_id) if current_id != incoming_session_id => {
                     Transition(State::inactive())
                 }
                 _ => Handled,
             },
-            Event::Stop => Transition(State::inactive()),
-            Event::Pause => Handled,
-            Event::Resume => Transition(State::running_active()),
+            StateEvent::Stop => Transition(State::inactive()),
+            StateEvent::Pause => Handled,
+            StateEvent::Resume => Transition(State::running_active()),
             _ => Super,
         }
     }
 
     #[state(entry_action = "enter_inactive", superstate = "common")]
-    async fn inactive(&mut self, event: &Event) -> Response<State> {
+    async fn inactive(&mut self, event: &StateEvent) -> Response<State> {
         match event {
-            Event::Start(id) => match self.setup_resources(id).await {
+            StateEvent::Start(id) => match self.setup_resources(id).await {
                 Ok(_) => Transition(State::running_active()),
                 Err(e) => {
                     // TODO: emit event
@@ -450,9 +447,9 @@ impl Session {
                     Transition(State::inactive())
                 }
             },
-            Event::Stop => Handled,
-            Event::Pause => Handled,
-            Event::Resume => Handled,
+            StateEvent::Stop => Handled,
+            StateEvent::Pause => Handled,
+            StateEvent::Resume => Handled,
             _ => Super,
         }
     }
@@ -460,6 +457,10 @@ impl Session {
     #[action]
     async fn enter_inactive(&mut self) {
         self.teardown_resources().await;
+
+        Session::broadcast(&self.channels, SessionEvent::Stopped)
+            .await
+            .unwrap();
     }
 
     fn on_transition(&mut self, source: &State, target: &State) {
@@ -468,6 +469,12 @@ impl Session {
 
         if let Some(tx) = &self.session_state_tx {
             let _ = tx.send(target.clone());
+
+            match target {
+                State::RunningActive {} => StatusEvent::RunningActive.emit(&self.app).unwrap(),
+                State::RunningPaused {} => StatusEvent::RunningPaused.emit(&self.app).unwrap(),
+                State::Inactive {} => StatusEvent::Inactive.emit(&self.app).unwrap(),
+            }
         }
     }
 }

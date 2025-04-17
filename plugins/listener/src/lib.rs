@@ -47,6 +47,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::resume_session::<tauri::Wry>,
             commands::get_state::<tauri::Wry>,
         ])
+        .events(tauri_specta::collect_events![StatusEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
@@ -55,7 +56,9 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|app, _api| {
+        .setup(move |app, _api| {
+            specta_builder.mount_events(app);
+
             let handle = app.app_handle();
             let fsm = fsm::Session::new(handle.clone()).state_machine();
             let state: SharedState = Mutex::new(State { fsm });

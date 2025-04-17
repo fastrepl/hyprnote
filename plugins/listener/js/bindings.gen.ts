@@ -66,6 +66,11 @@ async getState() : Promise<string> {
 /** user-defined events **/
 
 
+export const events = __makeEvents__<{
+statusEvent: StatusEvent
+}>({
+statusEvent: "plugin:listener:status-event"
+})
 
 /** user-defined constants **/
 
@@ -73,11 +78,11 @@ async getState() : Promise<string> {
 
 /** user-defined types **/
 
-export type SessionEvent = ({ type: "started" } & SessionEventStarted) | { type: "stopped" } | { type: "silence" } | ({ type: "timelineView" } & SessionEventTimelineView) | ({ type: "audioAmplitude" } & SessionEventAudioAmplitude)
+export type SessionEvent = ({ type: "started" } & SessionEventStarted) | { type: "stopped" } | { type: "paused" } | { type: "resumed" } | { type: "silence" } | ({ type: "timelineView" } & SessionEventTimelineView) | ({ type: "audioAmplitude" } & SessionEventAudioAmplitude)
 export type SessionEventAudioAmplitude = { mic: number; speaker: number }
 export type SessionEventStarted = { seconds: number }
 export type SessionEventTimelineView = { timeline: TimelineView }
-export type TAURI_CHANNEL<TSend> = null
+export type StatusEvent = "inactive" | "running-active" | "running-paused"
 export type TimelineView = { items: TimelineViewItem[] }
 export type TimelineViewItem = { start: number; end: number; speaker: string; text: string }
 

@@ -141,7 +141,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         {
             let mut guard = state.lock().await;
-            let event = crate::fsm::Event::Subscribe(channel);
+            let event = crate::fsm::StateEvent::Subscribe(channel);
             guard.fsm.handle(&event).await;
         }
     }
@@ -152,7 +152,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         {
             let mut guard = state.lock().await;
-            let event = crate::fsm::Event::Unsubscribe(channel);
+            let event = crate::fsm::StateEvent::Unsubscribe(channel);
             guard.fsm.handle(&event).await;
         }
     }
@@ -183,7 +183,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         {
             let mut guard = state.lock().await;
-            let event = crate::fsm::Event::MicMuted(muted);
+            let event = crate::fsm::StateEvent::MicMuted(muted);
             guard.fsm.handle(&event).await;
         }
     }
@@ -194,7 +194,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         {
             let mut guard = state.lock().await;
-            let event = crate::fsm::Event::SpeakerMuted(muted);
+            let event = crate::fsm::StateEvent::SpeakerMuted(muted);
             guard.fsm.handle(&event).await;
         }
     }
@@ -205,7 +205,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         {
             let mut guard = state.lock().await;
-            let event = crate::fsm::Event::Start(session_id.into());
+            let event = crate::fsm::StateEvent::Start(session_id.into());
             guard.fsm.handle(&event).await;
         }
     }
@@ -216,7 +216,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         {
             let mut guard = state.lock().await;
-            let event = crate::fsm::Event::Stop;
+            let event = crate::fsm::StateEvent::Stop;
             guard.fsm.handle(&event).await;
         }
     }
@@ -227,7 +227,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         {
             let mut guard = state.lock().await;
-            let event = crate::fsm::Event::Pause;
+            let event = crate::fsm::StateEvent::Pause;
             guard.fsm.handle(&event).await;
         }
     }
@@ -238,7 +238,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         {
             let mut guard = state.lock().await;
-            let event = crate::fsm::Event::Resume;
+            let event = crate::fsm::StateEvent::Resume;
             guard.fsm.handle(&event).await;
         }
     }

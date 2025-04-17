@@ -90,10 +90,12 @@ serde_bytes = "0.11.15"
 serde_json = "1"
 serde_qs = "0.14.0"
 serial_test = "3"
+statig = { version = "0.3.0" }
 strum = "0.26"
 tempfile = "3"
 testcontainers-modules = "0.11.5"
 thiserror = "2"
+url = "2"
 uuid = "1"
 
 axum = "0.8.1"
@@ -102,7 +104,6 @@ tower-http = "0.6.2"
 
 chrono = "0.4.39"
 chrono-tz = "0.10.1"
-url = "2"
 
 prost = "0.13.4"
 tonic = "0.12.3"

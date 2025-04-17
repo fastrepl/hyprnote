@@ -11,7 +11,7 @@ import { useTranscriptWidget } from "../../hooks/useTranscriptWidget";
 
 const Transcript2x2: WidgetTwoByTwo = ({ onMaximize, queryClient }) => {
   const sessionId = useSessions((s) => s.currentSessionId);
-  const { showEmptyMessage } = useTranscriptWidget(sessionId);
+  const { showEmptyMessage, isEnhanced } = useTranscriptWidget(sessionId);
 
   const handleOpenTranscriptSettings = () => {
     const extensionId = "@hypr/extension-transcript";
@@ -70,7 +70,9 @@ const Transcript2x2: WidgetTwoByTwo = ({ onMaximize, queryClient }) => {
       {sessionId && showEmptyMessage && (
         <div className="absolute inset-0 backdrop-blur-sm bg-white/50 flex items-center justify-center z-10 rounded-2xl">
           <div className="text-neutral-500 font-medium">
-            Meeting is not active
+            {isEnhanced
+              ? "No transcript available"
+              : "Meeting is not active"}
           </div>
         </div>
       )}

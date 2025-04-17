@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "@hypr/plugin-db": "workspace:^",
-    "@tanstack/react-query": "^5.72.2",
+    "@tanstack/react-query": "^5.74.3",
     "typescript": "^5.8.3"
   }
 }

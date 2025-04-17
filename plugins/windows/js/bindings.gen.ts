@@ -55,7 +55,7 @@ windowDestroyed: "plugin:windows:window-destroyed"
 
 /** user-defined types **/
 
-export type HyprWindow = { type: "main" } | { type: "note"; value: string } | { type: "human"; value: string } | { type: "organization"; value: string } | { type: "calendar" } | { type: "settings" } | { type: "video"; value: string }
+export type HyprWindow = { type: "main" } | { type: "note"; value: string } | { type: "human"; value: string } | { type: "organization"; value: string } | { type: "calendar" } | { type: "settings" } | { type: "video"; value: string } | { type: "plans" }
 export type KnownPosition = "left-half" | "right-half" | "center"
 export type MainWindowState = { left_sidebar_expanded: boolean | null; right_panel_expanded: boolean | null }
 export type Navigate = { path: string }

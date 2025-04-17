@@ -23,6 +23,8 @@ pub enum HyprWindow {
     Settings,
     #[serde(rename = "video")]
     Video(String),
+    #[serde(rename = "plans")]
+    Plans,
 }
 
 impl std::fmt::Display for HyprWindow {
@@ -35,6 +37,7 @@ impl std::fmt::Display for HyprWindow {
             Self::Calendar => write!(f, "calendar"),
             Self::Settings => write!(f, "settings"),
             Self::Video(id) => write!(f, "video-{}", id),
+            Self::Plans => write!(f, "plans"),
         }
     }
 }
@@ -56,6 +59,7 @@ impl std::str::FromStr for HyprWindow {
                 "human" => return Ok(Self::Human(id.to_string())),
                 "organization" => return Ok(Self::Organization(id.to_string())),
                 "video" => return Ok(Self::Video(id.to_string())),
+                "plans" => return Ok(Self::Plans),
                 _ => {}
             }
         }
@@ -128,6 +132,7 @@ impl HyprWindow {
             Self::Calendar => "Calendar".into(),
             Self::Settings => "Settings".into(),
             Self::Video(_) => "Video".into(),
+            Self::Plans => "Plans".into(),
         }
     }
 
@@ -145,6 +150,7 @@ impl HyprWindow {
             Self::Calendar => LogicalSize::new(640.0, 532.0),
             Self::Settings => LogicalSize::new(800.0, 600.0),
             Self::Video(_) => LogicalSize::new(640.0, 360.0),
+            Self::Plans => LogicalSize::new(640.0, 360.0),
         }
     }
 
@@ -157,6 +163,7 @@ impl HyprWindow {
             Self::Calendar => LogicalSize::new(640.0, 532.0),
             Self::Settings => LogicalSize::new(800.0, 600.0),
             Self::Video(_) => LogicalSize::new(640.0, 360.0),
+            Self::Plans => LogicalSize::new(640.0, 360.0),
         }
     }
 
@@ -225,6 +232,7 @@ impl HyprWindow {
                     Self::Calendar => "/app/calendar",
                     Self::Settings => "/app/settings",
                     Self::Video(id) => &format!("/video?id={}", id),
+                    Self::Plans => "/app/plans",
                 };
                 (self.window_builder(app, url).build()?, true)
             }
@@ -343,6 +351,18 @@ impl HyprWindow {
 
                     window.set_size(default_size)?;
                     window.set_min_size(Some(min_size))?;
+                }
+                Self::Plans => {
+                    window.hide()?;
+                    std::thread::sleep(std::time::Duration::from_millis(100));
+
+                    window.set_maximizable(false)?;
+                    window.set_minimizable(false)?;
+
+                    window.set_size(default_size)?;
+                    window.set_min_size(Some(min_size))?;
+
+                    window.center()?;
                 }
             };
         }

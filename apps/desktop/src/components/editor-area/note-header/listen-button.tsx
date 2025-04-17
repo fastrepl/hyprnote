@@ -147,25 +147,23 @@ function WhenInactiveAndMeetingNotEnded({ disabled, onClick }: { disabled: boole
 
 function WhenInactiveAndMeetingEnded({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
   const [isHovered, setIsHovered] = useState(false);
-  const sessionId = useOngoingSession((s) => s.sessionId);
-  const isEnhancePending = sessionId ? useEnhancePendingState(sessionId) : false;
 
   return (
     <button
-      disabled={disabled || isEnhancePending}
+      disabled={disabled}
       onClick={onClick}
-      onMouseEnter={() => !isEnhancePending && setIsHovered(true)}
-      onMouseLeave={() => !isEnhancePending && setIsHovered(false)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className={cn(
         "w-16 h-9 rounded-full transition-all outline-none p-0 flex items-center justify-center text-xs font-medium",
         "bg-neutral-200 border-2 border-neutral-400 text-neutral-600",
         "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
-        isEnhancePending ? "opacity-10" : "opacity-30",
-        !disabled && !isEnhancePending
-          && "hover:opacity-100 hover:bg-red-100 hover:text-red-600 hover:border-red-400 hover:scale-95 cursor-pointer",
+        !disabled
+          ? "hover:opacity-100 hover:bg-red-100 hover:text-red-600 hover:border-red-400 hover:scale-95 cursor-pointer"
+          : "opacity-10 cursor-progress",
       )}
     >
-      <Trans>{isHovered ? "Resume" : "Ended"}</Trans>
+      <Trans>{disabled ? "Wait..." : isHovered ? "Resume" : "Ended"}</Trans>
     </button>
   );
 }

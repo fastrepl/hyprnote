@@ -1,8 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 
 import EditorArea from "@/components/editor-area";
+import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 import {
@@ -101,34 +102,18 @@ function OnboardingSupport({ session }: { session: Session }) {
 
   const navigate = useNavigate();
 
-  const onboardingSessionId = useQuery({
-    queryKey: ["onboarding-session-id"],
-    queryFn: () => dbCommands.onboardingSessionId(),
-  });
+  const { onboardingSessionId } = useHypr();
 
   const isEnhancePending = useEnhancePendingState(session.id);
 
-  const enabled = useMemo(() => {
-    const isOnboardingSession = onboardingSessionId.data === session.id;
-    const alreadyEnhanced = session.enhanced_memo_html !== null;
-
-    return isOnboardingSession && !alreadyEnhanced;
-  }, [
-    onboardingSessionId.data,
-    session.id,
-    session.enhanced_memo_html,
-  ]);
-
-  const { startOngoingSession, stopOngoingSession, ongoingSessionStatus } = useOngoingSession((
+  const { stopOngoingSession, ongoingSessionStatus } = useOngoingSession((
     s,
   ) => ({
-    startOngoingSession: s.start,
     stopOngoingSession: s.stop,
     ongoingSessionStatus: s.status,
   }));
 
-  // Normally, we do stuffs only when "enabled" is true.
-  // But here, we want to "stop-and-go-back" from anywhere, when onboarding video is destroyed.
+  // we want to "stop-and-go-back" from anywhere, when onboarding video is destroyed.
   useEffect(() => {
     let unlisten: () => void;
 
@@ -136,8 +121,8 @@ function OnboardingSupport({ session }: { session: Session }) {
       if (window.type === "video" && window.value === video) {
         stopOngoingSession();
 
-        if (onboardingSessionId.data) {
-          navigate({ to: "/app/note/$id", params: { id: onboardingSessionId.data } });
+        if (onboardingSessionId) {
+          navigate({ to: "/app/note/$id", params: { id: onboardingSessionId } });
         }
       }
     }).then((u) => {
@@ -148,21 +133,15 @@ function OnboardingSupport({ session }: { session: Session }) {
   }, []);
 
   useEffect(() => {
-    if (!enabled) {
+    if (onboardingSessionId !== session.id) {
       return;
     }
 
-    if (ongoingSessionStatus === "inactive" && !isEnhancePending) {
-      startOngoingSession(session.id);
-    }
-  }, [enabled]);
-
-  useEffect(() => {
-    if (!enabled) {
+    if (isEnhancePending) {
       return;
     }
 
-    if (ongoingSessionStatus === "running_active" && !isEnhancePending) {
+    if (ongoingSessionStatus === "running_active") {
       windowsCommands.windowShow({ type: "video", value: video }).then(() => {
         windowsCommands.windowPosition({ type: "video", value: video }, "left-half");
         windowsCommands.windowPosition({ type: "main" }, "right-half");
@@ -170,11 +149,7 @@ function OnboardingSupport({ session }: { session: Session }) {
         windowsCommands.windowResizeDefault({ type: "main" });
       });
     }
-
-    if (ongoingSessionStatus === "inactive") {
-      windowsCommands.windowDestroy({ type: "video", value: video });
-    }
-  }, [enabled, ongoingSessionStatus]);
+  }, [onboardingSessionId, session.id, isEnhancePending, ongoingSessionStatus]);
 
   return null;
 }

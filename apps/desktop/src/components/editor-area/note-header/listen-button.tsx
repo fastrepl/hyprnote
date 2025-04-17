@@ -1,10 +1,11 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
-import { MicIcon, MicOffIcon, PauseIcon, StopCircleIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
+import { MicIcon, MicOffIcon, PauseIcon, PlayIcon, StopCircleIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
+import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
@@ -15,6 +16,7 @@ import { toast } from "@hypr/ui/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
+import ShinyButton from "./shiny-button";
 
 export default function ListenButton({ sessionId }: { sessionId: string }) {
   const modelDownloaded = useQuery({
@@ -28,6 +30,8 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
       return isDownloaded;
     },
   });
+
+  const { onboardingSessionId } = useHypr();
 
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
@@ -97,19 +101,37 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
 
   if (ongoingSessionStatus === "inactive") {
     if (!meetingEnded) {
-      return (
-        <WhenInactiveAndMeetingNotEnded
-          disabled={!modelDownloaded.data}
-          onClick={handleStartSession}
-        />
-      );
+      if (sessionId === onboardingSessionId) {
+        return (
+          <WhenInactiveAndMeetingNotEndedOnboarding
+            disabled={!modelDownloaded.data}
+            onClick={handleStartSession}
+          />
+        );
+      } else {
+        return (
+          <WhenInactiveAndMeetingNotEnded
+            disabled={!modelDownloaded.data}
+            onClick={handleStartSession}
+          />
+        );
+      }
     } else {
-      return (
-        <WhenInactiveAndMeetingEnded
-          disabled={!modelDownloaded.data || isEnhancePending}
-          onClick={handleStartSession}
-        />
-      );
+      if (sessionId === onboardingSessionId) {
+        return (
+          <WhenInactiveAndMeetingEndedOnboarding
+            disabled={!modelDownloaded.data || isEnhancePending}
+            onClick={handleStartSession}
+          />
+        );
+      } else {
+        return (
+          <WhenInactiveAndMeetingEnded
+            disabled={!modelDownloaded.data || isEnhancePending}
+            onClick={handleStartSession}
+          />
+        );
+      }
     }
   }
 
@@ -166,6 +188,52 @@ function WhenInactiveAndMeetingEnded({ disabled, onClick }: { disabled: boolean;
       )}
     >
       <Trans>{isHovered ? "Resume" : "Ended"}</Trans>
+    </button>
+  );
+}
+
+function WhenInactiveAndMeetingNotEndedOnboarding({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <ShinyButton
+          onClick={onClick}
+          className={cn([
+            "w-24 h-9 rounded-full border-2 transition-all cursor-pointer outline-none p-0 flex items-center justify-center gap-1",
+            "bg-neutral-800 border-neutral-700 text-white text-xs font-medium",
+          ])}
+          style={{
+            boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
+          }}
+        >
+          <PlayIcon size={14} />
+          <Trans>Play video</Trans>
+        </ShinyButton>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" align="end">
+        <p>
+          <Trans>Start onboarding video</Trans>
+        </p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
+  return (
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "w-28 h-9 rounded-full outline-none p-0 flex items-center justify-center gap-1 text-xs font-medium",
+        "bg-neutral-200 border-2 border-neutral-400 text-neutral-600",
+        !disabled
+          && "hover:bg-neutral-300 hover:text-neutral-800 hover:border-neutral-500 transition-all hover:scale-95 cursor-pointer",
+      )}
+      style={{ boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset" }}
+    >
+      <PlayIcon size={14} />
+      <Trans>Play again</Trans>
     </button>
   );
 }

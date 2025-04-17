@@ -246,10 +246,6 @@ export function useAutoEnhance({
 }) {
   const { userId } = useHypr();
 
-  const enhancedMemoHtml = useSession(
-    sessionId,
-    (s) => s.session.enhanced_memo_html,
-  );
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
 
@@ -260,25 +256,24 @@ export function useAutoEnhance({
       session_id: sessionId,
     });
 
-    const justFinishedListening = prevOngoingSessionStatus === "running_active"
-      && ongoingSessionStatus === "inactive";
+    console.log(prevOngoingSessionStatus, ongoingSessionStatus, enhanceStatus);
 
-    if (justFinishedListening && !enhancedMemoHtml) {
-      if (enhanceStatus === "idle") {
-        analyticsCommands.event({
-          event: "onboarding_auto_enhance_triggered",
-          distinct_id: userId,
-          session_id: sessionId,
-        });
+    if (
+      prevOngoingSessionStatus === "running_active"
+      && ongoingSessionStatus === "inactive"
+      && enhanceStatus !== "pending"
+    ) {
+      analyticsCommands.event({
+        event: "onboarding_auto_enhance_triggered",
+        distinct_id: userId,
+        session_id: sessionId,
+      });
 
-        enhanceMutate();
-      }
+      enhanceMutate();
     }
   }, [
     ongoingSessionStatus,
-    prevOngoingSessionStatus,
     enhanceStatus,
-    enhancedMemoHtml,
     sessionId,
     enhanceMutate,
   ]);

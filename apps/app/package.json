@@ -37,7 +37,7 @@
     "@tanstack/react-router": "^1.115.3",
     "@tanstack/zod-adapter": "^1.115.3",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.474.0",
+    "lucide-react": "^0.484.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.24.2",

@@ -87,10 +87,8 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
         className={cn(
           "w-16 h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium",
           "bg-red-100 border-2 border-red-400 text-red-600",
+          "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
         )}
-        style={{
-          boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
-        }}
       >
         <Trans>Resume</Trans>
       </button>
@@ -132,12 +130,9 @@ function WhenInactiveAndMeetingNotEnded({ disabled, onClick }: { disabled: boole
           disabled={disabled}
           onClick={onClick}
           className={cn([
-            "w-9 h-9 rounded-full border-2 transition-all hover:scale-95  cursor-pointer outline-none p-0 flex items-center justify-center",
+            "w-9 h-9 rounded-full border-2 transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center shadow-[inset_0_0_0_2px_rgba(255,255,255,0.8)]",
             disabled ? "bg-neutral-200 border-neutral-400" : "bg-red-500 border-neutral-400",
           ])}
-          style={{
-            boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
-          }}
         >
         </button>
       </TooltipTrigger>
@@ -152,18 +147,23 @@ function WhenInactiveAndMeetingNotEnded({ disabled, onClick }: { disabled: boole
 
 function WhenInactiveAndMeetingEnded({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
   const [isHovered, setIsHovered] = useState(false);
+  const sessionId = useOngoingSession((s) => s.sessionId);
+  const isEnhancePending = sessionId ? useEnhancePendingState(sessionId) : false;
+
   return (
     <button
-      disabled={disabled}
+      disabled={disabled || isEnhancePending}
       onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => !isEnhancePending && setIsHovered(true)}
+      onMouseLeave={() => !isEnhancePending && setIsHovered(false)}
       className={cn(
-        "w-16 h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium",
-        "bg-neutral-200 border-2 border-neutral-400 text-neutral-600 opacity-30",
-        !disabled && "hover:opacity-100 hover:bg-red-100 hover:text-red-600 hover:border-red-400",
+        "w-16 h-9 rounded-full transition-all outline-none p-0 flex items-center justify-center text-xs font-medium",
+        "bg-neutral-200 border-2 border-neutral-400 text-neutral-600",
+        "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
+        isEnhancePending ? "opacity-10" : "opacity-30",
+        !disabled && !isEnhancePending
+          && "hover:opacity-100 hover:bg-red-100 hover:text-red-600 hover:border-red-400 hover:scale-95 cursor-pointer",
       )}
-      style={{ boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset" }}
     >
       <Trans>{isHovered ? "Resume" : "Ended"}</Trans>
     </button>
@@ -220,10 +220,8 @@ export function WhenActive() {
           className={cn([
             open && "hover:scale-95",
             "w-14 h-9 rounded-full bg-red-100 border-2 transition-all border-red-400 cursor-pointer outline-none p-0 flex items-center justify-center",
+            "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
           ])}
-          style={{
-            boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
-          }}
         >
           <SoundIndicator color="#ef4444" size="long" />
         </button>

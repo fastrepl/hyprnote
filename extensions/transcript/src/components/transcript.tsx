@@ -1,15 +1,20 @@
-import { EarIcon } from "lucide-react";
+import { EarIcon, Loader2Icon } from "lucide-react";
 import { forwardRef, useEffect, useRef } from "react";
 
+import { useSessions } from "@hypr/utils/contexts";
 import { useTranscript } from "../hooks/useTranscript";
 
 interface TranscriptProps {
-  sessionId: string;
+  sessionId?: string;
 }
 
 const Transcript = forwardRef<HTMLDivElement, TranscriptProps>(
   ({ sessionId }, ref) => {
-    const { timeline, isLive } = useTranscript(sessionId);
+    // Get current session ID if none is provided
+    const currentSessionId = useSessions((s) => s.currentSessionId);
+    const effectiveSessionId = sessionId || currentSessionId;
+
+    const { timeline, isLive, isLoading } = useTranscript(effectiveSessionId);
     const localRef = useRef<HTMLDivElement>(null);
     const transcriptRef = ref || localRef;
 
@@ -35,17 +40,28 @@ const Transcript = forwardRef<HTMLDivElement, TranscriptProps>(
         ref={transcriptRef}
         className="flex-1 scrollbar-none px-4 flex flex-col gap-2 overflow-y-auto text-sm py-4"
       >
-        {items.map((item, index) => (
-          <div key={index}>
-            <p>{item.text}</p>
-          </div>
-        ))}
+        {isLoading
+          ? (
+            <div className="flex items-center gap-2 justify-center py-2 text-neutral-400">
+              <Loader2Icon size={14} className="animate-spin" /> Loading transcript...
+            </div>
+          )
+          : (
+            <>
+              {items.length > 0
+                && items.map((item, index) => (
+                  <div key={index}>
+                    <p>{item.text}</p>
+                  </div>
+                ))}
 
-        {isLive && (
-          <div className="flex items-center gap-2 justify-center py-2 text-neutral-400">
-            <EarIcon size={14} /> Listening... (there might be a delay)
-          </div>
-        )}
+              {isLive && (
+                <div className="flex items-center gap-2 justify-center py-2 text-neutral-400">
+                  <EarIcon size={14} /> Listening... (there might be a delay)
+                </div>
+              )}
+            </>
+          )}
       </div>
     );
   },

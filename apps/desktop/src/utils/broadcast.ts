@@ -65,7 +65,8 @@ export function broadcastQueryClient(queryClient: QueryClient) {
       if (keys[0] === "human") {
         queryClient.refetchQueries({
           queryKey: ["human", keys[1]],
-          predicate: (query) => query.queryKey.some((key) => key.includes("grouped-participants")),
+          predicate: (query) =>
+            query.queryKey.some((key) => typeof key === "string" && key.includes("grouped-participants")),
         });
       }
 

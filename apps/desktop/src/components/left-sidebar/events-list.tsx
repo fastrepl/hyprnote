@@ -4,6 +4,7 @@ import { clsx } from "clsx";
 import { format } from "date-fns";
 import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon } from "lucide-react";
 
+import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { type Event, type Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import {
@@ -12,6 +13,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
+import { SplashLoader } from "@hypr/ui/components/ui/splash";
 import { useSession } from "@hypr/utils/contexts";
 import { formatUpcomingTime } from "@hypr/utils/datetime";
 import { safeNavigate } from "@hypr/utils/navigation";
@@ -94,6 +96,10 @@ function EventItem({
     && event.session?.id
     && activeSessionId === event.session.id;
 
+  const sessionId = event.session?.id || "";
+  const isEnhancePending = useEnhancePendingState(sessionId);
+  const shouldShowPending = !!event.session?.id && isEnhancePending;
+
   return (
     <ContextMenu>
       <ContextMenuTrigger>
@@ -104,11 +110,16 @@ function EventItem({
             isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
           ])}
         >
-          <div className="flex flex-col items-start gap-1">
-            <EventItemTitle event={event} />
-            <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
-              <span>{formatUpcomingTime(new Date(event.start_date))}</span>
+          <div className="flex items-center gap-1 w-full">
+            <div className="flex-1 flex flex-col items-start gap-1 truncate">
+              <EventItemTitle event={event} />
+
+              <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
+                <span>{formatUpcomingTime(new Date(event.start_date))}</span>
+              </div>
             </div>
+
+            {shouldShowPending && <SplashLoader size={20} strokeWidth={2} />}
           </div>
         </button>
       </ContextMenuTrigger>

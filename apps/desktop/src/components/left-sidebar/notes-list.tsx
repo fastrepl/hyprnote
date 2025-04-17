@@ -8,6 +8,7 @@ import { motion } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
 
 import { useHypr } from "@/contexts";
+import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { commands as dbCommands, type Event, type Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import {
@@ -17,6 +18,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
+import { SplashLoader } from "@hypr/ui/components/ui/splash";
 import { cn } from "@hypr/ui/lib/utils";
 import { useSession, useSessions } from "@hypr/utils/contexts";
 import { format, formatRelative, formatTimeAgo, isToday } from "@hypr/utils/datetime";
@@ -180,6 +182,8 @@ function NoteItem({
     created_at: s.session.created_at,
   }));
 
+  const isEnhancePending = useEnhancePendingState(currentSessionId);
+
   const currentSessionEvent = useQuery({
     queryKey: ["event", currentSessionId],
     queryFn: () => dbCommands.sessionGetEvent(currentSessionId),
@@ -263,16 +267,20 @@ function NoteItem({
             isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
           )}
         >
-          <div className="flex flex-col items-start gap-1 max-w-[180px] truncate">
-            <div className="flex items-center justify-between gap-1">
-              <div className="font-medium text-sm">
-                {currentSession.title || "Untitled"}
+          <div className="flex items-center gap-1 w-full">
+            <div className="flex-1 flex flex-col items-start gap-1 truncate">
+              <div className="flex items-center justify-between gap-1">
+                <div className="font-medium text-sm">
+                  {currentSession.title || "Untitled"}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 text-xs text-neutral-500">
+                <span className="font-medium">{formattedSessionDate}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 text-xs text-neutral-500">
-              <span className="font-medium">{formattedSessionDate}</span>
-            </div>
+            {isEnhancePending && <SplashLoader size={20} strokeWidth={2} />}
           </div>
         </button>
       </ContextMenuTrigger>

@@ -217,8 +217,10 @@ msgstr "{weeks} weeks later"
 
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
+#. placeholder {0}: disabled ? "Wait..." : "Play again"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/editor-area/note-header/listen-button.tsx:188
+#: src/components/editor-area/note-header/listen-button.tsx:235
 msgid "{0}"
 msgstr "{0}"
 
@@ -793,7 +795,7 @@ msgstr "or"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:317
+#: src/components/editor-area/note-header/listen-button.tsx:318
 msgid "Pause"
 msgstr "Pause"
 
@@ -810,8 +812,8 @@ msgstr "people"
 #~ msgstr "Permissions"
 
 #: src/components/editor-area/note-header/listen-button.tsx:234
-msgid "Play again"
-msgstr "Play again"
+#~ msgid "Play again"
+#~ msgstr "Play again"
 
 #: src/components/editor-area/note-header/listen-button.tsx:208
 msgid "Play video"
@@ -982,7 +984,7 @@ msgstr "Start recording"
 msgid "Start Server"
 msgstr "Start Server"
 
-#: src/components/editor-area/note-header/listen-button.tsx:325
+#: src/components/editor-area/note-header/listen-button.tsx:326
 msgid "Stop"
 msgstr "Stop"
 

@@ -217,8 +217,10 @@ msgstr ""
 
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
+#. placeholder {0}: disabled ? "Wait..." : "Play again"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/editor-area/note-header/listen-button.tsx:188
+#: src/components/editor-area/note-header/listen-button.tsx:235
 msgid "{0}"
 msgstr ""
 
@@ -793,7 +795,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:317
+#: src/components/editor-area/note-header/listen-button.tsx:318
 msgid "Pause"
 msgstr ""
 
@@ -810,8 +812,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:234
-msgid "Play again"
-msgstr ""
+#~ msgid "Play again"
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:208
 msgid "Play video"
@@ -982,7 +984,7 @@ msgstr ""
 msgid "Start Server"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:325
+#: src/components/editor-area/note-header/listen-button.tsx:326
 msgid "Stop"
 msgstr ""
 

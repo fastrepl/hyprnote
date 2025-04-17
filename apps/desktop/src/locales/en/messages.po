@@ -216,9 +216,9 @@ msgid "{weeks} weeks later"
 msgstr "{weeks} weeks later"
 
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
-#. placeholder {0}: isHovered ? "Resume" : "Ended"
+#. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
-#: src/components/editor-area/note-header/listen-button.tsx:168
+#: src/components/editor-area/note-header/listen-button.tsx:166
 msgid "{0}"
 msgstr "{0}"
 
@@ -793,7 +793,7 @@ msgstr "or"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:251
+#: src/components/editor-area/note-header/listen-button.tsx:249
 msgid "Pause"
 msgstr "Pause"
 
@@ -970,7 +970,7 @@ msgstr "Start recording"
 msgid "Start Server"
 msgstr "Start Server"
 
-#: src/components/editor-area/note-header/listen-button.tsx:259
+#: src/components/editor-area/note-header/listen-button.tsx:257
 msgid "Stop"
 msgstr "Stop"
 

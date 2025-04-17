@@ -1,12 +1,14 @@
+import { useSession } from "@hypr/utils/contexts";
 import { useTranscript } from "./useTranscript";
 
 export function useTranscriptWidget(sessionId: string | null) {
-  const { timeline, isLive, selectedLanguage, handleLanguageChange } = useTranscript(sessionId);
+  const { timeline, isLive, selectedLanguage, handleLanguageChange, isLoading } = useTranscript(sessionId);
+  const isEnhanced = sessionId ? useSession(sessionId, (s) => !!s.session.enhanced_memo_html) : false;
 
-  // Determine the widget state
   const hasTranscript = timeline?.items && timeline.items.length > 0;
   const isSessionActive = sessionId && (hasTranscript || isLive);
-  const showEmptyMessage = sessionId && !hasTranscript && !isLive;
+
+  const showEmptyMessage = sessionId && !hasTranscript && !isLive && !isLoading;
 
   return {
     timeline,
@@ -16,5 +18,7 @@ export function useTranscriptWidget(sessionId: string | null) {
     hasTranscript,
     isSessionActive,
     showEmptyMessage,
+    isEnhanced,
+    isLoading,
   };
 }

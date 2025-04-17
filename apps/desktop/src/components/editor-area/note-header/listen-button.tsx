@@ -225,13 +225,14 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
       className={cn(
         "w-28 h-9 rounded-full outline-none p-0 flex items-center justify-center gap-1 text-xs font-medium",
         "bg-neutral-200 border-2 border-neutral-400 text-neutral-600",
+        "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
         !disabled
-          && "hover:bg-neutral-300 hover:text-neutral-800 hover:border-neutral-500 transition-all hover:scale-95 cursor-pointer",
+          ? "hover:bg-neutral-300 hover:text-neutral-800 hover:border-neutral-500 transition-all hover:scale-95 cursor-pointer"
+          : "opacity-10 cursor-progress",
       )}
-      style={{ boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset" }}
     >
       <PlayIcon size={14} />
-      <Trans>Play again</Trans>
+      <Trans>{disabled ? "Wait..." : "Play again"}</Trans>
     </button>
   );
 }

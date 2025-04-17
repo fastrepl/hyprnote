@@ -1,38 +1,16 @@
-use kalosm_sample::{LiteralParser, Parse, ParserExt, StopOn};
+use kalosm_sample::Parse;
 
 #[allow(dead_code)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Parse)]
 pub struct EnhanceResponse {
-    pub thinking: String,
     pub content: String,
-}
-
-impl Parse for EnhanceResponse {
-    fn new_parser() -> impl kalosm_sample::SendCreateParserState<Output = Self> {
-        let thinking_start = LiteralParser::from("<thinking>\n");
-        let thinking_content = StopOn::from("</thinking>");
-        let thinking_end = LiteralParser::from("</thinking>\n");
-
-        let content_start = LiteralParser::from("<content>\n");
-        let content_content = StopOn::from("</content>");
-        let content_end = LiteralParser::from("</content>");
-
-        thinking_start
-            .ignore_output_then(thinking_content)
-            .then_ignore_output(thinking_end)
-            .then(
-                content_start
-                    .ignore_output_then(content_content)
-                    .then_ignore_output(content_end),
-            )
-            .map_output(|(thinking, content)| EnhanceResponse { thinking, content })
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use kalosm_sample::{CreateParserState, Parse, ParseStatus, Parser};
+    use kalosm_sample::{
+        CreateParserState, LiteralParser, Parse, ParseStatus, Parser, ParserExt, StopOn,
+    };
 
     #[derive(Debug, Clone, Parse)]
     struct Pet {
@@ -76,10 +54,24 @@ mod tests {
 
     #[test]
     fn test_custom() {
-        let full = r##"<thinking>"##;
-        let parser = EnhanceResponse::new_parser();
+        let full = r##"<headers>Hello</headers><title>World</title>"##;
+
+        let headers_parser = LiteralParser::new("<headers>")
+            .then(StopOn::new("</headers>"))
+            .map_output(|(_, headers)| headers.trim_end_matches("</headers>").to_string());
+
+        let title_parser = LiteralParser::new("<title>")
+            .then(StopOn::new("</title>"))
+            .map_output(|(_, title)| title.trim_end_matches("</title>").to_string());
+
+        let parser = headers_parser.then(title_parser);
+
         let parser_state = parser.create_parser_state();
 
-        parser.parse(&parser_state, full.as_bytes()).unwrap();
+        if let ParseStatus::Finished { result, .. } =
+            parser.parse(&parser_state, full.as_bytes()).unwrap()
+        {
+            println!("{:?}", result);
+        }
     }
 }

@@ -60,6 +60,7 @@ export function NoteHeader({
           {onboardingSupport
             ? (
               <OnboardingVideoButton
+                sessionId={sessionId}
                 ongoingSessionStatus={onboardingSupport.ongoingSessionStatus}
                 playVideo={onboardingSupport.playOnboardingVideo}
                 stopVideo={onboardingSupport.stopOnboardingVideo}

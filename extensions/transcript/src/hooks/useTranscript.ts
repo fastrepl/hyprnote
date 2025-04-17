@@ -6,33 +6,50 @@ import { commands as listenerCommands, type SessionEvent, type TimelineView } fr
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 
 export function useTranscript(sessionId: string | null) {
-  const ongoingSessionStatus = useOngoingSession((s) => s.status);
+  const ongoingSessionState = useOngoingSession((s) => ({
+    status: s.status,
+    sessionId: s.sessionId,
+  }));
   const isEnhanced = sessionId ? useSession(sessionId, (s) => !!s.session.enhanced_memo_html) : false;
-  const isLive = useMemo(() => ongoingSessionStatus === "running_active", [ongoingSessionStatus]);
+
+  const isLive = useMemo(() =>
+    ongoingSessionState.status === "running_active"
+    && ongoingSessionState.sessionId === sessionId, [
+    ongoingSessionState.status,
+    ongoingSessionState.sessionId,
+    sessionId,
+  ]);
 
   const [timeline, setTimeline] = useState<TimelineView | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string>("en");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (!sessionId) {
+      setTimeline(null);
       return;
     }
 
+    setIsLoading(true);
     const fn = async () => {
-      const onboardingSessionId = await dbCommands.onboardingSessionId();
-      const fn = (sessionId === onboardingSessionId && isEnhanced)
-        ? dbCommands.getTimelineViewOnboarding
-        : dbCommands.getTimelineView;
+      try {
+        const onboardingSessionId = await dbCommands.onboardingSessionId();
+        const fn = (sessionId === onboardingSessionId && isEnhanced)
+          ? dbCommands.getTimelineViewOnboarding
+          : dbCommands.getTimelineView;
 
-      const timeline = await fn(sessionId);
-      setTimeline(timeline);
+        const timeline = await fn(sessionId);
+        setTimeline(timeline);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fn();
   }, [sessionId, isEnhanced]);
 
   useEffect(() => {
-    if (ongoingSessionStatus !== "running_active") {
+    if (ongoingSessionState.status !== "running_active" || ongoingSessionState.sessionId !== sessionId) {
       return;
     }
 
@@ -48,7 +65,7 @@ export function useTranscript(sessionId: string | null) {
     return () => {
       listenerCommands.unsubscribe(channel);
     };
-  }, [ongoingSessionStatus]);
+  }, [ongoingSessionState.status, ongoingSessionState.sessionId, sessionId]);
 
   const handleLanguageChange = (value: string) => {
     setSelectedLanguage(value);
@@ -59,5 +76,6 @@ export function useTranscript(sessionId: string | null) {
     isLive,
     selectedLanguage,
     handleLanguageChange,
+    isLoading,
   };
 }

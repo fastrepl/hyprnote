@@ -144,6 +144,7 @@ rodio = "0.20.1"
 kalosm-common = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 kalosm-llama = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 kalosm-model-types = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
+kalosm-sample = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 kalosm-sound = { git = "https://github.com/floneum/floneum", rev = "52967ae", default-features = false }
 kalosm-streams = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 

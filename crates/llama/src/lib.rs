@@ -15,6 +15,7 @@ use hypr_gguf::GgufExt;
 mod error;
 mod grammar;
 mod message;
+mod parser;
 mod stream;
 
 pub use error::*;

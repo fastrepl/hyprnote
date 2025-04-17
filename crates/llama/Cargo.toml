@@ -27,6 +27,7 @@ gbnf = "0.1.7"
 
 async-openai = { workspace = true }
 futures-util = { workspace = true }
+kalosm-sample = { workspace = true }
 tokio = { workspace = true, features = ["rt", "sync"] }
 tokio-stream = { workspace = true }
 

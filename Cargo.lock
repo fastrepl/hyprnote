@@ -7545,6 +7545,7 @@ dependencies = [
  "gguf",
  "include_url_macro",
  "indoc",
+ "kalosm-sample",
  "listener-interface",
  "llama-cpp-2",
  "minijinja",

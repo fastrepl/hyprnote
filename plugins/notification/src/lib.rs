@@ -43,6 +43,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
             let state = SharedState::default();
+            app.manage(state);
 
             {
                 if let Ok(enabled) = app.get_detect_notification() {
@@ -52,7 +53,6 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
                 }
             }
 
-            app.manage(state);
             Ok(())
         })
         .build()

@@ -67,10 +67,10 @@ impl crate::Observer for Detector {
             };
 
             let mut block = blocks::SyncBlock::new1(block);
-            let mut nc = ns::Workspace::shared().notification_center();
-
             let notifications = [wsn::did_launch_app()];
-            let mut observers = Vec::with_capacity(notifications.len());
+
+            let mut observers = Vec::new();
+            let mut nc = ns::Workspace::shared().notification_center();
 
             for name in notifications {
                 let observer = nc.add_observer_block(name, None, None, &mut block);

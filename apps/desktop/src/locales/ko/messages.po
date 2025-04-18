@@ -224,7 +224,7 @@ msgstr ""
 msgid "{0}"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:97
+#: src/components/settings/views/lab.tsx:145
 msgid "{description}"
 msgstr ""
 
@@ -232,7 +232,7 @@ msgstr ""
 msgid "{selectedCount} calendars selected"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:94
+#: src/components/settings/views/lab.tsx:142
 msgid "{title}"
 msgstr ""
 
@@ -640,7 +640,7 @@ msgstr ""
 #~ msgid "Local Language Model"
 #~ msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:42
+#: src/components/left-sidebar/top-area/settings-button.tsx:49
 msgid "Local mode"
 msgstr ""
 
@@ -689,7 +689,7 @@ msgstr ""
 msgid "Much better AI performance"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:63
+#: src/components/left-sidebar/top-area/settings-button.tsx:70
 msgid "My Profile"
 msgstr ""
 
@@ -926,7 +926,7 @@ msgstr ""
 msgid "Send invite"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:56
+#: src/components/left-sidebar/top-area/settings-button.tsx:63
 msgid "Settings"
 msgstr ""
 

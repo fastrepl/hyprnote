@@ -224,7 +224,7 @@ msgstr "{weeks} weeks later"
 msgid "{0}"
 msgstr "{0}"
 
-#: src/components/settings/views/lab.tsx:97
+#: src/components/settings/views/lab.tsx:145
 msgid "{description}"
 msgstr "{description}"
 
@@ -232,7 +232,7 @@ msgstr "{description}"
 msgid "{selectedCount} calendars selected"
 msgstr "{selectedCount} calendars selected"
 
-#: src/components/settings/views/lab.tsx:94
+#: src/components/settings/views/lab.tsx:142
 msgid "{title}"
 msgstr "{title}"
 
@@ -640,7 +640,7 @@ msgstr "Local AI"
 #~ msgid "Local Language Model"
 #~ msgstr "Local Language Model"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:42
+#: src/components/left-sidebar/top-area/settings-button.tsx:49
 msgid "Local mode"
 msgstr "Local mode"
 
@@ -689,7 +689,7 @@ msgstr "Monthly"
 msgid "Much better AI performance"
 msgstr "Much better AI performance"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:63
+#: src/components/left-sidebar/top-area/settings-button.tsx:70
 msgid "My Profile"
 msgstr "My Profile"
 
@@ -926,7 +926,7 @@ msgstr "Select Calendars"
 msgid "Send invite"
 msgstr "Send invite"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:56
+#: src/components/left-sidebar/top-area/settings-button.tsx:63
 msgid "Settings"
 msgstr "Settings"
 

@@ -3375,6 +3375,7 @@ name = "detect"
 version = "0.1.0"
 dependencies = [
  "cidre",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -13296,6 +13297,7 @@ dependencies = [
  "strum 0.26.3",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-store2",
  "tauri-specta",
  "thiserror 2.0.12",
  "tokio",

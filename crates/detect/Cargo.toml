@@ -4,4 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+thiserror = { workspace = true }
+
+[target."cfg(target_os = \"macos\")".dependencies]
 cidre = { workspace = true }

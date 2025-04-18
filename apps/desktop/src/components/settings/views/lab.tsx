@@ -24,6 +24,11 @@ function Notification() {
     queryFn: () => notificationCommands.getDetectNotification(),
   });
 
+  const permission = useQuery({
+    queryKey: ["notification", "permission"],
+    queryFn: () => notificationCommands.checkNotificationPermission(),
+  });
+
   const detectMutation = useMutation({
     mutationFn: async (enabled: boolean) => {
       if (enabled) {
@@ -44,7 +49,7 @@ function Notification() {
   return (
     <FeatureFlag
       title="Notification"
-      description="Enable notification"
+      description={permission.data?.toString() ?? ""}
       icon={<BellIcon />}
       enabled={detect.data ?? false}
       onToggle={detectMutation.mutate}

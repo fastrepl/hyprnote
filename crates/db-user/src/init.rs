@@ -258,51 +258,78 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
     }];
 
     let events = vec![
-        // previous
+        // --- Events for EventsList --- (Sorted by start_date in UI)
+        // Today, linked to a session (created below)
         Event {
             id: uuid::Uuid::new_v4().to_string(),
-            user_id: user.clone().id,
-            tracking_id: "event_1".to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Daily Standup".to_string(),
+            note: "Discuss blockers and progress.".to_string(),
             calendar_id: Some(calendars[0].id.clone()),
-            name: "User Interview with Alex".to_string(),
-            note: "Description 1".to_string(),
-            start_date: now - chrono::Duration::days(1) - chrono::Duration::hours(1),
-            end_date: now - chrono::Duration::days(1),
+            start_date: now + chrono::Duration::minutes(15),
+            end_date: now + chrono::Duration::minutes(30),
             google_event_url: None,
         },
-        // ongoing
+        // Today, not linked to any session
         Event {
             id: uuid::Uuid::new_v4().to_string(),
-            user_id: user.clone().id,
-            tracking_id: "event_2".to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Design Review".to_string(),
+            note: "Review new UI mockups.".to_string(),
             calendar_id: Some(calendars[0].id.clone()),
-            name: "Seed round pitch".to_string(),
-            note: "Description 2".to_string(),
-            start_date: now - chrono::Duration::hours(4),
-            end_date: now + chrono::Duration::hours(4),
-            google_event_url: None,
-        },
-        // upcoming 1
-        Event {
-            id: uuid::Uuid::new_v4().to_string(),
-            user_id: user.clone().id,
-            tracking_id: "event_4".to_string(),
-            calendar_id: Some(calendars[0].id.clone()),
-            name: "Quick chat with Alex".to_string(),
-            note: "Description 3".to_string(),
             start_date: now + chrono::Duration::hours(2),
             end_date: now + chrono::Duration::hours(3),
             google_event_url: None,
         },
+        // Tomorrow
         Event {
             id: uuid::Uuid::new_v4().to_string(),
-            user_id: user.clone().id,
-            tracking_id: "event_5".to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Team Lunch".to_string(),
+            note: "Casual team gathering.".to_string(),
             calendar_id: Some(calendars[0].id.clone()),
-            name: "Litellm dev meeting".to_string(),
-            note: "Description 3".to_string(),
-            start_date: now + chrono::Duration::days(2) + chrono::Duration::hours(1),
-            end_date: now + chrono::Duration::days(2) + chrono::Duration::hours(2),
+            start_date: now + chrono::Duration::days(1) + chrono::Duration::hours(12),
+            end_date: now + chrono::Duration::days(1) + chrono::Duration::hours(13),
+            google_event_url: None,
+        },
+        // Next Week
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Sprint Planning".to_string(),
+            note: "Plan next sprint tasks.".to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now + chrono::Duration::days(7) + chrono::Duration::hours(10),
+            end_date: now + chrono::Duration::days(7) + chrono::Duration::hours(11),
+            google_event_url: None,
+        },
+        // --- Past Events for linking to NotesList ---
+        // Last Month
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Project Kickoff (Past)".to_string(),
+            note: "Initial meeting for Project Phoenix.".to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now - chrono::Duration::days(35),
+            end_date: now - chrono::Duration::days(35) + chrono::Duration::hours(1),
+            google_event_url: None,
+        },
+        // Two Months Ago
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Q3 Strategy Meeting (Past)".to_string(),
+            note: "Quarterly planning session.".to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now - chrono::Duration::days(65),
+            end_date: now - chrono::Duration::days(65) + chrono::Duration::hours(2),
             google_event_url: None,
         },
     ];
@@ -318,61 +345,105 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
         },
     ];
 
+    // Get IDs of specific events for linking sessions
+    let daily_standup_event_id = events[0].id.clone(); // Assumes Daily Standup is the first event
+    let past_kickoff_event_id = events[4].id.clone(); // Assumes Project Kickoff (Past) is the 5th event
+
     let sessions = vec![
+        // --- Sessions for NotesList --- (Sorted by created_at desc in UI group)
+        // Today, linked to Daily Standup event
         Session {
-            title: "Session 0".to_string(),
-            created_at: now - chrono::Duration::hours(1),
-            visited_at: now - chrono::Duration::hours(1),
-            ..new_default_session(&user.id)
-        },
-        Session {
-            title: "Session 1".to_string(),
+            title: "Daily Standup Notes".to_string(),
             created_at: now,
             visited_at: now,
+            calendar_event_id: Some(daily_standup_event_id),
+            raw_memo_html: hypr_buffer::opinionated_md_to_html(
+                "### Blockers\n- API integration delay\n### Progress\n- UI components done",
+            )
+            .unwrap(),
             ..new_default_session(&user.id)
         },
+        // Today, not linked to an event
         Session {
-            title: "Session 2".to_string(),
+            title: "Quick Thoughts".to_string(),
+            created_at: now - chrono::Duration::minutes(5),
+            visited_at: now - chrono::Duration::minutes(5),
+            calendar_event_id: None,
+            raw_memo_html: hypr_buffer::opinionated_md_to_html(
+                "- Remember to call John\n- Check email for invoice",
+            )
+            .unwrap(),
+            ..new_default_session(&user.id)
+        },
+        // Yesterday, not linked
+        Session {
+            title: "Meeting with Client X".to_string(),
             created_at: now - chrono::Duration::days(1),
             visited_at: now - chrono::Duration::days(1),
+            calendar_event_id: None,
+            raw_memo_html: hypr_buffer::opinionated_md_to_html(
+                "**Action Items**\n- Send proposal by EOD Friday",
+            )
+            .unwrap(),
+            ..new_default_session(&user.id)
+        },
+        // Last week, not linked, untitled
+        Session {
+            title: "".to_string(), // Untitled
+            created_at: now - chrono::Duration::days(6),
+            visited_at: now - chrono::Duration::days(6),
+            calendar_event_id: None,
+            raw_memo_html: hypr_buffer::opinionated_md_to_html(
+                "Just some random notes from last week.",
+            )
+            .unwrap(),
+            ..new_default_session(&user.id)
+        },
+        // Last month, linked to past Project Kickoff event
+        Session {
+            title: "Project Phoenix Kickoff Notes".to_string(),
+            created_at: now - chrono::Duration::days(35),
+            visited_at: now - chrono::Duration::days(35),
+            calendar_event_id: Some(past_kickoff_event_id),
+            raw_memo_html: hypr_buffer::opinionated_md_to_html(
+                "### Goals\n- Launch by Q4\n### Risks\n- Resource constraints",
+            )
+            .unwrap(),
+            ..new_default_session(&user.id)
+        },
+        // --- Older Sessions for Grouping/Scrolling Test ---
+        Session {
+            title: "Old Ideas".to_string(),
+            created_at: now - chrono::Duration::days(40),
+            visited_at: now - chrono::Duration::days(40),
+            calendar_event_id: None, // Not linked
             ..new_default_session(&user.id)
         },
         Session {
-            title: "Session 3".to_string(),
-            created_at: now - chrono::Duration::days(7),
-            visited_at: now - chrono::Duration::days(7),
+            title: "Q3 Strategy Notes".to_string(),
+            created_at: now - chrono::Duration::days(65),
+            visited_at: now - chrono::Duration::days(65),
+            calendar_event_id: Some(events[5].id.clone()), // Link to Q3 Strategy Meeting event
+            raw_memo_html: hypr_buffer::opinionated_md_to_html("Focus on growth metrics.").unwrap(),
             ..new_default_session(&user.id)
         },
         Session {
-            title: "Session 4".to_string(),
-            created_at: now - chrono::Duration::days(10),
-            visited_at: now - chrono::Duration::days(10),
+            title: "Archived Note".to_string(),
+            created_at: now - chrono::Duration::days(100),
+            visited_at: now - chrono::Duration::days(100),
+            calendar_event_id: None, // Not linked
             ..new_default_session(&user.id)
         },
         Session {
-            title: "Session 5".to_string(),
-            created_at: now - chrono::Duration::days(34),
-            visited_at: now - chrono::Duration::days(34),
+            title: "Very Old Note".to_string(),
+            created_at: now - chrono::Duration::days(150),
+            visited_at: now - chrono::Duration::days(150),
+            calendar_event_id: None,
             ..new_default_session(&user.id)
         },
-        Session {
-            title: "Session 6".to_string(),
-            created_at: now - chrono::Duration::days(48),
-            visited_at: now - chrono::Duration::days(48),
-            ..new_default_session(&user.id)
-        },
-        Session {
-            title: "Session 7".to_string(),
-            created_at: now - chrono::Duration::days(98),
-            visited_at: now - chrono::Duration::days(98),
-            ..new_default_session(&user.id)
-        },
-        Session {
-            title: "Session 8".to_string(),
-            created_at: now - chrono::Duration::days(148),
-            visited_at: now - chrono::Duration::days(148),
-            ..new_default_session(&user.id)
-        },
+        // Include original onboarding sessions if needed, or remove if redundant
+        // keyboard_shortcuts_session,
+        // editor_basics_session,
     ];
 
     for org in [org_1, org_2] {

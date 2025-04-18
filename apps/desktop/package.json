@@ -35,6 +35,7 @@
     "@hypr/plugin-local-llm": "workspace:^",
     "@hypr/plugin-local-stt": "workspace:^",
     "@hypr/plugin-misc": "workspace:^",
+    "@hypr/plugin-notification": "workspace:^",
     "@hypr/plugin-sfx": "workspace:^",
     "@hypr/plugin-template": "workspace:^",
     "@hypr/plugin-windows": "workspace:^",

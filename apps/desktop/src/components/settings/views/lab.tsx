@@ -1,11 +1,51 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { BellIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { commands as flagsCommands } from "@hypr/plugin-flags";
+import { commands as notificationCommands } from "@hypr/plugin-notification";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
 export default function Lab() {
+  return (
+    <div>
+      <div className="space-y-4">
+        <Notification />
+        <ChatPanel />
+      </div>
+    </div>
+  );
+}
+
+function Notification() {
+  const detect = useQuery({
+    queryKey: ["notification", "detect"],
+    queryFn: () => notificationCommands.getDetectNotification(),
+  });
+
+  const detectMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      if (enabled) {
+        notificationCommands.startDetectNotification();
+      } else {
+        notificationCommands.stopDetectNotification();
+      }
+    },
+  });
+
+  return (
+    <FeatureFlag
+      title="Notification"
+      description="Enable notification"
+      icon={<BellIcon />}
+      enabled={detect.data ?? false}
+      onToggle={detectMutation.mutate}
+    />
+  );
+}
+
+function ChatPanel() {
   const noteChatQuery = useQuery({
     queryKey: ["flags", "ChatRightPanel"],
     queryFn: () => flagsCommands.isEnabled("ChatRightPanel"),
@@ -29,17 +69,13 @@ export default function Lab() {
   };
 
   return (
-    <div>
-      <div className="space-y-4">
-        <FeatureFlag
-          title="Hyprnote Assistant"
-          description="Ask our AI assistant about past notes and upcoming events"
-          icon={<ChatLogo />}
-          enabled={noteChatQuery.data ?? false}
-          onToggle={handleToggleNoteChat}
-        />
-      </div>
-    </div>
+    <FeatureFlag
+      title="Hyprnote Assistant"
+      description="Ask our AI assistant about past notes and upcoming events"
+      icon={<ChatLogo />}
+      enabled={noteChatQuery.data ?? false}
+      onToggle={handleToggleNoteChat}
+    />
   );
 }
 

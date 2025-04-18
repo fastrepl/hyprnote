@@ -165,6 +165,9 @@ importers:
       '@hypr/plugin-misc':
         specifier: workspace:^
         version: link:../../plugins/misc
+      '@hypr/plugin-notification':
+        specifier: workspace:^
+        version: link:../../plugins/notification
       '@hypr/plugin-sfx':
         specifier: workspace:^
         version: link:../../plugins/sfx

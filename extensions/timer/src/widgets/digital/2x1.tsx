@@ -60,6 +60,19 @@ const DigitsTimer2x1: WidgetTwoByOne = () => {
     };
   }, [timeLeft]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isEditing && inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setIsEditing(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isEditing]);
+
   const toggleTimer = () => {
     setIsRunning((prev) => !prev);
   };

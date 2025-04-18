@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-event-notification"
+description = "Enables the set_event_notification command without any pre-configured scope."
+commands.allow = ["set_event_notification"]
+
+[[permission]]
+identifier = "deny-set-event-notification"
+description = "Denies the set_event_notification command without any pre-configured scope."
+commands.deny = ["set_event_notification"]

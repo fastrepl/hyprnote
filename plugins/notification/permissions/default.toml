@@ -1,3 +1,13 @@
 [default]
 description = "Default permissions for the plugin"
-permissions = ["allow-ping"]
+permissions = [
+  "allow-get-event-notification",
+  "allow-set-event-notification",
+  "allow-get-detect-notification",
+  "allow-set-detect-notification",
+  "allow-open-notification-settings",
+  "allow-request-notification-permission",
+  "allow-check-notification-permission",
+  "allow-start-detect-notification",
+  "allow-stop-detect-notification"
+]

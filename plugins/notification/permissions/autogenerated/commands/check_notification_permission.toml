@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-check-notification-permission"
+description = "Enables the check_notification_permission command without any pre-configured scope."
+commands.allow = ["check_notification_permission"]
+
+[[permission]]
+identifier = "deny-check-notification-permission"
+description = "Denies the check_notification_permission command without any pre-configured scope."
+commands.deny = ["check_notification_permission"]

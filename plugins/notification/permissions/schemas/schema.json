@@ -295,22 +295,118 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the ping command without any pre-configured scope.",
+          "description": "Enables the check_notification_permission command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-ping",
-          "markdownDescription": "Enables the ping command without any pre-configured scope."
+          "const": "allow-check-notification-permission",
+          "markdownDescription": "Enables the check_notification_permission command without any pre-configured scope."
         },
         {
-          "description": "Denies the ping command without any pre-configured scope.",
+          "description": "Denies the check_notification_permission command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-ping",
-          "markdownDescription": "Denies the ping command without any pre-configured scope."
+          "const": "deny-check-notification-permission",
+          "markdownDescription": "Denies the check_notification_permission command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`",
+          "description": "Enables the get_detect_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-detect-notification",
+          "markdownDescription": "Enables the get_detect_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_detect_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-detect-notification",
+          "markdownDescription": "Denies the get_detect_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_event_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-event-notification",
+          "markdownDescription": "Enables the get_event_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_event_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-event-notification",
+          "markdownDescription": "Denies the get_event_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the open_notification_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-open-notification-settings",
+          "markdownDescription": "Enables the open_notification_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the open_notification_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-open-notification-settings",
+          "markdownDescription": "Denies the open_notification_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the request_notification_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-request-notification-permission",
+          "markdownDescription": "Enables the request_notification_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the request_notification_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-request-notification-permission",
+          "markdownDescription": "Denies the request_notification_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_detect_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-detect-notification",
+          "markdownDescription": "Enables the set_detect_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_detect_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-detect-notification",
+          "markdownDescription": "Denies the set_detect_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_event_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-event-notification",
+          "markdownDescription": "Enables the set_event_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_event_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-event-notification",
+          "markdownDescription": "Denies the set_event_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the start_detect_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-start-detect-notification",
+          "markdownDescription": "Enables the start_detect_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the start_detect_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-start-detect-notification",
+          "markdownDescription": "Denies the start_detect_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the stop_detect_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-stop-detect-notification",
+          "markdownDescription": "Enables the stop_detect_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the stop_detect_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-stop-detect-notification",
+          "markdownDescription": "Denies the stop_detect_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-event-notification`\n- `allow-set-event-notification`\n- `allow-get-detect-notification`\n- `allow-set-detect-notification`\n- `allow-open-notification-settings`\n- `allow-request-notification-permission`\n- `allow-check-notification-permission`\n- `allow-start-detect-notification`\n- `allow-stop-detect-notification`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-event-notification`\n- `allow-set-event-notification`\n- `allow-get-detect-notification`\n- `allow-set-detect-notification`\n- `allow-open-notification-settings`\n- `allow-request-notification-permission`\n- `allow-check-notification-permission`\n- `allow-start-detect-notification`\n- `allow-stop-detect-notification`"
         }
       ]
     }

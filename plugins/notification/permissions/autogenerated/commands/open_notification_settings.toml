@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-open-notification-settings"
+description = "Enables the open_notification_settings command without any pre-configured scope."
+commands.allow = ["open_notification_settings"]
+
+[[permission]]
+identifier = "deny-open-notification-settings"
+description = "Denies the open_notification_settings command without any pre-configured scope."
+commands.deny = ["open_notification_settings"]

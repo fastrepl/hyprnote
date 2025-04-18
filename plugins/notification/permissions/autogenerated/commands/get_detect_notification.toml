@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-detect-notification"
+description = "Enables the get_detect_notification command without any pre-configured scope."
+commands.allow = ["get_detect_notification"]
+
+[[permission]]
+identifier = "deny-get-detect-notification"
+description = "Denies the get_detect_notification command without any pre-configured scope."
+commands.deny = ["get_detect_notification"]

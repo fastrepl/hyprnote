@@ -92,8 +92,12 @@ impl WebSocketIO for WhisperClient {
     type Input = bytes::Bytes;
     type Output = WhisperOutput;
 
-    fn to_input(data: bytes::Bytes) -> Self::Input {
+    fn to_audio_input(data: bytes::Bytes) -> Self::Input {
         data
+    }
+
+    fn to_flush_input() -> Self::Input {
+        bytes::Bytes::new()
     }
 
     fn to_message(input: Self::Input) -> Message {

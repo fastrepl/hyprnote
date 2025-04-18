@@ -72,10 +72,14 @@ impl WebSocketIO for ListenClient {
     type Input = ListenInputChunk;
     type Output = ListenOutputChunk;
 
-    fn to_input(data: bytes::Bytes) -> Self::Input {
-        ListenInputChunk {
-            audio: data.to_vec(),
+    fn to_audio_input(data: bytes::Bytes) -> Self::Input {
+        ListenInputChunk::Audio {
+            data: data.to_vec(),
         }
+    }
+
+    fn to_flush_input() -> Self::Input {
+        ListenInputChunk::End
     }
 
     fn to_message(input: Self::Input) -> Message {

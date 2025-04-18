@@ -7,10 +7,11 @@ use tokio_tungstenite::{connect_async, tungstenite::client::IntoClientRequest};
 pub use tokio_tungstenite::tungstenite::{protocol::Message, ClientRequestBuilder};
 
 pub trait WebSocketIO: Send + 'static {
-    type Input: Send + Default;
+    type Input: Send;
     type Output: DeserializeOwned;
 
-    fn to_input(data: bytes::Bytes) -> Self::Input;
+    fn to_audio_input(data: bytes::Bytes) -> Self::Input;
+    fn to_flush_input() -> Self::Input;
     fn to_message(input: Self::Input) -> Message;
     fn from_message(msg: Message) -> Option<Self::Output>;
 }
@@ -52,7 +53,7 @@ impl WebSocketClient {
 
         let _send_task = tokio::spawn(async move {
             while let Some(data) = audio_stream.next().await {
-                let input = T::to_input(data);
+                let input = T::to_audio_input(data);
                 let msg = T::to_message(input);
 
                 if let Err(e) = ws_sender.send(msg).await {
@@ -62,7 +63,7 @@ impl WebSocketClient {
             }
 
             // We shouldn't send a 'Close' message, as it would prevent receiving remaining transcripts from the server.
-            let _ = ws_sender.send(T::to_message(T::Input::default())).await;
+            let _ = ws_sender.send(T::to_message(T::to_flush_input())).await;
         });
 
         let output_stream = async_stream::stream! {

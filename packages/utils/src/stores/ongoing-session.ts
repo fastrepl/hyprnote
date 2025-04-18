@@ -67,12 +67,18 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
     stop: () => {
       const { sessionId, channel } = get();
 
-      if (channel) {
-        listenerCommands.unsubscribe(channel);
-      }
+      set((state) =>
+        mutate(state, (draft) => {
+          draft.loading = true;
+        })
+      );
 
       listenerCommands.stopSession().then(() => {
         set(initialState);
+
+        if (channel) {
+          listenerCommands.unsubscribe(channel);
+        }
 
         // session stored in sessionStore become stale during ongoing-session. Refresh it here.
         if (sessionId) {

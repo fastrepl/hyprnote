@@ -2,6 +2,7 @@ export * from "./calendar-toolbar";
 export * from "./entity-toolbar";
 export * from "./main-toolbar";
 export * from "./note-toolbar";
+export * from "./transparent-toolbar";
 
 import { useEditMode } from "@/contexts";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";

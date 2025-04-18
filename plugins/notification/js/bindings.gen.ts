@@ -27,6 +27,12 @@ async requestNotificationPermission() : Promise<null> {
 },
 async checkNotificationPermission() : Promise<NotificationPermission> {
     return await TAURI_INVOKE("plugin:notification|check_notification_permission");
+},
+async startDetectNotification() : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|start_detect_notification");
+},
+async stopDetectNotification() : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|stop_detect_notification");
 }
 }
 

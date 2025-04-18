@@ -1,3 +1,6 @@
+use std::sync::Mutex;
+use tauri::Manager;
+
 mod commands;
 mod error;
 mod ext;
@@ -8,6 +11,13 @@ pub use ext::*;
 pub use store::*;
 
 const PLUGIN_NAME: &str = "notification";
+
+pub type SharedState = Mutex<State>;
+
+#[derive(Default)]
+pub struct State {
+    detector: hypr_detect::Detector,
+}
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
@@ -20,6 +30,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::open_notification_settings::<tauri::Wry>,
             commands::request_notification_permission::<tauri::Wry>,
             commands::check_notification_permission::<tauri::Wry>,
+            commands::start_detect_notification::<tauri::Wry>,
+            commands::stop_detect_notification::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
@@ -29,6 +41,11 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
+        .setup(|app, _api| {
+            let state = SharedState::default();
+            app.manage(state);
+            Ok(())
+        })
         .build()
 }
 

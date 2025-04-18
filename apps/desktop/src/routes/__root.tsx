@@ -5,8 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { CatchNotFound, createRootRouteWithContext, Outlet, useNavigate } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
-import { message } from "@tauri-apps/plugin-dialog";
 import { lazy, Suspense, useEffect } from "react";
 
 import { CatchNotFoundFallback, ErrorComponent, NotFoundComponent } from "@/components/control";
@@ -46,12 +44,6 @@ function Component() {
 
     return () => unlisten?.();
   }, [navigate]);
-
-  useEffect(() => {
-    onOpenUrl(([url]) => {
-      message(url);
-    });
-  }, []);
 
   useEffect(() => {
     scan({

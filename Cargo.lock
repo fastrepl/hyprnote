@@ -3376,6 +3376,7 @@ version = "0.1.0"
 dependencies = [
  "cidre",
  "thiserror 2.0.12",
+ "tokio",
 ]
 
 [[package]]
@@ -13288,6 +13289,8 @@ dependencies = [
 name = "tauri-plugin-notification"
 version = "0.1.0"
 dependencies = [
+ "apalis",
+ "apalis-cron",
  "detect",
  "notification2",
  "serde",

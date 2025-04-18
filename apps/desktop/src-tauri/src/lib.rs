@@ -82,6 +82,7 @@ pub async fn main() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_analytics::init())
         .plugin(tauri_plugin_tray::init())
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_decorum::init())
         .plugin(tauri_plugin_windows::init())

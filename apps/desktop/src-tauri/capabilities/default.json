@@ -47,6 +47,7 @@
     "autostart:default",
     "clipboard-manager:allow-write-text",
     "deep-link:default",
+    "notification:default",
     {
       "identifier": "http:default",
       "allow": [

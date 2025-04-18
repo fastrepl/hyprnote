@@ -1,48 +1,43 @@
-use tauri::{
-  plugin::{Builder, TauriPlugin},
-  Manager, Runtime,
-};
-
-pub use models::*;
-
-#[cfg(desktop)]
-mod desktop;
-#[cfg(mobile)]
-mod mobile;
-
 mod commands;
 mod error;
-mod models;
+mod ext;
 
-pub use error::{Error, Result};
+pub use error::*;
+pub use ext::*;
 
-#[cfg(desktop)]
-use desktop::Notification;
-#[cfg(mobile)]
-use mobile::Notification;
+const PLUGIN_NAME: &str = "notification";
 
-/// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the notification APIs.
-pub trait NotificationExt<R: Runtime> {
-  fn notification(&self) -> &Notification<R>;
+fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
+    tauri_specta::Builder::<R>::new()
+        .plugin_name(PLUGIN_NAME)
+        .commands(tauri_specta::collect_commands![
+            commands::ping::<tauri::Wry>,
+        ])
+        .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
-impl<R: Runtime, T: Manager<R>> crate::NotificationExt<R> for T {
-  fn notification(&self) -> &Notification<R> {
-    self.state::<Notification<R>>().inner()
-  }
+pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
+    let specta_builder = make_specta_builder();
+
+    tauri::plugin::Builder::new(PLUGIN_NAME)
+        .invoke_handler(specta_builder.invoke_handler())
+        .build()
 }
 
-/// Initializes the plugin.
-pub fn init<R: Runtime>() -> TauriPlugin<R> {
-  Builder::new("notification")
-    .invoke_handler(tauri::generate_handler![commands::ping])
-    .setup(|app, api| {
-      #[cfg(mobile)]
-      let notification = mobile::init(app, api)?;
-      #[cfg(desktop)]
-      let notification = desktop::init(app, api)?;
-      app.manage(notification);
-      Ok(())
-    })
-    .build()
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn export_types() {
+        make_specta_builder::<tauri::Wry>()
+            .export(
+                specta_typescript::Typescript::default()
+                    .header("// @ts-nocheck\n\n")
+                    .formatter(specta_typescript::formatter::prettier)
+                    .bigint(specta_typescript::BigIntExportBehavior::Number),
+                "./js/bindings.gen.ts",
+            )
+            .unwrap()
+    }
 }

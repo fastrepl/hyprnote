@@ -45,7 +45,6 @@ tauri-plugin-deep-link = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-http = "2"
-tauri-plugin-notification = "2"
 tauri-plugin-store = "2"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
@@ -57,6 +56,7 @@ tauri-plugin-listener = { path = "plugins/listener" }
 tauri-plugin-local-llm = { path = "plugins/local-llm" }
 tauri-plugin-local-stt = { path = "plugins/local-stt" }
 tauri-plugin-misc = { path = "plugins/misc" }
+tauri-plugin-notification = { path = "plugins/notification" }
 tauri-plugin-sfx = { path = "plugins/sfx" }
 tauri-plugin-sse = { path = "plugins/sse" }
 tauri-plugin-store2 = { path = "plugins/store2" }

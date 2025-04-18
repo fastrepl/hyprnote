@@ -1,7 +1,7 @@
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from "@tauri-apps/api/core";
 
 export async function ping(value: string): Promise<string | null> {
-  return await invoke<{value?: string}>('plugin:notification|ping', {
+  return await invoke<{ value?: string }>("plugin:notification|ping", {
     payload: {
       value,
     },

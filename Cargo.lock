@@ -3344,6 +3344,7 @@ dependencies = [
  "tauri-plugin-local-llm",
  "tauri-plugin-local-stt",
  "tauri-plugin-misc",
+ "tauri-plugin-notification",
  "tauri-plugin-os",
  "tauri-plugin-prevent-default",
  "tauri-plugin-process",
@@ -13320,6 +13321,23 @@ dependencies = [
  "tauri-specta",
  "tracing",
  "vergen-gix",
+]
+
+[[package]]
+name = "tauri-plugin-notification"
+version = "0.1.0"
+dependencies = [
+ "notification2",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.12",
+ "tracing",
 ]
 
 [[package]]

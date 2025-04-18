@@ -1,9 +1,15 @@
 use serde::{ser::Serializer, Serialize};
 
 #[derive(Debug, thiserror::Error)]
-pub enum Error {}
+pub enum NotificationError {
+    #[error("Channel closed unexpectedly")]
+    ChannelClosed,
 
-impl Serialize for Error {
+    #[error("Timeout waiting for notification permission response")]
+    PermissionTimeout,
+}
+
+impl Serialize for NotificationError {
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
         S: Serializer,

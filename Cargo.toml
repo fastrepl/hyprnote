@@ -150,6 +150,7 @@ kalosm-streams = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 deepgram = { version = "0.6.6", default-features = false }
 libsql = "0.9.4"
 
+block2 = "0.6"
 objc2 = "0.6"
 objc2-foundation = "0.3"
 objc2-user-notifications = "0.3"

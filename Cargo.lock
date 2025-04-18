@@ -8218,9 +8218,12 @@ dependencies = [
 name = "notification2"
 version = "0.1.0"
 dependencies = [
+ "block2 0.6.0",
  "objc2 0.6.0",
  "objc2-foundation 0.3.0",
  "objc2-user-notifications",
+ "serde",
+ "specta",
  "wezterm-toast-notification",
 ]
 
@@ -13294,6 +13297,7 @@ dependencies = [
  "tauri-plugin",
  "tauri-specta",
  "thiserror 2.0.12",
+ "tokio",
  "tracing",
 ]
 

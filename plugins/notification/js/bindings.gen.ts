@@ -7,8 +7,11 @@
 
 
 export const commands = {
-async ping() : Promise<null> {
-    return await TAURI_INVOKE("plugin:notification|ping");
+async requestNotificationPermission() : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|request_notification_permission");
+},
+async checkNotificationPermission() : Promise<NotificationPermission> {
+    return await TAURI_INVOKE("plugin:notification|check_notification_permission");
 }
 }
 
@@ -22,7 +25,7 @@ async ping() : Promise<null> {
 
 /** user-defined types **/
 
-
+export type NotificationPermission = "Granted" | "NotGrantedAndShouldRequest" | "NotGrantedAndShouldAskManual"
 
 /** tauri-specta globals **/
 

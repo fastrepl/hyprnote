@@ -4,9 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+serde = { workspace = true, features = ["derive"] }
+specta = { workspace = true, features = ["derive"] }
 wezterm = { git = "https://github.com/wezterm/wezterm", rev = "f06d6fc", package = "wezterm-toast-notification" }
 
 [target."cfg(target_os = \"macos\")".dependencies]
 objc2 = { workspace = true }
 objc2-foundation = { workspace = true }
 objc2-user-notifications = { workspace = true }
+block2 = { workspace = true }

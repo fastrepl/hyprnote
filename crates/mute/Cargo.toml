@@ -1,9 +1,0 @@
-[package]
-name = "mute"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-block2 = "0.6.0"
-objc2 = "0.6.0"
-objc2-avf-audio = "0.3.0"

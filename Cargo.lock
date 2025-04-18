@@ -3317,7 +3317,6 @@ dependencies = [
  "futures-core",
  "futures-util",
  "hound",
- "notification2",
  "reqwest 0.12.15",
  "serde",
  "serde_json",
@@ -8042,15 +8041,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "defc4c55412d89136f966bbb339008b474350e5e6e78d2714439c386b3137a03"
 
 [[package]]
-name = "mute"
-version = "0.1.0"
-dependencies = [
- "block2 0.6.0",
- "objc2 0.6.0",
- "objc2-avf-audio",
-]
-
-[[package]]
 name = "nango"
 version = "0.1.0"
 dependencies = [
@@ -8489,32 +8479,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "objc2-audio-toolbox"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6c2736f2e27584ca5c75640186542e772ce550a3c5182fc358526dea242c068"
-dependencies = [
- "bitflags 2.9.0",
- "block2 0.6.0",
- "objc2 0.6.0",
- "objc2-foundation 0.3.0",
-]
-
-[[package]]
-name = "objc2-avf-audio"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2fe5d8f6b9904a2028e9168bbdc77d06f944a39a0aef7076857db09f1298c9a"
-dependencies = [
- "bitflags 2.9.0",
- "block2 0.6.0",
- "objc2 0.6.0",
- "objc2-audio-toolbox",
- "objc2-core-audio-types",
- "objc2-foundation 0.3.0",
-]
-
-[[package]]
 name = "objc2-cloud-kit"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8534,16 +8498,6 @@ dependencies = [
  "block2 0.5.1",
  "objc2 0.5.2",
  "objc2-foundation 0.2.2",
-]
-
-[[package]]
-name = "objc2-core-audio-types"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ffa9f6942675c6828092dd365f32c771eac9b983126b79e2ebc385954bfdf06"
-dependencies = [
- "bitflags 2.9.0",
- "objc2 0.6.0",
 ]
 
 [[package]]

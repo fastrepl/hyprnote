@@ -199,7 +199,7 @@ export default function WidgetRenderer({
                 ))}
               </GridLayout>
 
-              <div className="flex items-center justify-center">
+              <div className="flex items-center justify-center mb-5">
                 <ConfigureWidgetsButton>
                   <Trans>Edit Widgets</Trans>
                 </ConfigureWidgetsButton>

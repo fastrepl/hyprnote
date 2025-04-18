@@ -35,8 +35,11 @@ export function SettingsButton() {
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="start" className="w-52 p-0" onClick={handleClickPlans}>
-        <div className="px-2 py-3 bg-gradient-to-r from-gray-800 to-gray-900 rounded-t-md relative overflow-hidden">
+      <DropdownMenuContent align="start" className="w-52 p-0">
+        <div
+          className="px-2 py-3 bg-gradient-to-r from-gray-800 to-gray-900 rounded-t-md relative overflow-hidden cursor-pointer"
+          onClick={handleClickPlans}
+        >
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDIwIDAgTCAwIDAgTCAwIDIwIiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4xNSkiIHN0cm9rZS13aWR0aD0iMS41Ii8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-70">
           </div>
           <div className="flex items-center gap-3 text-white relative z-10">

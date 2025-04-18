@@ -21,12 +21,6 @@ async setupDbForCloud() : Promise<null> {
 },
 async setAutostart(autostart: boolean) : Promise<null> {
     return await TAURI_INVOKE("set_autostart", { autostart });
-},
-async notify() : Promise<null> {
-    return await TAURI_INVOKE("notify");
-},
-async notify2() : Promise<null> {
-    return await TAURI_INVOKE("notify2");
 }
 }
 

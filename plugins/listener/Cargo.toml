@@ -53,5 +53,5 @@ hound = { workspace = true }
 statig = { workspace = true, features = ["async"] }
 
 [target."cfg(target_os = \"macos\")".dependencies]
-objc2 = "0.6"
-objc2-foundation = "0.3"
+objc2 = { workspace = true }
+objc2-foundation = { workspace = true }

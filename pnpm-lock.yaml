@@ -15,8 +15,8 @@ importers:
   apps/app:
     dependencies:
       '@clerk/clerk-react':
-        specifier: ^5.28.1
-        version: 5.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^5.28.2
+        version: 5.28.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@hypr/tiptap':
         specifier: workspace:^
         version: link:../../packages/tiptap
@@ -36,8 +36,8 @@ importers:
         specifier: ^8.55.0
         version: 8.55.0(react@18.3.1)
       '@tanstack/react-query':
-        specifier: ^5.74.3
-        version: 5.74.3(react@18.3.1)
+        specifier: ^5.74.4
+        version: 5.74.4(react@18.3.1)
       '@tanstack/react-router':
         specifier: ^1.116.0
         version: 1.116.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -64,8 +64,8 @@ importers:
         version: 5.0.3(@types/react@18.3.20)(react@18.3.1)(use-sync-external-store@1.5.0(react@18.3.1))
     devDependencies:
       '@clerk/types':
-        specifier: ^4.54.1
-        version: 4.54.1
+        specifier: ^4.54.2
+        version: 4.54.2
       '@hypr/client':
         specifier: workspace:^
         version: link:../../packages/client
@@ -220,11 +220,11 @@ importers:
         specifier: ^8.55.0
         version: 8.55.0(react@18.3.1)
       '@tanstack/react-query':
-        specifier: ^5.74.3
-        version: 5.74.3(react@18.3.1)
+        specifier: ^5.74.4
+        version: 5.74.4(react@18.3.1)
       '@tanstack/react-query-devtools':
-        specifier: ^5.74.3
-        version: 5.74.3(@tanstack/react-query@5.74.3(react@18.3.1))(react@18.3.1)
+        specifier: ^5.74.4
+        version: 5.74.4(@tanstack/react-query@5.74.4(react@18.3.1))(react@18.3.1)
       '@tanstack/react-router':
         specifier: ^1.116.0
         version: 1.116.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -428,8 +428,8 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2(vue@3.5.13(typescript@5.8.3))
       posthog-js:
-        specifier: ^1.236.1
-        version: 1.236.1(@rrweb/types@2.0.0-alpha.17)
+        specifier: ^1.236.2
+        version: 1.236.2(@rrweb/types@2.0.0-alpha.17)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -538,8 +538,8 @@ importers:
         specifier: workspace:^
         version: link:../../packages/utils
       '@tanstack/react-query':
-        specifier: ^5.74.3
-        version: 5.74.3(react@18.3.1)
+        specifier: ^5.74.4
+        version: 5.74.4(react@18.3.1)
       '@tauri-apps/api':
         specifier: ^2.5.0
         version: 2.5.0
@@ -547,8 +547,8 @@ importers:
         specifier: ^0.474.0
         version: 0.474.0(react@18.3.1)
       motion:
-        specifier: ^12.7.3
-        version: 12.7.3(@emotion/is-prop-valid@0.8.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^12.7.4
+        version: 12.7.4(@emotion/is-prop-valid@0.8.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       zod:
         specifier: ^3.24.3
         version: 3.24.3
@@ -652,8 +652,8 @@ importers:
         specifier: workspace:^
         version: link:../../packages/utils
       '@tanstack/react-query':
-        specifier: ^5.74.3
-        version: 5.74.3(react@18.3.1)
+        specifier: ^5.74.4
+        version: 5.74.4(react@18.3.1)
       '@tauri-apps/api':
         specifier: ^2.5.0
         version: 2.5.0
@@ -661,8 +661,8 @@ importers:
         specifier: ^4.3.9
         version: 4.3.9(react@18.3.1)(zod@3.24.3)
       motion:
-        specifier: ^12.7.3
-        version: 12.7.3(@emotion/is-prop-valid@0.8.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^12.7.4
+        version: 12.7.4(@emotion/is-prop-valid@0.8.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       zod:
         specifier: ^3.24.3
         version: 3.24.3
@@ -722,8 +722,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ui
       '@tanstack/react-query':
-        specifier: ^5.74.3
-        version: 5.74.3(react@18.3.1)
+        specifier: ^5.74.4
+        version: 5.74.4(react@18.3.1)
       lucide-react:
         specifier: ^0.474.0
         version: 0.474.0(react@18.3.1)
@@ -792,8 +792,8 @@ importers:
         specifier: workspace:^
         version: link:../../packages/utils
       '@tanstack/react-query':
-        specifier: ^5.74.3
-        version: 5.74.3(react@19.0.0)
+        specifier: ^5.74.4
+        version: 5.74.4(react@19.0.0)
       '@tauri-apps/api':
         specifier: ^2.5.0
         version: 2.5.0
@@ -801,8 +801,8 @@ importers:
         specifier: ^0.474.0
         version: 0.474.0(react@19.0.0)
       motion:
-        specifier: ^12.7.3
-        version: 12.7.3(@emotion/is-prop-valid@0.8.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        specifier: ^12.7.4
+        version: 12.7.4(@emotion/is-prop-valid@0.8.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       zod:
         specifier: ^3.24.3
         version: 3.24.3
@@ -899,8 +899,8 @@ importers:
         specifier: ^8.6.12
         version: 8.6.12(@storybook/test@8.6.12(storybook@8.6.12(prettier@3.5.3)))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.40.0)(storybook@8.6.12(prettier@3.5.3))(typescript@5.8.3)(vite@6.3.1(@types/node@22.14.1)(jiti@2.4.2)(tsx@4.19.3)(yaml@2.7.1))
       '@tanstack/react-query':
-        specifier: ^5.74.3
-        version: 5.74.3(react@19.0.0)
+        specifier: ^5.74.4
+        version: 5.74.4(react@19.0.0)
       '@types/node':
         specifier: ^22.14.1
         version: 22.14.1
@@ -936,8 +936,8 @@ importers:
         specifier: workspace:^
         version: link:../../plugins/db
       '@tanstack/react-query':
-        specifier: ^5.74.3
-        version: 5.74.3(react@19.0.0)
+        specifier: ^5.74.4
+        version: 5.74.4(react@19.0.0)
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -948,8 +948,8 @@ importers:
         specifier: ^0.8.4
         version: 0.8.4
       '@tanstack/react-query':
-        specifier: ^5.74.3
-        version: 5.74.3(react@19.0.0)
+        specifier: ^5.74.4
+        version: 5.74.4(react@19.0.0)
     devDependencies:
       '@hey-api/openapi-ts':
         specifier: ^0.64.15
@@ -961,8 +961,8 @@ importers:
         specifier: ^0.8.4
         version: 0.8.4
       '@tanstack/react-query':
-        specifier: ^5.74.3
-        version: 5.74.3(react@19.0.0)
+        specifier: ^5.74.4
+        version: 5.74.4(react@19.0.0)
     devDependencies:
       '@hey-api/openapi-ts':
         specifier: ^0.64.15
@@ -1113,8 +1113,8 @@ importers:
         specifier: ^0.474.0
         version: 0.474.0(react@18.3.1)
       motion:
-        specifier: ^12.7.3
-        version: 12.7.3(@emotion/is-prop-valid@0.8.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^12.7.4
+        version: 12.7.4(@emotion/is-prop-valid@0.8.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1135,8 +1135,8 @@ importers:
         version: 3.24.3
     devDependencies:
       '@tanstack/react-query':
-        specifier: ^5.74.3
-        version: 5.74.3(react@18.3.1)
+        specifier: ^5.74.4
+        version: 5.74.4(react@18.3.1)
       '@types/node':
         specifier: ^22.14.1
         version: 22.14.1
@@ -1174,8 +1174,8 @@ importers:
   packages/utils:
     dependencies:
       '@ai-sdk/openai':
-        specifier: ^1.3.15
-        version: 1.3.15(zod@3.24.3)
+        specifier: ^1.3.16
+        version: 1.3.16(zod@3.24.3)
       '@ai-sdk/react':
         specifier: ^1.2.9
         version: 1.2.9(react@18.3.1)(zod@3.24.3)
@@ -1298,6 +1298,12 @@ importers:
         specifier: ^2.5.0
         version: 2.5.0
 
+  plugins/notification:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.5.0
+        version: 2.5.0
+
   plugins/sfx:
     dependencies:
       '@tauri-apps/api':
@@ -1339,8 +1345,8 @@ packages:
   '@adobe/css-tools@4.4.2':
     resolution: {integrity: sha512-baYZExFpsdkBNuvGKTKWCwKH57HRZLVtycZS05WTQNVOiXVSeAki3nU35zlRbToeMW8aHlJfyS+1C4BOv27q0A==}
 
-  '@ai-sdk/openai@1.3.15':
-    resolution: {integrity: sha512-sjUM1A+Pwui+fAn4kmBfVyhJGhqIbsqNzERNPmtRKRBhYG7p946+DTmbJ4lsZG+r4+kMn87aDCYyRexnsnbu5g==}
+  '@ai-sdk/openai@1.3.16':
+    resolution: {integrity: sha512-pjtiBKt1GgaSKZryTbM3tqgoegJwgAUlp1+X5uN6T+VPnI4FLSymV65tyloWzDlyqZmi9HXnnSRPu76VoL5D5g==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.0.0
@@ -1578,15 +1584,15 @@ packages:
   '@clack/prompts@0.8.2':
     resolution: {integrity: sha512-6b9Ab2UiZwJYA9iMyboYyW9yJvAO9V753ZhS+DHKEjZRKAxPPOb7MXXu84lsPFG+vZt6FRFniZ8rXi+zCIw4yQ==}
 
-  '@clerk/clerk-react@5.28.1':
-    resolution: {integrity: sha512-et5vUhzBkjX5QSegyWH9bJ1nBdWwH85l6tZPSolEjXtUN9j4ecMTils5KyKw2/udJ9TReiZxTlfOYAqIS74JQA==}
+  '@clerk/clerk-react@5.28.2':
+    resolution: {integrity: sha512-snoA4Q7bkfjzAuZeGm/5cQNX9vAqI5EXiaN3HE18pHSvmhLTmtgvKgeJt+lT+yWQisOWswwp8XlHOToEeIS6dA==}
     engines: {node: '>=18.17.0'}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0 || ^19.0.0-0
       react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-0
 
-  '@clerk/shared@3.7.1':
-    resolution: {integrity: sha512-kbP/op32aYgAgLReU0OxqakUXP7VNxLtz5lrbt3PXbqNdvGuQ5opPkdxA7YBgZe09JcPKDOiBJ0rZM9mTDt4Rw==}
+  '@clerk/shared@3.7.2':
+    resolution: {integrity: sha512-gx0qSf1M0QPwoieTytMKZmV6rNfv/849bHpO+hXB3TbuLaZ8DTIG95pIa37C4LBHGgFO1qcyRydwoyAC5skrnQ==}
     engines: {node: '>=18.17.0'}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0 || ^19.0.0-0
@@ -1597,8 +1603,8 @@ packages:
       react-dom:
         optional: true
 
-  '@clerk/types@4.54.1':
-    resolution: {integrity: sha512-XVns/t1p13VyUhjI05qJV2RBLWsL+bDua48A0dKPMT17SFJGI5UXm7olDuidYN1VdrFFxMVvIIbdZqFviOJvaA==}
+  '@clerk/types@4.54.2':
+    resolution: {integrity: sha512-9z2odfkK58b8aa9GM6G5CmDefXKoGE8UG8f9cDp//Z4qYMqq2/uPHzDFYawJMu1Da2sUwgNeXEFqoaatXaBoXA==}
     engines: {node: '>=18.17.0'}
 
   '@cspotcode/source-map-support@0.8.1':
@@ -3535,20 +3541,20 @@ packages:
     resolution: {integrity: sha512-K7JJNrRVvyjAVnbXOH2XLRhFXDkeP54Kt2P4FR1Kl2KDGlIbkua5VqZQD2rot3qaDrpufyUa63nuLai1kOLTsQ==}
     engines: {node: '>=12'}
 
-  '@tanstack/query-core@5.74.3':
-    resolution: {integrity: sha512-Mqk+5o3qTuAiZML248XpNH8r2cOzl15+LTbUsZQEwvSvn1GU4VQhvqzAbil36p+MBxpr/58oBSnRzhrBevDhfg==}
+  '@tanstack/query-core@5.74.4':
+    resolution: {integrity: sha512-YuG0A0+3i9b2Gfo9fkmNnkUWh5+5cFhWBN0pJAHkHilTx6A0nv8kepkk4T4GRt4e5ahbtFj2eTtkiPcVU1xO4A==}
 
   '@tanstack/query-devtools@5.73.3':
     resolution: {integrity: sha512-hBQyYwsOuO7QOprK75NzfrWs/EQYjgFA0yykmcvsV62q0t6Ua97CU3sYgjHx0ZvxkXSOMkY24VRJ5uv9f5Ik4w==}
 
-  '@tanstack/react-query-devtools@5.74.3':
-    resolution: {integrity: sha512-H7TsOBB1fRCuuawrBzKMoIszqqILr2IN5oGLYMl7QG7ERJpMdc4hH8OwzBhVxJnmKeGwgtTQgcdKepfoJCWvFg==}
+  '@tanstack/react-query-devtools@5.74.4':
+    resolution: {integrity: sha512-PGCAcytQMmeagoeGG45ccBhrC1x0/5OlNjsM1FAb9OfsQZIhPzjwjhGcwmMu6TbT4RIHgvjxLwC5NHgkUwJQzw==}
     peerDependencies:
-      '@tanstack/react-query': ^5.74.3
+      '@tanstack/react-query': ^5.74.4
       react: ^18 || ^19
 
-  '@tanstack/react-query@5.74.3':
-    resolution: {integrity: sha512-QrycUn0wxjVPzITvQvOxFRdhlAwIoOQSuav7qWD4SWCoKCdLbyRZ2vji2GuBq/glaxbF4wBx3fqcYRDOt8KDTA==}
+  '@tanstack/react-query@5.74.4':
+    resolution: {integrity: sha512-mAbxw60d4ffQ4qmRYfkO1xzRBPUEf/72Dgo3qqea0J66nIKuDTLEqQt0ku++SDFlMGMnB6uKDnEG1xD/TDse4Q==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -4757,8 +4763,8 @@ packages:
   binary@0.3.0:
     resolution: {integrity: sha512-D4H1y5KYwpJgK8wk1Cue5LLPgmwHKYSChkbspQg5JtVuR5ulGckxfR62H3AE9UDkdMC8yyXlqYihuz3Aqg2XZg==}
 
-  bippy@0.3.8:
-    resolution: {integrity: sha512-0ou8fJWxUXK/+eRjUz5unbtX8Mrn0OYRs6QQwwUJtU6hsFDTSmSeI1fJC/2nrPA4G6GWcxwT+O6TbHyGhl4fEg==}
+  bippy@0.3.9:
+    resolution: {integrity: sha512-VRAaUmdLkHPvnhXA7RewaAgYlG1JJZfsCE5ljkooQPMvKgosblkisZtkuj1DSOleuoTxVrlmFNA+tICGBdr2bA==}
     peerDependencies:
       react: '>=17.0.1'
 
@@ -5327,8 +5333,8 @@ packages:
     engines: {node: '>=0.10.0'}
     hasBin: true
 
-  electron-to-chromium@1.5.137:
-    resolution: {integrity: sha512-/QSJaU2JyIuTbbABAo/crOs+SuAZLS+fVVS10PVrIT9hrRkmZl8Hb0xPSkKRUUWHQtYzXHpQUW3Dy5hwMzGZkA==}
+  electron-to-chromium@1.5.138:
+    resolution: {integrity: sha512-FWlQc52z1dXqm+9cCJ2uyFgJkESd+16j6dBEjsgDNuHjBpuIzL8/lRc0uvh1k8RNI6waGo6tcy2DvwkTBJOLDg==}
 
   embla-carousel-react@8.6.0:
     resolution: {integrity: sha512-0/PjqU7geVmo6F734pmPqpyHqiM99olvyecY7zdweCw+6tKEXnrE90pBiBbMMU8s5tICemzpQ3hi5EpxzGW+JA==}
@@ -5706,8 +5712,8 @@ packages:
       react-dom:
         optional: true
 
-  framer-motion@12.7.3:
-    resolution: {integrity: sha512-dNT4l5gEnUo2ytXLUBUf6AI21dZ77TMclDKE3ElaIHZ8m90nJ/NCcExW51zdSIaS0RhAS5iXcF7bEIxZe8XG2g==}
+  framer-motion@12.7.4:
+    resolution: {integrity: sha512-jX0bPsTmU0oPZTYz/dVyD0dmOyEOEJvdn0TaZBE5I8g2GvVnnQnW9f65cJnoVfUkY3WZWNXGXnPbVA9YnaIfVA==}
     peerDependencies:
       '@emotion/is-prop-valid': '*'
       react: ^18.0.0 || ^19.0.0
@@ -6873,8 +6879,8 @@ packages:
   motion-dom@11.18.1:
     resolution: {integrity: sha512-g76KvA001z+atjfxczdRtw/RXOM3OMSdd1f4DL77qCTF/+avrRJiawSG4yDibEQ215sr9kpinSlX2pCTJ9zbhw==}
 
-  motion-dom@12.7.3:
-    resolution: {integrity: sha512-IjMt1YJHrvyvruFvmpmd6bGXXGCvmygrnvSb3aZ8KhOzF4H3PulU+cMBzH+U8TBJHjC/mnmJFRIA1Cu4vBfcBA==}
+  motion-dom@12.7.4:
+    resolution: {integrity: sha512-1ZUHAoSUMMxP6jPqyxlk9XUfb6NxMsnWPnH2YGhrOhTURLcXWbETi6eemoKb60Pe32NVJYduL4B62VQSO5Jq8Q==}
 
   motion-utils@11.18.1:
     resolution: {integrity: sha512-49Kt+HKjtbJKLtgO/LKj9Ld+6vw9BjH5d9sc40R/kVyH8GLAXgT42M2NnuPcJNuA3s9ZfZBUcwIgpmZWGEE+hA==}
@@ -6896,8 +6902,8 @@ packages:
       react-dom:
         optional: true
 
-  motion@12.7.3:
-    resolution: {integrity: sha512-EGhzIg7vj+USH9SLNLjHRzglldWEletUZTEtBVKW7IJF+1Ig3RI5LnJmHQBNutuOIyeUbcF36MrNFT00etlc3g==}
+  motion@12.7.4:
+    resolution: {integrity: sha512-MBGrMbYageHw4iZJn+pGTr7abq5n53jCxYkhFC1It3vYukQPRWg5zij46MnwYGpLR8KG465MLHSASXot9edYOw==}
     peerDependencies:
       '@emotion/is-prop-valid': '*'
       react: ^18.0.0 || ^19.0.0
@@ -7306,13 +7312,13 @@ packages:
   player.style@0.1.7:
     resolution: {integrity: sha512-e8yhtsVu78ZUkuuxIp8PWfa0V3eG8Nzp/LhHd6HCYCiRbr7xBa0G3Xd9Vi7AsPbTVqZ4z2ESsO+vSSbCwNzJjg==}
 
-  playwright-core@1.51.1:
-    resolution: {integrity: sha512-/crRMj8+j/Nq5s8QcvegseuyeZPxpQCZb6HNk3Sos3BlZyAknRjoyJPFWkpNn8v0+P3WiwqFF8P+zQo4eqiNuw==}
+  playwright-core@1.52.0:
+    resolution: {integrity: sha512-l2osTgLXSMeuLZOML9qYODUQoPPnUsKsb5/P6LJ2e6uPKXUdPK5WYhN4z03G+YNbWmGDY4YENauNu4ZKczreHg==}
     engines: {node: '>=18'}
     hasBin: true
 
-  playwright@1.51.1:
-    resolution: {integrity: sha512-kkx+MB2KQRkyxjYPc3a0wLZZoDczmppyGJIvQ43l+aZihkaVvmu/21kiyaHeHjiFxjxNNFnUncKmcGIyOojsaw==}
+  playwright@1.52.0:
+    resolution: {integrity: sha512-JAwMNMBlxJ2oD1kce4KPtMkDeKGHQstdpFPcPH3maElAXon/QZeTvtsfXmTMRyO9TslfoYOXkSsvao2nE1ilTw==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -7372,8 +7378,8 @@ packages:
     resolution: {integrity: sha512-dle9A3yYxlBSrt8Fu+IpjGT8SY8hN0mlaA6GY8t0P5PjIOZemULz/E2Bnm/2dcUOena75OTNkHI76uZBNUUq3A==}
     engines: {node: ^10 || ^12 || >=14}
 
-  posthog-js@1.236.1:
-    resolution: {integrity: sha512-my3MGaQfBO4FOL0RAW2mCxDkivCyt8KOenYrbeES5D5wh3SQGy0OhDH3boTKO6b6dchsAjieqtOGoRFomKXZ+A==}
+  posthog-js@1.236.2:
+    resolution: {integrity: sha512-dSPRp/2/IWxtNuNeqevJ+ueGxJfLr67YrRWfemivJ0fJseArnZp4nWvj0Qz+qIMv7TU6a0lq6dEuAoERQDb1jQ==}
     peerDependencies:
       '@rrweb/types': 2.0.0-alpha.17
       rrweb-snapshot: 2.0.0-alpha.17
@@ -7504,8 +7510,8 @@ packages:
   prosemirror-state@1.4.3:
     resolution: {integrity: sha512-goFKORVbvPuAQaXhpbemJFRKJ2aixr+AZMGiquiqKxaucC6hlpHNZHWgz5R7dS4roHiwq9vDctE//CZ++o0W1Q==}
 
-  prosemirror-tables@1.7.0:
-    resolution: {integrity: sha512-dc9+u4aqT+biw3J/v7p5LyH8uqqXSAjdszfLtrCnDbpMr1F+Gsjtkdiij/1p8qM1gBOCfQeiahhk2pOO9Aa8xA==}
+  prosemirror-tables@1.7.1:
+    resolution: {integrity: sha512-eRQ97Bf+i9Eby99QbyAiyov43iOKgWa7QCGly+lrDt7efZ1v8NWolhXiB43hSDGIXT1UXgbs4KJN3a06FGpr1Q==}
 
   prosemirror-trailing-node@3.0.0:
     resolution: {integrity: sha512-xiun5/3q0w5eRnGYfNlW1uU9W6x5MoFKWwq/0TIRgt09lv7Hcser2QYV8t4muXbEr+Fwo0geYn79Xs4GKywrRQ==}
@@ -9153,7 +9159,7 @@ snapshots:
 
   '@adobe/css-tools@4.4.2': {}
 
-  '@ai-sdk/openai@1.3.15(zod@3.24.3)':
+  '@ai-sdk/openai@1.3.16(zod@3.24.3)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
       '@ai-sdk/provider-utils': 2.2.7(zod@3.24.3)
@@ -9467,7 +9473,7 @@ snapshots:
       prosemirror-highlight: 0.9.0(@types/hast@3.0.4)(prosemirror-model@1.25.0)(prosemirror-state@1.4.3)(prosemirror-transform@1.10.3)(prosemirror-view@1.39.1)(shiki@1.29.2)
       prosemirror-model: 1.25.0
       prosemirror-state: 1.4.3
-      prosemirror-tables: 1.7.0
+      prosemirror-tables: 1.7.1
       prosemirror-transform: 1.10.3
       prosemirror-view: 1.39.1
       rehype-format: 5.0.1
@@ -9516,17 +9522,17 @@ snapshots:
       picocolors: 1.1.1
       sisteransi: 1.0.5
 
-  '@clerk/clerk-react@5.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@clerk/clerk-react@5.28.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@clerk/shared': 3.7.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@clerk/types': 4.54.1
+      '@clerk/shared': 3.7.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@clerk/types': 4.54.2
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       tslib: 2.8.1
 
-  '@clerk/shared@3.7.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@clerk/shared@3.7.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@clerk/types': 4.54.1
+      '@clerk/types': 4.54.2
       dequal: 2.0.3
       glob-to-regexp: 0.4.1
       js-cookie: 3.0.5
@@ -9536,7 +9542,7 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  '@clerk/types@4.54.1':
+  '@clerk/types@4.54.2':
     dependencies:
       csstype: 3.1.3
 
@@ -11485,24 +11491,24 @@ snapshots:
 
   '@tanstack/history@1.115.0': {}
 
-  '@tanstack/query-core@5.74.3': {}
+  '@tanstack/query-core@5.74.4': {}
 
   '@tanstack/query-devtools@5.73.3': {}
 
-  '@tanstack/react-query-devtools@5.74.3(@tanstack/react-query@5.74.3(react@18.3.1))(react@18.3.1)':
+  '@tanstack/react-query-devtools@5.74.4(@tanstack/react-query@5.74.4(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@tanstack/query-devtools': 5.73.3
-      '@tanstack/react-query': 5.74.3(react@18.3.1)
+      '@tanstack/react-query': 5.74.4(react@18.3.1)
       react: 18.3.1
 
-  '@tanstack/react-query@5.74.3(react@18.3.1)':
+  '@tanstack/react-query@5.74.4(react@18.3.1)':
     dependencies:
-      '@tanstack/query-core': 5.74.3
+      '@tanstack/query-core': 5.74.4
       react: 18.3.1
 
-  '@tanstack/react-query@5.74.3(react@19.0.0)':
+  '@tanstack/react-query@5.74.4(react@19.0.0)':
     dependencies:
-      '@tanstack/query-core': 5.74.3
+      '@tanstack/query-core': 5.74.4
       react: 19.0.0
 
   '@tanstack/react-router-devtools@1.116.0(@tanstack/react-router@1.116.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@tanstack/router-core@1.115.3)(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tiny-invariant@1.3.3)':
@@ -11925,7 +11931,7 @@ snapshots:
       prosemirror-schema-basic: 1.2.4
       prosemirror-schema-list: 1.5.1
       prosemirror-state: 1.4.3
-      prosemirror-tables: 1.7.0
+      prosemirror-tables: 1.7.1
       prosemirror-trailing-node: 3.0.0(prosemirror-model@1.25.0)(prosemirror-state@1.4.3)(prosemirror-view@1.39.1)
       prosemirror-transform: 1.10.3
       prosemirror-view: 1.39.1
@@ -13028,7 +13034,7 @@ snapshots:
       buffers: 0.1.1
       chainsaw: 0.1.0
 
-  bippy@0.3.8(@types/react@18.3.20)(react@18.3.1):
+  bippy@0.3.9(@types/react@18.3.20)(react@18.3.1):
     dependencies:
       '@types/react-reconciler': 0.28.9(@types/react@18.3.20)
       react: 18.3.1
@@ -13067,7 +13073,7 @@ snapshots:
   browserslist@4.24.4:
     dependencies:
       caniuse-lite: 1.0.30001714
-      electron-to-chromium: 1.5.137
+      electron-to-chromium: 1.5.138
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.24.4)
 
@@ -13576,7 +13582,7 @@ snapshots:
     dependencies:
       jake: 10.9.2
 
-  electron-to-chromium@1.5.137: {}
+  electron-to-chromium@1.5.138: {}
 
   embla-carousel-react@8.6.0(react@18.3.1):
     dependencies:
@@ -14129,9 +14135,9 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  framer-motion@12.7.3(@emotion/is-prop-valid@0.8.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  framer-motion@12.7.4(@emotion/is-prop-valid@0.8.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      motion-dom: 12.7.3
+      motion-dom: 12.7.4
       motion-utils: 12.7.2
       tslib: 2.8.1
     optionalDependencies:
@@ -14139,9 +14145,9 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  framer-motion@12.7.3(@emotion/is-prop-valid@0.8.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  framer-motion@12.7.4(@emotion/is-prop-valid@0.8.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
-      motion-dom: 12.7.3
+      motion-dom: 12.7.4
       motion-utils: 12.7.2
       tslib: 2.8.1
     optionalDependencies:
@@ -15654,7 +15660,7 @@ snapshots:
     dependencies:
       motion-utils: 11.18.1
 
-  motion-dom@12.7.3:
+  motion-dom@12.7.4:
     dependencies:
       motion-utils: 12.7.2
 
@@ -15671,18 +15677,18 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  motion@12.7.3(@emotion/is-prop-valid@0.8.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  motion@12.7.4(@emotion/is-prop-valid@0.8.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      framer-motion: 12.7.3(@emotion/is-prop-valid@0.8.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      framer-motion: 12.7.4(@emotion/is-prop-valid@0.8.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       tslib: 2.8.1
     optionalDependencies:
       '@emotion/is-prop-valid': 0.8.8
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  motion@12.7.3(@emotion/is-prop-valid@0.8.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  motion@12.7.4(@emotion/is-prop-valid@0.8.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
-      framer-motion: 12.7.3(@emotion/is-prop-valid@0.8.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      framer-motion: 12.7.4(@emotion/is-prop-valid@0.8.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       tslib: 2.8.1
     optionalDependencies:
       '@emotion/is-prop-valid': 0.8.8
@@ -16097,11 +16103,11 @@ snapshots:
     transitivePeerDependencies:
       - react
 
-  playwright-core@1.51.1: {}
+  playwright-core@1.52.0: {}
 
-  playwright@1.51.1:
+  playwright@1.52.0:
     dependencies:
-      playwright-core: 1.51.1
+      playwright-core: 1.52.0
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -16164,7 +16170,7 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  posthog-js@1.236.1(@rrweb/types@2.0.0-alpha.17):
+  posthog-js@1.236.2(@rrweb/types@2.0.0-alpha.17):
     dependencies:
       core-js: 3.41.0
       fflate: 0.4.8
@@ -16297,7 +16303,7 @@ snapshots:
       prosemirror-transform: 1.10.3
       prosemirror-view: 1.39.1
 
-  prosemirror-tables@1.7.0:
+  prosemirror-tables@1.7.1:
     dependencies:
       prosemirror-keymap: 1.2.2
       prosemirror-model: 1.25.0
@@ -16516,12 +16522,12 @@ snapshots:
       '@preact/signals': 1.3.2(preact@10.26.5)
       '@rollup/pluginutils': 5.1.4(rollup@4.40.0)
       '@types/node': 20.17.30
-      bippy: 0.3.8(@types/react@18.3.20)(react@18.3.1)
+      bippy: 0.3.9(@types/react@18.3.20)(react@18.3.1)
       esbuild: 0.24.2
       estree-walker: 3.0.3
       kleur: 4.1.5
       mri: 1.2.0
-      playwright: 1.51.1
+      playwright: 1.52.0
       preact: 10.26.5
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)

@@ -150,5 +150,9 @@ kalosm-streams = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 deepgram = { version = "0.6.6", default-features = false }
 libsql = "0.9.4"
 
+objc2 = "0.6"
+objc2-foundation = "0.3"
+objc2-user-notifications = "0.3"
+
 [patch.crates-io]
 cpal = { git = "https://github.com/RustAudio/cpal", rev = "51c3b43" }

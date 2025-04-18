@@ -11,7 +11,7 @@
     "start": "vite"
   },
   "devDependencies": {
-    "@clerk/types": "^4.54.1",
+    "@clerk/types": "^4.54.2",
     "@hypr/client": "workspace:^",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/router-plugin": "^1.116.1",
@@ -26,14 +26,14 @@
     "vite": "^6.3.1"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.28.1",
+    "@clerk/clerk-react": "^5.28.2",
     "@hypr/tiptap": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",
     "@nangohq/frontend": "^0.53.2",
     "@remixicon/react": "^4.6.0",
     "@sentry/react": "^8.55.0",
-    "@tanstack/react-query": "^5.74.3",
+    "@tanstack/react-query": "^5.74.4",
     "@tanstack/react-router": "^1.116.0",
     "@tanstack/zod-adapter": "^1.116.0",
     "clsx": "^2.1.1",

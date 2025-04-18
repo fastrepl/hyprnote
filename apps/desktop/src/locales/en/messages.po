@@ -224,7 +224,7 @@ msgstr "{weeks} weeks later"
 msgid "{0}"
 msgstr "{0}"
 
-#: src/components/settings/views/lab.tsx:112
+#: src/components/settings/views/lab.tsx:97
 msgid "{description}"
 msgstr "{description}"
 
@@ -232,7 +232,7 @@ msgstr "{description}"
 msgid "{selectedCount} calendars selected"
 msgstr "{selectedCount} calendars selected"
 
-#: src/components/settings/views/lab.tsx:109
+#: src/components/settings/views/lab.tsx:94
 msgid "{title}"
 msgstr "{title}"
 

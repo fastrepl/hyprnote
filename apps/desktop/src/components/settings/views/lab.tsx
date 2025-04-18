@@ -2,9 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
-import { commands } from "@/types";
 import { commands as flagsCommands } from "@hypr/plugin-flags";
-import { Button } from "@hypr/ui/components/ui/button";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
 export default function Lab() {
@@ -40,19 +38,6 @@ export default function Lab() {
           enabled={noteChatQuery.data ?? false}
           onToggle={handleToggleNoteChat}
         />
-
-        <div className="flex flex-row rounded-lg border items-center p-4 gap-2 justify-between">
-          <div className="flex flex-col">
-            <h2 className="text-sm font-medium">Notifications</h2>
-            <p className="text-xs text-muted-foreground">
-              This is only for testing purposes. It might crash the app.
-            </p>
-          </div>
-          <div className="flex flex-row gap-2">
-            <Button variant="outline" onClick={() => commands.notify()}>Notify</Button>
-            <Button variant="outline" onClick={() => commands.notify2()}>Notify2</Button>
-          </div>
-        </div>
       </div>
     </div>
   );

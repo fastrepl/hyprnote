@@ -51,21 +51,3 @@ pub async fn set_autostart<R: tauri::Runtime>(
         autostart_manager.disable().map_err(|e| e.to_string())
     }
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn notify<R: tauri::Runtime>(_app: tauri::AppHandle<R>) -> Result<(), String> {
-    hypr_notification2::persistent_toast_notification("Test", "This is a test notification");
-    Ok(())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn notify2<R: tauri::Runtime>(_app: tauri::AppHandle<R>) -> Result<(), String> {
-    hypr_notification2::persistent_toast_notification_with_click_to_open_url(
-        "Test",
-        "This is a test notification with a clickable link",
-        "hypr://test",
-    );
-    Ok(())
-}

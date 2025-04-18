@@ -224,7 +224,7 @@ msgstr ""
 msgid "{0}"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:112
+#: src/components/settings/views/lab.tsx:97
 msgid "{description}"
 msgstr ""
 
@@ -232,7 +232,7 @@ msgstr ""
 msgid "{selectedCount} calendars selected"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:109
+#: src/components/settings/views/lab.tsx:94
 msgid "{title}"
 msgstr ""
 

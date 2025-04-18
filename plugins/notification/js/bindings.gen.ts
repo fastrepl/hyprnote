@@ -19,6 +19,9 @@ async getDetectNotification() : Promise<boolean> {
 async setDetectNotification(enabled: boolean) : Promise<null> {
     return await TAURI_INVOKE("plugin:notification|set_detect_notification", { enabled });
 },
+async openNotificationSettings() : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|open_notification_settings");
+},
 async requestNotificationPermission() : Promise<null> {
     return await TAURI_INVOKE("plugin:notification|request_notification_permission");
 },

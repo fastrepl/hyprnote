@@ -14,6 +14,7 @@ pub trait NotificationPluginExt<R: tauri::Runtime> {
     fn get_detect_notification(&self) -> Result<bool, NotificationError>;
     fn set_detect_notification(&self, enabled: bool) -> Result<(), NotificationError>;
 
+    fn open_notification_settings(&self) -> Result<(), NotificationError>;
     fn request_notification_permission(&self) -> Result<(), NotificationError>;
     fn check_notification_permission(
         &self,
@@ -58,6 +59,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
     fn request_notification_permission(&self) -> Result<(), NotificationError> {
         hypr_notification2::request_notification_permission();
         Ok(())
+    }
+
+    fn open_notification_settings(&self) -> Result<(), NotificationError> {
+        hypr_notification2::open_notification_settings().map_err(NotificationError::Io)
     }
 
     async fn check_notification_permission(

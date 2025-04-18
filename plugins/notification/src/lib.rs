@@ -17,6 +17,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_event_notification::<tauri::Wry>,
             commands::get_detect_notification::<tauri::Wry>,
             commands::set_detect_notification::<tauri::Wry>,
+            commands::open_notification_settings::<tauri::Wry>,
             commands::request_notification_permission::<tauri::Wry>,
             commands::check_notification_permission::<tauri::Wry>,
         ])

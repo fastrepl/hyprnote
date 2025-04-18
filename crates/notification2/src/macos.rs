@@ -16,6 +16,14 @@ pub fn request_notification_permission() {
     wezterm::macos_initialize();
 }
 
+pub fn open_notification_settings() -> std::io::Result<()> {
+    std::process::Command::new("open")
+        .arg("x-apple.systempreferences:com.apple.Notifications-Settings.extension")
+        .spawn()?
+        .wait()?;
+    Ok(())
+}
+
 pub fn check_notification_permission(
     completion: impl Fn(Result<NotificationPermission, String>) + 'static,
 ) {

@@ -38,6 +38,14 @@ pub(crate) async fn set_detect_notification<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) async fn open_notification_settings<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<(), String> {
+    app.open_notification_settings().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn request_notification_permission<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<(), String> {

@@ -2,6 +2,9 @@ use serde::{ser::Serializer, Serialize};
 
 #[derive(Debug, thiserror::Error)]
 pub enum NotificationError {
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+
     #[error("Channel closed unexpectedly")]
     ChannelClosed,
 

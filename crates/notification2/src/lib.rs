@@ -15,6 +15,18 @@ pub fn request_notification_permission() {
     macos::request_notification_permission();
 }
 
+pub fn open_notification_settings() -> std::io::Result<()> {
+    #[cfg(target_os = "macos")]
+    {
+        return macos::open_notification_settings();
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        return Ok(());
+    }
+}
+
 pub fn check_notification_permission(
     completion: impl Fn(Result<NotificationPermission, String>) + 'static,
 ) {

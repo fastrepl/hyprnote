@@ -13287,6 +13287,7 @@ dependencies = [
 name = "tauri-plugin-notification"
 version = "0.1.0"
 dependencies = [
+ "detect",
  "notification2",
  "serde",
  "serde_json",

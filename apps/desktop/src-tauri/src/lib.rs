@@ -57,7 +57,7 @@ pub async fn main() {
         }));
     }
 
-    builder = tauri::Builder::default()
+    builder = builder
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_sse::init())
         .plugin(tauri_plugin_misc::init())

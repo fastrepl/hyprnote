@@ -29,6 +29,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         self.scoped_store(crate::PLUGIN_NAME).unwrap()
     }
 
+    #[tracing::instrument(skip(self))]
     fn get_event_notification(&self) -> Result<bool, Error> {
         let store = self.notification_store();
         store
@@ -37,6 +38,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
             .map(|v| v.unwrap_or(false))
     }
 
+    #[tracing::instrument(skip(self))]
     fn set_event_notification(&self, enabled: bool) -> Result<(), Error> {
         let store = self.notification_store();
         store
@@ -44,6 +46,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
             .map_err(Error::Store)
     }
 
+    #[tracing::instrument(skip(self))]
     fn get_detect_notification(&self) -> Result<bool, Error> {
         let store = self.notification_store();
         store
@@ -52,6 +55,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
             .map(|v| v.unwrap_or(false))
     }
 
+    #[tracing::instrument(skip(self))]
     fn set_detect_notification(&self, enabled: bool) -> Result<(), Error> {
         let store = self.notification_store();
         store
@@ -59,6 +63,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
             .map_err(Error::Store)
     }
 
+    #[tracing::instrument(skip(self))]
     fn start_detect_notification(&self) -> Result<(), Error> {
         let cb = Box::new(move |_bundle_id| {
             let notif = hypr_notification2::Notification {
@@ -79,6 +84,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         Ok(())
     }
 
+    #[tracing::instrument(skip(self))]
     fn stop_detect_notification(&self) -> Result<(), Error> {
         let state = self.state::<crate::SharedState>();
         {
@@ -88,15 +94,18 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         Ok(())
     }
 
+    #[tracing::instrument(skip(self))]
     fn open_notification_settings(&self) -> Result<(), Error> {
         hypr_notification2::open_notification_settings().map_err(Error::Io)
     }
 
+    #[tracing::instrument(skip(self))]
     fn request_notification_permission(&self) -> Result<(), Error> {
         hypr_notification2::request_notification_permission();
         Ok(())
     }
 
+    #[tracing::instrument(skip(self))]
     async fn check_notification_permission(
         &self,
     ) -> Result<hypr_notification2::NotificationPermission, Error> {

@@ -27,10 +27,17 @@ function Notification() {
   const detectMutation = useMutation({
     mutationFn: async (enabled: boolean) => {
       if (enabled) {
+        notificationCommands.setDetectNotification(true);
         notificationCommands.startDetectNotification();
       } else {
+        notificationCommands.setDetectNotification(false);
         notificationCommands.stopDetectNotification();
       }
+
+      return enabled;
+    },
+    onSuccess: (data) => {
+      detect.refetch();
     },
   });
 

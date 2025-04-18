@@ -11,6 +11,7 @@ const DiscTimer2x2: WidgetTwoByTwo = () => {
   const [isEditing, setIsEditing] = useState(false);
   const timerRef = useRef<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const buttonContainerRef = useRef<HTMLDivElement>(null);
 
   const isTimeUp = timeLeft === 0;
 
@@ -37,11 +38,26 @@ const DiscTimer2x2: WidgetTwoByTwo = () => {
     }
   }, [timeLeft]);
 
-  const toggleTimer = () => {
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isEditing && inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        stopEditing();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isEditing]);
+
+  const toggleTimer = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsRunning((prev) => !prev);
   };
 
-  const resetTimer = () => {
+  const resetTimer = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsRunning(false);
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -144,11 +160,12 @@ const DiscTimer2x2: WidgetTwoByTwo = () => {
             : "transparent",
           transition: "background-color 0.5s ease",
         }}
+        ref={buttonContainerRef}
       >
         {/* Button controls in corners - Only show Play/Pause when timer is not complete */}
         {!isTimeUp && (
           <button
-            className="absolute top-2 left-2 p-1 cursor-pointer bg-white/70 rounded-full hover:bg-white/90 flex items-center justify-center"
+            className="absolute top-2 left-2 p-1 cursor-pointer bg-white/70 rounded-full hover:bg-white/90 flex items-center justify-center z-10"
             onClick={toggleTimer}
             style={{ width: 32, height: 32, border: "none" }}
           >
@@ -158,7 +175,7 @@ const DiscTimer2x2: WidgetTwoByTwo = () => {
 
         {/* Always show Reset button - positioned in right corner */}
         <button
-          className="absolute top-2 right-2 p-1 cursor-pointer bg-white/70 rounded-full hover:bg-white/90 flex items-center justify-center"
+          className="absolute top-2 right-2 p-1 cursor-pointer bg-white/70 rounded-full hover:bg-white/90 flex items-center justify-center z-10"
           onClick={resetTimer}
           style={{ width: 32, height: 32, border: "none" }}
         >

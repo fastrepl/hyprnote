@@ -7,6 +7,18 @@
 
 
 export const commands = {
+async getEventNotification() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:notification|get_event_notification");
+},
+async setEventNotification(enabled: boolean) : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|set_event_notification", { enabled });
+},
+async getDetectNotification() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:notification|get_detect_notification");
+},
+async setDetectNotification(enabled: boolean) : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|set_detect_notification", { enabled });
+},
 async requestNotificationPermission() : Promise<null> {
     return await TAURI_INVOKE("plugin:notification|request_notification_permission");
 },

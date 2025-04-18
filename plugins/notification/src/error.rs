@@ -7,6 +7,9 @@ pub enum NotificationError {
 
     #[error("Timeout waiting for notification permission response")]
     PermissionTimeout,
+
+    #[error(transparent)]
+    Store(#[from] tauri_plugin_store2::Error),
 }
 
 impl Serialize for NotificationError {

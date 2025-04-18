@@ -1,9 +1,11 @@
 mod commands;
 mod error;
 mod ext;
+mod store;
 
 pub use error::*;
 pub use ext::*;
+pub use store::*;
 
 const PLUGIN_NAME: &str = "notification";
 
@@ -11,6 +13,10 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::get_event_notification::<tauri::Wry>,
+            commands::set_event_notification::<tauri::Wry>,
+            commands::get_detect_notification::<tauri::Wry>,
+            commands::set_detect_notification::<tauri::Wry>,
             commands::request_notification_permission::<tauri::Wry>,
             commands::check_notification_permission::<tauri::Wry>,
         ])
@@ -40,5 +46,17 @@ mod test {
                 "./js/bindings.gen.ts",
             )
             .unwrap()
+    }
+
+    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
+        builder
+            .plugin(init())
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_notification() {
+        let _app = create_app(tauri::test::mock_builder());
     }
 }

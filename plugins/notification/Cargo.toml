@@ -18,6 +18,8 @@ specta-typescript = { workspace = true }
 hypr-detect = { workspace = true }
 hypr-notification2 = { workspace = true }
 
+tauri-plugin-store2 = { workspace = true }
+
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }

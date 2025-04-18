@@ -13,6 +13,10 @@ const CENTER: LazyLock<Retained<UNUserNotificationCenter>> =
     LazyLock::new(|| unsafe { UNUserNotificationCenter::currentNotificationCenter() });
 
 pub fn request_notification_permission() {
+    if cfg!(debug_assertions) {
+        return;
+    }
+
     wezterm::macos_initialize();
 }
 
@@ -27,6 +31,11 @@ pub fn open_notification_settings() -> std::io::Result<()> {
 pub fn check_notification_permission(
     completion: impl Fn(Result<NotificationPermission, String>) + 'static,
 ) {
+    if cfg!(debug_assertions) {
+        completion(Ok(NotificationPermission::Granted));
+        return;
+    }
+
     let completion_block = RcBlock::new(move |settings: NonNull<UNNotificationSettings>| {
         let settings = unsafe { settings.as_ref() };
         let auth_status = unsafe { settings.authorizationStatus() };

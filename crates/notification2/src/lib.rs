@@ -1,7 +1,15 @@
-pub use wezterm::{show, ToastNotification as Notification};
+pub use wezterm::ToastNotification as Notification;
 
 #[cfg(target_os = "macos")]
 mod macos;
+
+pub fn show(notif: Notification) {
+    if cfg!(debug_assertions) {
+        return;
+    }
+
+    wezterm::show(notif);
+}
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub enum NotificationPermission {

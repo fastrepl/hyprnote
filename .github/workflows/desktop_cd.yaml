@@ -42,10 +42,13 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           VERSION=$(jq -r '.version' ./apps/desktop/src-tauri/tauri.conf.json)
-          TAG_NAME="${{ github.event.release.tag_name }}"
-          echo "Version: $VERSION, Tag name: $TAG_NAME"
-          if [[ ! "$TAG_NAME" == *"$VERSION"* ]]; then
-            exit 1
+
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG_NAME="${{ github.event.release.tag_name }}"
+            echo "Version: $VERSION, Tag name: $TAG_NAME"
+            if [[ ! "$TAG_NAME" == *"$VERSION"* ]]; then
+              exit 1
+            fi
           fi
         shell: bash
       - uses: arduino/setup-protoc@v3

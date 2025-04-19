@@ -1,8 +1,8 @@
+import { Button } from "@hypr/ui/components/ui/button";
+import { ProgressiveBlur } from "@hypr/ui/components/ui/progressive-blur";
+import { cn } from "@hypr/ui/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { Check } from "lucide-react";
-
-import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/ui/lib/utils";
 
 export const Route = createFileRoute("/app/plans")({
   component: Component,
@@ -16,16 +16,15 @@ function Component() {
           <PricingCard
             title="Local"
             description="For local AI enthusiasts"
-            price="Free"
             buttonText="Current Plan"
             buttonVariant="outline"
             features={[
               "100% private, local data",
+              "Distraction-free editor",
               "Full AI model control",
               "Realtime conversation to notes",
               "Customizable with extensions",
-              "AI-powered note assistance",
-              "Distraction-free editor",
+              "Chat with your note",
               "Meeting reminders",
               "No cloud required",
             ]}
@@ -35,15 +34,13 @@ function Component() {
           <PricingCard
             title="Pro"
             description="For professional use and teams"
-            price="Under Private Beta"
             buttonText="Join Waitlist"
             buttonVariant="default"
             features={[
-              "All Local features, plus:",
-              "Enterprise-grade licensing",
+              "All Local features",
               "Premium cloud AI models",
               "Speaker detection",
-              "AI across your workspace",
+              "Chat across your workspace",
               "Team sharing & collaboration",
               "Custom storage options",
               "Advanced team features",
@@ -60,7 +57,6 @@ function Component() {
 interface PricingCardProps {
   title: string;
   description: string;
-  price: string;
   buttonText: string;
   buttonVariant: "default" | "outline";
   features: string[];
@@ -74,7 +70,6 @@ interface PricingCardProps {
 function PricingCard({
   title,
   description,
-  price,
   buttonText,
   buttonVariant,
   features,
@@ -114,47 +109,69 @@ function PricingCard({
         </div>
       </div>
 
-      <div className="relative z-10 pt-6">
-        <h3 className="text-3xl font-bold text-center mb-2 text-white">{title}</h3>
-        <p className="text-center text-white/80 mb-6 text-xl">{description}</p>
-      </div>
+      <ProgressiveBlur
+        className="pointer-events-none absolute bottom-0 left-0 h-[50%] w-full z-5"
+        blurIntensity={6}
+      />
 
-      {secondaryAction && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full text-sm mb-6"
-          onClick={secondaryAction.onClick}
-        >
-          {secondaryAction.text}
-        </Button>
-      )}
+      {/* Wrapper for content to ensure it's above the blur */}
+      <div className="relative z-10 flex flex-col h-full">
+        <div className="relative z-10 pt-6">
+          <h3 className="text-3xl font-bold text-center mb-2 text-white">{title}</h3>
+          <p className="text-center text-white/80 mb-6 text-xl">{description}</p>
+        </div>
 
-      <div className="space-y-3 mb-8 flex-grow relative z-10 ml-16">
-        {features.map((feature, i) => (
-          <div key={i} className="flex items-start group">
-            <div className="rounded-full p-0.5 bg-primary/20 mr-3 mt-0.5 flex-shrink-0 group-hover:bg-primary/30 transition-colors duration-300">
-              <Check className={cn("h-4 w-4", "text-white")} />
-            </div>
-            <span className="text-sm font-medium">{feature}</span>
-          </div>
-        ))}
-      </div>
-
-      <Button
-        variant={buttonVariant}
-        size="md"
-        className={cn(
-          "w-full py-4 text-md font-medium rounded-xl transition-all duration-300 relative z-10",
-          buttonVariant === "default"
-            ? "bg-blue-500 hover:bg-blue-600 shadow-md hover:shadow-lg text-white"
-            : isLocalPlan
-            ? "bg-white/20 hover:bg-white/30 hover:text-white text-white border-white/40"
-            : "bg-white/20 hover:bg-white/30 text-white border-white/40",
+        {secondaryAction && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-sm mb-6"
+            onClick={secondaryAction.onClick}
+          >
+            {secondaryAction.text}
+          </Button>
         )}
-      >
-        {buttonText}
-      </Button>
+
+        <div className="space-y-3 mb-8 flex-grow relative z-10 ml-16">
+          {features.map((feature, i) => (
+            <div key={i} className="flex items-start group">
+              <div className="rounded-full p-0.5 bg-primary/20 mr-3 mt-0.5 flex-shrink-0 group-hover:bg-primary/30 transition-colors duration-300">
+                <Check className={cn("h-4 w-4", "text-white")} />
+              </div>
+              <span className="text-sm font-medium">{feature}</span>
+            </div>
+          ))}
+        </div>
+
+        {isLocalPlan
+          ? (
+            <Button
+              variant={buttonVariant}
+              size="md"
+              className={cn(
+                "w-full py-4 text-md font-medium rounded-xl transition-all duration-300 relative z-10 text-center",
+                buttonVariant === "default"
+                  ? "bg-blue-500 hover:bg-blue-600 shadow-md hover:shadow-lg text-white"
+                  : "bg-white/20 hover:bg-white/30 hover:text-white text-white border-white/40",
+              )}
+            >
+              {buttonText}
+            </Button>
+          )
+          : (
+            <a
+              href="https://hyprnote.com/pro-waitlist"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "block w-full py-4 text-md font-medium rounded-xl transition-all duration-300 relative z-10 text-center",
+                "bg-white/20 hover:bg-white/30 text-white border-white/40",
+              )}
+            >
+              {buttonText}
+            </a>
+          )}
+      </div>
     </div>
   );
 }

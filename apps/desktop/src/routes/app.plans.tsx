@@ -160,7 +160,7 @@ function PricingCard({
           )
           : (
             <a
-              href="https://hyprnote.com/pro-waitlist"
+              href="https://hyprnote.com/pro-waitlist?source=APP"
               target="_blank"
               rel="noopener noreferrer"
               className={cn(

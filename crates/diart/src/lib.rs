@@ -59,10 +59,14 @@ impl WebSocketIO for DiarizeClient {
     type Input = DiarizeInputChunk;
     type Output = DiarizeOutputChunk;
 
-    fn to_input(data: bytes::Bytes) -> Self::Input {
+    fn to_audio_input(data: bytes::Bytes) -> Self::Input {
         DiarizeInputChunk {
             audio: data.to_vec(),
         }
+    }
+
+    fn to_flush_input() -> Self::Input {
+        DiarizeInputChunk { audio: Vec::new() }
     }
 
     fn to_message(input: Self::Input) -> Message {

@@ -250,14 +250,11 @@ impl Session {
                         }
                     }
 
-                    Session::broadcast(
-                        &channels,
-                        SessionEvent::TimelineView(SessionEventTimelineView {
-                            timeline: timeline.view(TimelineFilter::default()),
-                        }),
-                    )
-                    .await
-                    .unwrap();
+                    let view = SessionEvent::TimelineView(SessionEventTimelineView {
+                        timeline: timeline.view(TimelineFilter::default()),
+                    });
+
+                    Session::broadcast(&channels, view).await.unwrap();
                 }
             }
         }));
@@ -284,8 +281,17 @@ impl Session {
         }
 
         if let Some(handle) = self.listen_stream_handle.take() {
-            handle.abort();
-            let _ = handle.await;
+            let abort_handle = handle.abort_handle();
+
+            match tokio::time::timeout(std::time::Duration::from_secs(2), handle).await {
+                Ok(_) => {
+                    tracing::info!("listen_stream_completed");
+                }
+                Err(_) => {
+                    tracing::info!("listen_stream_timeout");
+                    abort_handle.abort();
+                }
+            }
         }
 
         let mut channels = self.channels.lock().await;

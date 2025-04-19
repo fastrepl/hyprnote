@@ -47,10 +47,17 @@ async fn websocket(socket: WebSocket, state: STTState, params: ListenParams) {
             last_activity_receive.store(start_time.elapsed().as_secs(), Ordering::SeqCst);
 
             let input: ListenInputChunk = serde_json::from_str(&data).unwrap();
-            let audio = Bytes::from(input.audio);
+            match input {
+                ListenInputChunk::End => {
+                    break;
+                }
+                ListenInputChunk::Audio { data } => {
+                    let audio = Bytes::from(data);
 
-            if tx.send(audio).is_err() {
-                break;
+                    if tx.send(audio).is_err() {
+                        break;
+                    }
+                }
             }
         }
 

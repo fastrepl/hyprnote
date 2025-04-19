@@ -2,7 +2,7 @@ import { useMatch } from "@tanstack/react-router";
 
 import { useEditMode } from "@/contexts/edit-mode-context";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { CalendarToolbar, EntityToolbar, MainToolbar, NoteToolbar, TransparentToolbar } from "./bars";
+import { CalendarToolbar, DefaultToolbar, EntityToolbar, MainToolbar, NoteToolbar } from "./bars";
 
 export default function Toolbar() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
@@ -25,7 +25,7 @@ export default function Toolbar() {
   }
 
   if (isPlans) {
-    return <TransparentToolbar />;
+    return <DefaultToolbar title="Plans" />;
   }
 
   if (!isMain) {

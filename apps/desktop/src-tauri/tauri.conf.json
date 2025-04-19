@@ -27,7 +27,7 @@
         "background": "assets/dmg-background-stable.png",
         "windowSize": {
           "width": 660,
-          "height": 400
+          "height": 430
         },
         "appPosition": {
           "x": 177,

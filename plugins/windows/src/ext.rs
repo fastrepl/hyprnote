@@ -150,7 +150,7 @@ impl HyprWindow {
             Self::Calendar => LogicalSize::new(640.0, 532.0),
             Self::Settings => LogicalSize::new(800.0, 600.0),
             Self::Video(_) => LogicalSize::new(640.0, 360.0),
-            Self::Plans => LogicalSize::new(900.0, 634.0),
+            Self::Plans => LogicalSize::new(900.0, 600.0),
         }
     }
 
@@ -163,7 +163,7 @@ impl HyprWindow {
             Self::Calendar => LogicalSize::new(640.0, 532.0),
             Self::Settings => LogicalSize::new(800.0, 600.0),
             Self::Video(_) => LogicalSize::new(640.0, 360.0),
-            Self::Plans => LogicalSize::new(900.0, 634.0),
+            Self::Plans => LogicalSize::new(900.0, 600.0),
         }
     }
 

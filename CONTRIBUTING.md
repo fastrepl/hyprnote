@@ -1,12 +1,17 @@
 ## Setup
-Requirements
+### Requirements
 ``` bash
+# Installing the rust toolchain used for tauri and the backend libs
+curl https://sh.rustup.rs -sSf | sh
 # libomp is required for llama-cpp
 brew install libomp
 # cidre uses this for audio capture and types
 xcode-select --install
+# Installing the tools
+npm install -g pnpm turbo
 ```
 
+### Installation
 ```bash
 git clone https://github.com/fastrepl/hyprnote.git
 cd hyprnote

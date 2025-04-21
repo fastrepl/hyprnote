@@ -40,6 +40,7 @@ tauri-plugin-local-llm = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
 tauri-plugin-misc = { workspace = true }
 tauri-plugin-notification = { workspace = true }
+tauri-plugin-opener = { workspace = true }
 tauri-plugin-sfx = { workspace = true }
 tauri-plugin-sse = { workspace = true }
 tauri-plugin-store2 = { workspace = true }

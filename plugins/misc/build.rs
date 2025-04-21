@@ -1,4 +1,9 @@
-const COMMANDS: &[&str] = &["get_git_hash", "get_fingerprint", "opinionated_md_to_html"];
+const COMMANDS: &[&str] = &[
+    "get_git_hash",
+    "get_fingerprint",
+    "opinionated_md_to_html",
+    "open_audio",
+];
 
 fn main() {
     let gitcl = vergen_gix::GixBuilder::all_git().unwrap();

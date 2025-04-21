@@ -7,6 +7,7 @@ Default permissions for the plugin
 - `allow-get-git-hash`
 - `allow-get-fingerprint`
 - `allow-opinionated-md-to-html`
+- `allow-open-audio`
 
 ## Permission Table
 
@@ -65,6 +66,32 @@ Enables the get_git_hash command without any pre-configured scope.
 <td>
 
 Denies the get_git_hash command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:allow-open-audio`
+
+</td>
+<td>
+
+Enables the open_audio command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:deny-open-audio`
+
+</td>
+<td>
+
+Denies the open_audio command without any pre-configured scope.
 
 </td>
 </tr>

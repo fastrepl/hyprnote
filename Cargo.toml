@@ -56,6 +56,7 @@ tauri-plugin-deep-link = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-http = "2"
+tauri-plugin-opener = "2"
 tauri-plugin-store = "2"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }

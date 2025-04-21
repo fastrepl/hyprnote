@@ -72,6 +72,7 @@ pub async fn main() {
         .plugin(tauri_plugin_flags::init())
         .plugin(tauri_plugin_sentry::init(&client))
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_window_state::Builder::default().build())

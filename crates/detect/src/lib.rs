@@ -1,5 +1,12 @@
 #[cfg(target_os = "macos")]
 mod macos;
+#[cfg(target_os = "macos")]
+type PlatformDetector = macos::Detector;
+
+#[cfg(target_os = "windows")]
+mod windows;
+#[cfg(target_os = "windows")]
+type PlatformDetector = windows::Detector;
 
 trait Observer: Send + Sync {
     fn start(&mut self, f: Box<dyn Fn(String) + Send + Sync + 'static>);
@@ -7,24 +14,14 @@ trait Observer: Send + Sync {
 }
 
 pub struct Detector {
-    observer: Box<dyn Observer>,
+    observer: PlatformDetector,
 }
 
 pub type DetectCallback = Box<dyn Fn(String) + Send + Sync + 'static>;
 
 impl Default for Detector {
     fn default() -> Self {
-        let observer = {
-            #[cfg(target_os = "macos")]
-            {
-                Box::new(macos::Detector::default())
-            }
-            #[cfg(not(target_os = "macos"))]
-            {
-                panic!("Unsupported platform");
-            }
-        };
-
+        let observer = PlatformDetector::default();
         Self { observer }
     }
 }

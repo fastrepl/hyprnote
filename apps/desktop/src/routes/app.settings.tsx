@@ -5,24 +5,8 @@ import { ArrowLeft } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { z } from "zod";
 
-import {
-  ExtensionsSidebar,
-  MainSidebar,
-  SettingsHeader,
-  type Tab,
-  TABS,
-  // TemplatesSidebar,
-} from "@/components/settings/components";
-import {
-  // Calendar,
-  Extensions,
-  General,
-  Lab,
-  // LocalAI,
-  // Notifications,
-  Sound,
-  // TemplateEditor,
-} from "@/components/settings/views";
+import { ExtensionsSidebar, MainSidebar, SettingsHeader, type Tab, TABS } from "@/components/settings/components";
+import { Extensions, General, Lab, Notifications, Sound } from "@/components/settings/views";
 import { EXTENSION_CONFIGS, ExtensionName, ExtensionNames } from "@hypr/extension-registry";
 import { type ExtensionDefinition } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -161,6 +145,7 @@ function Component() {
 
             <div className="flex-1 overflow-auto p-6">
               {search.tab === "general" && <General />}
+              {search.tab === "notifications" && <Notifications />}
               {search.tab === "sound" && <Sound />}
               {search.tab === "extensions" && (
                 <Extensions

@@ -1,14 +1,7 @@
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
-};
-
 use cidre::{blocks, ns, ns::workspace::notification as wsn, objc::Obj};
-use tokio::{
-    sync::oneshot,
-    task::JoinHandle,
-    time::{sleep, Duration},
-};
+use tokio::time::{sleep, Duration};
+
+use crate::BackgroundTask;
 
 // `defaults read /Applications/Hyprnote.app/Contents/Info.plist CFBundleIdentifier`
 const MEETING_APP_LIST: [&str; 3] = [
@@ -18,37 +11,23 @@ const MEETING_APP_LIST: [&str; 3] = [
 ];
 
 pub struct Detector {
-    running: Arc<AtomicBool>,
-    shutdown_tx: Option<oneshot::Sender<()>>,
-    task_handle: Option<JoinHandle<()>>,
+    background: BackgroundTask,
 }
 
 impl Default for Detector {
     fn default() -> Self {
         Self {
-            running: Arc::new(AtomicBool::new(false)),
-            shutdown_tx: None,
-            task_handle: None,
+            background: BackgroundTask::default(),
         }
     }
 }
 
 impl crate::Observer for Detector {
     fn start(&mut self, f: crate::DetectCallback) {
-        if self.running.load(Ordering::SeqCst) {
-            return;
-        }
-
-        self.running.store(true, Ordering::SeqCst);
-        let running = self.running.clone();
-
-        let (tx, mut rx) = oneshot::channel();
-        self.shutdown_tx = Some(tx);
-
-        self.task_handle = Some(tokio::spawn(async move {
+        self.background.start(|running, mut rx| async move {
             let notification_running = running.clone();
             let block = move |n: &ns::Notification| {
-                if !notification_running.load(Ordering::SeqCst) {
+                if !notification_running.load(std::sync::atomic::Ordering::SeqCst) {
                     return;
                 }
 
@@ -82,7 +61,7 @@ impl crate::Observer for Detector {
                         break;
                     }
                     _ = sleep(Duration::from_millis(500)) => {
-                        if !running.load(Ordering::SeqCst) {
+                        if !running.load(std::sync::atomic::Ordering::SeqCst) {
                             break;
                         }
                     }
@@ -93,20 +72,10 @@ impl crate::Observer for Detector {
             for observer in observers {
                 nc.remove_observer(&observer);
             }
-        }));
+        });
     }
 
     fn stop(&mut self) {
-        if !self.running.load(Ordering::SeqCst) {
-            return;
-        }
-
-        self.running.store(false, Ordering::SeqCst);
-
-        if let Some(tx) = self.shutdown_tx.take() {
-            let _ = tx.send(());
-        }
-
-        self.task_handle.take();
+        self.background.stop();
     }
 }

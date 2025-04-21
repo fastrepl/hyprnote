@@ -1,8 +1,10 @@
 mod app;
 mod browser;
+mod utils;
 
 use app::*;
 use browser::*;
+use utils::*;
 
 pub type DetectCallback = std::sync::Arc<dyn Fn(String) + Send + Sync + 'static>;
 

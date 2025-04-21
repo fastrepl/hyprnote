@@ -1,5 +1,7 @@
 use objc2::rc::Retained;
-use std::process::Command;
+use tokio::time::{interval, Duration};
+
+use crate::BackgroundTask;
 
 #[derive(Debug)]
 pub enum SupportedBrowsers {
@@ -8,6 +10,7 @@ pub enum SupportedBrowsers {
     Firefox,
 }
 
+// defaults read /Applications/Safari.app/Contents/Info.plist CFBundleIdentifier
 impl SupportedBrowsers {
     pub fn bundle_id(&self) -> &str {
         match self {
@@ -55,33 +58,53 @@ impl SupportedBrowsers {
 }
 
 #[derive(Default)]
-pub struct Detector {}
+pub struct Detector {
+    background: BackgroundTask,
+}
 
 impl crate::Observer for Detector {
     fn start(&mut self, f: crate::DetectCallback) {
-        let url = get_ns_url("http://google.com");
+        self.background.start(|running, mut rx| async move {
+            let mut interval_timer = interval(Duration::from_secs(5));
 
-        let ws = unsafe { objc2_app_kit::NSWorkspace::sharedWorkspace() };
-        let app_url = unsafe { ws.URLForApplicationToOpenURL(&url) }.unwrap();
-        let target_bundle_id = get_bundle_id_from_url(&app_url);
+            loop {
+                tokio::select! {
+                    _ = &mut rx => {
+                        break;
+                    }
+                    _ = interval_timer.tick() => {
+                        if !running.load(std::sync::atomic::Ordering::SeqCst) {
+                            break;
+                        }
 
-        let apps = unsafe { ws.runningApplications() };
-        for app in apps.iter() {
-            if let Some(current_bundle_id) = unsafe { app.bundleIdentifier() } {
-                if current_bundle_id == target_bundle_id {
-                    let bundle_id_str = current_bundle_id.to_string();
-                    let browser_url = SupportedBrowsers::from_bundle_id(&bundle_id_str)
-                        .and_then(|browser| browser.extract_url());
+                        let url = get_ns_url("http://google.com");
+                        let ws = unsafe { objc2_app_kit::NSWorkspace::sharedWorkspace() };
+                        let app_url = unsafe { ws.URLForApplicationToOpenURL(&url) }.unwrap();
+                        let target_bundle_id = get_bundle_id_from_url(&app_url);
 
-                    if let Some(url) = browser_url {
-                        f(url);
+                        let apps = unsafe { ws.runningApplications() };
+                        for app in apps.iter() {
+                            if let Some(current_bundle_id) = unsafe { app.bundleIdentifier() } {
+                                if current_bundle_id == target_bundle_id {
+                                    let bundle_id_str = current_bundle_id.to_string();
+                                    let browser_url = SupportedBrowsers::from_bundle_id(&bundle_id_str)
+                                        .and_then(|browser| browser.extract_url());
+
+                                    if let Some(url) = browser_url {
+                                        f(url);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
-        }
+        });
     }
 
-    fn stop(&mut self) {}
+    fn stop(&mut self) {
+        self.background.stop();
+    }
 }
 
 fn get_ns_url(url: impl AsRef<str>) -> Retained<objc2_foundation::NSURL> {
@@ -97,7 +120,7 @@ fn get_bundle_id_from_url(url: &objc2_foundation::NSURL) -> Retained<objc2_found
 }
 
 fn run_applescript(script: &str) -> Option<String> {
-    let output = Command::new("osascript")
+    let output = std::process::Command::new("osascript")
         .args(["-e", script])
         .output()
         .ok()?;

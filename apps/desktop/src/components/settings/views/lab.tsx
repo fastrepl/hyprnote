@@ -1,59 +1,17 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { BellIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { commands as flagsCommands } from "@hypr/plugin-flags";
-import { commands as notificationCommands } from "@hypr/plugin-notification";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
 export default function Lab() {
   return (
     <div>
       <div className="space-y-4">
-        <Notification />
         <ChatPanel />
       </div>
     </div>
-  );
-}
-
-function Notification() {
-  const detect = useQuery({
-    queryKey: ["notification", "detect"],
-    queryFn: () => notificationCommands.getDetectNotification(),
-  });
-
-  const permission = useQuery({
-    queryKey: ["notification", "permission"],
-    queryFn: () => notificationCommands.checkNotificationPermission(),
-  });
-
-  const detectMutation = useMutation({
-    mutationFn: async (enabled: boolean) => {
-      if (enabled) {
-        notificationCommands.setDetectNotification(true);
-        notificationCommands.startDetectNotification();
-      } else {
-        notificationCommands.setDetectNotification(false);
-        notificationCommands.stopDetectNotification();
-      }
-
-      return enabled;
-    },
-    onSuccess: (data) => {
-      detect.refetch();
-    },
-  });
-
-  return (
-    <FeatureFlag
-      title="Notification"
-      description={permission.data?.toString() ?? ""}
-      icon={<BellIcon />}
-      enabled={detect.data ?? false}
-      onToggle={detectMutation.mutate}
-    />
   );
 }
 

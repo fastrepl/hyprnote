@@ -3374,7 +3374,9 @@ name = "detect"
 version = "0.1.0"
 dependencies = [
  "cidre",
+ "objc2-app-kit 0.3.0",
  "objc2-application-services",
+ "objc2-foundation 0.3.1",
  "thiserror 2.0.12",
  "tokio",
 ]

@@ -3,6 +3,8 @@ use tokio::time::{interval, Duration};
 
 use crate::BackgroundTask;
 
+const MEETING_URL_KEYWORDS: [&str; 2] = ["meet.google.com", "app.cal.com/video"];
+
 #[derive(Debug)]
 pub enum SupportedBrowsers {
     Safari,
@@ -91,7 +93,9 @@ impl crate::Observer for Detector {
                                         .and_then(|browser| browser.extract_url());
 
                                     if let Some(url) = browser_url {
-                                        f(url);
+                                        if MEETING_URL_KEYWORDS.iter().any(|keyword| url.contains(keyword)) {
+                                            f(url);
+                                        }
                                     }
                                 }
                             }

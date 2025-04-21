@@ -1,5 +1,4 @@
-use std::future::Future;
-use std::sync::mpsc;
+use std::{future::Future, sync::mpsc};
 use tokio::time::{timeout, Duration};
 
 use crate::error::Error;
@@ -65,7 +64,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn start_detect_notification(&self) -> Result<(), Error> {
-        let cb = Box::new(move |_bundle_id| {
+        let cb = hypr_detect::new_callback(move |_bundle_id| {
             let notif = hypr_notification2::Notification {
                 title: "Meeting detected".to_string(),
                 message: "Click here to start writing a note".to_string(),

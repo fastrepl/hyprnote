@@ -10,12 +10,11 @@ use tokio::{
     time::{sleep, Duration},
 };
 
-const MEETING_APP_LIST: [&str; 5] = [
-    "us.zoom.xos",
+// defaults read /Applications/Hyprnote.app/Contents/Info.plist CFBundleIdentifier
+const MEETING_APP_LIST: [&str; 3] = [
+    "us.zoom.xos",         // tested
+    "Cisco-Systems.Spark", // tested
     "com.microsoft.teams",
-    "com.cisco.webex.meetings",
-    "com.microsoft.skype",
-    "com.ringcentral.RingCentral",
 ];
 
 pub struct Detector {

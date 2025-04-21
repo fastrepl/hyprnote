@@ -1,11 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { commands as dbCommands, type ConfigNotification } from "@hypr/plugin-db";
 import { commands as notificationCommands } from "@hypr/plugin-notification";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@hypr/ui/components/ui/form";
 import { Switch } from "@hypr/ui/components/ui/switch";
@@ -19,51 +18,29 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 
 export default function NotificationsComponent() {
-  const queryClient = useQueryClient();
-
-  const config = useQuery({
-    queryKey: ["config", "notifications"],
-    queryFn: async () => {
-      const result = await dbCommands.getConfig();
-      return result;
-    },
+  const auto = useQuery({
+    queryKey: ["notification", "auto"],
+    queryFn: () => notificationCommands.getDetectNotification(),
   });
 
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     values: {
-      before: false,
-      auto: config.data?.notification.auto ?? true,
-      ignoredPlatforms: [],
+      auto: auto.data ?? true,
     },
   });
 
   const mutation = useMutation({
     mutationFn: async (v: Schema) => {
-      const newNotification: ConfigNotification = {
-        before: v.before ?? true,
-        auto: v.auto ?? true,
-        ignoredPlatforms: v.ignoredPlatforms ?? [],
-      };
-
-      if (!config.data) {
-        console.error("cannot mutate config because it is not loaded");
-        return;
+      if (v.auto) {
+        notificationCommands.setDetectNotification(true);
+      } else {
+        notificationCommands.setDetectNotification(false);
       }
-
-      try {
-        await dbCommands.setConfig({
-          ...config.data,
-          notification: newNotification,
-        });
-        return newNotification.auto;
-      } catch (e) {
-        console.error(e);
-        return false;
-      }
+      return v.auto;
     },
     onSuccess: (active) => {
-      queryClient.invalidateQueries({ queryKey: ["config", "notifications"] });
+      auto.refetch();
       if (active) {
         notificationCommands.startDetectNotification();
       } else {

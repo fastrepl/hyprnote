@@ -224,7 +224,7 @@ msgstr "{weeks} weeks later"
 msgid "{0}"
 msgstr "{0}"
 
-#: src/components/settings/views/lab.tsx:145
+#: src/components/settings/views/lab.tsx:103
 msgid "{description}"
 msgstr "{description}"
 
@@ -232,7 +232,7 @@ msgstr "{description}"
 msgid "{selectedCount} calendars selected"
 msgstr "{selectedCount} calendars selected"
 
-#: src/components/settings/views/lab.tsx:142
+#: src/components/settings/views/lab.tsx:100
 msgid "{title}"
 msgstr "{title}"
 
@@ -318,7 +318,7 @@ msgstr "Assistant:"
 msgid "Available Models"
 msgstr "Available Models"
 
-#: src/routes/app.settings.tsx:119
+#: src/routes/app.settings.tsx:103
 msgid "Back to Settings"
 msgstr "Back to Settings"
 
@@ -453,7 +453,7 @@ msgstr "Describe the content and purpose of this section"
 msgid "Description"
 msgstr "Description"
 
-#: src/components/settings/views/notifications.tsx:156
+#: src/components/settings/views/notifications.tsx:72
 msgid "Detect meetings automatically"
 msgstr "Detect meetings automatically"
 
@@ -498,11 +498,11 @@ msgid "Enter a section title"
 msgstr "Enter a section title"
 
 #: src/components/settings/views/notifications.tsx:181
-msgid "Exclude these apps from auto detection"
-msgstr "Exclude these apps from auto detection"
+#~ msgid "Exclude these apps from auto detection"
+#~ msgstr "Exclude these apps from auto detection"
 
 #: src/components/settings/components/settings-header.tsx:32
-#: src/components/settings/components/main-sidebar.tsx:33
+#: src/components/settings/components/main-sidebar.tsx:35
 msgid "Extensions"
 msgstr "Extensions"
 
@@ -596,7 +596,7 @@ msgstr "Job title"
 msgid "Key decisions"
 msgstr "Key decisions"
 
-#: src/components/settings/components/main-sidebar.tsx:35
+#: src/components/settings/components/main-sidebar.tsx:37
 msgid "Lab"
 msgstr "Lab"
 
@@ -640,7 +640,7 @@ msgstr "Local AI"
 #~ msgid "Local Language Model"
 #~ msgstr "Local Language Model"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:49
+#: src/components/left-sidebar/top-area/settings-button.tsx:58
 msgid "Local mode"
 msgstr "Local mode"
 
@@ -689,7 +689,7 @@ msgstr "Monthly"
 msgid "Much better AI performance"
 msgstr "Much better AI performance"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:70
+#: src/components/left-sidebar/top-area/settings-button.tsx:79
 msgid "My Profile"
 msgstr "My Profile"
 
@@ -740,12 +740,13 @@ msgid "Not connected"
 msgstr "Not connected"
 
 #: src/components/settings/components/settings-header.tsx:28
+#: src/components/settings/components/main-sidebar.tsx:31
 msgid "Notifications"
 msgstr "Notifications"
 
 #: src/components/settings/views/notifications.tsx:131
-msgid "Notify upcoming events"
-msgstr "Notify upcoming events"
+#~ msgid "Notify upcoming events"
+#~ msgstr "Notify upcoming events"
 
 #: src/components/settings/components/template-list.tsx:91
 msgid "Official Templates"
@@ -915,8 +916,8 @@ msgid "Sections"
 msgstr "Sections"
 
 #: src/components/settings/views/notifications.tsx:184
-msgid "Select apps that should not trigger meeting notifications"
-msgstr "Select apps that should not trigger meeting notifications"
+#~ msgid "Select apps that should not trigger meeting notifications"
+#~ msgstr "Select apps that should not trigger meeting notifications"
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:39
 msgid "Select Calendars"
@@ -926,7 +927,7 @@ msgstr "Select Calendars"
 msgid "Send invite"
 msgstr "Send invite"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:63
+#: src/components/left-sidebar/top-area/settings-button.tsx:72
 msgid "Settings"
 msgstr "Settings"
 
@@ -935,18 +936,22 @@ msgid "Share usage data"
 msgstr "Share usage data"
 
 #: src/components/settings/views/notifications.tsx:134
-msgid "Show notifications 1 minute before events start based on your calendars"
-msgstr "Show notifications 1 minute before events start based on your calendars"
+#~ msgid "Show notifications 1 minute before events start based on your calendars"
+#~ msgstr "Show notifications 1 minute before events start based on your calendars"
+
+#: src/components/settings/views/notifications.tsx:75
+msgid "Show notifications when you join a meeting. This is not perfect."
+msgstr "Show notifications when you join a meeting. This is not perfect."
 
 #: src/components/settings/views/notifications.tsx:159
-msgid "Show notifications whenever a microphone is being used"
-msgstr "Show notifications whenever a microphone is being used"
+#~ msgid "Show notifications whenever a microphone is being used"
+#~ msgstr "Show notifications whenever a microphone is being used"
 
 #: src/components/settings/views/billing.tsx:53
 msgid "Single sign-on for all users"
 msgstr "Single sign-on for all users"
 
-#: src/components/settings/components/main-sidebar.tsx:31
+#: src/components/settings/components/main-sidebar.tsx:33
 msgid "Sound"
 msgstr "Sound"
 

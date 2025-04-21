@@ -3374,6 +3374,7 @@ name = "detect"
 version = "0.1.0"
 dependencies = [
  "cidre",
+ "objc2 0.6.1",
  "objc2-app-kit 0.3.0",
  "objc2-application-services",
  "objc2-foundation 0.3.1",

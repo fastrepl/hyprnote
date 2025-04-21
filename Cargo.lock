@@ -3374,8 +3374,11 @@ name = "detect"
 version = "0.1.0"
 dependencies = [
  "cidre",
+ "macos-accessibility-client",
  "objc2 0.6.1",
  "objc2-app-kit 0.3.0",
+ "objc2-application-services",
+ "objc2-core-foundation",
  "objc2-foundation 0.3.1",
  "thiserror 2.0.12",
  "tokio",
@@ -7664,6 +7667,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "macos-accessibility-client"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edf7710fbff50c24124331760978fb9086d6de6288dcdb38b25a97f8b1bdebbb"
+dependencies = [
+ "core-foundation 0.9.4",
+ "core-foundation-sys",
+]
+
+[[package]]
 name = "macro_rules_attribute"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8495,6 +8508,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "objc2-application-services"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c9abc05b1f757ebfbd72f4f3f9a515662c67dfe66b26e71b37d818f56a1c2f17"
+dependencies = [
+ "bitflags 2.9.0",
+ "libc",
+ "objc2 0.6.1",
+ "objc2-core-foundation",
+ "objc2-core-graphics",
+ "objc2-core-services",
+ "objc2-foundation 0.3.1",
+]
+
+[[package]]
 name = "objc2-cloud-kit"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8546,7 +8574,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c10c2894a6fed806ade6027bcd50662746363a9589d3ec9d9bef30a4e4bc166"
 dependencies = [
  "bitflags 2.9.0",
+ "block2 0.6.1",
  "dispatch2 0.3.0",
+ "libc",
  "objc2 0.6.1",
 ]
 
@@ -8605,6 +8635,18 @@ checksum = "d31f4c5b5192304996badc466aeadffe1411d73a9bbd3b18b6b2ee9d048b07bd"
 dependencies = [
  "objc2 0.6.1",
  "objc2-foundation 0.3.1",
+]
+
+[[package]]
+name = "objc2-core-services"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "159be6e4cd366c7d236d798daa2aa71855230e5691cde045a0670ce01a06d664"
+dependencies = [
+ "dispatch2 0.3.0",
+ "objc2 0.6.1",
+ "objc2-core-foundation",
+ "objc2-security",
 ]
 
 [[package]]
@@ -8734,6 +8776,17 @@ dependencies = [
  "bitflags 2.9.0",
  "objc2 0.6.1",
  "objc2-foundation 0.3.1",
+]
+
+[[package]]
+name = "objc2-security"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1f8e0ef3ab66b08c42644dcb34dba6ec0a574bbd8adbb8bdbdc7a2779731a44"
+dependencies = [
+ "bitflags 2.9.0",
+ "objc2 0.6.1",
+ "objc2-core-foundation",
 ]
 
 [[package]]

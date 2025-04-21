@@ -18,6 +18,7 @@
     "@hypr/extension-types": "workspace:^",
     "@hypr/plugin-db": "workspace:^",
     "@hypr/plugin-listener": "workspace:^",
+    "@hypr/plugin-misc": "workspace:^",
     "@hypr/plugin-template": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",

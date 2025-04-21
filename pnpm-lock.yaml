@@ -782,6 +782,9 @@ importers:
       '@hypr/plugin-listener':
         specifier: workspace:^
         version: link:../../plugins/listener
+      '@hypr/plugin-misc':
+        specifier: workspace:^
+        version: link:../../plugins/misc
       '@hypr/plugin-template':
         specifier: workspace:^
         version: link:../../plugins/template
@@ -6992,6 +6995,7 @@ packages:
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
     engines: {node: '>=10.5.0'}
+    deprecated: Use your platform's native DOMException instead
 
   node-fetch-native@1.6.6:
     resolution: {integrity: sha512-8Mc2HhqPdlIfedsuZoc3yioPuzp6b+L5jRCRY1QzuWZh2EGJVQrGppC6V6cF0bLdbW0+O2YpqCA25aF/1lvipQ==}

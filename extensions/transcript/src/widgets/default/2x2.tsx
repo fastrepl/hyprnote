@@ -1,17 +1,19 @@
-import { Maximize2Icon } from "lucide-react";
+import { FileAudioIcon, Maximize2Icon } from "lucide-react";
 
+import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
 import { WidgetHeader } from "@hypr/ui/components/ui/widgets";
 import { WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
 import { safeNavigate } from "@hypr/utils";
-import { useSessions } from "@hypr/utils/contexts";
+import { useOngoingSession, useSessions } from "@hypr/utils/contexts";
 
 import { LanguageSelector, Transcript, TranscriptContent } from "../../components";
 import { useTranscriptWidget } from "../../hooks/useTranscriptWidget";
 
 const Transcript2x2: WidgetTwoByTwo = ({ onMaximize, queryClient }) => {
   const sessionId = useSessions((s) => s.currentSessionId);
-  const { showEmptyMessage, isEnhanced } = useTranscriptWidget(sessionId);
+  const isInactive = useOngoingSession((s) => s.status === "inactive");
+  const { showEmptyMessage, isEnhanced, hasTranscript } = useTranscriptWidget(sessionId);
 
   const handleOpenTranscriptSettings = () => {
     const extensionId = "@hypr/extension-transcript";
@@ -31,6 +33,12 @@ const Transcript2x2: WidgetTwoByTwo = ({ onMaximize, queryClient }) => {
       <Maximize2Icon size={16} className="text-neutral-900" />
     </Button>
   );
+
+  const handleOpenSession = () => {
+    if (sessionId) {
+      miscCommands.openAudio(sessionId);
+    }
+  };
 
   return (
     <WidgetTwoByTwoWrapper
@@ -53,6 +61,11 @@ const Transcript2x2: WidgetTwoByTwo = ({ onMaximize, queryClient }) => {
             </div>
           }
           actions={[
+            (isInactive && hasTranscript && sessionId) && (
+              <Button variant="ghost" size="icon" className="p-0" onClick={handleOpenSession}>
+                <FileAudioIcon size={16} className="text-black" />
+              </Button>
+            ),
             sessionId && <LanguageSelector key="language" sessionId={sessionId} />,
             maximizeButton,
           ].filter(Boolean)}

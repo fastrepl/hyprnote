@@ -1,37 +1,29 @@
-#[cfg(target_os = "macos")]
-mod macos;
-#[cfg(target_os = "macos")]
-type PlatformDetector = macos::Detector;
+mod app;
+mod browser;
 
-#[cfg(target_os = "windows")]
-mod windows;
-#[cfg(target_os = "windows")]
-type PlatformDetector = windows::Detector;
+use app::*;
+use browser::*;
+
+pub type DetectCallback = std::sync::Arc<dyn Fn(String) + Send + Sync + 'static>;
 
 trait Observer: Send + Sync {
-    fn start(&mut self, f: Box<dyn Fn(String) + Send + Sync + 'static>);
+    fn start(&mut self, f: DetectCallback);
     fn stop(&mut self);
 }
 
 pub struct Detector {
-    observer: PlatformDetector,
-}
-
-pub type DetectCallback = Box<dyn Fn(String) + Send + Sync + 'static>;
-
-impl Default for Detector {
-    fn default() -> Self {
-        let observer = PlatformDetector::default();
-        Self { observer }
-    }
+    app_detector: AppDetector,
+    browser_detector: BrowserDetector,
 }
 
 impl Detector {
     pub fn start(&mut self, f: DetectCallback) {
-        self.observer.start(f);
+        self.app_detector.start(f.clone());
+        self.browser_detector.start(f);
     }
 
     pub fn stop(&mut self) {
-        self.observer.stop();
+        self.app_detector.stop();
+        self.browser_detector.stop();
     }
 }

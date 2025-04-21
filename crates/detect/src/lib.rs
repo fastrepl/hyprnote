@@ -33,6 +33,7 @@ impl Detector {
         Ok(is_trusted)
     }
 
+    #[cfg(target_os = "macos")]
     pub fn macos_request_accessibility_permission(&self) -> Result<(), String> {
         macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
         Ok(())
@@ -72,16 +73,18 @@ impl Detector {
 mod tests {
     use super::*;
 
-    #[ignore]
     #[test]
+    #[ignore]
+    #[cfg(target_os = "macos")]
     fn test_macos_check_accessibility_permission() {
         let detector = Detector::default();
         let is_trusted = detector.macos_check_accessibility_permission();
         assert!(is_trusted.is_ok());
     }
 
-    #[ignore]
     #[test]
+    #[ignore]
+    #[cfg(target_os = "macos")]
     fn test_macos_request_accessibility_permission() {
         macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
     }

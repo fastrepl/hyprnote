@@ -307,10 +307,22 @@
           "markdownDescription": "Denies the get_api_base command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-base`",
+          "description": "Enables the get_api_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-api-key",
+          "markdownDescription": "Enables the get_api_key command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_api_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-api-key",
+          "markdownDescription": "Denies the get_api_key command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-base`\n- `allow-get-api-key`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-base`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-base`\n- `allow-get-api-key`"
         }
       ]
     }

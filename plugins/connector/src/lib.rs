@@ -1,9 +1,11 @@
 mod commands;
 mod error;
 mod ext;
+mod store;
 
 pub use error::*;
 pub use ext::*;
+pub use store::*;
 
 const PLUGIN_NAME: &str = "connector";
 
@@ -11,7 +13,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::get_api_base::<tauri::Wry>
+            commands::get_api_base::<tauri::Wry>,
+            commands::get_api_key::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

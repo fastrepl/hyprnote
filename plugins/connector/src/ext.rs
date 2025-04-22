@@ -12,7 +12,13 @@ pub enum ConnectionType {
 
 pub trait ConnectorPluginExt<R: tauri::Runtime> {
     fn is_online(&self) -> impl Future<Output = bool>;
+
     fn get_api_base(
+        &self,
+        t: ConnectionType,
+    ) -> impl Future<Output = Result<Option<String>, crate::Error>>;
+
+    fn get_api_key(
         &self,
         t: ConnectionType,
     ) -> impl Future<Output = Result<Option<String>, crate::Error>>;
@@ -76,5 +82,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
                 }
             }
         }
+    }
+
+    async fn get_api_key(&self, t: ConnectionType) -> Result<Option<String>, crate::Error> {
+        Ok(None)
     }
 }

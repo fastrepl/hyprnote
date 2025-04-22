@@ -19,11 +19,13 @@ tauri-plugin-local-llm = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
+tauri-plugin-store2 = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 

@@ -9,6 +9,9 @@
 export const commands = {
 async getApiBase(t: ConnectionType) : Promise<string | null> {
     return await TAURI_INVOKE("plugin:connector|get_api_base", { t });
+},
+async getApiKey(t: ConnectionType) : Promise<string | null> {
+    return await TAURI_INVOKE("plugin:connector|get_api_key", { t });
 }
 }
 

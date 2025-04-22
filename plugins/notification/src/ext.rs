@@ -100,8 +100,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn request_notification_permission(&self) -> Result<(), Error> {
+        #[cfg(target_os = "macos")]
         let _ = hypr_detect::Detector::default().macos_request_accessibility_permission();
+
         hypr_notification2::request_notification_permission();
+
         Ok(())
     }
 

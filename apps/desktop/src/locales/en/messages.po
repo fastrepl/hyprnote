@@ -252,8 +252,8 @@ msgstr "Access Granted"
 #: src/components/settings/components/ai/transcribing-model.tsx:179
 #: src/components/settings/components/ai/local-llm-button.tsx:38
 #: src/components/settings/components/ai/enhancing-model.tsx:79
-msgid "Active"
-msgstr "Active"
+#~ msgid "Active"
+#~ msgstr "Active"
 
 #: src/components/settings/views/template.tsx:115
 msgid "Add a description..."
@@ -273,6 +273,7 @@ msgid "Admin"
 msgstr "Admin"
 
 #: src/components/settings/components/settings-header.tsx:24
+#: src/components/settings/components/main-sidebar.tsx:37
 msgid "AI"
 msgstr "AI"
 
@@ -301,8 +302,8 @@ msgstr "Anyone with the link can view this page"
 msgid "Apple"
 msgstr "Apple"
 
-#: src/components/toolbar/buttons/delete-note-button.tsx:37
-#: src/components/left-sidebar/notes-list.tsx:253
+#: src/components/toolbar/buttons/delete-note-button.tsx:43
+#: src/components/left-sidebar/notes-list.tsx:256
 msgid "Are you sure you want to delete this note?"
 msgstr "Are you sure you want to delete this note?"
 
@@ -315,8 +316,8 @@ msgid "Assistant:"
 msgstr "Assistant:"
 
 #: src/components/settings/components/ai/model-selection.tsx:42
-msgid "Available Models"
-msgstr "Available Models"
+#~ msgid "Available Models"
+#~ msgstr "Available Models"
 
 #: src/routes/app.settings.tsx:103
 msgid "Back to Settings"
@@ -355,8 +356,8 @@ msgstr "CEO"
 #~ msgstr "Choose between speed and quality for speech recognition"
 
 #: src/components/settings/components/ai/model-selection.tsx:45
-msgid "Choose from our curated AI models"
-msgstr "Choose from our curated AI models"
+#~ msgid "Choose from our curated AI models"
+#~ msgstr "Choose from our curated AI models"
 
 #: src/components/settings/views/billing.tsx:52
 msgid "Collaborate with others in meetings"
@@ -382,14 +383,12 @@ msgid "Configure Widgets"
 msgstr "Configure Widgets"
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:63
-#: src/components/settings/components/ai/ollama-connection.tsx:75
-#: src/components/settings/components/ai/enhancing-model.tsx:163
 msgid "Connect"
 msgstr "Connect"
 
 #: src/components/settings/components/ai/enhancing-model.tsx:143
-msgid "Connect to Ollama"
-msgstr "Connect to Ollama"
+#~ msgid "Connect to Ollama"
+#~ msgstr "Connect to Ollama"
 
 #. placeholder {0}: type === "google-calendar" ? "Google" : "Outlook"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:44
@@ -402,13 +401,13 @@ msgstr "Connect your calendar and track events"
 
 #: src/components/settings/components/ai/ollama-connection.tsx:43
 #: src/components/settings/components/ai/enhancing-model.tsx:162
-msgid "Connected"
-msgstr "Connected"
+#~ msgid "Connected"
+#~ msgstr "Connected"
 
 #: src/components/settings/components/ai/ollama-connection.tsx:72
 #: src/components/settings/components/ai/enhancing-model.tsx:158
-msgid "Connecting..."
-msgstr "Connecting..."
+#~ msgid "Connecting..."
+#~ msgstr "Connecting..."
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:109
 msgid "Contacts Access"
@@ -437,7 +436,7 @@ msgstr "Current Plan"
 
 #: src/components/settings/views/template.tsx:86
 #: src/components/settings/views/team.tsx:165
-#: src/components/left-sidebar/notes-list.tsx:320
+#: src/components/left-sidebar/notes-list.tsx:323
 msgid "Delete"
 msgstr "Delete"
 
@@ -453,7 +452,7 @@ msgstr "Describe the content and purpose of this section"
 msgid "Description"
 msgstr "Description"
 
-#: src/components/settings/views/notifications.tsx:72
+#: src/components/settings/views/notifications.tsx:74
 msgid "Detect meetings automatically"
 msgstr "Detect meetings automatically"
 
@@ -490,8 +489,8 @@ msgstr "Enable"
 #~ msgstr "Enhance"
 
 #: src/components/settings/components/ai/enhancing-model.tsx:68
-msgid "Enhancing Model"
-msgstr "Enhancing Model"
+#~ msgid "Enhancing Model"
+#~ msgstr "Enhancing Model"
 
 #: src/components/settings/components/template-sections.tsx:119
 msgid "Enter a section title"
@@ -596,7 +595,7 @@ msgstr "Job title"
 msgid "Key decisions"
 msgstr "Key decisions"
 
-#: src/components/settings/components/main-sidebar.tsx:37
+#: src/components/settings/components/main-sidebar.tsx:39
 msgid "Lab"
 msgstr "Lab"
 
@@ -621,20 +620,17 @@ msgid "Loading extension details..."
 msgstr "Loading extension details..."
 
 #: src/components/settings/components/ai/model-selection.tsx:60
-msgid "Loading models..."
-msgstr "Loading models..."
+#~ msgid "Loading models..."
+#~ msgstr "Loading models..."
 
 #: src/components/workspace-calendar/event-card.tsx:163
 #: src/components/settings/components/calendar/calendar-selector.tsx:51
-#: src/components/settings/components/ai/transcribing-model.tsx:195
-#: src/components/settings/components/ai/local-llm-button.tsx:54
-#: src/components/settings/components/ai/enhancing-model.tsx:95
 msgid "Loading..."
 msgstr "Loading..."
 
 #: src/components/settings/views/ai.tsx:35
-msgid "Local AI"
-msgstr "Local AI"
+#~ msgid "Local AI"
+#~ msgstr "Local AI"
 
 #: src/components/settings/views/ai.tsx:299
 #~ msgid "Local Language Model"
@@ -699,14 +695,14 @@ msgstr "My Templates"
 
 #: src/components/settings/components/ai/transcribing-model.tsx:248
 #: src/components/settings/components/ai/transcribing-model.tsx:291
-msgid "Needs download"
-msgstr "Needs download"
+#~ msgid "Needs download"
+#~ msgstr "Needs download"
 
 #: src/routes/app.index.tsx:13
 msgid "New note"
 msgstr "New note"
 
-#: src/components/left-sidebar/notes-list.tsx:297
+#: src/components/left-sidebar/notes-list.tsx:300
 #: src/components/left-sidebar/events-list.tsx:135
 msgid "New window"
 msgstr "New window"
@@ -736,8 +732,8 @@ msgid "No upcoming events with this contact"
 msgstr "No upcoming events with this contact"
 
 #: src/components/settings/components/ai/ollama-connection.tsx:49
-msgid "Not connected"
-msgstr "Not connected"
+#~ msgid "Not connected"
+#~ msgstr "Not connected"
 
 #: src/components/settings/components/settings-header.tsx:28
 #: src/components/settings/components/main-sidebar.tsx:31
@@ -753,8 +749,8 @@ msgid "Official Templates"
 msgstr "Official Templates"
 
 #: src/components/settings/components/ai/ollama-connection.tsx:31
-msgid "Ollama Connection"
-msgstr "Ollama Connection"
+#~ msgid "Ollama Connection"
+#~ msgstr "Ollama Connection"
 
 #: src/components/left-sidebar/top-area/calendar-button.tsx:26
 msgid "Open calendar view"
@@ -788,8 +784,8 @@ msgid "Optional for participant suggestions"
 msgstr "Optional for participant suggestions"
 
 #: src/components/settings/components/ai/enhancing-model.tsx:133
-msgid "or"
-msgstr "or"
+#~ msgid "or"
+#~ msgstr "or"
 
 #: src/components/settings/views/team.tsx:139
 #: src/components/settings/views/team.tsx:226
@@ -837,8 +833,8 @@ msgstr "Publish your note"
 #~ msgstr "Quality"
 
 #: src/components/settings/components/ai/transcribing-model.tsx:269
-msgid "Quality (small-en)"
-msgstr "Quality (small-en)"
+#~ msgid "Quality (small-en)"
+#~ msgstr "Quality (small-en)"
 
 #: src/components/settings/views/ai.tsx:263
 #~ msgid "Quality (v3 large)"
@@ -939,7 +935,7 @@ msgstr "Share usage data"
 #~ msgid "Show notifications 1 minute before events start based on your calendars"
 #~ msgstr "Show notifications 1 minute before events start based on your calendars"
 
-#: src/components/settings/views/notifications.tsx:75
+#: src/components/settings/views/notifications.tsx:77
 msgid "Show notifications when you join a meeting. This is not perfect."
 msgstr "Show notifications when you join a meeting. This is not perfect."
 
@@ -955,13 +951,17 @@ msgstr "Single sign-on for all users"
 msgid "Sound"
 msgstr "Sound"
 
+#: src/components/settings/views/ai.tsx:42
+msgid "Speech-to-Text"
+msgstr "Speech-to-Text"
+
 #: src/components/settings/views/ai.tsx:234
 #~ msgid "Speed"
 #~ msgstr "Speed"
 
 #: src/components/settings/components/ai/transcribing-model.tsx:226
-msgid "Speed (base-en)"
-msgstr "Speed (base-en)"
+#~ msgid "Speed (base-en)"
+#~ msgstr "Speed (base-en)"
 
 #: src/components/settings/views/ai.tsx:247
 #~ msgid "Speed (tiny-en)"
@@ -986,8 +986,8 @@ msgstr "Start recording"
 #: src/components/settings/components/ai/transcribing-model.tsx:198
 #: src/components/settings/components/ai/local-llm-button.tsx:57
 #: src/components/settings/components/ai/enhancing-model.tsx:98
-msgid "Start Server"
-msgstr "Start Server"
+#~ msgid "Start Server"
+#~ msgstr "Start Server"
 
 #: src/components/editor-area/note-header/listen-button.tsx:326
 msgid "Stop"
@@ -1063,8 +1063,8 @@ msgid "Toggle widget panel"
 msgstr "Toggle widget panel"
 
 #: src/components/settings/components/ai/transcribing-model.tsx:168
-msgid "Transcribing Model"
-msgstr "Transcribing Model"
+#~ msgid "Transcribing Model"
+#~ msgstr "Transcribing Model"
 
 #: src/components/settings/views/team.tsx:192
 msgid "Type or paste in emails below, separated by commas. Your workspace will be billed by members."
@@ -1118,7 +1118,7 @@ msgstr "username"
 #~ msgid "Verify that your local language model is working correctly"
 #~ msgstr "Verify that your local language model is working correctly"
 
-#: src/components/left-sidebar/notes-list.tsx:308
+#: src/components/left-sidebar/notes-list.tsx:311
 msgid "View calendar"
 msgstr "View calendar"
 

@@ -64,7 +64,9 @@ export default function LocalAI() {
                     disabled={isDownloaded}
                     onClick={() => {
                       if (!isDownloaded) {
-                        showSttModelDownloadToast(model);
+                        showSttModelDownloadToast(model, () => {
+                          supportedModels.refetch();
+                        });
                       }
                     }}
                   >

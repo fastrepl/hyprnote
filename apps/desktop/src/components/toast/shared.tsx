@@ -35,7 +35,7 @@ export const DownloadProgress = ({
   );
 };
 
-export function showSttModelDownloadToast(model: SupportedModel) {
+export function showSttModelDownloadToast(model: SupportedModel, onComplete?: () => void) {
   const sttChannel = new Channel();
   localSttCommands.downloadModel(model, sttChannel);
 
@@ -53,6 +53,9 @@ export function showSttModelDownloadToast(model: SupportedModel) {
             onComplete={() => {
               sonnerToast.dismiss(id);
               localSttCommands.startServer();
+              if (onComplete) {
+                onComplete();
+              }
             }}
           />
         </div>

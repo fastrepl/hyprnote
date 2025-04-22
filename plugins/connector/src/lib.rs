@@ -15,6 +15,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             commands::get_api_base::<tauri::Wry>,
             commands::get_api_key::<tauri::Wry>,
+            commands::get_custom_openai_api_base::<tauri::Wry>,
+            commands::set_custom_openai_api_base::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

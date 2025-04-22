@@ -8,6 +8,8 @@ pub enum Error {
     LocalLlmError(#[from] tauri_plugin_local_llm::Error),
     #[error(transparent)]
     LocalSttError(#[from] tauri_plugin_local_stt::Error),
+    #[error(transparent)]
+    Store(#[from] tauri_plugin_store2::Error),
 }
 
 impl Serialize for Error {

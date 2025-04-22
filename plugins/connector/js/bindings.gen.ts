@@ -12,6 +12,12 @@ async getApiBase(t: ConnectionType) : Promise<string | null> {
 },
 async getApiKey(t: ConnectionType) : Promise<string | null> {
     return await TAURI_INVOKE("plugin:connector|get_api_key", { t });
+},
+async getCustomOpenaiApiBase() : Promise<string | null> {
+    return await TAURI_INVOKE("plugin:connector|get_custom_openai_api_base");
+},
+async setCustomOpenaiApiBase(apiBase: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_custom_openai_api_base", { apiBase });
 }
 }
 

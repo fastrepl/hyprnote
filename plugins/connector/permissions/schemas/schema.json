@@ -319,10 +319,34 @@
           "markdownDescription": "Denies the get_api_key command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-base`\n- `allow-get-api-key`",
+          "description": "Enables the get_custom_openai_api_base command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-custom-openai-api-base",
+          "markdownDescription": "Enables the get_custom_openai_api_base command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_custom_openai_api_base command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-custom-openai-api-base",
+          "markdownDescription": "Denies the get_custom_openai_api_base command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_custom_openai_api_base command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-custom-openai-api-base",
+          "markdownDescription": "Enables the set_custom_openai_api_base command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_custom_openai_api_base command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-custom-openai-api-base",
+          "markdownDescription": "Denies the set_custom_openai_api_base command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-base`\n- `allow-get-api-key`\n- `allow-get-custom-openai-api-base`\n- `allow-set-custom-openai-api-base`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-base`\n- `allow-get-api-key`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-base`\n- `allow-get-api-key`\n- `allow-get-custom-openai-api-base`\n- `allow-set-custom-openai-api-base`"
         }
       ]
     }

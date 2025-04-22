@@ -1,5 +1,8 @@
 use std::future::Future;
 
+use crate::StoreKey;
+use tauri_plugin_store2::StorePluginExt;
+
 #[derive(Debug, serde::Deserialize, serde::Serialize, specta::Type)]
 pub enum ConnectionType {
     #[serde(rename = "auto-llm")]
@@ -11,7 +14,12 @@ pub enum ConnectionType {
 }
 
 pub trait ConnectorPluginExt<R: tauri::Runtime> {
+    fn connector_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
+
     fn is_online(&self) -> impl Future<Output = bool>;
+
+    fn get_custom_openai_api_base(&self) -> Result<Option<String>, crate::Error>;
+    fn set_custom_openai_api_base(&self, api_base: String) -> Result<(), crate::Error>;
 
     fn get_api_base(
         &self,
@@ -25,6 +33,10 @@ pub trait ConnectorPluginExt<R: tauri::Runtime> {
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
+    fn connector_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey> {
+        self.scoped_store(crate::PLUGIN_NAME).unwrap()
+    }
+
     async fn is_online(&self) -> bool {
         let target = "8.8.8.8".to_string();
         let interval = std::time::Duration::from_secs(1);
@@ -40,6 +52,20 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
         }
 
         false
+    }
+
+    fn get_custom_openai_api_base(&self) -> Result<Option<String>, crate::Error> {
+        let store = self.connector_store();
+        store
+            .get(StoreKey::OpenaiApiBase)
+            .map_err(crate::Error::Store)
+    }
+
+    fn set_custom_openai_api_base(&self, api_base: String) -> Result<(), crate::Error> {
+        let store = self.connector_store();
+        store
+            .set(StoreKey::OpenaiApiBase, api_base)
+            .map_err(crate::Error::Store)
     }
 
     async fn get_api_base(&self, t: ConnectionType) -> Result<Option<String>, crate::Error> {
@@ -85,6 +111,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
     }
 
     async fn get_api_key(&self, t: ConnectionType) -> Result<Option<String>, crate::Error> {
-        Ok(None)
+        match t {
+            ConnectionType::AutoSTT => Ok(None),
+            ConnectionType::AutoLLM => Ok(None),
+        }
     }
 }

@@ -1,4 +1,5 @@
 import { Trans } from "@lingui/react/macro";
+import { getVersion } from "@tauri-apps/api/app";
 import { CogIcon, CpuIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -13,10 +14,21 @@ import {
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/ui/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 
 export function SettingsButton() {
   const [open, setOpen] = useState(false);
   const { userId } = useHypr();
+
+  const { data: version, error } = useQuery({
+    queryKey: ["appVersion"],
+    queryFn: getVersion,
+  });
+
+  // Handle potential error during version fetching
+  if (error) {
+    console.error("Failed to fetch app version:", error);
+  }
 
   const handleClickSettings = () => {
     setOpen(false);
@@ -77,6 +89,9 @@ export function SettingsButton() {
             className="cursor-pointer"
           >
             <Trans>My Profile</Trans>
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled className="text-xs text-muted-foreground focus:bg-transparent">
+            {version ? `Version ${version}` : "Loading version..."}
           </DropdownMenuItem>
         </div>
       </DropdownMenuContent>

@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CircleCheckIcon, DownloadIcon, MicIcon } from "lucide-react";
+import { BrainIcon, CircleCheckIcon, DownloadIcon, MicIcon } from "lucide-react";
 
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
@@ -10,19 +10,19 @@ import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
 import { showSttModelDownloadToast } from "../../toast/shared";
 
 export default function LocalAI() {
-  const currentModel = useQuery({
+  const currentSTTModel = useQuery({
     queryKey: ["local-stt", "current-model"],
     queryFn: () => localSttCommands.getCurrentModel(),
   });
 
-  const setCurrentModel = useMutation({
+  const setCurrentSTTModel = useMutation({
     mutationFn: (model: SupportedModel) => localSttCommands.setCurrentModel(model),
     onSuccess: () => {
-      currentModel.refetch();
+      currentSTTModel.refetch();
     },
   });
 
-  const supportedModels = useQuery({
+  const supportedSTTModels = useQuery({
     queryKey: ["local-stt", "supported-models"],
     queryFn: async () => {
       const models = await localSttCommands.listSupportedModels();
@@ -33,24 +33,24 @@ export default function LocalAI() {
 
   return (
     <div className="space-y-6 -mt-3">
-      <Accordion type="single" collapsible defaultValue="stt">
+      <Accordion type="single" collapsible>
         <AccordionItem value="stt">
           <AccordionTrigger>
             <div className="flex flex-row items-center gap-2">
               <MicIcon size={16} />
               <span className="text-sm">
-                <Trans>Speech-to-Text</Trans>
+                <Trans>Speech-to-Text Model</Trans>
               </span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-2">
             <RadioGroup
-              value={currentModel.data}
-              onValueChange={setCurrentModel.mutate}
-              disabled={supportedModels.isLoading}
+              value={currentSTTModel.data}
+              onValueChange={setCurrentSTTModel.mutate}
+              disabled={supportedSTTModels.isLoading}
               className="space-y-2"
             >
-              {supportedModels.data?.map(({ model, isDownloaded }) => (
+              {supportedSTTModels.data?.map(({ model, isDownloaded }) => (
                 <div key={model} className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value={model} id={`model-${model}`} disabled={!isDownloaded} />
@@ -65,7 +65,7 @@ export default function LocalAI() {
                     onClick={() => {
                       if (!isDownloaded) {
                         showSttModelDownloadToast(model, () => {
-                          supportedModels.refetch();
+                          supportedSTTModels.refetch();
                         });
                       }
                     }}
@@ -75,6 +75,19 @@ export default function LocalAI() {
                 </div>
               ))}
             </RadioGroup>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="llm">
+          <AccordionTrigger>
+            <div className="flex flex-row items-center gap-2">
+              <BrainIcon size={16} />
+              <span className="text-sm">
+                <Trans>Language Model</Trans>
+              </span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="px-2">
           </AccordionContent>
         </AccordionItem>
       </Accordion>

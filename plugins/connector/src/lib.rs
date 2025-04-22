@@ -54,7 +54,7 @@ mod test {
     }
 
     #[test]
-    fn test_apple_calendar() {
+    fn test_connector() {
         let _app = create_app(tauri::test::mock_builder());
     }
 }

@@ -8,13 +8,17 @@ import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { DownloadProgress } from "./shared";
 
 export default function ModelDownloadNotification() {
+  const currentSttModel = useQuery({
+    queryKey: ["current-stt-model"],
+    queryFn: () => localSttCommands.getCurrentModel(),
+  });
+
   const checkForModelDownload = useQuery({
+    enabled: !!currentSttModel.data,
     queryKey: ["check-model-downloaded"],
     queryFn: async () => {
-      const currentSttModel = await localSttCommands.getCurrentModel();
-
       const [stt, llm] = await Promise.all([
-        localSttCommands.isModelDownloaded(currentSttModel),
+        localSttCommands.isModelDownloaded(currentSttModel.data!),
         localLlmCommands.isModelDownloaded(),
       ]);
 
@@ -31,7 +35,7 @@ export default function ModelDownloadNotification() {
     enabled: !checkForModelDownload.data?.sttModelDownloaded,
     queryKey: ["stt-model-downloading"],
     queryFn: async () => {
-      return localSttCommands.isModelDownloading();
+      return localSttCommands.isModelDownloading(currentSttModel.data!);
     },
     refetchInterval: 3000,
   });
@@ -72,7 +76,7 @@ export default function ModelDownloadNotification() {
             sonnerToast.dismiss("model-download-needed");
 
             if (!checkForModelDownload.data?.sttModelDownloaded && !sttModelDownloading.data) {
-              localSttCommands.downloadModel(checkForModelDownload.data?.currentSttModel, sttChannel);
+              localSttCommands.downloadModel(currentSttModel.data!, sttChannel);
 
               toast(
                 {

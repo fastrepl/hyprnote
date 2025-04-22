@@ -6,7 +6,7 @@ import { useCallback, useMemo, useState } from "react";
 import { z } from "zod";
 
 import { ExtensionsSidebar, MainSidebar, SettingsHeader, type Tab, TABS } from "@/components/settings/components";
-import { Extensions, General, Lab, Notifications, Sound } from "@/components/settings/views";
+import { Extensions, General, Lab, LocalAI, Notifications, Sound } from "@/components/settings/views";
 import { EXTENSION_CONFIGS, ExtensionName, ExtensionNames } from "@hypr/extension-registry";
 import { type ExtensionDefinition } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -153,6 +153,7 @@ function Component() {
                   onExtensionSelect={handleExtensionSelect}
                 />
               )}
+              {search.tab === "ai" && <LocalAI />}
               {search.tab === "lab" && <Lab />}
             </div>
           </div>

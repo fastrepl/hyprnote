@@ -1,6 +1,6 @@
 export const TABS = [
   "general",
-  // "ai",
+  "ai",
   // "calendar",
   "notifications",
   "sound",

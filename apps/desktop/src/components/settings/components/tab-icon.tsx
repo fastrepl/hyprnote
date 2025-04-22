@@ -8,7 +8,7 @@ import {
   // FileTextIcon,
   // FlaskConicalIcon,
   SettingsIcon,
-  // SparklesIcon,
+  SparklesIcon,
   // UsersIcon,
 } from "lucide-react";
 
@@ -26,6 +26,8 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <BlocksIcon className="h-4 w-4" />;
     case "lab":
       return <FlaskConicalIcon className="h-4 w-4" />;
+    case "ai":
+      return <SparklesIcon className="h-4 w-4" />;
     default:
       return null;
   }

@@ -9,4 +9,5 @@ permissions = [
     "allow-stop-server",
     "allow-get-current-model",
     "allow-set-current-model",
+    "allow-list-supported-models",
 ]

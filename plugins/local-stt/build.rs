@@ -7,6 +7,7 @@ const COMMANDS: &[&str] = &[
     "stop_server",
     "get_current_model",
     "set_current_model",
+    "list_supported_models",
 ];
 
 fn main() {

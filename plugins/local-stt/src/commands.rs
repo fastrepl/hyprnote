@@ -29,8 +29,9 @@ pub async fn is_model_downloaded<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn is_model_downloading<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
+    model: crate::SupportedModel,
 ) -> Result<bool, String> {
-    Ok(app.is_model_downloading().await)
+    Ok(app.is_model_downloading(model).await)
 }
 
 #[tauri::command]

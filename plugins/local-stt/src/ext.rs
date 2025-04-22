@@ -20,7 +20,7 @@ pub trait LocalSttPluginExt<R: Runtime> {
         channel: Channel<u8>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
 
-    fn is_model_downloading(&self) -> impl Future<Output = bool>;
+    fn is_model_downloading(&self, model: crate::SupportedModel) -> impl Future<Output = bool>;
     fn is_model_downloaded(
         &self,
         model: crate::SupportedModel,
@@ -111,6 +111,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     ) -> Result<(), crate::Error> {
         let data_dir = self.path().app_data_dir()?;
 
+        let m = model.clone();
         let task = tokio::spawn(async move {
             let callback = |progress: DownloadProgress| match progress {
                 DownloadProgress::Started => {
@@ -125,12 +126,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 }
             };
 
-            if let Err(e) = download_file_with_callback(
-                model.model_url(),
-                model.model_path(&data_dir),
-                callback,
-            )
-            .await
+            if let Err(e) =
+                download_file_with_callback(m.model_url(), m.model_path(&data_dir), callback).await
             {
                 tracing::error!("model_download_error: {}", e);
             }
@@ -140,20 +137,23 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             let state = self.state::<crate::SharedState>();
             let mut s = state.lock().await;
 
-            if let Some(task) = s.download_task.take() {
-                task.abort();
+            if let Some(existing_task) = s.download_task.remove(&model) {
+                existing_task.abort();
             }
-            s.download_task = Some(task);
+            s.download_task.insert(model.clone(), task);
         }
 
         Ok(())
     }
 
     #[tracing::instrument(skip_all)]
-    async fn is_model_downloading(&self) -> bool {
+    async fn is_model_downloading(&self, model: crate::SupportedModel) -> bool {
         let state = self.state::<crate::SharedState>();
-        let s = state.lock().await;
-        s.download_task.is_some()
+
+        {
+            let guard = state.lock().await;
+            guard.download_task.contains_key(&model)
+        }
     }
 
     #[tracing::instrument(skip_all)]

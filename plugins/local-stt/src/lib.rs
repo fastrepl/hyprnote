@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use tauri::{Manager, Wry};
 
 mod commands;
@@ -20,7 +21,7 @@ pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 pub struct State {
     pub api_base: Option<String>,
     pub server: Option<crate::server::ServerHandle>,
-    pub download_task: Option<tokio::task::JoinHandle<()>>,
+    pub download_task: HashMap<SupportedModel, tokio::task::JoinHandle<()>>,
 }
 
 const PLUGIN_NAME: &str = "local-stt";

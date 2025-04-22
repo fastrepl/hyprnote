@@ -51,9 +51,9 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
     Ok(())
 }
 
-pub fn file_size(path: impl AsRef<Path>) -> Result<u32, Error> {
+pub fn file_size(path: impl AsRef<Path>) -> Result<u64, Error> {
     let metadata = std::fs::metadata(path.as_ref())?;
-    Ok(metadata.len() as u32)
+    Ok(metadata.len())
 }
 
 pub fn calculate_file_checksum(path: impl AsRef<Path>) -> Result<u32, Error> {
@@ -88,6 +88,10 @@ mod tests {
             base.join("ggml-tiny.en-q8_0.bin"),
             base.join("ggml-base.en-q8_0.bin"),
             base.join("ggml-small.en-q8_0.bin"),
+            base.join("ggml-large-v3-turbo-q8_0.bin"),
+            base.join("ggml-tiny-q8_0.bin"),
+            base.join("ggml-base-q8_0.bin"),
+            base.join("ggml-small-q8_0.bin"),
             base.join("llm.gguf"),
         ];
 
@@ -106,6 +110,10 @@ mod tests {
             base.join("ggml-tiny.en-q8_0.bin"),
             base.join("ggml-base.en-q8_0.bin"),
             base.join("ggml-small.en-q8_0.bin"),
+            base.join("ggml-large-v3-turbo-q8_0.bin"),
+            base.join("ggml-tiny-q8_0.bin"),
+            base.join("ggml-base-q8_0.bin"),
+            base.join("ggml-small-q8_0.bin"),
             base.join("llm.gguf"),
         ];
 

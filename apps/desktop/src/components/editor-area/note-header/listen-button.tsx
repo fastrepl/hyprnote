@@ -31,20 +31,17 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
     },
   });
 
-  const { onboardingSessionId } = useHypr();
-
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
-  const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
-
+  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
   const ongoingSessionStore = useOngoingSession((s) => ({
     start: s.start,
     resume: s.resume,
     pause: s.pause,
     stop: s.stop,
-    isCurrent: s.sessionId === sessionId,
     loading: s.loading,
-    sessionId: s.sessionId,
   }));
+
+  const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
 
   const isEnhancePending = useEnhancePendingState(sessionId);
   const nonEmptySession = useSession(
@@ -83,7 +80,8 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
     );
   }
 
-  if (ongoingSessionStatus === "running_paused") {
+  // Show Resume button only if the current note is the one that's paused
+  if (ongoingSessionStatus === "running_paused" && sessionId === ongoingSessionId) {
     return (
       <button
         disabled={!modelDownloaded.data}
@@ -101,7 +99,7 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
 
   if (ongoingSessionStatus === "inactive") {
     if (!meetingEnded) {
-      if (sessionId === onboardingSessionId) {
+      if (sessionId === useHypr().onboardingSessionId) {
         return (
           <WhenInactiveAndMeetingNotEndedOnboarding
             disabled={!modelDownloaded.data}
@@ -117,7 +115,7 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
         );
       }
     } else {
-      if (sessionId === onboardingSessionId) {
+      if (sessionId === useHypr().onboardingSessionId) {
         return (
           <WhenInactiveAndMeetingEndedOnboarding
             disabled={!modelDownloaded.data || isEnhancePending}
@@ -136,7 +134,8 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
   }
 
   if (ongoingSessionStatus === "running_active") {
-    if (!ongoingSessionStore.isCurrent) {
+    // Only show active button if the current note IS the active session
+    if (sessionId !== ongoingSessionId) {
       return null;
     }
 
@@ -268,6 +267,7 @@ export function WhenActive() {
     start: s.start,
     pause: s.pause,
     stop: s.stop,
+    loading: s.loading,
   }));
 
   const handlePauseSession = () => {

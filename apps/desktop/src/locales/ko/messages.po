@@ -599,6 +599,10 @@ msgstr ""
 msgid "Lab"
 msgstr ""
 
+#: src/components/settings/views/ai.tsx:86
+msgid "Language Model"
+msgstr ""
+
 #: src/components/settings/views/billing.tsx:200
 msgid "Learn more about our pricing plans"
 msgstr ""
@@ -952,7 +956,11 @@ msgid "Sound"
 msgstr ""
 
 #: src/components/settings/views/ai.tsx:42
-msgid "Speech-to-Text"
+#~ msgid "Speech-to-Text"
+#~ msgstr ""
+
+#: src/components/settings/views/ai.tsx:42
+msgid "Speech-to-Text Model"
 msgstr ""
 
 #: src/components/settings/views/ai.tsx:234

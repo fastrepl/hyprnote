@@ -5,6 +5,7 @@ import { BrainIcon, CircleCheckIcon, DownloadIcon, MicIcon } from "lucide-react"
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Input } from "@hypr/ui/components/ui/input";
 import { Label } from "@hypr/ui/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
 import { showSttModelDownloadToast } from "../../toast/shared";
@@ -87,7 +88,8 @@ export default function LocalAI() {
               </span>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="px-2">
+          <AccordionContent className="p-2">
+            <Input type="text" placeholder="Enter your API key" className="pt-2" />
           </AccordionContent>
         </AccordionItem>
       </Accordion>

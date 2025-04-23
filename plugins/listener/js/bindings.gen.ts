@@ -78,8 +78,9 @@ statusEvent: "plugin:listener:status-event"
 
 /** user-defined types **/
 
-export type SessionEvent = ({ type: "started" } & SessionEventStarted) | { type: "stopped" } | { type: "paused" } | { type: "resumed" } | { type: "silence" } | ({ type: "timelineView" } & SessionEventTimelineView) | ({ type: "audioAmplitude" } & SessionEventAudioAmplitude)
+export type SessionEvent = ({ type: "started" } & SessionEventStarted) | { type: "stopped" } | { type: "paused" } | { type: "resumed" } | { type: "silence" } | ({ type: "timelineView" } & SessionEventTimelineView) | ({ type: "audioAmplitude" } & SessionEventAudioAmplitude) | ({ type: "error" } & SessionEventError)
 export type SessionEventAudioAmplitude = { mic: number; speaker: number }
+export type SessionEventError = { message: string }
 export type SessionEventStarted = { seconds: number }
 export type SessionEventTimelineView = { timeline: TimelineView }
 export type StatusEvent = "inactive" | "running_active" | "running_paused"

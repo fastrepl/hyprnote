@@ -15,6 +15,8 @@ pub enum SessionEvent {
     TimelineView(SessionEventTimelineView),
     #[serde(rename = "audioAmplitude")]
     AudioAmplitude(SessionEventAudioAmplitude),
+    #[serde(rename = "error")]
+    Error(SessionEventError),
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
@@ -31,6 +33,11 @@ pub struct SessionEventTimelineView {
 pub struct SessionEventAudioAmplitude {
     pub mic: u16,
     pub speaker: u16,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct SessionEventError {
+    pub message: String,
 }
 
 impl From<(&[f32], &[f32])> for SessionEventAudioAmplitude {

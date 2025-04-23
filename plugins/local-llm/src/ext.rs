@@ -4,6 +4,8 @@ use hypr_file::{download_file_with_callback, DownloadProgress};
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_store2::StorePluginExt;
 
+const CURRENT_MODEL: crate::SupportedModel = crate::SupportedModel::Llama3p2_3bQ4;
+
 pub trait LocalLlmPluginExt<R: Runtime> {
     fn local_llm_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
     fn api_base(&self) -> impl Future<Output = Option<String>>;
@@ -36,14 +38,15 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn is_model_downloaded(&self) -> Result<bool, crate::Error> {
-        let path = self.path().app_data_dir().unwrap().join("llm.gguf");
+        let data_dir = self.path().app_data_dir().unwrap();
+        let path = CURRENT_MODEL.model_path(data_dir);
 
         if !path.exists() {
             return Ok(false);
         }
 
         let size = hypr_file::file_size(&path)?;
-        Ok(size == 2019377440)
+        Ok(size == CURRENT_MODEL.model_size())
     }
 
     #[tracing::instrument(skip_all)]
@@ -55,8 +58,9 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn download_model(&self, channel: Channel<u8>) -> Result<(), String> {
-        let path = self.path().app_data_dir().unwrap().join("llm.gguf");
-        let url = "https://pub-8987485129c64debb63bff7f35a2e5fd.r2.dev/v0/lmstudio-community/Llama-3.2-3B-Instruct-GGUF/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf";
+        let data_dir = self.path().app_data_dir().unwrap();
+        let path = CURRENT_MODEL.model_path(data_dir);
+        let url = CURRENT_MODEL.model_url();
 
         let task = tokio::spawn(async move {
             let callback = |progress: DownloadProgress| match progress {

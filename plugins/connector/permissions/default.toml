@@ -1,6 +1,8 @@
 [default]
 description = "Default permissions for the plugin"
 permissions = [
+    "allow-get-custom-llm-enabled",
+    "allow-set-custom-llm-enabled",
     "allow-get-custom-llm-connection",
     "allow-set-custom-llm-connection",
     "allow-get-llm-connection",

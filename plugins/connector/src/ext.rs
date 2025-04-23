@@ -46,6 +46,8 @@ impl From<ConnectionSTT> for Connection {
 pub trait ConnectorPluginExt<R: tauri::Runtime> {
     fn connector_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
 
+    fn set_custom_llm_enabled(&self, enabled: bool) -> Result<(), crate::Error>;
+    fn get_custom_llm_enabled(&self) -> Result<bool, crate::Error>;
     fn get_custom_llm_connection(&self) -> Result<Option<Connection>, crate::Error>;
     fn set_custom_llm_connection(&self, connection: Connection) -> Result<(), crate::Error>;
 
@@ -58,18 +60,31 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
         self.scoped_store(crate::PLUGIN_NAME).unwrap()
     }
 
+    fn set_custom_llm_enabled(&self, enabled: bool) -> Result<(), crate::Error> {
+        self.connector_store()
+            .set(StoreKey::CustomEnabled, enabled)?;
+        Ok(())
+    }
+
+    fn get_custom_llm_enabled(&self) -> Result<bool, crate::Error> {
+        Ok(self
+            .connector_store()
+            .get(StoreKey::CustomEnabled)?
+            .unwrap_or(false))
+    }
+
     fn set_custom_llm_connection(&self, connection: Connection) -> Result<(), crate::Error> {
         self.connector_store()
-            .set(StoreKey::OpenaiApiBase, connection.api_base)?;
+            .set(StoreKey::CustomApiBase, connection.api_base)?;
         self.connector_store()
-            .set(StoreKey::OpenaiApiKey, connection.api_key)?;
+            .set(StoreKey::CustomApiKey, connection.api_key)?;
 
         Ok(())
     }
 
     fn get_custom_llm_connection(&self) -> Result<Option<Connection>, crate::Error> {
-        let api_base = self.connector_store().get(StoreKey::OpenaiApiBase)?;
-        let api_key = self.connector_store().get(StoreKey::OpenaiApiKey)?;
+        let api_base = self.connector_store().get(StoreKey::CustomApiBase)?;
+        let api_key = self.connector_store().get(StoreKey::CustomApiKey)?;
 
         match (api_base, api_key) {
             (Some(api_base), Some(api_key)) => Ok(Some(Connection { api_base, api_key })),
@@ -100,11 +115,19 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
 
         {
             let store = self.connector_store();
-            let api_base = store.get(StoreKey::OpenaiApiBase)?;
-            let api_key = store.get(StoreKey::OpenaiApiKey)?;
 
-            if let Some(api_base) = api_base {
-                return Ok(ConnectionLLM::Custom(Connection { api_base, api_key }));
+            let enabled = self.get_custom_llm_enabled()?;
+            let api_base = store
+                .get::<Option<String>>(StoreKey::CustomApiBase)?
+                .flatten();
+            let api_key = store
+                .get::<Option<String>>(StoreKey::CustomApiKey)?
+                .flatten();
+
+            if enabled {
+                if let Some(api_base) = api_base {
+                    return Ok(ConnectionLLM::Custom(Connection { api_base, api_key }));
+                }
             }
         }
 

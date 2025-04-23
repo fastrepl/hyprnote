@@ -4,6 +4,8 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
+- `allow-get-custom-llm-enabled`
+- `allow-set-custom-llm-enabled`
 - `allow-get-custom-llm-connection`
 - `allow-set-custom-llm-connection`
 - `allow-get-llm-connection`
@@ -40,6 +42,32 @@ Enables the get_custom_llm_connection command without any pre-configured scope.
 <td>
 
 Denies the get_custom_llm_connection command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-get-custom-llm-enabled`
+
+</td>
+<td>
+
+Enables the get_custom_llm_enabled command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-get-custom-llm-enabled`
+
+</td>
+<td>
+
+Denies the get_custom_llm_enabled command without any pre-configured scope.
 
 </td>
 </tr>
@@ -118,6 +146,32 @@ Enables the set_custom_llm_connection command without any pre-configured scope.
 <td>
 
 Denies the set_custom_llm_connection command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-set-custom-llm-enabled`
+
+</td>
+<td>
+
+Enables the set_custom_llm_enabled command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-set-custom-llm-enabled`
+
+</td>
+<td>
+
+Denies the set_custom_llm_enabled command without any pre-configured scope.
 
 </td>
 </tr>

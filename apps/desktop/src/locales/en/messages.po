@@ -792,7 +792,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:318
+#: src/components/editor-area/note-header/listen-button.tsx:319
 msgid "Pause"
 msgstr "Pause"
 
@@ -861,7 +861,7 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/editor-area/note-header/listen-button.tsx:97
+#: src/components/editor-area/note-header/listen-button.tsx:96
 msgid "Resume"
 msgstr "Resume"
 
@@ -989,7 +989,7 @@ msgstr "Start recording"
 #~ msgid "Start Server"
 #~ msgstr "Start Server"
 
-#: src/components/editor-area/note-header/listen-button.tsx:326
+#: src/components/editor-area/note-header/listen-button.tsx:327
 msgid "Stop"
 msgstr "Stop"
 

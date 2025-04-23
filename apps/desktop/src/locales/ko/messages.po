@@ -792,7 +792,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:318
+#: src/components/editor-area/note-header/listen-button.tsx:319
 msgid "Pause"
 msgstr ""
 
@@ -861,7 +861,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:97
+#: src/components/editor-area/note-header/listen-button.tsx:96
 msgid "Resume"
 msgstr ""
 
@@ -989,7 +989,7 @@ msgstr ""
 #~ msgid "Start Server"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:326
+#: src/components/editor-area/note-header/listen-button.tsx:327
 msgid "Stop"
 msgstr ""
 

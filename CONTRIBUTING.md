@@ -5,6 +5,8 @@
 curl https://sh.rustup.rs -sSf | sh
 # libomp is required for llama-cpp
 brew install libomp
+# cmake is required for whisper-rs
+brew install cmake
 # cidre uses this for audio capture and types
 xcode-select --install
 # Installing the tools

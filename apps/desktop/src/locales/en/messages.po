@@ -219,8 +219,8 @@ msgstr "{weeks} weeks later"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
-#: src/components/editor-area/note-header/listen-button.tsx:188
-#: src/components/editor-area/note-header/listen-button.tsx:235
+#: src/components/editor-area/note-header/listen-button.tsx:186
+#: src/components/editor-area/note-header/listen-button.tsx:233
 msgid "{0}"
 msgstr "{0}"
 
@@ -599,7 +599,7 @@ msgstr "Key decisions"
 msgid "Lab"
 msgstr "Lab"
 
-#: src/components/settings/views/ai.tsx:86
+#: src/components/settings/views/ai.tsx:87
 msgid "Language Model"
 msgstr "Language Model"
 
@@ -796,7 +796,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:319
+#: src/components/editor-area/note-header/listen-button.tsx:317
 msgid "Pause"
 msgstr "Pause"
 
@@ -816,7 +816,7 @@ msgstr "people"
 #~ msgid "Play again"
 #~ msgstr "Play again"
 
-#: src/components/editor-area/note-header/listen-button.tsx:208
+#: src/components/editor-area/note-header/listen-button.tsx:206
 msgid "Play video"
 msgstr "Play video"
 
@@ -865,7 +865,7 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/editor-area/note-header/listen-button.tsx:96
+#: src/components/editor-area/note-header/listen-button.tsx:95
 msgid "Resume"
 msgstr "Resume"
 
@@ -959,7 +959,7 @@ msgstr "Sound"
 #~ msgid "Speech-to-Text"
 #~ msgstr "Speech-to-Text"
 
-#: src/components/settings/views/ai.tsx:42
+#: src/components/settings/views/ai.tsx:43
 msgid "Speech-to-Text Model"
 msgstr "Speech-to-Text Model"
 
@@ -983,11 +983,11 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:213
+#: src/components/editor-area/note-header/listen-button.tsx:211
 msgid "Start onboarding video"
 msgstr "Start onboarding video"
 
-#: src/components/editor-area/note-header/listen-button.tsx:163
+#: src/components/editor-area/note-header/listen-button.tsx:161
 msgid "Start recording"
 msgstr "Start recording"
 
@@ -997,7 +997,7 @@ msgstr "Start recording"
 #~ msgid "Start Server"
 #~ msgstr "Start Server"
 
-#: src/components/editor-area/note-header/listen-button.tsx:327
+#: src/components/editor-area/note-header/listen-button.tsx:325
 msgid "Stop"
 msgstr "Stop"
 

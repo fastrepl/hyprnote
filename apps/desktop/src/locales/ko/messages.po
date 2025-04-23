@@ -219,8 +219,8 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
-#: src/components/editor-area/note-header/listen-button.tsx:188
-#: src/components/editor-area/note-header/listen-button.tsx:235
+#: src/components/editor-area/note-header/listen-button.tsx:186
+#: src/components/editor-area/note-header/listen-button.tsx:233
 msgid "{0}"
 msgstr ""
 
@@ -599,7 +599,7 @@ msgstr ""
 msgid "Lab"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:86
+#: src/components/settings/views/ai.tsx:87
 msgid "Language Model"
 msgstr ""
 
@@ -796,7 +796,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:319
+#: src/components/editor-area/note-header/listen-button.tsx:317
 msgid "Pause"
 msgstr ""
 
@@ -816,7 +816,7 @@ msgstr ""
 #~ msgid "Play again"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:208
+#: src/components/editor-area/note-header/listen-button.tsx:206
 msgid "Play video"
 msgstr ""
 
@@ -865,7 +865,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:96
+#: src/components/editor-area/note-header/listen-button.tsx:95
 msgid "Resume"
 msgstr ""
 
@@ -959,7 +959,7 @@ msgstr ""
 #~ msgid "Speech-to-Text"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:42
+#: src/components/settings/views/ai.tsx:43
 msgid "Speech-to-Text Model"
 msgstr ""
 
@@ -983,11 +983,11 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:213
+#: src/components/editor-area/note-header/listen-button.tsx:211
 msgid "Start onboarding video"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:163
+#: src/components/editor-area/note-header/listen-button.tsx:161
 msgid "Start recording"
 msgstr ""
 
@@ -997,7 +997,7 @@ msgstr ""
 #~ msgid "Start Server"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:327
+#: src/components/editor-area/note-header/listen-button.tsx:325
 msgid "Stop"
 msgstr ""
 

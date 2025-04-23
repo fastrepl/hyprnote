@@ -148,7 +148,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
         }
 
         {
-            use tauri_plugin_local_llm::{LocalLlmPluginExt, SharedState};
+            use tauri_plugin_local_stt::{LocalSttPluginExt, SharedState};
 
             let api_base = if self.is_server_running().await {
                 let state = self.state::<SharedState>();

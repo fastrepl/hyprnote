@@ -81,7 +81,6 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
     );
   }
 
-  // Show Resume button only if the current note is the one that's paused
   if (ongoingSessionStatus === "running_paused" && sessionId === ongoingSessionId) {
     return (
       <button
@@ -135,7 +134,6 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
   }
 
   if (ongoingSessionStatus === "running_active") {
-    // Only show active button if the current note IS the active session
     if (sessionId !== ongoingSessionId) {
       return null;
     }

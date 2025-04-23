@@ -496,6 +496,10 @@ msgstr "Enable"
 msgid "Enter a section title"
 msgstr "Enter a section title"
 
+#: src/components/settings/views/ai.tsx:187
+msgid "Enter the URL for your custom LLM endpoint"
+msgstr "Enter the URL for your custom LLM endpoint"
+
 #: src/components/settings/views/notifications.tsx:181
 #~ msgid "Exclude these apps from auto detection"
 #~ msgstr "Exclude these apps from auto detection"
@@ -599,7 +603,7 @@ msgstr "Key decisions"
 msgid "Lab"
 msgstr "Lab"
 
-#: src/components/settings/views/ai.tsx:87
+#: src/components/settings/views/ai.tsx:153
 msgid "Language Model"
 msgstr "Language Model"
 
@@ -959,7 +963,7 @@ msgstr "Sound"
 #~ msgid "Speech-to-Text"
 #~ msgstr "Speech-to-Text"
 
-#: src/components/settings/views/ai.tsx:43
+#: src/components/settings/views/ai.tsx:109
 msgid "Speech-to-Text Model"
 msgstr "Speech-to-Text Model"
 

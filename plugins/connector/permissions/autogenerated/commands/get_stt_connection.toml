@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-stt-connection"
+description = "Enables the get_stt_connection command without any pre-configured scope."
+commands.allow = ["get_stt_connection"]
+
+[[permission]]
+identifier = "deny-get-stt-connection"
+description = "Denies the get_stt_connection command without any pre-configured scope."
+commands.deny = ["get_stt_connection"]

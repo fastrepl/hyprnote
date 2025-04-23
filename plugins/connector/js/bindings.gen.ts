@@ -7,17 +7,17 @@
 
 
 export const commands = {
-async getApiBase(t: ConnectionType) : Promise<string | null> {
-    return await TAURI_INVOKE("plugin:connector|get_api_base", { t });
+async getCustomLlmConnection() : Promise<Connection | null> {
+    return await TAURI_INVOKE("plugin:connector|get_custom_llm_connection");
 },
-async getApiKey(t: ConnectionType) : Promise<string | null> {
-    return await TAURI_INVOKE("plugin:connector|get_api_key", { t });
+async setCustomLlmConnection(connection: Connection) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_custom_llm_connection", { connection });
 },
-async getCustomOpenaiApiBase() : Promise<string | null> {
-    return await TAURI_INVOKE("plugin:connector|get_custom_openai_api_base");
+async getLlmConnection() : Promise<ConnectionLLM> {
+    return await TAURI_INVOKE("plugin:connector|get_llm_connection");
 },
-async setCustomOpenaiApiBase(apiBase: string) : Promise<null> {
-    return await TAURI_INVOKE("plugin:connector|set_custom_openai_api_base", { apiBase });
+async getSttConnection() : Promise<ConnectionSTT> {
+    return await TAURI_INVOKE("plugin:connector|get_stt_connection");
 }
 }
 
@@ -31,7 +31,9 @@ async setCustomOpenaiApiBase(apiBase: string) : Promise<null> {
 
 /** user-defined types **/
 
-export type ConnectionType = "auto-llm" | "auto-stt"
+export type Connection = { api_base: string; api_key: string | null }
+export type ConnectionLLM = { type: "HyprCloud"; connection: Connection } | { type: "HyprLocal"; connection: Connection } | { type: "Custom"; connection: Connection }
+export type ConnectionSTT = { type: "HyprCloud"; connection: Connection } | { type: "HyprLocal"; connection: Connection }
 
 /** tauri-specta globals **/
 

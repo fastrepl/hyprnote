@@ -295,58 +295,58 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the get_api_base command without any pre-configured scope.",
+          "description": "Enables the get_custom_llm_connection command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-get-api-base",
-          "markdownDescription": "Enables the get_api_base command without any pre-configured scope."
+          "const": "allow-get-custom-llm-connection",
+          "markdownDescription": "Enables the get_custom_llm_connection command without any pre-configured scope."
         },
         {
-          "description": "Denies the get_api_base command without any pre-configured scope.",
+          "description": "Denies the get_custom_llm_connection command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-get-api-base",
-          "markdownDescription": "Denies the get_api_base command without any pre-configured scope."
+          "const": "deny-get-custom-llm-connection",
+          "markdownDescription": "Denies the get_custom_llm_connection command without any pre-configured scope."
         },
         {
-          "description": "Enables the get_api_key command without any pre-configured scope.",
+          "description": "Enables the get_llm_connection command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-get-api-key",
-          "markdownDescription": "Enables the get_api_key command without any pre-configured scope."
+          "const": "allow-get-llm-connection",
+          "markdownDescription": "Enables the get_llm_connection command without any pre-configured scope."
         },
         {
-          "description": "Denies the get_api_key command without any pre-configured scope.",
+          "description": "Denies the get_llm_connection command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-get-api-key",
-          "markdownDescription": "Denies the get_api_key command without any pre-configured scope."
+          "const": "deny-get-llm-connection",
+          "markdownDescription": "Denies the get_llm_connection command without any pre-configured scope."
         },
         {
-          "description": "Enables the get_custom_openai_api_base command without any pre-configured scope.",
+          "description": "Enables the get_stt_connection command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-get-custom-openai-api-base",
-          "markdownDescription": "Enables the get_custom_openai_api_base command without any pre-configured scope."
+          "const": "allow-get-stt-connection",
+          "markdownDescription": "Enables the get_stt_connection command without any pre-configured scope."
         },
         {
-          "description": "Denies the get_custom_openai_api_base command without any pre-configured scope.",
+          "description": "Denies the get_stt_connection command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-get-custom-openai-api-base",
-          "markdownDescription": "Denies the get_custom_openai_api_base command without any pre-configured scope."
+          "const": "deny-get-stt-connection",
+          "markdownDescription": "Denies the get_stt_connection command without any pre-configured scope."
         },
         {
-          "description": "Enables the set_custom_openai_api_base command without any pre-configured scope.",
+          "description": "Enables the set_custom_llm_connection command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-set-custom-openai-api-base",
-          "markdownDescription": "Enables the set_custom_openai_api_base command without any pre-configured scope."
+          "const": "allow-set-custom-llm-connection",
+          "markdownDescription": "Enables the set_custom_llm_connection command without any pre-configured scope."
         },
         {
-          "description": "Denies the set_custom_openai_api_base command without any pre-configured scope.",
+          "description": "Denies the set_custom_llm_connection command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-set-custom-openai-api-base",
-          "markdownDescription": "Denies the set_custom_openai_api_base command without any pre-configured scope."
+          "const": "deny-set-custom-llm-connection",
+          "markdownDescription": "Denies the set_custom_llm_connection command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-base`\n- `allow-get-api-key`\n- `allow-get-custom-openai-api-base`\n- `allow-set-custom-openai-api-base`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-custom-llm-connection`\n- `allow-set-custom-llm-connection`\n- `allow-get-llm-connection`\n- `allow-get-stt-connection`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-base`\n- `allow-get-api-key`\n- `allow-get-custom-openai-api-base`\n- `allow-set-custom-openai-api-base`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-custom-llm-connection`\n- `allow-set-custom-llm-connection`\n- `allow-get-llm-connection`\n- `allow-get-stt-connection`"
         }
       ]
     }

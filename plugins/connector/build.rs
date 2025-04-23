@@ -1,8 +1,8 @@
 const COMMANDS: &[&str] = &[
-    "get_api_base",
-    "get_api_key",
-    "get_custom_openai_api_base",
-    "set_custom_openai_api_base",
+    "get_custom_llm_connection",
+    "set_custom_llm_connection",
+    "get_llm_connection",
+    "get_stt_connection",
 ];
 
 fn main() {

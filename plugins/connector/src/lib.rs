@@ -13,10 +13,10 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::get_api_base::<tauri::Wry>,
-            commands::get_api_key::<tauri::Wry>,
-            commands::get_custom_openai_api_base::<tauri::Wry>,
-            commands::set_custom_openai_api_base::<tauri::Wry>,
+            commands::get_custom_llm_connection::<tauri::Wry>,
+            commands::set_custom_llm_connection::<tauri::Wry>,
+            commands::get_llm_connection::<tauri::Wry>,
+            commands::get_stt_connection::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

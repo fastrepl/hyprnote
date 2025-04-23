@@ -1,8 +1,8 @@
 [default]
 description = "Default permissions for the plugin"
 permissions = [
-    "allow-get-api-base",
-    "allow-get-api-key",
-    "allow-get-custom-openai-api-base",
-    "allow-set-custom-openai-api-base",
+    "allow-get-custom-llm-connection",
+    "allow-set-custom-llm-connection",
+    "allow-get-llm-connection",
+    "allow-get-stt-connection",
 ]

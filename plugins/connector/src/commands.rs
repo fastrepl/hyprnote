@@ -1,37 +1,35 @@
-use crate::{ConnectionType, ConnectorPluginExt};
+use crate::{Connection, ConnectionLLM, ConnectionSTT, ConnectorPluginExt};
 
 #[tauri::command]
 #[specta::specta]
-pub async fn get_api_base<R: tauri::Runtime>(
+pub async fn get_custom_llm_connection<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    t: ConnectionType,
-) -> Result<Option<String>, String> {
-    app.get_api_base(t).await.map_err(|e| e.to_string())
+) -> Result<Option<Connection>, String> {
+    app.get_custom_llm_connection().map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn get_api_key<R: tauri::Runtime>(
+pub async fn set_custom_llm_connection<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    t: ConnectionType,
-) -> Result<Option<String>, String> {
-    app.get_api_key(t).await.map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn get_custom_openai_api_base<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<Option<String>, String> {
-    app.get_custom_openai_api_base().map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn set_custom_openai_api_base<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    api_base: String,
+    connection: Connection,
 ) -> Result<(), String> {
-    app.set_custom_openai_api_base(api_base)
+    app.set_custom_llm_connection(connection)
         .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_llm_connection<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<ConnectionLLM, String> {
+    app.get_llm_connection().await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_stt_connection<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<ConnectionSTT, String> {
+    app.get_stt_connection().await.map_err(|e| e.to_string())
 }

@@ -16,7 +16,6 @@
     "@ai-sdk/react": "^1.2.9",
     "@date-fns/tz": "^1.2.0",
     "@hypr/client": "workspace:^",
-    "@hypr/plugin-auth": "workspace:^",
     "@hypr/plugin-connector": "workspace:^",
     "@hypr/plugin-db": "workspace:^",
     "@hypr/plugin-listener": "workspace:^",

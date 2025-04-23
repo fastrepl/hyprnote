@@ -12,6 +12,8 @@ pub enum Error {
     ReqwestError(#[from] reqwest::Error),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
+    #[error(transparent)]
+    StoreError(#[from] tauri_plugin_store2::Error),
 }
 
 impl Serialize for Error {

@@ -4,15 +4,17 @@ use hypr_file::{download_file_with_callback, DownloadProgress};
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_store2::StorePluginExt;
 
-const CURRENT_MODEL: crate::SupportedModel = crate::SupportedModel::Llama3p2_3bQ4;
-
 pub trait LocalLlmPluginExt<R: Runtime> {
     fn local_llm_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
+    fn current_model(&self) -> impl Future<Output = Result<crate::SupportedModel, crate::Error>>;
     fn api_base(&self) -> impl Future<Output = Option<String>>;
     fn is_model_downloading(&self) -> impl Future<Output = bool>;
     fn is_model_downloaded(&self) -> impl Future<Output = Result<bool, crate::Error>>;
     fn is_server_running(&self) -> impl Future<Output = bool>;
-    fn download_model(&self, channel: Channel<u8>) -> impl Future<Output = Result<(), String>>;
+    fn download_model(
+        &self,
+        channel: Channel<u8>,
+    ) -> impl Future<Output = Result<(), crate::Error>>;
     fn start_server(&self) -> impl Future<Output = Result<String, crate::Error>>;
     fn stop_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
 }
@@ -20,6 +22,15 @@ pub trait LocalLlmPluginExt<R: Runtime> {
 impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     fn local_llm_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey> {
         self.scoped_store(crate::PLUGIN_NAME).unwrap()
+    }
+
+    async fn current_model(&self) -> Result<crate::SupportedModel, crate::Error> {
+        let store = self.local_llm_store();
+
+        let stored = store
+            .get::<Option<crate::SupportedModel>>(crate::StoreKey::Model)?
+            .flatten();
+        Ok(stored.unwrap_or(crate::SupportedModel::Llama3p2_3bQ4))
     }
 
     #[tracing::instrument(skip_all)]
@@ -38,15 +49,17 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn is_model_downloaded(&self) -> Result<bool, crate::Error> {
+        let model = self.current_model().await?;
+
         let data_dir = self.path().app_data_dir().unwrap();
-        let path = CURRENT_MODEL.model_path(data_dir);
+        let path = model.model_path(data_dir);
 
         if !path.exists() {
             return Ok(false);
         }
 
         let size = hypr_file::file_size(&path)?;
-        Ok(size == CURRENT_MODEL.model_size())
+        Ok(size == model.model_size())
     }
 
     #[tracing::instrument(skip_all)]
@@ -57,10 +70,12 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn download_model(&self, channel: Channel<u8>) -> Result<(), String> {
+    async fn download_model(&self, channel: Channel<u8>) -> Result<(), crate::Error> {
+        let model = self.current_model().await?;
         let data_dir = self.path().app_data_dir().unwrap();
-        let path = CURRENT_MODEL.model_path(data_dir);
-        let url = CURRENT_MODEL.model_url();
+
+        let path = model.model_path(data_dir);
+        let url = model.model_url().to_string();
 
         let task = tokio::spawn(async move {
             let callback = |progress: DownloadProgress| match progress {

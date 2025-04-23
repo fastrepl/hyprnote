@@ -2,7 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { BrainIcon, CircleCheckIcon, DownloadIcon, MicIcon } from "lucide-react";
 
-import { commands as connectorCommands } from "@hypr/plugin-connector";
+import { commands as connectorCommands, type Connection } from "@hypr/plugin-connector";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -17,9 +17,25 @@ export default function LocalAI() {
     queryFn: () => connectorCommands.getCustomLlmConnection(),
   });
 
-  // const setCustomLLMConnection = useMutation({
-  //   mutationFn: (connection: Connection) => connectorCommands.setCustomLlmConnection(connection),
-  // });
+  const setCustomLLMConnection = useMutation({
+    mutationFn: (connection: Connection) => connectorCommands.setCustomLlmConnection(connection),
+    onError: console.error,
+    onSuccess: () => {
+      customLLMConnection.refetch();
+    },
+  });
+
+  const customLLMEnabled = useQuery({
+    queryKey: ["custom-llm-enabled"],
+    queryFn: () => connectorCommands.getCustomLlmEnabled(),
+  });
+
+  const setCustomLLMEnabled = useMutation({
+    mutationFn: (enabled: boolean) => connectorCommands.setCustomLlmEnabled(enabled),
+    onSuccess: () => {
+      customLLMEnabled.refetch();
+    },
+  });
 
   const currentSTTModel = useQuery({
     queryKey: ["local-stt", "current-model"],
@@ -99,7 +115,13 @@ export default function LocalAI() {
             </div>
           </AccordionTrigger>
           <AccordionContent className="p-2">
-            <RadioGroup value={"model-llama-3-2"} className="space-y-2">
+            <RadioGroup
+              value={customLLMEnabled.data ? "custom" : "llama-3.2-3b-q8"}
+              onValueChange={(value) => {
+                setCustomLLMEnabled.mutate(value === "custom");
+              }}
+              className="space-y-2"
+            >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="llama-3.2-3b-q8" id="model-llama-3-2" />
                 <Label htmlFor="model-llama-3-2" className="flex items-center cursor-pointer">
@@ -117,6 +139,14 @@ export default function LocalAI() {
                   <Input
                     placeholder="Enter custom endpoint URL"
                     value={customLLMConnection.data?.api_base}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setCustomLLMConnection.mutate({
+                        api_base: newValue,
+                        api_key: customLLMConnection.data?.api_key ?? null,
+                      });
+                    }}
+                    disabled={!customLLMEnabled.data}
                   />
                 </div>
               </div>

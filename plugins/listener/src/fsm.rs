@@ -314,10 +314,9 @@ async fn setup_listen_client<R: tauri::Runtime>(
     jargons: Vec<String>,
 ) -> Result<crate::client::ListenClient, crate::Error> {
     let api_base = {
-        use tauri_plugin_connector::ConnectorPluginExt;
-        app.get_api_base(tauri_plugin_connector::ConnectionType::AutoSTT)
-            .await?
-            .ok_or(crate::Error::NoSTTConnection)?
+        use tauri_plugin_connector::{Connection, ConnectorPluginExt};
+        let conn: Connection = app.get_stt_connection().await?.into();
+        conn.api_base
     };
 
     let api_key = {

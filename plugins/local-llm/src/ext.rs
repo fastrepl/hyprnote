@@ -2,8 +2,10 @@ use std::future::Future;
 
 use hypr_file::{download_file_with_callback, DownloadProgress};
 use tauri::{ipc::Channel, Manager, Runtime};
+use tauri_plugin_store2::StorePluginExt;
 
 pub trait LocalLlmPluginExt<R: Runtime> {
+    fn local_llm_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
     fn api_base(&self) -> impl Future<Output = Option<String>>;
     fn is_model_downloading(&self) -> impl Future<Output = bool>;
     fn is_model_downloaded(&self) -> impl Future<Output = Result<bool, crate::Error>>;
@@ -14,6 +16,10 @@ pub trait LocalLlmPluginExt<R: Runtime> {
 }
 
 impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
+    fn local_llm_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey> {
+        self.scoped_store(crate::PLUGIN_NAME).unwrap()
+    }
+
     #[tracing::instrument(skip_all)]
     async fn api_base(&self) -> Option<String> {
         let state = self.state::<crate::SharedState>();

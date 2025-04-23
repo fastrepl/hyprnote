@@ -6,11 +6,15 @@ mod commands;
 mod error;
 mod ext;
 mod manager;
+mod model;
 mod server;
+mod store;
 
 pub use error::*;
 pub use ext::*;
 use manager::ModelManager;
+pub use model::*;
+pub use store::*;
 
 const PLUGIN_NAME: &str = "local-llm";
 

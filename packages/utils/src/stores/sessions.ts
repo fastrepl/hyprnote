@@ -33,7 +33,6 @@ export const createSessionsStore = () => {
 
       const existing = sessions[session.id];
       if (existing) {
-        existing.setState({ session });
         return existing;
       }
 

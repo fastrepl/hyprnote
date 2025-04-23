@@ -41,7 +41,7 @@ type TransformState = {
   finalized: boolean;
 };
 
-export const markdownTransform = <TOOLS extends ToolSet>() => (options: { tools: TOOLS; stopStream: () => void }) => {
+export const markdownTransform = <TOOLS extends ToolSet>() => (_options: { tools: TOOLS; stopStream: () => void }) => {
   const MARKDOWN_PREFIXES = {
     md: "```md",
     markdown: "```markdown",
@@ -50,7 +50,7 @@ export const markdownTransform = <TOOLS extends ToolSet>() => (options: { tools:
   const maxPrefixLength = Math.max(...Object.values(MARKDOWN_PREFIXES).map(p => p.length));
 
   return new TransformStream<TextStreamPart<TOOLS>, TextStreamPart<TOOLS>>({
-    start(controller) {
+    start(_controller) {
       const state = this as unknown as TransformState;
       state.buffer = "";
       state.seenMdPrefix = false;

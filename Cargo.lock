@@ -13246,6 +13246,7 @@ dependencies = [
  "data",
  "db-core",
  "db-user",
+ "futures",
  "futures-util",
  "hound",
  "listener-interface",

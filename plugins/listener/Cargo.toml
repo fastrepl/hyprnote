@@ -46,6 +46,7 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 thiserror = { workspace = true }
 url = { workspace = true }
 
+futures = "0.3"
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 

@@ -458,8 +458,17 @@ impl Session {
             StateEvent::Start(id) => match self.setup_resources(id).await {
                 Ok(_) => Transition(State::running_active()),
                 Err(e) => {
-                    // TODO: emit event
-                    tracing::error!("error: {:?}", e);
+                    let error_message = format!("Failed to start session: {}", e);
+                    let error_event = SessionEvent::Error(crate::SessionEventError {
+                        message: error_message.clone(),
+                    });
+                    // Use block_on for broadcast as this handler isn't inherently async regarding the broadcast itself
+                    // and we want to ensure it sends before proceeding.
+                    let _ = futures::executor::block_on(Session::broadcast(
+                        &self.channels,
+                        error_event,
+                    ));
+                    tracing::error!("Failed to setup resources: {:?}", e);
                     Transition(State::inactive())
                 }
             },

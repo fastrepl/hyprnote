@@ -636,7 +636,7 @@ msgstr "Loading..."
 #~ msgid "Local Language Model"
 #~ msgstr "Local Language Model"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:58
+#: src/components/left-sidebar/top-area/settings-button.tsx:68
 msgid "Local mode"
 msgstr "Local mode"
 
@@ -685,7 +685,7 @@ msgstr "Monthly"
 msgid "Much better AI performance"
 msgstr "Much better AI performance"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:79
+#: src/components/left-sidebar/top-area/settings-button.tsx:89
 msgid "My Profile"
 msgstr "My Profile"
 
@@ -923,7 +923,7 @@ msgstr "Select Calendars"
 msgid "Send invite"
 msgstr "Send invite"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:72
+#: src/components/left-sidebar/top-area/settings-button.tsx:82
 msgid "Settings"
 msgstr "Settings"
 

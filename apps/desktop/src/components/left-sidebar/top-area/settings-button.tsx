@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { getVersion } from "@tauri-apps/api/app";
+import { getName, getVersion } from "@tauri-apps/api/app";
 import { CogIcon, CpuIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -20,15 +20,13 @@ export function SettingsButton() {
   const [open, setOpen] = useState(false);
   const { userId } = useHypr();
 
-  const { data: version, error } = useQuery({
+  const versionQuery = useQuery({
     queryKey: ["appVersion"],
-    queryFn: getVersion,
+    queryFn: async () => {
+      const [version, name] = await Promise.all([getVersion(), getName()]);
+      return `${name} ${version}`;
+    },
   });
-
-  // Handle potential error during version fetching
-  if (error) {
-    console.error("Failed to fetch app version:", error);
-  }
 
   const handleClickSettings = () => {
     setOpen(false);
@@ -90,8 +88,8 @@ export function SettingsButton() {
           >
             <Trans>My Profile</Trans>
           </DropdownMenuItem>
-          <DropdownMenuItem disabled className="text-xs text-muted-foreground focus:bg-transparent">
-            {version ? `Version ${version}` : "Loading version..."}
+          <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+            {versionQuery.data ?? "..."}
           </DropdownMenuItem>
         </div>
       </DropdownMenuContent>

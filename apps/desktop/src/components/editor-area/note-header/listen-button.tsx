@@ -19,6 +19,7 @@ import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import ShinyButton from "./shiny-button";
 
 export default function ListenButton({ sessionId }: { sessionId: string }) {
+  const { onboardingSessionId } = useHypr();
   const modelDownloaded = useQuery({
     queryKey: ["check-stt-model-downloaded"],
     refetchInterval: 1000,
@@ -99,7 +100,7 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
 
   if (ongoingSessionStatus === "inactive") {
     if (!meetingEnded) {
-      if (sessionId === useHypr().onboardingSessionId) {
+      if (sessionId === onboardingSessionId) {
         return (
           <WhenInactiveAndMeetingNotEndedOnboarding
             disabled={!modelDownloaded.data}
@@ -115,7 +116,7 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
         );
       }
     } else {
-      if (sessionId === useHypr().onboardingSessionId) {
+      if (sessionId === onboardingSessionId) {
         return (
           <WhenInactiveAndMeetingEndedOnboarding
             disabled={!modelDownloaded.data || isEnhancePending}

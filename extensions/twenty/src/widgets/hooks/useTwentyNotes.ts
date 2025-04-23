@@ -1,11 +1,11 @@
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { type QueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { ops as twenty, type Person } from "../../client";
 
-export const useTwentyNotes = (sessionId: string) => {
+export const useTwentyNotes = (sessionId: string, queryClient: QueryClient) => {
   const searchRef = useRef<HTMLDivElement>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,7 +25,7 @@ export const useTwentyNotes = (sessionId: string) => {
     queryKey: ["people", searchQuery],
     queryFn: () => twenty.findManyPeople(searchQuery),
     staleTime: 5000,
-  });
+  }, queryClient);
 
   const createNoteMutation = useMutation({
     mutationFn: async () => {
@@ -49,7 +49,7 @@ export const useTwentyNotes = (sessionId: string) => {
     onSuccess: () => {
       setSelectedPeople([]);
     },
-  });
+  }, queryClient);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

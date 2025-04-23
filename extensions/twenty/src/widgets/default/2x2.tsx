@@ -1,5 +1,6 @@
 import { WidgetHeader, type WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
 import { useSessions } from "@hypr/utils/contexts";
+import { type QueryClient } from "@tanstack/react-query";
 
 import { safeNavigate } from "@hypr/utils/navigation";
 import { CreateNoteButton } from "../components/create-note-button";
@@ -36,12 +37,20 @@ const Twenty2x2: WidgetTwoByTwo = ({ queryClient }) => {
         />
       </div>
 
-      <WidgetBody sessionId={sessionId} />
+      {queryClient
+        ? <WidgetBody sessionId={sessionId} queryClient={queryClient} />
+        : (
+          <div className="flex items-center justify-center h-full p-4">
+            <div className="text-center text-red-500">
+              <p>Widget Configuration Error</p>
+            </div>
+          </div>
+        )}
     </WidgetTwoByTwoWrapper>
   );
 };
 
-function WidgetBody({ sessionId }: { sessionId: string | null }) {
+function WidgetBody({ sessionId, queryClient }: { sessionId: string | null; queryClient: QueryClient }) {
   if (!sessionId) {
     return (
       <div className="flex items-center justify-center h-full p-4">
@@ -68,7 +77,7 @@ function WidgetBody({ sessionId }: { sessionId: string | null }) {
     handleRemovePerson,
     handleCreateNote,
     setShowSearchResults,
-  } = useTwentyNotes(sessionId);
+  } = useTwentyNotes(sessionId, queryClient);
 
   return (
     <div className="overflow-y-auto flex-1 p-4 pt-0 gap-2 flex flex-col">

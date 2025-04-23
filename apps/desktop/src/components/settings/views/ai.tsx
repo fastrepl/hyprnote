@@ -1,15 +1,34 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { BrainIcon, CircleCheckIcon, DownloadIcon, MicIcon } from "lucide-react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { commands as connectorCommands, type Connection } from "@hypr/plugin-connector";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Label } from "@hypr/ui/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
 import { showSttModelDownloadToast } from "../../toast/shared";
+
+const endpointSchema = z.object({
+  api_base: z.string().url({ message: "Please enter a valid URL" }).min(1, { message: "URL is required" }).refine(
+    (value) => !value.includes("192"),
+    { message: "Should use 'localhost' or '127.0.0.1' as the host" },
+  ).refine(
+    (value) => ["openai.", "openrouter.ai", "localhost", "127.0.0.1"].some((host) => value.includes(host)),
+    { message: "Only one of 'openai', 'openrouter' and 'localhost' are allowed" },
+  ).refine(
+    (value) => value.endsWith("/v1"),
+    { message: "Should end with '/v1'" },
+  ),
+});
+type FormValues = z.infer<typeof endpointSchema>;
 
 export default function LocalAI() {
   const customLLMConnection = useQuery({
@@ -36,6 +55,27 @@ export default function LocalAI() {
       customLLMEnabled.refetch();
     },
   });
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(endpointSchema),
+    values: {
+      api_base: customLLMConnection.data?.api_base || "",
+    },
+    mode: "onChange",
+  });
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (!form.formState.errors.api_base && value.api_base) {
+        setCustomLLMConnection.mutate({
+          api_base: value.api_base,
+          api_key: customLLMConnection.data?.api_key ?? null,
+        });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const currentSTTModel = useQuery({
     queryKey: ["local-stt", "current-model"],
@@ -136,18 +176,30 @@ export default function LocalAI() {
                   </Label>
                 </div>
                 <div className="pl-6">
-                  <Input
-                    placeholder="Enter custom endpoint URL"
-                    value={customLLMConnection.data?.api_base}
-                    onChange={(e) => {
-                      const newValue = e.target.value;
-                      setCustomLLMConnection.mutate({
-                        api_base: newValue,
-                        api_key: customLLMConnection.data?.api_key ?? null,
-                      });
-                    }}
-                    disabled={!customLLMEnabled.data}
-                  />
+                  <Form {...form}>
+                    <form className="space-y-2">
+                      <FormField
+                        control={form.control}
+                        name="api_base"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormDescription>
+                              <Trans>Enter the URL for your custom LLM endpoint</Trans>
+                            </FormDescription>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="http://127.0.0.1:9999/v1"
+                                disabled={!customLLMEnabled.data}
+                                className="focus-visible:ring-0 focus-visible:ring-offset-0"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </form>
+                  </Form>
                 </div>
               </div>
             </RadioGroup>

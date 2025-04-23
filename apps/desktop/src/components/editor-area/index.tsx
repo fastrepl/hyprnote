@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands } from "@hypr/plugin-template";
@@ -13,7 +14,7 @@ import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { cn } from "@hypr/ui/lib/utils";
-import { modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
+import { markdownTransform, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
@@ -160,6 +161,8 @@ export function useEnhanceMutation({
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async () => {
+      const { type } = await connectorCommands.getLlmConnection();
+
       const config = await dbCommands.getConfig();
       const participants = await dbCommands.sessionListParticipants(sessionId);
       const onboardingOutputExample = await dbCommands.onboardingSessionEnhancedMemoMd();
@@ -171,12 +174,13 @@ export function useEnhanceMutation({
 
       const systemMessage = await templateCommands.render(
         "enhance.system",
-        { config },
+        { config, type },
       );
 
       const userMessage = await templateCommands.render(
         "enhance.user",
         {
+          type,
           editor: rawContent,
           timeline,
           participants,
@@ -194,6 +198,7 @@ export function useEnhanceMutation({
           { role: "user", content: userMessage },
         ],
         experimental_transform: [
+          markdownTransform(),
           smoothStream({ delayInMs: 80, chunking: "line" }),
         ],
       });

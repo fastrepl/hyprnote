@@ -55,6 +55,8 @@
         { "url": "http://127.0.0.1:*" },
         { "url": "https://app.hyprnote.com/*" },
         { "url": "https://api.twenty.com/*" },
+        { "url": "https://api.openai.com/*" },
+        { "url": "https://openrouter.ai/*" },
         { "url": "https://us.i.posthog.com/*" }
       ]
     }

@@ -483,14 +483,14 @@ impl Session {
         #[cfg(debug_assertions)]
         tracing::info!("transitioned from `{:?}` to `{:?}`", source, target);
 
+        match target {
+            State::RunningActive {} => StatusEvent::RunningActive.emit(&self.app).unwrap(),
+            State::RunningPaused {} => StatusEvent::RunningPaused.emit(&self.app).unwrap(),
+            State::Inactive {} => StatusEvent::Inactive.emit(&self.app).unwrap(),
+        }
+
         if let Some(tx) = &self.session_state_tx {
             let _ = tx.send(target.clone());
-
-            match target {
-                State::RunningActive {} => StatusEvent::RunningActive.emit(&self.app).unwrap(),
-                State::RunningPaused {} => StatusEvent::RunningPaused.emit(&self.app).unwrap(),
-                State::Inactive {} => StatusEvent::Inactive.emit(&self.app).unwrap(),
-            }
         }
     }
 }

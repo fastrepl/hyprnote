@@ -247,8 +247,6 @@ export function useAutoEnhance({
       session_id: sessionId,
     });
 
-    console.log(prevOngoingSessionStatus, ongoingSessionStatus, enhanceStatus);
-
     if (
       prevOngoingSessionStatus === "running_active"
       && ongoingSessionStatus === "inactive"

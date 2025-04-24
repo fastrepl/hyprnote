@@ -16,6 +16,7 @@ import { extractHashtags } from "@hypr/tiptap/shared";
 import { cn } from "@hypr/ui/lib/utils";
 import { markdownTransform, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
+import { noLlmConnectionToast } from "../toast/shared";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 
@@ -191,8 +192,9 @@ export function useEnhanceMutation({
       );
 
       const provider = await modelProvider();
+
       const { text, textStream } = streamText({
-        model: provider.languageModel("any"),
+        model: provider?.languageModel("any"),
         messages: [
           { role: "system", content: systemMessage },
           { role: "user", content: userMessage },
@@ -224,6 +226,7 @@ export function useEnhanceMutation({
       persistSession();
     },
     onError: (error) => {
+      noLlmConnectionToast();
       console.error(error);
     },
   });

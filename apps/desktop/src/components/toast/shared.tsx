@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { Button } from "@hypr/ui/components/ui/button";
 import { Progress } from "@hypr/ui/components/ui/progress";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 
@@ -90,4 +92,27 @@ export function showLlmModelDownloadToast() {
       dismissible: false,
     },
   );
+}
+
+export function noLlmConnectionToast() {
+  const id = "no-llm-connection";
+
+  const handleClick = () => {
+    windowsCommands.windowShow({ type: "settings" });
+    sonnerToast.dismiss(id);
+  };
+
+  toast({
+    id,
+    title: "Not ready to run language model",
+    content: (
+      <div className="space-y-1">
+        <div>Go to AI settings to check the status.</div>
+        <Button variant="default" onClick={handleClick}>
+          Open Settings
+        </Button>
+      </div>
+    ),
+    dismissible: true,
+  });
 }

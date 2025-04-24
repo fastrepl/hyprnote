@@ -10,7 +10,6 @@ hypr-data = { workspace = true }
 [dependencies]
 kalosm-sound = { workspace = true, default-features = false }
 rodio = { workspace = true, features = ["wav"] }
-silero = { git = "https://github.com/emotechlab/silero-rs", rev = "99dc5ea" }
 
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

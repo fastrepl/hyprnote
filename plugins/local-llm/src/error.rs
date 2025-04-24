@@ -14,6 +14,8 @@ pub enum Error {
     IoError(#[from] std::io::Error),
     #[error(transparent)]
     StoreError(#[from] tauri_plugin_store2::Error),
+    #[error("Model not downloaded")]
+    ModelNotDownloaded,
 }
 
 impl Serialize for Error {

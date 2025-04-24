@@ -38,6 +38,11 @@ export function FloatingButton({
     if (showRaw) {
       setShowRaw(false);
       setShowRefreshIcon(false);
+      return;
+    }
+
+    if (isEnhancePending) {
+      // cancel
     } else {
       handleEnhance();
     }
@@ -76,7 +81,6 @@ export function FloatingButton({
       </button>
 
       <button
-        disabled={isEnhancePending}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleEnhanceOrReset}

@@ -191,10 +191,13 @@ export function useEnhanceMutation({
         },
       );
 
+      const abortController = new AbortController();
+
       const provider = await modelProvider();
 
       const { text, textStream } = streamText({
-        model: provider?.languageModel("any"),
+        abortSignal: abortController.signal,
+        model: provider.languageModel("any"),
         messages: [
           { role: "system", content: systemMessage },
           { role: "user", content: userMessage },

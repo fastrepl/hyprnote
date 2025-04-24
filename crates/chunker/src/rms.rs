@@ -9,24 +9,24 @@ use kalosm_sound::AsyncSource;
 use rodio::buffer::SamplesBuffer;
 
 #[allow(dead_code)]
-trait FixedChunkExt: AsyncSource {
-    fn fixed_chunks(self, chunk_duration: Duration) -> FixedChunkStream<Self>
+trait RmsChunkExt: AsyncSource {
+    fn rms_chunks(self, chunk_duration: Duration) -> RmsChunkStream<Self>
     where
         Self: Sized + Unpin,
     {
-        FixedChunkStream::new(self, chunk_duration)
+        RmsChunkStream::new(self, chunk_duration)
     }
 }
 
-impl<S: AsyncSource> FixedChunkExt for S {}
+impl<S: AsyncSource> RmsChunkExt for S {}
 
-pub struct FixedChunkStream<S: AsyncSource + Unpin> {
+pub struct RmsChunkStream<S: AsyncSource + Unpin> {
     source: S,
     buffer: Vec<f32>,
     max_duration: Duration,
 }
 
-impl<S: AsyncSource + Unpin> FixedChunkStream<S> {
+impl<S: AsyncSource + Unpin> RmsChunkStream<S> {
     pub fn new(source: S, max_duration: Duration) -> Self {
         Self {
             source,
@@ -44,7 +44,7 @@ impl<S: AsyncSource + Unpin> FixedChunkStream<S> {
     }
 }
 
-impl<S: AsyncSource + Unpin> Stream for FixedChunkStream<S> {
+impl<S: AsyncSource + Unpin> Stream for RmsChunkStream<S> {
     type Item = SamplesBuffer<f32>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {

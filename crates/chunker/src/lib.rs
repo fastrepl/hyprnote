@@ -1,16 +1,16 @@
-mod fixed;
+mod rms;
 
-pub use fixed::*;
+pub use rms::*;
 
 use kalosm_sound::AsyncSource;
 use std::time::Duration;
 
 pub trait ChunkerExt: AsyncSource + Sized {
-    fn fixed_chunks(self, chunk_duration: Duration) -> FixedChunkStream<Self>
+    fn rms_chunks(self, chunk_duration: Duration) -> RmsChunkStream<Self>
     where
         Self: Unpin,
     {
-        FixedChunkStream::new(self, chunk_duration)
+        RmsChunkStream::new(self, chunk_duration)
     }
 }
 
@@ -35,7 +35,7 @@ mod tests {
             sample_format: hound::SampleFormat::Float,
         };
 
-        let mut stream = audio_source.fixed_chunks(Duration::from_secs(12));
+        let mut stream = audio_source.rms_chunks(Duration::from_secs(12));
         let mut i = 0;
         while let Some(chunk) = stream.next().await {
             let file = std::fs::File::create(format!("chunk_{}.wav", i)).unwrap();

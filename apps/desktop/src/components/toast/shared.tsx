@@ -94,7 +94,7 @@ export function showLlmModelDownloadToast() {
   );
 }
 
-export function noLlmConnectionToast() {
+export function enhanceFailedToast() {
   const id = "no-llm-connection";
 
   const handleClick = () => {
@@ -104,7 +104,7 @@ export function noLlmConnectionToast() {
 
   toast({
     id,
-    title: "Not ready to run language model",
+    title: "Failed to enhance meeting notes",
     content: (
       <div className="space-y-1">
         <div>Go to AI settings to check the status.</div>

@@ -15,10 +15,13 @@ type State = {
   loading: boolean;
   status: ListenerState;
   amplitude: { mic: number; speaker: number };
+  enhanceController: AbortController | null;
 };
 
 type Actions = {
   get: () => State & Actions;
+  cancelEnhance: () => void;
+  setEnhanceController: (controller: AbortController | null) => void;
   setStatus: (status: ListenerState) => void;
   start: (sessionId: string) => void;
   stop: () => void;
@@ -32,12 +35,26 @@ const initialState: State = {
   loading: false,
   channel: null,
   amplitude: { mic: 0, speaker: 0 },
+  enhanceController: null,
 };
 
 export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof createSessionsStore>) => {
   return createStore<State & Actions>((set, get) => ({
     ...initialState,
     get: () => get(),
+    cancelEnhance: () => {
+      const { enhanceController } = get();
+      if (enhanceController) {
+        enhanceController.abort();
+      }
+    },
+    setEnhanceController: (controller: AbortController | null) => {
+      set((state) =>
+        mutate(state, (draft) => {
+          draft.enhanceController = controller;
+        })
+      );
+    },
     setStatus: (status: ListenerState) => {
       set((state) =>
         mutate(state, (draft) => {

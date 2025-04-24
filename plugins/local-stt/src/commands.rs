@@ -20,7 +20,7 @@ pub async fn is_model_downloaded<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     model: crate::SupportedModel,
 ) -> Result<bool, String> {
-    app.is_model_downloaded(model)
+    app.is_model_downloaded(&model)
         .await
         .map_err(|e| e.to_string())
 }
@@ -31,7 +31,7 @@ pub async fn is_model_downloading<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     model: crate::SupportedModel,
 ) -> Result<bool, String> {
-    Ok(app.is_model_downloading(model).await)
+    Ok(app.is_model_downloading(&model).await)
 }
 
 #[tauri::command]

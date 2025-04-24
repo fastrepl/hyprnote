@@ -20,10 +20,10 @@ pub trait LocalSttPluginExt<R: Runtime> {
         channel: Channel<u8>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
 
-    fn is_model_downloading(&self, model: crate::SupportedModel) -> impl Future<Output = bool>;
+    fn is_model_downloading(&self, model: &crate::SupportedModel) -> impl Future<Output = bool>;
     fn is_model_downloaded(
         &self,
-        model: crate::SupportedModel,
+        model: &crate::SupportedModel,
     ) -> impl Future<Output = Result<bool, crate::Error>>;
 }
 
@@ -43,7 +43,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn is_model_downloaded(
         &self,
-        model: crate::SupportedModel,
+        model: &crate::SupportedModel,
     ) -> Result<bool, crate::Error> {
         let data_dir = self.path().app_data_dir()?;
 
@@ -73,6 +73,10 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     async fn start_server(&self) -> Result<String, crate::Error> {
         let cache_dir = self.path().app_data_dir()?;
         let model = self.get_current_model()?;
+
+        if !self.is_model_downloaded(&model).await? {
+            return Err(crate::Error::ModelNotDownloaded);
+        }
 
         let server_state = crate::ServerStateBuilder::default()
             .model_cache_dir(cache_dir)
@@ -147,12 +151,12 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn is_model_downloading(&self, model: crate::SupportedModel) -> bool {
+    async fn is_model_downloading(&self, model: &crate::SupportedModel) -> bool {
         let state = self.state::<crate::SharedState>();
 
         {
             let guard = state.lock().await;
-            guard.download_task.contains_key(&model)
+            guard.download_task.contains_key(model)
         }
     }
 

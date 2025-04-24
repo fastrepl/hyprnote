@@ -9,7 +9,13 @@ pub enum Error {
     #[error(transparent)]
     LocalSttError(#[from] tauri_plugin_local_stt::Error),
     #[error(transparent)]
-    Store(#[from] tauri_plugin_store2::Error),
+    StoreError(#[from] tauri_plugin_store2::Error),
+    #[error(transparent)]
+    ReqwestError(#[from] reqwest::Error),
+    #[error(transparent)]
+    UrlParseError(#[from] url::ParseError),
+    #[error("no models found")]
+    NoModelsFound,
 }
 
 impl Serialize for Error {

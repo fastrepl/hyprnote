@@ -2,10 +2,12 @@ mod commands;
 mod error;
 mod ext;
 mod store;
+mod types;
 
 pub use error::*;
 pub use ext::*;
 pub use store::*;
+pub use types::*;
 
 const PLUGIN_NAME: &str = "connector";
 

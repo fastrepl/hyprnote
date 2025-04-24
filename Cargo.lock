@@ -13038,6 +13038,7 @@ name = "tauri-plugin-connector"
 version = "0.1.0"
 dependencies = [
  "pinger",
+ "reqwest 0.12.15",
  "serde",
  "serde_json",
  "specta",
@@ -13052,6 +13053,7 @@ dependencies = [
  "tauri-specta",
  "thiserror 2.0.12",
  "tracing",
+ "url",
 ]
 
 [[package]]

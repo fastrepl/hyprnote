@@ -1,47 +1,7 @@
 use std::future::Future;
 
-use crate::StoreKey;
+use crate::{Connection, ConnectionLLM, ConnectionSTT, StoreKey};
 use tauri_plugin_store2::StorePluginExt;
-
-#[derive(Debug, serde::Deserialize, serde::Serialize, specta::Type)]
-pub struct Connection {
-    pub api_base: String,
-    pub api_key: Option<String>,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize, specta::Type)]
-#[serde(tag = "type", content = "connection")]
-pub enum ConnectionLLM {
-    HyprCloud(Connection),
-    HyprLocal(Connection),
-    Custom(Connection),
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize, specta::Type)]
-#[serde(tag = "type", content = "connection")]
-pub enum ConnectionSTT {
-    HyprCloud(Connection),
-    HyprLocal(Connection),
-}
-
-impl From<ConnectionLLM> for Connection {
-    fn from(value: ConnectionLLM) -> Self {
-        match value {
-            ConnectionLLM::HyprCloud(conn) => conn,
-            ConnectionLLM::HyprLocal(conn) => conn,
-            ConnectionLLM::Custom(conn) => conn,
-        }
-    }
-}
-
-impl From<ConnectionSTT> for Connection {
-    fn from(value: ConnectionSTT) -> Self {
-        match value {
-            ConnectionSTT::HyprCloud(conn) => conn,
-            ConnectionSTT::HyprLocal(conn) => conn,
-        }
-    }
-}
 
 pub trait ConnectorPluginExt<R: tauri::Runtime> {
     fn connector_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
@@ -93,6 +53,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
     }
 
     async fn get_llm_connection(&self) -> Result<ConnectionLLM, crate::Error> {
+        let store = self.connector_store();
+        let custom_enabled = self.get_custom_llm_enabled()?;
+
         {
             use tauri_plugin_auth::{AuthPluginExt, StoreKey, VaultKey};
 
@@ -113,25 +76,21 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
             }
         }
 
-        {
-            let store = self.connector_store();
-
-            let enabled = self.get_custom_llm_enabled()?;
+        if custom_enabled {
             let api_base = store
                 .get::<Option<String>>(StoreKey::CustomApiBase)?
-                .flatten();
+                .flatten()
+                .unwrap();
             let api_key = store
                 .get::<Option<String>>(StoreKey::CustomApiKey)?
                 .flatten();
 
-            if enabled {
-                if let Some(api_base) = api_base {
-                    return Ok(ConnectionLLM::Custom(Connection { api_base, api_key }));
-                }
+            let conn = ConnectionLLM::Custom(Connection { api_base, api_key });
+            match conn.models().await {
+                Ok(models) if !models.is_empty() => Ok(conn),
+                _ => Err(crate::Error::NoModelsFound),
             }
-        }
-
-        {
+        } else {
             use tauri_plugin_local_llm::{LocalLlmPluginExt, SharedState};
 
             let api_base = if self.is_server_running().await {
@@ -205,4 +164,31 @@ async fn is_online() -> bool {
     }
 
     false
+}
+
+trait OpenaiCompatible {
+    fn models(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
+}
+
+impl OpenaiCompatible for ConnectionLLM {
+    async fn models(&self) -> Result<Vec<String>, crate::Error> {
+        let conn = self.as_ref();
+        let api_base = &conn.api_base;
+
+        let mut url = url::Url::parse(api_base)?;
+        url.set_path("/v1/models");
+
+        let res: serde_json::Value = reqwest::get(url.to_string()).await?.json().await?;
+        let data = res["data"].as_array();
+
+        let models = match data {
+            None => vec![],
+            Some(models) => models
+                .iter()
+                .map(|v| v["id"].as_str().unwrap().to_string())
+                .collect(),
+        };
+
+        Ok(models)
+    }
 }

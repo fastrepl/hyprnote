@@ -5,7 +5,7 @@ mod store;
 
 pub use error::{Error, Result};
 pub use ext::*;
-use store::*;
+pub use store::*;
 
 const PLUGIN_NAME: &str = "flags";
 

@@ -19,6 +19,7 @@ tauri-plugin-local-llm = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
+tauri-plugin-flags = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 

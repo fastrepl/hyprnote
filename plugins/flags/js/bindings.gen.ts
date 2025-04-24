@@ -28,7 +28,7 @@ async disable(flag: StoreKey) : Promise<null> {
 
 /** user-defined types **/
 
-export type StoreKey = "ChatRightPanel"
+export type StoreKey = "ChatRightPanel" | "CloudPreview"
 
 /** tauri-specta globals **/
 

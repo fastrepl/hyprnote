@@ -13047,6 +13047,7 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-plugin-auth",
+ "tauri-plugin-flags",
  "tauri-plugin-local-llm",
  "tauri-plugin-local-stt",
  "tauri-plugin-store2",

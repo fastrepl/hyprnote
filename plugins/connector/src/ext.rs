@@ -53,8 +53,19 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
     }
 
     async fn get_llm_connection(&self) -> Result<ConnectionLLM, crate::Error> {
-        let store = self.connector_store();
-        let custom_enabled = self.get_custom_llm_enabled()?;
+        {
+            use tauri_plugin_flags::{FlagsPluginExt, StoreKey as FlagsStoreKey};
+
+            if self
+                .is_enabled(FlagsStoreKey::CloudPreview)
+                .unwrap_or(false)
+            {
+                return Ok(ConnectionLLM::HyprCloud(Connection {
+                    api_base: "https://app.hyprnote.com".to_string(),
+                    api_key: None,
+                }));
+            }
+        }
 
         {
             use tauri_plugin_auth::{AuthPluginExt, StoreKey, VaultKey};
@@ -75,6 +86,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
                 return Ok(ConnectionLLM::HyprCloud(Connection { api_base, api_key }));
             }
         }
+
+        let store = self.connector_store();
+        let custom_enabled = self.get_custom_llm_enabled()?;
 
         if custom_enabled {
             let api_base = store
@@ -109,6 +123,20 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
     }
 
     async fn get_stt_connection(&self) -> Result<ConnectionSTT, crate::Error> {
+        {
+            use tauri_plugin_flags::{FlagsPluginExt, StoreKey as FlagsStoreKey};
+
+            if self
+                .is_enabled(FlagsStoreKey::CloudPreview)
+                .unwrap_or(false)
+            {
+                return Ok(ConnectionSTT::HyprCloud(Connection {
+                    api_base: "https://app.hyprnote.com".to_string(),
+                    api_key: None,
+                }));
+            }
+        }
+
         {
             use tauri_plugin_auth::{AuthPluginExt, StoreKey, VaultKey};
 

@@ -1,5 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { CloudDrizzleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { commands as flagsCommands } from "@hypr/plugin-flags";
@@ -10,18 +11,53 @@ export default function Lab() {
     <div>
       <div className="space-y-4">
         <ChatPanel />
+        <CloudPreview />
       </div>
     </div>
   );
 }
 
+function CloudPreview() {
+  const flagQuery = useQuery({
+    queryKey: ["flags", "CloudPreview"],
+    queryFn: () => flagsCommands.isEnabled("CloudPreview"),
+  });
+
+  const flagMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      if (enabled) {
+        flagsCommands.enable("CloudPreview");
+      } else {
+        flagsCommands.disable("CloudPreview");
+      }
+    },
+    onSuccess: () => {
+      flagQuery.refetch();
+    },
+  });
+
+  const handleToggle = (enabled: boolean) => {
+    flagMutation.mutate(enabled);
+  };
+
+  return (
+    <FeatureFlag
+      title="Hyprnote Cloud"
+      description="Access to the latest AI model for Hyprnote Pro"
+      icon={<CloudDrizzleIcon />}
+      enabled={flagQuery.data ?? false}
+      onToggle={handleToggle}
+    />
+  );
+}
+
 function ChatPanel() {
-  const noteChatQuery = useQuery({
+  const flagQuery = useQuery({
     queryKey: ["flags", "ChatRightPanel"],
     queryFn: () => flagsCommands.isEnabled("ChatRightPanel"),
   });
 
-  const noteChatMutation = useMutation({
+  const flagMutation = useMutation({
     mutationFn: async (enabled: boolean) => {
       if (enabled) {
         flagsCommands.enable("ChatRightPanel");
@@ -30,12 +66,12 @@ function ChatPanel() {
       }
     },
     onSuccess: () => {
-      noteChatQuery.refetch();
+      flagQuery.refetch();
     },
   });
 
-  const handleToggleNoteChat = (enabled: boolean) => {
-    noteChatMutation.mutate(enabled);
+  const handleToggle = (enabled: boolean) => {
+    flagMutation.mutate(enabled);
   };
 
   return (
@@ -43,8 +79,8 @@ function ChatPanel() {
       title="Hyprnote Assistant"
       description="Ask our AI assistant about past notes and upcoming events"
       icon={<ChatLogo />}
-      enabled={noteChatQuery.data ?? false}
-      onToggle={handleToggleNoteChat}
+      enabled={flagQuery.data ?? false}
+      onToggle={handleToggle}
     />
   );
 }

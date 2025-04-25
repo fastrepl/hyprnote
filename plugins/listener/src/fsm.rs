@@ -67,6 +67,12 @@ impl Session {
         let session_id = id.into();
         self.session_id = Some(session_id.clone());
 
+        let config = self.app.db_get_config(&user_id).await?;
+        let language = match config {
+            Some(config) => config.general.display_language,
+            None => codes_iso_639::part_1::LanguageCode::En,
+        };
+
         let mut session = {
             self.app
                 .db_get_session(&session_id)
@@ -90,7 +96,7 @@ impl Session {
         self.speaker_muted_rx = Some(speaker_muted_rx_main.clone());
         self.session_state_tx = Some(session_state_tx);
 
-        let listen_client = setup_listen_client(&self.app, jargons).await?;
+        let listen_client = setup_listen_client(&self.app, language, jargons).await?;
 
         let mic_sample_stream = {
             let mut input = hypr_audio::AudioInput::from_mic();
@@ -311,6 +317,7 @@ impl Session {
 
 async fn setup_listen_client<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
+    language: codes_iso_639::part_1::LanguageCode,
     jargons: Vec<String>,
 ) -> Result<crate::client::ListenClient, crate::Error> {
     let api_base = {
@@ -332,7 +339,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
         .api_base(api_base)
         .api_key(api_key)
         .params(hypr_listener_interface::ListenParams {
-            language: codes_iso_639::part_1::LanguageCode::En,
+            language,
             static_prompt: jargons.join(", "),
             ..Default::default()
         })

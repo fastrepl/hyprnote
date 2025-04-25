@@ -8,6 +8,7 @@ use whisper_rs::{
 #[derive(Default)]
 pub struct WhisperBuilder {
     model_path: Option<String>,
+    language: Option<String>,
     static_prompt: Option<String>,
     dynamic_prompt: Option<String>,
 }
@@ -15,6 +16,11 @@ pub struct WhisperBuilder {
 impl WhisperBuilder {
     pub fn model_path(mut self, model_path: impl Into<String>) -> Self {
         self.model_path = Some(model_path.into());
+        self
+    }
+
+    pub fn language(mut self, language: impl Into<String>) -> Self {
+        self.language = Some(language.into());
         self
     }
 
@@ -43,7 +49,10 @@ impl WhisperBuilder {
         let state = ctx.create_state().unwrap();
         let eot = ctx.token_eot();
 
+        let language = self.language.unwrap_or("en".to_string());
+
         Whisper {
+            language,
             static_prompt: self.static_prompt.unwrap_or_default(),
             dynamic_prompt: self.dynamic_prompt.unwrap_or_default(),
             state,
@@ -63,6 +72,7 @@ impl WhisperBuilder {
 }
 
 pub struct Whisper {
+    language: String,
     static_prompt: String,
     dynamic_prompt: String,
     state: WhisperState,
@@ -74,11 +84,16 @@ impl Whisper {
         WhisperBuilder::default()
     }
 
+    pub fn language(&mut self, language: impl Into<String>) -> &mut Self {
+        self.language = language.into();
+        self
+    }
+
     pub fn transcribe(&mut self, audio: &[f32]) -> Result<Vec<Segment>, super::Error> {
         let params = {
             let mut p = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
             p.set_translate(false);
-            p.set_language(Some("en"));
+            p.set_language(Some(self.language.as_str()));
 
             let parts = [self.static_prompt.trim(), self.dynamic_prompt.trim()];
             let joined = parts.join("\n");

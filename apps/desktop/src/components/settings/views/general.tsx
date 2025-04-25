@@ -18,10 +18,11 @@ import {
   FormMessage,
 } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
-const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = ["en"];
+const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = ["en", "de", "ru", "zh", "fr", "es", "ko", "ja"];
 
 const schema = z.object({
   autostart: z.boolean().optional(),
@@ -46,13 +47,24 @@ export default function General() {
 
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
-    values: {
-      autostart: config.data?.general.autostart ?? false,
-      displayLanguage: config.data?.general.display_language ?? "en",
-      telemetryConsent: config.data?.general.telemetry_consent ?? true,
-      jargons: (config.data?.general.jargons ?? []).join(", "),
+    defaultValues: {
+      autostart: false,
+      displayLanguage: "en",
+      telemetryConsent: true,
+      jargons: "",
     },
   });
+
+  useEffect(() => {
+    if (config.data) {
+      form.reset({
+        autostart: config.data.general.autostart ?? false,
+        displayLanguage: config.data.general.display_language ?? "en",
+        telemetryConsent: config.data.general.telemetry_consent ?? true,
+        jargons: (config.data.general.jargons ?? []).join(", "),
+      });
+    }
+  }, [config.data, form]);
 
   const mutation = useMutation({
     mutationFn: async (v: Schema) => {
@@ -62,7 +74,7 @@ export default function General() {
       }
 
       const nextGeneral: ConfigGeneral = {
-        autostart: v.autostart ?? true,
+        autostart: v.autostart ?? false,
         display_language: v.displayLanguage,
         telemetry_consent: v.telemetryConsent ?? true,
         jargons: v.jargons.split(",").map((jargon) => jargon.trim()).filter(Boolean),
@@ -93,41 +105,12 @@ export default function General() {
     });
 
     return () => subscription.unsubscribe();
-  }, [mutation]);
+  }, [form, mutation]);
 
   return (
     <div>
       <Form {...form}>
         <form className="space-y-6">
-          {
-            /* <FormField
-            control={form.control}
-            name="autostart"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div>
-                  <FormLabel>
-                    <Trans>Open Hyprnote on startup</Trans>
-                  </FormLabel>
-                  <FormDescription>
-                    <Trans>
-                      Hyprnote will be opened automatically when you start your computer
-                    </Trans>
-                  </FormDescription>
-                </div>
-
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    color="gray"
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          /> */
-          }
-
           <FormField
             control={form.control}
             name="telemetryConsent"
@@ -157,6 +140,39 @@ export default function General() {
 
           <FormField
             control={form.control}
+            name="displayLanguage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <Trans>Language</Trans>
+                </FormLabel>
+                <FormDescription>
+                  <Trans>Choose the language you want to use for the application interface</Trans>
+                </FormDescription>
+                <FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUPPORTED_LANGUAGES.map((lang) => (
+                        <SelectItem key={lang} value={lang}>
+                          {LANGUAGES_ISO_639_1[lang].name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="jargons"
             render={({ field }) => (
               <FormItem>
@@ -177,7 +193,6 @@ export default function General() {
                     placeholder={t({
                       id: "Type jargons (e.g., Blitz Meeting, PaC Squad)",
                     })}
-                    value={field.value ?? ""}
                     className="focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                 </FormControl>

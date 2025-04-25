@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:177
+#: src/components/settings/views/general.tsx:193
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -224,7 +224,7 @@ msgstr ""
 msgid "{0}"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:103
+#: src/components/settings/views/lab.tsx:139
 msgid "{description}"
 msgstr ""
 
@@ -232,7 +232,7 @@ msgstr ""
 msgid "{selectedCount} calendars selected"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:100
+#: src/components/settings/views/lab.tsx:136
 msgid "{title}"
 msgstr ""
 
@@ -358,6 +358,10 @@ msgstr ""
 #: src/components/settings/components/ai/model-selection.tsx:45
 #~ msgid "Choose from our curated AI models"
 #~ msgstr ""
+
+#: src/components/settings/views/general.tsx:150
+msgid "Choose the language you want to use for the application interface"
+msgstr ""
 
 #: src/components/settings/views/billing.tsx:52
 msgid "Collaborate with others in meetings"
@@ -555,7 +559,7 @@ msgstr ""
 msgid "Grant Access"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:141
+#: src/components/settings/views/general.tsx:124
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr ""
 
@@ -583,7 +587,7 @@ msgstr ""
 msgid "Invite members"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:165
+#: src/components/settings/views/general.tsx:181
 msgid "Jargons"
 msgstr ""
 
@@ -601,6 +605,10 @@ msgstr ""
 
 #: src/components/settings/components/main-sidebar.tsx:39
 msgid "Lab"
+msgstr ""
+
+#: src/components/settings/views/general.tsx:147
+msgid "Language"
 msgstr ""
 
 #: src/components/settings/views/ai.tsx:156
@@ -935,7 +943,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:138
+#: src/components/settings/views/general.tsx:121
 msgid "Share usage data"
 msgstr ""
 
@@ -1155,7 +1163,7 @@ msgstr ""
 msgid "Works offline"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:168
+#: src/components/settings/views/general.tsx:184
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr ""
 

@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:177
+#: src/components/settings/views/general.tsx:193
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 
@@ -224,7 +224,7 @@ msgstr "{weeks} weeks later"
 msgid "{0}"
 msgstr "{0}"
 
-#: src/components/settings/views/lab.tsx:103
+#: src/components/settings/views/lab.tsx:139
 msgid "{description}"
 msgstr "{description}"
 
@@ -232,7 +232,7 @@ msgstr "{description}"
 msgid "{selectedCount} calendars selected"
 msgstr "{selectedCount} calendars selected"
 
-#: src/components/settings/views/lab.tsx:100
+#: src/components/settings/views/lab.tsx:136
 msgid "{title}"
 msgstr "{title}"
 
@@ -358,6 +358,10 @@ msgstr "CEO"
 #: src/components/settings/components/ai/model-selection.tsx:45
 #~ msgid "Choose from our curated AI models"
 #~ msgstr "Choose from our curated AI models"
+
+#: src/components/settings/views/general.tsx:150
+msgid "Choose the language you want to use for the application interface"
+msgstr "Choose the language you want to use for the application interface"
 
 #: src/components/settings/views/billing.tsx:52
 msgid "Collaborate with others in meetings"
@@ -555,7 +559,7 @@ msgstr "Get Started"
 msgid "Grant Access"
 msgstr "Grant Access"
 
-#: src/components/settings/views/general.tsx:141
+#: src/components/settings/views/general.tsx:124
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr "Help us improve Hyprnote by sharing anonymous usage data"
 
@@ -583,7 +587,7 @@ msgstr "Invite"
 msgid "Invite members"
 msgstr "Invite members"
 
-#: src/components/settings/views/general.tsx:165
+#: src/components/settings/views/general.tsx:181
 msgid "Jargons"
 msgstr "Jargons"
 
@@ -602,6 +606,10 @@ msgstr "Key decisions"
 #: src/components/settings/components/main-sidebar.tsx:39
 msgid "Lab"
 msgstr "Lab"
+
+#: src/components/settings/views/general.tsx:147
+msgid "Language"
+msgstr "Language"
 
 #: src/components/settings/views/ai.tsx:156
 msgid "Language Model"
@@ -935,7 +943,7 @@ msgstr "Send invite"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/settings/views/general.tsx:138
+#: src/components/settings/views/general.tsx:121
 msgid "Share usage data"
 msgstr "Share usage data"
 
@@ -1155,7 +1163,7 @@ msgstr "Works both in-person and remotely"
 msgid "Works offline"
 msgstr "Works offline"
 
-#: src/components/settings/views/general.tsx:168
+#: src/components/settings/views/general.tsx:184
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr "You can make Hyprnote takes these words into account when transcribing"
 

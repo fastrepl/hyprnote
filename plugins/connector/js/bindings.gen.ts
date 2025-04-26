@@ -7,6 +7,15 @@
 
 
 export const commands = {
+async listCustomLlmModels() : Promise<string[]> {
+    return await TAURI_INVOKE("plugin:connector|list_custom_llm_models");
+},
+async getCustomLlmModel() : Promise<string | null> {
+    return await TAURI_INVOKE("plugin:connector|get_custom_llm_model");
+},
+async setCustomLlmModel(model: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_custom_llm_model", { model });
+},
 async getCustomLlmEnabled() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:connector|get_custom_llm_enabled");
 },

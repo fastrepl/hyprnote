@@ -6,6 +6,9 @@ use tauri_plugin_store2::StorePluginExt;
 pub trait ConnectorPluginExt<R: tauri::Runtime> {
     fn connector_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
 
+    fn list_custom_llm_models(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
+    fn get_custom_llm_model(&self) -> Result<Option<String>, crate::Error>;
+    fn set_custom_llm_model(&self, model: String) -> Result<(), crate::Error>;
     fn set_custom_llm_enabled(&self, enabled: bool) -> Result<(), crate::Error>;
     fn get_custom_llm_enabled(&self) -> Result<bool, crate::Error>;
     fn get_custom_llm_connection(&self) -> Result<Option<Connection>, crate::Error>;
@@ -18,6 +21,31 @@ pub trait ConnectorPluginExt<R: tauri::Runtime> {
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
     fn connector_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey> {
         self.scoped_store(crate::PLUGIN_NAME).unwrap()
+    }
+
+    async fn list_custom_llm_models(&self) -> Result<Vec<String>, crate::Error> {
+        let conn = self.get_custom_llm_connection()?;
+
+        match conn {
+            Some(c) => {
+                let llm_conn = ConnectionLLM::Custom(Connection {
+                    api_base: c.api_base,
+                    api_key: c.api_key,
+                });
+
+                llm_conn.models().await
+            }
+            _ => Ok(vec![]),
+        }
+    }
+
+    fn get_custom_llm_model(&self) -> Result<Option<String>, crate::Error> {
+        Ok(self.connector_store().get(StoreKey::CustomModel)?.flatten())
+    }
+
+    fn set_custom_llm_model(&self, model: String) -> Result<(), crate::Error> {
+        self.connector_store().set(StoreKey::CustomModel, model)?;
+        Ok(())
     }
 
     fn set_custom_llm_enabled(&self, enabled: bool) -> Result<(), crate::Error> {

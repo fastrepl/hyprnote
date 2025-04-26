@@ -2,6 +2,33 @@ use crate::{Connection, ConnectionLLM, ConnectionSTT, ConnectorPluginExt};
 
 #[tauri::command]
 #[specta::specta]
+pub async fn list_custom_llm_models<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<String>, String> {
+    app.list_custom_llm_models()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_custom_llm_model<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Option<String>, String> {
+    app.get_custom_llm_model().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_custom_llm_model<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    model: String,
+) -> Result<(), String> {
+    app.set_custom_llm_model(model).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn get_custom_llm_enabled<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {

@@ -15,6 +15,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::list_custom_llm_models::<tauri::Wry>,
+            commands::get_custom_llm_model::<tauri::Wry>,
+            commands::set_custom_llm_model::<tauri::Wry>,
             commands::get_custom_llm_enabled::<tauri::Wry>,
             commands::set_custom_llm_enabled::<tauri::Wry>,
             commands::get_custom_llm_connection::<tauri::Wry>,

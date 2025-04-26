@@ -14,9 +14,11 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } 
 import { Input } from "@hypr/ui/components/ui/input";
 import { Label } from "@hypr/ui/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { showSttModelDownloadToast } from "../../toast/shared";
 
 const endpointSchema = z.object({
+  model: z.string().min(1),
   api_base: z.string().url({ message: "Please enter a valid URL" }).min(1, { message: "URL is required" }).refine(
     (value) => !value.includes("192"),
     { message: "Should use 'localhost' or '127.0.0.1' as the host" },
@@ -39,6 +41,18 @@ export default function LocalAI() {
     queryFn: () => connectorCommands.getCustomLlmConnection(),
   });
 
+  const getCustomLLMModel = useQuery({
+    queryKey: ["custom-llm-model"],
+    queryFn: () => connectorCommands.getCustomLlmModel(),
+  });
+
+  const setCustomLLMModel = useMutation({
+    mutationFn: (model: string) => connectorCommands.setCustomLlmModel(model),
+    onSuccess: () => {
+      customLLMModels.refetch();
+    },
+  });
+
   const setCustomLLMConnection = useMutation({
     mutationFn: (connection: Connection) => connectorCommands.setCustomLlmConnection(connection),
     onError: console.error,
@@ -52,6 +66,11 @@ export default function LocalAI() {
     queryFn: () => connectorCommands.getCustomLlmEnabled(),
   });
 
+  const customLLMModels = useQuery({
+    queryKey: ["custom-llm-models"],
+    queryFn: () => connectorCommands.listCustomLlmModels(),
+  });
+
   const setCustomLLMEnabled = useMutation({
     mutationFn: (enabled: boolean) => connectorCommands.setCustomLlmEnabled(enabled),
     onSuccess: () => {
@@ -61,14 +80,23 @@ export default function LocalAI() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(endpointSchema),
-    values: {
-      api_base: customLLMConnection.data?.api_base || "",
-    },
     mode: "onChange",
   });
 
   useEffect(() => {
+    form.reset({
+      model: getCustomLLMModel.data || "",
+      api_base: customLLMConnection.data?.api_base || "",
+    });
+  }, [getCustomLLMModel.data, customLLMConnection.data]);
+
+  useEffect(() => {
     const subscription = form.watch((value, { name }) => {
+      if (!form.formState.errors.model && value.model) {
+        setCustomLLMModel.mutate(value.model);
+        console.log("setCustomLLMModel", value.model);
+      }
+
       if (!form.formState.errors.api_base && value.api_base) {
         setCustomLLMConnection.mutate({
           api_base: value.api_base,
@@ -199,6 +227,25 @@ export default function LocalAI() {
                             </FormControl>
                             <FormMessage />
                           </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="model"
+                        render={({ field }) => (
+                          <Select
+                            {...field}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a model" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {customLLMModels.data?.map((model) => (
+                                <SelectItem key={model} value={model}>{model}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         )}
                       />
                     </form>

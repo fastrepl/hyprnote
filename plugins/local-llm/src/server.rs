@@ -60,6 +60,7 @@ pub async fn run_server(model_manager: crate::ModelManager) -> Result<ServerHand
             .unwrap();
     });
 
+    tracing::info!("local_llm_server_started {}", server_addr);
     Ok(server_handle)
 }
 

@@ -119,6 +119,7 @@ pub async fn run_server(state: ServerState) -> Result<ServerHandle, crate::Error
             .unwrap();
     });
 
+    tracing::info!("local_stt_server_started {}", server_addr);
     Ok(server_handle)
 }
 

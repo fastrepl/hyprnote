@@ -298,6 +298,10 @@ msgstr ""
 msgid "Anyone with the link can view this page"
 msgstr ""
 
+#: src/components/settings/views/ai.tsx:258
+msgid "API Endpoint"
+msgstr ""
+
 #: src/components/settings/views/profile.tsx:168
 msgid "Apple"
 msgstr ""
@@ -438,6 +442,10 @@ msgstr ""
 msgid "Current Plan"
 msgstr ""
 
+#: src/components/settings/views/ai.tsx:244
+msgid "Custom LLM Endpoint"
+msgstr ""
+
 #: src/components/settings/views/template.tsx:86
 #: src/components/settings/views/team.tsx:165
 #: src/components/left-sidebar/notes-list.tsx:323
@@ -458,6 +466,14 @@ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:74
 msgid "Detect meetings automatically"
+msgstr ""
+
+#: src/components/settings/views/ai.tsx:195
+msgid "Download"
+msgstr ""
+
+#: src/components/settings/views/ai.tsx:187
+msgid "Downloaded"
 msgstr ""
 
 #: src/components/settings/views/template.tsx:82
@@ -500,7 +516,7 @@ msgstr ""
 msgid "Enter a section title"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:190
+#: src/components/settings/views/ai.tsx:261
 msgid "Enter the URL for your custom LLM endpoint"
 msgstr ""
 
@@ -611,7 +627,7 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:156
+#: src/components/settings/views/ai.tsx:218
 msgid "Language Model"
 msgstr ""
 
@@ -685,6 +701,10 @@ msgstr ""
 msgid "Microphone Access"
 msgstr ""
 
+#: src/components/settings/views/ai.tsx:282
+msgid "Model"
+msgstr ""
+
 #: src/components/settings/views/ai.tsx:419
 #~ msgid "Model is working correctly"
 #~ msgstr ""
@@ -731,12 +751,20 @@ msgstr ""
 msgid "No members found"
 msgstr ""
 
+#: src/components/settings/views/ai.tsx:299
+msgid "No models available"
+msgstr ""
+
 #: src/components/human-profile/past-notes.tsx:89
 msgid "No past notes with this contact"
 msgstr ""
 
 #: src/components/organization-profile/recent-notes.tsx:70
 msgid "No recent notes for this organization"
+msgstr ""
+
+#: src/components/settings/views/ai.tsx:204
+msgid "No speech-to-text models available"
 msgstr ""
 
 #: src/components/organization-profile/upcoming-events.tsx:86
@@ -971,7 +999,7 @@ msgstr ""
 #~ msgid "Speech-to-Text"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:112
+#: src/components/settings/views/ai.tsx:148
 msgid "Speech-to-Text Model"
 msgstr ""
 

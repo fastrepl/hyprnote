@@ -298,6 +298,10 @@ msgstr "Annual"
 msgid "Anyone with the link can view this page"
 msgstr "Anyone with the link can view this page"
 
+#: src/components/settings/views/ai.tsx:258
+msgid "API Endpoint"
+msgstr "API Endpoint"
+
 #: src/components/settings/views/profile.tsx:168
 msgid "Apple"
 msgstr "Apple"
@@ -438,6 +442,10 @@ msgstr "Create Note"
 msgid "Current Plan"
 msgstr "Current Plan"
 
+#: src/components/settings/views/ai.tsx:244
+msgid "Custom LLM Endpoint"
+msgstr "Custom LLM Endpoint"
+
 #: src/components/settings/views/template.tsx:86
 #: src/components/settings/views/team.tsx:165
 #: src/components/left-sidebar/notes-list.tsx:323
@@ -459,6 +467,14 @@ msgstr "Description"
 #: src/components/settings/views/notifications.tsx:74
 msgid "Detect meetings automatically"
 msgstr "Detect meetings automatically"
+
+#: src/components/settings/views/ai.tsx:195
+msgid "Download"
+msgstr "Download"
+
+#: src/components/settings/views/ai.tsx:187
+msgid "Downloaded"
+msgstr "Downloaded"
 
 #: src/components/settings/views/template.tsx:82
 msgid "Duplicate"
@@ -500,7 +516,7 @@ msgstr "Enable"
 msgid "Enter a section title"
 msgstr "Enter a section title"
 
-#: src/components/settings/views/ai.tsx:190
+#: src/components/settings/views/ai.tsx:261
 msgid "Enter the URL for your custom LLM endpoint"
 msgstr "Enter the URL for your custom LLM endpoint"
 
@@ -611,7 +627,7 @@ msgstr "Lab"
 msgid "Language"
 msgstr "Language"
 
-#: src/components/settings/views/ai.tsx:156
+#: src/components/settings/views/ai.tsx:218
 msgid "Language Model"
 msgstr "Language Model"
 
@@ -685,6 +701,10 @@ msgstr "Members"
 msgid "Microphone Access"
 msgstr "Microphone Access"
 
+#: src/components/settings/views/ai.tsx:282
+msgid "Model"
+msgstr "Model"
+
 #: src/components/settings/views/ai.tsx:419
 #~ msgid "Model is working correctly"
 #~ msgstr "Model is working correctly"
@@ -731,6 +751,10 @@ msgstr "No calendars found"
 msgid "No members found"
 msgstr "No members found"
 
+#: src/components/settings/views/ai.tsx:299
+msgid "No models available"
+msgstr "No models available"
+
 #: src/components/human-profile/past-notes.tsx:89
 msgid "No past notes with this contact"
 msgstr "No past notes with this contact"
@@ -738,6 +762,10 @@ msgstr "No past notes with this contact"
 #: src/components/organization-profile/recent-notes.tsx:70
 msgid "No recent notes for this organization"
 msgstr "No recent notes for this organization"
+
+#: src/components/settings/views/ai.tsx:204
+msgid "No speech-to-text models available"
+msgstr "No speech-to-text models available"
 
 #: src/components/organization-profile/upcoming-events.tsx:86
 msgid "No upcoming events for this organization"
@@ -971,7 +999,7 @@ msgstr "Sound"
 #~ msgid "Speech-to-Text"
 #~ msgstr "Speech-to-Text"
 
-#: src/components/settings/views/ai.tsx:112
+#: src/components/settings/views/ai.tsx:148
 msgid "Speech-to-Text Model"
 msgstr "Speech-to-Text Model"
 

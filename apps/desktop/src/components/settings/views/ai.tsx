@@ -10,7 +10,16 @@ import { commands as connectorCommands, type Connection } from "@hypr/plugin-con
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from "@hypr/ui/components/ui/form";
+import { Card, CardContent } from "@hypr/ui/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Label } from "@hypr/ui/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
@@ -94,7 +103,6 @@ export default function LocalAI() {
     const subscription = form.watch((value, { name }) => {
       if (!form.formState.errors.model && value.model) {
         setCustomLLMModel.mutate(value.model);
-        console.log("setCustomLLMModel", value.model);
       }
 
       if (!form.formState.errors.api_base && value.api_base) {
@@ -130,129 +138,181 @@ export default function LocalAI() {
   });
 
   return (
-    <div className="space-y-6 -mt-3">
-      <Accordion type="single" collapsible defaultValue="">
-        <AccordionItem value="stt">
-          <AccordionTrigger>
-            <div className="flex flex-row items-center gap-2">
-              <MicIcon size={16} />
-              <span className="text-sm">
+    <div className="space-y-6">
+      <Accordion type="single" collapsible className="space-y-2">
+        <AccordionItem value="stt" className="border rounded-md overflow-hidden">
+          <AccordionTrigger className="px-4 py-3 hover:bg-neutral-50">
+            <div className="flex items-center gap-2">
+              <MicIcon size={18} className="text-neutral-500" />
+              <span className="font-medium">
                 <Trans>Speech-to-Text Model</Trans>
               </span>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="px-2">
-            <RadioGroup
-              value={currentSTTModel.data}
-              onValueChange={setCurrentSTTModel.mutate}
-              disabled={supportedSTTModels.isLoading}
-              className="space-y-2"
-            >
-              {supportedSTTModels.data?.map(({ model, isDownloaded }) => (
-                <div key={model} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value={model} id={`model-${model}`} disabled={!isDownloaded} />
-                    <Label htmlFor={`model-${model}`} className="flex items-center cursor-pointer">
-                      <span>{model}</span>
-                    </Label>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={isDownloaded}
-                    onClick={() => {
-                      if (!isDownloaded) {
-                        showSttModelDownloadToast(model, () => {
-                          supportedSTTModels.refetch();
-                        });
-                      }
-                    }}
-                  >
-                    {isDownloaded ? <CircleCheckIcon size={16} /> : <DownloadIcon size={16} />}
-                  </Button>
-                </div>
-              ))}
-            </RadioGroup>
+          <AccordionContent className="px-4 pt-2 pb-4">
+            <Card className="border-0 shadow-none">
+              <CardContent className="p-0">
+                <RadioGroup
+                  value={currentSTTModel.data}
+                  onValueChange={setCurrentSTTModel.mutate}
+                  disabled={supportedSTTModels.isLoading}
+                  className="space-y-3"
+                >
+                  {supportedSTTModels.data?.map(({ model, isDownloaded }) => (
+                    <div key={model} className="flex items-center justify-between rounded-md p-2 hover:bg-neutral-50">
+                      <div className="flex items-center space-x-3">
+                        <RadioGroupItem value={model} id={`model-${model}`} disabled={!isDownloaded} />
+                        <Label htmlFor={`model-${model}`} className="flex items-center cursor-pointer font-medium">
+                          <span>{model}</span>
+                        </Label>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isDownloaded}
+                        onClick={() => {
+                          if (!isDownloaded) {
+                            showSttModelDownloadToast(model, () => {
+                              supportedSTTModels.refetch();
+                            });
+                          }
+                        }}
+                        className="gap-1"
+                      >
+                        {isDownloaded
+                          ? (
+                            <>
+                              <CircleCheckIcon size={16} className="text-green-500" />
+                              <span>
+                                <Trans>Downloaded</Trans>
+                              </span>
+                            </>
+                          )
+                          : (
+                            <>
+                              <DownloadIcon size={16} />
+                              <span>
+                                <Trans>Download</Trans>
+                              </span>
+                            </>
+                          )}
+                      </Button>
+                    </div>
+                  ))}
+                  {!supportedSTTModels.data?.length && (
+                    <div className="text-sm text-neutral-500 py-2">
+                      <Trans>No speech-to-text models available</Trans>
+                    </div>
+                  )}
+                </RadioGroup>
+              </CardContent>
+            </Card>
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="llm">
-          <AccordionTrigger>
-            <div className="flex flex-row items-center gap-2">
-              <BrainIcon size={16} />
-              <span className="text-sm">
+        <AccordionItem value="llm" className="border rounded-md overflow-hidden">
+          <AccordionTrigger className="px-4 py-3 hover:bg-neutral-50">
+            <div className="flex items-center gap-2">
+              <BrainIcon size={18} className="text-neutral-500" />
+              <span className="font-medium">
                 <Trans>Language Model</Trans>
               </span>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="p-2">
-            <RadioGroup
-              value={customLLMEnabled.data ? "custom" : "llama-3.2-3b-q4"}
-              onValueChange={(value) => {
-                setCustomLLMEnabled.mutate(value === "custom");
-              }}
-              className="space-y-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="llama-3.2-3b-q4" id="model-llama-3-2" />
-                <Label htmlFor="model-llama-3-2" className="flex items-center cursor-pointer">
-                  <span>llama-3.2-3b-q4</span>
-                </Label>
-              </div>
-              <div className="flex flex-col space-y-2">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="custom" id="model-custom" />
-                  <Label htmlFor="model-custom" className="flex items-center cursor-pointer">
-                    <span>Custom LLM Endpoint</span>
-                  </Label>
-                </div>
-                <div className="pl-6">
-                  <Form {...form}>
-                    <form className="space-y-2">
-                      <FormField
-                        control={form.control}
-                        name="api_base"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormDescription>
-                              <Trans>Enter the URL for your custom LLM endpoint</Trans>
-                            </FormDescription>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="http://127.0.0.1:9999/v1"
-                                disabled={!customLLMEnabled.data}
-                                className="focus-visible:ring-0 focus-visible:ring-offset-0"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="model"
-                        render={({ field }) => (
-                          <Select
-                            {...field}
-                            onValueChange={field.onChange}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a model" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {customLLMModels.data?.map((model) => (
-                                <SelectItem key={model} value={model}>{model}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                    </form>
-                  </Form>
-                </div>
-              </div>
-            </RadioGroup>
+          <AccordionContent className="px-4 pt-2 pb-4">
+            <Card className="border-0 shadow-none">
+              <CardContent className="p-0">
+                <RadioGroup
+                  value={customLLMEnabled.data ? "custom" : "llama-3.2-3b-q4"}
+                  onValueChange={(value) => {
+                    setCustomLLMEnabled.mutate(value === "custom");
+                  }}
+                  className="space-y-4"
+                >
+                  <div className="flex items-center space-x-3 rounded-md p-2 hover:bg-neutral-50">
+                    <RadioGroupItem value="llama-3.2-3b-q4" id="model-llama-3-2" />
+                    <Label htmlFor="model-llama-3-2" className="flex items-center cursor-pointer font-medium">
+                      <span>llama-3.2-3b-q4</span>
+                    </Label>
+                  </div>
+
+                  <div className="rounded-md border border-neutral-200 p-3">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <RadioGroupItem value="custom" id="model-custom" />
+                      <Label htmlFor="model-custom" className="flex items-center cursor-pointer font-medium">
+                        <span>
+                          <Trans>Custom LLM Endpoint</Trans>
+                        </span>
+                      </Label>
+                    </div>
+
+                    <div className="pl-7 space-y-4">
+                      <Form {...form}>
+                        <form className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="api_base"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm font-medium">
+                                  <Trans>API Endpoint</Trans>
+                                </FormLabel>
+                                <FormDescription className="text-xs">
+                                  <Trans>Enter the URL for your custom LLM endpoint</Trans>
+                                </FormDescription>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder="http://127.0.0.1:9999/v1"
+                                    disabled={!customLLMEnabled.data}
+                                    className="focus-visible:ring-1 focus-visible:ring-offset-0"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="model"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm font-medium">
+                                  <Trans>Model</Trans>
+                                </FormLabel>
+                                <FormControl>
+                                  <Select
+                                    disabled={!customLLMEnabled.data}
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                  >
+                                    <SelectTrigger className="focus-visible:ring-1 focus-visible:ring-offset-0">
+                                      <SelectValue placeholder="Select a model" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {customLLMModels.data?.map((model) => (
+                                        <SelectItem key={model} value={model}>{model}</SelectItem>
+                                      ))}
+                                      {!customLLMModels.data?.length && (
+                                        <div className="text-sm text-neutral-500 p-2">
+                                          <Trans>No models available</Trans>
+                                        </div>
+                                      )}
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </form>
+                      </Form>
+                    </div>
+                  </div>
+                </RadioGroup>
+              </CardContent>
+            </Card>
           </AccordionContent>
         </AccordionItem>
       </Accordion>

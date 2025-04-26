@@ -1,4 +1,4 @@
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { customProvider, type TextStreamPart, type ToolSet } from "ai";
 
 import { commands as connectorCommands } from "@hypr/plugin-connector";
@@ -15,20 +15,24 @@ export const useChat = (options: Parameters<typeof useChat$1>[0]) => {
   });
 };
 
-const getModel = async (model: string) => {
-  const { connection: { api_base, api_key } } = await connectorCommands.getLlmConnection();
+const getModel = async () => {
+  const { type, connection: { api_base, api_key } } = await connectorCommands.getLlmConnection();
 
-  const openai = createOpenAI({
+  const openai = createOpenAICompatible({
+    name: "hypr-llm",
     baseURL: api_base,
     apiKey: api_key ?? "SOMETHING_NON_EMPTY",
     fetch: customFetch,
   });
 
-  return openai(model, { structuredOutputs: true });
+  const customModel = await connectorCommands.getCustomLlmModel();
+  const model = (type === "Custom" && customModel) ? customModel : "gpt-4";
+
+  return openai(model);
 };
 
 export const modelProvider = async () => {
-  const any = await getModel("gpt-4");
+  const any = await getModel();
 
   return customProvider({
     languageModels: { any },

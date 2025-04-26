@@ -348,6 +348,31 @@ mod tests {
         "###);
     }
 
+    // TODO: not ideal
+    #[test]
+    fn test_md_to_md_4() {
+        let input = r#"
+# Hyprnote: Enhanced Meeting Notes
+
+# Objective: Introduce Hyprnote as a smart notepad for enhanced meeting productivity.
+# Privacy & Performance: Built locally, prioritizing user data security and seamless experience.
+# Flexible & Extendable: Supports various use cases beyond sales, offering a simple and powerful solution.
+# Stay Connected: Promote Hyprnote through X and Discord.
+
+# Key Features:
+# - Offline transcription and note-taking.
+# - Real-time transcript integration for context.
+# - Customizable notes and summaries.
+# - Optional extensions for CRM integration (e.g., Twenty).
+
+# Benefits: Streamlines meetings, improves productivity, and enhances data capture.
+
+# Further Information: Follow updates on [X](https://hyprnote.com/x) and [Discord](https://hyprnote.com/discord).
+        "#;
+
+        insta::assert_snapshot!(md_to_md(input).unwrap().to_string(), @"# Further Information: Follow updates on [X](https://hyprnote.com/x) and [Discord](https://hyprnote.com/discord).");
+    }
+
     #[test]
     fn test_opinionated_md_to_html() {
         let input = r#"

@@ -319,6 +319,10 @@ msgstr "Ask questions about past meetings"
 msgid "Assistant:"
 msgstr "Assistant:"
 
+#: src/components/editor-area/floating-button.tsx:130
+msgid "Auto Enhance"
+msgstr "Auto Enhance"
+
 #: src/components/settings/components/ai/model-selection.tsx:42
 #~ msgid "Available Models"
 #~ msgstr "Available Models"

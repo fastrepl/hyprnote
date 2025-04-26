@@ -319,6 +319,10 @@ msgstr ""
 msgid "Assistant:"
 msgstr ""
 
+#: src/components/editor-area/floating-button.tsx:130
+msgid "Auto Enhance"
+msgstr ""
+
 #: src/components/settings/components/ai/model-selection.tsx:42
 #~ msgid "Available Models"
 #~ msgstr ""

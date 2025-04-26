@@ -1,2 +1,2 @@
-export { default as Transcript } from "./transcript";
-export { TranscriptContent } from "./transcript-content";
+export { default as Active } from "./active";
+export { default as Inactive } from "./inactive";

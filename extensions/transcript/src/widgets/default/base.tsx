@@ -1,5 +1,5 @@
-import { FileAudioIcon } from "lucide-react";
-import React from "react";
+import { EarIcon, FileAudioIcon, Loader2Icon } from "lucide-react";
+import React, { useEffect, useRef } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -7,7 +7,8 @@ import { WidgetHeader } from "@hypr/ui/components/ui/widgets";
 import { safeNavigate } from "@hypr/utils";
 import { useOngoingSession, useSessions } from "@hypr/utils/contexts";
 
-import { Transcript, TranscriptContent } from "../../components";
+import { Badge } from "@hypr/ui/components/ui/badge";
+import { useTranscript } from "../../hooks/useTranscript";
 import { useTranscriptWidget } from "../../hooks/useTranscriptWidget";
 
 export interface TranscriptBaseProps {
@@ -90,3 +91,76 @@ export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
     </WrapperComponent>
   );
 };
+
+function Transcript({ sessionId }: { sessionId: string }) {
+  const currentSessionId = useSessions((s) => s.currentSessionId);
+  const effectiveSessionId = sessionId || currentSessionId;
+
+  const { timeline, isLive, isLoading } = useTranscript(effectiveSessionId);
+  const transcriptRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const scrollToBottom = () => {
+      requestAnimationFrame(() => {
+        const element = transcriptRef.current;
+        if (element) {
+          element.scrollTop = element.scrollHeight;
+        }
+      });
+    };
+
+    if (timeline?.items?.length) {
+      scrollToBottom();
+    }
+  }, [timeline?.items, isLive]);
+
+  const items = timeline?.items || [];
+
+  return (
+    <div
+      ref={transcriptRef}
+      className="flex-1 scrollbar-none px-4 flex flex-col gap-2 overflow-y-auto text-sm py-4"
+    >
+      {isLoading
+        ? (
+          <div className="flex items-center gap-2 justify-center py-2 text-neutral-400">
+            <Loader2Icon size={14} className="animate-spin" /> Loading transcript...
+          </div>
+        )
+        : (
+          <>
+            {items.length > 0
+              && items.map((item, index) => (
+                <div key={index}>
+                  <p className="select-text">{item.text}</p>
+                </div>
+              ))}
+
+            {isLive && (
+              <div className="flex items-center gap-2 justify-center py-2 text-neutral-400">
+                <EarIcon size={14} /> Listening... (there might be a delay)
+              </div>
+            )}
+          </>
+        )}
+    </div>
+  );
+}
+
+function TranscriptContent({ sessionId, showLiveBadge }: {
+  sessionId: string;
+  showLiveBadge: boolean;
+}) {
+  const { isLive } = useTranscript(sessionId);
+
+  return showLiveBadge && isLive
+    ? (
+      <Badge
+        variant="destructive"
+        className="hover:bg-destructive"
+      >
+        LIVE
+      </Badge>
+    )
+    : null;
+}

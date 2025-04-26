@@ -70,7 +70,7 @@ impl Session {
         let config = self.app.db_get_config(&user_id).await?;
         let language = match config {
             Some(config) => config.general.display_language,
-            None => codes_iso_639::part_1::LanguageCode::En,
+            None => hypr_language::ISO639::En.into(),
         };
 
         let mut session = {
@@ -317,7 +317,7 @@ impl Session {
 
 async fn setup_listen_client<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
-    language: codes_iso_639::part_1::LanguageCode,
+    language: hypr_language::Language,
     jargons: Vec<String>,
 ) -> Result<crate::client::ListenClient, crate::Error> {
     let api_base = {

@@ -29,6 +29,7 @@ hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
 hypr-db-core = { workspace = true }
 hypr-db-user = { workspace = true }
+hypr-language = { workspace = true }
 hypr-timeline = { workspace = true }
 hypr-ws = { workspace = true }
 

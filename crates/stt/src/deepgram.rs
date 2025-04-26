@@ -1,7 +1,7 @@
 #[derive(Debug, Default)]
 pub struct DeepgramClientBuilder {
     api_key: Option<String>,
-    language: Option<codes_iso_639::part_1::LanguageCode>,
+    language: Option<hypr_language::Language>,
     keywords: Option<Vec<String>>,
 }
 
@@ -11,7 +11,7 @@ impl DeepgramClientBuilder {
         self
     }
 
-    pub fn language(mut self, language: codes_iso_639::part_1::LanguageCode) -> Self {
+    pub fn language(mut self, language: hypr_language::Language) -> Self {
         self.language = Some(language);
         self
     }
@@ -21,11 +21,10 @@ impl DeepgramClientBuilder {
         self
     }
 
-    pub fn build(self) -> DeepgramClient {
-        let language = match self.language.unwrap() {
-            codes_iso_639::part_1::LanguageCode::En => deepgram::common::options::Language::en,
-            _ => panic!("Unsupported language: {:?}", self.language.unwrap()),
-        };
+    pub fn build(self) -> Result<DeepgramClient, crate::Error> {
+        let language = self
+            .language
+            .unwrap_or(codes_iso_639::part_1::LanguageCode::En.into());
 
         let client = deepgram::Deepgram::with_base_url_and_api_key(
             "https://api.deepgram.com/v1",
@@ -33,11 +32,11 @@ impl DeepgramClientBuilder {
         )
         .unwrap();
 
-        DeepgramClient {
+        Ok(DeepgramClient {
             client,
-            language,
+            language: language.for_deepgram()?,
             keywords: self.keywords.unwrap_or_default(),
-        }
+        })
     }
 }
 

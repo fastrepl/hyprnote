@@ -79,9 +79,9 @@ impl Client {
         ClientBuilder::default()
     }
 
-    pub async fn for_language(&self, language: codes_iso_639::part_1::LanguageCode) -> MultiClient {
-        match language {
-            codes_iso_639::part_1::LanguageCode::Ko => {
+    pub async fn for_language(&self, language: hypr_language::Language) -> MultiClient {
+        match language.iso639() {
+            hypr_language::ISO639::Ko => {
                 let clova = hypr_clova::realtime::Client::builder()
                     .api_key(self.clova_api_key.as_ref().unwrap())
                     .keywords(vec!["하이퍼노트".to_string()])
@@ -90,12 +90,13 @@ impl Client {
                     .unwrap();
                 MultiClient::Clova(clova)
             }
-            codes_iso_639::part_1::LanguageCode::En => {
+            hypr_language::ISO639::En => {
                 let deepgram = DeepgramClient::builder()
                     .api_key(self.deepgram_api_key.as_ref().unwrap())
                     .keywords(vec!["Hyprnote".to_string()])
-                    .language(language)
-                    .build();
+                    .language(language.into())
+                    .build()
+                    .unwrap();
 
                 MultiClient::Deepgram(deepgram)
             }
@@ -198,7 +199,7 @@ mod tests {
         let mut client = Client::builder()
             .deepgram_api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
             .build()
-            .for_language(codes_iso_639::part_1::LanguageCode::En)
+            .for_language(hypr_language::ISO639::En.into())
             .await;
 
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
@@ -231,7 +232,7 @@ mod tests {
         let mut client = Client::builder()
             .clova_api_key(std::env::var("CLOVA_API_KEY").unwrap())
             .build()
-            .for_language(codes_iso_639::part_1::LanguageCode::Ko)
+            .for_language(hypr_language::ISO639::Ko.into())
             .await;
 
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();

@@ -1,4 +1,3 @@
-use codes_iso_639::part_1::LanguageCode;
 use serde::Deserialize;
 use std::str::FromStr;
 
@@ -41,7 +40,7 @@ user_common_derives! {
         #[specta(type = String)]
         #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
         #[serde(serialize_with = "serialize_language_code", deserialize_with = "deserialize_language_code")]
-        pub display_language: LanguageCode,
+        pub display_language: hypr_language::Language,
         pub jargons: Vec<String>,
         pub telemetry_consent: bool,
     }
@@ -51,7 +50,7 @@ impl Default for ConfigGeneral {
     fn default() -> Self {
         Self {
             autostart: false,
-            display_language: LanguageCode::En,
+            display_language: hypr_language::ISO639::En.into(),
             jargons: vec![],
             telemetry_consent: true,
         }
@@ -86,15 +85,16 @@ user_common_derives! {
 }
 
 fn serialize_language_code<S: serde::Serializer>(
-    code: &LanguageCode,
+    code: &hypr_language::Language,
     serializer: S,
 ) -> Result<S::Ok, S::Error> {
-    serializer.serialize_str(code.code())
+    serializer.serialize_str(code.iso639().code())
 }
 
 fn deserialize_language_code<'de, D: serde::Deserializer<'de>>(
     deserializer: D,
-) -> Result<LanguageCode, D::Error> {
+) -> Result<hypr_language::Language, D::Error> {
     let s = String::deserialize(deserializer)?;
-    LanguageCode::from_str(&s).map_err(serde::de::Error::custom)
+    let iso639 = hypr_language::ISO639::from_str(&s).map_err(serde::de::Error::custom)?;
+    Ok(iso639.into())
 }

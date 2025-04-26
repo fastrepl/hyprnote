@@ -29,6 +29,7 @@ hypr-diart = { path = "crates/diart", package = "diart" }
 hypr-file = { path = "crates/file", package = "file" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
 hypr-host = { path = "crates/host", package = "host" }
+hypr-language = { path = "crates/language", package = "language" }
 hypr-llama = { path = "crates/llama", package = "llama" }
 hypr-loops = { path = "crates/loops", package = "loops" }
 hypr-nango = { path = "crates/nango", package = "nango" }

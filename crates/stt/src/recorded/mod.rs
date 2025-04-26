@@ -57,20 +57,21 @@ impl Client {
         ClientBuilder::default()
     }
 
-    pub async fn for_language(&self, language: codes_iso_639::part_1::LanguageCode) -> MultiClient {
-        match language {
-            codes_iso_639::part_1::LanguageCode::Ko => {
+    pub async fn for_language(&self, language: hypr_language::Language) -> MultiClient {
+        match language.iso639() {
+            hypr_language::ISO639::Ko => {
                 let clova = hypr_clova::recorded::Client::builder()
                     .api_key(&self.clova_api_key)
                     .build();
                 MultiClient::Clova(clova)
             }
-            codes_iso_639::part_1::LanguageCode::En => {
+            hypr_language::ISO639::En => {
                 let deepgram = DeepgramClient::builder()
                     .api_key(&self.deepgram_api_key)
                     .keywords(vec!["Hyprnote".to_string()])
-                    .language(language)
-                    .build();
+                    .language(language.into())
+                    .build()
+                    .unwrap();
 
                 MultiClient::Deepgram(deepgram)
             }

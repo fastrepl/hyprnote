@@ -1,0 +1,18 @@
+[package]
+name = "language"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = []
+deepgram = ["dep:deepgram"]
+
+[dependencies]
+codes-iso-639 = { workspace = true }
+deepgram = { workspace = true, optional = true, features = ["listen"] }
+
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+language = { path = ".", features = ["deepgram"] }

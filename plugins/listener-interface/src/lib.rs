@@ -47,21 +47,12 @@ common_derives! {
 }
 
 common_derives! {
+    #[derive(Default)]
     pub struct ListenParams {
         #[specta(type = String)]
         #[schemars(with = "String")]
-        pub language: codes_iso_639::part_1::LanguageCode,
+        pub language: hypr_language::Language,
         pub static_prompt: String,
         pub dynamic_prompt: String,
-    }
-}
-
-impl Default for ListenParams {
-    fn default() -> Self {
-        Self {
-            language: codes_iso_639::part_1::LanguageCode::En,
-            static_prompt: "".to_string(),
-            dynamic_prompt: "".to_string(),
-        }
     }
 }

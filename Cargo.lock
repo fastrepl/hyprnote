@@ -3131,6 +3131,7 @@ dependencies = [
  "codes-iso-639",
  "data",
  "db-core",
+ "language",
  "libsql",
  "listener-interface",
  "schemars",
@@ -7161,6 +7162,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "language"
+version = "0.1.0"
+dependencies = [
+ "codes-iso-639",
+ "deepgram",
+ "language",
+ "serde",
+ "thiserror 2.0.12",
+]
+
+[[package]]
 name = "lazy-regex"
 version = "3.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7457,6 +7469,7 @@ name = "listener-interface"
 version = "0.1.0"
 dependencies = [
  "codes-iso-639",
+ "language",
  "schemars",
  "serde",
  "serde_bytes",
@@ -12392,6 +12405,7 @@ dependencies = [
  "deepgram",
  "futures-util",
  "hound",
+ "language",
  "listener-interface",
  "rtzr",
  "serde",
@@ -13144,6 +13158,7 @@ dependencies = [
  "db-user",
  "futures-util",
  "hound",
+ "language",
  "listener-interface",
  "objc2 0.6.1",
  "objc2-foundation 0.3.1",

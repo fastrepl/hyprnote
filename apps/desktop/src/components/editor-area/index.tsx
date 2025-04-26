@@ -77,8 +77,8 @@ export default function EditorArea({
     [showRaw, enhancedContent, rawContent],
   );
 
-  const handleClickEnhance = useCallback(() => {
-    enhance.mutate();
+  const handleClickEnhance = useCallback((templateId?: string) => {
+    enhance.mutate(templateId);
   }, [enhance]);
 
   const safelyFocusEditor = useCallback(() => {
@@ -162,7 +162,7 @@ export function useEnhanceMutation({
 
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
-    mutationFn: async () => {
+    mutationFn: async (templateId?: string) => {
       const { type } = await connectorCommands.getLlmConnection();
 
       const config = await dbCommands.getConfig();
@@ -180,7 +180,7 @@ export function useEnhanceMutation({
       );
 
       const userMessage = await templateCommands.render(
-        "enhance.user",
+        templateId ? `enhance.user.${templateId}` : "enhance.user",
         {
           type,
           editor: rawContent,
@@ -249,7 +249,7 @@ export function useAutoEnhance({
 }: {
   sessionId: string;
   enhanceStatus: string;
-  enhanceMutate: () => void;
+  enhanceMutate: (templateId?: string) => void;
 }) {
   const { userId } = useHypr();
 

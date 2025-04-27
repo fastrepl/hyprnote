@@ -23,6 +23,9 @@ const getModel = async () => {
     baseURL: api_base,
     apiKey: api_key ?? "SOMETHING_NON_EMPTY",
     fetch: customFetch,
+    headers: {
+      "Origin": "http://localhost:1420",
+    },
   });
 
   const customModel = await connectorCommands.getCustomLlmModel();

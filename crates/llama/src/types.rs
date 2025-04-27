@@ -40,12 +40,8 @@ impl FromOpenAI for LlamaChatMessage {
     }
 }
 
+#[derive(Default)]
 pub struct LlamaRequest {
+    pub grammar: Option<String>,
     pub messages: Vec<LlamaChatMessage>,
-}
-
-impl LlamaRequest {
-    pub fn new(messages: Vec<LlamaChatMessage>) -> Self {
-        Self { messages }
-    }
 }

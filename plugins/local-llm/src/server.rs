@@ -191,6 +191,11 @@ fn build_response(
         .map(hypr_llama::FromOpenAI::from_openai)
         .collect();
 
-    let request = hypr_llama::LlamaRequest::new(messages);
+    let request = hypr_llama::LlamaRequest {
+        messages,
+        // TODO: should not hard-code this
+        grammar: Some(hypr_gbnf::GBNF::Enhance(None).build()),
+    };
+
     model.generate_stream(request).map_err(Into::into)
 }

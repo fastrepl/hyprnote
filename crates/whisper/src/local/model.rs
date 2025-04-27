@@ -247,11 +247,14 @@ mod tests {
             .model_path(concat!(env!("CARGO_MANIFEST_DIR"), "/model.bin"))
             .build();
 
-        let request = hypr_llama::LlamaRequest::new(vec![hypr_llama::LlamaChatMessage::new(
-            "user".into(),
-            "Generate a json array of 1 random objects, about animals".into(),
-        )
-        .unwrap()]);
+        let request = hypr_llama::LlamaRequest {
+            messages: vec![hypr_llama::LlamaChatMessage::new(
+                "user".into(),
+                "Generate a json array of 1 random objects, about animals".into(),
+            )
+            .unwrap()],
+            ..Default::default()
+        };
 
         let response: String = llama.generate_stream(request).unwrap().collect().await;
         assert!(response.len() > 4);

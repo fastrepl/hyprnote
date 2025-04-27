@@ -13,12 +13,12 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use hypr_gguf::GgufExt;
 
 mod error;
-mod message;
 mod stream;
+mod types;
 
 pub use error::*;
-pub use message::*;
 pub use stream::filter_tag;
+pub use types::*;
 
 const DEFAULT_MAX_INPUT_TOKENS: u32 = 1024 * 8;
 const DEFAULT_MAX_OUTPUT_TOKENS: u32 = 1024;
@@ -99,17 +99,20 @@ impl Llama {
 
                             let mut n_cur = batch.n_tokens();
                             let mut decoder = encoding_rs::UTF_8.new_decoder();
-                            let mut sampler = LlamaSampler::chain_simple([
-                                LlamaSampler::grammar(
-                                    &model,
-                                    hypr_gbnf::GBNF::Enhance(None).build().as_str(),
-                                    "root",
-                                ),
-                                LlamaSampler::temp(0.8),
-                                LlamaSampler::penalties(0, 1.4, 0.1, 0.0),
-                                LlamaSampler::mirostat_v2(1234, 3.0, 0.2),
-                            ]);
 
+                            let mut sampler = match request.grammar {
+                                Some(grammar) => LlamaSampler::chain_simple([
+                                    LlamaSampler::grammar(&model, grammar.as_str(), "root"),
+                                    LlamaSampler::temp(0.8),
+                                    LlamaSampler::penalties(0, 1.4, 0.1, 0.0),
+                                    LlamaSampler::mirostat_v2(1234, 3.0, 0.2),
+                                ]),
+                                None => LlamaSampler::chain_simple([
+                                    LlamaSampler::temp(0.8),
+                                    LlamaSampler::penalties(0, 1.4, 0.1, 0.0),
+                                    LlamaSampler::mirostat_v2(1234, 3.0, 0.2),
+                                ]),
+                            };
                             while n_cur <= last_index + DEFAULT_MAX_OUTPUT_TOKENS as i32 {
                                 let token = sampler.sample(&ctx, batch.n_tokens() - 1);
 
@@ -378,7 +381,10 @@ mod tests {
     #[tokio::test]
     async fn test_english_1() {
         let llama = get_model();
-        let request = LlamaRequest::new(english_1_messages());
+        let request = LlamaRequest {
+            messages: english_1_messages(),
+            grammar: Some(hypr_gbnf::GBNF::Enhance(None).build()),
+        };
 
         run(&llama, request, true).await;
     }
@@ -388,7 +394,10 @@ mod tests {
     #[tokio::test]
     async fn test_english_4() {
         let llama = get_model();
-        let request = LlamaRequest::new(english_4_messages());
+        let request = LlamaRequest {
+            messages: english_4_messages(),
+            grammar: Some(hypr_gbnf::GBNF::Enhance(None).build()),
+        };
 
         run(&llama, request, true).await;
     }
@@ -398,7 +407,10 @@ mod tests {
     #[tokio::test]
     async fn test_english_5() {
         let llama = get_model();
-        let request = LlamaRequest::new(english_5_messages());
+        let request = LlamaRequest {
+            messages: english_5_messages(),
+            grammar: Some(hypr_gbnf::GBNF::Enhance(None).build()),
+        };
 
         run(&llama, request, true).await;
     }

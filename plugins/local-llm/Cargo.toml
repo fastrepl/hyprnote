@@ -17,6 +17,7 @@ specta-typescript = { workspace = true }
 
 [dependencies]
 hypr-file = { workspace = true }
+hypr-gbnf = { workspace = true }
 hypr-llama = { workspace = true }
 
 thiserror = { workspace = true }

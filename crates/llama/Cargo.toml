@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-hypr-gbnf = { workspace = true }
 hypr-gguf = { workspace = true }
 
 encoding_rs = "0.8.35"
@@ -27,6 +26,7 @@ llama-cpp-2 = { git = "https://github.com/utilityai/llama-cpp-rs", features = ["
 [dev-dependencies]
 hypr-buffer = { workspace = true }
 hypr-data = { workspace = true }
+hypr-gbnf = { workspace = true }
 hypr-listener-interface = { workspace = true }
 hypr-template = { workspace = true }
 hypr-timeline = { workspace = true }

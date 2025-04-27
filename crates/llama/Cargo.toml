@@ -12,7 +12,6 @@ hypr-timeline = { workspace = true }
 
 colored = "3.0.0"
 dirs = { workspace = true }
-gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 indoc = "2.0.6"
 minijinja = { workspace = true }
 rand = "0.9.0"
@@ -23,7 +22,7 @@ hypr-gguf = { workspace = true }
 include_url_macro = { workspace = true }
 
 encoding_rs = "0.8.35"
-gbnf = "0.1.7"
+gbnf-validator = { workspace = true }
 
 async-openai = { workspace = true }
 futures-util = { workspace = true }

@@ -100,7 +100,11 @@ impl Llama {
                             let mut n_cur = batch.n_tokens();
                             let mut decoder = encoding_rs::UTF_8.new_decoder();
                             let mut sampler = LlamaSampler::chain_simple([
-                                LlamaSampler::grammar(&model, hypr_gbnf::ENHANCE_AUTO, "root"),
+                                LlamaSampler::grammar(
+                                    &model,
+                                    hypr_gbnf::GBNF::Enhance(None).build().as_str(),
+                                    "root",
+                                ),
                                 LlamaSampler::temp(0.8),
                                 LlamaSampler::penalties(0, 1.4, 0.1, 0.0),
                                 LlamaSampler::mirostat_v2(1234, 3.0, 0.2),

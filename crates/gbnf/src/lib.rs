@@ -1,5 +1,18 @@
 pub const ENHANCE_AUTO: &str = include_str!("../assets/enhance-auto.gbnf");
 
+pub enum GBNF {
+    Enhance(Option<Vec<String>>),
+}
+
+impl GBNF {
+    pub fn build(&self) -> String {
+        match self {
+            GBNF::Enhance(Some(_)) => ENHANCE_AUTO.to_string(),
+            GBNF::Enhance(None) => ENHANCE_AUTO.to_string(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

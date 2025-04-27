@@ -39,7 +39,7 @@ user_common_derives! {
         pub autostart: bool,
         #[specta(type = String)]
         #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
-        #[serde(serialize_with = "serialize_language_code", deserialize_with = "deserialize_language_code")]
+        #[serde(serialize_with = "serialize_language", deserialize_with = "deserialize_language")]
         pub display_language: hypr_language::Language,
         pub jargons: Vec<String>,
         pub telemetry_consent: bool,
@@ -84,17 +84,18 @@ user_common_derives! {
     }
 }
 
-fn serialize_language_code<S: serde::Serializer>(
-    code: &hypr_language::Language,
+fn serialize_language<S: serde::Serializer>(
+    lang: &hypr_language::Language,
     serializer: S,
 ) -> Result<S::Ok, S::Error> {
-    serializer.serialize_str(code.iso639().code())
+    let code = lang.iso639().code();
+    serializer.serialize_str(code)
 }
 
-fn deserialize_language_code<'de, D: serde::Deserializer<'de>>(
+fn deserialize_language<'de, D: serde::Deserializer<'de>>(
     deserializer: D,
 ) -> Result<hypr_language::Language, D::Error> {
-    let s = String::deserialize(deserializer)?;
-    let iso639 = hypr_language::ISO639::from_str(&s).map_err(serde::de::Error::custom)?;
+    let str = String::deserialize(deserializer)?;
+    let iso639 = hypr_language::ISO639::from_str(&str).map_err(serde::de::Error::custom)?;
     Ok(iso639.into())
 }

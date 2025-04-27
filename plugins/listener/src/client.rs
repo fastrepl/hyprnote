@@ -124,7 +124,7 @@ mod tests {
             .api_base("http://127.0.0.1:1234")
             .api_key("".to_string())
             .params(hypr_listener_interface::ListenParams {
-                language: codes_iso_639::part_1::LanguageCode::En,
+                language: hypr_language::ISO639::En.into(),
                 ..Default::default()
             })
             .build();

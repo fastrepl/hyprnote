@@ -16,7 +16,7 @@ hypr-db-user = { workspace = true }
 hypr-language = { workspace = true, features = ["deepgram"] }
 hypr-listener-interface = { workspace = true }
 hypr-rtzr = { path = "../rtzr", package = "rtzr" }
-hypr-whisper = { path = "../whisper", package = "whisper", default-features = false, features = ["cloud"] }
+hypr-whisper = { workspace = true, features = ["cloud"] }
 
 deepgram = { workspace = true, default-features = false, features = ["listen"] }
 

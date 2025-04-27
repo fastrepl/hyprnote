@@ -7167,9 +7167,9 @@ version = "0.1.0"
 dependencies = [
  "codes-iso-639",
  "deepgram",
- "language",
  "serde",
  "thiserror 2.0.12",
+ "whisper",
 ]
 
 [[package]]
@@ -15508,7 +15508,6 @@ version = "0.1.0"
 dependencies = [
  "audio-utils",
  "bytes",
- "codes-iso-639",
  "cpal",
  "data",
  "dirs 6.0.0",
@@ -15518,6 +15517,7 @@ dependencies = [
  "rodio",
  "serde",
  "serde_json",
+ "strum 0.26.3",
  "thiserror 2.0.12",
  "tokio",
  "tracing",

@@ -10,7 +10,7 @@ use super::WhisperOutput;
 pub struct WhisperClientBuilder {
     api_base: Option<String>,
     api_key: Option<String>,
-    language: Option<codes_iso_639::part_1::LanguageCode>,
+    language: Option<crate::Language>,
 }
 
 #[derive(Debug, Clone)]
@@ -29,7 +29,7 @@ impl WhisperClientBuilder {
         self
     }
 
-    pub fn language(mut self, language: codes_iso_639::part_1::LanguageCode) -> Self {
+    pub fn language(mut self, language: crate::Language) -> Self {
         self.language = Some(language);
         self
     }
@@ -47,7 +47,7 @@ impl WhisperClientBuilder {
                 pairs.append_pair("temperature", "0");
 
                 if let Some(language) = self.language {
-                    pairs.append_pair("language", language.code());
+                    pairs.append_pair("language", language.as_ref());
                 }
             }
 

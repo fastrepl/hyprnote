@@ -14,7 +14,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 hypr-data = { workspace = true }
 
 kalosm-common = { workspace = true }
-tauri-plugin-listener = { path = "../listener" }
+tauri-plugin-listener = { workspace = true }
 
 bytes = { workspace = true }
 codes-iso-639 = { workspace = true }
@@ -28,7 +28,7 @@ hypr-chunker = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-file = { workspace = true }
 hypr-listener-interface = { workspace = true }
-hypr-whisper = { workspace = true }
+hypr-whisper = { workspace = true, features = ["local"] }
 hypr-ws-utils = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }

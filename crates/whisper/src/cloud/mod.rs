@@ -14,7 +14,7 @@ mod tests {
         let client = WhisperClient::builder()
             .api_base(std::env::var("WHISPER_API_BASE").unwrap())
             .api_key(std::env::var("WHISPER_API_KEY").unwrap())
-            .language(codes_iso_639::part_1::LanguageCode::En)
+            .language(crate::Language::En)
             .build();
 
         let audio = rodio::Decoder::new_wav(std::io::BufReader::new(

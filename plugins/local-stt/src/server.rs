@@ -140,7 +140,7 @@ async fn listen(
 
     let model = hypr_whisper::local::Whisper::builder()
         .model_path(model_path.to_str().unwrap())
-        .language(params.language.code())
+        .language(params.language.for_whisper().unwrap())
         .static_prompt(&params.static_prompt)
         .dynamic_prompt(&params.dynamic_prompt)
         .build();

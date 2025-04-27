@@ -4294,7 +4294,9 @@ dependencies = [
 name = "gbnf"
 version = "0.1.0"
 dependencies = [
+ "colored",
  "gbnf-validator",
+ "indoc",
  "minijinja",
 ]
 
@@ -6639,21 +6641,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "include_url_macro"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91acbbba84ea9a052bdaa07984178b032b95fbef36a82758dbaeb63783b5f796"
-dependencies = [
- "proc-macro2",
- "quote",
- "reqwest 0.11.27",
- "serde",
- "serde_json",
- "syn 2.0.100",
- "url",
-]
-
-[[package]]
 name = "indexmap"
 version = "1.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7471,18 +7458,15 @@ version = "0.1.0"
 dependencies = [
  "async-openai",
  "buffer",
- "colored",
  "data",
  "dirs 6.0.0",
  "encoding_rs",
  "futures-util",
+ "gbnf",
  "gbnf-validator",
  "gguf",
- "include_url_macro",
- "indoc",
  "listener-interface",
  "llama-cpp-2",
- "minijinja",
  "rand 0.9.1",
  "serde",
  "serde_json",

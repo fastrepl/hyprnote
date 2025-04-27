@@ -13,7 +13,6 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use hypr_gguf::GgufExt;
 
 mod error;
-mod grammar;
 mod message;
 mod stream;
 
@@ -101,7 +100,7 @@ impl Llama {
                             let mut n_cur = batch.n_tokens();
                             let mut decoder = encoding_rs::UTF_8.new_decoder();
                             let mut sampler = LlamaSampler::chain_simple([
-                                LlamaSampler::grammar(&model, grammar::MARKDOWN_GRAMMAR, "root"),
+                                LlamaSampler::grammar(&model, hypr_gbnf::ENHANCE_AUTO, "root"),
                                 LlamaSampler::temp(0.8),
                                 LlamaSampler::penalties(0, 1.4, 0.1, 0.0),
                                 LlamaSampler::mirostat_v2(1234, 3.0, 0.2),

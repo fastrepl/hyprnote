@@ -8,3 +8,6 @@ minijinja = { workspace = true }
 
 [dev-dependencies]
 gbnf-validator = { workspace = true }
+
+colored = "3"
+indoc = "2"

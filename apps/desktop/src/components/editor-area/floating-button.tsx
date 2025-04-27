@@ -172,11 +172,7 @@ function IconToggle({ showRefresh }: { showRefresh: boolean }) {
   );
 }
 
-interface SparklingIconProps extends React.ImgHTMLAttributes<HTMLImageElement> {
-  size?: number;
-}
-
-function SparklingIcon({ size = 20, className, ...rest }: SparklingIconProps) {
+function SparklingIcon({ size = 20, className }: { size?: number; className?: string }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const iconPaths = [
     "/icons/sparkle 1.svg",
@@ -200,7 +196,6 @@ function SparklingIcon({ size = 20, className, ...rest }: SparklingIconProps) {
       width={size}
       height={size}
       className={cn("inline-block", className)}
-      {...rest}
     />
   );
 }

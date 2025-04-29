@@ -41,6 +41,7 @@ const endpointSchema = z.object({
     (value) => !value.includes("chat/completions"),
     { message: "`/chat/completions` will be appended automatically" },
   ),
+  api_key: z.string().optional(),
 });
 type FormValues = z.infer<typeof endpointSchema>;
 
@@ -96,6 +97,7 @@ export default function LocalAI() {
     form.reset({
       model: getCustomLLMModel.data || "",
       api_base: customLLMConnection.data?.api_base || "",
+      api_key: customLLMConnection.data?.api_key || "",
     });
   }, [getCustomLLMModel.data, customLLMConnection.data]);
 
@@ -108,7 +110,7 @@ export default function LocalAI() {
       if (!form.formState.errors.api_base && value.api_base) {
         setCustomLLMConnection.mutate({
           api_base: value.api_base,
-          api_key: customLLMConnection.data?.api_key ?? null,
+          api_key: value.api_key || null,
         });
       }
     });
@@ -136,6 +138,11 @@ export default function LocalAI() {
       return models.map((model, index) => ({ model, isDownloaded: downloadedModels[index] }));
     },
   });
+
+  const isLocalEndpoint = () => {
+    const apiBase = form.watch("api_base");
+    return apiBase && (apiBase.includes("localhost") || apiBase.includes("127.0.0.1"));
+  };
 
   return (
     <div className="space-y-6">
@@ -306,6 +313,33 @@ export default function LocalAI() {
                               </FormItem>
                             )}
                           />
+
+                          {!isLocalEndpoint() && (
+                            <FormField
+                              control={form.control}
+                              name="api_key"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-sm font-medium">
+                                    <Trans>API Key</Trans>
+                                  </FormLabel>
+                                  <FormDescription className="text-xs">
+                                    <Trans>Enter the API key for your custom LLM endpoint (optional)</Trans>
+                                  </FormDescription>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      type="password"
+                                      placeholder="sk-..."
+                                      disabled={!customLLMEnabled.data}
+                                      className="focus-visible:ring-1 focus-visible:ring-offset-0"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
                         </form>
                       </Form>
                     </div>

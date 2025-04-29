@@ -7,10 +7,13 @@ pub trait ConnectorPluginExt<R: tauri::Runtime> {
     fn connector_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
 
     fn list_custom_llm_models(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
+
     fn get_custom_llm_model(&self) -> Result<Option<String>, crate::Error>;
     fn set_custom_llm_model(&self, model: String) -> Result<(), crate::Error>;
+
     fn set_custom_llm_enabled(&self, enabled: bool) -> Result<(), crate::Error>;
     fn get_custom_llm_enabled(&self) -> Result<bool, crate::Error>;
+
     fn get_custom_llm_connection(&self) -> Result<Option<Connection>, crate::Error>;
     fn set_custom_llm_connection(&self, connection: Connection) -> Result<(), crate::Error>;
 

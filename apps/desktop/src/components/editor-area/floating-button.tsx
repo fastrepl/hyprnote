@@ -1,9 +1,9 @@
-import { RefreshCwIcon, TypeOutlineIcon, ZapIcon } from "lucide-react";
+import { RefreshCwIcon, TypeOutlineIcon, XIcon, ZapIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { Session } from "@hypr/plugin-db";
-import { SplashLoader } from "@hypr/ui/components/ui/splash";
+import { SplashLoader as EnhanceWIP } from "@hypr/ui/components/ui/splash";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 
@@ -88,14 +88,16 @@ export function FloatingButton({
         className={enhanceButtonClasses}
       >
         {isEnhancePending
-          ? <SplashLoader size={20} strokeWidth={2} />
-          : <IconToggle showRefresh={showRefresh} />}
+          ? isHovered
+            ? <XIcon size={20} />
+            : <EnhanceWIP size={20} strokeWidth={2} />
+          : <RunOrRerun showRefresh={showRefresh} />}
       </button>
     </div>
   );
 }
 
-function IconToggle({ showRefresh }: { showRefresh: boolean }) {
+function RunOrRerun({ showRefresh }: { showRefresh: boolean }) {
   return (
     <div className="relative h-5 w-5">
       <div

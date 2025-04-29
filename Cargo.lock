@@ -13531,6 +13531,7 @@ dependencies = [
  "tauri-specta",
  "thiserror 2.0.12",
  "tracing",
+ "window-vibrancy",
 ]
 
 [[package]]

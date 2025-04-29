@@ -18,9 +18,10 @@ serde = { workspace = true }
 specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 
-tauri = { workspace = true, features = ["test"] }
+tauri = { workspace = true, features = ["macos-private-api"] }
 tauri-plugin-decorum = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+window-vibrancy = "0.6.0"
 
 thiserror = { workspace = true }
 tracing = { workspace = true }

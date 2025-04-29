@@ -239,6 +239,8 @@ impl HyprWindow {
         };
 
         if created {
+            self.apply_vibrancy(&window)?;
+
             #[cfg(target_os = "macos")]
             {
                 use tauri_plugin_decorum::WebviewWindowExt;
@@ -369,7 +371,24 @@ impl HyprWindow {
 
         window.set_focus()?;
         window.show()?;
+
         Ok(window)
+    }
+
+    fn apply_vibrancy(&self, window: &WebviewWindow) -> Result<(), crate::Error> {
+        #[cfg(target_os = "macos")]
+        {
+            use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
+            apply_vibrancy(window, NSVisualEffectMaterial::HudWindow, None, None)?;
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            use window_vibrancy::apply_blur;
+            apply_blur(&window, Some((18, 18, 18, 125)))?;
+        }
+
+        Ok(())
     }
 
     fn window_builder<'a>(
@@ -379,6 +398,7 @@ impl HyprWindow {
     ) -> WebviewWindowBuilder<'a, tauri::Wry, AppHandle<tauri::Wry>> {
         let mut builder = WebviewWindow::builder(app, self.label(), WebviewUrl::App(url.into()))
             .title(self.title())
+            .transparent(true)
             .decorations(true)
             .disable_drag_drop_handler();
 

@@ -4,6 +4,8 @@ use serde::{ser::Serializer, Serialize};
 pub enum Error {
     #[error(transparent)]
     TauriError(#[from] tauri::Error),
+    #[error(transparent)]
+    WindowVibrancyError(#[from] window_vibrancy::Error),
     #[error("monitor not found")]
     MonitorNotFound,
 }

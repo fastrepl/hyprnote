@@ -73,12 +73,11 @@ impl Session {
             None => codes_iso_639::part_1::LanguageCode::En,
         };
 
-        let mut session = {
-            self.app
-                .db_get_session(&session_id)
-                .await?
-                .ok_or(crate::Error::NoneSession)?
-        };
+        let session = self
+            .app
+            .db_get_session(&session_id)
+            .await?
+            .ok_or(crate::Error::NoneSession)?;
 
         let jargons = match self.app.db_get_config(&user_id).await? {
             Some(config) => config.general.jargons,
@@ -247,10 +246,9 @@ impl Session {
 
                     match result {
                         crate::ListenOutputChunk::Transcribe(chunk) => {
-                            update_session(&app, &mut session, chunk.clone())
+                            update_session(&app, &session.id, chunk.clone())
                                 .await
                                 .unwrap();
-
                             timeline.add_transcription(chunk);
                         }
                         crate::ListenOutputChunk::Diarize(chunk) => {
@@ -363,9 +361,18 @@ async fn initialize_timeline(session: &hypr_db_user::Session) -> Timeline {
 
 async fn update_session<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
-    session: &mut hypr_db_user::Session,
+    session_id: impl Into<String>,
     transcript: hypr_listener_interface::TranscriptChunk,
 ) -> Result<(), crate::Error> {
+    use tauri_plugin_db::DatabasePluginExt;
+
+    // TODO: not ideal. We might want to only do "update" everywhere instead of upserts.
+    // We do this because it is highly likely that the session fetched in the listener is stale (session can be updated on the React side).
+    let mut session = app
+        .db_get_session(session_id)
+        .await?
+        .ok_or(crate::Error::NoneSession)?;
+
     session.conversations.push(hypr_db_user::ConversationChunk {
         transcripts: vec![transcript],
         diarizations: vec![],
@@ -373,10 +380,7 @@ async fn update_session<R: tauri::Runtime>(
         end: chrono::Utc::now(),
     });
 
-    {
-        use tauri_plugin_db::DatabasePluginExt;
-        app.db_upsert_session(session.clone()).await.unwrap();
-    }
+    app.db_upsert_session(session.clone()).await.unwrap();
 
     Ok(())
 }

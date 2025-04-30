@@ -20,6 +20,7 @@ tokio-stream = { workspace = true }
 cpal = { workspace = true }
 rodio = { workspace = true, features = ["vorbis"] }
 
+ebur128 = "0.1.10"
 kalosm-sound = { workspace = true, default-features = false }
 ringbuf = "0.4.8"
 

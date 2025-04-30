@@ -775,6 +775,7 @@ dependencies = [
  "bytes",
  "cidre",
  "cpal",
+ "ebur128",
  "futures-channel",
  "futures-util",
  "kalosm-sound",
@@ -3684,6 +3685,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "490bd48eb68fffcfed519b4edbfd82c69cbe741d175b84f0e0cbe8c57cbe0bdd"
 dependencies = [
  "bytemuck",
+]
+
+[[package]]
+name = "ebur128"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e227cc62d64d6fe01abbef48134b9c1f17d470cef1e7a56337ad05b1f81df7f9"
+dependencies = [
+ "bitflags 1.3.2",
+ "dasp_frame",
+ "dasp_sample",
+ "smallvec",
 ]
 
 [[package]]

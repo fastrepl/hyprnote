@@ -32,8 +32,8 @@ const endpointSchema = z.object({
     (value) => !value.includes("192"),
     { message: "Should use 'localhost' or '127.0.0.1' as the host" },
   ).refine(
-    (value) => ["localhost", "127.0.0.1"].some((host) => value.includes(host)),
-    { message: "Only one of 'localhost' or '127.0.0.1' are allowed as the host" },
+    (value) => ["localhost", "127.0.0.1", "openrouter.ai", "api.openai.com"].some((host) => value.includes(host)),
+    { message: "Only one of 'localhost', '127.0.0.1', 'openrouter.ai', or 'api.openai.com' are allowed as the host" },
   ).refine(
     (value) => value.endsWith("/v1"),
     { message: "Should end with '/v1'" },
@@ -142,6 +142,19 @@ export default function LocalAI() {
   const isLocalEndpoint = () => {
     const apiBase = form.watch("api_base");
     return apiBase && (apiBase.includes("localhost") || apiBase.includes("127.0.0.1"));
+  };
+
+  const shouldShowModelsField = () => {
+    const apiBase = form.watch("api_base");
+    const apiKey = form.watch("api_key");
+
+    if (!apiBase) {
+      return false;
+    }
+    if (isLocalEndpoint()) {
+      return true;
+    }
+    return apiKey && apiKey.length > 1;
   };
 
   return (
@@ -262,7 +275,7 @@ export default function LocalAI() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="text-sm font-medium">
-                                  <Trans>API Endpoint</Trans>
+                                  <Trans>API Base</Trans>
                                 </FormLabel>
                                 <FormDescription className="text-xs">
                                   <Trans>Enter the URL for your custom LLM endpoint</Trans>
@@ -280,40 +293,6 @@ export default function LocalAI() {
                             )}
                           />
 
-                          <FormField
-                            control={form.control}
-                            name="model"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm font-medium">
-                                  <Trans>Model</Trans>
-                                </FormLabel>
-                                <FormControl>
-                                  <Select
-                                    disabled={!customLLMEnabled.data}
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                  >
-                                    <SelectTrigger className="focus-visible:ring-1 focus-visible:ring-offset-0">
-                                      <SelectValue placeholder="Select a model" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {customLLMModels.data?.map((model) => (
-                                        <SelectItem key={model} value={model}>{model}</SelectItem>
-                                      ))}
-                                      {!customLLMModels.data?.length && (
-                                        <div className="text-sm text-neutral-500 p-2">
-                                          <Trans>No models available</Trans>
-                                        </div>
-                                      )}
-                                    </SelectContent>
-                                  </Select>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
                           {!isLocalEndpoint() && (
                             <FormField
                               control={form.control}
@@ -324,7 +303,7 @@ export default function LocalAI() {
                                     <Trans>API Key</Trans>
                                   </FormLabel>
                                   <FormDescription className="text-xs">
-                                    <Trans>Enter the API key for your custom LLM endpoint (optional)</Trans>
+                                    <Trans>Enter the API key for your custom LLM endpoint</Trans>
                                   </FormDescription>
                                   <FormControl>
                                     <Input
@@ -334,6 +313,42 @@ export default function LocalAI() {
                                       disabled={!customLLMEnabled.data}
                                       className="focus-visible:ring-1 focus-visible:ring-offset-0"
                                     />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+
+                          {shouldShowModelsField() && (
+                            <FormField
+                              control={form.control}
+                              name="model"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-sm font-medium">
+                                    <Trans>Model</Trans>
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Select
+                                      disabled={!customLLMEnabled.data}
+                                      onValueChange={field.onChange}
+                                      value={field.value}
+                                    >
+                                      <SelectTrigger className="focus-visible:ring-1 focus-visible:ring-offset-0">
+                                        <SelectValue placeholder="Select a model" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {customLLMModels.data?.map((model) => (
+                                          <SelectItem key={model} value={model}>{model}</SelectItem>
+                                        ))}
+                                        {!customLLMModels.data?.length && (
+                                          <div className="text-sm text-neutral-500 p-2">
+                                            <Trans>No models available</Trans>
+                                          </div>
+                                        )}
+                                      </SelectContent>
+                                    </Select>
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>

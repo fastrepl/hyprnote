@@ -245,20 +245,43 @@ impl OpenaiCompatible for ConnectionLLM {
     async fn models(&self) -> Result<Vec<String>, crate::Error> {
         let conn = self.as_ref();
         let api_base = &conn.api_base;
+        let api_key = &conn.api_key;
 
-        let mut url = url::Url::parse(api_base)?;
-        url.set_path("/v1/models");
+        let url = {
+            let mut u = url::Url::parse(api_base)?;
+            u.set_path("/v1/models");
+            u
+        };
 
-        let res: serde_json::Value = reqwest::get(url.to_string()).await?.json().await?;
+        let mut req = reqwest::Client::new().get(url);
+        if let Some(api_key) = api_key {
+            req = req.bearer_auth(api_key);
+        }
+
+        let res: serde_json::Value = req.send().await?.json().await?;
         let data = res["data"].as_array();
 
-        let models = match data {
-            None => vec![],
+        let ids = match data {
+            None => {
+                tracing::error!("{:?}", res);
+                vec![]
+            }
             Some(models) => models
                 .iter()
                 .map(|v| v["id"].as_str().unwrap().to_string())
                 .collect(),
         };
+
+        let models = ids
+            .into_iter()
+            .filter(|id| !id.contains("audio"))
+            .filter(|id| !id.contains("tts"))
+            .filter(|id| !id.contains("image"))
+            .filter(|id| !id.contains("dall-e"))
+            .filter(|id| !id.contains("moderation"))
+            .filter(|id| !id.contains("transcribe"))
+            .filter(|id| !id.contains("embedding"))
+            .collect();
 
         Ok(models)
     }

@@ -225,8 +225,13 @@ msgid "{0}"
 msgstr "{0}"
 
 #: src/components/settings/views/lab.tsx:139
+#: src/components/settings/views/feedback.tsx:49
 msgid "{description}"
 msgstr "{description}"
+
+#: src/components/settings/views/feedback.tsx:45
+msgid "{label}"
+msgstr "{label}"
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:42
 msgid "{selectedCount} calendars selected"
@@ -255,7 +260,7 @@ msgstr "Access Granted"
 #~ msgid "Active"
 #~ msgstr "Active"
 
-#: src/components/settings/views/template.tsx:115
+#: src/components/settings/views/template.tsx:169
 msgid "Add a description..."
 msgstr "Add a description..."
 
@@ -272,8 +277,8 @@ msgstr "Add participant"
 msgid "Admin"
 msgstr "Admin"
 
-#: src/components/settings/components/settings-header.tsx:24
-#: src/components/settings/components/main-sidebar.tsx:37
+#: src/components/settings/components/settings-header.tsx:23
+#: src/components/settings/components/main-sidebar.tsx:39
 msgid "AI"
 msgstr "AI"
 
@@ -327,15 +332,19 @@ msgstr "Ask questions about past meetings"
 msgid "Assistant:"
 msgstr "Assistant:"
 
+#: src/components/editor-area/floating-button.tsx:157
+msgid "Auto Enhance"
+msgstr "Auto Enhance"
+
 #: src/components/settings/components/ai/model-selection.tsx:42
 #~ msgid "Available Models"
 #~ msgstr "Available Models"
 
-#: src/routes/app.settings.tsx:103
+#: src/routes/app.settings.tsx:178
 msgid "Back to Settings"
 msgstr "Back to Settings"
 
-#: src/components/settings/components/settings-header.tsx:36
+#: src/components/settings/components/settings-header.tsx:35
 msgid "Billing"
 msgstr "Billing"
 
@@ -347,7 +356,7 @@ msgstr "Billing features are currently under development and will be available i
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
-#: src/components/settings/components/settings-header.tsx:26
+#: src/components/settings/components/settings-header.tsx:25
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -442,6 +451,10 @@ msgstr "Create agenda"
 msgid "Create new note"
 msgstr "Create new note"
 
+#: src/components/settings/components/settings-header.tsx:64
+msgid "Create new template"
+msgstr "Create new template"
+
 #: src/components/workspace-calendar/event-card.tsx:166
 msgid "Create Note"
 msgstr "Create Note"
@@ -454,7 +467,7 @@ msgstr "Current Plan"
 msgid "Custom LLM Endpoint"
 msgstr "Custom LLM Endpoint"
 
-#: src/components/settings/views/template.tsx:86
+#: src/components/settings/views/template.tsx:141
 #: src/components/settings/views/team.tsx:165
 #: src/components/left-sidebar/notes-list.tsx:323
 msgid "Delete"
@@ -464,11 +477,15 @@ msgstr "Delete"
 #~ msgid "Delete note"
 #~ msgstr "Delete note"
 
-#: src/components/settings/components/template-sections.tsx:125
+#: src/components/settings/components/template-sections.tsx:140
 msgid "Describe the content and purpose of this section"
 msgstr "Describe the content and purpose of this section"
 
-#: src/components/settings/views/template.tsx:109
+#: src/components/settings/views/feedback.tsx:57
+msgid "Describe the issue"
+msgstr "Describe the issue"
+
+#: src/components/settings/views/template.tsx:162
 msgid "Description"
 msgstr "Description"
 
@@ -484,7 +501,7 @@ msgstr "Download"
 msgid "Downloaded"
 msgstr "Downloaded"
 
-#: src/components/settings/views/template.tsx:82
+#: src/components/settings/views/template.tsx:137
 msgid "Duplicate"
 msgstr "Duplicate"
 
@@ -520,7 +537,7 @@ msgstr "Enable"
 #~ msgid "Enhancing Model"
 #~ msgstr "Enhancing Model"
 
-#: src/components/settings/components/template-sections.tsx:119
+#: src/components/settings/components/template-sections.tsx:131
 msgid "Enter a section title"
 msgstr "Enter a section title"
 
@@ -536,14 +553,18 @@ msgstr "Enter the URL for your custom LLM endpoint"
 #~ msgid "Exclude these apps from auto detection"
 #~ msgstr "Exclude these apps from auto detection"
 
-#: src/components/settings/components/settings-header.tsx:32
-#: src/components/settings/components/main-sidebar.tsx:35
+#: src/components/settings/components/settings-header.tsx:31
+#: src/components/settings/components/main-sidebar.tsx:37
 msgid "Extensions"
 msgstr "Extensions"
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:43
 msgid "Extract action items"
 msgstr "Extract action items"
+
+#: src/components/settings/components/main-sidebar.tsx:43
+msgid "Feedback"
+msgstr "Feedback"
 
 #: src/components/settings/views/billing.tsx:47
 msgid "For fast growing teams like energetic startups"
@@ -573,7 +594,7 @@ msgstr "Free Trial"
 msgid "Full name"
 msgstr "Full name"
 
-#: src/components/settings/components/settings-header.tsx:20
+#: src/components/settings/components/settings-header.tsx:19
 #: src/components/settings/components/main-sidebar.tsx:29
 msgid "General"
 msgstr "General"
@@ -590,6 +611,10 @@ msgstr "Grant Access"
 #: src/components/settings/views/general.tsx:124
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr "Help us improve Hyprnote by sharing anonymous usage data"
+
+#: src/components/settings/views/feedback.tsx:29
+msgid "Help us improve the Hyprnote experience by providing feedback."
+msgstr "Help us improve the Hyprnote experience by providing feedback."
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:24
 msgid "How can I help you today?"
@@ -631,7 +656,7 @@ msgstr "Job title"
 msgid "Key decisions"
 msgstr "Key decisions"
 
-#: src/components/settings/components/main-sidebar.tsx:39
+#: src/components/settings/components/main-sidebar.tsx:41
 msgid "Lab"
 msgstr "Lab"
 
@@ -791,7 +816,7 @@ msgstr "No upcoming events with this contact"
 #~ msgid "Not connected"
 #~ msgstr "Not connected"
 
-#: src/components/settings/components/settings-header.tsx:28
+#: src/components/settings/components/settings-header.tsx:27
 #: src/components/settings/components/main-sidebar.tsx:31
 msgid "Notifications"
 msgstr "Notifications"
@@ -876,7 +901,7 @@ msgstr "Play video"
 msgid "Pro"
 msgstr "Pro"
 
-#: src/components/settings/components/settings-header.tsx:22
+#: src/components/settings/components/settings-header.tsx:21
 msgid "Profile"
 msgstr "Profile"
 
@@ -963,7 +988,7 @@ msgstr "Search templates..."
 msgid "Search..."
 msgstr "Search..."
 
-#: src/components/settings/views/template.tsx:121
+#: src/components/settings/views/template.tsx:175
 msgid "Sections"
 msgstr "Sections"
 
@@ -1053,6 +1078,10 @@ msgstr "Start recording"
 msgid "Stop"
 msgstr "Stop"
 
+#: src/components/settings/views/feedback.tsx:69
+msgid "Submit Feedback"
+msgstr "Submit Feedback"
+
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:31
 msgid "Summarize meeting"
 msgstr "Summarize meeting"
@@ -1066,7 +1095,7 @@ msgid "System Audio Access"
 msgstr "System Audio Access"
 
 #: src/components/settings/views/billing.tsx:46
-#: src/components/settings/components/settings-header.tsx:34
+#: src/components/settings/components/settings-header.tsx:33
 msgid "Team"
 msgstr "Team"
 
@@ -1078,7 +1107,8 @@ msgstr "Team management features are currently under development and will be ava
 msgid "Teamspace"
 msgstr "Teamspace"
 
-#: src/components/settings/components/settings-header.tsx:30
+#: src/components/settings/components/settings-header.tsx:29
+#: src/components/settings/components/main-sidebar.tsx:35
 msgid "Templates"
 msgstr "Templates"
 
@@ -1146,7 +1176,7 @@ msgstr "Type to search..."
 msgid "Untitled"
 msgstr "Untitled"
 
-#: src/components/settings/views/template.tsx:68
+#: src/components/settings/views/template.tsx:122
 msgid "Untitled Template"
 msgstr "Untitled Template"
 

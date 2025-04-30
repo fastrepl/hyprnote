@@ -298,9 +298,17 @@ msgstr "Annual"
 msgid "Anyone with the link can view this page"
 msgstr "Anyone with the link can view this page"
 
+#: src/components/settings/views/ai.tsx:278
+msgid "API Base"
+msgstr "API Base"
+
 #: src/components/settings/views/ai.tsx:258
-msgid "API Endpoint"
-msgstr "API Endpoint"
+#~ msgid "API Endpoint"
+#~ msgstr "API Endpoint"
+
+#: src/components/settings/views/ai.tsx:303
+msgid "API Key"
+msgstr "API Key"
 
 #: src/components/settings/views/profile.tsx:168
 msgid "Apple"
@@ -442,7 +450,7 @@ msgstr "Create Note"
 msgid "Current Plan"
 msgstr "Current Plan"
 
-#: src/components/settings/views/ai.tsx:244
+#: src/components/settings/views/ai.tsx:264
 msgid "Custom LLM Endpoint"
 msgstr "Custom LLM Endpoint"
 
@@ -468,11 +476,11 @@ msgstr "Description"
 msgid "Detect meetings automatically"
 msgstr "Detect meetings automatically"
 
-#: src/components/settings/views/ai.tsx:195
+#: src/components/settings/views/ai.tsx:215
 msgid "Download"
 msgstr "Download"
 
-#: src/components/settings/views/ai.tsx:187
+#: src/components/settings/views/ai.tsx:207
 msgid "Downloaded"
 msgstr "Downloaded"
 
@@ -516,7 +524,11 @@ msgstr "Enable"
 msgid "Enter a section title"
 msgstr "Enter a section title"
 
-#: src/components/settings/views/ai.tsx:261
+#: src/components/settings/views/ai.tsx:306
+msgid "Enter the API key for your custom LLM endpoint"
+msgstr "Enter the API key for your custom LLM endpoint"
+
+#: src/components/settings/views/ai.tsx:281
 msgid "Enter the URL for your custom LLM endpoint"
 msgstr "Enter the URL for your custom LLM endpoint"
 
@@ -627,7 +639,7 @@ msgstr "Lab"
 msgid "Language"
 msgstr "Language"
 
-#: src/components/settings/views/ai.tsx:218
+#: src/components/settings/views/ai.tsx:238
 msgid "Language Model"
 msgstr "Language Model"
 
@@ -701,7 +713,7 @@ msgstr "Members"
 msgid "Microphone Access"
 msgstr "Microphone Access"
 
-#: src/components/settings/views/ai.tsx:282
+#: src/components/settings/views/ai.tsx:330
 msgid "Model"
 msgstr "Model"
 
@@ -751,7 +763,7 @@ msgstr "No calendars found"
 msgid "No members found"
 msgstr "No members found"
 
-#: src/components/settings/views/ai.tsx:299
+#: src/components/settings/views/ai.tsx:347
 msgid "No models available"
 msgstr "No models available"
 
@@ -763,7 +775,7 @@ msgstr "No past notes with this contact"
 msgid "No recent notes for this organization"
 msgstr "No recent notes for this organization"
 
-#: src/components/settings/views/ai.tsx:204
+#: src/components/settings/views/ai.tsx:224
 msgid "No speech-to-text models available"
 msgstr "No speech-to-text models available"
 
@@ -999,7 +1011,7 @@ msgstr "Sound"
 #~ msgid "Speech-to-Text"
 #~ msgstr "Speech-to-Text"
 
-#: src/components/settings/views/ai.tsx:148
+#: src/components/settings/views/ai.tsx:168
 msgid "Speech-to-Text Model"
 msgstr "Speech-to-Text Model"
 

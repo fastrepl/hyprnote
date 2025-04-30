@@ -298,8 +298,16 @@ msgstr ""
 msgid "Anyone with the link can view this page"
 msgstr ""
 
+#: src/components/settings/views/ai.tsx:278
+msgid "API Base"
+msgstr ""
+
 #: src/components/settings/views/ai.tsx:258
-msgid "API Endpoint"
+#~ msgid "API Endpoint"
+#~ msgstr ""
+
+#: src/components/settings/views/ai.tsx:303
+msgid "API Key"
 msgstr ""
 
 #: src/components/settings/views/profile.tsx:168
@@ -442,7 +450,7 @@ msgstr ""
 msgid "Current Plan"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:244
+#: src/components/settings/views/ai.tsx:264
 msgid "Custom LLM Endpoint"
 msgstr ""
 
@@ -468,11 +476,11 @@ msgstr ""
 msgid "Detect meetings automatically"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:195
+#: src/components/settings/views/ai.tsx:215
 msgid "Download"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:187
+#: src/components/settings/views/ai.tsx:207
 msgid "Downloaded"
 msgstr ""
 
@@ -516,7 +524,11 @@ msgstr ""
 msgid "Enter a section title"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:261
+#: src/components/settings/views/ai.tsx:306
+msgid "Enter the API key for your custom LLM endpoint"
+msgstr ""
+
+#: src/components/settings/views/ai.tsx:281
 msgid "Enter the URL for your custom LLM endpoint"
 msgstr ""
 
@@ -627,7 +639,7 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:218
+#: src/components/settings/views/ai.tsx:238
 msgid "Language Model"
 msgstr ""
 
@@ -701,7 +713,7 @@ msgstr ""
 msgid "Microphone Access"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:282
+#: src/components/settings/views/ai.tsx:330
 msgid "Model"
 msgstr ""
 
@@ -751,7 +763,7 @@ msgstr ""
 msgid "No members found"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:299
+#: src/components/settings/views/ai.tsx:347
 msgid "No models available"
 msgstr ""
 
@@ -763,7 +775,7 @@ msgstr ""
 msgid "No recent notes for this organization"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:204
+#: src/components/settings/views/ai.tsx:224
 msgid "No speech-to-text models available"
 msgstr ""
 
@@ -999,7 +1011,7 @@ msgstr ""
 #~ msgid "Speech-to-Text"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:148
+#: src/components/settings/views/ai.tsx:168
 msgid "Speech-to-Text Model"
 msgstr ""
 

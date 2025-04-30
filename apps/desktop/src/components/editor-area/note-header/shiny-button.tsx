@@ -5,6 +5,7 @@ interface ShinyButtonProps extends Omit<React.HTMLAttributes<HTMLElement>, keyof
   children: React.ReactNode;
   className?: string;
   onClick?: () => void;
+  disabled?: boolean;
 }
 
 const animationProps = {
@@ -19,7 +20,7 @@ const animationProps = {
   },
 } as AnimationProps;
 
-export default function ShinyButton({ children, className, onClick, ...props }: ShinyButtonProps) {
+export default function ShinyButton({ children, className, onClick, disabled, ...props }: ShinyButtonProps) {
   return (
     <motion.button
       className={cn(
@@ -27,6 +28,7 @@ export default function ShinyButton({ children, className, onClick, ...props }: 
         className,
       )}
       onClick={onClick}
+      disabled={disabled}
       {...animationProps}
       {...props}
     >

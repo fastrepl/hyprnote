@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -19,7 +20,7 @@ import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import ShinyButton from "./shiny-button";
 
 export default function ListenButton({ sessionId }: { sessionId: string }) {
-  const { onboardingSessionId } = useHypr();
+  const { userId, onboardingSessionId } = useHypr();
   const modelDownloaded = useQuery({
     queryKey: ["check-stt-model-downloaded"],
     refetchInterval: 1000,
@@ -66,6 +67,12 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
   const handleStartSession = () => {
     if (ongoingSessionStatus === "inactive") {
       ongoingSessionStore.start(sessionId);
+
+      analyticsCommands.event({
+        event: "onboarding_video_started",
+        distinct_id: userId,
+        session_id: sessionId,
+      });
     }
   };
 
@@ -190,28 +197,20 @@ function WhenInactiveAndMeetingEnded({ disabled, onClick }: { disabled: boolean;
 
 function WhenInactiveAndMeetingNotEndedOnboarding({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <ShinyButton
-          onClick={onClick}
-          className={cn([
-            "w-24 h-9 rounded-full border-2 transition-all cursor-pointer outline-none p-0 flex items-center justify-center gap-1",
-            "bg-neutral-800 border-neutral-700 text-white text-xs font-medium",
-          ])}
-          style={{
-            boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
-          }}
-        >
-          <PlayIcon size={14} />
-          <Trans>Play video</Trans>
-        </ShinyButton>
-      </TooltipTrigger>
-      <TooltipContent side="bottom" align="end">
-        <p>
-          <Trans>Start onboarding video</Trans>
-        </p>
-      </TooltipContent>
-    </Tooltip>
+    <ShinyButton
+      disabled={disabled}
+      onClick={onClick}
+      className={cn([
+        "w-24 h-9 rounded-full border-2 transition-all cursor-pointer outline-none p-0 flex items-center justify-center gap-1",
+        "bg-neutral-800 border-neutral-700 text-white text-xs font-medium",
+      ])}
+      style={{
+        boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
+      }}
+    >
+      <PlayIcon size={14} />
+      <Trans>Play video</Trans>
+    </ShinyButton>
   );
 }
 

@@ -32,7 +32,6 @@ export default function Extensions({
 
   useEffect(() => {
     windowsCommands.windowResizeDefault({ type: "main" }).then(() => {
-      windowsCommands.windowPosition({ type: "main" }, "right-half");
       windowsEvents.mainWindowState.emit({
         left_sidebar_expanded: false,
         right_panel_expanded: true,

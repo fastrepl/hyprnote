@@ -144,8 +144,6 @@ function OnboardingSupport({ session }: { session: Session }) {
 
     if (ongoingSessionStatus === "running_active") {
       windowsCommands.windowShow({ type: "video", value: video }).then(() => {
-        windowsCommands.windowPosition({ type: "video", value: video }, "left-half");
-        windowsCommands.windowPosition({ type: "main" }, "right-half");
         windowsCommands.windowResizeDefault({ type: "video", value: video });
         windowsCommands.windowResizeDefault({ type: "main" });
       });

@@ -1,9 +1,8 @@
-import { useLingui } from "@lingui/react/macro";
-// import { Trans, useLingui } from "@lingui/react/macro";
-// import { FilePlusIcon } from "lucide-react";
+import { Trans, useLingui } from "@lingui/react/macro";
+import { PlusIcon } from "lucide-react";
 
-// import { Button } from "@hypr/ui/components/ui/button";
-// import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { Button } from "@hypr/ui/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { type Tab } from "./types";
 
 interface SettingsHeaderProps {
@@ -48,25 +47,24 @@ export function SettingsHeader({ current, onCreateTemplate }: SettingsHeaderProp
       </h1>
 
       <div className="flex w-40 items-center justify-end" data-tauri-drag-region>
-        {
-          /* {current === "templates" && onCreateTemplate && (
+        {current === "templates" && onCreateTemplate && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
-                size="icon"
+                size="sm"
                 className="flex items-center gap-1 text-sm"
                 onClick={onCreateTemplate}
               >
-                <FilePlusIcon className="h-4 w-4" />
+                <PlusIcon className="h-4 w-4" />
+                Add
               </Button>
             </TooltipTrigger>
             <TooltipContent>
               <Trans>Create new template</Trans>
             </TooltipContent>
           </Tooltip>
-        )} */
-        }
+        )}
       </div>
     </header>
   );

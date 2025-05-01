@@ -1,4 +1,5 @@
-import { type Template } from "@hypr/plugin-db";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { commands as dbCommands, type Template } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -9,64 +10,118 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { Trans, useLingui } from "@lingui/react/macro";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CopyIcon, EditIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
-import { useCallback } from "react";
-import { SectionsList } from "../components/template-sections";
+import { useCallback, useEffect } from "react";
+import { type SubmitHandler, useForm } from "react-hook-form";
+import { z } from "zod";
+import { type Section as TemplateSection, SectionsList } from "../components/template-sections";
+
+const templateSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string(),
+  title: z.string().min(1, "Title cannot be empty"),
+  description: z.string().default(""),
+  tags: z.array(z.string()).default([]),
+  sections: z.array(
+    z.object({
+      title: z.string().min(1, "Section title cannot be empty"),
+      description: z.string(),
+    }),
+  ).default([]),
+});
+
+type TemplateFormData = z.infer<typeof templateSchema>;
 
 interface TemplateEditorProps {
   disabled: boolean;
   template: Template;
-  onTemplateUpdate: (template: Template) => void;
   isCreator?: boolean;
 }
 
 export default function TemplateEditor({
   disabled,
   template,
-  onTemplateUpdate,
   isCreator = true,
 }: TemplateEditorProps) {
   const { t } = useLingui();
-  const handleChangeTitle = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      onTemplateUpdate({ ...template, title: e.target.value });
-    },
-    [onTemplateUpdate, template],
-  );
+  const queryClient = useQueryClient();
 
-  const handleChangeDescription = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      onTemplateUpdate({ ...template, description: e.target.value });
+  const form = useForm<TemplateFormData>({
+    resolver: zodResolver(templateSchema),
+    defaultValues: {
+      ...template,
+      description: template.description ?? "",
+      tags: template.tags ?? [],
+      sections: template.sections ?? [],
     },
-    [onTemplateUpdate, template],
-  );
+    mode: "onBlur",
+  });
+
+  const { register, handleSubmit, watch, setValue, reset, getValues, formState: { errors, isValid, isDirty } } = form;
+
+  const mutation = useMutation({
+    mutationFn: (data: TemplateFormData) => {
+      return dbCommands.upsertTemplate(data as Template);
+    },
+    onSuccess: (savedTemplate) => {
+      console.log("Template saved via mutation:", savedTemplate);
+      queryClient.invalidateQueries({ queryKey: ["templates"] });
+      const resetData = savedTemplate
+        ? {
+          ...savedTemplate,
+          description: savedTemplate.description ?? "",
+          tags: savedTemplate.tags ?? [],
+          sections: savedTemplate.sections ?? [],
+        }
+        : getValues();
+      reset(resetData, { keepValues: false, keepDirty: false });
+    },
+    onError: (error) => {
+      console.error("Failed to save template:", error);
+    },
+  });
+
+  useEffect(() => {
+    reset({
+      ...template,
+      description: template.description ?? "",
+      tags: template.tags ?? [],
+      sections: template.sections ?? [],
+    });
+  }, [template, reset]);
 
   const handleChangeSections = useCallback(
-    (sections: Template["sections"]) => {
-      onTemplateUpdate({ ...template, sections });
+    (sections: TemplateSection[]) => {
+      setValue("sections", sections, { shouldValidate: true, shouldDirty: true });
     },
-    [onTemplateUpdate, template],
+    [setValue],
   );
 
-  const handleDuplicate = useCallback(() => {
-    // TODO: Implement duplicate functionality
-  }, []);
+  const handleBlurSave = () => {
+    if (isDirty && isValid && !disabled) {
+      mutation.mutate(getValues());
+    }
+  };
 
-  const handleDelete = useCallback(() => {
-    // TODO: Implement delete functionality
-  }, []);
+  const onSubmit: SubmitHandler<TemplateFormData> = (data) => {
+    if (!disabled) {
+      mutation.mutate(data);
+    }
+  };
 
   return (
-    <div className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="flex flex-col gap-4 border-b pb-4">
         <div className="flex items-center justify-between">
           <Input
+            {...register("title")}
             disabled={disabled}
-            value={template.title}
-            onChange={handleChangeTitle}
+            onBlur={handleBlurSave}
             className="rounded-none border-0 p-0 !text-2xl font-semibold focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
             placeholder={t`Untitled Template`}
           />
+          {errors.title && <span className="text-red-500 text-xs ml-2">{errors.title.message}</span>}
 
           {isCreator
             ? (
@@ -76,12 +131,12 @@ export default function TemplateEditor({
                     <MoreHorizontalIcon className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={handleDuplicate}>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => {}} className="cursor-pointer">
                     <CopyIcon className="mr-2 h-4 w-4" />
                     <Trans>Duplicate</Trans>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDelete}>
+                  <DropdownMenuItem onClick={() => {}} className="cursor-pointer">
                     <TrashIcon className="mr-2 h-4 w-4" />
                     <Trans>Delete</Trans>
                   </DropdownMenuItem>
@@ -90,18 +145,16 @@ export default function TemplateEditor({
             )
             : (
               <button
-                onClick={handleDuplicate}
+                type="button"
+                onClick={() => {}}
                 className="rounded-md p-2 hover:bg-neutral-100"
               >
                 <EditIcon className="h-4 w-4" />
               </button>
             )}
         </div>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div>Creator: TODO</div>
-          <div>•</div>
-          <div>Permissions: TODO</div>
-        </div>
+
+        <div className="text-sm text-muted-foreground">Creator: John</div>
       </div>
 
       <div className="flex flex-col gap-1">
@@ -109,9 +162,10 @@ export default function TemplateEditor({
           <Trans>Description</Trans>
         </h2>
         <Textarea
+          {...register("description")}
           disabled={disabled}
-          value={template.description}
-          onChange={handleChangeDescription}
+          onBlur={handleBlurSave}
+          className="focus-visible:ring-0 focus-visible:ring-offset-0"
           placeholder={t`Add a description...`}
         />
       </div>
@@ -122,10 +176,20 @@ export default function TemplateEditor({
         </h2>
         <SectionsList
           disabled={disabled}
-          items={template.sections}
+          items={watch("sections") ?? []}
           onChange={handleChangeSections}
         />
+        {errors.sections?.message && <span className="text-red-500 text-xs">{errors.sections.message}</span>}
+        {Array.isArray(errors.sections) && errors.sections.map((err, index) =>
+          err
+            ? (
+              <span key={index} className="text-red-500 text-xs block">
+                Section {index + 1}: {err.title?.message || err.description?.message || "Invalid data"}
+              </span>
+            )
+            : null
+        )}
       </div>
-    </div>
+    </form>
   );
 }

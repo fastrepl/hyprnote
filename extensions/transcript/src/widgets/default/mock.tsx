@@ -7,7 +7,7 @@ import { Session } from "@hypr/plugin-db";
 import { type SessionEvent, TimelineView } from "@hypr/plugin-listener";
 import { OngoingSessionProvider } from "@hypr/utils/contexts";
 import { SessionsProvider } from "@hypr/utils/contexts";
-import { createSessionsStore, createSessionStore } from "@hypr/utils/stores";
+import { createOngoingSessionStore, createSessionsStore, createSessionStore } from "@hypr/utils/stores";
 import { sleep } from "../../utils";
 
 const queryClient = new QueryClient();
@@ -31,6 +31,7 @@ export default function MockProvider({
   }, []);
 
   const sessionsStore = createSessionsStore();
+  const ongoingSessionStore = createOngoingSessionStore(sessionsStore);
 
   const session: Session = {
     id: sessionId ?? crypto.randomUUID(),
@@ -53,7 +54,7 @@ export default function MockProvider({
   return (
     <QueryClientProvider client={queryClient}>
       <SessionsProvider store={sessionsStore}>
-        <OngoingSessionProvider sessionsStore={sessionsStore}>
+        <OngoingSessionProvider store={ongoingSessionStore}>
           {children}
         </OngoingSessionProvider>
       </SessionsProvider>

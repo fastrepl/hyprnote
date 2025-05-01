@@ -25,15 +25,15 @@ import { OngoingSessionProvider, SessionsProvider } from "@hypr/utils/contexts";
 
 export const Route = createFileRoute("/app")({
   component: Component,
-  loader: async ({ context: { sessionsStore } }) => {
+  loader: async ({ context: { sessionsStore, ongoingSessionStore } }) => {
     const isOnboardingNeeded = await commands.isOnboardingNeeded();
-    return { sessionsStore, isOnboardingNeeded };
+    return { sessionsStore, ongoingSessionStore, isOnboardingNeeded };
   },
 });
 
 function Component() {
   const router = useRouter();
-  const { sessionsStore, isOnboardingNeeded } = Route.useLoaderData();
+  const { sessionsStore, ongoingSessionStore, isOnboardingNeeded } = Route.useLoaderData();
 
   const windowLabel = getCurrentWebviewWindowLabel();
   const showNotifications = windowLabel === "main" && !isOnboardingNeeded;
@@ -42,7 +42,7 @@ function Component() {
     <>
       <HyprProvider>
         <SessionsProvider store={sessionsStore}>
-          <OngoingSessionProvider sessionsStore={sessionsStore}>
+          <OngoingSessionProvider store={ongoingSessionStore}>
             <LeftSidebarProvider>
               <RightPanelProvider>
                 <AudioPermissions />

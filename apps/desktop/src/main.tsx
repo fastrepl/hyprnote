@@ -19,7 +19,7 @@ import { broadcastQueryClient } from "./utils";
 import { messages as enMessages } from "./locales/en/messages";
 import { messages as koMessages } from "./locales/ko/messages";
 
-import { createSessionsStore } from "@hypr/utils/stores";
+import { createOngoingSessionStore, createSessionsStore } from "@hypr/utils/stores";
 import { routeTree } from "./routeTree.gen";
 
 import * as Sentry from "@sentry/react";
@@ -42,9 +42,13 @@ const queryClient = new QueryClient({
   },
 });
 
+const sessionsStore = createSessionsStore();
+const ongoingSessionStore = createOngoingSessionStore(sessionsStore);
+
 const context: Context = {
   queryClient,
-  sessionsStore: createSessionsStore(),
+  ongoingSessionStore,
+  sessionsStore,
 };
 
 const router = createRouter({

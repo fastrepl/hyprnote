@@ -2,7 +2,7 @@ import React, { createContext, useContext, useRef } from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
-import { createOngoingSessionStore, createSessionsStore } from "../stores";
+import { createOngoingSessionStore, type OngoingSessionStore } from "../stores";
 
 const OngoingSessionContext = createContext<
   ReturnType<
@@ -12,16 +12,14 @@ const OngoingSessionContext = createContext<
 
 export const OngoingSessionProvider = ({
   children,
-  sessionsStore,
+  store,
 }: {
   children: React.ReactNode;
-  sessionsStore: ReturnType<typeof createSessionsStore>;
+  store: OngoingSessionStore;
 }) => {
-  const storeRef = useRef<ReturnType<typeof createOngoingSessionStore> | null>(
-    null,
-  );
+  const storeRef = useRef<OngoingSessionStore | null>(null);
   if (!storeRef.current) {
-    storeRef.current = createOngoingSessionStore(sessionsStore);
+    storeRef.current = store;
   }
 
   return (

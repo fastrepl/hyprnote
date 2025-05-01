@@ -38,6 +38,8 @@ const initialState: State = {
   enhanceController: null,
 };
 
+export type OngoingSessionStore = ReturnType<typeof createOngoingSessionStore>;
+
 export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof createSessionsStore>) => {
   return createStore<State & Actions>((set, get) => ({
     ...initialState,

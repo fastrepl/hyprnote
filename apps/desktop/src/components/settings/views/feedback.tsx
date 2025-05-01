@@ -1,10 +1,13 @@
+import { Trans } from "@lingui/react/macro";
+import * as Sentry from "@sentry/react";
+import { confirm } from "@tauri-apps/plugin-dialog";
+import { useState } from "react";
+
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Label } from "@hypr/ui/components/ui/label";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { cn } from "@hypr/ui/lib/utils";
-import { Trans } from "@lingui/react/macro";
-import { useState } from "react";
 
 type FeedbackType = "Idea" | "Small Bug" | "Urgent Bug";
 
@@ -20,9 +23,19 @@ export default function Feedback() {
   const [email, setEmail] = useState("");
 
   const handleSubmit = () => {
-    console.log("Feedback submitted:", { type: selectedType, description, email });
-    // TODO: Implement actual submission logic (e.g., send to backend, API)
-    // Optionally clear the form or show a success message
+    confirm("Thank you!", { title: "Send Feedback?" }).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+
+      Sentry.captureFeedback({
+        message: description,
+        email,
+        tags: {
+          type: selectedType,
+        },
+      });
+    });
   };
 
   return (

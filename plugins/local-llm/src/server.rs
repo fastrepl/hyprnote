@@ -216,7 +216,7 @@ fn build_mock_response() -> Pin<Box<dyn futures_util::Stream<Item = String> + Se
     use std::time::Duration;
 
     let content = crate::ONBOARDING_ENHANCED_MD;
-    let chunk_size = 50;
+    let chunk_size = 30;
 
     let chunks = content
         .chars()
@@ -226,7 +226,7 @@ fn build_mock_response() -> Pin<Box<dyn futures_util::Stream<Item = String> + Se
         .collect::<Vec<_>>();
 
     Box::pin(stream::iter(chunks).then(|chunk| async move {
-        tokio::time::sleep(Duration::from_millis(100)).await;
+        tokio::time::sleep(Duration::from_millis(200)).await;
         chunk
     }))
 }

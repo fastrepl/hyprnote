@@ -195,7 +195,7 @@ export function useEnhanceMutation({
 
       const { text, textStream } = streamText({
         abortSignal: abortController.signal,
-        model: provider.languageModel("any"),
+        model: provider.languageModel("onboardingModel"),
         messages: [
           { role: "system", content: systemMessage },
           { role: "user", content: userMessage },

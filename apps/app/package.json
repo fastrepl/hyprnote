@@ -30,7 +30,7 @@
     "@hypr/tiptap": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",
-    "@nangohq/frontend": "^0.53.2",
+    "@nangohq/frontend": "^0.58.4",
     "@remixicon/react": "^4.6.0",
     "@sentry/react": "^8.55.0",
     "@tanstack/react-query": "^5.74.11",

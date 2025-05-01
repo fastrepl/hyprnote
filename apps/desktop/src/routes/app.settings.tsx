@@ -5,22 +5,8 @@ import { ArrowLeft } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { z } from "zod";
 
-import {
-  ExtensionsSidebar,
-  MainSidebar,
-  SettingsHeader,
-  type Tab,
-  TABS,
-} from "@/components/settings/components";
-import {
-  Extensions,
-  Feedback,
-  General,
-  Lab,
-  LocalAI,
-  Notifications,
-  Sound,
-} from "@/components/settings/views";
+import { ExtensionsSidebar, MainSidebar, SettingsHeader, type Tab, TABS } from "@/components/settings/components";
+import { Extensions, Feedback, General, Lab, LocalAI, Notifications, Sound } from "@/components/settings/views";
 import { EXTENSION_CONFIGS, ExtensionName, ExtensionNames } from "@hypr/extension-registry";
 import { type ExtensionDefinition } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -104,7 +90,7 @@ function Component() {
               data-tauri-drag-region
               className="flex items-center h-11 justify-end px-2"
             >
-              {(search.tab === "templates" || search.tab === "extensions") && (
+              {(search.tab === "extensions") && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -119,7 +105,7 @@ function Component() {
               )}
             </div>
 
-            {search.tab !== "templates" && search.tab !== "extensions"
+            {search.tab !== "extensions"
               ? <MainSidebar current={search.tab} onTabClick={handleClickTab} />
               : (
                 <div className="flex h-full flex-col">

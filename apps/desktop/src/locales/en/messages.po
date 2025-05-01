@@ -225,8 +225,13 @@ msgid "{0}"
 msgstr "{0}"
 
 #: src/components/settings/views/lab.tsx:139
+#: src/components/settings/views/feedback.tsx:51
 msgid "{description}"
 msgstr "{description}"
+
+#: src/components/settings/views/feedback.tsx:47
+msgid "{label}"
+msgstr "{label}"
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:42
 msgid "{selectedCount} calendars selected"
@@ -331,7 +336,7 @@ msgstr "Assistant:"
 #~ msgid "Available Models"
 #~ msgstr "Available Models"
 
-#: src/routes/app.settings.tsx:103
+#: src/routes/app.settings.tsx:116
 msgid "Back to Settings"
 msgstr "Back to Settings"
 
@@ -468,6 +473,10 @@ msgstr "Delete"
 msgid "Describe the content and purpose of this section"
 msgstr "Describe the content and purpose of this section"
 
+#: src/components/settings/views/feedback.tsx:59
+msgid "Describe the issue"
+msgstr "Describe the issue"
+
 #: src/components/settings/views/template.tsx:109
 msgid "Description"
 msgstr "Description"
@@ -495,6 +504,10 @@ msgstr "Edit Widgets"
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:97
 #~ msgid "Email"
 #~ msgstr "Email"
+
+#: src/components/settings/views/feedback.tsx:72
+msgid "Email (Optional)"
+msgstr "Email (Optional)"
 
 #: src/components/editor-area/note-header/chips/participants-chip/edit-participant-form.tsx:101
 #~ msgid "Email address"
@@ -545,6 +558,10 @@ msgstr "Extensions"
 msgid "Extract action items"
 msgstr "Extract action items"
 
+#: src/components/settings/components/main-sidebar.tsx:41
+msgid "Feedback"
+msgstr "Feedback"
+
 #: src/components/settings/views/billing.tsx:47
 msgid "For fast growing teams like energetic startups"
 msgstr "For fast growing teams like energetic startups"
@@ -590,6 +607,10 @@ msgstr "Grant Access"
 #: src/components/settings/views/general.tsx:124
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr "Help us improve Hyprnote by sharing anonymous usage data"
+
+#: src/components/settings/views/feedback.tsx:31
+msgid "Help us improve the Hyprnote experience by providing feedback."
+msgstr "Help us improve the Hyprnote experience by providing feedback."
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:24
 msgid "How can I help you today?"
@@ -1053,6 +1074,10 @@ msgstr "Start recording"
 msgid "Stop"
 msgstr "Stop"
 
+#: src/components/settings/views/feedback.tsx:88
+msgid "Submit Feedback"
+msgstr "Submit Feedback"
+
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:31
 msgid "Summarize meeting"
 msgstr "Summarize meeting"
@@ -1194,6 +1219,10 @@ msgstr "View Note"
 #: src/components/settings/views/profile.tsx:193
 msgid "We think different."
 msgstr "We think different."
+
+#: src/components/settings/views/feedback.tsx:82
+msgid "We'll only use this to follow up if needed."
+msgstr "We'll only use this to follow up if needed."
 
 #: src/components/settings/views/billing.tsx:25
 msgid "Works both in-person and remotely"

@@ -167,7 +167,6 @@ export function useEnhanceMutation({
 
       const config = await dbCommands.getConfig();
       const participants = await dbCommands.sessionListParticipants(sessionId);
-      const onboardingOutputExample = await dbCommands.onboardingSessionEnhancedMemoMd();
 
       const fn = sessionId === onboardingSessionId
         ? dbCommands.getTimelineViewOnboarding
@@ -186,9 +185,6 @@ export function useEnhanceMutation({
           editor: rawContent,
           timeline,
           participants,
-          ...(sessionId === onboardingSessionId
-            ? { example: onboardingOutputExample }
-            : {}),
         },
       );
 

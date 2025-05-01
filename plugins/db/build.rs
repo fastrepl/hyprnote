@@ -4,7 +4,6 @@ const COMMANDS: &[&str] = &[
     "upsert_calendar",
     "toggle_calendar_selected",
     // session
-    "onboarding_session_enhanced_memo_md",
     "onboarding_session_id",
     "visit_session",
     "upsert_session",

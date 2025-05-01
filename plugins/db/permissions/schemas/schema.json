@@ -595,30 +595,6 @@
           "markdownDescription": "Denies the list_templates command without any pre-configured scope."
         },
         {
-          "description": "Enables the onboarding_session_enhanced_memo_md command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-onboarding-session-enhanced-memo-html",
-          "markdownDescription": "Enables the onboarding_session_enhanced_memo_md command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the onboarding_session_enhanced_memo_md command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-onboarding-session-enhanced-memo-html",
-          "markdownDescription": "Denies the onboarding_session_enhanced_memo_md command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the onboarding_session_enhanced_memo_md command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-onboarding-session-enhanced-memo-md",
-          "markdownDescription": "Enables the onboarding_session_enhanced_memo_md command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the onboarding_session_enhanced_memo_md command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-onboarding-session-enhanced-memo-md",
-          "markdownDescription": "Denies the onboarding_session_enhanced_memo_md command without any pre-configured scope."
-        },
-        {
           "description": "Enables the onboarding_session_id command without any pre-configured scope.",
           "type": "string",
           "const": "allow-onboarding-session-id",
@@ -823,10 +799,10 @@
           "markdownDescription": "Denies the visit_session command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-onboarding-session-enhanced-memo-html`\n- `allow-onboarding-session-id`\n- `allow-upsert-session`\n- `allow-list-sessions`\n- `allow-get-session`\n- `allow-visit-session`\n- `allow-delete-session`\n- `allow-set-session-event`\n- `allow-session-add-participant`\n- `allow-session-remove-participant`\n- `allow-session-list-participants`\n- `allow-session-get-event`\n- `allow-get-timeline-view`\n- `allow-get-timeline-view-onboarding`\n- `allow-list-calendars`\n- `allow-upsert-calendar`\n- `allow-toggle-calendar-selected`\n- `allow-list-templates`\n- `allow-upsert-template`\n- `allow-delete-template`\n- `allow-get-event`\n- `allow-list-events`\n- `allow-get-config`\n- `allow-set-config`\n- `allow-get-human`\n- `allow-upsert-human`\n- `allow-list-humans`\n- `allow-get-organization`\n- `allow-get-organization-by-user-id`\n- `allow-list-organizations`\n- `allow-list-organization-members`\n- `allow-upsert-organization`\n- `allow-list-chat-groups`\n- `allow-list-chat-messages`\n- `allow-create-chat-group`\n- `allow-upsert-chat-message`\n- `allow-list-all-tags`\n- `allow-list-session-tags`\n- `allow-assign-tag-to-session`\n- `allow-unassign-tag-from-session`\n- `allow-get-extension-mapping`\n- `allow-list-extension-mappings`\n- `allow-upsert-extension-mapping`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-onboarding-session-id`\n- `allow-upsert-session`\n- `allow-list-sessions`\n- `allow-get-session`\n- `allow-visit-session`\n- `allow-delete-session`\n- `allow-set-session-event`\n- `allow-session-add-participant`\n- `allow-session-remove-participant`\n- `allow-session-list-participants`\n- `allow-session-get-event`\n- `allow-get-timeline-view`\n- `allow-get-timeline-view-onboarding`\n- `allow-list-calendars`\n- `allow-upsert-calendar`\n- `allow-toggle-calendar-selected`\n- `allow-list-templates`\n- `allow-upsert-template`\n- `allow-delete-template`\n- `allow-get-event`\n- `allow-list-events`\n- `allow-get-config`\n- `allow-set-config`\n- `allow-get-human`\n- `allow-upsert-human`\n- `allow-list-humans`\n- `allow-get-organization`\n- `allow-get-organization-by-user-id`\n- `allow-list-organizations`\n- `allow-list-organization-members`\n- `allow-upsert-organization`\n- `allow-list-chat-groups`\n- `allow-list-chat-messages`\n- `allow-create-chat-group`\n- `allow-upsert-chat-message`\n- `allow-list-all-tags`\n- `allow-list-session-tags`\n- `allow-assign-tag-to-session`\n- `allow-unassign-tag-from-session`\n- `allow-get-extension-mapping`\n- `allow-list-extension-mappings`\n- `allow-upsert-extension-mapping`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-onboarding-session-enhanced-memo-html`\n- `allow-onboarding-session-id`\n- `allow-upsert-session`\n- `allow-list-sessions`\n- `allow-get-session`\n- `allow-visit-session`\n- `allow-delete-session`\n- `allow-set-session-event`\n- `allow-session-add-participant`\n- `allow-session-remove-participant`\n- `allow-session-list-participants`\n- `allow-session-get-event`\n- `allow-get-timeline-view`\n- `allow-get-timeline-view-onboarding`\n- `allow-list-calendars`\n- `allow-upsert-calendar`\n- `allow-toggle-calendar-selected`\n- `allow-list-templates`\n- `allow-upsert-template`\n- `allow-delete-template`\n- `allow-get-event`\n- `allow-list-events`\n- `allow-get-config`\n- `allow-set-config`\n- `allow-get-human`\n- `allow-upsert-human`\n- `allow-list-humans`\n- `allow-get-organization`\n- `allow-get-organization-by-user-id`\n- `allow-list-organizations`\n- `allow-list-organization-members`\n- `allow-upsert-organization`\n- `allow-list-chat-groups`\n- `allow-list-chat-messages`\n- `allow-create-chat-group`\n- `allow-upsert-chat-message`\n- `allow-list-all-tags`\n- `allow-list-session-tags`\n- `allow-assign-tag-to-session`\n- `allow-unassign-tag-from-session`\n- `allow-get-extension-mapping`\n- `allow-list-extension-mappings`\n- `allow-upsert-extension-mapping`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-onboarding-session-id`\n- `allow-upsert-session`\n- `allow-list-sessions`\n- `allow-get-session`\n- `allow-visit-session`\n- `allow-delete-session`\n- `allow-set-session-event`\n- `allow-session-add-participant`\n- `allow-session-remove-participant`\n- `allow-session-list-participants`\n- `allow-session-get-event`\n- `allow-get-timeline-view`\n- `allow-get-timeline-view-onboarding`\n- `allow-list-calendars`\n- `allow-upsert-calendar`\n- `allow-toggle-calendar-selected`\n- `allow-list-templates`\n- `allow-upsert-template`\n- `allow-delete-template`\n- `allow-get-event`\n- `allow-list-events`\n- `allow-get-config`\n- `allow-set-config`\n- `allow-get-human`\n- `allow-upsert-human`\n- `allow-list-humans`\n- `allow-get-organization`\n- `allow-get-organization-by-user-id`\n- `allow-list-organizations`\n- `allow-list-organization-members`\n- `allow-upsert-organization`\n- `allow-list-chat-groups`\n- `allow-list-chat-messages`\n- `allow-create-chat-group`\n- `allow-upsert-chat-message`\n- `allow-list-all-tags`\n- `allow-list-session-tags`\n- `allow-assign-tag-to-session`\n- `allow-unassign-tag-from-session`\n- `allow-get-extension-mapping`\n- `allow-list-extension-mappings`\n- `allow-upsert-extension-mapping`"
         }
       ]
     }

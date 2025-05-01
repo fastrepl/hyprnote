@@ -1,3 +1,6 @@
+use std::net::{Ipv4Addr, SocketAddr};
+use std::pin::Pin;
+
 use axum::{
     extract::State as AxumState,
     http::StatusCode,
@@ -6,7 +9,6 @@ use axum::{
     Router,
 };
 use futures_util::StreamExt;
-use std::net::{Ipv4Addr, SocketAddr};
 use tower_http::cors::{self, CorsLayer};
 
 use async_openai::types::{
@@ -142,29 +144,11 @@ async fn inference_with_hypr(
         refusal: None,
     };
 
-    if request.stream.unwrap_or(false) {
-        let stream = build_response(model, request)?
-            .map(move |chunk| CreateChatCompletionStreamResponse {
-                choices: vec![ChatChoiceStream {
-                    index: 0,
-                    delta: ChatCompletionStreamResponseDelta {
-                        content: Some(chunk),
-                        ..empty_stream_response_delta.clone()
-                    },
-                    finish_reason: None,
-                    logprobs: None,
-                }],
-                ..empty_stream_response.clone()
-            })
-            .map(|chunk| {
-                Ok::<_, std::convert::Infallible>(
-                    sse::Event::default().data(serde_json::to_string(&chunk).unwrap()),
-                )
-            });
+    let is_stream = request.stream.unwrap_or(false);
 
-        Ok(sse::Sse::new(stream).into_response())
-    } else {
-        let completion = build_response(model, request)?.collect::<String>().await;
+    if !is_stream {
+        let completion =
+            futures_util::StreamExt::collect::<String>(build_response(model, request)?).await;
 
         let res = CreateChatCompletionResponse {
             choices: vec![ChatChoice {
@@ -177,14 +161,41 @@ async fn inference_with_hypr(
             ..empty_response
         };
 
-        Ok(Json(res).into_response())
+        return Ok(Json(res).into_response());
     }
+
+    let res = if request.model == "mock-onboarding" {
+        build_mock_response()
+    } else {
+        build_response(model, request)?
+    };
+
+    let stream = res
+        .map(move |chunk| CreateChatCompletionStreamResponse {
+            choices: vec![ChatChoiceStream {
+                index: 0,
+                delta: ChatCompletionStreamResponseDelta {
+                    content: Some(chunk),
+                    ..empty_stream_response_delta.clone()
+                },
+                finish_reason: None,
+                logprobs: None,
+            }],
+            ..empty_stream_response.clone()
+        })
+        .map(|chunk| {
+            Ok::<_, std::convert::Infallible>(
+                sse::Event::default().data(serde_json::to_string(&chunk).unwrap()),
+            )
+        });
+
+    Ok(sse::Sse::new(stream).into_response())
 }
 
 fn build_response(
     model: &hypr_llama::Llama,
     request: &CreateChatCompletionRequest,
-) -> Result<impl futures_util::Stream<Item = String>, crate::Error> {
+) -> Result<Pin<Box<dyn futures_util::Stream<Item = String> + Send>>, crate::Error> {
     let messages = request
         .messages
         .iter()
@@ -197,5 +208,25 @@ fn build_response(
         grammar: Some(hypr_gbnf::GBNF::Enhance(None).build()),
     };
 
-    model.generate_stream(request).map_err(Into::into)
+    Ok(Box::pin(model.generate_stream(request)?))
+}
+
+fn build_mock_response() -> Pin<Box<dyn futures_util::Stream<Item = String> + Send>> {
+    use futures_util::stream::{self, StreamExt};
+    use std::time::Duration;
+
+    let content = crate::ONBOARDING_ENHANCED_MD;
+    let chunk_size = 50;
+
+    let chunks = content
+        .chars()
+        .collect::<Vec<_>>()
+        .chunks(chunk_size)
+        .map(|c| c.iter().collect::<String>())
+        .collect::<Vec<_>>();
+
+    Box::pin(stream::iter(chunks).then(|chunk| async move {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        chunk
+    }))
 }

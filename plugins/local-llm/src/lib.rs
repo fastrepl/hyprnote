@@ -16,6 +16,8 @@ use manager::ModelManager;
 pub use model::*;
 pub use store::*;
 
+const ONBOARDING_ENHANCED_MD: &str = include_str!("../assets/onboarding-enhanced.md");
+
 const PLUGIN_NAME: &str = "local-llm";
 
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;

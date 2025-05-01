@@ -225,11 +225,11 @@ msgid "{0}"
 msgstr "{0}"
 
 #: src/components/settings/views/lab.tsx:139
-#: src/components/settings/views/feedback.tsx:51
+#: src/components/settings/views/feedback.tsx:64
 msgid "{description}"
 msgstr "{description}"
 
-#: src/components/settings/views/feedback.tsx:47
+#: src/components/settings/views/feedback.tsx:60
 msgid "{label}"
 msgstr "{label}"
 
@@ -336,7 +336,7 @@ msgstr "Assistant:"
 #~ msgid "Available Models"
 #~ msgstr "Available Models"
 
-#: src/routes/app.settings.tsx:116
+#: src/routes/app.settings.tsx:102
 msgid "Back to Settings"
 msgstr "Back to Settings"
 
@@ -473,7 +473,7 @@ msgstr "Delete"
 msgid "Describe the content and purpose of this section"
 msgstr "Describe the content and purpose of this section"
 
-#: src/components/settings/views/feedback.tsx:59
+#: src/components/settings/views/feedback.tsx:72
 msgid "Describe the issue"
 msgstr "Describe the issue"
 
@@ -505,7 +505,7 @@ msgstr "Edit Widgets"
 #~ msgid "Email"
 #~ msgstr "Email"
 
-#: src/components/settings/views/feedback.tsx:72
+#: src/components/settings/views/feedback.tsx:85
 msgid "Email (Optional)"
 msgstr "Email (Optional)"
 
@@ -608,7 +608,7 @@ msgstr "Grant Access"
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr "Help us improve Hyprnote by sharing anonymous usage data"
 
-#: src/components/settings/views/feedback.tsx:31
+#: src/components/settings/views/feedback.tsx:44
 msgid "Help us improve the Hyprnote experience by providing feedback."
 msgstr "Help us improve the Hyprnote experience by providing feedback."
 
@@ -1074,7 +1074,7 @@ msgstr "Start recording"
 msgid "Stop"
 msgstr "Stop"
 
-#: src/components/settings/views/feedback.tsx:88
+#: src/components/settings/views/feedback.tsx:101
 msgid "Submit Feedback"
 msgstr "Submit Feedback"
 
@@ -1220,7 +1220,7 @@ msgstr "View Note"
 msgid "We think different."
 msgstr "We think different."
 
-#: src/components/settings/views/feedback.tsx:82
+#: src/components/settings/views/feedback.tsx:95
 msgid "We'll only use this to follow up if needed."
 msgstr "We'll only use this to follow up if needed."
 

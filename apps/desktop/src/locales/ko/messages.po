@@ -225,11 +225,11 @@ msgid "{0}"
 msgstr ""
 
 #: src/components/settings/views/lab.tsx:139
-#: src/components/settings/views/feedback.tsx:51
+#: src/components/settings/views/feedback.tsx:64
 msgid "{description}"
 msgstr ""
 
-#: src/components/settings/views/feedback.tsx:47
+#: src/components/settings/views/feedback.tsx:60
 msgid "{label}"
 msgstr ""
 
@@ -336,7 +336,7 @@ msgstr ""
 #~ msgid "Available Models"
 #~ msgstr ""
 
-#: src/routes/app.settings.tsx:116
+#: src/routes/app.settings.tsx:102
 msgid "Back to Settings"
 msgstr ""
 
@@ -473,7 +473,7 @@ msgstr ""
 msgid "Describe the content and purpose of this section"
 msgstr ""
 
-#: src/components/settings/views/feedback.tsx:59
+#: src/components/settings/views/feedback.tsx:72
 msgid "Describe the issue"
 msgstr ""
 
@@ -505,7 +505,7 @@ msgstr ""
 #~ msgid "Email"
 #~ msgstr ""
 
-#: src/components/settings/views/feedback.tsx:72
+#: src/components/settings/views/feedback.tsx:85
 msgid "Email (Optional)"
 msgstr ""
 
@@ -608,7 +608,7 @@ msgstr ""
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr ""
 
-#: src/components/settings/views/feedback.tsx:31
+#: src/components/settings/views/feedback.tsx:44
 msgid "Help us improve the Hyprnote experience by providing feedback."
 msgstr ""
 
@@ -1074,7 +1074,7 @@ msgstr ""
 msgid "Stop"
 msgstr ""
 
-#: src/components/settings/views/feedback.tsx:88
+#: src/components/settings/views/feedback.tsx:101
 msgid "Submit Feedback"
 msgstr ""
 
@@ -1220,7 +1220,7 @@ msgstr ""
 msgid "We think different."
 msgstr ""
 
-#: src/components/settings/views/feedback.tsx:82
+#: src/components/settings/views/feedback.tsx:95
 msgid "We'll only use this to follow up if needed."
 msgstr ""
 

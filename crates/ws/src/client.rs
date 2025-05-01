@@ -31,12 +31,10 @@ impl WebSocketClient {
         let ws_stream = (|| self.try_connect(self.request.clone()))
             .retry(
                 ConstantBuilder::default()
-                    .with_max_times(15)
-                    .with_delay(std::time::Duration::from_secs(1)),
+                    .with_max_times(20)
+                    .with_delay(std::time::Duration::from_millis(500)),
             )
             .when(|e| {
-                tracing::error!("ws_connect_failed: {:?}", e);
-
                 if let crate::Error::Connection(te) = e {
                     if let tokio_tungstenite::tungstenite::Error::Http(res) = te {
                         if res.status() == 429 {
@@ -45,7 +43,8 @@ impl WebSocketClient {
                     }
                 }
 
-                false
+                tracing::error!("ws_connect_failed: {:?}", e);
+                true
             })
             .sleep(tokio::time::sleep)
             .await?;
@@ -100,7 +99,7 @@ impl WebSocketClient {
         tracing::info!("connect_async: {:?}", req.uri());
 
         let (ws_stream, _) =
-            tokio::time::timeout(std::time::Duration::from_secs(8), connect_async(req)).await??;
+            tokio::time::timeout(std::time::Duration::from_secs(6), connect_async(req)).await??;
 
         Ok(ws_stream)
     }

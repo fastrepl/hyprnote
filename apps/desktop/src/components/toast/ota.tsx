@@ -1,6 +1,10 @@
+import * as Sentry from "@sentry/react";
 import { useQuery } from "@tanstack/react-query";
+import { getName } from "@tauri-apps/api/app";
 import { Channel } from "@tauri-apps/api/core";
+import { join } from "@tauri-apps/api/path";
 import { message } from "@tauri-apps/plugin-dialog";
+import { exists } from "@tauri-apps/plugin-fs";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
 import { useEffect } from "react";
@@ -9,6 +13,15 @@ import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { DownloadProgress } from "./shared";
 
 export default function OtaNotification() {
+  const appInApplicationsFolder = useQuery({
+    queryKey: ["app-in-applications-folder"],
+    queryFn: async () => {
+      const name = await getName();
+      const path = await join("/Applications", `${name}.app`);
+      return exists(path);
+    },
+  });
+
   const checkForUpdate = useQuery({
     queryKey: ["check-for-update"],
     queryFn: async () => {
@@ -102,12 +115,18 @@ export default function OtaNotification() {
                 updateChannel.onmessage(100);
               }
             }).then(() => {
-              message("Update installed successfully", { kind: "info" });
-              setTimeout(() => {
-                relaunch();
-              }, 2000);
-            }).catch((err) => {
-              message(`Failed to install update: ${err}`, { kind: "error" });
+              message("The app will now restart", { kind: "info", title: "Update Installed" });
+              setTimeout(relaunch, 2000);
+            }).catch((err: any) => {
+              Sentry.captureException(err);
+              if (!appInApplicationsFolder.data) {
+                message("Please move the app to the Applications folder and try again", {
+                  kind: "error",
+                  title: "Update Installation Failed",
+                });
+              } else {
+                message(err, { kind: "error", title: "Update Installation Failed" });
+              }
             });
           },
           primary: true,

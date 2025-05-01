@@ -219,8 +219,8 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
-#: src/components/editor-area/note-header/listen-button.tsx:186
-#: src/components/editor-area/note-header/listen-button.tsx:233
+#: src/components/editor-area/note-header/listen-button.tsx:193
+#: src/components/editor-area/note-header/listen-button.tsx:232
 msgid "{0}"
 msgstr ""
 
@@ -659,7 +659,7 @@ msgstr ""
 msgid "Live summary of the meeting"
 msgstr ""
 
-#: src/components/settings/views/extension.tsx:126
+#: src/components/settings/views/extension.tsx:125
 msgid "Loading extension details..."
 msgstr ""
 
@@ -848,7 +848,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:317
+#: src/components/editor-area/note-header/listen-button.tsx:316
 msgid "Pause"
 msgstr ""
 
@@ -868,7 +868,7 @@ msgstr ""
 #~ msgid "Play again"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:206
+#: src/components/editor-area/note-header/listen-button.tsx:212
 msgid "Play video"
 msgstr ""
 
@@ -917,7 +917,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:95
+#: src/components/editor-area/note-header/listen-button.tsx:102
 msgid "Resume"
 msgstr ""
 
@@ -1036,10 +1036,10 @@ msgid "Start Monthly Plan"
 msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:211
-msgid "Start onboarding video"
-msgstr ""
+#~ msgid "Start onboarding video"
+#~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:161
+#: src/components/editor-area/note-header/listen-button.tsx:168
 msgid "Start recording"
 msgstr ""
 
@@ -1049,7 +1049,7 @@ msgstr ""
 #~ msgid "Start Server"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:325
+#: src/components/editor-area/note-header/listen-button.tsx:324
 msgid "Stop"
 msgstr ""
 

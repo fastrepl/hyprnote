@@ -116,7 +116,17 @@ impl HyprWindow {
     ) -> Result<(), crate::Error> {
         if let Some(window) = self.get(app) {
             let mut url = window.url().unwrap();
-            url.set_path(path.as_ref());
+
+            let path_str = path.as_ref();
+            if let Some(query_index) = path_str.find('?') {
+                let (path_part, query_part) = path_str.split_at(query_index);
+                url.set_path(path_part);
+                url.set_query(Some(&query_part[1..]));
+            } else {
+                url.set_path(path_str);
+                url.set_query(None);
+            }
+
             window.navigate(url)?;
         }
 

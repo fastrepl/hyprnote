@@ -5,14 +5,32 @@ import { ArrowLeft } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { z } from "zod";
 
-import { ExtensionsSidebar, MainSidebar, SettingsHeader, type Tab, TABS } from "@/components/settings/components";
-import { Extensions, General, Lab, LocalAI, Notifications, Sound } from "@/components/settings/views";
+import {
+  ExtensionsSidebar,
+  MainSidebar,
+  SettingsHeader,
+  type Tab,
+  TABS,
+  TemplatesSidebar,
+} from "@/components/settings/components";
+import {
+  Extensions,
+  Feedback,
+  General,
+  Lab,
+  LocalAI,
+  Notifications,
+  Sound,
+  TemplateEditor,
+} from "@/components/settings/views";
+import { useHypr } from "@/contexts";
 import { EXTENSION_CONFIGS, ExtensionName, ExtensionNames } from "@hypr/extension-registry";
-import { type ExtensionDefinition } from "@hypr/plugin-db";
+import { commands as dbCommands, type ExtensionDefinition, type Template } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 
 const schema = z.object({
-  tab: z.enum(TABS).default("general"),
+  tab: z.enum(TABS.map(t => t.name) as [Tab, ...Tab[]]).default("general"),
   extension: z.enum(ExtensionNames).default(ExtensionNames[0]),
 });
 
@@ -23,9 +41,72 @@ export const Route = createFileRoute(PATH)({
 });
 
 function Component() {
+  const { userId } = useHypr();
   const navigate = useNavigate();
   const search = useSearch({ from: PATH });
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+
+  const { data: templatesData } = useQuery({
+    queryKey: ["templates"],
+    queryFn: () => dbCommands.listTemplates(),
+  });
+
+  const customTemplates = useMemo(() => {
+    if (!templatesData || !userId) {
+      return [];
+    }
+    return templatesData.filter(template => template.user_id === userId);
+  }, [templatesData, userId]);
+
+  const builtinTemplates = useMemo(() => {
+    if (!templatesData || !userId) {
+      return [];
+    }
+    return templatesData.filter(template => template.user_id !== userId);
+  }, [templatesData, userId]);
+
+  const filteredCustomTemplates = useMemo(() => {
+    if (!searchQuery) {
+      return customTemplates;
+    }
+    const query = searchQuery.toLowerCase();
+    return customTemplates.filter(template =>
+      template.title.toLowerCase().includes(query)
+      || template.description.toLowerCase().includes(query)
+      || template.tags.some(tag => tag.toLowerCase().includes(query))
+    );
+  }, [customTemplates, searchQuery]);
+
+  const filteredBuiltinTemplates = useMemo(() => {
+    if (!searchQuery) {
+      return builtinTemplates;
+    }
+    const query = searchQuery.toLowerCase();
+    return builtinTemplates.filter(template =>
+      template.title.toLowerCase().includes(query)
+      || template.description.toLowerCase().includes(query)
+      || template.tags.some(tag => tag.toLowerCase().includes(query))
+    );
+  }, [builtinTemplates, searchQuery]);
+
+  const handleClickTab = (tab: Tab) => {
+    navigate({ to: PATH, search: { ...search, tab } });
+    setSearchQuery("");
+  };
+
+  const handleCreateTemplate = useCallback(() => {
+    const newTemplate: Template = {
+      id: crypto.randomUUID(),
+      user_id: userId,
+      title: "Untitled Template",
+      description: "",
+      tags: [],
+      sections: [],
+    };
+    setSelectedTemplate(newTemplate.id);
+    handleClickTab("templates");
+  }, [userId, handleClickTab]);
 
   const extensionsList = useMemo(() => {
     return EXTENSION_CONFIGS.map(
@@ -41,11 +122,6 @@ function Component() {
       } as ExtensionDefinition),
     );
   }, []);
-
-  const handleClickTab = (tab: Tab) => {
-    navigate({ to: PATH, search: { ...search, tab } });
-    setSearchQuery("");
-  };
 
   const filteredExtensions = useMemo(() => {
     if (!searchQuery) {
@@ -90,8 +166,7 @@ function Component() {
               data-tauri-drag-region
               className="flex items-center h-11 justify-end px-2"
             >
-              {/* {(current === "templates" || current === "extensions") && ( */}
-              {search.tab === "extensions" && (
+              {(search.tab === "templates" || search.tab === "extensions") && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -106,13 +181,11 @@ function Component() {
               )}
             </div>
 
-            {/* {current !== "templates" && current !== "extensions" */}
-            {search.tab !== "extensions"
+            {search.tab !== "templates" && search.tab !== "extensions"
               ? <MainSidebar current={search.tab} onTabClick={handleClickTab} />
               : (
                 <div className="flex h-full flex-col">
-                  {
-                    /* {current === "templates" && (
+                  {search.tab === "templates" && (
                     <TemplatesSidebar
                       searchQuery={searchQuery}
                       onSearchChange={handleSearchChange}
@@ -121,8 +194,7 @@ function Component() {
                       selectedTemplate={selectedTemplate}
                       onTemplateSelect={setSelectedTemplate}
                     />
-                  )} */
-                  }
+                  )}
 
                   {search.tab === "extensions" && (
                     <ExtensionsSidebar
@@ -140,13 +212,27 @@ function Component() {
           <div className="flex-1 flex h-full w-full flex-col overflow-hidden">
             <SettingsHeader
               current={search.tab}
-              // onCreateTemplate={current === "templates" ? handleCreateTemplate : undefined}
+              onCreateTemplate={search.tab === "templates" ? handleCreateTemplate : undefined}
             />
 
             <div className="flex-1 overflow-auto p-6">
               {search.tab === "general" && <General />}
               {search.tab === "notifications" && <Notifications />}
               {search.tab === "sound" && <Sound />}
+              {search.tab === "templates" && (
+                <TemplateEditor
+                  disabled={false}
+                  template={customTemplates.find(template => template.id === selectedTemplate)
+                    || builtinTemplates.find(template => template.id === selectedTemplate) || {
+                    id: selectedTemplate || "",
+                    title: "",
+                    description: "",
+                    sections: [],
+                    tags: [],
+                    user_id: userId,
+                  }}
+                />
+              )}
               {search.tab === "extensions" && (
                 <Extensions
                   selectedExtension={selectedExtension}
@@ -155,6 +241,7 @@ function Component() {
               )}
               {search.tab === "ai" && <LocalAI />}
               {search.tab === "lab" && <Lab />}
+              {search.tab === "feedback" && <Feedback />}
             </div>
           </div>
         </div>

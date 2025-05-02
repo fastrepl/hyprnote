@@ -14,11 +14,6 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:198
-msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
-msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
-
-#. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:22
 msgid "{days} day{plural} later"
 msgstr "{days} day{plural} later"
@@ -215,6 +210,11 @@ msgstr "{days} days later"
 msgid "{weeks} weeks later"
 msgstr "{weeks} weeks later"
 
+#. js-lingui-explicit-id
+#: src/components/settings/views/general.tsx:198
+#~ msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
+#~ msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
+
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
@@ -365,7 +365,7 @@ msgstr "CEO"
 #~ msgid "Choose the language you want to use for the application interface"
 #~ msgstr "Choose the language you want to use for the application interface"
 
-#: src/components/settings/views/general.tsx:155
+#: src/components/settings/views/general.tsx:135
 msgid "Choose the language you want to use for the speech-to-text model and language model"
 msgstr "Choose the language you want to use for the speech-to-text model and language model"
 
@@ -555,7 +555,7 @@ msgstr "Get Started"
 msgid "Grant Access"
 msgstr "Grant Access"
 
-#: src/components/settings/views/general.tsx:129
+#: src/components/settings/views/general.tsx:109
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr "Help us improve Hyprnote by sharing anonymous usage data"
 
@@ -571,6 +571,10 @@ msgstr "Hmm... this is off..."
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
 
+#: src/components/editor-area/note-header/chips/instruction-chip.tsx:66
+msgid "Instruction"
+msgstr "Instruction"
+
 #: src/components/settings/views/billing.tsx:38
 msgid "Integration with other apps like Notion and Google Calendar"
 msgstr "Integration with other apps like Notion and Google Calendar"
@@ -584,8 +588,8 @@ msgid "Invite members"
 msgstr "Invite members"
 
 #: src/components/settings/views/general.tsx:186
-msgid "Jargons"
-msgstr "Jargons"
+#~ msgid "Jargons"
+#~ msgstr "Jargons"
 
 #: src/components/settings/views/profile.tsx:139
 msgid "Job title"
@@ -599,7 +603,7 @@ msgstr "Key decisions"
 msgid "Lab"
 msgstr "Lab"
 
-#: src/components/settings/views/general.tsx:152
+#: src/components/settings/views/general.tsx:132
 msgid "Language"
 msgstr "Language"
 
@@ -842,7 +846,7 @@ msgstr "Send invite"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/settings/views/general.tsx:126
+#: src/components/settings/views/general.tsx:106
 msgid "Share usage data"
 msgstr "Share usage data"
 
@@ -988,7 +992,7 @@ msgid "View calendar"
 msgstr "View calendar"
 
 #: src/components/left-sidebar/events-list.tsx:147
-#: src/components/editor-area/note-header/chips/event-chip.tsx:43
+#: src/components/editor-area/note-header/chips/event-chip.tsx:50
 msgid "View in calendar"
 msgstr "View in calendar"
 
@@ -1013,8 +1017,8 @@ msgid "Works offline"
 msgstr "Works offline"
 
 #: src/components/settings/views/general.tsx:189
-msgid "You can make Hyprnote takes these words into account when transcribing"
-msgstr "You can make Hyprnote takes these words into account when transcribing"
+#~ msgid "You can make Hyprnote takes these words into account when transcribing"
+#~ msgstr "You can make Hyprnote takes these words into account when transcribing"
 
 #: src/components/settings/views/profile.tsx:213
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"

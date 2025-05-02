@@ -104,24 +104,24 @@ export default function EditorArea({
           enhancedContent && "pb-10",
         ])}
         onClick={(e) => {
-          e.stopPropagation();
-          safelyFocusEditor();
+          if (!(e.target instanceof HTMLAnchorElement)) {
+            e.stopPropagation();
+            safelyFocusEditor();
+          }
         }}
       >
-        <div>
-          {editable
-            ? (
-              <Editor
-                key={editorKey}
-                ref={editorRef}
-                handleChange={handleChangeNote}
-                initialContent={noteContent}
-                editable={enhance.status !== "pending"}
-                setContentFromOutside={!showRaw && enhance.status === "pending"}
-              />
-            )
-            : <Renderer ref={editorRef} initialContent={noteContent} />}
-        </div>
+        {editable
+          ? (
+            <Editor
+              key={editorKey}
+              ref={editorRef}
+              handleChange={handleChangeNote}
+              initialContent={noteContent}
+              editable={enhance.status !== "pending"}
+              setContentFromOutside={!showRaw && enhance.status === "pending"}
+            />
+          )
+          : <Renderer ref={editorRef} initialContent={noteContent} />}
       </div>
 
       <AnimatePresence>

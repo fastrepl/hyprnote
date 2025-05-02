@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:193
+#: src/components/settings/views/general.tsx:198
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -365,7 +365,7 @@ msgstr ""
 #~ msgid "Choose the language you want to use for the application interface"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:150
+#: src/components/settings/views/general.tsx:155
 msgid "Choose the language you want to use for the speech-to-text model and language model"
 msgstr ""
 
@@ -555,7 +555,7 @@ msgstr ""
 msgid "Grant Access"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:124
+#: src/components/settings/views/general.tsx:129
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr ""
 
@@ -583,7 +583,7 @@ msgstr ""
 msgid "Invite members"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:181
+#: src/components/settings/views/general.tsx:186
 msgid "Jargons"
 msgstr ""
 
@@ -599,7 +599,7 @@ msgstr ""
 msgid "Lab"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:147
+#: src/components/settings/views/general.tsx:152
 msgid "Language"
 msgstr ""
 
@@ -842,7 +842,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:121
+#: src/components/settings/views/general.tsx:126
 msgid "Share usage data"
 msgstr ""
 
@@ -1012,7 +1012,7 @@ msgstr ""
 msgid "Works offline"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:184
+#: src/components/settings/views/general.tsx:189
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr ""
 

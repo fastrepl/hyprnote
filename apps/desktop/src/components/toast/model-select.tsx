@@ -3,16 +3,11 @@ import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 
-/**
- * Shows a toast notification advising the user to switch their STT model
- * when they change the language settings and are using an English-specific model.
- * @param language The language code that was selected
- */
 export async function showModelSelectToast(language: string) {
   const currentModel = await localSttCommands.getCurrentModel();
   const englishModels: SupportedModel[] = ["QuantizedTinyEn", "QuantizedBaseEn", "QuantizedSmallEn"];
 
-  if (!englishModels.includes(currentModel)) {
+  if (language === "en" || !englishModels.includes(currentModel)) {
     return;
   }
 
@@ -20,20 +15,19 @@ export async function showModelSelectToast(language: string) {
 
   toast({
     id,
-    title: "Speech Recognition Model",
+    title: "Speech-to-Text Model Mismatch",
     content: (
-      <div className="space-y-1">
+      <div className="space-y-2">
         <div>
-          You've changed your display language. You may need to switch your speech recognition model to match.
+          English-only model can not be used with non-English languages.
         </div>
         <Button
           variant="default"
           onClick={() => {
             windowsCommands.windowShow({ type: "settings" }).then(() => {
-              setTimeout(() => {
-                window.location.href = "/app/settings?tab=ai";
-              }, 500);
+              windowsCommands.windowEmitNavigate({ type: "settings" }, "/app/settings?tab=ai");
             });
+
             sonnerToast.dismiss(id);
           }}
         >
@@ -43,8 +37,4 @@ export async function showModelSelectToast(language: string) {
     ),
     dismissible: true,
   });
-}
-
-export default function ModelSelectNotification() {
-  return null;
 }

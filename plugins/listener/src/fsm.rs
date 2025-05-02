@@ -101,11 +101,9 @@ impl Session {
             let mut input = hypr_audio::AudioInput::from_mic();
             input.stream()
         };
-        let mic_sample_rate = mic_sample_stream.sample_rate();
         let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);
 
-        let speaker_sample_stream =
-            hypr_audio::AudioInput::from_speaker(Some(mic_sample_rate)).stream();
+        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
         let mut speaker_stream = speaker_sample_stream.resample(SAMPLE_RATE).chunks(1024);
 
         let chunk_buffer_size: usize = 1024;

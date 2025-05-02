@@ -38,6 +38,8 @@ brew install cmake
 # cidre uses this for audio capture and types
 xcode-select --install
 # Installing the tools
+xcodebuild -runFirstLaunch
+# Installing the tools
 npm install -g pnpm turbo
 ```
 

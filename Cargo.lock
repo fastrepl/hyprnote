@@ -2221,7 +2221,7 @@ dependencies = [
 [[package]]
 name = "cidre"
 version = "0.7.0"
-source = "git+https://github.com/yury/cidre?rev=6af0cf7#6af0cf7db0c5503f0a207cf1e83b2e151656c173"
+source = "git+https://github.com/yury/cidre?rev=4f0eff4#4f0eff4bb001462ee82076d8acff45936c6f5079"
 dependencies = [
  "cidre-macros",
  "parking_lot 0.12.3",
@@ -2231,7 +2231,7 @@ dependencies = [
 [[package]]
 name = "cidre-macros"
 version = "0.1.0"
-source = "git+https://github.com/yury/cidre?rev=6af0cf7#6af0cf7db0c5503f0a207cf1e83b2e151656c173"
+source = "git+https://github.com/yury/cidre?rev=4f0eff4#4f0eff4bb001462ee82076d8acff45936c6f5079"
 
 [[package]]
 name = "cipher"

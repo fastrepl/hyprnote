@@ -127,7 +127,7 @@ function Component() {
               current={search.tab}
             />
 
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 overflow-y-auto p-6">
               {search.tab === "general" && <General />}
               {search.tab === "notifications" && <Notifications />}
               {search.tab === "sound" && <Sound />}

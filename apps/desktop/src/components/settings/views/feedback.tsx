@@ -1,4 +1,4 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import * as Sentry from "@sentry/react";
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { useState } from "react";
@@ -9,16 +9,18 @@ import { Label } from "@hypr/ui/components/ui/label";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { cn } from "@hypr/ui/lib/utils";
 
-type FeedbackType = "Idea" | "Small Bug" | "Urgent Bug";
-
-const feedbackTypes: { type: FeedbackType; label: string; description: string }[] = [
-  { type: "Idea", label: "Idea", description: "Ooh! Suggestion!" },
-  { type: "Small Bug", label: "Small Bug", description: "Hmm... this is off..." },
-  { type: "Urgent Bug", label: "Urgent Bug", description: "Ugh! Can't use it!" },
-];
+type FeedbackType = "idea" | "small-bug" | "urgent-bug";
 
 export default function Feedback() {
-  const [selectedType, setSelectedType] = useState<FeedbackType>("Small Bug");
+  const { t } = useLingui();
+
+  const feedbackTypes: { type: FeedbackType; label: string; description: string }[] = [
+    { type: "idea", label: t`💡 Idea`, description: t`Ooh! Suggestion!` },
+    { type: "small-bug", label: t`🐛 Small Bug`, description: t`Hmm... this is off...` },
+    { type: "urgent-bug", label: t`🚨 Urgent Bug`, description: t`Ugh! Can't use it!` },
+  ];
+
+  const [selectedType, setSelectedType] = useState<FeedbackType>("small-bug");
   const [description, setDescription] = useState("");
   const [email, setEmail] = useState("");
 
@@ -39,13 +41,13 @@ export default function Feedback() {
   };
 
   return (
-    <div className="flex h-full flex-col space-y-6">
+    <div className="space-y-6">
       <p className="text-sm text-neutral-600">
         <Trans>Help us improve the Hyprnote experience by providing feedback.</Trans>
       </p>
 
       <div className="grid grid-cols-3 gap-4">
-        {feedbackTypes.map(({ type, label, description }, index) => (
+        {feedbackTypes.map(({ type, label, description }) => (
           <Button
             key={type}
             variant="outline"
@@ -55,19 +57,17 @@ export default function Feedback() {
             )}
             onClick={() => setSelectedType(type)}
           >
-            <div className="flex w-full items-center justify-between">
-              <span className="font-medium">
-                {index + 1}. <Trans>{label}</Trans>
-              </span>
+            <div className="font-medium">
+              {label}
             </div>
-            <span className="text-sm text-neutral-600">
-              <Trans>{description}</Trans>
-            </span>
+            <div className="text-sm text-neutral-600">
+              {description}
+            </div>
           </Button>
         ))}
       </div>
 
-      <div className="flex flex-1 flex-col space-y-2">
+      <div className="space-y-2">
         <Label htmlFor="feedback-description" className="sr-only">
           <Trans>Describe the issue</Trans>
         </Label>
@@ -76,7 +76,7 @@ export default function Feedback() {
           placeholder="Describe the issue..."
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="min-h-[150px] flex-1 resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="h-40 resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
       </div>
 
@@ -90,17 +90,16 @@ export default function Feedback() {
           placeholder="your@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="focus-visible:ring-0 focus-visible:ring-offset-0"
         />
         <p className="text-xs text-neutral-500">
           <Trans>We'll only use this to follow up if needed.</Trans>
         </p>
       </div>
 
-      <div className="flex justify-end pt-4">
-        <Button onClick={handleSubmit} disabled={!description.trim()}>
-          <Trans>Submit Feedback</Trans>
-        </Button>
-      </div>
+      <Button onClick={handleSubmit} disabled={!description.trim()}>
+        <Trans>Submit Feedback</Trans>
+      </Button>
     </div>
   );
 }

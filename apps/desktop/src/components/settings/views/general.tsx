@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { showModelSelectToast } from "@/components/toast/model-select";
 import { commands } from "@/types";
 import { commands as dbCommands, type ConfigGeneral } from "@hypr/plugin-db";
 import {
@@ -101,6 +102,10 @@ export default function General() {
 
       if (name === "autostart") {
         commands.setAutostart(!!value.autostart);
+      }
+
+      if (name === "displayLanguage" && value.displayLanguage) {
+        showModelSelectToast(value.displayLanguage);
       }
     });
 

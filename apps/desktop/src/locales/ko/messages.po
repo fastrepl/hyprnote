@@ -225,13 +225,12 @@ msgid "{0}"
 msgstr ""
 
 #: src/components/settings/views/lab.tsx:139
-#: src/components/settings/views/feedback.tsx:64
 msgid "{description}"
 msgstr ""
 
 #: src/components/settings/views/feedback.tsx:60
-msgid "{label}"
-msgstr ""
+#~ msgid "{label}"
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:42
 msgid "{selectedCount} calendars selected"
@@ -243,6 +242,18 @@ msgstr ""
 
 #: src/components/human-profile/past-notes.tsx:91
 msgid "<0>Create Note</0>"
+msgstr ""
+
+#: src/components/settings/views/feedback.tsx:19
+msgid "🐛 Small Bug"
+msgstr ""
+
+#: src/components/settings/views/feedback.tsx:18
+msgid "💡 Idea"
+msgstr ""
+
+#: src/components/settings/views/feedback.tsx:20
+msgid "🚨 Urgent Bug"
 msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:71
@@ -608,8 +619,12 @@ msgstr ""
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr ""
 
-#: src/components/settings/views/feedback.tsx:44
+#: src/components/settings/views/feedback.tsx:46
 msgid "Help us improve the Hyprnote experience by providing feedback."
+msgstr ""
+
+#: src/components/settings/views/feedback.tsx:19
+msgid "Hmm... this is off..."
 msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:24
@@ -828,6 +843,10 @@ msgstr ""
 #: src/components/settings/components/ai/ollama-connection.tsx:31
 #~ msgid "Ollama Connection"
 #~ msgstr ""
+
+#: src/components/settings/views/feedback.tsx:18
+msgid "Ooh! Suggestion!"
+msgstr ""
 
 #: src/components/left-sidebar/top-area/calendar-button.tsx:26
 msgid "Open calendar view"
@@ -1159,6 +1178,10 @@ msgstr ""
 msgid "Type to search..."
 msgstr ""
 
+#: src/components/settings/views/feedback.tsx:20
+msgid "Ugh! Can't use it!"
+msgstr ""
+
 #: src/components/human-profile/profile-header.tsx:170
 #~ msgid "Unnamed Contact"
 #~ msgstr ""
@@ -1220,7 +1243,7 @@ msgstr ""
 msgid "We think different."
 msgstr ""
 
-#: src/components/settings/views/feedback.tsx:95
+#: src/components/settings/views/feedback.tsx:96
 msgid "We'll only use this to follow up if needed."
 msgstr ""
 

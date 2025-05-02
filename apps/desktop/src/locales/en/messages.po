@@ -225,13 +225,12 @@ msgid "{0}"
 msgstr "{0}"
 
 #: src/components/settings/views/lab.tsx:139
-#: src/components/settings/views/feedback.tsx:64
 msgid "{description}"
 msgstr "{description}"
 
 #: src/components/settings/views/feedback.tsx:60
-msgid "{label}"
-msgstr "{label}"
+#~ msgid "{label}"
+#~ msgstr "{label}"
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:42
 msgid "{selectedCount} calendars selected"
@@ -244,6 +243,18 @@ msgstr "{title}"
 #: src/components/human-profile/past-notes.tsx:91
 msgid "<0>Create Note</0>"
 msgstr "<0>Create Note</0>"
+
+#: src/components/settings/views/feedback.tsx:19
+msgid "🐛 Small Bug"
+msgstr "🐛 Small Bug"
+
+#: src/components/settings/views/feedback.tsx:18
+msgid "💡 Idea"
+msgstr "💡 Idea"
+
+#: src/components/settings/views/feedback.tsx:20
+msgid "🚨 Urgent Bug"
+msgstr "🚨 Urgent Bug"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:71
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:113
@@ -608,9 +619,13 @@ msgstr "Grant Access"
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr "Help us improve Hyprnote by sharing anonymous usage data"
 
-#: src/components/settings/views/feedback.tsx:44
+#: src/components/settings/views/feedback.tsx:46
 msgid "Help us improve the Hyprnote experience by providing feedback."
 msgstr "Help us improve the Hyprnote experience by providing feedback."
+
+#: src/components/settings/views/feedback.tsx:19
+msgid "Hmm... this is off..."
+msgstr "Hmm... this is off..."
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:24
 msgid "How can I help you today?"
@@ -828,6 +843,10 @@ msgstr "Official Templates"
 #: src/components/settings/components/ai/ollama-connection.tsx:31
 #~ msgid "Ollama Connection"
 #~ msgstr "Ollama Connection"
+
+#: src/components/settings/views/feedback.tsx:18
+msgid "Ooh! Suggestion!"
+msgstr "Ooh! Suggestion!"
 
 #: src/components/left-sidebar/top-area/calendar-button.tsx:26
 msgid "Open calendar view"
@@ -1159,6 +1178,10 @@ msgstr "Type or paste in emails below, separated by commas. Your workspace will 
 msgid "Type to search..."
 msgstr "Type to search..."
 
+#: src/components/settings/views/feedback.tsx:20
+msgid "Ugh! Can't use it!"
+msgstr "Ugh! Can't use it!"
+
 #: src/components/human-profile/profile-header.tsx:170
 #~ msgid "Unnamed Contact"
 #~ msgstr "Unnamed Contact"
@@ -1220,7 +1243,7 @@ msgstr "View Note"
 msgid "We think different."
 msgstr "We think different."
 
-#: src/components/settings/views/feedback.tsx:95
+#: src/components/settings/views/feedback.tsx:96
 msgid "We'll only use this to follow up if needed."
 msgstr "We'll only use this to follow up if needed."
 

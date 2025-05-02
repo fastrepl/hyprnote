@@ -3,17 +3,22 @@ mod predictor;
 mod stream;
 
 pub use error::*;
+pub use predictor::*;
 pub use stream::*;
 
 use kalosm_sound::AsyncSource;
 use std::time::Duration;
 
 pub trait ChunkerExt: AsyncSource + Sized {
-    fn rms_chunks(self, chunk_duration: Duration) -> RmsChunkStream<Self>
+    fn chunks<P: Predictor + Unpin>(
+        self,
+        predictor: P,
+        chunk_duration: Duration,
+    ) -> ChunkStream<Self, P>
     where
         Self: Unpin,
     {
-        RmsChunkStream::new(self, chunk_duration)
+        ChunkStream::new(self, predictor, chunk_duration)
     }
 }
 
@@ -38,9 +43,10 @@ mod tests {
             sample_format: hound::SampleFormat::Float,
         };
 
-        let mut stream = audio_source.rms_chunks(Duration::from_secs(12));
+        let mut stream = audio_source.chunks(RMS::new(), Duration::from_secs(15));
         let mut i = 0;
 
+        std::fs::remove_dir_all("tmp/english_1").unwrap();
         std::fs::create_dir_all("tmp/english_1").unwrap();
         while let Some(chunk) = stream.next().await {
             let file = std::fs::File::create(format!("tmp/english_1/chunk_{}.wav", i)).unwrap();

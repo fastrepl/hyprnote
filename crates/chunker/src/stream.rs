@@ -8,30 +8,20 @@ use std::{
 use kalosm_sound::AsyncSource;
 use rodio::buffer::SamplesBuffer;
 
-const SILENCE_THRESHOLD: f32 = 0.009;
+use crate::Predictor;
 
-#[allow(dead_code)]
-trait RmsChunkExt: AsyncSource {
-    fn rms_chunks(self, chunk_duration: Duration) -> RmsChunkStream<Self>
-    where
-        Self: Sized + Unpin,
-    {
-        RmsChunkStream::new(self, chunk_duration)
-    }
-}
-
-impl<S: AsyncSource> RmsChunkExt for S {}
-
-pub struct RmsChunkStream<S: AsyncSource + Unpin> {
+pub struct ChunkStream<S: AsyncSource + Unpin, P: Predictor + Unpin> {
     source: S,
+    predictor: P,
     buffer: Vec<f32>,
     max_duration: Duration,
 }
 
-impl<S: AsyncSource + Unpin> RmsChunkStream<S> {
-    pub fn new(source: S, max_duration: Duration) -> Self {
+impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
+    pub fn new(source: S, predictor: P, max_duration: Duration) -> Self {
         Self {
             source,
+            predictor,
             buffer: Vec::new(),
             max_duration,
         }
@@ -46,7 +36,7 @@ impl<S: AsyncSource + Unpin> RmsChunkStream<S> {
     }
 }
 
-impl<S: AsyncSource + Unpin> Stream for RmsChunkStream<S> {
+impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> {
     type Item = SamplesBuffer<f32>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
@@ -70,11 +60,7 @@ impl<S: AsyncSource + Unpin> Stream for RmsChunkStream<S> {
                         let silence_start = buffer_len.saturating_sub(silence_window_samples);
                         let last_samples = &this.buffer[silence_start..buffer_len];
 
-                        let sum_squares: f32 = last_samples.iter().map(|&x| x * x).sum();
-                        let mean_square = sum_squares / last_samples.len() as f32;
-                        let rms_value = mean_square.sqrt();
-
-                        if rms_value < SILENCE_THRESHOLD {
+                        if let Ok(false) = this.predictor.predict(last_samples) {
                             let mut data = std::mem::take(&mut this.buffer);
                             trim(&mut data);
 
@@ -112,7 +98,7 @@ fn trim(data: &mut Vec<f32>) {
         let mean_square = sum_squares / window.len() as f32;
         let rms_value = mean_square.sqrt();
 
-        if rms_value >= SILENCE_THRESHOLD {
+        if rms_value >= 0.009 {
             i = start_idx;
             break;
         }

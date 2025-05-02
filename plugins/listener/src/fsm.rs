@@ -464,7 +464,11 @@ impl Session {
         }
     }
 
-    #[state(entry_action = "enter_inactive", superstate = "common")]
+    #[state(
+        superstate = "common",
+        entry_action = "enter_inactive",
+        exit_action = "exit_inactive"
+    )]
     async fn inactive(&mut self, event: &StateEvent) -> Response<State> {
         match event {
             StateEvent::Start(id) => match self.setup_resources(id).await {
@@ -484,11 +488,22 @@ impl Session {
 
     #[action]
     async fn enter_inactive(&mut self) {
+        {
+            use tauri_plugin_tray::TrayPluginExt;
+            let _ = self.app.set_start_disabled(false);
+        }
+
         self.teardown_resources().await;
 
         Session::broadcast(&self.channels, SessionEvent::Stopped)
             .await
             .unwrap();
+    }
+
+    #[action]
+    async fn exit_inactive(&mut self) {
+        use tauri_plugin_tray::TrayPluginExt;
+        let _ = self.app.set_start_disabled(true);
     }
 
     fn on_transition(&mut self, source: &State, target: &State) {

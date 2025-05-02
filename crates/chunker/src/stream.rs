@@ -34,6 +34,23 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
     fn samples_for_duration(&self, duration: Duration) -> usize {
         (self.source.sample_rate() as f64 * duration.as_secs_f64()) as usize
     }
+
+    fn trim_silence(predictor: &P, data: &mut Vec<f32>) {
+        const WINDOW_SIZE: usize = 100;
+
+        let mut trim_index = 0;
+        for start_idx in (0..data.len()).step_by(WINDOW_SIZE) {
+            let end_idx = (start_idx + WINDOW_SIZE).min(data.len());
+            let window = &data[start_idx..end_idx];
+
+            if let Ok(false) = predictor.predict(window) {
+                trim_index = start_idx;
+                break;
+            }
+        }
+
+        data.drain(0..trim_index);
+    }
 }
 
 impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> {
@@ -62,7 +79,7 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
 
                         if let Ok(false) = this.predictor.predict(last_samples) {
                             let mut data = std::mem::take(&mut this.buffer);
-                            trim(&mut data);
+                            Self::trim_silence(&this.predictor, &mut data);
 
                             return Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, data)));
                         }
@@ -70,7 +87,7 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
                 }
                 Poll::Ready(None) if !this.buffer.is_empty() => {
                     let mut data = std::mem::take(&mut this.buffer);
-                    trim(&mut data);
+                    Self::trim_silence(&this.predictor, &mut data);
 
                     return Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, data)));
                 }
@@ -80,29 +97,8 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
         }
 
         let mut chunk: Vec<_> = this.buffer.drain(0..max_samples).collect();
-        trim(&mut chunk);
+        Self::trim_silence(&this.predictor, &mut chunk);
 
         Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, chunk)))
     }
-}
-
-fn trim(data: &mut Vec<f32>) {
-    const WINDOW_SIZE: usize = 100;
-
-    let mut i = 0;
-    for start_idx in (0..data.len()).step_by(WINDOW_SIZE) {
-        let end_idx = (start_idx + WINDOW_SIZE).min(data.len());
-        let window = &data[start_idx..end_idx];
-
-        let sum_squares: f32 = window.iter().map(|&x| x * x).sum();
-        let mean_square = sum_squares / window.len() as f32;
-        let rms_value = mean_square.sqrt();
-
-        if rms_value >= 0.009 {
-            i = start_idx;
-            break;
-        }
-    }
-
-    data.drain(0..i);
 }

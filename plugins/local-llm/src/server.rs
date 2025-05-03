@@ -205,7 +205,7 @@ fn build_response(
     let request = hypr_llama::LlamaRequest {
         messages,
         // TODO: should not hard-code this
-        grammar: Some(hypr_gbnf::GBNF::Enhance(None).build()),
+        grammar: Some(hypr_gbnf::GBNF::Enhance(Some(vec!["".to_string()])).build()),
     };
 
     Ok(Box::pin(model.generate_stream(request)?))

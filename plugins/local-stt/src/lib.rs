@@ -99,7 +99,7 @@ mod test {
             .api_base(api_base)
             .api_key("NONE")
             .params(hypr_listener_interface::ListenParams {
-                language: codes_iso_639::part_1::LanguageCode::En,
+                language: hypr_language::ISO639::En.into(),
                 ..Default::default()
             })
             .build();

@@ -35,8 +35,6 @@ impl ListenClientBuilder {
 
             let params = self.params.unwrap_or_default();
             let language = params.language.code();
-            let language =
-                language.chars().next().unwrap().to_uppercase().to_string() + &language[1..];
 
             url.set_path("/api/desktop/listen/realtime");
             url.query_pairs_mut()

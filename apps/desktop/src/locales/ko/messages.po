@@ -219,8 +219,8 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
-#: src/components/editor-area/note-header/listen-button.tsx:193
-#: src/components/editor-area/note-header/listen-button.tsx:232
+#: src/components/editor-area/note-header/listen-button.tsx:275
+#: src/components/editor-area/note-header/listen-button.tsx:314
 msgid "{0}"
 msgstr ""
 
@@ -430,6 +430,10 @@ msgstr ""
 msgid "Current Plan"
 msgstr ""
 
+#: src/components/editor-area/note-header/listen-button.tsx:221
+msgid "Custom instruction"
+msgstr ""
+
 #: src/components/settings/views/ai.tsx:264
 msgid "Custom LLM Endpoint"
 msgstr ""
@@ -572,8 +576,8 @@ msgid "How can I help you today?"
 msgstr ""
 
 #: src/components/editor-area/note-header/chips/instruction-chip.tsx:63
-msgid "Instruction"
-msgstr ""
+#~ msgid "Instruction"
+#~ msgstr ""
 
 #: src/components/settings/views/billing.tsx:38
 msgid "Integration with other apps like Notion and Google Calendar"
@@ -759,7 +763,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:316
+#: src/components/editor-area/note-header/listen-button.tsx:398
 msgid "Pause"
 msgstr ""
 
@@ -767,7 +771,7 @@ msgstr ""
 msgid "people"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:212
+#: src/components/editor-area/note-header/listen-button.tsx:294
 msgid "Play video"
 msgstr ""
 
@@ -777,6 +781,10 @@ msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:22
 msgid "Profile"
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:230
+msgid "Provide descriptions about the meeting. Company specific terms, acronyms, jargons... any thing!"
 msgstr ""
 
 #: src/components/share-and-permission/publish.tsx:15
@@ -804,7 +812,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:102
+#: src/components/editor-area/note-header/listen-button.tsx:103
 msgid "Resume"
 msgstr ""
 
@@ -870,15 +878,19 @@ msgstr ""
 msgid "Start Annual Plan"
 msgstr ""
 
+#: src/components/editor-area/note-header/listen-button.tsx:249
+msgid "Start Meeting"
+msgstr ""
+
 #: src/components/settings/views/billing.tsx:75
 msgid "Start Monthly Plan"
 msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:168
-msgid "Start recording"
-msgstr ""
+#~ msgid "Start recording"
+#~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:324
+#: src/components/editor-area/note-header/listen-button.tsx:406
 msgid "Stop"
 msgstr ""
 
@@ -992,7 +1004,7 @@ msgid "View calendar"
 msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:147
-#: src/components/editor-area/note-header/chips/event-chip.tsx:43
+#: src/components/editor-area/note-header/chips/event-chip.tsx:50
 msgid "View in calendar"
 msgstr ""
 

@@ -334,12 +334,14 @@ async fn setup_listen_client<R: tauri::Runtime>(
 
     tracing::info!(api_base = ?api_base, api_key = ?api_key, language = ?language, "listen_client");
 
+    let static_prompt = "".to_string();
+
     Ok(crate::client::ListenClient::builder()
         .api_base(api_base)
         .api_key(api_key)
         .params(hypr_listener_interface::ListenParams {
             language,
-            static_prompt: "".to_string(),
+            static_prompt,
             ..Default::default()
         })
         .build())

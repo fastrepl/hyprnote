@@ -87,13 +87,15 @@ impl Whisper {
     pub fn transcribe(&mut self, audio: &[f32]) -> Result<Vec<Segment>, super::Error> {
         let params = {
             let mut p = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
-            p.set_translate(false);
-            p.set_language(Some(self.language.as_ref()));
 
             let parts = [self.static_prompt.trim(), self.dynamic_prompt.trim()];
             let joined = parts.join("\n");
             let initial_prompt = joined.trim();
 
+            tracing::info!(initial_prompt = ?initial_prompt, "transcribe");
+
+            p.set_translate(false);
+            p.set_language(Some(self.language.as_ref()));
             p.set_initial_prompt(&initial_prompt);
 
             p.set_n_threads(1);

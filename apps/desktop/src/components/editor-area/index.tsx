@@ -1,3 +1,4 @@
+import { toast } from "@hypr/ui/components/ui/toast";
 import { useMutation } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { motion } from "motion/react";
@@ -163,15 +164,28 @@ export function useEnhanceMutation({
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async () => {
+      const fn = sessionId === onboardingSessionId
+        ? dbCommands.getTimelineViewOnboarding
+        : dbCommands.getTimelineView;
+
+      const timeline = await fn(sessionId);
+
+      if (!timeline?.items.length) {
+        toast({
+          id: "short-timeline",
+          title: "Enhancing Skipped",
+          content: "The conversation is too short to enhance",
+          dismissible: true,
+          duration: 15000,
+        });
+
+        return;
+      }
+
       const { type } = await connectorCommands.getLlmConnection();
 
       const config = await dbCommands.getConfig();
       const participants = await dbCommands.sessionListParticipants(sessionId);
-
-      const fn = sessionId === onboardingSessionId
-        ? dbCommands.getTimelineViewOnboarding
-        : dbCommands.getTimelineView;
-      const timeline = await fn(sessionId);
 
       const systemMessage = await templateCommands.render(
         "enhance.system",
@@ -189,17 +203,17 @@ export function useEnhanceMutation({
       );
 
       const abortController = new AbortController();
-      const timeoutSignal = AbortSignal.timeout(60 * 1000);
-      const combinedSignal = AbortSignal.any([abortController.signal, timeoutSignal]);
+      const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(60 * 1000)]);
       setEnhanceController(abortController);
 
       const provider = await modelProvider();
+      const model = sessionId === onboardingSessionId
+        ? provider.languageModel("onboardingModel")
+        : provider.languageModel("defaultModel");
 
       const { text, textStream } = streamText({
-        abortSignal: combinedSignal,
-        model: sessionId === onboardingSessionId
-          ? provider.languageModel("onboardingModel")
-          : provider.languageModel("defaultModel"),
+        abortSignal,
+        model,
         messages: [
           { role: "system", content: systemMessage },
           { role: "user", content: userMessage },

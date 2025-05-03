@@ -221,7 +221,7 @@ impl Session {
                     wav.write_sample(sample).unwrap();
                     wav.write_sample(sample).unwrap();
                     if let Err(e) = mixed_tx.send(sample).await {
-                        tracing::error!("mixed_tx_send_error: {:?}", e);
+                        tracing::error!("mixed_tx_send_error: {:?}", e.0);
                     }
                 }
             }

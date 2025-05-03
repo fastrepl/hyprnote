@@ -68,15 +68,21 @@ impl WebSocketClient {
 
         let output_stream = async_stream::stream! {
             while let Some(msg_result) = ws_receiver.next().await {
-                if let Ok(msg) = msg_result {
-                    match msg {
-                        Message::Text(_) | Message::Binary(_) => {
+                match msg_result {
+                    Ok(msg) => {
+                        match msg {
+                            Message::Text(_) | Message::Binary(_) => {
                             if let Some(output) = T::from_message(msg) {
                                 yield output;
                             }
                         },
                         Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => continue,
-                        Message::Close(_) => break,
+                            Message::Close(_) => break,
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("ws_receiver_failed: {:?}", e);
+                        break;
                     }
                 }
             }

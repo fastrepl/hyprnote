@@ -571,7 +571,7 @@ msgstr "Hmm... this is off..."
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
 
-#: src/components/editor-area/note-header/chips/instruction-chip.tsx:66
+#: src/components/editor-area/note-header/chips/instruction-chip.tsx:63
 msgid "Instruction"
 msgstr "Instruction"
 
@@ -992,7 +992,7 @@ msgid "View calendar"
 msgstr "View calendar"
 
 #: src/components/left-sidebar/events-list.tsx:147
-#: src/components/editor-area/note-header/chips/event-chip.tsx:50
+#: src/components/editor-area/note-header/chips/event-chip.tsx:43
 msgid "View in calendar"
 msgstr "View in calendar"
 

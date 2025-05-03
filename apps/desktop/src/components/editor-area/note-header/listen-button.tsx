@@ -8,16 +8,16 @@ import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { toast } from "@hypr/ui/components/ui/toast";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
+import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
-import { commands as dbCommands } from "@hypr/plugin-db";
 import ShinyButton from "./shiny-button";
 
 export default function ListenButton({ sessionId }: { sessionId: string }) {
@@ -212,13 +212,14 @@ function WhenInactiveAndMeetingNotEnded({ disabled, onClick }: { disabled: boole
             "shadow-[inset_0_0_0_2px_rgba(255,255,255,0.8)]",
           ])}
         >
-          <div className="w-[9px] h-[9px] rounded-sm bg-white" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80" align="end">
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-2">
-            <div className="text-sm font-medium text-neutral-700"><Trans>Custom instruction</Trans></div>
+            <div className="text-sm font-medium text-neutral-700">
+              <Trans>Custom instruction</Trans>
+            </div>
             <Textarea
               value={instructionText}
               onChange={(e) => setInstructionText(e.target.value)}
@@ -226,7 +227,9 @@ function WhenInactiveAndMeetingNotEnded({ disabled, onClick }: { disabled: boole
               className="min-h-[80px] resize-none border-neutral-300 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
             />
             <p className="text-xs text-neutral-400">
-              <Trans>Provide descriptions about the meeting. Company specific terms, acronyms, jargons... any thing!</Trans>
+              <Trans>
+                Provide descriptions about the meeting. Company specific terms, acronyms, jargons... any thing!
+              </Trans>
             </p>
           </div>
 
@@ -422,8 +425,8 @@ function AudioControlButton({
       ? MicOffIcon
       : MicIcon
     : isMuted
-      ? VolumeOffIcon
-      : Volume2Icon;
+    ? VolumeOffIcon
+    : Volume2Icon;
 
   return (
     <Button variant="ghost" size="icon" onClick={onClick} className="w-full">

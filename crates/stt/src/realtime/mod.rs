@@ -64,8 +64,9 @@ impl ClientBuilder {
 
 #[derive(Debug)]
 pub enum MultiClient {
-    Deepgram(DeepgramClient),
     Clova(hypr_clova::realtime::Client),
+    Deepgram(DeepgramClient),
+    Whisper(hypr_whisper::cloud::WhisperClient),
 }
 
 #[derive(Debug, Clone)]
@@ -81,20 +82,29 @@ impl Client {
 
     pub async fn for_language(&self, language: hypr_language::Language) -> MultiClient {
         match language.iso639() {
+            // hypr_language::ISO639::Ko => {
+            //     let clova = hypr_clova::realtime::Client::builder()
+            //         .api_key(self.clova_api_key.as_ref().unwrap())
+            //         .keywords(vec!["하이퍼노트".to_string()])
+            //         .build()
+            //         .await
+            //         .unwrap();
+            //     MultiClient::Clova(clova)
+            // }
             hypr_language::ISO639::Ko => {
-                let clova = hypr_clova::realtime::Client::builder()
-                    .api_key(self.clova_api_key.as_ref().unwrap())
-                    .keywords(vec!["하이퍼노트".to_string()])
-                    .build()
-                    .await
-                    .unwrap();
-                MultiClient::Clova(clova)
+                let whisper = hypr_whisper::cloud::WhisperClient::builder()
+                    .api_base(std::env::var("WHISPER_API_BASE").unwrap())
+                    .api_key(std::env::var("WHISPER_API_KEY").unwrap())
+                    .language(language.try_into().unwrap())
+                    .build();
+
+                MultiClient::Whisper(whisper)
             }
             hypr_language::ISO639::En => {
                 let deepgram = DeepgramClient::builder()
                     .api_key(self.deepgram_api_key.as_ref().unwrap())
                     .keywords(vec!["Hyprnote".to_string()])
-                    .language(language.into())
+                    .language(language)
                     .build()
                     .unwrap();
 
@@ -118,8 +128,9 @@ where
         crate::Error,
     > {
         match self {
-            MultiClient::Deepgram(client) => Ok(Box::new(client.transcribe(stream).await?)),
             MultiClient::Clova(client) => Ok(Box::new(client.transcribe(stream).await?)),
+            MultiClient::Deepgram(client) => Ok(Box::new(client.transcribe(stream).await?)),
+            MultiClient::Whisper(client) => Ok(Box::new(client.transcribe(stream).await?)),
         }
     }
 }

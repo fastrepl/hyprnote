@@ -14,7 +14,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm -F ui build
 RUN VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY VITE_SENTRY_DSN=$VITE_SENTRY_DSN pnpm --filter @hypr/app build
 
-FROM rust:1.85.1 AS rust-builder
+FROM rust:1.86.0 AS rust-builder
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \

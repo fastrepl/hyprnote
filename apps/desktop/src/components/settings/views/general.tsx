@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { showModelSelectToast } from "@/components/toast/model-select";
 import { commands } from "@/types";
 import { commands as dbCommands, type ConfigGeneral } from "@hypr/plugin-db";
 import {
@@ -102,6 +103,10 @@ export default function General() {
       if (name === "autostart") {
         commands.setAutostart(!!value.autostart);
       }
+
+      if (name === "displayLanguage" && value.displayLanguage) {
+        showModelSelectToast(value.displayLanguage);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -147,7 +152,7 @@ export default function General() {
                   <Trans>Language</Trans>
                 </FormLabel>
                 <FormDescription>
-                  <Trans>Choose the language you want to use for the application interface</Trans>
+                  <Trans>Choose the language you want to use for the speech-to-text model and language model</Trans>
                 </FormDescription>
                 <FormControl>
                   <Select

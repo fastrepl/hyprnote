@@ -97,8 +97,8 @@ impl Whisper {
             p.set_initial_prompt(&initial_prompt);
 
             p.set_n_threads(1);
-            p.set_token_timestamps(true);
-            p.set_split_on_word(true);
+            p.set_detect_language(false);
+            p.set_token_timestamps(false);
             p.set_single_segment(true);
             p.set_suppress_blank(true);
             p.set_suppress_nst(true);
@@ -242,11 +242,14 @@ mod tests {
             .model_path(concat!(env!("CARGO_MANIFEST_DIR"), "/model.bin"))
             .build();
 
-        let request = hypr_llama::LlamaRequest::new(vec![hypr_llama::LlamaChatMessage::new(
-            "user".into(),
-            "Generate a json array of 1 random objects, about animals".into(),
-        )
-        .unwrap()]);
+        let request = hypr_llama::LlamaRequest {
+            messages: vec![hypr_llama::LlamaChatMessage::new(
+                "user".into(),
+                "Generate a json array of 1 random objects, about animals".into(),
+            )
+            .unwrap()],
+            ..Default::default()
+        };
 
         let response: String = llama.generate_stream(request).unwrap().collect().await;
         assert!(response.len() > 4);

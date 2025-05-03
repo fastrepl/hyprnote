@@ -10,7 +10,6 @@ interface TranscriptProps {
 
 const Transcript = forwardRef<HTMLDivElement, TranscriptProps>(
   ({ sessionId }, ref) => {
-    // Get current session ID if none is provided
     const currentSessionId = useSessions((s) => s.currentSessionId);
     const effectiveSessionId = sessionId || currentSessionId;
 

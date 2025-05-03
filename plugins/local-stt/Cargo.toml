@@ -12,9 +12,9 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 hypr-data = { workspace = true }
-
 kalosm-common = { workspace = true }
 tauri-plugin-listener = { workspace = true }
+tokio-tungstenite = { workspace = true }
 
 bytes = { workspace = true }
 codes-iso-639 = { workspace = true }

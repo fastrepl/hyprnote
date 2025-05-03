@@ -1,3 +1,5 @@
+import { commands as flagsCommands } from "@hypr/plugin-flags";
+import { useQuery } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
@@ -88,6 +90,11 @@ export function RightPanelProvider({
     [isExpanded, currentView],
   );
 
+  const { data: chatPanelEnabled = false } = useQuery({
+    queryKey: ["flags", "ChatRightPanel"],
+    queryFn: () => flagsCommands.isEnabled("ChatRightPanel"),
+  });
+
   useHotkeys(
     "mod+r",
     (event) => {
@@ -140,6 +147,7 @@ export function RightPanelProvider({
     {
       enableOnFormTags: true,
       enableOnContentEditable: true,
+      ignoreEventWhen: () => !chatPanelEnabled,
     },
   );
 

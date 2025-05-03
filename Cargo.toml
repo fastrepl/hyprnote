@@ -9,7 +9,7 @@ members = [
 ]
 
 [workspace.package]
-rust-version = "1.85.1"
+rust-version = "1.86.0"
 
 [workspace.dependencies]
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
@@ -27,6 +27,7 @@ hypr-db-user = { path = "crates/db-user", package = "db-user" }
 hypr-detect = { path = "crates/detect", package = "detect" }
 hypr-diart = { path = "crates/diart", package = "diart" }
 hypr-file = { path = "crates/file", package = "file" }
+hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
 hypr-host = { path = "crates/host", package = "host" }
 hypr-language = { path = "crates/language", package = "language" }
@@ -43,6 +44,7 @@ hypr-stt = { path = "crates/stt", package = "stt", features = ["realtime", "reco
 hypr-template = { path = "crates/template", package = "template" }
 hypr-timeline = { path = "crates/timeline", package = "timeline" }
 hypr-turso = { path = "crates/turso", package = "turso" }
+hypr-vad = { path = "crates/vad", package = "vad" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }
 hypr-ws = { path = "crates/ws", package = "ws" }
 hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
@@ -57,7 +59,7 @@ tauri-plugin-decorum = "1.1.1"
 tauri-plugin-deep-link = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
-tauri-plugin-http = "2"
+tauri-plugin-http = { version = "2", features = ["unsafe-headers"] }
 tauri-plugin-opener = "2"
 tauri-plugin-store = "2"
 
@@ -99,6 +101,7 @@ dotenv = "0.15.0"
 dotenvy = "0.15.7"
 dotenvy_macro = "0.15.7"
 include_url_macro = "0.1.0"
+insta = "1.42"
 itertools = "0.14.0"
 lazy_static = "1.5.0"
 once_cell = "1.20.3"
@@ -130,6 +133,7 @@ tonic-build = "0.12.3"
 
 async-openai = { git = "https://github.com/fastrepl/async-openai", rev = "6404d307f3f706e818ad91544dc82fac5c545aee", default-features = false }
 async-stripe = { version = "0.39.1", default-features = false }
+gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 graph-rs-sdk = "2.0.3"
 
 sentry = "0.36.0"
@@ -151,7 +155,7 @@ specta = "2.0.0-rc.21"
 specta-typescript = "0.0.9"
 tauri-specta = "2.0.0-rc.21"
 
-cidre = { git = "https://github.com/yury/cidre", rev = "6af0cf7" }
+cidre = { git = "https://github.com/yury/cidre", rev = "4f0eff4" }
 cpal = "0.15.3"
 dasp = "0.11.0"
 hound = "3.5.1"

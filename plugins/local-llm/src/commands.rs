@@ -29,7 +29,7 @@ pub async fn is_model_downloading<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn download_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    channel: Channel<u8>,
+    channel: Channel<i8>,
 ) -> Result<(), String> {
     app.download_model(channel).await.map_err(|e| e.to_string())
 }

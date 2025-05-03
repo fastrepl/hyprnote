@@ -16,9 +16,15 @@ export const DownloadProgress = ({
   onComplete?: () => void;
 }) => {
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     channel.onmessage = (v) => {
+      if (v < 0) {
+        setError(true);
+        return;
+      }
+
       if (v > progress) {
         setProgress(v);
       }
@@ -27,7 +33,15 @@ export const DownloadProgress = ({
         onComplete();
       }
     };
-  }, [channel, onComplete]);
+  }, [channel, onComplete, progress]);
+
+  if (error) {
+    return (
+      <div className="w-full">
+        <div className="text-destructive font-medium">Download failed. Please try again.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full space-y-2">

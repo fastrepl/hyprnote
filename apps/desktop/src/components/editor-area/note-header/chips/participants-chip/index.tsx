@@ -54,7 +54,7 @@ export function ParticipantsChip({ sessionId }: ParticipantsChipProps) {
         </div>
       </PopoverTrigger>
 
-      <PopoverContent className="shadow-lg" align="start">
+      <PopoverContent className="shadow-lg w-80" align="start">
         <ParticipantsList sessionId={sessionId} />
       </PopoverContent>
     </Popover>

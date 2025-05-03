@@ -23,6 +23,7 @@ hypr-listener-interface = { workspace = true }
 tauri-plugin-auth = { workspace = true }
 tauri-plugin-connector = { workspace = true }
 tauri-plugin-db = { workspace = true }
+tauri-plugin-tray = { workspace = true }
 
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }

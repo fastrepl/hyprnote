@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dev-dependencies]
-insta = "1.42.2"
+insta = { workspace = true }
 
 [dependencies]
 thiserror = { workspace = true }

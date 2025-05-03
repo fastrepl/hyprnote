@@ -43,14 +43,18 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
                 .unwrap_or(SupportedModel::QuantizedBaseEn);
 
             if let Ok(true) = self.is_model_downloaded(&current_model).await {
-                self.start_server().await.unwrap();
+                if let Err(e) = self.start_server().await {
+                    tracing::error!("start_local_stt_server: {}", e);
+                }
             }
         }
 
         {
             use tauri_plugin_local_llm::LocalLlmPluginExt;
             if let Ok(true) = self.is_model_downloaded().await {
-                self.start_server().await.unwrap();
+                if let Err(e) = self.start_server().await {
+                    tracing::error!("start_local_llm_server: {}", e);
+                }
             }
         }
 

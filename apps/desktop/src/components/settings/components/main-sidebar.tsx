@@ -16,27 +16,29 @@ export function MainSidebar({ current, onTabClick }: MainSidebarProps) {
         <div className="space-y-1">
           {TABS.map((tab) => (
             <button
-              key={tab}
+              key={tab.name}
               className={cn(
                 "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
-                current === tab && "bg-neutral-100 font-medium",
+                current === tab.name && "bg-neutral-100 font-medium",
               )}
-              onClick={() => onTabClick(tab)}
+              onClick={() => onTabClick(tab.name)}
             >
-              <TabIcon tab={tab} />
+              <TabIcon tab={tab.name} />
               <span>
-                {tab === "general"
+                {tab.name === "general"
                   ? <Trans>General</Trans>
-                  : tab === "notifications"
+                  : tab.name === "notifications"
                   ? <Trans>Notifications</Trans>
-                  : tab === "sound"
+                  : tab.name === "sound"
                   ? <Trans>Sound</Trans>
-                  : tab === "extensions"
+                  : tab.name === "extensions"
                   ? <Trans>Extensions</Trans>
-                  : tab === "ai"
+                  : tab.name === "ai"
                   ? <Trans>AI</Trans>
-                  : tab === "lab"
+                  : tab.name === "lab"
                   ? <Trans>Lab</Trans>
+                  : tab.name === "feedback"
+                  ? <Trans>Feedback</Trans>
                   : null}
               </span>
             </button>

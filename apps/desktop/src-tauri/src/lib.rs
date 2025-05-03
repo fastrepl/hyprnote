@@ -7,22 +7,15 @@ use store::*;
 
 use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
 
+use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
+
 #[tokio::main]
 pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
     {
-        tracing_subscriber::fmt()
-            .with_file(true)
-            .with_line_number(true)
-            .with_env_filter(
-                tracing_subscriber::EnvFilter::from_default_env()
-                    .add_directive(tracing::Level::INFO.into())
-                    .add_directive("ort=error".parse().unwrap())
-                    .add_directive("hyper=error".parse().unwrap())
-                    .add_directive("rustls=error".parse().unwrap())
-                    .add_directive("llama-cpp-2=error".parse().unwrap()),
-            )
+        tracing_subscriber::Registry::default()
+            .with(tauri_plugin_sentry::sentry::integrations::tracing::layer())
             .init();
     }
 
@@ -40,6 +33,7 @@ pub async fn main() {
         },
         tauri_plugin_sentry::sentry::ClientOptions {
             release: tauri_plugin_sentry::sentry::release_name!(),
+            traces_sample_rate: 1.0,
             auto_session_tracking: true,
             ..Default::default()
         },
@@ -72,6 +66,7 @@ pub async fn main() {
         .plugin(tauri_plugin_flags::init())
         .plugin(tauri_plugin_sentry::init(&client))
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -124,10 +119,14 @@ pub async fn main() {
 
                 let app_clone = app.clone();
 
+                // TODO: currently we only use deeplinks for notifications, so we've hardcoded
+                // `/app/new?record=true` here
+                let dest = "/app/new?record=true";
+
                 app.deep_link().on_open_url(move |event| {
                     if let Some(_) = event.urls().first() {
                         if let Ok(_) = app_clone.window_show(HyprWindow::Main) {
-                            let _ = app_clone.window_navigate(HyprWindow::Main, "/app/new");
+                            let _ = app_clone.window_navigate(HyprWindow::Main, dest);
                         }
                     }
                 });
@@ -150,9 +149,19 @@ pub async fn main() {
                         tracing::error!("failed_to_setup_db_for_local: {}", e);
                     }
 
-                    // if let Err(e) = app.setup_auto_start().await {
-                    //     tracing::error!("failed_to_setup_auto_start: {}", e);
-                    // }
+                    {
+                        use tauri_plugin_db::DatabasePluginExt;
+                        let user_id = app.db_user_id().await;
+
+                        if let Ok(Some(ref user_id)) = user_id {
+                            tauri_plugin_sentry::sentry::configure_scope(|scope| {
+                                scope.set_user(Some(tauri_plugin_sentry::sentry::User {
+                                    id: Some(user_id.clone()),
+                                    ..Default::default()
+                                }));
+                            });
+                        }
+                    }
 
                     tokio::spawn(async move {
                         app.setup_local_ai().await.unwrap();

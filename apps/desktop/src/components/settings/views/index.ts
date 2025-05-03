@@ -2,6 +2,7 @@ export { default as LocalAI } from "./ai";
 export { default as Billing } from "./billing";
 export { default as Calendar } from "./calendar";
 export { default as Extensions } from "./extension";
+export { default as Feedback } from "./feedback";
 export { default as General } from "./general";
 export { default as Lab } from "./lab";
 export { default as Notifications } from "./notifications";

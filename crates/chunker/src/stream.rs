@@ -8,30 +8,20 @@ use std::{
 use kalosm_sound::AsyncSource;
 use rodio::buffer::SamplesBuffer;
 
-const SILENCE_THRESHOLD: f32 = 0.009;
+use crate::Predictor;
 
-#[allow(dead_code)]
-trait RmsChunkExt: AsyncSource {
-    fn rms_chunks(self, chunk_duration: Duration) -> RmsChunkStream<Self>
-    where
-        Self: Sized + Unpin,
-    {
-        RmsChunkStream::new(self, chunk_duration)
-    }
-}
-
-impl<S: AsyncSource> RmsChunkExt for S {}
-
-pub struct RmsChunkStream<S: AsyncSource + Unpin> {
+pub struct ChunkStream<S: AsyncSource + Unpin, P: Predictor + Unpin> {
     source: S,
+    predictor: P,
     buffer: Vec<f32>,
     max_duration: Duration,
 }
 
-impl<S: AsyncSource + Unpin> RmsChunkStream<S> {
-    pub fn new(source: S, max_duration: Duration) -> Self {
+impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
+    pub fn new(source: S, predictor: P, max_duration: Duration) -> Self {
         Self {
             source,
+            predictor,
             buffer: Vec::new(),
             max_duration,
         }
@@ -44,9 +34,26 @@ impl<S: AsyncSource + Unpin> RmsChunkStream<S> {
     fn samples_for_duration(&self, duration: Duration) -> usize {
         (self.source.sample_rate() as f64 * duration.as_secs_f64()) as usize
     }
+
+    fn trim_silence(predictor: &P, data: &mut Vec<f32>) {
+        const WINDOW_SIZE: usize = 100;
+
+        let mut trim_index = 0;
+        for start_idx in (0..data.len()).step_by(WINDOW_SIZE) {
+            let end_idx = (start_idx + WINDOW_SIZE).min(data.len());
+            let window = &data[start_idx..end_idx];
+
+            if let Ok(false) = predictor.predict(window) {
+                trim_index = start_idx;
+                break;
+            }
+        }
+
+        data.drain(0..trim_index);
+    }
 }
 
-impl<S: AsyncSource + Unpin> Stream for RmsChunkStream<S> {
+impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> {
     type Item = SamplesBuffer<f32>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
@@ -70,13 +77,9 @@ impl<S: AsyncSource + Unpin> Stream for RmsChunkStream<S> {
                         let silence_start = buffer_len.saturating_sub(silence_window_samples);
                         let last_samples = &this.buffer[silence_start..buffer_len];
 
-                        let sum_squares: f32 = last_samples.iter().map(|&x| x * x).sum();
-                        let mean_square = sum_squares / last_samples.len() as f32;
-                        let rms_value = mean_square.sqrt();
-
-                        if rms_value < SILENCE_THRESHOLD {
+                        if let Ok(false) = this.predictor.predict(last_samples) {
                             let mut data = std::mem::take(&mut this.buffer);
-                            trim(&mut data);
+                            Self::trim_silence(&this.predictor, &mut data);
 
                             return Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, data)));
                         }
@@ -84,7 +87,7 @@ impl<S: AsyncSource + Unpin> Stream for RmsChunkStream<S> {
                 }
                 Poll::Ready(None) if !this.buffer.is_empty() => {
                     let mut data = std::mem::take(&mut this.buffer);
-                    trim(&mut data);
+                    Self::trim_silence(&this.predictor, &mut data);
 
                     return Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, data)));
                 }
@@ -94,29 +97,8 @@ impl<S: AsyncSource + Unpin> Stream for RmsChunkStream<S> {
         }
 
         let mut chunk: Vec<_> = this.buffer.drain(0..max_samples).collect();
-        trim(&mut chunk);
+        Self::trim_silence(&this.predictor, &mut chunk);
 
         Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, chunk)))
     }
-}
-
-fn trim(data: &mut Vec<f32>) {
-    const WINDOW_SIZE: usize = 100;
-
-    let mut i = 0;
-    for start_idx in (0..data.len()).step_by(WINDOW_SIZE) {
-        let end_idx = (start_idx + WINDOW_SIZE).min(data.len());
-        let window = &data[start_idx..end_idx];
-
-        let sum_squares: f32 = window.iter().map(|&x| x * x).sum();
-        let mean_square = sum_squares / window.len() as f32;
-        let rms_value = mean_square.sqrt();
-
-        if rms_value >= SILENCE_THRESHOLD {
-            i = start_idx;
-            break;
-        }
-    }
-
-    data.drain(0..i);
 }

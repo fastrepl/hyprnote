@@ -24,7 +24,6 @@
     "updater:default",
     "process:default",
     "process:allow-restart",
-    "fs:default",
     "shell:allow-open",
     "sentry:default",
     "decorum:allow-show-snap-overlay",
@@ -48,6 +47,11 @@
     "clipboard-manager:allow-write-text",
     "deep-link:default",
     "notification:default",
+    "fs:default",
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [{ "path": "/Applications/*" }]
+    },
     {
       "identifier": "http:default",
       "allow": [

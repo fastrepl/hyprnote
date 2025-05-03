@@ -162,11 +162,21 @@ mod tests {
 
     #[test]
     fn test_url_regex() {
-        let landing_url = "https://meet.google.com/landing";
-        assert!(!MEETING_REGEXES.iter().any(|re| re.is_match(&landing_url)));
+        let test_cases = [
+            ("https://meet.google.com/landing", false),
+            ("https://meet.google.com/tjw-fcje-ewx", true),
+        ];
 
-        let meeting_url = "https://meet.google.com/tjw-fcje-ewx";
-        assert!(MEETING_REGEXES.iter().any(|re| re.is_match(&meeting_url)));
+        for (url, expected_match) in test_cases {
+            let matches = MEETING_REGEXES.iter().any(|re| re.is_match(url));
+            assert_eq!(
+                matches,
+                expected_match,
+                "URL '{}' should {} match the regex",
+                url,
+                if expected_match { "" } else { "not " }
+            );
+        }
     }
 
     #[test]

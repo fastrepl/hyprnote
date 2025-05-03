@@ -39,7 +39,7 @@ pub async fn is_model_downloading<R: tauri::Runtime>(
 pub async fn download_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     model: crate::SupportedModel,
-    channel: Channel<u8>,
+    channel: Channel<i8>,
 ) -> Result<(), String> {
     app.download_model(model, channel)
         .await

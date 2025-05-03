@@ -23,7 +23,7 @@
     "@storybook/addon-interactions": "^8.6.12",
     "@storybook/react": "^8.6.12",
     "@storybook/react-vite": "^8.6.12",
-    "@types/node": "^22.15.2",
+    "@types/node": "^22.15.3",
     "@types/react": "^18.3.20",
     "autoprefixer": "^10.4.21",
     "msw": "^2.7.5",

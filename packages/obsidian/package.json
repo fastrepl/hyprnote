@@ -17,6 +17,6 @@
   },
   "dependencies": {
     "@hey-api/client-fetch": "^0.8.4",
-    "@tanstack/react-query": "^5.74.4"
+    "@tanstack/react-query": "^5.74.11"
   }
 }

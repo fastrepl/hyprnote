@@ -73,12 +73,11 @@ impl Session {
             None => hypr_language::ISO639::En.into(),
         };
 
-        let mut session = {
-            self.app
-                .db_get_session(&session_id)
-                .await?
-                .ok_or(crate::Error::NoneSession)?
-        };
+        let session = self
+            .app
+            .db_get_session(&session_id)
+            .await?
+            .ok_or(crate::Error::NoneSession)?;
 
         let jargons = match self.app.db_get_config(&user_id).await? {
             Some(config) => config.general.jargons,
@@ -102,11 +101,9 @@ impl Session {
             let mut input = hypr_audio::AudioInput::from_mic();
             input.stream()
         };
-        let mic_sample_rate = mic_sample_stream.sample_rate();
         let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);
 
-        let speaker_sample_stream =
-            hypr_audio::AudioInput::from_speaker(Some(mic_sample_rate)).stream();
+        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
         let mut speaker_stream = speaker_sample_stream.resample(SAMPLE_RATE).chunks(1024);
 
         let chunk_buffer_size: usize = 1024;
@@ -180,7 +177,7 @@ impl Session {
             let path = dir.join("audio.wav");
 
             let wav_spec = hound::WavSpec {
-                channels: 1,
+                channels: 2,
                 sample_rate: SAMPLE_RATE,
                 bits_per_sample: 32,
                 sample_format: hound::SampleFormat::Float,
@@ -220,6 +217,7 @@ impl Session {
 
                 for &sample in &mixed {
                     wav.write_sample(sample).unwrap();
+                    wav.write_sample(sample).unwrap();
                     if let Err(e) = mixed_tx.send(sample).await {
                         tracing::error!("mixed_tx_send_error: {:?}", e);
                     }
@@ -247,10 +245,9 @@ impl Session {
 
                     match result {
                         crate::ListenOutputChunk::Transcribe(chunk) => {
-                            update_session(&app, &mut session, chunk.clone())
+                            update_session(&app, &session.id, chunk.clone())
                                 .await
                                 .unwrap();
-
                             timeline.add_transcription(chunk);
                         }
                         crate::ListenOutputChunk::Diarize(chunk) => {
@@ -333,14 +330,14 @@ async fn setup_listen_client<R: tauri::Runtime>(
             .unwrap_or_default()
     };
 
-    tracing::info!(api_base = ?api_base, api_key = ?api_key, "listen_client");
+    tracing::info!(api_base = ?api_base, api_key = ?api_key, language = ?language, "listen_client");
 
     Ok(crate::client::ListenClient::builder()
         .api_base(api_base)
         .api_key(api_key)
         .params(hypr_listener_interface::ListenParams {
             language,
-            static_prompt: jargons.join(", "),
+            static_prompt: "".to_string(),
             ..Default::default()
         })
         .build())
@@ -363,9 +360,18 @@ async fn initialize_timeline(session: &hypr_db_user::Session) -> Timeline {
 
 async fn update_session<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
-    session: &mut hypr_db_user::Session,
+    session_id: impl Into<String>,
     transcript: hypr_listener_interface::TranscriptChunk,
 ) -> Result<(), crate::Error> {
+    use tauri_plugin_db::DatabasePluginExt;
+
+    // TODO: not ideal. We might want to only do "update" everywhere instead of upserts.
+    // We do this because it is highly likely that the session fetched in the listener is stale (session can be updated on the React side).
+    let mut session = app
+        .db_get_session(session_id)
+        .await?
+        .ok_or(crate::Error::NoneSession)?;
+
     session.conversations.push(hypr_db_user::ConversationChunk {
         transcripts: vec![transcript],
         diarizations: vec![],
@@ -373,10 +379,7 @@ async fn update_session<R: tauri::Runtime>(
         end: chrono::Utc::now(),
     });
 
-    {
-        use tauri_plugin_db::DatabasePluginExt;
-        app.db_upsert_session(session.clone()).await.unwrap();
-    }
+    app.db_upsert_session(session.clone()).await.unwrap();
 
     Ok(())
 }
@@ -459,7 +462,11 @@ impl Session {
         }
     }
 
-    #[state(entry_action = "enter_inactive", superstate = "common")]
+    #[state(
+        superstate = "common",
+        entry_action = "enter_inactive",
+        exit_action = "exit_inactive"
+    )]
     async fn inactive(&mut self, event: &StateEvent) -> Response<State> {
         match event {
             StateEvent::Start(id) => match self.setup_resources(id).await {
@@ -479,11 +486,22 @@ impl Session {
 
     #[action]
     async fn enter_inactive(&mut self) {
+        {
+            use tauri_plugin_tray::TrayPluginExt;
+            let _ = self.app.set_start_disabled(false);
+        }
+
         self.teardown_resources().await;
 
         Session::broadcast(&self.channels, SessionEvent::Stopped)
             .await
             .unwrap();
+    }
+
+    #[action]
+    async fn exit_inactive(&mut self) {
+        use tauri_plugin_tray::TrayPluginExt;
+        let _ = self.app.set_start_disabled(true);
     }
 
     fn on_transition(&mut self, source: &State, target: &State) {

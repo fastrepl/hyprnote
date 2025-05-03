@@ -1,7 +1,7 @@
 export const ExtensionNames = [
   "@hypr/extension-transcript",
   "@hypr/extension-twenty",
-  "@hypr/extension-summary",
+  // "@hypr/extension-summary",
   "@hypr/extension-dino-game",
   "@hypr/extension-timer",
 ] as const;
@@ -12,8 +12,8 @@ export function importExtension(name: ExtensionName) {
   switch (name) {
     case "@hypr/extension-dino-game":
       return import("@hypr/extension-dino-game");
-    case "@hypr/extension-summary":
-      return import("@hypr/extension-summary");
+    // case "@hypr/extension-summary":
+    //   return import("@hypr/extension-summary");
     case "@hypr/extension-transcript":
       return import("@hypr/extension-transcript");
     case "@hypr/extension-timer":
@@ -26,14 +26,14 @@ export function importExtension(name: ExtensionName) {
 }
 
 import dinoGameConfig from "@hypr/extension-dino-game/config.json";
-import summaryConfig from "@hypr/extension-summary/config.json";
+// import summaryConfig from "@hypr/extension-summary/config.json";
 import timerConfig from "@hypr/extension-timer/config.json";
 import transcriptConfig from "@hypr/extension-transcript/config.json";
 import twentyConfig from "@hypr/extension-twenty/config.json";
 
 export const EXTENSION_CONFIGS = [
   dinoGameConfig,
-  summaryConfig,
+  // summaryConfig,
   timerConfig,
   transcriptConfig,
   twentyConfig,

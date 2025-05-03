@@ -17,7 +17,7 @@ pub trait LocalSttPluginExt<R: Runtime> {
     fn download_model(
         &self,
         model: crate::SupportedModel,
-        channel: Channel<u8>,
+        channel: Channel<i8>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
 
     fn is_model_downloading(&self, model: &crate::SupportedModel) -> impl Future<Output = bool>;
@@ -111,7 +111,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     async fn download_model(
         &self,
         model: crate::SupportedModel,
-        channel: Channel<u8>,
+        channel: Channel<i8>,
     ) -> Result<(), crate::Error> {
         let data_dir = self.path().app_data_dir()?;
 
@@ -123,7 +123,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 }
                 DownloadProgress::Progress(downloaded, total_size) => {
                     let percent = (downloaded as f64 / total_size as f64) * 100.0;
-                    let _ = channel.send(percent as u8);
+                    let _ = channel.send(percent as i8);
                 }
                 DownloadProgress::Finished => {
                     let _ = channel.send(100);
@@ -134,6 +134,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 download_file_with_callback(m.model_url(), m.model_path(&data_dir), callback).await
             {
                 tracing::error!("model_download_error: {}", e);
+                let _ = channel.send(-1);
             }
         });
 

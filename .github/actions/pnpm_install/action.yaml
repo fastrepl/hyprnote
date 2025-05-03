@@ -3,7 +3,7 @@ runs:
   steps:
     - uses: pnpm/action-setup@v4
       with:
-        version: "10.8.1"
+        version: "10.10.0"
         run_install: false
 
     - uses: actions/setup-node@v4

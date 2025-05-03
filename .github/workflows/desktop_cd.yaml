@@ -56,7 +56,7 @@ jobs:
             fi
           fi
         shell: bash
-      - uses: arduino/setup-protoc@v3
+      - uses: ./.github/actions/setup_protoc
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/install_desktop_deps
@@ -92,7 +92,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
       - run: |
           mkdir -p target/release/
-          cp -r target/${{ matrix.target }}/release/* target/release/
+          find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
         working-directory: ./apps/desktop/src-tauri
       - uses: ./.github/actions/cn_release
         with:

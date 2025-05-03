@@ -13,7 +13,7 @@ pub trait LocalLlmPluginExt<R: Runtime> {
     fn is_server_running(&self) -> impl Future<Output = bool>;
     fn download_model(
         &self,
-        channel: Channel<u8>,
+        channel: Channel<i8>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
     fn start_server(&self) -> impl Future<Output = Result<String, crate::Error>>;
     fn stop_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
@@ -70,7 +70,7 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn download_model(&self, channel: Channel<u8>) -> Result<(), crate::Error> {
+    async fn download_model(&self, channel: Channel<i8>) -> Result<(), crate::Error> {
         let model = self.current_model().await?;
         let data_dir = self.path().app_data_dir().unwrap();
 
@@ -84,7 +84,7 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
                 }
                 DownloadProgress::Progress(downloaded, total_size) => {
                     let percent = (downloaded as f64 / total_size as f64) * 100.0;
-                    let _ = channel.send(percent as u8);
+                    let _ = channel.send(percent as i8);
                 }
                 DownloadProgress::Finished => {
                     let _ = channel.send(100);
@@ -92,7 +92,8 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
             };
 
             if let Err(e) = download_file_with_callback(url, path, callback).await {
-                tracing::error!("Failed to download model: {}", e);
+                tracing::error!("model_download_error: {}", e);
+                let _ = channel.send(-1);
             }
         });
 

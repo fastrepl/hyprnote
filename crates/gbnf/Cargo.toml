@@ -1,0 +1,11 @@
+[package]
+name = "gbnf"
+version = "0.1.0"
+edition = "2021"
+
+[dev-dependencies]
+gbnf-validator = { workspace = true }
+
+colored = "3"
+indoc = "2"
+insta = { workspace = true }

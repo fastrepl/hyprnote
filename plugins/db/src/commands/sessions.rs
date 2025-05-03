@@ -1,24 +1,6 @@
 #[tauri::command]
 #[specta::specta]
 #[tracing::instrument(skip(state))]
-pub async fn onboarding_session_enhanced_memo_md(
-    state: tauri::State<'_, crate::ManagedState>,
-) -> Result<String, String> {
-    let guard = state.lock().await;
-
-    let db = guard
-        .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDatabase)
-        .map_err(|e| e.to_string())?;
-
-    let memo_html = db.onboarding_session_enhanced_memo_md();
-    Ok(memo_html)
-}
-
-#[tauri::command]
-#[specta::specta]
-#[tracing::instrument(skip(state))]
 pub async fn onboarding_session_id(
     state: tauri::State<'_, crate::ManagedState>,
 ) -> Result<String, String> {

@@ -6,13 +6,13 @@ import { useCallback, useMemo, useState } from "react";
 import { z } from "zod";
 
 import { ExtensionsSidebar, MainSidebar, SettingsHeader, type Tab, TABS } from "@/components/settings/components";
-import { Extensions, General, Lab, LocalAI, Notifications, Sound } from "@/components/settings/views";
+import { Extensions, Feedback, General, Lab, LocalAI, Notifications, Sound } from "@/components/settings/views";
 import { EXTENSION_CONFIGS, ExtensionName, ExtensionNames } from "@hypr/extension-registry";
 import { type ExtensionDefinition } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 
 const schema = z.object({
-  tab: z.enum(TABS).default("general"),
+  tab: z.enum(TABS.map(t => t.name) as [Tab, ...Tab[]]).default("general"),
   extension: z.enum(ExtensionNames).default(ExtensionNames[0]),
 });
 
@@ -26,6 +26,11 @@ function Component() {
   const navigate = useNavigate();
   const search = useSearch({ from: PATH });
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const handleClickTab = (tab: Tab) => {
+    navigate({ to: PATH, search: { ...search, tab } });
+    setSearchQuery("");
+  };
 
   const extensionsList = useMemo(() => {
     return EXTENSION_CONFIGS.map(
@@ -41,11 +46,6 @@ function Component() {
       } as ExtensionDefinition),
     );
   }, []);
-
-  const handleClickTab = (tab: Tab) => {
-    navigate({ to: PATH, search: { ...search, tab } });
-    setSearchQuery("");
-  };
 
   const filteredExtensions = useMemo(() => {
     if (!searchQuery) {
@@ -90,8 +90,7 @@ function Component() {
               data-tauri-drag-region
               className="flex items-center h-11 justify-end px-2"
             >
-              {/* {(current === "templates" || current === "extensions") && ( */}
-              {search.tab === "extensions" && (
+              {(search.tab === "extensions") && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -106,24 +105,10 @@ function Component() {
               )}
             </div>
 
-            {/* {current !== "templates" && current !== "extensions" */}
             {search.tab !== "extensions"
               ? <MainSidebar current={search.tab} onTabClick={handleClickTab} />
               : (
                 <div className="flex h-full flex-col">
-                  {
-                    /* {current === "templates" && (
-                    <TemplatesSidebar
-                      searchQuery={searchQuery}
-                      onSearchChange={handleSearchChange}
-                      customTemplates={filteredCustomTemplates}
-                      builtinTemplates={filteredBuiltinTemplates}
-                      selectedTemplate={selectedTemplate}
-                      onTemplateSelect={setSelectedTemplate}
-                    />
-                  )} */
-                  }
-
                   {search.tab === "extensions" && (
                     <ExtensionsSidebar
                       searchQuery={searchQuery}
@@ -140,10 +125,9 @@ function Component() {
           <div className="flex-1 flex h-full w-full flex-col overflow-hidden">
             <SettingsHeader
               current={search.tab}
-              // onCreateTemplate={current === "templates" ? handleCreateTemplate : undefined}
             />
 
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 overflow-y-auto p-6">
               {search.tab === "general" && <General />}
               {search.tab === "notifications" && <Notifications />}
               {search.tab === "sound" && <Sound />}
@@ -155,6 +139,7 @@ function Component() {
               )}
               {search.tab === "ai" && <LocalAI />}
               {search.tab === "lab" && <Lab />}
+              {search.tab === "feedback" && <Feedback />}
             </div>
           </div>
         </div>

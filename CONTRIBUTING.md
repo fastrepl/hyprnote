@@ -1,4 +1,32 @@
-## Setup
+## Reporting Issues
+
+### What version of Hyprnote are you using?
+
+```bash
+curl -s https://raw.githubusercontent.com/fastrepl/hyprnote/refs/heads/main/scripts/info.sh | bash
+```
+
+Running above script will output something like the following:
+
+```json
+{
+    "stable": {
+        "userId": "16d9132c-8dc4-49a7-a66d-2a317e884c33",
+        "version": "0.0.27"
+    },
+    "nightly": {
+        "userId": "26319089-598d-4267-87d5-cd30160c83d3",
+        "version": "0.0.27"
+    }
+}
+```
+
+You can find latest version at [releases page](https://github.com/fastrepl/hyprnote/releases).
+
+Also, download button in [docs](https://docs.hyprnote.com) always points to the latest version.
+
+## Development
+
 ### Requirements
 ``` bash
 # Installing the rust toolchain used for tauri and the backend libs
@@ -9,6 +37,8 @@ brew install libomp
 brew install cmake
 # cidre uses this for audio capture and types
 xcode-select --install
+# Installing the tools
+xcodebuild -runFirstLaunch
 # Installing the tools
 npm install -g pnpm turbo
 ```

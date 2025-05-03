@@ -37,7 +37,7 @@ jobs:
             fi
           fi
         shell: bash
-      - uses: arduino/setup-protoc@v3
+      - uses: ./.github/actions/setup_protoc
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/install_desktop_deps

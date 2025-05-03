@@ -48,7 +48,7 @@ export function ParticipantsList({ sessionId }: ParticipantsListProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3 max-w-[450px]">
+    <div className="flex flex-col gap-3">
       <div className="text-sm font-medium text-neutral-700">Participants</div>
 
       <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">

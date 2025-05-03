@@ -2,14 +2,12 @@ import {
   AudioLinesIcon,
   BellIcon,
   BlocksIcon,
-  FlaskConicalIcon,
   // CalendarIcon,
   // CreditCardIcon,
-  // FileTextIcon,
-  // FlaskConicalIcon,
+  FlaskConicalIcon,
+  MessageSquareIcon,
   SettingsIcon,
   SparklesIcon,
-  // UsersIcon,
 } from "lucide-react";
 
 import { type Tab } from "./types";
@@ -23,9 +21,11 @@ export function TabIcon({ tab }: { tab: Tab }) {
     case "sound":
       return <AudioLinesIcon className="h-4 w-4" />;
     case "extensions":
-      return <BlocksIcon className="h-4 w-4" />;
+      return <BlocksIcon size={16} />;
     case "lab":
-      return <FlaskConicalIcon className="h-4 w-4" />;
+      return <FlaskConicalIcon size={16} />;
+    case "feedback":
+      return <MessageSquareIcon size={16} />;
     case "ai":
       return <SparklesIcon className="h-4 w-4" />;
     default:

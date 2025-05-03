@@ -17,12 +17,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup_protoc
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/install_app_deps
       - uses: ./.github/actions/rust_install
       - uses: ./.github/actions/pnpm_install
       - run: pnpm -F ui build
       - run: pnpm -F app build
-      - uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - run: cargo build -p app

@@ -68,6 +68,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
             let notif = hypr_notification2::Notification {
                 title: "Meeting detected".to_string(),
                 message: "Click here to start writing a note".to_string(),
+                // TODO: This doesn't matter because we're hardcoding the destination in the deeplink handler
                 url: Some("hypr://todo".to_string()),
                 timeout: Some(std::time::Duration::from_secs(10)),
             };

@@ -2211,14 +2211,17 @@ dependencies = [
  "hound",
  "kalosm-sound",
  "rodio",
+ "serde",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
+ "vad",
 ]
 
 [[package]]
 name = "cidre"
 version = "0.7.0"
-source = "git+https://github.com/yury/cidre?rev=6af0cf7#6af0cf7db0c5503f0a207cf1e83b2e151656c173"
+source = "git+https://github.com/yury/cidre?rev=4f0eff4#4f0eff4bb001462ee82076d8acff45936c6f5079"
 dependencies = [
  "cidre-macros",
  "parking_lot 0.12.3",
@@ -2228,7 +2231,7 @@ dependencies = [
 [[package]]
 name = "cidre-macros"
 version = "0.1.0"
-source = "git+https://github.com/yury/cidre?rev=6af0cf7#6af0cf7db0c5503f0a207cf1e83b2e151656c173"
+source = "git+https://github.com/yury/cidre?rev=4f0eff4#4f0eff4bb001462ee82076d8acff45936c6f5079"
 
 [[package]]
 name = "cipher"
@@ -3298,7 +3301,7 @@ dependencies = [
 
 [[package]]
 name = "desktop"
-version = "0.0.24"
+version = "0.0.28"
 dependencies = [
  "anyhow",
  "bytes",
@@ -3412,12 +3415,6 @@ dependencies = [
  "url",
  "ws",
 ]
-
-[[package]]
-name = "diff"
-version = "0.1.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56254986775e3233ffa9c4d7d3faaf6d36a2c09d30b20687e9f88bc8bafc16c8"
 
 [[package]]
 name = "digest"
@@ -4299,15 +4296,12 @@ dependencies = [
 
 [[package]]
 name = "gbnf"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cdf6228362f4014ccbdb75788bb664ab1d2bb4c97fe0b8af13c7e7ea00bc5da4"
+version = "0.1.0"
 dependencies = [
- "nom",
- "pretty_assertions",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
+ "colored",
+ "gbnf-validator",
+ "indoc",
+ "insta",
 ]
 
 [[package]]
@@ -6651,21 +6645,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "include_url_macro"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91acbbba84ea9a052bdaa07984178b032b95fbef36a82758dbaeb63783b5f796"
-dependencies = [
- "proc-macro2",
- "quote",
- "reqwest 0.11.27",
- "serde",
- "serde_json",
- "syn 2.0.100",
- "url",
-]
-
-[[package]]
 name = "indexmap"
 version = "1.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7495,7 +7474,6 @@ version = "0.1.0"
 dependencies = [
  "async-openai",
  "buffer",
- "colored",
  "data",
  "dirs 6.0.0",
  "encoding_rs",
@@ -7503,11 +7481,8 @@ dependencies = [
  "gbnf",
  "gbnf-validator",
  "gguf",
- "include_url_macro",
- "indoc",
  "listener-interface",
  "llama-cpp-2",
- "minijinja",
  "rand 0.9.1",
  "serde",
  "serde_json",
@@ -9718,16 +9693,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "925383efa346730478fb4838dbe9137d2a47675ad789c546d150a6e1dd4ab31c"
 
 [[package]]
-name = "pretty_assertions"
-version = "1.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ae130e2f271fbc2ac3a40fb1d07180839cdbbe443c7a27e1e3c13c5cac0116d"
-dependencies = [
- "diff",
- "yansi",
-]
-
-[[package]]
 name = "prettyplease"
 version = "0.2.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11592,7 +11557,6 @@ version = "1.0.140"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20068b6e96dc6c9bd23e01df8827e6c7e1f2fddd43c21810382803c136b99373"
 dependencies = [
- "indexmap 2.9.0",
  "itoa 1.0.15",
  "memchr",
  "ryu",
@@ -13175,6 +13139,7 @@ dependencies = [
  "tauri-plugin-connector",
  "tauri-plugin-db",
  "tauri-plugin-local-stt",
+ "tauri-plugin-tray",
  "tauri-specta",
  "thiserror 2.0.12",
  "timeline",
@@ -13194,6 +13159,7 @@ dependencies = [
  "dirs 6.0.0",
  "file",
  "futures-util",
+ "gbnf",
  "llama",
  "ollama-rs",
  "reqwest 0.12.15",
@@ -13243,6 +13209,7 @@ dependencies = [
  "tauri-specta",
  "thiserror 2.0.12",
  "tokio",
+ "tokio-tungstenite 0.26.2",
  "tower-http 0.6.2",
  "tracing",
  "whisper",
@@ -13519,7 +13486,6 @@ dependencies = [
  "tauri-plugin",
  "tauri-plugin-windows",
  "tauri-specta",
- "webbrowser",
 ]
 
 [[package]]
@@ -15007,6 +14973,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "vad"
+version = "0.1.0"
+dependencies = [
+ "data",
+ "ndarray",
+ "ort",
+ "serde",
+ "thiserror 2.0.12",
+ "tracing",
+]
+
+[[package]]
 name = "valuable"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -15341,23 +15319,6 @@ checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "webbrowser"
-version = "1.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5df295f8451142f1856b1bd86a606dfe9587d439bc036e319c827700dbd555e"
-dependencies = [
- "core-foundation 0.10.0",
- "home",
- "jni",
- "log",
- "ndk-context",
- "objc2 0.6.1",
- "objc2-foundation 0.3.1",
- "url",
- "web-sys",
 ]
 
 [[package]]
@@ -16515,12 +16476,6 @@ name = "xmlparser"
 version = "0.13.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "66fee0b777b0f5ac1c69bb06d361268faafa61cd4682ae064a171c16c433e9e4"
-
-[[package]]
-name = "yansi"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfe53a6657fd280eaa890a3bc59152892ffa3e30101319d168b781ed6529b049"
 
 [[package]]
 name = "yoke"

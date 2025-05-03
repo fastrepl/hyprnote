@@ -15,7 +15,7 @@ export const useChat = (options: Parameters<typeof useChat$1>[0]) => {
   });
 };
 
-const getModel = async () => {
+const getModel = async ({ onboarding }: { onboarding: boolean }) => {
   const { type, connection: { api_base, api_key } } = await connectorCommands.getLlmConnection();
 
   const openai = createOpenAICompatible({
@@ -23,19 +23,27 @@ const getModel = async () => {
     baseURL: api_base,
     apiKey: api_key ?? "SOMETHING_NON_EMPTY",
     fetch: customFetch,
+    headers: {
+      "Origin": "http://localhost:1420",
+    },
   });
 
   const customModel = await connectorCommands.getCustomLlmModel();
-  const model = (type === "Custom" && customModel) ? customModel : "gpt-4";
+  const model = onboarding
+    ? "mock-onboarding"
+    : (type === "Custom" && customModel)
+    ? customModel
+    : "gpt-4";
 
   return openai(model);
 };
 
 export const modelProvider = async () => {
-  const any = await getModel();
+  const defaultModel = await getModel({ onboarding: false });
+  const onboardingModel = await getModel({ onboarding: true });
 
   return customProvider({
-    languageModels: { any },
+    languageModels: { defaultModel, onboardingModel },
   });
 };
 

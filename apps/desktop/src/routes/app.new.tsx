@@ -5,14 +5,15 @@ import { z } from "zod";
 import { commands as dbCommands } from "@hypr/plugin-db";
 
 const schema = z.object({
+  record: z.boolean().optional(),
   calendarEventId: z.string().optional(),
 });
 
 export const Route = createFileRoute("/app/new")({
   validateSearch: zodValidator(schema),
   beforeLoad: async ({
-    context: { queryClient, sessionsStore, userId },
-    search: { calendarEventId },
+    context: { queryClient, ongoingSessionStore, sessionsStore, userId },
+    search: { record, calendarEventId },
   }) => {
     try {
       const sessionId = crypto.randomUUID();
@@ -54,6 +55,11 @@ export const Route = createFileRoute("/app/new")({
 
         const { insert } = sessionsStore.getState();
         insert(session);
+      }
+
+      if (record) {
+        const { start } = ongoingSessionStore.getState();
+        start(sessionId);
       }
 
       await queryClient.invalidateQueries({

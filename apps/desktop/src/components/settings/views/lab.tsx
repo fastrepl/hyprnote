@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CloudDrizzleIcon } from "lucide-react";
+import { CloudLightningIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { commands as flagsCommands } from "@hypr/plugin-flags";
@@ -44,7 +44,7 @@ function CloudPreview() {
     <FeatureFlag
       title="Hyprnote Cloud"
       description="Access to the latest AI model for Hyprnote Pro"
-      icon={<CloudDrizzleIcon />}
+      icon={<CloudLightningIcon />}
       enabled={flagQuery.data ?? false}
       onToggle={handleToggle}
     />

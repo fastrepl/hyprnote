@@ -1,0 +1,13 @@
+root ::= thinking sectionf section section section? section?
+
+sectionf ::= header "\n\n" line line line? line? "\n"
+section ::= header "\n\n" bline bline bline? bline? bline? "\n"
+header ::= "# " [^*.\n]+
+
+line ::= "- " [A-Z] [^*.\n[(]+ ".\n"
+bline ::= "- **" [^*\n:]+ "**: " ([^*;,[.\n] | link)+ ".\n"
+
+hd ::= "- " [A-Z] [^[(*\n]+ "\n"
+thinking ::= "<headers>\n" hd hd hd? hd? hd? "</headers>"
+
+link ::= "[" [^\]]+ "]" "(" [^)]+ ")"

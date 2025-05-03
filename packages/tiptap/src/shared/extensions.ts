@@ -49,8 +49,7 @@ export const extensions = [
   }),
   Hashtag,
   Link.configure({
-    openOnClick: false,
-    autolink: true,
+    openOnClick: true,
     defaultProtocol: "https",
     protocols: ["http", "https"],
     isAllowedUri: (url, ctx) => {
@@ -74,30 +73,12 @@ export const extensions = [
           return false;
         }
 
-        const disallowedDomains = ["example-phishing.com", "malicious-site.net"];
-        const domain = parsedUrl.hostname;
-
-        if (disallowedDomains.includes(domain)) {
-          return false;
-        }
-
         return true;
       } catch {
         return false;
       }
     },
-    shouldAutoLink: url => {
-      try {
-        const parsedUrl = url.includes(":") ? new URL(url) : new URL(`https://${url}`);
-
-        const disallowedDomains = ["example-no-autolink.com", "another-no-autolink.com"];
-        const domain = parsedUrl.hostname;
-
-        return !disallowedDomains.includes(domain);
-      } catch {
-        return false;
-      }
-    },
+    shouldAutoLink: (url) => url.startsWith("https://") || url.startsWith("http://"),
   }),
   TaskList,
   TaskItem.configure({

@@ -14,10 +14,16 @@ pub enum Error {
     DatabaseError(#[from] tauri_plugin_db::Error),
     #[error(transparent)]
     ConnectorError(#[from] tauri_plugin_connector::Error),
-    #[error("no STT connection")]
-    NoSTTConnection,
     #[error("no session")]
     NoneSession,
+    #[error("start session failed")]
+    StartSessionFailed,
+    #[error("stop session failed")]
+    StopSessionFailed,
+    #[error("pause session failed")]
+    PauseSessionFailed,
+    #[error("resume session failed")]
+    ResumeSessionFailed,
 }
 
 impl Serialize for Error {

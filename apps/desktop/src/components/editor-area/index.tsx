@@ -104,24 +104,24 @@ export default function EditorArea({
           enhancedContent && "pb-10",
         ])}
         onClick={(e) => {
-          e.stopPropagation();
-          safelyFocusEditor();
+          if (!(e.target instanceof HTMLAnchorElement)) {
+            e.stopPropagation();
+            safelyFocusEditor();
+          }
         }}
       >
-        <div>
-          {editable
-            ? (
-              <Editor
-                key={editorKey}
-                ref={editorRef}
-                handleChange={handleChangeNote}
-                initialContent={noteContent}
-                editable={enhance.status !== "pending"}
-                setContentFromOutside={!showRaw && enhance.status === "pending"}
-              />
-            )
-            : <Renderer ref={editorRef} initialContent={noteContent} />}
-        </div>
+        {editable
+          ? (
+            <Editor
+              key={editorKey}
+              ref={editorRef}
+              handleChange={handleChangeNote}
+              initialContent={noteContent}
+              editable={enhance.status !== "pending"}
+              setContentFromOutside={!showRaw && enhance.status === "pending"}
+            />
+          )
+          : <Renderer ref={editorRef} initialContent={noteContent} />}
       </div>
 
       <AnimatePresence>
@@ -167,7 +167,6 @@ export function useEnhanceMutation({
 
       const config = await dbCommands.getConfig();
       const participants = await dbCommands.sessionListParticipants(sessionId);
-      const onboardingOutputExample = await dbCommands.onboardingSessionEnhancedMemoMd();
 
       const fn = sessionId === onboardingSessionId
         ? dbCommands.getTimelineViewOnboarding
@@ -186,20 +185,21 @@ export function useEnhanceMutation({
           editor: rawContent,
           timeline,
           participants,
-          ...(sessionId === onboardingSessionId
-            ? { example: onboardingOutputExample }
-            : {}),
         },
       );
 
       const abortController = new AbortController();
+      const timeoutSignal = AbortSignal.timeout(60 * 1000);
+      const combinedSignal = AbortSignal.any([abortController.signal, timeoutSignal]);
       setEnhanceController(abortController);
 
       const provider = await modelProvider();
 
       const { text, textStream } = streamText({
-        abortSignal: abortController.signal,
-        model: provider.languageModel("any"),
+        abortSignal: combinedSignal,
+        model: sessionId === onboardingSessionId
+          ? provider.languageModel("onboardingModel")
+          : provider.languageModel("defaultModel"),
         messages: [
           { role: "system", content: systemMessage },
           { role: "user", content: userMessage },

@@ -7,10 +7,13 @@ pub trait ConnectorPluginExt<R: tauri::Runtime> {
     fn connector_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
 
     fn list_custom_llm_models(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
+
     fn get_custom_llm_model(&self) -> Result<Option<String>, crate::Error>;
     fn set_custom_llm_model(&self, model: String) -> Result<(), crate::Error>;
+
     fn set_custom_llm_enabled(&self, enabled: bool) -> Result<(), crate::Error>;
     fn get_custom_llm_enabled(&self) -> Result<bool, crate::Error>;
+
     fn get_custom_llm_connection(&self) -> Result<Option<Connection>, crate::Error>;
     fn set_custom_llm_connection(&self, connection: Connection) -> Result<(), crate::Error>;
 
@@ -242,20 +245,43 @@ impl OpenaiCompatible for ConnectionLLM {
     async fn models(&self) -> Result<Vec<String>, crate::Error> {
         let conn = self.as_ref();
         let api_base = &conn.api_base;
+        let api_key = &conn.api_key;
 
-        let mut url = url::Url::parse(api_base)?;
-        url.set_path("/v1/models");
+        let url = {
+            let mut u = url::Url::parse(api_base)?;
+            u.set_path("/v1/models");
+            u
+        };
 
-        let res: serde_json::Value = reqwest::get(url.to_string()).await?.json().await?;
+        let mut req = reqwest::Client::new().get(url);
+        if let Some(api_key) = api_key {
+            req = req.bearer_auth(api_key);
+        }
+
+        let res: serde_json::Value = req.send().await?.json().await?;
         let data = res["data"].as_array();
 
-        let models = match data {
-            None => vec![],
+        let ids = match data {
+            None => {
+                tracing::error!("{:?}", res);
+                vec![]
+            }
             Some(models) => models
                 .iter()
                 .map(|v| v["id"].as_str().unwrap().to_string())
                 .collect(),
         };
+
+        let models = ids
+            .into_iter()
+            .filter(|id| !id.contains("audio"))
+            .filter(|id| !id.contains("tts"))
+            .filter(|id| !id.contains("image"))
+            .filter(|id| !id.contains("dall-e"))
+            .filter(|id| !id.contains("moderation"))
+            .filter(|id| !id.contains("transcribe"))
+            .filter(|id| !id.contains("embedding"))
+            .collect();
 
         Ok(models)
     }

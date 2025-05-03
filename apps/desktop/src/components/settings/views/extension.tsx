@@ -32,7 +32,6 @@ export default function Extensions({
 
   useEffect(() => {
     windowsCommands.windowResizeDefault({ type: "main" }).then(() => {
-      windowsCommands.windowPosition({ type: "main" }, "right-half");
       windowsEvents.mainWindowState.emit({
         left_sidebar_expanded: false,
         right_panel_expanded: true,
@@ -139,14 +138,12 @@ export default function Extensions({
           {selectedExtension.title}
         </h3>
 
-        {/* Display configComponent if it exists */}
         {extensionInView?.configComponent && (
           <div className="mb-8">
             <extensionInView.configComponent queryClient={queryClient} />
           </div>
         )}
 
-        {/* Display widget groups */}
         {extensionInView?.widgetGroups.map((group) => (
           <RenderGroup
             key={group.id}

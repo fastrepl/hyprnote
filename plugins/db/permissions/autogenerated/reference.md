@@ -4,7 +4,6 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-onboarding-session-enhanced-memo-html`
 - `allow-onboarding-session-id`
 - `allow-upsert-session`
 - `allow-list-sessions`
@@ -703,58 +702,6 @@ Enables the list_templates command without any pre-configured scope.
 <td>
 
 Denies the list_templates command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:allow-onboarding-session-enhanced-memo-html`
-
-</td>
-<td>
-
-Enables the onboarding_session_enhanced_memo_md command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-onboarding-session-enhanced-memo-html`
-
-</td>
-<td>
-
-Denies the onboarding_session_enhanced_memo_md command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:allow-onboarding-session-enhanced-memo-md`
-
-</td>
-<td>
-
-Enables the onboarding_session_enhanced_memo_md command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-onboarding-session-enhanced-memo-md`
-
-</td>
-<td>
-
-Denies the onboarding_session_enhanced_memo_md command without any pre-configured scope.
 
 </td>
 </tr>

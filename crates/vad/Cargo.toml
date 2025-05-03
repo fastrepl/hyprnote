@@ -1,0 +1,15 @@
+[package]
+name = "vad"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+ndarray = "0.16"
+ort = "=2.0.0-rc.9"
+
+[dev-dependencies]
+hypr-data = { workspace = true }

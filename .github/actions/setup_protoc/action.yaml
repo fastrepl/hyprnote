@@ -1,0 +1,17 @@
+inputs:
+  repo-token:
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/cache@v4
+      id: cache-protoc
+      with:
+        path: ~/.cache/protoc
+        key: ${{ runner.os }}-protoc-25-7
+    - uses: arduino/setup-protoc@v3
+      with:
+        version: "25.7"
+        repo-token: ${{ inputs.repo-token }}

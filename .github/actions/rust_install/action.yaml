@@ -6,7 +6,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - run: rustup toolchain install 1.83.0 --profile minimal --no-self-update
+    - run: rustup toolchain install 1.86.0 --profile minimal --no-self-update
       shell: bash
     - if: inputs.target == 'macos'
       run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
@@ -21,3 +21,7 @@ runs:
       run: rustup target add x86_64-pc-windows-msvc
       shell: bash
     - uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: |
+          . -> target
+          apps/desktop/src-tauri -> target

@@ -4,8 +4,9 @@ use tauri::{Manager, Wry};
 mod commands;
 mod error;
 mod ext;
+mod manager;
 mod model;
-mod server;
+pub mod server;
 mod store;
 
 pub use error::*;

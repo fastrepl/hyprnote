@@ -7,14 +7,21 @@ use store::*;
 
 use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
 
-use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{
+    fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
+};
 
 #[tokio::main]
 pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
     {
+        let env_filter =
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+
         tracing_subscriber::Registry::default()
+            .with(fmt::layer())
+            .with(env_filter)
             .with(tauri_plugin_sentry::sentry::integrations::tracing::layer())
             .init();
     }

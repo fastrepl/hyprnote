@@ -99,7 +99,7 @@ impl WebSocketClient {
         tracing::info!("connect_async: {:?}", req.uri());
 
         let (ws_stream, _) =
-            tokio::time::timeout(std::time::Duration::from_secs(6), connect_async(req)).await??;
+            tokio::time::timeout(std::time::Duration::from_secs(4), connect_async(req)).await??;
 
         Ok(ws_stream)
     }

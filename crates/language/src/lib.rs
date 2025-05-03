@@ -28,13 +28,11 @@ impl std::ops::Deref for Language {
     }
 }
 
-impl Language {
-    pub fn iso639(&self) -> ISO639 {
-        self.iso639
-    }
+#[cfg(feature = "whisper")]
+impl TryInto<hypr_whisper::Language> for Language {
+    type Error = Error;
 
-    #[cfg(feature = "whisper")]
-    pub fn for_whisper(self) -> Result<hypr_whisper::Language, Error> {
+    fn try_into(self) -> Result<hypr_whisper::Language, Self::Error> {
         use hypr_whisper::Language as WL;
 
         match self.iso639 {
@@ -135,8 +133,126 @@ impl Language {
             ISO639::Yi => Ok(WL::Yi),
             ISO639::Yo => Ok(WL::Yo),
             ISO639::Zh => Ok(WL::Zh),
-            _ => Err(Error::NotSupportedLanguage(self.iso639)),
+            _ => Err(Error::NotSupportedLanguage(self.to_string())),
         }
+    }
+}
+
+#[cfg(feature = "whisper")]
+impl TryInto<Language> for hypr_whisper::Language {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Language, Self::Error> {
+        use hypr_whisper::Language as WL;
+
+        let iso639 = match self {
+            WL::Af => ISO639::Af,
+            WL::Am => ISO639::Am,
+            WL::Ar => ISO639::Ar,
+            WL::As => ISO639::As,
+            WL::Az => ISO639::Az,
+            WL::Ba => ISO639::Ba,
+            WL::Be => ISO639::Be,
+            WL::Bg => ISO639::Bg,
+            WL::Bn => ISO639::Bn,
+            WL::Bo => ISO639::Bo,
+            WL::Br => ISO639::Br,
+            WL::Bs => ISO639::Bs,
+            WL::Ca => ISO639::Ca,
+            WL::Cs => ISO639::Cs,
+            WL::Cy => ISO639::Cy,
+            WL::Da => ISO639::Da,
+            WL::De => ISO639::De,
+            WL::El => ISO639::El,
+            WL::En => ISO639::En,
+            WL::Es => ISO639::Es,
+            WL::Et => ISO639::Et,
+            WL::Eu => ISO639::Eu,
+            WL::Fa => ISO639::Fa,
+            WL::Fi => ISO639::Fi,
+            WL::Fo => ISO639::Fo,
+            WL::Fr => ISO639::Fr,
+            WL::Gl => ISO639::Gl,
+            WL::Gu => ISO639::Gu,
+            WL::Ha => ISO639::Ha,
+            WL::He => ISO639::He,
+            WL::Hi => ISO639::Hi,
+            WL::Hr => ISO639::Hr,
+            WL::Ht => ISO639::Ht,
+            WL::Hu => ISO639::Hu,
+            WL::Hy => ISO639::Hy,
+            WL::Id => ISO639::Id,
+            WL::Is => ISO639::Is,
+            WL::It => ISO639::It,
+            WL::Ja => ISO639::Ja,
+            WL::Jw => ISO639::Jv,
+            WL::Ka => ISO639::Ka,
+            WL::Kk => ISO639::Kk,
+            WL::Km => ISO639::Km,
+            WL::Kn => ISO639::Kn,
+            WL::Ko => ISO639::Ko,
+            WL::La => ISO639::La,
+            WL::Lb => ISO639::Lb,
+            WL::Lo => ISO639::Lo,
+            WL::Lt => ISO639::Lt,
+            WL::Lv => ISO639::Lv,
+            WL::Mg => ISO639::Mg,
+            WL::Mi => ISO639::Mi,
+            WL::Mk => ISO639::Mk,
+            WL::Ml => ISO639::Ml,
+            WL::Mn => ISO639::Mn,
+            WL::Mr => ISO639::Mr,
+            WL::Ms => ISO639::Ms,
+            WL::Mt => ISO639::Mt,
+            WL::My => ISO639::My,
+            WL::Ne => ISO639::Ne,
+            WL::Nl => ISO639::Nl,
+            WL::Nn => ISO639::Nn,
+            WL::No => ISO639::No,
+            WL::Oc => ISO639::Oc,
+            WL::Pa => ISO639::Pa,
+            WL::Pl => ISO639::Pl,
+            WL::Ps => ISO639::Ps,
+            WL::Pt => ISO639::Pt,
+            WL::Ro => ISO639::Ro,
+            WL::Ru => ISO639::Ru,
+            WL::Sa => ISO639::Sa,
+            WL::Sd => ISO639::Sd,
+            WL::Si => ISO639::Si,
+            WL::Sk => ISO639::Sk,
+            WL::Sl => ISO639::Sl,
+            WL::Sn => ISO639::Sn,
+            WL::So => ISO639::So,
+            WL::Sq => ISO639::Sq,
+            WL::Sr => ISO639::Sr,
+            WL::Su => ISO639::Su,
+            WL::Sv => ISO639::Sv,
+            WL::Sw => ISO639::Sw,
+            WL::Ta => ISO639::Ta,
+            WL::Te => ISO639::Te,
+            WL::Tg => ISO639::Tg,
+            WL::Th => ISO639::Th,
+            WL::Tk => ISO639::Tk,
+            WL::Tl => ISO639::Tl,
+            WL::Tr => ISO639::Tr,
+            WL::Tt => ISO639::Tt,
+            WL::Uk => ISO639::Uk,
+            WL::Ur => ISO639::Ur,
+            WL::Uz => ISO639::Uz,
+            WL::Vi => ISO639::Vi,
+            WL::Yi => ISO639::Yi,
+            WL::Yo => ISO639::Yo,
+            WL::Zh => ISO639::Zh,
+            _ => return Err(Error::NotSupportedLanguage(self.to_string())),
+        };
+
+        Ok(Language { iso639 })
+    }
+}
+
+impl Language {
+    pub fn iso639(&self) -> ISO639 {
+        self.iso639
     }
 
     #[cfg(feature = "deepgram")]
@@ -178,7 +294,7 @@ impl Language {
             ISO639::Uk => Ok(DG::uk),
             ISO639::Vi => Ok(DG::vi),
             ISO639::Zh => Ok(DG::zh),
-            _ => Err(Error::NotSupportedLanguage(self.iso639)),
+            _ => Err(Error::NotSupportedLanguage(self.to_string())),
         }
     }
 
@@ -218,7 +334,7 @@ impl Language {
             ISO639::Uk => Ok(String::from("стенограма")),
             ISO639::Vi => Ok(String::from("bản ghi")),
             ISO639::Zh => Ok(String::from("文字记录")),
-            _ => Err(Error::NotSupportedLanguage(self.iso639)),
+            _ => Err(Error::NotSupportedLanguage(self.to_string())),
         }
     }
 }

@@ -119,10 +119,11 @@ async fn listen(
         .ok_or(StatusCode::TOO_MANY_REQUESTS)?;
 
     let model_path = state.model_type.model_path(&state.model_cache_dir);
+    let language = params.language.try_into().unwrap();
 
     let model = hypr_whisper::local::Whisper::builder()
         .model_path(model_path.to_str().unwrap())
-        .language(params.language.for_whisper().unwrap())
+        .language(language)
         .static_prompt(&params.static_prompt)
         .dynamic_prompt(&params.dynamic_prompt)
         .build();

@@ -3,7 +3,7 @@ use serde::{ser::Serializer, Serialize};
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("Not supported language: {0}")]
-    NotSupportedLanguage(codes_iso_639::part_1::LanguageCode),
+    NotSupportedLanguage(String),
 }
 
 impl Serialize for Error {

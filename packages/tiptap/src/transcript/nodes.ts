@@ -31,7 +31,7 @@ type CommandProps = {
 export const SpeakerNode = Node.create({
   name: "speaker",
   group: "block",
-  content: "sentence*",
+  content: "sentence+",
 
   addAttributes() {
     return {
@@ -97,7 +97,7 @@ export const SpeakerNode = Node.create({
 
 export const SentenceNode = Node.create({
   name: "sentence",
-  group: "inline",
+  group: "block",
   content: "word+",
 
   addAttributes() {

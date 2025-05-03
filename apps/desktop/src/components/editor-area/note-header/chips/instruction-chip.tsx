@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Info } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -8,13 +8,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
 export function InstructionChip({ sessionId }: { sessionId: string }) {
-  const queryClient = useQueryClient();
+  const [text, setText] = useState("");
+
   const configQuery = useQuery({
     queryKey: ["config", "general"],
     queryFn: async () => await dbCommands.getConfig(),
   });
-
-  const [text, setText] = useState("");
 
   useEffect(() => {
     if (configQuery.data?.general?.jargons) {
@@ -23,14 +22,14 @@ export function InstructionChip({ sessionId }: { sessionId: string }) {
   }, [configQuery.data]);
 
   const mutation = useMutation({
-    mutationFn: async (newJargonsString: string) => {
+    mutationFn: async (jargons: string) => {
       if (!configQuery.data) {
-        console.error("Cannot save jargons: config not loaded.");
         return;
       }
+
       const nextGeneral: ConfigGeneral = {
         ...(configQuery.data.general ?? {}),
-        jargons: newJargonsString.split(",").map((j) => j.trim()).filter(Boolean),
+        jargons: [jargons],
       };
       await dbCommands.setConfig({
         ...configQuery.data,
@@ -38,11 +37,9 @@ export function InstructionChip({ sessionId }: { sessionId: string }) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["config", "general"] });
+      configQuery.refetch();
     },
-    onError: (error) => {
-      console.error("Failed to save jargons:", error);
-    },
+    onError: console.error,
   });
 
   const handleSaveJargons = () => {

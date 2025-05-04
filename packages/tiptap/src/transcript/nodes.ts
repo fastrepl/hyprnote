@@ -1,6 +1,5 @@
-import { type Editor, Mark, mergeAttributes, Node } from "@tiptap/core";
+import { type CommandProps, Mark, mergeAttributes, Node } from "@tiptap/core";
 import { Node as ProseMirrorNode } from "prosemirror-model";
-import { Transaction } from "prosemirror-state";
 
 import "./styles.css";
 
@@ -20,13 +19,6 @@ declare module "@tiptap/core" {
     };
   }
 }
-
-type CommandProps = {
-  tr: Transaction;
-  dispatch: ((tr: Transaction) => void) | undefined;
-  state: any;
-  editor: Editor;
-};
 
 export const SpeakerNode = Node.create({
   name: "speaker",

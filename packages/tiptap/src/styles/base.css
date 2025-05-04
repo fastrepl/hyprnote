@@ -7,6 +7,8 @@
   caret-color: #374151;
   padding-left: 2rem;
   padding-right: 2rem;
+  color: inherit;
+  background-color: transparent;
 
   :first-child {
     margin-top: 0;
@@ -21,4 +23,8 @@
   p {
     margin-bottom: 0.25rem;
   }
+}
+
+:root.dark .tiptap {
+  caret-color: #e5e7eb;
 }

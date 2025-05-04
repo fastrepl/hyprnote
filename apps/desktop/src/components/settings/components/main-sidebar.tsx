@@ -18,8 +18,8 @@ export function MainSidebar({ current, onTabClick }: MainSidebarProps) {
             <button
               key={tab.name}
               className={cn(
-                "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
-                current === tab.name && "bg-neutral-100 font-medium",
+                "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-zinc-800",
+                current === tab.name && "bg-neutral-100 dark:bg-zinc-800 font-medium",
               )}
               onClick={() => onTabClick(tab.name)}
             >

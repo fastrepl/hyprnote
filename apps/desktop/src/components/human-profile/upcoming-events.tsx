@@ -45,25 +45,25 @@ export function UpcomingEvents({ human }: { human: Human }) {
             {upcomingEvents.map((event) => (
               <Card
                 key={event.id}
-                className="hover:bg-gray-50 transition-colors cursor-pointer border border-gray-200 shadow-sm rounded-lg overflow-hidden"
+                className="hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer border border-gray-200 dark:border-zinc-800 shadow-sm dark:shadow-zinc-900/20 rounded-lg overflow-hidden"
               >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="font-medium text-zinc-900">{event.name}</h3>
-                      <p className="text-sm text-zinc-500 mt-1 flex items-center gap-1">
+                      <h3 className="font-medium text-zinc-900 dark:text-zinc-100">{event.name}</h3>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 flex items-center gap-1">
                         <Clock className="h-3.5 w-3.5 inline" />
                         {format(new Date(event.start_date), "MMMM do, yyyy")} •{" "}
                         {format(new Date(event.start_date), "h:mm a")} - {format(new Date(event.end_date), "h:mm a")}
                       </p>
-                      {event.note && <p className="mt-2 text-sm text-zinc-600">{event.note}</p>}
+                      {event.note && <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{event.note}</p>}
                     </div>
                     {event.google_event_url && (
                       <a
                         href={event.google_event_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-zinc-400 hover:text-zinc-600 transition-colors ml-2"
+                        className="text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors ml-2"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <ExternalLink className="h-4 w-4" />

@@ -73,14 +73,14 @@ export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
       {sessionId && <Transcript sessionId={sessionId} />}
 
       {!sessionId && (
-        <div className="absolute inset-0 backdrop-blur-sm bg-white/50 flex items-center justify-center">
-          <div className="text-neutral-500 font-medium">Session not found</div>
+        <div className="absolute inset-0 backdrop-blur-sm bg-white/50 dark:bg-zinc-900/50 flex items-center justify-center">
+          <div className="text-neutral-500 dark:text-neutral-400 font-medium">Session not found</div>
         </div>
       )}
 
       {sessionId && showEmptyMessage && (
-        <div className="absolute inset-0 backdrop-blur-sm bg-white/50 flex items-center justify-center rounded-2xl">
-          <div className="text-neutral-500 font-medium">
+        <div className="absolute inset-0 backdrop-blur-sm bg-white/50 dark:bg-zinc-900/50 flex items-center justify-center rounded-2xl">
+          <div className="text-neutral-500 dark:text-neutral-400 font-medium">
             {isEnhanced
               ? "No transcript available"
               : "Meeting is not active"}

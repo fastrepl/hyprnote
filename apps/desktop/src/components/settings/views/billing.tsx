@@ -96,11 +96,11 @@ export default function Billing({ currentPlan, trialDaysLeft }: BillingProps) {
 
   return (
     <div className="relative h-full">
-      <div className="absolute inset-0 backdrop-blur-sm bg-white/50 z-10 flex flex-col items-center justify-center">
-        <div className="text-4xl font-bold text-neutral-900 mb-4">
+      <div className="absolute inset-0 backdrop-blur-sm bg-white/50 dark:bg-zinc-900/50 z-10 flex flex-col items-center justify-center">
+        <div className="text-4xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
           <Trans>Coming Soon</Trans>
         </div>
-        <p className="text-neutral-700 max-w-md text-center">
+        <p className="text-neutral-700 dark:text-neutral-300 max-w-md text-center">
           <Trans>
             Billing features are currently under development and will be available in a future update.
           </Trans>

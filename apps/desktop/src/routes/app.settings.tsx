@@ -85,7 +85,7 @@ function Component() {
     <div className="relative flex h-screen w-screen overflow-hidden">
       <div className="flex h-full w-full flex-col overflow-hidden bg-background">
         <div className="flex h-full">
-          <div className="w-60 border-r">
+          <div className="w-60 border-r dark:border-zinc-800">
             <div
               data-tauri-drag-region
               className="flex items-center h-11 justify-end px-2"
@@ -94,7 +94,7 @@ function Component() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="hover:bg-neutral-200 text-neutral-600 hover:text-neutral-600"
+                  className="hover:bg-neutral-200 dark:hover:bg-zinc-800 text-neutral-600 dark:text-neutral-300 hover:text-neutral-600 dark:hover:text-neutral-300"
                   onClick={() => handleClickTab("general")}
                 >
                   <ArrowLeft className="h-4 w-4" />

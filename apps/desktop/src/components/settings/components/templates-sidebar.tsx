@@ -27,11 +27,11 @@ export function TemplatesSidebar({
     <>
       <div className="p-2">
         <div className="relative flex items-center">
-          <SearchIcon className="absolute left-2 h-4 w-4 text-neutral-400" />
+          <SearchIcon className="absolute left-2 h-4 w-4 text-neutral-400 dark:text-neutral-500" />
           <input
             type="text"
             placeholder={t`Search templates...`}
-            className="w-full rounded-md border border-neutral-200 bg-white py-1 pl-8 pr-2 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+            className="w-full rounded-md border border-neutral-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 dark:text-neutral-200 py-1 pl-8 pr-2 text-sm placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-neutral-600"
             value={searchQuery}
             onChange={onSearchChange}
           />
@@ -41,7 +41,7 @@ export function TemplatesSidebar({
         <div className="space-y-4 p-2">
           {customTemplates.length > 0 && (
             <div>
-              <h3 className="mb-1 px-2 text-xs font-medium uppercase text-neutral-500">
+              <h3 className="mb-1 px-2 text-xs font-medium uppercase text-neutral-500 dark:text-neutral-400">
                 <Trans>Your Templates</Trans>
               </h3>
               <div className="space-y-1">
@@ -49,8 +49,8 @@ export function TemplatesSidebar({
                   <button
                     key={template.id}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
-                      selectedTemplate === template.id && "bg-neutral-100 font-medium",
+                      "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-zinc-800",
+                      selectedTemplate === template.id && "bg-neutral-100 dark:bg-zinc-800 font-medium",
                     )}
                     onClick={() => onTemplateSelect(template.id)}
                   >
@@ -64,7 +64,7 @@ export function TemplatesSidebar({
 
           {builtinTemplates.length > 0 && (
             <div>
-              <h3 className="mb-1 px-2 text-xs font-medium uppercase text-neutral-500">
+              <h3 className="mb-1 px-2 text-xs font-medium uppercase text-neutral-500 dark:text-neutral-400">
                 <Trans>Built-in Templates</Trans>
               </h3>
               <div className="space-y-1">
@@ -72,8 +72,8 @@ export function TemplatesSidebar({
                   <button
                     key={template.id}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
-                      selectedTemplate === template.id && "bg-neutral-100 font-medium",
+                      "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-zinc-800",
+                      selectedTemplate === template.id && "bg-neutral-100 dark:bg-zinc-800 font-medium",
                     )}
                     onClick={() => onTemplateSelect(template.id)}
                   >

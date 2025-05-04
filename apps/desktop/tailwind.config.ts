@@ -7,6 +7,8 @@ import ExtensionTranscript from "@hypr/extension-transcript/tailwind.config";
 import ExtensionTwenty from "@hypr/extension-twenty/tailwind.config";
 
 const config = {
+  // Use class strategy for dark mode
+  darkMode: ["class"],
   content: [
     ...ExtensionSummary.content,
     ...ExtensionTranscript.content,

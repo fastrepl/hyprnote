@@ -17,13 +17,13 @@ const styles = {
 
   variants: {
     default:
-      "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80 focus:ring-2 focus:ring-primary/20",
+      "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80 focus:ring-2 focus:ring-primary/20 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600 dark:active:bg-zinc-600/80",
     destructive:
-      "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80 focus:ring-2 focus:ring-destructive/20",
+      "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80 focus:ring-2 focus:ring-destructive/20 dark:bg-red-700 dark:hover:bg-red-600",
     outline:
-      "border border-input bg-background hover:bg-accent hover:text-accent-foreground active:bg-accent/80 focus:ring-2 focus:ring-accent/20",
+      "border border-input bg-background hover:bg-accent hover:text-accent-foreground active:bg-accent/80 focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-zinc-300",
     ghost:
-      "text-foreground hover:bg-accent hover:text-accent-foreground active:bg-accent/80 focus:ring-2 focus:ring-accent/20",
+      "text-foreground hover:bg-accent hover:text-accent-foreground active:bg-accent/80 focus:ring-2 focus:ring-accent/20 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 dark:active:bg-zinc-800/80",
   },
 
   sizes: {

@@ -31,7 +31,7 @@ export default function TitleInput({
       onChange={onChange}
       value={value}
       placeholder={t`Untitled`}
-      className="w-full border-none bg-transparent text-2xl font-bold focus:outline-none placeholder:text-neutral-400"
+      className="w-full border-none bg-transparent text-2xl font-bold focus:outline-none placeholder:text-neutral-400 dark:placeholder:text-zinc-500"
       onKeyDown={handleKeyDown}
     />
   );

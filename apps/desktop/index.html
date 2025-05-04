@@ -3,11 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <meta name="color-scheme" content="light dark">
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>Hyprnote</title>
+    <script>
+      // Initialize theme from localStorage and prepare for synchronization
+      document.addEventListener('DOMContentLoaded', function() {
+        // Get theme from localStorage
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || savedTheme === 'light') {
+          // Apply theme
+          document.documentElement.classList.remove('dark', 'light');
+          document.documentElement.classList.add(savedTheme);
+        } else {
+          // Default to dark if no theme is saved
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+        }
+      });
+    </script>
   </head>
   <body spellcheck="false">
     <div id="root"></div>

@@ -133,8 +133,8 @@ export default function Extensions({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className={hasMultipleGroups ? "border-b pb-4 border-border" : ""}>
-        <h3 className="text-2xl font-semibold text-neutral-700 mb-2">
+      <div className={hasMultipleGroups ? "border-b pb-4 border-border dark:border-zinc-700" : ""}>
+        <h3 className="text-2xl font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
           {selectedExtension.title}
         </h3>
 

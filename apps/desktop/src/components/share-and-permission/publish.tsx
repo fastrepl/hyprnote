@@ -14,7 +14,7 @@ export const Publish = () => {
         <h3 className="text-lg font-medium mb-1">
           <Trans>Publish your note</Trans>
         </h3>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
           <Trans>Anyone with the link can view this page</Trans>
         </p>
       </div>

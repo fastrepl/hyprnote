@@ -208,7 +208,7 @@ function WhenInactiveAndMeetingNotEnded({ disabled, onClick }: { disabled: boole
           disabled={disabled}
           className={cn([
             "w-9 h-9 rounded-full border-2 transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center",
-            disabled ? "bg-neutral-200 border-neutral-400" : "bg-red-500 border-neutral-400",
+            disabled ? "bg-neutral-200 dark:bg-zinc-700 border-neutral-400 dark:border-zinc-600" : "bg-red-500 border-neutral-400 dark:border-red-600",
             "shadow-[inset_0_0_0_2px_rgba(255,255,255,0.8)]",
           ])}
         >
@@ -217,7 +217,7 @@ function WhenInactiveAndMeetingNotEnded({ disabled, onClick }: { disabled: boole
       <PopoverContent className="w-80" align="end">
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-2">
-            <div className="text-sm font-medium text-neutral-700">
+            <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
               <Trans>Custom instruction</Trans>
             </div>
             <Textarea
@@ -226,7 +226,7 @@ function WhenInactiveAndMeetingNotEnded({ disabled, onClick }: { disabled: boole
               placeholder="ex) Hyprnote, JDCE, Fastrepl, John, Yujong"
               className="min-h-[80px] resize-none border-neutral-300 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
             />
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs text-neutral-400 dark:text-neutral-500">
               <Trans>
                 Provide descriptions about the meeting. Company specific terms, acronyms, jargons... any thing!
               </Trans>
@@ -265,10 +265,10 @@ function WhenInactiveAndMeetingEnded({ disabled, onClick }: { disabled: boolean;
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
         "w-16 h-9 rounded-full transition-all outline-none p-0 flex items-center justify-center text-xs font-medium",
-        "bg-neutral-200 border-2 border-neutral-400 text-neutral-600",
+        "bg-neutral-200 dark:bg-zinc-700 border-2 border-neutral-400 dark:border-zinc-600 text-neutral-600 dark:text-neutral-300",
         "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
         !disabled
-          ? "hover:opacity-100 hover:bg-red-100 hover:text-red-600 hover:border-red-400 hover:scale-95 cursor-pointer"
+          ? "hover:opacity-100 hover:bg-red-100 hover:text-red-600 hover:border-red-400 dark:hover:bg-red-900 dark:hover:text-red-400 dark:hover:border-red-700 hover:scale-95 cursor-pointer"
           : "opacity-10 cursor-progress",
       )}
     >
@@ -303,10 +303,10 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
       onClick={onClick}
       className={cn(
         "w-28 h-9 rounded-full outline-none p-0 flex items-center justify-center gap-1 text-xs font-medium",
-        "bg-neutral-200 border-2 border-neutral-400 text-neutral-600",
+        "bg-neutral-200 dark:bg-zinc-700 border-2 border-neutral-400 dark:border-zinc-600 text-neutral-600 dark:text-neutral-300",
         "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
         !disabled
-          ? "hover:bg-neutral-300 hover:text-neutral-800 hover:border-neutral-500 transition-all hover:scale-95 cursor-pointer"
+          ? "hover:bg-neutral-300 hover:text-neutral-800 hover:border-neutral-500 dark:hover:bg-zinc-600 dark:hover:text-neutral-200 dark:hover:border-zinc-500 transition-all hover:scale-95 cursor-pointer"
           : "opacity-10 cursor-progress",
       )}
     >
@@ -366,7 +366,7 @@ export function WhenActive() {
         <button
           className={cn([
             open && "hover:scale-95",
-            "w-14 h-9 rounded-full bg-red-100 border-2 transition-all border-red-400 cursor-pointer outline-none p-0 flex items-center justify-center",
+            "w-14 h-9 rounded-full bg-red-100 dark:bg-red-900 border-2 transition-all border-red-400 dark:border-red-700 cursor-pointer outline-none p-0 flex items-center justify-center",
             "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
           ])}
         >

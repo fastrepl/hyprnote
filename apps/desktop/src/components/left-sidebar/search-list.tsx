@@ -35,8 +35,8 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
     <div className="h-full space-y-4 px-3 pb-4">
       {sessionMatches.length > 0 && (
         <section>
-          <h2 className="font-bold text-neutral-600 mb-1 flex items-center gap-1">
-            <FileTextIcon className="h-4 w-4 text-neutral-500" />
+          <h2 className="font-bold text-neutral-600 dark:text-neutral-400 mb-1 flex items-center gap-1">
+            <FileTextIcon className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
             Notes
           </h2>
           <div>
@@ -49,8 +49,8 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
 
       {eventMatches.length > 0 && (
         <section>
-          <h2 className="font-bold text-neutral-600 mb-1 flex items-center gap-1">
-            <CalendarIcon className="h-4 w-4 text-neutral-500" />
+          <h2 className="font-bold text-neutral-600 dark:text-neutral-400 mb-1 flex items-center gap-1">
+            <CalendarIcon className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
             Events
           </h2>
           <div>
@@ -63,8 +63,8 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
 
       {humanMatches.length > 0 && (
         <section>
-          <h2 className="font-bold text-neutral-600 mb-1 flex items-center gap-1">
-            <UserIcon className="h-4 w-4 text-neutral-500" />
+          <h2 className="font-bold text-neutral-600 dark:text-neutral-400 mb-1 flex items-center gap-1">
+            <UserIcon className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
             People
           </h2>
           <div>
@@ -77,8 +77,8 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
 
       {organizationMatches.length > 0 && (
         <section>
-          <h2 className="font-bold text-neutral-600 mb-1 flex items-center gap-1">
-            <BuildingIcon className="h-4 w-4 text-neutral-500" />
+          <h2 className="font-bold text-neutral-600 dark:text-neutral-400 mb-1 flex items-center gap-1">
+            <BuildingIcon className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
             Organizations
           </h2>
           <div>
@@ -110,12 +110,12 @@ export function SessionMatch({ match: { item: session } }: { match: SearchMatch 
       onClick={handleClick}
       className={cn([
         "w-full text-left group flex items-start py-2 rounded-lg px-2",
-        isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
+        isActive ? "bg-neutral-200 dark:bg-zinc-800" : "hover:bg-neutral-100 dark:hover:bg-zinc-800/70",
       ])}
     >
       <div className="flex flex-col items-start gap-1">
         <div className="font-medium text-sm line-clamp-1">{session.title || "Untitled Note"}</div>
-        <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
+        <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1">
           {new Date(session.created_at).toLocaleDateString()}
         </div>
       </div>
@@ -134,11 +134,11 @@ function EventMatch({ match }: { match: SearchMatch & { type: "event" } }) {
   return (
     <button
       onClick={handleClick}
-      className="w-full text-left group flex items-start py-2 hover:bg-neutral-100 rounded-lg px-2"
+      className="w-full text-left group flex items-start py-2 hover:bg-neutral-100 dark:hover:bg-zinc-800/70 rounded-lg px-2"
     >
       <div className="flex flex-col items-start gap-1">
         <div className="font-medium text-sm line-clamp-1">{event.name}</div>
-        <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
+        <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1">
           {formatRemainingTime(new Date(event.start_date))}
         </div>
       </div>
@@ -182,16 +182,16 @@ function HumanMatch({ match: { item } }: { match: SearchMatch & { type: "human" 
           disabled={isActive}
           className={cn([
             "w-full text-left group flex items-start py-2 rounded-lg px-2",
-            isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
+            isActive ? "bg-neutral-200 dark:bg-zinc-800" : "hover:bg-neutral-100 dark:hover:bg-zinc-800/70",
             isOpen && "bg-neutral-100",
           ])}
         >
           <div className="flex flex-col items-start gap-1">
             <div className="font-medium text-sm line-clamp-1 flex items-center justify-between w-full">
               <span>{human.data?.full_name || "Unnamed Person"}</span>
-              <span className="text-neutral-500 text-xs font-normal ml-auto">{human.data?.job_title}</span>
+              <span className="text-neutral-500 dark:text-neutral-400 text-xs font-normal ml-auto">{human.data?.job_title}</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
+            <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1">
               {human.data?.email}
             </div>
           </div>
@@ -249,13 +249,13 @@ function OrganizationMatch(
           disabled={isActive}
           className={cn([
             "w-full text-left group flex items-start py-2 rounded-lg px-2",
-            isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
+            isActive ? "bg-neutral-200 dark:bg-zinc-800" : "hover:bg-neutral-100 dark:hover:bg-zinc-800/70",
             isOpen && "bg-neutral-100",
           ])}
         >
           <div className="flex flex-col items-start gap-1 w-full overflow-hidden">
             <div className="font-medium text-sm line-clamp-1 w-full">{org.data?.name}</div>
-            <div className="text-xs text-neutral-500 truncate w-full overflow-hidden text-ellipsis whitespace-nowrap">
+            <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate w-full overflow-hidden text-ellipsis whitespace-nowrap">
               {org.data?.description}
             </div>
           </div>

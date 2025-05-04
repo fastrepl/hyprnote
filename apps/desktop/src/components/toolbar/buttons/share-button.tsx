@@ -30,7 +30,7 @@ export function ShareButton() {
         <Button
           variant="ghost"
           size="icon"
-          className="hover:bg-neutral-200"
+          className="hover:bg-neutral-200 dark:hover:bg-zinc-800 text-neutral-700 dark:text-neutral-300"
           aria-label="Share"
         >
           <Share2Icon className="size-4" />

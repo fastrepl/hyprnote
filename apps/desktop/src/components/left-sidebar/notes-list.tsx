@@ -133,7 +133,7 @@ export default function NotesList({ ongoingSessionId, filter }: NotesListProps) 
 
             return (
               <section key={`${key}-${pageIndex}`}>
-                <h2 className="font-bold text-neutral-600 mb-1">
+                <h2 className="font-bold text-neutral-600 dark:text-neutral-400 mb-1">
                   {key}
                 </h2>
 
@@ -269,7 +269,9 @@ function NoteItem({
           disabled={isActive}
           className={cn(
             "group flex items-start gap-3 py-2 w-full text-left transition-all rounded-lg px-2",
-            isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
+            isActive 
+              ? "bg-neutral-200 dark:bg-zinc-800" 
+              : "hover:bg-neutral-100 dark:hover:bg-zinc-800/70",
           )}
         >
           <div className="flex items-center gap-1 w-full">
@@ -280,7 +282,7 @@ function NoteItem({
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 text-xs text-neutral-500">
+              <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
                 <span className="font-medium">{formattedSessionDate}</span>
               </div>
             </div>

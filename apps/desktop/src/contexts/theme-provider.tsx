@@ -1,11 +1,9 @@
-// https://ui.shadcn.com/docs/dark-mode/vite
-
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light" | "system";
 
 type ThemeProviderProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   defaultTheme?: Theme;
   storageKey?: string;
 };
@@ -29,44 +27,31 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
-    () => defaultTheme
+    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
 
   useEffect(() => {
     const root = window.document.documentElement;
-    const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-    const updateSystemTheme = (e: MediaQueryListEvent | MediaQueryList) => {
-      if (theme === "system") {
-        root.classList.remove("light", "dark");
-        const systemTheme = e.matches ? "dark" : "light";
-        root.classList.add(systemTheme);
-      }
-    };
-
-    const onThemeChange = () => {
-      root.classList.remove("light", "dark");
-
-      if (theme === "system") {
-        const systemTheme = darkModeMediaQuery.matches ? "dark" : "light";
-        root.classList.add(systemTheme);
-        return;
-      }
-
-      root.classList.add(theme);
-    };
-
-    onThemeChange();
     
-    // Listen for system preference changes
-    darkModeMediaQuery.addEventListener("change", updateSystemTheme);
+    root.classList.remove("light", "dark");
     
-    return () => darkModeMediaQuery.removeEventListener("change", updateSystemTheme);
+    if (theme === "system") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
+      
+      root.classList.add(systemTheme);
+      return;
+    }
+    
+    root.classList.add(theme);
   }, [theme]);
 
   const value = {
     theme,
     setTheme: (theme: Theme) => {
+      localStorage.setItem(storageKey, theme);
       setTheme(theme);
     },
   };
@@ -81,7 +66,7 @@ export function ThemeProvider({
 export const useTheme = () => {
   const context = useContext(ThemeProviderContext);
 
-  if (!context) {
+  if (context === undefined) {
     throw new Error("useTheme must be used within a ThemeProvider");
   }
 

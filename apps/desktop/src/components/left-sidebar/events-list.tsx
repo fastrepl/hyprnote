@@ -34,8 +34,8 @@ export default function EventsList({
   }
 
   return (
-    <section className="border-b mb-4 border-border">
-      <h2 className="font-bold text-neutral-600 mb-1">
+    <section className="border-b mb-4 border-border dark:border-zinc-700">
+      <h2 className="font-bold text-neutral-600 dark:text-neutral-400 mb-1">
         <Trans>Upcoming</Trans>
       </h2>
 
@@ -107,14 +107,16 @@ function EventItem({
           onClick={handleClick}
           className={clsx([
             "w-full text-left group flex items-start gap-3 py-2 rounded-lg px-2",
-            isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
+            isActive 
+              ? "bg-neutral-200 dark:bg-zinc-800" 
+              : "hover:bg-neutral-100 dark:hover:bg-zinc-800/70",
           ])}
         >
           <div className="flex items-center gap-1 w-full">
             <div className="flex-1 flex flex-col items-start gap-1 truncate">
               <EventItemTitle event={event} />
 
-              <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
+              <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1">
                 <span>{formatUpcomingTime(new Date(event.start_date))}</span>
               </div>
             </div>

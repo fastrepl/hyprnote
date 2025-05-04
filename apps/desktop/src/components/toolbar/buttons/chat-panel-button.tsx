@@ -36,7 +36,7 @@ function ChatPanelButtonBase() {
           variant="ghost"
           size="icon"
           onClick={handleClick}
-          className={cn("hover:bg-neutral-200 text-xs size-7 p-0", isActive && "bg-neutral-200")}
+          className={cn("hover:bg-neutral-200 dark:hover:bg-zinc-800 text-xs size-7 p-0", isActive && "bg-neutral-200 dark:bg-zinc-800")}
         >
           <div className="relative w-6 aspect-square flex items-center justify-center">
             <img

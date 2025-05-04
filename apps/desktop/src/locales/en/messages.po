@@ -627,7 +627,7 @@ msgstr "LinkedIn username"
 msgid "Live summary of the meeting"
 msgstr "Live summary of the meeting"
 
-#: src/components/settings/views/extension.tsx:125
+#: src/components/settings/views/extension.tsx:118
 msgid "Loading extension details..."
 msgstr "Loading extension details..."
 

@@ -627,7 +627,7 @@ msgstr ""
 msgid "Live summary of the meeting"
 msgstr ""
 
-#: src/components/settings/views/extension.tsx:125
+#: src/components/settings/views/extension.tsx:118
 msgid "Loading extension details..."
 msgstr ""
 

@@ -156,11 +156,15 @@ async fn websocket(
             continue;
         }
 
-        let data = ListenOutputChunk::Transcribe(TranscriptChunk {
-            text,
-            start,
-            end: start + duration,
-        });
+        let data = ListenOutputChunk {
+            diarizations: vec![],
+            transcripts: vec![TranscriptChunk {
+                text,
+                start,
+                end: start + duration,
+                confidence: Some(confidence),
+            }],
+        };
 
         let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
         if let Err(e) = ws_sender.send(msg).await {

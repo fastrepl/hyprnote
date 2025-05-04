@@ -2,221 +2,265 @@
   {
     "start": 320,
     "end": 2560,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 2560,
     "end": 8480,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 8559,
     "end": 9840,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 9840,
     "end": 19985,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 21905,
     "end": 34950,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 35350,
     "end": 56725,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 56725,
     "end": 77005,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 80045,
     "end": 83165,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 83325,
     "end": 88870,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 88870,
     "end": 89110,
-    "speaker": "2"
+    "speaker": 2,
+    "confidence": null
   },
   {
     "start": 89110,
     "end": 92390,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 92390,
     "end": 96630,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 97030,
     "end": 103384,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 103865,
     "end": 109784,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 109784,
     "end": 116505,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 117510,
     "end": 124710,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 124710,
     "end": 127350,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 127350,
     "end": 132415,
-    "speaker": "2"
+    "speaker": 2,
+    "confidence": null
   },
   {
     "start": 134575,
     "end": 136415,
-    "speaker": "2"
+    "speaker": 2,
+    "confidence": null
   },
   {
     "start": 138015,
     "end": 139055,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 139055,
     "end": 140254,
-    "speaker": "2"
+    "speaker": 2,
+    "confidence": null
   },
   {
     "start": 140254,
     "end": 150550,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 150470,
     "end": 153750,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 153750,
     "end": 159910,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 159910,
     "end": 166645,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 166645,
     "end": 168005,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 168005,
     "end": 171205,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 171205,
     "end": 175125,
-    "speaker": "3"
+    "speaker": 3,
+    "confidence": null
   },
   {
     "start": 175125,
     "end": 178319,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 178319,
     "end": 179280,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 179280,
     "end": 184799,
-    "speaker": "2"
+    "speaker": 2,
+    "confidence": null
   },
   {
     "start": 184799,
     "end": 186079,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 186079,
     "end": 186960,
-    "speaker": "2"
+    "speaker": 2,
+    "confidence": null
   },
   {
     "start": 187040,
     "end": 191355,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 191355,
     "end": 192395,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 192475,
     "end": 194155,
-    "speaker": "2"
+    "speaker": 2,
+    "confidence": null
   },
   {
     "start": 194155,
     "end": 196155,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 196235,
     "end": 197435,
-    "speaker": "2"
+    "speaker": 2,
+    "confidence": null
   },
   {
     "start": 197515,
     "end": 198475,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   },
   {
     "start": 198475,
     "end": 203035,
-    "speaker": "3"
+    "speaker": 3,
+    "confidence": null
   },
   {
     "start": 203100,
     "end": 203740,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 203740,
     "end": 208860,
-    "speaker": "3"
+    "speaker": 3,
+    "confidence": null
   },
   {
     "start": 208860,
     "end": 214060,
-    "speaker": "1"
+    "speaker": 1,
+    "confidence": null
   },
   {
     "start": 214060,
     "end": 220355,
-    "speaker": "0"
+    "speaker": 0,
+    "confidence": null
   }
 ]

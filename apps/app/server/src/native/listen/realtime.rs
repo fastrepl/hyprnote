@@ -51,21 +51,13 @@ async fn websocket(socket: WebSocket, state: STTState, params: ListenParams) {
             Ok(mut transcript_stream) => {
                 while let Some(result) = transcript_stream.next().await {
                     match result {
-                        Ok(transcript) => {
-                            for word in transcript.words {
-                                let data = ListenOutputChunk::Transcribe(TranscriptChunk {
-                                    text: word.text,
-                                    start: word.start,
-                                    end: word.end,
-                                });
+                        Ok(data) => {
+                            let out: ListenOutputChunk = data.into();
+                            let msg = Message::Text(serde_json::to_string(&out).unwrap().into());
 
-                                let msg =
-                                    Message::Text(serde_json::to_string(&data).unwrap().into());
-
-                                if let Err(e) = ws_sender.send(msg).await {
-                                    tracing::error!("websocket send error: {:?}", e);
-                                    break;
-                                }
+                            if let Err(e) = ws_sender.send(msg).await {
+                                tracing::error!("websocket send error: {:?}", e);
+                                break;
                             }
                         }
                         Err(e) => {

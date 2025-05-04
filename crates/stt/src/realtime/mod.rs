@@ -1,6 +1,5 @@
 use bytes::Bytes;
 use futures_util::{Future, Stream};
-use serde::{Deserialize, Serialize};
 use std::error::Error;
 
 mod clova;
@@ -8,6 +7,7 @@ mod deepgram;
 mod whisper;
 
 use crate::deepgram::DeepgramClient;
+use hypr_listener_interface::{ListenOutputChunk, TranscriptChunk};
 
 #[allow(dead_code)]
 pub trait RealtimeSpeechToText<S, E> {
@@ -16,25 +16,13 @@ pub trait RealtimeSpeechToText<S, E> {
         stream: S,
     ) -> impl Future<
         Output = Result<
-            Box<dyn Stream<Item = Result<StreamResponse, crate::Error>> + Send + Unpin>,
+            Box<dyn Stream<Item = Result<ListenOutputChunk, crate::Error>> + Send + Unpin>,
             crate::Error,
         >,
     >
     where
         S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
         E: Error + Send + Sync + 'static;
-}
-
-#[derive(Default, Clone, Debug, Deserialize, Serialize, specta::Type)]
-pub struct StreamResponse {
-    pub words: Vec<StreamResponseWord>,
-}
-
-#[derive(Default, Clone, Debug, Deserialize, Serialize, specta::Type)]
-pub struct StreamResponseWord {
-    pub text: String,
-    pub start: u64,
-    pub end: u64,
 }
 
 #[derive(Debug, Default)]
@@ -124,7 +112,7 @@ where
         &mut self,
         stream: S,
     ) -> Result<
-        Box<dyn Stream<Item = Result<StreamResponse, crate::Error>> + Send + Unpin>,
+        Box<dyn Stream<Item = Result<ListenOutputChunk, crate::Error>> + Send + Unpin>,
         crate::Error,
     > {
         match self {
@@ -204,8 +192,8 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_deepgram() {
-        let audio_stream = stream_from_bytes(hypr_data::english_1::AUDIO);
-        let mut out = std::fs::File::create(hypr_data::english_1::TRANSCRIPTION_PATH).unwrap();
+        let audio_stream = stream_from_bytes(hypr_data::english_2::AUDIO);
+        let mut out = std::fs::File::create(hypr_data::english_2::TRANSCRIPTION_PATH).unwrap();
 
         let mut client = Client::builder()
             .deepgram_api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
@@ -220,12 +208,8 @@ mod tests {
             let data = result.unwrap();
             println!("{:?}", data);
 
-            for word in data.words {
-                acc.push(hypr_listener_interface::TranscriptChunk {
-                    text: word.text,
-                    start: word.start,
-                    end: word.end,
-                });
+            for t in data.transcripts {
+                acc.push(data);
             }
         }
 
@@ -253,12 +237,8 @@ mod tests {
             let data = result.unwrap();
             println!("{:?}", data);
 
-            for word in data.words {
-                acc.push(hypr_listener_interface::TranscriptChunk {
-                    text: word.text,
-                    start: word.start,
-                    end: word.end,
-                });
+            for t in data.transcripts {
+                acc.push(data);
             }
         }
 

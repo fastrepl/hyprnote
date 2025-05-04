@@ -4,14 +4,15 @@ use std::error::Error;
 
 use hypr_whisper::cloud::WhisperClient;
 
-use super::{RealtimeSpeechToText, StreamResponse, StreamResponseWord};
+use super::RealtimeSpeechToText;
+use hypr_listener_interface::{ListenOutputChunk, TranscriptChunk};
 
 impl<S, E> RealtimeSpeechToText<S, E> for WhisperClient {
     async fn transcribe(
         &mut self,
         audio: S,
     ) -> Result<
-        Box<dyn Stream<Item = Result<StreamResponse, crate::Error>> + Send + Unpin>,
+        Box<dyn Stream<Item = Result<ListenOutputChunk, crate::Error>> + Send + Unpin>,
         crate::Error,
     >
     where
@@ -21,12 +22,14 @@ impl<S, E> RealtimeSpeechToText<S, E> for WhisperClient {
         let audio_stream = Box::pin(audio.filter_map(|chunk| async { chunk.ok() }));
         let s1 = self.from_audio(audio_stream).await.unwrap();
         let s2 = s1.map(|output| {
-            Ok(StreamResponse {
-                words: vec![StreamResponseWord {
+            Ok(ListenOutputChunk {
+                transcripts: vec![TranscriptChunk {
                     text: output.text,
                     start: 0,
                     end: 0,
+                    confidence: None,
                 }],
+                diarizations: vec![],
             })
         });
 

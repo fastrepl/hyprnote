@@ -7,14 +7,15 @@ use deepgram::common::{
 };
 use futures_util::{future, Stream, StreamExt};
 
-use super::{RealtimeSpeechToText, StreamResponse, StreamResponseWord};
+use super::RealtimeSpeechToText;
+use hypr_listener_interface::{DiarizationChunk, ListenOutputChunk, TranscriptChunk};
 
 impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
     async fn transcribe(
         &mut self,
         stream: S,
     ) -> Result<
-        Box<dyn Stream<Item = Result<StreamResponse, crate::Error>> + Send + Unpin>,
+        Box<dyn Stream<Item = Result<ListenOutputChunk, crate::Error>> + Send + Unpin>,
         crate::Error,
     >
     where
@@ -29,7 +30,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
             .numerals(true)
             .language(self.language.clone())
             .filler_words(false)
-            .diarize(false)
+            .diarize(true)
             .keywords(self.keywords.iter().map(String::as_str))
             .build();
 
@@ -44,7 +45,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
             .stream(stream)
             .await?;
 
-        let transformed_stream = deepgram_stream.filter_map(|result| {
+        let transformed_stream = deepgram_stream.filter_map(move |result| {
             let item = match result {
                 Err(e) => Some(Err(e.into())),
                 Ok(resp) => match resp {
@@ -54,29 +55,33 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
                         if data.words.is_empty() {
                             None
                         } else {
-                            let transcript = &data.transcript;
-                            let mut current_pos = 0;
-                            let mut words = Vec::with_capacity(data.words.len());
+                            let mut diarizations = Vec::new();
+                            let mut transcripts = Vec::new();
 
                             for w in &data.words {
                                 let word_text = w.punctuated_word.as_ref().unwrap_or(&w.word);
 
-                                if let Some(found_pos) = transcript[current_pos..].find(word_text) {
-                                    let text = transcript
-                                        [current_pos..current_pos + found_pos + word_text.len()]
-                                        .to_string();
+                                transcripts.push(TranscriptChunk {
+                                    text: word_text.clone(),
+                                    start: (w.start * 1000.0) as u64,
+                                    end: (w.end * 1000.0) as u64,
+                                    confidence: None,
+                                });
 
-                                    current_pos += found_pos + word_text.len();
-
-                                    words.push(StreamResponseWord {
-                                        text,
+                                if let Some(speaker) = w.speaker {
+                                    diarizations.push(DiarizationChunk {
+                                        speaker,
                                         start: (w.start * 1000.0) as u64,
                                         end: (w.end * 1000.0) as u64,
+                                        confidence: None,
                                     });
                                 }
                             }
 
-                            Some(Ok(StreamResponse { words }))
+                            Some(Ok(ListenOutputChunk {
+                                diarizations,
+                                transcripts,
+                            }))
                         }
                     }
                     DeepgramStreamResponse::TerminalResponse { .. }

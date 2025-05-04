@@ -250,16 +250,13 @@ impl Session {
                 while let Some(result) = listen_stream.next().await {
                     let mut timeline = timeline.lock().await;
 
-                    match result {
-                        crate::ListenOutputChunk::Transcribe(chunk) => {
-                            update_session(&app, &session.id, chunk.clone())
-                                .await
-                                .unwrap();
-                            timeline.add_transcription(chunk);
-                        }
-                        crate::ListenOutputChunk::Diarize(chunk) => {
-                            timeline.add_diarization(chunk);
-                        }
+                    for t in result.transcripts {
+                        update_session(&app, &session.id, t.clone()).await.unwrap();
+                        timeline.add_transcription(t);
+                    }
+
+                    for d in result.diarizations {
+                        timeline.add_diarization(d);
                     }
 
                     Session::broadcast(

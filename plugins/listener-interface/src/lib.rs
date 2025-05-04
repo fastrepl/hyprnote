@@ -20,6 +20,7 @@ common_derives! {
         pub start: u64,
         pub end: u64,
         pub text: String,
+        pub confidence: Option<f32>,
     }
 }
 
@@ -27,14 +28,15 @@ common_derives! {
     pub struct DiarizationChunk {
         pub start: u64,
         pub end: u64,
-        pub speaker: String,
+        pub speaker: i32,
+        pub confidence: Option<f32>,
     }
 }
 
 common_derives! {
-    pub enum ListenOutputChunk {
-        Transcribe(TranscriptChunk),
-        Diarize(DiarizationChunk),
+    pub struct ListenOutputChunk {
+        pub transcripts: Vec<TranscriptChunk>,
+        pub diarizations: Vec<DiarizationChunk>,
     }
 }
 

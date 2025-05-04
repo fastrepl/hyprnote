@@ -72,7 +72,7 @@ common_derives! {
     pub struct TimelineViewItem {
         pub start: u64,
         pub end: u64,
-        pub speaker: String,
+        pub speaker: i32,
         pub text: String,
     }
 }
@@ -158,7 +158,7 @@ impl Timeline {
     }
 
     pub fn view(&self, filter: TimelineFilter) -> TimelineView {
-        let tree: IntervalTree<u64, String> = IntervalTree::from_iter(
+        let tree: IntervalTree<u64, i32> = IntervalTree::from_iter(
             self.diarizations
                 .iter()
                 .map(|d| (d.start..d.end, d.speaker.clone())),
@@ -197,7 +197,7 @@ impl Timeline {
                 items.push(TimelineViewItem {
                     start: transcript.start,
                     end: transcript.end,
-                    speaker: "UNKNOWN?".to_string(),
+                    speaker: -1,
                     text: transcript.text.clone(),
                 });
 
@@ -596,27 +596,32 @@ mod tests {
             start: 1000,
             end: 1500,
             text: "Fastest".to_string(),
+            confidence: Some(0.9),
         });
         timeline.add_transcription(TranscribeOutputChunk {
             start: 1500,
             end: 1800,
             text: " AI".to_string(),
+            confidence: Some(0.9),
         });
         timeline.add_transcription(TranscribeOutputChunk {
             start: 1800,
             end: 2000,
             text: " chat".to_string(),
+            confidence: Some(0.9),
         });
         timeline.add_transcription(TranscribeOutputChunk {
             start: 2000,
             end: 2400,
             text: " app".to_string(),
+            confidence: Some(0.9),
         });
 
         timeline.add_transcription(TranscribeOutputChunk {
             start: 3500,
             end: 4000,
             text: "It's really good.".to_string(),
+            confidence: Some(0.9),
         });
 
         let view = timeline.view(TimelineFilter::default());

@@ -13,7 +13,8 @@ fn run(name: &str) {
         .map(|v| hypr_listener_interface::DiarizationChunk {
             start: (v["start"].as_f64().unwrap() * 1000.0) as u64,
             end: (v["end"].as_f64().unwrap() * 1000.0) as u64,
-            speaker: v["speaker"].as_u64().unwrap().to_string(),
+            speaker: v["speaker"].as_i64().unwrap() as i32,
+            confidence: None,
         })
         .collect();
 
@@ -31,6 +32,7 @@ fn run(name: &str) {
                 .join(" "),
             start: (v["start"].as_f64().unwrap() * 1000.0) as u64,
             end: (v["end"].as_f64().unwrap() * 1000.0) as u64,
+            confidence: None,
         })
         .collect();
 

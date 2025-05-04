@@ -2,21 +2,25 @@
   {
     "start": 480,
     "end": 18165,
-    "text": "Hey. I'm John, one of the cofounders, we are live at Apple Park. Just kidding. But, yeah, in this video, I'm going to show what Hyprnote can do for you and how it's different from other products. So Hyprnote is a smart notepad designed to help people with back to back meetings."
+    "text": "Hey. I'm John, one of the cofounders, we are live at Apple Park. Just kidding. But, yeah, in this video, I'm going to show what Hyprnote can do for you and how it's different from other products. So Hyprnote is a smart notepad designed to help people with back to back meetings.",
+    "confidence": null
   },
   {
     "start": 18645,
     "end": 44265,
-    "text": "During meetings, it listens to the conversation so you can simply jot down key points without trying to capture everything. After the meeting, it combines your notes with the transcript to generate a clean context where summary. In fact, note taking is optional, but it does help Hyprnote understand what you think is important. We also take privacy and seamlessness seriously. That's why Hyprnote is built local first."
+    "text": "During meetings, it listens to the conversation so you can simply jot down key points without trying to capture everything. After the meeting, it combines your notes with the transcript to generate a clean context where summary. In fact, note taking is optional, but it does help Hyprnote understand what you think is important. We also take privacy and seamlessness seriously. That's why Hyprnote is built local first.",
+    "confidence": null
   },
   {
     "start": 44345,
     "end": 70070,
-    "text": "It works offline, and your data stays on your device. Finally, we didn't want Hyprnote to be just another meeting notes app limited to a specific use case. For example, sales. We made it simple enough for anyone to use right out of the box. But for those of you who need more functionality, we offer a wide variety of extensions from real time transcripts to instantly uploading those to CRMs like Twenty."
+    "text": "It works offline, and your data stays on your device. Finally, we didn't want Hyprnote to be just another meeting notes app limited to a specific use case. For example, sales. We made it simple enough for anyone to use right out of the box. But for those of you who need more functionality, we offer a wide variety of extensions from real time transcripts to instantly uploading those to CRMs like Twenty.",
+    "confidence": null
   },
   {
     "start": 71335,
     "end": 80135,
-    "text": "To see what we're working on next, you can follow us on x. And if you have any questions or just wanna say hi, hop into our Discord. I'll be there for you."
+    "text": "To see what we're working on next, you can follow us on x. And if you have any questions or just wanna say hi, hop into our Discord. I'll be there for you.",
+    "confidence": null
   }
 ]

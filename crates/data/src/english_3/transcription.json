@@ -2,221 +2,265 @@
   {
     "start": 320,
     "end": 2560,
-    "text": "-Okay. Michael, why don't you start us off?"
+    "text": "-Okay. Michael, why don't you start us off?",
+    "confidence": null
   },
   {
     "start": 2560,
     "end": 8480,
-    "text": "-That wasn't much of an introduction. -Ladies and gentlemen,"
+    "text": "-That wasn't much of an introduction. -Ladies and gentlemen,",
+    "confidence": null
   },
   {
     "start": 8559,
     "end": 9840,
-    "text": "your boss, Michael"
+    "text": "your boss, Michael",
+    "confidence": null
   },
   {
     "start": 9840,
     "end": 19985,
-    "text": "Scott. Still lame. Okay. Alright. Thank you, Ryan, for that wonderful introduction."
+    "text": "Scott. Still lame. Okay. Alright. Thank you, Ryan, for that wonderful introduction.",
+    "confidence": null
   },
   {
     "start": 21905,
     "end": 34950,
-    "text": "Okay. Today we're going to be talking about PowerPoint. PowerPoint. PowerPoint. PowerPoint."
+    "text": "Okay. Today we're going to be talking about PowerPoint. PowerPoint. PowerPoint. PowerPoint.",
+    "confidence": null
   },
   {
     "start": 35350,
     "end": 56725,
-    "text": "Yes, I forgot about Ryan's presentation and yes, it would have been nice to do well with the first presentation that he'd given me. But you know what else would have been nice? Winning the lottery. And the best way to start is to hit start, and up comes the toolbar. That's what she said."
+    "text": "Yes, I forgot about Ryan's presentation and yes, it would have been nice to do well with the first presentation that he'd given me. But you know what else would have been nice? Winning the lottery. And the best way to start is to hit start, and up comes the toolbar. That's what she said.",
+    "confidence": null
   },
   {
     "start": 56725,
     "end": 77005,
-    "text": "What we have to do here is go to run, and then you look up to PowerPoint, and we are in. We are going to register. You hit register. Updates are ready. I should update."
+    "text": "What we have to do here is go to run, and then you look up to PowerPoint, and we are in. We are going to register. You hit register. Updates are ready. I should update.",
+    "confidence": null
   },
   {
     "start": 80045,
     "end": 83165,
-    "text": "Estimated time twelve minutes, so this should take about five or ten minutes."
+    "text": "Estimated time twelve minutes, so this should take about five or ten minutes.",
+    "confidence": null
   },
   {
     "start": 83325,
     "end": 88870,
-    "text": "This is the first time you've opened PowerPoint. Why? -You didn't prepare a presentation at all, did you?"
+    "text": "This is the first time you've opened PowerPoint. Why? -You didn't prepare a presentation at all, did you?",
+    "confidence": null
   },
   {
     "start": 88870,
     "end": 89110,
-    "text": "Know what?"
+    "text": "Know what?",
+    "confidence": null
   },
   {
     "start": 89110,
     "end": 92390,
-    "text": "I had a really rough night, and my boss can back me up on that."
+    "text": "I had a really rough night, and my boss can back me up on that.",
+    "confidence": null
   },
   {
     "start": 92390,
     "end": 96630,
-    "text": "-I'm your boss. -My other boss, Mr. Figaro. -You have another job?"
+    "text": "-I'm your boss. -My other boss, Mr. Figaro. -You have another job?",
+    "confidence": null
   },
   {
     "start": 97030,
     "end": 103384,
-    "text": "-What I do between 05:30 p. M. And one a. M. Is nobody's business but mine and my other businesses."
+    "text": "-What I do between 05:30 p. M. And one a. M. Is nobody's business but mine and my other businesses.",
+    "confidence": null
   },
   {
     "start": 103865,
     "end": 109784,
-    "text": "-Are you going to waitress? -You cannot have a second job if it affects your work here."
+    "text": "-Are you going to waitress? -You cannot have a second job if it affects your work here.",
+    "confidence": null
   },
   {
     "start": 109784,
     "end": 116505,
-    "text": "-It won't? -It did already. -Okay. Honestly, it is unlikely that I was gonna figure this out anyway."
+    "text": "-It won't? -It did already. -Okay. Honestly, it is unlikely that I was gonna figure this out anyway.",
+    "confidence": null
   },
   {
     "start": 117510,
     "end": 124710,
-    "text": "That is so funny. Why is Daryl here? He works in a warehouse. I invited him. It's not a party."
+    "text": "That is so funny. Why is Daryl here? He works in a warehouse. I invited him. It's not a party.",
+    "confidence": null
   },
   {
     "start": 124710,
     "end": 127350,
-    "text": "Daryl, back downstairs. This isn't the information you need."
+    "text": "Daryl, back downstairs. This isn't the information you need.",
+    "confidence": null
   },
   {
     "start": 127350,
     "end": 132415,
-    "text": "This information here? Yeah. You're right. I don't need this. Okay."
+    "text": "This information here? Yeah. You're right. I don't need this. Okay.",
+    "confidence": null
   },
   {
     "start": 134575,
     "end": 136415,
-    "text": "Hey. Come on."
+    "text": "Hey. Come on.",
+    "confidence": null
   },
   {
     "start": 138015,
     "end": 139055,
-    "text": "See you later tonight."
+    "text": "See you later tonight.",
+    "confidence": null
   },
   {
     "start": 139055,
     "end": 140254,
-    "text": "I got plans later."
+    "text": "I got plans later.",
+    "confidence": null
   },
   {
     "start": 140254,
     "end": 150550,
-    "text": "Okay. Bye, honey. How long until you actually get this presentation ready?"
+    "text": "Okay. Bye, honey. How long until you actually get this presentation ready?",
+    "confidence": null
   },
   {
     "start": 150470,
     "end": 153750,
-    "text": "Don't you do this presentation? Because I you know how to do it."
+    "text": "Don't you do this presentation? Because I you know how to do it.",
+    "confidence": null
   },
   {
     "start": 153750,
     "end": 159910,
-    "text": "What I really want, honestly Michael, is for you to know it so that you can communicate it to the people here, to your clients, to whomever."
+    "text": "What I really want, honestly Michael, is for you to know it so that you can communicate it to the people here, to your clients, to whomever.",
+    "confidence": null
   },
   {
     "start": 159910,
     "end": 166645,
-    "text": "Okay. What? It's whoever not whomever. Not whomever. No whomever is never actually right."
+    "text": "Okay. What? It's whoever not whomever. Not whomever. No whomever is never actually right.",
+    "confidence": null
   },
   {
     "start": 166645,
     "end": 168005,
-    "text": "Well sometimes it's right."
+    "text": "Well sometimes it's right.",
+    "confidence": null
   },
   {
     "start": 168005,
     "end": 171205,
-    "text": "Michael is right. It's a made up word used to trick students."
+    "text": "Michael is right. It's a made up word used to trick students.",
+    "confidence": null
   },
   {
     "start": 171205,
     "end": 175125,
-    "text": "No. Actually whomever is the formal version of the word."
+    "text": "No. Actually whomever is the formal version of the word.",
+    "confidence": null
   },
   {
     "start": 175125,
     "end": 178319,
-    "text": "Obviously it's a real word but I don't know when to use it correctly."
+    "text": "Obviously it's a real word but I don't know when to use it correctly.",
+    "confidence": null
   },
   {
     "start": 178319,
     "end": 179280,
-    "text": "Not a native speaker."
+    "text": "Not a native speaker.",
+    "confidence": null
   },
   {
     "start": 179280,
     "end": 184799,
-    "text": "I know what's right, but I'm not gonna say because you're all jerks who didn't come see my band last night."
+    "text": "I know what's right, but I'm not gonna say because you're all jerks who didn't come see my band last night.",
+    "confidence": null
   },
   {
     "start": 184799,
     "end": 186079,
-    "text": "Do you really know which one is correct?"
+    "text": "Do you really know which one is correct?",
+    "confidence": null
   },
   {
     "start": 186079,
     "end": 186960,
-    "text": "I don't know."
+    "text": "I don't know.",
+    "confidence": null
   },
   {
     "start": 187040,
     "end": 191355,
-    "text": "It's whom when it's the object of the sentence and who when it's the subject. Subject. That sounds right."
+    "text": "It's whom when it's the object of the sentence and who when it's the subject. Subject. That sounds right.",
+    "confidence": null
   },
   {
     "start": 191355,
     "end": 192395,
-    "text": "Well, sounds right but is it"
+    "text": "Well, sounds right but is it",
+    "confidence": null
   },
   {
     "start": 192475,
     "end": 194155,
-    "text": "How did Ryan use it as an object? As"
+    "text": "How did Ryan use it as an object? As",
+    "confidence": null
   },
   {
     "start": 194155,
     "end": 196155,
-    "text": "an object. Ryan used me as an object."
+    "text": "an object. Ryan used me as an object.",
+    "confidence": null
   },
   {
     "start": 196235,
     "end": 197435,
-    "text": "Is he writing about the"
+    "text": "Is he writing about the",
+    "confidence": null
   },
   {
     "start": 197515,
     "end": 198475,
-    "text": "How did he use it again?"
+    "text": "How did he use it again?",
+    "confidence": null
   },
   {
     "start": 198475,
     "end": 203035,
-    "text": "It was Ryan wanted Michael, the subject, to explain the computer system, the object."
+    "text": "It was Ryan wanted Michael, the subject, to explain the computer system, the object.",
+    "confidence": null
   },
   {
     "start": 203100,
     "end": 203740,
-    "text": "Thank you."
+    "text": "Thank you.",
+    "confidence": null
   },
   {
     "start": 203740,
     "end": 208860,
-    "text": "To whomever, meaning us, the indirect object, which is the correct usage of the word."
+    "text": "To whomever, meaning us, the indirect object, which is the correct usage of the word.",
+    "confidence": null
   },
   {
     "start": 208860,
     "end": 214060,
-    "text": "No one asked you anything ever, so whomever's name is Toby, why don't you take"
+    "text": "No one asked you anything ever, so whomever's name is Toby, why don't you take",
+    "confidence": null
   },
   {
     "start": 214060,
     "end": 220355,
-    "text": "a letter opener and stick it in your skull? Hey, this doesn't matter, and I don't even care. Michael, you quit the other job or you're fired here."
+    "text": "a letter opener and stick it in your skull? Hey, this doesn't matter, and I don't even care. Michael, you quit the other job or you're fired here.",
+    "confidence": null
   }
 ]

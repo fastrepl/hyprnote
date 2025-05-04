@@ -86,14 +86,19 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
           toast({
             id: "recording-failed",
             title: "Recording Failed",
-            content: "Unable to start recording. Please check your microphone settings.",
+            content: "Unable to start recording. Try it again.",
             dismissible: true,
             duration: 3000,
           });
         } else {
           const permission = await notificationCommands.checkNotificationPermission();
           if (permission === "Granted") {
-            // TODO: Popup notification
+            await notificationCommands.sendNotification({
+              title: "Recording Failed",
+              message: "Unable to start recording. Try it again.",
+              url: null,
+              timeout: { secs: 3, nanos: 0 },
+            });
           }
         }
       }

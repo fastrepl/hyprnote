@@ -11,6 +11,8 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import { commands as notificationCommands } from "@hypr/plugin-notification";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
@@ -65,15 +67,36 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
     }
   }, [ongoingSessionStatus]);
 
-  const handleStartSession = () => {
+  const handleStartSession = async () => {
     if (ongoingSessionStatus === "inactive") {
-      ongoingSessionStore.start(sessionId);
+      try {
+        await ongoingSessionStore.start(sessionId);
 
-      analyticsCommands.event({
-        event: "onboarding_video_started",
-        distinct_id: userId,
-        session_id: sessionId,
-      });
+        analyticsCommands.event({
+          event: "onboarding_video_started",
+          distinct_id: userId,
+          session_id: sessionId,
+        });
+      } catch (error) {
+        console.error("Failed to start recording session:", error);
+
+        const isWindowVisible = await windowsCommands.windowIsVisible({ type: "main" });
+
+        if (isWindowVisible) {
+          toast({
+            id: "recording-failed",
+            title: "Recording Failed",
+            content: "Unable to start recording. Please check your microphone settings.",
+            dismissible: true,
+            duration: 3000,
+          });
+        } else {
+          const permission = await notificationCommands.checkNotificationPermission();
+          if (permission === "Granted") {
+            // TODO: Popup notification
+          }
+        }
+      }
     }
   };
 

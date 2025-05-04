@@ -18,14 +18,9 @@ export const Primary: Story = {
         {
           type: "speaker",
           content: [
-            {
-              type: "sentence",
-              content: [{ type: "word", attrs: { text: "Hello, world!" } }],
-            },
-            {
-              type: "sentence",
-              content: [{ type: "word", attrs: { text: "Hello, world!" } }],
-            },
+            { type: "word", content: [{ type: "text", text: "I" }] },
+            { type: "word", content: [{ type: "text", text: "want" }] },
+            { type: "word", content: [{ type: "text", text: "A2" }] },
           ],
         },
       ],

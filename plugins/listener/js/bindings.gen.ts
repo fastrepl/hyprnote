@@ -84,7 +84,7 @@ export type SessionEventStarted = { seconds: number }
 export type SessionEventTimelineView = { timeline: TimelineView }
 export type StatusEvent = "inactive" | "running_active" | "running_paused"
 export type TimelineView = { items: TimelineViewItem[] }
-export type TimelineViewItem = { start: number; end: number; speaker: string; text: string }
+export type TimelineViewItem = { start: number; end: number; speaker: number; text: string; confidence: number }
 
 /** tauri-specta globals **/
 

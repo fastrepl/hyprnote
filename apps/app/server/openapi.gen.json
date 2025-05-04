@@ -1107,13 +1107,21 @@
           "start"
         ],
         "properties": {
+          "confidence": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "float"
+          },
           "end": {
             "type": "integer",
             "format": "uint64",
             "minimum": 0.0
           },
           "speaker": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "start": {
             "type": "integer",
@@ -1685,6 +1693,13 @@
           "text"
         ],
         "properties": {
+          "confidence": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "float"
+          },
           "end": {
             "type": "integer",
             "format": "uint64",

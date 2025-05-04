@@ -59,6 +59,7 @@ common_derives! {
     pub struct Timeline {
         transcripts: Vec<TranscribeOutputChunk>,
         diarizations: Vec<DiarizeOutputChunk>,
+        max_confidence: f32,
     }
 }
 
@@ -74,6 +75,7 @@ common_derives! {
         pub end: u64,
         pub speaker: i32,
         pub text: String,
+        pub confidence: f32,
     }
 }
 
@@ -127,6 +129,12 @@ impl TimelineViewItem {
 
 impl Timeline {
     pub fn add_transcription(&mut self, item: TranscribeOutputChunk) {
+        if let Some(confidence) = item.confidence {
+            if confidence > self.max_confidence || self.max_confidence == 0.0 {
+                self.max_confidence = confidence;
+            }
+        }
+
         if !self.transcripts.is_empty() {
             let last = self.transcripts.last().unwrap();
 
@@ -185,6 +193,17 @@ impl Timeline {
             let range = transcript.start.saturating_sub(100)..transcript.end.saturating_add(100);
             let speakers: Vec<_> = tree.query(range).collect();
 
+            let normalized_confidence = transcript
+                .confidence
+                .map(|conf| {
+                    if self.max_confidence > 0.0 {
+                        conf / self.max_confidence
+                    } else {
+                        1.0
+                    }
+                })
+                .unwrap_or(1.0);
+
             if speakers.is_empty() {
                 if streaming_mode && !items.is_empty() {
                     let last_item = items.last_mut().unwrap();
@@ -199,6 +218,7 @@ impl Timeline {
                     end: transcript.end,
                     speaker: -1,
                     text: transcript.text.clone(),
+                    confidence: normalized_confidence,
                 });
 
                 continue;
@@ -253,6 +273,7 @@ impl Timeline {
                 end: transcript.end,
                 speaker,
                 text: transcript.text.clone(),
+                confidence: normalized_confidence,
             });
         }
 

@@ -113,7 +113,25 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
         setTimeout(() => {
           if (sessionId) {
             const sessionStore = sessionsStore.getState().sessions[sessionId];
-            sessionStore.getState().refresh();
+            const currentSession = sessionStore?.getState().session;
+
+            const totalTranscriptLength = currentSession?.conversations?.reduce(
+              (conversationSum, conversationChunk) =>
+                conversationSum
+                + (conversationChunk.transcripts?.reduce(
+                  (transcriptSum, transcriptChunk) => transcriptSum + (transcriptChunk.text?.length ?? 0),
+                  0,
+                ) ?? 0),
+              0,
+            ) ?? 0;
+
+            if (totalTranscriptLength >= 1000) {
+              sessionStore.getState().refresh();
+            } else {
+              console.log(
+                `Session ${sessionId} total transcript length (${totalTranscriptLength} chars) < 1000, skipping enhancement refresh.`,
+              );
+            }
           }
         }, 1500);
       });

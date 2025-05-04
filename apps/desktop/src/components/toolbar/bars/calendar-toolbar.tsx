@@ -50,7 +50,7 @@ export function CalendarToolbar({ date }: CalendarToolbarProps) {
           {i18n.date(date, { month: "long", year: "numeric" })}
         </h1>
 
-        <div className="absolute right-2 flex h-fit rounded-md overflow-clip border border-neutral-200">
+        <div className="absolute right-2 flex h-fit rounded-md overflow-clip border border-neutral-200 dark:border-zinc-700">
           <Button
             variant="outline"
             className="p-0.5 rounded-none border-none"
@@ -77,12 +77,12 @@ export function CalendarToolbar({ date }: CalendarToolbarProps) {
         </div>
       </div>
 
-      <div className="border-b border-neutral-200 grid grid-cols-7 h-8">
+      <div className="border-b border-neutral-200 dark:border-zinc-700 grid grid-cols-7 h-8">
         {weekDays.map((day, index) => (
           <div
             key={day}
             className={clsx(
-              "text-center font-light text-sm pb-2 pt-1",
+              "text-center font-light text-sm pb-2 pt-1 text-neutral-700 dark:text-zinc-300",
               index === weekDays.length - 1 && "border-r-0",
             )}
           >

@@ -34,7 +34,7 @@ export default function EventsList({
   }
 
   return (
-    <section className="border-b mb-4 border-border dark:border-zinc-700">
+    <section className="border-b mb-4 border-border dark:border-zinc-800">
       <h2 className="font-bold text-neutral-600 dark:text-neutral-400 mb-1">
         <Trans>Upcoming</Trans>
       </h2>
@@ -92,13 +92,14 @@ function EventItem({
     safeNavigate({ type: "calendar" }, url);
   };
 
-  const isActive = activeSessionId
-    && event.session?.id
-    && activeSessionId === event.session.id;
+  const isActive = activeSessionId &&
+    event.session?.id &&
+    activeSessionId === event.session.id;
 
   const sessionId = event.session?.id || "";
   const isEnhancePending = useEnhancePendingState(sessionId);
-  const shouldShowEnhancePending = !isActive && !!event.session?.id && isEnhancePending;
+  const shouldShowEnhancePending = !isActive && !!event.session?.id &&
+    isEnhancePending;
 
   return (
     <ContextMenu>
@@ -107,8 +108,8 @@ function EventItem({
           onClick={handleClick}
           className={clsx([
             "w-full text-left group flex items-start gap-3 py-2 rounded-lg px-2",
-            isActive 
-              ? "bg-neutral-200 dark:bg-zinc-800" 
+            isActive
+              ? "bg-neutral-200 dark:bg-zinc-800"
               : "hover:bg-neutral-100 dark:hover:bg-zinc-800/70",
           ])}
         >
@@ -121,7 +122,9 @@ function EventItem({
               </div>
             </div>
 
-            {shouldShowEnhancePending && <SplashLoader size={20} strokeWidth={2} />}
+            {shouldShowEnhancePending && (
+              <SplashLoader size={20} strokeWidth={2} />
+            )}
           </div>
         </button>
       </ContextMenuTrigger>

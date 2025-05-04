@@ -36,7 +36,7 @@ export function MainToolbar() {
       className={cn([
         "flex w-full items-center justify-between min-h-11 py-1 px-2 border-b",
         isMain
-          ? "border-border bg-neutral-50 dark:bg-zinc-900 dark:border-zinc-700"
+          ? "border-border bg-neutral-50 dark:bg-zinc-900 dark:border-zinc-800"
           : "border-transparent bg-transparent",
         !isExpanded && "pl-[72px]",
       ])}

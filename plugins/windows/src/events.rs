@@ -27,16 +27,6 @@ pub fn on_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: &tau
                         guard.windows.remove(&w);
                     }
 
-                    {
-                        if w.label() == HyprWindow::Settings.label() {
-                            let event = MainWindowState {
-                                left_sidebar_expanded: Some(true),
-                                right_panel_expanded: Some(false),
-                            };
-                            let _ = event.emit(app);
-                        }
-                    }
-
                     let event = WindowDestroyed { window: w };
                     let _ = event.emit(app);
                 }

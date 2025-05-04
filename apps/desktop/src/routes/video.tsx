@@ -54,12 +54,7 @@ function Component() {
   } as React.CSSProperties;
 
   const handleEnded = () => {
-    windowsEvents.mainWindowState.emit({
-      left_sidebar_expanded: true,
-      right_panel_expanded: false,
-    }).then(() => {
-      windowsCommands.windowDestroy({ type: "video", value: id });
-    });
+    windowsCommands.windowDestroy({ type: "video", value: id });
   };
 
   const [didExpandRightPanel, setDidExpandRightPanel] = useState(false);
@@ -68,7 +63,7 @@ function Component() {
     if (e.timeStamp > 67500 && !didExpandRightPanel) {
       setDidExpandRightPanel(true);
       windowsEvents.mainWindowState.emit({
-        left_sidebar_expanded: false,
+        left_sidebar_expanded: null,
         right_panel_expanded: true,
       });
     }

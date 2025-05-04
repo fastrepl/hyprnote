@@ -47,10 +47,10 @@ export function ParticipantsChip({ sessionId }: ParticipantsChipProps) {
   return (
     <Popover>
       <PopoverTrigger>
-        <div className="flex flex-row items-center gap-1 rounded-md px-2 py-1.5 hover:bg-neutral-100 text-xs">
+        <div className="flex flex-row items-center gap-1 rounded-md px-2 py-1.5 hover:bg-neutral-100 dark:hover:bg-zinc-800 text-xs">
           <Users2Icon size={14} />
           <span>{buttonText}</span>
-          {count > 1 && <span className="text-neutral-400">+ {count - 1}</span>}
+          {count > 1 && <span className="text-neutral-400 dark:text-zinc-500">+ {count - 1}</span>}
         </div>
       </PopoverTrigger>
 

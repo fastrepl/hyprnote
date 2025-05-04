@@ -23,7 +23,7 @@ export function TagChip({ sessionId, hashtags = [] }: TagChipProps) {
     <div>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger>
-          <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 flex-shrink-0 text-xs">
+          <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 dark:hover:bg-zinc-800 flex-shrink-0 text-xs">
             <TagsIcon size={14} className="flex-shrink-0" />
             <span className="truncate">
               {additionalTags > 0

@@ -33,7 +33,7 @@ export function EventChip({ sessionId }: EventChipProps) {
       <PopoverTrigger disabled={!event.data || onboardingSessionId === sessionId}>
         <div
           className={cn(
-            "flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100",
+            "flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 dark:hover:bg-zinc-800",
             !event.data && "opacity-50 cursor-not-allowed",
             onboardingSessionId === sessionId && "opacity-50 cursor-not-allowed",
           )}

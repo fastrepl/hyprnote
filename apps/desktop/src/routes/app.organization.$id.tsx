@@ -152,8 +152,8 @@ function OrgEdit({ form }: { form: ReturnType<typeof useForm<FormSchema>> }) {
 
       <Form {...form}>
         <form>
-          <div className="border-t border-gray-200">
-            <div className="flex items-center px-4 py-3 border-b border-gray-200">
+          <div className="border-t border-gray-200 dark:border-zinc-700">
+            <div className="flex items-center px-4 py-3 border-b border-gray-200 dark:border-zinc-700">
               <FormField
                 control={form.control}
                 name="name"
@@ -175,7 +175,7 @@ function OrgEdit({ form }: { form: ReturnType<typeof useForm<FormSchema>> }) {
               />
             </div>
 
-            <div className="flex items-center px-4 py-3 border-b border-gray-200">
+            <div className="flex items-center px-4 py-3 border-b border-gray-200 dark:border-zinc-700">
               <FormField
                 control={form.control}
                 name="description"

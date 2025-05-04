@@ -2,6 +2,15 @@ use crate::NotificationPluginExt;
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) async fn send_notification<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    notif: hypr_notification2::Notification,
+) -> Result<(), String> {
+    app.send_notification(notif).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn get_event_notification<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {

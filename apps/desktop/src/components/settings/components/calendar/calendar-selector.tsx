@@ -1,14 +1,14 @@
 import { Trans } from "@lingui/react/macro";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarCogIcon } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { CalendarCogIcon, RefreshCwIcon } from "lucide-react";
 
 import { useHypr } from "@/contexts";
-import { type Calendar } from "@hypr/plugin-db";
-import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
+import { type Calendar, commands as dbCommands } from "@hypr/plugin-db";
 import { Checkbox } from "@hypr/ui/components/ui/checkbox";
+import { cn } from "@hypr/ui/lib/utils";
 
 export function CalendarSelector() {
-  const queryClient = useQueryClient();
   const { userId } = useHypr();
 
   const calendarsQuery = useQuery({
@@ -20,7 +20,25 @@ export function CalendarSelector() {
   const toggleCalendarSelectedMutation = useMutation({
     mutationFn: (calendar: Calendar) => dbCommands.toggleCalendarSelected(calendar.tracking_id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["calendars"] });
+      calendarsQuery.refetch();
+    },
+    onError: console.error,
+  });
+
+  const syncCalendarsMutation = useMutation({
+    mutationFn: async () => {
+      const startTime = Date.now();
+      const result = await appleCalendarCommands.syncCalendars();
+      const elapsedTime = Date.now() - startTime;
+
+      if (elapsedTime < 500) {
+        await new Promise(resolve => setTimeout(resolve, 500 - elapsedTime));
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      calendarsQuery.refetch();
     },
     onError: console.error,
   });
@@ -35,8 +53,22 @@ export function CalendarSelector() {
           <CalendarCogIcon size={16} />
         </div>
         <div>
-          <div className="text-sm font-medium">
-            <Trans>Select Calendars</Trans>
+          <div className="flex items-center gap-2">
+            <div className="text-sm font-medium">
+              <Trans>Select Calendars</Trans>
+            </div>
+            <button
+              disabled={syncCalendarsMutation.isPending}
+              onClick={() => syncCalendarsMutation.mutate({})}
+            >
+              <RefreshCwIcon
+                size={12}
+                className={cn(
+                  syncCalendarsMutation.isPending && "animate-spin",
+                  "cursor-pointer text-gray-500 hover:text-gray-700",
+                )}
+              />
+            </button>
           </div>
           <div className="text-xs text-muted-foreground">
             <Trans>{selectedCount} calendars selected</Trans>

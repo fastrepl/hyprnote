@@ -2,6 +2,7 @@ use apalis::prelude::{Data, Error, WorkerBuilder, WorkerFactoryFn};
 use chrono::{DateTime, Utc};
 
 use hypr_calendar_interface::{Calendar, CalendarSource, Event, EventFilter};
+use hypr_db_user::{ListEventFilter, ListEventFilterCommon, ListEventFilterSpecific};
 
 #[allow(unused)]
 #[derive(Default, Debug, Clone)]
@@ -107,7 +108,7 @@ pub async fn perform_events_sync(_job: Job, ctx: Data<WorkerState>) -> Result<()
     let db_selected_calendars = {
         let items = ctx
             .db
-            .list_calendars(&ctx.user_id)
+            .list_calendars(&user_id)
             .await
             .map_err(|e| crate::Error::DatabaseError(e.into()).as_worker_error())?
             .into_iter()
@@ -118,9 +119,8 @@ pub async fn perform_events_sync(_job: Job, ctx: Data<WorkerState>) -> Result<()
         items
     };
 
-    // TODO: we do not consider case where event is removed from calendar
     for db_calendar in db_selected_calendars {
-        let events = list_events(Calendar {
+        let fresh_events = list_events(Calendar {
             id: db_calendar.tracking_id,
             name: db_calendar.name,
             platform: db_calendar.platform.into(),
@@ -128,22 +128,51 @@ pub async fn perform_events_sync(_job: Job, ctx: Data<WorkerState>) -> Result<()
         .await
         .unwrap();
 
-        for e in events {
-            if let Err(e) = ctx
-                .db
-                .upsert_event(hypr_db_user::Event {
-                    id: uuid::Uuid::new_v4().to_string(),
-                    tracking_id: e.id.clone(),
+        let existing_events = ctx
+            .db
+            .list_events(Some(ListEventFilter {
+                common: ListEventFilterCommon {
                     user_id: user_id.clone(),
-                    calendar_id: Some(db_calendar.id.clone()),
-                    name: e.name.clone(),
-                    note: e.note.clone(),
-                    start_date: e.start_date,
-                    end_date: e.end_date,
-                    google_event_url: None,
-                })
-                .await
-            {
+                    limit: None,
+                },
+                specific: ListEventFilterSpecific::DateRange {
+                    start: Utc::now(),
+                    end: Utc::now() + chrono::Duration::days(28),
+                },
+            }))
+            .await
+            .unwrap_or(vec![]);
+
+        let events_to_delete = existing_events
+            .iter()
+            .filter(|e| !fresh_events.iter().any(|fe| fe.id == e.tracking_id))
+            .cloned()
+            .collect::<Vec<hypr_db_user::Event>>();
+
+        let events_to_upsert = fresh_events
+            .iter()
+            .filter(|e| !existing_events.iter().any(|ee| ee.tracking_id == e.id))
+            .map(|e| hypr_db_user::Event {
+                id: uuid::Uuid::new_v4().to_string(),
+                tracking_id: e.id.clone(),
+                user_id: user_id.clone(),
+                calendar_id: Some(db_calendar.id.clone()),
+                name: e.name.clone(),
+                note: e.note.clone(),
+                start_date: e.start_date,
+                end_date: e.end_date,
+                google_event_url: None,
+            })
+            .collect::<Vec<hypr_db_user::Event>>();
+
+        for e in events_to_delete {
+            if let Err(e) = ctx.db.delete_event(&e.id).await {
+                tracing::error!("delete_event_error: {}", e);
+            }
+        }
+
+        for e in events_to_upsert {
+            if let Err(e) = ctx.db.upsert_event(e).await {
                 tracing::error!("upsert_event_error: {}", e);
             }
         }

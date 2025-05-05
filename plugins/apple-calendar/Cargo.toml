@@ -14,10 +14,10 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
-tauri-plugin-db = { path = "../db" }
+tauri-plugin-db = { workspace = true }
 
-hypr-calendar-apple = { path = "../../crates/calendar-apple", package = "calendar-apple" }
-hypr-calendar-interface = { path = "../../crates/calendar-interface", package = "calendar-interface" }
+hypr-calendar-apple = { workspace = true, package = "calendar-apple" }
+hypr-calendar-interface = { workspace = true, package = "calendar-interface" }
 hypr-db-user = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }

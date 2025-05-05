@@ -17,6 +17,15 @@ impl UserDatabase {
         }
     }
 
+    pub async fn delete_event(&self, id: impl Into<String>) -> Result<(), crate::Error> {
+        let conn = self.conn()?;
+
+        conn.query("DELETE FROM events WHERE id = ?", vec![id.into()])
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn upsert_event(&self, event: Event) -> Result<Event, crate::Error> {
         let conn = self.conn()?;
 

@@ -57,3 +57,12 @@ pub async fn delete_session_folder<R: tauri::Runtime>(
 
     Ok(())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn parse_meeting_link<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    text: String,
+) -> Option<String> {
+    app.parse_meeting_link(&text)
+}

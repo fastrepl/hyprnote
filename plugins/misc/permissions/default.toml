@@ -6,4 +6,5 @@ permissions = [
     "allow-opinionated-md-to-html",
     "allow-open-audio",
     "allow-delete-session-folder",
+    "allow-parse-meeting-link",
 ]

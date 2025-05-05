@@ -9,6 +9,7 @@ Default permissions for the plugin
 - `allow-opinionated-md-to-html`
 - `allow-open-audio`
 - `allow-delete-session-folder`
+- `allow-parse-meeting-link`
 
 ## Permission Table
 
@@ -145,6 +146,32 @@ Enables the opinionated_md_to_html command without any pre-configured scope.
 <td>
 
 Denies the opinionated_md_to_html command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:allow-parse-meeting-link`
+
+</td>
+<td>
+
+Enables the parse_meeting_link command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:deny-parse-meeting-link`
+
+</td>
+<td>
+
+Denies the parse_meeting_link command without any pre-configured scope.
 
 </td>
 </tr>

@@ -21,6 +21,9 @@ async openAudio(sessionId: string) : Promise<null> {
 },
 async deleteSessionFolder(sessionId: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:misc|delete_session_folder", { sessionId });
+},
+async parseMeetingLink(text: string) : Promise<string | null> {
+    return await TAURI_INVOKE("plugin:misc|parse_meeting_link", { text });
 }
 }
 

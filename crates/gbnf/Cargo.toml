@@ -7,5 +7,5 @@ edition = "2021"
 gbnf-validator = { workspace = true }
 
 colored = "3"
-indoc = "2"
+indoc = { workspace = true }
 insta = { workspace = true }

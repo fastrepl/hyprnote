@@ -12,6 +12,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 vergen-gix = { version = "1.0.0", features = ["build"] }
 
 [dev-dependencies]
+indoc = { workspace = true }
 specta-typescript = { workspace = true }
 
 [dependencies]
@@ -24,6 +25,7 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 tracing = { workspace = true }
 
+regex = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }

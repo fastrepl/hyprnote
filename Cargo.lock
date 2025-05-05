@@ -13222,6 +13222,8 @@ version = "0.1.0"
 dependencies = [
  "buffer",
  "host",
+ "indoc",
+ "regex",
  "serde",
  "serde_json",
  "specta",

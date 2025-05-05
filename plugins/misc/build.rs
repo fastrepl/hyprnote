@@ -4,6 +4,7 @@ const COMMANDS: &[&str] = &[
     "opinionated_md_to_html",
     "open_audio",
     "delete_session_folder",
+    "parse_meeting_link",
 ];
 
 fn main() {

@@ -24,6 +24,12 @@ async requestCalendarAccess() : Promise<void> {
 },
 async requestContactsAccess() : Promise<void> {
     await TAURI_INVOKE("plugin:apple-calendar|request_contacts_access");
+},
+async syncCalendars() : Promise<null> {
+    return await TAURI_INVOKE("plugin:apple-calendar|sync_calendars");
+},
+async syncEvents() : Promise<null> {
+    return await TAURI_INVOKE("plugin:apple-calendar|sync_events");
 }
 }
 

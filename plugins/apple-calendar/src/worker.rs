@@ -1,8 +1,7 @@
 use apalis::prelude::{Data, Error, WorkerBuilder, WorkerFactoryFn};
 use chrono::{DateTime, Utc};
 
-use hypr_calendar_interface::{Calendar, CalendarSource, Event, EventFilter};
-use hypr_db_user::{ListEventFilter, ListEventFilterCommon, ListEventFilterSpecific};
+use crate::sync::{sync_calendars, sync_events};
 
 #[allow(unused)]
 #[derive(Default, Debug, Clone)]
@@ -23,185 +22,20 @@ impl From<DateTime<Utc>> for Job {
 const CALENDARS_SYNC_WORKER_NAME: &str = "apple_calendar_calendars_sync";
 const EVENTS_SYNC_WORKER_NAME: &str = "apple_calendar_events_sync";
 
-async fn check_calendar_access() -> Result<(), Error> {
-    let calendar_access = tauri::async_runtime::spawn_blocking(|| {
-        let handle = hypr_calendar_apple::Handle::new();
-        handle.calendar_access_status()
-    })
-    .await
-    .unwrap_or(false);
-
-    if !calendar_access {
-        return Err(crate::Error::CalendarAccessDenied.as_worker_error());
-    }
-
-    Ok(())
-}
-
-#[tracing::instrument(skip(ctx), name = "apple_calendar_calendars_sync")]
+#[tracing::instrument(skip(ctx), name = CALENDARS_SYNC_WORKER_NAME)]
 pub async fn perform_calendars_sync(_job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
-    check_calendar_access().await?;
-
-    let db_calendars = ctx.db.list_calendars(&ctx.user_id).await.unwrap_or(vec![]);
-
-    let system_calendars = tauri::async_runtime::spawn_blocking(|| {
-        let handle = hypr_calendar_apple::Handle::new();
-        tauri::async_runtime::block_on(handle.list_calendars()).unwrap_or_default()
-    })
-    .await
-    .unwrap_or_default();
-
-    let calendars_to_delete = {
-        let items = db_calendars
-            .iter()
-            .filter(|db_c| {
-                !system_calendars
-                    .iter()
-                    .any(|sys_c| sys_c.id == db_c.tracking_id)
-            })
-            .cloned()
-            .collect::<Vec<hypr_db_user::Calendar>>();
-
-        tracing::info!("calendars_to_delete_len: {}", items.len());
-        items
-    };
-
-    let calendars_to_upsert = {
-        let items = system_calendars
-            .iter()
-            .filter(|sys_c| !db_calendars.iter().any(|db_c| db_c.tracking_id == sys_c.id))
-            .map(|sys_c| hypr_db_user::Calendar {
-                id: uuid::Uuid::new_v4().to_string(),
-                tracking_id: sys_c.id.clone(),
-                user_id: ctx.user_id.clone(),
-                name: sys_c.name.clone(),
-                platform: sys_c.platform.clone().into(),
-                selected: false,
-            })
-            .collect::<Vec<hypr_db_user::Calendar>>();
-
-        tracing::info!("calendars_to_upsert_len: {}", items.len());
-        items
-    };
-
-    for calendar in calendars_to_delete {
-        if let Err(e) = ctx.db.delete_calendar(&calendar.id).await {
-            tracing::error!("delete_calendar_error: {}", e);
-        }
-    }
-
-    for calendar in calendars_to_upsert {
-        if let Err(e) = ctx.db.upsert_calendar(calendar).await {
-            tracing::error!("upsert_calendar_error: {}", e);
-        }
-    }
-
-    Ok(())
-}
-
-#[tracing::instrument(skip(ctx), name = "apple_calendar_events_sync")]
-pub async fn perform_events_sync(_job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
-    check_calendar_access().await?;
-
-    let user_id = ctx.user_id.clone();
-
-    let db_selected_calendars = {
-        let items = ctx
-            .db
-            .list_calendars(&user_id)
-            .await
-            .map_err(|e| crate::Error::DatabaseError(e.into()).as_worker_error())?
-            .into_iter()
-            .filter(|c| c.selected)
-            .collect::<Vec<hypr_db_user::Calendar>>();
-
-        tracing::info!("db_selected_calendars_len: {}", items.len());
-        items
-    };
-
-    for db_calendar in db_selected_calendars {
-        let fresh_events = list_events(Calendar {
-            id: db_calendar.tracking_id,
-            name: db_calendar.name,
-            platform: db_calendar.platform.into(),
-        })
+    sync_calendars(ctx.db.clone(), ctx.user_id.clone())
         .await
-        .map_err(|e| {
-            tracing::error!("list_events_error: {}", e);
-            e
-        })
-        .unwrap_or_default();
-
-        let existing_events = ctx
-            .db
-            .list_events(Some(ListEventFilter {
-                common: ListEventFilterCommon {
-                    user_id: user_id.clone(),
-                    limit: None,
-                },
-                specific: ListEventFilterSpecific::DateRange {
-                    start: Utc::now(),
-                    end: Utc::now() + chrono::Duration::days(28),
-                },
-            }))
-            .await
-            .unwrap_or(vec![]);
-
-        let events_to_delete = existing_events
-            .iter()
-            .filter(|e| !fresh_events.iter().any(|fe| fe.id == e.tracking_id))
-            .cloned()
-            .collect::<Vec<hypr_db_user::Event>>();
-
-        let events_to_upsert = fresh_events
-            .iter()
-            .filter(|e| !existing_events.iter().any(|ee| ee.tracking_id == e.id))
-            .map(|e| hypr_db_user::Event {
-                id: uuid::Uuid::new_v4().to_string(),
-                tracking_id: e.id.clone(),
-                user_id: user_id.clone(),
-                calendar_id: Some(db_calendar.id.clone()),
-                name: e.name.clone(),
-                note: e.note.clone(),
-                start_date: e.start_date,
-                end_date: e.end_date,
-                google_event_url: None,
-            })
-            .collect::<Vec<hypr_db_user::Event>>();
-
-        for e in events_to_delete {
-            if let Err(e) = ctx.db.delete_event(&e.id).await {
-                tracing::error!("delete_event_error: {}", e);
-            }
-        }
-
-        for e in events_to_upsert {
-            if let Err(e) = ctx.db.upsert_event(e).await {
-                tracing::error!("upsert_event_error: {}", e);
-            }
-        }
-    }
-
+        .map_err(|e| e.as_worker_error())?;
     Ok(())
 }
 
-async fn list_events(calendar: Calendar) -> Result<Vec<Event>, String> {
-    let now = Utc::now();
-
-    let filter = EventFilter {
-        calendars: vec![calendar],
-        from: now,
-        to: (now + chrono::Duration::days(28)),
-    };
-
-    let events = tauri::async_runtime::spawn_blocking(move || {
-        let handle = hypr_calendar_apple::Handle::new();
-        tauri::async_runtime::block_on(handle.list_events(filter)).unwrap_or_default()
-    })
-    .await
-    .map_err(|e| e.to_string())?;
-
-    Ok(events)
+#[tracing::instrument(skip(ctx), name = EVENTS_SYNC_WORKER_NAME)]
+pub async fn perform_events_sync(_job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
+    sync_events(ctx.db.clone(), ctx.user_id.clone())
+        .await
+        .map_err(|e| e.as_worker_error())?;
+    Ok(())
 }
 
 pub async fn monitor(state: WorkerState) -> Result<(), std::io::Error> {

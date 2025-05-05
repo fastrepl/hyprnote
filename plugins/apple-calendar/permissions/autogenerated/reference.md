@@ -10,6 +10,8 @@ Default permissions for the plugin
 - `allow-contacts-access-status`
 - `allow-request-calendar-access`
 - `allow-request-contacts-access`
+- `allow-sync-calendars`
+- `allow-sync-events`
 
 ## Permission Table
 
@@ -172,6 +174,58 @@ Enables the request_contacts_access command without any pre-configured scope.
 <td>
 
 Denies the request_contacts_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:allow-sync-calendars`
+
+</td>
+<td>
+
+Enables the sync_calendars command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-sync-calendars`
+
+</td>
+<td>
+
+Denies the sync_calendars command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:allow-sync-events`
+
+</td>
+<td>
+
+Enables the sync_events command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-sync-events`
+
+</td>
+<td>
+
+Denies the sync_events command without any pre-configured scope.
 
 </td>
 </tr>

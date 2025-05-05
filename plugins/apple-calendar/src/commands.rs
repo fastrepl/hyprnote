@@ -39,3 +39,15 @@ pub fn request_calendar_access<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
 pub fn request_contacts_access<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
     app.request_contacts_access();
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn sync_calendars<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
+    app.sync_calendars().await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn sync_events<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
+    app.sync_events().await.map_err(|e| e.to_string())
+}

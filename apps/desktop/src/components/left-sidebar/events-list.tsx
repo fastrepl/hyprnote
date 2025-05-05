@@ -1,10 +1,12 @@
 import { Trans } from "@lingui/react/macro";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LinkProps, useNavigate } from "@tanstack/react-router";
 import { clsx } from "clsx";
 import { format } from "date-fns";
-import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon } from "lucide-react";
+import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, RefreshCwIcon } from "lucide-react";
 
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
+import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
 import { type Event, type Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import {
@@ -17,6 +19,7 @@ import { SplashLoader } from "@hypr/ui/components/ui/splash";
 import { useSession } from "@hypr/utils/contexts";
 import { formatUpcomingTime } from "@hypr/utils/datetime";
 import { safeNavigate } from "@hypr/utils/navigation";
+import { cn } from "@hypr/ui/lib/utils";
 
 type EventWithSession = Event & { session: Session | null };
 
@@ -29,27 +32,67 @@ export default function EventsList({
   events,
   activeSessionId,
 }: EventsListProps) {
-  if (!events || events.length === 0) {
-    return null;
-  }
+  const queryClient = useQueryClient();
+
+  const syncEventsMutation = useMutation({
+    mutationFn: async () => {
+      const startTime = Date.now();
+      const result = await appleCalendarCommands.syncEvents();
+      const elapsedTime = Date.now() - startTime;
+
+      if (elapsedTime < 500) {
+        await new Promise(resolve => setTimeout(resolve, 500 - elapsedTime));
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate(query) {
+          return query.queryKey?.[0] === "events";
+        },
+      });
+    },
+  });
 
   return (
     <section className="border-b mb-4 border-border">
-      <h2 className="font-bold text-neutral-600 mb-1">
-        <Trans>Upcoming</Trans>
-      </h2>
-
-      <div>
-        {events
-          .sort((a, b) => a.start_date.localeCompare(b.start_date))
-          .map((event) => (
-            <EventItem
-              key={event.id}
-              event={event}
-              activeSessionId={activeSessionId}
-            />
-          ))}
+      <div className="flex items-center gap-2">
+        <h2 className="font-bold text-neutral-600 mb-1">
+          <Trans>Upcoming</Trans>
+        </h2>
+        <button
+          disabled={syncEventsMutation.isPending}
+          onClick={() => syncEventsMutation.mutate()}
+        >
+          <RefreshCwIcon size={12} className={cn(
+            syncEventsMutation.isPending && "animate-spin",
+            "text-gray-500 hover:text-gray-700",
+          )} />
+        </button>
       </div>
+
+      {events?.length
+        ? (
+          <div>
+            {events
+              .sort((a, b) => a.start_date.localeCompare(b.start_date))
+              .map((event) => (
+                <EventItem
+                  key={event.id}
+                  event={event}
+                  activeSessionId={activeSessionId}
+                />
+              ))}
+          </div>
+        )
+        : (
+          <div className="pb-2 pl-1">
+            <p className="text-xs text-neutral-400">
+              <Trans>No upcoming events</Trans>
+            </p>
+          </div>
+        )}
     </section>
   );
 }

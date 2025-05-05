@@ -27,6 +27,8 @@ export function MainSidebar({ current, onTabClick }: MainSidebarProps) {
               <span>
                 {tab.name === "general"
                   ? <Trans>General</Trans>
+                  : tab.name === "calendar"
+                  ? <Trans>Calendar</Trans>
                   : tab.name === "notifications"
                   ? <Trans>Notifications</Trans>
                   : tab.name === "sound"

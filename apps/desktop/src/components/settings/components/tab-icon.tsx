@@ -2,8 +2,7 @@ import {
   AudioLinesIcon,
   BellIcon,
   BlocksIcon,
-  // CalendarIcon,
-  // CreditCardIcon,
+  CalendarIcon,
   FlaskConicalIcon,
   MessageSquareIcon,
   SettingsIcon,
@@ -28,6 +27,8 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <MessageSquareIcon size={16} />;
     case "ai":
       return <SparklesIcon className="h-4 w-4" />;
+    case "calendar":
+      return <CalendarIcon className="h-4 w-4" />;
     default:
       return null;
   }

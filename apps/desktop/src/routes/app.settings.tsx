@@ -6,7 +6,16 @@ import { useCallback, useMemo, useState } from "react";
 import { z } from "zod";
 
 import { ExtensionsSidebar, MainSidebar, SettingsHeader, type Tab, TABS } from "@/components/settings/components";
-import { Extensions, Feedback, General, Lab, LocalAI, Notifications, Sound } from "@/components/settings/views";
+import {
+  Calendar,
+  Extensions,
+  Feedback,
+  General,
+  Lab,
+  LocalAI,
+  Notifications,
+  Sound,
+} from "@/components/settings/views";
 import { EXTENSION_CONFIGS, ExtensionName, ExtensionNames } from "@hypr/extension-registry";
 import { type ExtensionDefinition } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -129,6 +138,7 @@ function Component() {
 
             <div className="flex-1 overflow-y-auto p-6">
               {search.tab === "general" && <General />}
+              {search.tab === "calendar" && <Calendar />}
               {search.tab === "notifications" && <Notifications />}
               {search.tab === "sound" && <Sound />}
               {search.tab === "extensions" && (

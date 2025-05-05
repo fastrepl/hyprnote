@@ -98,8 +98,9 @@ const handleListenerSubscribe = (channel: Channel<SessionEvent>) => {
           {
             start: currentTime,
             end: currentTime + 3,
-            speaker: "John",
+            speaker: 1,
             text: "Hey team, thanks for joining. Today we'll discuss the new transcription feature requirements.",
+            confidence: 0.9,
           },
         ],
       },
@@ -115,9 +116,10 @@ const handleListenerSubscribe = (channel: Channel<SessionEvent>) => {
           {
             start: currentTime,
             end: currentTime + 5,
-            speaker: "Sarah",
+            speaker: 2,
             text:
               "I've been working on some mockups based on user feedback. The main request is for real-time updates and clear speaker identification.",
+            confidence: 0.9,
           },
         ],
       },
@@ -133,9 +135,10 @@ const handleListenerSubscribe = (channel: Channel<SessionEvent>) => {
           {
             start: currentTime,
             end: currentTime + 4,
-            speaker: "Mike",
+            speaker: 3,
             text:
               "That aligns with our backend capabilities. We can stream the transcription with about 500ms latency.",
+            confidence: 0.9,
           },
         ],
       },
@@ -151,8 +154,9 @@ const handleListenerSubscribe = (channel: Channel<SessionEvent>) => {
           {
             start: currentTime,
             end: currentTime + 2,
-            speaker: "John",
+            speaker: 1,
             text: "What's our timeline for implementing this?",
+            confidence: 0.9,
           },
         ],
       },
@@ -168,8 +172,9 @@ const handleListenerSubscribe = (channel: Channel<SessionEvent>) => {
           {
             start: currentTime,
             end: currentTime + 4,
-            speaker: "Sarah",
+            speaker: 2,
             text: "The UI work should take about two weeks. We already have most of the components ready.",
+            confidence: 0.9,
           },
         ],
       },
@@ -185,8 +190,9 @@ const handleListenerSubscribe = (channel: Channel<SessionEvent>) => {
           {
             start: currentTime,
             end: currentTime + 3,
-            speaker: "Mike",
+            speaker: 3,
             text: "Backend integration can be done in parallel. We should be ready for testing in two weeks.",
+            confidence: 0.9,
           },
         ],
       },
@@ -202,8 +208,9 @@ const handleListenerSubscribe = (channel: Channel<SessionEvent>) => {
           {
             start: currentTime,
             end: currentTime + 2,
-            speaker: "John",
+            speaker: 1,
             text: "Perfect, let's reconvene next week for a progress check. Thanks everyone!",
+            confidence: 0.9,
           },
         ],
       },

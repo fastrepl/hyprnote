@@ -154,7 +154,7 @@ export type ConfigAI = { api_base: string | null; api_key: string | null }
 export type ConfigGeneral = { autostart: boolean; display_language: string; jargons: string[]; telemetry_consent: boolean }
 export type ConfigNotification = { before: boolean; auto: boolean; ignoredPlatforms: string[] | null }
 export type ConversationChunk = { start: string; end: string; transcripts: TranscriptChunk[]; diarizations: DiarizationChunk[] }
-export type DiarizationChunk = { start: number; end: number; speaker: string }
+export type DiarizationChunk = { start: number; end: number; speaker: number; confidence: number | null }
 export type Event = { id: string; user_id: string; tracking_id: string; calendar_id: string | null; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null }
 export type ExtensionDefinition = { id: string; title: string; description: string; implemented: boolean; default: boolean; cloud_only: boolean; plugins: string[]; tags: string[] }
 export type ExtensionMapping = { id: string; user_id: string; extension_id: string; config: JsonValue; widgets: ExtensionWidget[] }
@@ -175,8 +175,8 @@ export type Tag = { id: string; name: string }
 export type Template = { id: string; user_id: string; title: string; description: string; sections: TemplateSection[]; tags: string[] }
 export type TemplateSection = { title: string; description: string }
 export type TimelineView = { items: TimelineViewItem[] }
-export type TimelineViewItem = { start: number; end: number; speaker: string; text: string }
-export type TranscriptChunk = { start: number; end: number; text: string }
+export type TimelineViewItem = { start: number; end: number; speaker: number; text: string; confidence: number }
+export type TranscriptChunk = { start: number; end: number; text: string; confidence: number | null }
 
 /** tauri-specta globals **/
 

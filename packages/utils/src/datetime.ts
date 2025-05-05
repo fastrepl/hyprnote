@@ -205,33 +205,40 @@ export function formatTimeAgo(date: Date | string): string {
 export function formatUpcomingTime(date: Date | string): string {
   const futureDate = typeof date === "string" ? new Date(date) : date;
   const now = new Date();
-  const diff = futureDate.getTime() - now.getTime();
 
-  if (diff <= 0) {
+  if (futureDate <= now) {
     return i18n._("in progress");
   }
 
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  const weeks = Math.floor(days / 7);
+  // Use calendar day difference calculation to be consistent with formatRelativeWithDay
+  const startOfFutureDay = FNS.startOfDay(futureDate);
+  const startOfToday = FNS.startOfDay(now);
+  const diffInDays = Math.abs(FNS.differenceInCalendarDays(startOfToday, startOfFutureDay));
 
-  if (seconds < 60) {
-    return i18n._("in {seconds} seconds", { seconds });
-  } else if (minutes === 1) {
-    return i18n._("in 1 minute");
-  } else if (minutes < 60) {
-    return i18n._("in {minutes} minutes", { minutes });
-  } else if (hours === 1) {
-    return i18n._("in 1 hour");
-  } else if (hours < 24) {
-    return i18n._("in {hours} hours", { hours });
-  } else if (days === 1) {
+  // For same day events, calculate hours/minutes
+  if (diffInDays === 0) {
+    const diffMs = futureDate.getTime() - now.getTime();
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+
+    if (seconds < 60) {
+      return i18n._("in {seconds} seconds", { seconds });
+    } else if (minutes === 1) {
+      return i18n._("in 1 minute");
+    } else if (minutes < 60) {
+      return i18n._("in {minutes} minutes", { minutes });
+    } else if (hours === 1) {
+      return i18n._("in 1 hour");
+    } else {
+      return i18n._("in {hours} hours", { hours });
+    }
+  } else if (diffInDays === 1) {
     return i18n._("1 day later");
-  } else if (days < 7) {
-    return i18n._("{days} days later", { days });
+  } else if (diffInDays < 7) {
+    return i18n._("{days} days later", { days: diffInDays });
   } else {
+    const weeks = Math.floor(diffInDays / 7);
     return i18n._("{weeks} weeks later", { weeks });
   }
 }

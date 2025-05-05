@@ -14,7 +14,7 @@ fn run(name: &str) {
             start: (v["start"].as_f64().unwrap() * 1000.0) as u64,
             end: (v["end"].as_f64().unwrap() * 1000.0) as u64,
             speaker: v["speaker"].as_i64().unwrap() as i32,
-            confidence: None,
+            confidence: Some(1.0),
         })
         .collect();
 
@@ -32,7 +32,7 @@ fn run(name: &str) {
                 .join(" "),
             start: (v["start"].as_f64().unwrap() * 1000.0) as u64,
             end: (v["end"].as_f64().unwrap() * 1000.0) as u64,
-            confidence: None,
+            confidence: Some(1.0),
         })
         .collect();
 

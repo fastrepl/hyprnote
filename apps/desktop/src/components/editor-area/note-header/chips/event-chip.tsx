@@ -1,9 +1,10 @@
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, VideoIcon } from "lucide-react";
 
 import { useHypr } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/ui/lib/utils";
@@ -23,7 +24,15 @@ export function EventChip({ sessionId }: EventChipProps) {
 
   const event = useQuery({
     queryKey: ["event", sessionId],
-    queryFn: () => dbCommands.sessionGetEvent(sessionId),
+    queryFn: async () => {
+      const event = await dbCommands.sessionGetEvent(sessionId);
+      if (!event) {
+        return null;
+      }
+
+      const meetingLink = await miscCommands.parseMeetingLink(event.note);
+      return { ...event, meetingLink };
+    },
   });
 
   const date = event.data?.start_date ?? sessionCreatedAt;
@@ -38,7 +47,9 @@ export function EventChip({ sessionId }: EventChipProps) {
             onboardingSessionId === sessionId && "opacity-50 cursor-not-allowed",
           )}
         >
-          <CalendarIcon size={14} />
+          {event.data?.meetingLink
+            ? <VideoIcon size={14} />
+            : <CalendarIcon size={14} />}
           <p className="text-xs">{formatRelativeWithDay(date)}</p>
         </div>
       </PopoverTrigger>
@@ -46,6 +57,7 @@ export function EventChip({ sessionId }: EventChipProps) {
         <div className="flex flex-col gap-2">
           <div className="font-semibold">{event.data?.name}</div>
           <div className="text-sm text-neutral-600">{event.data?.note}</div>
+          <p>{event.data?.meetingLink}</p>
           <Button variant="outline">
             <Trans>View in calendar</Trans>
           </Button>

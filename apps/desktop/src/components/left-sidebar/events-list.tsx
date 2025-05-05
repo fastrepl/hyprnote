@@ -16,10 +16,10 @@ import {
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
 import { SplashLoader } from "@hypr/ui/components/ui/splash";
+import { cn } from "@hypr/ui/lib/utils";
 import { useSession } from "@hypr/utils/contexts";
 import { formatUpcomingTime } from "@hypr/utils/datetime";
 import { safeNavigate } from "@hypr/utils/navigation";
-import { cn } from "@hypr/ui/lib/utils";
 
 type EventWithSession = Event & { session: Session | null };
 
@@ -65,10 +65,13 @@ export default function EventsList({
           disabled={syncEventsMutation.isPending}
           onClick={() => syncEventsMutation.mutate()}
         >
-          <RefreshCwIcon size={12} className={cn(
-            syncEventsMutation.isPending && "animate-spin",
-            "text-gray-500 hover:text-gray-700",
-          )} />
+          <RefreshCwIcon
+            size={12}
+            className={cn(
+              syncEventsMutation.isPending && "animate-spin",
+              "text-gray-500 hover:text-gray-700",
+            )}
+          />
         </button>
       </div>
 

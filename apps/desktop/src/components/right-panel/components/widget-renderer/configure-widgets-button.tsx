@@ -31,7 +31,7 @@ export function ConfigureWidgetsButton({
       onClick={handleClickConfigureWidgets}
       variant="outline"
       size="sm"
-      className="rounded-full hover:scale-95 active:scale-90 transition-transform"
+      className="rounded-full hover:scale-95 active:scale-90 transition-transform dark:border-border dark:text-foreground dark:hover:bg-accent dark:hover:text-accent-foreground"
     >
       {children}
     </Button>

@@ -153,7 +153,7 @@ export default function WidgetRenderer({
                 duration: 0.25,
                 ease: "easeInOut",
               }}
-              className="absolute inset-0 z-10 flex items-center justify-center"
+              className="absolute inset-0 z-10 flex items-center justify-center bg-background dark:bg-background"
             >
               <SuspenseWidget
                 widgetConfig={getFullWidgetConfig(fullWidgetConfig)}
@@ -172,6 +172,7 @@ export default function WidgetRenderer({
                 duration: 0.25,
                 ease: "easeInOut",
               }}
+              className="text-foreground dark:text-foreground"
             >
               <GridLayout
                 layout={layout}

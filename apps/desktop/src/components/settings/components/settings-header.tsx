@@ -40,7 +40,7 @@ export function SettingsHeader({ current, onCreateTemplate }: SettingsHeaderProp
   };
 
   return (
-    <header data-tauri-drag-region className="h-11 w-full flex items-center justify-between border-b px-2">
+    <header data-tauri-drag-region className="h-11 w-full flex items-center justify-between border-b dark:border-zinc-800 px-2">
       <div className="w-40" data-tauri-drag-region></div>
 
       <h1 className="text-md font-semibold capitalize" data-tauri-drag-region>

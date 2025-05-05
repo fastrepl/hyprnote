@@ -160,8 +160,8 @@ export default function LocalAI() {
   return (
     <div className="space-y-6">
       <Accordion type="single" collapsible className="space-y-2">
-        <AccordionItem value="stt" className="border rounded-md overflow-hidden">
-          <AccordionTrigger className="px-4 py-3 hover:bg-neutral-50">
+        <AccordionItem value="stt" className="border dark:border-zinc-700 rounded-md overflow-hidden">
+          <AccordionTrigger className="px-4 py-3 hover:bg-neutral-50 dark:hover:bg-zinc-800">
             <div className="flex items-center gap-2">
               <MicIcon size={18} className="text-neutral-500" />
               <span className="font-medium">
@@ -179,7 +179,7 @@ export default function LocalAI() {
                   className="space-y-3"
                 >
                   {supportedSTTModels.data?.map(({ model, isDownloaded }) => (
-                    <div key={model} className="flex items-center justify-between rounded-md p-2 hover:bg-neutral-50">
+                    <div key={model} className="flex items-center justify-between rounded-md p-2 hover:bg-neutral-50 dark:hover:bg-zinc-800">
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value={model} id={`model-${model}`} disabled={!isDownloaded} />
                         <Label htmlFor={`model-${model}`} className="flex items-center cursor-pointer font-medium">
@@ -230,8 +230,8 @@ export default function LocalAI() {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="llm" className="border rounded-md overflow-hidden">
-          <AccordionTrigger className="px-4 py-3 hover:bg-neutral-50">
+        <AccordionItem value="llm" className="border dark:border-zinc-700 rounded-md overflow-hidden">
+          <AccordionTrigger className="px-4 py-3 hover:bg-neutral-50 dark:hover:bg-zinc-800">
             <div className="flex items-center gap-2">
               <BrainIcon size={18} className="text-neutral-500" />
               <span className="font-medium">
@@ -249,14 +249,14 @@ export default function LocalAI() {
                   }}
                   className="space-y-4"
                 >
-                  <div className="flex items-center space-x-3 rounded-md p-2 hover:bg-neutral-50">
+                  <div className="flex items-center space-x-3 rounded-md p-2 hover:bg-neutral-50 dark:hover:bg-zinc-800">
                     <RadioGroupItem value="llama-3.2-3b-q4" id="model-llama-3-2" />
                     <Label htmlFor="model-llama-3-2" className="flex items-center cursor-pointer font-medium">
                       <span>llama-3.2-3b-q4</span>
                     </Label>
                   </div>
 
-                  <div className="rounded-md border border-neutral-200 p-3">
+                  <div className="rounded-md border border-neutral-200 dark:border-zinc-700 p-3">
                     <div className="flex items-center space-x-3 mb-3">
                       <RadioGroupItem value="custom" id="model-custom" />
                       <Label htmlFor="model-custom" className="flex items-center cursor-pointer font-medium">

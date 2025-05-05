@@ -23,7 +23,7 @@ export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
             variant="ghost"
             size="icon"
             onClick={togglePanel}
-            className="hover:bg-neutral-200"
+            className="hover:bg-neutral-200 dark:hover:bg-zinc-800 text-neutral-700 dark:text-neutral-300"
           >
             <ToggleIcon className="size-4" />
           </Button>

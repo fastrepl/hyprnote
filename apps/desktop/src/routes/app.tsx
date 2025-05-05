@@ -51,7 +51,7 @@ function Component() {
                   <NewNoteProvider>
                     <SearchProvider>
                       <EditModeProvider>
-                        <div className="relative flex h-screen w-screen overflow-hidden">
+                        <div className="relative flex h-screen w-screen overflow-hidden bg-white dark:bg-zinc-900 dark:text-white">
                           <LeftSidebar />
                           <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
                             <Toolbar />

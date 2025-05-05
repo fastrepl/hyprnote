@@ -24,11 +24,11 @@ export function ExtensionsSidebar({
     <>
       <div className="p-2">
         <div className="relative flex items-center">
-          <SearchIcon className="absolute left-2 h-4 w-4 text-neutral-400" />
+          <SearchIcon className="absolute left-2 h-4 w-4 text-neutral-400 dark:text-neutral-500" />
           <input
             type="text"
             placeholder="Search extensions..."
-            className="w-full rounded-md border border-neutral-200 bg-white py-1 pl-8 pr-2 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+            className="w-full rounded-md border border-neutral-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 dark:text-neutral-200 py-1 pl-8 pr-2 text-sm placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-neutral-600"
             value={searchQuery}
             onChange={onSearchChange}
           />
@@ -41,8 +41,8 @@ export function ExtensionsSidebar({
             <button
               key={extension.id}
               className={cn(
-                "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
-                selectedExtension === extension.id && "bg-neutral-100 font-medium",
+                "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-zinc-800",
+                selectedExtension === extension.id && "bg-neutral-100 dark:bg-zinc-800 font-medium",
               )}
               onClick={() => onExtensionSelect(extension.id as ExtensionName)}
               disabled={!extension.implemented}
@@ -51,7 +51,7 @@ export function ExtensionsSidebar({
               <div className="flex flex-1 items-center justify-between">
                 <span>{extension.title}</span>
                 {!extension.implemented && (
-                  <span className="text-xs text-neutral-400">
+                  <span className="text-xs text-neutral-400 dark:text-neutral-500">
                     <Trans>Coming Soon</Trans>
                   </span>
                 )}

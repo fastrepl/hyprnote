@@ -71,7 +71,7 @@ export function Modal({
         aria-modal="true"
         className={cn(
           "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-          "overflow-clip rounded-lg bg-background shadow-lg",
+          "overflow-clip rounded-lg bg-background shadow-lg dark:shadow-zinc-900/50",
           sizeClasses[size],
           className,
         )}

@@ -120,7 +120,7 @@ export default function WorkspaceCalendar({
   return (
     <div
       ref={calendarRef}
-      className="grid grid-cols-7 divide-x divide-neutral-200 h-full grid-rows-6 gap-0"
+      className="grid grid-cols-7 divide-x divide-neutral-200 dark:divide-zinc-800 h-full grid-rows-6 gap-0"
     >
       {calendarDays.map((day, i) => {
         const dayItems = getItemsForDay(day);
@@ -163,8 +163,8 @@ export default function WorkspaceCalendar({
             style={{ height: cellHeight > 0 ? `${cellHeight}px` : "auto" }}
             className={cn(
               "relative flex flex-col",
-              !isLastWeek && "border-b border-neutral-200",
-              isWeekend ? "bg-neutral-50" : "bg-white",
+              !isLastWeek && "border-b border-neutral-200 dark:border-zinc-800",
+              isWeekend ? "bg-neutral-50 dark:bg-zinc-900" : "bg-white dark:bg-zinc-950",
             )}
           >
             <div className="flex items-center justify-end px-1 text-sm h-8">
@@ -178,10 +178,10 @@ export default function WorkspaceCalendar({
                   <span
                     className={cn(
                       !isCurrentMonth
-                        ? "text-neutral-400"
+                        ? "text-neutral-400 dark:text-zinc-600"
                         : isWeekend
-                        ? "text-neutral-500"
-                        : "text-neutral-700",
+                        ? "text-neutral-500 dark:text-zinc-400"
+                        : "text-neutral-700 dark:text-zinc-300",
                     )}
                   >
                     {monthName}
@@ -199,10 +199,10 @@ export default function WorkspaceCalendar({
                       isHighlighted
                         ? "text-white font-medium"
                         : !isCurrentMonth
-                        ? "text-neutral-400"
+                        ? "text-neutral-400 dark:text-zinc-600"
                         : isWeekend
-                        ? "text-neutral-500"
-                        : "text-neutral-700",
+                        ? "text-neutral-500 dark:text-zinc-400"
+                        : "text-neutral-700 dark:text-zinc-300",
                     )}
                   >
                     {dayNumber}
@@ -229,15 +229,15 @@ export default function WorkspaceCalendar({
                   {hiddenCount > 0 && (
                     <Popover>
                       <PopoverTrigger asChild>
-                        <div className="text-xs text-neutral-600 rounded py-0.5 cursor-pointer hover:bg-neutral-200 mx-1 h-5">
+                        <div className="text-xs text-neutral-600 dark:text-zinc-400 rounded py-0.5 cursor-pointer hover:bg-neutral-200 dark:hover:bg-zinc-800 mx-1 h-5">
                           {`+${hiddenCount} more`}
                         </div>
                       </PopoverTrigger>
                       <PopoverContent
-                        className="w-80 p-4 max-h-52 space-y-1 overflow-y-auto bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0"
+                        className="w-80 p-4 max-h-52 space-y-1 overflow-y-auto bg-white dark:bg-zinc-900 border-neutral-200 dark:border-zinc-800 m-2 shadow-lg dark:shadow-zinc-900/50 outline-none focus:outline-none focus:ring-0"
                         align="start"
                       >
-                        <div className="text-lg font-semibold text-neutral-800">
+                        <div className="text-lg font-semibold text-neutral-800 dark:text-zinc-200">
                           {format(day, "MMMM d, yyyy")}
                         </div>
 
@@ -254,7 +254,7 @@ export default function WorkspaceCalendar({
                           .map((item) => (
                             <div
                               key={item.id}
-                              className="text-sm hover:bg-neutral-100 rounded cursor-pointer transition-colors"
+                              className="text-sm hover:bg-neutral-100 dark:hover:bg-zinc-800 rounded cursor-pointer transition-colors"
                             >
                               {"calendar_event_id" in item
                                 ? <NoteCard session={item as Session} showTime />

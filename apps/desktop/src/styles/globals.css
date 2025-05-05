@@ -4,21 +4,80 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Add support for system theme media queries */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 40%; /* Lighter border in dark mode */
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+  }
+}
+
 /* https://www.joshwcomeau.com/css/custom-css-reset/ */
 
 *,
 *::before,
 *::after {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 * {
-  margin: 0;
+    margin: 0;
 }
 
 body {
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
 }
 
 img,
@@ -26,15 +85,15 @@ picture,
 video,
 canvas,
 svg {
-  display: block;
-  max-width: 100%;
+    display: block;
+    max-width: 100%;
 }
 
 input,
 button,
 textarea,
 select {
-  font: inherit;
+    font: inherit;
 }
 
 p,
@@ -44,72 +103,173 @@ h3,
 h4,
 h5,
 h6 {
-  overflow-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 p {
-  text-wrap: pretty;
+    text-wrap: pretty;
 }
+
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  text-wrap: balance;
+    text-wrap: balance;
 }
 
 #root,
 #__next {
-  isolation: isolate;
+    isolation: isolate;
 }
 
 /* https://github.com/gitbutlerapp/gitbutler/blob/master/apps/desktop/src/styles/styles.css */
 
 html,
 body {
-  height: 100vh;
-  width: 100vw;
-  overflow-y: hidden;
+    height: 100vh;
+    width: 100vw;
+    overflow-y: hidden;
 
-  user-select: none;
-  overscroll-behavior: none;
+    user-select: none;
+    overscroll-behavior: none;
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+    width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e5e5e5;
-  border-radius: 4px;
+    background: #e5e5e5;
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #d5d5d5;
+    background: #d5d5d5;
+}
+
+/* Dark theme scrollbar and component styles */
+.dark ::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+    border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #52525b;
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Fix Radix UI popover content wrapper in dark mode */
+.dark [data-radix-popper-content-wrapper] {
+    --border-color: rgb(63 63 70); 
+    --bg-color: rgb(24 24 27); 
+}
+
+.dark [data-radix-popper-content-wrapper] > div {
+    border-color: var(--border-color) !important;
+    background-color: var(--bg-color) !important;
+}
+
+.dark [data-radix-popper-content-wrapper] [role="tooltip"],
+.dark [data-radix-popper-content-wrapper] [role="dialog"],
+.dark [data-radix-popper-content-wrapper] [role="listbox"] {
+    border-color: var(--border-color) !important;
+    background-color: var(--bg-color) !important;
+    color: rgb(212 212 216) !important; 
+}
+
+/* Ensure form components have proper dark mode styling */
+.dark select,
+.dark option,
+.dark [role="combobox"],
+.dark [role="option"] {
+    background-color: var(--bg-color);
+    color: rgb(212 212 216); 
+}
+
+/* Fix for Select component in dark mode */
+.dark [data-radix-select-content] {
+    background-color: var(--bg-color) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Fix for buttons in dark mode */
+.dark button {
+    border-color: rgba(255, 255, 255, 0.2) !important; /* Lighter border */
+}
+
+/* Specifically fix Edit Widgets button in dark mode */
+.dark button.rounded-full {
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    background-color: rgba(39, 39, 42, 0.8) !important;
+}
+
+/* Fix for transcript widget in dark mode */
+.dark [style*="background: white"] {
+    background-color: #27272a !important; /* zinc-800 */
+}
+
+.dark .bg-white\/50 {
+    background-color: rgba(39, 39, 42, 0.5) !important; /* zinc-800 with opacity */
+}
+
+.dark .text-neutral-900 {
+    color: white !important;
+}
+
+/* Fix for widget borders in dark mode */
+.dark [style*="border-width: 1px"] {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Fix for borders in Settings > Lab */
+.dark .rounded-lg.border {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Fix for toast notifications in dark mode */
+.dark .group.overflow-clip {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* More specific fix for model download notification */
+.dark [id="model-download-needed"] {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.dark div[role="status"] {
+    border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 @layer utilities {
-  .scrollbar-none {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .scrollbar-none::-webkit-scrollbar {
-    display: none;
-  }
+    .scrollbar-none {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 @layer base {
-  * {
-    @apply select-none;
-  }
+    * {
+        @apply select-none;
+    }
 
-  input, textarea, [contenteditable="true"] {
-    @apply select-text;
-  }
+    input,
+    textarea,
+    [contenteditable="true"] {
+        @apply select-text;
+    }
 }

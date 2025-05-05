@@ -371,7 +371,7 @@ impl HyprWindow {
         {
             builder = builder
                 .hidden_title(true)
-                .theme(Some(tauri::Theme::Light))
+                .theme(None) // Use system theme
                 .title_bar_style(tauri::TitleBarStyle::Overlay);
         }
 

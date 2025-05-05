@@ -5,7 +5,7 @@ import * as React from "react";
 import { cn } from "../../lib/utils";
 
 const switchVariants = cva(
-  "peer inline-flex shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input",
+  "peer inline-flex shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input dark:data-[state=unchecked]:bg-zinc-700",
   {
     variants: {
       size: {
@@ -13,15 +13,20 @@ const switchVariants = cva(
         default: "h-6 w-11",
         lg: "h-7 w-14",
       },
+      color: {
+        default: "data-[state=checked]:bg-primary",
+        gray: "data-[state=checked]:bg-neutral-700 dark:data-[state=checked]:bg-neutral-500",
+      },
     },
     defaultVariants: {
       size: "default",
+      color: "default",
     },
   },
 );
 
 const thumbVariants = cva(
-  "pointer-events-none block rounded-full bg-background shadow-lg ring-0 transition-transform",
+  "pointer-events-none block rounded-full bg-background dark:bg-zinc-300 shadow-lg ring-0 transition-transform",
   {
     variants: {
       size: {
@@ -43,9 +48,9 @@ interface SwitchProps
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
   SwitchProps
->(({ className, size, ...props }, ref) => (
+>(({ className, size, color, ...props }, ref) => (
   <SwitchPrimitives.Root
-    className={cn(switchVariants({ size, className }))}
+    className={cn(switchVariants({ size, color, className }))}
     {...props}
     ref={ref}
   >

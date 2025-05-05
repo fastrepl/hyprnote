@@ -29,3 +29,9 @@
   pointer-events: none;
   height: 0;
 }
+
+/* Dark mode styles */
+:root.dark .ProseMirror .is-editor-empty:first-child::before,
+:root.dark .ProseMirror .is-empty::before {
+  color: #64646e;
+}

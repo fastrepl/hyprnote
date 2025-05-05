@@ -8,6 +8,7 @@ import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { lazy, Suspense, useEffect } from "react";
 
 import { CatchNotFoundFallback, ErrorComponent, NotFoundComponent } from "@/components/control";
+import { ThemeProvider } from "@/contexts/theme-provider";
 import type { Context } from "@/types";
 import { events as windowsEvents } from "@hypr/plugin-windows";
 
@@ -32,6 +33,40 @@ function Component() {
     refetchInterval: 1000,
   });
 
+  // Set up theme synchronization across windows
+  useEffect(() => {
+    // Apply initial theme from localStorage
+    const savedTheme = localStorage.getItem("theme") as "dark" | "light";
+    if (savedTheme) {
+      document.documentElement.classList.remove("dark", "light");
+      document.documentElement.classList.add(savedTheme);
+    }
+    
+    // Listen for theme changes from other windows
+    const setupThemeListener = async () => {
+      try {
+        const { listen } = await import("@tauri-apps/api/event");
+        return listen<{ theme: "dark" | "light" }>("theme-changed", (event) => {
+          document.documentElement.classList.remove("dark", "light");
+          document.documentElement.classList.add(event.payload.theme);
+        });
+      } catch (e) {
+        console.error("Failed to set up theme listener:", e);
+        return () => {};
+      }
+    };
+    
+    const unlistenPromise = setupThemeListener();
+    
+    return () => {
+      unlistenPromise.then(unlisten => {
+        if (typeof unlisten === 'function') {
+          unlisten();
+        }
+      });
+    };
+  }, []);
+
   useEffect(() => {
     let unlisten: (() => void) | undefined;
 
@@ -52,7 +87,7 @@ function Component() {
   }, []);
 
   return (
-    <>
+    <ThemeProvider defaultTheme="system" storageKey="hyprnote-theme">
       <ClipboardHandler />
       <CatchNotFound fallback={(e) => <CatchNotFoundFallback error={e} />}>
         <Outlet />
@@ -67,7 +102,7 @@ function Component() {
           />
         </Suspense>
       )}
-    </>
+    </ThemeProvider>
   );
 }
 

@@ -2,8 +2,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { Moon, Sun } from "lucide-react";
 import { z } from "zod";
 
 import { commands as dbCommands, type ConfigGeneral } from "@hypr/plugin-db";
@@ -155,8 +156,96 @@ export default function General() {
               </FormItem>
             )}
           />
+
+          <ThemeToggleField />
         </form>
       </Form>
+    </div>
+  );
+}
+
+function ThemeToggleField() {
+  // Local state for the component
+  const [theme, setThemeState] = useState<"dark" | "light">("dark");
+  
+  // Initial setup - get current theme
+  useEffect(() => {
+    // Use a simple approach to detect theme
+    const savedTheme = localStorage.getItem("theme") as "dark" | "light";
+    if (savedTheme) {
+      setThemeState(savedTheme);
+    }
+  }, []);
+
+  // Simple function to apply theme
+  const applyTheme = (newTheme: "dark" | "light") => {
+    // Update document classes
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(newTheme);
+    
+    // Store preference
+    localStorage.setItem("theme", newTheme);
+    
+    // Try to set Tauri theme if available
+    try {
+      import("@tauri-apps/api/app").then(({ setTheme: setTauriTheme }) => {
+        setTauriTheme(newTheme);
+      });
+    } catch (e) {
+      console.error("Failed to set Tauri theme:", e);
+    }
+    
+    // Broadcast theme change to other windows
+    try {
+      import("@tauri-apps/api/event").then(({ emit }) => {
+        emit("theme-changed", { theme: newTheme });
+      });
+    } catch (e) {
+      console.error("Failed to broadcast theme change:", e);
+    }
+  };
+  
+  // Toggle the theme
+  const toggleTheme = (checked: boolean) => {
+    const newTheme = checked ? "dark" : "light";
+    
+    // Update state
+    setThemeState(newTheme);
+    
+    // Apply theme to document
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(newTheme);
+    
+    // Save to localStorage
+    localStorage.setItem("theme", newTheme);
+    
+    // Broadcast to other windows (try-catch to prevent errors breaking the toggle)
+    try {
+      import("@tauri-apps/api/event")
+        .then(({ emit }) => emit("theme-changed", { theme: newTheme }))
+        .catch(console.error);
+    } catch (e) {
+      console.error("Failed to broadcast theme change:", e);
+    }
+  };
+
+  return (
+    <div className="flex flex-row items-center justify-between pt-4">
+      <div>
+        <div className="text-sm font-medium">
+          <Trans>Dark Mode</Trans>
+        </div>
+        <FormDescription>
+          <Trans>Toggle between light and dark mode</Trans>
+        </FormDescription>
+      </div>
+      <div className="flex items-center gap-2">
+        <Switch
+          checked={theme === "dark"}
+          onCheckedChange={toggleTheme}
+          color="gray"
+        />
+      </div>
     </div>
   );
 }

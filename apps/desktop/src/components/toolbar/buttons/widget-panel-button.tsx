@@ -24,8 +24,8 @@ export function WidgetPanelButton() {
           size="icon"
           onClick={handleClick}
           className={cn(
-            "hover:bg-neutral-300 text-xs",
-            isActive && "bg-neutral-200",
+            "hover:bg-neutral-300 dark:hover:bg-zinc-800 text-xs",
+            isActive && "bg-neutral-200 dark:bg-zinc-800",
           )}
         >
           {!isExpanded ? <PanelRightOpen className="size-4" /> : <PanelRightClose className="size-4" />}

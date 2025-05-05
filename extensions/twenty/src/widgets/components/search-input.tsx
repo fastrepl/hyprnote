@@ -54,12 +54,12 @@ export const SearchInput = ({
 
       {showSearchResults && (
         <div className="relative">
-          <div className="absolute z-10 w-full mt-1 bg-white rounded-md border border-border overflow-hidden">
+          <div className="absolute z-10 w-full mt-1 bg-white dark:bg-zinc-900 rounded-md border border-border dark:border-zinc-700 overflow-hidden">
             {isLoading
               ? (
                 <div className="flex items-center justify-center p-4">
-                  <Loader className="size-4 text-neutral-500 animate-spin mr-2" />
-                  <span className="text-sm text-neutral-500">Loading...</span>
+                  <Loader className="size-4 text-neutral-500 dark:text-neutral-400 animate-spin mr-2" />
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Loading...</span>
                 </div>
               )
               : filteredResults.length > 0
@@ -75,7 +75,7 @@ export const SearchInput = ({
                 </div>
               )
               : (
-                <div className="px-3 py-2 text-sm text-neutral-500">
+                <div className="px-3 py-2 text-sm text-neutral-500 dark:text-neutral-400">
                   {searchResults.length > 0 && filteredResults.length === 0
                     ? "All matching people are already selected"
                     : "No results found"}
@@ -100,7 +100,7 @@ const SearchResultItem = ({ person, handleSelectPerson }: SearchResultItemProps)
   return (
     <button
       type="button"
-      className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
+      className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 dark:hover:bg-zinc-800 transition-colors w-full"
       onClick={() => handleSelectPerson(person)}
     >
       <div className="flex-shrink-0 size-8 flex items-center justify-center mr-2 rounded-full overflow-hidden">
@@ -119,10 +119,10 @@ const SearchResultItem = ({ person, handleSelectPerson }: SearchResultItemProps)
           )}
       </div>
       <div className="flex flex-col">
-        <span className="font-medium text-neutral-900 truncate">
+        <span className="font-medium text-neutral-900 dark:text-neutral-200 truncate">
           {fullName}
         </span>
-        <span className="text-xs text-neutral-500 truncate">
+        <span className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
           {email}
         </span>
       </div>

@@ -25,7 +25,7 @@ export function NewWindowButton() {
           variant="ghost"
           size="icon"
           onClick={handleClick}
-          className="hover:bg-neutral-200"
+          className="hover:bg-neutral-200 dark:hover:bg-zinc-800 text-neutral-700 dark:text-neutral-300"
           aria-label="Open in new window"
         >
           <ArrowUpRight size={16} />

@@ -80,26 +80,26 @@ export function NoteCard({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className="flex items-start space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 transition-colors h-5">
-          <div className="w-1 h-3 mt-0.5 rounded-full flex-shrink-0 bg-neutral-600"></div>
+        <div className="flex items-start space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 dark:hover:bg-zinc-700 transition-colors h-5">
+          <div className="w-1 h-3 mt-0.5 rounded-full flex-shrink-0 bg-neutral-600 dark:bg-neutral-400"></div>
 
-          <div className="flex-1 text-xs text-neutral-800 truncate">
+          <div className="flex-1 text-xs text-neutral-800 dark:text-neutral-200 truncate">
             {session.title || "Untitled"}
           </div>
 
           {showTime && (
-            <div className="text-xs text-neutral-500">
+            <div className="text-xs text-neutral-500 dark:text-neutral-400">
               {format(getStartDate(), "h:mm a")} - {format(getEndDate(), "h:mm a")}
             </div>
           )}
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-72 p-4 bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0">
-        <div className="font-semibold text-lg mb-2 text-neutral-800">
+      <PopoverContent className="w-72 p-4 bg-white dark:bg-zinc-800 border-neutral-200 dark:border-zinc-700 m-2 shadow-lg outline-none focus:outline-none focus:ring-0">
+        <div className="font-semibold text-lg mb-2 text-neutral-800 dark:text-neutral-200">
           {session.title || "Untitled"}
         </div>
 
-        <p className="text-sm mb-2 text-neutral-600">
+        <p className="text-sm mb-2 text-neutral-600 dark:text-neutral-400">
           {format(getStartDate(), "MMM d, h:mm a")}
           {" - "}
           {format(getStartDate(), "yyyy-MM-dd")
@@ -109,7 +109,7 @@ export function NoteCard({
         </p>
 
         {participantsPreview && participantsPreview.length > 0 && (
-          <div className="text-xs text-neutral-600 mb-4 truncate">
+          <div className="text-xs text-neutral-600 dark:text-neutral-400 mb-4 truncate">
             {participantsPreview.join(", ")}
           </div>
         )}

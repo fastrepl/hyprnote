@@ -3,10 +3,21 @@ import "./styles/globals.css";
 
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
-import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CatchBoundary, createRouter, ErrorComponent, RouterProvider } from "@tanstack/react-router";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
+  CatchBoundary,
+  createRouter,
+  ErrorComponent,
+  RouterProvider,
+} from "@tanstack/react-router";
 import { useEffect } from "react";
 import ReactDOM from "react-dom/client";
+import { setTheme } from "@tauri-apps/api/app";
 
 import type { Context } from "@/types";
 import { commands } from "@/types";
@@ -19,7 +30,10 @@ import { broadcastQueryClient } from "./utils";
 import { messages as enMessages } from "./locales/en/messages";
 import { messages as koMessages } from "./locales/ko/messages";
 
-import { createOngoingSessionStore, createSessionsStore } from "@hypr/utils/stores";
+import {
+  createOngoingSessionStore,
+  createSessionsStore,
+} from "@hypr/utils/stores";
 import { routeTree } from "./routeTree.gen";
 
 import * as Sentry from "@sentry/react";
@@ -96,7 +110,12 @@ function App() {
     return null;
   }
 
-  return <RouterProvider router={router} context={{ ...context, userId: userId.data }} />;
+  return (
+    <RouterProvider
+      router={router}
+      context={{ ...context, userId: userId.data }}
+    />
+  );
 }
 
 if (!rootElement.innerHTML) {
@@ -104,20 +123,18 @@ if (!rootElement.innerHTML) {
   root.render(
     <CatchBoundary getResetKey={() => "error"} errorComponent={ErrorComponent}>
       <TooltipProvider delayDuration={700} skipDelayDuration={300}>
-        <ThemeProvider defaultTheme="light">
-          <QueryClientProvider client={queryClient}>
-            <I18nProvider i18n={i18n}>
-              <App />
-              <Toaster
-                position="bottom-left"
-                expand={process.env.NODE_ENV === "development"}
-                offset={16}
-                duration={Infinity}
-                swipeDirections={[]}
-              />
-            </I18nProvider>
-          </QueryClientProvider>
-        </ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <I18nProvider i18n={i18n}>
+            <App />
+            <Toaster
+              position="bottom-left"
+              expand={process.env.NODE_ENV === "development"}
+              offset={16}
+              duration={Infinity}
+              swipeDirections={[]}
+            />
+          </I18nProvider>
+        </QueryClientProvider>
       </TooltipProvider>
     </CatchBoundary>,
   );

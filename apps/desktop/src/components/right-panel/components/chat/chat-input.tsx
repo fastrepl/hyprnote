@@ -98,21 +98,21 @@ export function ChatInput(
   const entityTitle = getEntityTitle();
 
   return (
-    <div className="border border-b-0 border-input mx-4 rounded-t-lg overflow-clip flex flex-col bg-white">
+    <div className="border border-b-0 border-input dark:border-zinc-700 mx-4 rounded-t-lg overflow-clip flex flex-col bg-white dark:bg-zinc-800">
       <textarea
         ref={chatInputRef}
         value={inputValue}
         onChange={onChange}
         onKeyDown={onKeyDown}
         placeholder="Type a message..."
-        className="w-full resize-none overflow-hidden px-3 py-2 pr-10 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px]"
+        className="w-full resize-none overflow-hidden px-3 py-2 pr-10 text-sm placeholder:text-muted-foreground dark:placeholder:text-zinc-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px]"
         rows={1}
       />
       <div className="flex items-center justify-between pb-2 px-3">
         {entityId
           ? (
             <Badge
-              className="mr-2 bg-white text-black border border-border inline-flex items-center gap-1 hover:bg-neutral-100 cursor-pointer"
+              className="mr-2 bg-white text-black dark:bg-zinc-800 dark:text-white border border-border dark:border-zinc-700 inline-flex items-center gap-1 hover:bg-neutral-100 dark:hover:bg-zinc-700 cursor-pointer"
               onClick={onNoteBadgeClick}
             >
               {getBadgeIcon()} {entityTitle}

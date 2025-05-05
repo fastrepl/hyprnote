@@ -81,7 +81,7 @@ function OrganizationWithParticipants(
       <div className="text-xs font-medium text-neutral-400 truncate">
         {organization.data?.name ?? "No organization"}
       </div>
-      <div className="flex flex-col rounded-md overflow-hidden bg-neutral-50 border border-neutral-100">
+      <div className="flex flex-col rounded-md overflow-hidden bg-neutral-50 dark:bg-zinc-800 border border-neutral-100 dark:border-zinc-700">
         {members.map((member, index) => (
           <ParticipentItem
             key={member.id}
@@ -127,8 +127,8 @@ function ParticipentItem({
     <div
       className={clsx(
         "flex items-center justify-between gap-2 py-2 px-3",
-        "hover:bg-neutral-100 cursor-pointer group transition-colors",
-        !isLast && "border-b border-neutral-100",
+        "hover:bg-neutral-100 dark:hover:bg-zinc-700 cursor-pointer group transition-colors",
+        !isLast && "border-b border-neutral-100 dark:border-zinc-700",
       )}
       onClick={() => handleClickHuman(member)}
     >
@@ -136,7 +136,7 @@ function ParticipentItem({
         <div className="relative size-7 flex items-center justify-center flex-shrink-0">
           <div className="absolute inset-0 flex items-center justify-center group-hover:opacity-0 transition-opacity">
             <Avatar className="size-7">
-              <AvatarFallback className="text-xs bg-neutral-200 text-neutral-700 font-medium">
+              <AvatarFallback className="text-xs bg-neutral-200 dark:bg-zinc-700 text-neutral-700 dark:text-zinc-300 font-medium">
                 {member.full_name ? getInitials(member.full_name) : "?"}
               </AvatarFallback>
             </Avatar>
@@ -161,13 +161,13 @@ function ParticipentItem({
                   "flex items-center justify-center",
                   "text-red-400 hover:text-red-600",
                   "absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
-                  "bg-white shadow-sm",
+                  "bg-white dark:bg-zinc-800 shadow-sm",
                 ])}
               >
                 <CircleMinus className="size-4" />
               </div>
             </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={10}>
+            <TooltipContent side="bottom" sideOffset={10} className="dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300">
               <Trans>Remove {member.full_name} from list</Trans>
             </TooltipContent>
           </Tooltip>
@@ -175,7 +175,7 @@ function ParticipentItem({
         <div className="flex flex-col min-w-0 flex-1">
           {member.full_name
             ? (
-              <span className="text-sm font-medium text-neutral-700 truncate">
+              <span className="text-sm font-medium text-neutral-700 dark:text-zinc-200 truncate">
                 {member.full_name ?? "???"}
               </span>
             )
@@ -198,7 +198,7 @@ function ParticipentItem({
             href={`mailto:${member.email}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-neutral-400 transition-colors hover:text-neutral-600 p-1 rounded-full hover:bg-neutral-200"
+            className="text-neutral-400 dark:text-zinc-400 transition-colors hover:text-neutral-600 dark:hover:text-zinc-200 p-1 rounded-full hover:bg-neutral-200 dark:hover:bg-zinc-700"
             onClick={(e) => e.stopPropagation()}
           >
             <MailIcon className="size-3.5" />
@@ -209,7 +209,7 @@ function ParticipentItem({
             href={`https://linkedin.com/in/${member.linkedin_username}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-neutral-400 transition-colors hover:text-neutral-600 p-1 rounded-full hover:bg-neutral-200"
+            className="text-neutral-400 dark:text-zinc-400 transition-colors hover:text-neutral-600 dark:hover:text-zinc-200 p-1 rounded-full hover:bg-neutral-200 dark:hover:bg-zinc-700"
             onClick={(e) => e.stopPropagation()}
           >
             <RiLinkedinBoxFill className="size-3.5" />
@@ -278,7 +278,7 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
       onSubmit={handleSubmit}
     >
       <div className="flex flex-col gap-2">
-        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200">
+        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700">
           <span className="text-neutral-500 flex-shrink-0">
             <SearchIcon className="size-4" />
           </span>
@@ -288,12 +288,12 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
             onChange={(e) => setNewParticipantInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t`Add participant`}
-            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400 dark:placeholder:text-zinc-500 dark:text-zinc-300"
           />
           {newParticipantInput.trim() && (
             <button
               type="submit"
-              className="text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0"
+              className="text-neutral-500 dark:text-zinc-500 hover:text-neutral-700 dark:hover:text-zinc-300 transition-colors flex-shrink-0"
               aria-label="Add participant"
             >
               <RiCornerDownLeftLine className="size-4" />
@@ -355,7 +355,7 @@ function ParticipantCandidates(
   }
 
   return (
-    <div className="flex flex-col w-full rounded border border-neutral-200 overflow-hidden">
+    <div className="flex flex-col w-full rounded border border-neutral-200 dark:border-zinc-700 overflow-hidden">
       {participants.data?.map((participant) => (
         <ParticipantCandidate
           key={participant.id}
@@ -368,15 +368,15 @@ function ParticipantCandidates(
       {(!participants.data || participants.data.length === 0) && (
         <button
           type="button"
-          className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
+          className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 dark:hover:bg-zinc-700 transition-colors w-full"
           onClick={handleClick}
         >
-          <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-200 rounded-full">
+          <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-200 dark:bg-zinc-700 rounded-full">
             <span className="text-xs">+</span>
           </span>
-          <span className="flex items-center gap-1 font-medium text-neutral-600">
+          <span className="flex items-center gap-1 font-medium text-neutral-600 dark:text-zinc-400">
             <Trans>Create</Trans>
-            <span className="text-neutral-900 truncate max-w-[140px]">&quot;{query.trim()}&quot;</span>
+            <span className="text-neutral-900 dark:text-zinc-300 truncate max-w-[140px]">&quot;{query.trim()}&quot;</span>
           </span>
         </button>
       )}
@@ -410,18 +410,18 @@ function ParticipantCandidate(
   return (
     <button
       type="button"
-      className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
+      className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 dark:hover:bg-zinc-700 transition-colors w-full"
       key={participant.id}
       onClick={() => handleClick(participant.id)}
     >
-      <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-100 rounded-full">
+      <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-100 dark:bg-zinc-700 rounded-full">
         <span className="text-xs">{participant.full_name ? getInitials(participant.full_name) : "?"}</span>
       </span>
-      <span className="font-medium truncate max-w-[180px]">{participant.full_name}</span>
+      <span className="font-medium truncate max-w-[180px] dark:text-zinc-300">{participant.full_name}</span>
 
       <div className="flex gap-0 items-center justify-between flex-1 min-w-0">
         {organization.data?.name && (
-          <span className="text-xs text-neutral-400 ml-auto truncate max-w-[110px]">
+          <span className="text-xs text-neutral-400 dark:text-zinc-500 ml-auto truncate max-w-[110px]">
             {[participant.job_title, organization.data.name].filter(Boolean).join(", ")}
           </span>
         )}

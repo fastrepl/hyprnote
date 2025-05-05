@@ -13,10 +13,10 @@ export const ParticipantsList = ({
   isMeetingActive,
 }: ParticipantsListProps) => {
   return (
-    <div className="flex-1 flex flex-col overflow-y-auto border border-border rounded-md scrollbar-none">
+    <div className="flex-1 flex flex-col overflow-y-auto border border-border dark:border-zinc-700 rounded-md scrollbar-none">
       {selectedPeople.length > 0
         ? (
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-border dark:divide-zinc-700">
             {selectedPeople.map((person) => (
               <ParticipantItem
                 key={person.id}
@@ -28,7 +28,7 @@ export const ParticipantsList = ({
           </ul>
         )
         : (
-          <div className="flex items-center justify-center h-full text-sm text-neutral-500 p-4">
+          <div className="flex items-center justify-center h-full text-sm text-neutral-500 dark:text-neutral-400 p-4">
             No participants selected
           </div>
         )}
@@ -47,7 +47,7 @@ const ParticipantItem = ({ person, handleRemovePerson, isMeetingActive }: Partic
   const email = person.emails.primaryEmail;
 
   return (
-    <li className="flex items-center justify-between p-2 hover:bg-neutral-50">
+    <li className="flex items-center justify-between p-2 hover:bg-neutral-50 dark:hover:bg-zinc-800">
       <div className="flex items-center gap-2">
         <div className="flex-shrink-0 size-10 flex items-center justify-center rounded-full overflow-hidden">
           {person.avatarUrl
@@ -65,13 +65,13 @@ const ParticipantItem = ({ person, handleRemovePerson, isMeetingActive }: Partic
             )}
         </div>
         <div>
-          <p className="text-sm font-medium">{fullName}</p>
-          <p className="text-xs text-neutral-500">{email}</p>
+          <p className="text-sm font-medium dark:text-neutral-200">{fullName}</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">{email}</p>
         </div>
       </div>
       <button
         onClick={() => handleRemovePerson(person.id)}
-        className="text-neutral-500 hover:text-neutral-700 p-1"
+        className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300 p-1"
         disabled={isMeetingActive}
       >
         <XIcon size={16} />

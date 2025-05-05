@@ -166,47 +166,47 @@ msgid "{years} years ago"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:211
+#: ../../packages/utils/src/datetime.ts:210
 msgid "in progress"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:221
+#: ../../packages/utils/src/datetime.ts:226
 msgid "in {seconds} seconds"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:223
+#: ../../packages/utils/src/datetime.ts:228
 msgid "in 1 minute"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:225
+#: ../../packages/utils/src/datetime.ts:230
 msgid "in {minutes} minutes"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:227
+#: ../../packages/utils/src/datetime.ts:232
 msgid "in 1 hour"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:229
+#: ../../packages/utils/src/datetime.ts:234
 msgid "in {hours} hours"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:231
+#: ../../packages/utils/src/datetime.ts:237
 msgid "1 day later"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:233
+#: ../../packages/utils/src/datetime.ts:239
 msgid "{days} days later"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:235
+#: ../../packages/utils/src/datetime.ts:242
 msgid "{weeks} weeks later"
 msgstr ""
 
@@ -228,7 +228,7 @@ msgstr ""
 msgid "{description}"
 msgstr ""
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:42
+#: src/components/settings/components/calendar/calendar-selector.tsx:74
 msgid "{selectedCount} calendars selected"
 msgstr ""
 
@@ -279,7 +279,7 @@ msgid "Admin"
 msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:24
-#: src/components/settings/components/main-sidebar.tsx:37
+#: src/components/settings/components/main-sidebar.tsx:39
 msgid "AI"
 msgstr ""
 
@@ -329,7 +329,7 @@ msgstr ""
 msgid "Assistant:"
 msgstr ""
 
-#: src/routes/app.settings.tsx:102
+#: src/routes/app.settings.tsx:111
 msgid "Back to Settings"
 msgstr ""
 
@@ -346,6 +346,7 @@ msgid "Built-in Templates"
 msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:26
+#: src/components/settings/components/main-sidebar.tsx:31
 msgid "Calendar"
 msgstr ""
 
@@ -505,7 +506,7 @@ msgid "Enter the URL for your custom LLM endpoint"
 msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:32
-#: src/components/settings/components/main-sidebar.tsx:35
+#: src/components/settings/components/main-sidebar.tsx:37
 msgid "Extensions"
 msgstr ""
 
@@ -513,7 +514,7 @@ msgstr ""
 msgid "Extract action items"
 msgstr ""
 
-#: src/components/settings/components/main-sidebar.tsx:41
+#: src/components/settings/components/main-sidebar.tsx:43
 msgid "Feedback"
 msgstr ""
 
@@ -603,7 +604,7 @@ msgstr ""
 msgid "Key decisions"
 msgstr ""
 
-#: src/components/settings/components/main-sidebar.tsx:39
+#: src/components/settings/components/main-sidebar.tsx:41
 msgid "Lab"
 msgstr ""
 
@@ -632,7 +633,7 @@ msgid "Loading extension details..."
 msgstr ""
 
 #: src/components/workspace-calendar/event-card.tsx:163
-#: src/components/settings/components/calendar/calendar-selector.tsx:51
+#: src/components/settings/components/calendar/calendar-selector.tsx:83
 msgid "Loading..."
 msgstr ""
 
@@ -690,11 +691,11 @@ msgid "New note"
 msgstr ""
 
 #: src/components/left-sidebar/notes-list.tsx:300
-#: src/components/left-sidebar/events-list.tsx:135
+#: src/components/left-sidebar/events-list.tsx:181
 msgid "New window"
 msgstr ""
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:57
+#: src/components/settings/components/calendar/calendar-selector.tsx:89
 msgid "No calendars found"
 msgstr ""
 
@@ -718,6 +719,10 @@ msgstr ""
 msgid "No speech-to-text models available"
 msgstr ""
 
+#: src/components/left-sidebar/events-list.tsx:95
+msgid "No upcoming events"
+msgstr ""
+
 #: src/components/organization-profile/upcoming-events.tsx:86
 msgid "No upcoming events for this organization"
 msgstr ""
@@ -727,7 +732,7 @@ msgid "No upcoming events with this contact"
 msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:28
-#: src/components/settings/components/main-sidebar.tsx:31
+#: src/components/settings/components/main-sidebar.tsx:33
 msgid "Notifications"
 msgstr ""
 
@@ -842,7 +847,7 @@ msgstr ""
 msgid "Sections"
 msgstr ""
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:39
+#: src/components/settings/components/calendar/calendar-selector.tsx:58
 msgid "Select Calendars"
 msgstr ""
 
@@ -866,7 +871,7 @@ msgstr ""
 msgid "Single sign-on for all users"
 msgstr ""
 
-#: src/components/settings/components/main-sidebar.tsx:33
+#: src/components/settings/components/main-sidebar.tsx:35
 msgid "Sound"
 msgstr ""
 
@@ -975,7 +980,7 @@ msgstr ""
 msgid "Untitled Template"
 msgstr ""
 
-#: src/components/left-sidebar/events-list.tsx:39
+#: src/components/left-sidebar/events-list.tsx:62
 msgid "Upcoming"
 msgstr ""
 
@@ -1003,7 +1008,7 @@ msgstr ""
 msgid "View calendar"
 msgstr ""
 
-#: src/components/left-sidebar/events-list.tsx:147
+#: src/components/left-sidebar/events-list.tsx:193
 #: src/components/editor-area/note-header/chips/event-chip.tsx:50
 msgid "View in calendar"
 msgstr ""

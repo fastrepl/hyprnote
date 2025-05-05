@@ -87,12 +87,19 @@ pub async fn sync_events(
         items
     };
 
+    let now = Utc::now();
+    let future_date = now + chrono::Duration::days(28);
+
     for db_calendar in db_selected_calendars {
-        let fresh_events = list_events(Calendar {
-            id: db_calendar.tracking_id,
-            name: db_calendar.name,
-            platform: db_calendar.platform.into(),
-        })
+        let fresh_events = list_events(
+            Calendar {
+                id: db_calendar.tracking_id,
+                name: db_calendar.name,
+                platform: db_calendar.platform.into(),
+            },
+            now,
+            future_date,
+        )
         .await
         .map_err(|e| {
             tracing::error!("list_events_error: {}", e);
@@ -107,8 +114,8 @@ pub async fn sync_events(
                     limit: None,
                 },
                 specific: ListEventFilterSpecific::DateRange {
-                    start: Utc::now(),
-                    end: Utc::now() + chrono::Duration::days(28),
+                    start: now,
+                    end: future_date,
                 },
             }))
             .await
@@ -152,13 +159,15 @@ pub async fn sync_events(
     Ok(())
 }
 
-pub async fn list_events(calendar: Calendar) -> Result<Vec<Event>, String> {
-    let now = Utc::now();
-
+pub async fn list_events(
+    calendar: Calendar,
+    from: chrono::DateTime<Utc>,
+    to: chrono::DateTime<Utc>,
+) -> Result<Vec<Event>, String> {
     let filter = EventFilter {
         calendars: vec![calendar],
-        from: now,
-        to: (now + chrono::Duration::days(28)),
+        from,
+        to,
     };
 
     let events = tauri::async_runtime::spawn_blocking(move || {

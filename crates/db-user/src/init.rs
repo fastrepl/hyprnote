@@ -265,7 +265,20 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             user_id: user.id.clone(),
             tracking_id: uuid::Uuid::new_v4().to_string(),
             name: "Daily Standup".to_string(),
-            note: "Discuss blockers and progress.".to_string(),
+            note: indoc::indoc! {r#"
+                What:
+                30 Min Meeting between Alice Smith and Bob Johnson
+                Invitee Time Zone:
+                Asia/Seoul
+                Who:
+                Alice Smith - Organizer
+                alice.smith@example.com
+                Bob Johnson
+                bob.johnson@example.com
+                Where:
+                https://app.cal.com/video/d713v9w1d2krBptPtwUAnJ
+                Need to reschedule or cancel? https://cal.com/booking/d713v9w1d2krBptPtwUAnJ?changes=true
+            "#}.to_string(),
             calendar_id: Some(calendars[0].id.clone()),
             start_date: now + chrono::Duration::minutes(15),
             end_date: now + chrono::Duration::minutes(30),

@@ -8,6 +8,8 @@ const COMMANDS: &[&str] = &[
     "check_notification_permission",
     "start_detect_notification",
     "stop_detect_notification",
+    "start_event_notification",
+    "stop_event_notification",
 ];
 
 fn main() {

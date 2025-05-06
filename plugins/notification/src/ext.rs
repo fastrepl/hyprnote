@@ -13,6 +13,9 @@ pub trait NotificationPluginExt<R: tauri::Runtime> {
     fn get_detect_notification(&self) -> Result<bool, Error>;
     fn set_detect_notification(&self, enabled: bool) -> Result<(), Error>;
 
+    fn start_event_notification(&self) -> impl Future<Output = Result<(), Error>>;
+    fn stop_event_notification(&self) -> Result<(), Error>;
+
     fn start_detect_notification(&self) -> Result<(), Error>;
     fn stop_detect_notification(&self) -> Result<(), Error>;
 
@@ -60,6 +63,36 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         store
             .set(crate::StoreKey::DetectNotification, enabled)
             .map_err(Error::Store)
+    }
+
+    #[tracing::instrument(skip(self))]
+    async fn start_event_notification(&self) -> Result<(), Error> {
+        let db_state = self.state::<tauri_plugin_db::ManagedState>();
+        let (db, user_id) = {
+            let guard = db_state.lock().await;
+            (guard.db.clone().unwrap(), guard.user_id.clone().unwrap())
+        };
+
+        let state = self.state::<crate::SharedState>();
+        let mut s = state.lock().unwrap();
+
+        s.worker_handle = Some(tokio::runtime::Handle::current().spawn(async move {
+            let _ = crate::worker::monitor(crate::worker::WorkerState { db, user_id }).await;
+        }));
+
+        Ok(())
+    }
+
+    #[tracing::instrument(skip(self))]
+    fn stop_event_notification(&self) -> Result<(), Error> {
+        let state = self.state::<crate::SharedState>();
+        let mut guard = state.lock().unwrap();
+
+        if let Some(handle) = guard.worker_handle.take() {
+            handle.abort();
+        }
+
+        Ok(())
     }
 
     #[tracing::instrument(skip(self))]

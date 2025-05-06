@@ -13,6 +13,8 @@ Default permissions for the plugin
 - `allow-check-notification-permission`
 - `allow-start-detect-notification`
 - `allow-stop-detect-notification`
+- `allow-start-event-notification`
+- `allow-stop-event-notification`
 
 ## Permission Table
 
@@ -234,6 +236,32 @@ Denies the start_detect_notification command without any pre-configured scope.
 <tr>
 <td>
 
+`notification:allow-start-event-notification`
+
+</td>
+<td>
+
+Enables the start_event_notification command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:deny-start-event-notification`
+
+</td>
+<td>
+
+Denies the start_event_notification command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `notification:allow-stop-detect-notification`
 
 </td>
@@ -253,6 +281,32 @@ Enables the stop_detect_notification command without any pre-configured scope.
 <td>
 
 Denies the stop_detect_notification command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:allow-stop-event-notification`
+
+</td>
+<td>
+
+Enables the stop_event_notification command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:deny-stop-event-notification`
+
+</td>
+<td>
+
+Denies the stop_event_notification command without any pre-configured scope.
 
 </td>
 </tr>

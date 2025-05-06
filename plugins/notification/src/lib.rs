@@ -5,6 +5,7 @@ mod commands;
 mod error;
 mod ext;
 mod store;
+mod worker;
 
 pub use error::*;
 pub use ext::*;
@@ -16,6 +17,7 @@ pub type SharedState = Mutex<State>;
 
 #[derive(Default)]
 pub struct State {
+    worker_handle: Option<tokio::task::JoinHandle<()>>,
     detector: hypr_detect::Detector,
 }
 
@@ -32,6 +34,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::check_notification_permission::<tauri::Wry>,
             commands::start_detect_notification::<tauri::Wry>,
             commands::stop_detect_notification::<tauri::Wry>,
+            commands::start_event_notification::<tauri::Wry>,
+            commands::stop_event_notification::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
@@ -45,11 +49,17 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             let state = SharedState::default();
             app.manage(state);
 
-            {
-                if let Ok(enabled) = app.get_detect_notification() {
-                    if enabled {
-                        app.start_detect_notification().unwrap();
-                    }
+            if app.get_detect_notification().unwrap_or(false) {
+                if let Err(e) = app.start_detect_notification() {
+                    tracing::error!("start_detect_notification_failed: {:?}", e);
+                }
+            }
+
+            if app.get_event_notification().unwrap_or(false) {
+                if let Err(e) =
+                    tokio::runtime::Handle::current().block_on(app.start_event_notification())
+                {
+                    tracing::error!("start_event_notification_failed: {:?}", e);
                 }
             }
 
@@ -78,6 +88,7 @@ mod test {
     fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
         builder
             .plugin(init())
+            .plugin(tauri_plugin_store::Builder::default().build())
             .build(tauri::test::mock_context(tauri::test::noop_assets()))
             .unwrap()
     }

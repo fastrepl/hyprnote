@@ -33,6 +33,12 @@ async startDetectNotification() : Promise<null> {
 },
 async stopDetectNotification() : Promise<null> {
     return await TAURI_INVOKE("plugin:notification|stop_detect_notification");
+},
+async startEventNotification() : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|start_event_notification");
+},
+async stopEventNotification() : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|stop_event_notification");
 }
 }
 

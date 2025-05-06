@@ -9,5 +9,7 @@ permissions = [
   "allow-request-notification-permission",
   "allow-check-notification-permission",
   "allow-start-detect-notification",
-  "allow-stop-detect-notification"
+  "allow-stop-detect-notification",
+  "allow-start-event-notification",
+  "allow-stop-event-notification"
 ]

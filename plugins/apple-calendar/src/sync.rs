@@ -1,7 +1,5 @@
 use chrono::Utc;
-
 use hypr_calendar_interface::{Calendar, CalendarSource, Event, EventFilter};
-use hypr_db_user::{ListEventFilter, ListEventFilterCommon, ListEventFilterSpecific};
 
 pub async fn sync_calendars(
     db: hypr_db_user::UserDatabase,

@@ -16,8 +16,8 @@ specta-typescript = { workspace = true }
 [dependencies]
 tauri-plugin-db = { workspace = true }
 
-hypr-calendar-apple = { workspace = true, package = "calendar-apple" }
-hypr-calendar-interface = { workspace = true, package = "calendar-interface" }
+hypr-calendar-apple = { workspace = true }
+hypr-calendar-interface = { workspace = true }
 hypr-db-user = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }

@@ -4,15 +4,14 @@ use serde::{ser::Serializer, Serialize};
 pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
-
-    #[error("Channel closed unexpectedly")]
-    ChannelClosed,
-
-    #[error("Timeout waiting for notification permission response")]
-    PermissionTimeout,
-
     #[error(transparent)]
     Store(#[from] tauri_plugin_store2::Error),
+    #[error(transparent)]
+    Db(#[from] hypr_db_user::Error),
+    #[error("Channel closed unexpectedly")]
+    ChannelClosed,
+    #[error("Timeout waiting for notification permission response")]
+    PermissionTimeout,
 }
 
 impl Serialize for Error {
@@ -21,5 +20,14 @@ impl Serialize for Error {
         S: Serializer,
     {
         serializer.serialize_str(self.to_string().as_ref())
+    }
+}
+
+impl Error {
+    pub fn as_worker_error(&self) -> apalis::prelude::Error {
+        apalis::prelude::Error::Failed(std::sync::Arc::new(Box::new(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            self.to_string(),
+        ))))
     }
 }

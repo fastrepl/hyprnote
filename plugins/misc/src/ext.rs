@@ -21,19 +21,11 @@ impl<R: Runtime, T: Manager<R>> MiscPluginExt<R> for T {
     }
 
     fn parse_meeting_link(&self, text: impl AsRef<str>) -> Option<String> {
-        let patterns = [
-            r"https://meet\.google\.com/[a-z0-9-]+",
-            r"https://[a-z0-9.-]+\.zoom\.us/j/\d+(\?pwd=[a-zA-Z0-9.]+)?",
-            r"https://app\.cal\.com/video/[a-zA-Z0-9]+",
-        ];
-
         let text = text.as_ref();
 
-        for pattern in patterns {
-            if let Ok(regex) = regex::Regex::new(pattern) {
-                if let Some(capture) = regex.find(text) {
-                    return Some(capture.as_str().to_string());
-                }
+        for regex in hypr_detect::MEETING_REGEXES.iter() {
+            if let Some(capture) = regex.find(text) {
+                return Some(capture.as_str().to_string());
             }
         }
 

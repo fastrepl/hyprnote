@@ -13222,6 +13222,7 @@ name = "tauri-plugin-misc"
 version = "0.1.0"
 dependencies = [
  "buffer",
+ "detect",
  "host",
  "indoc",
  "regex",

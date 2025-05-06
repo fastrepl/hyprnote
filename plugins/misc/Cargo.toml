@@ -17,6 +17,7 @@ specta-typescript = { workspace = true }
 
 [dependencies]
 hypr-buffer = { workspace = true }
+hypr-detect = { workspace = true }
 hypr-host = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }

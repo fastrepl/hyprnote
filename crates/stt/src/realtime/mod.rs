@@ -7,7 +7,7 @@ mod deepgram;
 mod whisper;
 
 use crate::deepgram::DeepgramClient;
-use hypr_listener_interface::{ListenOutputChunk, TranscriptChunk};
+use hypr_listener_interface::ListenOutputChunk;
 
 #[allow(dead_code)]
 pub trait RealtimeSpeechToText<S, E> {
@@ -209,7 +209,7 @@ mod tests {
             println!("{:?}", data);
 
             for t in data.transcripts {
-                acc.push(data);
+                acc.push(t);
             }
         }
 
@@ -238,7 +238,7 @@ mod tests {
             println!("{:?}", data);
 
             for t in data.transcripts {
-                acc.push(data);
+                acc.push(t);
             }
         }
 

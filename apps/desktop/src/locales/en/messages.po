@@ -215,6 +215,14 @@ msgstr "{weeks} weeks later"
 #~ msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 #~ msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 
+#: src/components/settings/views/notifications.tsx:105
+msgid "(Beta) Detect meetings automatically"
+msgstr "(Beta) Detect meetings automatically"
+
+#: src/components/settings/views/notifications.tsx:132
+msgid "(Beta) Upcoming meeting notifications"
+msgstr "(Beta) Upcoming meeting notifications"
+
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
@@ -458,8 +466,8 @@ msgid "Description"
 msgstr "Description"
 
 #: src/components/settings/views/notifications.tsx:74
-msgid "Detect meetings automatically"
-msgstr "Detect meetings automatically"
+#~ msgid "Detect meetings automatically"
+#~ msgstr "Detect meetings automatically"
 
 #: src/components/settings/views/ai.tsx:215
 msgid "Download"
@@ -863,9 +871,17 @@ msgstr "Settings"
 msgid "Share usage data"
 msgstr "Share usage data"
 
+#: src/components/settings/views/notifications.tsx:135
+msgid "Show notifications when you have meetings starting soon in your calendar."
+msgstr "Show notifications when you have meetings starting soon in your calendar."
+
+#: src/components/settings/views/notifications.tsx:108
+msgid "Show notifications when you join a meeting."
+msgstr "Show notifications when you join a meeting."
+
 #: src/components/settings/views/notifications.tsx:77
-msgid "Show notifications when you join a meeting. This is not perfect."
-msgstr "Show notifications when you join a meeting. This is not perfect."
+#~ msgid "Show notifications when you join a meeting. This is not perfect."
+#~ msgstr "Show notifications when you join a meeting. This is not perfect."
 
 #: src/components/settings/views/billing.tsx:53
 msgid "Single sign-on for all users"
@@ -1009,7 +1025,7 @@ msgid "View calendar"
 msgstr "View calendar"
 
 #: src/components/left-sidebar/events-list.tsx:193
-#: src/components/editor-area/note-header/chips/event-chip.tsx:50
+#: src/components/editor-area/note-header/chips/event-chip.tsx:62
 msgid "View in calendar"
 msgstr "View in calendar"
 

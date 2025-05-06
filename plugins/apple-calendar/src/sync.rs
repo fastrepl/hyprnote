@@ -107,29 +107,8 @@ pub async fn sync_events(
         })
         .unwrap_or_default();
 
-        let existing_events = db
-            .list_events(Some(ListEventFilter {
-                common: ListEventFilterCommon {
-                    user_id: user_id.clone(),
-                    limit: None,
-                },
-                specific: ListEventFilterSpecific::DateRange {
-                    start: now,
-                    end: future_date,
-                },
-            }))
-            .await
-            .unwrap_or(vec![]);
-
-        let events_to_delete = existing_events
-            .iter()
-            .filter(|e| !fresh_events.iter().any(|fe| fe.id == e.tracking_id))
-            .cloned()
-            .collect::<Vec<hypr_db_user::Event>>();
-
         let events_to_upsert = fresh_events
             .iter()
-            .filter(|e| !existing_events.iter().any(|ee| ee.tracking_id == e.id))
             .map(|e| hypr_db_user::Event {
                 id: uuid::Uuid::new_v4().to_string(),
                 tracking_id: e.id.clone(),
@@ -142,12 +121,6 @@ pub async fn sync_events(
                 google_event_url: None,
             })
             .collect::<Vec<hypr_db_user::Event>>();
-
-        for e in events_to_delete {
-            if let Err(e) = db.delete_event(&e.id).await {
-                tracing::error!("delete_event_error: {}", e);
-            }
-        }
 
         for e in events_to_upsert {
             if let Err(e) = db.upsert_event(e).await {

@@ -227,8 +227,8 @@ msgstr "(Beta) Upcoming meeting notifications"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
-#: src/components/editor-area/note-header/listen-button.tsx:275
-#: src/components/editor-area/note-header/listen-button.tsx:314
+#: src/components/editor-area/note-header/listen-button.tsx:303
+#: src/components/editor-area/note-header/listen-button.tsx:342
 msgid "{0}"
 msgstr "{0}"
 
@@ -439,13 +439,21 @@ msgstr "Create Note"
 msgid "Current Plan"
 msgstr "Current Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:221
+#: src/components/settings/views/ai.tsx:432
+#~ msgid "Custom Endpoint"
+#~ msgstr "Custom Endpoint"
+
+#: src/components/editor-area/note-header/listen-button.tsx:249
 msgid "Custom instruction"
 msgstr "Custom instruction"
 
 #: src/components/settings/views/ai.tsx:264
 msgid "Custom LLM Endpoint"
 msgstr "Custom LLM Endpoint"
+
+#: src/components/settings/views/ai.tsx:407
+#~ msgid "Default (llama-3.2-3b-q4)"
+#~ msgstr "Default (llama-3.2-3b-q4)"
 
 #: src/components/settings/views/template.tsx:86
 #: src/components/settings/views/team.tsx:165
@@ -776,7 +784,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:398
+#: src/components/editor-area/note-header/listen-button.tsx:426
 msgid "Pause"
 msgstr "Pause"
 
@@ -784,7 +792,7 @@ msgstr "Pause"
 msgid "people"
 msgstr "people"
 
-#: src/components/editor-area/note-header/listen-button.tsx:294
+#: src/components/editor-area/note-header/listen-button.tsx:322
 msgid "Play video"
 msgstr "Play video"
 
@@ -796,7 +804,7 @@ msgstr "Pro"
 msgid "Profile"
 msgstr "Profile"
 
-#: src/components/editor-area/note-header/listen-button.tsx:230
+#: src/components/editor-area/note-header/listen-button.tsx:258
 msgid "Provide descriptions about the meeting. Company specific terms, acronyms, jargons... any thing!"
 msgstr "Provide descriptions about the meeting. Company specific terms, acronyms, jargons... any thing!"
 
@@ -825,7 +833,7 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/editor-area/note-header/listen-button.tsx:103
+#: src/components/editor-area/note-header/listen-button.tsx:131
 msgid "Resume"
 msgstr "Resume"
 
@@ -899,7 +907,7 @@ msgstr "Speech-to-Text Model"
 msgid "Start Annual Plan"
 msgstr "Start Annual Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:249
+#: src/components/editor-area/note-header/listen-button.tsx:277
 msgid "Start Meeting"
 msgstr "Start Meeting"
 
@@ -911,7 +919,7 @@ msgstr "Start Monthly Plan"
 #~ msgid "Start recording"
 #~ msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:406
+#: src/components/editor-area/note-header/listen-button.tsx:434
 msgid "Stop"
 msgstr "Stop"
 

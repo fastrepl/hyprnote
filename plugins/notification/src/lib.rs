@@ -25,6 +25,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::send_notification::<tauri::Wry>,
             commands::get_event_notification::<tauri::Wry>,
             commands::set_event_notification::<tauri::Wry>,
             commands::get_detect_notification::<tauri::Wry>,
@@ -87,6 +88,7 @@ mod test {
 
     fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
         builder
+            .plugin(tauri_plugin_store::Builder::default().build())
             .plugin(init())
             .plugin(tauri_plugin_store::Builder::default().build())
             .build(tauri::test::mock_context(tauri::test::noop_assets()))

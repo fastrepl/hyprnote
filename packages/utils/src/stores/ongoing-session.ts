@@ -23,7 +23,7 @@ type Actions = {
   cancelEnhance: () => void;
   setEnhanceController: (controller: AbortController | null) => void;
   setStatus: (status: ListenerState) => void;
-  start: (sessionId: string) => void;
+  start: (sessionId: string) => Promise<void>;
   stop: () => void;
   pause: () => void;
   resume: () => void;
@@ -90,12 +90,14 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
         );
       };
 
-      listenerCommands.startSession(sessionId).then(() => {
+      // Note: Return the promise so errors can be caught by callers
+      return listenerCommands.startSession(sessionId).then(() => {
         set({ channel, status: "running_active", loading: false });
         listenerCommands.subscribe(channel);
       }).catch((error) => {
         console.error(error);
         set(initialState);
+        throw new Error(error?.message ?? "Failed to start recording session");
       });
     },
     stop: () => {

@@ -1,4 +1,21 @@
-pub use wezterm::ToastNotification as Notification;
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct Notification {
+    pub title: String,
+    pub message: String,
+    pub url: Option<String>,
+    pub timeout: Option<std::time::Duration>,
+}
+
+impl From<Notification> for wezterm::ToastNotification {
+    fn from(notif: Notification) -> Self {
+        wezterm::ToastNotification {
+            title: notif.title,
+            message: notif.message,
+            url: notif.url,
+            timeout: notif.timeout,
+        }
+    }
+}
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -8,7 +25,7 @@ pub fn show(notif: Notification) {
         return;
     }
 
-    wezterm::show(notif);
+    wezterm::show(notif.into());
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]

@@ -7,6 +7,9 @@
 
 
 export const commands = {
+async sendNotification(notif: Notification) : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|send_notification", { notif });
+},
 async getEventNotification() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:notification|get_event_notification");
 },
@@ -52,6 +55,8 @@ async stopEventNotification() : Promise<null> {
 
 /** user-defined types **/
 
+export type Duration = { secs: number; nanos: number }
+export type Notification = { title: string; message: string; url: string | null; timeout: Duration | null }
 export type NotificationPermission = "Granted" | "NotGrantedAndShouldRequest" | "NotGrantedAndShouldAskManual"
 
 /** tauri-specta globals **/

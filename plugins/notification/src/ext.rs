@@ -7,6 +7,8 @@ use tauri_plugin_store2::StorePluginExt;
 pub trait NotificationPluginExt<R: tauri::Runtime> {
     fn notification_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
 
+    fn send_notification(&self, notif: hypr_notification2::Notification) -> Result<(), Error>;
+
     fn get_event_notification(&self) -> Result<bool, Error>;
     fn set_event_notification(&self, enabled: bool) -> Result<(), Error>;
 
@@ -29,6 +31,11 @@ pub trait NotificationPluginExt<R: tauri::Runtime> {
 impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
     fn notification_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey> {
         self.scoped_store(crate::PLUGIN_NAME).unwrap()
+    }
+
+    fn send_notification(&self, notif: hypr_notification2::Notification) -> Result<(), Error> {
+        hypr_notification2::show(notif);
+        Ok(())
     }
 
     #[tracing::instrument(skip(self))]

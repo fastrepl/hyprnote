@@ -52,8 +52,11 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
-            let state = ManagedState::default();
-            app.manage(state);
+
+            {
+                let state = ManagedState::default();
+                app.manage(state);
+            }
             Ok(())
         })
         .build()

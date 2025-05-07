@@ -30,6 +30,7 @@ hypr-db-core = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-turso = { workspace = true }
 
+tauri-nspanel = { workspace = true }
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-auth = { workspace = true }
 tauri-plugin-connector = { workspace = true }

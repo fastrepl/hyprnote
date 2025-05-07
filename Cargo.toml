@@ -55,6 +55,7 @@ hypr-listener-interface = { path = "plugins/listener-interface", package = "list
 
 tauri = "2"
 tauri-build = "2"
+tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", rev = "d4b9df7" }
 tauri-plugin = "2"
 tauri-plugin-decorum = "1.1.1"
 tauri-plugin-deep-link = "2"

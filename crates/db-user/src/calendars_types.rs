@@ -7,7 +7,8 @@ user_common_derives! {
         pub user_id: String,
         pub platform: Platform,
         pub name: String,
-        pub selected: bool
+        pub selected: bool,
+        pub source: Option<String>,
     }
 }
 
@@ -18,6 +19,8 @@ user_common_derives! {
         Apple,
         #[strum(serialize = "Google")]
         Google,
+        #[strum(serialize = "Outlook")]
+        Outlook,
     }
 }
 
@@ -26,6 +29,7 @@ impl From<hypr_calendar_interface::Platform> for Platform {
         match platform {
             hypr_calendar_interface::Platform::Apple => Platform::Apple,
             hypr_calendar_interface::Platform::Google => Platform::Google,
+            hypr_calendar_interface::Platform::Outlook => Platform::Outlook,
         }
     }
 }
@@ -35,6 +39,7 @@ impl From<Platform> for hypr_calendar_interface::Platform {
         match platform {
             Platform::Apple => hypr_calendar_interface::Platform::Apple,
             Platform::Google => hypr_calendar_interface::Platform::Google,
+            Platform::Outlook => hypr_calendar_interface::Platform::Outlook,
         }
     }
 }

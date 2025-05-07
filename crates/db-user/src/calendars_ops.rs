@@ -67,17 +67,20 @@ impl UserDatabase {
                     user_id,
                     name,
                     platform,
-                    selected
+                    selected,
+                    source
                 ) VALUES (
                     :id,
                     :tracking_id,
                     :user_id,
                     :name,
                     :platform,
-                    :selected
+                    :selected,
+                    :source
                 ) ON CONFLICT(tracking_id) DO UPDATE SET
                     name = :name,
-                    platform = :platform
+                    platform = :platform,
+                    source = :source
                 RETURNING *",
                 libsql::named_params! {
                     ":id": calendar.id,
@@ -86,6 +89,7 @@ impl UserDatabase {
                     ":name": calendar.name,
                     ":platform": calendar.platform.to_string(),
                     ":selected": calendar.selected,
+                    ":source": calendar.source,
                 },
             )
             .await?;
@@ -146,6 +150,7 @@ mod tests {
             name: "test".to_string(),
             platform: Platform::Google,
             selected: false,
+            source: None,
         };
 
         let output_1 = db.upsert_calendar(input_1.clone()).await.unwrap();

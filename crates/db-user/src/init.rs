@@ -56,6 +56,7 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         name: "Default".to_string(),
         platform: Platform::Apple,
         selected: false,
+        source: None,
     };
 
     let onboarding_event = Event {
@@ -255,6 +256,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
         name: "Work".to_string(),
         platform: Platform::Apple,
         selected: true,
+        source: None,
     }];
 
     let events = vec![

@@ -159,6 +159,7 @@ mod tests {
             name: "test".to_string(),
             platform: Platform::Google,
             selected: false,
+            source: None,
         };
 
         let calendar = db.upsert_calendar(calendar.clone()).await.unwrap();

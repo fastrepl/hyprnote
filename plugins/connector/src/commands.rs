@@ -65,6 +65,16 @@ pub async fn set_custom_llm_connection<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn get_local_llm_connection<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<ConnectionLLM, String> {
+    app.get_local_llm_connection()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn get_llm_connection<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<ConnectionLLM, String> {

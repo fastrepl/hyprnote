@@ -343,6 +343,18 @@
           "markdownDescription": "Denies the get_llm_connection command without any pre-configured scope."
         },
         {
+          "description": "Enables the get_local_llm_connection command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-local-llm-connection",
+          "markdownDescription": "Enables the get_local_llm_connection command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_local_llm_connection command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-local-llm-connection",
+          "markdownDescription": "Denies the get_local_llm_connection command without any pre-configured scope."
+        },
+        {
           "description": "Enables the get_stt_connection command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-stt-connection",
@@ -403,10 +415,10 @@
           "markdownDescription": "Denies the set_custom_llm_model command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-custom-llm-models`\n- `allow-get-custom-llm-model`\n- `allow-set-custom-llm-model`\n- `allow-get-custom-llm-enabled`\n- `allow-set-custom-llm-enabled`\n- `allow-get-custom-llm-connection`\n- `allow-set-custom-llm-connection`\n- `allow-get-llm-connection`\n- `allow-get-stt-connection`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-custom-llm-models`\n- `allow-get-custom-llm-model`\n- `allow-set-custom-llm-model`\n- `allow-get-custom-llm-enabled`\n- `allow-set-custom-llm-enabled`\n- `allow-get-custom-llm-connection`\n- `allow-set-custom-llm-connection`\n- `allow-get-local-llm-connection`\n- `allow-get-llm-connection`\n- `allow-get-stt-connection`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-custom-llm-models`\n- `allow-get-custom-llm-model`\n- `allow-set-custom-llm-model`\n- `allow-get-custom-llm-enabled`\n- `allow-set-custom-llm-enabled`\n- `allow-get-custom-llm-connection`\n- `allow-set-custom-llm-connection`\n- `allow-get-llm-connection`\n- `allow-get-stt-connection`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-custom-llm-models`\n- `allow-get-custom-llm-model`\n- `allow-set-custom-llm-model`\n- `allow-get-custom-llm-enabled`\n- `allow-set-custom-llm-enabled`\n- `allow-get-custom-llm-connection`\n- `allow-set-custom-llm-connection`\n- `allow-get-local-llm-connection`\n- `allow-get-llm-connection`\n- `allow-get-stt-connection`"
         }
       ]
     }

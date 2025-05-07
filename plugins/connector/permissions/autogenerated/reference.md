@@ -11,6 +11,7 @@ Default permissions for the plugin
 - `allow-set-custom-llm-enabled`
 - `allow-get-custom-llm-connection`
 - `allow-set-custom-llm-connection`
+- `allow-get-local-llm-connection`
 - `allow-get-llm-connection`
 - `allow-get-stt-connection`
 
@@ -123,6 +124,32 @@ Enables the get_llm_connection command without any pre-configured scope.
 <td>
 
 Denies the get_llm_connection command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-get-local-llm-connection`
+
+</td>
+<td>
+
+Enables the get_local_llm_connection command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-get-local-llm-connection`
+
+</td>
+<td>
+
+Denies the get_local_llm_connection command without any pre-configured scope.
 
 </td>
 </tr>

@@ -14,6 +14,9 @@ pub trait ConnectorPluginExt<R: tauri::Runtime> {
     fn set_custom_llm_enabled(&self, enabled: bool) -> Result<(), crate::Error>;
     fn get_custom_llm_enabled(&self) -> Result<bool, crate::Error>;
 
+    fn get_local_llm_connection(&self)
+        -> impl Future<Output = Result<ConnectionLLM, crate::Error>>;
+
     fn get_custom_llm_connection(&self) -> Result<Option<Connection>, crate::Error>;
     fn set_custom_llm_connection(&self, connection: Connection) -> Result<(), crate::Error>;
 
@@ -83,6 +86,23 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
         }
     }
 
+    async fn get_local_llm_connection(&self) -> Result<ConnectionLLM, crate::Error> {
+        use tauri_plugin_local_llm::{LocalLlmPluginExt, SharedState};
+
+        let api_base = if self.is_server_running().await {
+            let state = self.state::<SharedState>();
+            let guard = state.lock().await;
+            guard.api_base.clone().unwrap()
+        } else {
+            self.start_server().await?
+        };
+
+        Ok(ConnectionLLM::HyprLocal(Connection {
+            api_base,
+            api_key: None,
+        }))
+    }
+
     async fn get_llm_connection(&self) -> Result<ConnectionLLM, crate::Error> {
         {
             use tauri_plugin_flags::{FlagsPluginExt, StoreKey as FlagsStoreKey};
@@ -142,20 +162,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
                 _ => Err(crate::Error::NoModelsFound),
             }
         } else {
-            use tauri_plugin_local_llm::{LocalLlmPluginExt, SharedState};
-
-            let api_base = if self.is_server_running().await {
-                let state = self.state::<SharedState>();
-                let guard = state.lock().await;
-                guard.api_base.clone().unwrap()
-            } else {
-                self.start_server().await?
-            };
-
-            Ok(ConnectionLLM::HyprLocal(Connection {
-                api_base,
-                api_key: None,
-            }))
+            self.get_local_llm_connection().await
         }
     }
 

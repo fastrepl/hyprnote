@@ -22,6 +22,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_custom_llm_enabled::<tauri::Wry>,
             commands::get_custom_llm_connection::<tauri::Wry>,
             commands::set_custom_llm_connection::<tauri::Wry>,
+            commands::get_local_llm_connection::<tauri::Wry>,
             commands::get_llm_connection::<tauri::Wry>,
             commands::get_stt_connection::<tauri::Wry>,
         ])

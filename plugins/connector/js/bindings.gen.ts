@@ -28,6 +28,9 @@ async getCustomLlmConnection() : Promise<Connection | null> {
 async setCustomLlmConnection(connection: Connection) : Promise<null> {
     return await TAURI_INVOKE("plugin:connector|set_custom_llm_connection", { connection });
 },
+async getLocalLlmConnection() : Promise<ConnectionLLM> {
+    return await TAURI_INVOKE("plugin:connector|get_local_llm_connection");
+},
 async getLlmConnection() : Promise<ConnectionLLM> {
     return await TAURI_INVOKE("plugin:connector|get_llm_connection");
 },

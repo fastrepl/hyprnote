@@ -8,6 +8,7 @@ permissions = [
     "allow-set-custom-llm-enabled",
     "allow-get-custom-llm-connection",
     "allow-set-custom-llm-connection",
+    "allow-get-local-llm-connection",
     "allow-get-llm-connection",
     "allow-get-stt-connection",
 ]

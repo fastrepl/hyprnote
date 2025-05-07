@@ -13,6 +13,7 @@ pub trait CalendarSource {
 pub enum Platform {
     Apple,
     Google,
+    Outlook,
 }
 
 impl std::fmt::Display for Platform {
@@ -20,6 +21,7 @@ impl std::fmt::Display for Platform {
         match self {
             Platform::Apple => write!(f, "Apple"),
             Platform::Google => write!(f, "Google"),
+            Platform::Outlook => write!(f, "Outlook"),
         }
     }
 }
@@ -29,6 +31,7 @@ pub struct Calendar {
     pub id: String,
     pub platform: Platform,
     pub name: String,
+    pub source: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -82,6 +85,9 @@ impl Event {
             Platform::Google => {
                 let url = self.google_event_url.as_ref().unwrap().clone();
                 Ok(Opener::Url(url))
+            }
+            Platform::Outlook => {
+                anyhow::bail!("Outlook is not supported yet");
             }
         }
     }

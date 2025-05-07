@@ -29,6 +29,7 @@ impl CalendarSource for Handle {
                 id: calendar.id.clone(),
                 platform: Platform::Google,
                 name: calendar.summary.clone(),
+                source: Some(calendar.primary.to_string()),
             })
             .collect();
 

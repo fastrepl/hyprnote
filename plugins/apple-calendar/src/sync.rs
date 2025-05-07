@@ -42,6 +42,7 @@ pub async fn sync_calendars(
                 name: sys_c.name.clone(),
                 platform: sys_c.platform.clone().into(),
                 selected: false,
+                source: sys_c.source.clone(),
             })
             .collect::<Vec<hypr_db_user::Calendar>>();
 
@@ -94,6 +95,7 @@ pub async fn sync_events(
                 id: db_calendar.tracking_id,
                 name: db_calendar.name,
                 platform: db_calendar.platform.into(),
+                source: None,
             },
             now,
             future_date,

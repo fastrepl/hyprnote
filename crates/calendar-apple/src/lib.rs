@@ -140,13 +140,15 @@ impl CalendarSource for Handle {
                 let id = unsafe { calendar.calendarIdentifier() };
                 let title = unsafe { calendar.title() };
 
+                // https://developer.apple.com/documentation/eventkit/eksource
                 let source = unsafe { calendar.source().unwrap() };
-                let _source_title = unsafe { source.as_ref().title() };
+                let source_title = unsafe { source.as_ref().title() };
 
                 Calendar {
                     id: id.to_string(),
                     platform: Platform::Apple,
                     name: title.to_string(),
+                    source: Some(source_title.to_string()),
                 }
             })
             .sorted_by(|a, b| a.name.cmp(&b.name))

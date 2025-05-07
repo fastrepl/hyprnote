@@ -452,13 +452,21 @@ msgstr "Create Note"
 msgid "Current Plan"
 msgstr "Current Plan"
 
+#: src/components/settings/views/ai.tsx:450
+msgid "Custom Endpoint"
+msgstr "Custom Endpoint"
+
 #: src/components/editor-area/note-header/listen-button.tsx:221
 msgid "Custom instruction"
 msgstr "Custom instruction"
 
 #: src/components/settings/views/ai.tsx:264
-msgid "Custom LLM Endpoint"
-msgstr "Custom LLM Endpoint"
+#~ msgid "Custom LLM Endpoint"
+#~ msgstr "Custom LLM Endpoint"
+
+#: src/components/settings/views/ai.tsx:425
+msgid "Default (llama-3.2-3b-q4)"
+msgstr "Default (llama-3.2-3b-q4)"
 
 #: src/components/settings/views/template.tsx:86
 #: src/components/settings/views/team.tsx:165

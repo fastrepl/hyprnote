@@ -39,17 +39,18 @@ export function EventChip({ sessionId }: EventChipProps) {
 
   return (
     <Popover>
-      <PopoverTrigger disabled={!event.data || onboardingSessionId === sessionId}>
+      <PopoverTrigger
+        disabled={!event.data || onboardingSessionId === sessionId}
+      >
         <div
           className={cn(
-            "flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100",
-            !event.data && "opacity-50 cursor-not-allowed",
-            onboardingSessionId === sessionId && "opacity-50 cursor-not-allowed",
+            "flex flex-row items-center gap-2 rounded-md px-2 py-1.5",
+            event.data
+              && onboardingSessionId !== sessionId
+              && "hover:bg-neutral-100",
           )}
         >
-          {event.data?.meetingLink
-            ? <VideoIcon size={14} />
-            : <CalendarIcon size={14} />}
+          {event.data?.meetingLink ? <VideoIcon size={14} /> : <CalendarIcon size={14} />}
           <p className="text-xs">{formatRelativeWithDay(date)}</p>
         </div>
       </PopoverTrigger>

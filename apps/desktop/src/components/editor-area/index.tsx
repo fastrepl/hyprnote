@@ -21,6 +21,8 @@ import { enhanceFailedToast } from "../toast/shared";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 
+import { commands as windowsCommand } from "@hypr/plugin-windows";
+
 export default function EditorArea({
   editable,
   sessionId,
@@ -92,6 +94,14 @@ export default function EditorArea({
 
   return (
     <div className="relative flex h-full flex-col w-full">
+      <button
+        onClick={() => {
+          windowsCommand.windowShow({ type: "control" });
+        }}
+      >
+        TODO
+      </button>
+
       <NoteHeader
         sessionId={sessionId}
         editable={editable}

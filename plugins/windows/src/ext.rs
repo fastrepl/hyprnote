@@ -25,6 +25,8 @@ pub enum HyprWindow {
     Video(String),
     #[serde(rename = "plans")]
     Plans,
+    #[serde(rename = "control")]
+    Control,
 }
 
 impl std::fmt::Display for HyprWindow {
@@ -38,6 +40,7 @@ impl std::fmt::Display for HyprWindow {
             Self::Settings => write!(f, "settings"),
             Self::Video(id) => write!(f, "video-{}", id),
             Self::Plans => write!(f, "plans"),
+            Self::Control => write!(f, "control"),
         }
     }
 }
@@ -50,6 +53,8 @@ impl std::str::FromStr for HyprWindow {
             "main" => return Ok(Self::Main),
             "calendar" => return Ok(Self::Calendar),
             "settings" => return Ok(Self::Settings),
+            "control" => return Ok(Self::Control),
+            "plans" => return Ok(Self::Plans),
             _ => {}
         }
 
@@ -59,7 +64,6 @@ impl std::str::FromStr for HyprWindow {
                 "human" => return Ok(Self::Human(id.to_string())),
                 "organization" => return Ok(Self::Organization(id.to_string())),
                 "video" => return Ok(Self::Video(id.to_string())),
-                "plans" => return Ok(Self::Plans),
                 _ => {}
             }
         }
@@ -143,6 +147,7 @@ impl HyprWindow {
             Self::Settings => "Settings".into(),
             Self::Video(_) => "Video".into(),
             Self::Plans => "Plans".into(),
+            Self::Control => "Control".into(),
         }
     }
 
@@ -161,6 +166,7 @@ impl HyprWindow {
             Self::Settings => LogicalSize::new(800.0, 600.0),
             Self::Video(_) => LogicalSize::new(640.0, 360.0),
             Self::Plans => LogicalSize::new(900.0, 600.0),
+            Self::Control => LogicalSize::new(300.0, 100.0),
         }
     }
 
@@ -174,6 +180,15 @@ impl HyprWindow {
             Self::Settings => LogicalSize::new(800.0, 600.0),
             Self::Video(_) => LogicalSize::new(640.0, 360.0),
             Self::Plans => LogicalSize::new(900.0, 600.0),
+            Self::Control => LogicalSize::new(300.0, 100.0),
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    pub fn traffic_lights_position(&self) -> Option<LogicalPosition<f32>> {
+        match self {
+            Self::Control => None,
+            _ => Some(LogicalPosition::new(12.0, 20.0)),
         }
     }
 
@@ -243,6 +258,7 @@ impl HyprWindow {
                     Self::Settings => "/app/settings",
                     Self::Video(id) => &format!("/video?id={}", id),
                     Self::Plans => "/app/plans",
+                    Self::Control => "/app/control",
                 };
                 (self.window_builder(app, url).build()?, true)
             }
@@ -252,7 +268,9 @@ impl HyprWindow {
             #[cfg(target_os = "macos")]
             {
                 use tauri_plugin_decorum::WebviewWindowExt;
-                window.set_traffic_lights_inset(12.0, 20.0)?;
+                if let Some(pos) = self.traffic_lights_position() {
+                    window.set_traffic_lights_inset(pos.x, pos.y)?;
+                }
             }
 
             let default_size = self.get_default_size();
@@ -349,6 +367,33 @@ impl HyprWindow {
 
                     window.center()?;
                 }
+                Self::Control => {
+                    window.set_always_on_top(true)?;
+
+                    #[cfg(target_os = "macos")]
+                    {
+                        app.run_on_main_thread({
+                            let window = window.clone();
+                            move || {
+                                use tauri_nspanel::WebviewWindowExt as NSPanelWebviewWindowExt;
+                                use tauri_nspanel::cocoa::appkit::{
+                                    NSMainMenuWindowLevel, NSWindowCollectionBehavior,
+                                };
+
+                                if let Ok(panel) = window.to_panel() {
+                                    panel.set_level(NSMainMenuWindowLevel);
+                                    panel.set_collection_behaviour(
+                                        NSWindowCollectionBehavior::NSWindowCollectionBehaviorTransient
+                                            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorMoveToActiveSpace
+                                            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenAuxiliary
+                                            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorIgnoresCycle,
+                                    );
+                                }
+                            }
+                        })
+                        .ok();
+                    }
+                }
             };
         }
 
@@ -364,15 +409,29 @@ impl HyprWindow {
     ) -> WebviewWindowBuilder<'a, tauri::Wry, AppHandle<tauri::Wry>> {
         let mut builder = WebviewWindow::builder(app, self.label(), WebviewUrl::App(url.into()))
             .title(self.title())
-            .decorations(true)
+            .accept_first_mouse(true)
+            .shadow(true)
             .disable_drag_drop_handler();
 
         #[cfg(target_os = "macos")]
         {
-            builder = builder
-                .hidden_title(true)
-                .theme(Some(tauri::Theme::Light))
-                .title_bar_style(tauri::TitleBarStyle::Overlay);
+            builder = builder.theme(Some(tauri::Theme::Light))
+        }
+
+        #[cfg(target_os = "macos")]
+        {
+            if self.traffic_lights_position().is_some() {
+                builder = builder
+                    .hidden_title(true)
+                    .title_bar_style(tauri::TitleBarStyle::Overlay);
+            } else {
+                builder = builder.decorations(false)
+            }
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            builder = builder.decorations(false);
         }
 
         builder

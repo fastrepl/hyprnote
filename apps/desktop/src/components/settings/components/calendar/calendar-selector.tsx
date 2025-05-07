@@ -106,7 +106,10 @@ export function CalendarSelector() {
                 <div className="text-sm font-semibold text-gray-800 mb-2">{source}</div>
                 <div className="pl-2 space-y-2.5">
                   {sourceCalendars.map((calendar) => (
-                    <div key={calendar.id} className="flex items-center space-x-3 py-1 px-2 rounded-md hover:bg-gray-50 transition-colors">
+                    <div
+                      key={calendar.id}
+                      className="flex items-center space-x-3 py-1 px-2 rounded-md hover:bg-gray-50 transition-colors"
+                    >
                       <Checkbox
                         id={`calendar-${calendar.id}`}
                         checked={calendar.selected}

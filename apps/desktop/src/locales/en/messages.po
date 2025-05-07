@@ -232,13 +232,18 @@ msgstr "(Beta) Upcoming meeting notifications"
 msgid "{0}"
 msgstr "{0}"
 
+#. placeholder {0}: calendarsQuery.data?.selectedCount ?? 0
+#: src/components/settings/components/calendar/calendar-selector.tsx:85
+msgid "{0} calendars selected"
+msgstr "{0} calendars selected"
+
 #: src/components/settings/views/lab.tsx:139
 msgid "{description}"
 msgstr "{description}"
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:74
-msgid "{selectedCount} calendars selected"
-msgstr "{selectedCount} calendars selected"
+#~ msgid "{selectedCount} calendars selected"
+#~ msgstr "{selectedCount} calendars selected"
 
 #: src/components/settings/views/lab.tsx:136
 msgid "{title}"
@@ -641,7 +646,7 @@ msgid "Loading extension details..."
 msgstr "Loading extension details..."
 
 #: src/components/workspace-calendar/event-card.tsx:163
-#: src/components/settings/components/calendar/calendar-selector.tsx:83
+#: src/components/settings/components/calendar/calendar-selector.tsx:94
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -703,7 +708,7 @@ msgstr "New note"
 msgid "New window"
 msgstr "New window"
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:89
+#: src/components/settings/components/calendar/calendar-selector.tsx:100
 msgid "No calendars found"
 msgstr "No calendars found"
 
@@ -855,7 +860,7 @@ msgstr "Search..."
 msgid "Sections"
 msgstr "Sections"
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:58
+#: src/components/settings/components/calendar/calendar-selector.tsx:68
 msgid "Select Calendars"
 msgstr "Select Calendars"
 

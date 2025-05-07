@@ -13,7 +13,20 @@ export function CalendarSelector() {
 
   const calendarsQuery = useQuery({
     queryKey: ["calendars"],
-    queryFn: () => dbCommands.listCalendars(userId),
+    queryFn: async () => {
+      const calendars = await dbCommands.listCalendars(userId);
+      const grouped = calendars.reduce((acc, calendar) => {
+        acc[calendar.source || "Other"] = acc[calendar.source || "Other"] || [];
+        acc[calendar.source || "Other"].push(calendar);
+        return acc;
+      }, {} as Record<string, Calendar[]>);
+
+      return {
+        totalCount: calendars.length,
+        selectedCount: calendars.filter((calendar) => calendar.selected).length,
+        grouped,
+      };
+    },
     enabled: true,
   });
 
@@ -43,11 +56,8 @@ export function CalendarSelector() {
     onError: console.error,
   });
 
-  const calendars = calendarsQuery.data || [];
-  const selectedCount = calendars.filter((cal) => cal.selected).length;
-
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex items-center gap-3">
         <div className="flex size-6 items-center justify-center">
           <CalendarCogIcon size={16} />
@@ -60,49 +70,58 @@ export function CalendarSelector() {
             <button
               disabled={syncCalendarsMutation.isPending}
               onClick={() => syncCalendarsMutation.mutate({})}
+              className="rounded-full p-1 hover:bg-gray-100 transition-colors"
             >
               <RefreshCwIcon
                 size={12}
                 className={cn(
                   syncCalendarsMutation.isPending && "animate-spin",
-                  "cursor-pointer text-gray-500 hover:text-gray-700",
+                  "text-gray-500 hover:text-gray-700",
                 )}
               />
             </button>
           </div>
           <div className="text-xs text-muted-foreground">
-            <Trans>{selectedCount} calendars selected</Trans>
+            <Trans>{calendarsQuery.data?.selectedCount ?? 0} calendars selected</Trans>
           </div>
         </div>
       </div>
 
-      <div className="space-y-2 mt-2 pl-9">
+      <div className="space-y-4 pl-9">
         {calendarsQuery.isLoading
           ? (
             <div className="text-sm text-muted-foreground">
               <Trans>Loading...</Trans>
             </div>
           )
-          : calendars.length === 0
+          : calendarsQuery.data?.totalCount === 0
           ? (
             <div className="text-sm text-muted-foreground">
               <Trans>No calendars found</Trans>
             </div>
           )
           : (
-            calendars.map((calendar) => (
-              <div key={calendar.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`calendar-${calendar.id}`}
-                  checked={calendar.selected}
-                  onCheckedChange={() => toggleCalendarSelectedMutation.mutate(calendar)}
-                />
-                <label
-                  htmlFor={`calendar-${calendar.id}`}
-                  className="text-sm cursor-pointer"
-                >
-                  {calendar.name}
-                </label>
+            Object.entries(calendarsQuery.data?.grouped ?? {}).map(([source, sourceCalendars]) => (
+              <div key={source} className="mb-5">
+                <div className="text-sm font-semibold text-gray-800 mb-2">{source}</div>
+                <div className="pl-2 space-y-2.5">
+                  {sourceCalendars.map((calendar) => (
+                    <div key={calendar.id} className="flex items-center space-x-3 py-1 px-2 rounded-md hover:bg-gray-50 transition-colors">
+                      <Checkbox
+                        id={`calendar-${calendar.id}`}
+                        checked={calendar.selected}
+                        onCheckedChange={() => toggleCalendarSelectedMutation.mutate(calendar)}
+                        className="h-4 w-4"
+                      />
+                      <label
+                        htmlFor={`calendar-${calendar.id}`}
+                        className="text-sm font-medium cursor-pointer text-gray-700 flex-1"
+                      >
+                        {calendar.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))
           )}

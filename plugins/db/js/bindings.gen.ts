@@ -145,7 +145,7 @@ async upsertExtensionMapping(mapping: ExtensionMapping) : Promise<ExtensionMappi
 
 /** user-defined types **/
 
-export type Calendar = { id: string; tracking_id: string; user_id: string; platform: Platform; name: string; selected: boolean }
+export type Calendar = { id: string; tracking_id: string; user_id: string; platform: Platform; name: string; selected: boolean; source: string | null }
 export type ChatGroup = { id: string; user_id: string; name: string | null; created_at: string }
 export type ChatMessage = { id: string; group_id: string; created_at: string; role: ChatMessageRole; content: string }
 export type ChatMessageRole = "User" | "Assistant"
@@ -169,7 +169,7 @@ export type ListHumanFilter = { search: [number, string] }
 export type ListOrganizationFilter = { search: [number, string] }
 export type ListSessionFilter = ({ user_id: string; limit: number | null }) & ({ type: "search"; query: string } | { type: "recentlyVisited" } | { type: "dateRange"; start: string; end: string })
 export type Organization = { id: string; name: string; description: string | null }
-export type Platform = "Apple" | "Google"
+export type Platform = "Apple" | "Google" | "Outlook"
 export type Session = { id: string; created_at: string; visited_at: string; user_id: string; calendar_event_id: string | null; title: string; raw_memo_html: string; enhanced_memo_html: string | null; conversations: ConversationChunk[] }
 export type Tag = { id: string; name: string }
 export type Template = { id: string; user_id: string; title: string; description: string; sections: TemplateSection[]; tags: string[] }

@@ -29,13 +29,14 @@ import { showSttModelDownloadToast } from "../../toast/shared";
 const endpointSchema = z.object({
   model: z.string().min(1),
   api_base: z.string().url({ message: "Please enter a valid URL" }).min(1, { message: "URL is required" }).refine(
-    (value) => !value.includes("192"),
-    { message: "Should use 'localhost' or '127.0.0.1' as the host" },
-  ).refine(
-    (value) => ["localhost", "127.0.0.1", "openrouter.ai", "api.openai.com"].some((host) => value.includes(host)),
-    { message: "Only one of 'localhost', '127.0.0.1', 'openrouter.ai', or 'api.openai.com' are allowed as the host" },
-  ).refine(
-    (value) => value.endsWith("/v1"),
+    (value) => {
+      const v1Needed = ["openai", "openrouter"].some((host) => value.includes(host));
+      if (v1Needed && !value.endsWith("/v1")) {
+        return false;
+      }
+
+      return true;
+    },
     { message: "Should end with '/v1'" },
   ).refine(
     (value) => !value.includes("chat/completions"),

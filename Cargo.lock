@@ -13039,6 +13039,7 @@ dependencies = [
  "tauri-plugin-db",
  "tauri-plugin-local-stt",
  "tauri-plugin-tray",
+ "tauri-plugin-windows",
  "tauri-specta",
  "thiserror 2.0.12",
  "timeline",

@@ -5,6 +5,8 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-window-show`
+- `allow-window-close`
+- `allow-window-hide`
 - `allow-window-destroy`
 - `allow-window-position`
 - `allow-window-get-floating`
@@ -23,6 +25,32 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`windows:allow-window-close`
+
+</td>
+<td>
+
+Enables the window_close command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:deny-window-close`
+
+</td>
+<td>
+
+Denies the window_close command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>
@@ -98,6 +126,32 @@ Enables the window_get_floating command without any pre-configured scope.
 <td>
 
 Denies the window_get_floating command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:allow-window-hide`
+
+</td>
+<td>
+
+Enables the window_hide command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:deny-window-hide`
+
+</td>
+<td>
+
+Denies the window_hide command without any pre-configured scope.
 
 </td>
 </tr>

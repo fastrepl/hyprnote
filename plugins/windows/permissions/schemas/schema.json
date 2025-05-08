@@ -295,6 +295,18 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the window_close command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-window-close",
+          "markdownDescription": "Enables the window_close command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the window_close command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-window-close",
+          "markdownDescription": "Denies the window_close command without any pre-configured scope."
+        },
+        {
           "description": "Enables the window_destroy command without any pre-configured scope.",
           "type": "string",
           "const": "allow-window-destroy",
@@ -329,6 +341,18 @@
           "type": "string",
           "const": "deny-window-get-floating",
           "markdownDescription": "Denies the window_get_floating command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the window_hide command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-window-hide",
+          "markdownDescription": "Enables the window_hide command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the window_hide command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-window-hide",
+          "markdownDescription": "Denies the window_hide command without any pre-configured scope."
         },
         {
           "description": "Enables the window_is_visible command without any pre-configured scope.",
@@ -427,10 +451,10 @@
           "markdownDescription": "Denies the window_show command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-destroy`\n- `allow-window-position`\n- `allow-window-get-floating`\n- `allow-window-set-floating`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-window-is-visible`\n- `allow-window-set-overlay-bounds`\n- `allow-window-remove-overlay-bounds`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-close`\n- `allow-window-hide`\n- `allow-window-destroy`\n- `allow-window-position`\n- `allow-window-get-floating`\n- `allow-window-set-floating`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-window-is-visible`\n- `allow-window-set-overlay-bounds`\n- `allow-window-remove-overlay-bounds`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-destroy`\n- `allow-window-position`\n- `allow-window-get-floating`\n- `allow-window-set-floating`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-window-is-visible`\n- `allow-window-set-overlay-bounds`\n- `allow-window-remove-overlay-bounds`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-close`\n- `allow-window-hide`\n- `allow-window-destroy`\n- `allow-window-position`\n- `allow-window-get-floating`\n- `allow-window-set-floating`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-window-is-visible`\n- `allow-window-set-overlay-bounds`\n- `allow-window-remove-overlay-bounds`"
         }
       ]
     }

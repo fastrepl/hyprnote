@@ -13,6 +13,12 @@ async windowShow(window: HyprWindow) : Promise<null> {
 async windowDestroy(window: HyprWindow) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|window_destroy", { window });
 },
+async windowClose(window: HyprWindow) : Promise<null> {
+    return await TAURI_INVOKE("plugin:windows|window_close", { window });
+},
+async windowHide(window: HyprWindow) : Promise<null> {
+    return await TAURI_INVOKE("plugin:windows|window_hide", { window });
+},
 async windowPosition(window: HyprWindow, pos: KnownPosition) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|window_position", { window, pos });
 },

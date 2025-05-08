@@ -203,6 +203,32 @@ impl HyprWindow {
         Ok(())
     }
 
+    fn close(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
+        if !cfg!(target_os = "macos") || *self != HyprWindow::Control {
+            if let Some(window) = self.get(app) {
+                let _ = window.close();
+            }
+        }
+
+        if *self == HyprWindow::Control {
+            #[cfg(target_os = "macos")]
+            {
+                use tauri_nspanel::ManagerExt;
+                if let Ok(panel) = app.get_webview_panel(&HyprWindow::Control.label()) {
+                    let _ = app.run_on_main_thread({
+                        let panel = panel.clone();
+                        move || {
+                            panel.set_released_when_closed(true);
+                            panel.close();
+                        }
+                    });
+                }
+            }
+        }
+
+        Ok(())
+    }
+
     fn destroy(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
         if let Some(window) = self.get(app) {
             window.destroy()?;
@@ -211,7 +237,15 @@ impl HyprWindow {
         Ok(())
     }
 
-    pub fn is_visible(&self, app: &AppHandle<tauri::Wry>) -> Result<bool, crate::Error> {
+    fn hide(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
+        if let Some(window) = self.get(app) {
+            window.hide()?;
+        }
+
+        Ok(())
+    }
+
+    fn is_visible(&self, app: &AppHandle<tauri::Wry>) -> Result<bool, crate::Error> {
         self.get(app).map_or(Ok(false), |w| {
             w.is_visible().map_err(crate::Error::TauriError)
         })
@@ -372,6 +406,8 @@ impl HyprWindow {
 pub trait WindowsPluginExt<R: tauri::Runtime> {
     fn window_show(&self, window: HyprWindow) -> Result<WebviewWindow, crate::Error>;
     fn window_destroy(&self, window: HyprWindow) -> Result<(), crate::Error>;
+    fn window_close(&self, window: HyprWindow) -> Result<(), crate::Error>;
+    fn window_hide(&self, window: HyprWindow) -> Result<(), crate::Error>;
     fn window_position(&self, window: HyprWindow, pos: KnownPosition) -> Result<(), crate::Error>;
     fn window_is_visible(&self, window: HyprWindow) -> Result<bool, crate::Error>;
 
@@ -398,6 +434,14 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
 
     fn window_destroy(&self, window: HyprWindow) -> Result<(), crate::Error> {
         window.destroy(self)
+    }
+
+    fn window_close(&self, window: HyprWindow) -> Result<(), crate::Error> {
+        window.close(self)
+    }
+
+    fn window_hide(&self, window: HyprWindow) -> Result<(), crate::Error> {
+        window.hide(self)
     }
 
     fn window_position(&self, window: HyprWindow, pos: KnownPosition) -> Result<(), crate::Error> {

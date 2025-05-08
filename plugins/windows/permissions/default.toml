@@ -2,6 +2,8 @@
 description = "Default permissions for the plugin"
 permissions = [
     "allow-window-show",
+    "allow-window-close",
+    "allow-window-hide",
     "allow-window-destroy",
     "allow-window-position",
     "allow-window-get-floating",
@@ -10,5 +12,5 @@ permissions = [
     "allow-window-emit-navigate",
     "allow-window-is-visible",
     "allow-window-set-overlay-bounds",
-    "allow-window-remove-overlay-bounds",
+    "allow-window-remove-overlay-bounds"
 ]

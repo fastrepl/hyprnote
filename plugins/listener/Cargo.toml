@@ -24,6 +24,7 @@ tauri-plugin-auth = { workspace = true }
 tauri-plugin-connector = { workspace = true }
 tauri-plugin-db = { workspace = true }
 tauri-plugin-tray = { workspace = true }
+tauri-plugin-windows = { workspace = true }
 
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }

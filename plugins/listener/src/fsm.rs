@@ -249,7 +249,6 @@ impl Session {
         let listen_stream = listen_client.from_audio(audio_stream).await?;
         let channels = self.channels.clone();
 
-        // Spawn listen stream task
         tasks.spawn({
             let app = self.app.clone();
             let timeline = timeline.clone();
@@ -462,7 +461,7 @@ impl Session {
         }
     }
 
-    #[state(superstate = "common")]
+    #[state(superstate = "common", entry_action = "enter_running_active")]
     async fn running_active(&mut self, event: &StateEvent) -> Response<State> {
         match event {
             StateEvent::Start(incoming_session_id) => match &self.session_id {
@@ -517,10 +516,23 @@ impl Session {
     }
 
     #[action]
+    async fn enter_running_active(&mut self) {
+        {
+            use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
+            let _ = self.app.window_show(HyprWindow::Control);
+        }
+    }
+
+    #[action]
     async fn enter_inactive(&mut self) {
         {
             use tauri_plugin_tray::TrayPluginExt;
             let _ = self.app.set_start_disabled(false);
+        }
+
+        {
+            use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
+            let _ = self.app.window_hide(HyprWindow::Control);
         }
 
         self.teardown_resources().await;

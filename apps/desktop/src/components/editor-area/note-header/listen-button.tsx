@@ -8,14 +8,13 @@ import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { toast } from "@hypr/ui/components/ui/toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import ShinyButton from "./shiny-button";
@@ -151,106 +150,25 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
 }
 
 function WhenInactiveAndMeetingNotEnded({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [instructionText, setInstructionText] = useState("");
-
-  const configQuery = useQuery({
-    queryKey: ["config", "general"],
-    queryFn: async () => await dbCommands.getConfig(),
-  });
-
-  useEffect(() => {
-    if (configQuery.data?.general?.jargons) {
-      setInstructionText((configQuery.data.general.jargons ?? []).join(", "));
-    }
-  }, [configQuery.data]);
-
-  const mutation = useMutation({
-    mutationFn: async (jargons: string) => {
-      if (!configQuery.data) {
-        return;
-      }
-
-      const nextGeneral = {
-        ...(configQuery.data.general ?? {}),
-        jargons: [jargons],
-      };
-      await dbCommands.setConfig({
-        ...configQuery.data,
-        general: nextGeneral,
-      });
-    },
-    onSuccess: () => {
-      configQuery.refetch();
-    },
-    onError: console.error,
-  });
-
-  const handleSaveJargons = () => {
-    const currentConfigJargons = (configQuery.data?.general?.jargons ?? []).join(", ");
-    if (instructionText !== currentConfigJargons) {
-      mutation.mutate(instructionText);
-    }
-  };
-
   return (
-    <Popover
-      open={open}
-      onOpenChange={(newOpen) => {
-        setOpen(newOpen);
-        if (!newOpen) {
-          handleSaveJargons();
-        }
-      }}
-    >
-      <PopoverTrigger asChild>
+    <Tooltip>
+      <TooltipTrigger asChild>
         <button
           disabled={disabled}
+          onClick={onClick}
           className={cn([
-            "w-9 h-9 rounded-full border-2 transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center",
+            "w-9 h-9 rounded-full border-2 transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center shadow-[inset_0_0_0_2px_rgba(255,255,255,0.8)]",
             disabled ? "bg-neutral-200 border-neutral-400" : "bg-red-500 border-neutral-400",
-            "shadow-[inset_0_0_0_2px_rgba(255,255,255,0.8)]",
           ])}
         >
         </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80" align="end">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-2">
-            <div className="text-sm font-medium text-neutral-700">
-              <Trans>Custom instruction</Trans>
-            </div>
-            <Textarea
-              value={instructionText}
-              onChange={(e) => setInstructionText(e.target.value)}
-              placeholder="ex) Hyprnote, JDCE, Fastrepl, John, Yujong"
-              className="min-h-[80px] resize-none border-neutral-300 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
-            <p className="text-xs text-neutral-400">
-              <Trans>
-                Provide descriptions about the meeting. Company specific terms, acronyms, jargons... any thing!
-              </Trans>
-            </p>
-          </div>
-
-          <Button
-            onClick={() => {
-              handleSaveJargons();
-              onClick();
-              setOpen(false);
-            }}
-            disabled={disabled}
-            className="w-full flex items-center gap-2"
-          >
-            <div className="relative flex-shrink-0">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <div className="absolute top-0 left-0 w-3 h-3 rounded-full bg-red-500 animate-ping opacity-75"></div>
-            </div>
-            <Trans>Start Meeting</Trans>
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" align="end">
+        <p>
+          <Trans>Start recording</Trans>
+        </p>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 

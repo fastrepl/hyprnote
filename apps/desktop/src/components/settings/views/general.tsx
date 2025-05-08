@@ -1,11 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { showModelSelectToast } from "@/components/toast/model-select";
+import { commands } from "@/types";
 import { commands as dbCommands, type ConfigGeneral } from "@hypr/plugin-db";
 import {
   Form,
@@ -16,6 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@hypr/ui/components/ui/form";
+import { Input } from "@hypr/ui/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
@@ -26,11 +29,13 @@ const schema = z.object({
   autostart: z.boolean().optional(),
   displayLanguage: z.enum(SUPPORTED_LANGUAGES as [string, ...string[]]),
   telemetryConsent: z.boolean().optional(),
+  jargons: z.string(),
 });
 
 type Schema = z.infer<typeof schema>;
 
 export default function General() {
+  const { t } = useLingui();
   const queryClient = useQueryClient();
 
   const config = useQuery({
@@ -47,6 +52,7 @@ export default function General() {
       autostart: false,
       displayLanguage: "en",
       telemetryConsent: true,
+      jargons: "",
     },
   });
 
@@ -56,6 +62,7 @@ export default function General() {
         autostart: config.data.general.autostart ?? false,
         displayLanguage: config.data.general.display_language ?? "en",
         telemetryConsent: config.data.general.telemetry_consent ?? true,
+        jargons: (config.data.general.jargons ?? []).join(", "),
       });
     }
   }, [config.data, form]);
@@ -71,7 +78,7 @@ export default function General() {
         autostart: v.autostart ?? false,
         display_language: v.displayLanguage,
         telemetry_consent: v.telemetryConsent ?? true,
-        jargons: config.data.general.jargons ?? [],
+        jargons: v.jargons.split(",").map((jargon) => jargon.trim()).filter(Boolean),
       };
 
       await dbCommands.setConfig({
@@ -87,8 +94,21 @@ export default function General() {
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
+      if (name === "jargons") {
+        return;
+      }
+
       mutation.mutate(form.getValues());
+
+      if (name === "autostart") {
+        commands.setAutostart(!!value.autostart);
+      }
+
+      if (name === "displayLanguage" && value.displayLanguage) {
+        showModelSelectToast(value.displayLanguage);
+      }
     });
+
     return () => subscription.unsubscribe();
   }, [form, mutation]);
 
@@ -150,6 +170,36 @@ export default function General() {
                       ))}
                     </SelectContent>
                   </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="jargons"
+            render={({ field }) => (
+              <FormItem>
+                <div>
+                  <FormLabel>
+                    <Trans>Jargons</Trans>
+                  </FormLabel>
+                  <FormDescription>
+                    <Trans>
+                      You can make Hyprnote takes these words into account when transcribing
+                    </Trans>
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Input
+                    {...field}
+                    onBlur={() => mutation.mutate(form.getValues())}
+                    placeholder={t({
+                      id: "Type jargons (e.g., Blitz Meeting, PaC Squad)",
+                    })}
+                    className="focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -4,10 +4,11 @@ permissions = [
     "allow-window-show",
     "allow-window-destroy",
     "allow-window-position",
-    "allow-window-resize-default",
     "allow-window-get-floating",
     "allow-window-set-floating",
     "allow-window-navigate",
     "allow-window-emit-navigate",
     "allow-window-is-visible",
+    "allow-window-set-overlay-bounds",
+    "allow-window-remove-overlay-bounds",
 ]

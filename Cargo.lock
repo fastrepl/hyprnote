@@ -13454,6 +13454,7 @@ dependencies = [
  "tauri-plugin",
  "tauri-specta",
  "thiserror 2.0.12",
+ "tokio",
  "tracing",
 ]
 

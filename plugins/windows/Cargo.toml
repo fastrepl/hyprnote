@@ -14,14 +14,15 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
-serde = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 
-tauri = { workspace = true, features = ["test"] }
+tauri = { workspace = true, features = ["test", "macos-private-api"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 thiserror = { workspace = true }
+tokio = { workspace = true, features = ["time"] }
 tracing = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]

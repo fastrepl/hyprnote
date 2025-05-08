@@ -46,8 +46,8 @@ function Component() {
   }, [navigate]);
 
   useEffect(() => {
-    scan({ enabled: showDevtools.data });
-  }, [showDevtools.data]);
+    scan({ enabled: false });
+  }, []);
 
   return (
     <>

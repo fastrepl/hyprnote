@@ -7,7 +7,8 @@ const COMMANDS: &[&str] = &[
     "window_navigate",
     "window_emit_navigate",
     "window_is_visible",
-    "window_resize_default",
+    "window_set_overlay_bounds",
+    "window_remove_overlay_bounds",
 ];
 
 fn main() {

@@ -1,9 +1,12 @@
 mod app;
 mod browser;
+mod mic;
 mod utils;
 
 pub use app::*;
 pub use browser::*;
+pub use mic::*;
+
 use utils::*;
 
 pub type DetectCallback = std::sync::Arc<dyn Fn(String) + Send + Sync + 'static>;
@@ -24,6 +27,7 @@ trait Observer: Send + Sync {
 pub struct Detector {
     app_detector: AppDetector,
     browser_detector: BrowserDetector,
+    mic_detector: MicDetector,
 }
 
 impl Detector {

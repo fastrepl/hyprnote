@@ -242,3 +242,16 @@ export function formatUpcomingTime(date: Date | string): string {
     return i18n._("{weeks} weeks later", { weeks });
   }
 }
+
+export function formatDate(date: Date | string): string {
+  const d = new Date(date);
+  const now = new Date();
+  const diffInDays = FNS.differenceInCalendarDays(now, d);  
+  if (diffInDays === 0) {
+    return format(d, "h:mm a");
+  } else if (diffInDays > 0) {
+    return formatUpcomingTime(d);
+  } else {
+    return formatTimeAgo(d);
+  }
+}

@@ -23,7 +23,7 @@ import {
 import { SplashLoader } from "@hypr/ui/components/ui/splash";
 import { cn } from "@hypr/ui/lib/utils";
 import { useSession, useSessions } from "@hypr/utils/contexts";
-import { format, formatRelative, formatTimeAgo, isToday } from "@hypr/utils/datetime";
+import { format, formatDate, formatRelative } from "@hypr/utils/datetime";
 import { safeNavigate } from "@hypr/utils/navigation";
 
 interface NotesListProps {
@@ -194,9 +194,7 @@ function NoteItem({
   });
 
   const sessionDate = currentSessionEvent.data?.start_date ?? currentSession.created_at;
-  const formattedSessionDate = isToday(sessionDate)
-    ? formatTimeAgo(sessionDate)
-    : format(sessionDate, "h:mm a");
+  const formattedSessionDate = formatDate(sessionDate);
 
   const queryClient = useQueryClient();
 

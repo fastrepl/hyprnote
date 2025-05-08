@@ -68,8 +68,12 @@ impl Session {
         self.session_id = Some(session_id.clone());
 
         let config = self.app.db_get_config(&user_id).await?;
+        let _record = match &config {
+            Some(c) => c.general.save_recordings.unwrap_or(true),
+            None => true,
+        };
         let language = match config {
-            Some(config) => config.general.display_language,
+            Some(c) => c.general.display_language,
             None => hypr_language::ISO639::En.into(),
         };
 

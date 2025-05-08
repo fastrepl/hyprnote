@@ -16,8 +16,11 @@ async getFingerprint() : Promise<string> {
 async opinionatedMdToHtml(text: string) : Promise<string> {
     return await TAURI_INVOKE("plugin:misc|opinionated_md_to_html", { text });
 },
-async openAudio(sessionId: string) : Promise<null> {
-    return await TAURI_INVOKE("plugin:misc|open_audio", { sessionId });
+async audioOpen(sessionId: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:misc|audio_open", { sessionId });
+},
+async audioExist(sessionId: string) : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:misc|audio_exist", { sessionId });
 },
 async deleteSessionFolder(sessionId: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:misc|delete_session_folder", { sessionId });

@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { FileAudioIcon } from "lucide-react";
 import React from "react";
 
@@ -33,9 +34,16 @@ export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
     safeNavigate({ type: "settings" }, url);
   };
 
+  const audioExist = useQuery({
+    refetchInterval: 2000,
+    enabled: !!sessionId,
+    queryKey: ["audioExist", sessionId],
+    queryFn: () => miscCommands.audioExist(sessionId!),
+  });
+
   const handleOpenSession = () => {
     if (sessionId) {
-      miscCommands.openAudio(sessionId);
+      miscCommands.audioOpen(sessionId);
     }
   };
 
@@ -60,7 +68,7 @@ export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
             </div>
           }
           actions={[
-            (isInactive && hasTranscript && sessionId) && (
+            (audioExist.data && isInactive && hasTranscript && sessionId) && (
               <Button variant="ghost" size="icon" className="p-0" onClick={handleOpenSession}>
                 <FileAudioIcon size={16} className="text-black" />
               </Button>

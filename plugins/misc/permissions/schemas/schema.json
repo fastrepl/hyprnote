@@ -295,6 +295,30 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the audio_exist command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-audio-exist",
+          "markdownDescription": "Enables the audio_exist command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the audio_exist command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-audio-exist",
+          "markdownDescription": "Denies the audio_exist command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the audio_open command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-audio-open",
+          "markdownDescription": "Enables the audio_open command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the audio_open command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-audio-open",
+          "markdownDescription": "Denies the audio_open command without any pre-configured scope."
+        },
+        {
           "description": "Enables the delete_session_folder command without any pre-configured scope.",
           "type": "string",
           "const": "allow-delete-session-folder",
@@ -331,18 +355,6 @@
           "markdownDescription": "Denies the get_git_hash command without any pre-configured scope."
         },
         {
-          "description": "Enables the open_audio command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-open-audio",
-          "markdownDescription": "Enables the open_audio command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the open_audio command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-open-audio",
-          "markdownDescription": "Denies the open_audio command without any pre-configured scope."
-        },
-        {
           "description": "Enables the opinionated_md_to_html command without any pre-configured scope.",
           "type": "string",
           "const": "allow-opinionated-md-to-html",
@@ -367,10 +379,10 @@
           "markdownDescription": "Denies the parse_meeting_link command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-open-audio`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-audio-open`\n- `allow-audio-exist`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-open-audio`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-audio-open`\n- `allow-audio-exist`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`"
         }
       ]
     }

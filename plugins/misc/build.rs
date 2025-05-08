@@ -2,7 +2,8 @@ const COMMANDS: &[&str] = &[
     "get_git_hash",
     "get_fingerprint",
     "opinionated_md_to_html",
-    "open_audio",
+    "audio_open",
+    "audio_exist",
     "delete_session_folder",
     "parse_meeting_link",
 ];

@@ -28,7 +28,20 @@ pub async fn opinionated_md_to_html<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn open_audio<R: tauri::Runtime>(
+pub async fn audio_exist<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    session_id: String,
+) -> Result<bool, String> {
+    let data_dir = app.path().app_data_dir().unwrap();
+    let audio_path = data_dir.join(session_id).join("audio.wav");
+
+    let v = std::fs::exists(audio_path).map_err(|e| e.to_string())?;
+    Ok(v)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn audio_open<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,
 ) -> Result<(), String> {

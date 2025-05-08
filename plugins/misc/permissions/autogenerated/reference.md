@@ -7,7 +7,8 @@ Default permissions for the plugin
 - `allow-get-git-hash`
 - `allow-get-fingerprint`
 - `allow-opinionated-md-to-html`
-- `allow-open-audio`
+- `allow-audio-open`
+- `allow-audio-exist`
 - `allow-delete-session-folder`
 - `allow-parse-meeting-link`
 
@@ -19,6 +20,58 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`misc:allow-audio-exist`
+
+</td>
+<td>
+
+Enables the audio_exist command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:deny-audio-exist`
+
+</td>
+<td>
+
+Denies the audio_exist command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:allow-audio-open`
+
+</td>
+<td>
+
+Enables the audio_open command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:deny-audio-open`
+
+</td>
+<td>
+
+Denies the audio_open command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>
@@ -94,32 +147,6 @@ Enables the get_git_hash command without any pre-configured scope.
 <td>
 
 Denies the get_git_hash command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`misc:allow-open-audio`
-
-</td>
-<td>
-
-Enables the open_audio command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`misc:deny-open-audio`
-
-</td>
-<td>
-
-Denies the open_audio command without any pre-configured scope.
 
 </td>
 </tr>

@@ -4,7 +4,8 @@ permissions = [
     "allow-get-git-hash",
     "allow-get-fingerprint",
     "allow-opinionated-md-to-html",
-    "allow-open-audio",
+    "allow-audio-open",
+    "allow-audio-exist",
     "allow-delete-session-folder",
     "allow-parse-meeting-link",
 ]

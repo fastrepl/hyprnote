@@ -67,14 +67,21 @@ impl Session {
         let session_id = id.into();
         self.session_id = Some(session_id.clone());
 
-        let config = self.app.db_get_config(&user_id).await?;
-        let _record = match &config {
-            Some(c) => c.general.save_recordings.unwrap_or(true),
-            None => true,
-        };
-        let language = match config {
-            Some(c) => c.general.display_language,
-            None => hypr_language::ISO639::En.into(),
+        let (record, language, jargons) = {
+            let config = self.app.db_get_config(&user_id).await?;
+
+            let record = config
+                .as_ref()
+                .map_or(true, |c| c.general.save_recordings.unwrap_or(true));
+
+            let language = config.as_ref().map_or_else(
+                || hypr_language::ISO639::En.into(),
+                |c| c.general.display_language.clone(),
+            );
+
+            let jargons = config.map_or_else(Vec::new, |c| c.general.jargons);
+
+            (record, language, jargons)
         };
 
         let session = self
@@ -82,11 +89,6 @@ impl Session {
             .db_get_session(&session_id)
             .await?
             .ok_or(crate::Error::NoneSession)?;
-
-        let jargons = match self.app.db_get_config(&user_id).await? {
-            Some(config) => config.general.jargons,
-            None => vec![],
-        };
 
         let (mic_muted_tx, mic_muted_rx_main) = tokio::sync::watch::channel(false);
         let (speaker_muted_tx, speaker_muted_rx_main) = tokio::sync::watch::channel(false);
@@ -119,7 +121,9 @@ impl Session {
 
         let (mic_tx, mut mic_rx) = mpsc::channel::<Vec<f32>>(chunk_buffer_size);
         let (speaker_tx, mut speaker_rx) = mpsc::channel::<Vec<f32>>(chunk_buffer_size);
-        let (mixed_tx, mixed_rx) = mpsc::channel::<f32>(sample_buffer_size);
+
+        let (save_tx, mut save_rx) = mpsc::channel::<f32>(sample_buffer_size);
+        let (process_tx, process_rx) = mpsc::channel::<f32>(sample_buffer_size);
 
         {
             let silence_stream_tx = hypr_audio::AudioOutput::silence();
@@ -181,79 +185,95 @@ impl Session {
         let app_dir = self.app.path().app_data_dir().unwrap();
         let channels = self.channels.clone();
 
-        tasks.spawn(async move {
-            let dir = app_dir.join(session_id);
-            std::fs::create_dir_all(&dir).unwrap();
-            let path = dir.join("audio.wav");
+        tasks.spawn({
+            let channels = channels.clone();
+            let save_tx = save_tx.clone();
 
-            let wav_spec = hound::WavSpec {
-                channels: 2,
-                sample_rate: SAMPLE_RATE,
-                bits_per_sample: 32,
-                sample_format: hound::SampleFormat::Float,
-            };
+            async move {
+                let mut last_broadcast = Instant::now();
 
-            let mut wav = if path.exists() {
-                hound::WavWriter::append(path).unwrap()
-            } else {
-                hound::WavWriter::create(path, wav_spec).unwrap()
-            };
+                // TODO
+                let start_event = SessionEvent::Started(SessionEventStarted { seconds: 0.0 });
+                Session::broadcast(&channels, start_event).await.unwrap();
 
-            let start_event = SessionEvent::Started(SessionEventStarted {
-                seconds: wav.duration() as f32 / SAMPLE_RATE as f32,
-            });
-            Session::broadcast(&channels, start_event).await.unwrap();
-
-            let mut last_broadcast = Instant::now();
-
-            while let (Some(mic_chunk), Some(speaker_chunk)) =
-                (mic_rx.recv().await, speaker_rx.recv().await)
-            {
-                if matches!(*session_state_rx.borrow(), State::RunningPaused {}) {
-                    let mut rx = session_state_rx.clone();
-                    let _ = rx.changed().await;
-                    continue;
-                }
-
-                let now = Instant::now();
-                if now.duration_since(last_broadcast) >= AUDIO_AMPLITUDE_THROTTLE {
-                    let event =
-                        crate::SessionEventAudioAmplitude::from((&mic_chunk, &speaker_chunk));
-
-                    if let Err(e) =
-                        Session::broadcast(&channels, SessionEvent::AudioAmplitude(event)).await
-                    {
-                        tracing::error!("broadcast_error: {:?}", e);
+                while let (Some(mic_chunk), Some(speaker_chunk)) =
+                    (mic_rx.recv().await, speaker_rx.recv().await)
+                {
+                    if matches!(*session_state_rx.borrow(), State::RunningPaused {}) {
+                        let mut rx = session_state_rx.clone();
+                        let _ = rx.changed().await;
+                        continue;
                     }
-                    last_broadcast = now;
-                }
 
-                let mixed: Vec<f32> = mic_chunk
-                    .into_iter()
-                    .zip(speaker_chunk.into_iter())
-                    .map(|(a, b)| (a + b).clamp(-1.0, 1.0))
-                    .collect();
+                    let now = Instant::now();
+                    if now.duration_since(last_broadcast) >= AUDIO_AMPLITUDE_THROTTLE {
+                        let event =
+                            crate::SessionEventAudioAmplitude::from((&mic_chunk, &speaker_chunk));
 
-                for &sample in &mixed {
-                    wav.write_sample(sample).unwrap();
-                    wav.write_sample(sample).unwrap();
-                    if let Err(e) = mixed_tx.send(sample).await {
-                        tracing::error!("mixed_tx_send_error: {:?}", e.0);
-                        return;
+                        if let Err(e) =
+                            Session::broadcast(&channels, SessionEvent::AudioAmplitude(event)).await
+                        {
+                            tracing::error!("broadcast_error: {:?}", e);
+                        }
+                        last_broadcast = now;
+                    }
+
+                    let mixed: Vec<f32> = mic_chunk
+                        .into_iter()
+                        .zip(speaker_chunk.into_iter())
+                        .map(|(a, b)| (a + b).clamp(-1.0, 1.0))
+                        .collect();
+
+                    for &sample in &mixed {
+                        if let Err(e) = process_tx.send(sample).await {
+                            tracing::error!("process_tx_send_error: {:?}", e.0);
+                            return;
+                        }
+
+                        if record {
+                            if let Err(e) = save_tx.send(sample).await {
+                                tracing::error!("save_tx_send_error: {:?}", e.0);
+                            }
+                        }
                     }
                 }
             }
-
-            wav.finalize().unwrap();
         });
 
+        if record {
+            tasks.spawn(async move {
+                let dir = app_dir.join(session_id);
+                std::fs::create_dir_all(&dir).unwrap();
+                let path = dir.join("audio.wav");
+
+                let wav_spec = hound::WavSpec {
+                    channels: 2,
+                    sample_rate: SAMPLE_RATE,
+                    bits_per_sample: 32,
+                    sample_format: hound::SampleFormat::Float,
+                };
+
+                let mut wav = if path.exists() {
+                    hound::WavWriter::append(path).unwrap()
+                } else {
+                    hound::WavWriter::create(path, wav_spec).unwrap()
+                };
+
+                while let Some(sample) = save_rx.recv().await {
+                    wav.write_sample(sample).unwrap();
+                    wav.write_sample(sample).unwrap();
+                }
+
+                wav.finalize().unwrap();
+            });
+        }
+
         let timeline = Arc::new(Mutex::new(initialize_timeline(&session).await));
-        let audio_stream = hypr_audio::ReceiverStreamSource::new(mixed_rx, SAMPLE_RATE);
+        let audio_stream = hypr_audio::ReceiverStreamSource::new(process_rx, SAMPLE_RATE);
 
         let listen_stream = listen_client.from_audio(audio_stream).await?;
         let channels = self.channels.clone();
 
-        // Spawn listen stream task
         tasks.spawn({
             let app = self.app.clone();
             let timeline = timeline.clone();

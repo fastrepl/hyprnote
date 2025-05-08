@@ -9,7 +9,12 @@ export const Route = createFileRoute("/app/control")({
 });
 
 function Component() {
-  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const [position, setPosition] = useState(() => {
+    const windowWidth = window.innerWidth;
+    const initialX = (windowWidth - 200) / 2;
+    return { x: initialX, y: window.innerHeight - 80 };
+  });
+
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isRecording, setIsRecording] = useState(false);

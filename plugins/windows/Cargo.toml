@@ -19,9 +19,11 @@ specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 
 tauri = { workspace = true, features = ["test"] }
-tauri-nspanel = { workspace = true }
 tauri-plugin-decorum = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 thiserror = { workspace = true }
 tracing = { workspace = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+tauri-nspanel = { workspace = true }

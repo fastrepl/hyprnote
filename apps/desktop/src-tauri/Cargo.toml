@@ -22,7 +22,8 @@ sim-korean-1 = ["hypr-data"]
 tauri-build = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-tauri-plugin-apple-calendar = { path = "../../../plugins/apple-calendar" }
+tauri-plugin-apple-calendar = { workspace = true }
+tauri-nspanel = { workspace = true }
 
 [dependencies]
 hypr-data = { workspace = true, optional = true }
@@ -30,7 +31,6 @@ hypr-db-core = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-turso = { workspace = true }
 
-tauri-nspanel = { workspace = true }
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-auth = { workspace = true }
 tauri-plugin-connector = { workspace = true }

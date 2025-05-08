@@ -1,24 +1,21 @@
 mod error;
 mod predictor;
+mod processor;
 mod stream;
 
 pub use error::*;
 pub use predictor::*;
+pub use processor::*;
 pub use stream::*;
 
 use kalosm_sound::AsyncSource;
-use std::time::Duration;
 
 pub trait ChunkerExt: AsyncSource + Sized {
-    fn chunks<P: Predictor + Unpin>(
-        self,
-        predictor: P,
-        chunk_duration: Duration,
-    ) -> ChunkStream<Self, P>
+    fn chunks<P: Predictor + Unpin>(self, predictor: P) -> ChunkStream<Self, P>
     where
         Self: Unpin,
     {
-        ChunkStream::new(self, predictor, chunk_duration)
+        ChunkStream::new(self, predictor)
     }
 }
 
@@ -43,7 +40,7 @@ mod tests {
             sample_format: hound::SampleFormat::Float,
         };
 
-        let mut stream = audio_source.chunks(RMS::new(), Duration::from_secs(15));
+        let mut stream = audio_source.chunks(Silero::new().unwrap());
         let mut i = 0;
 
         std::fs::remove_dir_all("tmp/english_1").unwrap();

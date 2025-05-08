@@ -43,6 +43,7 @@ user_common_derives! {
         pub display_language: hypr_language::Language,
         pub jargons: Vec<String>,
         pub telemetry_consent: bool,
+        pub save_recordings: bool,
     }
 }
 
@@ -53,6 +54,7 @@ impl Default for ConfigGeneral {
             display_language: hypr_language::ISO639::En.into(),
             jargons: vec![],
             telemetry_consent: true,
+            save_recordings: true,
         }
     }
 }

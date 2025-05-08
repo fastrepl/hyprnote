@@ -30,6 +30,7 @@ const schema = z.object({
   displayLanguage: z.enum(SUPPORTED_LANGUAGES as [string, ...string[]]),
   telemetryConsent: z.boolean().optional(),
   jargons: z.string(),
+  saveRecordings: z.boolean().optional(),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -53,6 +54,7 @@ export default function General() {
       displayLanguage: "en",
       telemetryConsent: true,
       jargons: "",
+      saveRecordings: true,
     },
   });
 
@@ -63,6 +65,7 @@ export default function General() {
         displayLanguage: config.data.general.display_language ?? "en",
         telemetryConsent: config.data.general.telemetry_consent ?? true,
         jargons: (config.data.general.jargons ?? []).join(", "),
+        saveRecordings: config.data.general.save_recordings ?? true,
       });
     }
   }, [config.data, form]);
@@ -79,6 +82,7 @@ export default function General() {
         display_language: v.displayLanguage,
         telemetry_consent: v.telemetryConsent ?? true,
         jargons: v.jargons.split(",").map((jargon) => jargon.trim()).filter(Boolean),
+        save_recordings: v.saveRecordings ?? true,
       };
 
       await dbCommands.setConfig({
@@ -116,6 +120,32 @@ export default function General() {
     <div>
       <Form {...form}>
         <form className="space-y-6">
+          <FormField
+            control={form.control}
+            name="saveRecordings"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div>
+                  <FormLabel>
+                    <Trans>Save recordings</Trans>
+                  </FormLabel>
+                  <FormDescription>
+                    <Trans>
+                      Choose whether to save your recordings locally.
+                    </Trans>
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    color="gray"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="telemetryConsent"

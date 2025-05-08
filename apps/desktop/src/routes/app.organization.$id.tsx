@@ -6,6 +6,8 @@ import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { parseUrlsToLinks } from "@/utils/url-parser";
+
 import { MembersList, RecentNotes, UpcomingEvents } from "@/components/organization-profile";
 import { EditableEntityWrapper } from "@/components/toolbar/bars";
 import { useEditMode } from "@/contexts/edit-mode-context";
@@ -103,7 +105,7 @@ function OrgView({ value }: { value: Organization }) {
         <h1 className="text-2xl font-semibold text-center">{value.name}</h1>
         {value.description && (
           <p className="mt-2 text-gray-500 text-center max-w-md">
-            {value.description}
+            {parseUrlsToLinks(value.description)}
           </p>
         )}
       </div>

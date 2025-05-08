@@ -265,14 +265,6 @@ impl HyprWindow {
         };
 
         if created {
-            #[cfg(target_os = "macos")]
-            {
-                use tauri_plugin_decorum::WebviewWindowExt;
-                if let Some(pos) = self.traffic_lights_position() {
-                    window.set_traffic_lights_inset(pos.x, pos.y)?;
-                }
-            }
-
             let default_size = self.get_default_size();
             let min_size = self.get_min_size();
 

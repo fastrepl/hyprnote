@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:198
+#: src/components/settings/views/general.tsx:228
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -383,8 +383,12 @@ msgstr ""
 #~ msgid "Choose the language you want to use for the application interface"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:155
+#: src/components/settings/views/general.tsx:185
 msgid "Choose the language you want to use for the speech-to-text model and language model"
+msgstr ""
+
+#: src/components/settings/views/general.tsx:133
+msgid "Choose whether to save your recordings locally."
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:52
@@ -605,7 +609,7 @@ msgstr ""
 msgid "Grant Access"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:129
+#: src/components/settings/views/general.tsx:159
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr ""
 
@@ -637,7 +641,7 @@ msgstr ""
 msgid "Invite members"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:186
+#: src/components/settings/views/general.tsx:216
 msgid "Jargons"
 msgstr ""
 
@@ -653,7 +657,7 @@ msgstr ""
 msgid "Lab"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:152
+#: src/components/settings/views/general.tsx:182
 msgid "Language"
 msgstr ""
 
@@ -879,6 +883,10 @@ msgstr ""
 msgid "Role"
 msgstr ""
 
+#: src/components/settings/views/general.tsx:130
+msgid "Save recordings"
+msgstr ""
+
 #: src/components/settings/views/billing.tsx:51
 msgid "Search & ask across all notes in workspace"
 msgstr ""
@@ -912,7 +920,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:126
+#: src/components/settings/views/general.tsx:156
 msgid "Share usage data"
 msgstr ""
 
@@ -1102,7 +1110,7 @@ msgstr ""
 msgid "Works offline"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:189
+#: src/components/settings/views/general.tsx:219
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr ""
 

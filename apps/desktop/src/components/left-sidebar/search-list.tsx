@@ -187,9 +187,11 @@ function HumanMatch({ match: { item } }: { match: SearchMatch & { type: "human" 
           ])}
         >
           <div className="flex flex-col items-start gap-1">
-            <div className="font-medium text-sm line-clamp-1 flex items-center justify-between w-full">
-              <span>{human.data?.full_name || "Unnamed Person"}</span>
-              <span className="text-neutral-500 text-xs font-normal ml-auto">{human.data?.job_title}</span>
+            <div className="font-medium text-sm line-clamp-1 flex items-center gap-2 w-full">
+              <span className="truncate">{human.data?.full_name || "Unnamed Person"}</span>
+              <span className="text-neutral-500 text-xs font-normal ml-auto truncate max-w-[120px]">
+                {human.data?.job_title}
+              </span>
             </div>
             <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
               {human.data?.email}

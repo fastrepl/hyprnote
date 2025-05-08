@@ -8,6 +8,7 @@ import { WidgetHeader } from "@hypr/ui/components/ui/widgets";
 import { safeNavigate } from "@hypr/utils";
 import { useOngoingSession, useSessions } from "@hypr/utils/contexts";
 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { Transcript, TranscriptContent } from "../../components";
 import { useTranscriptWidget } from "../../hooks/useTranscriptWidget";
 
@@ -69,9 +70,18 @@ export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
           }
           actions={[
             (audioExist.data && isInactive && hasTranscript && sessionId) && (
-              <Button variant="ghost" size="icon" className="p-0" onClick={handleOpenSession}>
-                <FileAudioIcon size={16} className="text-black" />
-              </Button>
+              <TooltipProvider key="listen-recording-tooltip">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="p-0" onClick={handleOpenSession}>
+                      <FileAudioIcon size={16} className="text-black" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p>Listen to recording</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             ),
             sizeToggleButton,
           ].filter(Boolean)}

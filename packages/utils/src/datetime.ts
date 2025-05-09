@@ -63,8 +63,10 @@ export const formatRelative = (date: string | null | undefined, t?: string) => {
       return i18n._("Today");
     } else if (diffInDays === 1) {
       return i18n._("Yesterday");
-    } else if (diffInDays < 7) {
+    } else if (diffInDays > 0 && diffInDays < 7) {
       return i18n._("{days} days ago", { days: diffInDays });
+    } else if (diffInDays < 0 && diffInDays > -7) {
+      return i18n._("{days} days later", { days: Math.abs(diffInDays) });
     } else {
       const currentYear = now.getFullYear();
       const dateYear = d.getFullYear();
@@ -92,7 +94,6 @@ export const formatRelativeWithDay = (date: string | null | undefined, t?: strin
     const tz = FNS_TZ.tz(t ?? timezone());
     const d = new Date(date);
 
-    // Check for invalid date
     if (isNaN(d.getTime())) {
       return i18n._("Invalid date");
     }
@@ -150,10 +151,6 @@ export const isToday = (d: Parameters<typeof FNS.isToday>[0]) => {
   return FNS.isToday(d, { in: FNS_TZ.tz(timezone()) });
 };
 
-/**
- * Formats a past date relative to now in a human-readable format with i18n support
- * Examples: "just now", "1 minute ago", "2 hours ago", "Yesterday", etc.
- */
 export function formatTimeAgo(date: Date | string): string {
   const pastDate = typeof date === "string" ? new Date(date) : date;
   const now = new Date();
@@ -248,10 +245,13 @@ export function formatDate(date: Date | string): string {
   const now = new Date();
   const diffInDays = FNS.differenceInCalendarDays(now, d);
   if (diffInDays === 0) {
+    // Same day - show time
     return format(d, "h:mm a");
-  } else if (diffInDays > 0) {
+  } else if (diffInDays < 0) {
+    // Future date (d is after now)
     return formatUpcomingTime(d);
   } else {
+    // Past date (d is before now)
     return formatTimeAgo(d);
   }
 }

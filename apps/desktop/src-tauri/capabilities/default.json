@@ -50,7 +50,11 @@
     "fs:default",
     {
       "identifier": "opener:allow-open-url",
-      "allow": [{ "url": "https://**" }]
+      "allow": [
+        { "url": "https://**" },
+        { "url": "http://localhost:*" },
+        { "url": "http://127.0.0.1:*" }
+      ]
     },
     {
       "identifier": "fs:allow-exists",

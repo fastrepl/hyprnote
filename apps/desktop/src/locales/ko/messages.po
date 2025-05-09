@@ -625,6 +625,10 @@ msgstr ""
 msgid "How can I help you today?"
 msgstr ""
 
+#: src/components/editor-area/note-header/listen-button.tsx:61
+msgid "IMPORTANT: Ensure you have consent from everyone in the meeting"
+msgstr ""
+
 #: src/components/editor-area/note-header/chips/instruction-chip.tsx:63
 #~ msgid "Instruction"
 #~ msgstr ""
@@ -855,6 +859,10 @@ msgstr ""
 
 #: src/components/organization-profile/recent-notes.tsx:42
 msgid "Recent Notes"
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:60
+msgid "Recording Started"
 msgstr ""
 
 #. placeholder {0}: member.full_name

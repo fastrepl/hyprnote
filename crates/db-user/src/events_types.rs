@@ -41,5 +41,7 @@ user_common_derives! {
         Search { query: String },
         #[serde(rename = "dateRange")]
         DateRange { start: DateTime<Utc>, end: DateTime<Utc> },
+        #[serde(rename = "not-assigned-past")]
+        NotAssignedPast {},
     }
 }

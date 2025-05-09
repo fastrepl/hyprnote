@@ -255,13 +255,18 @@ impl UserDatabase {
     pub async fn session_set_event(
         &self,
         session_id: String,
-        event_id: String,
+        event_id: Option<String>,
     ) -> Result<(), crate::Error> {
         let conn = self.conn()?;
 
         conn.query(
             "UPDATE sessions SET calendar_event_id = ? WHERE id = ?",
-            vec![event_id, session_id],
+            (
+                event_id
+                    .map(|s| libsql::Value::Text(s))
+                    .unwrap_or(libsql::Value::Null),
+                libsql::Value::Text(session_id),
+            ),
         )
         .await?;
         Ok(())

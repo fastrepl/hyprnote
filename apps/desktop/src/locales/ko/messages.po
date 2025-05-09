@@ -1086,7 +1086,7 @@ msgid "View calendar"
 msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:193
-#: src/components/editor-area/note-header/chips/event-chip.tsx:63
+#: src/components/editor-area/note-header/chips/event-chip.tsx:98
 msgid "View in calendar"
 msgstr ""
 

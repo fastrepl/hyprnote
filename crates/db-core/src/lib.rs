@@ -5,6 +5,8 @@ pub use errors::*;
 
 pub use libsql;
 
+pub const MIGRATION_TABLE_SQL: &str = include_str!("./migration.sql");
+
 #[derive(Clone)]
 pub enum Database {
     StaticConnection(libsql::Connection),
@@ -89,18 +91,40 @@ impl DatabaseBuilder {
     }
 }
 
+pub enum TrackingSource {
+    Pragma,
+    Table,
+}
+
+impl TrackingSource {
+    pub async fn get(&self, conn: &libsql::Connection) -> Result<Option<i32>, crate::Error> {
+        match self {
+            TrackingSource::Pragma => {
+                let result = match conn.query("PRAGMA user_version", ()).await {
+                    Ok(v) => Ok::<Option<libsql::Rows>, crate::Error>(Some(v)),
+                    Err(libsql::Error::Hrana(_)) => Ok(None),
+                    Err(e) => Err(e.into()),
+                }?;
+
+                match result {
+                    Some(mut v) => {
+                        let row = v.next().await?.unwrap();
+                        Ok(Some(row.get(0).unwrap()))
+                    }
+                    // 'PRAGMA user_version' is not supported
+                    None => Ok(None),
+                }
+            }
+            TrackingSource::Table => Ok(None),
+        }
+    }
+}
+
 pub async fn migrate(
     conn: &libsql::Connection,
     migrations: Vec<impl AsRef<str>>,
 ) -> Result<(), crate::Error> {
-    let current_version: i32 = conn
-        .query("PRAGMA user_version", ())
-        .await?
-        .next()
-        .await?
-        .unwrap()
-        .get(0)
-        .unwrap();
+    let current_version: i32 = TrackingSource::Pragma.get(conn).await?.unwrap_or(0);
 
     let latest_version = migrations.len() as i32;
 

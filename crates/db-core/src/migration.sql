@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS _migrations (version INTEGER PRIMARY KEY)

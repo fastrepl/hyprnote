@@ -1,4 +1,4 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { MicIcon, MicOffIcon, PauseIcon, PlayIcon, StopCircleIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
@@ -21,6 +21,7 @@ import ShinyButton from "./shiny-button";
 
 export default function ListenButton({ sessionId }: { sessionId: string }) {
   const { userId, onboardingSessionId } = useHypr();
+  const { t } = useLingui();
   const modelDownloaded = useQuery({
     queryKey: ["check-stt-model-downloaded"],
     refetchInterval: 1000,
@@ -56,10 +57,9 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
     if (ongoingSessionStatus === "running_active" && prevOngoingSessionStatus === "inactive") {
       toast({
         id: "recording-consent",
-        title: "Recording Started",
-        content: "Ensure you have consent from everyone in the meeting",
+        title: t`Recording Started`,
+        content: t`IMPORTANT: Ensure you have consent from everyone in the meeting`,
         dismissible: true,
-        duration: 3000,
       });
     }
   }, [ongoingSessionStatus]);

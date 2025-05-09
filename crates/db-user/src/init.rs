@@ -347,6 +347,18 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             end_date: now - chrono::Duration::days(65) + chrono::Duration::hours(2),
             google_event_url: None,
         },
+        // Event without Session attached
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Random Thoughts".to_string(),
+            note: "Random thoughts...".to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now - chrono::Duration::days(14),
+            end_date: now - chrono::Duration::days(14) + chrono::Duration::hours(1),
+            google_event_url: None,
+        },
     ];
 
     let tags = vec![

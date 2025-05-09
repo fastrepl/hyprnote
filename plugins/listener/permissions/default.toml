@@ -7,8 +7,6 @@ permissions = [
     "allow-request-system-audio-access",
     "allow-open-microphone-access-settings",
     "allow-open-system-audio-access-settings",
-    "allow-subscribe",
-    "allow-unsubscribe",
     "allow-start-session",
     "allow-stop-session",
     "allow-pause-session",

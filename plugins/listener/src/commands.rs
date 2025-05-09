@@ -1,4 +1,4 @@
-use crate::{ListenerPluginExt, SessionEvent};
+use crate::ListenerPluginExt;
 
 #[tauri::command]
 #[specta::specta]
@@ -101,26 +101,6 @@ pub async fn set_speaker_muted<R: tauri::Runtime>(
     muted: bool,
 ) -> Result<(), String> {
     app.set_speaker_muted(muted).await;
-    Ok(())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn subscribe<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    channel: tauri::ipc::Channel<SessionEvent>,
-) -> Result<(), String> {
-    app.subscribe(channel).await;
-    Ok(())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn unsubscribe<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    channel: tauri::ipc::Channel<SessionEvent>,
-) -> Result<(), String> {
-    app.unsubscribe(channel).await;
     Ok(())
 }
 

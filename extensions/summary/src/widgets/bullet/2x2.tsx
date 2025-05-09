@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { Channel } from "@tauri-apps/api/core";
 import { generateObject } from "ai";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { commands as listenerCommands, type SessionEvent } from "@hypr/plugin-listener";
+import { events as listenerEvents } from "@hypr/plugin-listener";
 import { commands as templateCommands } from "@hypr/plugin-template";
 import { Button } from "@hypr/ui/components/ui/button";
 import { WidgetHeader, type WidgetTwoByTwo, WidgetTwoByTwoWrapper } from "@hypr/ui/components/ui/widgets";
@@ -25,20 +24,23 @@ const Widget: WidgetTwoByTwo = ({ queryClient }) => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const channel = new Channel<SessionEvent>();
-    listenerCommands.subscribe(channel);
+    let unlisten: (() => void) | null = null;
 
-    channel.onmessage = (e) => {
-      if (e.type === "started") {
-        setIsLive(true);
-      }
-      if (e.type === "stopped") {
+    listenerEvents.sessionEvent.listen(({ payload }) => {
+      if (payload.type === "inactive" || payload.type === "running_paused") {
         setIsLive(false);
       }
-    };
+      if (payload.type === "running_active") {
+        setIsLive(true);
+      }
+    }).then((fn) => {
+      unlisten = fn;
+    });
 
     return () => {
-      listenerCommands.unsubscribe(channel);
+      if (unlisten) {
+        unlisten();
+      }
     };
   }, []);
 

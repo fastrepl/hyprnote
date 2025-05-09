@@ -1,8 +1,7 @@
-import { Channel } from "@tauri-apps/api/core";
 import { useEffect, useMemo, useState } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { commands as listenerCommands, type SessionEvent, type TimelineView } from "@hypr/plugin-listener";
+import { events as listenerEvents, type TimelineView } from "@hypr/plugin-listener";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 
 export function useTranscript(sessionId: string | null) {
@@ -53,17 +52,20 @@ export function useTranscript(sessionId: string | null) {
       return;
     }
 
-    const channel = new Channel<SessionEvent>();
-    listenerCommands.subscribe(channel);
+    let unlisten: (() => void) | null = null;
 
-    channel.onmessage = (e) => {
-      if (e.type === "timelineView") {
-        setTimeline(e.timeline);
+    listenerEvents.sessionEvent.listen(({ payload }) => {
+      if (payload.type === "timelineView") {
+        setTimeline(payload.view);
       }
-    };
+    }).then((fn) => {
+      unlisten = fn;
+    });
 
     return () => {
-      listenerCommands.unsubscribe(channel);
+      if (unlisten) {
+        unlisten();
+      }
     };
   }, [ongoingSessionState.status, ongoingSessionState.sessionId, sessionId]);
 

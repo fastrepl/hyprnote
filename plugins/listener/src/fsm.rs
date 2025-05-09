@@ -1,19 +1,19 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use statig::prelude::*;
 
-use tauri::{ipc::Channel, Manager};
+use tauri::Manager;
 use tauri_specta::Event;
 
 use futures_util::StreamExt;
 use tokio::sync::{mpsc, Mutex};
 use tokio::task::JoinSet;
 
-use crate::{SessionEvent, SessionEventStarted, SessionEventTimelineView, StatusEvent};
 use hypr_audio::AsyncSource;
 use hypr_timeline::{Timeline, TimelineFilter};
+
+use crate::SessionEvent;
 
 const SAMPLE_RATE: u32 = 16000;
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
@@ -21,7 +21,6 @@ const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
 pub struct Session {
     app: tauri::AppHandle,
     session_id: Option<String>,
-    channels: Arc<Mutex<HashMap<u32, Channel<SessionEvent>>>>,
     mic_muted_tx: Option<tokio::sync::watch::Sender<bool>>,
     mic_muted_rx: Option<tokio::sync::watch::Receiver<bool>>,
     speaker_muted_tx: Option<tokio::sync::watch::Sender<bool>>,
@@ -36,7 +35,6 @@ impl Session {
         Self {
             app,
             session_id: None,
-            channels: Arc::new(Mutex::new(HashMap::new())),
             mic_muted_tx: None,
             mic_muted_rx: None,
             speaker_muted_tx: None,
@@ -45,18 +43,6 @@ impl Session {
             tasks: None,
             session_state_tx: None,
         }
-    }
-
-    async fn broadcast(
-        channels: &Arc<Mutex<HashMap<u32, Channel<SessionEvent>>>>,
-        event: SessionEvent,
-    ) -> Result<(), crate::Error> {
-        let guard = channels.lock().await;
-        for (_id, channel) in guard.iter() {
-            let _ = channel.send(event.clone());
-        }
-
-        Ok(())
     }
 
     #[tracing::instrument(skip_all)]
@@ -183,18 +169,13 @@ impl Session {
         });
 
         let app_dir = self.app.path().app_data_dir().unwrap();
-        let channels = self.channels.clone();
 
         tasks.spawn({
-            let channels = channels.clone();
+            let app = self.app.clone();
             let save_tx = save_tx.clone();
 
             async move {
                 let mut last_broadcast = Instant::now();
-
-                // TODO
-                let start_event = SessionEvent::Started(SessionEventStarted { seconds: 0.0 });
-                Session::broadcast(&channels, start_event).await.unwrap();
 
                 while let (Some(mic_chunk), Some(speaker_chunk)) =
                     (mic_rx.recv().await, speaker_rx.recv().await)
@@ -207,11 +188,7 @@ impl Session {
 
                     let now = Instant::now();
                     if now.duration_since(last_broadcast) >= AUDIO_AMPLITUDE_THROTTLE {
-                        let event =
-                            crate::SessionEventAudioAmplitude::from((&mic_chunk, &speaker_chunk));
-
-                        if let Err(e) =
-                            Session::broadcast(&channels, SessionEvent::AudioAmplitude(event)).await
+                        if let Err(e) = SessionEvent::from((&mic_chunk, &speaker_chunk)).emit(&app)
                         {
                             tracing::error!("broadcast_error: {:?}", e);
                         }
@@ -272,7 +249,6 @@ impl Session {
         let audio_stream = hypr_audio::ReceiverStreamSource::new(process_rx, SAMPLE_RATE);
 
         let listen_stream = listen_client.from_audio(audio_stream).await?;
-        let channels = self.channels.clone();
 
         tasks.spawn({
             let app = self.app.clone();
@@ -294,13 +270,10 @@ impl Session {
                         timeline.add_diarization(d);
                     }
 
-                    Session::broadcast(
-                        &channels,
-                        SessionEvent::TimelineView(SessionEventTimelineView {
-                            timeline: timeline.view(TimelineFilter::default()),
-                        }),
-                    )
-                    .await
+                    SessionEvent::TimelineView {
+                        view: timeline.view(TimelineFilter::default()),
+                    }
+                    .emit(&app)
                     .unwrap();
                 }
 
@@ -340,9 +313,6 @@ impl Session {
                 let _ = res;
             }
         }
-
-        let mut channels = self.channels.lock().await;
-        channels.clear();
     }
 
     pub fn is_mic_muted(&self) -> bool {
@@ -445,8 +415,6 @@ pub enum StateEvent {
     Stop,
     Pause,
     Resume,
-    Subscribe(Channel<SessionEvent>),
-    Unsubscribe(Channel<SessionEvent>),
     MicMuted(bool),
     SpeakerMuted(bool),
 }
@@ -460,16 +428,6 @@ impl Session {
     #[superstate]
     async fn common(&mut self, event: &StateEvent) -> Response<State> {
         match event {
-            StateEvent::Subscribe(channel) => {
-                let mut channels = self.channels.lock().await;
-                channels.insert(channel.id(), channel.clone());
-                Handled
-            }
-            StateEvent::Unsubscribe(channel) => {
-                let mut channels = self.channels.lock().await;
-                channels.remove(&channel.id());
-                Handled
-            }
             StateEvent::MicMuted(muted) => {
                 if let Some(tx) = &self.mic_muted_tx {
                     let _ = tx.send(*muted);
@@ -548,10 +506,6 @@ impl Session {
         }
 
         self.teardown_resources().await;
-
-        Session::broadcast(&self.channels, SessionEvent::Stopped)
-            .await
-            .unwrap();
     }
 
     #[action]
@@ -565,9 +519,9 @@ impl Session {
         tracing::info!("transitioned from `{:?}` to `{:?}`", source, target);
 
         match target {
-            State::RunningActive {} => StatusEvent::RunningActive.emit(&self.app).unwrap(),
-            State::RunningPaused {} => StatusEvent::RunningPaused.emit(&self.app).unwrap(),
-            State::Inactive {} => StatusEvent::Inactive.emit(&self.app).unwrap(),
+            State::RunningActive {} => SessionEvent::RunningActive {}.emit(&self.app).unwrap(),
+            State::RunningPaused {} => SessionEvent::RunningPaused {}.emit(&self.app).unwrap(),
+            State::Inactive {} => SessionEvent::Inactive {}.emit(&self.app).unwrap(),
         }
 
         if let Some(tx) = &self.session_state_tx {

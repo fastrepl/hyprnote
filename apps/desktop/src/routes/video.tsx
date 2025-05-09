@@ -29,16 +29,16 @@ function Component() {
   useEffect(() => {
     let unlisten: () => void;
 
-    listenerEvents.statusEvent.listen(({ payload }) => {
-      if (payload === "running_paused") {
+    listenerEvents.sessionEvent.listen(({ payload }) => {
+      if (payload.type === "running_paused") {
         player.current?.pause();
       }
 
-      if (payload === "running_active") {
+      if (payload.type === "running_active") {
         player.current?.play();
       }
 
-      if (payload === "inactive") {
+      if (payload.type === "inactive") {
         handleEnded();
       }
     }).then((u) => {

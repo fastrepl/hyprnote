@@ -10,8 +10,6 @@ Default permissions for the plugin
 - `allow-request-system-audio-access`
 - `allow-open-microphone-access-settings`
 - `allow-open-system-audio-access-settings`
-- `allow-subscribe`
-- `allow-unsubscribe`
 - `allow-start-session`
 - `allow-stop-session`
 - `allow-pause-session`
@@ -443,58 +441,6 @@ Enables the stop_session command without any pre-configured scope.
 <td>
 
 Denies the stop_session command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:allow-subscribe`
-
-</td>
-<td>
-
-Enables the subscribe command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:deny-subscribe`
-
-</td>
-<td>
-
-Denies the subscribe command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:allow-unsubscribe`
-
-</td>
-<td>
-
-Enables the unsubscribe command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:deny-unsubscribe`
-
-</td>
-<td>
-
-Denies the unsubscribe command without any pre-configured scope.
 
 </td>
 </tr>

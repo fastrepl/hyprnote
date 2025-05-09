@@ -96,26 +96,71 @@ pub enum TrackingSource {
     Table,
 }
 
+// TODO:
+// Turso on AWS does not support user_version PRAGMA. So this solution works for local-only (current status of desktop app) & cloud-only (admin db),
+// but will not work once we start syncing local & cloud. At that point, we should do table-based tracking even though pragma is supported.
 impl TrackingSource {
-    pub async fn get(&self, conn: &libsql::Connection) -> Result<Option<i32>, crate::Error> {
+    pub async fn new(conn: &libsql::Connection) -> Result<Self, crate::Error> {
+        let result = match conn.query("PRAGMA user_version", ()).await {
+            Ok(v) => Ok::<Option<libsql::Rows>, crate::Error>(Some(v)),
+            Err(libsql::Error::Hrana(_)) => Ok(None),
+            Err(e) => Err(e.into()),
+        }?;
+
+        match result {
+            None => Ok(Self::Table),
+            Some(_) => Ok(Self::Pragma),
+        }
+    }
+
+    pub async fn get(&self, conn: &libsql::Connection) -> Result<i32, crate::Error> {
         match self {
             TrackingSource::Pragma => {
-                let result = match conn.query("PRAGMA user_version", ()).await {
-                    Ok(v) => Ok::<Option<libsql::Rows>, crate::Error>(Some(v)),
-                    Err(libsql::Error::Hrana(_)) => Ok(None),
-                    Err(e) => Err(e.into()),
-                }?;
+                let version: i32 = conn
+                    .query("PRAGMA user_version", ())
+                    .await?
+                    .next()
+                    .await?
+                    .unwrap()
+                    .get(0)
+                    .unwrap_or(0);
 
-                match result {
-                    Some(mut v) => {
-                        let row = v.next().await?.unwrap();
-                        Ok(Some(row.get(0).unwrap()))
-                    }
-                    // 'PRAGMA user_version' is not supported
-                    None => Ok(None),
-                }
+                Ok(version)
             }
-            TrackingSource::Table => Ok(None),
+            TrackingSource::Table => {
+                let mut result = conn
+                    .query("SELECT MAX(version) FROM _migrations", ())
+                    .await?;
+
+                let row = result.next().await?;
+                let version: Option<i32> = if let Some(row) = row {
+                    row.get(0)?
+                } else {
+                    None
+                };
+
+                Ok(version.unwrap_or(0))
+            }
+        }
+    }
+
+    pub async fn set(&self, tx: &libsql::Transaction, version: i32) -> Result<(), crate::Error> {
+        match self {
+            TrackingSource::Pragma => {
+                tx.execute(&format!("PRAGMA user_version = {}", version), ())
+                    .await?;
+
+                Ok(())
+            }
+            TrackingSource::Table => {
+                tx.execute(
+                    "INSERT INTO _migrations (version) VALUES (?)",
+                    vec![version],
+                )
+                .await?;
+
+                Ok(())
+            }
         }
     }
 }
@@ -124,8 +169,13 @@ pub async fn migrate(
     conn: &libsql::Connection,
     migrations: Vec<impl AsRef<str>>,
 ) -> Result<(), crate::Error> {
-    let current_version: i32 = TrackingSource::Pragma.get(conn).await?.unwrap_or(0);
+    let tracking = TrackingSource::new(conn).await?;
 
+    if matches!(tracking, TrackingSource::Table) {
+        conn.execute(MIGRATION_TABLE_SQL, ()).await?;
+    }
+
+    let current_version: i32 = tracking.get(conn).await?;
     let latest_version = migrations.len() as i32;
 
     if current_version < latest_version {
@@ -135,9 +185,7 @@ pub async fn migrate(
             tx.execute(migration.as_ref(), ()).await?;
         }
 
-        tx.execute(&format!("PRAGMA user_version = {}", latest_version), ())
-            .await?;
-
+        tracking.set(&tx, latest_version).await?;
         tx.commit().await?;
     }
 

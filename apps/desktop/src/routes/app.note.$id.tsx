@@ -143,10 +143,7 @@ function OnboardingSupport({ session }: { session: Session }) {
     }
 
     if (ongoingSessionStatus === "running_active") {
-      windowsCommands.windowShow({ type: "video", value: video }).then(() => {
-        windowsCommands.windowResizeDefault({ type: "video", value: video });
-        windowsCommands.windowResizeDefault({ type: "main" });
-      });
+      windowsCommands.windowShow({ type: "video", value: video });
     }
   }, [onboardingSessionId, session.id, isEnhancePending, ongoingSessionStatus]);
 

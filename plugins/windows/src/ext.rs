@@ -25,6 +25,8 @@ pub enum HyprWindow {
     Video(String),
     #[serde(rename = "plans")]
     Plans,
+    #[serde(rename = "control")]
+    Control,
 }
 
 impl std::fmt::Display for HyprWindow {
@@ -38,6 +40,7 @@ impl std::fmt::Display for HyprWindow {
             Self::Settings => write!(f, "settings"),
             Self::Video(id) => write!(f, "video-{}", id),
             Self::Plans => write!(f, "plans"),
+            Self::Control => write!(f, "control"),
         }
     }
 }
@@ -50,6 +53,8 @@ impl std::str::FromStr for HyprWindow {
             "main" => return Ok(Self::Main),
             "calendar" => return Ok(Self::Calendar),
             "settings" => return Ok(Self::Settings),
+            "control" => return Ok(Self::Control),
+            "plans" => return Ok(Self::Plans),
             _ => {}
         }
 
@@ -59,7 +64,6 @@ impl std::str::FromStr for HyprWindow {
                 "human" => return Ok(Self::Human(id.to_string())),
                 "organization" => return Ok(Self::Organization(id.to_string())),
                 "video" => return Ok(Self::Video(id.to_string())),
-                "plans" => return Ok(Self::Plans),
                 _ => {}
             }
         }
@@ -143,6 +147,7 @@ impl HyprWindow {
             Self::Settings => "Settings".into(),
             Self::Video(_) => "Video".into(),
             Self::Plans => "Plans".into(),
+            Self::Control => "Control".into(),
         }
     }
 
@@ -151,29 +156,11 @@ impl HyprWindow {
         app.get_webview_window(&label)
     }
 
-    pub fn get_default_size(&self) -> LogicalSize<f64> {
+    #[cfg(target_os = "macos")]
+    pub fn traffic_lights_position(&self) -> Option<LogicalPosition<f32>> {
         match self {
-            Self::Main => LogicalSize::new(910.0, 600.0),
-            Self::Note(_) => LogicalSize::new(480.0, 500.0),
-            Self::Human(_) => LogicalSize::new(480.0, 500.0),
-            Self::Organization(_) => LogicalSize::new(480.0, 500.0),
-            Self::Calendar => LogicalSize::new(640.0, 532.0),
-            Self::Settings => LogicalSize::new(800.0, 600.0),
-            Self::Video(_) => LogicalSize::new(640.0, 360.0),
-            Self::Plans => LogicalSize::new(900.0, 600.0),
-        }
-    }
-
-    pub fn get_min_size(&self) -> LogicalSize<f64> {
-        match self {
-            Self::Main => LogicalSize::new(620.0, 500.0),
-            Self::Note(_) => LogicalSize::new(480.0, 360.0),
-            Self::Human(_) => LogicalSize::new(480.0, 360.0),
-            Self::Organization(_) => LogicalSize::new(480.0, 360.0),
-            Self::Calendar => LogicalSize::new(640.0, 532.0),
-            Self::Settings => LogicalSize::new(800.0, 600.0),
-            Self::Video(_) => LogicalSize::new(640.0, 360.0),
-            Self::Plans => LogicalSize::new(900.0, 600.0),
+            Self::Control => None,
+            _ => Some(LogicalPosition::new(12.0, 20.0)),
         }
     }
 
@@ -216,6 +203,32 @@ impl HyprWindow {
         Ok(())
     }
 
+    fn close(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
+        if !cfg!(target_os = "macos") || *self != HyprWindow::Control {
+            if let Some(window) = self.get(app) {
+                let _ = window.close();
+            }
+        }
+
+        if *self == HyprWindow::Control {
+            #[cfg(target_os = "macos")]
+            {
+                use tauri_nspanel::ManagerExt;
+                if let Ok(panel) = app.get_webview_panel(&HyprWindow::Control.label()) {
+                    let _ = app.run_on_main_thread({
+                        let panel = panel.clone();
+                        move || {
+                            panel.set_released_when_closed(true);
+                            panel.close();
+                        }
+                    });
+                }
+            }
+        }
+
+        Ok(())
+    }
+
     fn destroy(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
         if let Some(window) = self.get(app) {
             window.destroy()?;
@@ -224,133 +237,132 @@ impl HyprWindow {
         Ok(())
     }
 
-    pub fn is_visible(&self, app: &AppHandle<tauri::Wry>) -> Result<bool, crate::Error> {
+    fn hide(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
+        if let Some(window) = self.get(app) {
+            window.hide()?;
+        }
+
+        Ok(())
+    }
+
+    fn is_visible(&self, app: &AppHandle<tauri::Wry>) -> Result<bool, crate::Error> {
         self.get(app).map_or(Ok(false), |w| {
             w.is_visible().map_err(crate::Error::TauriError)
         })
     }
 
     pub fn show(&self, app: &AppHandle<tauri::Wry>) -> Result<WebviewWindow, crate::Error> {
-        let (window, created) = match self.get(app) {
-            Some(window) => (window, false),
-            None => {
-                let url = match self {
-                    Self::Main => "/app/new",
-                    Self::Note(id) => &format!("/app/note/{}", id),
-                    Self::Human(id) => &format!("/app/human/{}", id),
-                    Self::Organization(id) => &format!("/app/organization/{}", id),
-                    Self::Calendar => "/app/calendar",
-                    Self::Settings => "/app/settings",
-                    Self::Video(id) => &format!("/video?id={}", id),
-                    Self::Plans => "/app/plans",
-                };
-                (self.window_builder(app, url).build()?, true)
+        if let Some(window) = self.get(app) {
+            window.set_focus()?;
+            window.show()?;
+            return Ok(window);
+        }
+
+        let monitor = app.primary_monitor()?.unwrap();
+
+        let window = match self {
+            Self::Main => {
+                let builder = self
+                    .window_builder(app, "/app/new")
+                    .maximizable(true)
+                    .minimizable(true)
+                    .min_inner_size(620.0, 500.0);
+                let window = builder.build()?;
+                window.set_size(LogicalSize::new(910.0, 600.0))?;
+                window
+            }
+            Self::Note(id) => self
+                .window_builder(app, &format!("/app/note/{}", id))
+                .inner_size(480.0, 500.0)
+                .min_inner_size(480.0, 360.0)
+                .center()
+                .build()?,
+            Self::Human(id) => self
+                .window_builder(app, &format!("/app/human/{}", id))
+                .inner_size(480.0, 500.0)
+                .min_inner_size(480.0, 360.0)
+                .center()
+                .build()?,
+            Self::Organization(id) => self
+                .window_builder(app, &format!("/app/organization/{}", id))
+                .inner_size(480.0, 500.0)
+                .min_inner_size(480.0, 360.0)
+                .center()
+                .build()?,
+            Self::Calendar => self
+                .window_builder(app, "/app/calendar")
+                .inner_size(640.0, 532.0)
+                .min_inner_size(640.0, 532.0)
+                .build()?,
+            Self::Settings => self
+                .window_builder(app, "/app/settings")
+                .inner_size(800.0, 600.0)
+                .min_inner_size(800.0, 600.0)
+                .build()?,
+            Self::Video(id) => self
+                .window_builder(app, &format!("/video?id={}", id))
+                .maximizable(false)
+                .minimizable(false)
+                .inner_size(640.0, 360.0)
+                .min_inner_size(640.0, 360.0)
+                .build()?,
+            Self::Plans => self
+                .window_builder(app, "/app/plans")
+                .maximizable(false)
+                .minimizable(false)
+                .inner_size(900.0, 600.0)
+                .min_inner_size(900.0, 600.0)
+                .build()?,
+            Self::Control => {
+                let window = self
+                    .window_builder(app, "/app/control")
+                    .maximized(false)
+                    .resizable(false)
+                    .fullscreen(false)
+                    .shadow(false)
+                    .always_on_top(true)
+                    .visible_on_all_workspaces(true)
+                    .accept_first_mouse(true)
+                    .content_protected(true)
+                    .inner_size(
+                        (monitor.size().width as f64) / monitor.scale_factor(),
+                        (monitor.size().height as f64) / monitor.scale_factor(),
+                    )
+                    .skip_taskbar(true)
+                    .position(0.0, 0.0)
+                    .transparent(true)
+                    .build()?;
+
+                #[cfg(target_os = "macos")]
+                {
+                    app.run_on_main_thread({
+                        let window = window.clone();
+                        move || {
+                            use tauri_nspanel::cocoa::appkit::{NSWindowCollectionBehavior,NSMainMenuWindowLevel};
+                            use tauri_nspanel::WebviewWindowExt as NSPanelWebviewWindowExt;
+
+                            let panel = window.to_panel().unwrap();
+
+                            panel.set_level(NSMainMenuWindowLevel);
+                            panel.set_collection_behaviour(
+                                NSWindowCollectionBehavior::NSWindowCollectionBehaviorTransient
+                                    | NSWindowCollectionBehavior::NSWindowCollectionBehaviorMoveToActiveSpace
+                                    | NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenAuxiliary
+                                    | NSWindowCollectionBehavior::NSWindowCollectionBehaviorIgnoresCycle,
+                            );
+
+                            #[allow(non_upper_case_globals)]
+                            const NSWindowStyleMaskNonActivatingPanel: i32 = 1 << 7;
+                            panel.set_style_mask(NSWindowStyleMaskNonActivatingPanel);
+                        }
+                    })
+                    .ok();
+                }
+
+                crate::spwan_overlay_listener(app.clone(), window.clone());
+                window
             }
         };
-
-        if created {
-            #[cfg(target_os = "macos")]
-            {
-                use tauri_plugin_decorum::WebviewWindowExt;
-                window.set_traffic_lights_inset(12.0, 20.0)?;
-            }
-
-            let default_size = self.get_default_size();
-            let min_size = self.get_min_size();
-
-            match self {
-                Self::Main => {
-                    window.set_maximizable(true)?;
-                    window.set_minimizable(true)?;
-
-                    window.set_size(default_size)?;
-                    window.set_min_size(Some(min_size))?;
-                }
-                Self::Note(_) => {
-                    window.hide()?;
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-
-                    window.set_maximizable(false)?;
-                    window.set_minimizable(false)?;
-
-                    window.set_size(default_size)?;
-                    window.set_min_size(Some(min_size))?;
-
-                    window.center()?;
-                }
-                Self::Human(_) => {
-                    window.hide()?;
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-
-                    window.set_maximizable(false)?;
-                    window.set_minimizable(false)?;
-
-                    window.set_size(default_size)?;
-                    window.set_min_size(Some(min_size))?;
-
-                    window.center()?;
-                }
-                Self::Organization(_) => {
-                    window.hide()?;
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-
-                    window.set_maximizable(false)?;
-                    window.set_minimizable(false)?;
-
-                    window.set_size(default_size)?;
-                    window.set_min_size(Some(min_size))?;
-
-                    window.center()?;
-                }
-                Self::Calendar => {
-                    window.hide()?;
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-
-                    window.set_maximizable(false)?;
-                    window.set_minimizable(false)?;
-
-                    window.set_size(default_size)?;
-                    window.set_min_size(Some(min_size))?;
-
-                    window.center()?;
-                }
-                Self::Settings => {
-                    window.hide()?;
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-
-                    window.set_maximizable(false)?;
-                    window.set_minimizable(false)?;
-
-                    window.set_size(default_size)?;
-                    window.set_min_size(Some(min_size))?;
-
-                    window.center()?;
-                }
-                Self::Video(_) => {
-                    window.hide()?;
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-
-                    window.set_resizable(false)?;
-                    window.set_maximizable(false)?;
-                    window.set_minimizable(false)?;
-
-                    window.set_size(default_size)?;
-                    window.set_min_size(Some(min_size))?;
-                }
-                Self::Plans => {
-                    window.hide()?;
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-
-                    window.set_maximizable(false)?;
-                    window.set_minimizable(false)?;
-
-                    window.set_size(default_size)?;
-                    window.set_min_size(Some(min_size))?;
-
-                    window.center()?;
-                }
-            };
-        }
 
         window.set_focus()?;
         window.show()?;
@@ -364,15 +376,27 @@ impl HyprWindow {
     ) -> WebviewWindowBuilder<'a, tauri::Wry, AppHandle<tauri::Wry>> {
         let mut builder = WebviewWindow::builder(app, self.label(), WebviewUrl::App(url.into()))
             .title(self.title())
-            .decorations(true)
             .disable_drag_drop_handler();
 
         #[cfg(target_os = "macos")]
         {
-            builder = builder
-                .hidden_title(true)
-                .theme(Some(tauri::Theme::Light))
-                .title_bar_style(tauri::TitleBarStyle::Overlay);
+            builder = builder.theme(Some(tauri::Theme::Light))
+        }
+
+        #[cfg(target_os = "macos")]
+        {
+            if self.traffic_lights_position().is_some() {
+                builder = builder
+                    .hidden_title(true)
+                    .title_bar_style(tauri::TitleBarStyle::Overlay);
+            } else {
+                builder = builder.decorations(false)
+            }
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            builder = builder.decorations(false);
         }
 
         builder
@@ -382,8 +406,9 @@ impl HyprWindow {
 pub trait WindowsPluginExt<R: tauri::Runtime> {
     fn window_show(&self, window: HyprWindow) -> Result<WebviewWindow, crate::Error>;
     fn window_destroy(&self, window: HyprWindow) -> Result<(), crate::Error>;
+    fn window_close(&self, window: HyprWindow) -> Result<(), crate::Error>;
+    fn window_hide(&self, window: HyprWindow) -> Result<(), crate::Error>;
     fn window_position(&self, window: HyprWindow, pos: KnownPosition) -> Result<(), crate::Error>;
-    fn window_resize_default(&self, window: HyprWindow) -> Result<(), crate::Error>;
     fn window_is_visible(&self, window: HyprWindow) -> Result<bool, crate::Error>;
 
     fn window_get_floating(&self, window: HyprWindow) -> Result<bool, crate::Error>;
@@ -411,17 +436,16 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
         window.destroy(self)
     }
 
-    fn window_position(&self, window: HyprWindow, pos: KnownPosition) -> Result<(), crate::Error> {
-        window.position(self, pos)
+    fn window_close(&self, window: HyprWindow) -> Result<(), crate::Error> {
+        window.close(self)
     }
 
-    fn window_resize_default(&self, window: HyprWindow) -> Result<(), crate::Error> {
-        if let Some(w) = window.get(self) {
-            let default_size = window.get_default_size();
-            w.set_size(default_size)?;
-        }
+    fn window_hide(&self, window: HyprWindow) -> Result<(), crate::Error> {
+        window.hide(self)
+    }
 
-        Ok(())
+    fn window_position(&self, window: HyprWindow, pos: KnownPosition) -> Result<(), crate::Error> {
+        window.position(self, pos)
     }
 
     fn window_is_visible(&self, window: HyprWindow) -> Result<bool, crate::Error> {

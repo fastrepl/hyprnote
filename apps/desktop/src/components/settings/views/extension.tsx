@@ -31,11 +31,9 @@ export default function Extensions({
   );
 
   useEffect(() => {
-    windowsCommands.windowResizeDefault({ type: "main" }).then(() => {
-      windowsEvents.mainWindowState.emit({
-        left_sidebar_expanded: null,
-        right_panel_expanded: true,
-      });
+    windowsEvents.mainWindowState.emit({
+      left_sidebar_expanded: null,
+      right_panel_expanded: true,
     });
   }, []);
 

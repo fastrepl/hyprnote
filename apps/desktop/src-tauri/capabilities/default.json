@@ -26,7 +26,6 @@
     "process:allow-restart",
     "shell:allow-open",
     "sentry:default",
-    "decorum:allow-show-snap-overlay",
     "listener:default",
     "db:default",
     "template:default",

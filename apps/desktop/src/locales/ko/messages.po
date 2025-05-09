@@ -342,6 +342,10 @@ msgstr ""
 msgid "Ask questions about past meetings"
 msgstr ""
 
+#: src/components/editor-area/note-header/chips/event-chip.tsx:143
+msgid "Assign to past event"
+msgstr ""
+
 #: src/components/right-panel/components/chat/chat-message.tsx:18
 msgid "Assistant:"
 msgstr ""
@@ -677,6 +681,10 @@ msgstr ""
 msgid "Live summary of the meeting"
 msgstr ""
 
+#: src/components/editor-area/note-header/chips/event-chip.tsx:142
+#~ msgid "Loading events..."
+#~ msgstr ""
+
 #: src/components/settings/views/extension.tsx:118
 msgid "Loading extension details..."
 msgstr ""
@@ -759,6 +767,10 @@ msgstr ""
 #: src/components/settings/views/ai.tsx:347
 #~ msgid "No models available"
 #~ msgstr ""
+
+#: src/components/editor-area/note-header/chips/event-chip.tsx:148
+msgid "No past events found"
+msgstr ""
 
 #: src/components/human-profile/past-notes.tsx:89
 msgid "No past notes with this contact"
@@ -1086,7 +1098,7 @@ msgid "View calendar"
 msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:193
-#: src/components/editor-area/note-header/chips/event-chip.tsx:63
+#: src/components/editor-area/note-header/chips/event-chip.tsx:136
 msgid "View in calendar"
 msgstr ""
 

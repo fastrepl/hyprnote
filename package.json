@@ -2,5 +2,10 @@
   "packageManager": "pnpm@10.10.0",
   "devDependencies": {
     "turbo": "^2.5.2"
+  },
+  "dependencies": {
+    "@tiptap/extension-document": "^2.11.9",
+    "@tiptap/extension-paragraph": "^2.11.9",
+    "@tiptap/extension-text": "^2.11.9"
   }
 }

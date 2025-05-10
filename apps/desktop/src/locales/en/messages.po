@@ -45,13 +45,13 @@ msgstr "In progress"
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:44
-#: ../../packages/utils/src/datetime.ts:88
+#: ../../packages/utils/src/datetime.ts:90
 msgid "Unknown date"
 msgstr "Unknown date"
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:53
-#: ../../packages/utils/src/datetime.ts:97
+#: ../../packages/utils/src/datetime.ts:98
 msgid "Invalid date"
 msgstr "Invalid date"
 
@@ -62,156 +62,157 @@ msgstr "Today"
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:65
-#: ../../packages/utils/src/datetime.ts:183
+#: ../../packages/utils/src/datetime.ts:180
 msgid "Yesterday"
 msgstr "Yesterday"
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:67
-#: ../../packages/utils/src/datetime.ts:185
+#: ../../packages/utils/src/datetime.ts:182
 msgid "{days} days ago"
 msgstr "{days} days ago"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:74
-#: ../../packages/utils/src/datetime.ts:77
+#: ../../packages/utils/src/datetime.ts:69
+#: ../../packages/utils/src/datetime.ts:236
+msgid "{days} days later"
+msgstr "{days} days later"
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:76
+#: ../../packages/utils/src/datetime.ts:79
 msgid "{date}"
 msgstr "{date}"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:82
-#: ../../packages/utils/src/datetime.ts:129
+#: ../../packages/utils/src/datetime.ts:84
+#: ../../packages/utils/src/datetime.ts:130
 msgid "Date error"
 msgstr "Date error"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:108
+#: ../../packages/utils/src/datetime.ts:109
 msgid "Today ({dayOfWeek})"
 msgstr "Today ({dayOfWeek})"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:110
+#: ../../packages/utils/src/datetime.ts:111
 msgid "Yesterday ({dayOfWeek})"
 msgstr "Yesterday ({dayOfWeek})"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:112
+#: ../../packages/utils/src/datetime.ts:113
 msgid "{days} days ago ({dayOfWeek})"
 msgstr "{days} days ago ({dayOfWeek})"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:114
+#: ../../packages/utils/src/datetime.ts:115
 msgid "{days} days later ({dayOfWeek})"
 msgstr "{days} days later ({dayOfWeek})"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:121
-#: ../../packages/utils/src/datetime.ts:124
+#: ../../packages/utils/src/datetime.ts:122
+#: ../../packages/utils/src/datetime.ts:125
 msgid "{date} ({dayOfWeek})"
 msgstr "{date} ({dayOfWeek})"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:171
+#: ../../packages/utils/src/datetime.ts:168
 msgid "just now"
 msgstr "just now"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:173
+#: ../../packages/utils/src/datetime.ts:170
 msgid "{seconds} seconds ago"
 msgstr "{seconds} seconds ago"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:175
+#: ../../packages/utils/src/datetime.ts:172
 msgid "1 minute ago"
 msgstr "1 minute ago"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:177
+#: ../../packages/utils/src/datetime.ts:174
 msgid "{minutes} minutes ago"
 msgstr "{minutes} minutes ago"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:179
+#: ../../packages/utils/src/datetime.ts:176
 msgid "1 hour ago"
 msgstr "1 hour ago"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:181
+#: ../../packages/utils/src/datetime.ts:178
 msgid "{hours} hours ago"
 msgstr "{hours} hours ago"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:187
+#: ../../packages/utils/src/datetime.ts:184
 msgid "1 week ago"
 msgstr "1 week ago"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:189
+#: ../../packages/utils/src/datetime.ts:186
 msgid "{weeks} weeks ago"
 msgstr "{weeks} weeks ago"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:191
+#: ../../packages/utils/src/datetime.ts:188
 msgid "1 month ago"
 msgstr "1 month ago"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:193
+#: ../../packages/utils/src/datetime.ts:190
 msgid "{months} months ago"
 msgstr "{months} months ago"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:195
+#: ../../packages/utils/src/datetime.ts:192
 msgid "1 year ago"
 msgstr "1 year ago"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:197
+#: ../../packages/utils/src/datetime.ts:194
 msgid "{years} years ago"
 msgstr "{years} years ago"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:210
+#: ../../packages/utils/src/datetime.ts:207
 msgid "in progress"
 msgstr "in progress"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:226
+#: ../../packages/utils/src/datetime.ts:223
 msgid "in {seconds} seconds"
 msgstr "in {seconds} seconds"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:228
+#: ../../packages/utils/src/datetime.ts:225
 msgid "in 1 minute"
 msgstr "in 1 minute"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:230
+#: ../../packages/utils/src/datetime.ts:227
 msgid "in {minutes} minutes"
 msgstr "in {minutes} minutes"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:232
+#: ../../packages/utils/src/datetime.ts:229
 msgid "in 1 hour"
 msgstr "in 1 hour"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:234
+#: ../../packages/utils/src/datetime.ts:231
 msgid "in {hours} hours"
 msgstr "in {hours} hours"
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:237
+#: ../../packages/utils/src/datetime.ts:234
 msgid "1 day later"
 msgstr "1 day later"
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:239
-msgid "{days} days later"
-msgstr "{days} days later"
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:242
 msgid "{weeks} weeks later"
 msgstr "{weeks} weeks later"
 

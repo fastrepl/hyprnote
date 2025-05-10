@@ -327,7 +327,7 @@ function NoteItem({
 
 const groupSessions = (sessions: SessionWithEvent[]): [string, SessionWithEvent[]][] => {
   const grouped = sessions.reduce<Record<string, SessionWithEvent[]>>((acc, session) => {
-    const key = formatRelative(session.event?.start_date ?? session.created_at);
+    const key = formatRelative(session.created_at);
 
     return {
       ...acc,

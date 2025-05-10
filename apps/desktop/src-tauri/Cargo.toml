@@ -84,7 +84,7 @@ serde_json = { workspace = true }
 bytes = { workspace = true }
 chrono = { workspace = true }
 codes-iso-639 = { workspace = true }
-dotenvy_macro = { workspace = true }
+envy = { workspace = true }
 url = { workspace = true }
 uuid = { workspace = true }
 

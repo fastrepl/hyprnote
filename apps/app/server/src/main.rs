@@ -1,3 +1,4 @@
+mod env;
 mod error;
 mod middleware;
 mod nango;
@@ -45,11 +46,10 @@ use clerk_rs::{
 use state::{AnalyticsState, AuthState, WorkerState};
 
 fn main() {
-    #[cfg(debug_assertions)]
-    dotenv::from_filename(".env.local").unwrap();
+    let config = env::load();
 
     let _guard = sentry::init((
-        get_env("SENTRY_DSN"),
+        config.sentry_dsn.clone(),
         sentry::ClientOptions {
             release: sentry::release_name!(),
             ..Default::default()
@@ -62,22 +62,10 @@ fn main() {
         .unwrap()
         .block_on(async {
             let layer = {
-                #[cfg(debug_assertions)]
                 {
                     tracing_subscriber::fmt::layer()
                         .with_file(true)
                         .with_line_number(true)
-                }
-
-                #[cfg(not(debug_assertions))]
-                {
-                    tracing_axiom::builder("hyprnote-server")
-                        .with_token(get_env("AXIOM_TOKEN"))
-                        .unwrap()
-                        .with_dataset(get_env("AXIOM_DATASET"))
-                        .unwrap()
-                        .build()
-                        .unwrap()
                 }
             };
 
@@ -100,29 +88,29 @@ fn main() {
 
             let turso = hypr_turso::TursoClient::builder()
                 .with_token_cache(128)
-                .api_key(get_env("TURSO_API_KEY"))
-                .org_slug(get_env("TURSO_ORG_SLUG"))
+                .api_key(&config.turso_api_key)
+                .org_slug(&config.turso_org_slug)
                 .build();
 
             let clerk_config =
-                ClerkConfiguration::new(None, None, Some(get_env("CLERK_SECRET_KEY")), None);
+                ClerkConfiguration::new(None, None, Some(config.clerk_secret_key.clone()), None);
             let clerk = Clerk::new(clerk_config);
 
             let realtime_stt = hypr_stt::realtime::Client::builder()
-                .deepgram_api_key(get_env("DEEPGRAM_API_KEY"))
-                .clova_api_key(get_env("CLOVA_API_KEY"))
+                .deepgram_api_key(&config.deepgram_api_key)
+                .clova_api_key(&config.clova_api_key)
                 .build();
 
             let recorded_stt = hypr_stt::recorded::Client::builder()
-                .deepgram_api_key(get_env("DEEPGRAM_API_KEY"))
-                .clova_api_key(get_env("CLOVA_API_KEY"))
+                .deepgram_api_key(&config.deepgram_api_key)
+                .clova_api_key(&config.clova_api_key)
                 .build();
 
             let admin_db = {
                 let base_db = {
-                    let name = get_env("TURSO_ADMIN_DB_NAME");
+                    let name = &config.turso_admin_db_name;
 
-                    let db_name = turso.format_db_name(&name);
+                    let db_name = turso.format_db_name(name);
                     let db_url = turso.format_db_url(&db_name);
                     let db_token = turso.generate_db_token(&db_name).await.unwrap();
 
@@ -140,25 +128,25 @@ fn main() {
             };
 
             let nango = hypr_nango::NangoClientBuilder::default()
-                .api_base(get_env("NANGO_API_BASE"))
-                .api_key(get_env("NANGO_API_KEY"))
+                .api_base(&config.nango_api_base)
+                .api_key(&config.nango_api_key)
                 .build();
 
-            let analytics = hypr_analytics::AnalyticsClient::new(get_env("POSTHOG_API_KEY"));
+            let analytics = hypr_analytics::AnalyticsClient::new(&config.posthog_api_key);
 
             let s3 = hypr_s3::Client::builder()
-                .endpoint_url(get_env("S3_ENDPOINT_URL"))
-                .bucket(get_env("S3_BUCKET_NAME"))
-                .credentials(get_env("S3_ACCESS_KEY_ID"), get_env("S3_SECRET_ACCESS_KEY"))
+                .endpoint_url(&config.s3_endpoint_url)
+                .bucket(&config.s3_bucket_name)
+                .credentials(&config.s3_access_key_id, &config.s3_secret_access_key)
                 .build()
                 .await;
 
             let openai = hypr_openai::OpenAIClient::builder()
-                .api_key(get_env("OPENAI_API_KEY"))
-                .api_base(get_env("OPENAI_API_BASE"))
+                .api_key(&config.openai_api_key)
+                .api_base(&config.openai_api_base)
                 .build();
 
-            let stripe_client = stripe::Client::new(get_env("STRIPE_SECRET_KEY"));
+            let stripe_client = stripe::Client::new(&config.stripe_secret_key);
 
             let state = state::AppState {
                 clerk: clerk.clone(),
@@ -250,7 +238,7 @@ fn main() {
 
             {
                 router = router.fallback_service({
-                    let static_dir: std::path::PathBuf = get_env("APP_STATIC_DIR").into();
+                    let static_dir: std::path::PathBuf = config.app_static_dir.clone().into();
 
                     ServeDir::new(&static_dir)
                         .append_index_html_on_directories(false)
@@ -260,7 +248,7 @@ fn main() {
 
             let mut api = OpenApi::default();
 
-            let port = std::env::var("PORT").unwrap_or("1234".to_string());
+            let port = &config.port;
             let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port))
                 .await
                 .unwrap();
@@ -300,10 +288,6 @@ fn main() {
             let monitor = async { worker::monitor(worker_state).await.unwrap() };
             let _result = tokio::join!(http, monitor);
         });
-}
-
-fn get_env(key: &str) -> String {
-    std::env::var(key).unwrap_or_else(|_| panic!("env: '{}' is not set", key))
 }
 
 #[cfg(test)]

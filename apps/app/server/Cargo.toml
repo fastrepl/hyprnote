@@ -49,6 +49,7 @@ bytes = { workspace = true }
 chrono = { workspace = true }
 codes-iso-639 = { workspace = true }
 dotenv = { workspace = true }
+envy = { workspace = true }
 thiserror = { workspace = true }
 url = { workspace = true }
 uuid = { workspace = true }

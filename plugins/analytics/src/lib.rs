@@ -24,24 +24,12 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
-pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
+pub fn init<R: tauri::Runtime>(api_key: String) -> tauri::plugin::TauriPlugin<R> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let api_key = {
-                #[cfg(not(debug_assertions))]
-                {
-                    env!("POSTHOG_API_KEY")
-                }
-
-                #[cfg(debug_assertions)]
-                {
-                    option_env!("POSTHOG_API_KEY").unwrap_or_default()
-                }
-            };
-
             let client = hypr_analytics::AnalyticsClient::new(api_key);
             assert!(app.manage(client));
             Ok(())
@@ -71,7 +59,10 @@ mod test {
         ctx.config_mut().identifier = "com.hyprnote.dev".to_string();
         ctx.config_mut().version = Some("0.0.1".to_string());
 
-        builder.plugin(init()).build(ctx).unwrap()
+        builder
+            .plugin(init("API_KEY".to_string()))
+            .build(ctx)
+            .unwrap()
     }
 
     #[test]

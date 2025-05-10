@@ -1,4 +1,5 @@
 mod commands;
+mod env;
 mod ext;
 mod store;
 
@@ -15,6 +16,8 @@ use tracing_subscriber::{
 pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
+    let config = env::load();
+
     {
         let env_filter =
             EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
@@ -27,17 +30,7 @@ pub async fn main() {
     }
 
     let client = tauri_plugin_sentry::sentry::init((
-        {
-            #[cfg(not(debug_assertions))]
-            {
-                env!("SENTRY_DSN")
-            }
-
-            #[cfg(debug_assertions)]
-            {
-                option_env!("SENTRY_DSN").unwrap_or_default()
-            }
-        },
+        config.sentry_dsn,
         tauri_plugin_sentry::sentry::ClientOptions {
             release: tauri_plugin_sentry::sentry::release_name!(),
             traces_sample_rate: 1.0,
@@ -83,7 +76,7 @@ pub async fn main() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_http::init())
-        .plugin(tauri_plugin_analytics::init())
+        .plugin(tauri_plugin_analytics::init(config.posthog_api_key))
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_clipboard_manager::init())

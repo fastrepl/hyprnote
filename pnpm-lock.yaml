@@ -165,6 +165,9 @@ importers:
       '@hypr/plugin-local-stt':
         specifier: workspace:^
         version: link:../../plugins/local-stt
+      '@hypr/plugin-membership':
+        specifier: workspace:^
+        version: link:../../plugins/membership
       '@hypr/plugin-misc':
         specifier: workspace:^
         version: link:../../plugins/misc
@@ -1293,6 +1296,12 @@ importers:
         version: 2.5.0
 
   plugins/local-stt:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.5.0
+        version: 2.5.0
+
+  plugins/membership:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.5.0

@@ -3340,6 +3340,7 @@ dependencies = [
  "tauri-plugin-listener",
  "tauri-plugin-local-llm",
  "tauri-plugin-local-stt",
+ "tauri-plugin-membership",
  "tauri-plugin-misc",
  "tauri-plugin-notification",
  "tauri-plugin-opener",
@@ -13206,6 +13207,21 @@ dependencies = [
  "tracing",
  "whisper",
  "ws-utils",
+]
+
+[[package]]
+name = "tauri-plugin-membership"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.12",
 ]
 
 [[package]]

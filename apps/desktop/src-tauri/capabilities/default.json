@@ -48,6 +48,7 @@
     "deep-link:default",
     "notification:default",
     "fs:default",
+    "membership:default",
     {
       "identifier": "opener:allow-open-url",
       "allow": [

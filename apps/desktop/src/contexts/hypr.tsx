@@ -1,9 +1,9 @@
 import { useQueries } from "@tanstack/react-query";
 import { createContext, useContext } from "react";
 
-import { getApiDesktopSubscriptionOptions, type Subscription } from "@/client";
 import { commands as authCommands } from "@hypr/plugin-auth";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as membershipCommands, type Subscription } from "@hypr/plugin-membership";
 
 export interface HyprContext {
   userId: string;
@@ -24,7 +24,10 @@ export function HyprProvider({ children }: { children: React.ReactNode }) {
         queryKey: ["onboarding-session-id"],
         queryFn: () => dbCommands.onboardingSessionId(),
       },
-      getApiDesktopSubscriptionOptions(),
+      {
+        queryKey: ["subscription"],
+        queryFn: () => membershipCommands.refresh(),
+      },
     ],
   });
 

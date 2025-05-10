@@ -295,16 +295,16 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the ping command without any pre-configured scope.",
+          "description": "Enables the get_subscription command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-ping",
-          "markdownDescription": "Enables the ping command without any pre-configured scope."
+          "const": "allow-get-subscription",
+          "markdownDescription": "Enables the get_subscription command without any pre-configured scope."
         },
         {
-          "description": "Denies the ping command without any pre-configured scope.",
+          "description": "Denies the get_subscription command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-ping",
-          "markdownDescription": "Denies the ping command without any pre-configured scope."
+          "const": "deny-get-subscription",
+          "markdownDescription": "Denies the get_subscription command without any pre-configured scope."
         },
         {
           "description": "Enables the refresh command without any pre-configured scope.",
@@ -319,10 +319,10 @@
           "markdownDescription": "Denies the refresh command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-refresh`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-refresh`\n- `allow-get-subscription`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-refresh`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-refresh`\n- `allow-get-subscription`"
         }
       ]
     }

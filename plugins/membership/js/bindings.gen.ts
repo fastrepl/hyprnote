@@ -7,8 +7,11 @@
 
 
 export const commands = {
-async refresh() : Promise<null> {
+async refresh() : Promise<Subscription> {
     return await TAURI_INVOKE("plugin:membership|refresh");
+},
+async getSubscription() : Promise<Subscription | null> {
+    return await TAURI_INVOKE("plugin:membership|get_subscription");
 }
 }
 
@@ -22,7 +25,8 @@ async refresh() : Promise<null> {
 
 /** user-defined types **/
 
-
+export type Subscription = { status: SubscriptionStatus; current_period_end: number; trial_end: number | null; price_id: string | null }
+export type SubscriptionStatus = "active" | "canceled" | "incomplete" | "incomplete_expired" | "past_due" | "paused" | "trialing" | "unpaid"
 
 /** tauri-specta globals **/
 

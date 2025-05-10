@@ -9,6 +9,7 @@ dotenv = { workspace = true }
 [dependencies]
 hypr-auth-interface = { workspace = true }
 hypr-listener-interface = { workspace = true }
+tauri-plugin-membership = { workspace = true }
 
 hypr-analytics = { workspace = true }
 hypr-buffer = { workspace = true }

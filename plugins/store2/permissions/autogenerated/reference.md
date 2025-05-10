@@ -96,32 +96,6 @@ Denies the get_str command without any pre-configured scope.
 <tr>
 <td>
 
-`store2:allow-ping`
-
-</td>
-<td>
-
-Enables the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`store2:deny-ping`
-
-</td>
-<td>
-
-Denies the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `store2:allow-set-bool`
 
 </td>

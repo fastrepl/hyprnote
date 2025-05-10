@@ -5,6 +5,7 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-refresh`
+- `allow-get-subscription`
 
 ## Permission Table
 
@@ -18,12 +19,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`membership:allow-ping`
+`membership:allow-get-subscription`
 
 </td>
 <td>
 
-Enables the ping command without any pre-configured scope.
+Enables the get_subscription command without any pre-configured scope.
 
 </td>
 </tr>
@@ -31,12 +32,12 @@ Enables the ping command without any pre-configured scope.
 <tr>
 <td>
 
-`membership:deny-ping`
+`membership:deny-get-subscription`
 
 </td>
 <td>
 
-Denies the ping command without any pre-configured scope.
+Denies the get_subscription command without any pre-configured scope.
 
 </td>
 </tr>

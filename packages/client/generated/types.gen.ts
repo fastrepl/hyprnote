@@ -577,15 +577,6 @@ export type Session = {
 
 export type Stop = string | Array<string>;
 
-export type Subscription = {
-    current_period_end: number;
-    price_id?: string | null;
-    status: SubscriptionStatus;
-    trial_end?: number | null;
-};
-
-export type SubscriptionStatus = 'active' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'past_due' | 'paused' | 'trialing' | 'unpaid';
-
 export type TranscriptChunk = {
     confidence?: number | null;
     end: number;
@@ -612,19 +603,6 @@ export type GetApiDesktopUserIntegrationsResponses = {
 };
 
 export type GetApiDesktopUserIntegrationsResponse = GetApiDesktopUserIntegrationsResponses[keyof GetApiDesktopUserIntegrationsResponses];
-
-export type GetApiDesktopSubscriptionData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/desktop/subscription';
-};
-
-export type GetApiDesktopSubscriptionResponses = {
-    200: Subscription;
-};
-
-export type GetApiDesktopSubscriptionResponse = GetApiDesktopSubscriptionResponses[keyof GetApiDesktopSubscriptionResponses];
 
 export type PostApiWebConnectData = {
     body: RequestParams;

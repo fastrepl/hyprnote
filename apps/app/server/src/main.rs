@@ -192,7 +192,7 @@ fn main() {
                     "/user/integrations",
                     api_get(native::user::list_integrations),
                 )
-                .api_route("/subscription", api_get(native::subscription::handler))
+                .route("/subscription", get(native::subscription::handler))
                 .route("/listen/realtime", get(native::listen::realtime::handler))
                 .layer(
                     tower::builder::ServiceBuilder::new()

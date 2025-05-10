@@ -14,6 +14,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::refresh::<tauri::Wry>,
+            commands::get_subscription::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

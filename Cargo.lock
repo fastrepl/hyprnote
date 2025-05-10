@@ -366,6 +366,7 @@ dependencies = [
  "specta-typescript",
  "strum 0.26.3",
  "stt",
+ "tauri-plugin-membership",
  "thiserror 2.0.12",
  "tokio",
  "tower 0.5.2",
@@ -13213,6 +13214,8 @@ dependencies = [
 name = "tauri-plugin-membership"
 version = "0.1.0"
 dependencies = [
+ "reqwest 0.12.15",
+ "schemars",
  "serde",
  "serde_json",
  "specta",

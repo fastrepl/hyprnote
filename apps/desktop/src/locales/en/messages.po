@@ -237,7 +237,7 @@ msgstr "{0}"
 msgid "{0} calendars selected"
 msgstr "{0} calendars selected"
 
-#: src/components/settings/views/lab.tsx:139
+#: src/components/settings/views/lab.tsx:103
 msgid "{description}"
 msgstr "{description}"
 
@@ -245,7 +245,7 @@ msgstr "{description}"
 #~ msgid "{selectedCount} calendars selected"
 #~ msgstr "{selectedCount} calendars selected"
 
-#: src/components/settings/views/lab.tsx:136
+#: src/components/settings/views/lab.tsx:100
 msgid "{title}"
 msgstr "{title}"
 
@@ -296,7 +296,7 @@ msgstr "Admin"
 msgid "AI"
 msgstr "AI"
 
-#: src/components/login-modal.tsx:97
+#: src/components/login-modal.tsx:118
 msgid "AI notepad for meetings"
 msgstr "AI notepad for meetings"
 
@@ -600,7 +600,7 @@ msgstr "Full name"
 msgid "General"
 msgstr "General"
 
-#: src/components/login-modal.tsx:105
+#: src/components/login-modal.tsx:126
 msgid "Get Started"
 msgstr "Get Started"
 
@@ -819,6 +819,10 @@ msgstr "Open Note"
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:114
 msgid "Optional for participant suggestions"
 msgstr "Optional for participant suggestions"
+
+#: src/components/login-modal.tsx:137
+msgid "or, just use it locally"
+msgstr "or, just use it locally"
 
 #: src/components/settings/views/team.tsx:139
 #: src/components/settings/views/team.tsx:226
@@ -1086,7 +1090,7 @@ msgid "View calendar"
 msgstr "View calendar"
 
 #: src/components/left-sidebar/events-list.tsx:193
-#: src/components/editor-area/note-header/chips/event-chip.tsx:63
+#: src/components/editor-area/note-header/chips/event-chip.tsx:98
 msgid "View in calendar"
 msgstr "View in calendar"
 

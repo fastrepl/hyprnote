@@ -7,8 +7,8 @@
 
 
 export const commands = {
-async ping() : Promise<string> {
-    return await TAURI_INVOKE("plugin:membership|ping");
+async refresh() : Promise<null> {
+    return await TAURI_INVOKE("plugin:membership|refresh");
 }
 }
 

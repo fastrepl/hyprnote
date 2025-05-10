@@ -307,10 +307,22 @@
           "markdownDescription": "Denies the ping command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`",
+          "description": "Enables the refresh command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-refresh",
+          "markdownDescription": "Enables the refresh command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the refresh command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-refresh",
+          "markdownDescription": "Denies the refresh command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-refresh`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-refresh`"
         }
       ]
     }

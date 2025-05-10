@@ -1,11 +1,12 @@
+use std::sync::{Arc, Mutex};
+use std::task::{Poll, Waker};
+
 use anyhow::Result;
 use futures_util::Stream;
 use ringbuf::{
     traits::{Consumer, Producer, Split},
-    HeapRb,
+    HeapCons, HeapProd, HeapRb,
 };
-use std::sync::{Arc, Mutex};
-use std::task::{Poll, Waker};
 
 use ca::aggregate_device_keys as agg_keys;
 use cidre::{arc, av, cat, cf, core_audio as ca, ns, os};
@@ -24,7 +25,7 @@ struct WakerState {
 }
 
 pub struct SpeakerStream {
-    consumer: ringbuf::HeapCons<f32>,
+    consumer: HeapCons<f32>,
     stream_desc: cat::AudioBasicStreamDesc,
     sample_rate_override: Option<u32>,
     _device: ca::hardware::StartedDevice<ca::AggregateDevice>,
@@ -48,7 +49,7 @@ impl SpeakerStream {
 
 struct Ctx {
     format: arc::R<av::AudioFormat>,
-    producer: ringbuf::HeapProd<f32>,
+    producer: HeapProd<f32>,
     waker_state: Arc<Mutex<WakerState>>,
 }
 

@@ -69,6 +69,18 @@
         }
       }
     },
+    "/api/web/checkout": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "plain text",
+            "content": {
+              "text/plain; charset=utf-8": {}
+            }
+          }
+        }
+      }
+    },
     "/api/web/session/{id}": {
       "get": {
         "parameters": [

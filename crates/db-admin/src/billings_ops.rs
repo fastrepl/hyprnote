@@ -1,9 +1,31 @@
 use super::{AdminDatabase, Billing};
 
 impl AdminDatabase {
+    pub async fn get_billing_by_account_id(
+        &self,
+        account_id: impl Into<String>,
+    ) -> Result<Option<Billing>, crate::Error> {
+        let conn = self.conn()?;
+
+        let mut rows = conn
+            .query(
+                "SELECT * FROM billings WHERE account_id = ?",
+                vec![account_id.into()],
+            )
+            .await?;
+
+        match rows.next().await? {
+            None => Ok(None),
+            Some(row) => {
+                let billing: Billing = libsql::de::from_row(&row).unwrap();
+                Ok(Some(billing))
+            }
+        }
+    }
+
     pub async fn create_empty_billing(
         &self,
-        organization_id: impl Into<String>,
+        account_id: impl Into<String>,
     ) -> Result<Option<Billing>, crate::Error> {
         let conn = self.conn()?;
 
@@ -11,14 +33,14 @@ impl AdminDatabase {
             .query(
                 "INSERT INTO billings (
                     id,
-                    organization_id,
+                    account_id,
                     stripe_subscription,
                     stripe_customer
                 ) VALUES (?, ?, ?, ?)
                 RETURNING *",
                 vec![
                     libsql::Value::Text(uuid::Uuid::new_v4().to_string()),
-                    libsql::Value::Text(organization_id.into()),
+                    libsql::Value::Text(account_id.into()),
                     libsql::Value::Null,
                     libsql::Value::Null,
                 ],

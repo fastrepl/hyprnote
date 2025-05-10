@@ -385,8 +385,9 @@ export type CreateChatCompletionRequest = {
 };
 
 export type DiarizationChunk = {
+    confidence?: number | null;
     end: number;
-    speaker: string;
+    speaker: number;
     start: number;
 };
 
@@ -583,6 +584,7 @@ export type Subscription = {
 };
 
 export type TranscriptChunk = {
+    confidence?: number | null;
     end: number;
     start: number;
     text: string;
@@ -633,6 +635,20 @@ export type PostApiWebConnectResponses = {
 };
 
 export type PostApiWebConnectResponse = PostApiWebConnectResponses[keyof PostApiWebConnectResponses];
+
+export type GetApiWebCheckoutData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/web/checkout';
+};
+
+export type GetApiWebCheckoutResponses = {
+    /**
+     * plain text
+     */
+    200: unknown;
+};
 
 export type GetApiWebSessionByIdData = {
     body?: never;

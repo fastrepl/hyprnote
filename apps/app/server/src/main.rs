@@ -177,6 +177,7 @@ fn main() {
                 ApiRouter::new().api_route("/connect", api_post(web::connect::handler));
 
             let web_other_router = ApiRouter::new()
+                .api_route("/checkout", api_get(web::checkout::handler))
                 .api_route("/session/{id}", api_get(web::session::handler))
                 .api_route(
                     "/integration/connection",

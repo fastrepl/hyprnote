@@ -1,7 +1,6 @@
 export * from "./edit-mode-context";
 export * from "./hypr";
 export * from "./left-sidebar";
-export * from "./login-modal";
 export * from "./new-note";
 export * from "./right-panel";
 export * from "./search";

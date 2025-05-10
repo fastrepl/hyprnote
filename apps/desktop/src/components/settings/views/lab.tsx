@@ -1,6 +1,5 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CloudLightningIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { commands as flagsCommands } from "@hypr/plugin-flags";
@@ -11,43 +10,8 @@ export default function Lab() {
     <div>
       <div className="space-y-4">
         <ChatPanel />
-        <CloudPreview />
       </div>
     </div>
-  );
-}
-
-function CloudPreview() {
-  const flagQuery = useQuery({
-    queryKey: ["flags", "CloudPreview"],
-    queryFn: () => flagsCommands.isEnabled("CloudPreview"),
-  });
-
-  const flagMutation = useMutation({
-    mutationFn: async (enabled: boolean) => {
-      if (enabled) {
-        flagsCommands.enable("CloudPreview");
-      } else {
-        flagsCommands.disable("CloudPreview");
-      }
-    },
-    onSuccess: () => {
-      flagQuery.refetch();
-    },
-  });
-
-  const handleToggle = (enabled: boolean) => {
-    flagMutation.mutate(enabled);
-  };
-
-  return (
-    <FeatureFlag
-      title="Hyprnote Cloud"
-      description="Access to the latest AI model for Hyprnote Pro"
-      icon={<CloudLightningIcon />}
-      enabled={flagQuery.data ?? false}
-      onToggle={handleToggle}
-    />
   );
 }
 

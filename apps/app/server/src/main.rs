@@ -42,7 +42,7 @@ use clerk_rs::{
     ClerkConfiguration,
 };
 
-use state::{AuthState, WorkerState};
+use state::{AnalyticsState, AuthState, WorkerState};
 
 fn main() {
     #[cfg(debug_assertions)]
@@ -182,17 +182,12 @@ fn main() {
                     "/integration/connection",
                     api_post(web::integration::create_connection),
                 )
-                .layer(
-                    tower::builder::ServiceBuilder::new()
-                        .layer(axum::middleware::from_fn_with_state(
-                            AuthState::from_ref(&state),
-                            middleware::attach_user_from_clerk,
-                        ))
-                        .layer(axum::middleware::from_fn_with_state(
-                            AuthState::from_ref(&state),
-                            middleware::attach_user_db,
-                        )),
-                );
+                .layer(tower::builder::ServiceBuilder::new().layer(
+                    axum::middleware::from_fn_with_state(
+                        AuthState::from_ref(&state),
+                        middleware::attach_user_from_clerk,
+                    ),
+                ));
 
             let web_router = web_connect_router
                 .merge(web_other_router)
@@ -208,22 +203,22 @@ fn main() {
                     api_get(native::user::list_integrations),
                 )
                 .api_route("/subscription", api_get(native::subscription::handler))
-                .route("/listen/realtime", get(native::listen::realtime::handler));
-            // .layer(
-            //     tower::builder::ServiceBuilder::new()
-            //         .layer(axum::middleware::from_fn_with_state(
-            //             AuthState::from_ref(&state),
-            //             middleware::verify_api_key,
-            //         ))
-            //         .layer(axum::middleware::from_fn_with_state(
-            //             AuthState::from_ref(&state),
-            //             middleware::attach_user_db,
-            //         ))
-            //         .layer(axum::middleware::from_fn_with_state(
-            //             AnalyticsState::from_ref(&state),
-            //             middleware::send_analytics,
-            //         )),
-            // );
+                .route("/listen/realtime", get(native::listen::realtime::handler))
+                .layer(
+                    tower::builder::ServiceBuilder::new()
+                        .layer(axum::middleware::from_fn_with_state(
+                            AuthState::from_ref(&state),
+                            middleware::verify_api_key,
+                        ))
+                        .layer(axum::middleware::from_fn_with_state(
+                            AuthState::from_ref(&state),
+                            middleware::attach_user_db,
+                        ))
+                        .layer(axum::middleware::from_fn_with_state(
+                            AnalyticsState::from_ref(&state),
+                            middleware::send_analytics,
+                        )),
+                );
 
             let slack_router = ApiRouter::new();
 

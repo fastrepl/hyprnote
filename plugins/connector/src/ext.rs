@@ -105,11 +105,12 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
 
     async fn get_llm_connection(&self) -> Result<ConnectionLLM, crate::Error> {
         {
-            use tauri_plugin_flags::{FlagsPluginExt, StoreKey as FlagsStoreKey};
+            use tauri_plugin_auth::{AuthPluginExt, StoreKey};
 
             if self
-                .is_enabled(FlagsStoreKey::CloudPreview)
-                .unwrap_or(false)
+                .get_from_store(StoreKey::Plan)?
+                .unwrap_or("free".to_string())
+                == "pro".to_string()
             {
                 let api_base = if cfg!(debug_assertions) {
                     "http://127.0.0.1:1234".to_string()
@@ -168,11 +169,12 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
 
     async fn get_stt_connection(&self) -> Result<ConnectionSTT, crate::Error> {
         {
-            use tauri_plugin_flags::{FlagsPluginExt, StoreKey as FlagsStoreKey};
+            use tauri_plugin_auth::{AuthPluginExt, StoreKey};
 
             if self
-                .is_enabled(FlagsStoreKey::CloudPreview)
-                .unwrap_or(false)
+                .get_from_store(StoreKey::Plan)?
+                .unwrap_or("free".to_string())
+                == "pro".to_string()
             {
                 let api_base = if cfg!(debug_assertions) {
                     "http://127.0.0.1:1234".to_string()

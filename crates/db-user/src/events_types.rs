@@ -40,6 +40,6 @@ user_common_derives! {
         #[serde(rename = "search")]
         Search { query: String },
         #[serde(rename = "dateRange")]
-        DateRange { start: DateTime<Utc>, end: DateTime<Utc> },
+        DateRange { start: DateTime<Utc>, end: DateTime<Utc> }
     }
 }

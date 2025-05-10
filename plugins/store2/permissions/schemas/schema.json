@@ -367,10 +367,10 @@
           "markdownDescription": "Denies the set_str command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-str`\n- `allow-set-str`\n- `allow-get-bool`\n- `allow-set-bool`\n- `allow-get-number`\n- `allow-set-number`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-str`\n- `allow-set-str`\n- `allow-get-bool`\n- `allow-set-bool`\n- `allow-get-number`\n- `allow-set-number`"
         }
       ]
     }

@@ -4,7 +4,12 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-ping`
+- `allow-get-str`
+- `allow-set-str`
+- `allow-get-bool`
+- `allow-set-bool`
+- `allow-get-number`
+- `allow-set-number`
 
 ## Permission Table
 

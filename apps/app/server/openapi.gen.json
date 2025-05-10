@@ -1257,14 +1257,6 @@
           "mp3"
         ]
       },
-      "Membership": {
-        "type": "string",
-        "enum": [
-          "Trial",
-          "Basic",
-          "Pro"
-        ]
-      },
       "NangoConnectSessionRequest": {
         "type": "object",
         "required": [
@@ -1687,15 +1679,7 @@
         ]
       },
       "Subscription": {
-        "type": "object",
-        "required": [
-          "membership"
-        ],
-        "properties": {
-          "membership": {
-            "$ref": "#/components/schemas/Membership"
-          }
-        }
+        "type": "object"
       },
       "TranscriptChunk": {
         "type": "object",

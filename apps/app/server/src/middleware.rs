@@ -42,8 +42,15 @@ pub async fn verify_api_key(
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
         .ok_or((StatusCode::UNAUTHORIZED, "account_not_found".into()))?;
 
+    let billing = state
+        .admin_db
+        .get_billing_by_account_id(&account.id)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
     req.extensions_mut().insert(user);
     req.extensions_mut().insert(account);
+    req.extensions_mut().insert(billing);
     Ok(next.run(req).await)
 }
 
@@ -83,6 +90,7 @@ pub async fn attach_user_from_clerk(
     Ok(next.run(req).await)
 }
 
+#[allow(unused)]
 #[tracing::instrument(skip_all)]
 pub async fn attach_user_db(
     State(state): State<AuthState>,

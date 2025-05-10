@@ -212,10 +212,6 @@ fn main() {
                             middleware::verify_api_key,
                         ))
                         .layer(axum::middleware::from_fn_with_state(
-                            AuthState::from_ref(&state),
-                            middleware::attach_user_db,
-                        ))
-                        .layer(axum::middleware::from_fn_with_state(
                             AnalyticsState::from_ref(&state),
                             middleware::send_analytics,
                         )),

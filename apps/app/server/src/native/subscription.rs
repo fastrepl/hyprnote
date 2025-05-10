@@ -1,15 +1,16 @@
 use axum::{extract::State, http::StatusCode, Extension, Json};
 
-use crate::{
-    state::AppState,
-    types::{Membership, Subscription},
-};
+use crate::state::AppState;
 
 pub async fn handler(
-    State(_state): State<AppState>,
-    Extension(_org): Extension<hypr_db_admin::Account>,
+    Extension(billing): Extension<hypr_db_admin::Billing>,
 ) -> Result<Json<Subscription>, StatusCode> {
-    Ok(Json(Subscription {
-        membership: Membership::Trial,
-    }))
+    // let a = billing.stripe_subscription.map(|s| s.);
+
+    let subscription = Subscription {};
+
+    Ok(Json(subscription))
 }
+
+#[derive(Debug, serde::Serialize, schemars::JsonSchema)]
+pub struct Subscription {}

@@ -1,5 +1,4 @@
 export { default as LocalAI } from "./ai";
-export { default as Billing } from "./billing";
 export { default as Calendar } from "./calendar";
 export { default as Extensions } from "./extension";
 export { default as Feedback } from "./feedback";

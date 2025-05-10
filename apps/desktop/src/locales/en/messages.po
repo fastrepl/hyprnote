@@ -310,8 +310,8 @@ msgid "and {0} more members"
 msgstr "and {0} more members"
 
 #: src/components/settings/views/billing.tsx:131
-msgid "Annual"
-msgstr "Annual"
+#~ msgid "Annual"
+#~ msgstr "Annual"
 
 #: src/components/share-and-permission/publish.tsx:18
 msgid "Anyone with the link can view this page"
@@ -339,8 +339,8 @@ msgid "Are you sure you want to delete this note?"
 msgstr "Are you sure you want to delete this note?"
 
 #: src/components/settings/views/billing.tsx:27
-msgid "Ask questions about past meetings"
-msgstr "Ask questions about past meetings"
+#~ msgid "Ask questions about past meetings"
+#~ msgstr "Ask questions about past meetings"
 
 #: src/components/right-panel/components/chat/chat-message.tsx:18
 msgid "Assistant:"
@@ -351,12 +351,12 @@ msgid "Back to Settings"
 msgstr "Back to Settings"
 
 #: src/components/settings/components/settings-header.tsx:36
-msgid "Billing"
-msgstr "Billing"
+#~ msgid "Billing"
+#~ msgstr "Billing"
 
 #: src/components/settings/views/billing.tsx:104
-msgid "Billing features are currently under development and will be available in a future update."
-msgstr "Billing features are currently under development and will be available in a future update."
+#~ msgid "Billing features are currently under development and will be available in a future update."
+#~ msgstr "Billing features are currently under development and will be available in a future update."
 
 #: src/components/settings/components/templates-sidebar.tsx:68
 msgid "Built-in Templates"
@@ -392,12 +392,10 @@ msgid "Choose whether to save your recordings locally."
 msgstr "Choose whether to save your recordings locally."
 
 #: src/components/settings/views/billing.tsx:52
-msgid "Collaborate with others in meetings"
-msgstr "Collaborate with others in meetings"
+#~ msgid "Collaborate with others in meetings"
+#~ msgstr "Collaborate with others in meetings"
 
 #: src/components/settings/views/team.tsx:69
-#: src/components/settings/views/billing.tsx:63
-#: src/components/settings/views/billing.tsx:101
 #: src/components/settings/components/extensions-sidebar.tsx:55
 msgid "Coming Soon"
 msgstr "Coming Soon"
@@ -453,8 +451,8 @@ msgid "Create Note"
 msgstr "Create Note"
 
 #: src/components/settings/views/billing.tsx:66
-msgid "Current Plan"
-msgstr "Current Plan"
+#~ msgid "Current Plan"
+#~ msgstr "Current Plan"
 
 #: src/components/settings/views/ai.tsx:451
 msgid "Custom Endpoint"
@@ -568,28 +566,28 @@ msgid "Feedback"
 msgstr "Feedback"
 
 #: src/components/settings/views/billing.tsx:47
-msgid "For fast growing teams like energetic startups"
-msgstr "For fast growing teams like energetic startups"
+#~ msgid "For fast growing teams like energetic startups"
+#~ msgstr "For fast growing teams like energetic startups"
 
 #: src/components/settings/views/billing.tsx:34
-msgid "For those who are serious about their performance"
-msgstr "For those who are serious about their performance"
+#~ msgid "For those who are serious about their performance"
+#~ msgstr "For those who are serious about their performance"
 
 #: src/components/settings/views/billing.tsx:21
-msgid "For those who are serious about their privacy"
-msgstr "For those who are serious about their privacy"
+#~ msgid "For those who are serious about their privacy"
+#~ msgstr "For those who are serious about their privacy"
 
 #: src/components/settings/views/billing.tsx:26
-msgid "Format notes using templates"
-msgstr "Format notes using templates"
+#~ msgid "Format notes using templates"
+#~ msgstr "Format notes using templates"
 
 #: src/components/settings/views/billing.tsx:20
-msgid "Free"
-msgstr "Free"
+#~ msgid "Free"
+#~ msgstr "Free"
 
 #: src/components/settings/views/billing.tsx:72
-msgid "Free Trial"
-msgstr "Free Trial"
+#~ msgid "Free Trial"
+#~ msgstr "Free Trial"
 
 #: src/components/settings/views/profile.tsx:119
 msgid "Full name"
@@ -630,8 +628,8 @@ msgstr "How can I help you today?"
 #~ msgstr "Instruction"
 
 #: src/components/settings/views/billing.tsx:38
-msgid "Integration with other apps like Notion and Google Calendar"
-msgstr "Integration with other apps like Notion and Google Calendar"
+#~ msgid "Integration with other apps like Notion and Google Calendar"
+#~ msgstr "Integration with other apps like Notion and Google Calendar"
 
 #: src/components/share-and-permission/invite-list.tsx:30
 msgid "Invite"
@@ -666,16 +664,16 @@ msgstr "Language"
 #~ msgstr "Language Model"
 
 #: src/components/settings/views/billing.tsx:200
-msgid "Learn more about our pricing plans"
-msgstr "Learn more about our pricing plans"
+#~ msgid "Learn more about our pricing plans"
+#~ msgstr "Learn more about our pricing plans"
 
 #: src/components/settings/views/profile.tsx:210
 msgid "LinkedIn username"
 msgstr "LinkedIn username"
 
 #: src/components/settings/views/billing.tsx:28
-msgid "Live summary of the meeting"
-msgstr "Live summary of the meeting"
+#~ msgid "Live summary of the meeting"
+#~ msgstr "Live summary of the meeting"
 
 #: src/components/settings/views/extension.tsx:118
 msgid "Loading extension details..."
@@ -691,16 +689,16 @@ msgid "Local mode"
 msgstr "Local mode"
 
 #: src/components/settings/views/billing.tsx:39
-msgid "Long-term memory for past meetings and attendees"
-msgstr "Long-term memory for past meetings and attendees"
+#~ msgid "Long-term memory for past meetings and attendees"
+#~ msgstr "Long-term memory for past meetings and attendees"
 
 #: src/components/share-and-permission/publish.tsx:24
 msgid "Make it public"
 msgstr "Make it public"
 
 #: src/components/settings/views/billing.tsx:41
-msgid "Meeting note sharing via links"
-msgstr "Meeting note sharing via links"
+#~ msgid "Meeting note sharing via links"
+#~ msgstr "Meeting note sharing via links"
 
 #: src/components/settings/views/team.tsx:145
 #: src/components/settings/views/team.tsx:232
@@ -724,12 +722,12 @@ msgid "Model Name"
 msgstr "Model Name"
 
 #: src/components/settings/views/billing.tsx:125
-msgid "Monthly"
-msgstr "Monthly"
+#~ msgid "Monthly"
+#~ msgstr "Monthly"
 
 #: src/components/settings/views/billing.tsx:40
-msgid "Much better AI performance"
-msgstr "Much better AI performance"
+#~ msgid "Much better AI performance"
+#~ msgstr "Much better AI performance"
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:89
 msgid "My Profile"
@@ -842,8 +840,8 @@ msgid "Play video"
 msgstr "Play video"
 
 #: src/components/settings/views/billing.tsx:33
-msgid "Pro"
-msgstr "Pro"
+#~ msgid "Pro"
+#~ msgstr "Pro"
 
 #: src/components/settings/components/settings-header.tsx:22
 msgid "Profile"
@@ -892,8 +890,8 @@ msgid "Save recordings"
 msgstr "Save recordings"
 
 #: src/components/settings/views/billing.tsx:51
-msgid "Search & ask across all notes in workspace"
-msgstr "Search & ask across all notes in workspace"
+#~ msgid "Search & ask across all notes in workspace"
+#~ msgstr "Search & ask across all notes in workspace"
 
 #: src/components/settings/views/team.tsx:204
 msgid "Search names or emails"
@@ -941,8 +939,8 @@ msgstr "Show notifications when you join a meeting."
 #~ msgstr "Show notifications when you join a meeting. This is not perfect."
 
 #: src/components/settings/views/billing.tsx:53
-msgid "Single sign-on for all users"
-msgstr "Single sign-on for all users"
+#~ msgid "Single sign-on for all users"
+#~ msgstr "Single sign-on for all users"
 
 #: src/components/settings/components/main-sidebar.tsx:35
 msgid "Sound"
@@ -953,16 +951,16 @@ msgstr "Sound"
 #~ msgstr "Speech-to-Text Model"
 
 #: src/components/settings/views/billing.tsx:76
-msgid "Start Annual Plan"
-msgstr "Start Annual Plan"
+#~ msgid "Start Annual Plan"
+#~ msgstr "Start Annual Plan"
 
 #: src/components/editor-area/note-header/listen-button.tsx:249
 #~ msgid "Start Meeting"
 #~ msgstr "Start Meeting"
 
 #: src/components/settings/views/billing.tsx:75
-msgid "Start Monthly Plan"
-msgstr "Start Monthly Plan"
+#~ msgid "Start Monthly Plan"
+#~ msgstr "Start Monthly Plan"
 
 #: src/components/editor-area/note-header/listen-button.tsx:168
 msgid "Start recording"
@@ -981,14 +979,13 @@ msgid "Summarize meeting"
 msgstr "Summarize meeting"
 
 #: src/components/settings/views/billing.tsx:42
-msgid "Synchronization across multiple devices"
-msgstr "Synchronization across multiple devices"
+#~ msgid "Synchronization across multiple devices"
+#~ msgstr "Synchronization across multiple devices"
 
 #: src/components/settings/views/sound.tsx:106
 msgid "System Audio Access"
 msgstr "System Audio Access"
 
-#: src/components/settings/views/billing.tsx:46
 #: src/components/settings/components/settings-header.tsx:34
 msgid "Team"
 msgstr "Team"
@@ -1006,8 +1003,8 @@ msgid "Templates"
 msgstr "Templates"
 
 #: src/components/settings/views/billing.tsx:113
-msgid "There's a plan for everyone"
-msgstr "There's a plan for everyone"
+#~ msgid "There's a plan for everyone"
+#~ msgstr "There's a plan for everyone"
 
 #: src/components/settings/views/profile.tsx:188
 msgid "This is a short description of your company."
@@ -1066,8 +1063,8 @@ msgid "Upcoming Events"
 msgstr "Upcoming Events"
 
 #: src/components/settings/views/billing.tsx:69
-msgid "Upgrade"
-msgstr "Upgrade"
+#~ msgid "Upgrade"
+#~ msgstr "Upgrade"
 
 #: src/components/settings/views/ai.tsx:429
 msgid "Use the local Llama 3.2 model for enhanced privacy and offline capability."
@@ -1107,12 +1104,12 @@ msgid "We'll only use this to follow up if needed."
 msgstr "We'll only use this to follow up if needed."
 
 #: src/components/settings/views/billing.tsx:25
-msgid "Works both in-person and remotely"
-msgstr "Works both in-person and remotely"
+#~ msgid "Works both in-person and remotely"
+#~ msgstr "Works both in-person and remotely"
 
 #: src/components/settings/views/billing.tsx:29
-msgid "Works offline"
-msgstr "Works offline"
+#~ msgid "Works offline"
+#~ msgstr "Works offline"
 
 #: src/components/settings/views/general.tsx:219
 msgid "You can make Hyprnote takes these words into account when transcribing"

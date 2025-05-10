@@ -159,6 +159,7 @@ fn main() {
                 s3,
                 openai,
                 stripe: stripe_client,
+                stripe_webhook_signing_secret: config.stripe_webhook_signing_secret,
             };
 
             let web_connect_router =
@@ -205,12 +206,10 @@ fn main() {
                         )),
                 );
 
-            let slack_router = ApiRouter::new();
-
             let webhook_router = ApiRouter::new()
-                .route("/nango", post(nango::handler))
                 .route("/stripe", post(stripe_mod::webhook::handler))
-                .nest("/slack", slack_router);
+                .route("/nango", post(nango::handler))
+                .with_state(state::WebhookState::from_ref(&state));
 
             let mut router = ApiRouter::new()
                 .route("/openapi.json", get(openapi::handler))

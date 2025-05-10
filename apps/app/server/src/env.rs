@@ -24,6 +24,7 @@ pub struct ENV {
     pub openai_api_key: String,
     pub openai_api_base: String,
     pub stripe_secret_key: String,
+    pub stripe_webhook_signing_secret: String,
     pub app_static_dir: String,
     #[serde(default = "default_port")]
     pub port: String,

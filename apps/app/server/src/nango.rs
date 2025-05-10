@@ -4,11 +4,11 @@ use axum::{
     response::IntoResponse,
 };
 
-use crate::state::AppState;
+use crate::state::WebhookState;
 
 // https://docs.nango.dev/guides/webhooks/webhooks-from-nango#auth-webhooks
 pub async fn handler(
-    State(state): State<AppState>,
+    State(state): State<WebhookState>,
     Json(input): Json<hypr_nango::NangoConnectWebhook>,
 ) -> Result<impl IntoResponse, StatusCode> {
     let connection = state

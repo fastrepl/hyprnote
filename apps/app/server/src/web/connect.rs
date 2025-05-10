@@ -3,10 +3,9 @@ use axum::{
     http::StatusCode,
     Json,
 };
-
-use crate::state::AppState;
 use clerk_rs::validators::authorizer::ClerkJwt;
 
+use crate::{state::AppState, stripe_mod::ops as stripe_ops};
 use hypr_auth_interface::{RequestParams, ResponseParams};
 
 pub async fn handler(
@@ -41,6 +40,17 @@ pub async fn handler(
 
             // make sure we use same format in tauri side
             let turso_db_name = hypr_turso::format_db_name(account_id.clone());
+
+            let customer = stripe_ops::create_customer(&state.stripe).await.unwrap();
+            let subscription =
+                stripe_ops::create_subscription_with_trial(&state.stripe, customer.id.clone(), 7)
+                    .await
+                    .unwrap();
+
+            let _ = db
+                .create_billing(&account_id, customer, subscription)
+                .await
+                .unwrap();
 
             db.upsert_account(hypr_db_admin::Account {
                 id: account_id,

@@ -4,7 +4,6 @@ use axum::{
 };
 
 use clerk_rs::validators::authorizer::ClerkJwt;
-use stripe::{CreateCustomer, Customer};
 
 use crate::{state::AppState, stripe_mod::ops as stripe_ops};
 
@@ -39,7 +38,7 @@ pub async fn handler(
     let customer_id = match billing.and_then(|b| b.stripe_customer) {
         Some(c) => c.id,
         None => {
-            let c = Customer::create(&state.stripe, CreateCustomer::default())
+            let c = stripe_ops::create_customer(&state.stripe)
                 .await
                 .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 

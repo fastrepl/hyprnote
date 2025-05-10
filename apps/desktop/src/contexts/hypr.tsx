@@ -1,18 +1,20 @@
 import { useQueries } from "@tanstack/react-query";
 import { createContext, useContext } from "react";
 
+import { getApiDesktopSubscriptionOptions, type Subscription } from "@/client";
 import { commands as authCommands } from "@hypr/plugin-auth";
 import { commands as dbCommands } from "@hypr/plugin-db";
 
 export interface HyprContext {
   userId: string;
   onboardingSessionId: string;
+  subscription?: Subscription;
 }
 
 const HyprContext = createContext<HyprContext | null>(null);
 
 export function HyprProvider({ children }: { children: React.ReactNode }) {
-  const [userId, onboardingSessionId] = useQueries({
+  const [userId, onboardingSessionId, subscription] = useQueries({
     queries: [
       {
         queryKey: ["auth-user-id"],
@@ -22,6 +24,7 @@ export function HyprProvider({ children }: { children: React.ReactNode }) {
         queryKey: ["onboarding-session-id"],
         queryFn: () => dbCommands.onboardingSessionId(),
       },
+      getApiDesktopSubscriptionOptions(),
     ],
   });
 
@@ -39,7 +42,9 @@ export function HyprProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <HyprContext.Provider value={{ userId: userId.data, onboardingSessionId: onboardingSessionId.data }}>
+    <HyprContext.Provider
+      value={{ userId: userId.data, onboardingSessionId: onboardingSessionId.data, subscription: subscription.data }}
+    >
       {children}
     </HyprContext.Provider>
   );

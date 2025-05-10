@@ -3,9 +3,10 @@ use stripe::{
     CreateCheckoutSessionLineItems, CreateCheckoutSessionSubscriptionDataTrialSettings,
     CreateCheckoutSessionSubscriptionDataTrialSettingsEndBehavior,
     CreateCheckoutSessionSubscriptionDataTrialSettingsEndBehaviorMissingPaymentMethod,
-    CreateSubscription, CreateSubscriptionTrialSettings,
+    CreateCustomer, CreateSubscription, CreateSubscriptionTrialSettings,
     CreateSubscriptionTrialSettingsEndBehavior,
-    CreateSubscriptionTrialSettingsEndBehaviorMissingPaymentMethod, CustomerId, Subscription,
+    CreateSubscriptionTrialSettingsEndBehaviorMissingPaymentMethod, Customer, CustomerId,
+    Subscription,
 };
 
 #[cfg(debug_assertions)]
@@ -48,22 +49,26 @@ pub async fn create_checkout_without_trial(
 pub async fn create_subscription_with_trial(
     client: &Client,
     customer_id: CustomerId,
+    trial_period_days: u32,
 ) -> Result<Subscription, String> {
     let mut params = CreateSubscription::new(customer_id);
 
-    params.trial_settings = Some(CreateSubscriptionTrialSettings {
-        end_behavior: CreateSubscriptionTrialSettingsEndBehavior {
-            missing_payment_method:
-                CreateSubscriptionTrialSettingsEndBehaviorMissingPaymentMethod::Cancel,
-        },
-    });
-    params.trial_period_days = Some(7);
+    params.trial_settings = Some(trial_settings_for_subscription());
+    params.trial_period_days = Some(trial_period_days);
 
     let subscription = Subscription::create(client, params)
         .await
         .map_err(|e| e.to_string())?;
 
     Ok(subscription)
+}
+
+pub async fn create_customer(client: &Client) -> Result<Customer, String> {
+    let customer = Customer::create(client, CreateCustomer::default())
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(customer)
 }
 
 // https://docs.stripe.com/billing/subscriptions/trials#create-free-trials-without-payment

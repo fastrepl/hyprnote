@@ -5,8 +5,8 @@ mod native;
 mod openapi;
 mod slack;
 mod state;
-#[path = "stripe.rs"]
-mod stripe_webhook;
+#[path = "stripe/mod.rs"]
+mod stripe_mod;
 mod types;
 mod web;
 mod worker;
@@ -225,7 +225,7 @@ fn main() {
 
             let webhook_router = ApiRouter::new()
                 .route("/nango", post(nango::handler))
-                .route("/stripe", post(stripe_webhook::handler))
+                .route("/stripe", post(stripe_mod::webhook::handler))
                 .nest("/slack", slack_router);
 
             let mut router = ApiRouter::new()

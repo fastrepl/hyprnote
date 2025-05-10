@@ -17,12 +17,16 @@ pub async fn handler(
     let (clerk_user_id, clerk_org_id) = (jwt.sub, jwt.org.map(|o| o.id));
 
     let existing_account = {
-        let db = state.admin_db.clone();
-
         if let Some(clerk_org_id) = &clerk_org_id {
-            db.get_account_by_clerk_org_id(clerk_org_id).await
+            state
+                .admin_db
+                .get_account_by_clerk_org_id(clerk_org_id)
+                .await
         } else {
-            db.get_account_by_clerk_user_id(&clerk_user_id).await
+            state
+                .admin_db
+                .get_account_by_clerk_user_id(&clerk_user_id)
+                .await
         }
     }
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;

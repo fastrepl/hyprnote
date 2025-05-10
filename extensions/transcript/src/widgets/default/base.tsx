@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { ClipboardCopyIcon, FileAudioIcon } from "lucide-react";
 import React from "react";
 
@@ -40,11 +41,7 @@ export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
   const handleCopyAll = () => {
     if (timeline && timeline.items && timeline.items.length > 0) {
       const transcriptText = timeline.items.map((item) => item.text).join("\n");
-      navigator.clipboard.writeText(transcriptText).then(() => {
-        console.log("Transcript copied to clipboard!");
-      }).catch(err => {
-        console.error("Failed to copy transcript: ", err);
-      });
+      writeText(transcriptText);
     }
   };
 

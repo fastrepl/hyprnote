@@ -53,7 +53,7 @@ export function HyprProvider({ children }: { children: React.ReactNode }) {
 export function useHypr() {
   const context = useContext(HyprContext);
   if (!context) {
-    throw new Error("useHypr must be used within an AuthProvider");
+    throw new Error("useHypr must be used within an HyprProvider");
   }
   return context;
 }

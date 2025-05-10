@@ -1679,7 +1679,46 @@
         ]
       },
       "Subscription": {
-        "type": "object"
+        "type": "object",
+        "required": [
+          "current_period_end",
+          "status"
+        ],
+        "properties": {
+          "current_period_end": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "plan": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/SubscriptionStatus"
+          },
+          "trial_end": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "SubscriptionStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "canceled",
+          "incomplete",
+          "incomplete_expired",
+          "past_due",
+          "paused",
+          "trialing",
+          "unpaid"
+        ]
       },
       "TranscriptChunk": {
         "type": "object",

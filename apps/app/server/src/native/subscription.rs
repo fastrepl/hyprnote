@@ -7,7 +7,7 @@ pub async fn handler(
         status: s.status.into(),
         current_period_end: s.current_period_end,
         trial_end: s.trial_end,
-        plan: s
+        price_id: s
             .items
             .data
             .first()
@@ -27,7 +27,7 @@ pub struct Subscription {
     pub status: SubscriptionStatus,
     pub current_period_end: i64,
     pub trial_end: Option<i64>,
-    pub plan: Option<String>,
+    pub price_id: Option<String>,
 }
 
 #[derive(Debug, serde::Serialize, schemars::JsonSchema)]

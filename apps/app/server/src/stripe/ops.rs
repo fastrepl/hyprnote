@@ -9,16 +9,6 @@ use stripe::{
     Subscription,
 };
 
-#[cfg(debug_assertions)]
-pub fn get_price_id() -> String {
-    "price_1PZ00000000000000000000".to_string()
-}
-
-#[cfg(not(debug_assertions))]
-pub fn get_price_id() -> String {
-    "price_1PZ00000000000000000000".to_string()
-}
-
 pub fn get_line_items() -> Vec<CreateCheckoutSessionLineItems> {
     vec![CreateCheckoutSessionLineItems {
         quantity: Some(1),
@@ -36,9 +26,7 @@ pub async fn create_checkout_without_trial(
     params.mode = Some(CheckoutSessionMode::Subscription);
     params.line_items = Some(get_line_items());
 
-    let cancel_url = get_cancel_url();
     let success_url = get_success_url();
-    params.cancel_url = Some(&cancel_url);
     params.success_url = Some(&success_url);
 
     CheckoutSession::create(client, params)
@@ -91,21 +79,21 @@ fn trial_settings_for_checkout() -> CreateCheckoutSessionSubscriptionDataTrialSe
 }
 
 #[cfg(debug_assertions)]
-fn get_cancel_url() -> String {
-    "http://test.com/cancel".to_string()
+pub fn get_price_id() -> String {
+    "price_1RNJnZEABq1oJeLyqULb2gtm".to_string()
 }
 
 #[cfg(not(debug_assertions))]
-fn get_cancel_url() -> String {
-    "http://test.com/cancel".to_string()
+pub fn get_price_id() -> String {
+    "price_1RMxR4EABq1oJeLyOpEFuV2Q".to_string()
 }
 
 #[cfg(debug_assertions)]
 fn get_success_url() -> String {
-    "http://test.com/success".to_string()
+    "http://127.0.0.1:1234/checkout/success".to_string()
 }
 
 #[cfg(not(debug_assertions))]
 fn get_success_url() -> String {
-    "http://test.com/success".to_string()
+    "https://app.hyprnote.com/checkout/success".to_string()
 }

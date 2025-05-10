@@ -579,7 +579,7 @@ export type Stop = string | Array<string>;
 
 export type Subscription = {
     current_period_end: number;
-    plan?: string | null;
+    price_id?: string | null;
     status: SubscriptionStatus;
     trial_end?: number | null;
 };

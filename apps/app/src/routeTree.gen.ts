@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as IntegrationImport } from './routes/integration'
 import { Route as IndexImport } from './routes/index'
 import { Route as SIdImport } from './routes/s.$id'
+import { Route as CheckoutSuccessImport } from './routes/checkout.success'
 import { Route as AuthSsoCallbackImport } from './routes/auth.sso-callback'
 import { Route as AuthSignOutImport } from './routes/auth.sign-out'
 import { Route as AuthSignInImport } from './routes/auth.sign-in'
@@ -36,6 +37,12 @@ const IndexRoute = IndexImport.update({
 const SIdRoute = SIdImport.update({
   id: '/s/$id',
   path: '/s/$id',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CheckoutSuccessRoute = CheckoutSuccessImport.update({
+  id: '/checkout/success',
+  path: '/checkout/success',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -109,6 +116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSsoCallbackImport
       parentRoute: typeof rootRoute
     }
+    '/checkout/success': {
+      id: '/checkout/success'
+      path: '/checkout/success'
+      fullPath: '/checkout/success'
+      preLoaderRoute: typeof CheckoutSuccessImport
+      parentRoute: typeof rootRoute
+    }
     '/s/$id': {
       id: '/s/$id'
       path: '/s/$id'
@@ -128,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-out': typeof AuthSignOutRoute
   '/auth/sso-callback': typeof AuthSsoCallbackRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/s/$id': typeof SIdRoute
 }
 
@@ -138,6 +153,7 @@ export interface FileRoutesByTo {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-out': typeof AuthSignOutRoute
   '/auth/sso-callback': typeof AuthSsoCallbackRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/s/$id': typeof SIdRoute
 }
 
@@ -149,6 +165,7 @@ export interface FileRoutesById {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-out': typeof AuthSignOutRoute
   '/auth/sso-callback': typeof AuthSsoCallbackRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/s/$id': typeof SIdRoute
 }
 
@@ -161,6 +178,7 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-out'
     | '/auth/sso-callback'
+    | '/checkout/success'
     | '/s/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -170,6 +188,7 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-out'
     | '/auth/sso-callback'
+    | '/checkout/success'
     | '/s/$id'
   id:
     | '__root__'
@@ -179,6 +198,7 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-out'
     | '/auth/sso-callback'
+    | '/checkout/success'
     | '/s/$id'
   fileRoutesById: FileRoutesById
 }
@@ -190,6 +210,7 @@ export interface RootRouteChildren {
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignOutRoute: typeof AuthSignOutRoute
   AuthSsoCallbackRoute: typeof AuthSsoCallbackRoute
+  CheckoutSuccessRoute: typeof CheckoutSuccessRoute
   SIdRoute: typeof SIdRoute
 }
 
@@ -200,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignInRoute: AuthSignInRoute,
   AuthSignOutRoute: AuthSignOutRoute,
   AuthSsoCallbackRoute: AuthSsoCallbackRoute,
+  CheckoutSuccessRoute: CheckoutSuccessRoute,
   SIdRoute: SIdRoute,
 }
 
@@ -219,6 +241,7 @@ export const routeTree = rootRoute
         "/auth/sign-in",
         "/auth/sign-out",
         "/auth/sso-callback",
+        "/checkout/success",
         "/s/$id"
       ]
     },
@@ -239,6 +262,9 @@ export const routeTree = rootRoute
     },
     "/auth/sso-callback": {
       "filePath": "auth.sso-callback.tsx"
+    },
+    "/checkout/success": {
+      "filePath": "checkout.success.tsx"
     },
     "/s/$id": {
       "filePath": "s.$id.tsx"

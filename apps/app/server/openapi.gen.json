@@ -1689,7 +1689,7 @@
             "type": "integer",
             "format": "int64"
           },
-          "plan": {
+          "price_id": {
             "type": [
               "string",
               "null"

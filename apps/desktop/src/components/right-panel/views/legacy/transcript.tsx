@@ -1,12 +1,12 @@
 import { EarIcon, Loader2Icon } from "lucide-react";
 import { useEffect, useRef } from "react";
 
-import TranscriptEditor from "@hypr/tiptap/transcript";
+import { commands as windowsCommands, events as windowsEvents } from "@hypr/plugin-windows";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { useSessions } from "@hypr/utils/contexts";
 import { useTranscript } from "./useTranscript";
 
-export function Transcript({ sessionId, editing }: { sessionId?: string; editing: boolean }) {
+export function Transcript({ sessionId }: { sessionId?: string }) {
   const currentSessionId = useSessions((s) => s.currentSessionId);
   const effectiveSessionId = sessionId || currentSessionId;
 
@@ -27,19 +27,19 @@ export function Transcript({ sessionId, editing }: { sessionId?: string; editing
     }
   }, [timeline?.items, isLive, ref]);
 
-  const content = {
-    type: "doc",
-    content: [
-      {
-        type: "speaker",
-        attrs: { label: "" },
-        content: (timeline?.items || []).flatMap((item) => item.text.split(" ")).filter(Boolean).map((word) => ({
-          type: "word",
-          content: [{ type: "text", text: word }],
-        })),
-      },
-    ],
-  };
+  useEffect(() => {
+    let unlisten: () => void;
+
+    windowsEvents.windowDestroyed.listen(({ payload: { window } }) => {
+      if (window.type === "transcript") {
+        windowsCommands.windowShow({ type: "main" });
+      }
+    }).then((u) => {
+      unlisten = u;
+    });
+
+    return () => unlisten?.();
+  }, []);
 
   return (
     <div
@@ -54,14 +54,13 @@ export function Transcript({ sessionId, editing }: { sessionId?: string; editing
         )
         : (
           <>
-            {(!editing && timeline?.items?.length) && timeline.items.map((item, index) => (
+            {(timeline?.items?.length) && timeline.items.map((item, index) => (
               <div key={index}>
                 <p>
                   {item.text}
                 </p>
               </div>
             ))}
-            {editing && <TranscriptEditor initialContent={content} />}
             {isLive && (
               <div className="flex items-center gap-2 justify-center py-2 text-neutral-400">
                 <EarIcon size={14} /> Listening... (there might be a delay)

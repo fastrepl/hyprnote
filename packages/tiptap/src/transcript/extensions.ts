@@ -41,12 +41,68 @@ export const WordSplit = Extension.create({
 
               const posAfter = $pos.after();
 
-              let transaction = state.tr.insert(posAfter, WORD_NODE_TYPE.create());
-              const cursor = TextSelection.create(transaction.doc, posAfter + 1);
-              transaction = transaction.setSelection(cursor);
+              // a ⇢ zero-width space that will immediately disappear on first Backspace
+              const ZWSP = "\u200B";
 
-              dispatch(transaction.scrollIntoView());
+              // create the word with one zero-width space so the node is never empty
+              const newWord = WORD_NODE_TYPE.create(
+                null,
+                state.schema.text(ZWSP),
+              );
+
+              let tr = state.tr.insert(posAfter, newWord);
+
+              // inside the node, *after* the ZWSP  (posAfter + 2, because nodeSize = 3)
+              const insidePos = posAfter + 2;
+
+              tr = tr.setSelection(
+                TextSelection.near(tr.doc.resolve(insidePos), 1),
+              );
+
+              dispatch(tr.scrollIntoView());
               return true;
+            }
+
+            if (
+              event.key === "Backspace"
+              && !event.ctrlKey
+              && !event.metaKey
+              && !event.altKey
+            ) {
+              const { state, dispatch } = view;
+              const { selection } = state;
+
+              if (!selection.empty) {
+                return false;
+              }
+
+              const $from = selection.$from;
+              const WORD_NODE_TYPE = state.schema.nodes[WordNode.name];
+
+              if ($from.parent.type !== WORD_NODE_TYPE) {
+                return false;
+              }
+
+              // ── 1. Delete the character before the caret ───────────────────
+              if ($from.parentOffset > 0) {
+                event.preventDefault();
+                dispatch(
+                  state.tr
+                    .delete($from.pos - 1, $from.pos) // remove 1 char
+                    .scrollIntoView(),
+                );
+                return true;
+              }
+
+              // ── 2. At offset 0: join with the previous `word` if there is one
+              const joinPos = $from.before(); // between the two words
+              if (state.doc.nodeAt(joinPos - 1)?.type === WORD_NODE_TYPE) {
+                event.preventDefault();
+                dispatch(state.tr.join(joinPos).scrollIntoView());
+                return true;
+              }
+
+              return false; // let other plugins handle it
             }
 
             return false;

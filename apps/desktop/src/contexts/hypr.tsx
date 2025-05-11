@@ -9,6 +9,7 @@ export interface HyprContext {
   userId: string;
   onboardingSessionId: string;
   subscription?: Subscription;
+  isPro: boolean;
 }
 
 const HyprContext = createContext<HyprContext | null>(null);
@@ -44,10 +45,15 @@ export function HyprProvider({ children }: { children: React.ReactNode }) {
     return null;
   }
 
+  const value = {
+    userId: userId.data,
+    onboardingSessionId: onboardingSessionId.data,
+    subscription: subscription.data,
+    isPro: subscription.data?.status === "active" || subscription.data?.status === "trialing",
+  };
+
   return (
-    <HyprContext.Provider
-      value={{ userId: userId.data, onboardingSessionId: onboardingSessionId.data, subscription: subscription.data }}
-    >
+    <HyprContext.Provider value={value}>
       {children}
     </HyprContext.Provider>
   );

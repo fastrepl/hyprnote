@@ -46,9 +46,7 @@ function Component() {
   }, [navigate]);
 
   useEffect(() => {
-    scan({
-      enabled: true,
-    });
+    scan({ enabled: false });
   }, []);
 
   return (

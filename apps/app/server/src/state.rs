@@ -20,6 +20,15 @@ pub struct AppState {
     pub nango: NangoClient,
     pub s3: S3Client,
     pub stripe: stripe::Client,
+    pub stripe_webhook_signing_secret: String,
+}
+
+#[derive(Clone)]
+pub struct WebhookState {
+    pub nango: NangoClient,
+    pub admin_db: AdminDatabase,
+    pub stripe: stripe::Client,
+    pub stripe_webhook_signing_secret: String,
 }
 
 #[derive(Clone)]
@@ -46,6 +55,17 @@ pub struct AuthState {
 #[derive(Clone)]
 pub struct AnalyticsState {
     pub analytics: AnalyticsClient,
+}
+
+impl FromRef<AppState> for WebhookState {
+    fn from_ref(s: &AppState) -> WebhookState {
+        WebhookState {
+            nango: s.nango.clone(),
+            admin_db: s.admin_db.clone(),
+            stripe: s.stripe.clone(),
+            stripe_webhook_signing_secret: s.stripe_webhook_signing_secret.clone(),
+        }
+    }
 }
 
 impl FromRef<AppState> for STTState {

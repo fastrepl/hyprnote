@@ -3,16 +3,19 @@ import { createContext, useContext } from "react";
 
 import { commands as authCommands } from "@hypr/plugin-auth";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as membershipCommands, type Subscription } from "@hypr/plugin-membership";
 
 export interface HyprContext {
   userId: string;
   onboardingSessionId: string;
+  subscription?: Subscription;
+  isPro: boolean;
 }
 
 const HyprContext = createContext<HyprContext | null>(null);
 
 export function HyprProvider({ children }: { children: React.ReactNode }) {
-  const [userId, onboardingSessionId] = useQueries({
+  const [userId, onboardingSessionId, subscription] = useQueries({
     queries: [
       {
         queryKey: ["auth-user-id"],
@@ -21,6 +24,10 @@ export function HyprProvider({ children }: { children: React.ReactNode }) {
       {
         queryKey: ["onboarding-session-id"],
         queryFn: () => dbCommands.onboardingSessionId(),
+      },
+      {
+        queryKey: ["subscription"],
+        queryFn: () => membershipCommands.refresh(),
       },
     ],
   });
@@ -38,8 +45,15 @@ export function HyprProvider({ children }: { children: React.ReactNode }) {
     return null;
   }
 
+  const value = {
+    userId: userId.data,
+    onboardingSessionId: onboardingSessionId.data,
+    subscription: subscription.data,
+    isPro: subscription.data?.status === "active" || subscription.data?.status === "trialing",
+  };
+
   return (
-    <HyprContext.Provider value={{ userId: userId.data, onboardingSessionId: onboardingSessionId.data }}>
+    <HyprContext.Provider value={value}>
       {children}
     </HyprContext.Provider>
   );
@@ -48,7 +62,7 @@ export function HyprProvider({ children }: { children: React.ReactNode }) {
 export function useHypr() {
   const context = useContext(HyprContext);
   if (!context) {
-    throw new Error("useHypr must be used within an AuthProvider");
+    throw new Error("useHypr must be used within an HyprProvider");
   }
   return context;
 }

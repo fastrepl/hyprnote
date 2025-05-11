@@ -1,8 +1,11 @@
 import { Trans, useLingui } from "@lingui/react/macro";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { message } from "@tauri-apps/plugin-dialog";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useEffect, useState } from "react";
 
+import { baseUrl } from "@/client";
 import { commands } from "@/types";
 import { commands as authCommands, events } from "@hypr/plugin-auth";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
@@ -10,6 +13,7 @@ import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
 import { Particles } from "@hypr/ui/components/ui/particles";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
+import { cn } from "@hypr/ui/lib/utils";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -33,9 +37,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         events.authEvent
           .listen(({ payload }) => {
             if (payload === "success") {
-              commands.setupDbForCloud().then(() => {
-                onClose();
-              });
+              message("Successfully authenticated!");
               return;
             }
 
@@ -66,6 +68,25 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       sfxCommands.stop("BGM");
     }
   }, [isOpen]);
+
+  const url = useQuery({
+    queryKey: ["oauth-url", port],
+    enabled: !!port,
+    queryFn: () => {
+      const u = new URL(baseUrl);
+      u.pathname = "/auth/connect";
+      u.searchParams.set("c", window.crypto.randomUUID());
+      u.searchParams.set("f", "fingerprint");
+      u.searchParams.set("p", port!.toString());
+      return u.toString();
+    },
+  });
+
+  const handleStartCloud = () => {
+    if (url.data) {
+      openUrl(url.data);
+    }
+  };
 
   const handleStartLocal = () => {
     onClose();
@@ -99,11 +120,22 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
               <PushableButton
                 disabled={port === null}
-                onClick={handleStartLocal}
+                onClick={handleStartCloud}
                 className="mb-4 w-full max-w-sm"
               >
                 <Trans>Get Started</Trans>
               </PushableButton>
+
+              <button
+                disabled={port === null}
+                onClick={handleStartLocal}
+                className={cn([
+                  "max-w-sm hover:bg-neutral-100 py-0.5 px-2 rounded-md",
+                  "text-neutral-500 hover:text-neutral-800",
+                ])}
+              >
+                <Trans>or, just use it locally</Trans>
+              </button>
             </div>
           </div>
 

@@ -9,6 +9,7 @@ dotenv = { workspace = true }
 [dependencies]
 hypr-auth-interface = { workspace = true }
 hypr-listener-interface = { workspace = true }
+hypr-membership-interface = { workspace = true }
 
 hypr-analytics = { workspace = true }
 hypr-buffer = { workspace = true }
@@ -49,6 +50,7 @@ bytes = { workspace = true }
 chrono = { workspace = true }
 codes-iso-639 = { workspace = true }
 dotenv = { workspace = true }
+envy = { workspace = true }
 thiserror = { workspace = true }
 url = { workspace = true }
 uuid = { workspace = true }

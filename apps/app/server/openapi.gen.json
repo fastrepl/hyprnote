@@ -27,22 +27,6 @@
         }
       }
     },
-    "/api/desktop/subscription": {
-      "get": {
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Subscription"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/web/connect": {
       "post": {
         "requestBody": {
@@ -64,6 +48,18 @@
                   "$ref": "#/components/schemas/ResponseParams"
                 }
               }
+            }
+          }
+        }
+      }
+    },
+    "/api/web/checkout": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "plain text",
+            "content": {
+              "text/plain; charset=utf-8": {}
             }
           }
         }
@@ -1245,14 +1241,6 @@
           "mp3"
         ]
       },
-      "Membership": {
-        "type": "string",
-        "enum": [
-          "Trial",
-          "Basic",
-          "Pro"
-        ]
-      },
       "NangoConnectSessionRequest": {
         "type": "object",
         "required": [
@@ -1673,17 +1661,6 @@
             }
           }
         ]
-      },
-      "Subscription": {
-        "type": "object",
-        "required": [
-          "membership"
-        ],
-        "properties": {
-          "membership": {
-            "$ref": "#/components/schemas/Membership"
-          }
-        }
       },
       "TranscriptChunk": {
         "type": "object",

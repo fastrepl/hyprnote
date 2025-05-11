@@ -32,8 +32,6 @@ export function SettingsHeader({ current, onCreateTemplate }: SettingsHeaderProp
         return t`Extensions`;
       case "team":
         return t`Team`;
-      case "billing":
-        return t`Billing`;
       default:
         return tab;
     }

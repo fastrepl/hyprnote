@@ -349,9 +349,11 @@ dependencies = [
  "db-core",
  "db-user",
  "dotenv",
+ "envy",
  "futures-core",
  "futures-util",
  "listener-interface",
+ "membership-interface",
  "nango",
  "notion",
  "openai",
@@ -3311,7 +3313,7 @@ dependencies = [
  "data",
  "db-core",
  "db-user",
- "dotenvy_macro",
+ "envy",
  "futures-util",
  "hound",
  "reqwest 0.12.15",
@@ -3339,6 +3341,7 @@ dependencies = [
  "tauri-plugin-listener",
  "tauri-plugin-local-llm",
  "tauri-plugin-local-stt",
+ "tauri-plugin-membership",
  "tauri-plugin-misc",
  "tauri-plugin-notification",
  "tauri-plugin-opener",
@@ -3608,24 +3611,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
 
 [[package]]
-name = "dotenvy"
-version = "0.15.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1aaf95b3e5c8f23aa320147307562d361db0ae0d51242340f558153b4eb2439b"
-
-[[package]]
-name = "dotenvy_macro"
-version = "0.15.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb0235d912a8c749f4e0c9f18ca253b4c28cfefc1d2518096016d6e3230b6424"
-dependencies = [
- "dotenvy",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "downcast-rs"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3809,6 +3794,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.100",
+]
+
+[[package]]
+name = "envy"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f47e0157f2cb54f5ae1bd371b30a2ae4311e1c028f575cd4e81de7353215965"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -7708,6 +7702,15 @@ source = "git+https://github.com/wooorm/markdown-rs.git?rev=5c9eba146f06b2e0531a
 dependencies = [
  "markdown",
  "regex",
+]
+
+[[package]]
+name = "membership-interface"
+version = "0.1.0"
+dependencies = [
+ "schemars",
+ "serde",
+ "specta",
 ]
 
 [[package]]
@@ -12944,7 +12947,6 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-plugin-auth",
- "tauri-plugin-flags",
  "tauri-plugin-local-llm",
  "tauri-plugin-local-stt",
  "tauri-plugin-store2",
@@ -13215,6 +13217,26 @@ dependencies = [
  "tracing",
  "whisper",
  "ws-utils",
+]
+
+[[package]]
+name = "tauri-plugin-membership"
+version = "0.1.0"
+dependencies = [
+ "membership-interface",
+ "reqwest 0.12.15",
+ "schemars",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-store",
+ "tauri-plugin-store2",
+ "tauri-specta",
+ "thiserror 2.0.12",
 ]
 
 [[package]]

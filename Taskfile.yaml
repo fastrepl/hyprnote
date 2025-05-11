@@ -10,7 +10,7 @@ tasks:
   py:init: POETRY_VIRTUALENVS_IN_PROJECT=true poetry install --no-cache --no-interaction --all-extras
   py:run: poetry run python3 {{.CLI_ARGS}}
 
-  stripe: stripe listen --skip-verify --forward-to http://localhost:5000/webhook/stripe
+  stripe: stripe listen --skip-verify --forward-to http://localhost:1234/webhook/stripe
   bacon: bacon {{.CLI_ARGS}}
 
   bump:

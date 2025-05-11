@@ -6,7 +6,7 @@ import { Badge } from "@hypr/ui/components/ui/badge";
 import { useSessions } from "@hypr/utils/contexts";
 import { useTranscript } from "./useTranscript";
 
-export function Transcript({ sessionId }: { sessionId?: string }) {
+export function Transcript({ sessionId, editing }: { sessionId?: string; editing: boolean }) {
   const currentSessionId = useSessions((s) => s.currentSessionId);
   const effectiveSessionId = sessionId || currentSessionId;
 
@@ -41,8 +41,6 @@ export function Transcript({ sessionId }: { sessionId?: string }) {
     ],
   };
 
-  console.log(content);
-
   return (
     <div
       ref={ref}
@@ -56,7 +54,14 @@ export function Transcript({ sessionId }: { sessionId?: string }) {
         )
         : (
           <>
-            <TranscriptEditor initialContent={content} />
+            {(!editing && timeline?.items?.length) && timeline.items.map((item, index) => (
+              <div key={index}>
+                <p>
+                  {item.text}
+                </p>
+              </div>
+            ))}
+            {editing && <TranscriptEditor initialContent={content} />}
             {isLive && (
               <div className="flex items-center gap-2 justify-center py-2 text-neutral-400">
                 <EarIcon size={14} /> Listening... (there might be a delay)

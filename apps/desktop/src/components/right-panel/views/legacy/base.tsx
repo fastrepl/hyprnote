@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { ClipboardCopyIcon, FileAudioIcon } from "lucide-react";
-import React from "react";
+import { CheckIcon, ClipboardCopyIcon, FileAudioIcon, PencilIcon } from "lucide-react";
+import React, { useState } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -25,6 +25,8 @@ export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
   const isInactive = useOngoingSession((s) => s.status === "inactive");
   const { showEmptyMessage, isEnhanced, hasTranscript } = useTranscriptWidget(sessionId);
   const { timeline } = useTranscript(sessionId);
+
+  const [editing, setEditing] = useState(false);
 
   const handleCopyAll = () => {
     if (timeline && timeline.items && timeline.items.length > 0) {
@@ -91,11 +93,16 @@ export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
                 </Tooltip>
               </TooltipProvider>
             ),
+            <Button variant="ghost" size="icon" className="p-0" onClick={() => setEditing(!editing)}>
+              {editing
+                ? <CheckIcon size={16} className="text-black" />
+                : <PencilIcon size={16} className="text-black" />}
+            </Button>,
           ].filter(Boolean)}
         />
       </div>
 
-      {sessionId && <Transcript sessionId={sessionId} />}
+      {sessionId && <Transcript sessionId={sessionId} editing={editing} />}
 
       {!sessionId && (
         <div className="absolute inset-0 backdrop-blur-sm bg-white/50 flex items-center justify-center">

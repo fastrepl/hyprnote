@@ -1,69 +1,68 @@
 .transcript-editor {
   background-color: white;
   padding: 16px;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    sans-serif;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  line-height: 1.5;
 }
 
 .transcript-speaker {
-  margin-bottom: 16px;
-  line-height: 1.6;
+  margin-bottom: 14px;
+  line-height: 1.5;
 }
 
-.transcript-speaker:before {
-  content: "Speaker:";
-  font-weight: bold;
-  color: #555;
-  margin-right: 8px;
-  display: block;
+.transcript-speaker-label {
+  font-weight: 600;
+  color: #3a3a3a;
   margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.transcript-speaker-content {
+  display: inline;
+  line-height: 1.7;
 }
 
 .transcript-word {
   display: inline-block;
-  margin-right: 4px;
+  margin-right: 3px;
+  margin-bottom: 6px;
   padding: 2px 4px;
-  border-radius: 2px;
+  border-radius: 3px;
   cursor: pointer;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: #eef5fd;
   border: 1px solid transparent;
   position: relative;
+  transition: all 0.15s ease;
+  font-size: 15px;
 }
 
 .transcript-word:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.1);
+  background-color: #d9e8fb;
+  border-color: #b8d5fa;
 }
 
-/* Style for filler words like "uh" */
 .transcript-word[data-time] {
-  background-color: #ffe0e0;
+  background-color: #e6f0ff;
 }
 
-/* Space after each word */
 .transcript-word::after {
   content: " ";
 }
 
-/* Remove the space after the last word in a speaker section */
 .transcript-speaker > .transcript-word:last-child::after {
   content: "";
 }
 
-/* ProseMirror specific styles */
+.transcript-word.selected {
+  background-color: #c0d8f9;
+  border-color: #80b5f8;
+}
+
 .ProseMirror {
   outline: none;
 }
 
 .ProseMirror-selectednode {
-  outline: 2px solid #68cef8;
+  outline: 2px solid #4a9af4;
 }

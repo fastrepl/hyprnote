@@ -4,11 +4,27 @@ export const SpeakerNode = Node.create({
   name: "speaker",
   group: "block",
   content: "word*",
+  addAttributes() {
+    return {
+      label: {
+        default: "Unknown",
+        parseHTML: element => element.getAttribute("data-speaker-label") || "Unknown",
+        renderHTML: attributes => {
+          return { "data-speaker-label": attributes.label };
+        },
+      },
+    };
+  },
   parseHTML() {
     return [{ tag: "div.transcript-speaker" }];
   },
-  renderHTML({ HTMLAttributes }) {
-    return ["div", mergeAttributes(HTMLAttributes, { class: "transcript-speaker" }), 0];
+  renderHTML({ HTMLAttributes, node }) {
+    return [
+      "div",
+      mergeAttributes({ class: "transcript-speaker" }, HTMLAttributes),
+      ["div", { class: "transcript-speaker-label" }, node.attrs.label],
+      ["div", { class: "transcript-speaker-content" }, 0],
+    ];
   },
 });
 
@@ -18,21 +34,10 @@ export const WordNode = Node.create({
   inline: true,
   atom: false,
   content: "text*",
-  addAttributes() {
-    return {
-      time: {
-        default: 0,
-        parseHTML: element => parseFloat(element.getAttribute("data-time") || "0"),
-        renderHTML: attributes => {
-          return { "data-time": attributes.time };
-        },
-      },
-    };
-  },
   parseHTML() {
     return [{ tag: "span.transcript-word" }];
   },
   renderHTML({ HTMLAttributes }) {
-    return ["span", mergeAttributes(HTMLAttributes, { class: "transcript-word" }), 0];
+    return ["span", mergeAttributes({ class: "transcript-word" }, HTMLAttributes), 0];
   },
 });

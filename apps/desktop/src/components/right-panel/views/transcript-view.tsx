@@ -1,6 +1,5 @@
 import { useMatch } from "@tanstack/react-router";
 
-import TranscriptEditor from "@hypr/tiptap/transcript";
 import TranscriptFull from "./legacy";
 
 export function TranscriptView() {
@@ -16,5 +15,5 @@ export function TranscriptView() {
     );
   }
 
-  return <TranscriptEditor />;
+  return <TranscriptFull />;
 }

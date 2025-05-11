@@ -4,7 +4,7 @@ import { zodValidator } from "@tanstack/zod-adapter";
 import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
 
-import { SettingsHeader, type Tab, TABS } from "@/components/settings/components";
+import { MainSidebar, SettingsHeader, type Tab, TABS } from "@/components/settings/components";
 import { Calendar, Feedback, General, Lab, LocalAI, Notifications, Sound } from "@/components/settings/views";
 import { Button } from "@hypr/ui/components/ui/button";
 
@@ -49,6 +49,8 @@ function Component() {
                 </Button>
               )}
             </div>
+
+            <MainSidebar current={search.tab} onTabClick={handleClickTab} />
           </div>
 
           <div className="flex-1 flex h-full w-full flex-col overflow-hidden">

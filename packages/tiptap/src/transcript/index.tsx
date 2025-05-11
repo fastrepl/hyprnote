@@ -19,15 +19,15 @@ export const extensions = [
 ];
 
 interface TranscriptEditorProps {
-  initialContent?: Record<string, unknown>;
+  editable?: boolean;
+  initialContent: Record<string, unknown>;
 }
 
 const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptEditorProps>(
-  ({ initialContent }, ref) => {
+  ({ initialContent, editable = true }, ref) => {
     const editor = useEditor({
       extensions,
-      editable: true,
-      content: initialContent || generateDefaultContent(),
+      editable,
     });
 
     useEffect(() => {
@@ -35,6 +35,18 @@ const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptE
         ref.current = { editor };
       }
     }, [editor]);
+
+    useEffect(() => {
+      if (editor) {
+        editor.setEditable(editable);
+      }
+    }, [editable]);
+
+    useEffect(() => {
+      if (editor) {
+        editor.commands.setContent(initialContent);
+      }
+    }, [editor, initialContent]);
 
     return (
       <div role="textbox" className="transcript-editor">
@@ -44,26 +56,21 @@ const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptE
   },
 );
 
-// Helper function to generate default content
 function generateDefaultContent() {
   return {
     type: "doc",
     content: [
       {
         type: "speaker",
+        attrs: { label: "" },
         content: [
           { type: "word", content: [{ type: "text", text: "Hello" }] },
           { type: "word", content: [{ type: "text", text: "world" }] },
-          { type: "word", attrs: { time: 1.5 }, content: [{ type: "text", text: "uh" }] },
+          { type: "word", content: [{ type: "text", text: "uh" }] },
           { type: "word", content: [{ type: "text", text: "this" }] },
           { type: "word", content: [{ type: "text", text: "is" }] },
           { type: "word", content: [{ type: "text", text: "a" }] },
           { type: "word", content: [{ type: "text", text: "demo" }] },
-        ],
-      },
-      {
-        type: "speaker",
-        content: [
           { type: "word", content: [{ type: "text", text: "Let's" }] },
           { type: "word", content: [{ type: "text", text: "try" }] },
           { type: "word", content: [{ type: "text", text: "another" }] },

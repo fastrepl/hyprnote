@@ -1,6 +1,7 @@
 import { EarIcon, Loader2Icon } from "lucide-react";
 import { useEffect, useRef } from "react";
 
+import TranscriptEditor from "@hypr/tiptap/transcript";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { useSessions } from "@hypr/utils/contexts";
 import { useTranscript } from "./useTranscript";
@@ -26,7 +27,21 @@ export function Transcript({ sessionId }: { sessionId?: string }) {
     }
   }, [timeline?.items, isLive, ref]);
 
-  const items = timeline?.items || [];
+  const content = {
+    type: "doc",
+    content: [
+      {
+        type: "speaker",
+        attrs: { label: "" },
+        content: (timeline?.items || []).flatMap((item) => item.text.split(" ")).filter(Boolean).map((word) => ({
+          type: "word",
+          content: [{ type: "text", text: word }],
+        })),
+      },
+    ],
+  };
+
+  console.log(content);
 
   return (
     <div
@@ -41,31 +56,7 @@ export function Transcript({ sessionId }: { sessionId?: string }) {
         )
         : (
           <>
-            {items.length > 0
-              && items.map((item, index) => (
-                <div key={index}>
-                  <p
-                    className={`select-text ${
-                      item.confidence > 0.9
-                        ? "font-normal opacity-100"
-                        : item.confidence > 0.8
-                        ? "font-normal opacity-80"
-                        : item.confidence > 0.7
-                        ? "font-light opacity-60"
-                        : item.confidence > 0.5
-                        ? "font-light opacity-70"
-                        : item.confidence > 0.3
-                        ? "font-extralight opacity-60"
-                        : item.confidence > 0.1
-                        ? "font-extralight opacity-50"
-                        : "font-extralight opacity-40"
-                    }`}
-                  >
-                    {item.text}
-                  </p>
-                </div>
-              ))}
-
+            <TranscriptEditor initialContent={content} />
             {isLive && (
               <div className="flex items-center gap-2 justify-center py-2 text-neutral-400">
                 <EarIcon size={14} /> Listening... (there might be a delay)

@@ -1,6 +1,8 @@
 use std::future::Future;
 use tauri_plugin_store2::StorePluginExt;
 
+use hypr_membership_interface::Subscription;
+
 pub trait MembershipPluginExt<R: tauri::Runtime> {
     fn membership_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
     fn get_subscription(&self) -> impl Future<Output = Result<Option<Subscription>, crate::Error>>;
@@ -34,29 +36,4 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> MembershipPluginExt<R> for T {
             .set(crate::StoreKey::Subscription, data.clone())?;
         Ok(data)
     }
-}
-
-#[derive(
-    Debug, Clone, serde::Deserialize, serde::Serialize, schemars::JsonSchema, specta::Type,
-)]
-pub struct Subscription {
-    pub status: SubscriptionStatus,
-    pub current_period_end: i64,
-    pub trial_end: Option<i64>,
-    pub price_id: Option<String>,
-}
-
-#[derive(
-    Debug, Clone, serde::Deserialize, serde::Serialize, schemars::JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "snake_case")]
-pub enum SubscriptionStatus {
-    Active,
-    Canceled,
-    Incomplete,
-    IncompleteExpired,
-    PastDue,
-    Paused,
-    Trialing,
-    Unpaid,
 }

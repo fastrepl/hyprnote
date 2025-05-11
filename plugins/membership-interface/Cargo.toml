@@ -1,0 +1,9 @@
+[package]
+name = "membership-interface"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+schemars = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+specta = { workspace = true, features = ["derive"] }

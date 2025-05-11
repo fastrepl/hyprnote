@@ -15,6 +15,8 @@ specta-typescript = { workspace = true }
 tauri-plugin-store = { workspace = true }
 
 [dependencies]
+hypr-membership-interface = { workspace = true }
+
 tauri = { workspace = true, features = ["test"] }
 tauri-plugin-store2 = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }

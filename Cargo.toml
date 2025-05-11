@@ -52,6 +52,7 @@ hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 
 hypr-auth-interface = { path = "plugins/auth-interface", package = "auth-interface" }
 hypr-listener-interface = { path = "plugins/listener-interface", package = "listener-interface" }
+hypr-membership-interface = { path = "plugins/membership-interface", package = "membership-interface" }
 
 tauri = "2"
 tauri-build = "2"

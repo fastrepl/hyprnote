@@ -1,4 +1,5 @@
-use crate::{MembershipPluginExt, Subscription};
+use crate::MembershipPluginExt;
+use hypr_membership_interface::Subscription;
 
 #[tauri::command]
 #[specta::specta]

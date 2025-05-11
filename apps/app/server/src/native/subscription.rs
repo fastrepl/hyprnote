@@ -1,5 +1,5 @@
 use axum::{http::StatusCode, Extension, Json};
-use tauri_plugin_membership::{Subscription, SubscriptionStatus};
+use hypr_membership_interface::{Subscription, SubscriptionStatus};
 
 pub async fn handler(
     Extension(billing): Extension<hypr_db_admin::Billing>,

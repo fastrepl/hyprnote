@@ -1,0 +1,69 @@
+.transcript-editor {
+  background-color: white;
+  padding: 16px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    sans-serif;
+}
+
+.transcript-speaker {
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.transcript-speaker:before {
+  content: "Speaker:";
+  font-weight: bold;
+  color: #555;
+  margin-right: 8px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.transcript-word {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid transparent;
+  position: relative;
+}
+
+.transcript-word:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Style for filler words like "uh" */
+.transcript-word[data-time] {
+  background-color: #ffe0e0;
+}
+
+/* Space after each word */
+.transcript-word::after {
+  content: " ";
+}
+
+/* Remove the space after the last word in a speaker section */
+.transcript-speaker > .transcript-word:last-child::after {
+  content: "";
+}
+
+/* ProseMirror specific styles */
+.ProseMirror {
+  outline: none;
+}
+
+.ProseMirror-selectednode {
+  outline: 2px solid #68cef8;
+}

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useRef } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
 import TranscriptEditor from "@hypr/tiptap/transcript";
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/app/transcript/$id")({
 
 function Component() {
   const { timeline } = Route.useLoaderData();
+  const editorRef = useRef(null);
 
   const content = {
     type: "doc",
@@ -33,7 +35,10 @@ function Component() {
 
   return (
     <div className="p-12">
-      <TranscriptEditor initialContent={content} />
+      <TranscriptEditor
+        ref={editorRef}
+        initialContent={content}
+      />
     </div>
   );
 }

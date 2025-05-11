@@ -16,7 +16,7 @@ export const WordNode = Node.create({
   name: "word",
   group: "inline",
   inline: true,
-  atom: true, // Make each word a leaf node that's edited as a whole
+  atom: false,
   content: "text*",
   addAttributes() {
     return {

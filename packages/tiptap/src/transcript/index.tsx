@@ -5,8 +5,8 @@ import Text from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect } from "react";
 
+import { WordSplit } from "./extensions";
 import { SpeakerNode, WordNode } from "./nodes";
-import { WordSplit } from "./wordSplit";
 import "../styles/transcript.css";
 
 export const extensions = [

@@ -1,4 +1,3 @@
 apps/app
 crates/*
 plugins/*
-extensions/*

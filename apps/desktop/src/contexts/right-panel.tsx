@@ -1,7 +1,8 @@
-import { commands as flagsCommands } from "@hypr/plugin-flags";
 import { useQuery } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+
+import { commands as flagsCommands } from "@hypr/plugin-flags";
 
 export type RightPanelView = "chat" | "widget";
 

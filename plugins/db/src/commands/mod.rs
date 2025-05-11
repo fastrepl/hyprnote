@@ -2,9 +2,11 @@ pub mod calendars;
 pub mod chats;
 pub mod configs;
 pub mod events;
-pub mod extensions;
 pub mod humans;
 pub mod organizations;
 pub mod sessions;
 pub mod tags;
 pub mod templates;
+
+#[deprecated]
+pub mod extensions;

@@ -1,4 +1,3 @@
-export * from "./extensions-sidebar";
 export * from "./main-sidebar";
 export * from "./settings-header";
 export * from "./tab-icon";

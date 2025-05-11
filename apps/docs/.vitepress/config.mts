@@ -3,7 +3,7 @@ import { vitePostHog } from "vite-plugin-posthog";
 import { defineConfig } from "vitepress";
 
 import sidebar from "./sidebar";
-import { extensionFrontmatterSchema, pluginFrontmatterSchema } from "./types";
+import { pluginFrontmatterSchema } from "./types";
 
 // https://vitepress.dev/reference/site-config
 const vitepressConfig: Parameters<typeof defineConfig>[0] = {
@@ -52,9 +52,6 @@ const vitepressConfig: Parameters<typeof defineConfig>[0] = {
     sidebar,
   },
   transformPageData(pageData, ctx) {
-    if (/^extensions\/(?!index\.md)[^/]+/.test(pageData.relativePath)) {
-      extensionFrontmatterSchema.parse(pageData.frontmatter);
-    }
     if (/^plugins\/(?!index\.md)[^/]+/.test(pageData.relativePath)) {
       pluginFrontmatterSchema.parse(pageData.frontmatter);
     }

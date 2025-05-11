@@ -36,19 +36,6 @@ const vitepressFrontmatterSchema = z.object({
   pageClass: z.string().optional(),
 });
 
-export const extensionFrontmatterSchema = z
-  .object({
-    source: z.string(),
-    implemented: z.boolean(),
-    default: z.boolean(),
-    cloud_only: z.boolean(),
-    plugins: z.array(z.string()).default([]),
-    tags: z.array(z.string()).default([]),
-  })
-  .extend(vitepressFrontmatterSchema.shape);
-
-export type ExtensionFrontmatter = z.infer<typeof extensionFrontmatterSchema>;
-
 export const pluginFrontmatterSchema = z
   .object({
     id: z.string(),

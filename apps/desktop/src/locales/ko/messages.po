@@ -684,7 +684,7 @@ msgstr ""
 msgid "Loading..."
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:68
+#: src/components/left-sidebar/top-area/settings-button.tsx:121
 msgid "Local mode"
 msgstr ""
 
@@ -729,7 +729,7 @@ msgstr ""
 #~ msgid "Much better AI performance"
 #~ msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:89
+#: src/components/left-sidebar/top-area/settings-button.tsx:69
 msgid "My Profile"
 msgstr ""
 
@@ -843,6 +843,10 @@ msgstr ""
 #~ msgid "Pro"
 #~ msgstr ""
 
+#: src/components/left-sidebar/top-area/settings-button.tsx:95
+msgid "Pro mode"
+msgstr ""
+
 #: src/components/settings/components/settings-header.tsx:22
 msgid "Profile"
 msgstr ""
@@ -918,7 +922,7 @@ msgstr ""
 msgid "Send invite"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:82
+#: src/components/left-sidebar/top-area/settings-button.tsx:62
 msgid "Settings"
 msgstr ""
 

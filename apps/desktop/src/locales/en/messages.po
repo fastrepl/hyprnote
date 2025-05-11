@@ -684,7 +684,7 @@ msgstr "Loading extension details..."
 msgid "Loading..."
 msgstr "Loading..."
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:68
+#: src/components/left-sidebar/top-area/settings-button.tsx:121
 msgid "Local mode"
 msgstr "Local mode"
 
@@ -729,7 +729,7 @@ msgstr "Model Name"
 #~ msgid "Much better AI performance"
 #~ msgstr "Much better AI performance"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:89
+#: src/components/left-sidebar/top-area/settings-button.tsx:69
 msgid "My Profile"
 msgstr "My Profile"
 
@@ -843,6 +843,10 @@ msgstr "Play video"
 #~ msgid "Pro"
 #~ msgstr "Pro"
 
+#: src/components/left-sidebar/top-area/settings-button.tsx:95
+msgid "Pro mode"
+msgstr "Pro mode"
+
 #: src/components/settings/components/settings-header.tsx:22
 msgid "Profile"
 msgstr "Profile"
@@ -918,7 +922,7 @@ msgstr "Select Calendars"
 msgid "Send invite"
 msgstr "Send invite"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:82
+#: src/components/left-sidebar/top-area/settings-button.tsx:62
 msgid "Settings"
 msgstr "Settings"
 

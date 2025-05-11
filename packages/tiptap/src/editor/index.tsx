@@ -38,6 +38,9 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       onUpdate,
       shouldRerenderOnTransaction: false,
       editorProps: {
+        attributes: {
+          class: "tiptap-normal",
+        },
         scrollThreshold: 32,
         scrollMargin: 32,
       },

@@ -7,6 +7,7 @@ import { forwardRef, useEffect } from "react";
 
 import { WordSplit } from "./extensions";
 import { SpeakerNode, WordNode } from "./nodes";
+
 import "../styles/transcript.css";
 
 export const extensions = [
@@ -28,6 +29,11 @@ const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptE
     const editor = useEditor({
       extensions,
       editable,
+      editorProps: {
+        attributes: {
+          class: "tiptap-transcript",
+        },
+      },
     });
 
     useEffect(() => {
@@ -49,7 +55,7 @@ const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptE
     }, [editor, initialContent]);
 
     return (
-      <div role="textbox" className="transcript-editor">
+      <div role="textbox">
         <EditorContent editor={editor} />
       </div>
     );

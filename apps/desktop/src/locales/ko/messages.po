@@ -322,11 +322,11 @@ msgstr ""
 #~ msgid "API Base"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:476
+#: src/components/settings/views/ai.tsx:468
 msgid "API Base URL"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:503
+#: src/components/settings/views/ai.tsx:495
 msgid "API Key"
 msgstr ""
 
@@ -347,7 +347,7 @@ msgstr ""
 msgid "Assistant:"
 msgstr ""
 
-#: src/routes/app.settings.tsx:111
+#: src/routes/app.settings.tsx:47
 msgid "Back to Settings"
 msgstr ""
 
@@ -399,7 +399,6 @@ msgstr ""
 #: src/components/settings/views/team.tsx:69
 #: src/components/settings/views/billing.tsx:63
 #: src/components/settings/views/billing.tsx:101
-#: src/components/settings/components/extensions-sidebar.tsx:55
 msgid "Coming Soon"
 msgstr ""
 
@@ -412,14 +411,14 @@ msgid "Company name"
 msgstr ""
 
 #: src/components/right-panel/views/widgets-view.tsx:93
-msgid "Configure Widgets"
-msgstr ""
+#~ msgid "Configure Widgets"
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:63
 msgid "Connect"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:454
+#: src/components/settings/views/ai.tsx:446
 msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 msgstr ""
 
@@ -457,7 +456,7 @@ msgstr ""
 msgid "Current Plan"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:451
+#: src/components/settings/views/ai.tsx:443
 msgid "Custom Endpoint"
 msgstr ""
 
@@ -469,7 +468,7 @@ msgstr ""
 #~ msgid "Custom LLM Endpoint"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:426
+#: src/components/settings/views/ai.tsx:418
 msgid "Default (llama-3.2-3b-q4)"
 msgstr ""
 
@@ -495,11 +494,11 @@ msgstr ""
 #~ msgid "Detect meetings automatically"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:373
+#: src/components/settings/views/ai.tsx:365
 msgid "Download"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:316
+#: src/components/settings/views/ai.tsx:308
 msgid "Download this model to use it."
 msgstr ""
 
@@ -512,8 +511,8 @@ msgid "Duplicate"
 msgstr ""
 
 #: src/components/right-panel/components/widget-renderer/index.tsx:204
-msgid "Edit Widgets"
-msgstr ""
+#~ msgid "Edit Widgets"
+#~ msgstr ""
 
 #: src/components/settings/views/feedback.tsx:85
 msgid "Email (Optional)"
@@ -531,7 +530,7 @@ msgstr ""
 msgid "Enable"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:293
+#: src/components/settings/views/ai.tsx:285
 msgid "Enhancing"
 msgstr ""
 
@@ -539,15 +538,15 @@ msgstr ""
 msgid "Enter a section title"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:506
+#: src/components/settings/views/ai.tsx:498
 msgid "Enter the API key for your custom LLM endpoint"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:479
+#: src/components/settings/views/ai.tsx:471
 msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:532
+#: src/components/settings/views/ai.tsx:524
 msgid "Enter the exact model name required by your endpoint (if applicable)."
 msgstr ""
 
@@ -683,8 +682,8 @@ msgid "Live summary of the meeting"
 msgstr ""
 
 #: src/components/settings/views/extension.tsx:118
-msgid "Loading extension details..."
-msgstr ""
+#~ msgid "Loading extension details..."
+#~ msgstr ""
 
 #: src/components/workspace-calendar/event-card.tsx:163
 #: src/components/settings/components/calendar/calendar-selector.tsx:94
@@ -724,7 +723,7 @@ msgstr ""
 #~ msgid "Model"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:529
+#: src/components/settings/views/ai.tsx:521
 msgid "Model Name"
 msgstr ""
 
@@ -777,7 +776,7 @@ msgstr ""
 #~ msgid "No speech-to-text models available"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:398
+#: src/components/settings/views/ai.tsx:390
 msgid "No speech-to-text models available or failed to load."
 msgstr ""
 
@@ -1038,7 +1037,7 @@ msgstr ""
 msgid "Toggle widget panel"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:289
+#: src/components/settings/views/ai.tsx:281
 msgid "Transcribing"
 msgstr ""
 
@@ -1074,7 +1073,7 @@ msgstr ""
 msgid "Upgrade"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:429
+#: src/components/settings/views/ai.tsx:421
 msgid "Use the local Llama 3.2 model for enhanced privacy and offline capability."
 msgstr ""
 

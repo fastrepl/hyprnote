@@ -40,7 +40,7 @@ const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptE
       if (editor) {
         editor.setEditable(editable);
       }
-    }, [editable]);
+    }, [editor, editable]);
 
     useEffect(() => {
       if (editor) {
@@ -55,31 +55,6 @@ const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptE
     );
   },
 );
-
-function generateDefaultContent() {
-  return {
-    type: "doc",
-    content: [
-      {
-        type: "speaker",
-        attrs: { label: "" },
-        content: [
-          { type: "word", content: [{ type: "text", text: "Hello" }] },
-          { type: "word", content: [{ type: "text", text: "world" }] },
-          { type: "word", content: [{ type: "text", text: "uh" }] },
-          { type: "word", content: [{ type: "text", text: "this" }] },
-          { type: "word", content: [{ type: "text", text: "is" }] },
-          { type: "word", content: [{ type: "text", text: "a" }] },
-          { type: "word", content: [{ type: "text", text: "demo" }] },
-          { type: "word", content: [{ type: "text", text: "Let's" }] },
-          { type: "word", content: [{ type: "text", text: "try" }] },
-          { type: "word", content: [{ type: "text", text: "another" }] },
-          { type: "word", content: [{ type: "text", text: "speaker" }] },
-        ],
-      },
-    ],
-  };
-}
 
 TranscriptEditor.displayName = "TranscriptEditor";
 

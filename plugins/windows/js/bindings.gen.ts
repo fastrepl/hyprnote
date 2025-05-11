@@ -10,6 +10,9 @@ export const commands = {
 async windowShow(window: HyprWindow) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|window_show", { window });
 },
+async windowHide(window: HyprWindow) : Promise<null> {
+    return await TAURI_INVOKE("plugin:windows|window_hide", { window });
+},
 async windowDestroy(window: HyprWindow) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|window_destroy", { window });
 },
@@ -55,7 +58,7 @@ windowDestroyed: "plugin:windows:window-destroyed"
 
 /** user-defined types **/
 
-export type HyprWindow = { type: "main" } | { type: "note"; value: string } | { type: "human"; value: string } | { type: "organization"; value: string } | { type: "calendar" } | { type: "settings" } | { type: "video"; value: string } | { type: "plans" }
+export type HyprWindow = { type: "main" } | { type: "note"; value: string } | { type: "human"; value: string } | { type: "organization"; value: string } | { type: "calendar" } | { type: "settings" } | { type: "video"; value: string } | { type: "plans" } | { type: "transcript"; value: string }
 export type KnownPosition = "left-half" | "right-half" | "center"
 export type MainWindowState = { left_sidebar_expanded: boolean | null; right_panel_expanded: boolean | null }
 export type Navigate = { path: string }

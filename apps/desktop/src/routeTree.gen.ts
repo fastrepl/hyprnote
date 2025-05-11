@@ -18,6 +18,7 @@ import { Route as AppSettingsImport } from './routes/app.settings'
 import { Route as AppPlansImport } from './routes/app.plans'
 import { Route as AppNewImport } from './routes/app.new'
 import { Route as AppCalendarImport } from './routes/app.calendar'
+import { Route as AppTranscriptIdImport } from './routes/app.transcript.$id'
 import { Route as AppOrganizationIdImport } from './routes/app.organization.$id'
 import { Route as AppNoteIdImport } from './routes/app.note.$id'
 import { Route as AppHumanIdImport } from './routes/app.human.$id'
@@ -63,6 +64,12 @@ const AppNewRoute = AppNewImport.update({
 const AppCalendarRoute = AppCalendarImport.update({
   id: '/calendar',
   path: '/calendar',
+  getParentRoute: () => AppRoute,
+} as any)
+
+const AppTranscriptIdRoute = AppTranscriptIdImport.update({
+  id: '/transcript/$id',
+  path: '/transcript/$id',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -158,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOrganizationIdImport
       parentRoute: typeof AppImport
     }
+    '/app/transcript/$id': {
+      id: '/app/transcript/$id'
+      path: '/transcript/$id'
+      fullPath: '/app/transcript/$id'
+      preLoaderRoute: typeof AppTranscriptIdImport
+      parentRoute: typeof AppImport
+    }
   }
 }
 
@@ -172,6 +186,7 @@ interface AppRouteChildren {
   AppHumanIdRoute: typeof AppHumanIdRoute
   AppNoteIdRoute: typeof AppNoteIdRoute
   AppOrganizationIdRoute: typeof AppOrganizationIdRoute
+  AppTranscriptIdRoute: typeof AppTranscriptIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -183,6 +198,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppHumanIdRoute: AppHumanIdRoute,
   AppNoteIdRoute: AppNoteIdRoute,
   AppOrganizationIdRoute: AppOrganizationIdRoute,
+  AppTranscriptIdRoute: AppTranscriptIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -198,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/app/human/$id': typeof AppHumanIdRoute
   '/app/note/$id': typeof AppNoteIdRoute
   '/app/organization/$id': typeof AppOrganizationIdRoute
+  '/app/transcript/$id': typeof AppTranscriptIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -210,6 +227,7 @@ export interface FileRoutesByTo {
   '/app/human/$id': typeof AppHumanIdRoute
   '/app/note/$id': typeof AppNoteIdRoute
   '/app/organization/$id': typeof AppOrganizationIdRoute
+  '/app/transcript/$id': typeof AppTranscriptIdRoute
 }
 
 export interface FileRoutesById {
@@ -224,6 +242,7 @@ export interface FileRoutesById {
   '/app/human/$id': typeof AppHumanIdRoute
   '/app/note/$id': typeof AppNoteIdRoute
   '/app/organization/$id': typeof AppOrganizationIdRoute
+  '/app/transcript/$id': typeof AppTranscriptIdRoute
 }
 
 export interface FileRouteTypes {
@@ -239,6 +258,7 @@ export interface FileRouteTypes {
     | '/app/human/$id'
     | '/app/note/$id'
     | '/app/organization/$id'
+    | '/app/transcript/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/video'
@@ -250,6 +270,7 @@ export interface FileRouteTypes {
     | '/app/human/$id'
     | '/app/note/$id'
     | '/app/organization/$id'
+    | '/app/transcript/$id'
   id:
     | '__root__'
     | '/app'
@@ -262,6 +283,7 @@ export interface FileRouteTypes {
     | '/app/human/$id'
     | '/app/note/$id'
     | '/app/organization/$id'
+    | '/app/transcript/$id'
   fileRoutesById: FileRoutesById
 }
 
@@ -299,7 +321,8 @@ export const routeTree = rootRoute
         "/app/",
         "/app/human/$id",
         "/app/note/$id",
-        "/app/organization/$id"
+        "/app/organization/$id",
+        "/app/transcript/$id"
       ]
     },
     "/video": {
@@ -335,6 +358,10 @@ export const routeTree = rootRoute
     },
     "/app/organization/$id": {
       "filePath": "app.organization.$id.tsx",
+      "parent": "/app"
+    },
+    "/app/transcript/$id": {
+      "filePath": "app.transcript.$id.tsx",
       "parent": "/app"
     }
   }

@@ -1,5 +1,6 @@
 import { type Editor as TiptapEditor } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
+import History from "@tiptap/extension-history";
 import Text from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect } from "react";
@@ -9,8 +10,9 @@ import { WordSplit } from "./wordSplit";
 import "../styles/transcript.css";
 
 export const extensions = [
-  Text,
   Document.configure({ content: "speaker+" }),
+  History,
+  Text,
   SpeakerNode,
   WordNode,
   WordSplit,

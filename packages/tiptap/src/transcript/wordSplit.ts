@@ -1,6 +1,5 @@
 import { Extension } from "@tiptap/core";
-import { Plugin, PluginKey } from "prosemirror-state";
-import { TextSelection } from "prosemirror-state";
+import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 
 export const WordSplit = Extension.create({
   name: "wordSplit",
@@ -11,72 +10,76 @@ export const WordSplit = Extension.create({
         key: new PluginKey("wordSplit"),
         props: {
           // Handle spaces to create new words
-          handleKeyDown: (view, event) => {
-            if (event.key === " " && !event.ctrlKey && !event.metaKey) {
+          handleKeyDown(view, event) {
+            // Split word when user presses a plain space-bar
+            if (
+              event.key === " "
+              && !event.ctrlKey
+              && !event.metaKey
+              && !event.altKey
+            ) {
               const { state, dispatch } = view;
               const { selection } = state;
 
-              // Only handle if we're inside a word node
+              // We only care about a collapsed selection inside a `word` node
+              if (!selection.empty) {
+                return false;
+              }
               const $pos = selection.$from;
-              const parent = $pos.parent;
+              const wordType = state.schema.nodes.word;
+              if ($pos.parent.type !== wordType) {
+                return false;
+              }
 
-              if (parent.type.name === "word") {
-                // Create a new empty word node after this one
-                const pos = $pos.after();
-
-                dispatch(
-                  state.tr
-                    .insert(pos, this.editor.schema.nodes.word.create())
-                    .setSelection(TextSelection.near(state.doc.resolve(pos + 1))),
-                );
-
+              // If current word is still empty, ignore additional spaces
+              if ($pos.parent.textContent.length === 0) {
+                event.preventDefault();
                 return true;
               }
+
+              event.preventDefault(); // keep the browser from inserting the space
+
+              // Insert a new (initially empty) `word` node right after the current one
+              const posAfter = $pos.after();
+              const tr = state.tr.insert(posAfter, wordType.create());
+
+              // Place caret inside the freshly-created node
+              tr.setSelection(TextSelection.create(tr.doc, posAfter + 1));
+
+              dispatch(tr.scrollIntoView());
+              return true;
             }
             return false;
           },
 
           // Handle pasting to split text into words
-          handlePaste: (view, event, slice) => {
-            if (slice.content.firstChild?.type.name === "text") {
-              const text = slice.content.firstChild.text;
-              if (!text) {
-                return false;
-              }
-
-              const words = text.split(/\s+/);
-              if (words.length <= 1) {
-                return false;
-              }
-
-              const { state, dispatch } = view;
-              const { selection } = state;
-              const tr = state.tr;
-
-              // Create word nodes for each word
-              const nodes = words
-                .filter(word => word.trim())
-                .map(word => {
-                  return this.editor.schema.nodes.word.create(
-                    null,
-                    this.editor.schema.text(word),
-                  );
-                });
-
-              if (nodes.length === 0) {
-                return false;
-              }
-
-              tr.deleteSelection();
-              nodes.forEach((node, i) => {
-                tr.insert(selection.from + i, node);
-              });
-
-              dispatch(tr);
-              return true;
+          handlePaste(view, event) {
+            const text = event.clipboardData?.getData("text/plain")?.trim() ?? "";
+            if (!text) {
+              return false;
             }
 
-            return false;
+            // Collapse consecutive whitespace → split into individual words
+            const words = text.split(/\s+/).filter(Boolean);
+            if (words.length <= 1) {
+              return false; // let normal paste through
+            }
+
+            const { state, dispatch } = view;
+            const wordType = state.schema.nodes.word;
+
+            const nodes = words.map((w) => wordType.create(null, state.schema.text(w)));
+
+            // Replace current selection with the new list of word nodes
+            let tr = state.tr.deleteSelection();
+            let insertPos = tr.selection.from;
+            nodes.forEach((node) => {
+              tr.insert(insertPos, node);
+              insertPos += node.nodeSize;
+            });
+
+            dispatch(tr.scrollIntoView());
+            return true;
           },
         },
       }),

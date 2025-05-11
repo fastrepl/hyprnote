@@ -1,6 +1,6 @@
 import { useMatch } from "@tanstack/react-router";
 
-export function WidgetsView() {
+export function TranscriptView() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
 
   if (!noteMatch) {

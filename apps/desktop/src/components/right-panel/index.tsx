@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 
 import { useRightPanel } from "@/contexts";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { ChatView, WidgetsView } from "./views";
+import { ChatView, TranscriptView } from "./views";
 
 export default function RightPanel() {
   const { isExpanded, currentView } = useRightPanel();
@@ -15,7 +15,7 @@ export default function RightPanel() {
       transition={{ duration: 0.14 }}
       className="h-full border-l bg-neutral-50 overflow-hidden"
     >
-      {(currentView === "widget") ? <WidgetsView /> : <ChatView />}
+      {(currentView === "transcript") ? <TranscriptView /> : <ChatView />}
     </motion.div>
   );
 }

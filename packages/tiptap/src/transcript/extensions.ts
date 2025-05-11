@@ -40,12 +40,15 @@ export const WordSplit = Extension.create({
               event.preventDefault();
 
               const posAfter = $pos.after();
-              const tr = state.tr.insert(posAfter, WORD_NODE_TYPE.create());
 
-              tr.setSelection(TextSelection.create(tr.doc, posAfter + 1));
-              dispatch(tr.scrollIntoView());
+              let transaction = state.tr.insert(posAfter, WORD_NODE_TYPE.create());
+              const cursor = TextSelection.create(transaction.doc, posAfter + 1);
+              transaction = transaction.setSelection(cursor);
+
+              dispatch(transaction.scrollIntoView());
               return true;
             }
+
             return false;
           },
 

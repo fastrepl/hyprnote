@@ -13,14 +13,11 @@ import { useTranscript } from "./useTranscript";
 import { useTranscriptWidget } from "./useTranscriptWidget";
 
 export interface TranscriptBaseProps {
-  onSizeToggle?: () => void;
-  sizeToggleButton: React.ReactNode;
   WrapperComponent: React.ComponentType<any>;
   wrapperProps?: Partial<any>;
 }
 
 export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
-  sizeToggleButton,
   WrapperComponent,
   wrapperProps = {},
 }) => {
@@ -94,7 +91,6 @@ export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
                 </Tooltip>
               </TooltipProvider>
             ),
-            sizeToggleButton,
           ].filter(Boolean)}
         />
       </div>

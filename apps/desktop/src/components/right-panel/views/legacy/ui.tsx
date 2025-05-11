@@ -1,8 +1,5 @@
 import { type QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Maximize2Icon } from "lucide-react";
 import React, { type ReactNode } from "react";
-
-import { Button } from "@hypr/ui/components/ui/button";
 
 interface WidgetHeaderProps {
   leading?: ReactNode;
@@ -13,11 +10,7 @@ interface WidgetHeaderProps {
 const WidgetHeader = ({
   leading,
   title,
-  actions = [
-    <Button variant="ghost" size="icon" key="maximize">
-      <Maximize2Icon style={{ width: "16px", height: "16px" }} />
-    </Button>,
-  ],
+  actions = [],
 }: WidgetHeaderProps) => {
   return (
     <header style={{ display: "flex", alignItems: "center", gap: "8px" }}>

@@ -7,13 +7,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/
 import { cn } from "@hypr/ui/lib/utils";
 import Shortcut from "../../shortcut";
 
-export function WidgetPanelButton() {
+export function TranscriptPanelButton() {
   const { isExpanded, currentView, togglePanel } = useRightPanel();
 
-  const isActive = isExpanded && currentView === "widget";
+  const isActive = isExpanded && currentView === "transcript";
 
   const handleClick = () => {
-    togglePanel("widget");
+    togglePanel("transcript");
   };
 
   return (

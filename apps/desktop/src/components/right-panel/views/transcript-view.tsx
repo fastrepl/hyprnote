@@ -1,5 +1,7 @@
 import { useMatch } from "@tanstack/react-router";
 
+import TranscriptFull from "./legacy";
+
 export function TranscriptView() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
 
@@ -13,5 +15,5 @@ export function TranscriptView() {
     );
   }
 
-  return <div>Transcripts Here</div>;
+  return <TranscriptFull />;
 }

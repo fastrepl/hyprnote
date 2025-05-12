@@ -3,6 +3,8 @@ import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 
 import { WordNode } from "./nodes";
 
+const ZERO_WIDTH_SPACE = "\u200B";
+
 export const WordSplit = Extension.create({
   name: "wordSplit",
 
@@ -31,8 +33,6 @@ export const WordSplit = Extension.create({
               if ($pos.parent.type !== WORD_NODE_TYPE) {
                 return false;
               }
-
-              const ZERO_WIDTH_SPACE = "\u200B";
 
               if ($pos.parent.textContent === ZERO_WIDTH_SPACE) {
                 event.preventDefault();

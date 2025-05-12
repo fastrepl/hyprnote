@@ -108,11 +108,11 @@ export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
                 </Tooltip>
               </TooltipProvider>
             ),
-            // <Button variant="ghost" size="icon" className="p-0" onClick={handleClickToggleEditing}>
-            //   {editing.data
-            //     ? <CheckIcon size={16} className="text-black" />
-            //     : <PencilIcon size={16} className="text-black" />}
-            // </Button>,
+            // (isInactive && hasTranscript) && (
+            //   <Button variant="ghost" size="icon" className="p-0" onClick={handleClickToggleEditing}>
+            //     <PencilIcon size={16} className="text-black" />
+            //   </Button>
+            // ),
           ].filter(Boolean)}
         />
       </div>

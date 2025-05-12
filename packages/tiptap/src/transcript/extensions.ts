@@ -6,7 +6,7 @@ import { WordNode } from "./nodes";
 const ZERO_WIDTH_SPACE = "\u200B";
 
 export const WordSplit = Extension.create({
-  name: "wordSplit",
+  name: "hypr-word-split",
 
   addProseMirrorPlugins() {
     return [
@@ -128,7 +128,7 @@ export const WordSplit = Extension.create({
 });
 
 export const SpeakerSplit = Extension.create({
-  name: "speakerSplit",
+  name: "hypr-speaker-split",
 
   addProseMirrorPlugins() {
     return [

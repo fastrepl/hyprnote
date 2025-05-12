@@ -54,7 +54,7 @@ export function Transcript({ sessionId }: { sessionId?: string }) {
         )
         : (
           <>
-            {(timeline?.items?.length) && timeline.items.map((item, index) => (
+            {(timeline?.items ?? []).map((item, index) => (
               <div key={index}>
                 <p>
                   {item.text}

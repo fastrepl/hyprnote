@@ -39,11 +39,13 @@ export const WordSplit = Extension.create({
 
               event.preventDefault();
 
-              let tr = state.tr.insert($pos.after(), WORD_NODE_TYPE.create());
-              const cursor = TextSelection.create(tr.doc, $pos.after() + 1);
-              tr = tr.setSelection(cursor);
+              const posAfter = $pos.after();
 
-              dispatch(tr.scrollIntoView());
+              let transaction = state.tr.insert(posAfter, WORD_NODE_TYPE.create());
+              const cursor = TextSelection.create(transaction.doc, posAfter + 1);
+              transaction = transaction.setSelection(cursor);
+
+              dispatch(transaction.scrollIntoView());
               return true;
             }
 

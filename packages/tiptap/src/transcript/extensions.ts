@@ -32,7 +32,9 @@ export const WordSplit = Extension.create({
                 return false;
               }
 
-              if ($pos.parent.textContent.length === 0) {
+              const ZERO_WIDTH_SPACE = "\u200B";
+
+              if ($pos.parent.textContent === ZERO_WIDTH_SPACE) {
                 event.preventDefault();
                 return true;
               }
@@ -41,8 +43,14 @@ export const WordSplit = Extension.create({
 
               const posAfter = $pos.after();
 
-              let transaction = state.tr.insert(posAfter, WORD_NODE_TYPE.create());
-              const cursor = TextSelection.create(transaction.doc, posAfter + 1);
+              let transaction = state.tr.insert(
+                posAfter,
+                WORD_NODE_TYPE.create(
+                  null,
+                  state.schema.text(ZERO_WIDTH_SPACE),
+                ),
+              );
+              const cursor = TextSelection.create(transaction.doc, posAfter + 2);
               transaction = transaction.setSelection(cursor);
 
               dispatch(transaction.scrollIntoView());

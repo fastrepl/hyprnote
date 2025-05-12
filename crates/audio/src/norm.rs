@@ -2,27 +2,21 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use ebur128::{EbuR128, Mode};
-use futures_util::{Stream, StreamExt};
-use ringbuf::traits::{Observer, Split};
-use ringbuf::{
-    traits::{Consumer, Producer},
-    HeapCons, HeapProd, HeapRb,
-};
+use futures_util::Stream;
 
 const CHANNELS: u32 = 1;
-const TARGET_LUFS: f64 = -23.0; // Standard EBU R128 target
-const TRUE_PEAK_LIMIT: f64 = -1.0; // dBTP limit
-const LOOKAHEAD_MS: usize = 3000; // 3s lookahead for loudness analysis
-const LIMITER_LOOKAHEAD_MS: usize = 10; // 10ms lookahead for true peak limiting
+const TARGET_LUFS: f64 = -23.0;
+const TRUE_PEAK_LIMIT: f64 = -1.0;
+const LIMITER_LOOKAHEAD_MS: usize = 10;
+const ANALYZE_CHUNK_SIZE: usize = 512;
 
 pub struct NormalizedSource<S: kalosm_sound::AsyncSource> {
     source: S,
-    gain: f32,
+    gain_linear: f32,
     ebur128: EbuR128,
-    buffer: Vec<f32>,
-    input_buffer: HeapProd<f32>,
-    output_buffer: HeapCons<f32>,
+    loudness_buffer: Vec<f32>,
     limiter: TruePeakLimiter,
+    true_peak_limit: f32,
 }
 
 struct TruePeakLimiter {
@@ -45,10 +39,8 @@ impl TruePeakLimiter {
     }
 
     fn process(&mut self, sample: f32, true_peak_limit: f32) -> f32 {
-        // Store the sample in the buffer
         self.buffer[self.current_position] = sample;
 
-        // Calculate gain reduction if needed
         let sample_abs = sample.abs();
         if sample_abs > true_peak_limit {
             let reduction = true_peak_limit / sample_abs;
@@ -57,13 +49,10 @@ impl TruePeakLimiter {
             self.gain_reduction[self.current_position] = 1.0;
         }
 
-        // Get the output sample (from oldest position)
         let output_position = (self.current_position + 1) % self.lookahead_samples;
         let output_sample = self.buffer[output_position] * self.gain_reduction[output_position];
 
-        // Move to next position
         self.current_position = output_position;
-
         output_sample
     }
 }
@@ -75,21 +64,18 @@ pub trait NormalizeExt<S: kalosm_sound::AsyncSource> {
 impl<S: kalosm_sound::AsyncSource> NormalizeExt<S> for S {
     fn normalize(self) -> NormalizedSource<S> {
         let sample_rate = self.sample_rate();
-        let lookahead_samples = (sample_rate as usize * LOOKAHEAD_MS) / 1000;
+        let ebur128 = EbuR128::new(CHANNELS, sample_rate, Mode::I | Mode::TRUE_PEAK)
+            .expect("Failed to create EBU R128 analyzer");
 
-        let buffer = HeapRb::new(lookahead_samples * 2);
-        let (prod, cons) = buffer.split();
-
-        let ebur128 = EbuR128::new(CHANNELS, sample_rate, Mode::I | Mode::TRUE_PEAK).unwrap();
+        let true_peak_limit = 10_f32.powf(TRUE_PEAK_LIMIT as f32 / 20.0);
 
         NormalizedSource {
             source: self,
-            gain: 1.0,
+            gain_linear: 1.0,
             ebur128,
-            buffer: Vec::with_capacity(1024),
-            input_buffer: prod,
-            output_buffer: cons,
+            loudness_buffer: Vec::with_capacity(ANALYZE_CHUNK_SIZE),
             limiter: TruePeakLimiter::new(sample_rate),
+            true_peak_limit,
         }
     }
 }
@@ -97,20 +83,78 @@ impl<S: kalosm_sound::AsyncSource> NormalizeExt<S> for S {
 impl<S: kalosm_sound::AsyncSource + Unpin> Stream for NormalizedSource<S> {
     type Item = f32;
 
-    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.get_mut();
+        let mut inner = std::pin::pin!(this.source.as_stream());
 
-        let stream = this.source.as_stream();
-        let mut stream = std::pin::pin!(stream);
+        match inner.as_mut().poll_next(cx) {
+            Poll::Ready(Some(sample)) => {
+                this.loudness_buffer.push(sample);
 
-        while this.output_buffer.occupied_len() < 100 {
-            match stream.as_mut().poll_next(cx) {
-                Poll::Ready(Some(sample)) => return Poll::Ready(Some(sample)),
-                Poll::Pending => return Poll::Pending,
-                Poll::Ready(None) => return Poll::Ready(None),
+                if this.loudness_buffer.len() >= ANALYZE_CHUNK_SIZE {
+                    let _ = this.ebur128.add_frames_f32(&this.loudness_buffer);
+                    this.loudness_buffer.clear();
+
+                    if let Ok(current_lufs) = this.ebur128.loudness_global() {
+                        if current_lufs.is_finite() && current_lufs < 0.0 {
+                            let gain_db = TARGET_LUFS - current_lufs;
+                            this.gain_linear = 10_f32.powf(gain_db as f32 / 20.0);
+                        }
+                    }
+                }
+
+                let amplified = sample * this.gain_linear;
+                let limited = this.limiter.process(amplified, this.true_peak_limit);
+
+                Poll::Ready(Some(limited))
             }
+            Poll::Pending => Poll::Pending,
+            Poll::Ready(None) => Poll::Ready(None),
         }
+    }
+}
 
-        Poll::Ready(None)
+impl<S: kalosm_sound::AsyncSource + Unpin> kalosm_sound::AsyncSource for NormalizedSource<S> {
+    fn sample_rate(&self) -> u32 {
+        self.source.sample_rate()
+    }
+
+    fn as_stream(&mut self) -> impl Stream<Item = f32> + '_ {
+        Box::pin(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use futures_util::StreamExt;
+    use kalosm_sound::AsyncSource;
+
+    #[tokio::test]
+    async fn test_normalize() {
+        let audio = rodio::Decoder::new_wav(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap();
+
+        let sample_rate = audio.sample_rate();
+        let mut normalized = audio.normalize();
+
+        let mut writer = {
+            let spec = hound::WavSpec {
+                channels: 1,
+                sample_rate,
+                bits_per_sample: 32,
+                sample_format: hound::SampleFormat::Float,
+            };
+            let output_path = std::path::Path::new("./normalized_output.wav");
+            hound::WavWriter::create(output_path, spec).unwrap()
+        };
+
+        let mut stream = normalized.as_stream();
+        while let Some(sample) = stream.next().await {
+            writer.write_sample(sample).unwrap();
+        }
+        writer.finalize().unwrap();
     }
 }

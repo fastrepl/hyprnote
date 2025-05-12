@@ -36,7 +36,7 @@ function Component() {
     content: [
       {
         type: "speaker",
-        attrs: { label: "" },
+        attrs: { label: "Unknown" },
         content: (timeline?.items || []).flatMap((item) => item.text.split(" ")).filter(Boolean).map((word) => ({
           type: "word",
           content: [{ type: "text", text: word }],

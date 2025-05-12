@@ -541,6 +541,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      prosemirror-commands:
+        specifier: ^1.7.1
+        version: 1.7.1
       prosemirror-state:
         specifier: ^1.4.3
         version: 1.4.3

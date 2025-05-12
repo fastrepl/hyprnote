@@ -1,7 +1,8 @@
 import { Extension } from "@tiptap/core";
+import { splitBlockAs } from "prosemirror-commands";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 
-import { WordNode } from "./nodes";
+import { SpeakerNode, WordNode } from "./nodes";
 
 const ZERO_WIDTH_SPACE = "\u200B";
 
@@ -128,7 +129,7 @@ export const WordSplit = Extension.create({
 });
 
 export const SpeakerSplit = Extension.create({
-  name: "hypr-speaker-split",
+  name: "SpeakerSplit",
 
   addProseMirrorPlugins() {
     return [
@@ -142,12 +143,23 @@ export const SpeakerSplit = Extension.create({
               && !event.metaKey
               && !event.altKey
             ) {
-              const { state } = view;
+              const { state, dispatch } = view;
               const { selection } = state;
 
               if (!selection.empty) {
                 return false;
               }
+
+              const SPEAKER_NODE_TYPE = state.schema.nodes[SpeakerNode.name];
+
+              event.preventDefault();
+
+              const cmd = splitBlockAs((node, _atEnd, _$from) => ({
+                type: SPEAKER_NODE_TYPE,
+                attrs: node.attrs,
+              }));
+
+              return cmd(state, dispatch);
             }
 
             return false;

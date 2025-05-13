@@ -16,6 +16,11 @@
   margin: 0;
 }
 
+html,
+body {
+  background: transparent;
+}
+
 body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;

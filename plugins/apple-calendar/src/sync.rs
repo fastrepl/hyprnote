@@ -10,8 +10,15 @@ pub async fn sync_calendars(
     user_id: String,
 ) -> Result<(), crate::Error> {
     check_calendar_access().await?;
-    let state = _sync_calendars(&db, user_id).await?;
-    state.execute(&db).await;
+
+    let db_calendars = db.list_calendars(&user_id).await.unwrap_or(vec![]);
+    let system_calendars = list_system_calendars().await;
+
+    _sync_calendars(user_id, db_calendars, system_calendars)
+        .await?
+        .execute(&db)
+        .await;
+
     Ok(())
 }
 
@@ -20,18 +27,17 @@ pub async fn sync_events(
     user_id: String,
 ) -> Result<(), crate::Error> {
     check_calendar_access().await?;
-    let state = _sync_events(&db, user_id).await?;
-    state.execute(&db).await;
+
+    _sync_events(&db, user_id).await?.execute(&db).await;
+
     Ok(())
 }
 
 async fn _sync_calendars(
-    db: &hypr_db_user::UserDatabase,
     user_id: String,
+    db_calendars: Vec<hypr_db_user::Calendar>,
+    system_calendars: Vec<hypr_calendar_interface::Calendar>,
 ) -> Result<CalendarSyncState, crate::Error> {
-    let db_calendars = db.list_calendars(&user_id).await.unwrap_or(vec![]);
-    let system_calendars = list_system_calendars().await;
-
     let calendars_to_delete = {
         let items = db_calendars
             .iter()
@@ -90,14 +96,7 @@ async fn _sync_events(
         .filter(|c| c.selected)
         .collect::<Vec<hypr_db_user::Calendar>>();
 
-    let db_existing_events = list_db_events(&db, &user_id).await?;
-
-    for db_event in db_existing_events {
-        let session = db
-            .get_session(GetSessionFilter::CalendarEventId(db_event.id.clone()))
-            .await
-            .map_err(|e| crate::Error::DatabaseError(e.into()))?;
-
+    for (db_event, session) in list_db_events_with_session(&db, &user_id).await? {
         let is_selected_cal = db_selected_calendars
             .iter()
             .any(|c| c.tracking_id == db_event.calendar_id.clone().unwrap_or_default());
@@ -191,6 +190,26 @@ async fn list_db_events(
         .collect::<Vec<hypr_db_user::Event>>();
 
     Ok(events)
+}
+
+async fn list_db_events_with_session(
+    db: &hypr_db_user::UserDatabase,
+    user_id: impl Into<String>,
+) -> Result<Vec<(hypr_db_user::Event, Option<hypr_db_user::Session>)>, crate::Error> {
+    let events = list_db_events(db, user_id).await?;
+
+    let mut events_with_session = Vec::new();
+
+    for event in events {
+        let session = db
+            .get_session(GetSessionFilter::CalendarEventId(event.id.clone()))
+            .await
+            .map_err(|e| crate::Error::DatabaseError(e.into()))?;
+
+        events_with_session.push((event, session));
+    }
+
+    Ok(events_with_session)
 }
 
 async fn check_calendar_access() -> Result<(), crate::Error> {

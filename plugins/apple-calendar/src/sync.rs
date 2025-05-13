@@ -9,7 +9,25 @@ pub async fn sync_calendars(
     user_id: String,
 ) -> Result<(), crate::Error> {
     check_calendar_access().await?;
+    let state = _sync_calendars(&db, user_id).await?;
+    state.execute(&db).await;
+    Ok(())
+}
 
+pub async fn sync_events(
+    db: hypr_db_user::UserDatabase,
+    user_id: String,
+) -> Result<(), crate::Error> {
+    check_calendar_access().await?;
+    let state = _sync_events(&db, user_id).await?;
+    state.execute(&db).await;
+    Ok(())
+}
+
+async fn _sync_calendars(
+    db: &hypr_db_user::UserDatabase,
+    user_id: String,
+) -> Result<CalendarSyncState, crate::Error> {
     let db_calendars = db.list_calendars(&user_id).await.unwrap_or(vec![]);
 
     let system_calendars = tauri::async_runtime::spawn_blocking(|| {
@@ -53,31 +71,23 @@ pub async fn sync_calendars(
         items
     };
 
-    let state = CalendarSyncState {
+    Ok(CalendarSyncState {
         to_delete: calendars_to_delete,
         to_upsert: calendars_to_upsert,
-    };
-
-    state.execute(db).await;
-    Ok(())
+    })
 }
 
 // 1. For selected calendars: we fetch ~28D future events and insert them.
 //    - Event updates are handled through upsert operations.
-// 2. For ~28D future events: if the attached calendar is de-selected, we should remove them.
-//    - The only exception is when an event has an attached note.
-pub async fn sync_events(
-    db: hypr_db_user::UserDatabase,
+// 2. For ~28D future events:
+//    - if the attached calendar is de-selected, we should remove them.
+//     + The only exception is when an event has an attached non-empty note.
+//    - if event is deleted from the calendar, it should be removed from the db too.
+async fn _sync_events(
+    db: &hypr_db_user::UserDatabase,
     user_id: String,
-) -> Result<(), crate::Error> {
-    check_calendar_access().await?;
-
-    let mut state = EventSyncState {
-        to_delete: vec![],
-        to_upsert: vec![],
-    };
-
-    let user_id = user_id.clone();
+) -> Result<EventSyncState, crate::Error> {
+    let mut state = EventSyncState::default();
 
     let db_selected_calendars = {
         let items = db
@@ -113,7 +123,7 @@ pub async fn sync_events(
         items
     };
 
-    for db_event in db_existing_events {
+    for db_event in &db_existing_events {
         let session = db
             .get_session(GetSessionFilter::CalendarEventId(db_event.id.clone()))
             .await
@@ -124,7 +134,7 @@ pub async fn sync_events(
             .any(|c| c.tracking_id == db_event.calendar_id.clone().unwrap_or_default());
 
         if is_selected_cal && session.is_none() {
-            state.to_delete.push(db_event);
+            state.to_delete.push(db_event.clone());
         }
     }
 
@@ -172,11 +182,10 @@ pub async fn sync_events(
         state.to_upsert.extend(events_to_upsert);
     }
 
-    state.execute(db).await;
-    Ok(())
+    Ok(state)
 }
 
-pub async fn check_calendar_access() -> Result<(), crate::Error> {
+async fn check_calendar_access() -> Result<(), crate::Error> {
     let calendar_access = tauri::async_runtime::spawn_blocking(|| {
         let handle = hypr_calendar_apple::Handle::new();
         handle.calendar_access_status()
@@ -191,18 +200,20 @@ pub async fn check_calendar_access() -> Result<(), crate::Error> {
     Ok(())
 }
 
+#[derive(Debug, Default)]
 struct CalendarSyncState {
     to_delete: Vec<hypr_db_user::Calendar>,
     to_upsert: Vec<hypr_db_user::Calendar>,
 }
 
+#[derive(Debug, Default)]
 struct EventSyncState {
     to_delete: Vec<hypr_db_user::Event>,
     to_upsert: Vec<hypr_db_user::Event>,
 }
 
 impl CalendarSyncState {
-    async fn execute(self, db: hypr_db_user::UserDatabase) {
+    async fn execute(self, db: &hypr_db_user::UserDatabase) {
         for calendar in self.to_delete {
             if let Err(e) = db.delete_calendar(&calendar.id).await {
                 tracing::error!("delete_calendar_error: {}", e);
@@ -218,7 +229,7 @@ impl CalendarSyncState {
 }
 
 impl EventSyncState {
-    async fn execute(self, db: hypr_db_user::UserDatabase) {
+    async fn execute(self, db: &hypr_db_user::UserDatabase) {
         for event in self.to_delete {
             if let Err(e) = db.delete_event(&event.id).await {
                 tracing::error!("delete_event_error: {}", e);

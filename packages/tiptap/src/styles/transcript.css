@@ -4,15 +4,27 @@
 }
 
 .transcript-speaker-label {
+  display: block;
   font-weight: 600;
   color: #3a3a3a;
   margin-bottom: 4px;
   font-size: 14px;
+  border: none;
+  background: none;
+  padding: 2px 4px;
+  width: 100%;
+}
+
+.transcript-speaker-label:focus {
+  outline: none;
+  background-color: #eef5fd;
+  border-radius: 3px;
 }
 
 .transcript-speaker-content {
-  display: inline;
+  display: block;
   line-height: 1.7;
+  margin-left: 24px;
 }
 
 .transcript-word {

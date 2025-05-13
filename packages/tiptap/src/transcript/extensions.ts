@@ -1,8 +1,8 @@
 import { Extension } from "@tiptap/core";
-import { splitBlockAs } from "prosemirror-commands";
+import { Fragment } from "prosemirror-model";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 
-import { SpeakerNode, WordNode } from "./nodes";
+import { SpeakerContentNode, SpeakerLabelNode, SpeakerNode, WordNode } from "./nodes";
 
 const ZERO_WIDTH_SPACE = "\u200B";
 
@@ -150,16 +150,89 @@ export const SpeakerSplit = Extension.create({
                 return false;
               }
 
-              const SPEAKER_NODE_TYPE = state.schema.nodes[SpeakerNode.name];
+              const { $from } = selection;
+              const {
+                [SpeakerNode.name]: speakerType,
+                [SpeakerContentNode.name]: speakerContentType,
+                [SpeakerLabelNode.name]: speakerLabelType,
+                [WordNode.name]: wordType,
+              } = state.schema.nodes as Record<string, any>;
 
-              event.preventDefault();
+              let speakerContentDepth = $from.depth;
+              while (
+                speakerContentDepth > 0
+                && $from.node(speakerContentDepth).type !== speakerContentType
+              ) {
+                speakerContentDepth--;
+              }
+              if (
+                speakerContentDepth < 0
+                || $from.node(speakerContentDepth).type !== speakerContentType
+              ) {
+                return false;
+              }
 
-              const cmd = splitBlockAs((node, _atEnd, _$from) => ({
-                type: SPEAKER_NODE_TYPE,
-                attrs: node.attrs,
-              }));
+              let speakerDepth = speakerContentDepth;
+              while (
+                speakerDepth > 0
+                && $from.node(speakerDepth).type !== speakerType
+              ) {
+                speakerDepth--;
+              }
+              if (
+                speakerDepth < 0
+                || $from.node(speakerDepth).type !== speakerType
+              ) {
+                return false;
+              }
 
-              return cmd(state, dispatch);
+              const speakerContentStart = $from.start(speakerContentDepth);
+              const speakerContentEnd = $from.end(speakerContentDepth);
+
+              const movedFragment = speakerContentEnd > selection.from
+                ? state.doc.slice(selection.from, speakerContentEnd).content
+                : null;
+
+              const labelNode = speakerLabelType.create(
+                null,
+                state.schema.text("Unknown"),
+              );
+
+              const contentNode = speakerContentType.create(
+                null,
+                movedFragment && movedFragment.size > 0
+                  ? movedFragment
+                  : Fragment.from(
+                    wordType.create(
+                      null,
+                      state.schema.text(ZERO_WIDTH_SPACE),
+                    ),
+                  ),
+              );
+
+              const newSpeaker = speakerType.create(
+                { label: "Unknown" },
+                [labelNode, contentNode],
+              );
+
+              let tr = state.tr;
+
+              if (speakerContentEnd > selection.from) {
+                tr = tr.delete(selection.from, speakerContentEnd);
+              }
+
+              const speakerEndMapped = tr.mapping.map($from.end(speakerDepth));
+
+              tr = tr.insert(speakerEndMapped, newSpeaker);
+
+              const cursorPos = speakerEndMapped
+                + 1
+                + labelNode.nodeSize
+                + 1;
+              tr = tr.setSelection(TextSelection.create(tr.doc, cursorPos));
+
+              dispatch(tr.scrollIntoView());
+              return true;
             }
 
             return false;

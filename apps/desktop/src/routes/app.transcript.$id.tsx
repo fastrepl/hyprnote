@@ -37,10 +37,21 @@ function Component() {
       {
         type: "speaker",
         attrs: { label: "Unknown" },
-        content: (timeline?.items || []).flatMap((item) => item.text.split(" ")).filter(Boolean).map((word) => ({
-          type: "word",
-          content: [{ type: "text", text: word }],
-        })),
+        content: [
+          {
+            type: "speakerLabel",
+            content: [{ type: "text", text: "Unknown" }],
+          },
+          {
+            type: "speakerContent",
+            content: (timeline?.items || []).flatMap((item) =>
+              item.text.split(" ").filter(Boolean).map((word) => ({
+                type: "word",
+                content: [{ type: "text", text: word }],
+              }))
+            ),
+          },
+        ],
       },
     ],
   };

@@ -1,9 +1,40 @@
 import { mergeAttributes, Node } from "@tiptap/core";
 
+export const SpeakerLabelNode = Node.create({
+  name: "speakerLabel",
+  group: "block",
+  content: "text*",
+  parseHTML() {
+    return [{ tag: "div.transcript-speaker-label" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes({
+        class: "transcript-speaker-label",
+        contenteditable: "true",
+      }, HTMLAttributes),
+      0,
+    ];
+  },
+});
+
+export const SpeakerContentNode = Node.create({
+  name: "speakerContent",
+  group: "block",
+  content: "word*",
+  parseHTML() {
+    return [{ tag: "div.transcript-speaker-content" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["div", mergeAttributes({ class: "transcript-speaker-content" }, HTMLAttributes), 0];
+  },
+});
+
 export const SpeakerNode = Node.create({
   name: "speaker",
   group: "block",
-  content: "word*",
+  content: "speakerLabel speakerContent+",
   addAttributes() {
     return {
       label: {
@@ -18,12 +49,11 @@ export const SpeakerNode = Node.create({
   parseHTML() {
     return [{ tag: "div.transcript-speaker" }];
   },
-  renderHTML({ HTMLAttributes, node }) {
+  renderHTML({ HTMLAttributes }) {
     return [
       "div",
       mergeAttributes({ class: "transcript-speaker" }, HTMLAttributes),
-      ["div", { class: "transcript-speaker-label" }, node.attrs.label],
-      ["div", { class: "transcript-speaker-content" }, 0],
+      0,
     ];
   },
 });

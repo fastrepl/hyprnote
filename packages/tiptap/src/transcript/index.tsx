@@ -6,7 +6,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect } from "react";
 
 import { SpeakerSplit, WordSplit } from "./extensions";
-import { SpeakerNode, WordNode } from "./nodes";
+import { SpeakerContentNode, SpeakerLabelNode, SpeakerNode, WordNode } from "./nodes";
 
 import "../styles/transcript.css";
 
@@ -16,6 +16,8 @@ export const extensions = [
   Text,
   SpeakerNode,
   WordNode,
+  SpeakerLabelNode,
+  SpeakerContentNode,
   WordSplit,
   SpeakerSplit,
 ];

@@ -1033,7 +1033,7 @@ msgstr ""
 msgid "Toggle left sidebar"
 msgstr ""
 
-#: src/components/toolbar/buttons/transcript-panel-button.tsx:36
+#: src/components/toolbar/buttons/transcript-panel-button.tsx:34
 msgid "Toggle widget panel"
 msgstr ""
 

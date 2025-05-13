@@ -1,7 +1,6 @@
 import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
-import ListKeymap from "@tiptap/extension-list-keymap";
 import Placeholder from "@tiptap/extension-placeholder";
 import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
@@ -10,6 +9,7 @@ import StarterKit from "@tiptap/starter-kit";
 
 import { StreamingAnimation } from "./animation";
 import { ClipboardTextSerializer } from "./clipboard";
+import CustomListKeymap from "./custom-list-keymap";
 import { Hashtag } from "./hashtag";
 
 export const extensions = [
@@ -44,7 +44,6 @@ export const extensions = [
 
       return "";
     },
-    emptyNodeClass: "is-empty",
     showOnlyWhenEditable: true,
   }),
   Hashtag,
@@ -85,7 +84,7 @@ export const extensions = [
     nested: true,
   }),
   Highlight,
-  ListKeymap,
+  CustomListKeymap,
   StreamingAnimation,
   ClipboardTextSerializer,
 ];

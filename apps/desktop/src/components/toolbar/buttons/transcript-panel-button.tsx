@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { PanelRightClose, PanelRightOpen } from "lucide-react";
+import { CaptionsIcon } from "lucide-react";
 
 import { useRightPanel } from "@/contexts";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -8,9 +8,7 @@ import { cn } from "@hypr/ui/lib/utils";
 import Shortcut from "../../shortcut";
 
 export function TranscriptPanelButton() {
-  const { isExpanded, currentView, togglePanel } = useRightPanel();
-
-  const isActive = isExpanded && currentView === "transcript";
+  const { isExpanded, togglePanel } = useRightPanel();
 
   const handleClick = () => {
     togglePanel("transcript");
@@ -25,10 +23,10 @@ export function TranscriptPanelButton() {
           onClick={handleClick}
           className={cn(
             "hover:bg-neutral-300 text-xs",
-            isActive && "bg-neutral-200",
+            isExpanded && "bg-neutral-200",
           )}
         >
-          {!isExpanded ? <PanelRightOpen className="size-4" /> : <PanelRightClose className="size-4" />}
+          <CaptionsIcon className="size-4" />
         </Button>
       </TooltipTrigger>
       <TooltipContent>

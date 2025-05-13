@@ -53,18 +53,12 @@ pub async fn sync_calendars(
         items
     };
 
-    for calendar in calendars_to_delete {
-        if let Err(e) = db.delete_calendar(&calendar.id).await {
-            tracing::error!("delete_calendar_error: {}", e);
-        }
-    }
+    let state = CalendarSyncState {
+        to_delete: calendars_to_delete,
+        to_upsert: calendars_to_upsert,
+    };
 
-    for calendar in calendars_to_upsert {
-        if let Err(e) = db.upsert_calendar(calendar).await {
-            tracing::error!("upsert_calendar_error: {}", e);
-        }
-    }
-
+    state.execute(db).await;
     Ok(())
 }
 
@@ -77,6 +71,11 @@ pub async fn sync_events(
     user_id: String,
 ) -> Result<(), crate::Error> {
     check_calendar_access().await?;
+
+    let mut state = EventSyncState {
+        to_delete: vec![],
+        to_upsert: vec![],
+    };
 
     let user_id = user_id.clone();
 
@@ -125,9 +124,7 @@ pub async fn sync_events(
             .any(|c| c.tracking_id == db_event.calendar_id.clone().unwrap_or_default());
 
         if is_selected_cal && session.is_none() {
-            if let Err(e) = db.delete_event(&db_event.id).await {
-                tracing::error!("delete_event_error: {}", e);
-            }
+            state.to_delete.push(db_event);
         }
     }
 
@@ -172,13 +169,10 @@ pub async fn sync_events(
             })
             .collect::<Vec<hypr_db_user::Event>>();
 
-        for e in events_to_upsert {
-            if let Err(e) = db.upsert_event(e).await {
-                tracing::error!("upsert_event_error: {}", e);
-            }
-        }
+        state.to_upsert.extend(events_to_upsert);
     }
 
+    state.execute(db).await;
     Ok(())
 }
 
@@ -195,4 +189,46 @@ pub async fn check_calendar_access() -> Result<(), crate::Error> {
     }
 
     Ok(())
+}
+
+struct CalendarSyncState {
+    to_delete: Vec<hypr_db_user::Calendar>,
+    to_upsert: Vec<hypr_db_user::Calendar>,
+}
+
+struct EventSyncState {
+    to_delete: Vec<hypr_db_user::Event>,
+    to_upsert: Vec<hypr_db_user::Event>,
+}
+
+impl CalendarSyncState {
+    async fn execute(self, db: hypr_db_user::UserDatabase) {
+        for calendar in self.to_delete {
+            if let Err(e) = db.delete_calendar(&calendar.id).await {
+                tracing::error!("delete_calendar_error: {}", e);
+            }
+        }
+
+        for calendar in self.to_upsert {
+            if let Err(e) = db.upsert_calendar(calendar).await {
+                tracing::error!("upsert_calendar_error: {}", e);
+            }
+        }
+    }
+}
+
+impl EventSyncState {
+    async fn execute(self, db: hypr_db_user::UserDatabase) {
+        for event in self.to_delete {
+            if let Err(e) = db.delete_event(&event.id).await {
+                tracing::error!("delete_event_error: {}", e);
+            }
+        }
+
+        for event in self.to_upsert {
+            if let Err(e) = db.upsert_event(event).await {
+                tracing::error!("upsert_event_error: {}", e);
+            }
+        }
+    }
 }

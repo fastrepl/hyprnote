@@ -1,4 +1,5 @@
 use chrono::Utc;
+
 use hypr_calendar_interface::{CalendarSource, EventFilter};
 use hypr_db_user::{
     GetSessionFilter, ListEventFilter, ListEventFilterCommon, ListEventFilterSpecific,
@@ -29,13 +30,7 @@ async fn _sync_calendars(
     user_id: String,
 ) -> Result<CalendarSyncState, crate::Error> {
     let db_calendars = db.list_calendars(&user_id).await.unwrap_or(vec![]);
-
-    let system_calendars = tauri::async_runtime::spawn_blocking(|| {
-        let handle = hypr_calendar_apple::Handle::new();
-        tauri::async_runtime::block_on(handle.list_calendars()).unwrap_or_default()
-    })
-    .await
-    .unwrap_or_default();
+    let system_calendars = list_system_calendars().await;
 
     let calendars_to_delete = {
         let items = db_calendars
@@ -89,41 +84,15 @@ async fn _sync_events(
 ) -> Result<EventSyncState, crate::Error> {
     let mut state = EventSyncState::default();
 
-    let db_selected_calendars = {
-        let items = db
-            .list_calendars(&user_id)
-            .await
-            .map_err(|e| crate::Error::DatabaseError(e.into()))?
-            .into_iter()
-            .filter(|c| c.selected)
-            .collect::<Vec<hypr_db_user::Calendar>>();
+    let db_selected_calendars = list_db_calendars(&db, &user_id)
+        .await?
+        .into_iter()
+        .filter(|c| c.selected)
+        .collect::<Vec<hypr_db_user::Calendar>>();
 
-        tracing::info!("db_selected_calendars_len: {}", items.len());
-        items
-    };
+    let db_existing_events = list_db_events(&db, &user_id).await?;
 
-    let db_existing_events = {
-        let items = db
-            .list_events(Some(ListEventFilter {
-                common: ListEventFilterCommon {
-                    user_id: user_id.clone(),
-                    limit: Some(200),
-                },
-                specific: ListEventFilterSpecific::DateRange {
-                    start: Utc::now(),
-                    end: Utc::now() + chrono::Duration::days(28),
-                },
-            }))
-            .await
-            .map_err(|e| crate::Error::DatabaseError(e.into()))?
-            .into_iter()
-            .collect::<Vec<hypr_db_user::Event>>();
-
-        tracing::info!("db_existing_events_len: {}", items.len());
-        items
-    };
-
-    for db_event in &db_existing_events {
+    for db_event in db_existing_events {
         let session = db
             .get_session(GetSessionFilter::CalendarEventId(db_event.id.clone()))
             .await
@@ -139,30 +108,7 @@ async fn _sync_events(
     }
 
     for db_calendar in db_selected_calendars {
-        let fresh_events = tauri::async_runtime::spawn_blocking(move || {
-            let handle = hypr_calendar_apple::Handle::new();
-
-            let filter = EventFilter {
-                calendar_tracking_id: db_calendar.tracking_id,
-                from: Utc::now(),
-                to: Utc::now() + chrono::Duration::days(28),
-            };
-
-            let events =
-                tauri::async_runtime::block_on(handle.list_events(filter)).unwrap_or_default();
-
-            tracing::info!(
-                "calendar: {}, events: {:?}",
-                db_calendar.name,
-                events
-                    .iter()
-                    .map(|e| e.name.clone())
-                    .collect::<Vec<String>>()
-            );
-            events
-        })
-        .await
-        .unwrap_or_default();
+        let fresh_events = list_system_events(db_calendar.tracking_id).await;
 
         let events_to_upsert = fresh_events
             .iter()
@@ -183,6 +129,68 @@ async fn _sync_events(
     }
 
     Ok(state)
+}
+
+async fn list_system_calendars() -> Vec<hypr_calendar_interface::Calendar> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let handle = hypr_calendar_apple::Handle::new();
+        tauri::async_runtime::block_on(handle.list_calendars()).unwrap_or_default()
+    })
+    .await
+    .unwrap_or_default()
+}
+
+async fn list_system_events(calendar_tracking_id: String) -> Vec<hypr_calendar_interface::Event> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let handle = hypr_calendar_apple::Handle::new();
+
+        let filter = EventFilter {
+            calendar_tracking_id,
+            from: Utc::now(),
+            to: Utc::now() + chrono::Duration::days(28),
+        };
+
+        tauri::async_runtime::block_on(handle.list_events(filter)).unwrap_or_default()
+    })
+    .await
+    .unwrap_or_default()
+}
+
+async fn list_db_calendars(
+    db: &hypr_db_user::UserDatabase,
+    user_id: impl Into<String>,
+) -> Result<Vec<hypr_db_user::Calendar>, crate::Error> {
+    let items = db
+        .list_calendars(user_id.into())
+        .await
+        .map_err(|e| crate::Error::DatabaseError(e.into()))?
+        .into_iter()
+        .collect::<Vec<hypr_db_user::Calendar>>();
+
+    Ok(items)
+}
+
+async fn list_db_events(
+    db: &hypr_db_user::UserDatabase,
+    user_id: impl Into<String>,
+) -> Result<Vec<hypr_db_user::Event>, crate::Error> {
+    let events = db
+        .list_events(Some(ListEventFilter {
+            common: ListEventFilterCommon {
+                user_id: user_id.into(),
+                limit: Some(200),
+            },
+            specific: ListEventFilterSpecific::DateRange {
+                start: Utc::now(),
+                end: Utc::now() + chrono::Duration::days(28),
+            },
+        }))
+        .await
+        .map_err(|e| crate::Error::DatabaseError(e.into()))?
+        .into_iter()
+        .collect::<Vec<hypr_db_user::Event>>();
+
+    Ok(events)
 }
 
 async fn check_calendar_access() -> Result<(), crate::Error> {

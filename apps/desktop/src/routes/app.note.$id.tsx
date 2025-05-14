@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 
 import EditorArea from "@/components/editor-area";
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/app/note/$id")({
         }
 
         if (!session) {
-          return redirect({ to: "/app/new" });
+          throw notFound();
         }
 
         const { insert, setCurrentSessionId } = sessionsStore.getState();

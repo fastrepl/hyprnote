@@ -1,0 +1,4 @@
+ALTER TABLE
+  sessions
+ADD
+  COLUMN is_meeting INTEGER NOT NULL DEFAULT 1;

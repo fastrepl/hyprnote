@@ -221,8 +221,9 @@ impl UserDatabase {
                     title,
                     raw_memo_html,
                     enhanced_memo_html,
-                    conversations
-                ) VALUES (:id, :created_at, :visited_at, :user_id, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :conversations)
+                    conversations,
+                    is_meeting
+                ) VALUES (:id, :created_at, :visited_at, :user_id, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :conversations, :is_meeting)
                 ON CONFLICT(id) DO UPDATE SET
                     created_at = :created_at,
                     visited_at = :visited_at,
@@ -231,7 +232,8 @@ impl UserDatabase {
                     title = :title,
                     raw_memo_html = :raw_memo_html,
                     enhanced_memo_html = :enhanced_memo_html,
-                    conversations = :conversations
+                    conversations = :conversations,
+                    is_meeting = :is_meeting
                 RETURNING *",
                 libsql::named_params! {
                     ":id": session.id.clone(),
@@ -243,6 +245,7 @@ impl UserDatabase {
                     ":raw_memo_html": session.raw_memo_html.clone(),
                     ":enhanced_memo_html": session.enhanced_memo_html.clone(),
                     ":conversations": serde_json::to_string(&session.conversations).unwrap(),
+                    ":is_meeting": if session.is_meeting { 1 } else { 0 },
                 },
             )
             .await?;
@@ -379,6 +382,7 @@ mod tests {
             raw_memo_html: "raw_memo_html_1".to_string(),
             conversations: vec![],
             enhanced_memo_html: None,
+            is_meeting: true,
         };
 
         let mut session = db.upsert_session(session).await.unwrap();

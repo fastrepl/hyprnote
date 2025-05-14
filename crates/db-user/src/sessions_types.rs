@@ -13,6 +13,7 @@ user_common_derives! {
         pub raw_memo_html: String,
         pub enhanced_memo_html: Option<String>,
         pub conversations: Vec<ConversationChunk>,
+        pub is_meeting: bool,
     }
 }
 
@@ -41,6 +42,7 @@ impl Session {
                 .get_str(8)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap_or_default(),
+            is_meeting: row.get::<i32>(9).expect("is_meeting") == 1,
         })
     }
 

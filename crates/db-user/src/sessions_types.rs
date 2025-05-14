@@ -43,6 +43,14 @@ impl Session {
                 .unwrap_or_default(),
         })
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.enhanced_memo_html
+            .as_ref()
+            .is_none_or(|s| s.is_empty())
+            && self.raw_memo_html.is_empty()
+            && self.conversations.is_empty()
+    }
 }
 
 user_common_derives! {

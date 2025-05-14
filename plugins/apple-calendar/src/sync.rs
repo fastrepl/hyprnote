@@ -28,7 +28,26 @@ pub async fn sync_events(
 ) -> Result<(), crate::Error> {
     check_calendar_access().await?;
 
-    _sync_events(&db, user_id).await?.execute(&db).await;
+    let db_events_with_session = list_db_events_with_session(&db, &user_id).await?;
+    let db_selected_calendars = list_db_calendars_selected(&db, &user_id).await?;
+
+    let mut system_events_per_selected_calendar = std::collections::HashMap::new();
+    for db_calendar in &db_selected_calendars {
+        system_events_per_selected_calendar.insert(
+            db_calendar.id.clone(),
+            list_system_events(db_calendar.tracking_id.clone()).await,
+        );
+    }
+
+    _sync_events(
+        user_id,
+        db_events_with_session,
+        db_selected_calendars,
+        system_events_per_selected_calendar,
+    )
+    .await?
+    .execute(&db)
+    .await;
 
     Ok(())
 }
@@ -85,29 +104,43 @@ async fn _sync_calendars(
 //     + The only exception is when an event has an attached non-empty note.
 //    - if event is deleted from the calendar, it should be removed from the db too.
 async fn _sync_events(
-    db: &hypr_db_user::UserDatabase,
     user_id: String,
+    db_events_with_session: Vec<(hypr_db_user::Event, Option<hypr_db_user::Session>)>,
+    db_selected_calendars: Vec<hypr_db_user::Calendar>,
+    system_events_per_selected_calendar: std::collections::HashMap<
+        String,
+        Vec<hypr_calendar_interface::Event>,
+    >,
 ) -> Result<EventSyncState, crate::Error> {
     let mut state = EventSyncState::default();
 
-    let db_selected_calendars = list_db_calendars(&db, &user_id)
-        .await?
-        .into_iter()
-        .filter(|c| c.selected)
-        .collect::<Vec<hypr_db_user::Calendar>>();
-
-    for (db_event, session) in list_db_events_with_session(&db, &user_id).await? {
+    // Process existing events:
+    // 1. Delete events from unselected calendars that have no sessions
+    // 2. Delete events that no longer exist in the system calendar
+    for (db_event, session) in db_events_with_session {
         let is_selected_cal = db_selected_calendars
             .iter()
             .any(|c| c.tracking_id == db_event.calendar_id.clone().unwrap_or_default());
 
-        if is_selected_cal && session.is_none() {
+        if !is_selected_cal && session.map_or(true, |s| s.is_empty()) {
             state.to_delete.push(db_event.clone());
+            continue;
+        }
+
+        if let Some(ref calendar_id) = db_event.calendar_id {
+            if let Some(events) = system_events_per_selected_calendar.get(calendar_id) {
+                if !events.iter().any(|e| e.id == db_event.tracking_id) {
+                    state.to_delete.push(db_event.clone());
+                    continue;
+                }
+            }
         }
     }
 
     for db_calendar in db_selected_calendars {
-        let fresh_events = list_system_events(db_calendar.tracking_id).await;
+        let fresh_events = system_events_per_selected_calendar
+            .get(&db_calendar.id)
+            .unwrap();
 
         let events_to_upsert = fresh_events
             .iter()
@@ -164,6 +197,19 @@ async fn list_db_calendars(
         .await
         .map_err(|e| crate::Error::DatabaseError(e.into()))?
         .into_iter()
+        .collect::<Vec<hypr_db_user::Calendar>>();
+
+    Ok(items)
+}
+
+async fn list_db_calendars_selected(
+    db: &hypr_db_user::UserDatabase,
+    user_id: impl Into<String>,
+) -> Result<Vec<hypr_db_user::Calendar>, crate::Error> {
+    let items = list_db_calendars(db, user_id)
+        .await?
+        .into_iter()
+        .filter(|c| c.selected)
         .collect::<Vec<hypr_db_user::Calendar>>();
 
     Ok(items)
@@ -268,5 +314,35 @@ impl EventSyncState {
                 tracing::error!("upsert_event_error: {}", e);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_sync_calendars() {
+        let state = _sync_calendars("TEST".to_string(), vec![], vec![])
+            .await
+            .unwrap();
+
+        assert!(state.to_delete.is_empty());
+        assert!(state.to_upsert.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_sync_events() {
+        let state = _sync_events(
+            "TEST".to_string(),
+            vec![],
+            vec![],
+            std::collections::HashMap::new(),
+        )
+        .await
+        .unwrap();
+
+        assert!(state.to_delete.is_empty());
+        assert!(state.to_upsert.is_empty());
     }
 }

@@ -165,7 +165,7 @@ export function formatTimeAgo(date: Date | string): string {
   const years = Math.floor(days / 365);
 
   if (seconds < 5) {
-    return i18n._("just now");
+    return i18n._("Just now");
   } else if (seconds < 60) {
     return i18n._("{seconds} seconds ago", { seconds });
   } else if (minutes === 1) {
@@ -204,7 +204,7 @@ export function formatUpcomingTime(date: Date | string): string {
   const now = new Date();
 
   if (futureDate <= now) {
-    return i18n._("in progress");
+    return i18n._("In progress");
   }
 
   // Use calendar day difference calculation to be consistent with formatRelativeWithDay
@@ -220,15 +220,15 @@ export function formatUpcomingTime(date: Date | string): string {
     const hours = Math.floor(minutes / 60);
 
     if (seconds < 60) {
-      return i18n._("in {seconds} seconds", { seconds });
+      return i18n._("Starting soon");
     } else if (minutes === 1) {
-      return i18n._("in 1 minute");
+      return i18n._("In 1 minute");
     } else if (minutes < 60) {
-      return i18n._("in {minutes} minutes", { minutes });
+      return i18n._("In {minutes} minutes", { minutes });
     } else if (hours === 1) {
-      return i18n._("in 1 hour");
+      return i18n._("In 1 hour");
     } else {
-      return i18n._("in {hours} hours", { hours });
+      return i18n._("In {hours} hours", { hours });
     }
   } else if (diffInDays === 1) {
     return i18n._("1 day later");

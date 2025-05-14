@@ -97,12 +97,6 @@ async fn _sync_calendars(
     })
 }
 
-// 1. For selected calendars: we fetch ~28D future events and insert them.
-//    - Event updates are handled through upsert operations.
-// 2. For ~28D future events:
-//    - if the attached calendar is de-selected, we should remove them.
-//     + The only exception is when an event has an attached non-empty note.
-//    - if event is deleted from the calendar, it should be removed from the db too.
 async fn _sync_events(
     user_id: String,
     db_events_with_session: Vec<(hypr_db_user::Event, Option<hypr_db_user::Session>)>,

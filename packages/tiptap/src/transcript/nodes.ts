@@ -22,7 +22,17 @@ export const SpeakerNode = Node.create({
     return [
       "div",
       mergeAttributes({ class: "transcript-speaker" }, HTMLAttributes),
-      ["div", { class: "transcript-speaker-label" }, node.attrs.label],
+      ["div", { class: "transcript-speaker-label" }, [
+        "select",
+        {
+          class: "transcript-speaker-select",
+          "data-speaker-label": node.attrs.label,
+        },
+        ["option", { value: "Unknown", selected: node.attrs.label === "Unknown" }, "Unknown"],
+        ["option", { value: "Speaker 1", selected: node.attrs.label === "Speaker 1" }, "Speaker 1"],
+        ["option", { value: "Speaker 2", selected: node.attrs.label === "Speaker 2" }, "Speaker 2"],
+        ["option", { value: "Speaker 3", selected: node.attrs.label === "Speaker 3" }, "Speaker 3"],
+      ]],
       ["div", { class: "transcript-speaker-content" }, 0],
     ];
   },

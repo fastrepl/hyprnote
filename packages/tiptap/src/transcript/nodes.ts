@@ -12,7 +12,7 @@ export const SpeakerLabelNode = Node.create({
       "div",
       mergeAttributes({
         class: "transcript-speaker-label",
-        contenteditable: "true",
+        contenteditable: "false",
       }, HTMLAttributes),
       0,
     ];
@@ -34,7 +34,7 @@ export const SpeakerContentNode = Node.create({
 export const SpeakerNode = Node.create({
   name: "speaker",
   group: "block",
-  content: "speakerLabel speakerContent+",
+  content: "speakerContent+",
   addAttributes() {
     return {
       label: {
@@ -44,16 +44,47 @@ export const SpeakerNode = Node.create({
           return { "data-speaker-label": attributes.label };
         },
       },
+      speakers: {
+        default: [],
+        parseHTML: element => {
+          try {
+            return JSON.parse(element.getAttribute("data-speakers") || "[]");
+          } catch (e) {
+            return [];
+          }
+        },
+        renderHTML: attributes => {
+          return { "data-speakers": JSON.stringify(attributes.speakers || []) };
+        },
+      },
     };
   },
   parseHTML() {
     return [{ tag: "div.transcript-speaker" }];
   },
-  renderHTML({ HTMLAttributes }) {
+  renderHTML({ HTMLAttributes, node }) {
+    const label = HTMLAttributes["data-speaker-label"] || "Unknown";
+    const speakers = JSON.parse(HTMLAttributes["data-speakers"] || "['Unknown']");
+
+    const selectElement = [
+      "select",
+      {
+        class: "transcript-speaker-select",
+        contenteditable: "false",
+      },
+      ["option", { value: "Unknown", selected: label === "Unknown" }, "Unknown"],
+      ...speakers.map((speaker: string) => [
+        "option",
+        { value: speaker, selected: label === speaker },
+        speaker,
+      ]),
+    ];
+
     return [
       "div",
       mergeAttributes({ class: "transcript-speaker" }, HTMLAttributes),
-      0,
+      selectElement,
+      ["div", { class: "transcript-speaker-content-wrapper" }, 0],
     ];
   },
 });

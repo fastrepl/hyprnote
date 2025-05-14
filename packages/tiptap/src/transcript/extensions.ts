@@ -156,7 +156,10 @@ export const SpeakerSplit = Extension.create({
               const $from = selection.$from;
 
               if ($from.parent.type === WORD) {
-                if ($from.index(1) === 0) {
+                const isFirstWord = $from.index(1) === 0;
+                const isLastWord = $from.index(1) === $from.node(1).childCount - 1;
+
+                if (isFirstWord || isLastWord) {
                   return true;
                 }
 

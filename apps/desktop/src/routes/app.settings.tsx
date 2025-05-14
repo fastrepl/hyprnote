@@ -1,12 +1,9 @@
-import { Trans } from "@lingui/react/macro";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
-import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
 
 import { MainSidebar, SettingsHeader, type Tab, TABS } from "@/components/settings/components";
 import { Calendar, Feedback, General, Lab, LocalAI, Notifications, Sound } from "@/components/settings/views";
-import { Button } from "@hypr/ui/components/ui/button";
 
 const schema = z.object({
   tab: z.enum(TABS.map(t => t.name) as [Tab, ...Tab[]]).default("general"),
@@ -34,21 +31,7 @@ function Component() {
             <div
               data-tauri-drag-region
               className="flex items-center h-11 justify-end px-2"
-            >
-              {(search.tab === "extensions") && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="hover:bg-neutral-200 text-neutral-600 hover:text-neutral-600"
-                  onClick={() => handleClickTab("general")}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  <span>
-                    <Trans>Back to Settings</Trans>
-                  </span>
-                </Button>
-              )}
-            </div>
+            />
 
             <MainSidebar current={search.tab} onTabClick={handleClickTab} />
           </div>

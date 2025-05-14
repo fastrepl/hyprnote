@@ -33,8 +33,6 @@ export function MainSidebar({ current, onTabClick }: MainSidebarProps) {
                   ? <Trans>Notifications</Trans>
                   : tab.name === "sound"
                   ? <Trans>Sound</Trans>
-                  : tab.name === "extensions"
-                  ? <Trans>Extensions</Trans>
                   : tab.name === "ai"
                   ? <Trans>AI</Trans>
                   : tab.name === "lab"

@@ -3,6 +3,7 @@ export * from "./default-toolbar";
 export * from "./entity-toolbar";
 export * from "./main-toolbar";
 export * from "./note-toolbar";
+export * from "./transcript-toolbar";
 
 import { useEditMode } from "@/contexts";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";

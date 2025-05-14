@@ -13,7 +13,7 @@ import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { toast } from "@hypr/ui/components/ui/toast";
+import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
@@ -58,8 +58,16 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
       toast({
         id: "recording-consent",
         title: t`Recording Started`,
-        content: t`IMPORTANT: Ensure you have consent from everyone in the meeting`,
-        dismissible: true,
+        content: t`Did you get consent from everyone in the meeting?`,
+        buttons: [
+          {
+            label: "Yes",
+            onClick: () => {
+              sonnerToast.dismiss("recording-consent");
+            },
+            primary: true,
+          },
+        ],
       });
     }
   }, [ongoingSessionStatus]);

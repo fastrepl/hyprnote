@@ -228,8 +228,8 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
-#: src/components/editor-area/note-header/listen-button.tsx:193
-#: src/components/editor-area/note-header/listen-button.tsx:232
+#: src/components/editor-area/note-header/listen-button.tsx:201
+#: src/components/editor-area/note-header/listen-button.tsx:240
 msgid "{0}"
 msgstr ""
 
@@ -238,7 +238,7 @@ msgstr ""
 msgid "{0} calendars selected"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:139
+#: src/components/settings/views/lab.tsx:77
 msgid "{description}"
 msgstr ""
 
@@ -246,7 +246,7 @@ msgstr ""
 #~ msgid "{selectedCount} calendars selected"
 #~ msgstr ""
 
-#: src/components/settings/views/lab.tsx:136
+#: src/components/settings/views/lab.tsx:74
 msgid "{title}"
 msgstr ""
 
@@ -293,7 +293,7 @@ msgid "Admin"
 msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:24
-#: src/components/settings/components/main-sidebar.tsx:39
+#: src/components/settings/components/main-sidebar.tsx:37
 msgid "AI"
 msgstr ""
 
@@ -322,11 +322,11 @@ msgstr ""
 #~ msgid "API Base"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:468
+#: src/components/settings/views/ai.tsx:442
 msgid "API Base URL"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:495
+#: src/components/settings/views/ai.tsx:469
 msgid "API Key"
 msgstr ""
 
@@ -348,8 +348,8 @@ msgid "Assistant:"
 msgstr ""
 
 #: src/routes/app.settings.tsx:47
-msgid "Back to Settings"
-msgstr ""
+#~ msgid "Back to Settings"
+#~ msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:36
 msgid "Billing"
@@ -418,7 +418,7 @@ msgstr ""
 msgid "Connect"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:446
+#: src/components/settings/views/ai.tsx:422
 msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 msgstr ""
 
@@ -456,7 +456,7 @@ msgstr ""
 msgid "Current Plan"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:443
+#: src/components/settings/views/ai.tsx:419
 msgid "Custom Endpoint"
 msgstr ""
 
@@ -468,7 +468,7 @@ msgstr ""
 #~ msgid "Custom LLM Endpoint"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:418
+#: src/components/settings/views/ai.tsx:394
 msgid "Default (llama-3.2-3b-q4)"
 msgstr ""
 
@@ -494,13 +494,22 @@ msgstr ""
 #~ msgid "Detect meetings automatically"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:365
-msgid "Download"
+#: src/components/editor-area/note-header/listen-button.tsx:61
+msgid "Did you get consent from everyone in the meeting?"
+msgstr ""
+
+#: src/components/settings/views/ai.tsx:303
+#~ msgid "Download"
+#~ msgstr ""
+
+#. placeholder {0}: metadata?.size && `(${metadata.size})`
+#: src/components/settings/views/ai.tsx:354
+msgid "Download {0}"
 msgstr ""
 
 #: src/components/settings/views/ai.tsx:308
-msgid "Download this model to use it."
-msgstr ""
+#~ msgid "Download this model to use it."
+#~ msgstr ""
 
 #: src/components/settings/views/ai.tsx:207
 #~ msgid "Downloaded"
@@ -530,7 +539,7 @@ msgstr ""
 msgid "Enable"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:285
+#: src/components/settings/views/ai.tsx:244
 msgid "Enhancing"
 msgstr ""
 
@@ -538,15 +547,15 @@ msgstr ""
 msgid "Enter a section title"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:498
+#: src/components/settings/views/ai.tsx:472
 msgid "Enter the API key for your custom LLM endpoint"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:471
+#: src/components/settings/views/ai.tsx:445
 msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:524
+#: src/components/settings/views/ai.tsx:498
 msgid "Enter the exact model name required by your endpoint (if applicable)."
 msgstr ""
 
@@ -555,7 +564,6 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:32
-#: src/components/settings/components/main-sidebar.tsx:37
 msgid "Extensions"
 msgstr ""
 
@@ -563,7 +571,7 @@ msgstr ""
 msgid "Extract action items"
 msgstr ""
 
-#: src/components/settings/components/main-sidebar.tsx:43
+#: src/components/settings/components/main-sidebar.tsx:41
 msgid "Feedback"
 msgstr ""
 
@@ -626,8 +634,8 @@ msgid "How can I help you today?"
 msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:61
-msgid "IMPORTANT: Ensure you have consent from everyone in the meeting"
-msgstr ""
+#~ msgid "IMPORTANT: Ensure you have consent from everyone in the meeting"
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/chips/instruction-chip.tsx:63
 #~ msgid "Instruction"
@@ -657,7 +665,7 @@ msgstr ""
 msgid "Key decisions"
 msgstr ""
 
-#: src/components/settings/components/main-sidebar.tsx:41
+#: src/components/settings/components/main-sidebar.tsx:39
 msgid "Lab"
 msgstr ""
 
@@ -723,7 +731,7 @@ msgstr ""
 #~ msgid "Model"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:521
+#: src/components/settings/views/ai.tsx:495
 msgid "Model Name"
 msgstr ""
 
@@ -776,7 +784,7 @@ msgstr ""
 #~ msgid "No speech-to-text models available"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:390
+#: src/components/settings/views/ai.tsx:365
 msgid "No speech-to-text models available or failed to load."
 msgstr ""
 
@@ -829,7 +837,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:316
+#: src/components/editor-area/note-header/listen-button.tsx:324
 msgid "Pause"
 msgstr ""
 
@@ -837,7 +845,7 @@ msgstr ""
 msgid "people"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:212
+#: src/components/editor-area/note-header/listen-button.tsx:220
 msgid "Play video"
 msgstr ""
 
@@ -882,7 +890,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:102
+#: src/components/editor-area/note-header/listen-button.tsx:110
 msgid "Resume"
 msgstr ""
 
@@ -968,11 +976,11 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:168
+#: src/components/editor-area/note-header/listen-button.tsx:176
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:324
+#: src/components/editor-area/note-header/listen-button.tsx:332
 msgid "Stop"
 msgstr ""
 
@@ -1037,7 +1045,7 @@ msgstr ""
 msgid "Toggle widget panel"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:281
+#: src/components/settings/views/ai.tsx:240
 msgid "Transcribing"
 msgstr ""
 
@@ -1073,7 +1081,7 @@ msgstr ""
 msgid "Upgrade"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:421
+#: src/components/settings/views/ai.tsx:397
 msgid "Use the local Llama 3.2 model for enhanced privacy and offline capability."
 msgstr ""
 

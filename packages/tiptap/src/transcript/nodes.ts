@@ -1,42 +1,56 @@
 import { mergeAttributes, Node } from "@tiptap/core";
+import { ReactNodeViewRenderer } from "@tiptap/react";
 
-export const SpeakerNode = Node.create({
-  name: "speaker",
-  group: "block",
-  content: "word*",
-  addAttributes() {
-    return {
-      label: {
-        default: "Unknown",
-        parseHTML: element => element.getAttribute("data-speaker-label") || "Unknown",
-        renderHTML: attributes => {
-          return { "data-speaker-label": attributes.label };
+import { SpeakerView } from "./views";
+
+export const createSpeakerNode = (speakers: string[]) =>
+  Node.create({
+    name: "speaker",
+    group: "block",
+    content: "word*",
+    addAttributes() {
+      return {
+        label: {
+          default: speakers[0],
+          parseHTML: element => {
+            const label = element.getAttribute("data-speaker-label");
+            return label && speakers.includes(label) ? label : speakers[0];
+          },
+          renderHTML: attributes => {
+            const label = speakers.includes(attributes.label) ? attributes.label : speakers[0];
+            return { "data-speaker-label": label };
+          },
         },
-      },
-    };
-  },
-  parseHTML() {
-    return [{ tag: "div.transcript-speaker" }];
-  },
-  renderHTML({ HTMLAttributes, node }) {
-    return [
-      "div",
-      mergeAttributes({ class: "transcript-speaker" }, HTMLAttributes),
-      ["div", { class: "transcript-speaker-label" }, [
-        "select",
-        {
-          class: "transcript-speaker-select",
-          "data-speaker-label": node.attrs.label,
+        speakers: {
+          default: speakers,
+          renderHTML: () => ({}),
         },
-        ["option", { value: "Unknown", selected: node.attrs.label === "Unknown" }, "Unknown"],
-        ["option", { value: "Speaker 1", selected: node.attrs.label === "Speaker 1" }, "Speaker 1"],
-        ["option", { value: "Speaker 2", selected: node.attrs.label === "Speaker 2" }, "Speaker 2"],
-        ["option", { value: "Speaker 3", selected: node.attrs.label === "Speaker 3" }, "Speaker 3"],
-      ]],
-      ["div", { class: "transcript-speaker-content" }, 0],
-    ];
-  },
-});
+      };
+    },
+    parseHTML() {
+      return [{ tag: "div.transcript-speaker" }];
+    },
+    renderHTML({ HTMLAttributes, node }) {
+      const label = node.attrs.label && speakers.includes(node.attrs.label) ? node.attrs.label : speakers[0];
+
+      return [
+        "div",
+        mergeAttributes({ class: "transcript-speaker" }, HTMLAttributes),
+        ["div", { class: "transcript-speaker-label" }, [
+          "select",
+          {
+            class: "transcript-speaker-select",
+            "data-speaker-label": label,
+          },
+          ...speakers.map(name => ["option", { value: name, selected: label === name }, name]),
+        ]],
+        ["div", { class: "transcript-speaker-content" }, 0],
+      ];
+    },
+    addNodeView() {
+      return ReactNodeViewRenderer(SpeakerView);
+    },
+  });
 
 export const WordNode = Node.create({
   name: "word",

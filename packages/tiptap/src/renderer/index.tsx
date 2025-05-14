@@ -4,8 +4,6 @@ import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor
 import { forwardRef, useEffect } from "react";
 import * as shared from "../shared";
 
-export const extensions = [...shared.extensions];
-
 interface RendererProps {
   initialContent: HTMLContent;
 }
@@ -13,7 +11,7 @@ interface RendererProps {
 const Renderer = forwardRef<{ editor: TiptapEditor | null }, RendererProps>(
   ({ initialContent }, ref) => {
     const editor = useEditor({
-      extensions,
+      extensions: shared.extensions,
       editable: false,
       shouldRerenderOnTransaction: false,
       editorProps: {

@@ -2,10 +2,10 @@ import "../styles/tiptap.css";
 
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect, useRef } from "react";
+
 import * as shared from "../shared";
 
 export type { TiptapEditor };
-export const extensions = [...shared.extensions];
 
 interface EditorProps {
   handleChange: (content: HTMLContent) => void;
@@ -27,7 +27,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
     };
 
     const editor = useEditor({
-      extensions,
+      extensions: shared.extensions,
       editable,
       content: initialContent || "<p></p>",
       onCreate: ({ editor }) => {

@@ -1,3 +1,5 @@
+import "../styles/transcript.css";
+
 import { type Editor as TiptapEditor } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import History from "@tiptap/extension-history";
@@ -6,27 +8,26 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect } from "react";
 
 import { SpeakerSplit, WordSplit } from "./extensions";
-import { SpeakerNode, WordNode } from "./nodes";
-
-import "../styles/transcript.css";
-
-export const extensions = [
-  Document.configure({ content: "speaker+" }),
-  History,
-  Text,
-  SpeakerNode,
-  WordNode,
-  WordSplit,
-  SpeakerSplit,
-];
+import { createSpeakerNode, WordNode } from "./nodes";
 
 interface TranscriptEditorProps {
   editable?: boolean;
   initialContent: Record<string, unknown>;
+  speakers: string[];
 }
 
 const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptEditorProps>(
-  ({ initialContent, editable = true }, ref) => {
+  ({ initialContent, editable = true, speakers }, ref) => {
+    const extensions = [
+      Document.configure({ content: "speaker+" }),
+      History,
+      Text,
+      WordNode,
+      createSpeakerNode(speakers),
+      WordSplit,
+      SpeakerSplit,
+    ];
+
     const editor = useEditor({
       extensions,
       editable,

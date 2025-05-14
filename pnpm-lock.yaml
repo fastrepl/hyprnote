@@ -484,6 +484,9 @@ importers:
 
   packages/tiptap:
     dependencies:
+      '@hypr/ui':
+        specifier: workspace:^
+        version: link:../ui
       '@remixicon/react':
         specifier: ^4.6.0
         version: 4.6.0(react@18.3.1)

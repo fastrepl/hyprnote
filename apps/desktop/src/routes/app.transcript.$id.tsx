@@ -39,6 +39,7 @@ function Component() {
         <TranscriptEditor
           ref={editorRef}
           initialContent={content}
+          speakers={["TODO 1", "TODO 2", "TODO 3"]}
         />
       </div>
     </div>

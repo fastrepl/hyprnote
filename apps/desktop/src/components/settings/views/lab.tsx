@@ -1,7 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { CloudLightningIcon } from "lucide-react";
-import { useEffect, useState } from "react";
 
 import { commands as flagsCommands } from "@hypr/plugin-flags";
 import { Switch } from "@hypr/ui/components/ui/switch";
@@ -10,7 +9,6 @@ export default function Lab() {
   return (
     <div>
       <div className="space-y-4">
-        <ChatPanel />
         <CloudPreview />
       </div>
     </div>
@@ -48,66 +46,6 @@ function CloudPreview() {
       enabled={flagQuery.data ?? false}
       onToggle={handleToggle}
     />
-  );
-}
-
-function ChatPanel() {
-  const flagQuery = useQuery({
-    queryKey: ["flags", "ChatRightPanel"],
-    queryFn: () => flagsCommands.isEnabled("ChatRightPanel"),
-  });
-
-  const flagMutation = useMutation({
-    mutationFn: async (enabled: boolean) => {
-      if (enabled) {
-        flagsCommands.enable("ChatRightPanel");
-      } else {
-        flagsCommands.disable("ChatRightPanel");
-      }
-    },
-    onSuccess: () => {
-      flagQuery.refetch();
-    },
-  });
-
-  const handleToggle = (enabled: boolean) => {
-    flagMutation.mutate(enabled);
-  };
-
-  return (
-    <FeatureFlag
-      title="Hyprnote Assistant"
-      description="Ask our AI assistant about past notes and upcoming events"
-      icon={<ChatLogo />}
-      enabled={flagQuery.data ?? false}
-      onToggle={handleToggle}
-    />
-  );
-}
-
-function ChatLogo() {
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  useEffect(() => {
-    const animationInterval = setInterval(() => {
-      setIsAnimating(true);
-      const timeout = setTimeout(() => {
-        setIsAnimating(false);
-      }, 1625);
-      return () => clearTimeout(timeout);
-    }, 4625);
-
-    return () => clearInterval(animationInterval);
-  }, []);
-
-  return (
-    <div className="relative w-6 aspect-square flex items-center justify-center">
-      <img
-        src={isAnimating ? "/assets/dynamic.gif" : "/assets/static.png"}
-        alt="AI Assistant"
-        className="w-full h-full"
-      />
-    </div>
   );
 }
 

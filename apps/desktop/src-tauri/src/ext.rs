@@ -116,7 +116,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
                 .build();
 
             if let Err(e) = self.event(e).await {
-                tracing::error!("failed_to_track_user_creation: {}", e);
+                tracing::error!("failed_to_send_analytics: {}", e);
             }
         }
 

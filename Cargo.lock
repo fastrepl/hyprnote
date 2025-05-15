@@ -13579,6 +13579,8 @@ dependencies = [
  "strum 0.26.3",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-analytics",
+ "tauri-plugin-auth",
  "tauri-plugin-decorum",
  "tauri-specta",
  "thiserror 2.0.12",

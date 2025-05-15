@@ -114,6 +114,16 @@ impl UserDatabase {
                 )
                 .await?
             }
+            Some(ListEventFilter {
+                common: ListEventFilterCommon { user_id, limit },
+                specific: ListEventFilterSpecific::NotAssignedPast {},
+            }) => {
+                conn.query(
+                    "SELECT * FROM events WHERE user_id = ? AND calendar_id IS NULL ORDER BY start_date ASC LIMIT ?",
+                    vec![user_id, limit.unwrap_or(100).to_string()],
+                )
+                .await?
+            }
             None => {
                 conn.query(
                     "SELECT * FROM events ORDER BY start_date DESC LIMIT 100",

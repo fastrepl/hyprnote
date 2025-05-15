@@ -52,7 +52,7 @@ async deleteSession(id: string) : Promise<null> {
 async getSession(filter: GetSessionFilter) : Promise<Session | null> {
     return await TAURI_INVOKE("plugin:db|get_session", { filter });
 },
-async setSessionEvent(sessionId: string, eventId: string) : Promise<null> {
+async setSessionEvent(sessionId: string, eventId: string | null) : Promise<null> {
     return await TAURI_INVOKE("plugin:db|set_session_event", { sessionId, eventId });
 },
 async sessionAddParticipant(sessionId: string, humanId: string) : Promise<null> {
@@ -167,7 +167,7 @@ export type ExtensionWidgetPosition = { x: number; y: number }
 export type GetSessionFilter = { id: string } | { calendarEventId: string } | { tagId: string }
 export type Human = { id: string; organization_id: string | null; is_user: boolean; full_name: string | null; email: string | null; job_title: string | null; linkedin_username: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
-export type ListEventFilter = ({ user_id: string; limit: number | null }) & ({ type: "simple" } | { type: "search"; query: string } | { type: "dateRange"; start: string; end: string })
+export type ListEventFilter = ({ user_id: string; limit: number | null }) & ({ type: "simple" } | { type: "search"; query: string } | { type: "dateRange"; start: string; end: string } | { type: "not-assigned-past" })
 export type ListHumanFilter = { search: [number, string] }
 export type ListOrganizationFilter = { search: [number, string] }
 export type ListSessionFilter = ({ user_id: string; limit: number | null }) & ({ type: "search"; query: string } | { type: "recentlyVisited" } | { type: "dateRange"; start: string; end: string })

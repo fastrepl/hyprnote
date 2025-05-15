@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"POT-Creation-Date: 2025-05-01 21:34-0700\n"
+"POT-Creation-Date: 2025-05-15 16:09-0700\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -269,10 +269,6 @@ msgstr ""
 msgid "{description}"
 msgstr ""
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:74
-#~ msgid "{selectedCount} calendars selected"
-#~ msgstr ""
-
 #: src/components/settings/views/lab.tsx:74
 msgid "{title}"
 msgstr ""
@@ -345,10 +341,6 @@ msgstr ""
 msgid "Anyone with the link can view this page"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:278
-#~ msgid "API Base"
-#~ msgstr ""
-
 #: src/components/settings/views/ai.tsx:442
 msgid "API Base URL"
 msgstr ""
@@ -373,10 +365,6 @@ msgstr ""
 #: src/components/right-panel/components/chat/chat-message.tsx:18
 msgid "Assistant:"
 msgstr ""
-
-#: src/routes/app.settings.tsx:47
-#~ msgid "Back to Settings"
-#~ msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:36
 msgid "Billing"
@@ -407,10 +395,6 @@ msgstr ""
 msgid "CEO"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:150
-#~ msgid "Choose the language you want to use for the application interface"
-#~ msgstr ""
-
 #: src/components/settings/views/general.tsx:185
 msgid "Choose the language you want to use for the speech-to-text model and language model"
 msgstr ""
@@ -436,10 +420,6 @@ msgstr ""
 #: src/components/settings/views/profile.tsx:160
 msgid "Company name"
 msgstr ""
-
-#: src/components/right-panel/views/widgets-view.tsx:93
-#~ msgid "Configure Widgets"
-#~ msgstr ""
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:63
 msgid "Connect"
@@ -487,14 +467,6 @@ msgstr ""
 msgid "Custom Endpoint"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:221
-#~ msgid "Custom instruction"
-#~ msgstr ""
-
-#: src/components/settings/views/ai.tsx:264
-#~ msgid "Custom LLM Endpoint"
-#~ msgstr ""
-
 #: src/components/settings/views/ai.tsx:394
 msgid "Default (llama-3.2-3b-q4)"
 msgstr ""
@@ -517,38 +489,18 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:74
-#~ msgid "Detect meetings automatically"
-#~ msgstr ""
-
 #: src/components/editor-area/note-header/listen-button.tsx:61
 msgid "Did you get consent from everyone in the meeting?"
 msgstr ""
-
-#: src/components/settings/views/ai.tsx:303
-#~ msgid "Download"
-#~ msgstr ""
 
 #. placeholder {0}: metadata?.size && `(${metadata.size})`
 #: src/components/settings/views/ai.tsx:354
 msgid "Download {0}"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:308
-#~ msgid "Download this model to use it."
-#~ msgstr ""
-
-#: src/components/settings/views/ai.tsx:207
-#~ msgid "Downloaded"
-#~ msgstr ""
-
 #: src/components/settings/views/template.tsx:82
 msgid "Duplicate"
 msgstr ""
-
-#: src/components/right-panel/components/widget-renderer/index.tsx:204
-#~ msgid "Edit Widgets"
-#~ msgstr ""
 
 #: src/components/settings/views/feedback.tsx:85
 msgid "Email (Optional)"
@@ -585,10 +537,6 @@ msgstr ""
 #: src/components/settings/views/ai.tsx:498
 msgid "Enter the exact model name required by your endpoint (if applicable)."
 msgstr ""
-
-#: src/components/settings/views/ai.tsx:281
-#~ msgid "Enter the URL for your custom LLM endpoint"
-#~ msgstr ""
 
 #: src/components/settings/components/settings-header.tsx:32
 msgid "Extensions"
@@ -660,14 +608,6 @@ msgstr ""
 msgid "How can I help you today?"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:61
-#~ msgid "IMPORTANT: Ensure you have consent from everyone in the meeting"
-#~ msgstr ""
-
-#: src/components/editor-area/note-header/chips/instruction-chip.tsx:63
-#~ msgid "Instruction"
-#~ msgstr ""
-
 #: src/components/settings/views/billing.tsx:38
 msgid "Integration with other apps like Notion and Google Calendar"
 msgstr ""
@@ -688,6 +628,10 @@ msgstr ""
 msgid "Job title"
 msgstr ""
 
+#: src/components/editor-area/note-header/chips/event-chip.tsx:193
+msgid "Join meeting"
+msgstr ""
+
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:37
 msgid "Key decisions"
 msgstr ""
@@ -699,10 +643,6 @@ msgstr ""
 #: src/components/settings/views/general.tsx:182
 msgid "Language"
 msgstr ""
-
-#: src/components/settings/views/ai.tsx:238
-#~ msgid "Language Model"
-#~ msgstr ""
 
 #: src/components/settings/views/billing.tsx:200
 msgid "Learn more about our pricing plans"
@@ -716,9 +656,9 @@ msgstr ""
 msgid "Live summary of the meeting"
 msgstr ""
 
-#: src/components/settings/views/extension.tsx:118
-#~ msgid "Loading extension details..."
-#~ msgstr ""
+#: src/components/editor-area/note-header/chips/event-chip.tsx:241
+msgid "Loading events..."
+msgstr ""
 
 #: src/components/workspace-calendar/event-card.tsx:163
 #: src/components/settings/components/calendar/calendar-selector.tsx:94
@@ -753,10 +693,6 @@ msgstr ""
 #: src/components/settings/views/sound.tsx:97
 msgid "Microphone Access"
 msgstr ""
-
-#: src/components/settings/views/ai.tsx:330
-#~ msgid "Model"
-#~ msgstr ""
 
 #: src/components/settings/views/ai.tsx:495
 msgid "Model Name"
@@ -795,9 +731,9 @@ msgstr ""
 msgid "No members found"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:347
-#~ msgid "No models available"
-#~ msgstr ""
+#: src/components/editor-area/note-header/chips/event-chip.tsx:253
+msgid "No past events found."
+msgstr ""
 
 #: src/components/human-profile/past-notes.tsx:89
 msgid "No past notes with this contact"
@@ -806,10 +742,6 @@ msgstr ""
 #: src/components/organization-profile/recent-notes.tsx:70
 msgid "No recent notes for this organization"
 msgstr ""
-
-#: src/components/settings/views/ai.tsx:224
-#~ msgid "No speech-to-text models available"
-#~ msgstr ""
 
 #: src/components/settings/views/ai.tsx:365
 msgid "No speech-to-text models available or failed to load."
@@ -883,10 +815,6 @@ msgstr ""
 #: src/components/settings/components/settings-header.tsx:22
 msgid "Profile"
 msgstr ""
-
-#: src/components/editor-area/note-header/listen-button.tsx:230
-#~ msgid "Provide descriptions about the meeting. Company specific terms, acronyms, jargons... any thing!"
-#~ msgstr ""
 
 #: src/components/share-and-permission/publish.tsx:15
 msgid "Publish your note"
@@ -975,10 +903,6 @@ msgstr ""
 msgid "Show notifications when you join a meeting."
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:77
-#~ msgid "Show notifications when you join a meeting. This is not perfect."
-#~ msgstr ""
-
 #: src/components/settings/views/billing.tsx:53
 msgid "Single sign-on for all users"
 msgstr ""
@@ -987,17 +911,9 @@ msgstr ""
 msgid "Sound"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:168
-#~ msgid "Speech-to-Text Model"
-#~ msgstr ""
-
 #: src/components/settings/views/billing.tsx:76
 msgid "Start Annual Plan"
 msgstr ""
-
-#: src/components/editor-area/note-header/listen-button.tsx:249
-#~ msgid "Start Meeting"
-#~ msgstr ""
 
 #: src/components/settings/views/billing.tsx:75
 msgid "Start Monthly Plan"
@@ -1129,7 +1045,7 @@ msgid "View calendar"
 msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:193
-#: src/components/editor-area/note-header/chips/event-chip.tsx:98
+#: src/components/editor-area/note-header/chips/event-chip.tsx:198
 msgid "View in calendar"
 msgstr ""
 

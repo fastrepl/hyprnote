@@ -28,13 +28,15 @@ impl AnalyticsClient {
 
         let inner_event = posthog_core::event::InnerEvent::new(e, self.api_key.clone());
 
-        let _ = self
-            .client
-            .post("https://us.i.posthog.com/capture/")
-            .json(&inner_event)
-            .send()
-            .await?
-            .error_for_status()?;
+        if !cfg!(debug_assertions) {
+            let _ = self
+                .client
+                .post("https://us.i.posthog.com/capture/")
+                .json(&inner_event)
+                .send()
+                .await?
+                .error_for_status()?;
+        }
 
         Ok(())
     }

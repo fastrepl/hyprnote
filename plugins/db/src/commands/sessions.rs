@@ -155,7 +155,7 @@ pub async fn delete_session(
 pub async fn set_session_event(
     state: tauri::State<'_, crate::ManagedState>,
     session_id: String,
-    event_id: String,
+    event_id: Option<String>,
 ) -> Result<(), String> {
     let guard = state.lock().await;
 

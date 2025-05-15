@@ -100,7 +100,7 @@ impl AudioInput {
     pub fn stream(&mut self) -> AudioStream {
         match &self.source {
             AudioSource::RealtimeMic => AudioStream::RealtimeMic {
-                mic: self.mic.as_ref().unwrap().stream(),
+                mic: self.mic.take().unwrap().stream(),
             },
             AudioSource::RealtimeSpeaker => AudioStream::RealtimeSpeaker {
                 speaker: self.speaker.take().unwrap().stream().unwrap(),

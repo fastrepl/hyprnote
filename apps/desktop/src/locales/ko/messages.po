@@ -14,6 +14,31 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:168
+msgid "Just now"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:225
+msgid "In 1 minute"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:227
+msgid "In {minutes} minutes"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:229
+msgid "In 1 hour"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:231
+msgid "In {hours} hours"
+msgstr ""
+
+#. js-lingui-explicit-id
 #: src/components/settings/views/general.tsx:228
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
@@ -35,11 +60,13 @@ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:36
+#: ../../packages/utils/src/datetime.ts:223
 msgid "Starting soon"
 msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:38
+#: ../../packages/utils/src/datetime.ts:207
 msgid "In progress"
 msgstr ""
 
@@ -117,11 +144,6 @@ msgid "{date} ({dayOfWeek})"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:168
-msgid "just now"
-msgstr ""
-
-#. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:170
 msgid "{seconds} seconds ago"
 msgstr ""
@@ -177,36 +199,6 @@ msgid "{years} years ago"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:207
-msgid "in progress"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:223
-msgid "in {seconds} seconds"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:225
-msgid "in 1 minute"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:227
-msgid "in {minutes} minutes"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:229
-msgid "in 1 hour"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: ../../packages/utils/src/datetime.ts:231
-msgid "in {hours} hours"
-msgstr ""
-
-#. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:234
 msgid "1 day later"
 msgstr ""
@@ -215,6 +207,41 @@ msgstr ""
 #: ../../packages/utils/src/datetime.ts:239
 msgid "{weeks} weeks later"
 msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:168
+#~ msgid "just now"
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:207
+#~ msgid "in progress"
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:223
+#~ msgid "in {seconds} seconds"
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:225
+#~ msgid "in 1 minute"
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:227
+#~ msgid "in {minutes} minutes"
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:229
+#~ msgid "in 1 hour"
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../../packages/utils/src/datetime.ts:231
+#~ msgid "in {hours} hours"
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:105
 msgid "(Beta) Detect meetings automatically"

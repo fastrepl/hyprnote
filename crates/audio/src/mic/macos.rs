@@ -32,26 +32,24 @@ pub struct MicStream {
     consumer: HeapCons<f32>,
     stream_desc: cat::AudioBasicStreamDesc,
     sample_rate_override: Option<u32>,
-    // Objects that must stay alive while the stream is active.
-    _vpio: au::Output<at::audio::component::InitializedState>,
     _ctx: Box<Ctx>,
     waker_state: Arc<Mutex<WakerState>>,
 }
 
 #[cfg(target_os = "macos")]
 impl MicStream {
-    /// Return the current sample-rate (overridden value preferred).
     pub fn sample_rate(&self) -> u32 {
         self.sample_rate_override
             .unwrap_or(self.stream_desc.sample_rate as u32)
     }
 }
 
-// Context passed to the AudioUnit callback.
 struct Ctx {
     format: arc::R<av::AudioFormat>,
     producer: HeapProd<f32>,
     waker_state: Arc<Mutex<WakerState>>,
+    audio_data: Vec<f32>,
+    vpio: Option<au::Output<at::audio::component::InitializedState>>,
 }
 
 impl MicInput {
@@ -97,14 +95,13 @@ impl MicInput {
             has_data: false,
         }));
 
-        let (vpio, ctx, asbd) =
+        let (ctx, asbd) =
             build_pipeline(prod, &ws).expect("failed to build microphone capture pipeline");
 
         MicStream {
             consumer: cons,
             stream_desc: asbd,
             sample_rate_override: self.sample_rate_override,
-            _vpio: vpio,
             _ctx: ctx,
             waker_state: ws,
         }
@@ -146,15 +143,15 @@ impl futures_util::Stream for MicStream {
 fn build_pipeline(
     producer: HeapProd<f32>,
     waker_state: &Arc<Mutex<WakerState>>,
-) -> Result<(
-    au::Output<at::audio::component::InitializedState>,
-    Box<Ctx>,
-    cat::AudioBasicStreamDesc,
-)> {
+) -> Result<(Box<Ctx>, cat::AudioBasicStreamDesc)> {
     const BUS_IN: u32 = 1;
     const BUS_OUT: u32 = 0;
 
     let mut vpio = au::Output::new_apple_vp()?;
+
+    // Add buffer configuration
+    vpio.set_should_allocate_input_buf(false)?;
+    vpio.set_should_allocate_output_buf(false)?;
 
     let asbd = vpio.input_stream_format(BUS_IN)?;
     let format = av::AudioFormat::with_asbd(&asbd).unwrap();
@@ -163,30 +160,57 @@ fn build_pipeline(
         format,
         producer,
         waker_state: waker_state.clone(),
+        audio_data: Vec::new(), // Initialize empty, will set after allocation
+        vpio: None,
     });
 
     extern "C-unwind" fn mic_cb(
-        in_ref_con: *mut Ctx,
-        _flags: &mut au::RenderActionFlags,
-        _ts: &at::AudioTimeStamp,
-        _bus: u32,
-        _n: u32,
-        io_data: *mut at::AudioBufList<1>,
+        ctx: *mut Ctx,
+        _io_action_flags: &mut au::RenderActionFlags,
+        _in_timestamp: &at::AudioTimeStamp,
+        _in_bus_num: u32,
+        in_number_frames: u32,
+        _io_data: *mut at::AudioBufList<1>,
     ) -> os::Status {
-        let ctx = unsafe { &mut *in_ref_con };
-        if let Some(view) =
-            av::AudioPcmBuf::with_buf_list_no_copy(&ctx.format, unsafe { &*io_data }, None)
+        if ctx.is_null() {
+            return au::err::NO_CONNECTION.into();
+        }
+        let ctx = unsafe { &mut *ctx };
+
+        // Create our own buffer list
+        let mut buf_list = at::AudioBufList::<1>::new();
+        buf_list.buffers[0] = at::AudioBuf {
+            number_channels: 1,
+            data_bytes_size: (std::mem::size_of::<f32>() * ctx.audio_data.len()) as u32,
+            data: ctx.audio_data.as_mut_ptr() as *mut _,
+        };
+
+        // Render audio into our buffer
+        if let Err(e) = ctx
+            .vpio
+            .as_mut()
+            .unwrap()
+            .render(in_number_frames, &mut buf_list, 1)
         {
-            if let Some(slice) = view.data_f32_at(0) {
-                let _ = ctx.producer.push_slice(slice);
-                let mut ws = ctx.waker_state.lock().unwrap();
-                if let Some(w) = ws.waker.take() {
-                    ws.has_data = true;
-                    drop(ws);
-                    w.wake();
-                }
+            return e.status();
+        }
+
+        // Process the audio data
+        let buffer_size = ctx.audio_data.len();
+        let pushed = ctx.producer.push_slice(&ctx.audio_data);
+        if pushed < buffer_size {
+            tracing::warn!("macos_mic_dropped_{}_samples", buffer_size - pushed);
+        }
+
+        // Wake consumer
+        let mut waker_state = ctx.waker_state.lock().unwrap();
+        if pushed > 0 && !waker_state.has_data {
+            waker_state.has_data = true;
+            if let Some(waker) = waker_state.waker.take() {
+                waker.wake();
             }
         }
+
         os::Status::NO_ERR
     }
 
@@ -195,9 +219,14 @@ fn build_pipeline(
     vpio.set_io_enabled(au::Scope::OUTPUT, BUS_OUT, false)?;
 
     let mut vpio = vpio.allocate_resources()?;
+    // Get actual buffer size AFTER allocation
+    let buffer_size = vpio.unit().max_frames_per_slice()? as usize;
+    ctx.audio_data = vec![0f32; buffer_size];
     vpio.start()?;
 
-    Ok((vpio, ctx, asbd))
+    ctx.vpio = Some(vpio);
+
+    Ok((ctx, asbd))
 }
 
 impl kalosm_sound::AsyncSource for MicStream {

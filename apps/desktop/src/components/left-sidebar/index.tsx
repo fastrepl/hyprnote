@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
-import { addDays } from "date-fns";
+import { addDays, subHours } from "date-fns";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 
 import { useHypr, useHyprSearch, useLeftSidebar } from "@/contexts";
@@ -43,22 +43,34 @@ export default function LeftSidebar() {
     refetchInterval: 5000,
     queryKey: ["events", ongoingSessionId],
     queryFn: async () => {
-      const events = await dbCommands.listEvents({
+      const now = new Date();
+      // Fetch events that started up to 12 hours ago.
+      // This is to include events that are currently ongoing but might have started earlier.
+      // These are then filtered by end_date to ensure we only show active or upcoming events.
+      const rawEvents = await dbCommands.listEvents({
         type: "dateRange",
         user_id: userId,
         limit: 3,
-        start: new Date().toISOString(),
-        end: addDays(new Date(), 28).toISOString(),
+        start: subHours(now, 12).toISOString(),
+        end: addDays(now, 28).toISOString(),
       });
 
+      const ongoingOrUpcomingEvents = rawEvents.filter(
+        (event) => event.end_date > now.toISOString(),
+      );
+
+      if (ongoingOrUpcomingEvents.length === 0) {
+        return [];
+      }
+
       const sessions = await Promise.all(
-        events.map((event) => dbCommands.getSession({ calendarEventId: event.id })),
+        ongoingOrUpcomingEvents.map((event) => dbCommands.getSession({ calendarEventId: event.id })),
       );
       sessions
         .filter((s) => s !== null)
-        .forEach((s) => insertSession(s));
+        .forEach((s) => insertSession(s!));
 
-      return events.map((event, index) => ({
+      return ongoingOrUpcomingEvents.map((event, index) => ({
         ...event,
         session: sessions[index],
       }));

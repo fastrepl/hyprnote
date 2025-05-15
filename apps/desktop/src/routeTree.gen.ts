@@ -22,6 +22,8 @@ import { Route as AppTranscriptIdImport } from './routes/app.transcript.$id'
 import { Route as AppOrganizationIdImport } from './routes/app.organization.$id'
 import { Route as AppNoteIdImport } from './routes/app.note.$id'
 import { Route as AppHumanIdImport } from './routes/app.human.$id'
+import { Route as AppDailyTodayImport } from './routes/app.daily.today'
+import { Route as AppDailyDateImport } from './routes/app.daily.$date'
 
 // Create/Update Routes
 
@@ -91,6 +93,18 @@ const AppHumanIdRoute = AppHumanIdImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 
+const AppDailyTodayRoute = AppDailyTodayImport.update({
+  id: '/daily/today',
+  path: '/daily/today',
+  getParentRoute: () => AppRoute,
+} as any)
+
+const AppDailyDateRoute = AppDailyDateImport.update({
+  id: '/daily/$date',
+  path: '/daily/$date',
+  getParentRoute: () => AppRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -144,6 +158,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexImport
       parentRoute: typeof AppImport
     }
+    '/app/daily/$date': {
+      id: '/app/daily/$date'
+      path: '/daily/$date'
+      fullPath: '/app/daily/$date'
+      preLoaderRoute: typeof AppDailyDateImport
+      parentRoute: typeof AppImport
+    }
+    '/app/daily/today': {
+      id: '/app/daily/today'
+      path: '/daily/today'
+      fullPath: '/app/daily/today'
+      preLoaderRoute: typeof AppDailyTodayImport
+      parentRoute: typeof AppImport
+    }
     '/app/human/$id': {
       id: '/app/human/$id'
       path: '/human/$id'
@@ -183,6 +211,8 @@ interface AppRouteChildren {
   AppPlansRoute: typeof AppPlansRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppDailyDateRoute: typeof AppDailyDateRoute
+  AppDailyTodayRoute: typeof AppDailyTodayRoute
   AppHumanIdRoute: typeof AppHumanIdRoute
   AppNoteIdRoute: typeof AppNoteIdRoute
   AppOrganizationIdRoute: typeof AppOrganizationIdRoute
@@ -195,6 +225,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppPlansRoute: AppPlansRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
+  AppDailyDateRoute: AppDailyDateRoute,
+  AppDailyTodayRoute: AppDailyTodayRoute,
   AppHumanIdRoute: AppHumanIdRoute,
   AppNoteIdRoute: AppNoteIdRoute,
   AppOrganizationIdRoute: AppOrganizationIdRoute,
@@ -211,6 +243,8 @@ export interface FileRoutesByFullPath {
   '/app/plans': typeof AppPlansRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
+  '/app/daily/$date': typeof AppDailyDateRoute
+  '/app/daily/today': typeof AppDailyTodayRoute
   '/app/human/$id': typeof AppHumanIdRoute
   '/app/note/$id': typeof AppNoteIdRoute
   '/app/organization/$id': typeof AppOrganizationIdRoute
@@ -224,6 +258,8 @@ export interface FileRoutesByTo {
   '/app/plans': typeof AppPlansRoute
   '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
+  '/app/daily/$date': typeof AppDailyDateRoute
+  '/app/daily/today': typeof AppDailyTodayRoute
   '/app/human/$id': typeof AppHumanIdRoute
   '/app/note/$id': typeof AppNoteIdRoute
   '/app/organization/$id': typeof AppOrganizationIdRoute
@@ -239,6 +275,8 @@ export interface FileRoutesById {
   '/app/plans': typeof AppPlansRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
+  '/app/daily/$date': typeof AppDailyDateRoute
+  '/app/daily/today': typeof AppDailyTodayRoute
   '/app/human/$id': typeof AppHumanIdRoute
   '/app/note/$id': typeof AppNoteIdRoute
   '/app/organization/$id': typeof AppOrganizationIdRoute
@@ -255,6 +293,8 @@ export interface FileRouteTypes {
     | '/app/plans'
     | '/app/settings'
     | '/app/'
+    | '/app/daily/$date'
+    | '/app/daily/today'
     | '/app/human/$id'
     | '/app/note/$id'
     | '/app/organization/$id'
@@ -267,6 +307,8 @@ export interface FileRouteTypes {
     | '/app/plans'
     | '/app/settings'
     | '/app'
+    | '/app/daily/$date'
+    | '/app/daily/today'
     | '/app/human/$id'
     | '/app/note/$id'
     | '/app/organization/$id'
@@ -280,6 +322,8 @@ export interface FileRouteTypes {
     | '/app/plans'
     | '/app/settings'
     | '/app/'
+    | '/app/daily/$date'
+    | '/app/daily/today'
     | '/app/human/$id'
     | '/app/note/$id'
     | '/app/organization/$id'
@@ -319,6 +363,8 @@ export const routeTree = rootRoute
         "/app/plans",
         "/app/settings",
         "/app/",
+        "/app/daily/$date",
+        "/app/daily/today",
         "/app/human/$id",
         "/app/note/$id",
         "/app/organization/$id",
@@ -346,6 +392,14 @@ export const routeTree = rootRoute
     },
     "/app/": {
       "filePath": "app.index.tsx",
+      "parent": "/app"
+    },
+    "/app/daily/$date": {
+      "filePath": "app.daily.$date.tsx",
+      "parent": "/app"
+    },
+    "/app/daily/today": {
+      "filePath": "app.daily.today.tsx",
       "parent": "/app"
     },
     "/app/human/$id": {

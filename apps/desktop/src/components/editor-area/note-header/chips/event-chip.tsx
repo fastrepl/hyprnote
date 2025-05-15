@@ -1,7 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { CalendarIcon, SearchIcon, SpeechIcon, VideoIcon } from "lucide-react";
+import { CalendarIcon, SearchIcon, SpeechIcon, VideoIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
 import { useHypr } from "@/contexts";
@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 import { cn } from "@hypr/ui/lib/utils";
 import { useSession } from "@hypr/utils/contexts";
 import { formatRelativeWithDay } from "@hypr/utils/datetime";
-import { subDays } from "date-fns";
+import { format, isSameDay, subDays } from "date-fns";
 
 interface EventChipProps {
   sessionId: string;
@@ -90,6 +90,20 @@ export function EventChip({ sessionId }: EventChipProps) {
     },
   });
 
+  const detachEvent = useMutation({
+    mutationFn: async () => {
+      await dbCommands.setSessionEvent(sessionId, null);
+    },
+    onSuccess: () => {
+      event.refetch();
+      eventsInPastWithoutAssignedSession.refetch();
+      setIsEventSelectorOpen(false);
+    },
+    onError: (error) => {
+      console.error("Failed to detach session event:", error);
+    },
+  });
+
   const handleClickCalendar = () => {
     if (calendar.data) {
       if (calendar.data.platform === "Apple") {
@@ -137,35 +151,62 @@ export function EventChip({ sessionId }: EventChipProps) {
           </div>
         </PopoverTrigger>
 
-        <PopoverContent align="start" className="shadow-lg w-80">
-          <div className="flex flex-col gap-2">
-            <div className="font-semibold">{event.data.name}</div>
-            {event.data.note && (
-              <div className="text-sm text-neutral-600 whitespace-pre-wrap break-words max-h-24 overflow-y-auto">
-                {event.data.note}
+        <PopoverContent align="start" className="shadow-lg w-80 relative">
+          {(() => {
+            const startDateObj = new Date(event.data.start_date);
+            const endDateObj = new Date(event.data.end_date);
+            const formattedStartDate = formatRelativeWithDay(startDateObj.toISOString());
+            const startTime = format(startDateObj, "p");
+            const endTime = format(endDateObj, "p");
+            let dateString;
+            if (isSameDay(startDateObj, endDateObj)) {
+              dateString = `${formattedStartDate}, ${startTime} - ${endTime}`;
+            } else {
+              const formattedEndDate = formatRelativeWithDay(endDateObj.toISOString());
+              dateString = `${formattedStartDate}, ${startTime} - ${formattedEndDate}, ${endTime}`;
+            }
+
+            return (
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => detachEvent.mutate()}
+                  className="absolute top-4 right-4 p-1 bg-red-100 text-white rounded-full hover:bg-red-500 transition-colors z-10"
+                  aria-label="Detach event"
+                >
+                  <XIcon size={12} />
+                </button>
+                <div className="font-semibold">{event.data.name}</div>
+                <div className="text-sm text-neutral-500">{dateString}</div>
+
+                <div className="flex gap-2">
+                  {event.data.meetingLink && (
+                    <Button
+                      onClick={() => {
+                        const meetingLink = event.data?.meetingLink;
+                        if (typeof meetingLink === "string") {
+                          openUrl(meetingLink);
+                        }
+                      }}
+                      className="flex-1"
+                    >
+                      <VideoIcon size={16} />
+                      <Trans>Join meeting</Trans>
+                    </Button>
+                  )}
+
+                  <Button variant="outline" onClick={handleClickCalendar} disabled={!calendar.data} className="flex-1">
+                    <Trans>View in calendar</Trans>
+                  </Button>
+                </div>
+
+                {event.data.note && (
+                  <div className="border-t pt-2 text-sm text-neutral-600 whitespace-pre-wrap break-words max-h-40 overflow-y-auto scrollbar-none">
+                    {event.data.note}
+                  </div>
+                )}
               </div>
-            )}
-            {event.data.meetingLink && (
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 text-xs overflow-hidden text-ellipsis whitespace-nowrap"
-                onClick={() => {
-                  const meetingLink = event.data?.meetingLink;
-                  if (typeof meetingLink === "string") {
-                    openUrl(meetingLink);
-                  }
-                }}
-              >
-                <VideoIcon size={14} />
-                <span className="truncate">
-                  <Trans>Join meeting</Trans>
-                </span>
-              </Button>
-            )}
-            <Button variant="outline" onClick={handleClickCalendar} disabled={!calendar.data}>
-              <Trans>View in calendar</Trans>
-            </Button>
-          </div>
+            );
+          })()}
         </PopoverContent>
       </Popover>
     );

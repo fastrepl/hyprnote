@@ -19,6 +19,7 @@ const Component = forwardRef<{
 }, {
   items: MentionItem[];
   command: (item: MentionItem) => void;
+  loading?: boolean;
 }>((props, ref) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -43,6 +44,15 @@ const Component = forwardRef<{
 
   useImperativeHandle(ref, () => ({
     onKeyDown: ({ event }) => {
+      if (props.loading) {
+        event.preventDefault();
+        return true;
+      }
+
+      if (props.items.length === 0) {
+        return false;
+      }
+
       event.preventDefault();
 
       switch (event.key) {
@@ -61,37 +71,94 @@ const Component = forwardRef<{
     },
   }));
 
+  if (props.loading) {
+    return (
+      <div className="mention-container">
+      </div>
+    );
+  }
+
   if (props.items.length === 0) {
     return null;
   }
 
   return (
     <div className="mention-container">
-      {props.items.map((item, index) => (
-        <button
-          className={`mention-item ${index === selectedIndex ? "is-selected" : ""}`}
-          key={item.id}
-          onClick={() => selectItem(index)}
-        >
-          <span className="mention-type">{item.type}</span>
-          <span className="mention-label">{item.label}</span>
-        </button>
-      ))}
+      {props.items.map((item, index) => {
+        return (
+          <button
+            className={`mention-item ${index === selectedIndex ? "is-selected" : ""}`}
+            key={item.id}
+            onClick={() => selectItem(index)}
+          >
+            <span className="mention-type">{item.type}</span>
+            <span className="mention-label">{item.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 });
 
 // https://github.com/ueberdosis/tiptap/blob/main/demos/src/Nodes/Mention/React/suggestion.js
 const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> => {
+  let cachedItems: MentionItem[] = [];
+  let loading = false;
+  let currentQuery = "";
+  let abortController: AbortController | null = null;
+  let activeRenderer: ReactRenderer | null = null;
+
+  const updateRendererProps = (renderer: ReactRenderer | null, items: MentionItem[], isLoading: boolean) => {
+    if (!renderer) {
+      return;
+    }
+
+    try {
+      renderer.updateProps({
+        items,
+        loading: isLoading,
+      });
+    } catch (e) {
+      console.error("Failed to update renderer props:", e);
+    }
+  };
+
   return {
     char: config.trigger,
     pluginKey: new PluginKey(`mention-${config.trigger}`),
-    items: ({ query }) => {
-      if (!query) {
+    items: async ({ query, editor }) => {
+      if (!query || query.length < 1) {
+        loading = false;
         return [];
       }
 
-      return config.handleSearch(query).slice(0, 3);
+      if (query === currentQuery && cachedItems.length > 0) {
+        return cachedItems;
+      }
+
+      currentQuery = query;
+
+      if (abortController) {
+        abortController.abort();
+      }
+
+      abortController = new AbortController();
+      loading = true;
+
+      setTimeout(() => {
+        Promise.resolve(config.handleSearch(query))
+          .then((items: MentionItem[]) => {
+            cachedItems = items.slice(0, 5);
+            loading = false;
+            updateRendererProps(activeRenderer, cachedItems, false);
+          })
+          .catch((error: Error) => {
+            loading = false;
+            updateRendererProps(activeRenderer, [], false);
+          });
+      }, 0);
+
+      return loading ? [{ id: "loading", type: "loading", label: "Loading..." }] : [];
     },
     render: () => {
       let renderer: ReactRenderer;
@@ -114,9 +181,14 @@ const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> =>
       return {
         onStart: props => {
           renderer = new ReactRenderer(Component, {
-            props,
+            props: {
+              ...props,
+              loading,
+            },
             editor: props.editor,
           });
+
+          activeRenderer = renderer;
 
           floatingEl = renderer.element as HTMLElement;
           Object.assign(floatingEl.style, {
@@ -139,7 +211,10 @@ const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> =>
         },
 
         onUpdate: props => {
-          renderer.updateProps(props);
+          renderer.updateProps({
+            ...props,
+            loading,
+          });
           if (props.clientRect) {
             referenceEl.getBoundingClientRect = () => props.clientRect?.() ?? new DOMRect();
           }
@@ -156,6 +231,15 @@ const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> =>
         },
 
         onExit: () => {
+          cachedItems = [];
+          loading = false;
+          currentQuery = "";
+          activeRenderer = null;
+          if (abortController) {
+            abortController.abort();
+            abortController = null;
+          }
+
           cleanup?.();
           floatingEl.remove();
           renderer.destroy();
@@ -167,7 +251,7 @@ const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> =>
 
 export type MentionConfig = {
   trigger: string;
-  handleSearch: (query: string) => MentionItem[];
+  handleSearch: (query: string) => Promise<MentionItem[]>;
 };
 
 export const mention = (config: MentionConfig) => {

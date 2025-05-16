@@ -29,6 +29,7 @@ export default function EditorArea({
   sessionId: string;
 }) {
   const showRaw = useSession(sessionId, (s) => s.showRaw);
+  const { userId } = useHypr();
 
   const [rawContent, setRawContent] = useSession(sessionId, (s) => [
     s.session?.raw_memo_html ?? "",
@@ -90,15 +91,15 @@ export default function EditorArea({
     }
   }, []);
 
-  const handleMentionSearch = useCallback((query: string) => {
-    return [
-      {
-        id: "123",
-        type: "note",
-        label: "123",
-      },
-    ];
-  }, []);
+  const handleMentionSearch = async (query: string) => {
+    const session = await dbCommands.listSessions({ type: "search", query, user_id: userId, limit: 5 });
+
+    return session.map((s) => ({
+      id: s.id,
+      type: "note",
+      label: s.title,
+    }));
+  };
 
   return (
     <div className="relative flex h-full flex-col w-full">

@@ -38,7 +38,7 @@
     "cmdk": "1.1.1",
     "embla-carousel-react": "^8.6.0",
     "lucide-react": "^0.487.0",
-    "motion": "^12.11.0",
+    "motion": "^12.11.4",
     "next-themes": "^0.4.6",
     "react-hook-form": "^7.56.3",
     "react-hotkeys-hook": "^4.6.2",
@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@tanstack/react-query": "^5.76.1",
-    "@types/node": "^22.15.17",
+    "@types/node": "^22.15.18",
     "@types/react": "^18.3.21",
     "@types/react-dom": "^18.3.7",
     "autoprefixer": "^10.4.21",

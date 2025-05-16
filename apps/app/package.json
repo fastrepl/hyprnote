@@ -11,7 +11,7 @@
     "start": "vite"
   },
   "devDependencies": {
-    "@clerk/types": "^4.58.0",
+    "@clerk/types": "^4.59.0",
     "@hypr/client": "workspace:^",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/router-plugin": "^1.120.3",
@@ -26,7 +26,7 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.31.2",
+    "@clerk/clerk-react": "^5.31.4",
     "@hypr/tiptap": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",

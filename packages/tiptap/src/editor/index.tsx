@@ -4,6 +4,7 @@ import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor
 import { forwardRef, useEffect, useRef } from "react";
 
 import * as shared from "../shared";
+import { mention } from "./mention";
 
 export type { TiptapEditor };
 
@@ -27,7 +28,10 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
     };
 
     const editor = useEditor({
-      extensions: shared.extensions,
+      extensions: [
+        ...shared.extensions,
+        mention("@"),
+      ],
       editable,
       content: initialContent || "<p></p>",
       onCreate: ({ editor }) => {

@@ -14,6 +14,7 @@
     "react-dom": "^18.3.1"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.7.0",
     "@hypr/ui": "workspace:^",
     "@remixicon/react": "^4.6.0",
     "@sereneinserenade/tiptap-search-and-replace": "^0.1.1",
@@ -24,6 +25,7 @@
     "@tiptap/extension-image": "^2.12.0",
     "@tiptap/extension-link": "^2.12.0",
     "@tiptap/extension-list-keymap": "^2.12.0",
+    "@tiptap/extension-mention": "^2.12.0",
     "@tiptap/extension-placeholder": "^2.12.0",
     "@tiptap/extension-strike": "^2.12.0",
     "@tiptap/extension-task-item": "^2.12.0",
@@ -34,6 +36,7 @@
     "@tiptap/pm": "^2.12.0",
     "@tiptap/react": "^2.12.0",
     "@tiptap/starter-kit": "^2.12.0",
+    "@tiptap/suggestion": "^2.12.0",
     "clsx": "^2.1.1",
     "prosemirror-commands": "^1.7.1",
     "prosemirror-state": "^1.4.3",
@@ -41,7 +44,7 @@
     "turndown": "^7.2.0"
   },
   "devDependencies": {
-    "@types/node": "^22.15.17",
+    "@types/node": "^22.15.18",
     "@types/react": "^18.3.21",
     "@types/react-dom": "^18.3.7",
     "@types/turndown": "^5.0.5"

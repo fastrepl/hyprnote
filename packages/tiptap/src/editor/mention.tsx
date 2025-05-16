@@ -92,7 +92,6 @@ const Component = forwardRef<{
             key={item.id}
             onClick={() => selectItem(index)}
           >
-            <span className="mention-type">{item.type}</span>
             <span className="mention-label">{item.label}</span>
           </button>
         );
@@ -280,6 +279,13 @@ export const mention = (config: MentionConfig) => {
           },
         };
       },
+      parseHTML() {
+        return [
+          {
+            tag: `a.mention[data-mention="true"]`,
+          },
+        ];
+      },
     })
     .configure({
       deleteTriggerWithBackspace: true,
@@ -292,8 +298,9 @@ export const mention = (config: MentionConfig) => {
           "a",
           {
             class: "mention",
-            "data-type": type,
+            "data-mention": `true`,
             "data-id": id,
+            "data-type": type,
             "data-label": label,
             href: "javascript:void(0)",
             onclick:

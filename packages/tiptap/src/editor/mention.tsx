@@ -14,26 +14,25 @@ export interface MentionItem {
 }
 
 // https://github.com/ueberdosis/tiptap/blob/main/demos/src/Nodes/Mention/React/MentionList.jsx
-const Component = forwardRef((props: {
+const Component = forwardRef<{
+  onKeyDown: (props: { event: KeyboardEvent }) => boolean;
+}, {
   items: MentionItem[];
   command: (item: MentionItem) => void;
-}, ref) => {
+}>((props, ref) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const selectItem = (index: number) => {
     const item = props.items[index];
-
-    if (item) {
-      props.command(item);
-    }
+    item && props.command(item);
   };
 
   const upHandler = () => {
-    setSelectedIndex((selectedIndex + props.items.length - 1) % props.items.length);
+    setSelectedIndex((prev) => (prev + props.items.length - 1) % props.items.length);
   };
 
   const downHandler = () => {
-    setSelectedIndex((selectedIndex + 1) % props.items.length);
+    setSelectedIndex((prev) => (prev + 1) % props.items.length);
   };
 
   const enterHandler = () => {
@@ -43,40 +42,41 @@ const Component = forwardRef((props: {
   useEffect(() => setSelectedIndex(0), [props.items]);
 
   useImperativeHandle(ref, () => ({
-    onKeyDown: ({ event }: { event: KeyboardEvent }) => {
-      if (event.key === "ArrowUp") {
-        upHandler();
-        return true;
-      }
+    onKeyDown: ({ event }) => {
+      event.preventDefault();
 
-      if (event.key === "ArrowDown") {
-        downHandler();
-        return true;
+      switch (event.key) {
+        case "ArrowUp":
+          upHandler();
+          return true;
+        case "ArrowDown":
+          downHandler();
+          return true;
+        case "Enter":
+          enterHandler();
+          return true;
+        default:
+          return false;
       }
-
-      if (event.key === "Enter") {
-        enterHandler();
-        return true;
-      }
-
-      return false;
     },
   }));
 
+  if (props.items.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="dropdown-menu">
-      {props.items.length
-        ? props.items.map((item, index) => (
-          <button
-            className={`mention-item ${index === selectedIndex ? "is-selected" : ""}`}
-            key={index}
-            onClick={() => selectItem(index)}
-          >
-            <span className="mention-type">{item.type}</span>
-            <span className="mention-label">{item.label}</span>
-          </button>
-        ))
-        : <div className="item">No result</div>}
+    <div className="mention-container">
+      {props.items.map((item, index) => (
+        <button
+          className={`mention-item ${index === selectedIndex ? "is-selected" : ""}`}
+          key={item.id}
+          onClick={() => selectItem(index)}
+        >
+          <span className="mention-type">{item.type}</span>
+          <span className="mention-label">{item.label}</span>
+        </button>
+      ))}
     </div>
   );
 });
@@ -152,7 +152,7 @@ const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> =>
             floatingEl.remove();
             return true;
           }
-          return renderer.component.onKeyDown(props);
+          return renderer.component?.onKeyDown?.(props) ?? false;
         },
 
         onExit: () => {

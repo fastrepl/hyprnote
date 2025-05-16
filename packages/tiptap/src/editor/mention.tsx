@@ -5,10 +5,18 @@ import { ReactRenderer } from "@tiptap/react";
 import { type SuggestionOptions } from "@tiptap/suggestion";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 
+const GLOBAL_NAVIGATE_FUNCTION = "__HYPR_NAVIGATE__";
+
+export interface MentionItem {
+  id: string;
+  type: string;
+  label: string;
+}
+
 // https://github.com/ueberdosis/tiptap/blob/main/demos/src/Nodes/Mention/React/MentionList.jsx
 const Component = forwardRef((props: {
-  items: string[];
-  command: (item: { id: string }) => void;
+  items: MentionItem[];
+  command: (item: MentionItem) => void;
 }, ref) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -16,7 +24,7 @@ const Component = forwardRef((props: {
     const item = props.items[index];
 
     if (item) {
-      props.command({ id: item });
+      props.command(item);
     }
   };
 
@@ -64,7 +72,7 @@ const Component = forwardRef((props: {
             key={index}
             onClick={() => selectItem(index)}
           >
-            {item}
+            {item.label}
           </button>
         ))
         : <div className="item">No result</div>}
@@ -73,16 +81,19 @@ const Component = forwardRef((props: {
 });
 
 // https://github.com/ueberdosis/tiptap/blob/main/demos/src/Nodes/Mention/React/suggestion.js
-const suggestion = (trigger: string): Omit<SuggestionOptions, "editor"> => {
+const suggestion = (
+  trigger: string,
+  handleMentionSearch: (query: string) => MentionItem[],
+): Omit<SuggestionOptions, "editor"> => {
   return {
     char: trigger,
     pluginKey: new PluginKey(`mention-${trigger}`),
     items: ({ query }) => {
       if (!query) {
-        return ["123", "234", "345"];
+        return [];
       }
 
-      return ["234", "345", "456"];
+      return handleMentionSearch(query).slice(0, 3);
     },
     render: () => {
       let renderer: ReactRenderer;
@@ -156,14 +167,53 @@ const suggestion = (trigger: string): Omit<SuggestionOptions, "editor"> => {
   };
 };
 
-export const mention = (trigger: string) =>
-  Mention
+export const mention = (trigger: string, handleMentionSearch: (query: string) => MentionItem[]) => {
+  return Mention
     .extend({
       name: `mention-${trigger}`,
+      addAttributes() {
+        return {
+          id: {
+            default: null,
+            parseHTML: (element) => element.getAttribute("data-id"),
+            renderHTML: (attributes) => ({ "data-id": attributes.id }),
+          },
+          type: {
+            default: null,
+            parseHTML: (element) => element.getAttribute("data-type"),
+            renderHTML: (attributes) => ({ "data-type": attributes.type }),
+          },
+          label: {
+            default: null,
+            parseHTML: (element) => element.getAttribute("data-label"),
+            renderHTML: (attributes) => ({ "data-label": attributes.label }),
+          },
+        };
+      },
     })
     .configure({
+      deleteTriggerWithBackspace: true,
+      suggestion: suggestion(trigger, handleMentionSearch),
+      renderHTML: ({ node }) => {
+        const { attrs: { id, type, label } } = node;
+        const path = `/app/${type}/${id}`;
+
+        return [
+          "a",
+          {
+            class: "mention",
+            "data-type": type,
+            "data-id": id,
+            "data-label": label,
+            href: "javascript:void(0)",
+            onclick:
+              `event.preventDefault(); if (window.${GLOBAL_NAVIGATE_FUNCTION}) window.${GLOBAL_NAVIGATE_FUNCTION}('${path}');`,
+          },
+          `${trigger}${label}`,
+        ];
+      },
       HTMLAttributes: {
         class: "mention",
       },
-      suggestion: suggestion(trigger),
     });
+};

@@ -90,6 +90,16 @@ export default function EditorArea({
     }
   }, []);
 
+  const handleMentionSearch = useCallback((query: string) => {
+    return [
+      {
+        id: "123",
+        type: "note",
+        label: "123",
+      },
+    ];
+  }, []);
+
   return (
     <div className="relative flex h-full flex-col w-full">
       <NoteHeader
@@ -120,6 +130,7 @@ export default function EditorArea({
               initialContent={noteContent}
               editable={enhance.status !== "pending"}
               setContentFromOutside={!showRaw && enhance.status === "pending"}
+              handleMentionSearch={handleMentionSearch}
             />
           )
           : <Renderer ref={editorRef} initialContent={noteContent} />}

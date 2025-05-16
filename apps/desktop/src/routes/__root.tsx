@@ -19,6 +19,12 @@ export const Route = createRootRouteWithContext<Required<Context>>()({
 
 const POSITION = "bottom-right";
 
+declare global {
+  interface Window {
+    __HYPR_NAVIGATE__?: (to: string) => void;
+  }
+}
+
 function Component() {
   const navigate = useNavigate();
 
@@ -31,6 +37,16 @@ function Component() {
     enabled: process.env.NODE_ENV !== "production",
     refetchInterval: 1000,
   });
+
+  useEffect(() => {
+    window.__HYPR_NAVIGATE__ = (to: string) => {
+      navigate({ to });
+    };
+
+    return () => {
+      window.__HYPR_NAVIGATE__ = undefined;
+    };
+  }, [navigate]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;

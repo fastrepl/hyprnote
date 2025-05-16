@@ -286,42 +286,6 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             end_date: now + chrono::Duration::minutes(30),
             google_event_url: None,
         },
-        // Today, not linked to any session
-        Event {
-            id: uuid::Uuid::new_v4().to_string(),
-            user_id: user.id.clone(),
-            tracking_id: uuid::Uuid::new_v4().to_string(),
-            name: "Design Review".to_string(),
-            note: "Review new UI mockups.".to_string(),
-            calendar_id: Some(calendars[0].id.clone()),
-            start_date: now + chrono::Duration::hours(2),
-            end_date: now + chrono::Duration::hours(3),
-            google_event_url: None,
-        },
-        // Tomorrow
-        Event {
-            id: uuid::Uuid::new_v4().to_string(),
-            user_id: user.id.clone(),
-            tracking_id: uuid::Uuid::new_v4().to_string(),
-            name: "Team Lunch".to_string(),
-            note: "Casual team gathering.".to_string(),
-            calendar_id: Some(calendars[0].id.clone()),
-            start_date: now + chrono::Duration::days(1) + chrono::Duration::hours(12),
-            end_date: now + chrono::Duration::days(1) + chrono::Duration::hours(13),
-            google_event_url: None,
-        },
-        // Next Week
-        Event {
-            id: uuid::Uuid::new_v4().to_string(),
-            user_id: user.id.clone(),
-            tracking_id: uuid::Uuid::new_v4().to_string(),
-            name: "Sprint Planning".to_string(),
-            note: "Plan next sprint tasks.".to_string(),
-            calendar_id: Some(calendars[0].id.clone()),
-            start_date: now + chrono::Duration::days(7) + chrono::Duration::hours(10),
-            end_date: now + chrono::Duration::days(7) + chrono::Duration::hours(11),
-            google_event_url: None,
-        },
         // --- Past Events for linking to NotesList ---
         // Last Month
         Event {

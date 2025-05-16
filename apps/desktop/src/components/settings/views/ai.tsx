@@ -465,7 +465,7 @@ export default function LocalAI() {
               )}
             >
               <div className="flex items-start justify-between w-full">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center">
                   <RadioGroupItem value="llama-3.2-3b-q4" id="llama-3.2-3b-q4" className="peer sr-only" />
                   <div className="flex flex-col">
                     <span className="font-medium">
@@ -490,7 +490,7 @@ export default function LocalAI() {
               )}
             >
               <div className="flex items-center justify-between w-full">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center">
                   <RadioGroupItem value="custom" id="custom" className="peer sr-only" />
                   <div className="flex flex-col">
                     <span className="font-medium">

@@ -85,24 +85,31 @@ impl UserDatabase {
         let conn = self.conn()?;
 
         let mut rows = match filter {
-            GetSessionFilter::Id(id) => conn
-                .query("SELECT * FROM sessions WHERE id = ?", vec![id])
-                .await
-                .unwrap(),
-            GetSessionFilter::CalendarEventId(id) => conn
-                .query(
+            GetSessionFilter::Id(id) => {
+                conn.query("SELECT * FROM sessions WHERE id = ?", vec![id])
+                    .await?
+            }
+            GetSessionFilter::CalendarEventId(id) => {
+                conn.query(
                     "SELECT * FROM sessions WHERE calendar_event_id = ?",
                     vec![id],
                 )
-                .await
-                .unwrap(),
-            GetSessionFilter::TagId(id) => conn
-                .query(
+                .await?
+            }
+            GetSessionFilter::TagId(id) => {
+                conn.query(
                     "SELECT * FROM sessions WHERE id IN (SELECT session_id FROM tags WHERE id = ?)",
                     vec![id],
                 )
-                .await
-                .unwrap(),
+                .await?
+            }
+            GetSessionFilter::Daily { date, user_id } => {
+                conn.query(
+                    "SELECT * FROM sessions WHERE title = ? AND user_id = ?",
+                    vec![date, user_id],
+                )
+                .await?
+            }
         };
 
         match rows.next().await? {

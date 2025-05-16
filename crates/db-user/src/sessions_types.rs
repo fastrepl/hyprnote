@@ -72,6 +72,8 @@ user_common_derives! {
         CalendarEventId(String),
         #[serde(rename = "tagId")]
         TagId(String),
+        #[serde(rename = "daily")]
+        Daily { date: String, user_id: String },
     }
 }
 

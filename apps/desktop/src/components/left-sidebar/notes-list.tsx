@@ -1,5 +1,4 @@
-import { Trans } from "@lingui/react/macro";
-import { useLingui } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type LinkProps, useMatch, useNavigate } from "@tanstack/react-router";
 import { confirm } from "@tauri-apps/plugin-dialog";
@@ -10,6 +9,7 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
+import { daily } from "@/utils";
 import { commands as dbCommands, type Event, type Session } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -39,6 +39,8 @@ export default function NotesList({ ongoingSessionId, filter }: NotesListProps) 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastItemRef = useRef<HTMLElement | null>(null);
 
+  const navigate = useNavigate();
+
   const { insertSession, sessionsStore } = useSessions((s) => ({
     insertSession: s.insert,
     sessionsStore: s.sessions,
@@ -46,7 +48,7 @@ export default function NotesList({ ongoingSessionId, filter }: NotesListProps) 
 
   const { userId } = useHypr();
   const sessions = useInfiniteQuery({
-    queryKey: ["sessions"],
+    queryKey: ["sessions", "grouped", userId],
     queryFn: async ({ pageParam: { monthOffset } }) => {
       const now = new Date();
       const [from, to] = [startOfMonth(now), endOfMonth(now)]
@@ -67,7 +69,8 @@ export default function NotesList({ ongoingSessionId, filter }: NotesListProps) 
         return { ...session, event };
       }));
 
-      return { sessions: groupSessions(sessionWithEvents) };
+      const grouped = groupSessions(sessionWithEvents);
+      return { sessions: grouped };
     },
     initialPageParam: { monthOffset: 0 },
     getNextPageParam: (_lastPage, _, { monthOffset }) => {
@@ -131,9 +134,16 @@ export default function NotesList({ ongoingSessionId, filter }: NotesListProps) 
               return null;
             }
 
+            const date = items[0].created_at;
+
             return (
               <section key={`${key}-${pageIndex}`}>
-                <h2 className="font-bold text-neutral-600 mb-1">
+                <h2
+                  className="font-bold text-neutral-600 mb-1"
+                  onClick={() => {
+                    navigate({ to: "/app/daily/$date", params: { date: daily.render(date) } });
+                  }}
+                >
                   {key}
                 </h2>
 

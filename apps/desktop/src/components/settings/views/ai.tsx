@@ -23,6 +23,7 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Label } from "@hypr/ui/components/ui/label";
 import { Modal, ModalBody, ModalDescription, ModalFooter, ModalHeader, ModalTitle } from "@hypr/ui/components/ui/modal";
 import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
@@ -205,6 +206,13 @@ export default function LocalAI() {
   const customLLMConnection = useQuery({
     queryKey: ["custom-llm-connection"],
     queryFn: () => connectorCommands.getCustomLlmConnection(),
+  });
+
+  // Get available LLM models for the custom endpoint
+  const availableLLMModels = useQuery({
+    queryKey: ["available-llm-models"],
+    queryFn: () => connectorCommands.listCustomLlmModels(),
+    enabled: !!customLLMConnection.data?.api_base, // Only fetch if there's a custom connection
   });
 
   const getCustomLLMModel = useQuery({
@@ -529,7 +537,7 @@ export default function LocalAI() {
                               {...field}
                               placeholder="http://localhost:8080/v1"
                               disabled={!customLLMEnabled.data}
-                              className="focus-visible:ring-1 focus-visible:ring-offset-0"
+                              className="focus-visible:ring-0 focus-visible:ring-offset-0"
                             />
                           </FormControl>
                           <FormMessage />
@@ -537,7 +545,7 @@ export default function LocalAI() {
                       )}
                     />
 
-                    {!isLocalEndpoint() && (
+                    {form.watch("api_base") && !isLocalEndpoint() && (
                       <FormField
                         control={form.control}
                         name="api_key"
@@ -574,16 +582,43 @@ export default function LocalAI() {
                           </FormLabel>
                           <FormDescription className="text-xs">
                             <Trans>
-                              Enter the exact model name required by your endpoint (if applicable).
+                              Select or enter the model name required by your endpoint.
                             </Trans>
                           </FormDescription>
                           <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="e.g., QuantizedTiny, llama3"
-                              disabled={!customLLMEnabled.data}
-                              className="focus-visible:ring-1 focus-visible:ring-offset-0"
-                            />
+                            {availableLLMModels.isLoading
+                              ? (
+                                <div className="py-1 text-sm text-neutral-500">
+                                  <Trans>Loading available models...</Trans>
+                                </div>
+                              )
+                              : availableLLMModels.data && availableLLMModels.data.length > 0
+                              ? (
+                                <Select
+                                  defaultValue={field.value}
+                                  onValueChange={(value: string) => {
+                                    field.onChange(value);
+                                    setCustomLLMModel.mutate(value);
+                                  }}
+                                  disabled={!customLLMEnabled.data}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select model" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {availableLLMModels.data.map((model) => (
+                                      <SelectItem key={model} value={model}>
+                                        {model}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )
+                              : (
+                                <div className="py-1 text-sm text-neutral-500">
+                                  <Trans>No models available for this endpoint.</Trans>
+                                </div>
+                              )}
                           </FormControl>
                           <FormMessage />
                         </FormItem>

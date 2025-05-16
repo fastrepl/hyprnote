@@ -44,16 +44,17 @@ const Component = forwardRef<{
 
   useImperativeHandle(ref, () => ({
     onKeyDown: ({ event }) => {
-      if (props.loading) {
-        event.preventDefault();
-        return true;
-      }
-
       if (props.items.length === 0) {
         return false;
       }
 
-      event.preventDefault();
+      if (event.key === "ArrowUp" || event.key === "ArrowDown" || event.key === "Enter") {
+        event.preventDefault();
+      }
+
+      if (props.loading) {
+        return true;
+      }
 
       switch (event.key) {
         case "ArrowUp":
@@ -227,7 +228,9 @@ const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> =>
             floatingEl.remove();
             return true;
           }
-          return renderer.component?.onKeyDown?.(props) ?? false;
+
+          // @ts-ignore
+          return renderer.ref.onKeyDown(props);
         },
 
         onExit: () => {

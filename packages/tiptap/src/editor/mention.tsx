@@ -68,11 +68,12 @@ const Component = forwardRef((props: {
       {props.items.length
         ? props.items.map((item, index) => (
           <button
-            className={index === selectedIndex ? "is-selected" : ""}
+            className={`mention-item ${index === selectedIndex ? "is-selected" : ""}`}
             key={index}
             onClick={() => selectItem(index)}
           >
-            {item.label}
+            <span className="mention-type">{item.type}</span>
+            <span className="mention-label">{item.label}</span>
           </button>
         ))
         : <div className="item">No result</div>}
@@ -81,19 +82,16 @@ const Component = forwardRef((props: {
 });
 
 // https://github.com/ueberdosis/tiptap/blob/main/demos/src/Nodes/Mention/React/suggestion.js
-const suggestion = (
-  trigger: string,
-  handleMentionSearch: (query: string) => MentionItem[],
-): Omit<SuggestionOptions, "editor"> => {
+const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> => {
   return {
-    char: trigger,
-    pluginKey: new PluginKey(`mention-${trigger}`),
+    char: config.trigger,
+    pluginKey: new PluginKey(`mention-${config.trigger}`),
     items: ({ query }) => {
       if (!query) {
         return [];
       }
 
-      return handleMentionSearch(query).slice(0, 3);
+      return config.handleSearch(query).slice(0, 3);
     },
     render: () => {
       let renderer: ReactRenderer;
@@ -167,10 +165,15 @@ const suggestion = (
   };
 };
 
-export const mention = (trigger: string, handleMentionSearch: (query: string) => MentionItem[]) => {
+export type MentionConfig = {
+  trigger: string;
+  handleSearch: (query: string) => MentionItem[];
+};
+
+export const mention = (config: MentionConfig) => {
   return Mention
     .extend({
-      name: `mention-${trigger}`,
+      name: `mention-${config.trigger}`,
       addAttributes() {
         return {
           id: {
@@ -193,7 +196,7 @@ export const mention = (trigger: string, handleMentionSearch: (query: string) =>
     })
     .configure({
       deleteTriggerWithBackspace: true,
-      suggestion: suggestion(trigger, handleMentionSearch),
+      suggestion: suggestion(config),
       renderHTML: ({ node }) => {
         const { attrs: { id, type, label } } = node;
         const path = `/app/${type}/${id}`;
@@ -209,7 +212,7 @@ export const mention = (trigger: string, handleMentionSearch: (query: string) =>
             onclick:
               `event.preventDefault(); if (window.${GLOBAL_NAVIGATE_FUNCTION}) window.${GLOBAL_NAVIGATE_FUNCTION}('${path}');`,
           },
-          `${trigger}${label}`,
+          `${config.trigger}${label}`,
         ];
       },
       HTMLAttributes: {

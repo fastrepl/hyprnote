@@ -130,7 +130,10 @@ export default function EditorArea({
               initialContent={noteContent}
               editable={enhance.status !== "pending"}
               setContentFromOutside={!showRaw && enhance.status === "pending"}
-              handleMentionSearch={handleMentionSearch}
+              mentionConfig={{
+                trigger: "@",
+                handleSearch: handleMentionSearch,
+              }}
             />
           )
           : <Renderer ref={editorRef} initialContent={noteContent} />}

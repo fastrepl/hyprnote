@@ -1,0 +1,42 @@
+.dropdown-menu {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  overflow: hidden;
+  z-index: 999;
+  max-width: 300px;
+}
+
+.mention-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+
+.mention-item:hover, .mention-item.is-selected {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.mention-type {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-right: 0.5rem;
+  min-width: 50px;
+}
+
+.mention-label {
+  font-weight: 500;
+}
+
+.mention {
+  color: #3b82f6;
+  font-weight: 500;
+  text-decoration: none;
+}

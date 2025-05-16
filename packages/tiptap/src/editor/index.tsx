@@ -1,10 +1,11 @@
 import "../styles/tiptap.css";
+import "../styles/mention.css";
 
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect, useRef } from "react";
 
 import * as shared from "../shared";
-import { mention, type MentionItem } from "./mention";
+import { mention, type MentionConfig } from "./mention";
 
 export type { TiptapEditor };
 
@@ -13,11 +14,11 @@ interface EditorProps {
   initialContent: HTMLContent;
   editable?: boolean;
   setContentFromOutside?: boolean;
-  handleMentionSearch: (query: string) => MentionItem[];
+  mentionConfig: MentionConfig;
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
-  ({ handleChange, initialContent, editable = true, setContentFromOutside = false, handleMentionSearch }, ref) => {
+  ({ handleChange, initialContent, editable = true, setContentFromOutside = false, mentionConfig }, ref) => {
     const previousContentRef = useRef<HTMLContent>(initialContent);
 
     const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
@@ -31,7 +32,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
     const editor = useEditor({
       extensions: [
         ...shared.extensions,
-        mention("@", handleMentionSearch),
+        mention(mentionConfig),
       ],
       editable,
       content: initialContent || "<p></p>",

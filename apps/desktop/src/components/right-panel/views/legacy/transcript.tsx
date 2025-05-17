@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { commands as windowsCommands, events as windowsEvents } from "@hypr/plugin-windows";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { useSessions } from "@hypr/utils/contexts";
-import { useTranscript } from "./useTranscript";
+import { useTranscript } from "../../hooks/useTranscript";
 
 export function Transcript({ sessionId }: { sessionId?: string }) {
   const currentSessionId = useSessions((s) => s.currentSessionId);

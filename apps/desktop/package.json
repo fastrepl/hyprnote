@@ -92,7 +92,7 @@
     "@mux/mux-player": "^3.4.0",
     "@tanstack/router-plugin": "^1.120.3",
     "@tauri-apps/cli": "^2.5.0",
-    "@types/node": "^22.15.17",
+    "@types/node": "^22.15.18",
     "@types/react": "^18.3.21",
     "@types/react-dom": "^18.3.7",
     "@types/react-grid-layout": "^1.3.5",

@@ -3132,7 +3132,6 @@ name = "db-script"
 version = "0.1.0"
 dependencies = [
  "data",
- "db-user",
  "libsql",
  "listener-interface",
  "serde",
@@ -3149,6 +3148,7 @@ dependencies = [
  "codes-iso-639",
  "data",
  "db-core",
+ "db-script",
  "indoc",
  "language",
  "libsql",
@@ -7451,6 +7451,7 @@ checksum = "cd945864f07fe9f5371a27ad7b52a172b4b499999f1d97574c9fa68373937e12"
 name = "listener-interface"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "codes-iso-639",
  "language",
  "schemars",

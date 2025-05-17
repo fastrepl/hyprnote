@@ -4,10 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-libsql = { workspace = true }
-
-hypr-db-user = { workspace = true }
 hypr-listener-interface = { workspace = true }
+libsql = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }

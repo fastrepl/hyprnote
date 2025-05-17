@@ -1,7 +1,7 @@
 #[allow(deprecated)]
-mod conversation_to_words {
+pub mod conversation_to_words {
     fn transform(
-        conversation: Vec<hypr_db_user::ConversationChunk>,
+        conversation: Vec<hypr_listener_interface::ConversationChunk>,
     ) -> Vec<hypr_listener_interface::Word> {
         conversation
             .into_iter()
@@ -24,24 +24,43 @@ mod conversation_to_words {
     }
 
     pub async fn run(conn: &libsql::Connection) {
-        let mut rows = conn.query("SELECT * FROM sessions", ()).await.unwrap();
+        let mut rows = conn
+            .query("SELECT id, conversations FROM sessions", ())
+            .await
+            .unwrap();
 
-        let mut items = Vec::new();
+        let mut sessions = Vec::new();
+
         while let Some(row) = rows.next().await.unwrap() {
-            let item: hypr_db_user::Session = libsql::de::from_row(&row).unwrap();
-            items.push(item);
+            let id = row.get_str(0).expect("id").to_string();
+            let conversations_str = row.get_str(8).expect("conversations").to_string();
+
+            let conversations: Vec<hypr_listener_interface::ConversationChunk> =
+                serde_json::from_str(&conversations_str).unwrap_or_default();
+
+            sessions.push((id, conversations));
         }
 
-        for session in items {
-            if !session.conversations.is_empty() && session.words.is_empty() {
-                let words = transform(session.conversations);
-                conn.execute(
-                    "UPDATE sessions SET words = ? WHERE id = ?",
-                    (serde_json::to_string(&words).unwrap(), session.id),
-                )
-                .await
-                .unwrap();
+        for (id, conversations) in sessions {
+            if conversations.is_empty() {
+                continue;
             }
+
+            let words = transform(conversations);
+
+            conn.execute(
+                "UPDATE sessions SET words = ? WHERE id = ?",
+                (serde_json::to_string(&words).unwrap(), id.clone()),
+            )
+            .await
+            .unwrap();
+
+            conn.execute(
+                "UPDATE sessions SET conversations = ? WHERE id = ?",
+                ("[]", id),
+            )
+            .await
+            .unwrap();
         }
     }
 }

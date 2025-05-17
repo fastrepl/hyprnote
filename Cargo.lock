@@ -3128,6 +3128,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "db-script"
+version = "0.1.0"
+dependencies = [
+ "data",
+ "db-user",
+ "libsql",
+ "listener-interface",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "db-user"
 version = "0.1.0"
 dependencies = [
@@ -3322,6 +3334,7 @@ dependencies = [
  "codes-iso-639",
  "data",
  "db-core",
+ "db-script",
  "db-user",
  "dotenvy_macro",
  "futures-util",

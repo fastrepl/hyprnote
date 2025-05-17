@@ -54,13 +54,14 @@ export function Transcript({ sessionId }: { sessionId?: string }) {
         )
         : (
           <>
-            {words.map((word, i) => (
-              <div key={`${word.text}-${i}`}>
-                <p>
+            <p className="whitespace-pre-wrap">
+              {words.map((word, i) => (
+                <span key={`${word.text}-${i}`}>
+                  {i > 0 ? " " : ""}
                   {word.text}
-                </p>
-              </div>
-            ))}
+                </span>
+              ))}
+            </p>
             {isLive && (
               <div className="flex items-center gap-2 justify-center py-2 text-neutral-400">
                 <EarIcon size={14} /> Listening... (there might be a delay)

@@ -33,6 +33,7 @@ hypr-chunker = { path = "crates/chunker", package = "chunker" }
 hypr-data = { path = "crates/data", package = "data" }
 hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }
+hypr-db-script = { path = "crates/db-script", package = "db-script" }
 hypr-db-user = { path = "crates/db-user", package = "db-user" }
 hypr-detect = { path = "crates/detect", package = "detect" }
 hypr-file = { path = "crates/file", package = "file" }

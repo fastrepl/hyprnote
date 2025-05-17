@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { ClipboardCopyIcon, FileAudioIcon } from "lucide-react";
+import { CheckIcon, ClipboardCopyIcon, FileAudioIcon, PencilIcon } from "lucide-react";
 import React from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useOngoingSession, useSessions } from "@hypr/utils/contexts";
@@ -43,22 +44,22 @@ export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
     wrapperProps.queryClient,
   );
 
-  // const editing = useQuery({
-  //   queryKey: ["editing", sessionId],
-  //   queryFn: () => windowsCommands.windowIsVisible({ type: "main" }).then((v) => !v),
-  // });
+  const editing = useQuery({
+    queryKey: ["editing", sessionId],
+    queryFn: () => windowsCommands.windowIsVisible({ type: "main" }).then((v) => !v),
+  });
 
-  // const handleClickToggleEditing = () => {
-  //   if (editing.data) {
-  //     windowsCommands.windowHide({ type: "transcript", value: sessionId! }).then(() => {
-  //       windowsCommands.windowShow({ type: "main" });
-  //     });
-  //   } else {
-  //     windowsCommands.windowHide({ type: "main" }).then(() => {
-  //       windowsCommands.windowShow({ type: "transcript", value: sessionId! });
-  //     });
-  //   }
-  // };
+  const handleClickToggleEditing = () => {
+    if (editing.data) {
+      windowsCommands.windowHide({ type: "transcript", value: sessionId! }).then(() => {
+        windowsCommands.windowShow({ type: "main" });
+      });
+    } else {
+      windowsCommands.windowHide({ type: "main" }).then(() => {
+        windowsCommands.windowShow({ type: "transcript", value: sessionId! });
+      });
+    }
+  };
 
   const handleOpenSession = () => {
     if (sessionId) {
@@ -108,11 +109,11 @@ export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
                 </Tooltip>
               </TooltipProvider>
             ),
-            // <Button variant="ghost" size="icon" className="p-0" onClick={handleClickToggleEditing}>
-            //   {editing.data
-            //     ? <CheckIcon size={16} className="text-black" />
-            //     : <PencilIcon size={16} className="text-black" />}
-            // </Button>,
+            <Button variant="ghost" size="icon" className="p-0" onClick={handleClickToggleEditing}>
+              {editing.data
+                ? <CheckIcon size={16} className="text-black" />
+                : <PencilIcon size={16} className="text-black" />}
+            </Button>,
           ].filter(Boolean)}
         />
       </div>

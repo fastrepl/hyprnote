@@ -12,7 +12,7 @@ user_common_derives! {
         pub title: String,
         pub raw_memo_html: String,
         pub enhanced_memo_html: Option<String>,
-        pub conversations: Vec<()>,
+        pub conversations: Vec<ConversationChunk>,
         pub words: Vec<hypr_listener_interface::Word>
     }
 }
@@ -91,5 +91,15 @@ user_common_derives! {
         RecentlyVisited {},
         #[serde(rename = "dateRange")]
         DateRange { start: DateTime<Utc>, end: DateTime<Utc> },
+    }
+}
+
+user_common_derives! {
+    #[deprecated]
+    pub struct ConversationChunk {
+        pub start: DateTime<Utc>,
+        pub end: DateTime<Utc>,
+        pub transcripts: Vec<hypr_listener_interface::TranscriptChunk>,
+        pub diarizations: Vec<hypr_listener_interface::DiarizationChunk>,
     }
 }

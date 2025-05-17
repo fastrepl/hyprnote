@@ -51,6 +51,26 @@ common_derives! {
     }
 }
 
+common_derives! {
+    #[deprecated]
+    pub struct TranscriptChunk {
+        pub start: u64,
+        pub end: u64,
+        pub text: String,
+        pub confidence: Option<f32>,
+    }
+}
+
+common_derives! {
+    #[deprecated]
+    pub struct DiarizationChunk {
+        pub start: u64,
+        pub end: u64,
+        pub speaker: i32,
+        pub confidence: Option<f32>,
+    }
+}
+
 use serde::Deserialize;
 use std::str::FromStr;
 

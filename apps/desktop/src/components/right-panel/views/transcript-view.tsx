@@ -13,30 +13,6 @@ import { CheckIcon, PencilIcon } from "lucide-react";
 import { useTranscript } from "../hooks/useTranscript";
 import { useTranscriptWidget } from "../hooks/useTranscriptWidget";
 
-interface CustomHeaderProps {
-  leading?: React.ReactNode;
-  title?: React.ReactNode;
-  actions?: React.ReactNode[];
-}
-
-const CustomHeader: React.FC<CustomHeaderProps> = ({ leading, title, actions }) => {
-  return (
-    <header className="flex items-center gap-2 w-full">
-      {leading && <div>{leading}</div>}
-      {title && (
-        <div className="flex-1 text-md font-medium">
-          {title}
-        </div>
-      )}
-      {actions && (
-        <div className="not-draggable flex items-center gap-2">
-          {actions.filter(Boolean)}
-        </div>
-      )}
-    </header>
-  );
-};
-
 export function TranscriptView() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const queryClient = useQueryClient();
@@ -128,16 +104,16 @@ export function TranscriptView() {
   return (
     <div className="relative w-full h-full flex flex-col">
       <div className="p-4 pb-0">
-        <CustomHeader
-          title={
+        <header className="flex items-center gap-2 w-full">
+          <div className="flex-1 text-md font-medium">
             <div className="flex text-md items-center gap-2">
               Transcript
               {isLive
                 && <span className="inline-block w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>}
             </div>
-          }
-          actions={[
-            (audioExist.data && isInactive && hasTranscript && sessionId) && (
+          </div>
+          <div className="not-draggable flex items-center gap-2">
+            {(audioExist.data && isInactive && hasTranscript && sessionId) && (
               <TooltipProvider key="listen-recording-tooltip">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -150,8 +126,8 @@ export function TranscriptView() {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            ),
-            (hasTranscript && sessionId) && (
+            )}
+            {(hasTranscript && sessionId) && (
               <TooltipProvider key="copy-all-tooltip">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -164,14 +140,16 @@ export function TranscriptView() {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            ),
-            <Button variant="ghost" size="icon" className="p-0" onClick={handleClickToggleEditing}>
-              {editing.data
-                ? <CheckIcon size={16} className="text-black" />
-                : <PencilIcon size={16} className="text-black" />}
-            </Button>,
-          ]}
-        />
+            )}
+            {!isLive && (
+              <Button variant="ghost" size="icon" className="p-0" onClick={handleClickToggleEditing}>
+                {editing.data
+                  ? <CheckIcon size={16} className="text-black" />
+                  : <PencilIcon size={16} className="text-black" />}
+              </Button>
+            )}
+          </div>
+        </header>
       </div>
 
       {sessionId && (

@@ -379,6 +379,10 @@ msgstr ""
 msgid "Billing features are currently under development and will be available in a future update."
 msgstr ""
 
+#: src/components/settings/components/ai/llm-view.tsx:355
+msgid "Bring Your Own LLM"
+msgstr ""
+
 #: src/components/settings/components/templates-sidebar.tsx:68
 msgid "Built-in Templates"
 msgstr ""
@@ -453,6 +457,10 @@ msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:109
 msgid "Contacts Access"
+msgstr ""
+
+#: src/components/settings/components/ai/llm-view.tsx:575
+msgid "Could not load models. You can still type a custom model name above."
 msgstr ""
 
 #: src/routes/app.human.$id.tsx:532
@@ -938,6 +946,10 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:87
 msgid "Sound"
+msgstr ""
+
+#: src/components/settings/components/ai/llm-view.tsx:505
+msgid "Specify the model name. Type to search or enter a custom name."
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:76

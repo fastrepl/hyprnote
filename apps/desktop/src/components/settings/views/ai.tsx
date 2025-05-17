@@ -89,7 +89,7 @@ export default function LocalAI() {
   }, [form]);
 
   return (
-    <>
+    <div>
       <Tabs defaultValue="stt" className="flex flex-col" onValueChange={setActiveTab}>
         <div className="flex items-center justify-between">
           <TabsList className="grid grid-cols-2 w-fit">
@@ -117,7 +117,7 @@ export default function LocalAI() {
           )}
         </div>
 
-        <TabsContent value="stt" className="mt-4 flex-1 flex flex-col">
+        <TabsContent value="stt" className="mt-4">
           <STTView />
         </TabsContent>
 
@@ -130,6 +130,6 @@ export default function LocalAI() {
         isOpen={isWerModalOpen}
         onClose={() => setIsWerModalOpen(false)}
       />
-    </>
+    </div>
   );
 }

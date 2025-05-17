@@ -2,7 +2,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { ClipboardCopyIcon, EarIcon, FileAudioIcon, Loader2Icon } from "lucide-react";
-
 import { useEffect, useRef } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
@@ -11,6 +10,7 @@ import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useOngoingSession, useSessions } from "@hypr/utils/contexts";
+import { CheckIcon, PencilIcon } from "lucide-react";
 import { useTranscript } from "../hooks/useTranscript";
 import { useTranscriptWidget } from "../hooks/useTranscriptWidget";
 
@@ -59,11 +59,11 @@ export function TranscriptView() {
   const sessionId = useSessions((s) => s.currentSessionId);
   const isInactive = useOngoingSession((s) => s.status === "inactive");
   const { showEmptyMessage, isEnhanced, hasTranscript } = useTranscriptWidget(sessionId);
-  const { isLive, timeline, isLoading } = useTranscript(sessionId);
+  const { isLive, words, isLoading } = useTranscript(sessionId);
 
   const handleCopyAll = () => {
-    if (timeline && timeline.items && timeline.items.length > 0) {
-      const transcriptText = timeline.items.map((item) => item.text).join("\n");
+    if (words && words.length > 0) {
+      const transcriptText = words.map((item) => item.text).join("\n");
       writeText(transcriptText);
     }
   };
@@ -77,6 +77,23 @@ export function TranscriptView() {
     },
     queryClient,
   );
+
+  const editing = useQuery({
+    queryKey: ["editing", sessionId],
+    queryFn: () => windowsCommands.windowIsVisible({ type: "main" }).then((v) => !v),
+  });
+
+  const handleClickToggleEditing = () => {
+    if (editing.data) {
+      windowsCommands.windowHide({ type: "transcript", value: sessionId! }).then(() => {
+        windowsCommands.windowShow({ type: "main" });
+      });
+    } else {
+      windowsCommands.windowHide({ type: "main" }).then(() => {
+        windowsCommands.windowShow({ type: "transcript", value: sessionId! });
+      });
+    }
+  };
 
   const handleOpenSession = () => {
     if (sessionId) {
@@ -93,10 +110,10 @@ export function TranscriptView() {
       });
     };
 
-    if (timeline?.items?.length) {
+    if (words?.length) {
       scrollToBottom();
     }
-  }, [timeline?.items, isLive, transcriptContainerRef]);
+  }, [words, isLive, transcriptContainerRef]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -159,6 +176,11 @@ export function TranscriptView() {
                 </Tooltip>
               </TooltipProvider>
             ),
+            <Button variant="ghost" size="icon" className="p-0" onClick={handleClickToggleEditing}>
+              {editing.data
+                ? <CheckIcon size={16} className="text-black" />
+                : <PencilIcon size={16} className="text-black" />}
+            </Button>,
           ]}
         />
       </div>
@@ -176,13 +198,14 @@ export function TranscriptView() {
             )
             : (
               <>
-                {(timeline?.items ?? []).map((item, index) => (
-                  <div key={index}>
-                    <p>
-                      {item.text}
-                    </p>
-                  </div>
-                ))}
+                <p className="whitespace-pre-wrap">
+                  {words.map((word, i) => (
+                    <span key={`${word.text}-${i}`}>
+                      {i > 0 ? " " : ""}
+                      {word.text}
+                    </span>
+                  ))}
+                </p>
                 {isLive && (
                   <div className="flex items-center gap-2 justify-center py-2 text-neutral-400">
                     <EarIcon size={14} /> Listening... (there might be a delay)

@@ -12,30 +12,50 @@ export const Route = createFileRoute("/app/transcript/$id")({
   component: Component,
   loader: async ({ params: { id }, context: { onboardingSessionId } }) => {
     const participants = await dbCommands.sessionListParticipants(id);
-    const timeline = onboardingSessionId
-      ? await dbCommands.getTimelineViewOnboarding()
-      : await dbCommands.getTimelineView(id);
+    const words = onboardingSessionId
+      ? await dbCommands.getWordsOnboarding()
+      : await dbCommands.getWords(id);
 
-    return { participants, timeline };
+    return { participants, words };
   },
 });
 
+type SpeakerContent = {
+  type: "speaker";
+  attrs: { label: string };
+  content: WordContent[];
+};
+
+type WordContent = {
+  type: "word";
+  content: { type: "text"; text: string }[];
+};
+
 function Component() {
-  const { participants, timeline } = Route.useLoaderData();
+  const { participants, words } = Route.useLoaderData();
   const editorRef = useRef(null);
 
   const content = {
     type: "doc",
-    content: [
-      {
-        type: "speaker",
-        attrs: { label: "" },
-        content: (timeline?.items || []).flatMap((item) => item.text.split(" ")).filter(Boolean).map((word) => ({
+    content: words.reduce<{ cur: number | null; acc: SpeakerContent[] }>((state, word) => {
+      if (state.cur !== word.speaker) {
+        state.cur = word.speaker;
+        state.acc.push({
+          type: "speaker",
+          attrs: { label: word.speaker === null ? "" : `Speaker ${word.speaker}` },
+          content: [],
+        });
+      }
+
+      if (state.acc.length > 0) {
+        state.acc[state.acc.length - 1].content.push({
           type: "word",
-          content: [{ type: "text", text: word }],
-        })),
-      },
-    ],
+          content: [{ type: "text", text: word.text }],
+        });
+      }
+
+      return state;
+    }, { cur: null, acc: [] }).acc,
   };
 
   const [expanded, setExpanded] = useState(false);

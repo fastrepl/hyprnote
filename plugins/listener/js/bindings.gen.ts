@@ -72,9 +72,8 @@ sessionEvent: "plugin:listener:session-event"
 
 /** user-defined types **/
 
-export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "running_paused" } | { type: "timelineView"; view: TimelineView } | { type: "audioAmplitude"; mic: number; speaker: number }
-export type TimelineView = { items: TimelineViewItem[] }
-export type TimelineViewItem = { start: number; end: number; speaker: number; text: string; confidence: number }
+export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "running_paused" } | { type: "words"; words: Word[] } | { type: "audioAmplitude"; mic: number; speaker: number }
+export type Word = { text: string; speaker: number | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
 
 /** tauri-specta globals **/
 

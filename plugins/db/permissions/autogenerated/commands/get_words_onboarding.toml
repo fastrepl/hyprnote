@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-words-onboarding"
+description = "Enables the get_words_onboarding command without any pre-configured scope."
+commands.allow = ["get_words_onboarding"]
+
+[[permission]]
+identifier = "deny-get-words-onboarding"
+description = "Denies the get_words_onboarding command without any pre-configured scope."
+commands.deny = ["get_words_onboarding"]

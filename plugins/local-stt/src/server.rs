@@ -18,7 +18,7 @@ use futures_util::{SinkExt, StreamExt};
 use tower_http::cors::{self, CorsLayer};
 
 use hypr_chunker::ChunkerExt;
-use hypr_listener_interface::{ListenOutputChunk, ListenParams, TranscriptChunk};
+use hypr_listener_interface::{ListenOutputChunk, ListenParams, Word};
 use hypr_ws_utils::WebSocketAudioSource;
 
 use crate::manager::{ConnectionGuard, ConnectionManager};
@@ -154,19 +154,23 @@ async fn websocket(
         let duration = chunk.duration() as u64;
         let confidence = chunk.confidence();
 
-        if confidence < 0.5 {
+        if confidence < 0.45 {
             tracing::warn!(confidence, "skipping_transcript: {}", text);
             continue;
         }
 
         let data = ListenOutputChunk {
-            diarizations: vec![],
-            transcripts: vec![TranscriptChunk {
-                text,
-                start,
-                end: start + duration,
-                confidence: Some(confidence),
-            }],
+            words: text
+                .split_whitespace()
+                .filter(|w| !w.is_empty())
+                .map(|w| Word {
+                    text: w.trim().to_string(),
+                    speaker: None,
+                    start_ms: Some(start),
+                    end_ms: Some(start + duration),
+                    confidence: Some(confidence),
+                })
+                .collect(),
         };
 
         let msg = Message::Text(serde_json::to_string(&data).unwrap().into());

@@ -67,11 +67,11 @@ async sessionListParticipants(sessionId: string) : Promise<Human[]> {
 async sessionGetEvent(sessionId: string) : Promise<Event | null> {
     return await TAURI_INVOKE("plugin:db|session_get_event", { sessionId });
 },
-async getTimelineView(sessionId: string) : Promise<TimelineView | null> {
-    return await TAURI_INVOKE("plugin:db|get_timeline_view", { sessionId });
+async getWords(sessionId: string) : Promise<Word[]> {
+    return await TAURI_INVOKE("plugin:db|get_words", { sessionId });
 },
-async getTimelineViewOnboarding() : Promise<TimelineView> {
-    return await TAURI_INVOKE("plugin:db|get_timeline_view_onboarding");
+async getWordsOnboarding() : Promise<Word[]> {
+    return await TAURI_INVOKE("plugin:db|get_words_onboarding");
 },
 async getConfig() : Promise<Config> {
     return await TAURI_INVOKE("plugin:db|get_config");
@@ -156,8 +156,6 @@ export type Config = { id: string; user_id: string; general: ConfigGeneral; noti
 export type ConfigAI = { api_base: string | null; api_key: string | null }
 export type ConfigGeneral = { autostart: boolean; display_language: string; jargons: string[]; telemetry_consent: boolean; save_recordings: boolean | null }
 export type ConfigNotification = { before: boolean; auto: boolean; ignoredPlatforms: string[] | null }
-export type ConversationChunk = { start: string; end: string; transcripts: TranscriptChunk[]; diarizations: DiarizationChunk[] }
-export type DiarizationChunk = { start: number; end: number; speaker: number; confidence: number | null }
 export type Event = { id: string; user_id: string; tracking_id: string; calendar_id: string | null; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null }
 export type ExtensionDefinition = { id: string; title: string; description: string; implemented: boolean; default: boolean; cloud_only: boolean; plugins: string[]; tags: string[] }
 export type ExtensionMapping = { id: string; user_id: string; extension_id: string; config: JsonValue; widgets: ExtensionWidget[] }
@@ -173,13 +171,11 @@ export type ListOrganizationFilter = { search: [number, string] }
 export type ListSessionFilter = ({ user_id: string; limit: number | null }) & ({ type: "search"; query: string } | { type: "recentlyVisited" } | { type: "dateRange"; start: string; end: string })
 export type Organization = { id: string; name: string; description: string | null }
 export type Platform = "Apple" | "Google" | "Outlook"
-export type Session = { id: string; created_at: string; visited_at: string; user_id: string; calendar_event_id: string | null; title: string; raw_memo_html: string; enhanced_memo_html: string | null; conversations: ConversationChunk[] }
+export type Session = { id: string; created_at: string; visited_at: string; user_id: string; calendar_event_id: string | null; title: string; raw_memo_html: string; enhanced_memo_html: string | null; words: Word[] }
 export type Tag = { id: string; name: string }
 export type Template = { id: string; user_id: string; title: string; description: string; sections: TemplateSection[]; tags: string[] }
 export type TemplateSection = { title: string; description: string }
-export type TimelineView = { items: TimelineViewItem[] }
-export type TimelineViewItem = { start: number; end: number; speaker: number; text: string; confidence: number }
-export type TranscriptChunk = { start: number; end: number; text: string; confidence: number | null }
+export type Word = { text: string; speaker: number | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
 
 /** tauri-specta globals **/
 

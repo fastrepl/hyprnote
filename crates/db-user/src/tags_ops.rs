@@ -119,6 +119,7 @@ mod tests {
                 title: "Test Session".to_string(),
                 raw_memo_html: "".to_string(),
                 enhanced_memo_html: None,
+                conversations: vec![],
                 words: vec![],
             })
             .await

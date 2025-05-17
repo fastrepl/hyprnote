@@ -154,19 +154,22 @@ async fn websocket(
         let duration = chunk.duration() as u64;
         let confidence = chunk.confidence();
 
-        if confidence < 0.5 {
+        if confidence < 0.45 {
             tracing::warn!(confidence, "skipping_transcript: {}", text);
             continue;
         }
 
         let data = ListenOutputChunk {
-            words: vec![Word {
-                text,
-                speaker: None,
-                end_ms: None,
-                start_ms: None,
-                confidence: Some(confidence),
-            }],
+            words: text
+                .split_whitespace()
+                .map(|w| Word {
+                    text: w.trim().to_string(),
+                    speaker: None,
+                    start_ms: Some(start),
+                    end_ms: Some(start + duration),
+                    confidence: Some(confidence),
+                })
+                .collect(),
         };
 
         let msg = Message::Text(serde_json::to_string(&data).unwrap().into());

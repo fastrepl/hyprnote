@@ -12,6 +12,7 @@ user_common_derives! {
         pub title: String,
         pub raw_memo_html: String,
         pub enhanced_memo_html: Option<String>,
+        pub conversations: Vec<()>,
         pub words: Vec<hypr_listener_interface::Word>
     }
 }
@@ -37,10 +38,11 @@ impl Session {
             title: row.get(5).expect("title"),
             raw_memo_html: row.get(6).expect("raw_memo_html"),
             enhanced_memo_html: row.get(7).expect("enhanced_memo_html"),
+            conversations: vec![],
             words: row
                 .get_str(9)
                 .map(|s| serde_json::from_str(s).unwrap())
-                .unwrap_or_default(),
+                .unwrap(),
         })
     }
 

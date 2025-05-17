@@ -16,9 +16,7 @@ common_event_derives! {
         #[serde(rename = "running_paused")]
         RunningPaused {},
         #[serde(rename = "words")]
-        Words {
-            words: Vec<hypr_listener_interface::Word>,
-        },
+        Words { words: Vec<hypr_listener_interface::Word>},
         #[serde(rename = "audioAmplitude")]
         AudioAmplitude { mic: u16, speaker: u16 },
     }

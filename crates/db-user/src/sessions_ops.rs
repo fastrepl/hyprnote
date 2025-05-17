@@ -27,14 +27,30 @@ impl UserDatabase {
     pub async fn get_words_onboarding(
         &self,
     ) -> Result<Vec<hypr_listener_interface::Word>, crate::Error> {
-        Ok(vec![])
+        let words: Vec<hypr_listener_interface::Word> =
+            serde_json::from_str(hypr_data::english_4::WORDS_PATH).unwrap();
+        Ok(words)
     }
 
     pub async fn get_words(
         &self,
-        _session_id: impl Into<String>,
+        session_id: impl Into<String>,
     ) -> Result<Vec<hypr_listener_interface::Word>, crate::Error> {
-        Ok(vec![])
+        let conn = self.conn()?;
+        let mut rows = conn
+            .query(
+                "SELECT words FROM sessions WHERE id = ?",
+                vec![session_id.into()],
+            )
+            .await?;
+
+        match rows.next().await? {
+            None => Ok(vec![]),
+            Some(row) => {
+                let words_str: String = row.get(0)?;
+                Ok(serde_json::from_str(&words_str).unwrap_or_default())
+            }
+        }
     }
 
     pub async fn get_session(
@@ -180,8 +196,20 @@ impl UserDatabase {
                     title,
                     raw_memo_html,
                     enhanced_memo_html,
+                    conversations,
                     words
-                ) VALUES (:id, :created_at, :visited_at, :user_id, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :words)
+                ) VALUES (
+                    :id,
+                    :created_at,
+                    :visited_at,
+                    :user_id,
+                    :calendar_event_id,
+                    :title,
+                    :raw_memo_html,
+                    :enhanced_memo_html,
+                    :conversations,
+                    :words
+                )
                 ON CONFLICT(id) DO UPDATE SET
                     created_at = :created_at,
                     visited_at = :visited_at,
@@ -190,6 +218,7 @@ impl UserDatabase {
                     title = :title,
                     raw_memo_html = :raw_memo_html,
                     enhanced_memo_html = :enhanced_memo_html,
+                    conversations = :conversations,
                     words = :words
                 RETURNING *",
                 libsql::named_params! {
@@ -201,6 +230,7 @@ impl UserDatabase {
                     ":title": session.title.clone(),
                     ":raw_memo_html": session.raw_memo_html.clone(),
                     ":enhanced_memo_html": session.enhanced_memo_html.clone(),
+                    ":conversations": serde_json::to_string(&session.conversations).unwrap(),
                     ":words": serde_json::to_string(&session.words).unwrap(),
                 },
             )
@@ -336,15 +366,22 @@ mod tests {
             calendar_event_id: None,
             title: "test".to_string(),
             raw_memo_html: "raw_memo_html_1".to_string(),
-            words: vec![],
             enhanced_memo_html: None,
+            conversations: vec![],
+            words: vec![hypr_listener_interface::Word {
+                text: "hello 1".to_string(),
+                start_ms: None,
+                end_ms: None,
+                speaker: None,
+                confidence: None,
+            }],
         };
 
         let mut session = db.upsert_session(session).await.unwrap();
         assert_eq!(session.raw_memo_html, "raw_memo_html_1");
         assert_eq!(session.enhanced_memo_html, None);
         assert_eq!(session.title, "test");
-        assert_eq!(session.words, vec![]);
+        assert_eq!(session.words.len(), 1);
 
         let sessions = db.list_sessions(None).await.unwrap();
         assert_eq!(sessions.len(), 1);

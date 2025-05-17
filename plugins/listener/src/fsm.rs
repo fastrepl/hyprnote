@@ -257,7 +257,6 @@ impl Session {
                 futures_util::pin_mut!(listen_stream);
 
                 while let Some(result) = listen_stream.next().await {
-                    // TODO
                     SessionEvent::Words {
                         words: result.words,
                     }

@@ -58,7 +58,7 @@ export function TranscriptView() {
 
   const sessionId = useSessions((s) => s.currentSessionId);
   const isInactive = useOngoingSession((s) => s.status === "inactive");
-  const { showEmptyMessage, isEnhanced, hasTranscript } = useTranscriptWidget(sessionId);
+  const { showEmptyMessage, hasTranscript } = useTranscriptWidget(sessionId);
   const { isLive, timeline, isLoading } = useTranscript(sessionId);
 
   const handleCopyAll = () => {
@@ -163,7 +163,18 @@ export function TranscriptView() {
         />
       </div>
 
-      {sessionId && (
+      {/* Empty state */}
+      {/* TODO: Create a component that allows to paste transcript or upload audio(with drag and drop support) */}
+      {sessionId && showEmptyMessage && (
+        <div className="flex-1 flex items-center justify-center rounded-2xl">
+          <div className="text-neutral-500 font-medium">
+            Nothing has been recorded yet
+          </div>
+        </div>
+      )}
+
+      {/* Populated state */}
+      {sessionId && !showEmptyMessage && (
         <div
           ref={transcriptContainerRef}
           className="flex-1 scrollbar-none px-4 flex flex-col gap-2 overflow-y-auto text-sm py-4"
@@ -190,22 +201,6 @@ export function TranscriptView() {
                 )}
               </>
             )}
-        </div>
-      )}
-
-      {!sessionId && (
-        <div className="absolute inset-0 backdrop-blur-sm bg-white/50 flex items-center justify-center">
-          <div className="text-neutral-500 font-medium">Session not found</div>
-        </div>
-      )}
-
-      {sessionId && showEmptyMessage && (
-        <div className="absolute inset-0 backdrop-blur-sm bg-white/50 flex items-center justify-center rounded-2xl">
-          <div className="text-neutral-500 font-medium">
-            {isEnhanced
-              ? "No transcript available"
-              : "Meeting is not active"}
-          </div>
         </div>
       )}
     </div>

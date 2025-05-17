@@ -347,12 +347,16 @@ msgid "Anyone with the link can view this page"
 msgstr "Anyone with the link can view this page"
 
 #: src/components/settings/components/ai/llm-view.tsx:197
-msgid "API Base URL"
-msgstr "API Base URL"
+#~ msgid "API Base URL"
+#~ msgstr "API Base URL"
 
-#: src/components/settings/components/ai/llm-view.tsx:223
+#: src/components/settings/components/ai/llm-view.tsx:474
 msgid "API Key"
 msgstr "API Key"
+
+#: src/components/settings/components/ai/llm-view.tsx:392
+#~ msgid "API Key (Optional)"
+#~ msgstr "API Key (Optional)"
 
 #: src/components/settings/views/profile.tsx:168
 msgid "Apple"
@@ -438,9 +442,13 @@ msgstr "Company name"
 msgid "Connect"
 msgstr "Connect"
 
-#: src/components/settings/components/ai/llm-view.tsx:177
-msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
-msgstr "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
+#: src/components/settings/components/ai/llm-view.tsx:358
+msgid "Connect to a self-hosted or third-party LLM endpoint"
+msgstr "Connect to a self-hosted or third-party LLM endpoint"
+
+#: src/components/settings/components/ai/llm-view.tsx:279
+#~ msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
+#~ msgstr "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 
 #. placeholder {0}: type === "google-calendar" ? "Google" : "Outlook"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:44
@@ -476,11 +484,11 @@ msgstr "Create Note"
 msgid "Current Plan"
 msgstr "Current Plan"
 
-#: src/components/settings/components/ai/llm-view.tsx:174
-msgid "Custom Endpoint"
-msgstr "Custom Endpoint"
+#: src/components/settings/components/ai/llm-view.tsx:276
+#~ msgid "Custom Endpoint"
+#~ msgstr "Custom Endpoint"
 
-#: src/components/settings/components/ai/llm-view.tsx:149
+#: src/components/settings/components/ai/llm-view.tsx:330
 msgid "Default (llama-3.2-3b-q4)"
 msgstr "Default (llama-3.2-3b-q4)"
 
@@ -540,12 +548,16 @@ msgid "Enter a section title"
 msgstr "Enter a section title"
 
 #: src/components/settings/components/ai/llm-view.tsx:226
-msgid "Enter the API key for your custom LLM endpoint"
-msgstr "Enter the API key for your custom LLM endpoint"
+#~ msgid "Enter the API key for your custom LLM endpoint"
+#~ msgstr "Enter the API key for your custom LLM endpoint"
+
+#: src/components/settings/components/ai/llm-view.tsx:477
+msgid "Enter the API key if your LLM endpoint requires one."
+msgstr "Enter the API key if your LLM endpoint requires one."
 
 #: src/components/settings/components/ai/llm-view.tsx:200
-msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)"
-msgstr "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)"
+#~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)"
+#~ msgstr "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)"
 
 #: src/components/settings/views/ai.tsx:498
 #~ msgid "Enter the exact model name required by your endpoint (if applicable)."
@@ -669,7 +681,11 @@ msgstr "LinkedIn username"
 msgid "Live summary of the meeting"
 msgstr "Live summary of the meeting"
 
-#: src/components/settings/components/ai/llm-view.tsx:259
+#: src/components/settings/components/ai/llm-view.tsx:295
+#~ msgid "LLM Provider / Endpoint"
+#~ msgstr "LLM Provider / Endpoint"
+
+#: src/components/settings/components/ai/llm-view.tsx:511
 msgid "Loading available models..."
 msgstr "Loading available models..."
 
@@ -711,9 +727,13 @@ msgstr "Members"
 msgid "Microphone Access"
 msgstr "Microphone Access"
 
-#: src/components/settings/components/ai/llm-view.tsx:248
-msgid "Model Name"
-msgstr "Model Name"
+#: src/components/settings/components/ai/llm-view.tsx:502
+msgid "Model"
+msgstr "Model"
+
+#: src/components/settings/components/ai/llm-view.tsx:419
+#~ msgid "Model Name"
+#~ msgstr "Model Name"
 
 #: src/components/settings/views/billing.tsx:125
 msgid "Monthly"
@@ -744,13 +764,21 @@ msgstr "New window"
 msgid "No calendars found"
 msgstr "No calendars found"
 
+#: src/components/settings/components/ai/llm-view.tsx:557
+msgid "No matching models. Continue typing to use a custom model name."
+msgstr "No matching models. Continue typing to use a custom model name."
+
 #: src/components/settings/views/team.tsx:175
 msgid "No members found"
 msgstr "No members found"
 
-#: src/components/settings/components/ai/llm-view.tsx:286
-msgid "No models available for this endpoint."
-msgstr "No models available for this endpoint."
+#: src/components/settings/components/ai/llm-view.tsx:457
+#~ msgid "No models available for this endpoint."
+#~ msgstr "No models available for this endpoint."
+
+#: src/components/settings/components/ai/llm-view.tsx:567
+msgid "No models listed for this endpoint. Type your model name."
+msgstr "No models listed for this endpoint. Type your model name."
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:253
 msgid "No past events found."
@@ -904,13 +932,17 @@ msgstr "Search..."
 msgid "Sections"
 msgstr "Sections"
 
+#: src/components/settings/components/ai/llm-view.tsx:361
+#~ msgid "Select a provider. For 'Others', specify the API base URL."
+#~ msgstr "Select a provider. For 'Others', specify the API base URL."
+
 #: src/components/settings/components/calendar/calendar-selector.tsx:74
 msgid "Select Calendars"
 msgstr "Select Calendars"
 
-#: src/components/settings/components/ai/llm-view.tsx:251
-msgid "Select or enter the model name required by your endpoint."
-msgstr "Select or enter the model name required by your endpoint."
+#: src/components/settings/components/ai/llm-view.tsx:422
+#~ msgid "Select or enter the model name required by your endpoint."
+#~ msgstr "Select or enter the model name required by your endpoint."
 
 #: src/components/settings/views/team.tsx:240
 msgid "Send invite"
@@ -1053,9 +1085,13 @@ msgstr "Upcoming Events"
 msgid "Upgrade"
 msgstr "Upgrade"
 
-#: src/components/settings/components/ai/llm-view.tsx:152
-msgid "Use the local Llama 3.2 model for enhanced privacy and offline capability."
-msgstr "Use the local Llama 3.2 model for enhanced privacy and offline capability."
+#: src/components/settings/components/ai/llm-view.tsx:333
+msgid "Use the local Llama 3.2 model for enhanced privacy and offline capability"
+msgstr "Use the local Llama 3.2 model for enhanced privacy and offline capability"
+
+#: src/components/settings/components/ai/llm-view.tsx:254
+#~ msgid "Use the local Llama 3.2 model for enhanced privacy and offline capability."
+#~ msgstr "Use the local Llama 3.2 model for enhanced privacy and offline capability."
 
 #: src/components/settings/views/team.tsx:101
 msgid "User"

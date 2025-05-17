@@ -190,7 +190,7 @@ export function STTView() {
               }
             }}
             className={cn(
-              "rounded-lg p-4 flex flex-col transition-all",
+              "relative rounded-lg p-4 flex flex-col transition-all",
               isDownloaded
                 ? isSelected
                   ? "border border-blue-500 ring-2 ring-blue-500 bg-blue-50 cursor-pointer"
@@ -205,7 +205,7 @@ export function STTView() {
                   <RadioGroupItem
                     value={model.model}
                     id={model.model}
-                    className="peer sr-only"
+                    className="peer absolute w-0 h-0 opacity-0"
                     disabled={!isDownloaded}
                   />
 

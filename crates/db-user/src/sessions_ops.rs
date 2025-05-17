@@ -85,24 +85,31 @@ impl UserDatabase {
         let conn = self.conn()?;
 
         let mut rows = match filter {
-            GetSessionFilter::Id(id) => conn
-                .query("SELECT * FROM sessions WHERE id = ?", vec![id])
-                .await
-                .unwrap(),
-            GetSessionFilter::CalendarEventId(id) => conn
-                .query(
+            GetSessionFilter::Id(id) => {
+                conn.query("SELECT * FROM sessions WHERE id = ?", vec![id])
+                    .await?
+            }
+            GetSessionFilter::CalendarEventId(id) => {
+                conn.query(
                     "SELECT * FROM sessions WHERE calendar_event_id = ?",
                     vec![id],
                 )
-                .await
-                .unwrap(),
-            GetSessionFilter::TagId(id) => conn
-                .query(
+                .await?
+            }
+            GetSessionFilter::TagId(id) => {
+                conn.query(
                     "SELECT * FROM sessions WHERE id IN (SELECT session_id FROM tags WHERE id = ?)",
                     vec![id],
                 )
-                .await
-                .unwrap(),
+                .await?
+            }
+            GetSessionFilter::Daily { date, user_id } => {
+                conn.query(
+                    "SELECT * FROM sessions WHERE title = ? AND user_id = ?",
+                    vec![date, user_id],
+                )
+                .await?
+            }
         };
 
         match rows.next().await? {
@@ -221,8 +228,9 @@ impl UserDatabase {
                     title,
                     raw_memo_html,
                     enhanced_memo_html,
-                    conversations
-                ) VALUES (:id, :created_at, :visited_at, :user_id, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :conversations)
+                    conversations,
+                    is_meeting
+                ) VALUES (:id, :created_at, :visited_at, :user_id, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :conversations, :is_meeting)
                 ON CONFLICT(id) DO UPDATE SET
                     created_at = :created_at,
                     visited_at = :visited_at,
@@ -231,7 +239,8 @@ impl UserDatabase {
                     title = :title,
                     raw_memo_html = :raw_memo_html,
                     enhanced_memo_html = :enhanced_memo_html,
-                    conversations = :conversations
+                    conversations = :conversations,
+                    is_meeting = :is_meeting
                 RETURNING *",
                 libsql::named_params! {
                     ":id": session.id.clone(),
@@ -243,6 +252,7 @@ impl UserDatabase {
                     ":raw_memo_html": session.raw_memo_html.clone(),
                     ":enhanced_memo_html": session.enhanced_memo_html.clone(),
                     ":conversations": serde_json::to_string(&session.conversations).unwrap(),
+                    ":is_meeting": if session.is_meeting { 1 } else { 0 },
                 },
             )
             .await?;
@@ -379,6 +389,7 @@ mod tests {
             raw_memo_html: "raw_memo_html_1".to_string(),
             conversations: vec![],
             enhanced_memo_html: None,
+            is_meeting: true,
         };
 
         let mut session = db.upsert_session(session).await.unwrap();

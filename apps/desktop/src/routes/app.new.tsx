@@ -2,9 +2,10 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 
-import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as dbCommands, type Session } from "@hypr/plugin-db";
 
 const schema = z.object({
+  meeting: z.boolean().default(true),
   record: z.boolean().optional(),
   calendarEventId: z.string().optional(),
 });
@@ -13,49 +14,55 @@ export const Route = createFileRoute("/app/new")({
   validateSearch: zodValidator(schema),
   beforeLoad: async ({
     context: { queryClient, ongoingSessionStore, sessionsStore, userId },
-    search: { record, calendarEventId },
+    search: { meeting, record, calendarEventId },
   }) => {
     try {
       const sessionId = crypto.randomUUID();
 
-      if (calendarEventId) {
-        const event = await queryClient.fetchQuery({
-          queryKey: ["event", calendarEventId],
-          queryFn: () => dbCommands.getEvent(calendarEventId!),
-        });
+      const base: Session = {
+        id: sessionId,
+        user_id: userId,
+        created_at: new Date().toISOString(),
+        visited_at: new Date().toISOString(),
+        calendar_event_id: null,
+        title: "",
+        raw_memo_html: "",
+        enhanced_memo_html: null,
+        conversations: [],
+        is_meeting: meeting,
+      };
 
-        const session = await dbCommands.upsertSession({
-          id: sessionId,
-          user_id: userId,
-          created_at: new Date().toISOString(),
-          visited_at: new Date().toISOString(),
-          calendar_event_id: event?.id ?? null,
-          title: event?.name ?? "",
-          raw_memo_html: "",
-          enhanced_memo_html: null,
-          conversations: [],
-        });
-        await dbCommands.sessionAddParticipant(sessionId, userId);
+      const constructSession = async () => {
+        if (!meeting) {
+          return {
+            ...base,
+            title: new Date().toLocaleDateString("en-CA").replace(/-/g, ""),
+            is_meeting: false,
+          };
+        }
 
-        const { insert } = sessionsStore.getState();
-        insert(session);
-      } else {
-        const session = await dbCommands.upsertSession({
-          id: sessionId,
-          user_id: userId,
-          created_at: new Date().toISOString(),
-          visited_at: new Date().toISOString(),
-          calendar_event_id: null,
-          title: "",
-          raw_memo_html: "",
-          enhanced_memo_html: null,
-          conversations: [],
-        });
-        await dbCommands.sessionAddParticipant(sessionId, userId);
+        if (calendarEventId) {
+          const event = await queryClient.fetchQuery({
+            queryKey: ["event", calendarEventId],
+            queryFn: () => dbCommands.getEvent(calendarEventId!),
+          });
 
-        const { insert } = sessionsStore.getState();
-        insert(session);
-      }
+          return {
+            ...base,
+            calendar_event_id: calendarEventId,
+            title: event?.name ?? "",
+          };
+        }
+
+        return base;
+      };
+
+      const session = await constructSession();
+      await dbCommands.upsertSession(session);
+      await dbCommands.sessionAddParticipant(session.id, userId);
+
+      const { insert } = sessionsStore.getState();
+      insert(session);
 
       if (record) {
         const { start } = ongoingSessionStore.getState();

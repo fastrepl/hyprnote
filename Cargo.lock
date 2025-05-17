@@ -3927,6 +3927,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "eyre"
+version = "0.6.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7cd915d99f24784cdc19fd37ef22b97e3ff0ae756c7e492e9fbfe897d61e2aec"
+dependencies = [
+ "indenter",
+ "once_cell",
+]
+
+[[package]]
 name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6671,6 +6681,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "indenter"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce23b50ad8242c51a442f3ff322d56b02f08852c77e4c0b4d3fd684abc89c683"
+
+[[package]]
 name = "indexmap"
 version = "1.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7128,6 +7144,27 @@ dependencies = [
  "security-framework 2.11.1",
  "security-framework 3.2.0",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "knf-rs"
+version = "0.3.0-beta.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4aed4afaa710fc33d955baf4cc30d862b88536667522257224585338d73e0ef0"
+dependencies = [
+ "eyre",
+ "knf-rs-sys",
+ "ndarray",
+]
+
+[[package]]
+name = "knf-rs-sys"
+version = "0.3.0-beta.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f7e831b6de49e480ad1aa7395e43c1f0816b466871604b8cd4c0376e43d7cc74"
+dependencies = [
+ "bindgen 0.69.5",
+ "cmake",
 ]
 
 [[package]]
@@ -9949,12 +9986,27 @@ dependencies = [
  "approx",
  "data",
  "hound",
+ "onnx",
+ "pyannote-rs",
  "reqwest 0.12.15",
  "serde",
  "specta",
  "thiserror 2.0.12",
  "tokio",
  "url",
+]
+
+[[package]]
+name = "pyannote-rs"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3403af08a11ccc196623618aa80b7463093b37f2313d115a5c75dfec0a778536"
+dependencies = [
+ "eyre",
+ "hound",
+ "knf-rs",
+ "ndarray",
+ "ort",
 ]
 
 [[package]]

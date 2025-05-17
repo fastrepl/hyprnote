@@ -4,8 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["cloud"]
+default = []
 cloud = ["reqwest", "url"]
+local = ["pyannote-rs", "hypr-onnx"]
 
 [dependencies]
 reqwest = { workspace = true, features = ["json"], optional = true }
@@ -14,11 +15,13 @@ url = { workspace = true, optional = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 
+hypr-onnx = { workspace = true, optional = true }
+pyannote-rs = { version = "0.3.0", features = ["coreml"], optional = true }
 serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
-hypr-data = { path = "../../crates/data", package = "data" }
+hypr-data = { workspace = true }
 
 approx = { workspace = true }
 hound = { workspace = true }

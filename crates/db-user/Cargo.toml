@@ -10,7 +10,6 @@ hypr-data = { workspace = true }
 hypr-db-core = { workspace = true }
 hypr-language = { workspace = true }
 hypr-listener-interface = { workspace = true }
-hypr-timeline = { workspace = true }
 
 libsql = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }

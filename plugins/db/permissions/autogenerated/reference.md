@@ -15,8 +15,8 @@ Default permissions for the plugin
 - `allow-session-remove-participant`
 - `allow-session-list-participants`
 - `allow-session-get-event`
-- `allow-get-timeline-view`
-- `allow-get-timeline-view-onboarding`
+- `allow-get-words`
+- `allow-get-words-onboarding`
 - `allow-get-calendar`
 - `allow-list-calendars`
 - `allow-upsert-calendar`
@@ -426,25 +426,12 @@ Denies the get_session command without any pre-configured scope.
 <tr>
 <td>
 
-`db:allow-get-timeline-view`
+`db:allow-get-words`
 
 </td>
 <td>
 
-Enables the get_timeline_view command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-get-timeline-view`
-
-</td>
-<td>
-
-Denies the get_timeline_view command without any pre-configured scope.
+Enables the get_words command without any pre-configured scope.
 
 </td>
 </tr>
@@ -452,12 +439,12 @@ Denies the get_timeline_view command without any pre-configured scope.
 <tr>
 <td>
 
-`db:allow-get-timeline-view-onboarding`
+`db:deny-get-words`
 
 </td>
 <td>
 
-Enables the get_timeline_view_onboarding command without any pre-configured scope.
+Denies the get_words command without any pre-configured scope.
 
 </td>
 </tr>
@@ -465,12 +452,25 @@ Enables the get_timeline_view_onboarding command without any pre-configured scop
 <tr>
 <td>
 
-`db:deny-get-timeline-view-onboarding`
+`db:allow-get-words-onboarding`
 
 </td>
 <td>
 
-Denies the get_timeline_view_onboarding command without any pre-configured scope.
+Enables the get_words_onboarding command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-get-words-onboarding`
+
+</td>
+<td>
+
+Denies the get_words_onboarding command without any pre-configured scope.
 
 </td>
 </tr>

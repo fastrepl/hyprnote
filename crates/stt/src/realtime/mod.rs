@@ -203,12 +203,12 @@ mod tests {
 
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
-        let mut acc: Vec<hypr_listener_interface::TranscriptChunk> = vec![];
+        let mut acc: Vec<hypr_listener_interface::Word> = vec![];
         while let Some(result) = transcript_stream.next().await {
             let data = result.unwrap();
             println!("{:?}", data);
 
-            for t in data.transcripts {
+            for t in data.words {
                 acc.push(t);
             }
         }
@@ -232,12 +232,12 @@ mod tests {
 
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
-        let mut acc: Vec<hypr_listener_interface::TranscriptChunk> = vec![];
+        let mut acc: Vec<hypr_listener_interface::Word> = vec![];
         while let Some(result) = transcript_stream.next().await {
             let data = result.unwrap();
             println!("{:?}", data);
 
-            for t in data.transcripts {
+            for t in data.words {
                 acc.push(t);
             }
         }

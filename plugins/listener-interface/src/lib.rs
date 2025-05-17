@@ -16,27 +16,18 @@ macro_rules! common_derives {
 }
 
 common_derives! {
-    pub struct TranscriptChunk {
-        pub start: u64,
-        pub end: u64,
+    pub struct Word {
         pub text: String,
+        pub speaker: Option<u8>,
         pub confidence: Option<f32>,
-    }
-}
-
-common_derives! {
-    pub struct DiarizationChunk {
-        pub start: u64,
-        pub end: u64,
-        pub speaker: i32,
-        pub confidence: Option<f32>,
+        pub start_ms: Option<u64>,
+        pub end_ms: Option<u64>,
     }
 }
 
 common_derives! {
     pub struct ListenOutputChunk {
-        pub transcripts: Vec<TranscriptChunk>,
-        pub diarizations: Vec<DiarizationChunk>,
+        pub words: Vec<Word>,
     }
 }
 

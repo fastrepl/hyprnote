@@ -82,7 +82,7 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         calendar_event_id: None,
         raw_memo_html: hypr_buffer::opinionated_md_to_html(THANK_YOU_MD).unwrap(),
         enhanced_memo_html: None,
-        conversations: vec![],
+        words: vec![],
     };
 
     let keyboard_shortcuts_session = Session {
@@ -94,7 +94,7 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         calendar_event_id: None,
         raw_memo_html: hypr_buffer::opinionated_md_to_html(KEYBOARD_SHORTCUTS_MD).unwrap(),
         enhanced_memo_html: None,
-        conversations: vec![],
+        words: vec![],
     };
 
     let editor_basics_session = Session {
@@ -106,7 +106,7 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         calendar_event_id: None,
         raw_memo_html: hypr_buffer::opinionated_md_to_html(EDITOR_BASICS_MD).unwrap(),
         enhanced_memo_html: None,
-        conversations: vec![],
+        words: vec![],
     };
 
     let onboarding_session = Session {
@@ -118,7 +118,7 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         calendar_event_id: Some(onboarding_event.id.clone()),
         raw_memo_html: ONBOARDING_RAW_HTML.to_string(),
         enhanced_memo_html: None,
-        conversations: vec![],
+        words: vec![],
     };
 
     let _ = db.upsert_calendar(default_calendar).await?;
@@ -501,6 +501,6 @@ fn new_default_session(user_id: impl Into<String>) -> Session {
         calendar_event_id: None,
         raw_memo_html: "".to_string(),
         enhanced_memo_html: None,
-        conversations: vec![],
+        words: vec![],
     }
 }

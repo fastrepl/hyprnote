@@ -15,8 +15,10 @@ common_event_derives! {
         RunningActive {},
         #[serde(rename = "running_paused")]
         RunningPaused {},
-        #[serde(rename = "timelineView")]
-        TimelineView { view: hypr_timeline::TimelineView },
+        #[serde(rename = "words")]
+        Words {
+            words: Vec<hypr_listener_interface::Word>,
+        },
         #[serde(rename = "audioAmplitude")]
         AudioAmplitude { mic: u16, speaker: u16 },
     }

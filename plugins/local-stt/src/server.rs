@@ -18,7 +18,7 @@ use futures_util::{SinkExt, StreamExt};
 use tower_http::cors::{self, CorsLayer};
 
 use hypr_chunker::ChunkerExt;
-use hypr_listener_interface::{ListenOutputChunk, ListenParams, TranscriptChunk};
+use hypr_listener_interface::{ListenOutputChunk, ListenParams, Word};
 use hypr_ws_utils::WebSocketAudioSource;
 
 use crate::manager::{ConnectionGuard, ConnectionManager};
@@ -160,11 +160,11 @@ async fn websocket(
         }
 
         let data = ListenOutputChunk {
-            diarizations: vec![],
-            transcripts: vec![TranscriptChunk {
+            words: vec![Word {
                 text,
-                start,
-                end: start + duration,
+                speaker: None,
+                end_ms: None,
+                start_ms: None,
                 confidence: Some(confidence),
             }],
         };

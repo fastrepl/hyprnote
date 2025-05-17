@@ -35,7 +35,6 @@ hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }
 hypr-db-user = { path = "crates/db-user", package = "db-user" }
 hypr-detect = { path = "crates/detect", package = "detect" }
-hypr-diart = { path = "crates/diart", package = "diart" }
 hypr-file = { path = "crates/file", package = "file" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
@@ -53,7 +52,6 @@ hypr-s3 = { path = "crates/s3", package = "s3" }
 hypr-slack = { path = "crates/slack", package = "slack" }
 hypr-stt = { path = "crates/stt", package = "stt", features = ["realtime", "recorded"] }
 hypr-template = { path = "crates/template", package = "template" }
-hypr-timeline = { path = "crates/timeline", package = "timeline" }
 hypr-turso = { path = "crates/turso", package = "turso" }
 hypr-vad = { path = "crates/vad", package = "vad" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }

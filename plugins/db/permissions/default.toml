@@ -13,8 +13,8 @@ permissions = [
     "allow-session-remove-participant",
     "allow-session-list-participants",
     "allow-session-get-event",
-    "allow-get-timeline-view",
-    "allow-get-timeline-view-onboarding",
+    "allow-get-words",
+    "allow-get-words-onboarding",
     # calendar
     "allow-get-calendar",
     "allow-list-calendars",

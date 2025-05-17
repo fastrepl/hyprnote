@@ -175,24 +175,6 @@ mod tests {
     use futures_util::StreamExt;
     use llama_cpp_2::model::LlamaChatMessage;
 
-    macro_rules! init_timeline {
-        ($module:ident) => {{
-            let transcripts: Vec<hypr_listener_interface::TranscriptChunk> =
-                serde_json::from_str(hypr_data::$module::TRANSCRIPTION_JSON).unwrap();
-            let diarizations: Vec<hypr_listener_interface::DiarizationChunk> =
-                serde_json::from_str(hypr_data::$module::DIARIZATION_JSON).unwrap();
-
-            let mut timeline = hypr_timeline::Timeline::default();
-            for t in transcripts {
-                timeline.add_transcription(t);
-            }
-            for d in diarizations {
-                timeline.add_diarization(d);
-            }
-            timeline.view(hypr_timeline::TimelineFilter::default())
-        }};
-    }
-
     async fn run(model: &Llama, request: LlamaRequest, print_stream: bool) -> String {
         use futures_util::pin_mut;
         use std::io::{self, Write};

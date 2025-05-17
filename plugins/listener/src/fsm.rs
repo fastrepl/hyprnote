@@ -11,7 +11,6 @@ use tokio::sync::{mpsc, Mutex};
 use tokio::task::JoinSet;
 
 use hypr_audio::AsyncSource;
-use hypr_timeline::{Timeline, TimelineFilter};
 
 use crate::SessionEvent;
 
@@ -244,33 +243,23 @@ impl Session {
             });
         }
 
-        let timeline = Arc::new(Mutex::new(initialize_timeline(&session).await));
+        // TODO
+        // let timeline = Arc::new(Mutex::new(initialize_timeline(&session).await));
         let audio_stream = hypr_audio::ReceiverStreamSource::new(process_rx, SAMPLE_RATE);
 
         let listen_stream = listen_client.from_audio(audio_stream).await?;
 
         tasks.spawn({
             let app = self.app.clone();
-            let timeline = timeline.clone();
             let stop_tx = stop_tx.clone();
 
             async move {
                 futures_util::pin_mut!(listen_stream);
 
                 while let Some(result) = listen_stream.next().await {
-                    let mut timeline = timeline.lock().await;
-
-                    for t in result.transcripts {
-                        update_session(&app, &session.id, t.clone()).await.unwrap();
-                        timeline.add_transcription(t);
-                    }
-
-                    for d in result.diarizations {
-                        timeline.add_diarization(d);
-                    }
-
-                    SessionEvent::TimelineView {
-                        view: timeline.view(TimelineFilter::default()),
+                    // TODO
+                    SessionEvent::Words {
+                        words: result.words,
                     }
                     .emit(&app)
                     .unwrap();
@@ -368,43 +357,28 @@ async fn setup_listen_client<R: tauri::Runtime>(
         .build())
 }
 
-async fn initialize_timeline(session: &hypr_db_user::Session) -> Timeline {
-    let mut timeline = Timeline::default();
-
-    for conversation in &session.conversations {
-        for t in &conversation.transcripts {
-            timeline.add_transcription(t.clone());
-        }
-        for d in &conversation.diarizations {
-            timeline.add_diarization(d.clone());
-        }
-    }
-
-    timeline
-}
-
 async fn update_session<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     session_id: impl Into<String>,
-    transcript: hypr_listener_interface::TranscriptChunk,
+    words: Vec<hypr_listener_interface::Word>,
 ) -> Result<(), crate::Error> {
     use tauri_plugin_db::DatabasePluginExt;
 
     // TODO: not ideal. We might want to only do "update" everywhere instead of upserts.
     // We do this because it is highly likely that the session fetched in the listener is stale (session can be updated on the React side).
-    let mut session = app
-        .db_get_session(session_id)
-        .await?
-        .ok_or(crate::Error::NoneSession)?;
+    // let mut session = app
+    //     .db_get_session(session_id)
+    //     .await?
+    //     .ok_or(crate::Error::NoneSession)?;
 
-    session.conversations.push(hypr_db_user::ConversationChunk {
-        transcripts: vec![transcript],
-        diarizations: vec![],
-        start: chrono::Utc::now(),
-        end: chrono::Utc::now(),
-    });
+    // session.words.push(hypr_db_user::ConversationChunk {
+    //     transcripts: vec![transcript],
+    //     diarizations: vec![],
+    //     start: chrono::Utc::now(),
+    //     end: chrono::Utc::now(),
+    // });
 
-    app.db_upsert_session(session.clone()).await.unwrap();
+    // app.db_upsert_session(session.clone()).await.unwrap();
 
     Ok(())
 }

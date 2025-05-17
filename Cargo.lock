@@ -3147,7 +3147,6 @@ dependencies = [
  "specta",
  "strum 0.26.3",
  "thiserror 2.0.12",
- "timeline",
  "tokio",
  "uuid",
 ]
@@ -3404,31 +3403,6 @@ name = "deunicode"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dc55fe0d1f6c107595572ec8b107c0999bb1a2e0b75e37429a4fb0d6474a0e7d"
-
-[[package]]
-name = "diart"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-stream",
- "audio 0.1.0",
- "bytes",
- "codes-iso-639",
- "data",
- "futures-channel",
- "futures-util",
- "hound",
- "listener-interface",
- "reqwest 0.12.15",
- "serde",
- "serde_bytes",
- "serde_json",
- "thiserror 2.0.12",
- "tokio",
- "tracing",
- "url",
- "ws",
-]
 
 [[package]]
 name = "digest"
@@ -6760,15 +6734,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "intervaltree"
-version = "0.2.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "270bc34e57047cab801a8c871c124d9dc7132f6473c6401f645524f4e6edd111"
-dependencies = [
- "smallvec",
-]
-
-[[package]]
 name = "ipnet"
 version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7514,7 +7479,6 @@ dependencies = [
  "serde_json",
  "template",
  "thiserror 2.0.12",
- "timeline",
  "tokio",
  "tokio-stream",
 ]
@@ -12986,6 +12950,7 @@ version = "0.1.0"
 dependencies = [
  "db-core",
  "db-user",
+ "listener-interface",
  "serde",
  "specta",
  "specta-typescript",
@@ -12994,7 +12959,6 @@ dependencies = [
  "tauri-plugin",
  "tauri-specta",
  "thiserror 2.0.12",
- "timeline",
  "tokio",
  "tracing",
  "turso",
@@ -13169,7 +13133,6 @@ dependencies = [
  "tauri-plugin-tray",
  "tauri-specta",
  "thiserror 2.0.12",
- "timeline",
  "tokio",
  "tracing",
  "url",
@@ -13915,19 +13878,6 @@ checksum = "3526739392ec93fd8b359c8e98514cb3e8e021beb4e5f597b00a0221f8ed8a49"
 dependencies = [
  "num-conv",
  "time-core",
-]
-
-[[package]]
-name = "timeline"
-version = "0.1.0"
-dependencies = [
- "data",
- "insta",
- "intervaltree",
- "listener-interface",
- "serde",
- "serde_json",
- "specta",
 ]
 
 [[package]]

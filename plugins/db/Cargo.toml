@@ -16,8 +16,8 @@ specta-typescript = { workspace = true }
 [dependencies]
 hypr-db-core = { workspace = true }
 hypr-db-user = { workspace = true }
-hypr-timeline = { workspace = true }
-hypr-turso = { path = "../../crates/turso", package = "turso" }
+hypr-listener-interface = { workspace = true }
+hypr-turso = { workspace = true }
 
 specta = { workspace = true }
 tauri = { workspace = true, features = ["test"] }

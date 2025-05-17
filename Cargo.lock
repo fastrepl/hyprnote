@@ -13701,6 +13701,10 @@ name = "template"
 version = "0.1.0"
 dependencies = [
  "codes-iso-639",
+ "data",
+ "insta",
+ "itertools 0.14.0",
+ "listener-interface",
  "minijinja",
  "minijinja-contrib",
  "serde",

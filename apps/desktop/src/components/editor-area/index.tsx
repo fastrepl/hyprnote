@@ -197,7 +197,6 @@ export function useEnhanceMutation({
         {
           type,
           editor: rawContent,
-          // TODO: need to update template
           words,
           participants,
         },

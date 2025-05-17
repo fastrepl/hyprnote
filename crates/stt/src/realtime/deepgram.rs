@@ -59,7 +59,12 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
                                 .words
                                 .iter()
                                 .map(|w| Word {
-                                    text: w.punctuated_word.as_ref().unwrap_or(&w.word).clone(),
+                                    text: w
+                                        .punctuated_word
+                                        .as_ref()
+                                        .unwrap_or(&w.word)
+                                        .trim()
+                                        .to_string(),
                                     speaker: w.speaker.map(|s| s as u8),
                                     start_ms: Some((w.start * 1000.0) as u64),
                                     end_ms: Some((w.end * 1000.0) as u64),

@@ -162,6 +162,7 @@ async fn websocket(
         let data = ListenOutputChunk {
             words: text
                 .split_whitespace()
+                .filter(|w| !w.is_empty())
                 .map(|w| Word {
                     text: w.trim().to_string(),
                     speaker: None,

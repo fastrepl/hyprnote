@@ -6,7 +6,6 @@ import { useEffect, useRef } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as windowsCommands, events as windowsEvents } from "@hypr/plugin-windows";
-import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useOngoingSession, useSessions } from "@hypr/utils/contexts";
@@ -22,19 +21,16 @@ interface CustomHeaderProps {
 
 const CustomHeader: React.FC<CustomHeaderProps> = ({ leading, title, actions }) => {
   return (
-    <header style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%" }}>
+    <header className="flex items-center gap-2 w-full">
       {leading && <div>{leading}</div>}
       {title && (
-        <div style={{ flex: 1, fontSize: "18px", fontWeight: 600 }}>
+        <div className="flex-1 text-md font-medium">
           {title}
         </div>
       )}
       {actions && (
-        <div
-          style={{ display: "flex", alignItems: "center", gap: "8px" }}
-          className="not-draggable"
-        >
-          {actions.filter(Boolean)} {/* Ensure actions are filtered like before if they might contain falsy values */}
+        <div className="not-draggable flex items-center gap-2">
+          {actions.filter(Boolean)}
         </div>
       )}
     </header>
@@ -137,14 +133,7 @@ export function TranscriptView() {
             <div className="flex text-md items-center gap-2">
               Transcript
               {isLive
-                && (
-                  <Badge
-                    variant="destructive"
-                    className="hover:bg-destructive"
-                  >
-                    LIVE
-                  </Badge>
-                )}
+                && <span className="inline-block w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>}
             </div>
           }
           actions={[

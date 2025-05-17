@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@hypr/ui/lib/utils";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -25,8 +25,8 @@ const llmProviders = [
   { value: "openai_eu", label: "OpenAI (EU)" },
   { value: "claude", label: "Claude" },
   { value: "grok", label: "Grok" },
-  { value: "ollama", label: "Ollama (Local)" },
-  { value: "lm_studio", label: "LM Studio (Local)" },
+  { value: "ollama", label: "Ollama" },
+  { value: "lm_studio", label: "LM Studio" },
   { value: "github", label: "GitHub Models" },
   { value: "openrouter", label: "OpenRouter" },
   { value: "martian", label: "Martian" },
@@ -36,36 +36,83 @@ const llmProviders = [
 const llmProviderPresets: Record<string, string> = {
   openai: "https://api.openai.com/v1",
   openai_eu: "https://eu.api.openai.com/v1",
-  ollama: "http://localhost:11434/v1",
-  lm_studio: "http://localhost:1234/v1",
+  // ollama and lm_studio are handled separately due to dynamic ports
   grok: "https://api.x.ai/v1",
   claude: "https://api.anthropic.com/v1",
   github: "https://models.github.ai/inference",
   openrouter: "https://openrouter.ai/api/v1",
-  martian: "https://withmartian.com/api/openai/v1"
+  martian: "https://withmartian.com/api/openai/v1",
+};
+
+const defaultPorts: Record<string, string> = {
+  ollama: "11434",
+  lm_studio: "1234",
 };
 
 const getProviderFromApiBase = (apiBase: string | undefined): string => {
-  if (!apiBase) return "ollama";
+  if (!apiBase) {
+    return "ollama"; // Default to Ollama if no apiBase provided initially
+  }
+
+  // Check for exact matches in presets first
   for (const [provider, url] of Object.entries(llmProviderPresets)) {
     if (apiBase === url) {
       return provider;
     }
   }
-  return "others";
+
+  // Check for Ollama/LM Studio patterns if no exact preset match
+  if (apiBase.startsWith("http://localhost:")) {
+    const port = apiBase.match(/^http:\/\/localhost:(\d+)\/v1$/)?.[1];
+    if (port) {
+      if (port === defaultPorts.ollama) {
+        return "ollama";
+      }
+      if (port === defaultPorts.lm_studio) {
+        return "lm_studio";
+      }
+      // If it's a localhost URL with a port but not matching default, leans towards 'others'
+      // or could be a custom-ported Ollama/LM Studio. For selection, 'others' is safer.
+      return "others";
+    }
+  }
+
+  return "others"; // Fallback if no specific provider identified
+};
+
+const extractPortOrDefault = (apiBase: string | undefined, provider: string | undefined): string => {
+  if (apiBase && (provider === "ollama" || provider === "lm_studio")) {
+    const match = apiBase.match(/^http:\/\/localhost:(\d+)\/v1$/);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  return defaultPorts[provider || ""] || "";
 };
 
 const endpointSchema = z.object({
   api_provider: z.string().min(1, { message: "Provider selection is required." }),
   model: z.string().min(1),
+  port: z.string().regex(/^\d*$/, { message: "Port must be a number." }).optional(),
   api_base: z.string().url({ message: "Please enter a valid URL" }).min(1, { message: "URL is required" }).refine(
     (value) => {
-      const v1NeededProviders = ["openai", "openrouter", "openai_eu", "claude", "grok", "lm_studio", "openrouter", "martian"];
+      const v1NeededProviders = [
+        "openai",
+        "openrouter",
+        "openai_eu",
+        "claude",
+        "grok",
+        "lm_studio",
+        "openrouter",
+        "martian",
+      ];
       const includesV1Provider = v1NeededProviders.some((host) => value.includes(host));
       const isLocal = value.includes("localhost") || value.includes("127.0.0.1");
 
       if ((includesV1Provider || isLocal) && !value.endsWith("/v1")) {
-        if (Object.values(llmProviderPresets).includes(value)) return true;
+        if (Object.values(llmProviderPresets).includes(value)) {
+          return true;
+        }
         return false;
       }
       return true;
@@ -123,66 +170,121 @@ export function LLMView() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(endpointSchema),
-    mode: "onChange", // Important for watch to pick up programmatic changes correctly
+    mode: "onChange",
     defaultValues: {
-      api_provider: "ollama", // Default provider
+      api_provider: "ollama",
       model: "",
-      api_base: llmProviderPresets.ollama, // Default API base for Ollama
+      port: defaultPorts.ollama,
+      api_base: `http://localhost:${defaultPorts.ollama}/v1`,
       api_key: "",
     },
   });
+
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const suggestionsContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (suggestionsContainerRef.current && !suggestionsContainerRef.current.contains(event.target as Node)) {
+        setIsSuggestionsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     if (customLLMConnection.data) {
       const currentApiBase = customLLMConnection.data.api_base;
       const provider = getProviderFromApiBase(currentApiBase);
+      let portValue = "";
+
+      if (provider === "ollama" || provider === "lm_studio") {
+        portValue = extractPortOrDefault(currentApiBase, provider);
+      } else if (provider === "others" && currentApiBase?.startsWith("http://localhost:")) {
+        // If 'others' is detected for a localhost URL, try to extract port for display if user switches back
+        portValue = extractPortOrDefault(currentApiBase, undefined); // Pass undefined if provider is 'others'
+      }
+
       form.reset({
         api_provider: provider,
         model: getCustomLLMModel.data || "",
-        api_base: currentApiBase || (provider !== 'others' && llmProviderPresets[provider]) || "",
+        api_base: currentApiBase || "", // Use the loaded one, or empty if none
+        port: portValue,
         api_key: customLLMConnection.data.api_key || "",
       });
+
+      // If the loaded provider is Ollama/LM Studio, ensure api_base reflects its port
+      if ((provider === "ollama" || provider === "lm_studio") && currentApiBase) {
+        const finalPort = portValue || defaultPorts[provider];
+        form.setValue("api_base", `http://localhost:${finalPort}/v1`, { shouldValidate: true });
+      }
     } else {
-      // Ensure default values are set if no connection data (already handled by defaultValues in useForm)
-      // Optionally, could re-verify defaults or set a specific initial state if connection load fails
-      const initialProvider = form.getValues("api_provider") || "ollama";
+      // Initial default setup when no connection data
+      const initialProvider = "ollama";
+      const initialPort = defaultPorts[initialProvider];
       form.reset({
         api_provider: initialProvider,
         model: "",
-        api_base: llmProviderPresets[initialProvider] || "",
-        api_key: ""
-      })
+        api_base: `http://localhost:${initialPort}/v1`,
+        port: initialPort,
+        api_key: "",
+      });
     }
-  }, [getCustomLLMModel.data, customLLMConnection.data, form.reset, form]); // Added form to dependencies
+  }, [customLLMConnection.data, getCustomLLMModel.data, form.reset, form.setValue]);
 
   useEffect(() => {
     const subscription = form.watch((value, { name, type }) => {
-      if (name === "api_provider") {
-        const selectedProvider = value.api_provider;
-        if (selectedProvider) {
-          const presetUrl = llmProviderPresets[selectedProvider];
-          if (presetUrl) {
-            form.setValue("api_base", presetUrl, { shouldValidate: true, shouldDirty: true });
-          } else {
-            // No preset (e.g. Claude, Grok, or if user selected 'others' then switched to one without preset)
-            // Clear api_base if not 'others', to prompt for input. 'others' keeps its current input.
-            if (selectedProvider !== "others") {
-              form.setValue("api_base", "", { shouldValidate: true, shouldDirty: true });
-            }
+      const selectedProvider = value.api_provider; // The provider being changed to, if name is api_provider
+
+      if (name === "api_provider" && selectedProvider) {
+        if (selectedProvider === "ollama" || selectedProvider === "lm_studio") {
+          // Try to use existing port if user is toggling, otherwise default
+          let portToUse = form.getValues("port");
+          if (!portToUse || (type === "change" && !form.getFieldState("port").isDirty)) {
+            // If port field is pristine or empty when switching to Ollama/LM, set its default.
+            portToUse = defaultPorts[selectedProvider];
           }
+          form.setValue("port", portToUse, { shouldValidate: true, shouldDirty: true });
+          form.setValue("api_base", `http://localhost:${portToUse}/v1`, { shouldValidate: true, shouldDirty: true });
+        } else if (selectedProvider === "others") {
+          form.setValue("api_base", "", { shouldValidate: true, shouldDirty: true });
+          form.setValue("port", "", { shouldValidate: false, shouldDirty: true });
+        } else { // Other preset providers
+          form.setValue("api_base", llmProviderPresets[selectedProvider] || "", {
+            shouldValidate: true,
+            shouldDirty: true,
+          });
+          form.setValue("port", "", { shouldValidate: false, shouldDirty: true });
         }
       }
 
-      // Debounce or ensure validation pass before mutating
-      // Check if form is valid for specific fields before mutating
+      if (name === "port") {
+        const providerForPort = form.getValues("api_provider"); // Get current provider from form state
+        if (providerForPort === "ollama" || providerForPort === "lm_studio") {
+          const portVal = value.port;
+          const effectivePort = portVal || defaultPorts[providerForPort]; // Use default if port field is empty
+
+          form.setValue("api_base", `http://localhost:${effectivePort}/v1`, {
+            shouldValidate: true,
+            shouldDirty: true,
+          });
+        }
+      }
+
       const runMutations = () => {
         if (!form.formState.errors.model && value.model && value.model !== getCustomLLMModel.data) {
           setCustomLLMModel.mutate(value.model);
         }
 
         const currentApiBase = form.getValues("api_base"); // Use getValues for freshest data
-        if (!form.formState.errors.api_base && currentApiBase &&
-          (currentApiBase !== customLLMConnection.data?.api_base || value.api_key !== customLLMConnection.data?.api_key)) {
+        if (
+          !form.formState.errors.api_base && currentApiBase
+          && (currentApiBase !== customLLMConnection.data?.api_base
+            || value.api_key !== customLLMConnection.data?.api_key)
+        ) {
           setCustomLLMConnection.mutate({
             api_base: currentApiBase,
             api_key: value.api_key || null,
@@ -198,12 +300,7 @@ export function LLMView() {
     });
 
     return () => subscription.unsubscribe();
-  }, [form, setCustomLLMModel, setCustomLLMConnection, getCustomLLMModel.data, customLLMConnection.data]); // Added relevant dependencies
-
-  const isLocalEndpoint = (apiBase: string | undefined): boolean => {
-    if (!apiBase) return false;
-    return apiBase.includes("localhost") || apiBase.includes("127.0.0.1");
-  };
+  }, [form, setCustomLLMModel, setCustomLLMConnection, getCustomLLMModel.data, customLLMConnection.data]);
 
   const currentLLM = customLLMEnabled.data ? "custom" : "llama-3.2-3b-q4";
 
@@ -233,7 +330,7 @@ export function LLMView() {
                 <Trans>Default (llama-3.2-3b-q4)</Trans>
               </span>
               <p className="text-xs font-normal text-neutral-500 mt-1">
-                <Trans>Use the local Llama 3.2 model for enhanced privacy and offline capability.</Trans>
+                <Trans>Use the local Llama 3.2 model for enhanced privacy and offline capability</Trans>
               </p>
             </div>
           </div>
@@ -255,10 +352,10 @@ export function LLMView() {
             <RadioGroupItem value="custom" id="custom" className="peer sr-only" />
             <div className="flex flex-col">
               <span className="font-medium">
-                <Trans>Custom Endpoint</Trans>
+                <Trans>Bring Your Own LLM</Trans>
               </span>
               <p className="text-xs font-normal text-neutral-500 mt-1">
-                <Trans>Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible).</Trans>
+                <Trans>Connect to a self-hosted or third-party LLM endpoint</Trans>
               </p>
             </div>
           </div>
@@ -266,35 +363,33 @@ export function LLMView() {
 
         <div
           className={cn(
-            "mt-4 pt-4 border-t transition-opacity duration-200",
+            "border-t transition-opacity duration-200",
             customLLMEnabled.data ? "opacity-100" : "opacity-50 pointer-events-none",
           )}
         >
           <Form {...form}>
             <form className="mt-4 space-y-4">
               <FormItem>
-                <FormLabel className="text-sm font-medium">
-                  <Trans>LLM Provider / Endpoint</Trans>
-                </FormLabel>
-                <div className={cn(
-                  "flex w-full items-start",
-                  form.watch("api_provider") === "others" ? "space-x-2" : ""
-                )}>
+                <div
+                  className={cn(
+                    "flex w-full items-start space-x-2",
+                  )}
+                >
                   <FormField
                     control={form.control}
                     name="api_provider"
                     render={({ field }) => (
-                      <div className={cn(
-                        "max-w-[160px]",
-                        form.watch("api_provider") === "others" ? "flex-shrink-0" : "w-full"
-                      )}>
+                      <div
+                        className={cn(
+                          "w-40 flex-shrink-0",
+                        )}
+                      >
                         <Select
                           onValueChange={(value) => {
                             field.onChange(value);
-                            // Trigger validation for api_base as it might change visibility/value
                             form.trigger("api_base");
                           }}
-                          value={field.value} // Controlled component
+                          value={field.value}
                           disabled={!customLLMEnabled.data}
                         >
                           <FormControl>
@@ -302,7 +397,7 @@ export function LLMView() {
                               <SelectValue placeholder="Select an LLM provider" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
+                          <SelectContent className="max-h-60 overflow-y-auto">
                             {llmProviders.map(p => (
                               <SelectItem key={p.value} value={p.value}>
                                 {p.label}
@@ -315,12 +410,32 @@ export function LLMView() {
                     )}
                   />
 
+                  {(form.watch("api_provider") === "ollama" || form.watch("api_provider") === "lm_studio") && (
+                    <FormField
+                      control={form.control}
+                      name="port"
+                      render={({ field }) => (
+                        <div className="w-[100px] flex-shrink-0">
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder={defaultPorts[form.watch("api_provider") as keyof typeof defaultPorts]
+                                || "Port"}
+                              disabled={!customLLMEnabled.data}
+                            />
+                          </FormControl>
+                          <FormMessage className="pt-1" />
+                        </div>
+                      )}
+                    />
+                  )}
+
                   {form.watch("api_provider") === "others" && (
                     <FormField
                       control={form.control}
                       name="api_base"
                       render={({ field }) => (
-                        <div className="w-1/2 flex-grow min-w-0">
+                        <div className="flex-grow min-w-0">
                           <FormControl>
                             <Input
                               {...field}
@@ -335,28 +450,19 @@ export function LLMView() {
                     />
                   )}
                 </div>
-                <FormDescription className="text-xs pt-1">
-                  <Trans>Select a provider. For 'Others', specify the API base URL.</Trans>
-                </FormDescription>
               </FormItem>
 
               {(() => {
                 const currentProvider = form.watch("api_provider");
-                const currentApiBase = form.watch("api_base");
-                let showApiKey = false;
+                let showApiKey = true; // Default to show
 
-                if (customLLMEnabled.data && currentApiBase) {
-                  if (currentProvider === "ollama" || currentProvider === "lm studio") {
-                    showApiKey = false;
-                  } else if (currentProvider === "others") {
-                    showApiKey = !isLocalEndpoint(currentApiBase);
-                  } else {
-                    // For providers like openai, claude, grok, github that usually need keys
-                    showApiKey = true;
-                  }
+                if (currentProvider === "ollama" || currentProvider === "lm_studio") {
+                  showApiKey = false;
                 }
 
-                if (!showApiKey) return null;
+                if (!customLLMEnabled.data || !showApiKey) {
+                  return null;
+                }
 
                 return (
                   <FormField
@@ -365,7 +471,7 @@ export function LLMView() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-sm font-medium">
-                          <Trans>API Key (Optional)</Trans>
+                          <Trans>API Key</Trans>
                         </FormLabel>
                         <FormDescription className="text-xs">
                           <Trans>Enter the API key if your LLM endpoint requires one.</Trans>
@@ -373,9 +479,10 @@ export function LLMView() {
                         <FormControl>
                           <Input
                             {...field}
+                            value={field.value || ""} // Ensure controlled component with string value
                             type="password"
                             placeholder="sk-... or leave blank if not needed"
-                            disabled={!customLLMEnabled.data}
+                            disabled={!customLLMEnabled.data} // Redundant check, but good for clarity
                             className="focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </FormControl>
@@ -391,13 +498,11 @@ export function LLMView() {
                 name="model"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium">
-                      <Trans>Model Name</Trans>
+                    <FormLabel>
+                      <Trans>Model</Trans>
                     </FormLabel>
                     <FormDescription className="text-xs">
-                      <Trans>
-                        Select or enter the model name required by your endpoint.
-                      </Trans>
+                      <Trans>Specify the model name. Type to search or enter a custom name.</Trans>
                     </FormDescription>
                     <FormControl>
                       {availableLLMModels.isLoading
@@ -406,33 +511,72 @@ export function LLMView() {
                             <Trans>Loading available models...</Trans>
                           </div>
                         )
-                        : availableLLMModels.data && availableLLMModels.data.length > 0
-                          ? (
-                            <Select
-                              defaultValue={field.value}
-                              onValueChange={(value: string) => {
-                                field.onChange(value);
-                                setCustomLLMModel.mutate(value);
+                        : (
+                          <div className="w-full" ref={suggestionsContainerRef}>
+                            <Input
+                              value={field.value || ""} // Ensure controlled component with string value
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                field.onChange(newValue); // Update RHF state
+                                setCustomLLMModel.mutate(newValue); // Persist this specific field change
+                                if (!isSuggestionsOpen) {
+                                  setIsSuggestionsOpen(true);
+                                }
                               }}
-                              disabled={!customLLMEnabled.data}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select model" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {availableLLMModels.data.map((model) => (
-                                  <SelectItem key={model} value={model}>
-                                    {model}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )
-                          : (
-                            <div className="py-1 text-sm text-neutral-500">
-                              <Trans>No models available for this endpoint.</Trans>
-                            </div>
-                          )}
+                              onFocus={() => setIsSuggestionsOpen(true)}
+                              placeholder="Type or select a model"
+                              disabled={!customLLMEnabled.data || availableLLMModels.isError}
+                              autoComplete="off"
+                              className="w-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                            />
+                            {isSuggestionsOpen && !availableLLMModels.isError && (
+                              <div className="w-full mt-2 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {availableLLMModels.data && availableLLMModels.data.length > 0
+                                  ? (
+                                    (() => {
+                                      const filteredModels = availableLLMModels.data.filter(model =>
+                                        model.toLowerCase().includes((field.value || "").toLowerCase())
+                                      );
+                                      if (filteredModels.length > 0) {
+                                        return filteredModels.map(model => (
+                                          <div
+                                            key={model}
+                                            className="p-2 hover:bg-accent cursor-pointer text-sm"
+                                            onClick={() => {
+                                              field.onChange(model);
+                                              setCustomLLMModel.mutate(model);
+                                              setIsSuggestionsOpen(false);
+                                            }}
+                                          >
+                                            {model}
+                                          </div>
+                                        ));
+                                      } else {
+                                        return (
+                                          <div className="p-2 text-sm text-neutral-500">
+                                            <Trans>
+                                              No matching models. Continue typing to use a custom model name.
+                                            </Trans>
+                                          </div>
+                                        );
+                                      }
+                                    })()
+                                  )
+                                  : (
+                                    <div className="p-2 text-sm text-neutral-500">
+                                      <Trans>No models listed for this endpoint. Type your model name.</Trans>
+                                    </div>
+                                  )}
+                              </div>
+                            )}
+                            {/* Display error message if model fetching failed, but still allow typing */}
+                            {availableLLMModels.isError && (
+                              <div className="pt-1 text-xs text-red-500">
+                                <Trans>Could not load models. You can still type a custom model name above.</Trans>
+                              </div>
+                            )}
+                          </div>
+                        )}
                     </FormControl>
                     <FormMessage />
                   </FormItem>

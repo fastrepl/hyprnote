@@ -24,11 +24,11 @@ export const TranscriptBase: React.FC<TranscriptBaseProps> = ({
   const sessionId = useSessions((s) => s.currentSessionId);
   const isInactive = useOngoingSession((s) => s.status === "inactive");
   const { showEmptyMessage, isEnhanced, hasTranscript } = useTranscriptWidget(sessionId);
-  const { timeline } = useTranscript(sessionId);
+  const { words } = useTranscript(sessionId);
 
   const handleCopyAll = () => {
-    if (timeline && timeline.items && timeline.items.length > 0) {
-      const transcriptText = timeline.items.map((item) => item.text).join("\n");
+    if (words.length) {
+      const transcriptText = words.map((word) => word.text).join(" ");
       writeText(transcriptText);
     }
   };

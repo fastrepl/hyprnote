@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { events as listenerEvents, type TimelineView } from "@hypr/plugin-listener";
+import { events as listenerEvents, type Word } from "@hypr/plugin-listener";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 
 export function useTranscript(sessionId: string | null) {
@@ -19,13 +19,13 @@ export function useTranscript(sessionId: string | null) {
     sessionId,
   ]);
 
-  const [timeline, setTimeline] = useState<TimelineView | null>(null);
+  const [words, setWords] = useState<Word[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<string>("en");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (!sessionId) {
-      setTimeline(null);
+      setWords([]);
       return;
     }
 
@@ -34,11 +34,11 @@ export function useTranscript(sessionId: string | null) {
       try {
         const onboardingSessionId = await dbCommands.onboardingSessionId();
         const fn = (sessionId === onboardingSessionId && isEnhanced)
-          ? dbCommands.getTimelineViewOnboarding
-          : dbCommands.getTimelineView;
+          ? dbCommands.getWordsOnboarding
+          : dbCommands.getWords;
 
-        const timeline = await fn(sessionId);
-        setTimeline(timeline);
+        const words = await fn(sessionId);
+        setWords(words);
       } finally {
         setIsLoading(false);
       }
@@ -55,8 +55,8 @@ export function useTranscript(sessionId: string | null) {
     let unlisten: (() => void) | null = null;
 
     listenerEvents.sessionEvent.listen(({ payload }) => {
-      if (payload.type === "timelineView") {
-        setTimeline(payload.view);
+      if (payload.type === "words") {
+        setWords((words) => [...words, ...payload.words]);
       }
     }).then((fn) => {
       unlisten = fn;
@@ -74,7 +74,7 @@ export function useTranscript(sessionId: string | null) {
   };
 
   return {
-    timeline,
+    words,
     isLive,
     selectedLanguage,
     handleLanguageChange,

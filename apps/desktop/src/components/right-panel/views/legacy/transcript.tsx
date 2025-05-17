@@ -11,7 +11,7 @@ export function Transcript({ sessionId }: { sessionId?: string }) {
   const effectiveSessionId = sessionId || currentSessionId;
 
   const ref = useRef<HTMLDivElement>(null);
-  const { timeline, isLive, isLoading } = useTranscript(effectiveSessionId);
+  const { words, isLive, isLoading } = useTranscript(effectiveSessionId);
 
   useEffect(() => {
     const scrollToBottom = () => {
@@ -22,10 +22,10 @@ export function Transcript({ sessionId }: { sessionId?: string }) {
       });
     };
 
-    if (timeline?.items?.length) {
+    if (words.length) {
       scrollToBottom();
     }
-  }, [timeline?.items, isLive, ref]);
+  }, [words, isLive, ref]);
 
   useEffect(() => {
     let unlisten: () => void;
@@ -54,10 +54,10 @@ export function Transcript({ sessionId }: { sessionId?: string }) {
         )
         : (
           <>
-            {(timeline?.items ?? []).map((item, index) => (
-              <div key={index}>
+            {words.map((word, i) => (
+              <div key={`${word.text}-${i}`}>
                 <p>
-                  {item.text}
+                  {word.text}
                 </p>
               </div>
             ))}

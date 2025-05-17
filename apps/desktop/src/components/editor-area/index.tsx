@@ -165,12 +165,12 @@ export function useEnhanceMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async () => {
       const fn = sessionId === onboardingSessionId
-        ? dbCommands.getTimelineViewOnboarding
-        : dbCommands.getTimelineView;
+        ? dbCommands.getWordsOnboarding
+        : dbCommands.getWords;
 
-      const timeline = await fn(sessionId);
+      const words = await fn(sessionId);
 
-      if (!timeline?.items.length) {
+      if (!words.length) {
         toast({
           id: "short-timeline",
           title: "Enhancing Skipped",
@@ -197,7 +197,8 @@ export function useEnhanceMutation({
         {
           type,
           editor: rawContent,
-          timeline,
+          // TODO: need to update template
+          words,
           participants,
         },
       );

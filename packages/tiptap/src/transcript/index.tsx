@@ -6,7 +6,7 @@ import Document from "@tiptap/extension-document";
 import History from "@tiptap/extension-history";
 import Text from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { forwardRef, useEffect } from "react";
+import { forwardRef, useEffect, useState } from "react";
 
 import { SpeakerSplit, WordSplit } from "./extensions";
 import { createSpeakerNode, type Speaker, WordNode } from "./nodes";
@@ -15,10 +15,11 @@ interface TranscriptEditorProps {
   editable?: boolean;
   initialContent: Record<string, unknown>;
   speakers: Speaker[];
+  onChange?: (content: Record<string, unknown>) => void;
 }
 
 const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptEditorProps>(
-  ({ initialContent, editable = true, speakers }, ref) => {
+  ({ initialContent, editable = true, speakers, onChange }, ref) => {
     const extensions = [
       Document.configure({ content: "speaker+" }),
       History,
@@ -34,6 +35,9 @@ const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptE
     ];
 
     const editor = useEditor({
+      onUpdate: ({ editor }) => {
+        onChange?.(editor.getJSON());
+      },
       extensions,
       editable,
       editorProps: {
@@ -55,11 +59,16 @@ const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptE
       }
     }, [editor, editable]);
 
+    const [contentProvided, setContentProvided] = useState(false);
+
     useEffect(() => {
       if (editor) {
-        editor.commands.setContent(initialContent);
+        if (!contentProvided) {
+          editor.commands.setContent(initialContent);
+          setContentProvided(true);
+        }
       }
-    }, [editor, initialContent]);
+    }, [editor, initialContent, contentProvided]);
 
     return (
       <div role="textbox" className="h-full flex flex-col overflow-hidden">

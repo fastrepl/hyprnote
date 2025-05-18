@@ -76,7 +76,7 @@ function Component() {
     };
   };
 
-  const content = fromWordsToEditor(words);
+  const [content, setContent] = useState(fromWordsToEditor(words));
 
   const [expanded, setExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -104,9 +104,14 @@ function Component() {
     if (editorRef.current && searchTerm) {
       // @ts-ignore
       editorRef.current.editor.commands.replaceAll(replaceTerm);
-      // setExpanded(false);
-      // TODO: we need editor state updated first.
+      setExpanded(false);
+      setSearchTerm("");
+      setReplaceTerm("");
     }
+  };
+
+  const handleChange = (content: Record<string, unknown>) => {
+    setContent(content as EditorContent);
   };
 
   return (
@@ -151,6 +156,7 @@ function Component() {
           ref={editorRef}
           initialContent={content}
           speakers={participants.map((p) => ({ id: p.id, name: p.full_name ?? "Unknown" }))}
+          onChange={handleChange}
         />
       </div>
     </div>

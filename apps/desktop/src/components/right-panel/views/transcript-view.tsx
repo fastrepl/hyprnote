@@ -109,7 +109,12 @@ export function TranscriptView() {
             <div className="flex text-md items-center gap-2">
               Transcript
               {isLive
-                && <span className="inline-block w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>}
+                && (
+                  <div className="relative h-2 w-2">
+                    <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
+                    <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
+                  </div>
+                )}
             </div>
           </div>
           <div className="not-draggable flex items-center gap-2">

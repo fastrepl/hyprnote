@@ -65,7 +65,9 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
                                         .unwrap_or(&w.word)
                                         .trim()
                                         .to_string(),
-                                    speaker: w.speaker.map(|s| SpeakerIdentity::Index(s as u8)),
+                                    speaker: w
+                                        .speaker
+                                        .map(|s| SpeakerIdentity::Unassigned { index: s as u8 }),
                                     start_ms: Some((w.start * 1000.0) as u64),
                                     end_ms: Some((w.end * 1000.0) as u64),
                                     confidence: Some(w.confidence as f32),

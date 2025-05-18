@@ -12,6 +12,7 @@ user_common_derives! {
         pub title: String,
         pub raw_memo_html: String,
         pub enhanced_memo_html: Option<String>,
+        #[specta(skip)]
         pub conversations: Vec<()>,
         pub words: Vec<hypr_listener_interface::Word>
     }

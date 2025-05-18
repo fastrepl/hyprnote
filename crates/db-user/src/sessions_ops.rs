@@ -230,7 +230,7 @@ impl UserDatabase {
                     ":title": session.title.clone(),
                     ":raw_memo_html": session.raw_memo_html.clone(),
                     ":enhanced_memo_html": session.enhanced_memo_html.clone(),
-                    ":conversations": serde_json::to_string(&session.conversations).unwrap(),
+                    ":conversations": "[]",
                     ":words": serde_json::to_string(&session.words).unwrap(),
                 },
             )

@@ -18,10 +18,17 @@ macro_rules! common_derives {
 common_derives! {
     pub struct Word {
         pub text: String,
-        pub speaker: Option<u8>,
+        pub speaker: Option<SpeakerIdentity>,
         pub confidence: Option<f32>,
         pub start_ms: Option<u64>,
         pub end_ms: Option<u64>,
+    }
+}
+
+common_derives! {
+    pub enum SpeakerIdentity {
+        Index(u8),
+        Human { id: String, label: String },
     }
 }
 
@@ -52,7 +59,6 @@ common_derives! {
 }
 
 #[deprecated]
-#[allow(deprecated)]
 #[derive(serde::Deserialize)]
 pub struct ConversationChunk {
     pub start: chrono::DateTime<chrono::Utc>,
@@ -62,7 +68,6 @@ pub struct ConversationChunk {
 }
 
 #[deprecated]
-#[allow(deprecated)]
 #[derive(serde::Deserialize)]
 pub struct TranscriptChunk {
     pub start: u64,
@@ -72,7 +77,6 @@ pub struct TranscriptChunk {
 }
 
 #[deprecated]
-#[allow(deprecated)]
 #[derive(serde::Deserialize)]
 pub struct DiarizationChunk {
     pub start: u64,

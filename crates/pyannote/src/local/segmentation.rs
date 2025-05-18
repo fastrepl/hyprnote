@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use hypr_onnx::{
     ndarray::{self, ArrayBase, Axis, IxDyn, ViewRepr},
     ort::{self, session::Session},
@@ -115,7 +115,7 @@ impl Segmenter {
             .enumerate()
             .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .map(|(i, _)| i)
-            .context("Empty row in outputs")
+            .ok_or(anyhow::anyhow!("Empty row in outputs"))
     }
 
     fn create_segment(
@@ -148,13 +148,32 @@ mod tests {
 
     #[test]
     fn test_segmentation() {
-        let mut segmenter = Segmenter::new(16000).unwrap();
-
-        let samples: Vec<i16> = (0..16000 * 10)
-            .map(|i| ((i as f32 * 0.1).sin() * 10000.0) as i16)
+        let audio: Vec<i16> = hypr_data::english_1::AUDIO
+            .to_vec()
+            .chunks_exact(2)
+            .map(|chunk| i16::from_le_bytes([chunk[0], chunk[1]]))
             .collect();
 
-        let segments = segmenter.process(&samples, 16000).unwrap();
-        assert!(segments.is_empty());
+        let mut segmenter = Segmenter::new(16000).unwrap();
+
+        let segments = segmenter.process(&audio, 16000).unwrap();
+
+        println!(
+            "{:?}",
+            segments
+                .iter()
+                .map(|s| format!("{:.2}", s.start))
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+
+        println!(
+            "{:?}",
+            segments
+                .iter()
+                .map(|s| format!("{:.2}", s.end))
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
     }
 }

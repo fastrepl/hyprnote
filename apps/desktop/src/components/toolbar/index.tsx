@@ -2,7 +2,7 @@ import { useMatch } from "@tanstack/react-router";
 
 import { useEditMode } from "@/contexts/edit-mode-context";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { CalendarToolbar, DefaultToolbar, EntityToolbar, MainToolbar, NoteToolbar, TranscriptToolbar } from "./bars";
+import { CalendarToolbar, DefaultToolbar, EntityToolbar, MainToolbar, NoteToolbar } from "./bars";
 
 export default function Toolbar() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
@@ -10,7 +10,6 @@ export default function Toolbar() {
   const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
   const calendarMatch = useMatch({ from: "/app/calendar", shouldThrow: false });
   const plansMatch = useMatch({ from: "/app/plans", shouldThrow: false });
-  const transcriptMatch = useMatch({ from: "/app/transcript/$id", shouldThrow: false });
 
   const { isEditing, toggleEditMode } = useEditMode();
 
@@ -20,7 +19,6 @@ export default function Toolbar() {
   const isHuman = !!humanMatch;
   const isCalendar = !!calendarMatch;
   const isPlans = !!plansMatch;
-  const isTranscript = !!transcriptMatch;
 
   if (isCalendar) {
     const date = calendarMatch?.search?.date ? new Date(calendarMatch.search.date as string) : new Date();
@@ -43,10 +41,6 @@ export default function Toolbar() {
           onEditToggle={toggleEditMode}
         />
       );
-    }
-
-    if (isTranscript) {
-      return <TranscriptToolbar />;
     }
 
     return null;

@@ -38,7 +38,7 @@ export function useTranscript(sessionId: string | null) {
           : dbCommands.getWords;
 
         const words = await fn(sessionId);
-        setWords(words);
+        setWords(words as Word[]);
       } finally {
         setIsLoading(false);
       }
@@ -56,7 +56,7 @@ export function useTranscript(sessionId: string | null) {
 
     listenerEvents.sessionEvent.listen(({ payload }) => {
       if (payload.type === "words") {
-        setWords((words) => [...words, ...payload.words]);
+        setWords((words) => [...words, ...payload.words] as Word[]);
       }
     }).then((fn) => {
       unlisten = fn;

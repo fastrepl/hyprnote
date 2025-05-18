@@ -15,6 +15,7 @@ import {
   RightPanelProvider,
   SearchProvider,
   SettingsProvider,
+  TinyBaseProvider,
   useLeftSidebar,
   useRightPanel,
 } from "@/contexts";
@@ -40,45 +41,47 @@ function Component() {
 
   return (
     <>
-      <HyprProvider>
-        <SessionsProvider store={sessionsStore}>
-          <OngoingSessionProvider store={ongoingSessionStore}>
-            <LeftSidebarProvider>
-              <RightPanelProvider>
-                <AudioPermissions />
-                <MainWindowStateEventSupport />
-                <SettingsProvider>
-                  <NewNoteProvider>
-                    <SearchProvider>
-                      <EditModeProvider>
-                        <div className="relative flex h-screen w-screen overflow-hidden">
-                          <LeftSidebar />
-                          <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
-                            <Toolbar />
-                            <div className="flex-1 relative overflow-hidden flex">
-                              <div className="flex-1 overflow-hidden">
-                                <Outlet />
+      <TinyBaseProvider>
+        <HyprProvider>
+          <SessionsProvider store={sessionsStore}>
+            <OngoingSessionProvider store={ongoingSessionStore}>
+              <LeftSidebarProvider>
+                <RightPanelProvider>
+                  <AudioPermissions />
+                  <MainWindowStateEventSupport />
+                  <SettingsProvider>
+                    <NewNoteProvider>
+                      <SearchProvider>
+                        <EditModeProvider>
+                          <div className="relative flex h-screen w-screen overflow-hidden">
+                            <LeftSidebar />
+                            <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
+                              <Toolbar />
+                              <div className="flex-1 relative overflow-hidden flex">
+                                <div className="flex-1 overflow-hidden">
+                                  <Outlet />
+                                </div>
+                                <RightPanel />
                               </div>
-                              <RightPanel />
                             </div>
                           </div>
-                        </div>
-                        <LoginModal
-                          isOpen={isOnboardingNeeded}
-                          onClose={() => {
-                            commands.setOnboardingNeeded(false);
-                            router.invalidate();
-                          }}
-                        />
-                      </EditModeProvider>
-                    </SearchProvider>
-                  </NewNoteProvider>
-                </SettingsProvider>
-              </RightPanelProvider>
-            </LeftSidebarProvider>
-          </OngoingSessionProvider>
-        </SessionsProvider>
-      </HyprProvider>
+                          <LoginModal
+                            isOpen={isOnboardingNeeded}
+                            onClose={() => {
+                              commands.setOnboardingNeeded(false);
+                              router.invalidate();
+                            }}
+                          />
+                        </EditModeProvider>
+                      </SearchProvider>
+                    </NewNoteProvider>
+                  </SettingsProvider>
+                </RightPanelProvider>
+              </LeftSidebarProvider>
+            </OngoingSessionProvider>
+          </SessionsProvider>
+        </HyprProvider>
+      </TinyBaseProvider>
       {showNotifications && <Notifications />}
     </>
   );

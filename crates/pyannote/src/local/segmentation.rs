@@ -60,6 +60,10 @@ impl Segmenter {
             )?;
         }
 
+        if is_speaking {
+            self.create_segment(start_offset, offset, sample_rate, &padded, &mut segments)?;
+        }
+
         Ok(segments)
     }
 
@@ -146,34 +150,25 @@ impl Segmenter {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_segmentation() {
-        let audio: Vec<i16> = hypr_data::english_1::AUDIO
-            .to_vec()
-            .chunks_exact(2)
-            .map(|chunk| i16::from_le_bytes([chunk[0], chunk[1]]))
-            .collect();
+    macro_rules! test_segmentation {
+        ($name:ident, $audio:expr) => {
+            #[test]
+            fn $name() {
+                let audio: Vec<i16> = $audio
+                    .to_vec()
+                    .chunks_exact(2)
+                    .map(|chunk| i16::from_le_bytes([chunk[0], chunk[1]]))
+                    .collect();
+                let mut segmenter = Segmenter::new(16000).unwrap();
+                let segments = segmenter.process(&audio, 16000).unwrap();
 
-        let mut segmenter = Segmenter::new(16000).unwrap();
-
-        let segments = segmenter.process(&audio, 16000).unwrap();
-
-        println!(
-            "{:?}",
-            segments
-                .iter()
-                .map(|s| format!("{:.2}", s.start))
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
-
-        println!(
-            "{:?}",
-            segments
-                .iter()
-                .map(|s| format!("{:.2}", s.end))
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
+                for segment in segments {
+                    println!("{:.2} - {:.2}", segment.start, segment.end);
+                }
+            }
+        };
     }
+
+    test_segmentation!(test_segmentation_english_1, hypr_data::english_1::AUDIO);
+    test_segmentation!(test_segmentation_english_2, hypr_data::english_2::AUDIO);
 }

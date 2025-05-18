@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use statig::prelude::*;
@@ -7,7 +6,7 @@ use tauri::Manager;
 use tauri_specta::Event;
 
 use futures_util::StreamExt;
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::mpsc;
 use tokio::task::JoinSet;
 
 use hypr_audio::AsyncSource;
@@ -258,10 +257,14 @@ impl Session {
 
                 while let Some(result) = listen_stream.next().await {
                     SessionEvent::Words {
-                        words: result.words,
+                        words: result.words.clone(),
                     }
                     .emit(&app)
                     .unwrap();
+
+                    update_session(&app, &session.id, result.words)
+                        .await
+                        .unwrap();
                 }
 
                 tracing::info!("listen_stream_ended");
@@ -365,19 +368,13 @@ async fn update_session<R: tauri::Runtime>(
 
     // TODO: not ideal. We might want to only do "update" everywhere instead of upserts.
     // We do this because it is highly likely that the session fetched in the listener is stale (session can be updated on the React side).
-    // let mut session = app
-    //     .db_get_session(session_id)
-    //     .await?
-    //     .ok_or(crate::Error::NoneSession)?;
+    let mut session = app
+        .db_get_session(session_id)
+        .await?
+        .ok_or(crate::Error::NoneSession)?;
 
-    // session.words.push(hypr_db_user::ConversationChunk {
-    //     transcripts: vec![transcript],
-    //     diarizations: vec![],
-    //     start: chrono::Utc::now(),
-    //     end: chrono::Utc::now(),
-    // });
-
-    // app.db_upsert_session(session.clone()).await.unwrap();
+    session.words.extend(words);
+    app.db_upsert_session(session.clone()).await.unwrap();
 
     Ok(())
 }

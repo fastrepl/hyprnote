@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ReplaceAllIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as dbCommands, type SpeakerIdentity, type Word } from "@hypr/plugin-db";
 import TranscriptEditor from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
@@ -20,9 +20,14 @@ export const Route = createFileRoute("/app/transcript/$id")({
   },
 });
 
+type EditorContent = {
+  type: "doc";
+  content: SpeakerContent[];
+};
+
 type SpeakerContent = {
   type: "speaker";
-  attrs: { label: string };
+  attrs: { "speaker-index": number | null; "speaker-id": string | null; "speaker-label": string | null };
   content: WordContent[];
 };
 
@@ -35,28 +40,43 @@ function Component() {
   const { participants, words } = Route.useLoaderData();
   const editorRef = useRef(null);
 
-  const content = {
-    type: "doc",
-    content: words.reduce<{ cur: number | null; acc: SpeakerContent[] }>((state, word) => {
-      if (state.cur !== word.speaker) {
-        state.cur = word.speaker;
-        state.acc.push({
-          type: "speaker",
-          attrs: { label: word.speaker === null ? "" : `Speaker ${word.speaker}` },
-          content: [],
-        });
-      }
+  const fromWordsToEditor = (words: Word[]): EditorContent => {
+    return {
+      type: "doc",
+      content: words.reduce<{ cur: SpeakerIdentity | null; acc: SpeakerContent[] }>((state, word) => {
+        const isSameSpeaker = (!state.cur && !word.speaker) // Both null
+          || (state.cur?.type === "unassigned" && word.speaker?.type === "unassigned"
+            && state.cur.value.index === word.speaker.value.index)
+          || (state.cur?.type === "assigned" && word.speaker?.type === "assigned"
+            && state.cur.value.id === word.speaker.value.id);
 
-      if (state.acc.length > 0) {
-        state.acc[state.acc.length - 1].content.push({
-          type: "word",
-          content: [{ type: "text", text: word.text }],
-        });
-      }
+        if (!isSameSpeaker) {
+          state.cur = word.speaker;
 
-      return state;
-    }, { cur: null, acc: [] }).acc,
+          state.acc.push({
+            type: "speaker",
+            attrs: {
+              "speaker-index": word.speaker?.type === "unassigned" ? word.speaker.value?.index : null,
+              "speaker-id": word.speaker?.type === "assigned" ? word.speaker.value?.id : null,
+              "speaker-label": word.speaker?.type === "assigned" ? word.speaker.value?.label || "" : null,
+            },
+            content: [],
+          });
+        }
+
+        if (state.acc.length > 0) {
+          state.acc[state.acc.length - 1].content.push({
+            type: "word",
+            content: [{ type: "text", text: word.text }],
+          });
+        }
+
+        return state;
+      }, { cur: null, acc: [] }).acc,
+    };
   };
+
+  const content = fromWordsToEditor(words);
 
   const [expanded, setExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -90,7 +110,7 @@ function Component() {
   };
 
   return (
-    <div className="p-6 flex-1 flex flex-col overflow-hidden">
+    <div className="p-6 flex-1 flex flex-col overflow-hidden min-h-0">
       <Popover open={expanded} onOpenChange={setExpanded}>
         <PopoverTrigger asChild>
           <Button
@@ -126,7 +146,7 @@ function Component() {
         </PopoverContent>
       </Popover>
 
-      <div className="h-full overflow-auto">
+      <div className="flex-1 overflow-auto min-h-0">
         <TranscriptEditor
           ref={editorRef}
           initialContent={content}

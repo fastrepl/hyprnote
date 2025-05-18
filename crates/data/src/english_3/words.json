@@ -2,7 +2,10 @@
   {
     "text": "-okay",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 320,
@@ -11,7 +14,10 @@
   {
     "text": "michael",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 880,
@@ -20,7 +26,10 @@
   {
     "text": "why",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 1280,
@@ -29,7 +38,10 @@
   {
     "text": "don't",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 1439,
@@ -38,7 +50,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 1599,
@@ -47,7 +62,10 @@
   {
     "text": "start",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 1680,
@@ -56,7 +74,10 @@
   {
     "text": "us",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 1839,
@@ -65,7 +86,10 @@
   {
     "text": "off",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 2000,
@@ -74,7 +98,10 @@
   {
     "text": "-that",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 2560,
@@ -83,7 +110,10 @@
   {
     "text": "wasn't",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 4560,
@@ -92,7 +122,10 @@
   {
     "text": "much",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 4880,
@@ -101,7 +134,10 @@
   {
     "text": "of",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 5040,
@@ -110,7 +146,10 @@
   {
     "text": "an",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 5200,
@@ -119,7 +158,10 @@
   {
     "text": "introduction",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 5359,
@@ -128,7 +170,10 @@
   {
     "text": "-ladies",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 7279,
@@ -137,7 +182,10 @@
   {
     "text": "and",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 7680,
@@ -146,7 +194,10 @@
   {
     "text": "gentlemen",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 7839,
@@ -155,7 +206,10 @@
   {
     "text": "your",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 8559,
@@ -164,7 +218,10 @@
   {
     "text": "boss",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 8880,
@@ -173,7 +230,10 @@
   {
     "text": "michael",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 9519,
@@ -182,7 +242,10 @@
   {
     "text": "scott",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 9840,
@@ -191,7 +254,10 @@
   {
     "text": "still",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 10960,
@@ -200,7 +266,10 @@
   {
     "text": "lame",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 11200,
@@ -209,7 +278,10 @@
   {
     "text": "okay",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 11759,
@@ -218,7 +290,10 @@
   {
     "text": "alright",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 13505,
@@ -227,7 +302,10 @@
   {
     "text": "thank",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 16225,
@@ -236,7 +314,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 16465,
@@ -245,7 +326,10 @@
   {
     "text": "ryan",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 16785,
@@ -254,7 +338,10 @@
   {
     "text": "for",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 18065,
@@ -263,7 +350,10 @@
   {
     "text": "that",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 18385,
@@ -272,7 +362,10 @@
   {
     "text": "wonderful",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 18545,
@@ -281,7 +374,10 @@
   {
     "text": "introduction",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 19105,
@@ -290,7 +386,10 @@
   {
     "text": "okay",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 21905,
@@ -299,7 +398,10 @@
   {
     "text": "today",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 23985,
@@ -308,7 +410,10 @@
   {
     "text": "we're",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 24305,
@@ -317,7 +422,10 @@
   {
     "text": "going",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 24625,
@@ -326,7 +434,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 24785,
@@ -335,7 +446,10 @@
   {
     "text": "be",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 24865,
@@ -344,7 +458,10 @@
   {
     "text": "talking",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 25025,
@@ -353,7 +470,10 @@
   {
     "text": "about",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 27185,
@@ -362,7 +482,10 @@
   {
     "text": "powerpoint",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 29590,
@@ -371,7 +494,10 @@
   {
     "text": "powerpoint",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 32710,
@@ -380,7 +506,10 @@
   {
     "text": "powerpoint",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 33510,
@@ -389,7 +518,10 @@
   {
     "text": "powerpoint",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 34310,
@@ -398,7 +530,10 @@
   {
     "text": "yes",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 35350,
@@ -407,7 +542,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 36230,
@@ -416,7 +554,10 @@
   {
     "text": "forgot",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 36310,
@@ -425,7 +566,10 @@
   {
     "text": "about",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 36630,
@@ -434,7 +578,10 @@
   {
     "text": "ryan's",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 36870,
@@ -443,7 +590,10 @@
   {
     "text": "presentation",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 37350,
@@ -452,7 +602,10 @@
   {
     "text": "and",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 37990,
@@ -461,7 +614,10 @@
   {
     "text": "yes",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 38310,
@@ -470,7 +626,10 @@
   {
     "text": "it",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 38710,
@@ -479,7 +638,10 @@
   {
     "text": "would",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 38870,
@@ -488,7 +650,10 @@
   {
     "text": "have",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 39110,
@@ -497,7 +662,10 @@
   {
     "text": "been",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 39270,
@@ -506,7 +674,10 @@
   {
     "text": "nice",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 39510,
@@ -515,7 +686,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 40150,
@@ -524,7 +698,10 @@
   {
     "text": "do",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 40390,
@@ -533,7 +710,10 @@
   {
     "text": "well",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 40630,
@@ -542,7 +722,10 @@
   {
     "text": "with",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 40790,
@@ -551,7 +734,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 41030,
@@ -560,7 +746,10 @@
   {
     "text": "first",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 41110,
@@ -569,7 +758,10 @@
   {
     "text": "presentation",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 41350,
@@ -578,7 +770,10 @@
   {
     "text": "that",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 41750,
@@ -587,7 +782,10 @@
   {
     "text": "he'd",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 41990,
@@ -596,7 +794,10 @@
   {
     "text": "given",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 42230,
@@ -605,7 +806,10 @@
   {
     "text": "me",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 42470,
@@ -614,7 +818,10 @@
   {
     "text": "but",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 43285,
@@ -623,7 +830,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 43524,
@@ -632,7 +842,10 @@
   {
     "text": "know",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 43684,
@@ -641,7 +854,10 @@
   {
     "text": "what",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 43765,
@@ -650,7 +866,10 @@
   {
     "text": "else",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 43925,
@@ -659,7 +878,10 @@
   {
     "text": "would",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 44085,
@@ -668,7 +890,10 @@
   {
     "text": "have",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 44245,
@@ -677,7 +902,10 @@
   {
     "text": "been",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 44405,
@@ -686,7 +914,10 @@
   {
     "text": "nice",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 44484,
@@ -695,7 +926,10 @@
   {
     "text": "winning",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 45605,
@@ -704,7 +938,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 46004,
@@ -713,7 +950,10 @@
   {
     "text": "lottery",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 46164,
@@ -722,7 +962,10 @@
   {
     "text": "and",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 47445,
@@ -731,7 +974,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 48085,
@@ -740,7 +986,10 @@
   {
     "text": "best",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 48245,
@@ -749,7 +998,10 @@
   {
     "text": "way",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 48405,
@@ -758,7 +1010,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 48644,
@@ -767,7 +1022,10 @@
   {
     "text": "start",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 48805,
@@ -776,7 +1034,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 49125,
@@ -785,7 +1046,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 49445,
@@ -794,7 +1058,10 @@
   {
     "text": "hit",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 49765,
@@ -803,7 +1070,10 @@
   {
     "text": "start",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 50804,
@@ -812,7 +1082,10 @@
   {
     "text": "and",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 52484,
@@ -821,7 +1094,10 @@
   {
     "text": "up",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 52644,
@@ -830,7 +1106,10 @@
   {
     "text": "comes",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 53045,
@@ -839,7 +1118,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 53844,
@@ -848,7 +1130,10 @@
   {
     "text": "toolbar",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 54164,
@@ -857,7 +1142,10 @@
   {
     "text": "that's",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 55445,
@@ -866,7 +1154,10 @@
   {
     "text": "what",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 55844,
@@ -875,7 +1166,10 @@
   {
     "text": "she",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 55925,
@@ -884,7 +1178,10 @@
   {
     "text": "said",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 56245,
@@ -893,7 +1190,10 @@
   {
     "text": "what",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 56725,
@@ -902,7 +1202,10 @@
   {
     "text": "we",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 56964,
@@ -911,7 +1214,10 @@
   {
     "text": "have",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 57125,
@@ -920,7 +1226,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 57445,
@@ -929,7 +1238,10 @@
   {
     "text": "do",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 57604,
@@ -938,7 +1250,10 @@
   {
     "text": "here",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 58860,
@@ -947,7 +1262,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 59260,
@@ -956,7 +1274,10 @@
   {
     "text": "go",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 59580,
@@ -965,7 +1286,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 59980,
@@ -974,7 +1298,10 @@
   {
     "text": "run",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 60220,
@@ -983,7 +1310,10 @@
   {
     "text": "and",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 61740,
@@ -992,7 +1322,10 @@
   {
     "text": "then",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 61900,
@@ -1001,7 +1334,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 63820,
@@ -1010,7 +1346,10 @@
   {
     "text": "look",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 64060,
@@ -1019,7 +1358,10 @@
   {
     "text": "up",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 64379,
@@ -1028,7 +1370,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 64700,
@@ -1037,7 +1382,10 @@
   {
     "text": "powerpoint",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 66700,
@@ -1046,7 +1394,10 @@
   {
     "text": "and",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 69020,
@@ -1055,7 +1406,10 @@
   {
     "text": "we",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 69580,
@@ -1064,7 +1418,10 @@
   {
     "text": "are",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 69900,
@@ -1073,7 +1430,10 @@
   {
     "text": "in",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 70220,
@@ -1082,7 +1442,10 @@
   {
     "text": "we",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 70700,
@@ -1091,7 +1454,10 @@
   {
     "text": "are",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 70860,
@@ -1100,7 +1466,10 @@
   {
     "text": "going",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 71100,
@@ -1109,7 +1478,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 71500,
@@ -1118,7 +1490,10 @@
   {
     "text": "register",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 71660,
@@ -1127,7 +1502,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 72700,
@@ -1136,7 +1514,10 @@
   {
     "text": "hit",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 72940,
@@ -1145,7 +1526,10 @@
   {
     "text": "register",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 73260,
@@ -1154,7 +1538,10 @@
   {
     "text": "updates",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 74845,
@@ -1163,7 +1550,10 @@
   {
     "text": "are",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 75325,
@@ -1172,7 +1562,10 @@
   {
     "text": "ready",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 75485,
@@ -1181,7 +1574,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 75805,
@@ -1190,7 +1586,10 @@
   {
     "text": "should",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 75965,
@@ -1199,7 +1598,10 @@
   {
     "text": "update",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 76284,
@@ -1208,7 +1610,10 @@
   {
     "text": "estimated",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 80045,
@@ -1217,7 +1622,10 @@
   {
     "text": "time",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 80445,
@@ -1226,7 +1634,10 @@
   {
     "text": "twelve",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 80685,
@@ -1235,7 +1646,10 @@
   {
     "text": "minutes",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 81005,
@@ -1244,7 +1658,10 @@
   {
     "text": "so",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 81325,
@@ -1253,7 +1670,10 @@
   {
     "text": "this",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 81405,
@@ -1262,7 +1682,10 @@
   {
     "text": "should",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 81564,
@@ -1271,7 +1694,10 @@
   {
     "text": "take",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 81725,
@@ -1280,7 +1706,10 @@
   {
     "text": "about",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 81805,
@@ -1289,7 +1718,10 @@
   {
     "text": "five",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 82045,
@@ -1298,7 +1730,10 @@
   {
     "text": "or",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 82204,
@@ -1307,7 +1742,10 @@
   {
     "text": "ten",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 82445,
@@ -1316,7 +1754,10 @@
   {
     "text": "minutes",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 82604,
@@ -1325,7 +1766,10 @@
   {
     "text": "this",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 83325,
@@ -1334,7 +1778,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 83645,
@@ -1343,7 +1790,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 83805,
@@ -1352,7 +1802,10 @@
   {
     "text": "first",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 83884,
@@ -1361,7 +1814,10 @@
   {
     "text": "time",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 84045,
@@ -1370,7 +1826,10 @@
   {
     "text": "you've",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 84204,
@@ -1379,7 +1838,10 @@
   {
     "text": "opened",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 84445,
@@ -1388,7 +1850,10 @@
   {
     "text": "powerpoint",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 84604,
@@ -1397,7 +1862,10 @@
   {
     "text": "why",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 85805,
@@ -1406,7 +1874,10 @@
   {
     "text": "-you",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 87030,
@@ -1415,7 +1886,10 @@
   {
     "text": "didn't",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 87270,
@@ -1424,7 +1898,10 @@
   {
     "text": "prepare",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 87510,
@@ -1433,7 +1910,10 @@
   {
     "text": "a",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 87670,
@@ -1442,7 +1922,10 @@
   {
     "text": "presentation",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 87830,
@@ -1451,7 +1934,10 @@
   {
     "text": "at",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 88230,
@@ -1460,7 +1946,10 @@
   {
     "text": "all",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 88390,
@@ -1469,7 +1958,10 @@
   {
     "text": "did",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 88550,
@@ -1478,7 +1970,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 88630,
@@ -1487,7 +1982,10 @@
   {
     "text": "know",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 88870,
@@ -1496,7 +1994,10 @@
   {
     "text": "what",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 88950,
@@ -1505,7 +2006,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 89110,
@@ -1514,7 +2018,10 @@
   {
     "text": "had",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 89190,
@@ -1523,7 +2030,10 @@
   {
     "text": "a",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 89350,
@@ -1532,7 +2042,10 @@
   {
     "text": "really",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 89510,
@@ -1541,7 +2054,10 @@
   {
     "text": "rough",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 89750,
@@ -1550,7 +2066,10 @@
   {
     "text": "night",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 90230,
@@ -1559,7 +2078,10 @@
   {
     "text": "and",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 90790,
@@ -1568,7 +2090,10 @@
   {
     "text": "my",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 90950,
@@ -1577,7 +2102,10 @@
   {
     "text": "boss",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 91110,
@@ -1586,7 +2114,10 @@
   {
     "text": "can",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 91270,
@@ -1595,7 +2126,10 @@
   {
     "text": "back",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 91430,
@@ -1604,7 +2138,10 @@
   {
     "text": "me",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 91590,
@@ -1613,7 +2150,10 @@
   {
     "text": "up",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 91750,
@@ -1622,7 +2162,10 @@
   {
     "text": "on",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 91910,
@@ -1631,7 +2174,10 @@
   {
     "text": "that",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 92070,
@@ -1640,7 +2186,10 @@
   {
     "text": "-i'm",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 92390,
@@ -1649,7 +2198,10 @@
   {
     "text": "your",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 92630,
@@ -1658,7 +2210,10 @@
   {
     "text": "boss",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 92790,
@@ -1667,7 +2222,10 @@
   {
     "text": "-my",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 93590,
@@ -1676,7 +2234,10 @@
   {
     "text": "other",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 93830,
@@ -1685,7 +2246,10 @@
   {
     "text": "boss",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 94070,
@@ -1694,7 +2258,10 @@
   {
     "text": "mr",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 94310,
@@ -1703,7 +2270,10 @@
   {
     "text": "figaro",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 94630,
@@ -1712,7 +2282,10 @@
   {
     "text": "-you",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 95350,
@@ -1721,7 +2294,10 @@
   {
     "text": "have",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 95590,
@@ -1730,7 +2306,10 @@
   {
     "text": "another",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 95830,
@@ -1739,7 +2318,10 @@
   {
     "text": "job",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 96070,
@@ -1748,7 +2330,10 @@
   {
     "text": "-what",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 97030,
@@ -1757,7 +2342,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 97270,
@@ -1766,7 +2354,10 @@
   {
     "text": "do",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 97430,
@@ -1775,7 +2366,10 @@
   {
     "text": "between",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 97590,
@@ -1784,7 +2378,10 @@
   {
     "text": "05:30",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 97990,
@@ -1793,7 +2390,10 @@
   {
     "text": "p",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 98630,
@@ -1802,7 +2402,10 @@
   {
     "text": "m",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 98950,
@@ -1811,7 +2414,10 @@
   {
     "text": "and",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 99190,
@@ -1820,7 +2426,10 @@
   {
     "text": "one",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 99350,
@@ -1829,7 +2438,10 @@
   {
     "text": "a",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 99590,
@@ -1838,7 +2450,10 @@
   {
     "text": "m",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 99830,
@@ -1847,7 +2462,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 99990,
@@ -1856,7 +2474,10 @@
   {
     "text": "nobody's",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 100230,
@@ -1865,7 +2486,10 @@
   {
     "text": "business",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 100630,
@@ -1874,7 +2498,10 @@
   {
     "text": "but",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 100950,
@@ -1883,7 +2510,10 @@
   {
     "text": "mine",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 101190,
@@ -1892,7 +2522,10 @@
   {
     "text": "and",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 101865,
@@ -1901,7 +2534,10 @@
   {
     "text": "my",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 102185,
@@ -1910,7 +2546,10 @@
   {
     "text": "other",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 102424,
@@ -1919,7 +2558,10 @@
   {
     "text": "businesses",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 102665,
@@ -1928,7 +2570,10 @@
   {
     "text": "-are",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 103865,
@@ -1937,7 +2582,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 104104,
@@ -1946,7 +2594,10 @@
   {
     "text": "going",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 104185,
@@ -1955,7 +2606,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 104424,
@@ -1964,7 +2618,10 @@
   {
     "text": "waitress",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 104585,
@@ -1973,7 +2630,10 @@
   {
     "text": "-you",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 105945,
@@ -1982,7 +2642,10 @@
   {
     "text": "cannot",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 106505,
@@ -1991,7 +2654,10 @@
   {
     "text": "have",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 106905,
@@ -2000,7 +2666,10 @@
   {
     "text": "a",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 107305,
@@ -2009,7 +2678,10 @@
   {
     "text": "second",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 107465,
@@ -2018,7 +2690,10 @@
   {
     "text": "job",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 107784,
@@ -2027,7 +2702,10 @@
   {
     "text": "if",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 108265,
@@ -2036,7 +2714,10 @@
   {
     "text": "it",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 108585,
@@ -2045,7 +2726,10 @@
   {
     "text": "affects",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 108744,
@@ -2054,7 +2738,10 @@
   {
     "text": "your",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 109064,
@@ -2063,7 +2750,10 @@
   {
     "text": "work",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 109225,
@@ -2072,7 +2762,10 @@
   {
     "text": "here",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 109465,
@@ -2081,7 +2774,10 @@
   {
     "text": "-it",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 109784,
@@ -2090,7 +2786,10 @@
   {
     "text": "won't",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 110024,
@@ -2099,7 +2798,10 @@
   {
     "text": "-it",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 110585,
@@ -2108,7 +2810,10 @@
   {
     "text": "did",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 110825,
@@ -2117,7 +2822,10 @@
   {
     "text": "already",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 111064,
@@ -2126,7 +2834,10 @@
   {
     "text": "-okay",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 111705,
@@ -2135,7 +2846,10 @@
   {
     "text": "honestly",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 112424,
@@ -2144,7 +2858,10 @@
   {
     "text": "it",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 113784,
@@ -2153,7 +2870,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 114024,
@@ -2162,7 +2882,10 @@
   {
     "text": "unlikely",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 114185,
@@ -2171,7 +2894,10 @@
   {
     "text": "that",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 114744,
@@ -2180,7 +2906,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 114985,
@@ -2189,7 +2918,10 @@
   {
     "text": "was",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 115145,
@@ -2198,7 +2930,10 @@
   {
     "text": "gonna",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 115305,
@@ -2207,7 +2942,10 @@
   {
     "text": "figure",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 115465,
@@ -2216,7 +2954,10 @@
   {
     "text": "this",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 115784,
@@ -2225,7 +2966,10 @@
   {
     "text": "out",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 115945,
@@ -2234,7 +2978,10 @@
   {
     "text": "anyway",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 116104,
@@ -2243,7 +2990,10 @@
   {
     "text": "that",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 117510,
@@ -2252,7 +3002,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 119750,
@@ -2261,7 +3014,10 @@
   {
     "text": "so",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 119990,
@@ -2270,7 +3026,10 @@
   {
     "text": "funny",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 120229,
@@ -2279,7 +3038,10 @@
   {
     "text": "why",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 120710,
@@ -2288,7 +3050,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 120950,
@@ -2297,7 +3062,10 @@
   {
     "text": "daryl",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 121110,
@@ -2306,7 +3074,10 @@
   {
     "text": "here",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 121350,
@@ -2315,7 +3086,10 @@
   {
     "text": "he",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 121750,
@@ -2324,7 +3098,10 @@
   {
     "text": "works",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 121909,
@@ -2333,7 +3110,10 @@
   {
     "text": "in",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 122150,
@@ -2342,7 +3122,10 @@
   {
     "text": "a",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 122310,
@@ -2351,7 +3134,10 @@
   {
     "text": "warehouse",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 122390,
@@ -2360,7 +3146,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 122869,
@@ -2369,7 +3158,10 @@
   {
     "text": "invited",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 123190,
@@ -2378,7 +3170,10 @@
   {
     "text": "him",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 123590,
@@ -2387,7 +3182,10 @@
   {
     "text": "it's",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 123830,
@@ -2396,7 +3194,10 @@
   {
     "text": "not",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 124070,
@@ -2405,7 +3206,10 @@
   {
     "text": "a",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 124150,
@@ -2414,7 +3218,10 @@
   {
     "text": "party",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 124310,
@@ -2423,7 +3230,10 @@
   {
     "text": "daryl",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 124710,
@@ -2432,7 +3242,10 @@
   {
     "text": "back",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 125350,
@@ -2441,7 +3254,10 @@
   {
     "text": "downstairs",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 125590,
@@ -2450,7 +3266,10 @@
   {
     "text": "this",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 126150,
@@ -2459,7 +3278,10 @@
   {
     "text": "isn't",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 126310,
@@ -2468,7 +3290,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 126470,
@@ -2477,7 +3302,10 @@
   {
     "text": "information",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 126630,
@@ -2486,7 +3314,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 126869,
@@ -2495,7 +3326,10 @@
   {
     "text": "need",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 127110,
@@ -2504,7 +3338,10 @@
   {
     "text": "this",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 127350,
@@ -2513,7 +3350,10 @@
   {
     "text": "information",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 127590,
@@ -2522,7 +3362,10 @@
   {
     "text": "here",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 127990,
@@ -2531,7 +3374,10 @@
   {
     "text": "yeah",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 128550,
@@ -2540,7 +3386,10 @@
   {
     "text": "you're",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 128870,
@@ -2549,7 +3398,10 @@
   {
     "text": "right",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 129190,
@@ -2558,7 +3410,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 129430,
@@ -2567,7 +3422,10 @@
   {
     "text": "don't",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 129509,
@@ -2576,7 +3434,10 @@
   {
     "text": "need",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 129830,
@@ -2585,7 +3446,10 @@
   {
     "text": "this",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 130229,
@@ -2594,7 +3458,10 @@
   {
     "text": "okay",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 131614,
@@ -2603,7 +3470,10 @@
   {
     "text": "hey",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 134575,
@@ -2612,7 +3482,10 @@
   {
     "text": "come",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 135614,
@@ -2621,7 +3494,10 @@
   {
     "text": "on",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 135935,
@@ -2630,7 +3506,10 @@
   {
     "text": "see",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 138015,
@@ -2639,7 +3518,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 138254,
@@ -2648,7 +3530,10 @@
   {
     "text": "later",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 138415,
@@ -2657,7 +3542,10 @@
   {
     "text": "tonight",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 138655,
@@ -2666,7 +3554,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 139055,
@@ -2675,7 +3566,10 @@
   {
     "text": "got",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 139135,
@@ -2684,7 +3578,10 @@
   {
     "text": "plans",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 139295,
@@ -2693,7 +3590,10 @@
   {
     "text": "later",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 139614,
@@ -2702,7 +3602,10 @@
   {
     "text": "okay",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 140254,
@@ -2711,7 +3614,10 @@
   {
     "text": "bye",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 140814,
@@ -2720,7 +3626,10 @@
   {
     "text": "honey",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 141135,
@@ -2729,7 +3638,10 @@
   {
     "text": "how",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 148390,
@@ -2738,7 +3650,10 @@
   {
     "text": "long",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 148630,
@@ -2747,7 +3662,10 @@
   {
     "text": "until",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 148790,
@@ -2756,7 +3674,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 149030,
@@ -2765,7 +3686,10 @@
   {
     "text": "actually",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 149110,
@@ -2774,7 +3698,10 @@
   {
     "text": "get",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 149350,
@@ -2783,7 +3710,10 @@
   {
     "text": "this",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 149510,
@@ -2792,7 +3722,10 @@
   {
     "text": "presentation",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 149670,
@@ -2801,7 +3734,10 @@
   {
     "text": "ready",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 149990,
@@ -2810,7 +3746,10 @@
   {
     "text": "don't",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 150470,
@@ -2819,7 +3758,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 150630,
@@ -2828,7 +3770,10 @@
   {
     "text": "do",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 150790,
@@ -2837,7 +3782,10 @@
   {
     "text": "this",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 151030,
@@ -2846,7 +3794,10 @@
   {
     "text": "presentation",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 151270,
@@ -2855,7 +3806,10 @@
   {
     "text": "because",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 151990,
@@ -2864,7 +3818,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 152310,
@@ -2873,7 +3830,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 152390,
@@ -2882,7 +3842,10 @@
   {
     "text": "know",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 152630,
@@ -2891,7 +3854,10 @@
   {
     "text": "how",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 153110,
@@ -2900,7 +3866,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 153270,
@@ -2909,7 +3878,10 @@
   {
     "text": "do",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 153430,
@@ -2918,7 +3890,10 @@
   {
     "text": "it",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 153510,
@@ -2927,7 +3902,10 @@
   {
     "text": "what",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 153750,
@@ -2936,7 +3914,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 153910,
@@ -2945,7 +3926,10 @@
   {
     "text": "really",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 154069,
@@ -2954,7 +3938,10 @@
   {
     "text": "want",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 154310,
@@ -2963,7 +3950,10 @@
   {
     "text": "honestly",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 154709,
@@ -2972,7 +3962,10 @@
   {
     "text": "michael",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 155030,
@@ -2981,7 +3974,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 155510,
@@ -2990,7 +3986,10 @@
   {
     "text": "for",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 155670,
@@ -2999,7 +3998,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 155830,
@@ -3008,7 +4010,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 155990,
@@ -3017,7 +4022,10 @@
   {
     "text": "know",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 156069,
@@ -3026,7 +4034,10 @@
   {
     "text": "it",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 156230,
@@ -3035,7 +4046,10 @@
   {
     "text": "so",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 156390,
@@ -3044,7 +4058,10 @@
   {
     "text": "that",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 156550,
@@ -3053,7 +4070,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 156709,
@@ -3062,7 +4082,10 @@
   {
     "text": "can",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 156790,
@@ -3071,7 +4094,10 @@
   {
     "text": "communicate",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 156950,
@@ -3080,7 +4106,10 @@
   {
     "text": "it",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 157350,
@@ -3089,7 +4118,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 157510,
@@ -3098,7 +4130,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 157590,
@@ -3107,7 +4142,10 @@
   {
     "text": "people",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 157750,
@@ -3116,7 +4154,10 @@
   {
     "text": "here",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 157910,
@@ -3125,7 +4166,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 158310,
@@ -3134,7 +4178,10 @@
   {
     "text": "your",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 158550,
@@ -3143,7 +4190,10 @@
   {
     "text": "clients",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 158709,
@@ -3152,7 +4202,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 159110,
@@ -3161,7 +4214,10 @@
   {
     "text": "whomever",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 159270,
@@ -3170,7 +4226,10 @@
   {
     "text": "okay",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 159910,
@@ -3179,7 +4238,10 @@
   {
     "text": "what",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 160870,
@@ -3188,7 +4250,10 @@
   {
     "text": "it's",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 162085,
@@ -3197,7 +4262,10 @@
   {
     "text": "whoever",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 162485,
@@ -3206,7 +4274,10 @@
   {
     "text": "not",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 162805,
@@ -3215,7 +4286,10 @@
   {
     "text": "whomever",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 163125,
@@ -3224,7 +4298,10 @@
   {
     "text": "not",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 163685,
@@ -3233,7 +4310,10 @@
   {
     "text": "whomever",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 163925,
@@ -3242,7 +4322,10 @@
   {
     "text": "no",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 164485,
@@ -3251,7 +4334,10 @@
   {
     "text": "whomever",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 164965,
@@ -3260,7 +4346,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 165525,
@@ -3269,7 +4358,10 @@
   {
     "text": "never",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 165685,
@@ -3278,7 +4370,10 @@
   {
     "text": "actually",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 166005,
@@ -3287,7 +4382,10 @@
   {
     "text": "right",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 166245,
@@ -3296,7 +4394,10 @@
   {
     "text": "well",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 166645,
@@ -3305,7 +4406,10 @@
   {
     "text": "sometimes",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 166885,
@@ -3314,7 +4418,10 @@
   {
     "text": "it's",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 167285,
@@ -3323,7 +4430,10 @@
   {
     "text": "right",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 167605,
@@ -3332,7 +4442,10 @@
   {
     "text": "michael",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 168005,
@@ -3341,7 +4454,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 168325,
@@ -3350,7 +4466,10 @@
   {
     "text": "right",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 168565,
@@ -3359,7 +4478,10 @@
   {
     "text": "it's",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 168885,
@@ -3368,7 +4490,10 @@
   {
     "text": "a",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 169045,
@@ -3377,7 +4502,10 @@
   {
     "text": "made",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 169125,
@@ -3386,7 +4514,10 @@
   {
     "text": "up",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 169365,
@@ -3395,7 +4526,10 @@
   {
     "text": "word",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 169605,
@@ -3404,7 +4538,10 @@
   {
     "text": "used",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 169845,
@@ -3413,7 +4550,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 170165,
@@ -3422,7 +4562,10 @@
   {
     "text": "trick",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 170325,
@@ -3431,7 +4574,10 @@
   {
     "text": "students",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 170725,
@@ -3440,7 +4586,10 @@
   {
     "text": "no",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 171205,
@@ -3449,7 +4598,10 @@
   {
     "text": "actually",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 171605,
@@ -3458,7 +4610,10 @@
   {
     "text": "whomever",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 172565,
@@ -3467,7 +4622,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 173205,
@@ -3476,7 +4634,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 173525,
@@ -3485,7 +4646,10 @@
   {
     "text": "formal",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 173765,
@@ -3494,7 +4658,10 @@
   {
     "text": "version",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 174165,
@@ -3503,7 +4670,10 @@
   {
     "text": "of",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 174485,
@@ -3512,7 +4682,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 174645,
@@ -3521,7 +4694,10 @@
   {
     "text": "word",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 174805,
@@ -3530,7 +4706,10 @@
   {
     "text": "obviously",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 175125,
@@ -3539,7 +4718,10 @@
   {
     "text": "it's",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 175365,
@@ -3548,7 +4730,10 @@
   {
     "text": "a",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 175605,
@@ -3557,7 +4742,10 @@
   {
     "text": "real",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 175765,
@@ -3566,7 +4754,10 @@
   {
     "text": "word",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 176085,
@@ -3575,7 +4766,10 @@
   {
     "text": "but",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 176560,
@@ -3584,7 +4778,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 176720,
@@ -3593,7 +4790,10 @@
   {
     "text": "don't",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 176879,
@@ -3602,7 +4802,10 @@
   {
     "text": "know",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 177040,
@@ -3611,7 +4814,10 @@
   {
     "text": "when",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 177120,
@@ -3620,7 +4826,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 177360,
@@ -3629,7 +4838,10 @@
   {
     "text": "use",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 177519,
@@ -3638,7 +4850,10 @@
   {
     "text": "it",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 177760,
@@ -3647,7 +4862,10 @@
   {
     "text": "correctly",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 177920,
@@ -3656,7 +4874,10 @@
   {
     "text": "not",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 178319,
@@ -3665,7 +4886,10 @@
   {
     "text": "a",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 178560,
@@ -3674,7 +4898,10 @@
   {
     "text": "native",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 178640,
@@ -3683,7 +4910,10 @@
   {
     "text": "speaker",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 178959,
@@ -3692,7 +4922,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 179280,
@@ -3701,7 +4934,10 @@
   {
     "text": "know",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 179519,
@@ -3710,7 +4946,10 @@
   {
     "text": "what's",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 179680,
@@ -3719,7 +4958,10 @@
   {
     "text": "right",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 179920,
@@ -3728,7 +4970,10 @@
   {
     "text": "but",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 180480,
@@ -3737,7 +4982,10 @@
   {
     "text": "i'm",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 180640,
@@ -3746,7 +4994,10 @@
   {
     "text": "not",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 180879,
@@ -3755,7 +5006,10 @@
   {
     "text": "gonna",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 180959,
@@ -3764,7 +5018,10 @@
   {
     "text": "say",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 181200,
@@ -3773,7 +5030,10 @@
   {
     "text": "because",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 181760,
@@ -3782,7 +5042,10 @@
   {
     "text": "you're",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 182079,
@@ -3791,7 +5054,10 @@
   {
     "text": "all",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 182319,
@@ -3800,7 +5066,10 @@
   {
     "text": "jerks",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 182480,
@@ -3809,7 +5078,10 @@
   {
     "text": "who",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 182879,
@@ -3818,7 +5090,10 @@
   {
     "text": "didn't",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 183120,
@@ -3827,7 +5102,10 @@
   {
     "text": "come",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 183360,
@@ -3836,7 +5114,10 @@
   {
     "text": "see",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 183519,
@@ -3845,7 +5126,10 @@
   {
     "text": "my",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 183760,
@@ -3854,7 +5138,10 @@
   {
     "text": "band",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 183920,
@@ -3863,7 +5150,10 @@
   {
     "text": "last",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 184239,
@@ -3872,7 +5162,10 @@
   {
     "text": "night",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 184560,
@@ -3881,7 +5174,10 @@
   {
     "text": "do",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 184799,
@@ -3890,7 +5186,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 184959,
@@ -3899,7 +5198,10 @@
   {
     "text": "really",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 185040,
@@ -3908,7 +5210,10 @@
   {
     "text": "know",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 185200,
@@ -3917,7 +5222,10 @@
   {
     "text": "which",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 185360,
@@ -3926,7 +5234,10 @@
   {
     "text": "one",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 185519,
@@ -3935,7 +5246,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 185599,
@@ -3944,7 +5258,10 @@
   {
     "text": "correct",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 185760,
@@ -3953,7 +5270,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 186079,
@@ -3962,7 +5282,10 @@
   {
     "text": "don't",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 186319,
@@ -3971,7 +5294,10 @@
   {
     "text": "know",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 186480,
@@ -3980,7 +5306,10 @@
   {
     "text": "it's",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 187040,
@@ -3989,7 +5318,10 @@
   {
     "text": "whom",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 187360,
@@ -3998,7 +5330,10 @@
   {
     "text": "when",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 187599,
@@ -4007,7 +5342,10 @@
   {
     "text": "it's",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 187920,
@@ -4016,7 +5354,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 188079,
@@ -4025,7 +5366,10 @@
   {
     "text": "object",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 188239,
@@ -4034,7 +5378,10 @@
   {
     "text": "of",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 188480,
@@ -4043,7 +5390,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 188640,
@@ -4052,7 +5402,10 @@
   {
     "text": "sentence",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 188720,
@@ -4061,7 +5414,10 @@
   {
     "text": "and",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 189040,
@@ -4070,7 +5426,10 @@
   {
     "text": "who",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 189280,
@@ -4079,7 +5438,10 @@
   {
     "text": "when",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 189439,
@@ -4088,7 +5450,10 @@
   {
     "text": "it's",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 189680,
@@ -4097,7 +5462,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 189840,
@@ -4106,7 +5474,10 @@
   {
     "text": "subject",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 190000,
@@ -4115,7 +5486,10 @@
   {
     "text": "subject",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 190155,
@@ -4124,7 +5498,10 @@
   {
     "text": "that",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 190555,
@@ -4133,7 +5510,10 @@
   {
     "text": "sounds",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 190795,
@@ -4142,7 +5522,10 @@
   {
     "text": "right",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 191035,
@@ -4151,7 +5534,10 @@
   {
     "text": "well",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 191355,
@@ -4160,7 +5546,10 @@
   {
     "text": "sounds",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 191595,
@@ -4169,7 +5558,10 @@
   {
     "text": "right",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 191755,
@@ -4178,7 +5570,10 @@
   {
     "text": "but",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 191995,
@@ -4187,7 +5582,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 192155,
@@ -4196,7 +5594,10 @@
   {
     "text": "it",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 192315,
@@ -4205,7 +5606,10 @@
   {
     "text": "how",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 192475,
@@ -4214,7 +5618,10 @@
   {
     "text": "did",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 192635,
@@ -4223,7 +5630,10 @@
   {
     "text": "ryan",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 192795,
@@ -4232,7 +5642,10 @@
   {
     "text": "use",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 193035,
@@ -4241,7 +5654,10 @@
   {
     "text": "it",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 193275,
@@ -4250,7 +5666,10 @@
   {
     "text": "as",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 193435,
@@ -4259,7 +5678,10 @@
   {
     "text": "an",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 193595,
@@ -4268,7 +5690,10 @@
   {
     "text": "object",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 193755,
@@ -4277,7 +5702,10 @@
   {
     "text": "as",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 193995,
@@ -4286,7 +5714,10 @@
   {
     "text": "an",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 194155,
@@ -4295,7 +5726,10 @@
   {
     "text": "object",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 194315,
@@ -4304,7 +5738,10 @@
   {
     "text": "ryan",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 194635,
@@ -4313,7 +5750,10 @@
   {
     "text": "used",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 194955,
@@ -4322,7 +5762,10 @@
   {
     "text": "me",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 195115,
@@ -4331,7 +5774,10 @@
   {
     "text": "as",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 195355,
@@ -4340,7 +5786,10 @@
   {
     "text": "an",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 195515,
@@ -4349,7 +5798,10 @@
   {
     "text": "object",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 195675,
@@ -4358,7 +5810,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 196235,
@@ -4367,7 +5822,10 @@
   {
     "text": "he",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 196475,
@@ -4376,7 +5834,10 @@
   {
     "text": "writing",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 196635,
@@ -4385,7 +5846,10 @@
   {
     "text": "about",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 196875,
@@ -4394,7 +5858,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 2
+      "type": "unassigned",
+      "value": {
+        "index": 2
+      }
     },
     "confidence": 1.0,
     "start_ms": 197194,
@@ -4403,7 +5870,10 @@
   {
     "text": "how",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 197515,
@@ -4412,7 +5882,10 @@
   {
     "text": "did",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 197755,
@@ -4421,7 +5894,10 @@
   {
     "text": "he",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 197834,
@@ -4430,7 +5906,10 @@
   {
     "text": "use",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 197995,
@@ -4439,7 +5918,10 @@
   {
     "text": "it",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 198075,
@@ -4448,7 +5930,10 @@
   {
     "text": "again",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 198235,
@@ -4457,7 +5942,10 @@
   {
     "text": "it",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 198475,
@@ -4466,7 +5954,10 @@
   {
     "text": "was",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 198715,
@@ -4475,7 +5966,10 @@
   {
     "text": "ryan",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 199194,
@@ -4484,7 +5978,10 @@
   {
     "text": "wanted",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 199435,
@@ -4493,7 +5990,10 @@
   {
     "text": "michael",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 199675,
@@ -4502,7 +6002,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 200235,
@@ -4511,7 +6014,10 @@
   {
     "text": "subject",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 200395,
@@ -4520,7 +6026,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 200955,
@@ -4529,7 +6038,10 @@
   {
     "text": "explain",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 201194,
@@ -4538,7 +6050,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 201675,
@@ -4547,7 +6062,10 @@
   {
     "text": "computer",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 201834,
@@ -4556,7 +6074,10 @@
   {
     "text": "system",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 202235,
@@ -4565,7 +6086,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 202635,
@@ -4574,7 +6098,10 @@
   {
     "text": "object",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 202715,
@@ -4583,7 +6110,10 @@
   {
     "text": "thank",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 203100,
@@ -4592,7 +6122,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 203340,
@@ -4601,7 +6134,10 @@
   {
     "text": "to",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 203740,
@@ -4610,7 +6146,10 @@
   {
     "text": "whomever",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 204060,
@@ -4619,7 +6158,10 @@
   {
     "text": "meaning",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 204860,
@@ -4628,7 +6170,10 @@
   {
     "text": "us",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 205100,
@@ -4637,7 +6182,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 205500,
@@ -4646,7 +6194,10 @@
   {
     "text": "indirect",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 205660,
@@ -4655,7 +6206,10 @@
   {
     "text": "object",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 205980,
@@ -4664,7 +6218,10 @@
   {
     "text": "which",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 206780,
@@ -4673,7 +6230,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 206940,
@@ -4682,7 +6242,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 207180,
@@ -4691,7 +6254,10 @@
   {
     "text": "correct",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 207500,
@@ -4700,7 +6266,10 @@
   {
     "text": "usage",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 207980,
@@ -4709,7 +6278,10 @@
   {
     "text": "of",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 208300,
@@ -4718,7 +6290,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 208460,
@@ -4727,7 +6302,10 @@
   {
     "text": "word",
     "speaker": {
-      "Index": 3
+      "type": "unassigned",
+      "value": {
+        "index": 3
+      }
     },
     "confidence": 1.0,
     "start_ms": 208540,
@@ -4736,7 +6314,10 @@
   {
     "text": "no",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 208860,
@@ -4745,7 +6326,10 @@
   {
     "text": "one",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 209100,
@@ -4754,7 +6338,10 @@
   {
     "text": "asked",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 209660,
@@ -4763,7 +6350,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 210140,
@@ -4772,7 +6362,10 @@
   {
     "text": "anything",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 210380,
@@ -4781,7 +6374,10 @@
   {
     "text": "ever",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 210860,
@@ -4790,7 +6386,10 @@
   {
     "text": "so",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 211500,
@@ -4799,7 +6398,10 @@
   {
     "text": "whomever's",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 211820,
@@ -4808,7 +6410,10 @@
   {
     "text": "name",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 212460,
@@ -4817,7 +6422,10 @@
   {
     "text": "is",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 212540,
@@ -4826,7 +6434,10 @@
   {
     "text": "toby",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 212700,
@@ -4835,7 +6446,10 @@
   {
     "text": "why",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 213180,
@@ -4844,7 +6458,10 @@
   {
     "text": "don't",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 213340,
@@ -4853,7 +6470,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 213660,
@@ -4862,7 +6482,10 @@
   {
     "text": "take",
     "speaker": {
-      "Index": 1
+      "type": "unassigned",
+      "value": {
+        "index": 1
+      }
     },
     "confidence": 1.0,
     "start_ms": 213820,
@@ -4871,7 +6494,10 @@
   {
     "text": "a",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 214060,
@@ -4880,7 +6506,10 @@
   {
     "text": "letter",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 214220,
@@ -4889,7 +6518,10 @@
   {
     "text": "opener",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 214460,
@@ -4898,7 +6530,10 @@
   {
     "text": "and",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 214780,
@@ -4907,7 +6542,10 @@
   {
     "text": "stick",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 214860,
@@ -4916,7 +6554,10 @@
   {
     "text": "it",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 215020,
@@ -4925,7 +6566,10 @@
   {
     "text": "in",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 215100,
@@ -4934,7 +6578,10 @@
   {
     "text": "your",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 215180,
@@ -4943,7 +6590,10 @@
   {
     "text": "skull",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 215340,
@@ -4952,7 +6602,10 @@
   {
     "text": "hey",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 215580,
@@ -4961,7 +6614,10 @@
   {
     "text": "this",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 215900,
@@ -4970,7 +6626,10 @@
   {
     "text": "doesn't",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 216060,
@@ -4979,7 +6638,10 @@
   {
     "text": "matter",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 216380,
@@ -4988,7 +6650,10 @@
   {
     "text": "and",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 216860,
@@ -4997,7 +6662,10 @@
   {
     "text": "i",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 217155,
@@ -5006,7 +6674,10 @@
   {
     "text": "don't",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 217715,
@@ -5015,7 +6686,10 @@
   {
     "text": "even",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 217875,
@@ -5024,7 +6698,10 @@
   {
     "text": "care",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 218115,
@@ -5033,7 +6710,10 @@
   {
     "text": "michael",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 218435,
@@ -5042,7 +6722,10 @@
   {
     "text": "you",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 218915,
@@ -5051,7 +6734,10 @@
   {
     "text": "quit",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 219075,
@@ -5060,7 +6746,10 @@
   {
     "text": "the",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 219235,
@@ -5069,7 +6758,10 @@
   {
     "text": "other",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 219395,
@@ -5078,7 +6770,10 @@
   {
     "text": "job",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 219475,
@@ -5087,7 +6782,10 @@
   {
     "text": "or",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 219635,
@@ -5096,7 +6794,10 @@
   {
     "text": "you're",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 219795,
@@ -5105,7 +6806,10 @@
   {
     "text": "fired",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 219875,
@@ -5114,7 +6818,10 @@
   {
     "text": "here",
     "speaker": {
-      "Index": 0
+      "type": "unassigned",
+      "value": {
+        "index": 0
+      }
     },
     "confidence": 1.0,
     "start_ms": 220115,

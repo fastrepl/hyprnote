@@ -26,9 +26,12 @@ common_derives! {
 }
 
 common_derives! {
+    #[serde(tag = "type", content = "value")]
     pub enum SpeakerIdentity {
-        Index(u8),
-        Human { id: String, label: String },
+        #[serde(rename = "unassigned")]
+        Unassigned { index: u8 },
+        #[serde(rename = "assigned")]
+        Assigned { id: String, label: String },
     }
 }
 

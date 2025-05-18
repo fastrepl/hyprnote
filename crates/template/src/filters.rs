@@ -20,8 +20,8 @@ pub fn timeline(words: String) -> String {
         .into_iter()
         .map(|(speaker, group)| {
             let speaker_label = match speaker {
-                Some(SpeakerIdentity::Index(index)) => format!("SPEAKER {}", index),
-                Some(SpeakerIdentity::Human { label, .. }) => label.to_string(),
+                Some(SpeakerIdentity::Unassigned { index }) => format!("SPEAKER {}", index),
+                Some(SpeakerIdentity::Assigned { label, .. }) => label.to_string(),
                 None => "UNKNOWN".to_string(),
             };
 

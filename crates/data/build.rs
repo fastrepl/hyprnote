@@ -13,7 +13,9 @@ fn run(name: &str) {
         .iter()
         .map(|v| Word {
             text: v["word"].as_str().unwrap().trim().to_string(),
-            speaker: Some(SpeakerIdentity::Index(v["speaker"].as_u64().unwrap() as u8)),
+            speaker: Some(SpeakerIdentity::Unassigned {
+                index: v["speaker"].as_u64().unwrap() as u8,
+            }),
             start_ms: Some((v["start"].as_f64().unwrap() * 1000.0) as u64),
             end_ms: Some((v["end"].as_f64().unwrap() * 1000.0) as u64),
             confidence: Some(1.0),

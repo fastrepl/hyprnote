@@ -382,21 +382,6 @@ export function WhenActive() {
                   onClick={() => toggleSpeakerMuted.mutate()}
                   type="speaker"
                 />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => ongoingSessionStore.setHasShownConsent(false)}
-                      className="ml-1"
-                    >
-                      <Volume2Icon size={16} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <Trans>Consent settings</Trans>
-                  </TooltipContent>
-                </Tooltip>
               </div>
 
               <div className="flex gap-2">

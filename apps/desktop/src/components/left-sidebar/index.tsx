@@ -95,14 +95,14 @@ export default function LeftSidebar() {
 
       {isSearching
         ? (
-          <div className="flex-1 h-full overflow-y-auto">
+          <div className="flex-1 h-full overflow-y-auto scrollbar-none">
             <SearchList matches={matches} />
           </div>
         )
         : (
           <LayoutGroup>
             <AnimatePresence initial={false}>
-              <div className="flex-1 h-full overflow-y-auto">
+              <div className="flex-1 h-full overflow-y-auto scrollbar-none">
                 <div className="h-full space-y-4 px-3 pb-4">
                   <EventsList
                     events={events.data?.filter(

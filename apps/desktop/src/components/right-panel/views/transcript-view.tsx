@@ -198,7 +198,7 @@ function RenderEmpty({ sessionId }: { sessionId: string }) {
         <div className="mb-6 text-neutral-600 flex items-center gap-1.5">
           <Button size="sm" onClick={handleStartRecording} disabled={ongoingSession.loading}>
             {ongoingSession.loading ? <Spinner color="black" /> : (
-              <div className="relative h-2 w-2 mr-2">
+              <div className="relative h-2 w-2">
                 <div className="absolute inset-0 rounded-full bg-red-500"></div>
                 <div className="absolute inset-0 rounded-full bg-red-400 animate-ping"></div>
               </div>

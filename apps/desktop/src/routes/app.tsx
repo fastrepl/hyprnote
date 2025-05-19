@@ -41,8 +41,8 @@ function Component() {
 
   return (
     <>
-      <TinyBaseProvider>
-        <HyprProvider>
+      <HyprProvider>
+        <TinyBaseProvider>
           <SessionsProvider store={sessionsStore}>
             <OngoingSessionProvider store={ongoingSessionStore}>
               <LeftSidebarProvider>
@@ -80,8 +80,8 @@ function Component() {
               </LeftSidebarProvider>
             </OngoingSessionProvider>
           </SessionsProvider>
-        </HyprProvider>
-      </TinyBaseProvider>
+        </TinyBaseProvider>
+      </HyprProvider>
       {showNotifications && <Notifications />}
     </>
   );

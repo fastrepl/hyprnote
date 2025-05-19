@@ -126,15 +126,6 @@ async assignTagToSession(tagId: string, sessionId: string) : Promise<null> {
 },
 async unassignTagFromSession(tagId: string, sessionId: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:db|unassign_tag_from_session", { tagId, sessionId });
-},
-async getExtensionMapping(userId: string, extensionId: string) : Promise<ExtensionMapping | null> {
-    return await TAURI_INVOKE("plugin:db|get_extension_mapping", { userId, extensionId });
-},
-async listExtensionMappings(userId: string) : Promise<ExtensionMapping[]> {
-    return await TAURI_INVOKE("plugin:db|list_extension_mappings", { userId });
-},
-async upsertExtensionMapping(mapping: ExtensionMapping) : Promise<ExtensionMapping> {
-    return await TAURI_INVOKE("plugin:db|upsert_extension_mapping", { mapping });
 }
 }
 
@@ -157,14 +148,8 @@ export type ConfigAI = { api_base: string | null; api_key: string | null }
 export type ConfigGeneral = { autostart: boolean; display_language: string; jargons: string[]; telemetry_consent: boolean; save_recordings: boolean | null }
 export type ConfigNotification = { before: boolean; auto: boolean; ignoredPlatforms: string[] | null }
 export type Event = { id: string; user_id: string; tracking_id: string; calendar_id: string | null; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null }
-export type ExtensionDefinition = { id: string; title: string; description: string; implemented: boolean; default: boolean; cloud_only: boolean; plugins: string[]; tags: string[] }
-export type ExtensionMapping = { id: string; user_id: string; extension_id: string; config: JsonValue; widgets: ExtensionWidget[] }
-export type ExtensionWidget = { kind: ExtensionWidgetKind; group: string; position: ExtensionWidgetPosition | null }
-export type ExtensionWidgetKind = "oneByOne" | "twoByOne" | "twoByTwo" | "full"
-export type ExtensionWidgetPosition = { x: number; y: number }
 export type GetSessionFilter = { id: string } | { calendarEventId: string } | { tagId: string }
 export type Human = { id: string; organization_id: string | null; is_user: boolean; full_name: string | null; email: string | null; job_title: string | null; linkedin_username: string | null }
-export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type ListEventFilter = ({ user_id: string; limit: number | null }) & ({ type: "simple" } | { type: "search"; query: string } | { type: "dateRange"; start: string; end: string } | { type: "not-assigned-past" })
 export type ListHumanFilter = { search: [number, string] }
 export type ListOrganizationFilter = { search: [number, string] }

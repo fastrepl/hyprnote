@@ -51,8 +51,4 @@ permissions = [
     "allow-list-session-tags",
     "allow-assign-tag-to-session",
     "allow-unassign-tag-from-session",
-    # extension
-    "allow-get-extension-mapping",
-    "allow-list-extension-mappings",
-    "allow-upsert-extension-mapping",
 ]

@@ -62,12 +62,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::tags::list_session_tags,
             commands::tags::assign_tag_to_session,
             commands::tags::unassign_tag_from_session,
-            commands::extensions::get_extension_mapping,
-            commands::extensions::list_extension_mappings,
-            commands::extensions::upsert_extension_mapping,
         ])
-        .typ::<hypr_db_user::ExtensionDefinition>()
-        .typ::<hypr_db_user::ExtensionWidgetKind>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 

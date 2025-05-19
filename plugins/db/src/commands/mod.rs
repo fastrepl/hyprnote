@@ -7,6 +7,3 @@ pub mod organizations;
 pub mod sessions;
 pub mod tags;
 pub mod templates;
-
-#[deprecated]
-pub mod extensions;

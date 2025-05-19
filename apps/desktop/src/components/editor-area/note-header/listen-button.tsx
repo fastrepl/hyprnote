@@ -49,7 +49,7 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
   const isEnhancePending = useEnhancePendingState(sessionId);
   const nonEmptySession = useSession(
     sessionId,
-    (s) => s.session.conversations.length > 0 || s.session.enhanced_memo_html,
+    (s) => s.session.words.length > 0 || s.session.enhanced_memo_html,
   );
   const meetingEnded = isEnhancePending || nonEmptySession;
 

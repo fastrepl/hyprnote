@@ -11,12 +11,14 @@ type State = {
   status: "inactive" | "running_active" | "running_paused";
   amplitude: { mic: number; speaker: number };
   enhanceController: AbortController | null;
+  hasShownConsent: boolean;
 };
 
 type Actions = {
   get: () => State & Actions;
   cancelEnhance: () => void;
   setEnhanceController: (controller: AbortController | null) => void;
+  setHasShownConsent: (hasShown: boolean) => void;
   start: (sessionId: string) => void;
   stop: () => void;
   pause: () => void;
@@ -29,6 +31,7 @@ const initialState: State = {
   loading: false,
   amplitude: { mic: 0, speaker: 0 },
   enhanceController: null,
+  hasShownConsent: false,
 };
 
 export type OngoingSessionStore = ReturnType<typeof createOngoingSessionStore>;
@@ -47,6 +50,13 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       set((state) =>
         mutate(state, (draft) => {
           draft.enhanceController = controller;
+        })
+      );
+    },
+    setHasShownConsent: (hasShown: boolean) => {
+      set((state) =>
+        mutate(state, (draft) => {
+          draft.hasShownConsent = hasShown;
         })
       );
     },

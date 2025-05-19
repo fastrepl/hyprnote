@@ -17,13 +17,12 @@ import { getInitials } from "@hypr/utils";
 
 const NO_ORGANIZATION_ID = "__NO_ORGANIZATION__";
 
-export function ParticipantsChip({ sessionId }: { sessionId: string }) {
-  const { userId } = useHypr();
-
-  const participants = useQuery({
+function useParticipants(sessionId: string) {
+  return useQuery({
     queryKey: ["participants", sessionId],
     queryFn: async () => {
       const participants = await dbCommands.sessionListParticipants(sessionId);
+
       return participants.sort((a, b) => {
         if (a.is_user && !b.is_user) {
           return 1;
@@ -35,20 +34,25 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
       });
     },
   });
+}
 
-  const count = participants.data?.length ?? 0;
+export function ParticipantsChip({ sessionId }: { sessionId: string }) {
+  const { userId } = useHypr();
+
+  const participantsQuery = useParticipants(sessionId);
+  const participants = participantsQuery.data ?? [];
+
+  const count = participants.length;
   const buttonText = useMemo(() => {
-    const previewHuman = participants.data?.at(0);
+    const previewHuman = participants.at(0);
     if (!previewHuman) {
       return "Add participants";
     }
-
     if (previewHuman.id === userId && !previewHuman.full_name) {
       return "You";
     }
-
     return previewHuman.full_name ?? "??";
-  }, [participants.data]);
+  }, [participants, userId]);
 
   return (
     <Popover>
@@ -61,38 +65,36 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
       </PopoverTrigger>
 
       <PopoverContent className="shadow-lg w-80" align="start">
-        <ParticipantsList sessionId={sessionId} />
+        <ParticipantsList sessionId={sessionId} participants={participants} />
       </PopoverContent>
     </Popover>
   );
 }
 
-function ParticipantsList({ sessionId }: { sessionId: string }) {
-  const groupedParticipants = useQuery({
-    queryKey: ["grouped-participants", sessionId],
-    queryFn: async () => {
-      const participants = await dbCommands.sessionListParticipants(sessionId);
-      const ret: Record<string, Human[]> = {};
+function ParticipantsList(
+  { sessionId, participants }: { sessionId: string; participants: Human[] },
+) {
+  const grouped = useMemo(() => {
+    if (!participants?.length) {
+      return [];
+    }
+    const ret: Record<string, Human[]> = {};
 
-      participants.forEach((participant) => {
-        const group = participant.organization_id ?? NO_ORGANIZATION_ID;
-        ret[group] = [...(ret[group] || []), participant];
-      });
+    participants.forEach((p) => {
+      const group = p.organization_id ?? NO_ORGANIZATION_ID;
+      ret[group] = [...(ret[group] || []), p];
+    });
 
-      Object.keys(ret).forEach((group) => {
-        ret[group].sort((a, b) => {
-          const nameA = a.full_name ?? "";
-          const nameB = b.full_name ?? "";
-          return nameB.localeCompare(nameA);
-        });
-      });
+    Object.values(ret).forEach((members) =>
+      members.sort((a, b) => (a.full_name ?? "").localeCompare(b.full_name ?? ""))
+    );
 
-      return Object.entries(ret)
-        .sort(([_, membersA], [__, membersB]) => membersB.length - membersA.length);
-    },
-  });
+    return Object.entries(ret).sort(
+      ([, a], [, b]) => b.length - a.length,
+    );
+  }, [participants]);
 
-  if (!groupedParticipants.data?.length) {
+  if (!grouped.length) {
     return <ParticipantAddControl sessionId={sessionId} />;
   }
 
@@ -101,8 +103,13 @@ function ParticipantsList({ sessionId }: { sessionId: string }) {
       <div className="text-sm font-medium text-neutral-700">Participants</div>
 
       <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
-        {groupedParticipants.data.map(([orgId, members]) => (
-          <OrganizationWithParticipants key={orgId} orgId={orgId} members={members} sessionId={sessionId} />
+        {grouped.map(([orgId, members]) => (
+          <OrganizationWithParticipants
+            key={orgId}
+            orgId={orgId}
+            members={members}
+            sessionId={sessionId}
+          />
         ))}
       </div>
 

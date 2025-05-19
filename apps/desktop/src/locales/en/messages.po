@@ -311,7 +311,7 @@ msgstr "Add a description..."
 msgid "Add members"
 msgstr "Add members"
 
-#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:290
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:346
 msgid "Add participant"
 msgstr "Add participant"
 
@@ -460,7 +460,7 @@ msgid "Contacts Access"
 msgstr "Contacts Access"
 
 #: src/routes/app.human.$id.tsx:532
-#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:378
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:434
 msgid "Create"
 msgstr "Create"
 
@@ -862,7 +862,7 @@ msgid "Recording Started"
 msgstr "Recording Started"
 
 #. placeholder {0}: member.full_name
-#: src/components/editor-area/note-header/chips/participants-chip/participants-list.tsx:171
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:227
 msgid "Remove {0} from list"
 msgstr "Remove {0} from list"
 

@@ -109,12 +109,12 @@ export function TinyBaseProvider({
     3,
   );
 
-  useEffect(() => {
-    persister.startAutoPersisting();
-    return () => {
-      persister.startAutoPersisting().then(() => persister.destroy());
-    };
-  }, []);
+  // useEffect(() => {
+  //   persister.startAutoPersisting();
+  //   return () => {
+  //     persister.startAutoPersisting().then(() => persister.destroy());
+  //   };
+  // }, []);
 
   const relationships = useCreateRelationships(store, (store) => {
     const relationships = createRelationships(store);

@@ -256,8 +256,8 @@ msgstr "(Beta) Upcoming meeting notifications"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:201
-#: src/components/editor-area/note-header/listen-button.tsx:240
+#: src/components/editor-area/note-header/listen-button.tsx:188
+#: src/components/editor-area/note-header/listen-button.tsx:227
 msgid "{0}"
 msgstr "{0}"
 
@@ -451,6 +451,10 @@ msgstr "Connect your {0} calendar to track upcoming events"
 msgid "Connect your calendar and track events"
 msgstr "Connect your calendar and track events"
 
+#: src/components/editor-area/note-header/listen-button.tsx:397
+msgid "Consent settings"
+msgstr "Consent settings"
+
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:109
 msgid "Contacts Access"
 msgstr "Contacts Access"
@@ -502,7 +506,7 @@ msgstr "Describe the issue"
 msgid "Description"
 msgstr "Description"
 
-#: src/components/editor-area/note-header/listen-button.tsx:61
+#: src/components/editor-area/note-header/listen-button.tsx:349
 msgid "Did you get consent from everyone in the meeting?"
 msgstr "Did you get consent from everyone in the meeting?"
 
@@ -817,7 +821,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:324
+#: src/components/editor-area/note-header/listen-button.tsx:409
 msgid "Pause"
 msgstr "Pause"
 
@@ -829,7 +833,7 @@ msgstr "people"
 msgid "Performance difference between languages"
 msgstr "Performance difference between languages"
 
-#: src/components/editor-area/note-header/listen-button.tsx:220
+#: src/components/editor-area/note-header/listen-button.tsx:207
 msgid "Play video"
 msgstr "Play video"
 
@@ -849,7 +853,11 @@ msgstr "Publish your note"
 msgid "Recent Notes"
 msgstr "Recent Notes"
 
-#: src/components/editor-area/note-header/listen-button.tsx:60
+#: src/components/editor-area/note-header/listen-button.tsx:366
+msgid "Record me only"
+msgstr "Record me only"
+
+#: src/components/editor-area/note-header/listen-button.tsx:346
 msgid "Recording Started"
 msgstr "Recording Started"
 
@@ -870,7 +878,7 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/editor-area/note-header/listen-button.tsx:110
+#: src/components/editor-area/note-header/listen-button.tsx:97
 msgid "Resume"
 msgstr "Resume"
 
@@ -948,11 +956,11 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:176
+#: src/components/editor-area/note-header/listen-button.tsx:163
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:332
+#: src/components/editor-area/note-header/listen-button.tsx:417
 msgid "Stop"
 msgstr "Stop"
 
@@ -1105,6 +1113,10 @@ msgstr "Works both in-person and remotely"
 #: src/components/settings/views/billing.tsx:29
 msgid "Works offline"
 msgstr "Works offline"
+
+#: src/components/editor-area/note-header/listen-button.tsx:358
+msgid "Yes, activate speaker"
+msgstr "Yes, activate speaker"
 
 #: src/components/settings/views/general.tsx:265
 msgid "You can make Hyprnote takes these words into account when transcribing"

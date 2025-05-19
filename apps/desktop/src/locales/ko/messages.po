@@ -256,8 +256,8 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:201
-#: src/components/editor-area/note-header/listen-button.tsx:240
+#: src/components/editor-area/note-header/listen-button.tsx:188
+#: src/components/editor-area/note-header/listen-button.tsx:227
 msgid "{0}"
 msgstr ""
 
@@ -451,6 +451,10 @@ msgstr ""
 msgid "Connect your calendar and track events"
 msgstr ""
 
+#: src/components/editor-area/note-header/listen-button.tsx:397
+msgid "Consent settings"
+msgstr ""
+
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:109
 msgid "Contacts Access"
 msgstr ""
@@ -502,7 +506,7 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:61
+#: src/components/editor-area/note-header/listen-button.tsx:349
 msgid "Did you get consent from everyone in the meeting?"
 msgstr ""
 
@@ -817,7 +821,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:324
+#: src/components/editor-area/note-header/listen-button.tsx:409
 msgid "Pause"
 msgstr ""
 
@@ -829,7 +833,7 @@ msgstr ""
 msgid "Performance difference between languages"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:220
+#: src/components/editor-area/note-header/listen-button.tsx:207
 msgid "Play video"
 msgstr ""
 
@@ -849,7 +853,11 @@ msgstr ""
 msgid "Recent Notes"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:60
+#: src/components/editor-area/note-header/listen-button.tsx:366
+msgid "Record me only"
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:346
 msgid "Recording Started"
 msgstr ""
 
@@ -870,7 +878,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:110
+#: src/components/editor-area/note-header/listen-button.tsx:97
 msgid "Resume"
 msgstr ""
 
@@ -948,11 +956,11 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:176
+#: src/components/editor-area/note-header/listen-button.tsx:163
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:332
+#: src/components/editor-area/note-header/listen-button.tsx:417
 msgid "Stop"
 msgstr ""
 
@@ -1104,6 +1112,10 @@ msgstr ""
 
 #: src/components/settings/views/billing.tsx:29
 msgid "Works offline"
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:358
+msgid "Yes, activate speaker"
 msgstr ""
 
 #: src/components/settings/views/general.tsx:265

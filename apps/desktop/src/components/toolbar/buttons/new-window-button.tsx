@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMatch } from "@tanstack/react-router";
-import { ArrowUpRight } from "lucide-react";
+import { SquareArrowOutUpRightIcon } from "lucide-react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -28,7 +28,7 @@ export function NewWindowButton() {
           className="hover:bg-neutral-200"
           aria-label="Open in new window"
         >
-          <ArrowUpRight size={16} />
+          <SquareArrowOutUpRightIcon size={16} />
         </Button>
       </TooltipTrigger>
       <TooltipContent>

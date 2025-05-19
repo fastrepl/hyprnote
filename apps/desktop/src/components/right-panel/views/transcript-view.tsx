@@ -1,14 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import {
-  CheckIcon,
-  ClipboardCopyIcon,
-  ClipboardIcon,
-  EarIcon,
-  FileAudioIcon,
-  PencilIcon,
-  UploadIcon,
-} from "lucide-react";
+import { AudioLinesIcon, CheckIcon, ClipboardIcon, Copy, EarIcon, PencilIcon, UploadIcon } from "lucide-react";
 import { Fragment, type RefObject, useEffect, useRef } from "react";
 
 import { commands as dbCommands, type Word } from "@hypr/plugin-db";
@@ -136,7 +128,7 @@ export function TranscriptView() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="icon" className="p-0" onClick={handleOpenSession}>
-                      <FileAudioIcon size={16} className="text-black" />
+                      <AudioLinesIcon size={16} className="text-black" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
@@ -150,7 +142,7 @@ export function TranscriptView() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="icon" className="p-0" onClick={handleCopyAll}>
-                      <ClipboardCopyIcon size={16} className="text-black" />
+                      <Copy size={16} className="text-black" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">

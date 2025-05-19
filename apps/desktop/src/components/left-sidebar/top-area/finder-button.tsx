@@ -1,13 +1,13 @@
 import { Trans } from "@lingui/react/macro";
-import { CalendarDaysIcon } from "lucide-react";
+import { Folder } from "lucide-react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 
-export function CalendarButton() {
-  const handleClickCalendar = () => {
-    windowsCommands.windowShow({ type: "calendar" });
+export function FinderButton() {
+  const handleClickFinder = () => {
+    windowsCommands.windowShow({ type: "finder" });
   };
 
   return (
@@ -16,14 +16,14 @@ export function CalendarButton() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={handleClickCalendar}
+          onClick={handleClickFinder}
           className="hover:bg-neutral-200"
         >
-          <CalendarDaysIcon className="size-4" />
+          <Folder size={16} />
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        <Trans>Open calendar view</Trans>
+        <Trans>Open finder view</Trans>
       </TooltipContent>
     </Tooltip>
   );

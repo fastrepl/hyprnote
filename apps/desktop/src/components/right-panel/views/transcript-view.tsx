@@ -27,11 +27,6 @@ export function TranscriptView() {
   const { showEmptyMessage, hasTranscript } = useTranscriptWidget(sessionId);
   const { isLive, words } = useTranscript(sessionId);
 
-  const participants = useQuery({
-    queryKey: ["participants", sessionId],
-    queryFn: () => dbCommands.sessionListParticipants(sessionId!),
-  });
-
   const handleCopyAll = () => {
     if (words && words.length > 0) {
       const transcriptText = words.map((item) => item.text).join("\n");
@@ -64,7 +59,6 @@ export function TranscriptView() {
       if (editorRef.current) {
         // @ts-expect-error
         const words = editorRef.current.getWords();
-        console.log(words);
 
         if (words && sessionId) {
           dbCommands.getSession({ id: sessionId! }).then((session) => {
@@ -171,7 +165,7 @@ export function TranscriptView() {
           ? (
             <TranscriptEditor
               ref={editorRef}
-              editable={true}
+              editable={false}
               initialWords={words}
             />
           )
@@ -233,10 +227,10 @@ function RenderEmpty({ sessionId }: { sessionId: string }) {
   );
 }
 
-function RenderContent({ words, isLive, containerRef }: {
+function RenderContent({ containerRef, words, isLive }: {
+  containerRef: RefObject<HTMLDivElement>;
   isLive: boolean;
   words: Word[];
-  containerRef: RefObject<HTMLDivElement>;
 }) {
   return (
     <div

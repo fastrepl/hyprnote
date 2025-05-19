@@ -452,8 +452,8 @@ msgid "Connect your calendar and track events"
 msgstr "Connect your calendar and track events"
 
 #: src/components/editor-area/note-header/listen-button.tsx:397
-msgid "Consent settings"
-msgstr "Consent settings"
+#~ msgid "Consent settings"
+#~ msgstr "Consent settings"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:109
 msgid "Contacts Access"
@@ -821,7 +821,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:409
+#: src/components/editor-area/note-header/listen-button.tsx:394
 msgid "Pause"
 msgstr "Pause"
 
@@ -960,7 +960,7 @@ msgstr "Start Monthly Plan"
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:417
+#: src/components/editor-area/note-header/listen-button.tsx:402
 msgid "Stop"
 msgstr "Stop"
 

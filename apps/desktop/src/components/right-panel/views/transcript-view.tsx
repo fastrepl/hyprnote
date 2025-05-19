@@ -116,6 +116,7 @@ export function TranscriptView() {
 
   return (
     <div className="w-full h-full flex flex-col">
+      {/* Header */}
       <div className="p-4 pb-0">
         <header className="flex items-center gap-2 w-full">
           <div className="flex-1 text-md font-medium">
@@ -159,7 +160,7 @@ export function TranscriptView() {
                 </Tooltip>
               </TooltipProvider>
             )}
-            {!isLive && !isOnboarding.data && (
+            {hasTranscript && ongoingSession.isInactive && !isOnboarding.data && (
               <Button variant="ghost" size="icon" className="p-0" onClick={handleClickToggleEditing}>
                 {editing.data
                   ? <CheckIcon size={16} className="text-black" />
@@ -170,10 +171,12 @@ export function TranscriptView() {
         </header>
       </div>
 
+      {/* Body */}
       {!sessionId ? null : (
-        <div className="flex-1">
+        <div className="flex-1 overflow-hidden">
           {showEmptyMessage
             ? (
+              // Empty state
               <div className="h-full flex items-center justify-center">
                 <div className="text-neutral-500 font-medium text-center">
                   <div className="mb-6 text-neutral-600 flex items-center gap-1.5">
@@ -209,6 +212,7 @@ export function TranscriptView() {
               </div>
             )
             : (
+              // Populated state
               <div
                 ref={transcriptContainerRef}
                 className="h-full scrollbar-none px-4 flex flex-col gap-2 overflow-y-auto text-sm py-4"

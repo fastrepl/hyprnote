@@ -20,7 +20,7 @@ export const SpeakerView = ({ node, updateAttributes }: NodeViewProps) => {
 
   return (
     <NodeViewWrapper className="transcript-speaker">
-      <div style={{ width: "140px", padding: "8px" }}>
+      <div style={{ width: "130px", padding: "8px" }}>
         <Select value={speakerId} onValueChange={handleChange}>
           <SelectTrigger className="transcript-speaker-select" data-speaker-id={speakerId}>
             <SelectValue placeholder="Select speaker">{displayName}</SelectValue>

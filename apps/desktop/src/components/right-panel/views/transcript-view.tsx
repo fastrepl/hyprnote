@@ -165,7 +165,7 @@ export function TranscriptView() {
           ? (
             <TranscriptEditor
               ref={editorRef}
-              editable={false}
+              editable={true}
               initialWords={words}
             />
           )

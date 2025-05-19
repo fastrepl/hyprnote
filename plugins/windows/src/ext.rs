@@ -17,8 +17,8 @@ pub enum HyprWindow {
     Human(String),
     #[serde(rename = "organization")]
     Organization(String),
-    #[serde(rename = "calendar")]
-    Calendar,
+    #[serde(rename = "finder")]
+    Finder,
     #[serde(rename = "settings")]
     Settings,
     #[serde(rename = "video")]
@@ -36,7 +36,7 @@ impl std::fmt::Display for HyprWindow {
             Self::Note(id) => write!(f, "note-{}", id),
             Self::Human(id) => write!(f, "human-{}", id),
             Self::Organization(id) => write!(f, "organization-{}", id),
-            Self::Calendar => write!(f, "calendar"),
+            Self::Finder => write!(f, "finder"),
             Self::Settings => write!(f, "settings"),
             Self::Video(id) => write!(f, "video-{}", id),
             Self::Plans => write!(f, "plans"),
@@ -51,7 +51,7 @@ impl std::str::FromStr for HyprWindow {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "main" => return Ok(Self::Main),
-            "calendar" => return Ok(Self::Calendar),
+            "finder" => return Ok(Self::Finder),
             "settings" => return Ok(Self::Settings),
             _ => {}
         }
@@ -143,7 +143,7 @@ impl HyprWindow {
             Self::Note(_) => "Note".into(),
             Self::Human(_) => "Human".into(),
             Self::Organization(_) => "Organization".into(),
-            Self::Calendar => "Calendar".into(),
+            Self::Finder => "Finder".into(),
             Self::Settings => "Settings".into(),
             Self::Video(_) => "Video".into(),
             Self::Plans => "Plans".into(),
@@ -162,7 +162,7 @@ impl HyprWindow {
             Self::Note(_) => LogicalSize::new(480.0, 500.0),
             Self::Human(_) => LogicalSize::new(480.0, 500.0),
             Self::Organization(_) => LogicalSize::new(480.0, 500.0),
-            Self::Calendar => LogicalSize::new(640.0, 532.0),
+            Self::Finder => LogicalSize::new(640.0, 532.0),
             Self::Settings => LogicalSize::new(800.0, 600.0),
             Self::Video(_) => LogicalSize::new(640.0, 360.0),
             Self::Plans => LogicalSize::new(900.0, 600.0),
@@ -176,7 +176,7 @@ impl HyprWindow {
             Self::Note(_) => LogicalSize::new(480.0, 360.0),
             Self::Human(_) => LogicalSize::new(480.0, 360.0),
             Self::Organization(_) => LogicalSize::new(480.0, 360.0),
-            Self::Calendar => LogicalSize::new(640.0, 532.0),
+            Self::Finder => LogicalSize::new(640.0, 532.0),
             Self::Settings => LogicalSize::new(800.0, 600.0),
             Self::Video(_) => LogicalSize::new(640.0, 360.0),
             Self::Plans => LogicalSize::new(900.0, 600.0),
@@ -274,7 +274,7 @@ impl HyprWindow {
                     Self::Note(id) => &format!("/app/note/{}", id),
                     Self::Human(id) => &format!("/app/human/{}", id),
                     Self::Organization(id) => &format!("/app/organization/{}", id),
-                    Self::Calendar => "/app/calendar",
+                    Self::Finder => "/app/finder",
                     Self::Settings => "/app/settings",
                     Self::Video(id) => &format!("/video?id={}", id),
                     Self::Plans => "/app/plans",
@@ -338,7 +338,7 @@ impl HyprWindow {
 
                     window.center()?;
                 }
-                Self::Calendar => {
+                Self::Finder => {
                     window.hide()?;
                     std::thread::sleep(std::time::Duration::from_millis(100));
 

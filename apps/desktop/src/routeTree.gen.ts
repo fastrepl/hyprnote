@@ -17,7 +17,7 @@ import { Route as AppIndexImport } from './routes/app.index'
 import { Route as AppSettingsImport } from './routes/app.settings'
 import { Route as AppPlansImport } from './routes/app.plans'
 import { Route as AppNewImport } from './routes/app.new'
-import { Route as AppCalendarImport } from './routes/app.calendar'
+import { Route as AppFinderImport } from './routes/app.finder'
 import { Route as AppTranscriptIdImport } from './routes/app.transcript.$id'
 import { Route as AppOrganizationIdImport } from './routes/app.organization.$id'
 import { Route as AppNoteIdImport } from './routes/app.note.$id'
@@ -61,9 +61,9 @@ const AppNewRoute = AppNewImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 
-const AppCalendarRoute = AppCalendarImport.update({
-  id: '/calendar',
-  path: '/calendar',
+const AppFinderRoute = AppFinderImport.update({
+  id: '/finder',
+  path: '/finder',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -109,11 +109,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VideoImport
       parentRoute: typeof rootRoute
     }
-    '/app/calendar': {
-      id: '/app/calendar'
-      path: '/calendar'
-      fullPath: '/app/calendar'
-      preLoaderRoute: typeof AppCalendarImport
+    '/app/finder': {
+      id: '/app/finder'
+      path: '/finder'
+      fullPath: '/app/finder'
+      preLoaderRoute: typeof AppFinderImport
       parentRoute: typeof AppImport
     }
     '/app/new': {
@@ -178,7 +178,7 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface AppRouteChildren {
-  AppCalendarRoute: typeof AppCalendarRoute
+  AppFinderRoute: typeof AppFinderRoute
   AppNewRoute: typeof AppNewRoute
   AppPlansRoute: typeof AppPlansRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -190,7 +190,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppCalendarRoute: AppCalendarRoute,
+  AppFinderRoute: AppFinderRoute,
   AppNewRoute: AppNewRoute,
   AppPlansRoute: AppPlansRoute,
   AppSettingsRoute: AppSettingsRoute,
@@ -206,7 +206,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/video': typeof VideoRoute
-  '/app/calendar': typeof AppCalendarRoute
+  '/app/finder': typeof AppFinderRoute
   '/app/new': typeof AppNewRoute
   '/app/plans': typeof AppPlansRoute
   '/app/settings': typeof AppSettingsRoute
@@ -219,7 +219,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/video': typeof VideoRoute
-  '/app/calendar': typeof AppCalendarRoute
+  '/app/finder': typeof AppFinderRoute
   '/app/new': typeof AppNewRoute
   '/app/plans': typeof AppPlansRoute
   '/app/settings': typeof AppSettingsRoute
@@ -234,7 +234,7 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/app': typeof AppRouteWithChildren
   '/video': typeof VideoRoute
-  '/app/calendar': typeof AppCalendarRoute
+  '/app/finder': typeof AppFinderRoute
   '/app/new': typeof AppNewRoute
   '/app/plans': typeof AppPlansRoute
   '/app/settings': typeof AppSettingsRoute
@@ -250,7 +250,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/app'
     | '/video'
-    | '/app/calendar'
+    | '/app/finder'
     | '/app/new'
     | '/app/plans'
     | '/app/settings'
@@ -262,7 +262,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/video'
-    | '/app/calendar'
+    | '/app/finder'
     | '/app/new'
     | '/app/plans'
     | '/app/settings'
@@ -275,7 +275,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/app'
     | '/video'
-    | '/app/calendar'
+    | '/app/finder'
     | '/app/new'
     | '/app/plans'
     | '/app/settings'
@@ -314,7 +314,7 @@ export const routeTree = rootRoute
     "/app": {
       "filePath": "app.tsx",
       "children": [
-        "/app/calendar",
+        "/app/finder",
         "/app/new",
         "/app/plans",
         "/app/settings",
@@ -328,8 +328,8 @@ export const routeTree = rootRoute
     "/video": {
       "filePath": "video.tsx"
     },
-    "/app/calendar": {
-      "filePath": "app.calendar.tsx",
+    "/app/finder": {
+      "filePath": "app.finder.tsx",
       "parent": "/app"
     },
     "/app/new": {

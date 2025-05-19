@@ -27,6 +27,11 @@ export function TranscriptView() {
   const { showEmptyMessage, hasTranscript } = useTranscriptWidget(sessionId);
   const { isLive, words } = useTranscript(sessionId);
 
+  const participants = useQuery({
+    queryKey: ["participants", sessionId],
+    queryFn: () => dbCommands.sessionListParticipants(sessionId!),
+  });
+
   const handleCopyAll = () => {
     if (words && words.length > 0) {
       const transcriptText = words.map((item) => item.text).join("\n");
@@ -122,7 +127,7 @@ export function TranscriptView() {
             </div>
           )}
           <div className="not-draggable flex items-center gap-2">
-            {(audioExist.data && ongoingSession.isInactive && hasTranscript && sessionId) && (
+            {(audioExist.data && ongoingSession.isInactive && hasTranscript && sessionId && !editing) && (
               <TooltipProvider key="listen-recording-tooltip">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -136,7 +141,7 @@ export function TranscriptView() {
                 </Tooltip>
               </TooltipProvider>
             )}
-            {(hasTranscript && sessionId) && (
+            {(hasTranscript && sessionId && !editing) && (
               <TooltipProvider key="copy-all-tooltip">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -168,7 +173,6 @@ export function TranscriptView() {
               ref={editorRef}
               editable={true}
               initialWords={words}
-              speakers={[]}
             />
           )
           : showEmptyMessage

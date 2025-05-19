@@ -9,26 +9,25 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect } from "react";
 
 import { SpeakerSplit, WordSplit } from "./extensions";
-import { createSpeakerNode, type Speaker, WordNode } from "./nodes";
+import { SpeakerNode, WordNode } from "./nodes";
 import { fromEditorToWords, fromWordsToEditor, type Word } from "./utils";
 
 interface TranscriptEditorProps {
   editable?: boolean;
   initialWords?: Word[];
-  speakers: Speaker[];
 }
 
 const TranscriptEditor = forwardRef<
   { editor: TiptapEditor | null; getWords: () => Word[] | null },
   TranscriptEditorProps
 >(
-  ({ initialWords, editable = true, speakers }, ref) => {
+  ({ initialWords, editable = true }, ref) => {
     const extensions = [
       Document.configure({ content: "speaker+" }),
       History,
       Text,
       WordNode,
-      createSpeakerNode(speakers),
+      SpeakerNode,
       WordSplit,
       SpeakerSplit,
       SearchAndReplace.configure({

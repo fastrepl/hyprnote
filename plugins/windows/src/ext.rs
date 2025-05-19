@@ -25,8 +25,6 @@ pub enum HyprWindow {
     Video(String),
     #[serde(rename = "plans")]
     Plans,
-    #[serde(rename = "transcript")]
-    Transcript(String),
 }
 
 impl std::fmt::Display for HyprWindow {
@@ -40,7 +38,6 @@ impl std::fmt::Display for HyprWindow {
             Self::Settings => write!(f, "settings"),
             Self::Video(id) => write!(f, "video-{}", id),
             Self::Plans => write!(f, "plans"),
-            Self::Transcript(id) => write!(f, "transcript-{}", id),
         }
     }
 }
@@ -63,7 +60,6 @@ impl std::str::FromStr for HyprWindow {
                 "organization" => return Ok(Self::Organization(id.to_string())),
                 "video" => return Ok(Self::Video(id.to_string())),
                 "plans" => return Ok(Self::Plans),
-                "transcript" => return Ok(Self::Transcript(id.to_string())),
                 _ => {}
             }
         }
@@ -147,7 +143,6 @@ impl HyprWindow {
             Self::Settings => "Settings".into(),
             Self::Video(_) => "Video".into(),
             Self::Plans => "Plans".into(),
-            Self::Transcript(_) => "Transcript".into(),
         }
     }
 
@@ -166,7 +161,6 @@ impl HyprWindow {
             Self::Settings => LogicalSize::new(800.0, 600.0),
             Self::Video(_) => LogicalSize::new(640.0, 360.0),
             Self::Plans => LogicalSize::new(900.0, 600.0),
-            Self::Transcript(_) => LogicalSize::new(900.0, 600.0),
         }
     }
 
@@ -180,7 +174,6 @@ impl HyprWindow {
             Self::Settings => LogicalSize::new(800.0, 600.0),
             Self::Video(_) => LogicalSize::new(640.0, 360.0),
             Self::Plans => LogicalSize::new(900.0, 600.0),
-            Self::Transcript(_) => LogicalSize::new(900.0, 600.0),
         }
     }
 
@@ -278,7 +271,6 @@ impl HyprWindow {
                     Self::Settings => "/app/settings",
                     Self::Video(id) => &format!("/video?id={}", id),
                     Self::Plans => "/app/plans",
-                    Self::Transcript(id) => &format!("/app/transcript/{}", id),
                 };
                 (self.window_builder(app, url).build()?, true)
             }
@@ -374,18 +366,6 @@ impl HyprWindow {
                     window.set_min_size(Some(min_size))?;
                 }
                 Self::Plans => {
-                    window.hide()?;
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-
-                    window.set_maximizable(false)?;
-                    window.set_minimizable(false)?;
-
-                    window.set_size(default_size)?;
-                    window.set_min_size(Some(min_size))?;
-
-                    window.center()?;
-                }
-                Self::Transcript(_) => {
                     window.hide()?;
                     std::thread::sleep(std::time::Duration::from_millis(100));
 

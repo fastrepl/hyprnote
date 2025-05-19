@@ -1,11 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { AudioLinesIcon, CheckIcon, ClipboardIcon, Copy, EarIcon, PencilIcon, UploadIcon } from "lucide-react";
-import { Fragment, type RefObject, useEffect, useRef } from "react";
+import { Fragment, type RefObject, useEffect, useRef, useState } from "react";
 
-import { commands as dbCommands, type Word } from "@hypr/plugin-db";
+import { commands as dbCommands, SpeakerIdentity, type Word } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { commands as windowsCommands, events as windowsEvents } from "@hypr/plugin-windows";
+import TranscriptEditor from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
@@ -49,21 +49,11 @@ export function TranscriptView() {
     queryClient,
   );
 
-  const editing = useQuery({
-    queryKey: ["editing", sessionId],
-    queryFn: () => windowsCommands.windowIsVisible({ type: "main" }).then((v) => !v),
-  });
+  const [editing, setEditing] = useState(false);
+  const editorRef = useRef(null);
 
   const handleClickToggleEditing = () => {
-    if (editing.data) {
-      windowsCommands.windowHide({ type: "transcript", value: sessionId! }).then(() => {
-        windowsCommands.windowShow({ type: "main" });
-      });
-    } else {
-      windowsCommands.windowHide({ type: "main" }).then(() => {
-        windowsCommands.windowShow({ type: "transcript", value: sessionId! });
-      });
-    }
+    setEditing(!editing);
   };
 
   const handleOpenSession = () => {
@@ -85,20 +75,6 @@ export function TranscriptView() {
       scrollToBottom();
     }
   }, [words, isLive, transcriptContainerRef]);
-
-  useEffect(() => {
-    let unlisten: (() => void) | undefined;
-
-    windowsEvents.windowDestroyed.listen(({ payload: { window } }) => {
-      if (window.type === "transcript") {
-        windowsCommands.windowShow({ type: "main" });
-      }
-    }).then((u) => {
-      unlisten = u;
-    });
-
-    return () => unlisten?.();
-  }, []);
 
   if (!sessionId) {
     return null;
@@ -151,9 +127,9 @@ export function TranscriptView() {
                 </Tooltip>
               </TooltipProvider>
             )}
-            {hasTranscript && ongoingSession.isInactive && !isOnboarding.data && (
+            {hasTranscript && ongoingSession.isInactive && isOnboarding.data && (
               <Button variant="ghost" size="icon" className="p-0" onClick={handleClickToggleEditing}>
-                {editing.data
+                {editing
                   ? <CheckIcon size={16} className="text-black" />
                   : <PencilIcon size={16} className="text-black" />}
               </Button>
@@ -163,9 +139,18 @@ export function TranscriptView() {
       </div>
 
       <div className="flex-1 overflow-hidden">
-        {showEmptyMessage
+        {editing
+          ? (
+            <TranscriptEditor
+              editable={true}
+              initialContent={fromWordsToEditor(words)}
+              speakers={[]}
+              ref={editorRef}
+            />
+          )
+          : showEmptyMessage
           ? <RenderEmpty sessionId={sessionId} />
-          : <RenderContent words={words} isLive={isLive} ref={transcriptContainerRef} />}
+          : <RenderContent words={words} isLive={isLive} containerRef={transcriptContainerRef} />}
       </div>
     </div>
   );
@@ -221,14 +206,14 @@ function RenderEmpty({ sessionId }: { sessionId: string }) {
   );
 }
 
-function RenderContent({ words, isLive, ref }: {
+function RenderContent({ words, isLive, containerRef }: {
   isLive: boolean;
   words: Word[];
-  ref: RefObject<HTMLDivElement>;
+  containerRef: RefObject<HTMLDivElement>;
 }) {
   return (
     <div
-      ref={ref}
+      ref={containerRef}
       className="h-full scrollbar-none px-4 flex flex-col gap-2 overflow-y-auto text-sm py-4"
     >
       <p className="whitespace-pre-wrap">
@@ -247,3 +232,115 @@ function RenderContent({ words, isLive, ref }: {
     </div>
   );
 }
+
+type EditorContent = {
+  type: "doc";
+  content: SpeakerContent[];
+};
+
+type SpeakerContent = {
+  type: "speaker";
+  attrs: { "speaker-index": number | null; "speaker-id": string | null; "speaker-label": string | null };
+  content: WordContent[];
+};
+
+type WordContent = {
+  type: "word";
+  content: { type: "text"; text: string }[];
+  attrs?: {
+    start_ms?: number | null;
+    end_ms?: number | null;
+    confidence?: number | null;
+  };
+};
+
+const fromWordsToEditor = (words: Word[]): EditorContent => {
+  return {
+    type: "doc",
+    content: words.reduce<{ cur: SpeakerIdentity | null; acc: SpeakerContent[] }>((state, word) => {
+      const isFirst = state.acc.length === 0;
+
+      const isSameSpeaker = (!state.cur && !word.speaker)
+        || (state.cur?.type === "unassigned" && word.speaker?.type === "unassigned"
+          && state.cur.value.index === word.speaker.value.index)
+        || (state.cur?.type === "assigned" && word.speaker?.type === "assigned"
+          && state.cur.value.id === word.speaker.value.id);
+
+      if (isFirst || !isSameSpeaker) {
+        state.cur = word.speaker;
+
+        state.acc.push({
+          type: "speaker",
+          attrs: {
+            "speaker-index": word.speaker?.type === "unassigned" ? word.speaker.value?.index : null,
+            "speaker-id": word.speaker?.type === "assigned" ? word.speaker.value?.id : null,
+            "speaker-label": word.speaker?.type === "assigned" ? word.speaker.value?.label || "" : null,
+          },
+          content: [],
+        });
+      }
+
+      if (state.acc.length > 0) {
+        state.acc[state.acc.length - 1].content.push({
+          type: "word",
+          content: [{ type: "text", text: word.text }],
+          attrs: {
+            confidence: word.confidence ?? null,
+            start_ms: word.start_ms ?? null,
+            end_ms: word.end_ms ?? null,
+          },
+        });
+      }
+
+      return state;
+    }, { cur: null, acc: [] }).acc,
+  };
+};
+
+const fromEditorToWords = (content: EditorContent): Word[] => {
+  if (!content?.content) {
+    return [];
+  }
+
+  const words: Word[] = [];
+
+  for (const speakerBlock of content.content) {
+    if (speakerBlock.type !== "speaker" || !speakerBlock.content) {
+      continue;
+    }
+
+    let speaker: SpeakerIdentity | null = null;
+    if (speakerBlock.attrs["speaker-id"]) {
+      speaker = {
+        type: "assigned",
+        value: {
+          id: speakerBlock.attrs["speaker-id"],
+          label: speakerBlock.attrs["speaker-label"] ?? "",
+        },
+      };
+    } else if (typeof speakerBlock.attrs["speaker-index"] === "number") {
+      speaker = {
+        type: "unassigned",
+        value: {
+          index: speakerBlock.attrs["speaker-index"],
+        },
+      };
+    }
+
+    for (const wordBlock of speakerBlock.content) {
+      if (wordBlock.type !== "word" || !wordBlock.content?.[0]?.text) {
+        continue;
+      }
+      const attrs = wordBlock.attrs || {};
+      words.push({
+        text: wordBlock.content[0].text,
+        speaker,
+        confidence: attrs.confidence ?? null,
+        start_ms: attrs.start_ms ?? null,
+        end_ms: attrs.end_ms ?? null,
+      });
+    }
+  }
+
+  return words;
+};

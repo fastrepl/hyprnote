@@ -3,7 +3,7 @@ import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { AudioLinesIcon, CheckIcon, ClipboardIcon, Copy, EarIcon, PencilIcon, UploadIcon } from "lucide-react";
 import { Fragment, type RefObject, useEffect, useRef, useState } from "react";
 
-import { commands as dbCommands, SpeakerIdentity, type Word } from "@hypr/plugin-db";
+import { commands as dbCommands, type Word } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import TranscriptEditor from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -54,6 +54,29 @@ export function TranscriptView() {
 
   const handleClickToggleEditing = () => {
     setEditing(!editing);
+
+    if (!editing) {
+      if (editorRef.current) {
+        // @ts-expect-error
+        const words = editorRef.current.getWords();
+        console.log(words);
+
+        if (words && sessionId) {
+          dbCommands.getSession({ id: sessionId! }).then((session) => {
+            if (session) {
+              dbCommands.upsertSession({
+                ...session,
+                words,
+              });
+            }
+          }).then(() => {
+            queryClient.invalidateQueries({
+              predicate: (query) => (query.queryKey[0] as string).includes("session"),
+            });
+          });
+        }
+      }
+    }
   };
 
   const handleOpenSession = () => {
@@ -127,7 +150,7 @@ export function TranscriptView() {
                 </Tooltip>
               </TooltipProvider>
             )}
-            {hasTranscript && ongoingSession.isInactive && isOnboarding.data && (
+            {hasTranscript && ongoingSession.isInactive && !isOnboarding.data && (
               <Button variant="ghost" size="icon" className="p-0" onClick={handleClickToggleEditing}>
                 {editing
                   ? <CheckIcon size={16} className="text-black" />
@@ -142,10 +165,10 @@ export function TranscriptView() {
         {editing
           ? (
             <TranscriptEditor
-              editable={true}
-              initialContent={fromWordsToEditor(words)}
-              speakers={[]}
               ref={editorRef}
+              editable={true}
+              initialWords={words}
+              speakers={[]}
             />
           )
           : showEmptyMessage
@@ -232,115 +255,3 @@ function RenderContent({ words, isLive, containerRef }: {
     </div>
   );
 }
-
-type EditorContent = {
-  type: "doc";
-  content: SpeakerContent[];
-};
-
-type SpeakerContent = {
-  type: "speaker";
-  attrs: { "speaker-index": number | null; "speaker-id": string | null; "speaker-label": string | null };
-  content: WordContent[];
-};
-
-type WordContent = {
-  type: "word";
-  content: { type: "text"; text: string }[];
-  attrs?: {
-    start_ms?: number | null;
-    end_ms?: number | null;
-    confidence?: number | null;
-  };
-};
-
-const fromWordsToEditor = (words: Word[]): EditorContent => {
-  return {
-    type: "doc",
-    content: words.reduce<{ cur: SpeakerIdentity | null; acc: SpeakerContent[] }>((state, word) => {
-      const isFirst = state.acc.length === 0;
-
-      const isSameSpeaker = (!state.cur && !word.speaker)
-        || (state.cur?.type === "unassigned" && word.speaker?.type === "unassigned"
-          && state.cur.value.index === word.speaker.value.index)
-        || (state.cur?.type === "assigned" && word.speaker?.type === "assigned"
-          && state.cur.value.id === word.speaker.value.id);
-
-      if (isFirst || !isSameSpeaker) {
-        state.cur = word.speaker;
-
-        state.acc.push({
-          type: "speaker",
-          attrs: {
-            "speaker-index": word.speaker?.type === "unassigned" ? word.speaker.value?.index : null,
-            "speaker-id": word.speaker?.type === "assigned" ? word.speaker.value?.id : null,
-            "speaker-label": word.speaker?.type === "assigned" ? word.speaker.value?.label || "" : null,
-          },
-          content: [],
-        });
-      }
-
-      if (state.acc.length > 0) {
-        state.acc[state.acc.length - 1].content.push({
-          type: "word",
-          content: [{ type: "text", text: word.text }],
-          attrs: {
-            confidence: word.confidence ?? null,
-            start_ms: word.start_ms ?? null,
-            end_ms: word.end_ms ?? null,
-          },
-        });
-      }
-
-      return state;
-    }, { cur: null, acc: [] }).acc,
-  };
-};
-
-const fromEditorToWords = (content: EditorContent): Word[] => {
-  if (!content?.content) {
-    return [];
-  }
-
-  const words: Word[] = [];
-
-  for (const speakerBlock of content.content) {
-    if (speakerBlock.type !== "speaker" || !speakerBlock.content) {
-      continue;
-    }
-
-    let speaker: SpeakerIdentity | null = null;
-    if (speakerBlock.attrs["speaker-id"]) {
-      speaker = {
-        type: "assigned",
-        value: {
-          id: speakerBlock.attrs["speaker-id"],
-          label: speakerBlock.attrs["speaker-label"] ?? "",
-        },
-      };
-    } else if (typeof speakerBlock.attrs["speaker-index"] === "number") {
-      speaker = {
-        type: "unassigned",
-        value: {
-          index: speakerBlock.attrs["speaker-index"],
-        },
-      };
-    }
-
-    for (const wordBlock of speakerBlock.content) {
-      if (wordBlock.type !== "word" || !wordBlock.content?.[0]?.text) {
-        continue;
-      }
-      const attrs = wordBlock.attrs || {};
-      words.push({
-        text: wordBlock.content[0].text,
-        speaker,
-        confidence: attrs.confidence ?? null,
-        start_ms: attrs.start_ms ?? null,
-        end_ms: attrs.end_ms ?? null,
-      });
-    }
-  }
-
-  return words;
-};

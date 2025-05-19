@@ -10,15 +10,19 @@ import { forwardRef, useEffect } from "react";
 
 import { SpeakerSplit, WordSplit } from "./extensions";
 import { createSpeakerNode, type Speaker, WordNode } from "./nodes";
+import { fromEditorToWords, fromWordsToEditor, type Word } from "./utils";
 
 interface TranscriptEditorProps {
   editable?: boolean;
-  initialContent: Record<string, unknown>;
+  initialWords?: Word[];
   speakers: Speaker[];
 }
 
-const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptEditorProps>(
-  ({ initialContent, editable = true, speakers }, ref) => {
+const TranscriptEditor = forwardRef<
+  { editor: TiptapEditor | null; getWords: () => Word[] | null },
+  TranscriptEditorProps
+>(
+  ({ initialWords, editable = true, speakers }, ref) => {
     const extensions = [
       Document.configure({ content: "speaker+" }),
       History,
@@ -45,7 +49,16 @@ const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptE
 
     useEffect(() => {
       if (ref && typeof ref === "object") {
-        ref.current = { editor };
+        (ref as any).current = {
+          editor,
+          getWords: () => {
+            if (!editor) {
+              return null;
+            }
+            // @ts-expect-error: tiptap types
+            return fromEditorToWords(editor.getJSON());
+          },
+        };
       }
     }, [editor]);
 
@@ -57,9 +70,9 @@ const TranscriptEditor = forwardRef<{ editor: TiptapEditor | null }, TranscriptE
 
     useEffect(() => {
       if (editor) {
-        editor.commands.setContent(initialContent);
+        editor.commands.setContent(fromWordsToEditor(initialWords ?? []));
       }
-    }, [editor, initialContent]);
+    }, [editor, initialWords]);
 
     return (
       <div role="textbox" className="h-full flex flex-col overflow-hidden">

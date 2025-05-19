@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@floating-ui/dom": "^1.7.0",
+    "@hypr/plugin-db": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@remixicon/react": "^4.6.0",
     "@sereneinserenade/tiptap-search-and-replace": "^0.1.1",

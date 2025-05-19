@@ -3,7 +3,7 @@ import { type as getOsType } from "@tauri-apps/plugin-os";
 
 import { LeftSidebarButton } from "@/components/toolbar/buttons/left-sidebar-button";
 import { cn } from "@hypr/ui/lib/utils";
-import { CalendarButton } from "./calendar-button";
+import { FinderButton } from "./finder-button";
 import { SettingsButton } from "./settings-button";
 
 export function TopArea() {
@@ -22,9 +22,7 @@ export function TopArea() {
       )}
     >
       <SettingsButton />
-
-      <CalendarButton />
-
+      <FinderButton />
       <LeftSidebarButton type="sidebar" />
     </div>
   );

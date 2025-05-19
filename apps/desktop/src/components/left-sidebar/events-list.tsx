@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { LinkProps, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { clsx } from "clsx";
 import { format } from "date-fns";
 import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, RefreshCwIcon } from "lucide-react";
@@ -128,14 +128,11 @@ function EventItem({
 
   const handleOpenCalendar = () => {
     const date = new Date(event.start_date);
+    const formattedDate = format(date, "yyyy-MM-dd");
 
-    const params = {
-      to: "/app/calendar",
-      search: { date: format(date, "yyyy-MM-dd") },
-    } as const satisfies LinkProps;
-
-    const url = `${params.to}?date=${params.search.date}`;
-    safeNavigate({ type: "calendar" }, url);
+    // Use string URL construction to avoid TypeScript errors with route definitions
+    const url = `/app/finder?view=calendar&date=${formattedDate}`;
+    safeNavigate({ type: "finder" }, url);
   };
 
   const isActive = activeSessionId

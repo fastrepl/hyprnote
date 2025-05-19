@@ -1,7 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type LinkProps, useMatch, useNavigate } from "@tanstack/react-router";
+import { useMatch, useNavigate } from "@tanstack/react-router";
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { endOfMonth, startOfMonth, subMonths } from "date-fns";
 import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, TrashIcon } from "lucide-react";
@@ -222,14 +222,12 @@ function NoteItem({
   };
 
   const handleOpenCalendar = () => {
-    const params = {
-      to: "/app/calendar",
-      search: { date: format(currentSession.created_at, "yyyy-MM-dd") },
-    } as const satisfies LinkProps;
+    const formattedDate = format(currentSession.created_at, "yyyy-MM-dd");
 
-    const url = `${params.to}?date=${params.search.date}`;
+    // Use string URL construction to avoid TypeScript errors with route definitions
+    const url = `/app/finder?view=calendar&date=${formattedDate}`;
 
-    safeNavigate({ type: "calendar" }, url);
+    safeNavigate({ type: "finder" }, url);
   };
 
   const buttonRef = useRef<HTMLButtonElement>(null);

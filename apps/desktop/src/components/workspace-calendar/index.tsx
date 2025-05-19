@@ -28,7 +28,7 @@ export default function WorkspaceCalendar({
   const calendarRef = useRef<HTMLDivElement>(null);
 
   const [currentMonth, setCurrentMonth] = useState(month);
-  const [cellHeight, setCellHeight] = useState<number>(75);
+  const [cellHeight, setCellHeight] = useState<number>(68.5);
   const [visibleEvents, setVisibleEvents] = useState<number>(2);
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function WorkspaceCalendar({
     const observer = new ResizeObserver((entries) => {
       entries.forEach((entry) => {
         const height = entry.contentRect.height;
-        if (height > 75 * 6) {
+        if (height > 68.5 * 6) {
           updateCellHeight(height);
         }
       });
@@ -59,7 +59,7 @@ export default function WorkspaceCalendar({
 
     if (calendarRef.current) {
       observer.observe(calendarRef.current);
-      updateCellHeight(75 * 6);
+      updateCellHeight(68.5 * 6);
     }
 
     return () => observer.disconnect();
@@ -234,7 +234,7 @@ export default function WorkspaceCalendar({
                         </div>
                       </PopoverTrigger>
                       <PopoverContent
-                        className="w-80 p-4 max-h-52 space-y-1 overflow-y-auto bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0"
+                        className="w-80 p-4 max-h-52 space-y-1 overflow-y-auto bg-white border-neutral-200 m-2 shadow-lg"
                         align="start"
                       >
                         <div className="text-lg font-semibold text-neutral-800">

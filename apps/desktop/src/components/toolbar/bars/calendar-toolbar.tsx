@@ -18,8 +18,8 @@ export function CalendarToolbar({ date }: CalendarToolbarProps) {
   const handlePreviousMonth = () => {
     const prevMonth = subMonths(date, 1);
     navigate({
-      to: "/app/calendar",
-      search: { date: prevMonth.toISOString() },
+      to: "/app/finder",
+      search: { view: "calendar", date: prevMonth.toISOString() },
       replace: true,
     });
   };
@@ -27,16 +27,16 @@ export function CalendarToolbar({ date }: CalendarToolbarProps) {
   const handleNextMonth = () => {
     const nextMonth = addMonths(date, 1);
     navigate({
-      to: "/app/calendar",
-      search: { date: nextMonth.toISOString() },
+      to: "/app/finder",
+      search: { view: "calendar", date: nextMonth.toISOString() },
       replace: true,
     });
   };
 
   const handleToday = () => {
     navigate({
-      to: "/app/calendar",
-      search: { date: today.toISOString() },
+      to: "/app/finder",
+      search: { view: "calendar", date: today.toISOString() },
       replace: true,
     });
   };

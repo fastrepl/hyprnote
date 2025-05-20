@@ -8,7 +8,7 @@ import { useMemo } from "react";
 import React, { useState } from "react";
 
 import { useHypr } from "@/contexts/hypr";
-import { commands as dbCommands, type Human } from "@hypr/plugin-db";
+import { commands as dbCommands, type Human, Organization } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
@@ -20,7 +20,7 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
   const { userId } = useHypr();
 
   const { data: participants = [] } = useQuery({
-    queryKey: ["participants", "grouped-and-sorted", sessionId],
+    queryKey: ["participants", sessionId],
     queryFn: async () => {
       const participants = await dbCommands.sessionListParticipants(sessionId);
       const orgs = await Promise.all(
@@ -37,7 +37,7 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
       }, {} as Record<string, Human[]>);
 
       return Object.entries(grouped).map(([orgId, participants]) => ({
-        organization: orgs.find((o) => o.id === orgId),
+        organization: orgs.find((o) => o.id === orgId) ?? null,
         participants,
       })).sort((a, b) => {
         if (!a.organization && b.organization) {
@@ -51,21 +51,13 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
     },
   });
 
-  const count = participants.length;
+  const count = participants.reduce((acc, group) => acc + (group.participants?.length ?? 0), 0);
   const buttonText = useMemo(() => {
-    if (participants.length === 0) {
+    if (count === 0) {
       return "Add participants";
     }
 
-    const firstGroupWithPeople = participants.find(group => group.participants.length > 0);
-    if (!firstGroupWithPeople) {
-      return "Add participants";
-    }
-
-    const previewHuman = firstGroupWithPeople.participants[0];
-    if (!previewHuman) {
-      return "Add participants";
-    }
+    const previewHuman = participants.find((group) => group.participants.length > 0)?.participants[0]!;
     if (previewHuman.id === userId && !previewHuman.full_name) {
       return "You";
     }
@@ -83,77 +75,36 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
       </PopoverTrigger>
 
       <PopoverContent className="shadow-lg w-80" align="start">
-        <ParticipantsList sessionId={sessionId} participants={participants.flatMap(group => group.participants)} />
+        {!participants.length
+          ? <ParticipantAddControl sessionId={sessionId} />
+          : (
+            <div className="flex flex-col gap-3">
+              <div className="text-sm font-medium text-neutral-700">Participants</div>
+              <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
+                {participants.map(({ organization, participants }) => (
+                  <OrganizationWithParticipants
+                    key={organization?.id ?? "no-organization"}
+                    organization={organization}
+                    members={participants}
+                    sessionId={sessionId}
+                  />
+                ))}
+              </div>
+              <ParticipantAddControl sessionId={sessionId} />
+            </div>
+          )}
       </PopoverContent>
     </Popover>
   );
 }
 
-function ParticipantsList(
-  { sessionId, participants }: { sessionId: string; participants: Human[] },
-) {
-  const grouped = useMemo(() => {
-    if (!participants?.length) {
-      return [];
-    }
-    const ret: Record<string, Human[]> = {};
-
-    participants.forEach((p) => {
-      const group = p.organization_id ?? NO_ORGANIZATION_ID;
-      ret[group] = [...(ret[group] || []), p];
-    });
-
-    Object.values(ret).forEach((members) =>
-      members.sort((a, b) => (a.full_name ?? "").localeCompare(b.full_name ?? ""))
-    );
-
-    return Object.entries(ret).sort(
-      ([, a], [, b]) => b.length - a.length,
-    );
-  }, [participants]);
-
-  if (!grouped.length) {
-    return <ParticipantAddControl sessionId={sessionId} />;
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="text-sm font-medium text-neutral-700">Participants</div>
-
-      <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
-        {grouped.map(([orgId, members]) => (
-          <OrganizationWithParticipants
-            key={orgId}
-            orgId={orgId}
-            members={members}
-            sessionId={sessionId}
-          />
-        ))}
-      </div>
-
-      <ParticipantAddControl sessionId={sessionId} />
-    </div>
-  );
-}
-
 function OrganizationWithParticipants(
-  { orgId, members, sessionId }: { orgId: string; members: Human[]; sessionId: string },
+  { organization, members, sessionId }: { organization: Organization | null; members: Human[]; sessionId: string },
 ) {
-  const organization = useQuery({
-    queryKey: ["org", orgId],
-    queryFn: () => {
-      if (orgId === NO_ORGANIZATION_ID) {
-        return null;
-      }
-
-      return dbCommands.getOrganization(orgId);
-    },
-  });
-
   return (
     <div className="flex flex-col gap-1.5">
       <div className="text-xs font-medium text-neutral-400 truncate">
-        {organization.data?.name ?? "No organization"}
+        {organization?.name ?? "No organization"}
       </div>
       <div className="flex flex-col rounded-md overflow-hidden bg-neutral-50 border border-neutral-100">
         {members.map((member, index) => (

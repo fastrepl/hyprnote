@@ -14,6 +14,10 @@ export const SpeakerNode = Node.create({
   content: "word*",
   addAttributes() {
     return {
+      speakerIndex: {
+        parseHTML: element => element.getAttribute("data-speaker-index"),
+        renderHTML: attributes => ({ "data-speaker-index": attributes.speakerIndex }),
+      },
       speakerId: {
         parseHTML: element => element.getAttribute("data-speaker-id"),
         renderHTML: attributes => ({ "data-speaker-id": attributes.speakerId }),
@@ -21,13 +25,19 @@ export const SpeakerNode = Node.create({
     };
   },
   parseHTML() {
-    return [{ tag: "div.transcript-speaker" }];
+    return [{
+      tag: "div.transcript-speaker",
+      attrs: { "data-speaker-index": 0, "data-speaker-id": "" },
+    }];
   },
   renderHTML({ HTMLAttributes, node }) {
     return [
       "div",
-      mergeAttributes({ class: "transcript-speaker" }, HTMLAttributes),
-      ["div", { class: "transcript-speaker-id" }, node.attrs.speakerId ?? ""],
+      mergeAttributes({
+        class: "transcript-speaker",
+        "data-speaker-index": node.attrs.speakerIndex,
+        "data-speaker-id": node.attrs.speakerId,
+      }, HTMLAttributes),
     ];
   },
   addNodeView() {

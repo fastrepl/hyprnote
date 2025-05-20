@@ -161,17 +161,25 @@ export function TranscriptView() {
       </div>
 
       <div className="flex-1 overflow-hidden">
-        {editing
+        <TranscriptEditor
+          ref={editorRef}
+          editable={editing}
+          initialWords={words}
+        />
+
+        {
+          /* {editing
           ? (
             <TranscriptEditor
               ref={editorRef}
-              editable={true}
+              editable={editing}
               initialWords={words}
             />
           )
           : showEmptyMessage
           ? <RenderEmpty sessionId={sessionId} />
-          : <RenderContent words={words} isLive={isLive} containerRef={transcriptContainerRef} />}
+          : <RenderContent words={words} isLive={isLive} containerRef={transcriptContainerRef} />} */
+        }
       </div>
     </div>
   );

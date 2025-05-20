@@ -10,8 +10,12 @@ type EditorContent = {
 
 type SpeakerContent = {
   type: "speaker";
-  attrs: { "speaker-index": number | null; "speaker-id": string | null; "speaker-label": string | null };
   content: WordContent[];
+  attrs: {
+    "speaker-index": number | null;
+    "speaker-id": string | null;
+    "speaker-label": string | null;
+  };
 };
 
 type WordContent = {

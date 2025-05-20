@@ -1,29 +1,43 @@
 import { useQuery } from "@tanstack/react-query";
+import { useMatch } from "@tanstack/react-router";
 import { NodeViewContent, type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 
 import { commands as dbCommands, Human } from "@hypr/plugin-db";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 
 export const SpeakerView = ({ node, updateAttributes }: NodeViewProps) => {
+  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
+  const sessionId = noteMatch?.params.id;
+
   const { data: participants } = useQuery({
-    queryKey: ["participants", "22393beb-8acf-4577-b210-7211e1700d66"],
-    queryFn: () => dbCommands.sessionListParticipants("22393beb-8acf-4577-b210-7211e1700d66"),
+    enabled: !!sessionId,
+    queryKey: ["participants", sessionId!],
+    queryFn: () => dbCommands.sessionListParticipants(sessionId!),
   });
 
-  const { speakerId } = node.attrs as { speakerId: string };
+  const speakerId = node.attrs?.speakerId;
+  const speakerIndex = node.attrs?.speakerIndex;
 
-  const displayName = (participants ?? []).find((s) => s.id === speakerId)?.full_name ?? "NOT FOUND";
+  const displayName = (participants ?? []).find((s) => s.id === speakerId)?.full_name ?? undefined;
 
   const handleChange = (speakerId: string) => {
     updateAttributes({ speakerId });
   };
 
+  if (!sessionId) {
+    return (
+      <NodeViewWrapper>
+        <p>No session ID</p>
+      </NodeViewWrapper>
+    );
+  }
+
   return (
-    <NodeViewWrapper className="transcript-speaker">
+    <NodeViewWrapper>
       <div style={{ width: "130px", padding: "8px" }}>
         <Select value={speakerId} onValueChange={handleChange}>
-          <SelectTrigger className="transcript-speaker-select" data-speaker-id={speakerId}>
-            <SelectValue placeholder="Select speaker">{displayName}</SelectValue>
+          <SelectTrigger>
+            <SelectValue placeholder={`Speaker ${speakerIndex}`}>{displayName}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {(participants ?? []).map((speaker: Human) => (

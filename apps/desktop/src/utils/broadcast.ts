@@ -42,19 +42,19 @@ export function broadcastQueryClient(queryClient: QueryClient) {
       const keys = event.payload.queryKey as string[];
 
       if (keys.some((key) => key?.includes("extension"))) {
-        queryClient.refetchQueries({
+        queryClient.invalidateQueries({
           predicate: (query) => query.queryKey.some((key) => typeof key === "string" && key.includes("extension")),
         });
       }
 
       if (keys.some((key) => key?.includes("flags"))) {
-        queryClient.refetchQueries({
+        queryClient.invalidateQueries({
           predicate: (query) => query.queryKey.some((key) => typeof key === "string" && key.includes("flags")),
         });
       }
 
       if (keys.some((key) => key?.includes("profile"))) {
-        queryClient.refetchQueries({
+        queryClient.invalidateQueries({
           predicate: (query) =>
             query.queryKey.some((key) =>
               typeof key === "string" && (key.includes("participant") || key.includes("human") || key.includes("org"))
@@ -63,7 +63,7 @@ export function broadcastQueryClient(queryClient: QueryClient) {
       }
 
       if (keys[0] === "human") {
-        queryClient.refetchQueries({
+        queryClient.invalidateQueries({
           queryKey: ["human", keys[1]],
           predicate: (query) =>
             query.queryKey.some((key) => typeof key === "string" && key.includes("grouped-participants")),

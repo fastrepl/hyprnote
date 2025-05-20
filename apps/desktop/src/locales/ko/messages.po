@@ -311,7 +311,7 @@ msgstr ""
 msgid "Add members"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:346
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:341
 msgid "Add participant"
 msgstr ""
 
@@ -452,15 +452,15 @@ msgid "Connect your calendar and track events"
 msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:397
-msgid "Consent settings"
-msgstr ""
+#~ msgid "Consent settings"
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:109
 msgid "Contacts Access"
 msgstr ""
 
 #: src/routes/app.human.$id.tsx:532
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:434
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:429
 msgid "Create"
 msgstr ""
 
@@ -498,7 +498,7 @@ msgstr ""
 msgid "Describe the content and purpose of this section"
 msgstr ""
 
-#: src/components/settings/views/feedback.tsx:75
+#: src/components/settings/views/feedback.tsx:78
 msgid "Describe the issue"
 msgstr ""
 
@@ -519,7 +519,7 @@ msgstr ""
 msgid "Duplicate"
 msgstr ""
 
-#: src/components/settings/views/feedback.tsx:88
+#: src/components/settings/views/feedback.tsx:91
 msgid "Email (Optional)"
 msgstr ""
 
@@ -613,7 +613,7 @@ msgstr ""
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr ""
 
-#: src/components/settings/views/feedback.tsx:49
+#: src/components/settings/views/feedback.tsx:52
 msgid "Help us improve the Hyprnote experience by providing feedback."
 msgstr ""
 
@@ -821,7 +821,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:409
+#: src/components/editor-area/note-header/listen-button.tsx:394
 msgid "Pause"
 msgstr ""
 
@@ -862,7 +862,7 @@ msgid "Recording Started"
 msgstr ""
 
 #. placeholder {0}: member.full_name
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:227
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:222
 msgid "Remove {0} from list"
 msgstr ""
 
@@ -960,11 +960,11 @@ msgstr ""
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:417
+#: src/components/editor-area/note-header/listen-button.tsx:402
 msgid "Stop"
 msgstr ""
 
-#: src/components/settings/views/feedback.tsx:104
+#: src/components/settings/views/feedback.tsx:107
 msgid "Submit Feedback"
 msgstr ""
 
@@ -1094,7 +1094,7 @@ msgstr ""
 msgid "We think different."
 msgstr ""
 
-#: src/components/settings/views/feedback.tsx:99
+#: src/components/settings/views/feedback.tsx:102
 msgid "We'll only use this to follow up if needed."
 msgstr ""
 

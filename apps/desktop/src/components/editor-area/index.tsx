@@ -226,6 +226,14 @@ export function useEnhanceMutation({
         ? provider.languageModel("onboardingModel")
         : provider.languageModel("defaultModel");
 
+      if (sessionId !== onboardingSessionId) {
+        analyticsCommands.event({
+          event: "normal_enhance_start",
+          distinct_id: userId,
+          session_id: sessionId,
+        });
+      }
+
       const { text, textStream } = streamText({
         abortSignal,
         model,

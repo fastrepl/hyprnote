@@ -22,6 +22,7 @@ import {
 import { commands } from "@/types";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { events as windowsEvents, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
 import { OngoingSessionProvider, SessionsProvider } from "@hypr/utils/contexts";
 
 export const Route = createFileRoute("/app")({
@@ -53,16 +54,22 @@ function Component() {
                     <NewNoteProvider>
                       <SearchProvider>
                         <EditModeProvider>
-                          <div className="relative flex h-screen w-screen overflow-hidden">
+                          <div className="flex h-screen w-screen overflow-hidden">
                             <LeftSidebar />
                             <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
                               <Toolbar />
-                              <div className="flex-1 relative overflow-hidden flex">
-                                <div className="flex-1 overflow-hidden">
+
+                              <ResizablePanelGroup
+                                direction="horizontal"
+                                className="flex-1 overflow-hidden flex"
+                                autoSaveId="main"
+                              >
+                                <ResizablePanel className="flex-1 overflow-hidden">
                                   <Outlet />
-                                </div>
+                                </ResizablePanel>
+                                <ResizableHandle className="w-0" />
                                 <RightPanel />
-                              </div>
+                              </ResizablePanelGroup>
                             </div>
                           </div>
                           <LoginModal

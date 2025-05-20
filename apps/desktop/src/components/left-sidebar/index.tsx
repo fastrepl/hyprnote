@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { addDays, subHours } from "date-fns";
-import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { AnimatePresence, LayoutGroup } from "motion/react";
 
 import { useHypr, useHyprSearch, useLeftSidebar } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -81,14 +81,12 @@ export default function LeftSidebar() {
     return null;
   }
 
+  if (!isExpanded) {
+    return null;
+  }
+
   return (
-    <motion.nav
-      layout
-      initial={{ width: isExpanded ? 240 : 0, opacity: isExpanded ? 1 : 0 }}
-      animate={{ width: isExpanded ? 240 : 0, opacity: isExpanded ? 1 : 0 }}
-      transition={{ duration: 0.1 }}
-      className="h-full flex flex-col overflow-hidden border-r bg-neutral-50"
-    >
+    <nav className="h-full flex flex-col overflow-hidden border-r bg-neutral-50 w-60">
       <TopArea />
 
       {inMeetingAndNotInNote && <OngoingSession sessionId={ongoingSessionId} />}
@@ -128,6 +126,6 @@ export default function LeftSidebar() {
             </AnimatePresence>
           </LayoutGroup>
         )}
-    </motion.nav>
+    </nav>
   );
 }

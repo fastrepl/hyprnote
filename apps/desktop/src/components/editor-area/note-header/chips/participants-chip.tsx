@@ -12,7 +12,6 @@ import { commands as dbCommands, type Human } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { getInitials } from "@hypr/utils";
 
 const NO_ORGANIZATION_ID = "__NO_ORGANIZATION__";
@@ -192,36 +191,29 @@ function ParticipentItem({
               </AvatarFallback>
             </Avatar>
           </div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRemoveParticipant(member.id);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleRemoveParticipant(member.id);
-                  }
-                }}
-                className={clsx([
-                  "flex items-center justify-center",
-                  "text-red-400 hover:text-red-600",
-                  "absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
-                  "bg-white shadow-sm",
-                ])}
-              >
-                <CircleMinus className="size-4" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={10}>
-              <Trans>Remove {member.full_name} from list</Trans>
-            </TooltipContent>
-          </Tooltip>
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRemoveParticipant(member.id);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                e.stopPropagation();
+                handleRemoveParticipant(member.id);
+              }
+            }}
+            className={clsx([
+              "flex items-center justify-center",
+              "text-red-400 hover:text-red-600",
+              "absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+              "bg-white shadow-sm",
+            ])}
+          >
+            <CircleMinus className="size-4" />
+          </div>
         </div>
         <div className="flex flex-col min-w-0 flex-1">
           {member.full_name

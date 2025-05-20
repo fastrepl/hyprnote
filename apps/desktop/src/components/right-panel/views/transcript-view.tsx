@@ -29,9 +29,7 @@ export function TranscriptView() {
 
   const handleCopyAll = () => {
     if (words && words.length > 0) {
-      const transcriptText = words
-        .map((item) => item.text.replace(/\.{3,}/g, "")) // Remove ellipses (...)
-        .join(" ");
+      const transcriptText = words.map((word) => word.text).join(" ");
       writeText(transcriptText);
     }
   };

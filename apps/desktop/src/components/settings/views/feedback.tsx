@@ -37,6 +37,9 @@ export default function Feedback() {
           type: selectedType,
         },
       });
+
+      setDescription("");
+      setEmail("");
     });
   };
 

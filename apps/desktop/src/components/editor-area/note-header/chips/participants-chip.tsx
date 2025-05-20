@@ -17,8 +17,10 @@ import { getInitials } from "@hypr/utils";
 
 const NO_ORGANIZATION_ID = "__NO_ORGANIZATION__";
 
-function useParticipants(sessionId: string) {
-  return useQuery({
+export function ParticipantsChip({ sessionId }: { sessionId: string }) {
+  const { userId } = useHypr();
+
+  const { data: participants = [] } = useQuery({
     queryKey: ["participants", sessionId],
     queryFn: async () => {
       const participants = await dbCommands.sessionListParticipants(sessionId);
@@ -34,13 +36,6 @@ function useParticipants(sessionId: string) {
       });
     },
   });
-}
-
-export function ParticipantsChip({ sessionId }: { sessionId: string }) {
-  const { userId } = useHypr();
-
-  const participantsQuery = useParticipants(sessionId);
-  const participants = participantsQuery.data ?? [];
 
   const count = participants.length;
   const buttonText = useMemo(() => {

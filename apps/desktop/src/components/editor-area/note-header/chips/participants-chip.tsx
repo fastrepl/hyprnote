@@ -2,13 +2,11 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { RiCornerDownLeftLine, RiLinkedinBoxFill } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { clsx } from "clsx";
-import { Users2Icon } from "lucide-react";
-import { CircleMinus, MailIcon, SearchIcon } from "lucide-react";
-import { useMemo } from "react";
-import React, { useState } from "react";
+import { CircleMinus, MailIcon, SearchIcon, Users2Icon } from "lucide-react";
+import React, { useMemo, useState } from "react";
 
 import { useHypr } from "@/contexts/hypr";
-import { commands as dbCommands, type Human, Organization } from "@hypr/plugin-db";
+import { commands as dbCommands, type Human } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
@@ -82,12 +80,21 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
               <div className="text-sm font-medium text-neutral-700">Participants</div>
               <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
                 {participants.map(({ organization, participants }) => (
-                  <OrganizationWithParticipants
-                    key={organization?.id ?? "no-organization"}
-                    organization={organization}
-                    members={participants}
-                    sessionId={sessionId}
-                  />
+                  <div className="flex flex-col gap-1.5">
+                    <div className="text-xs font-medium text-neutral-400 truncate">
+                      {organization?.name ?? "No organization"}
+                    </div>
+                    <div className="flex flex-col rounded-md overflow-hidden bg-neutral-50 border border-neutral-100">
+                      {participants.map((member, index) => (
+                        <ParticipentItem
+                          key={member.id}
+                          member={member}
+                          sessionId={sessionId}
+                          isLast={index === participants.length - 1}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
               <ParticipantAddControl sessionId={sessionId} />
@@ -95,28 +102,6 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
           )}
       </PopoverContent>
     </Popover>
-  );
-}
-
-function OrganizationWithParticipants(
-  { organization, members, sessionId }: { organization: Organization | null; members: Human[]; sessionId: string },
-) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="text-xs font-medium text-neutral-400 truncate">
-        {organization?.name ?? "No organization"}
-      </div>
-      <div className="flex flex-col rounded-md overflow-hidden bg-neutral-50 border border-neutral-100">
-        {members.map((member, index) => (
-          <ParticipentItem
-            key={member.id}
-            member={member}
-            sessionId={sessionId}
-            isLast={index === members.length - 1}
-          />
-        ))}
-      </div>
-    </div>
   );
 }
 

@@ -498,7 +498,7 @@ msgstr "Delete"
 msgid "Describe the content and purpose of this section"
 msgstr "Describe the content and purpose of this section"
 
-#: src/components/settings/views/feedback.tsx:72
+#: src/components/settings/views/feedback.tsx:75
 msgid "Describe the issue"
 msgstr "Describe the issue"
 
@@ -519,7 +519,7 @@ msgstr "Download {0}"
 msgid "Duplicate"
 msgstr "Duplicate"
 
-#: src/components/settings/views/feedback.tsx:85
+#: src/components/settings/views/feedback.tsx:88
 msgid "Email (Optional)"
 msgstr "Email (Optional)"
 
@@ -613,7 +613,7 @@ msgstr "Grant Access"
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr "Help us improve Hyprnote by sharing anonymous usage data"
 
-#: src/components/settings/views/feedback.tsx:46
+#: src/components/settings/views/feedback.tsx:49
 msgid "Help us improve the Hyprnote experience by providing feedback."
 msgstr "Help us improve the Hyprnote experience by providing feedback."
 
@@ -964,7 +964,7 @@ msgstr "Start recording"
 msgid "Stop"
 msgstr "Stop"
 
-#: src/components/settings/views/feedback.tsx:101
+#: src/components/settings/views/feedback.tsx:104
 msgid "Submit Feedback"
 msgstr "Submit Feedback"
 
@@ -1094,7 +1094,7 @@ msgstr "View Note"
 msgid "We think different."
 msgstr "We think different."
 
-#: src/components/settings/views/feedback.tsx:96
+#: src/components/settings/views/feedback.tsx:99
 msgid "We'll only use this to follow up if needed."
 msgstr "We'll only use this to follow up if needed."
 

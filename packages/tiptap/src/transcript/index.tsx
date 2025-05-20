@@ -17,7 +17,6 @@ export { SpeakerViewInnerProps };
 
 interface TranscriptEditorProps {
   editable?: boolean;
-  initialWords?: Word[];
   c: SpeakerViewInnerComponent;
 }
 
@@ -25,7 +24,7 @@ const TranscriptEditor = forwardRef<
   { editor: TiptapEditor | null; getWords: () => Word[] | null },
   TranscriptEditorProps
 >(
-  ({ initialWords, editable = true, c }, ref) => {
+  ({ editable = true, c }, ref) => {
     const extensions = [
       Document.configure({ content: "speaker+" }),
       History,
@@ -54,11 +53,17 @@ const TranscriptEditor = forwardRef<
       if (ref && typeof ref === "object") {
         (ref as any).current = {
           editor,
+          setWords: (words: Word[]) => {
+            if (!editor) {
+              return;
+            }
+            editor.commands.setContent(fromWordsToEditor(words));
+          },
           getWords: () => {
             if (!editor) {
               return null;
             }
-            // @ts-expect-error: tiptap types
+            // @ts-ignore
             return fromEditorToWords(editor.getJSON());
           },
         };
@@ -70,12 +75,6 @@ const TranscriptEditor = forwardRef<
         editor.setEditable(editable);
       }
     }, [editor, editable]);
-
-    useEffect(() => {
-      if (editor) {
-        editor.commands.setContent(fromWordsToEditor(initialWords ?? []));
-      }
-    }, [editor, initialWords]);
 
     return (
       <div role="textbox" className="h-full flex flex-col overflow-hidden">

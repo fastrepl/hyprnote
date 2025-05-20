@@ -80,7 +80,7 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
               <div className="text-sm font-medium text-neutral-700">Participants</div>
               <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
                 {participants.map(({ organization, participants }) => (
-                  <div className="flex flex-col gap-1.5">
+                  <div key={organization?.id ?? NO_ORGANIZATION_ID} className="flex flex-col gap-1.5">
                     <div className="text-xs font-medium text-neutral-400 truncate">
                       {organization?.name ?? "No organization"}
                     </div>

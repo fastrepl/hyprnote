@@ -8,13 +8,17 @@ type EditorContent = {
   content: SpeakerContent[];
 };
 
+const SPEAKER_ID_ATTR = "speaker-id";
+const SPEAKER_INDEX_ATTR = "speaker-index";
+const SPEAKER_LABEL_ATTR = "speaker-label";
+
 type SpeakerContent = {
   type: "speaker";
   content: WordContent[];
   attrs: {
-    "speaker-index": number | null;
-    "speaker-id": string | null;
-    "speaker-label": string | null;
+    [SPEAKER_INDEX_ATTR]: number | null;
+    [SPEAKER_ID_ATTR]: string | null;
+    [SPEAKER_LABEL_ATTR]: string | null;
   };
 };
 
@@ -46,9 +50,9 @@ export const fromWordsToEditor = (words: Word[]): EditorContent => {
         state.acc.push({
           type: "speaker",
           attrs: {
-            "speaker-index": word.speaker?.type === "unassigned" ? word.speaker.value?.index : null,
-            "speaker-id": word.speaker?.type === "assigned" ? word.speaker.value?.id : null,
-            "speaker-label": word.speaker?.type === "assigned" ? word.speaker.value?.label || "" : null,
+            [SPEAKER_INDEX_ATTR]: word.speaker?.type === "unassigned" ? word.speaker.value?.index : null,
+            [SPEAKER_ID_ATTR]: word.speaker?.type === "assigned" ? word.speaker.value?.id : null,
+            [SPEAKER_LABEL_ATTR]: word.speaker?.type === "assigned" ? word.speaker.value?.label || "" : null,
           },
           content: [],
         });
@@ -84,19 +88,19 @@ export const fromEditorToWords = (content: EditorContent): Word[] => {
     }
 
     let speaker: SpeakerIdentity | null = null;
-    if (speakerBlock.attrs["speaker-id"]) {
+    if (speakerBlock.attrs[SPEAKER_ID_ATTR]) {
       speaker = {
         type: "assigned",
         value: {
-          id: speakerBlock.attrs["speaker-id"],
-          label: speakerBlock.attrs["speaker-label"] ?? "",
+          id: speakerBlock.attrs[SPEAKER_ID_ATTR],
+          label: speakerBlock.attrs[SPEAKER_LABEL_ATTR] ?? "",
         },
       };
-    } else if (typeof speakerBlock.attrs["speaker-index"] === "number") {
+    } else if (typeof speakerBlock.attrs[SPEAKER_INDEX_ATTR] === "number") {
       speaker = {
         type: "unassigned",
         value: {
-          index: speakerBlock.attrs["speaker-index"],
+          index: speakerBlock.attrs[SPEAKER_INDEX_ATTR],
         },
       };
     }

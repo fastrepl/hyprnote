@@ -22,7 +22,7 @@ export const SpeakerSelector = ({ onSpeakerIdChange, speakerId, speakerIndex }: 
 
   return (
     <div style={{ width: "170px", padding: "8px" }}>
-      <select 
+      <select
         value={speakerId ?? ""}
         onChange={(e) => onSpeakerIdChange(e.target.value)}
         style={{ width: "100%", padding: "8px" }}

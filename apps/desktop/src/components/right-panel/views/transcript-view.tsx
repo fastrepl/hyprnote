@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { AudioLinesIcon, ClipboardIcon, Copy, UploadIcon } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import { SpeakerSelector } from "@/components/right-panel/views/exp";
 import { commands as miscCommands } from "@hypr/plugin-misc";
@@ -25,6 +25,13 @@ export function TranscriptView() {
   }));
   const { showEmptyMessage, hasTranscript } = useTranscriptWidget(sessionId);
   const { isLive, words } = useTranscript(sessionId);
+
+  useEffect(() => {
+    if (editorRef.current) {
+      // @ts-ignore
+      editorRef.current.setWords(words);
+    }
+  }, [words]);
 
   const handleCopyAll = () => {
     if (words && words.length > 0) {
@@ -113,7 +120,6 @@ export function TranscriptView() {
             <TranscriptEditor
               ref={editorRef}
               editable={ongoingSession.isInactive}
-              initialWords={words}
               c={SpeakerSelector}
             />
           )}

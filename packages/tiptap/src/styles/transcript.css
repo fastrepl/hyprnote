@@ -35,9 +35,9 @@
   position: relative;
   display: inline;
   border-radius: 3px;
-  cursor: pointer;
   background-color: transparent;
   transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  line-height: 1;
 }
 
 .transcript-word::after {
@@ -49,22 +49,14 @@
 }
 
 .transcript-word:hover {
-  background-color: #d9e8fb;
+  background-color: rgba(217, 232, 251, 0.7);
   box-shadow: 0 0 0 1px #b8d5fa;
 }
 
-.transcript-word[data-time] {
+.ProseMirror[contenteditable="false"] .transcript-word:hover {
   background-color: transparent;
-}
-
-.transcript-word[data-time]:hover {
-  background-color: #e6f0ff;
-  box-shadow: 0 0 0 1px #b8d5fa;
-}
-
-.transcript-word.selected {
-  background-color: #c0d8f9;
-  box-shadow: 0 0 0 1px #80b5f8;
+  box-shadow: none;
+  cursor: default;
 }
 
 .ProseMirror {

@@ -3,6 +3,7 @@ import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { AudioLinesIcon, ClipboardIcon, Copy, UploadIcon } from "lucide-react";
 import { useRef } from "react";
 
+import { SpeakerSelector } from "@/components/right-panel/views/exp";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import TranscriptEditor from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -113,6 +114,7 @@ export function TranscriptView() {
               ref={editorRef}
               editable={false}
               initialWords={words}
+              c={SpeakerSelector}
             />
           )}
       </div>

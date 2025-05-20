@@ -1,49 +1,51 @@
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 
-import { SpeakerView } from "./views";
+import { createSpeakerView, SpeakerViewInnerComponent } from "./views";
 
 export interface Speaker {
   id: string;
   name: string;
 }
 
-export const SpeakerNode = Node.create({
-  name: "speaker",
-  group: "block",
-  content: "word*",
-  addAttributes() {
-    return {
-      speakerIndex: {
-        parseHTML: element => element.getAttribute("data-speaker-index"),
-        renderHTML: attributes => ({ "data-speaker-index": attributes.speakerIndex }),
-      },
-      speakerId: {
-        parseHTML: element => element.getAttribute("data-speaker-id"),
-        renderHTML: attributes => ({ "data-speaker-id": attributes.speakerId }),
-      },
-    };
-  },
-  parseHTML() {
-    return [{
-      tag: "div.transcript-speaker",
-      attrs: { "data-speaker-index": 0, "data-speaker-id": "" },
-    }];
-  },
-  renderHTML({ HTMLAttributes, node }) {
-    return [
-      "div",
-      mergeAttributes({
-        class: "transcript-speaker",
-        "data-speaker-index": node.attrs.speakerIndex,
-        "data-speaker-id": node.attrs.speakerId,
-      }, HTMLAttributes),
-    ];
-  },
-  addNodeView() {
-    return ReactNodeViewRenderer(SpeakerView);
-  },
-});
+export const SpeakerNode = (c: SpeakerViewInnerComponent) => {
+  return Node.create({
+    name: "speaker",
+    group: "block",
+    content: "word*",
+    addAttributes() {
+      return {
+        speakerIndex: {
+          parseHTML: element => element.getAttribute("data-speaker-index"),
+          renderHTML: attributes => ({ "data-speaker-index": attributes.speakerIndex }),
+        },
+        speakerId: {
+          parseHTML: element => element.getAttribute("data-speaker-id"),
+          renderHTML: attributes => ({ "data-speaker-id": attributes.speakerId }),
+        },
+      };
+    },
+    parseHTML() {
+      return [{
+        tag: "div.transcript-speaker",
+        attrs: { "data-speaker-index": 0, "data-speaker-id": "" },
+      }];
+    },
+    renderHTML({ HTMLAttributes, node }) {
+      return [
+        "div",
+        mergeAttributes({
+          class: "transcript-speaker",
+          "data-speaker-index": node.attrs.speakerIndex,
+          "data-speaker-id": node.attrs.speakerId,
+        }, HTMLAttributes),
+      ];
+    },
+    addNodeView() {
+      return ReactNodeViewRenderer(createSpeakerView(c));
+    },
+  });
+};
 
 export const WordNode = Node.create({
   name: "word",

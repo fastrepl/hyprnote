@@ -1,57 +1,32 @@
-import { useQuery } from "@tanstack/react-query";
-import { useMatch } from "@tanstack/react-router";
 import { NodeViewContent, type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { type ComponentType } from "react";
 
-import { commands as dbCommands, Human } from "@hypr/plugin-db";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
+export const createSpeakerView = (Comp: SpeakerViewInnerComponent): ComponentType<NodeViewProps> => {
+  return ({ node, updateAttributes }: NodeViewProps) => {
+    const speakerId = node.attrs?.speakerId ?? null;
+    const speakerIndex = node.attrs?.speakerIndex ?? null;
 
-export const SpeakerView = ({ node, updateAttributes }: NodeViewProps) => {
-  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
-  const sessionId = noteMatch?.params.id;
+    const onSpeakerIdChange = (speakerId: string) => {
+      updateAttributes({ speakerId });
+    };
 
-  const { data: participants } = useQuery({
-    enabled: !!sessionId,
-    queryKey: ["participants", sessionId!],
-    queryFn: () => dbCommands.sessionListParticipants(sessionId!),
-  });
-
-  const speakerId = node.attrs?.speakerId;
-  const speakerIndex = node.attrs?.speakerIndex;
-
-  const displayName = (participants ?? []).find((s) => s.id === speakerId)?.full_name ?? undefined;
-
-  const handleChange = (speakerId: string) => {
-    updateAttributes({ speakerId });
-  };
-
-  if (!sessionId) {
     return (
       <NodeViewWrapper>
-        <p>No session ID</p>
+        <Comp
+          speakerId={speakerId}
+          speakerIndex={speakerIndex}
+          onSpeakerIdChange={onSpeakerIdChange}
+        />;
+        <NodeViewContent />
       </NodeViewWrapper>
     );
-  }
-
-  return (
-    <NodeViewWrapper>
-      <div style={{ width: "130px", padding: "8px" }}>
-        <Select value={speakerId} onValueChange={handleChange}>
-          <SelectTrigger>
-            <SelectValue placeholder={`Speaker ${speakerIndex}`}>{displayName}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {(participants ?? []).map((speaker: Human) => (
-              <SelectItem key={speaker.id} value={speaker.id}>
-                {speaker.full_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div style={{ padding: "8px" }}>
-        <NodeViewContent />
-      </div>
-    </NodeViewWrapper>
-  );
+  };
 };
+
+export type SpeakerViewInnerProps = {
+  speakerId: string | null;
+  speakerIndex: number | null;
+  onSpeakerIdChange: (speakerId: string) => void;
+};
+
+export type SpeakerViewInnerComponent = (props: SpeakerViewInnerProps) => JSX.Element;

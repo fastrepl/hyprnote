@@ -11,23 +11,27 @@ import { forwardRef, useEffect } from "react";
 import { SpeakerSplit, WordSplit } from "./extensions";
 import { SpeakerNode, WordNode } from "./nodes";
 import { fromEditorToWords, fromWordsToEditor, type Word } from "./utils";
+import type { SpeakerViewInnerComponent, SpeakerViewInnerProps } from "./views";
+
+export { SpeakerViewInnerProps };
 
 interface TranscriptEditorProps {
   editable?: boolean;
   initialWords?: Word[];
+  c: SpeakerViewInnerComponent;
 }
 
 const TranscriptEditor = forwardRef<
   { editor: TiptapEditor | null; getWords: () => Word[] | null },
   TranscriptEditorProps
 >(
-  ({ initialWords, editable = true }, ref) => {
+  ({ initialWords, editable = true, c }, ref) => {
     const extensions = [
       Document.configure({ content: "speaker+" }),
       History,
       Text,
       WordNode,
-      SpeakerNode,
+      SpeakerNode(c),
       WordSplit,
       SpeakerSplit,
       SearchAndReplace.configure({

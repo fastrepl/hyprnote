@@ -85,12 +85,12 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
                       {organization?.name ?? "No organization"}
                     </div>
                     <div className="flex flex-col rounded-md overflow-hidden bg-neutral-50 border border-neutral-100">
-                      {participants.map((member, index) => (
+                      {(participants ?? []).map((member, index) => (
                         <ParticipentItem
                           key={member.id}
                           member={member}
                           sessionId={sessionId}
-                          isLast={index === participants.length - 1}
+                          isLast={index === (participants ?? []).length - 1}
                         />
                       ))}
                     </div>

@@ -20,25 +20,49 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
   const { userId } = useHypr();
 
   const { data: participants = [] } = useQuery({
-    queryKey: ["participants", sessionId],
+    queryKey: ["participants", "grouped-and-sorted", sessionId],
     queryFn: async () => {
       const participants = await dbCommands.sessionListParticipants(sessionId);
+      const orgs = await Promise.all(
+        participants
+          .map((p) => p.organization_id)
+          .filter((id) => id !== null)
+          .map((id) => dbCommands.getOrganization(id)),
+      ).then((orgs) => orgs.filter((o) => o !== null));
 
-      return participants.sort((a, b) => {
-        if (a.is_user && !b.is_user) {
+      const grouped = participants.reduce((acc, participant) => {
+        const orgId = participant.organization_id ?? NO_ORGANIZATION_ID;
+        acc[orgId] = [...(acc[orgId] || []), participant];
+        return acc;
+      }, {} as Record<string, Human[]>);
+
+      return Object.entries(grouped).map(([orgId, participants]) => ({
+        organization: orgs.find((o) => o.id === orgId),
+        participants,
+      })).sort((a, b) => {
+        if (!a.organization && b.organization) {
           return 1;
         }
-        if (!a.is_user && b.is_user) {
+        if (a.organization && !b.organization) {
           return -1;
         }
-        return 0;
+        return (a.organization?.name || "").localeCompare(b.organization?.name || "");
       });
     },
   });
 
   const count = participants.length;
   const buttonText = useMemo(() => {
-    const previewHuman = participants.at(0);
+    if (participants.length === 0) {
+      return "Add participants";
+    }
+
+    const firstGroupWithPeople = participants.find(group => group.participants.length > 0);
+    if (!firstGroupWithPeople) {
+      return "Add participants";
+    }
+
+    const previewHuman = firstGroupWithPeople.participants[0];
     if (!previewHuman) {
       return "Add participants";
     }
@@ -59,7 +83,7 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
       </PopoverTrigger>
 
       <PopoverContent className="shadow-lg w-80" align="start">
-        <ParticipantsList sessionId={sessionId} participants={participants} />
+        <ParticipantsList sessionId={sessionId} participants={participants.flatMap(group => group.participants)} />
       </PopoverContent>
     </Popover>
   );

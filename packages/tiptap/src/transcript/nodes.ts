@@ -3,11 +3,6 @@ import { ReactNodeViewRenderer } from "@tiptap/react";
 
 import { createSpeakerView, SpeakerViewInnerComponent } from "./views";
 
-export interface Speaker {
-  id: string;
-  name: string;
-}
-
 export const SpeakerNode = (c: SpeakerViewInnerComponent) => {
   return Node.create({
     name: "speaker",

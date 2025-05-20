@@ -112,7 +112,7 @@ export function TranscriptView() {
           : (
             <TranscriptEditor
               ref={editorRef}
-              editable={false}
+              editable={ongoingSession.isInactive}
               initialWords={words}
               c={SpeakerSelector}
             />

@@ -11,7 +11,7 @@ export const SpeakerSelector = ({ onSpeakerIdChange, speakerId, speakerIndex }: 
 
   const { data: participants } = useQuery({
     enabled: !!sessionId,
-    queryKey: ["participants", sessionId!],
+    queryKey: ["participants", sessionId!, "selector"],
     queryFn: () => dbCommands.sessionListParticipants(sessionId!),
   });
 

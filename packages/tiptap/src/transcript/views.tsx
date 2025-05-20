@@ -1,12 +1,13 @@
 import { NodeViewContent, type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { type ComponentType } from "react";
+import { type ComponentType, useState } from "react";
 
 export const createSpeakerView = (Comp: SpeakerViewInnerComponent): ComponentType<NodeViewProps> => {
   return ({ node, updateAttributes }: NodeViewProps) => {
-    const speakerId = node.attrs?.speakerId ?? null;
+    const [speakerId, setSpeakerId] = useState<string | null>(node.attrs?.speakerId ?? null);
     const speakerIndex = node.attrs?.speakerIndex ?? null;
 
     const onSpeakerIdChange = (speakerId: string) => {
+      setSpeakerId(speakerId);
       updateAttributes({ speakerId });
     };
 
@@ -16,7 +17,7 @@ export const createSpeakerView = (Comp: SpeakerViewInnerComponent): ComponentTyp
           speakerId={speakerId}
           speakerIndex={speakerIndex}
           onSpeakerIdChange={onSpeakerIdChange}
-        />;
+        />
         <NodeViewContent />
       </NodeViewWrapper>
     );

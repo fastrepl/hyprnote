@@ -14,9 +14,7 @@ import { getInitials } from "@hypr/utils";
 
 const NO_ORGANIZATION_ID = "__NO_ORGANIZATION__";
 
-export function ParticipantsChip({ sessionId }: { sessionId: string }) {
-  const { userId } = useHypr();
-
+export function useParticipantsWithOrg(sessionId: string) {
   const { data: participants = [] } = useQuery({
     queryKey: ["participants", sessionId],
     queryFn: async () => {
@@ -49,6 +47,13 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
     },
   });
 
+  return participants;
+}
+
+export function ParticipantsChip({ sessionId }: { sessionId: string }) {
+  const participants = useParticipantsWithOrg(sessionId);
+  const { userId } = useHypr();
+
   const count = participants.reduce((acc, group) => acc + (group.participants?.length ?? 0), 0);
   const buttonText = useMemo(() => {
     if (count === 0) {
@@ -62,6 +67,10 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
     return previewHuman.full_name ?? "??";
   }, [participants, userId]);
 
+  const handleClickHuman = (human: Human) => {
+    windowsCommands.windowShow({ type: "human", value: human.id });
+  };
+
   return (
     <Popover>
       <PopoverTrigger>
@@ -73,35 +82,46 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
       </PopoverTrigger>
 
       <PopoverContent className="shadow-lg w-80" align="start">
-        {!participants.length
-          ? <ParticipantAddControl sessionId={sessionId} />
-          : (
-            <div className="flex flex-col gap-3">
-              <div className="text-sm font-medium text-neutral-700">Participants</div>
-              <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
-                {participants.map(({ organization, participants }) => (
-                  <div key={organization?.id ?? NO_ORGANIZATION_ID} className="flex flex-col gap-1.5">
-                    <div className="text-xs font-medium text-neutral-400 truncate">
-                      {organization?.name ?? "No organization"}
-                    </div>
-                    <div className="flex flex-col rounded-md overflow-hidden bg-neutral-50 border border-neutral-100">
-                      {(participants ?? []).map((member, index) => (
-                        <ParticipentItem
-                          key={member.id}
-                          member={member}
-                          sessionId={sessionId}
-                          isLast={index === (participants ?? []).length - 1}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <ParticipantAddControl sessionId={sessionId} />
-            </div>
-          )}
+        <ParticipantsChipInner sessionId={sessionId} handleClickHuman={handleClickHuman} />
       </PopoverContent>
     </Popover>
+  );
+}
+
+export function ParticipantsChipInner(
+  { sessionId, handleClickHuman }: { sessionId: string; handleClickHuman: (human: Human) => void },
+) {
+  const participants = useParticipantsWithOrg(sessionId);
+
+  return (
+    !participants.length
+      ? <ParticipantAddControl sessionId={sessionId} />
+      : (
+        <div className="flex flex-col gap-3">
+          <div className="text-sm font-medium text-neutral-700">Participants</div>
+          <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
+            {participants.map(({ organization, participants }) => (
+              <div key={organization?.id ?? NO_ORGANIZATION_ID} className="flex flex-col gap-1.5">
+                <div className="text-xs font-medium text-neutral-400 truncate">
+                  {organization?.name ?? "No organization"}
+                </div>
+                <div className="flex flex-col rounded-md overflow-hidden bg-neutral-50 border border-neutral-100">
+                  {(participants ?? []).map((member, index) => (
+                    <ParticipentItem
+                      key={member.id}
+                      member={member}
+                      sessionId={sessionId}
+                      isLast={index === (participants ?? []).length - 1}
+                      handleClickHuman={handleClickHuman}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <ParticipantAddControl sessionId={sessionId} />
+        </div>
+      )
   );
 }
 
@@ -109,10 +129,12 @@ function ParticipentItem({
   member,
   sessionId,
   isLast = false,
+  handleClickHuman,
 }: {
   member: Human;
   sessionId: string;
   isLast?: boolean;
+  handleClickHuman: (human: Human) => void;
 }) {
   const queryClient = useQueryClient();
   const { userId } = useHypr();
@@ -124,10 +146,6 @@ function ParticipentItem({
         predicate: (query) => (query.queryKey[0] as string).includes("participants") && query.queryKey[1] === sessionId,
       }),
   });
-
-  const handleClickHuman = (human: Human) => {
-    windowsCommands.windowShow({ type: "human", value: human.id });
-  };
 
   const handleRemoveParticipant = (id: string) => {
     removeParticipantMutation.mutate({ id: id });

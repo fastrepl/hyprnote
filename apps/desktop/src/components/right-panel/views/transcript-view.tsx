@@ -4,6 +4,7 @@ import { AudioLinesIcon, ClipboardIcon, Copy, UploadIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { SpeakerSelector } from "@/components/right-panel/views/exp";
+import { commands as dbCommands, type Word } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import TranscriptEditor from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -56,6 +57,14 @@ export function TranscriptView() {
     if (sessionId) {
       miscCommands.audioOpen(sessionId);
     }
+  };
+
+  const handleBlur = (words: Word[]) => {
+    dbCommands.getSession({ id: sessionId! }).then((session) => {
+      if (session) {
+        dbCommands.upsertSession({ ...session, words });
+      }
+    });
   };
 
   if (!sessionId) {
@@ -120,6 +129,7 @@ export function TranscriptView() {
             <TranscriptEditor
               ref={editorRef}
               editable={ongoingSession.isInactive}
+              onBlur={handleBlur}
               c={SpeakerSelector}
             />
           )}

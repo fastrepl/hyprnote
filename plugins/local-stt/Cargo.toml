@@ -53,5 +53,8 @@ tokio-util = { workspace = true }
 [target.'cfg(not(target_os = "macos"))'.dependencies]
 kalosm-sound = { workspace = true, default-features = false }
 
-[target.'cfg(target_os = "macos")'.dependencies]
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
 kalosm-sound = { workspace = true, default-features = false, features = ["metal"] }
+
+[target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies]
+kalosm-sound = { workspace = true, default-features = false }

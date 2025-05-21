@@ -6,4 +6,3 @@ export * from "./new-note";
 export * from "./right-panel";
 export * from "./search";
 export * from "./settings";
-export * from "./tinybase";

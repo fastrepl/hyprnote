@@ -3,6 +3,7 @@ import { useMatch } from "@tanstack/react-router";
 
 import { commands as dbCommands, Human } from "@hypr/plugin-db";
 import { SpeakerViewInnerProps } from "@hypr/tiptap/transcript";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 
 export const SpeakerSelector = ({
   onSpeakerIdChange,
@@ -19,28 +20,30 @@ export const SpeakerSelector = ({
     queryFn: () => dbCommands.sessionListParticipants(sessionId!),
   });
 
-  const displayName = (participants ?? []).find((s) => s.id === speakerId)?.full_name ?? undefined;
+  const displayName = (participants ?? []).find((s) => s.id === speakerId)?.full_name ?? `Speaker ${speakerIndex}`;
 
   if (!sessionId) {
     return <p></p>;
   }
 
   return (
-    <div style={{ width: "170px", padding: "8px" }}>
-      <select
-        value={speakerId ?? ""}
-        onChange={(e) => onSpeakerIdChange(e.target.value)}
-        style={{ width: "100%", padding: "8px" }}
-      >
-        <option value="" disabled>
-          {displayName || `Speaker ${speakerIndex}`}
-        </option>
-        {(participants ?? []).map((speaker: Human) => (
-          <option key={speaker.id} value={speaker.id}>
-            {speaker.full_name}
-          </option>
-        ))}
-      </select>
-    </div>
+    <Popover>
+      <PopoverTrigger>
+        <span className="underline p-1">{displayName}</span>
+      </PopoverTrigger>
+      <PopoverContent align="start" side="bottom">
+        <div className="flex flex-col gap-2">
+          {(participants ?? []).map((speaker: Human) => (
+            <button
+              key={speaker.id}
+              className="w-full text-left"
+              onClick={() => onSpeakerIdChange(speaker.id)}
+            >
+              {speaker.full_name}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };

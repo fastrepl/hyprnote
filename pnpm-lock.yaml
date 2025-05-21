@@ -303,9 +303,6 @@ importers:
       tauri-plugin-sentry-api:
         specifier: ^0.4.1
         version: 0.4.1
-      tinybase:
-        specifier: ^6.1.1
-        version: 6.1.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(ws@8.18.2)
       tippy.js:
         specifier: ^6.3.7
         version: 6.3.7
@@ -504,16 +501,16 @@ importers:
         version: link:../utils
       '@remixicon/react':
         specifier: ^4.6.0
-        version: 4.6.0(react@19.0.0)
+        version: 4.6.0(react@18.3.1)
       '@sereneinserenade/tiptap-search-and-replace':
         specifier: ^0.1.1
         version: 0.1.1(@tiptap/core@2.12.0(@tiptap/pm@2.12.0))(@tiptap/pm@2.12.0)
       '@tanstack/react-query':
         specifier: ^5.76.1
-        version: 5.76.1(react@19.0.0)
+        version: 5.76.1(react@18.3.1)
       '@tanstack/react-router':
         specifier: ^1.120.5
-        version: 1.120.5(react-dom@18.3.1(react@19.0.0))(react@19.0.0)
+        version: 1.120.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tiptap/core':
         specifier: ^2.12.0
         version: 2.12.0(@tiptap/pm@2.12.0)
@@ -564,7 +561,7 @@ importers:
         version: 2.12.0
       '@tiptap/react':
         specifier: ^2.12.0
-        version: 2.12.0(@tiptap/core@2.12.0(@tiptap/pm@2.12.0))(@tiptap/pm@2.12.0)(react-dom@18.3.1(react@19.0.0))(react@19.0.0)
+        version: 2.12.0(@tiptap/core@2.12.0(@tiptap/pm@2.12.0))(@tiptap/pm@2.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tiptap/starter-kit':
         specifier: ^2.12.0
         version: 2.12.0
@@ -582,10 +579,10 @@ importers:
         version: 1.4.3
       react:
         specifier: ^18.3.1
-        version: 19.0.0
+        version: 18.3.1
       react-dom:
         specifier: ^18.3.1
-        version: 18.3.1(react@19.0.0)
+        version: 18.3.1(react@18.3.1)
       tippy.js:
         specifier: ^6.3.7
         version: 6.3.7
@@ -7003,68 +7000,6 @@ packages:
   tiny-warning@1.0.3:
     resolution: {integrity: sha512-lBN9zLN/oAf68o3zNXYrdCt1kP8WsiGW8Oo2ka41b2IM5JL/S1CTyX1rW0mb/zSuJun0ZUrDxx4sqvYS2FWzPA==}
 
-  tinybase@6.1.1:
-    resolution: {integrity: sha512-UL+K21Hu5V9ZSW7Por8uTlICnPR+m2/ve9DEOmuDhQwpMnqg9hLgYpthPkJKouql650slxcnRFJyBKIJ254tOw==}
-    peerDependencies:
-      '@automerge/automerge-repo': ^1.2.1
-      '@cloudflare/workers-types': ^4.20250515.0
-      '@electric-sql/pglite': ^0.2.17
-      '@libsql/client': ^0.15.6
-      '@powersync/common': ^1.30.0
-      '@sqlite.org/sqlite-wasm': ^3.49.2-build1
-      '@vlcn.io/crsqlite-wasm': ^0.16.0
-      bun: ^1.2.13
-      electric-sql: ^0.12.1
-      expo: ^53.0.9
-      expo-sqlite: ^15.2.10
-      partykit: ^0.0.114
-      partysocket: ^1.1.4
-      postgres: ^3.4.5
-      react: ^19.0.0
-      react-dom: ^19.0.0
-      sqlite3: ^5.1.7
-      ws: ^8.18.2
-      yjs: ^13.6.27
-    peerDependenciesMeta:
-      '@automerge/automerge-repo':
-        optional: true
-      '@cloudflare/workers-types':
-        optional: true
-      '@electric-sql/pglite':
-        optional: true
-      '@libsql/client':
-        optional: true
-      '@powersync/common':
-        optional: true
-      '@sqlite.org/sqlite-wasm':
-        optional: true
-      '@vlcn.io/crsqlite-wasm':
-        optional: true
-      bun:
-        optional: true
-      electric-sql:
-        optional: true
-      expo:
-        optional: true
-      expo-sqlite:
-        optional: true
-      partykit:
-        optional: true
-      partysocket:
-        optional: true
-      postgres:
-        optional: true
-      react:
-        optional: true
-      react-dom:
-        optional: true
-      sqlite3:
-        optional: true
-      ws:
-        optional: true
-      yjs:
-        optional: true
-
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
 
@@ -9505,10 +9440,6 @@ snapshots:
     dependencies:
       react: 18.3.1
 
-  '@remixicon/react@4.6.0(react@19.0.0)':
-    dependencies:
-      react: 19.0.0
-
   '@rollup/pluginutils@5.1.4(rollup@4.40.2)':
     dependencies:
       '@types/estree': 1.0.7
@@ -9786,30 +9717,12 @@ snapshots:
       tiny-invariant: 1.3.3
       tiny-warning: 1.0.3
 
-  '@tanstack/react-router@1.120.5(react-dom@18.3.1(react@19.0.0))(react@19.0.0)':
-    dependencies:
-      '@tanstack/history': 1.115.0
-      '@tanstack/react-store': 0.7.0(react-dom@18.3.1(react@19.0.0))(react@19.0.0)
-      '@tanstack/router-core': 1.120.5
-      jsesc: 3.1.0
-      react: 19.0.0
-      react-dom: 18.3.1(react@19.0.0)
-      tiny-invariant: 1.3.3
-      tiny-warning: 1.0.3
-
   '@tanstack/react-store@0.7.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@tanstack/store': 0.7.0
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       use-sync-external-store: 1.5.0(react@18.3.1)
-
-  '@tanstack/react-store@0.7.0(react-dom@18.3.1(react@19.0.0))(react@19.0.0)':
-    dependencies:
-      '@tanstack/store': 0.7.0
-      react: 19.0.0
-      react-dom: 18.3.1(react@19.0.0)
-      use-sync-external-store: 1.5.0(react@19.0.0)
 
   '@tanstack/router-core@1.120.5':
     dependencies:
@@ -10164,7 +10077,7 @@ snapshots:
       prosemirror-transform: 1.10.4
       prosemirror-view: 1.39.3
 
-  '@tiptap/react@2.12.0(@tiptap/core@2.12.0(@tiptap/pm@2.12.0))(@tiptap/pm@2.12.0)(react-dom@18.3.1(react@19.0.0))(react@19.0.0)':
+  '@tiptap/react@2.12.0(@tiptap/core@2.12.0(@tiptap/pm@2.12.0))(@tiptap/pm@2.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@tiptap/core': 2.12.0(@tiptap/pm@2.12.0)
       '@tiptap/extension-bubble-menu': 2.12.0(@tiptap/core@2.12.0(@tiptap/pm@2.12.0))(@tiptap/pm@2.12.0)
@@ -10172,9 +10085,9 @@ snapshots:
       '@tiptap/pm': 2.12.0
       '@types/use-sync-external-store': 0.0.6
       fast-deep-equal: 3.1.3
-      react: 19.0.0
-      react-dom: 18.3.1(react@19.0.0)
-      use-sync-external-store: 1.5.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      use-sync-external-store: 1.5.0(react@18.3.1)
 
   '@tiptap/starter-kit@2.12.0':
     dependencies:
@@ -13920,12 +13833,6 @@ snapshots:
       react: 18.3.1
       scheduler: 0.23.2
 
-  react-dom@18.3.1(react@19.0.0):
-    dependencies:
-      loose-envify: 1.4.0
-      react: 19.0.0
-      scheduler: 0.23.2
-
   react-draggable@4.4.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       clsx: 1.2.1
@@ -14709,12 +14616,6 @@ snapshots:
 
   tiny-warning@1.0.3: {}
 
-  tinybase@6.1.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(ws@8.18.2):
-    optionalDependencies:
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-      ws: 8.18.2
-
   tinybench@2.9.0: {}
 
   tinyexec@0.3.2: {}
@@ -15103,10 +15004,6 @@ snapshots:
   use-sync-external-store@1.5.0(react@18.3.1):
     dependencies:
       react: 18.3.1
-
-  use-sync-external-store@1.5.0(react@19.0.0):
-    dependencies:
-      react: 19.0.0
 
   userhome@1.0.1: {}
 

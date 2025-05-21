@@ -15,7 +15,6 @@ import {
   RightPanelProvider,
   SearchProvider,
   SettingsProvider,
-  TinyBaseProvider,
   useLeftSidebar,
   useRightPanel,
 } from "@/contexts";
@@ -43,7 +42,6 @@ function Component() {
   return (
     <>
       <HyprProvider>
-        <TinyBaseProvider>
           <SessionsProvider store={sessionsStore}>
             <OngoingSessionProvider store={ongoingSessionStore}>
               <LeftSidebarProvider>
@@ -87,7 +85,6 @@ function Component() {
               </LeftSidebarProvider>
             </OngoingSessionProvider>
           </SessionsProvider>
-        </TinyBaseProvider>
       </HyprProvider>
       {showNotifications && <Notifications />}
     </>

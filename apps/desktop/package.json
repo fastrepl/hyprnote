@@ -81,7 +81,6 @@
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
     "tauri-plugin-sentry-api": "^0.4.1",
-    "tinybase": "^6.1.1",
     "tippy.js": "^6.3.7",
     "zod": "^3.24.4",
     "zustand": "^5.0.4"

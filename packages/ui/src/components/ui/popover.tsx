@@ -5,7 +5,17 @@ import { cn } from "../../lib/utils";
 
 const Popover = PopoverPrimitive.Root;
 
-const PopoverTrigger = PopoverPrimitive.Trigger;
+const PopoverTrigger = React.forwardRef<
+  React.ElementRef<typeof PopoverPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger>
+>(({ className, ...props }, ref) => (
+  <PopoverPrimitive.Trigger
+    ref={ref}
+    className={cn("outline-none focus:outline-none", className)}
+    {...props}
+  />
+));
+PopoverTrigger.displayName = PopoverPrimitive.Trigger.displayName;
 
 const PopoverArrow = PopoverPrimitive.Arrow;
 
@@ -58,7 +68,7 @@ const PopoverContent = React.forwardRef<
           "data-[side=left]:slide-in-from-right-2",
           "data-[side=right]:slide-in-from-left-2",
           "data-[side=top]:slide-in-from-bottom-2",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "outline-none focus:outline-none",
           "transition-all",
           className,
         )}

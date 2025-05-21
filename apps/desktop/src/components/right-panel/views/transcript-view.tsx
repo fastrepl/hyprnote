@@ -125,12 +125,14 @@ export function TranscriptView() {
         {showEmptyMessage
           ? <RenderEmpty sessionId={sessionId} />
           : (
-            <TranscriptEditor
-              ref={editorRef}
-              editable={ongoingSession.isInactive}
-              onBlur={handleBlur}
-              c={SpeakerSelector}
-            />
+            <div className="px-4">
+              <TranscriptEditor
+                ref={editorRef}
+                editable={ongoingSession.isInactive}
+                onBlur={handleBlur}
+                c={SpeakerSelector}
+              />
+            </div>
           )}
       </div>
     </div>

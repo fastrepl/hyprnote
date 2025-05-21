@@ -5,6 +5,7 @@ import { ParticipantsChipInner } from "@/components/editor-area/note-header/chip
 import { commands as dbCommands, Human } from "@hypr/plugin-db";
 import { SpeakerViewInnerProps } from "@hypr/tiptap/transcript";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { useState } from "react";
 
 export const SpeakerSelector = ({
   onSpeakerIdChange,
@@ -14,6 +15,7 @@ export const SpeakerSelector = ({
 }: SpeakerViewInnerProps) => {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const sessionId = noteMatch?.params.id;
+  const [isOpen, setIsOpen] = useState(false);
 
   const { data: participants } = useQuery({
     enabled: !!sessionId,
@@ -23,6 +25,7 @@ export const SpeakerSelector = ({
 
   const handleClickHuman = (human: Human) => {
     onSpeakerIdChange(human.id);
+    setIsOpen(false);
   };
 
   const displayName = (participants ?? []).find((s) => s.id === speakerId)?.full_name ?? `Speaker ${speakerIndex}`;
@@ -32,13 +35,15 @@ export const SpeakerSelector = ({
   }
 
   return (
-    <Popover>
+    <div className="mt-2">
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger>
-        <span className="underline p-1">{displayName}</span>
+        <span className="underline py-1 font-semibold">{displayName}</span>
       </PopoverTrigger>
       <PopoverContent align="start" side="bottom">
         <ParticipantsChipInner sessionId={sessionId} handleClickHuman={handleClickHuman} />
       </PopoverContent>
     </Popover>
+    </div>
   );
 };

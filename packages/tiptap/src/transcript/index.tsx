@@ -57,7 +57,9 @@ const TranscriptEditor = forwardRef<
             if (!editor) {
               return;
             }
-            editor.commands.setContent(fromWordsToEditor(words));
+
+            const content = fromWordsToEditor(words);
+            editor.commands.setContent(content);
           },
           getWords: () => {
             if (!editor) {

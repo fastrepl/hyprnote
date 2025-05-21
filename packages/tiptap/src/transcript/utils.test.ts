@@ -18,7 +18,37 @@ test("conversion", () => {
     },
   ];
 
-  const editorContent = fromWordsToEditor(words);
-  const words2 = fromEditorToWords(editorContent);
+  const editor = fromWordsToEditor(words);
+  expect(editor).toEqual({
+    "type": "doc",
+    "content": [
+      {
+        "type": "speaker",
+        "content": [
+          {
+            "attrs": {
+              "confidence": 0.5,
+              "end_ms": 1000,
+              "start_ms": 0,
+            },
+            "content": [
+              {
+                "text": "Hello",
+                "type": "text",
+              },
+            ],
+            "type": "word",
+          },
+        ],
+        "attrs": {
+          "speaker-id": null,
+          "speaker-index": 0,
+          "speaker-label": null,
+        },
+      },
+    ],
+  });
+
+  const words2 = fromEditorToWords(editor);
   expect(words2).toEqual(words);
 });

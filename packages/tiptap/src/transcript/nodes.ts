@@ -10,20 +10,24 @@ export const SpeakerNode = (c: SpeakerViewInnerComponent) => {
     content: "word*",
     addAttributes() {
       return {
-        speakerIndex: {
+        "speaker-index": {
           parseHTML: element => element.getAttribute("data-speaker-index"),
-          renderHTML: attributes => ({ "data-speaker-index": attributes.speakerIndex }),
+          renderHTML: attributes => ({ "data-speaker-index": attributes["speaker-index"] }),
         },
-        speakerId: {
+        "speaker-id": {
           parseHTML: element => element.getAttribute("data-speaker-id"),
-          renderHTML: attributes => ({ "data-speaker-id": attributes.speakerId }),
+          renderHTML: attributes => ({ "data-speaker-id": attributes["speaker-id"] }),
+        },
+        "speaker-label": {
+          parseHTML: element => element.getAttribute("data-speaker-label"),
+          renderHTML: attributes => ({ "data-speaker-label": attributes["speaker-label"] }),
         },
       };
     },
     parseHTML() {
       return [{
         tag: "div.transcript-speaker",
-        attrs: { "data-speaker-index": 0, "data-speaker-id": "" },
+        attrs: { "data-speaker-index": 0, "data-speaker-id": "", "data-speaker-label": "" },
       }];
     },
     renderHTML({ HTMLAttributes, node }) {
@@ -31,8 +35,9 @@ export const SpeakerNode = (c: SpeakerViewInnerComponent) => {
         "div",
         mergeAttributes({
           class: "transcript-speaker",
-          "data-speaker-index": node.attrs.speakerIndex,
-          "data-speaker-id": node.attrs.speakerId,
+          "data-speaker-index": node.attrs["speaker-index"],
+          "data-speaker-id": node.attrs["speaker-id"],
+          "data-speaker-label": node.attrs["speaker-label"],
         }, HTMLAttributes),
       ];
     },

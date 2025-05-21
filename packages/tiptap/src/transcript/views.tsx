@@ -3,12 +3,13 @@ import { type ComponentType, useState } from "react";
 
 export const createSpeakerView = (Comp: SpeakerViewInnerComponent): ComponentType<NodeViewProps> => {
   return ({ node, updateAttributes }: NodeViewProps) => {
-    const [speakerId, setSpeakerId] = useState<string | undefined>(node.attrs?.speakerId ?? undefined);
-    const speakerIndex = node.attrs?.speakerIndex ?? undefined;
+    const [speakerId, setSpeakerId] = useState<string | undefined>(node.attrs?.["speaker-id"] ?? undefined);
+    const speakerIndex = node.attrs?.["speaker-index"] ?? undefined;
+    const speakerLabel = node.attrs?.["speaker-label"] ?? undefined;
 
     const onSpeakerIdChange = (speakerId: string) => {
       setSpeakerId(speakerId);
-      updateAttributes({ speakerId });
+      updateAttributes({ "speaker-id": speakerId });
     };
 
     return (
@@ -16,6 +17,7 @@ export const createSpeakerView = (Comp: SpeakerViewInnerComponent): ComponentTyp
         <Comp
           speakerId={speakerId}
           speakerIndex={speakerIndex}
+          speakerLabel={speakerLabel}
           onSpeakerIdChange={onSpeakerIdChange}
         />
         <NodeViewContent />
@@ -27,6 +29,7 @@ export const createSpeakerView = (Comp: SpeakerViewInnerComponent): ComponentTyp
 export type SpeakerViewInnerProps = {
   speakerId: string | undefined;
   speakerIndex: number | undefined;
+  speakerLabel: string | undefined;
   onSpeakerIdChange: (speakerId: string) => void;
 };
 

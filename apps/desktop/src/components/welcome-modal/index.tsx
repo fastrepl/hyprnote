@@ -1,26 +1,31 @@
-import { Trans, useLingui } from "@lingui/react/macro";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { message } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 
 import { commands } from "@/types";
 import { commands as authCommands, events } from "@hypr/plugin-auth";
+import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
 import { Particles } from "@hypr/ui/components/ui/particles";
-import PushableButton from "@hypr/ui/components/ui/pushable-button";
-import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
-interface LoginModalProps {
+import { ModelSelectionView } from "./model-selection-view";
+import { WelcomeView } from "./welcome-view";
+
+interface WelcomeModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function LoginModal({ isOpen, onClose }: LoginModalProps) {
+export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const navigate = useNavigate();
-  const { t } = useLingui();
-
   const [port, setPort] = useState<number | null>(null);
+  const [showModelSelection, setShowModelSelection] = useState(false);
+
+  const selectSTTModel = useMutation({
+    mutationFn: (model: SupportedModel) => localSttCommands.setCurrentModel(model),
+  });
 
   useEffect(() => {
     let cleanup: (() => void) | undefined;
@@ -68,6 +73,11 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   }, [isOpen]);
 
   const handleStartLocal = () => {
+    setShowModelSelection(true);
+  };
+
+  const handleModelSelected = (model: SupportedModel) => {
+    selectSTTModel.mutate(model);
     onClose();
   };
 
@@ -77,44 +87,31 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       onClose={onClose}
       size="full"
       className="bg-background"
+      preventClose
     >
-      <ModalBody className="p-0">
-        <div className="relative flex h-full w-full flex-col items-center justify-center p-8">
-          <div className="z-10 flex w-full max-w-xl mx-auto flex-col items-center justify-center">
-            <div className="flex flex-col items-center">
-              <img
-                src="/assets/logo.svg"
-                alt="HYPRNOTE"
-                className="mb-6 w-[300px]"
+      <ModalBody className="relative p-0 flex flex-col items-center justify-center overflow-hidden">
+        <div className="z-10">
+          {!showModelSelection
+            ? (
+              <WelcomeView
+                portReady={port !== null}
+                onGetStarted={handleStartLocal}
               />
-
-              <TextAnimate
-                animation="slideUp"
-                by="word"
-                once
-                className="mb-20 text-center text-2xl font-medium text-neutral-600"
-              >
-                {t`AI notepad for meetings`}
-              </TextAnimate>
-
-              <PushableButton
-                disabled={port === null}
-                onClick={handleStartLocal}
-                className="mb-4 w-full max-w-sm"
-              >
-                <Trans>Get Started</Trans>
-              </PushableButton>
-            </div>
-          </div>
-
-          <Particles
-            className="absolute inset-0 z-0"
-            quantity={150}
-            ease={80}
-            color={"#000000"}
-            refresh
-          />
+            )
+            : (
+              <ModelSelectionView
+                onContinue={handleModelSelected}
+              />
+            )}
         </div>
+
+        <Particles
+          className="absolute inset-0 z-0"
+          quantity={150}
+          ease={80}
+          color={"#000000"}
+          refresh
+        />
       </ModalBody>
     </Modal>
   );

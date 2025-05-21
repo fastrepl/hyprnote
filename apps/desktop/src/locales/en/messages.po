@@ -311,7 +311,7 @@ msgstr "Add a description..."
 msgid "Add members"
 msgstr "Add members"
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:293
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:311
 msgid "Add participant"
 msgstr "Add participant"
 
@@ -460,7 +460,7 @@ msgid "Contacts Access"
 msgstr "Contacts Access"
 
 #: src/routes/app.human.$id.tsx:532
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:381
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:399
 msgid "Create"
 msgstr "Create"
 

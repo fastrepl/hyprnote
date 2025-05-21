@@ -3,10 +3,10 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect } from "react";
 
 import LeftSidebar from "@/components/left-sidebar";
-import { LoginModal } from "@/components/login-modal";
 import RightPanel from "@/components/right-panel";
 import Notifications from "@/components/toast";
 import Toolbar from "@/components/toolbar";
+import { WelcomeModal } from "@/components/welcome-modal";
 import {
   EditModeProvider,
   HyprProvider,
@@ -70,7 +70,7 @@ function Component() {
                             </ResizablePanelGroup>
                           </div>
                         </div>
-                        <LoginModal
+                        <WelcomeModal
                           isOpen={isOnboardingNeeded}
                           onClose={() => {
                             commands.setOnboardingNeeded(false);

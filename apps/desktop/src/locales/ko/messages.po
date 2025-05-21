@@ -326,8 +326,8 @@ msgid "AI"
 msgstr ""
 
 #: src/components/login-modal.tsx:97
-msgid "AI notepad for meetings"
-msgstr ""
+#~ msgid "AI notepad for meetings"
+#~ msgstr ""
 
 #: src/components/share-and-permission/participants-selector.tsx:31
 msgid "All Participants"
@@ -396,6 +396,10 @@ msgstr ""
 msgid "Calendar connected"
 msgstr ""
 
+#: src/components/welcome-modal/welcome-view.tsx:28
+#~ msgid "Capture every moment"
+#~ msgstr ""
+
 #: src/components/settings/views/profile.tsx:143
 msgid "CEO"
 msgstr ""
@@ -457,6 +461,10 @@ msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:109
 msgid "Contacts Access"
+msgstr ""
+
+#: src/components/welcome-modal/model-selection-view.tsx:151
+msgid "Continue"
 msgstr ""
 
 #: src/routes/app.human.$id.tsx:532
@@ -600,7 +608,7 @@ msgstr ""
 msgid "General"
 msgstr ""
 
-#: src/components/login-modal.tsx:105
+#: src/components/welcome-modal/welcome-view.tsx:36
 msgid "Get Started"
 msgstr ""
 
@@ -645,7 +653,7 @@ msgstr ""
 msgid "Job title"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:193
+#: src/components/editor-area/note-header/chips/event-chip.tsx:203
 msgid "Join meeting"
 msgstr ""
 
@@ -677,7 +685,7 @@ msgstr ""
 msgid "Loading available models..."
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:241
+#: src/components/editor-area/note-header/chips/event-chip.tsx:251
 msgid "Loading events..."
 msgstr ""
 
@@ -756,7 +764,7 @@ msgstr ""
 msgid "No models available for this endpoint."
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:253
+#: src/components/editor-area/note-header/chips/event-chip.tsx:263
 msgid "No past events found."
 msgstr ""
 
@@ -911,6 +919,10 @@ msgstr ""
 msgid "Sections"
 msgstr ""
 
+#: src/components/welcome-modal/model-selection-view.tsx:81
+msgid "Select a transcribing model"
+msgstr ""
+
 #: src/components/settings/components/calendar/calendar-selector.tsx:74
 msgid "Select Calendars"
 msgstr ""
@@ -994,6 +1006,10 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:43
 msgid "Templates"
+msgstr ""
+
+#: src/components/welcome-modal/welcome-view.tsx:28
+msgid "The AI Meeting Notepad"
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:113
@@ -1081,7 +1097,7 @@ msgid "View calendar"
 msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:193
-#: src/components/editor-area/note-header/chips/event-chip.tsx:198
+#: src/components/editor-area/note-header/chips/event-chip.tsx:208
 msgid "View in calendar"
 msgstr ""
 

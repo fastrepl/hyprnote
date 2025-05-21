@@ -35,5 +35,8 @@ url = { workspace = true }
 [target.'cfg(not(target_os = "macos"))'.dependencies]
 whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "f5ee632", features = ["raw-api", "tracing_backend"], optional = true }
 
-[target.'cfg(target_os = "macos")'.dependencies]
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
 whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "f5ee632", features = ["raw-api", "metal", "tracing_backend"], optional = true }
+
+[target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies]
+whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "f5ee632", features = ["raw-api", "tracing_backend"], optional = true }

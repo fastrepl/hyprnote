@@ -20,8 +20,11 @@ thiserror = { workspace = true }
 [target.'cfg(not(target_os = "macos"))'.dependencies]
 llama-cpp-2 = { git = "https://github.com/utilityai/llama-cpp-rs", default-features = false, features = ["openmp", "native"], branch = "update-llama-cpp-2025-04-06" }
 
-[target.'cfg(target_os = "macos")'.dependencies]
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
 llama-cpp-2 = { git = "https://github.com/utilityai/llama-cpp-rs", features = ["openmp", "native", "metal"], branch = "update-llama-cpp-2025-04-06" }
+
+[target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies]
+llama-cpp-2 = { git = "https://github.com/utilityai/llama-cpp-rs", features = ["native"], branch = "update-llama-cpp-2025-04-06" }
 
 [dev-dependencies]
 hypr-buffer = { workspace = true }

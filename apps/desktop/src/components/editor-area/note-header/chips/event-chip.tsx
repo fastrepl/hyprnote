@@ -1,3 +1,4 @@
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
@@ -140,15 +141,24 @@ export function EventChip({ sessionId }: EventChipProps) {
     return (
       <Popover>
         <PopoverTrigger>
-          <div
-            className={cn(
-              "flex flex-row items-center gap-2 rounded-md px-2 py-1.5",
-              "hover:bg-neutral-100",
-            )}
-          >
-            {event.data.meetingLink ? <VideoIcon size={14} /> : <SpeechIcon size={14} />}
-            <p className="text-xs">{formatRelativeWithDay(date)}</p>
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className={cn(
+                    "flex flex-row items-center gap-2 rounded-md px-2 py-1.5",
+                    "hover:bg-neutral-100",
+                  )}
+                >
+                  {event.data.meetingLink ? <VideoIcon size={14} /> : <SpeechIcon size={14} />}
+                  <p className="text-xs">{formatRelativeWithDay(date)}</p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                {format(new Date(date), "EEE, MMM d, yyyy 'at' h:mm a zzz")}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </PopoverTrigger>
 
         <PopoverContent align="start" className="shadow-lg w-80 relative">

@@ -21,10 +21,13 @@ interface TranscriptEditorProps {
   c: SpeakerViewInnerComponent;
 }
 
-const TranscriptEditor = forwardRef<
-  { editor: TiptapEditor | null; getWords: () => Word[] | null },
-  TranscriptEditorProps
->(
+export interface TranscriptEditorRef {
+  editor: TiptapEditor | null;
+  getWords: () => Word[] | null;
+  setWords: (words: Word[]) => void;
+}
+
+const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
   ({ editable = true, c, onBlur }, ref) => {
     const extensions = [
       Document.configure({ content: "speaker+" }),
@@ -56,8 +59,8 @@ const TranscriptEditor = forwardRef<
     });
 
     useEffect(() => {
-      if (ref && typeof ref === "object") {
-        (ref as any).current = {
+      if (ref && typeof ref === "object" && editor) {
+        ref.current = {
           editor,
           setWords: (words: Word[]) => {
             if (!editor) {
@@ -71,8 +74,7 @@ const TranscriptEditor = forwardRef<
             if (!editor) {
               return null;
             }
-            // @ts-ignore
-            return fromEditorToWords(editor.getJSON());
+            return fromEditorToWords(editor.getJSON() as any);
           },
         };
       }

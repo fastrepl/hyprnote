@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import { SpeakerSelector } from "@/components/right-panel/views/exp";
 import { commands as dbCommands, type Word } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import TranscriptEditor from "@hypr/tiptap/transcript";
+import TranscriptEditor, { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
@@ -27,9 +27,10 @@ export function TranscriptView() {
   const { showEmptyMessage, hasTranscript } = useTranscriptWidget(sessionId);
   const { isLive, words } = useTranscript(sessionId);
 
+  const editorRef = useRef<TranscriptEditorRef | null>(null);
+
   useEffect(() => {
     if (editorRef.current) {
-      // @ts-ignore
       editorRef.current.setWords(words);
     }
   }, [words]);
@@ -50,8 +51,6 @@ export function TranscriptView() {
     },
     queryClient,
   );
-
-  const editorRef = useRef(null);
 
   const handleOpenSession = () => {
     if (sessionId) {

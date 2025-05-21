@@ -4,7 +4,12 @@ import { useMatch } from "@tanstack/react-router";
 import { commands as dbCommands, Human } from "@hypr/plugin-db";
 import { SpeakerViewInnerProps } from "@hypr/tiptap/transcript";
 
-export const SpeakerSelector = ({ onSpeakerIdChange, speakerId, speakerIndex }: SpeakerViewInnerProps) => {
+export const SpeakerSelector = ({
+  onSpeakerIdChange,
+  speakerId,
+  speakerIndex,
+  editorRef,
+}: SpeakerViewInnerProps) => {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const sessionId = noteMatch?.params.id;
 

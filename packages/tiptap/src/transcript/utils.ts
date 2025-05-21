@@ -1,10 +1,10 @@
 import type { SpeakerIdentity, Word } from "@hypr/plugin-db";
-import { EditorContent } from "@tiptap/react";
+import { JSONContent } from "@tiptap/react";
 
 export type { Word };
 
-type EditorContent = {
-  type: "doc";
+export type DocContent = {
+  type: string;
   content: SpeakerContent[];
 };
 
@@ -32,7 +32,7 @@ type WordContent = {
   };
 };
 
-export const fromWordsToEditor = (words: Word[]): EditorContent => {
+export const fromWordsToEditor = (words: Word[]): DocContent => {
   return {
     type: "doc",
     content: words.reduce<{ cur: SpeakerIdentity | null; acc: SpeakerContent[] }>((state, word) => {
@@ -75,7 +75,7 @@ export const fromWordsToEditor = (words: Word[]): EditorContent => {
   };
 };
 
-export const fromEditorToWords = (content: EditorContent): Word[] => {
+export const fromEditorToWords = (content: DocContent | JSONContent): Word[] => {
   if (!content?.content) {
     return [];
   }
@@ -88,19 +88,21 @@ export const fromEditorToWords = (content: EditorContent): Word[] => {
     }
 
     let speaker: SpeakerIdentity | null = null;
-    if (speakerBlock.attrs[SPEAKER_ID_ATTR]) {
+    const attrs = speakerBlock.attrs || {};
+
+    if (attrs[SPEAKER_ID_ATTR]) {
       speaker = {
         type: "assigned",
         value: {
-          id: speakerBlock.attrs[SPEAKER_ID_ATTR],
-          label: speakerBlock.attrs[SPEAKER_LABEL_ATTR] ?? "",
+          id: attrs[SPEAKER_ID_ATTR],
+          label: attrs[SPEAKER_LABEL_ATTR] ?? "",
         },
       };
-    } else if (typeof speakerBlock.attrs[SPEAKER_INDEX_ATTR] === "number") {
+    } else if (typeof attrs[SPEAKER_INDEX_ATTR] === "number") {
       speaker = {
         type: "unassigned",
         value: {
-          index: speakerBlock.attrs[SPEAKER_INDEX_ATTR],
+          index: attrs[SPEAKER_INDEX_ATTR],
         },
       };
     }
@@ -109,13 +111,13 @@ export const fromEditorToWords = (content: EditorContent): Word[] => {
       if (wordBlock.type !== "word" || !wordBlock.content?.[0]?.text) {
         continue;
       }
-      const attrs = wordBlock.attrs || {};
+      const wordAttrs = wordBlock.attrs || {};
       words.push({
         text: wordBlock.content[0].text,
         speaker,
-        confidence: attrs.confidence ?? null,
-        start_ms: attrs.start_ms ?? null,
-        end_ms: attrs.end_ms ?? null,
+        confidence: wordAttrs.confidence ?? null,
+        start_ms: wordAttrs.start_ms ?? null,
+        end_ms: wordAttrs.end_ms ?? null,
       });
     }
   }

@@ -36,14 +36,14 @@ export const SpeakerSelector = ({
 
   return (
     <div className="mt-2">
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger>
-        <span className="underline py-1 font-semibold">{displayName}</span>
-      </PopoverTrigger>
-      <PopoverContent align="start" side="bottom">
-        <ParticipantsChipInner sessionId={sessionId} handleClickHuman={handleClickHuman} />
-      </PopoverContent>
-    </Popover>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger>
+          <span className="underline py-1 font-semibold">{displayName}</span>
+        </PopoverTrigger>
+        <PopoverContent align="start" side="bottom">
+          <ParticipantsChipInner sessionId={sessionId} handleClickHuman={handleClickHuman} />
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };

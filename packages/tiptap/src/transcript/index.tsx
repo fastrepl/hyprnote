@@ -2,6 +2,7 @@ import "../styles/transcript.css";
 
 import { SearchAndReplace } from "@sereneinserenade/tiptap-search-and-replace";
 import { type Editor as TiptapEditor } from "@tiptap/core";
+import BubbleMenu from "@tiptap/extension-bubble-menu";
 import Document from "@tiptap/extension-document";
 import History from "@tiptap/extension-history";
 import Text from "@tiptap/extension-text";
@@ -41,6 +42,7 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
         searchResultClass: "search-result",
         disableRegex: false,
       }),
+      BubbleMenu,
     ];
 
     const editor = useEditor({

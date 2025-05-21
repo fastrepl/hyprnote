@@ -125,7 +125,7 @@ export function TranscriptView() {
         {showEmptyMessage
           ? <RenderEmpty sessionId={sessionId} />
           : (
-            <div className="px-4">
+            <div className="px-4 h-full">
               <TranscriptEditor
                 ref={editorRef}
                 editable={ongoingSession.isInactive}

@@ -10,7 +10,7 @@ import { BrainIcon, DownloadIcon, Zap as SpeedIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const sttModelMetadata: Record<SupportedModel, {
+export const sttModelMetadata: Record<SupportedModel, {
   name: string;
   description: string;
   intelligence: number;

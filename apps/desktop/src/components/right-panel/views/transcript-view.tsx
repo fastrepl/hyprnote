@@ -195,12 +195,13 @@ function RenderEmpty({ sessionId }: { sessionId: string }) {
 }
 
 const SpeakerSelector = ({
-  onSpeakerIdChange,
+  onSpeakerChange,
   speakerId,
   speakerIndex,
 }: SpeakerViewInnerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const inactive = useOngoingSession(s => s.status === "inactive");
+  const [human, setHuman] = useState<Human | null>(null);
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const sessionId = noteMatch?.params.id;
@@ -211,19 +212,34 @@ const SpeakerSelector = ({
     queryFn: () => dbCommands.sessionListParticipants(sessionId!),
   });
 
+  useEffect(() => {
+    if (human) {
+      onSpeakerChange(human);
+    }
+  }, [human]);
+
+  useEffect(() => {
+    if (participants.length === 1 && participants[0]) {
+      setHuman(participants[0]);
+      return;
+    }
+
+    const foundHuman = participants.find((s) => s.id === speakerId);
+    if (foundHuman) {
+      setHuman(foundHuman);
+    }
+  }, [participants, speakerId]);
+
   const handleClickHuman = (human: Human) => {
-    onSpeakerIdChange(human.id);
+    setHuman(human);
     setIsOpen(false);
   };
-
-  const foundSpeaker = participants.length === 1 ? participants[0] : participants.find((s) => s.id === speakerId);
-  const displayName = foundSpeaker?.full_name ?? `Speaker ${speakerIndex ?? 0}`;
 
   if (!sessionId) {
     return <p></p>;
   }
 
-  if (!inactive && !foundSpeaker) {
+  if (!inactive && !human) {
     return <p></p>;
   }
 
@@ -237,7 +253,7 @@ const SpeakerSelector = ({
           }}
         >
           <span className="underline py-1 font-semibold">
-            {displayName}
+            {human?.full_name ?? `Speaker ${speakerIndex ?? 0}`}
           </span>
         </PopoverTrigger>
         <PopoverContent align="start" side="bottom">

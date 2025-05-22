@@ -254,7 +254,9 @@ const SpeakerSelector = ({
   }
 
   return (
-    <div className="mt-2">
+    <div
+      className="mt-2 sticky top-0 z-10 bg-neutral-50"
+    >
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger
           onMouseDown={(e) => {

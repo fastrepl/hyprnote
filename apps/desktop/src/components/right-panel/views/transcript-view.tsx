@@ -76,29 +76,34 @@ export function TranscriptView() {
 
   return (
     <div className="w-full h-full flex flex-col">
-      <div className="p-4 pb-0">
-        <header className="flex items-center gap-2 w-full">
+      <div className="px-4 py-1 border-b border-neutral-100">
+        <header className="flex items-center justify-between w-full">
           {!showEmptyMessage && (
-            <div className="flex-1 text-md font-medium">
-              <div className="flex text-md items-center gap-2">
-                Transcript
-                {isLive
-                  && (
-                    <div className="relative h-2 w-2">
-                      <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
-                      <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
-                    </div>
-                  )}
-              </div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-neutral-900">Transcript</h2>
+              {isLive && (
+                <div className="flex items-center gap-1.5">
+                  <div className="relative h-1.5 w-1.5">
+                    <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
+                    <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
+                  </div>
+                  <span className="text-xs font-medium text-red-600">Live</span>
+                </div>
+              )}
             </div>
           )}
-          <div className="not-draggable flex items-center gap-2">
+          <div className="not-draggable flex items-center gap-1">
             {(audioExist.data && ongoingSession.isInactive && hasTranscript && sessionId) && (
               <TooltipProvider key="listen-recording-tooltip">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="p-0" onClick={handleOpenSession}>
-                      <AudioLinesIcon size={16} className="text-black" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 hover:bg-neutral-100"
+                      onClick={handleOpenSession}
+                    >
+                      <AudioLinesIcon size={14} className="text-neutral-600" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
@@ -111,8 +116,13 @@ export function TranscriptView() {
               <TooltipProvider key="copy-all-tooltip">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="p-0" onClick={handleCopyAll}>
-                      <Copy size={16} className="text-black" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 hover:bg-neutral-100"
+                      onClick={handleCopyAll}
+                    >
+                      <Copy size={14} className="text-neutral-600" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">

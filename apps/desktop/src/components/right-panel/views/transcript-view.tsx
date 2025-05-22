@@ -1,13 +1,16 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMatch } from "@tanstack/react-router";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { AudioLinesIcon, ClipboardIcon, Copy, UploadIcon } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { SpeakerSelector } from "@/components/right-panel/views/exp";
-import { commands as dbCommands, type Word } from "@hypr/plugin-db";
+import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
+import { commands as dbCommands, Human, Word } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
+import { SpeakerViewInnerProps } from "@hypr/tiptap/transcript";
 import TranscriptEditor, { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useOngoingSession, useSessions } from "@hypr/utils/contexts";
@@ -28,6 +31,12 @@ export function TranscriptView() {
   const { isLive, words } = useTranscript(sessionId);
 
   const editorRef = useRef<TranscriptEditorRef | null>(null);
+
+  useEffect(() => {
+    if (words && words.length > 0) {
+      editorRef.current?.setWords(words);
+    }
+  }, [words]);
 
   const handleCopyAll = () => {
     if (words && words.length > 0) {
@@ -184,3 +193,50 @@ function RenderEmpty({ sessionId }: { sessionId: string }) {
     </div>
   );
 }
+
+const SpeakerSelector = ({
+  onSpeakerIdChange,
+  speakerId,
+  speakerIndex,
+}: SpeakerViewInnerProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const inactive = useOngoingSession(s => s.status === "inactive");
+
+  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
+  const sessionId = noteMatch?.params.id;
+
+  const { data: participants } = useQuery({
+    enabled: !!sessionId,
+    queryKey: ["participants", sessionId!, "selector"],
+    queryFn: () => dbCommands.sessionListParticipants(sessionId!),
+  });
+
+  const handleClickHuman = (human: Human) => {
+    onSpeakerIdChange(human.id);
+    setIsOpen(false);
+  };
+
+  const foundSpeaker = (participants ?? []).find((s) => s.id === speakerId);
+  const displayName = foundSpeaker?.full_name ?? `Speaker ${speakerIndex}`;
+
+  if (!sessionId) {
+    return <p></p>;
+  }
+
+  if (!inactive && !foundSpeaker) {
+    return <p></p>;
+  }
+
+  return (
+    <div className="mt-2">
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger>
+          <span className="underline py-1 font-semibold">{displayName}</span>
+        </PopoverTrigger>
+        <PopoverContent align="start" side="bottom">
+          <ParticipantsChipInner sessionId={sessionId} handleClickHuman={handleClickHuman} />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+};

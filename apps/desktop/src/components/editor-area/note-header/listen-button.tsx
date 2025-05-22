@@ -10,7 +10,7 @@ import {
   Volume2Icon,
   VolumeOffIcon,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
@@ -231,7 +231,6 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
 
 export function WhenActive() {
   const [open, setOpen] = useState(true);
-  const isInitialMount = useRef(true);
 
   const ongoingSessionStore = useOngoingSession((s) => ({
     pause: s.pause,
@@ -260,10 +259,6 @@ export function WhenActive() {
       });
     }
   }, [showConsent, refetchSpeakerMuted]);
-
-  useEffect(() => {
-    isInitialMount.current = false;
-  }, []);
 
   const toggleMicMuted = useMutation({
     mutationFn: () => listenerCommands.setMicMuted(!isMicMuted),

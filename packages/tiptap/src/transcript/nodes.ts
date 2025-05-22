@@ -1,5 +1,4 @@
-import { mergeAttributes, Node } from "@tiptap/core";
-import { CommandProps } from "@tiptap/core";
+import { type CommandProps, mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { Node as ProseNode } from "prosemirror-model";
 
@@ -10,7 +9,7 @@ declare module "@tiptap/core" {
     searchAndReplace: {
       setSearchTerm: (s: string) => ReturnType;
       setReplaceTerm: (s: string) => ReturnType;
-      replaceAll: (s: string) => ReturnType;
+      replaceAll: () => ReturnType;
     };
     speaker: {
       updateSpeakerIndexToId: (

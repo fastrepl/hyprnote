@@ -177,14 +177,20 @@ export const SpeakerNode = (c: SpeakerViewInnerComponent) => {
     addAttributes() {
       return {
         "speaker-index": {
-          parseHTML: element => element.getAttribute("data-speaker-index"),
+          default: null,
+          parseHTML: element => {
+            const v = element.getAttribute("data-speaker-index");
+            return v !== null ? Number(v) : null;
+          },
           renderHTML: attributes => ({ "data-speaker-index": attributes["speaker-index"] }),
         },
         "speaker-id": {
+          default: null,
           parseHTML: element => element.getAttribute("data-speaker-id"),
           renderHTML: attributes => ({ "data-speaker-id": attributes["speaker-id"] }),
         },
         "speaker-label": {
+          default: null,
           parseHTML: element => element.getAttribute("data-speaker-label"),
           renderHTML: attributes => ({ "data-speaker-label": attributes["speaker-label"] }),
         },

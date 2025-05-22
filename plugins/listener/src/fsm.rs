@@ -377,9 +377,9 @@ async fn update_session<R: tauri::Runtime>(
         .ok_or(crate::Error::NoneSession)?;
 
     session.words.extend(words);
-    app.db_upsert_session(session).await.unwrap();
+    app.db_upsert_session(session.clone()).await.unwrap();
 
-    Ok(session.words.clone())
+    Ok(session.words)
 }
 
 pub enum StateEvent {

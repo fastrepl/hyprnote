@@ -225,8 +225,10 @@ export const SpeakerNode = (c: SpeakerViewInnerComponent) => {
   });
 };
 
+const WORD_NODE_NAME = "word";
+
 export const WordNode = Node.create({
-  name: "word",
+  name: WORD_NODE_NAME,
   group: "inline",
   inline: true,
   atom: false,
@@ -264,5 +266,45 @@ export const WordNode = Node.create({
   },
   renderHTML({ HTMLAttributes }) {
     return ["span", mergeAttributes({ class: "transcript-word" }, HTMLAttributes), 0];
+  },
+  addKeyboardShortcuts() {
+    return {
+      Backspace: ({ editor }) => {
+        const { state, view } = editor;
+        const { selection } = state;
+
+        if (selection.empty || selection.$from.pos === selection.$to.pos) {
+          return false;
+        }
+
+        const wordsToDelete = new Set<number>();
+
+        state.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
+          if (node.type.name === WORD_NODE_NAME) {
+            wordsToDelete.add(pos);
+          }
+          return true;
+        });
+
+        if (wordsToDelete.size > 1) {
+          const tr = state.tr;
+          const positions = Array.from(wordsToDelete).sort((a: number, b: number) => b - a);
+
+          for (const pos of positions) {
+            const $resolvedPos = state.doc.resolve(pos);
+            const nodeToDelete = $resolvedPos.nodeAfter;
+
+            if (nodeToDelete && nodeToDelete.type.name === "word") {
+              tr.delete(pos, pos + nodeToDelete.nodeSize);
+            }
+          }
+
+          view.dispatch(tr);
+          return true;
+        }
+
+        return false;
+      },
+    };
   },
 });

@@ -168,12 +168,6 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
         ..Human::default()
     };
 
-    let john = Human {
-        full_name: Some("John Jeong".to_string()),
-        email: Some("john@hyprnote.com".to_string()),
-        ..Human::default()
-    };
-
     let alex = Human {
         full_name: Some("Alex Karp".to_string()),
         email: Some("alex@hyprnote.com".to_string()),
@@ -186,13 +180,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
         ..Human::default()
     };
 
-    let humans = vec![
-        user.clone(),
-        bobby.clone(),
-        john.clone(),
-        alex.clone(),
-        jenny.clone(),
-    ];
+    let humans = vec![user.clone(), bobby.clone(), alex.clone(), jenny.clone()];
 
     let calendars = vec![Calendar {
         id: uuid::Uuid::new_v4().to_string(),

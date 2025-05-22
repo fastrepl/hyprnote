@@ -18,7 +18,8 @@ export { SpeakerViewInnerProps };
 
 interface TranscriptEditorProps {
   editable?: boolean;
-  onBlur?: (words: Word[]) => void;
+  initialWords: Word[] | null;
+  onUpdate?: (words: Word[]) => void;
   c: SpeakerViewInnerComponent;
 }
 
@@ -29,7 +30,7 @@ export interface TranscriptEditorRef {
 }
 
 const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
-  ({ editable = true, c, onBlur }, ref) => {
+  ({ editable = true, c, onUpdate, initialWords }, ref) => {
     const extensions = [
       Document.configure({ content: "speaker+" }),
       History,
@@ -48,11 +49,12 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
     const editor = useEditor({
       extensions,
       editable,
-      onBlur: ({ editor }) => {
-        if (onBlur) {
-          onBlur(fromEditorToWords(editor.getJSON() as any));
+      onUpdate: ({ editor }) => {
+        if (onUpdate) {
+          onUpdate(fromEditorToWords(editor.getJSON() as any));
         }
       },
+      content: initialWords ? fromWordsToEditor(initialWords) : undefined,
       editorProps: {
         attributes: {
           class: "tiptap-transcript",

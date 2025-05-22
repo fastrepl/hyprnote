@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { AudioLinesIcon, ClipboardIcon, Copy, UploadIcon } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 import { SpeakerSelector } from "@/components/right-panel/views/exp";
 import { commands as dbCommands, type Word } from "@hypr/plugin-db";
@@ -29,12 +29,6 @@ export function TranscriptView() {
 
   const editorRef = useRef<TranscriptEditorRef | null>(null);
 
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.setWords(words);
-    }
-  }, [words]);
-
   const handleCopyAll = () => {
     if (words && words.length > 0) {
       const transcriptText = words.map((word) => word.text).join(" ");
@@ -58,9 +52,10 @@ export function TranscriptView() {
     }
   };
 
-  const handleBlur = (words: Word[]) => {
+  const handleUpdate = (words: Word[]) => {
     dbCommands.getSession({ id: sessionId! }).then((session) => {
       if (session) {
+        console.log("upserting session", words);
         dbCommands.upsertSession({ ...session, words });
       }
     });
@@ -128,8 +123,9 @@ export function TranscriptView() {
             <div className="px-4 h-full">
               <TranscriptEditor
                 ref={editorRef}
+                initialWords={words}
                 editable={ongoingSession.isInactive}
-                onBlur={handleBlur}
+                onUpdate={handleUpdate}
                 c={SpeakerSelector}
               />
             </div>

@@ -7,8 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
 import { commands as dbCommands, Human, Word } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { SpeakerViewInnerProps } from "@hypr/tiptap/transcript";
-import TranscriptEditor, { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
+import TranscriptEditor, { type SpeakerViewInnerProps, type TranscriptEditorRef } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
@@ -62,12 +61,13 @@ export function TranscriptView() {
   };
 
   const handleUpdate = (words: Word[]) => {
-    dbCommands.getSession({ id: sessionId! }).then((session) => {
-      if (session) {
-        console.log("upserting session", words);
-        dbCommands.upsertSession({ ...session, words });
-      }
-    });
+    if (!isLive) {
+      dbCommands.getSession({ id: sessionId! }).then((session) => {
+        if (session) {
+          dbCommands.upsertSession({ ...session, words });
+        }
+      });
+    }
   };
 
   if (!sessionId) {
@@ -217,7 +217,7 @@ const SpeakerSelector = ({
   };
 
   const foundSpeaker = (participants ?? []).find((s) => s.id === speakerId);
-  const displayName = foundSpeaker?.full_name ?? `Speaker ${speakerIndex}`;
+  const displayName = foundSpeaker?.full_name ?? `Speaker ${speakerIndex ?? 0}`;
 
   if (!sessionId) {
     return <p></p>;

@@ -256,15 +256,18 @@ impl Session {
                 futures_util::pin_mut!(listen_stream);
 
                 while let Some(result) = listen_stream.next().await {
-                    SessionEvent::Words {
-                        words: result.words.clone(),
-                    }
-                    .emit(&app)
-                    .unwrap();
+                    // We don't have to do this, and inefficient. But this is what works at the moment.
+                    {
+                        let updated_words = update_session(&app, &session.id, result.words)
+                            .await
+                            .unwrap();
 
-                    update_session(&app, &session.id, result.words)
-                        .await
-                        .unwrap();
+                        SessionEvent::Words {
+                            words: updated_words,
+                        }
+                        .emit(&app)
+                    }
+                    .unwrap();
                 }
 
                 tracing::info!("listen_stream_ended");
@@ -363,7 +366,7 @@ async fn update_session<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     session_id: impl Into<String>,
     words: Vec<hypr_listener_interface::Word>,
-) -> Result<(), crate::Error> {
+) -> Result<Vec<hypr_listener_interface::Word>, crate::Error> {
     use tauri_plugin_db::DatabasePluginExt;
 
     // TODO: not ideal. We might want to only do "update" everywhere instead of upserts.
@@ -374,9 +377,9 @@ async fn update_session<R: tauri::Runtime>(
         .ok_or(crate::Error::NoneSession)?;
 
     session.words.extend(words);
-    app.db_upsert_session(session.clone()).await.unwrap();
+    app.db_upsert_session(session).await.unwrap();
 
-    Ok(())
+    Ok(session.words.clone())
 }
 
 pub enum StateEvent {

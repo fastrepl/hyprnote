@@ -205,7 +205,7 @@ const SpeakerSelector = ({
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const sessionId = noteMatch?.params.id;
 
-  const { data: participants } = useQuery({
+  const { data: participants = [] } = useQuery({
     enabled: !!sessionId,
     queryKey: ["participants", sessionId!, "selector"],
     queryFn: () => dbCommands.sessionListParticipants(sessionId!),
@@ -216,7 +216,7 @@ const SpeakerSelector = ({
     setIsOpen(false);
   };
 
-  const foundSpeaker = (participants ?? []).find((s) => s.id === speakerId);
+  const foundSpeaker = participants.length === 1 ? participants[0] : participants.find((s) => s.id === speakerId);
   const displayName = foundSpeaker?.full_name ?? `Speaker ${speakerIndex ?? 0}`;
 
   if (!sessionId) {

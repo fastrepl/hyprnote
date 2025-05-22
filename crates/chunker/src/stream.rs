@@ -55,13 +55,19 @@ impl<S: AsyncSource + Unpin> Stream for ChunkStream<S> {
                     if this.buffer.len() >= min_buffer_samples {
                         let data = std::mem::take(&mut this.buffer);
                         let speech = filter_speech_chunks(&mut this.vad, data);
-                        return Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, speech)));
+                        if !speech.is_empty() {
+                            return Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, speech)));
+                        }
                     }
                 }
                 Poll::Ready(None) if !this.buffer.is_empty() => {
                     let data = std::mem::take(&mut this.buffer);
                     let speech = filter_speech_chunks(&mut this.vad, data);
-                    return Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, speech)));
+                    if speech.is_empty() {
+                        return Poll::Ready(None);
+                    } else {
+                        return Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, speech)));
+                    }
                 }
                 Poll::Ready(None) => return Poll::Ready(None),
                 Poll::Pending => return Poll::Pending,
@@ -70,7 +76,11 @@ impl<S: AsyncSource + Unpin> Stream for ChunkStream<S> {
 
         let data = this.buffer.drain(0..max_samples);
         let speech = filter_speech_chunks(&mut this.vad, data);
-        Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, speech)))
+        if speech.is_empty() {
+            Poll::Pending
+        } else {
+            Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, speech)))
+        }
     }
 }
 

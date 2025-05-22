@@ -56,11 +56,12 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             }
 
             if app.get_event_notification().unwrap_or(false) {
-                if let Err(e) =
-                    tokio::runtime::Handle::current().block_on(app.start_event_notification())
-                {
-                    tracing::error!("start_event_notification_failed: {:?}", e);
-                }
+                let app_handle = app.clone();
+                tauri::async_runtime::spawn(async move {
+                    if let Err(e) = app_handle.start_event_notification().await {
+                        tracing::error!("start_event_notification_failed: {:?}", e);
+                    }
+                });
             }
 
             Ok(())

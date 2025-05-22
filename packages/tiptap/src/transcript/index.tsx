@@ -41,7 +41,7 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
       SpeakerSplit,
       SearchAndReplace.configure({
         searchResultClass: "search-result",
-        disableRegex: false,
+        disableRegex: true,
       }),
       BubbleMenu,
     ];

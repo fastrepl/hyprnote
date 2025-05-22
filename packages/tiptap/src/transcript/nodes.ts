@@ -7,6 +7,11 @@ import { createSpeakerView, SpeakerViewInnerComponent } from "./views";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
+    searchAndReplace: {
+      setSearchTerm: (s: string) => ReturnType;
+      setReplaceTerm: (s: string) => ReturnType;
+      replaceAll: (s: string) => ReturnType;
+    };
     speaker: {
       updateSpeakerIndexToId: (
         speakerIndex: number,

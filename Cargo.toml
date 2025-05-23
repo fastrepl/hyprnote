@@ -193,5 +193,7 @@ objc2-core-foundation = "0.3"
 objc2-foundation = "0.3"
 objc2-user-notifications = "0.3"
 
+voice_activity_detector = "0.2"
+
 [patch.crates-io]
 cpal = { git = "https://github.com/RustAudio/cpal", rev = "51c3b43" }

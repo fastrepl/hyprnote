@@ -1,24 +1,17 @@
-mod error;
-mod predictor;
 mod stream;
 
-pub use error::*;
-pub use predictor::*;
 pub use stream::*;
 
 use kalosm_sound::AsyncSource;
 use std::time::Duration;
+use voice_activity_detector::VoiceActivityDetector;
 
 pub trait ChunkerExt: AsyncSource + Sized {
-    fn chunks<P: Predictor + Unpin>(
-        self,
-        predictor: P,
-        chunk_duration: Duration,
-    ) -> ChunkStream<Self, P>
+    fn chunks(self, vad: VoiceActivityDetector, chunk_duration: Duration) -> ChunkStream<Self>
     where
         Self: Unpin,
     {
-        ChunkStream::new(self, predictor, chunk_duration)
+        ChunkStream::new(self, vad, chunk_duration)
     }
 }
 
@@ -28,6 +21,7 @@ impl<T: AsyncSource> ChunkerExt for T {}
 mod tests {
     use super::*;
     use futures_util::StreamExt;
+    use voice_activity_detector::VoiceActivityDetector;
 
     #[tokio::test]
     async fn test_chunker() {
@@ -43,7 +37,12 @@ mod tests {
             sample_format: hound::SampleFormat::Float,
         };
 
-        let mut stream = audio_source.chunks(RMS::new(), Duration::from_secs(15));
+        let vad = VoiceActivityDetector::builder()
+            .sample_rate(16000)
+            .chunk_size(512usize)
+            .build()
+            .unwrap();
+        let mut stream = audio_source.chunks(vad, Duration::from_secs(15));
         let mut i = 0;
 
         std::fs::remove_dir_all("tmp/english_1").unwrap();

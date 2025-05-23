@@ -35,8 +35,9 @@ export function TranscriptView() {
   useEffect(() => {
     if (words && words.length > 0) {
       editorRef.current?.setWords(words);
+      editorRef.current?.scrollToBottom();
     }
-  }, [words]);
+  }, [words, isLive]);
 
   const handleCopyAll = () => {
     if (words && words.length > 0) {

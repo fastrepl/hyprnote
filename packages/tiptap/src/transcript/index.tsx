@@ -7,7 +7,7 @@ import Document from "@tiptap/extension-document";
 import History from "@tiptap/extension-history";
 import Text from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { forwardRef, useEffect } from "react";
+import { forwardRef, useEffect, useRef } from "react";
 
 import { SpeakerSplit, WordSplit } from "./extensions";
 import { SpeakerNode, WordNode } from "./nodes";
@@ -27,10 +27,13 @@ export interface TranscriptEditorRef {
   editor: TiptapEditor | null;
   getWords: () => Word[] | null;
   setWords: (words: Word[]) => void;
+  scrollToBottom: () => void;
 }
 
 const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
   ({ editable = true, c, onUpdate, initialWords }, ref) => {
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
     const extensions = [
       Document.configure({ content: "speaker+" }),
       History,
@@ -80,6 +83,11 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
             }
             return fromEditorToWords(editor.getJSON() as any);
           },
+          scrollToBottom: () => {
+            if (scrollContainerRef.current) {
+              scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+            }
+          },
         };
       }
     }, [editor]);
@@ -92,7 +100,10 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
 
     return (
       <div role="textbox" className="h-full flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto"
+        >
           <EditorContent editor={editor} className="h-full" />
         </div>
       </div>

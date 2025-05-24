@@ -76,6 +76,8 @@ export function TranscriptView() {
     return null;
   }
 
+  const showActions = hasTranscript && sessionId && ongoingSession.isInactive;
+
   return (
     <div className="w-full h-full flex flex-col">
       <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b border-neutral-100">
@@ -94,8 +96,7 @@ export function TranscriptView() {
           </div>
         )}
         <div className="not-draggable flex items-center ">
-          {(hasTranscript && sessionId) && <SearchAndReplace editorRef={editorRef} />}
-          {(audioExist.data && ongoingSession.isInactive && hasTranscript && sessionId) && (
+          {(audioExist.data && showActions) && (
             <Button
               variant="ghost"
               size="sm"
@@ -104,7 +105,8 @@ export function TranscriptView() {
               <AudioLinesIcon size={14} className="text-neutral-600" />
             </Button>
           )}
-          {(hasTranscript && sessionId) && <CopyButton onCopy={handleCopyAll} />}
+          {showActions && <SearchAndReplace editorRef={editorRef} />}
+          {showActions && <CopyButton onCopy={handleCopyAll} />}
         </div>
       </header>
 

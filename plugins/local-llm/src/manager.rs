@@ -43,12 +43,17 @@ impl ModelManager {
 
         let mut guard = self.model.lock().await;
 
-        if let Some(model) = guard.as_ref() {
-            Ok(model.clone())
-        } else {
-            let model = Arc::new(hypr_llama::Llama::new(&self.model_path)?);
-            *guard = Some(model.clone());
-            Ok(model)
+        match guard.as_ref() {
+            Some(model) => Ok(model.clone()),
+            None => {
+                if !self.model_path.exists() {
+                    return Err(crate::Error::ModelNotDownloaded);
+                }
+
+                let model = Arc::new(hypr_llama::Llama::new(&self.model_path)?);
+                *guard = Some(model.clone());
+                Ok(model)
+            }
         }
     }
 

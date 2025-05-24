@@ -64,6 +64,8 @@ export const WelcomeView = () => {
     }
   };
 
+  const handleStartLocal = () => {};
+
   return (
     <div className="flex flex-col items-center">
       <img
@@ -81,13 +83,22 @@ export const WelcomeView = () => {
         {t`The AI Meeting Notepad`}
       </TextAnimate>
 
-      <PushableButton
-        disabled={!port}
-        onClick={handleStartCloud}
-        className="w-full max-w-sm"
-      >
-        <Trans>Get Started</Trans>
-      </PushableButton>
+      <div className="flex flex-col items-center gap-3 w-full max-w-sm">
+        <PushableButton
+          disabled={!port}
+          onClick={handleStartCloud}
+          className="w-full"
+        >
+          <Trans>Get Started</Trans>
+        </PushableButton>
+
+        <button
+          onClick={handleStartLocal}
+          className="text-sm underline text-neutral-700 hover:text-neutral-900"
+        >
+          <Trans>or skip signup & use locally</Trans>
+        </button>
+      </div>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { commands } from "@/types";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
@@ -16,6 +16,8 @@ interface WelcomeModalProps {
 }
 
 export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
+  const [step, setStep] = useState<"0_login" | "1_model-selection">("0_login");
+
   const selectSTTModel = useMutation({
     mutationFn: (model: SupportedModel) => localSttCommands.setCurrentModel(model),
   });
@@ -44,8 +46,8 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     >
       <ModalBody className="relative p-0 flex flex-col items-center justify-center overflow-hidden">
         <div className="z-10">
-          {true
-            ? <WelcomeView />
+          {step === "0_login"
+            ? <WelcomeView onContinue={() => setStep("1_model-selection")} />
             : (
               <ModelSelectionView
                 onContinue={handleModelSelected}

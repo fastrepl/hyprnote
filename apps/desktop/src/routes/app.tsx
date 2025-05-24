@@ -71,7 +71,7 @@ function Component() {
                           </div>
                         </div>
                         <WelcomeModal
-                          isOpen={isOnboardingNeeded}
+                          isOpen={true}
                           onClose={() => {
                             commands.setOnboardingNeeded(false);
                             router.invalidate();

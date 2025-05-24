@@ -9,7 +9,7 @@ import { commands as authCommands, events } from "@hypr/plugin-auth";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
-export const WelcomeView = () => {
+export const WelcomeView = ({ onContinue }: { onContinue: () => void }) => {
   const { t } = useLingui();
   const [port, setPort] = useState<number | null>(null);
 
@@ -64,7 +64,9 @@ export const WelcomeView = () => {
     }
   };
 
-  const handleStartLocal = () => {};
+  const handleStartLocal = () => {
+    onContinue();
+  };
 
   return (
     <div className="flex flex-col items-center">

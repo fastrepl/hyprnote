@@ -153,6 +153,7 @@ export default function EditorArea({
               key={`floating-button-${sessionId}`}
               handleEnhance={handleClickEnhance}
               session={sessionStore.session}
+              isError={enhance.status === "error"}
             />
           </div>
         </motion.div>

@@ -98,7 +98,7 @@ function PricingCard({
       </div>
 
       <ProgressiveBlur
-        className="pointer-events-none absolute bottom-0 left-0 h-[50%] w-full z-5"
+        className="pointer-events-none absolute bottom-0 left-0 h-[50%] w-full"
         blurIntensity={6}
       />
 

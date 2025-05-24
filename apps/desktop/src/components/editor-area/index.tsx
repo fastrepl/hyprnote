@@ -21,6 +21,8 @@ import { enhanceFailedToast } from "../toast/shared";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 
+const MAX_ENHANCE_RETRIES = 3;
+
 export default function EditorArea({
   editable,
   sessionId,
@@ -80,8 +82,9 @@ export default function EditorArea({
   );
 
   const handleClickEnhance = useCallback(() => {
+    enhance.resetEnhanceRetryState(sessionId);
     enhance.mutate();
-  }, [enhance]);
+  }, [enhance, sessionId]);
 
   const safelyFocusEditor = useCallback(() => {
     if (editorRef.current?.editor && editorRef.current.editor.isEditable) {
@@ -169,6 +172,7 @@ export function useEnhanceMutation({
   rawContent: string;
 }) {
   const { userId, onboardingSessionId } = useHypr();
+  const retryStateRef = useRef<{ [sessionId: string]: { count: number; maxRetriesReached: boolean } }>({});
 
   const setEnhanceController = useOngoingSession((s) => s.setEnhanceController);
   const { persistSession, setEnhancedContent } = useSession(sessionId, (s) => ({
@@ -179,6 +183,12 @@ export function useEnhanceMutation({
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async () => {
+      if (retryStateRef.current[sessionId]?.maxRetriesReached) {
+        const maxRetriesError = new Error("Max retries reached for enhancement.");
+        (maxRetriesError as any).isMaxRetriesError = true;
+        throw maxRetriesError;
+      }
+
       const fn = sessionId === onboardingSessionId
         ? dbCommands.getWordsOnboarding
         : dbCommands.getWords;
@@ -257,6 +267,10 @@ export function useEnhanceMutation({
       return text.then(miscCommands.opinionatedMdToHtml);
     },
     onSuccess: () => {
+      if (retryStateRef.current[sessionId]) {
+        delete retryStateRef.current[sessionId];
+      }
+
       analyticsCommands.event({
         event: sessionId === onboardingSessionId
           ? "onboarding_enhance_done"
@@ -268,15 +282,45 @@ export function useEnhanceMutation({
       persistSession();
     },
     onError: (error) => {
-      console.error(error);
+      if ((error as any).isMaxRetriesError) {
+        console.warn(`Enhancement for session ${sessionId} definitively stopped: max retries were previously reached.`);
+        return;
+      }
 
-      if (!(error as unknown as string).includes("cancel")) {
+      if ((error as Error).message?.toLowerCase().includes("cancel")) {
+        console.log(`Enhancement cancelled by user for session ${sessionId}.`);
+        return;
+      }
+
+      console.error(`Enhancement failed for session ${sessionId}:`, error);
+
+      const currentSessionRetryState = retryStateRef.current[sessionId] || { count: 0, maxRetriesReached: false };
+      currentSessionRetryState.count += 1;
+
+      if (currentSessionRetryState.count >= MAX_ENHANCE_RETRIES) {
+        currentSessionRetryState.maxRetriesReached = true;
+        toast({
+          id: `enhance-max-retries-${sessionId}`,
+          title: "Enhancement Paused",
+          content: "This note failed to enhance multiple times. You can try again manually.",
+          dismissible: true,
+          duration: 7000,
+        });
+      } else {
         enhanceFailedToast();
       }
+      retryStateRef.current[sessionId] = currentSessionRetryState;
     },
   });
 
-  return enhance;
+  const resetEnhanceRetryState = useCallback((idToReset: string) => {
+    if (retryStateRef.current[idToReset]) {
+      console.log(`Resetting enhance retry state for session: ${idToReset}`);
+      delete retryStateRef.current[idToReset];
+    }
+  }, []);
+
+  return { ...enhance, resetEnhanceRetryState };
 }
 
 export function useAutoEnhance({

@@ -1,12 +1,7 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
-import { message } from "@tauri-apps/plugin-dialog";
-import { openUrl } from "@tauri-apps/plugin-opener";
-import { useEffect, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useEffect } from "react";
 
-import { baseUrl } from "@/client";
 import { commands } from "@/types";
-import { commands as authCommands, events } from "@hypr/plugin-auth";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
@@ -21,47 +16,9 @@ interface WelcomeModalProps {
 }
 
 export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
-  const navigate = useNavigate();
-  const [port, setPort] = useState<number | null>(null);
-  const [showModelSelection, setShowModelSelection] = useState(false);
-
   const selectSTTModel = useMutation({
     mutationFn: (model: SupportedModel) => localSttCommands.setCurrentModel(model),
   });
-
-  useEffect(() => {
-    let cleanup: (() => void) | undefined;
-    let unlisten: (() => void) | undefined;
-
-    if (isOpen) {
-      authCommands.startOauthServer().then((port) => {
-        setPort(port);
-
-        events.authEvent
-          .listen(({ payload }) => {
-            if (payload === "success") {
-              message("Successfully authenticated!");
-              return;
-            }
-
-            if (payload.error) {
-              message("Error occurred while authenticating!");
-              return;
-            }
-          })
-          .then((fn) => {
-            unlisten = fn;
-          });
-
-        cleanup = () => {
-          unlisten?.();
-          authCommands.stopOauthServer(port);
-        };
-      });
-    }
-
-    return () => cleanup?.();
-  }, [isOpen, onClose, navigate]);
 
   useEffect(() => {
     if (isOpen) {
@@ -71,29 +28,6 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
       sfxCommands.stop("BGM");
     }
   }, [isOpen]);
-
-  const url = useQuery({
-    queryKey: ["oauth-url", port],
-    enabled: !!port,
-    queryFn: () => {
-      const u = new URL(baseUrl);
-      u.pathname = "/auth/connect";
-      u.searchParams.set("c", window.crypto.randomUUID());
-      u.searchParams.set("f", "fingerprint");
-      u.searchParams.set("p", port!.toString());
-      return u.toString();
-    },
-  });
-
-  const _handleStartCloud = () => {
-    if (url.data) {
-      openUrl(url.data);
-    }
-  };
-
-  const handleStartLocal = () => {
-    setShowModelSelection(true);
-  };
 
   const handleModelSelected = (model: SupportedModel) => {
     selectSTTModel.mutate(model);
@@ -110,13 +44,8 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     >
       <ModalBody className="relative p-0 flex flex-col items-center justify-center overflow-hidden">
         <div className="z-10">
-          {!showModelSelection
-            ? (
-              <WelcomeView
-                portReady={port !== null}
-                onGetStarted={handleStartLocal}
-              />
-            )
+          {true
+            ? <WelcomeView />
             : (
               <ModelSelectionView
                 onContinue={handleModelSelected}

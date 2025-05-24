@@ -1,0 +1,68 @@
+.search-result {
+  background-color: #ffeb3b;
+  border-radius: 2px;
+  padding: 1px 0;
+}
+
+.transcript-speaker {
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+
+.transcript-speaker-label {
+  font-weight: 600;
+  color: #3a3a3a;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.transcript-speaker-content {
+  display: inline;
+  line-height: 1.7;
+  white-space: normal;
+}
+
+.tiptap-transcript {
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: normal;
+  word-wrap: break-word;
+  color: #333;
+  text-align: left;
+}
+
+.transcript-word {
+  position: relative;
+  display: inline;
+  border-radius: 3px;
+  background-color: transparent;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  line-height: 1;
+}
+
+.transcript-word::after {
+  content: " ";
+}
+
+.transcript-speaker > .transcript-word:last-child::after {
+  content: "";
+}
+
+.transcript-word:hover {
+  background-color: rgba(217, 232, 251, 0.7);
+  box-shadow: 0 0 0 1px #b8d5fa;
+}
+
+.ProseMirror[contenteditable="false"] .transcript-word:hover {
+  background-color: transparent;
+  box-shadow: none;
+  cursor: default;
+}
+
+.ProseMirror {
+  outline: none;
+}
+
+.ProseMirror-selectednode {
+  outline: 2px solid #4a9af4;
+}

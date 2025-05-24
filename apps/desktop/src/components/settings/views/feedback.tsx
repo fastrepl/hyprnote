@@ -30,13 +30,19 @@ export default function Feedback() {
         return;
       }
 
-      Sentry.captureFeedback({
-        message: description,
-        email,
-        tags: {
-          type: selectedType,
-        },
-      });
+      try {
+        Sentry.sendFeedback({
+          message: description,
+          email,
+          tags: { type: selectedType },
+        });
+      } catch (error) {
+        console.error(error);
+        return;
+      }
+
+      setDescription("");
+      setEmail("");
     });
   };
 

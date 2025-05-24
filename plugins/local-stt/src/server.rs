@@ -18,7 +18,7 @@ use futures_util::{SinkExt, StreamExt};
 use tower_http::cors::{self, CorsLayer};
 
 use hypr_chunker::ChunkerExt;
-use hypr_listener_interface::{ListenOutputChunk, ListenParams, TranscriptChunk};
+use hypr_listener_interface::{ListenOutputChunk, ListenParams, Word};
 use hypr_ws_utils::WebSocketAudioSource;
 
 use crate::manager::{ConnectionGuard, ConnectionManager};
@@ -54,12 +54,6 @@ pub struct ServerState {
     model_type: crate::SupportedModel,
     model_cache_dir: PathBuf,
     connection_manager: ConnectionManager,
-}
-
-impl ServerState {
-    pub fn try_acquire_connection(&self) -> Option<ConnectionGuard> {
-        self.connection_manager.try_acquire_connection()
-    }
 }
 
 #[derive(Clone)]
@@ -114,12 +108,27 @@ async fn listen(
     ws: WebSocketUpgrade,
     AxumState(state): AxumState<ServerState>,
 ) -> Result<impl IntoResponse, StatusCode> {
-    let guard = state
-        .try_acquire_connection()
-        .ok_or(StatusCode::TOO_MANY_REQUESTS)?;
+    let guard = state.connection_manager.acquire_connection();
 
-    let model_path = state.model_type.model_path(&state.model_cache_dir);
-    let language = params.language.try_into().unwrap();
+    Ok(ws.on_upgrade(move |socket| async move {
+        websocket_with_model(socket, params, state, guard).await
+    }))
+}
+
+async fn websocket_with_model(
+    socket: WebSocket,
+    params: ListenParams,
+    state: ServerState,
+    guard: ConnectionGuard,
+) {
+    let model_type = state.model_type;
+    let model_cache_dir = state.model_cache_dir.clone();
+
+    let model_path = model_type.model_path(&model_cache_dir);
+    let language = params.language.try_into().unwrap_or_else(|e| {
+        tracing::error!("convert_to_whisper_language: {e:?}");
+        hypr_whisper::Language::En
+    });
 
     let model = hypr_whisper::local::Whisper::builder()
         .model_path(model_path.to_str().unwrap())
@@ -128,15 +137,11 @@ async fn listen(
         .dynamic_prompt(&params.dynamic_prompt)
         .build();
 
-    Ok(ws.on_upgrade(move |socket| websocket(socket, model, guard)))
+    websocket(socket, model, guard).await;
 }
 
 #[tracing::instrument(skip_all)]
-async fn websocket(
-    socket: WebSocket,
-    model: hypr_whisper::local::Whisper,
-    _guard: ConnectionGuard,
-) {
+async fn websocket(socket: WebSocket, model: hypr_whisper::local::Whisper, guard: ConnectionGuard) {
     let (mut ws_sender, ws_receiver) = socket.split();
     let mut stream = {
         let audio_source = WebSocketAudioSource::new(ws_receiver, 16 * 1000);
@@ -145,31 +150,44 @@ async fn websocket(
         hypr_whisper::local::TranscribeChunkedAudioStreamExt::transcribe(chunked, model)
     };
 
-    while let Some(chunk) = stream.next().await {
-        let text = chunk.text().to_string();
-        let start = chunk.start() as u64;
-        let duration = chunk.duration() as u64;
-        let confidence = chunk.confidence();
+    loop {
+        tokio::select! {
+            _ = guard.cancelled() => {
+                tracing::info!("websocket_cancelled_by_new_connection");
+                break;
+            }
+            chunk_opt = stream.next() => {
+                let Some(chunk) = chunk_opt else { break };
+                let text = chunk.text().to_string();
+                let start = chunk.start() as u64;
+                let duration = chunk.duration() as u64;
+                let confidence = chunk.confidence();
 
-        if confidence < 0.5 {
-            tracing::warn!(confidence, "skipping_transcript: {}", text);
-            continue;
-        }
+                if confidence < 0.45 {
+                    tracing::warn!(confidence, "skipping_transcript: {}", text);
+                    continue;
+                }
 
-        let data = ListenOutputChunk {
-            diarizations: vec![],
-            transcripts: vec![TranscriptChunk {
-                text,
-                start,
-                end: start + duration,
-                confidence: Some(confidence),
-            }],
-        };
+                let data = ListenOutputChunk {
+                    words: text
+                        .split_whitespace()
+                        .filter(|w| !w.is_empty())
+                        .map(|w| Word {
+                            text: w.trim().to_string(),
+                            speaker: None,
+                            start_ms: Some(start),
+                            end_ms: Some(start + duration),
+                            confidence: Some(confidence),
+                        })
+                        .collect(),
+                };
 
-        let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
-        if let Err(e) = ws_sender.send(msg).await {
-            tracing::warn!("websocket_send_error: {}", e);
-            break;
+                let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
+                if let Err(e) = ws_sender.send(msg).await {
+                    tracing::warn!("websocket_send_error: {}", e);
+                    break;
+                }
+            }
         }
     }
 

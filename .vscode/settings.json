@@ -17,6 +17,7 @@
   "rust-analyzer.check.workspace": false,
   "rust-analyzer.checkOnSave": true,
   "rust-analyzer.check.allTargets": true,
+  "rust-analyzer.cargo.targetDir": "target/analyzer",
   "rust-analyzer.cargo.extraEnv": {
     "MACOSX_DEPLOYMENT_TARGET": "14.2"
   }

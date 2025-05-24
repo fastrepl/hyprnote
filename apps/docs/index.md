@@ -11,11 +11,6 @@
             body: "Contribute to the project. We value every contribution."
         },
         {
-            title: "Extensions",
-            url: "/extensions",
-            body: "Browse the list of extensions to see what's available."
-        },
-        {
             title: "Plugins",
             url: "/plugins",
             body: "Browse the list of plugins to see what's available."

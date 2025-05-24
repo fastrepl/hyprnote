@@ -1,57 +1,84 @@
 use tauri::{
     image::Image,
-    menu::{Menu, MenuId, MenuItem, PredefinedMenuItem},
+    menu::{Menu, MenuId, MenuItem, MenuItemKind, PredefinedMenuItem},
     tray::TrayIconBuilder,
     AppHandle, Result,
 };
 
 const TRAY_ID: &str = "hypr-tray";
 
-pub enum TrayItem {
-    Open,
-    Start,
-    Quit,
+pub enum HyprMenuItem {
+    TrayOpen,
+    TrayStart,
+    TrayQuit,
+    AppNew,
 }
 
-impl From<TrayItem> for MenuId {
-    fn from(value: TrayItem) -> Self {
+impl From<HyprMenuItem> for MenuId {
+    fn from(value: HyprMenuItem) -> Self {
         match value {
-            TrayItem::Open => "open_hypr",
-            TrayItem::Start => "start_hypr",
-            TrayItem::Quit => "quit_hypr",
+            HyprMenuItem::TrayOpen => "hypr_tray_open",
+            HyprMenuItem::TrayStart => "hypr_tray_start",
+            HyprMenuItem::TrayQuit => "hypr_tray_quit",
+            HyprMenuItem::AppNew => "hypr_app_new",
         }
         .into()
     }
 }
 
-impl From<MenuId> for TrayItem {
+impl From<MenuId> for HyprMenuItem {
     fn from(id: MenuId) -> Self {
         let id = id.0.as_str();
         match id {
-            "open_hypr" => TrayItem::Open,
-            "start_hypr" => TrayItem::Start,
-            "quit_hypr" => TrayItem::Quit,
+            "hypr_tray_open" => HyprMenuItem::TrayOpen,
+            "hypr_tray_start" => HyprMenuItem::TrayStart,
+            "hypr_tray_quit" => HyprMenuItem::TrayQuit,
+            "hypr_app_new" => HyprMenuItem::AppNew,
             _ => unreachable!(),
         }
     }
 }
 
 pub trait TrayPluginExt<R: tauri::Runtime> {
-    fn create_tray(&self) -> Result<()>;
+    fn create_app_menu(&self) -> Result<()>;
+    fn create_tray_menu(&self) -> Result<()>;
     fn set_start_disabled(&self, disabled: bool) -> Result<()>;
 }
 
 impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
-    fn create_tray(&self) -> Result<()> {
+    fn create_app_menu(&self) -> Result<()> {
+        let app = self.app_handle();
+        let item = app_new_menu(app)?;
+
+        if cfg!(target_os = "macos") {
+            if let Some(menu) = app.menu() {
+                let items = menu.items()?;
+
+                if items.len() > 1 {
+                    if let MenuItemKind::Submenu(submenu) = &items[1] {
+                        submenu.prepend(&item)?;
+                        return Ok(());
+                    }
+                }
+            }
+        }
+
+        let menu = Menu::with_items(app, &[&item])?;
+        app.set_menu(menu)?;
+
+        Ok(())
+    }
+
+    fn create_tray_menu(&self) -> Result<()> {
         let app = self.app_handle();
 
         let menu = Menu::with_items(
             app,
             &[
-                &open_menu(app)?,
-                &start_menu(app, false)?,
+                &tray_open_menu(app)?,
+                &tray_start_menu(app, false)?,
                 &PredefinedMenuItem::separator(app)?,
-                &quit_menu(app)?,
+                &tray_quit_menu(app)?,
             ],
         )?;
 
@@ -63,20 +90,26 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             .menu(&menu)
             .show_menu_on_left_click(true)
             .on_menu_event({
-                move |app: &AppHandle, event| match TrayItem::from(event.id.clone()) {
-                    TrayItem::Open => {
+                move |app: &AppHandle, event| match HyprMenuItem::from(event.id.clone()) {
+                    HyprMenuItem::TrayOpen => {
                         use tauri_plugin_windows::HyprWindow;
                         let _ = HyprWindow::Main.show(app);
                     }
-                    TrayItem::Start => {
+                    HyprMenuItem::TrayStart => {
                         use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
                         if let Ok(_) = app.window_show(HyprWindow::Main) {
                             let _ =
                                 app.window_emit_navigate(HyprWindow::Main, "/app/new?record=true");
                         }
                     }
-                    TrayItem::Quit => {
+                    HyprMenuItem::TrayQuit => {
                         app.exit(0);
+                    }
+                    HyprMenuItem::AppNew => {
+                        use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
+                        if let Ok(_) = app.window_show(HyprWindow::Main) {
+                            let _ = app.window_emit_navigate(HyprWindow::Main, "/app/new");
+                        }
                     }
                 }
             })
@@ -92,10 +125,10 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             let menu = Menu::with_items(
                 app,
                 &[
-                    &open_menu(app)?,
-                    &start_menu(app, disabled)?,
+                    &tray_open_menu(app)?,
+                    &tray_start_menu(app, disabled)?,
                     &PredefinedMenuItem::separator(app)?,
-                    &quit_menu(app)?,
+                    &tray_quit_menu(app)?,
                 ],
             )?;
 
@@ -106,20 +139,36 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
     }
 }
 
-fn open_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
-    MenuItem::with_id(app, TrayItem::Open, "Open Hyprnote", true, None::<&str>)
-}
-
-fn start_menu<R: tauri::Runtime>(app: &AppHandle<R>, disabled: bool) -> Result<MenuItem<R>> {
+fn app_new_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
     MenuItem::with_id(
         app,
-        TrayItem::Start,
+        HyprMenuItem::AppNew,
+        "New Note",
+        true,
+        Some("CmdOrCtrl+N"),
+    )
+}
+
+fn tray_open_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
+    MenuItem::with_id(
+        app,
+        HyprMenuItem::TrayOpen,
+        "Open Hyprnote",
+        true,
+        None::<&str>,
+    )
+}
+
+fn tray_start_menu<R: tauri::Runtime>(app: &AppHandle<R>, disabled: bool) -> Result<MenuItem<R>> {
+    MenuItem::with_id(
+        app,
+        HyprMenuItem::TrayStart,
         "Start a new meeting",
         !disabled,
         None::<&str>,
     )
 }
 
-fn quit_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
-    MenuItem::with_id(app, TrayItem::Quit, "Quit", true, Some("cmd+q"))
+fn tray_quit_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
+    MenuItem::with_id(app, HyprMenuItem::TrayQuit, "Quit", true, Some("cmd+q"))
 }

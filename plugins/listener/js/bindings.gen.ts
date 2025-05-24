@@ -40,12 +40,6 @@ async getSpeakerMuted() : Promise<boolean> {
 async setSpeakerMuted(muted: boolean) : Promise<null> {
     return await TAURI_INVOKE("plugin:listener|set_speaker_muted", { muted });
 },
-async subscribe(channel: TAURI_CHANNEL<SessionEvent>) : Promise<null> {
-    return await TAURI_INVOKE("plugin:listener|subscribe", { channel });
-},
-async unsubscribe(channel: TAURI_CHANNEL<SessionEvent>) : Promise<null> {
-    return await TAURI_INVOKE("plugin:listener|unsubscribe", { channel });
-},
 async startSession(sessionId: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:listener|start_session", { sessionId });
 },
@@ -67,9 +61,9 @@ async getState() : Promise<string> {
 
 
 export const events = __makeEvents__<{
-statusEvent: StatusEvent
+sessionEvent: SessionEvent
 }>({
-statusEvent: "plugin:listener:status-event"
+sessionEvent: "plugin:listener:session-event"
 })
 
 /** user-defined constants **/
@@ -78,13 +72,9 @@ statusEvent: "plugin:listener:status-event"
 
 /** user-defined types **/
 
-export type SessionEvent = ({ type: "started" } & SessionEventStarted) | { type: "stopped" } | { type: "paused" } | { type: "resumed" } | { type: "silence" } | ({ type: "timelineView" } & SessionEventTimelineView) | ({ type: "audioAmplitude" } & SessionEventAudioAmplitude)
-export type SessionEventAudioAmplitude = { mic: number; speaker: number }
-export type SessionEventStarted = { seconds: number }
-export type SessionEventTimelineView = { timeline: TimelineView }
-export type StatusEvent = "inactive" | "running_active" | "running_paused"
-export type TimelineView = { items: TimelineViewItem[] }
-export type TimelineViewItem = { start: number; end: number; speaker: number; text: string; confidence: number }
+export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "running_paused" } | { type: "words"; words: Word[] } | { type: "audioAmplitude"; mic: number; speaker: number }
+export type SpeakerIdentity = { type: "unassigned"; value: { index: number } } | { type: "assigned"; value: { id: string; label: string } }
+export type Word = { text: string; speaker: SpeakerIdentity | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
 
 /** tauri-specta globals **/
 

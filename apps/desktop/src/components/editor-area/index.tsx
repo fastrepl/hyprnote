@@ -29,6 +29,7 @@ export default function EditorArea({
   sessionId: string;
 }) {
   const showRaw = useSession(sessionId, (s) => s.showRaw);
+  const { userId } = useHypr();
 
   const [rawContent, setRawContent] = useSession(sessionId, (s) => [
     s.session?.raw_memo_html ?? "",
@@ -90,6 +91,16 @@ export default function EditorArea({
     }
   }, []);
 
+  const handleMentionSearch = async (query: string) => {
+    const session = await dbCommands.listSessions({ type: "search", query, user_id: userId, limit: 5 });
+
+    return session.map((s) => ({
+      id: s.id,
+      type: "note",
+      label: s.title,
+    }));
+  };
+
   return (
     <div className="relative flex h-full flex-col w-full">
       <NoteHeader
@@ -120,6 +131,10 @@ export default function EditorArea({
               initialContent={noteContent}
               editable={enhance.status !== "pending"}
               setContentFromOutside={!showRaw && enhance.status === "pending"}
+              mentionConfig={{
+                trigger: "@",
+                handleSearch: handleMentionSearch,
+              }}
             />
           )
           : <Renderer ref={editorRef} initialContent={noteContent} />}
@@ -165,18 +180,18 @@ export function useEnhanceMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async () => {
       const fn = sessionId === onboardingSessionId
-        ? dbCommands.getTimelineViewOnboarding
-        : dbCommands.getTimelineView;
+        ? dbCommands.getWordsOnboarding
+        : dbCommands.getWords;
 
-      const timeline = await fn(sessionId);
+      const words = await fn(sessionId);
 
-      if (!timeline?.items.length) {
+      if (!words.length) {
         toast({
           id: "short-timeline",
-          title: "Enhancing Skipped",
-          content: "The conversation is too short to enhance",
+          title: "Recording too short",
+          content: "The recording is too short to enhance",
           dismissible: true,
-          duration: 15000,
+          duration: 5000,
         });
 
         return;
@@ -197,7 +212,7 @@ export function useEnhanceMutation({
         {
           type,
           editor: rawContent,
-          timeline,
+          words: JSON.stringify(words),
           participants,
         },
       );
@@ -210,6 +225,14 @@ export function useEnhanceMutation({
       const model = sessionId === onboardingSessionId
         ? provider.languageModel("onboardingModel")
         : provider.languageModel("defaultModel");
+
+      if (sessionId !== onboardingSessionId) {
+        analyticsCommands.event({
+          event: "normal_enhance_start",
+          distinct_id: userId,
+          session_id: sessionId,
+        });
+      }
 
       const { text, textStream } = streamText({
         abortSignal,

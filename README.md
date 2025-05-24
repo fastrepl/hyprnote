@@ -18,8 +18,7 @@
 
 **What’s special about it?**
 
-- <ins>Works **offline**</ins> using **open-source models** (_Whisper_ & _Llama_)  
-- Highly [extensible](https://docs.hyprnote.com/extensions/), powered by [plugins](https://docs.hyprnote.com/plugins/)
+- <ins>Works **offline**</ins> using **open-source models** (_Whisper_ & _Llama_)
 
 ## Installation
 
@@ -42,33 +41,3 @@ Casually jot stuff down and Hyprnote will craft a meeting note based on your mem
 Hyprnote is local-first which means you can be off the grid and it's perfectly fine.
 
 <img src="https://github.com/user-attachments/assets/e5014024-3f6a-457a-8f1c-3b183883b782" width="720" />
-
-### Extensions & Plugins
-Just like VSCode, You can add or create extensions based on your circumstances.
-
-<img src="https://github.com/user-attachments/assets/341d2e6c-a2c7-432b-95b8-fdc2018838d5" width="720" />
-
-<br />
-<br />
-
-For example, [transcript extension](https://docs.hyprnote.com/extensions/transcript.html) is powered by [listener plugin](https://docs.hyprnote.com/plugins/listener.html).
-
-```ts
-useEffect(() => {
-  const channel = new Channel<SessionEvent>();
-  listenerCommands.subscribe(channel);
-
-  channel.onmessage = (e) => {
-    if (e.type === "started") {
-      setIsLive(true);
-    }
-    if (e.type === "stopped") {
-      setIsLive(false);
-    }
-  };
-
-  return () => {
-    listenerCommands.unsubscribe(channel);
-  };
-}, []);
-```

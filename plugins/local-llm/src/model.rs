@@ -14,7 +14,7 @@ impl SupportedModel {
 
     pub fn model_url(&self) -> &str {
         match self {
-            SupportedModel::Llama3p2_3bQ4 => "https://pub-8987485129c64debb63bff7f35a2e5fd.r2.dev/v0/lmstudio-community/Llama-3.2-3B-Instruct-GGUF/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf"
+            SupportedModel::Llama3p2_3bQ4 => "https://storage.hyprnote.com/v0/lmstudio-community/Llama-3.2-3B-Instruct-GGUF/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf"
         }
     }
 

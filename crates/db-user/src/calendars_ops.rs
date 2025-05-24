@@ -3,19 +3,21 @@ use super::{Calendar, UserDatabase};
 impl UserDatabase {
     pub async fn get_calendar(
         &self,
-        calendar_id: impl AsRef<str>,
-    ) -> Result<Calendar, crate::Error> {
+        id: impl AsRef<str>,
+    ) -> Result<Option<Calendar>, crate::Error> {
         let conn = self.conn()?;
 
         let mut rows = conn
-            .query(
-                "SELECT * FROM calendars WHERE id = ?",
-                vec![calendar_id.as_ref()],
-            )
+            .query("SELECT * FROM calendars WHERE id = ?", vec![id.as_ref()])
             .await?;
-        let row = rows.next().await?.unwrap();
-        let calendar: Calendar = libsql::de::from_row(&row)?;
-        Ok(calendar)
+
+        match rows.next().await? {
+            Some(row) => {
+                let calendar: Calendar = libsql::de::from_row(&row)?;
+                Ok(Some(calendar))
+            }
+            None => Ok(None),
+        }
     }
 
     pub async fn list_calendars(

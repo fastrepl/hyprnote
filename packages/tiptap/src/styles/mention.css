@@ -1,0 +1,48 @@
+.mention-container {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 6px 12px -3px rgba(0, 0, 0, 0.08);
+  padding: 0.3rem;
+  overflow: hidden;
+  z-index: 999;
+  max-width: 280px;
+}
+
+.mention-item {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.3rem;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  transition: background-color 0.15s ease;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.mention-item:hover, .mention-item.is-selected {
+  background-color: rgba(59, 130, 246, 0.06);
+}
+
+.mention-label {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.85rem;
+}
+
+.mention {
+  color: #3b82f6;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 0.25rem;
+  background-color: rgba(59, 130, 246, 0.08);
+  padding: 0.1rem 0.25rem;
+  font-size: 0.9rem;
+}

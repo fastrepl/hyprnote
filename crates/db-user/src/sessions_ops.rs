@@ -24,58 +24,33 @@ impl UserDatabase {
         Ok(())
     }
 
-    pub async fn get_timeline_view_onboarding(
+    pub async fn get_words_onboarding(
         &self,
-    ) -> Result<hypr_timeline::TimelineView, crate::Error> {
-        let (transcripts, diarizations): (
-            Vec<hypr_listener_interface::TranscriptChunk>,
-            Vec<hypr_listener_interface::DiarizationChunk>,
-        ) = (
-            serde_json::from_str(hypr_data::english_4::TRANSCRIPTION_JSON).unwrap(),
-            serde_json::from_str(hypr_data::english_4::DIARIZATION_JSON).unwrap(),
-        );
-
-        let mut timeline = hypr_timeline::Timeline::default();
-
-        for t in transcripts {
-            timeline.add_transcription(t);
-        }
-        for d in diarizations {
-            timeline.add_diarization(d);
-        }
-
-        Ok(timeline.view(hypr_timeline::TimelineFilter {
-            last_n_seconds: None,
-        }))
+    ) -> Result<Vec<hypr_listener_interface::Word>, crate::Error> {
+        let words: Vec<hypr_listener_interface::Word> =
+            serde_json::from_str(hypr_data::english_4::WORDS_JSON).unwrap();
+        Ok(words)
     }
 
-    pub async fn get_timeline_view(
+    pub async fn get_words(
         &self,
         session_id: impl Into<String>,
-    ) -> Result<Option<hypr_timeline::TimelineView>, crate::Error> {
-        let session = self
-            .get_session(GetSessionFilter::Id(session_id.into()))
+    ) -> Result<Vec<hypr_listener_interface::Word>, crate::Error> {
+        let conn = self.conn()?;
+        let mut rows = conn
+            .query(
+                "SELECT words FROM sessions WHERE id = ?",
+                vec![session_id.into()],
+            )
             .await?;
 
-        if session.is_none() {
-            return Ok(None);
-        }
-
-        let session = session.unwrap();
-        let mut timeline = hypr_timeline::Timeline::default();
-
-        for chunk in session.conversations {
-            for transcript in chunk.transcripts {
-                timeline.add_transcription(transcript);
-            }
-            for diarization in chunk.diarizations {
-                timeline.add_diarization(diarization);
+        match rows.next().await? {
+            None => Ok(vec![]),
+            Some(row) => {
+                let words_str: String = row.get(0)?;
+                Ok(serde_json::from_str(&words_str).unwrap_or_default())
             }
         }
-
-        Ok(Some(timeline.view(hypr_timeline::TimelineFilter {
-            last_n_seconds: None,
-        })))
     }
 
     pub async fn get_session(
@@ -221,8 +196,20 @@ impl UserDatabase {
                     title,
                     raw_memo_html,
                     enhanced_memo_html,
-                    conversations
-                ) VALUES (:id, :created_at, :visited_at, :user_id, :calendar_event_id, :title, :raw_memo_html, :enhanced_memo_html, :conversations)
+                    conversations,
+                    words
+                ) VALUES (
+                    :id,
+                    :created_at,
+                    :visited_at,
+                    :user_id,
+                    :calendar_event_id,
+                    :title,
+                    :raw_memo_html,
+                    :enhanced_memo_html,
+                    :conversations,
+                    :words
+                )
                 ON CONFLICT(id) DO UPDATE SET
                     created_at = :created_at,
                     visited_at = :visited_at,
@@ -231,7 +218,8 @@ impl UserDatabase {
                     title = :title,
                     raw_memo_html = :raw_memo_html,
                     enhanced_memo_html = :enhanced_memo_html,
-                    conversations = :conversations
+                    conversations = :conversations,
+                    words = :words
                 RETURNING *",
                 libsql::named_params! {
                     ":id": session.id.clone(),
@@ -242,7 +230,8 @@ impl UserDatabase {
                     ":title": session.title.clone(),
                     ":raw_memo_html": session.raw_memo_html.clone(),
                     ":enhanced_memo_html": session.enhanced_memo_html.clone(),
-                    ":conversations": serde_json::to_string(&session.conversations).unwrap(),
+                    ":conversations": "[]",
+                    ":words": serde_json::to_string(&session.words).unwrap(),
                 },
             )
             .await?;
@@ -255,13 +244,18 @@ impl UserDatabase {
     pub async fn session_set_event(
         &self,
         session_id: String,
-        event_id: String,
+        event_id: Option<String>,
     ) -> Result<(), crate::Error> {
         let conn = self.conn()?;
 
         conn.query(
             "UPDATE sessions SET calendar_event_id = ? WHERE id = ?",
-            vec![event_id, session_id],
+            (
+                event_id
+                    .map(|s| libsql::Value::Text(s))
+                    .unwrap_or(libsql::Value::Null),
+                libsql::Value::Text(session_id),
+            ),
         )
         .await?;
         Ok(())
@@ -372,15 +366,22 @@ mod tests {
             calendar_event_id: None,
             title: "test".to_string(),
             raw_memo_html: "raw_memo_html_1".to_string(),
-            conversations: vec![],
             enhanced_memo_html: None,
+            conversations: vec![],
+            words: vec![hypr_listener_interface::Word {
+                text: "hello 1".to_string(),
+                start_ms: None,
+                end_ms: None,
+                speaker: None,
+                confidence: None,
+            }],
         };
 
         let mut session = db.upsert_session(session).await.unwrap();
         assert_eq!(session.raw_memo_html, "raw_memo_html_1");
         assert_eq!(session.enhanced_memo_html, None);
         assert_eq!(session.title, "test");
-        assert_eq!(session.conversations, vec![]);
+        assert_eq!(session.words.len(), 1);
 
         let sessions = db.list_sessions(None).await.unwrap();
         assert_eq!(sessions.len(), 1);

@@ -1,6 +1,6 @@
 [package]
 name = "desktop"
-version = "0.0.31"
+version = "0.0.40"
 authors = ["you"]
 edition = "2021"
 description = "Hyprnote Desktop App"
@@ -14,19 +14,16 @@ description = "Hyprnote Desktop App"
 name = "hyprnote_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
-[features]
-sim-english-1 = ["hypr-data"]
-sim-korean-1 = ["hypr-data"]
-
 [build-dependencies]
 tauri-build = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-tauri-plugin-apple-calendar = { path = "../../../plugins/apple-calendar" }
+tauri-plugin-apple-calendar = { workspace = true }
 
 [dependencies]
 hypr-data = { workspace = true, optional = true }
 hypr-db-core = { workspace = true }
+hypr-db-script = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-turso = { workspace = true }
 
@@ -45,6 +42,7 @@ tauri-plugin-opener = { workspace = true }
 tauri-plugin-sfx = { workspace = true }
 tauri-plugin-sse = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
+tauri-plugin-task = { workspace = true }
 tauri-plugin-template = { workspace = true }
 tauri-plugin-tray = { workspace = true }
 tauri-plugin-windows = { workspace = true }

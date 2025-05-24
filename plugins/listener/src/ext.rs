@@ -2,15 +2,12 @@ use std::future::Future;
 
 use futures_util::StreamExt;
 use hypr_audio::cpal::traits::{DeviceTrait, HostTrait};
-use tauri::ipc::Channel;
 
 #[cfg(target_os = "macos")]
 use {
     objc2::{class, msg_send, runtime::Bool},
     objc2_foundation::NSString,
 };
-
-use crate::SessionEvent;
 
 pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn list_microphone_devices(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
@@ -28,8 +25,6 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn set_speaker_muted(&self, muted: bool) -> impl Future<Output = ()>;
 
     fn get_state(&self) -> impl Future<Output = crate::fsm::State>;
-    fn subscribe(&self, c: Channel<SessionEvent>) -> impl Future<Output = ()>;
-    fn unsubscribe(&self, c: Channel<SessionEvent>) -> impl Future<Output = ()>;
     fn stop_session(&self) -> impl Future<Output = ()>;
     fn start_session(&self, id: impl Into<String>) -> impl Future<Output = ()>;
     fn pause_session(&self) -> impl Future<Output = ()>;
@@ -133,28 +128,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         let state = self.state::<crate::SharedState>();
         let guard = state.lock().await;
         guard.fsm.state().clone()
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn subscribe(&self, channel: Channel<SessionEvent>) {
-        let state = self.state::<crate::SharedState>();
-
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::Subscribe(channel);
-            guard.fsm.handle(&event).await;
-        }
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn unsubscribe(&self, channel: Channel<SessionEvent>) {
-        let state = self.state::<crate::SharedState>();
-
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::Unsubscribe(channel);
-            guard.fsm.handle(&event).await;
-        }
     }
 
     #[tracing::instrument(skip_all)]

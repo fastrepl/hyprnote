@@ -8,22 +8,22 @@
   },
   "devDependencies": {
     "@iconify-json/heroicons": "^1.2.2",
-    "@unocss/preset-icons": "^66.0.0",
-    "@unocss/preset-wind3": "^66.0.0",
+    "@unocss/preset-icons": "^66.1.2",
+    "@unocss/preset-wind3": "^66.1.2",
     "isomorphic-git": "^1.30.1",
-    "octokit": "^4.1.3",
+    "octokit": "^4.1.4",
     "typedoc": "^0.27.9",
-    "unocss": "^66.0.0",
+    "unocss": "^66.1.2",
     "vite-plugin-posthog": "^2.1.0",
-    "vitepress": "2.0.0-alpha.2",
-    "vue": "^3.5.13",
-    "zod": "^3.24.3"
+    "vitepress": "2.0.0-alpha.5",
+    "vue": "^3.5.14",
+    "zod": "^3.25.20"
   },
   "dependencies": {
     "@tanstack/vue-table": "^8.21.3",
     "clsx": "^2.1.1",
     "floating-vue": "^5.2.2",
-    "posthog-js": "^1.237.1",
+    "posthog-js": "^1.246.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   }

@@ -61,7 +61,7 @@ function Component() {
       const shouldDelete = !session.title
         && isEmpty(session.raw_memo_html)
         && isEmpty(session.enhanced_memo_html)
-        && session.conversations.length === 0
+        && session.words.length === 0
         && ongoingSessionId !== session.id;
 
       if (shouldDelete) {

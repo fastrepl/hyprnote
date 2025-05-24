@@ -49,6 +49,7 @@
     "notification:default",
     "fs:default",
     "membership:default",
+    "task:default",
     {
       "identifier": "opener:allow-open-url",
       "allow": [

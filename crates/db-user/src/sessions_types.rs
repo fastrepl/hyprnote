@@ -12,7 +12,10 @@ user_common_derives! {
         pub title: String,
         pub raw_memo_html: String,
         pub enhanced_memo_html: Option<String>,
-        pub conversations: Vec<ConversationChunk>,
+        #[specta(skip)]
+        #[serde(skip)]
+        pub conversations: Vec<()>,
+        pub words: Vec<hypr_listener_interface::Word>
     }
 }
 
@@ -37,20 +40,20 @@ impl Session {
             title: row.get(5).expect("title"),
             raw_memo_html: row.get(6).expect("raw_memo_html"),
             enhanced_memo_html: row.get(7).expect("enhanced_memo_html"),
-            conversations: row
-                .get_str(8)
+            conversations: vec![],
+            words: row
+                .get_str(9)
                 .map(|s| serde_json::from_str(s).unwrap())
-                .unwrap_or_default(),
+                .unwrap(),
         })
     }
-}
 
-user_common_derives! {
-    pub struct ConversationChunk {
-        pub start: DateTime<Utc>,
-        pub end: DateTime<Utc>,
-        pub transcripts: Vec<hypr_listener_interface::TranscriptChunk>,
-        pub diarizations: Vec<hypr_listener_interface::DiarizationChunk>,
+    pub fn is_empty(&self) -> bool {
+        self.enhanced_memo_html
+            .as_ref()
+            .is_none_or(|s| s.is_empty())
+            && self.raw_memo_html.is_empty()
+            && self.words.is_empty()
     }
 }
 

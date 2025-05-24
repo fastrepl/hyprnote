@@ -36,10 +36,16 @@ async fn websocket(socket: WebSocket, state: STTState, params: ListenParams) {
             match ws_receiver.next().await {
                 Some(Ok(Message::Text(data))) => {
                     let input: ListenInputChunk = serde_json::from_str(&data).unwrap();
-                    let audio = Bytes::from(input.audio);
-                    Ok::<Option<(Bytes, _)>, axum::Error>(Some((audio, ws_receiver)))
+
+                    match input {
+                        ListenInputChunk::Audio { data } => {
+                            let audio = Bytes::from(data);
+                            Ok::<Option<(Bytes, _)>, axum::Error>(Some((audio, ws_receiver)))
+                        }
+                        ListenInputChunk::End => Ok::<Option<(Bytes, _)>, axum::Error>(None),
+                    }
                 }
-                _ => Ok::<Option<(Bytes, _)>, axum::Error>(Some((Bytes::new(), ws_receiver))),
+                _ => Ok::<Option<(Bytes, _)>, axum::Error>(None),
             }
         });
 

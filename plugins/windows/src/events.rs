@@ -15,7 +15,7 @@ pub fn on_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: &tau
                 }
             }
         }
-        tauri::WindowEvent::Destroyed { .. } => {
+        tauri::WindowEvent::Destroyed => {
             let app = window.app_handle();
             let state = app.state::<crate::ManagedState>();
 

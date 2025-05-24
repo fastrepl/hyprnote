@@ -16,7 +16,8 @@ export const useChat = (options: Parameters<typeof useChat$1>[0]) => {
 };
 
 const getModel = async ({ onboarding }: { onboarding: boolean }) => {
-  const { type, connection: { api_base, api_key } } = await connectorCommands.getLocalLlmConnection();
+  const getter = onboarding ? connectorCommands.getLocalLlmConnection : connectorCommands.getLlmConnection;
+  const { type, connection: { api_base, api_key } } = await getter();
 
   const openai = createOpenAICompatible({
     name: "hypr-llm",

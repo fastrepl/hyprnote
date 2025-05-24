@@ -69,7 +69,7 @@ impl Client {
                 let deepgram = DeepgramClient::builder()
                     .api_key(&self.deepgram_api_key)
                     .keywords(vec!["Hyprnote".to_string()])
-                    .language(language.into())
+                    .language(language)
                     .build()
                     .unwrap();
 

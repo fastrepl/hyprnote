@@ -15,8 +15,8 @@ Default permissions for the plugin
 - `allow-session-remove-participant`
 - `allow-session-list-participants`
 - `allow-session-get-event`
-- `allow-get-timeline-view`
-- `allow-get-timeline-view-onboarding`
+- `allow-get-words`
+- `allow-get-words-onboarding`
 - `allow-get-calendar`
 - `allow-list-calendars`
 - `allow-upsert-calendar`
@@ -46,9 +46,6 @@ Default permissions for the plugin
 - `allow-list-session-tags`
 - `allow-assign-tag-to-session`
 - `allow-unassign-tag-from-session`
-- `allow-get-extension-mapping`
-- `allow-list-extension-mappings`
-- `allow-upsert-extension-mapping`
 
 ## Permission Table
 
@@ -296,32 +293,6 @@ Denies the get_event command without any pre-configured scope.
 <tr>
 <td>
 
-`db:allow-get-extension-mapping`
-
-</td>
-<td>
-
-Enables the get_extension_mapping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-get-extension-mapping`
-
-</td>
-<td>
-
-Denies the get_extension_mapping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `db:allow-get-human`
 
 </td>
@@ -426,25 +397,12 @@ Denies the get_session command without any pre-configured scope.
 <tr>
 <td>
 
-`db:allow-get-timeline-view`
+`db:allow-get-words`
 
 </td>
 <td>
 
-Enables the get_timeline_view command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-get-timeline-view`
-
-</td>
-<td>
-
-Denies the get_timeline_view command without any pre-configured scope.
+Enables the get_words command without any pre-configured scope.
 
 </td>
 </tr>
@@ -452,12 +410,12 @@ Denies the get_timeline_view command without any pre-configured scope.
 <tr>
 <td>
 
-`db:allow-get-timeline-view-onboarding`
+`db:deny-get-words`
 
 </td>
 <td>
 
-Enables the get_timeline_view_onboarding command without any pre-configured scope.
+Denies the get_words command without any pre-configured scope.
 
 </td>
 </tr>
@@ -465,12 +423,25 @@ Enables the get_timeline_view_onboarding command without any pre-configured scop
 <tr>
 <td>
 
-`db:deny-get-timeline-view-onboarding`
+`db:allow-get-words-onboarding`
 
 </td>
 <td>
 
-Denies the get_timeline_view_onboarding command without any pre-configured scope.
+Enables the get_words_onboarding command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-get-words-onboarding`
+
+</td>
+<td>
+
+Denies the get_words_onboarding command without any pre-configured scope.
 
 </td>
 </tr>
@@ -601,32 +572,6 @@ Enables the list_events command without any pre-configured scope.
 <td>
 
 Denies the list_events command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:allow-list-extension-mappings`
-
-</td>
-<td>
-
-Enables the list_extension_mappings command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-list-extension-mappings`
-
-</td>
-<td>
-
-Denies the list_extension_mappings command without any pre-configured scope.
 
 </td>
 </tr>
@@ -1069,32 +1014,6 @@ Enables the upsert_chat_message command without any pre-configured scope.
 <td>
 
 Denies the upsert_chat_message command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:allow-upsert-extension-mapping`
-
-</td>
-<td>
-
-Enables the upsert_extension_mapping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-upsert-extension-mapping`
-
-</td>
-<td>
-
-Denies the upsert_extension_mapping command without any pre-configured scope.
 
 </td>
 </tr>

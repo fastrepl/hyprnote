@@ -20,6 +20,7 @@ tokio-stream = { workspace = true }
 cpal = { workspace = true }
 rodio = { workspace = true, features = ["vorbis"] }
 
+ebur128 = "0.1.10"
 kalosm-sound = { workspace = true, default-features = false }
 ringbuf = "0.4.8"
 
@@ -33,5 +34,7 @@ wasapi = { git = "https://github.com/HEnquist/wasapi-rs", rev = "24ae99c0134f7e1
 alsa = "0.9.1"
 
 [dev-dependencies]
-rodio = "*"
+hound = { workspace = true }
+hypr-data = { workspace = true }
+rodio = { workspace = true }
 serial_test = { workspace = true }

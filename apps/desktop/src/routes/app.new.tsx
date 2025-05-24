@@ -33,7 +33,7 @@ export const Route = createFileRoute("/app/new")({
           title: event?.name ?? "",
           raw_memo_html: "",
           enhanced_memo_html: null,
-          conversations: [],
+          words: [],
         });
         await dbCommands.sessionAddParticipant(sessionId, userId);
 
@@ -49,7 +49,7 @@ export const Route = createFileRoute("/app/new")({
           title: "",
           raw_memo_html: "",
           enhanced_memo_html: null,
-          conversations: [],
+          words: [],
         });
         await dbCommands.sessionAddParticipant(sessionId, userId);
 

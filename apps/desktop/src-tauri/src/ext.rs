@@ -10,7 +10,6 @@ pub trait AppExt<R: tauri::Runtime> {
     fn setup_local_ai(&self) -> impl Future<Output = Result<(), String>>;
     fn setup_db_for_local(&self) -> impl Future<Output = Result<(), String>>;
     fn setup_db_for_cloud(&self) -> impl Future<Output = Result<(), String>>;
-    fn setup_auto_start(&self) -> impl Future<Output = Result<(), String>>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
@@ -88,62 +87,60 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
             }
         };
 
-        self.db_attach(db).await.unwrap();
-
-        {
+        let (user_id, user_id_just_created) = {
             use tauri_plugin_auth::{AuthPluginExt, StoreKey as AuthStoreKey};
 
-            let (user_id, user_id_just_created) = {
-                let stored = self.get_from_store(AuthStoreKey::UserId).unwrap_or(None);
-                if let Some(id) = stored {
-                    (id, false)
-                } else {
-                    let store = self.desktop_store();
-                    store
-                        .unwrap()
-                        .set(crate::StoreKey::OnboardingNeeded, true)
-                        .unwrap();
+            let stored = self.get_from_store(AuthStoreKey::UserId).unwrap_or(None);
+            if let Some(id) = stored {
+                (id, false)
+            } else {
+                let store = self.desktop_store();
+                store
+                    .unwrap()
+                    .set(crate::StoreKey::OnboardingNeeded, true)
+                    .unwrap();
 
-                    let id = uuid::Uuid::new_v4().to_string();
-                    self.set_in_store(AuthStoreKey::UserId, &id).unwrap();
-                    (id, true)
-                }
-            };
+                let id = uuid::Uuid::new_v4().to_string();
+                self.set_in_store(AuthStoreKey::UserId, &id).unwrap();
+                (id, true)
+            }
+        };
 
-            if let Ok(true) = self.db_ensure_user(&user_id).await {
-                use tauri_plugin_analytics::{hypr_analytics, AnalyticsPluginExt};
+        self.db_attach(db).await.unwrap();
 
-                let e = hypr_analytics::AnalyticsPayload::for_user(&user_id)
-                    .event("user_created")
-                    .build();
+        if let Ok(true) = self.db_ensure_user(&user_id).await {
+            use tauri_plugin_analytics::{hypr_analytics, AnalyticsPluginExt};
 
-                if let Err(e) = self.event(e).await {
-                    tracing::error!("failed_to_track_user_creation: {}", e);
-                }
+            let e = hypr_analytics::AnalyticsPayload::for_user(&user_id)
+                .event("user_created")
+                .build();
+
+            if let Err(e) = self.event(e).await {
+                tracing::error!("failed_to_send_analytics: {}", e);
+            }
+        }
+
+        {
+            let state = self.state::<tauri_plugin_db::ManagedState>();
+            let s = state.lock().await;
+            let user_db = s.db.as_ref().unwrap();
+
+            user_db.cleanup_sessions().await.unwrap();
+
+            if db_just_created || user_id_just_created {
+                hypr_db_user::init::onboarding(user_db, &user_id)
+                    .await
+                    .unwrap();
             }
 
-            {
-                let state = self.state::<tauri_plugin_db::ManagedState>();
-                let s = state.lock().await;
-                let user_db = s.db.as_ref().unwrap();
+            #[cfg(debug_assertions)]
+            hypr_db_user::init::seed(user_db, &user_id).await.unwrap();
+        }
 
-                user_db.cleanup_sessions().await.unwrap();
-
-                if db_just_created || user_id_just_created {
-                    hypr_db_user::init::onboarding(user_db, &user_id)
-                        .await
-                        .unwrap();
-                }
-
-                #[cfg(debug_assertions)]
-                hypr_db_user::init::seed(user_db, &user_id).await.unwrap();
-            }
-
-            #[cfg(target_os = "macos")]
-            {
-                use tauri_plugin_apple_calendar::AppleCalendarPluginExt;
-                self.start_worker(&user_id).await?;
-            }
+        #[cfg(target_os = "macos")]
+        {
+            use tauri_plugin_apple_calendar::AppleCalendarPluginExt;
+            self.start_worker(&user_id).await?;
         }
 
         Ok(())
@@ -211,41 +208,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
 
                 if let Some(id) = user_id.as_ref() {
                     app.db_ensure_user(id).await.unwrap();
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn setup_auto_start(&self) -> Result<(), String> {
-        let app = self.app_handle();
-
-        let autostart_manager = {
-            use tauri_plugin_autostart::ManagerExt;
-            app.autolaunch()
-        };
-
-        {
-            let state = app.state::<tauri_plugin_db::ManagedState>();
-            let guard = state.lock().await;
-
-            let user_db = guard.db.as_ref().unwrap();
-            let user_id = guard.user_id.as_ref().unwrap();
-            let should_autostart = user_db
-                .get_config(user_id)
-                .await
-                .map_err(|e| e.to_string())?
-                .map_or(false, |c| c.general.autostart);
-
-            if should_autostart {
-                if let Err(e) = autostart_manager.enable() {
-                    tracing::error!("failed_to_enable_auto_start: {}", e);
-                }
-            } else {
-                if let Err(e) = autostart_manager.disable() {
-                    tracing::error!("failed_to_disable_auto_start: {}", e);
                 }
             }
         }

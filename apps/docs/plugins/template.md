@@ -14,14 +14,12 @@ Also, there are [a few built-in filters and functions](https://github.com/fastre
 
 ## Notes
 
-Template must be registered before rendering. 
-
 ```ts
 await commands.registerTemplate("<TEMPLATE_NAME>", "<TEMPLATE_CONTENT>");
 const rendered = await commands.render("<TEMPLATE_NAME>", { a: 1 });
 ```
 
-For templates included in [extensions](/extensions/index.md), [`init`](https://github.com/fastrepl/hyprnote/blob/main/extensions/types.ts) function is perfect place to register them.
+Template must be registered before rendering. 
 
 ```ts
 export default {

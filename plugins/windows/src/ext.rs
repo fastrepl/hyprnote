@@ -216,6 +216,14 @@ impl HyprWindow {
         Ok(())
     }
 
+    fn hide(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
+        if let Some(window) = self.get(app) {
+            window.hide()?;
+        }
+
+        Ok(())
+    }
+
     fn destroy(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
         if let Some(window) = self.get(app) {
             window.destroy()?;
@@ -231,6 +239,26 @@ impl HyprWindow {
     }
 
     pub fn show(&self, app: &AppHandle<tauri::Wry>) -> Result<WebviewWindow, crate::Error> {
+        if self == &Self::Main {
+            use tauri_plugin_analytics::{hypr_analytics::AnalyticsPayload, AnalyticsPluginExt};
+            use tauri_plugin_auth::{AuthPluginExt, StoreKey};
+
+            let user_id = app
+                .get_from_store(StoreKey::UserId)?
+                .unwrap_or("UNKNOWN".into());
+
+            let e = AnalyticsPayload::for_user(user_id)
+                .event("show_main_window")
+                .build();
+
+            let app_clone = app.clone();
+            tauri::async_runtime::spawn(async move {
+                if let Err(e) = app_clone.event(e).await {
+                    tracing::error!("failed_to_send_analytics: {:?}", e);
+                }
+            });
+        }
+
         let (window, created) = match self.get(app) {
             Some(window) => (window, false),
             None => {
@@ -381,6 +409,7 @@ impl HyprWindow {
 
 pub trait WindowsPluginExt<R: tauri::Runtime> {
     fn window_show(&self, window: HyprWindow) -> Result<WebviewWindow, crate::Error>;
+    fn window_hide(&self, window: HyprWindow) -> Result<(), crate::Error>;
     fn window_destroy(&self, window: HyprWindow) -> Result<(), crate::Error>;
     fn window_position(&self, window: HyprWindow, pos: KnownPosition) -> Result<(), crate::Error>;
     fn window_resize_default(&self, window: HyprWindow) -> Result<(), crate::Error>;
@@ -405,6 +434,10 @@ pub trait WindowsPluginExt<R: tauri::Runtime> {
 impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
     fn window_show(&self, window: HyprWindow) -> Result<WebviewWindow, crate::Error> {
         window.show(self)
+    }
+
+    fn window_hide(&self, window: HyprWindow) -> Result<(), crate::Error> {
+        window.hide(self)
     }
 
     fn window_destroy(&self, window: HyprWindow) -> Result<(), crate::Error> {

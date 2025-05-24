@@ -75,7 +75,7 @@ export const createSessionStore = (session: Session) => {
       // TODO: this is temp solution.
       const item: Session = {
         ...(session ?? get().session),
-        conversations: sessionFromDB?.conversations ?? [],
+        words: sessionFromDB?.words ?? [],
       };
 
       const fn = force

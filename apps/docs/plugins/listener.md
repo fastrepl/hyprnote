@@ -8,12 +8,6 @@ id: listener
 
 **{{ $frontmatter.description }}**
 
-## Notes
-
-- From [extensions](/extensions/index.md) perspective, `subscribe` command is all you need for most cases.
-  - <a :href="sessionEvent">SessionEvent</a> will be received to the channel you provided.
-  - It's safe to call `subscribe` multiple times, or before `start_session` is called.
-
 ## Commands
 
 ```ts-vue

@@ -86,10 +86,12 @@ fn remove_char_repeat(text: &mut String) {
                 let chars: Vec<char> = line.chars().collect();
                 if !chars.is_empty() {
                     let first_char = chars[0];
-                    if !first_char.is_alphanumeric() && !first_char.is_whitespace() {
-                        if chars.iter().all(|&c| c == first_char) {
-                            return None;
-                        }
+
+                    if !first_char.is_alphanumeric()
+                        && !first_char.is_whitespace()
+                        && chars.iter().all(|&c| c == first_char)
+                    {
+                        return None;
                     }
                 }
             }

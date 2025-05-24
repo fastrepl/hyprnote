@@ -28,19 +28,23 @@ impl kalosm_sound::AsyncSource for WebSocketAudioSource {
                 Some(Ok(Message::Text(data))) => {
                     let input: ListenInputChunk = serde_json::from_str(&data).unwrap();
 
-                    if input.audio.is_empty() {
-                        None
-                    } else {
-                        let samples: Vec<f32> = input
-                            .audio
-                            .chunks_exact(2)
-                            .map(|chunk| {
-                                let sample = i16::from_le_bytes([chunk[0], chunk[1]]);
-                                sample as f32 / 32767.0
-                            })
-                            .collect();
+                    match input {
+                        ListenInputChunk::Audio { data } => {
+                            if data.is_empty() {
+                                None
+                            } else {
+                                let samples: Vec<f32> = data
+                                    .chunks_exact(2)
+                                    .map(|chunk| {
+                                        let sample = i16::from_le_bytes([chunk[0], chunk[1]]);
+                                        sample as f32 / 32767.0
+                                    })
+                                    .collect();
 
-                        Some((samples, receiver))
+                                Some((samples, receiver))
+                            }
+                        }
+                        ListenInputChunk::End => None,
                     }
                 }
                 Some(Ok(Message::Close(_))) => None,

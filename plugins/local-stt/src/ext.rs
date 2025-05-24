@@ -84,6 +84,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             .build();
 
         let server = crate::run_server(server_state).await?;
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+
         let api_base = format!("http://{}", &server.addr);
 
         {

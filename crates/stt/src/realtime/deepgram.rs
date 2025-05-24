@@ -8,7 +8,7 @@ use deepgram::common::{
 use futures_util::{future, Stream, StreamExt};
 
 use super::RealtimeSpeechToText;
-use hypr_listener_interface::{DiarizationChunk, ListenOutputChunk, TranscriptChunk};
+use hypr_listener_interface::{ListenOutputChunk, SpeakerIdentity, Word};
 
 impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
     async fn transcribe(
@@ -45,7 +45,15 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
             .stream(stream)
             .await?;
 
-        let transformed_stream = deepgram_stream.filter_map(move |result| {
+        let filtered_stream = deepgram_stream.take_while(|result| {
+            let continue_stream = match result {
+                Ok(DeepgramStreamResponse::TerminalResponse { .. }) => false,
+                _ => true,
+            };
+            future::ready(continue_stream)
+        });
+
+        let transformed_stream = filtered_stream.filter_map(move |result| {
             let item = match result {
                 Err(e) => Some(Err(e.into())),
                 Ok(resp) => match resp {
@@ -55,38 +63,28 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
                         if data.words.is_empty() {
                             None
                         } else {
-                            let mut diarizations = Vec::new();
-                            let mut transcripts = Vec::new();
-
-                            for w in &data.words {
-                                let word_text = w.punctuated_word.as_ref().unwrap_or(&w.word);
-
-                                transcripts.push(TranscriptChunk {
-                                    text: word_text.clone(),
-                                    start: (w.start * 1000.0) as u64,
-                                    end: (w.end * 1000.0) as u64,
+                            let words: Vec<Word> = data
+                                .words
+                                .iter()
+                                .map(|w| Word {
+                                    text: w
+                                        .punctuated_word
+                                        .as_ref()
+                                        .unwrap_or(&w.word)
+                                        .trim()
+                                        .to_string(),
+                                    speaker: w
+                                        .speaker
+                                        .map(|s| SpeakerIdentity::Unassigned { index: s as u8 }),
+                                    start_ms: Some((w.start * 1000.0) as u64),
+                                    end_ms: Some((w.end * 1000.0) as u64),
                                     confidence: Some(w.confidence as f32),
-                                });
+                                })
+                                .collect();
 
-                                if let Some(speaker) = w.speaker {
-                                    diarizations.push(DiarizationChunk {
-                                        speaker,
-                                        start: (w.start * 1000.0) as u64,
-                                        end: (w.end * 1000.0) as u64,
-                                        confidence: Some(w.confidence as f32),
-                                    });
-                                }
-                            }
-
-                            Some(Ok(ListenOutputChunk {
-                                diarizations,
-                                transcripts,
-                            }))
+                            Some(Ok(ListenOutputChunk { words }))
                         }
                     }
-                    DeepgramStreamResponse::TerminalResponse { .. }
-                    | DeepgramStreamResponse::SpeechStartedResponse { .. }
-                    | DeepgramStreamResponse::UtteranceEndResponse { .. } => None,
                     _ => None,
                 },
             };

@@ -1,7 +1,15 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
-import { MicIcon, MicOffIcon, PauseIcon, PlayIcon, StopCircleIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
+import {
+  CheckIcon,
+  MicIcon,
+  MicOffIcon,
+  PauseIcon,
+  PlayIcon,
+  StopCircleIcon,
+  Volume2Icon,
+  VolumeOffIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
@@ -13,7 +21,6 @@ import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { toast } from "@hypr/ui/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
@@ -41,28 +48,16 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
     pause: s.pause,
     stop: s.stop,
     loading: s.loading,
+    hasShownConsent: s.hasShownConsent,
+    setHasShownConsent: s.setHasShownConsent,
   }));
-
-  const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
 
   const isEnhancePending = useEnhancePendingState(sessionId);
   const nonEmptySession = useSession(
     sessionId,
-    (s) => s.session.conversations.length > 0 || s.session.enhanced_memo_html,
+    (s) => s.session.words.length > 0 || s.session.enhanced_memo_html,
   );
   const meetingEnded = isEnhancePending || nonEmptySession;
-
-  useEffect(() => {
-    if (ongoingSessionStatus === "running_active" && prevOngoingSessionStatus === "inactive") {
-      toast({
-        id: "recording-consent",
-        title: "Recording Started",
-        content: "Ensure you have consent from everyone in the meeting",
-        dismissible: true,
-        duration: 3000,
-      });
-    }
-  }, [ongoingSessionStatus]);
 
   const handleStartSession = () => {
     if (ongoingSessionStatus === "inactive") {
@@ -235,7 +230,17 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
 }
 
 export function WhenActive() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
+
+  const ongoingSessionStore = useOngoingSession((s) => ({
+    pause: s.pause,
+    stop: s.stop,
+    loading: s.loading,
+    hasShownConsent: s.hasShownConsent,
+    setHasShownConsent: s.setHasShownConsent,
+  }));
+
+  const showConsent = !ongoingSessionStore.hasShownConsent;
 
   const { data: isMicMuted, refetch: refetchMicMuted } = useQuery({
     queryKey: ["mic-muted"],
@@ -246,6 +251,14 @@ export function WhenActive() {
     queryKey: ["speaker-muted"],
     queryFn: () => listenerCommands.getSpeakerMuted(),
   });
+
+  useEffect(() => {
+    if (showConsent) {
+      listenerCommands.setSpeakerMuted(true).then(() => {
+        refetchSpeakerMuted();
+      });
+    }
+  }, [showConsent, refetchSpeakerMuted]);
 
   const toggleMicMuted = useMutation({
     mutationFn: () => listenerCommands.setMicMuted(!isMicMuted),
@@ -261,12 +274,29 @@ export function WhenActive() {
     },
   });
 
-  const ongoingSessionStore = useOngoingSession((s) => ({
-    start: s.start,
-    pause: s.pause,
-    stop: s.stop,
-    loading: s.loading,
-  }));
+  const activateSpeaker = useMutation({
+    mutationFn: async () => {
+      await listenerCommands.setSpeakerMuted(false);
+      ongoingSessionStore.setHasShownConsent(true);
+      return false;
+    },
+    onSuccess: () => {
+      refetchSpeakerMuted();
+    },
+  });
+
+  const recordMeOnly = useMutation({
+    mutationFn: async () => {
+      await listenerCommands.setSpeakerMuted(true);
+      await listenerCommands.setMicMuted(false);
+      ongoingSessionStore.setHasShownConsent(true);
+      return true;
+    },
+    onSuccess: () => {
+      refetchSpeakerMuted();
+      refetchMicMuted();
+    },
+  });
 
   const handlePauseSession = () => {
     ongoingSessionStore.pause();
@@ -278,8 +308,18 @@ export function WhenActive() {
     setOpen(false);
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen && !showConsent) {
+      setOpen(false);
+    } else if (showConsent) {
+      setOpen(true);
+    } else {
+      setOpen(isOpen);
+    }
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <button
           className={cn([
@@ -292,38 +332,73 @@ export function WhenActive() {
         </button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-60" align="end">
-        <div className="flex w-full justify-between mb-4">
-          <AudioControlButton
-            isMuted={isMicMuted}
-            onClick={() => toggleMicMuted.mutate()}
-            type="mic"
-          />
-          <AudioControlButton
-            isMuted={isSpeakerMuted}
-            onClick={() => toggleSpeakerMuted.mutate()}
-            type="speaker"
-          />
-        </div>
+      <PopoverContent className="w-64" align="end">
+        {showConsent
+          ? (
+            <div className="flex flex-col gap-4">
+              <div>
+                <h4 className="font-medium text-sm mb-2">
+                  <Trans>Recording Started</Trans>
+                </h4>
+                <p className="text-xs text-gray-500 mb-4">
+                  <Trans>Did you get consent from everyone in the meeting?</Trans>
+                </p>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    variant="default"
+                    onClick={() => activateSpeaker.mutate()}
+                    className="w-full"
+                  >
+                    <CheckIcon size={16} className="mr-1" />
+                    <Trans>Yes, activate speaker</Trans>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => recordMeOnly.mutate()}
+                    className="w-full"
+                  >
+                    <MicIcon size={16} className="mr-1" />
+                    <Trans>Record me only</Trans>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )
+          : (
+            <>
+              <div className="flex w-full justify-between mb-4">
+                <AudioControlButton
+                  isMuted={isMicMuted}
+                  onClick={() => toggleMicMuted.mutate()}
+                  type="mic"
+                />
+                <AudioControlButton
+                  isMuted={isSpeakerMuted}
+                  onClick={() => toggleSpeakerMuted.mutate()}
+                  type="speaker"
+                />
+              </div>
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handlePauseSession}
-            className="w-full"
-          >
-            <PauseIcon size={16} />
-            <Trans>Pause</Trans>
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleStopSession}
-            className="w-full"
-          >
-            <StopCircleIcon size={16} />
-            <Trans>Stop</Trans>
-          </Button>
-        </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handlePauseSession}
+                  className="w-full"
+                >
+                  <PauseIcon size={16} />
+                  <Trans>Pause</Trans>
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleStopSession}
+                  className="w-full"
+                >
+                  <StopCircleIcon size={16} />
+                  <Trans>Stop</Trans>
+                </Button>
+              </div>
+            </>
+          )}
       </PopoverContent>
     </Popover>
   );
@@ -333,10 +408,12 @@ function AudioControlButton({
   type,
   isMuted,
   onClick,
+  disabled,
 }: {
   type: "mic" | "speaker";
   isMuted?: boolean;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   const Icon = type === "mic"
     ? isMuted
@@ -347,9 +424,15 @@ function AudioControlButton({
     : Volume2Icon;
 
   return (
-    <Button variant="ghost" size="icon" onClick={onClick} className="w-full">
-      <Icon className={isMuted ? "text-neutral-500" : ""} size={20} />
-      <SoundIndicator input={type} size="long" />
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={onClick}
+      className="w-full"
+      disabled={disabled}
+    >
+      <Icon className={cn(isMuted ? "text-neutral-500" : "", disabled && "text-neutral-300")} size={20} />
+      {!disabled && <SoundIndicator input={type} size="long" />}
     </Button>
   );
 }

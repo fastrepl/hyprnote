@@ -44,12 +44,17 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 
 axum = { workspace = true, features = ["ws"] }
+tower-http = { workspace = true, features = ["cors", "trace"] }
+
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
-tower-http = { workspace = true, features = ["cors", "trace"] }
+tokio-util = { workspace = true }
 
 [target.'cfg(not(target_os = "macos"))'.dependencies]
 kalosm-sound = { workspace = true, default-features = false }
 
-[target.'cfg(target_os = "macos")'.dependencies]
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
 kalosm-sound = { workspace = true, default-features = false, features = ["metal"] }
+
+[target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies]
+kalosm-sound = { workspace = true, default-features = false }

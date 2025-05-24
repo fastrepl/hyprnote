@@ -124,11 +124,16 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
         };
 
         let server = crate::server::run_server(model_manager).await?;
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
 
-        let mut s = state.lock().await;
         let api_base = format!("http://{}", &server.addr);
-        s.api_base = Some(api_base.clone());
-        s.server = Some(server);
+
+        {
+            let mut s = state.lock().await;
+            s.api_base = Some(api_base.clone());
+            s.server = Some(server);
+        }
+
         Ok(api_base)
     }
 

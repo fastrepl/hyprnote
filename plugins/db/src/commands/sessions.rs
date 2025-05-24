@@ -19,9 +19,9 @@ pub async fn onboarding_session_id(
 #[tauri::command]
 #[specta::specta]
 #[tracing::instrument(skip(state))]
-pub async fn get_timeline_view_onboarding(
+pub async fn get_words_onboarding(
     state: tauri::State<'_, crate::ManagedState>,
-) -> Result<hypr_timeline::TimelineView, String> {
+) -> Result<Vec<hypr_listener_interface::Word>, String> {
     let guard = state.lock().await;
 
     let db = guard
@@ -30,20 +30,17 @@ pub async fn get_timeline_view_onboarding(
         .ok_or(crate::Error::NoneDatabase)
         .map_err(|e| e.to_string())?;
 
-    let v = db
-        .get_timeline_view_onboarding()
-        .await
-        .map_err(|e| e.to_string())?;
+    let v = db.get_words_onboarding().await.map_err(|e| e.to_string())?;
     Ok(v)
 }
 
 #[tauri::command]
 #[specta::specta]
 #[tracing::instrument(skip(state))]
-pub async fn get_timeline_view(
+pub async fn get_words(
     state: tauri::State<'_, crate::ManagedState>,
     session_id: String,
-) -> Result<Option<hypr_timeline::TimelineView>, String> {
+) -> Result<Vec<hypr_listener_interface::Word>, String> {
     let guard = state.lock().await;
 
     let db = guard
@@ -52,10 +49,7 @@ pub async fn get_timeline_view(
         .ok_or(crate::Error::NoneDatabase)
         .map_err(|e| e.to_string())?;
 
-    let v = db
-        .get_timeline_view(session_id)
-        .await
-        .map_err(|e| e.to_string())?;
+    let v = db.get_words(session_id).await.map_err(|e| e.to_string())?;
     Ok(v)
 }
 
@@ -155,7 +149,7 @@ pub async fn delete_session(
 pub async fn set_session_event(
     state: tauri::State<'_, crate::ManagedState>,
     session_id: String,
-    event_id: String,
+    event_id: Option<String>,
 ) -> Result<(), String> {
     let guard = state.lock().await;
 

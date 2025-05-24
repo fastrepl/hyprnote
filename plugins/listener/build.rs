@@ -9,8 +9,6 @@ const COMMANDS: &[&str] = &[
     "set_mic_muted",
     "get_speaker_muted",
     "set_speaker_muted",
-    "subscribe",
-    "unsubscribe",
     "start_session",
     "stop_session",
     "pause_session",

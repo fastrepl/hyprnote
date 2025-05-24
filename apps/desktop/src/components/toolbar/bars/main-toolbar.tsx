@@ -11,7 +11,7 @@ import { cn } from "@hypr/ui/lib/utils";
 import { SearchBar } from "../../search-bar";
 import { ChatPanelButton } from "../buttons/chat-panel-button";
 import { LeftSidebarButton } from "../buttons/left-sidebar-button";
-import { WidgetPanelButton } from "../buttons/widget-panel-button";
+import { TranscriptPanelButton } from "../buttons/transcript-panel-button";
 
 export function MainToolbar() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
@@ -65,7 +65,7 @@ export function MainToolbar() {
             {/* {isNote && <ShareButton />} */}
             {(organizationMatch || humanMatch) && <NewWindowButton />}
             {noteChatQuery.data && <ChatPanelButton />}
-            <WidgetPanelButton />
+            <TranscriptPanelButton />
           </>
         )}
       </div>

@@ -16,8 +16,14 @@ export function CalendarSelector() {
     queryFn: async () => {
       const calendars = await dbCommands.listCalendars(userId);
       const grouped = calendars.reduce((acc, calendar) => {
-        acc[calendar.source || "Other"] = acc[calendar.source || "Other"] || [];
-        acc[calendar.source || "Other"].push(calendar);
+        let source = calendar.source || "Other";
+
+        if (!source.includes("@")) {
+          source = "Other";
+        }
+
+        acc[source] = acc[source] || [];
+        acc[source].push(calendar);
         return acc;
       }, {} as Record<string, Calendar[]>);
 
@@ -101,29 +107,93 @@ export function CalendarSelector() {
             </div>
           )
           : (
-            Object.entries(calendarsQuery.data?.grouped ?? {}).map(([source, sourceCalendars]) => (
+            Object.entries(calendarsQuery.data?.grouped ?? {}).sort(([sourceA], [sourceB]) => {
+              const isWorkEmail = (email: string) => {
+                if (!email.includes("@")) {
+                  return false;
+                }
+
+                const domain = email.split("@")[1]?.toLowerCase();
+
+                const personalDomains = [
+                  "gmail.com",
+                  "yahoo.com",
+                  "hotmail.com",
+                  "outlook.com",
+                  "icloud.com",
+                  "aol.com",
+                  "protonmail.com",
+                  "mail.com",
+                ];
+
+                return domain && !personalDomains.includes(domain);
+              };
+
+              const isWorkEmailA = isWorkEmail(sourceA);
+              const isWorkEmailB = isWorkEmail(sourceB);
+
+              if (isWorkEmailA && !isWorkEmailB) {
+                return -1;
+              }
+              if (!isWorkEmailA && isWorkEmailB) {
+                return 1;
+              }
+
+              if (sourceA.includes("@") && !sourceB.includes("@")) {
+                return -1;
+              }
+              if (!sourceA.includes("@") && sourceB.includes("@")) {
+                return 1;
+              }
+
+              if (sourceA === "Other" && sourceB !== "Other") {
+                return 1;
+              }
+              if (sourceA !== "Other" && sourceB === "Other") {
+                return -1;
+              }
+
+              return sourceA.localeCompare(sourceB);
+            }).map(([source, sourceCalendars]) => (
               <div key={source} className="mb-5">
                 <div className="text-sm font-semibold text-gray-800 mb-2">{source}</div>
                 <div className="pl-2 space-y-2.5">
-                  {sourceCalendars.map((calendar) => (
-                    <div
-                      key={calendar.id}
-                      className="flex items-center space-x-3 py-1 px-2 rounded-md hover:bg-gray-50 transition-colors"
-                    >
-                      <Checkbox
-                        id={`calendar-${calendar.id}`}
-                        checked={calendar.selected}
-                        onCheckedChange={() => toggleCalendarSelectedMutation.mutate(calendar)}
-                        className="h-4 w-4"
-                      />
-                      <label
-                        htmlFor={`calendar-${calendar.id}`}
-                        className="text-sm font-medium cursor-pointer text-gray-700 flex-1"
+                  {sourceCalendars
+                    .sort((a, b) => {
+                      // Check if calendar names contain email addresses
+                      const aHasEmail = a.name.includes("@");
+                      const bHasEmail = b.name.includes("@");
+
+                      // Email-based calendars first
+                      if (aHasEmail && !bHasEmail) {
+                        return -1;
+                      }
+                      if (!aHasEmail && bHasEmail) {
+                        return 1;
+                      }
+
+                      // Then alphabetical order
+                      return a.name.localeCompare(b.name);
+                    })
+                    .map((calendar) => (
+                      <div
+                        key={calendar.id}
+                        className="flex items-center space-x-3 py-1 px-2 rounded-md hover:bg-gray-50 transition-colors"
                       >
-                        {calendar.name}
-                      </label>
-                    </div>
-                  ))}
+                        <Checkbox
+                          id={`calendar-${calendar.id}`}
+                          checked={calendar.selected}
+                          onCheckedChange={() => toggleCalendarSelectedMutation.mutate(calendar)}
+                          className="h-4 w-4"
+                        />
+                        <label
+                          htmlFor={`calendar-${calendar.id}`}
+                          className="text-sm font-medium cursor-pointer text-gray-700 flex-1"
+                        >
+                          {calendar.name}
+                        </label>
+                      </div>
+                    ))}
                 </div>
               </div>
             ))

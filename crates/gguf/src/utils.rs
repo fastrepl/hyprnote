@@ -14,12 +14,10 @@ pub fn read_versioned_size<R: Read + Seek>(
         } else {
             Ok(reader.read_u32::<BigEndian>()? as u64)
         }
+    } else if is_little_endian {
+        Ok(reader.read_u64::<LittleEndian>()?)
     } else {
-        if is_little_endian {
-            Ok(reader.read_u64::<LittleEndian>()?)
-        } else {
-            Ok(reader.read_u64::<BigEndian>()?)
-        }
+        Ok(reader.read_u64::<BigEndian>()?)
     }
 }
 

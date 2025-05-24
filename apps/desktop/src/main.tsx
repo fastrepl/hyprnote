@@ -3,7 +3,7 @@ import "./styles/globals.css";
 
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
-import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueries, useQueryClient } from "@tanstack/react-query";
 import { CatchBoundary, createRouter, ErrorComponent, RouterProvider } from "@tanstack/react-router";
 import { useEffect } from "react";
 import ReactDOM from "react-dom/client";
@@ -11,15 +11,16 @@ import ReactDOM from "react-dom/client";
 import type { Context } from "@/types";
 import { commands } from "@/types";
 import { commands as authCommands } from "@hypr/plugin-auth";
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { Toaster } from "@hypr/ui/components/ui/toast";
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 import { ThemeProvider } from "@hypr/ui/contexts/theme";
+import { createOngoingSessionStore, createSessionsStore } from "@hypr/utils/stores";
 import { broadcastQueryClient } from "./utils";
 
 import { messages as enMessages } from "./locales/en/messages";
 import { messages as koMessages } from "./locales/ko/messages";
 
-import { createOngoingSessionStore, createSessionsStore } from "@hypr/utils/stores";
 import { routeTree } from "./routeTree.gen";
 
 import * as Sentry from "@sentry/react";
@@ -68,10 +69,10 @@ declare module "@tanstack/react-router" {
 }
 
 commands.sentryDsn().then((dsn) => {
-  // https://docs.sentry.io/platforms/javascript/guides/react/features/tanstack-router/
   Sentry.init({
     ...defaultOptions,
     dsn,
+    // https://docs.sentry.io/platforms/javascript/guides/react/features/tanstack-router/
     integrations: [Sentry.tanstackRouterBrowserTracingIntegration(router)],
     tracesSampleRate: 1.0,
   });
@@ -86,17 +87,29 @@ function App() {
     return broadcastQueryClient(queryClient);
   }, [queryClient]);
 
-  const userId = useQuery({
-    queryKey: ["userId"],
-    queryFn: () => authCommands.getFromStore("auth-user-id"),
-    staleTime: Infinity,
+  const [userId, onboardingSessionId] = useQueries({
+    queries: [
+      {
+        queryKey: ["auth-user-id"],
+        queryFn: () => authCommands.getFromStore("auth-user-id"),
+      },
+      {
+        queryKey: ["onboarding-session-id"],
+        queryFn: () => dbCommands.onboardingSessionId(),
+      },
+    ],
   });
 
-  if (!userId.data) {
+  if (!userId.data || !onboardingSessionId.data) {
     return null;
   }
 
-  return <RouterProvider router={router} context={{ ...context, userId: userId.data }} />;
+  return (
+    <RouterProvider
+      router={router}
+      context={{ ...context, userId: userId.data, onboardingSessionId: onboardingSessionId.data }}
+    />
+  );
 }
 
 if (!rootElement.innerHTML) {

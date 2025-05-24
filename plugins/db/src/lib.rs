@@ -42,8 +42,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::sessions::session_remove_participant,
             commands::sessions::session_list_participants,
             commands::sessions::session_get_event,
-            commands::sessions::get_timeline_view,
-            commands::sessions::get_timeline_view_onboarding,
+            commands::sessions::get_words,
+            commands::sessions::get_words_onboarding,
             commands::configs::get_config,
             commands::configs::set_config,
             commands::humans::get_human,
@@ -62,12 +62,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::tags::list_session_tags,
             commands::tags::assign_tag_to_session,
             commands::tags::unassign_tag_from_session,
-            commands::extensions::get_extension_mapping,
-            commands::extensions::list_extension_mappings,
-            commands::extensions::upsert_extension_mapping,
         ])
-        .typ::<hypr_db_user::ExtensionDefinition>()
-        .typ::<hypr_db_user::ExtensionWidgetKind>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 

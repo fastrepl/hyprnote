@@ -1,23 +1,5 @@
 import { DefaultTheme } from "vitepress";
 
-const extensions: DefaultTheme.SidebarItem = {
-  text: "Extensions",
-  items: [
-    { text: "What is an extension?", link: "/extensions" },
-    {
-      text: "List of extensions",
-      items: [
-        { text: "Dino Game", link: "/extensions/dino-game" },
-        { text: "Live Summary", link: "/extensions/live-summary" },
-        { text: "Timer", link: "/extensions/timer" },
-        { text: "Transcript", link: "/extensions/transcript" },
-        { text: "Twenty", link: "/extensions/twenty" },
-      ].sort((a, b) => a.text.localeCompare(b.text)),
-      collapsed: true,
-    },
-  ],
-};
-
 const plugins: DefaultTheme.SidebarItem = {
   text: "Plugins",
   items: [
@@ -48,7 +30,6 @@ const development: DefaultTheme.SidebarItem = {
   collapsed: true,
   items: [
     { text: "Contributing", link: "/development/contributing" },
-    { text: "Extension", link: "/development/extension" },
     { text: "Plugin", link: "/development/plugin" },
     { text: "Internalization", link: "/development/i18n" },
     { text: "Miscellaneous", link: "/development/miscellaneous" },
@@ -69,7 +50,6 @@ const sidebar: DefaultTheme.SidebarItem[] = [
       },
     ],
   },
-  extensions,
   plugins,
   development,
 ];

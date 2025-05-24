@@ -1,7 +1,6 @@
 import {
   AudioLinesIcon,
   BellIcon,
-  BlocksIcon,
   CalendarIcon,
   FlaskConicalIcon,
   MessageSquareIcon,
@@ -19,8 +18,6 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <BellIcon className="h-4 w-4" />;
     case "sound":
       return <AudioLinesIcon className="h-4 w-4" />;
-    case "extensions":
-      return <BlocksIcon size={16} />;
     case "lab":
       return <FlaskConicalIcon size={16} />;
     case "feedback":

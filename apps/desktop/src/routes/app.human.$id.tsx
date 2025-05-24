@@ -77,8 +77,9 @@ function parseLinkedInUrl(url: string): string {
 type FormSchema = z.infer<typeof formSchema>;
 
 function Component() {
-  const { human, organization } = Route.useLoaderData();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { human, organization } = Route.useLoaderData();
   const { isEditing, setIsEditing } = useEditMode();
 
   const form = useForm<FormSchema>({
@@ -105,6 +106,8 @@ function Component() {
       });
     },
     onSuccess: () => {
+      console.log("Invalidating human", human.id);
+      queryClient.invalidateQueries({ queryKey: ["human", human.id] });
       router.invalidate();
     },
     onError: () => {

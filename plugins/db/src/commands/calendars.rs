@@ -4,7 +4,7 @@
 pub async fn get_calendar(
     state: tauri::State<'_, crate::ManagedState>,
     calendar_id: String,
-) -> Result<hypr_db_user::Calendar, String> {
+) -> Result<Option<hypr_db_user::Calendar>, String> {
     let guard = state.lock().await;
 
     let db = guard

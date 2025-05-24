@@ -1,43 +1,41 @@
-use std::{
-    sync::atomic::{AtomicUsize, Ordering},
-    sync::Arc,
-};
+use std::sync::{Arc, Mutex};
+use tokio_util::sync::CancellationToken;
 
 #[derive(Clone)]
 pub struct ConnectionManager {
-    num_connections: Arc<AtomicUsize>,
+    inner: Arc<Mutex<Option<CancellationToken>>>,
 }
 
 impl Default for ConnectionManager {
     fn default() -> Self {
         Self {
-            num_connections: Arc::new(AtomicUsize::new(0)),
+            inner: Arc::new(Mutex::new(None)),
         }
     }
 }
 
 impl ConnectionManager {
-    pub fn try_acquire_connection(&self) -> Option<ConnectionGuard> {
-        let current = self.num_connections.load(Ordering::SeqCst);
-        if current >= 1 {
-            return None;
+    pub fn acquire_connection(&self) -> ConnectionGuard {
+        let mut slot = self.inner.lock().unwrap();
+
+        if let Some(old) = slot.take() {
+            old.cancel();
         }
 
-        match self
-            .num_connections
-            .compare_exchange(0, 1, Ordering::SeqCst, Ordering::SeqCst)
-        {
-            Ok(_) => Some(ConnectionGuard(self.num_connections.clone())),
-            Err(_) => None,
-        }
+        let token = CancellationToken::new();
+        *slot = Some(token.clone());
+
+        ConnectionGuard { token }
     }
 }
 
-pub struct ConnectionGuard(Arc<AtomicUsize>);
+pub struct ConnectionGuard {
+    token: CancellationToken,
+}
 
-impl Drop for ConnectionGuard {
-    fn drop(&mut self) {
-        self.0.fetch_sub(1, Ordering::SeqCst);
+impl ConnectionGuard {
+    pub async fn cancelled(&self) {
+        self.token.cancelled().await
     }
 }
 
@@ -70,9 +68,7 @@ mod tests {
         ws: WebSocketUpgrade,
         AxumState(manager): AxumState<ConnectionManager>,
     ) -> Result<impl IntoResponse, StatusCode> {
-        let guard = manager
-            .try_acquire_connection()
-            .ok_or(StatusCode::TOO_MANY_REQUESTS)?;
+        let guard = manager.acquire_connection();
 
         Ok(ws.on_upgrade(move |socket| handle_socket(socket, guard)))
     }

@@ -1,15 +1,10 @@
-use crate::{
-    Config, ConfigAI, ConfigGeneral, ConfigNotification, ExtensionMapping, ExtensionWidget,
-    ExtensionWidgetKind,
-};
+use crate::{Config, ConfigAI, ConfigGeneral, ConfigNotification};
 
 use super::{
     Calendar, ChatGroup, ChatMessage, ChatMessageRole, Event, Human, Organization, Platform,
     Session, Tag, UserDatabase,
 };
 
-const EDITOR_BASICS_MD: &str = include_str!("../assets/editor-basics.md");
-const KEYBOARD_SHORTCUTS_MD: &str = include_str!("../assets/keyboard-shortcuts.md");
 const ONBOARDING_RAW_HTML: &str = include_str!("../assets/onboarding-raw.html");
 const THANK_YOU_MD: &str = include_str!("../assets/thank-you.md");
 
@@ -22,31 +17,24 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         description: Some("https://github.com/fastrepl".to_string()),
     };
 
-    let fastrepl_members = vec![
-        Human {
-            id: uuid::Uuid::new_v4().to_string(),
-            full_name: Some("Yujong Lee".to_string()),
-            email: Some("yujonglee@hyprnote.com".to_string()),
-            organization_id: Some(fastrepl_org.id.clone()),
-            is_user: false,
-            job_title: None,
-            linkedin_username: Some("yujong1ee".to_string()),
-        },
-        Human {
-            id: uuid::Uuid::new_v4().to_string(),
-            full_name: Some("John Jeong".to_string()),
-            email: Some("john@hyprnote.com".to_string()),
-            organization_id: Some(fastrepl_org.id.clone()),
-            is_user: false,
-            job_title: None,
-            linkedin_username: Some("johntopia".to_string()),
-        },
-    ];
-
-    let onboarding_org = Organization {
+    let fastrepl_john = Human {
         id: uuid::Uuid::new_v4().to_string(),
-        name: "Dunder Mifflin".to_string(),
-        description: None,
+        full_name: Some("John Jeong".to_string()),
+        email: Some("john@hyprnote.com".to_string()),
+        organization_id: Some(fastrepl_org.id.clone()),
+        is_user: false,
+        job_title: None,
+        linkedin_username: Some("johntopia".to_string()),
+    };
+
+    let fastrepl_yujong = Human {
+        id: uuid::Uuid::new_v4().to_string(),
+        full_name: Some("Yujong Lee".to_string()),
+        email: Some("yujonglee@hyprnote.com".to_string()),
+        organization_id: Some(fastrepl_org.id.clone()),
+        is_user: false,
+        job_title: None,
+        linkedin_username: Some("yujong1ee".to_string()),
     };
 
     let default_calendar = Calendar {
@@ -83,30 +71,7 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         raw_memo_html: hypr_buffer::opinionated_md_to_html(THANK_YOU_MD).unwrap(),
         enhanced_memo_html: None,
         conversations: vec![],
-    };
-
-    let keyboard_shortcuts_session = Session {
-        id: uuid::Uuid::new_v4().to_string(),
-        user_id: user_id.clone(),
-        title: "Keyboard Shortcuts".to_string(),
-        created_at: chrono::Utc::now(),
-        visited_at: chrono::Utc::now(),
-        calendar_event_id: None,
-        raw_memo_html: hypr_buffer::opinionated_md_to_html(KEYBOARD_SHORTCUTS_MD).unwrap(),
-        enhanced_memo_html: None,
-        conversations: vec![],
-    };
-
-    let editor_basics_session = Session {
-        id: uuid::Uuid::new_v4().to_string(),
-        user_id: user_id.clone(),
-        title: "Editor Basics".to_string(),
-        created_at: chrono::Utc::now(),
-        visited_at: chrono::Utc::now(),
-        calendar_event_id: None,
-        raw_memo_html: hypr_buffer::opinionated_md_to_html(EDITOR_BASICS_MD).unwrap(),
-        enhanced_memo_html: None,
-        conversations: vec![],
+        words: vec![],
     };
 
     let onboarding_session = Session {
@@ -119,51 +84,31 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         raw_memo_html: ONBOARDING_RAW_HTML.to_string(),
         enhanced_memo_html: None,
         conversations: vec![],
+        words: vec![],
     };
 
     let _ = db.upsert_calendar(default_calendar).await?;
     let _ = db.upsert_event(onboarding_event).await?;
 
-    for session in [
-        &thank_you_session,
-        &keyboard_shortcuts_session,
-        &editor_basics_session,
-        &onboarding_session,
-    ] {
+    for session in [&thank_you_session, &onboarding_session] {
         let _ = db.upsert_session(session.clone()).await?;
     }
 
-    for org in [onboarding_org, fastrepl_org] {
+    for org in [fastrepl_org] {
         let _ = db.upsert_organization(org).await?;
     }
 
-    for member in fastrepl_members.clone() {
-        let _ = db.upsert_human(member).await?;
+    for member in [&fastrepl_john, &fastrepl_yujong] {
+        let _ = db.upsert_human(member.clone()).await?;
     }
 
-    for participant in fastrepl_members {
-        db.session_add_participant(&editor_basics_session.id, &participant.id)
-            .await?;
-        db.session_add_participant(&keyboard_shortcuts_session.id, &participant.id)
-            .await?;
+    for participant in [&fastrepl_john, &fastrepl_yujong] {
         db.session_add_participant(&thank_you_session.id, &participant.id)
             .await?;
-        db.session_add_participant(&onboarding_session.id, &participant.id)
-            .await?;
     }
 
-    db.upsert_extension_mapping(ExtensionMapping {
-        id: uuid::Uuid::new_v4().to_string(),
-        user_id: user_id.clone(),
-        extension_id: "@hypr/extension-transcript".to_string(),
-        config: serde_json::Value::from(r#"{}"#),
-        widgets: vec![ExtensionWidget {
-            kind: ExtensionWidgetKind::TwoByTwo,
-            group: "transcript-default".to_string(),
-            position: None,
-        }],
-    })
-    .await?;
+    db.session_add_participant(&onboarding_session.id, &fastrepl_john.id)
+        .await?;
 
     db.set_config(Config {
         id: uuid::Uuid::new_v4().to_string(),
@@ -223,12 +168,6 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
         ..Human::default()
     };
 
-    let john = Human {
-        full_name: Some("John Jeong".to_string()),
-        email: Some("john@hyprnote.com".to_string()),
-        ..Human::default()
-    };
-
     let alex = Human {
         full_name: Some("Alex Karp".to_string()),
         email: Some("alex@hyprnote.com".to_string()),
@@ -241,13 +180,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
         ..Human::default()
     };
 
-    let humans = vec![
-        user.clone(),
-        bobby.clone(),
-        john.clone(),
-        alex.clone(),
-        jenny.clone(),
-    ];
+    let humans = vec![user.clone(), bobby.clone(), alex.clone(), jenny.clone()];
 
     let calendars = vec![Calendar {
         id: uuid::Uuid::new_v4().to_string(),
@@ -286,42 +219,6 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             end_date: now + chrono::Duration::minutes(30),
             google_event_url: None,
         },
-        // Today, not linked to any session
-        Event {
-            id: uuid::Uuid::new_v4().to_string(),
-            user_id: user.id.clone(),
-            tracking_id: uuid::Uuid::new_v4().to_string(),
-            name: "Design Review".to_string(),
-            note: "Review new UI mockups.".to_string(),
-            calendar_id: Some(calendars[0].id.clone()),
-            start_date: now + chrono::Duration::hours(2),
-            end_date: now + chrono::Duration::hours(3),
-            google_event_url: None,
-        },
-        // Tomorrow
-        Event {
-            id: uuid::Uuid::new_v4().to_string(),
-            user_id: user.id.clone(),
-            tracking_id: uuid::Uuid::new_v4().to_string(),
-            name: "Team Lunch".to_string(),
-            note: "Casual team gathering.".to_string(),
-            calendar_id: Some(calendars[0].id.clone()),
-            start_date: now + chrono::Duration::days(1) + chrono::Duration::hours(12),
-            end_date: now + chrono::Duration::days(1) + chrono::Duration::hours(13),
-            google_event_url: None,
-        },
-        // Next Week
-        Event {
-            id: uuid::Uuid::new_v4().to_string(),
-            user_id: user.id.clone(),
-            tracking_id: uuid::Uuid::new_v4().to_string(),
-            name: "Sprint Planning".to_string(),
-            note: "Plan next sprint tasks.".to_string(),
-            calendar_id: Some(calendars[0].id.clone()),
-            start_date: now + chrono::Duration::days(7) + chrono::Duration::hours(10),
-            end_date: now + chrono::Duration::days(7) + chrono::Duration::hours(11),
-            google_event_url: None,
-        },
         // --- Past Events for linking to NotesList ---
         // Last Month
         Event {
@@ -347,6 +244,18 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             end_date: now - chrono::Duration::days(65) + chrono::Duration::hours(2),
             google_event_url: None,
         },
+        // Event without Session attached
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Random Thoughts".to_string(),
+            note: "Random thoughts...".to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now - chrono::Duration::days(14),
+            end_date: now - chrono::Duration::days(14) + chrono::Duration::hours(1),
+            google_event_url: None,
+        },
     ];
 
     let tags = vec![
@@ -362,7 +271,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
 
     // Get IDs of specific events for linking sessions
     let daily_standup_event_id = events[0].id.clone(); // Assumes Daily Standup is the first event
-    let past_kickoff_event_id = events[4].id.clone(); // Assumes Project Kickoff (Past) is the 5th event
+    let past_kickoff_event_id = events[1].id.clone(); // Project Kickoff (Past) event
 
     let sessions = vec![
         // --- Sessions for NotesList --- (Sorted by created_at desc in UI group)
@@ -398,6 +307,16 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             calendar_event_id: None,
             raw_memo_html: hypr_buffer::opinionated_md_to_html(
                 "**Action Items**\n- Send proposal by EOD Friday",
+            )
+            .unwrap(),
+            enhanced_memo_html: Some(
+                hypr_buffer::opinionated_md_to_html(
+                    "**Action Items**\n- Send proposal by EOD Friday",
+                )
+                .unwrap(),
+            ),
+            words: serde_json::from_str::<Vec<hypr_listener_interface::Word>>(
+                &hypr_data::english_4::WORDS_JSON,
             )
             .unwrap(),
             ..new_default_session(&user.id)
@@ -438,7 +357,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             title: "Q3 Strategy Notes".to_string(),
             created_at: now - chrono::Duration::days(65),
             visited_at: now - chrono::Duration::days(65),
-            calendar_event_id: Some(events[5].id.clone()), // Link to Q3 Strategy Meeting event
+            calendar_event_id: Some(events[2].id.clone()), // Q3 Strategy Meeting event
             raw_memo_html: hypr_buffer::opinionated_md_to_html("Focus on growth metrics.").unwrap(),
             ..new_default_session(&user.id)
         },
@@ -526,5 +445,6 @@ fn new_default_session(user_id: impl Into<String>) -> Session {
         raw_memo_html: "".to_string(),
         enhanced_memo_html: None,
         conversations: vec![],
+        words: vec![],
     }
 }

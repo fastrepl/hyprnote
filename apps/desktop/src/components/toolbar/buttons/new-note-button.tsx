@@ -20,7 +20,7 @@ function NewNoteButtonInNote() {
     !s.session.title
     && !s.session.raw_memo_html
     && !s.session.enhanced_memo_html
-    && !s.session.conversations.length);
+    && !s.session.words.length);
 
   return <ActualButton disabled={disabled} />;
 }

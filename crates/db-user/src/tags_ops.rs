@@ -120,6 +120,7 @@ mod tests {
                 raw_memo_html: "".to_string(),
                 enhanced_memo_html: None,
                 conversations: vec![],
+                words: vec![],
             })
             .await
             .unwrap();

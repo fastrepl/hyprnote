@@ -1,28 +1,24 @@
-import { Channel } from "@tauri-apps/api/core";
 import { create as mutate } from "mutative";
 import { createStore } from "zustand";
 
-import {
-  commands as listenerCommands,
-  type SessionEvent,
-  type StatusEvent as ListenerState,
-} from "@hypr/plugin-listener";
+import { commands as listenerCommands, events as listenerEvents } from "@hypr/plugin-listener";
 import { createSessionsStore } from "./sessions";
 
 type State = {
   sessionId: string | null;
-  channel: Channel<SessionEvent> | null;
+  sessionEventUnlisten?: () => void;
   loading: boolean;
-  status: ListenerState;
+  status: "inactive" | "running_active" | "running_paused";
   amplitude: { mic: number; speaker: number };
   enhanceController: AbortController | null;
+  hasShownConsent: boolean;
 };
 
 type Actions = {
   get: () => State & Actions;
   cancelEnhance: () => void;
   setEnhanceController: (controller: AbortController | null) => void;
-  setStatus: (status: ListenerState) => void;
+  setHasShownConsent: (hasShown: boolean) => void;
   start: (sessionId: string) => void;
   stop: () => void;
   pause: () => void;
@@ -33,9 +29,9 @@ const initialState: State = {
   sessionId: null,
   status: "inactive",
   loading: false,
-  channel: null,
   amplitude: { mic: 0, speaker: 0 },
   enhanceController: null,
+  hasShownConsent: false,
 };
 
 export type OngoingSessionStore = ReturnType<typeof createOngoingSessionStore>;
@@ -57,10 +53,10 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
         })
       );
     },
-    setStatus: (status: ListenerState) => {
+    setHasShownConsent: (hasShown: boolean) => {
       set((state) =>
         mutate(state, (draft) => {
-          draft.status = status;
+          draft.hasShownConsent = hasShown;
         })
       );
     },
@@ -75,35 +71,34 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       const sessionStore = sessionsStore.getState().sessions[sessionId];
       sessionStore.getState().persistSession(undefined, true);
 
-      const channel = new Channel<SessionEvent>();
-
-      channel.onmessage = (event) => {
+      listenerEvents.sessionEvent.listen(({ payload }) => {
+        if (payload.type === "audioAmplitude") {
+          set((state) =>
+            mutate(state, (draft) => {
+              draft.amplitude = {
+                mic: payload.mic,
+                speaker: payload.speaker,
+              };
+            })
+          );
+        }
+      }).then((unlisten) => {
         set((state) =>
           mutate(state, (draft) => {
-            if (event.type === "audioAmplitude") {
-              draft.amplitude = {
-                mic: event.mic,
-                speaker: event.speaker,
-              };
-            }
+            draft.sessionEventUnlisten = unlisten;
           })
         );
-      };
+      });
 
       listenerCommands.startSession(sessionId).then(() => {
-        set({ channel, status: "running_active", loading: false });
-        listenerCommands.subscribe(channel);
+        set({ status: "running_active", loading: false });
       }).catch((error) => {
         console.error(error);
         set(initialState);
       });
     },
     stop: () => {
-      const { channel, sessionId } = get();
-
-      if (channel) {
-        listenerCommands.unsubscribe(channel);
-      }
+      const { sessionId } = get();
 
       listenerCommands.stopSession().then(() => {
         set(initialState);

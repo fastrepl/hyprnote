@@ -1,9 +1,10 @@
-import { commands as flagsCommands } from "@hypr/plugin-flags";
 import { useQuery } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-export type RightPanelView = "chat" | "widget";
+import { commands as flagsCommands } from "@hypr/plugin-flags";
+
+export type RightPanelView = "chat" | "transcript";
 
 interface RightPanelContextType {
   isExpanded: boolean;
@@ -23,7 +24,7 @@ export function RightPanelProvider({
   children: React.ReactNode;
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [currentView, setCurrentView] = useState<RightPanelView>("widget");
+  const [currentView, setCurrentView] = useState<RightPanelView>("transcript");
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -99,7 +100,7 @@ export function RightPanelProvider({
     "mod+r",
     (event) => {
       event.preventDefault();
-      if (isExpanded && currentView === "widget") {
+      if (isExpanded && currentView === "transcript") {
         setIsExpanded(false);
 
         setTimeout(() => {
@@ -107,13 +108,13 @@ export function RightPanelProvider({
             previouslyFocusedElement.current.focus();
           }
         }, 0);
-      } else if (isExpanded && currentView !== "widget") {
-        setCurrentView("widget");
+      } else if (isExpanded && currentView !== "transcript") {
+        setCurrentView("transcript");
       } else {
         previouslyFocusedElement.current = document.activeElement as HTMLElement;
 
         setIsExpanded(true);
-        setCurrentView("widget");
+        setCurrentView("transcript");
       }
     },
     {

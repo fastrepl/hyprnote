@@ -2,7 +2,6 @@ pub mod calendars;
 pub mod chats;
 pub mod configs;
 pub mod events;
-pub mod extensions;
 pub mod humans;
 pub mod organizations;
 pub mod sessions;

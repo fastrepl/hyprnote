@@ -23,7 +23,50 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@hypr/ui/components/ui/switch";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
-const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = ["en", "de", "ru", "zh", "fr", "es", "ko", "ja"];
+const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
+  "ar",
+  "az",
+  "bg",
+  "bs",
+  "ca",
+  "cs",
+  "da",
+  "de",
+  "el",
+  "en",
+  "es",
+  "et",
+  "fi",
+  "fr",
+  "gl",
+  "hi",
+  "hr",
+  "hu",
+  "id",
+  "it",
+  "ja",
+  "ko",
+  "lv",
+  "mk",
+  "ms",
+  "nl",
+  "no",
+  "pl",
+  "pt",
+  "ro",
+  "ru",
+  "sk",
+  "sl",
+  "sr",
+  "sv",
+  "ta",
+  "th",
+  "tl",
+  "tr",
+  "uk",
+  "vi",
+  "zh",
+];
 
 const schema = z.object({
   autostart: z.boolean().optional(),
@@ -177,22 +220,24 @@ export default function General() {
             control={form.control}
             name="displayLanguage"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  <Trans>Language</Trans>
-                </FormLabel>
-                <FormDescription>
-                  <Trans>Choose the language you want to use for the speech-to-text model and language model</Trans>
-                </FormDescription>
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>
+                    <Trans>Language</Trans>
+                  </FormLabel>
+                  <FormDescription>
+                    <Trans>Choose your preferred language of use</Trans>
+                  </FormDescription>
+                </div>
                 <FormControl>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-64">
                       {SUPPORTED_LANGUAGES.map((lang) => (
                         <SelectItem key={lang} value={lang}>
                           {LANGUAGES_ISO_639_1[lang].name}
@@ -201,7 +246,8 @@ export default function General() {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormMessage />
+                {/* FormMessage is usually displayed below the control, might need separate handling if it must be in-row and an error occurs */}
+                {/* <FormMessage /> */}
               </FormItem>
             )}
           />

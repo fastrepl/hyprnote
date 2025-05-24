@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
-import { addDays } from "date-fns";
-import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { addDays, subHours } from "date-fns";
+import { AnimatePresence, LayoutGroup } from "motion/react";
 
 import { useHypr, useHyprSearch, useLeftSidebar } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -43,22 +43,34 @@ export default function LeftSidebar() {
     refetchInterval: 5000,
     queryKey: ["events", ongoingSessionId],
     queryFn: async () => {
-      const events = await dbCommands.listEvents({
+      const now = new Date();
+      // Fetch events that started up to 12 hours ago.
+      // This is to include events that are currently ongoing but might have started earlier.
+      // These are then filtered by end_date to ensure we only show active or upcoming events.
+      const rawEvents = await dbCommands.listEvents({
         type: "dateRange",
         user_id: userId,
         limit: 3,
-        start: new Date().toISOString(),
-        end: addDays(new Date(), 28).toISOString(),
+        start: subHours(now, 12).toISOString(),
+        end: addDays(now, 28).toISOString(),
       });
 
+      const ongoingOrUpcomingEvents = rawEvents.filter(
+        (event) => event.end_date > now.toISOString(),
+      );
+
+      if (ongoingOrUpcomingEvents.length === 0) {
+        return [];
+      }
+
       const sessions = await Promise.all(
-        events.map((event) => dbCommands.getSession({ calendarEventId: event.id })),
+        ongoingOrUpcomingEvents.map((event) => dbCommands.getSession({ calendarEventId: event.id })),
       );
       sessions
         .filter((s) => s !== null)
-        .forEach((s) => insertSession(s));
+        .forEach((s) => insertSession(s!));
 
-      return events.map((event, index) => ({
+      return ongoingOrUpcomingEvents.map((event, index) => ({
         ...event,
         session: sessions[index],
       }));
@@ -69,28 +81,26 @@ export default function LeftSidebar() {
     return null;
   }
 
+  if (!isExpanded) {
+    return null;
+  }
+
   return (
-    <motion.nav
-      layout
-      initial={{ width: isExpanded ? 240 : 0, opacity: isExpanded ? 1 : 0 }}
-      animate={{ width: isExpanded ? 240 : 0, opacity: isExpanded ? 1 : 0 }}
-      transition={{ duration: 0.1 }}
-      className="h-full flex flex-col overflow-hidden border-r bg-neutral-50"
-    >
+    <nav className="h-full flex flex-col overflow-hidden border-r bg-neutral-50 w-60">
       <TopArea />
 
       {inMeetingAndNotInNote && <OngoingSession sessionId={ongoingSessionId} />}
 
       {isSearching
         ? (
-          <div className="flex-1 h-full overflow-y-auto">
+          <div className="flex-1 h-full overflow-y-auto scrollbar-none">
             <SearchList matches={matches} />
           </div>
         )
         : (
           <LayoutGroup>
             <AnimatePresence initial={false}>
-              <div className="flex-1 h-full overflow-y-auto">
+              <div className="flex-1 h-full overflow-y-auto scrollbar-none">
                 <div className="h-full space-y-4 px-3 pb-4">
                   <EventsList
                     events={events.data?.filter(
@@ -116,6 +126,6 @@ export default function LeftSidebar() {
             </AnimatePresence>
           </LayoutGroup>
         )}
-    </motion.nav>
+    </nav>
   );
 }

@@ -6,6 +6,7 @@
   "exports": {
     "./editor": "./src/editor/index.tsx",
     "./renderer": "./src/renderer/index.tsx",
+    "./transcript": "./src/transcript/index.tsx",
     "./shared": "./src/shared/index.ts"
   },
   "peerDependencies": {
@@ -13,29 +14,49 @@
     "react-dom": "^18.3.1"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.7.0",
+    "@hypr/plugin-db": "workspace:^",
+    "@hypr/ui": "workspace:^",
+    "@hypr/utils": "workspace:^",
     "@remixicon/react": "^4.6.0",
-    "@tiptap/core": "^2.11.9",
-    "@tiptap/extension-highlight": "^2.11.9",
-    "@tiptap/extension-image": "^2.11.9",
-    "@tiptap/extension-link": "^2.11.9",
-    "@tiptap/extension-list-keymap": "^2.11.9",
-    "@tiptap/extension-placeholder": "^2.11.9",
-    "@tiptap/extension-strike": "^2.11.9",
-    "@tiptap/extension-task-item": "^2.11.9",
-    "@tiptap/extension-task-list": "^2.11.9",
-    "@tiptap/extension-typography": "^2.11.9",
-    "@tiptap/extension-underline": "^2.11.9",
-    "@tiptap/pm": "^2.11.9",
-    "@tiptap/react": "^2.11.9",
-    "@tiptap/starter-kit": "^2.11.9",
+    "@sereneinserenade/tiptap-search-and-replace": "^0.1.1",
+    "@tanstack/react-query": "^5.76.2",
+    "@tanstack/react-router": "^1.120.5",
+    "@tiptap/core": "^2.12.0",
+    "@tiptap/extension-bubble-menu": "^2.12.0",
+    "@tiptap/extension-document": "^2.12.0",
+    "@tiptap/extension-highlight": "^2.12.0",
+    "@tiptap/extension-history": "^2.12.0",
+    "@tiptap/extension-image": "^2.12.0",
+    "@tiptap/extension-link": "^2.12.0",
+    "@tiptap/extension-list-keymap": "^2.12.0",
+    "@tiptap/extension-mention": "^2.12.0",
+    "@tiptap/extension-placeholder": "^2.12.0",
+    "@tiptap/extension-strike": "^2.12.0",
+    "@tiptap/extension-task-item": "^2.12.0",
+    "@tiptap/extension-task-list": "^2.12.0",
+    "@tiptap/extension-text": "^2.12.0",
+    "@tiptap/extension-typography": "^2.12.0",
+    "@tiptap/extension-underline": "^2.12.0",
+    "@tiptap/pm": "^2.12.0",
+    "@tiptap/react": "^2.12.0",
+    "@tiptap/starter-kit": "^2.12.0",
+    "@tiptap/suggestion": "^2.12.0",
     "clsx": "^2.1.1",
+    "prosemirror-commands": "^1.7.1",
+    "prosemirror-model": "^1.25.1",
+    "prosemirror-state": "^1.4.3",
     "tippy.js": "^6.3.7",
     "turndown": "^7.2.0"
   },
   "devDependencies": {
-    "@types/node": "^22.15.3",
-    "@types/react": "^18.3.20",
+    "@types/node": "^22.15.21",
+    "@types/react": "^18.3.22",
     "@types/react-dom": "^18.3.7",
-    "@types/turndown": "^5.0.5"
+    "@types/turndown": "^5.0.5",
+    "vitest": "^3.1.4"
+  },
+  "scripts": {
+    "test": "vitest run"
   }
 }

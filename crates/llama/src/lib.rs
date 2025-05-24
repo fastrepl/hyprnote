@@ -173,25 +173,6 @@ impl Llama {
 mod tests {
     use super::*;
     use futures_util::StreamExt;
-    use llama_cpp_2::model::LlamaChatMessage;
-
-    macro_rules! init_timeline {
-        ($module:ident) => {{
-            let transcripts: Vec<hypr_listener_interface::TranscriptChunk> =
-                serde_json::from_str(hypr_data::$module::TRANSCRIPTION_JSON).unwrap();
-            let diarizations: Vec<hypr_listener_interface::DiarizationChunk> =
-                serde_json::from_str(hypr_data::$module::DIARIZATION_JSON).unwrap();
-
-            let mut timeline = hypr_timeline::Timeline::default();
-            for t in transcripts {
-                timeline.add_transcription(t);
-            }
-            for d in diarizations {
-                timeline.add_diarization(d);
-            }
-            timeline.view(hypr_timeline::TimelineFilter::default())
-        }};
-    }
 
     async fn run(model: &Llama, request: LlamaRequest, print_stream: bool) -> String {
         use futures_util::pin_mut;
@@ -226,151 +207,6 @@ mod tests {
         Llama::new(model_path).unwrap()
     }
 
-    fn english_1_messages() -> Vec<LlamaChatMessage> {
-        let timeline_view = init_timeline!(english_1);
-
-        let mut env = hypr_template::minijinja::Environment::new();
-        hypr_template::init(&mut env);
-
-        let system = hypr_template::render(
-            &env,
-            hypr_template::PredefinedTemplate::EnhanceSystem.into(),
-            &serde_json::json!({
-                "config": {
-                    "general": {
-                        "display_language": "en"
-                    }
-                }
-            })
-            .as_object()
-            .unwrap(),
-        )
-        .unwrap();
-
-        let user = hypr_template::render(
-            &env,
-            hypr_template::PredefinedTemplate::EnhanceUser.into(),
-            &serde_json::json!({
-                "editor": "googling is the best way to find the answer",
-                "timeline": timeline_view,
-                "participants": vec!["yujonglee".to_string()],
-            })
-            .as_object()
-            .unwrap(),
-        )
-        .unwrap();
-
-        vec![
-            LlamaChatMessage::new("system".into(), system.into()).unwrap(),
-            LlamaChatMessage::new("user".into(), user.into()).unwrap(),
-        ]
-    }
-
-    fn english_4_messages() -> Vec<LlamaChatMessage> {
-        let timeline_view = init_timeline!(english_4);
-
-        let mut env = hypr_template::minijinja::Environment::new();
-        hypr_template::init(&mut env);
-
-        let system = hypr_template::render(
-            &env,
-            hypr_template::PredefinedTemplate::EnhanceSystem.into(),
-            &serde_json::json!({
-                "config": {
-                    "general": {
-                        "display_language": "en"
-                    }
-                }
-            })
-            .as_object()
-            .unwrap(),
-        )
-        .unwrap();
-
-        let user = hypr_template::render(
-            &env,
-            hypr_template::PredefinedTemplate::EnhanceUser.into(),
-            &serde_json::json!({
-                "editor": "privacy aspect seems interesting",
-                "timeline": timeline_view,
-                "participants": vec!["yujonglee".to_string()],
-            })
-            .as_object()
-            .unwrap(),
-        )
-        .unwrap();
-
-        vec![
-            LlamaChatMessage::new("system".into(), system.into()).unwrap(),
-            LlamaChatMessage::new("user".into(), user.into()).unwrap(),
-        ]
-    }
-
-    fn english_5_messages() -> Vec<LlamaChatMessage> {
-        let timeline_view = init_timeline!(english_5);
-
-        let mut env = hypr_template::minijinja::Environment::new();
-        hypr_template::init(&mut env);
-
-        let system = hypr_template::render(
-            &env,
-            hypr_template::PredefinedTemplate::EnhanceSystem.into(),
-            &serde_json::json!({
-                "config": {
-                    "general": {
-                        "display_language": "en"
-                    }
-                }
-            })
-            .as_object()
-            .unwrap(),
-        )
-        .unwrap();
-
-        let user = hypr_template::render(
-            &env,
-            hypr_template::PredefinedTemplate::EnhanceUser.into(),
-            &serde_json::json!({
-                "editor": "Github product meeting,,",
-                "timeline": timeline_view,
-                "participants": vec![
-                    "Daniel".to_string(),
-                    "Eric".to_string(),
-                    "Virginia".to_string(),
-                    "Fabian".to_string(),
-                    "Karina".to_string(),
-                    "Scott".to_string(),
-                    "Josh".to_string(),
-                    "Kenny".to_string(),
-                    "Gabe Weaver".to_string(),
-                    "Dove Hershkovits".to_string(),
-                    "Christie".to_string(),
-                    "David Sakamoto".to_string(),
-                    "Sid".to_string(),
-                    "Sarah O'Donnell".to_string(),
-                    "Luca".to_string(),
-                    "Jason".to_string(),
-                    "James".to_string(),
-                    "Mark Kunsback".to_string(),
-                    "Christopher".to_string(),
-                    "Mac".to_string(),
-                    "Maren".to_string(),
-                    "Eric".to_string(),
-                    "Christy".to_string(),
-                    "Tyron".to_string(),
-                ],
-            })
-            .as_object()
-            .unwrap(),
-        )
-        .unwrap();
-
-        vec![
-            LlamaChatMessage::new("system".into(), system.into()).unwrap(),
-            LlamaChatMessage::new("user".into(), user.into()).unwrap(),
-        ]
-    }
-
     #[test]
     fn test_tag() {
         assert!(hypr_template::ENHANCE_USER_TPL.contains("<headers>"));
@@ -382,34 +218,8 @@ mod tests {
     async fn test_english_1() {
         let llama = get_model();
         let request = LlamaRequest {
-            messages: english_1_messages(),
+            messages: vec![],
             grammar: Some(hypr_gbnf::GBNF::Enhance(Some(vec!["header".to_string()])).build()),
-        };
-
-        run(&llama, request, true).await;
-    }
-
-    // cargo test test_english_4 -p llama -- --nocapture --ignored
-    #[ignore]
-    #[tokio::test]
-    async fn test_english_4() {
-        let llama = get_model();
-        let request = LlamaRequest {
-            messages: english_4_messages(),
-            grammar: Some(hypr_gbnf::GBNF::Enhance(None).build()),
-        };
-
-        run(&llama, request, true).await;
-    }
-
-    // cargo test test_english_5 -p llama -- --nocapture --ignored
-    #[ignore]
-    #[tokio::test]
-    async fn test_english_5() {
-        let llama = get_model();
-        let request = LlamaRequest {
-            messages: english_5_messages(),
-            grammar: Some(hypr_gbnf::GBNF::Enhance(None).build()),
         };
 
         run(&llama, request, true).await;

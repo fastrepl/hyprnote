@@ -1,21 +1,24 @@
 import "../styles/tiptap.css";
+import "../styles/mention.css";
 
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect, useRef } from "react";
+
 import * as shared from "../shared";
+import { mention, type MentionConfig } from "./mention";
 
 export type { TiptapEditor };
-export const extensions = [...shared.extensions];
 
 interface EditorProps {
   handleChange: (content: HTMLContent) => void;
   initialContent: HTMLContent;
   editable?: boolean;
   setContentFromOutside?: boolean;
+  mentionConfig: MentionConfig;
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
-  ({ handleChange, initialContent, editable = true, setContentFromOutside = false }, ref) => {
+  ({ handleChange, initialContent, editable = true, setContentFromOutside = false, mentionConfig }, ref) => {
     const previousContentRef = useRef<HTMLContent>(initialContent);
 
     const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
@@ -27,7 +30,10 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
     };
 
     const editor = useEditor({
-      extensions,
+      extensions: [
+        ...shared.extensions,
+        mention(mentionConfig),
+      ],
       editable,
       content: initialContent || "<p></p>",
       onCreate: ({ editor }) => {
@@ -38,6 +44,9 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       onUpdate,
       shouldRerenderOnTransaction: false,
       editorProps: {
+        attributes: {
+          class: "tiptap-normal",
+        },
         scrollThreshold: 32,
         scrollMargin: 32,
       },

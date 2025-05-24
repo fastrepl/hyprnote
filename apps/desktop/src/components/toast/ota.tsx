@@ -30,41 +30,6 @@ export default function OtaNotification() {
       }
 
       return null;
-      // return {
-      //   currentVersion: "0.0.1",
-      //   version: "0.0.2",
-      //   body: "This is a mock update for development testing",
-      //   downloadAndInstall: (onEvent?: (progress: DownloadEvent) => void, _options?: DownloadOptions) => {
-      //     if (onEvent) {
-      //       onEvent({
-      //         event: "Started",
-      //         data: { contentLength: 300 },
-      //       });
-
-      //       setTimeout(() => {
-      //         onEvent({
-      //           event: "Progress",
-      //           data: { chunkLength: 100 },
-      //         });
-      //       }, 1000);
-
-      //       setTimeout(() => {
-      //         onEvent({
-      //           event: "Progress",
-      //           data: { chunkLength: 100 },
-      //         });
-      //       }, 2000);
-
-      //       setTimeout(() => {
-      //         onEvent({
-      //           event: "Finished",
-      //         });
-      //       }, 3000);
-      //     }
-
-      //     return Promise.resolve(null);
-      //   },
-      // } as unknown as ReturnType<typeof check>;
     },
     refetchInterval: 1000 * 60,
   });

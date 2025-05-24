@@ -5,7 +5,6 @@ authors = ["You"]
 edition = "2021"
 exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules"]
 links = "tauri-plugin-notification"
-rust-version = "1.77.2"
 description = ""
 
 [build-dependencies]

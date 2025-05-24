@@ -38,7 +38,7 @@ impl ListenClientBuilder {
 
             url.set_path("/api/desktop/listen/realtime");
             url.query_pairs_mut()
-                .append_pair("language", &language)
+                .append_pair("language", language)
                 .append_pair("static_prompt", &params.static_prompt)
                 .append_pair("dynamic_prompt", &params.dynamic_prompt);
 
@@ -73,8 +73,8 @@ impl WebSocketIO for ListenClient {
     type Output = ListenOutputChunk;
 
     fn to_input(data: bytes::Bytes) -> Self::Input {
-        ListenInputChunk {
-            audio: data.to_vec(),
+        ListenInputChunk::Audio {
+            data: data.to_vec(),
         }
     }
 

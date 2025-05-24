@@ -1,4 +1,5 @@
 use chrono::Utc;
+
 use hypr_calendar_interface::{CalendarSource, EventFilter};
 use hypr_db_user::{
     GetSessionFilter, ListEventFilter, ListEventFilterCommon, ListEventFilterSpecific,
@@ -11,14 +12,51 @@ pub async fn sync_calendars(
     check_calendar_access().await?;
 
     let db_calendars = db.list_calendars(&user_id).await.unwrap_or(vec![]);
+    let system_calendars = list_system_calendars().await;
 
-    let system_calendars = tauri::async_runtime::spawn_blocking(|| {
-        let handle = hypr_calendar_apple::Handle::new();
-        tauri::async_runtime::block_on(handle.list_calendars()).unwrap_or_default()
-    })
-    .await
-    .unwrap_or_default();
+    _sync_calendars(user_id, db_calendars, system_calendars)
+        .await?
+        .execute(&db)
+        .await;
 
+    Ok(())
+}
+
+pub async fn sync_events(
+    db: hypr_db_user::UserDatabase,
+    user_id: String,
+) -> Result<(), crate::Error> {
+    check_calendar_access().await?;
+
+    let db_events_with_session = list_db_events_with_session(&db, &user_id).await?;
+    let db_selected_calendars = list_db_calendars_selected(&db, &user_id).await?;
+
+    let mut system_events_per_selected_calendar = std::collections::HashMap::new();
+    for db_calendar in &db_selected_calendars {
+        system_events_per_selected_calendar.insert(
+            db_calendar.id.clone(),
+            list_system_events(db_calendar.tracking_id.clone()).await,
+        );
+    }
+
+    _sync_events(
+        user_id,
+        db_events_with_session,
+        db_selected_calendars,
+        system_events_per_selected_calendar,
+    )
+    .await?
+    .execute(&db)
+    .await;
+
+    Ok(())
+}
+
+async fn _sync_calendars(
+    user_id: String,
+    db_calendars: Vec<hypr_db_user::Calendar>,
+    system_calendars: Vec<hypr_calendar_interface::Calendar>,
+) -> Result<CalendarSyncState, crate::Error> {
     let calendars_to_delete = {
         let items = db_calendars
             .iter()
@@ -53,109 +91,50 @@ pub async fn sync_calendars(
         items
     };
 
-    for calendar in calendars_to_delete {
-        if let Err(e) = db.delete_calendar(&calendar.id).await {
-            tracing::error!("delete_calendar_error: {}", e);
-        }
-    }
-
-    for calendar in calendars_to_upsert {
-        if let Err(e) = db.upsert_calendar(calendar).await {
-            tracing::error!("upsert_calendar_error: {}", e);
-        }
-    }
-
-    Ok(())
+    Ok(CalendarSyncState {
+        to_delete: calendars_to_delete,
+        to_upsert: calendars_to_upsert,
+    })
 }
 
-// 1. For selected calendars: we fetch ~28D future events and insert them.
-//    - Event updates are handled through upsert operations.
-// 2. For ~28D future events: if the attached calendar is de-selected, we should remove them.
-//    - The only exception is when an event has an attached note.
-pub async fn sync_events(
-    db: hypr_db_user::UserDatabase,
+async fn _sync_events(
     user_id: String,
-) -> Result<(), crate::Error> {
-    check_calendar_access().await?;
+    db_events_with_session: Vec<(hypr_db_user::Event, Option<hypr_db_user::Session>)>,
+    db_selected_calendars: Vec<hypr_db_user::Calendar>,
+    system_events_per_selected_calendar: std::collections::HashMap<
+        String,
+        Vec<hypr_calendar_interface::Event>,
+    >,
+) -> Result<EventSyncState, crate::Error> {
+    let mut state = EventSyncState::default();
 
-    let user_id = user_id.clone();
-
-    let db_selected_calendars = {
-        let items = db
-            .list_calendars(&user_id)
-            .await
-            .map_err(|e| crate::Error::DatabaseError(e.into()))?
-            .into_iter()
-            .filter(|c| c.selected)
-            .collect::<Vec<hypr_db_user::Calendar>>();
-
-        tracing::info!("db_selected_calendars_len: {}", items.len());
-        items
-    };
-
-    let db_existing_events = {
-        let items = db
-            .list_events(Some(ListEventFilter {
-                common: ListEventFilterCommon {
-                    user_id: user_id.clone(),
-                    limit: Some(200),
-                },
-                specific: ListEventFilterSpecific::DateRange {
-                    start: Utc::now(),
-                    end: Utc::now() + chrono::Duration::days(28),
-                },
-            }))
-            .await
-            .map_err(|e| crate::Error::DatabaseError(e.into()))?
-            .into_iter()
-            .collect::<Vec<hypr_db_user::Event>>();
-
-        tracing::info!("db_existing_events_len: {}", items.len());
-        items
-    };
-
-    for db_event in db_existing_events {
-        let session = db
-            .get_session(GetSessionFilter::CalendarEventId(db_event.id.clone()))
-            .await
-            .map_err(|e| crate::Error::DatabaseError(e.into()))?;
-
+    // Process existing events:
+    // 1. Delete events from unselected calendars that have no sessions
+    // 2. Delete events that no longer exist in the system calendar
+    for (db_event, session) in db_events_with_session {
         let is_selected_cal = db_selected_calendars
             .iter()
             .any(|c| c.tracking_id == db_event.calendar_id.clone().unwrap_or_default());
 
-        if is_selected_cal && session.is_none() {
-            if let Err(e) = db.delete_event(&db_event.id).await {
-                tracing::error!("delete_event_error: {}", e);
+        if !is_selected_cal && session.map_or(true, |s| s.is_empty()) {
+            state.to_delete.push(db_event.clone());
+            continue;
+        }
+
+        if let Some(ref calendar_id) = db_event.calendar_id {
+            if let Some(events) = system_events_per_selected_calendar.get(calendar_id) {
+                if !events.iter().any(|e| e.id == db_event.tracking_id) {
+                    state.to_delete.push(db_event.clone());
+                    continue;
+                }
             }
         }
     }
 
     for db_calendar in db_selected_calendars {
-        let fresh_events = tauri::async_runtime::spawn_blocking(move || {
-            let handle = hypr_calendar_apple::Handle::new();
-
-            let filter = EventFilter {
-                calendar_tracking_id: db_calendar.tracking_id,
-                from: Utc::now(),
-                to: Utc::now() + chrono::Duration::days(28),
-            };
-
-            let events =
-                tauri::async_runtime::block_on(handle.list_events(filter)).unwrap_or_default();
-
-            tracing::info!(
-                "calendar: {}, events: {:?}",
-                db_calendar.name,
-                events
-                    .iter()
-                    .map(|e| e.name.clone())
-                    .collect::<Vec<String>>()
-            );
-            events
-        })
-        .await
-        .unwrap_or_default();
+        let fresh_events = system_events_per_selected_calendar
+            .get(&db_calendar.id)
+            .unwrap();
 
         let events_to_upsert = fresh_events
             .iter()
@@ -172,17 +151,108 @@ pub async fn sync_events(
             })
             .collect::<Vec<hypr_db_user::Event>>();
 
-        for e in events_to_upsert {
-            if let Err(e) = db.upsert_event(e).await {
-                tracing::error!("upsert_event_error: {}", e);
-            }
-        }
+        state.to_upsert.extend(events_to_upsert);
     }
 
-    Ok(())
+    Ok(state)
 }
 
-pub async fn check_calendar_access() -> Result<(), crate::Error> {
+async fn list_system_calendars() -> Vec<hypr_calendar_interface::Calendar> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let handle = hypr_calendar_apple::Handle::new();
+        tauri::async_runtime::block_on(handle.list_calendars()).unwrap_or_default()
+    })
+    .await
+    .unwrap_or_default()
+}
+
+async fn list_system_events(calendar_tracking_id: String) -> Vec<hypr_calendar_interface::Event> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let handle = hypr_calendar_apple::Handle::new();
+
+        let filter = EventFilter {
+            calendar_tracking_id,
+            from: Utc::now(),
+            to: Utc::now() + chrono::Duration::days(28),
+        };
+
+        tauri::async_runtime::block_on(handle.list_events(filter)).unwrap_or_default()
+    })
+    .await
+    .unwrap_or_default()
+}
+
+async fn list_db_calendars(
+    db: &hypr_db_user::UserDatabase,
+    user_id: impl Into<String>,
+) -> Result<Vec<hypr_db_user::Calendar>, crate::Error> {
+    let items = db
+        .list_calendars(user_id.into())
+        .await
+        .map_err(|e| crate::Error::DatabaseError(e))?
+        .into_iter()
+        .collect::<Vec<hypr_db_user::Calendar>>();
+
+    Ok(items)
+}
+
+async fn list_db_calendars_selected(
+    db: &hypr_db_user::UserDatabase,
+    user_id: impl Into<String>,
+) -> Result<Vec<hypr_db_user::Calendar>, crate::Error> {
+    let items = list_db_calendars(db, user_id)
+        .await?
+        .into_iter()
+        .filter(|c| c.selected)
+        .collect::<Vec<hypr_db_user::Calendar>>();
+
+    Ok(items)
+}
+
+async fn list_db_events(
+    db: &hypr_db_user::UserDatabase,
+    user_id: impl Into<String>,
+) -> Result<Vec<hypr_db_user::Event>, crate::Error> {
+    let events = db
+        .list_events(Some(ListEventFilter {
+            common: ListEventFilterCommon {
+                user_id: user_id.into(),
+                limit: Some(200),
+            },
+            specific: ListEventFilterSpecific::DateRange {
+                start: Utc::now(),
+                end: Utc::now() + chrono::Duration::days(28),
+            },
+        }))
+        .await
+        .map_err(|e| crate::Error::DatabaseError(e))?
+        .into_iter()
+        .collect::<Vec<hypr_db_user::Event>>();
+
+    Ok(events)
+}
+
+async fn list_db_events_with_session(
+    db: &hypr_db_user::UserDatabase,
+    user_id: impl Into<String>,
+) -> Result<Vec<(hypr_db_user::Event, Option<hypr_db_user::Session>)>, crate::Error> {
+    let events = list_db_events(db, user_id).await?;
+
+    let mut events_with_session = Vec::new();
+
+    for event in events {
+        let session = db
+            .get_session(GetSessionFilter::CalendarEventId(event.id.clone()))
+            .await
+            .map_err(|e| crate::Error::DatabaseError(e.into()))?;
+
+        events_with_session.push((event, session));
+    }
+
+    Ok(events_with_session)
+}
+
+async fn check_calendar_access() -> Result<(), crate::Error> {
     let calendar_access = tauri::async_runtime::spawn_blocking(|| {
         let handle = hypr_calendar_apple::Handle::new();
         handle.calendar_access_status()
@@ -195,4 +265,78 @@ pub async fn check_calendar_access() -> Result<(), crate::Error> {
     }
 
     Ok(())
+}
+
+#[derive(Debug, Default)]
+struct CalendarSyncState {
+    to_delete: Vec<hypr_db_user::Calendar>,
+    to_upsert: Vec<hypr_db_user::Calendar>,
+}
+
+#[derive(Debug, Default)]
+struct EventSyncState {
+    to_delete: Vec<hypr_db_user::Event>,
+    to_upsert: Vec<hypr_db_user::Event>,
+}
+
+impl CalendarSyncState {
+    async fn execute(self, db: &hypr_db_user::UserDatabase) {
+        for calendar in self.to_delete {
+            if let Err(e) = db.delete_calendar(&calendar.id).await {
+                tracing::error!("delete_calendar_error: {}", e);
+            }
+        }
+
+        for calendar in self.to_upsert {
+            if let Err(e) = db.upsert_calendar(calendar).await {
+                tracing::error!("upsert_calendar_error: {}", e);
+            }
+        }
+    }
+}
+
+impl EventSyncState {
+    async fn execute(self, db: &hypr_db_user::UserDatabase) {
+        for event in self.to_delete {
+            if let Err(e) = db.delete_event(&event.id).await {
+                tracing::error!("delete_event_error: {}", e);
+            }
+        }
+
+        for event in self.to_upsert {
+            if let Err(e) = db.upsert_event(event).await {
+                tracing::error!("upsert_event_error: {}", e);
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_sync_calendars() {
+        let state = _sync_calendars("TEST".to_string(), vec![], vec![])
+            .await
+            .unwrap();
+
+        assert!(state.to_delete.is_empty());
+        assert!(state.to_upsert.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_sync_events() {
+        let state = _sync_events(
+            "TEST".to_string(),
+            vec![],
+            vec![],
+            std::collections::HashMap::new(),
+        )
+        .await
+        .unwrap();
+
+        assert!(state.to_delete.is_empty());
+        assert!(state.to_upsert.is_empty());
+    }
 }

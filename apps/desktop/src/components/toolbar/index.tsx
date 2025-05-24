@@ -10,6 +10,7 @@ export default function Toolbar() {
   const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
   const calendarMatch = useMatch({ from: "/app/calendar", shouldThrow: false });
   const plansMatch = useMatch({ from: "/app/plans", shouldThrow: false });
+
   const { isEditing, toggleEditMode } = useEditMode();
 
   const isMain = getCurrentWebviewWindowLabel() === "main";

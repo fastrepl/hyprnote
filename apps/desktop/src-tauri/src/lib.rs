@@ -126,15 +126,39 @@ pub async fn main() {
 
                 let app_clone = app.clone();
 
-                // TODO: currently we only use deeplinks for notifications, so we've hardcoded
-                // `/app/new?record=true` here
-                let dest = "/app/new?record=true";
-
                 app.deep_link().on_open_url(move |event| {
-                    if event.urls().first().is_some()
-                        && app_clone.window_show(HyprWindow::Main).is_ok()
-                    {
-                        let _ = app_clone.window_navigate(HyprWindow::Main, dest);
+                    let url = if let Some(url) = event.urls().first() {
+                        url.to_string()
+                    } else {
+                        return;
+                    };
+
+                    let dest = if let Ok(parsed_url) = url::Url::parse(&url) {
+                        match parsed_url.path() {
+                            "/notification" => {
+                                if let Some(query) = parsed_url.query() {
+                                    let params: std::collections::HashMap<String, String> =
+                                        url::form_urlencoded::parse(query.as_bytes())
+                                            .into_owned()
+                                            .collect();
+
+                                    if let Some(event_id) = params.get("event_id") {
+                                        format!("/app/note?event_id={}", event_id)
+                                    } else {
+                                        "/app/new?record=true".to_string()
+                                    }
+                                } else {
+                                    "/app/new?record=true".to_string()
+                                }
+                            }
+                            _ => "/app/new?record=false".to_string(),
+                        }
+                    } else {
+                        "/app/new?record=false".to_string()
+                    };
+
+                    if app_clone.window_show(HyprWindow::Main).is_ok() {
+                        let _ = app_clone.window_navigate(HyprWindow::Main, &dest);
                     }
                 });
             }

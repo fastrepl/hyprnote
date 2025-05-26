@@ -143,7 +143,7 @@ pub async fn main() {
                                             .collect();
 
                                     if let Some(event_id) = params.get("event_id") {
-                                        format!("/app/note?event_id={}", event_id)
+                                        format!("/app/note/event/{}", event_id)
                                     } else {
                                         "/app/new?record=true".to_string()
                                     }

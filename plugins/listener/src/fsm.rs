@@ -223,8 +223,8 @@ impl Session {
                 let wav_spec = hound::WavSpec {
                     channels: 2,
                     sample_rate: SAMPLE_RATE,
-                    bits_per_sample: 32,
-                    sample_format: hound::SampleFormat::Float,
+                    bits_per_sample: 16,
+                    sample_format: hound::SampleFormat::Int,
                 };
 
                 let mut wav = if path.exists() {
@@ -234,8 +234,9 @@ impl Session {
                 };
 
                 while let Some(sample) = save_rx.recv().await {
-                    wav.write_sample(sample).unwrap();
-                    wav.write_sample(sample).unwrap();
+                    let s = (sample * 32767.0).clamp(-32768.0, 32767.0) as i16;
+                    wav.write_sample(s).unwrap();
+                    wav.write_sample(s).unwrap();
                 }
 
                 wav.finalize().unwrap();

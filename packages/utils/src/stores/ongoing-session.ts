@@ -68,6 +68,8 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
         })
       );
 
+      sessionsStore.getState().setCurrentSessionId(sessionId);
+
       const sessionStore = sessionsStore.getState().sessions[sessionId];
       sessionStore.getState().persistSession(undefined, true);
 

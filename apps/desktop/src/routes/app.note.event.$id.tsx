@@ -3,13 +3,19 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { commands as dbCommands } from "@hypr/plugin-db";
 
 export const Route = createFileRoute("/app/note/event/$id")({
-  beforeLoad: async ({ params: { id } }) => {
-    const session = await dbCommands.getSession({ calendarEventId: id });
+  beforeLoad: async ({ params: { id }, context: { userId } }) => {
+    const event = await dbCommands.getEvent(id);
 
-    if (!session) {
-      throw redirect({ to: "/app/new", search: { calendarEventId: id } });
+    if (event?.user_id !== userId) {
+      return redirect({ to: "/app/new" });
     }
 
-    throw redirect({ to: "/app/note/$id", params: { id: session.id } });
+    const session = await dbCommands.getSession({ calendarEventId: event.id });
+
+    if (!session) {
+      return redirect({ to: "/app/new", search: { calendarEventId: event.id } });
+    } else {
+      return redirect({ to: "/app/note/$id", params: { id: session.id } });
+    }
   },
 });

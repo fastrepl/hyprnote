@@ -3,7 +3,7 @@ import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 
 const schema = z.object({
-  event_id: z.boolean().optional(),
+  event_id: z.string().optional(),
 });
 
 export const Route = createFileRoute("/app/note")({

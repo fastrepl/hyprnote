@@ -256,8 +256,8 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:188
-#: src/components/editor-area/note-header/listen-button.tsx:227
+#: src/components/editor-area/note-header/listen-button.tsx:169
+#: src/components/editor-area/note-header/listen-button.tsx:208
 msgid "{0}"
 msgstr ""
 
@@ -467,7 +467,7 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: src/routes/app.human.$id.tsx:532
+#: src/routes/app.human.$id.tsx:535
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:399
 msgid "Create"
 msgstr ""
@@ -514,7 +514,7 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:349
+#: src/components/editor-area/note-header/listen-button.tsx:311
 msgid "Did you get consent from everyone in the meeting?"
 msgstr ""
 
@@ -653,7 +653,7 @@ msgstr ""
 msgid "Job title"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:203
+#: src/components/editor-area/note-header/chips/event-chip.tsx:207
 msgid "Join meeting"
 msgstr ""
 
@@ -685,7 +685,7 @@ msgstr ""
 msgid "Loading available models..."
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:251
+#: src/components/editor-area/note-header/chips/event-chip.tsx:255
 msgid "Loading events..."
 msgstr ""
 
@@ -764,7 +764,7 @@ msgstr ""
 msgid "No models available for this endpoint."
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:263
+#: src/components/editor-area/note-header/chips/event-chip.tsx:267
 msgid "No past events found."
 msgstr ""
 
@@ -829,7 +829,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:394
+#: src/components/editor-area/note-header/listen-button.tsx:367
 msgid "Pause"
 msgstr ""
 
@@ -841,7 +841,7 @@ msgstr ""
 msgid "Performance difference between languages"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:207
+#: src/components/editor-area/note-header/listen-button.tsx:188
 msgid "Play video"
 msgstr ""
 
@@ -861,11 +861,11 @@ msgstr ""
 msgid "Recent Notes"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:366
+#: src/components/editor-area/note-header/listen-button.tsx:328
 msgid "Record me only"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:346
+#: src/components/editor-area/note-header/listen-button.tsx:308
 msgid "Recording Started"
 msgstr ""
 
@@ -967,11 +967,11 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:163
+#: src/components/editor-area/note-header/listen-button.tsx:144
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:402
+#: src/components/editor-area/note-header/listen-button.tsx:375
 msgid "Stop"
 msgstr ""
 
@@ -1097,7 +1097,7 @@ msgid "View calendar"
 msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:193
-#: src/components/editor-area/note-header/chips/event-chip.tsx:208
+#: src/components/editor-area/note-header/chips/event-chip.tsx:212
 msgid "View in calendar"
 msgstr ""
 
@@ -1129,7 +1129,7 @@ msgstr ""
 msgid "Works offline"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:358
+#: src/components/editor-area/note-header/listen-button.tsx:320
 msgid "Yes, activate speaker"
 msgstr ""
 

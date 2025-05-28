@@ -256,8 +256,8 @@ msgstr "(Beta) Upcoming meeting notifications"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:188
-#: src/components/editor-area/note-header/listen-button.tsx:227
+#: src/components/editor-area/note-header/listen-button.tsx:169
+#: src/components/editor-area/note-header/listen-button.tsx:208
 msgid "{0}"
 msgstr "{0}"
 
@@ -467,7 +467,7 @@ msgstr "Contacts Access"
 msgid "Continue"
 msgstr "Continue"
 
-#: src/routes/app.human.$id.tsx:532
+#: src/routes/app.human.$id.tsx:535
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:399
 msgid "Create"
 msgstr "Create"
@@ -514,7 +514,7 @@ msgstr "Describe the issue"
 msgid "Description"
 msgstr "Description"
 
-#: src/components/editor-area/note-header/listen-button.tsx:349
+#: src/components/editor-area/note-header/listen-button.tsx:311
 msgid "Did you get consent from everyone in the meeting?"
 msgstr "Did you get consent from everyone in the meeting?"
 
@@ -653,7 +653,7 @@ msgstr "Jargons"
 msgid "Job title"
 msgstr "Job title"
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:203
+#: src/components/editor-area/note-header/chips/event-chip.tsx:207
 msgid "Join meeting"
 msgstr "Join meeting"
 
@@ -685,7 +685,7 @@ msgstr "Live summary of the meeting"
 msgid "Loading available models..."
 msgstr "Loading available models..."
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:251
+#: src/components/editor-area/note-header/chips/event-chip.tsx:255
 msgid "Loading events..."
 msgstr "Loading events..."
 
@@ -764,7 +764,7 @@ msgstr "No members found"
 msgid "No models available for this endpoint."
 msgstr "No models available for this endpoint."
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:263
+#: src/components/editor-area/note-header/chips/event-chip.tsx:267
 msgid "No past events found."
 msgstr "No past events found."
 
@@ -829,7 +829,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:394
+#: src/components/editor-area/note-header/listen-button.tsx:367
 msgid "Pause"
 msgstr "Pause"
 
@@ -841,7 +841,7 @@ msgstr "people"
 msgid "Performance difference between languages"
 msgstr "Performance difference between languages"
 
-#: src/components/editor-area/note-header/listen-button.tsx:207
+#: src/components/editor-area/note-header/listen-button.tsx:188
 msgid "Play video"
 msgstr "Play video"
 
@@ -861,11 +861,11 @@ msgstr "Publish your note"
 msgid "Recent Notes"
 msgstr "Recent Notes"
 
-#: src/components/editor-area/note-header/listen-button.tsx:366
+#: src/components/editor-area/note-header/listen-button.tsx:328
 msgid "Record me only"
 msgstr "Record me only"
 
-#: src/components/editor-area/note-header/listen-button.tsx:346
+#: src/components/editor-area/note-header/listen-button.tsx:308
 msgid "Recording Started"
 msgstr "Recording Started"
 
@@ -967,11 +967,11 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:163
+#: src/components/editor-area/note-header/listen-button.tsx:144
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:402
+#: src/components/editor-area/note-header/listen-button.tsx:375
 msgid "Stop"
 msgstr "Stop"
 
@@ -1097,7 +1097,7 @@ msgid "View calendar"
 msgstr "View calendar"
 
 #: src/components/left-sidebar/events-list.tsx:193
-#: src/components/editor-area/note-header/chips/event-chip.tsx:208
+#: src/components/editor-area/note-header/chips/event-chip.tsx:212
 msgid "View in calendar"
 msgstr "View in calendar"
 
@@ -1129,7 +1129,7 @@ msgstr "Works both in-person and remotely"
 msgid "Works offline"
 msgstr "Works offline"
 
-#: src/components/editor-area/note-header/listen-button.tsx:358
+#: src/components/editor-area/note-header/listen-button.tsx:320
 msgid "Yes, activate speaker"
 msgstr "Yes, activate speaker"
 

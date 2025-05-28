@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { AudioLinesIcon, CheckIcon, ClipboardIcon, CopyIcon, TextSearchIcon, UploadIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
 import { useHypr } from "@/contexts";
@@ -37,20 +37,31 @@ export function TranscriptView() {
   const { isLive, words } = useTranscript(sessionId);
 
   const editorRef = useRef<TranscriptEditorRef | null>(null);
+  const lastWordsRef = useRef<Word[] | null>(null);
 
   useEffect(() => {
     if (words && words.length > 0) {
-      editorRef.current?.setWords(words);
-      editorRef.current?.scrollToBottom();
+      // Only update if words have actually changed
+      const hasChanged = !lastWordsRef.current
+        || words.length !== lastWordsRef.current.length
+        || words.some((w, i) => w !== lastWordsRef.current![i]);
+
+      if (hasChanged) {
+        editorRef.current?.setWords(words);
+        if (isLive) {
+          editorRef.current?.scrollToBottom();
+        }
+        lastWordsRef.current = words;
+      }
     }
   }, [words, isLive]);
 
-  const handleCopyAll = () => {
+  const handleCopyAll = useCallback(() => {
     if (words && words.length > 0) {
       const transcriptText = words.map((word) => word.text).join(" ");
       writeText(transcriptText);
     }
-  };
+  }, [words]);
 
   const audioExist = useQuery(
     {
@@ -62,13 +73,13 @@ export function TranscriptView() {
     queryClient,
   );
 
-  const handleOpenSession = () => {
+  const handleOpenSession = useCallback(() => {
     if (sessionId) {
       miscCommands.audioOpen(sessionId);
     }
-  };
+  }, [sessionId]);
 
-  const handleUpdate = (words: Word[]) => {
+  const handleUpdate = useCallback((words: Word[]) => {
     if (!isLive) {
       dbCommands.getSession({ id: sessionId! }).then((session) => {
         if (session) {
@@ -76,45 +87,25 @@ export function TranscriptView() {
         }
       });
     }
-  };
+  }, [isLive, sessionId]);
 
   if (!sessionId) {
     return null;
   }
 
-  const showActions = hasTranscript && sessionId && ongoingSession.isInactive;
+  const showActions = !!(hasTranscript && sessionId && ongoingSession.isInactive);
 
   return (
     <div className="w-full h-full flex flex-col">
-      <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b border-neutral-100">
-        {!showEmptyMessage && (
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-neutral-900">Transcript</h2>
-            {isLive && (
-              <div className="flex items-center gap-1.5">
-                <div className="relative h-1.5 w-1.5">
-                  <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
-                  <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
-                </div>
-                <span className="text-xs font-medium text-red-600">Live</span>
-              </div>
-            )}
-          </div>
-        )}
-        <div className="not-draggable flex items-center ">
-          {(audioExist.data && showActions) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleOpenSession}
-            >
-              <AudioLinesIcon size={14} className="text-neutral-600" />
-            </Button>
-          )}
-          {showActions && <SearchAndReplace editorRef={editorRef} />}
-          {showActions && <CopyButton onCopy={handleCopyAll} />}
-        </div>
-      </header>
+      <TranscriptHeader
+        showEmptyMessage={!!showEmptyMessage}
+        isLive={isLive}
+        audioExist={audioExist.data}
+        showActions={showActions}
+        onOpenSession={handleOpenSession}
+        onCopyAll={handleCopyAll}
+        editorRef={editorRef}
+      />
 
       <div className="flex-1 overflow-hidden">
         {showEmptyMessage
@@ -134,6 +125,57 @@ export function TranscriptView() {
     </div>
   );
 }
+
+// Memoized header component to prevent re-renders
+const TranscriptHeader = memo(({
+  showEmptyMessage,
+  isLive,
+  audioExist,
+  showActions,
+  onOpenSession,
+  onCopyAll,
+  editorRef,
+}: {
+  showEmptyMessage: boolean;
+  isLive: boolean;
+  audioExist: boolean | undefined;
+  showActions: boolean;
+  onOpenSession: () => void;
+  onCopyAll: () => void;
+  editorRef: React.RefObject<TranscriptEditorRef>;
+}) => {
+  return (
+    <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b border-neutral-100">
+      {!showEmptyMessage && (
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-neutral-900">Transcript</h2>
+          {isLive && (
+            <div className="flex items-center gap-1.5">
+              <div className="relative h-1.5 w-1.5">
+                <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
+                <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
+              </div>
+              <span className="text-xs font-medium text-red-600">Live</span>
+            </div>
+          )}
+        </div>
+      )}
+      <div className="not-draggable flex items-center ">
+        {(audioExist && showActions) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenSession}
+          >
+            <AudioLinesIcon size={14} className="text-neutral-600" />
+          </Button>
+        )}
+        {showActions && <SearchAndReplace editorRef={editorRef} />}
+        {showActions && <CopyButton onCopy={onCopyAll} />}
+      </div>
+    </header>
+  );
+});
 
 function RenderEmpty({ sessionId }: { sessionId: string }) {
   const ongoingSession = useOngoingSession((s) => ({
@@ -185,7 +227,8 @@ function RenderEmpty({ sessionId }: { sessionId: string }) {
   );
 }
 
-const SpeakerSelector = ({
+// Update SpeakerSelector to use memo and optimize renders
+const MemoizedSpeakerSelector = memo(({
   onSpeakerChange,
   speakerId,
   speakerIndex,
@@ -209,7 +252,7 @@ const SpeakerSelector = ({
     if (human) {
       onSpeakerChange(human, speakerRange);
     }
-  }, [human]);
+  }, [human, onSpeakerChange, speakerRange]);
 
   useEffect(() => {
     if (participants.length === 1 && participants[0]) {
@@ -223,10 +266,10 @@ const SpeakerSelector = ({
     }
   }, [participants, speakerId]);
 
-  const handleClickHuman = (human: Human) => {
+  const handleClickHuman = useCallback((human: Human) => {
     setHuman(human);
     setIsOpen(false);
-  };
+  }, []);
 
   if (!sessionId) {
     return <p></p>;
@@ -236,7 +279,7 @@ const SpeakerSelector = ({
     return <p></p>;
   }
 
-  const getDisplayName = (human: Human | null) => {
+  const getDisplayName = useCallback((human: Human | null) => {
     if (!human) {
       return `Speaker ${speakerIndex ?? 0}`;
     }
@@ -244,7 +287,7 @@ const SpeakerSelector = ({
       return "You";
     }
     return human.full_name ?? `Speaker ${speakerIndex ?? 0}`;
-  };
+  }, [userId, speakerIndex]);
 
   return (
     <div className="mt-2 sticky top-0 z-10 bg-neutral-50">
@@ -276,6 +319,15 @@ const SpeakerSelector = ({
       </Popover>
     </div>
   );
+}, (prevProps, nextProps) => {
+  // Custom comparison to prevent unnecessary re-renders
+  return prevProps.speakerId === nextProps.speakerId
+    && prevProps.speakerIndex === nextProps.speakerIndex;
+});
+
+// Create a wrapper that satisfies the SpeakerViewInnerComponent type
+const SpeakerSelector = (props: SpeakerViewInnerProps) => {
+  return <MemoizedSpeakerSelector {...props} />;
 };
 
 interface SpeakerRangeSelectorProps {
@@ -324,30 +376,30 @@ function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
   );
 }
 
-function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any> }) {
+function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<TranscriptEditorRef> }) {
   const [expanded, setExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [replaceTerm, setReplaceTerm] = useState("");
 
   useEffect(() => {
-    if (editorRef.current) {
+    if (editorRef.current?.editor) {
       editorRef.current.editor.commands.setSearchTerm(searchTerm);
 
       if (searchTerm.substring(0, searchTerm.length - 1) === replaceTerm) {
         setReplaceTerm(searchTerm);
       }
     }
-  }, [searchTerm]);
+  }, [searchTerm, editorRef]);
 
   useEffect(() => {
-    if (editorRef.current) {
+    if (editorRef.current?.editor) {
       editorRef.current.editor.commands.setReplaceTerm(replaceTerm);
     }
-  }, [replaceTerm]);
+  }, [replaceTerm, editorRef]);
 
   const handleReplaceAll = () => {
-    if (editorRef.current && searchTerm) {
-      editorRef.current.editor.commands.replaceAll(replaceTerm);
+    if (editorRef.current?.editor && searchTerm) {
+      editorRef.current.editor.commands.replaceAll();
       setExpanded(false);
     }
   };

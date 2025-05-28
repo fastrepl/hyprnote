@@ -63,7 +63,7 @@ function Component() {
 
   useEffect(() => {
     windowsInit();
-    scan({ enabled: false });
+    scan({ enabled: true });
   }, []);
 
   return (

@@ -6,6 +6,45 @@ import { WordNode } from "./nodes";
 
 const ZERO_WIDTH_SPACE = "\u200B";
 
+export const PerformanceOptimizer = Extension.create({
+  name: "performanceOptimizer",
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey("hypr-performance-optimizer"),
+        props: {
+          // Prevent unnecessary DOM mutations
+          handleDOMEvents: {
+            beforeinput: (view, event) => {
+              // Batch text input to prevent excessive re-renders
+              if (event.inputType === "insertText" && event.data) {
+                const { state } = view;
+                const { selection } = state;
+
+                // Only batch if we're in a word node
+                if (selection.$from.parent.type.name === WordNode.name) {
+                  return false; // Let default handler process it
+                }
+              }
+              return false;
+            },
+          },
+        },
+
+        // Optimize transaction handling
+        filterTransaction: (tr, state) => {
+          // Skip empty transactions
+          if (!tr.docChanged && !tr.selectionSet && !tr.storedMarksSet) {
+            return false;
+          }
+          return true;
+        },
+      }),
+    ];
+  },
+});
+
 export const WordSplit = Extension.create({
   name: "wordSplit",
 

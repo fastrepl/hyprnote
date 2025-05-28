@@ -7,9 +7,9 @@ import Document from "@tiptap/extension-document";
 import History from "@tiptap/extension-history";
 import Text from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { forwardRef, useEffect, useRef } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from "react";
 
-import { SpeakerSplit, WordSplit } from "./extensions";
+import { PerformanceOptimizer, SpeakerSplit, WordSplit } from "./extensions";
 import { SpeakerNode, WordNode } from "./nodes";
 import { fromEditorToWords, fromWordsToEditor, type Word } from "./utils";
 import type { SpeakerChangeRange, SpeakerViewInnerComponent, SpeakerViewInnerProps } from "./views";
@@ -33,8 +33,10 @@ export interface TranscriptEditorRef {
 const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
   ({ editable = true, c, onUpdate, initialWords }, ref) => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const updateTimeoutRef = useRef<NodeJS.Timeout>();
+    const lastWordCountRef = useRef<number>(0);
 
-    const extensions = [
+    const extensions = useMemo(() => [
       Document.configure({ content: "speaker+" }),
       History,
       Text,
@@ -42,21 +44,36 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
       SpeakerNode(c),
       WordSplit,
       SpeakerSplit,
+      PerformanceOptimizer,
       SearchAndReplace.configure({
         searchResultClass: "search-result",
         disableRegex: true,
       }),
       BubbleMenu,
-    ];
+    ], [c]);
+
+    const handleUpdate = useCallback(({ editor }: { editor: TiptapEditor }) => {
+      if (!onUpdate) {
+        return;
+      }
+
+      // Debounce updates to avoid excessive re-computation
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+
+      updateTimeoutRef.current = setTimeout(() => {
+        const words = fromEditorToWords(editor.getJSON() as any);
+        onUpdate(words);
+      }, 300);
+    }, [onUpdate]);
 
     const editor = useEditor({
       extensions,
       editable,
-      onUpdate: ({ editor }) => {
-        if (onUpdate) {
-          onUpdate(fromEditorToWords(editor.getJSON() as any));
-        }
-      },
+      immediatelyRender: false,
+      shouldRerenderOnTransaction: false,
+      onUpdate: handleUpdate,
       content: initialWords ? fromWordsToEditor(initialWords) : undefined,
       editorProps: {
         attributes: {
@@ -65,38 +82,78 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
       },
     });
 
-    useEffect(() => {
-      if (ref && typeof ref === "object" && editor) {
-        ref.current = {
-          editor,
-          setWords: (words: Word[]) => {
-            if (!editor) {
-              return;
-            }
-
-            const content = fromWordsToEditor(words);
-            editor.commands.setContent(content);
-          },
-          getWords: () => {
-            if (!editor) {
-              return null;
-            }
-            return fromEditorToWords(editor.getJSON() as any);
-          },
-          scrollToBottom: () => {
-            if (scrollContainerRef.current) {
-              scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-            }
-          },
-        };
+    // Optimize word updates for live mode
+    const setWords = useCallback((words: Word[]) => {
+      if (!editor) {
+        return;
       }
+
+      const currentWordCount = words.length;
+      const prevWordCount = lastWordCountRef.current;
+
+      // If we're just appending new words (common in live mode)
+      if (currentWordCount > prevWordCount && prevWordCount > 0) {
+        // Only update if there are actually new words
+        const newWords = words.slice(prevWordCount);
+        if (newWords.length > 0) {
+          const content = fromWordsToEditor(newWords);
+
+          // Append only the new content
+          const { state } = editor;
+          const { tr } = state;
+
+          // Insert at the end of the document
+          const endPos = state.doc.content.size;
+          content.content.forEach((node: any) => {
+            const proseMirrorNode = editor.schema.nodeFromJSON(node);
+            tr.insert(endPos, proseMirrorNode);
+          });
+
+          editor.view.dispatch(tr);
+        }
+      } else {
+        // Full replacement (initial load or major change)
+        const content = fromWordsToEditor(words);
+        editor.commands.setContent(content);
+      }
+
+      lastWordCountRef.current = currentWordCount;
     }, [editor]);
+
+    const getWords = useCallback(() => {
+      if (!editor) {
+        return null;
+      }
+      return fromEditorToWords(editor.getJSON() as any);
+    }, [editor]);
+
+    const scrollToBottom = useCallback(() => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+      }
+    }, []);
+
+    useImperativeHandle(ref, () => ({
+      editor,
+      setWords,
+      getWords,
+      scrollToBottom,
+    }), [editor, setWords, getWords, scrollToBottom]);
 
     useEffect(() => {
       if (editor) {
         editor.setEditable(editable);
       }
     }, [editor, editable]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+      return () => {
+        if (updateTimeoutRef.current) {
+          clearTimeout(updateTimeoutRef.current);
+        }
+      };
+    }, []);
 
     return (
       <div role="textbox" className="h-full flex flex-col overflow-hidden">

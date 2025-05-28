@@ -1,16 +1,7 @@
 import { Trans } from "@lingui/react/macro";
-import { useMutation, UseMutationResult, useQuery } from "@tanstack/react-query";
-import {
-  CheckIcon,
-  MicIcon,
-  MicOffIcon,
-  PauseIcon,
-  PlayIcon,
-  StopCircleIcon,
-  Volume2Icon,
-  VolumeOffIcon,
-} from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { MicIcon, MicOffIcon, PauseIcon, PlayIcon, StopCircleIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
+import { useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
@@ -48,8 +39,6 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
     pause: s.pause,
     stop: s.stop,
     loading: s.loading,
-    hasShownConsent: s.hasShownConsent,
-    setHasShownConsent: s.setHasShownConsent,
   }));
 
   const isEnhancePending = useEnhancePendingState(sessionId);
@@ -65,7 +54,7 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
 
       analyticsCommands.event({
         event: "onboarding_video_started",
-        distinct_id: userId,
+        distinct_id: isOnboarding ? "onboarding" : userId,
         session_id: sessionId,
       });
     }
@@ -210,71 +199,31 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
   );
 }
 
-export function WhenActive() {
-  const [open, setOpen] = useState(true);
-  const { sessionId } = useOngoingSession((s) => ({ sessionId: s.sessionId }));
-  const { onboardingSessionId } = useHypr();
-  const isOnboarding = sessionId === onboardingSessionId;
-
+function WhenActive() {
   const ongoingSessionStore = useOngoingSession((s) => ({
     pause: s.pause,
     stop: s.stop,
-    loading: s.loading,
   }));
-
-  const { showConsent, setHasShownConsent } = useConsentManagement(isOnboarding);
   const audioControls = useAudioControls();
 
-  useEffect(() => {
-    if (showConsent) {
-      listenerCommands.setSpeakerMuted(true).then(() => {
-        audioControls.refetchSpeakerMuted();
-      });
-    }
-  }, [showConsent, audioControls.refetchSpeakerMuted]);
-
-  const handleConsentDecision = useMutation({
-    mutationFn: async (recordEveryone: boolean) => {
-      if (recordEveryone) {
-        await listenerCommands.setSpeakerMuted(false);
-      } else {
-        await listenerCommands.setSpeakerMuted(true);
-        await listenerCommands.setMicMuted(false);
-      }
-      setHasShownConsent(true);
-    },
-    onSuccess: () => {
-      audioControls.refetchSpeakerMuted();
-      audioControls.refetchMicMuted();
-    },
-  });
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const handlePauseSession = () => {
     ongoingSessionStore.pause();
-    setOpen(false);
+    setIsPopoverOpen(false);
   };
 
   const handleStopSession = () => {
     ongoingSessionStore.stop();
-    setOpen(false);
-  };
-
-  const handleOpenChange = (isOpen: boolean) => {
-    if (!isOpen && !showConsent) {
-      setOpen(false);
-    } else if (showConsent) {
-      setOpen(true);
-    } else {
-      setOpen(isOpen);
-    }
+    setIsPopoverOpen(false);
   };
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
+    <Popover>
       <PopoverTrigger asChild>
         <button
           className={cn([
-            open && "hover:scale-95",
+            isPopoverOpen && "hover:scale-95",
             "w-14 h-9 rounded-full bg-red-100 border-2 transition-all border-red-400 cursor-pointer outline-none p-0 flex items-center justify-center",
             "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
           ])}
@@ -282,54 +231,14 @@ export function WhenActive() {
           <SoundIndicator color="#ef4444" size="long" />
         </button>
       </PopoverTrigger>
-
       <PopoverContent className="w-64" align="end">
-        {showConsent ? <ConsentDialog onDecision={handleConsentDecision} /> : (
-          <RecordingControls
-            audioControls={audioControls}
-            onPause={handlePauseSession}
-            onStop={handleStopSession}
-          />
-        )}
+        <RecordingControls
+          audioControls={audioControls}
+          onPause={handlePauseSession}
+          onStop={handleStopSession}
+        />
       </PopoverContent>
     </Popover>
-  );
-}
-
-function ConsentDialog({
-  onDecision,
-}: {
-  onDecision: UseMutationResult<void, Error, boolean, unknown>;
-}) {
-  return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h4 className="font-medium text-sm mb-2">
-          <Trans>Recording Started</Trans>
-        </h4>
-        <p className="text-xs text-gray-500 mb-4">
-          <Trans>Did you get consent from everyone in the meeting?</Trans>
-        </p>
-        <div className="flex flex-col gap-2">
-          <Button
-            variant="default"
-            onClick={() => onDecision.mutate(true)}
-            className="w-full"
-          >
-            <CheckIcon size={16} className="mr-1" />
-            <Trans>Yes, activate speaker</Trans>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => onDecision.mutate(false)}
-            className="w-full"
-          >
-            <MicIcon size={16} className="mr-1" />
-            <Trans>Record me only</Trans>
-          </Button>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -410,21 +319,6 @@ function AudioControlButton({
       {!disabled && <SoundIndicator input={type} size="long" />}
     </Button>
   );
-}
-
-function useConsentManagement(isOnboarding: boolean) {
-  const ongoingSessionStore = useOngoingSession((s) => ({
-    hasShownConsent: s.hasShownConsent,
-    setHasShownConsent: s.setHasShownConsent,
-  }));
-
-  const effectiveHasShownConsent = isOnboarding ? true : ongoingSessionStore.hasShownConsent;
-  const showConsent = !effectiveHasShownConsent && !isOnboarding;
-
-  return {
-    showConsent,
-    setHasShownConsent: ongoingSessionStore.setHasShownConsent,
-  };
 }
 
 function useAudioControls() {

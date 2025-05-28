@@ -92,12 +92,9 @@ export function TranscriptView() {
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-semibold text-neutral-900">Transcript</h2>
             {isLive && (
-              <div className="flex items-center gap-1.5">
-                <div className="relative h-1.5 w-1.5">
-                  <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
-                  <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
-                </div>
-                <span className="text-xs font-medium text-red-600">Live</span>
+              <div className="relative h-1.5 w-1.5">
+                <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
+                <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
               </div>
             )}
           </div>

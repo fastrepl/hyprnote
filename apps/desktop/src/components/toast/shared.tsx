@@ -108,6 +108,11 @@ export function showLlmModelDownloadToast() {
   );
 }
 
+/**
+ * Displays a toast notification indicating failure to enhance meeting notes, with an option to open AI settings.
+ *
+ * The toast is dismissible and automatically disappears after 3 seconds. Selecting "Open Settings" opens the settings window and dismisses the toast immediately.
+ */
 export function enhanceFailedToast() {
   const id = "no-llm-connection";
 

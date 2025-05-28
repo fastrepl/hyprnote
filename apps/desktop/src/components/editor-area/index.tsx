@@ -21,6 +21,14 @@ import { enhanceFailedToast } from "../toast/shared";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 
+/**
+ * Displays and manages the note editor area for a session, supporting both raw and AI-enhanced content.
+ *
+ * Renders an editable or read-only note editor depending on the `editable` prop, allows toggling between raw and enhanced content, and provides enhancement functionality via a floating button. Integrates with session state, mention search, and triggers automatic enhancement based on session activity.
+ *
+ * @param editable - Whether the editor is editable.
+ * @param sessionId - Identifier for the current session.
+ */
 export default function EditorArea({
   editable,
   sessionId,

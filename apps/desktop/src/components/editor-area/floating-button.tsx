@@ -13,6 +13,18 @@ interface FloatingButtonProps {
   isError: boolean;
 }
 
+/**
+ * Renders a floating button UI for toggling between raw and enhanced memo views, triggering enhancement, or retrying after an error.
+ *
+ * Displays different button states based on enhancement progress and error conditions:
+ * - Shows a retry button with error styling if an error has occurred.
+ * - Shows toggle and enhance/cancel buttons when enhancement is available or pending.
+ * - Hides the UI if no enhancement is available and not pending.
+ *
+ * @param session - The session object representing the current memo.
+ * @param handleEnhance - Function to initiate the enhancement process.
+ * @param isError - Whether the component is in an error state, showing a retry button.
+ */
 export function FloatingButton({
   session,
   handleEnhance,

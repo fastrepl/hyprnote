@@ -194,7 +194,11 @@ export function EventChip({ sessionId }: EventChipProps) {
                       onClick={() => {
                         const meetingLink = event.data?.meetingLink;
                         if (typeof meetingLink === "string") {
-                          openUrl(meetingLink);
+                          let urlToOpen = meetingLink;
+                          if (!urlToOpen.startsWith("http://") && !urlToOpen.startsWith("https://")) {
+                            urlToOpen = "https://" + urlToOpen;
+                          }
+                          openUrl(urlToOpen);
                         }
                       }}
                       className="flex-1"

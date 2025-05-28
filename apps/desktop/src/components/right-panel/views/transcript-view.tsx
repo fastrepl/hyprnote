@@ -18,6 +18,7 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { useOngoingSession } from "@hypr/utils/contexts";
+import { ListeningIndicator } from "../components/listening-indicator";
 import { useTranscript } from "../hooks/useTranscript";
 import { useTranscriptWidget } from "../hooks/useTranscriptWidget";
 
@@ -116,11 +117,11 @@ export function TranscriptView() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden flex flex-col">
         {showEmptyMessage
           ? <RenderEmpty sessionId={sessionId} />
           : (
-            <div className="px-4 h-full">
+            <>
               <TranscriptEditor
                 ref={editorRef}
                 initialWords={words}
@@ -128,7 +129,8 @@ export function TranscriptView() {
                 onUpdate={handleUpdate}
                 c={SpeakerSelector}
               />
-            </div>
+              {isLive && <ListeningIndicator />}
+            </>
           )}
       </div>
     </div>

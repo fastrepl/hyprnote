@@ -181,6 +181,7 @@ function NoteItem({
   const currentSession = useSession(currentSessionId, (s) => ({
     title: s.session.title,
     created_at: s.session.created_at,
+    record_start: s.session.record_start,
   }));
 
   const isActive = activeSessionId === currentSessionId;
@@ -193,7 +194,7 @@ function NoteItem({
     queryFn: () => dbCommands.sessionGetEvent(currentSessionId),
   });
 
-  const sessionDate = currentSessionEvent.data?.start_date ?? currentSession.created_at;
+  const sessionDate = currentSessionEvent.data?.start_date ?? currentSession.record_start ?? currentSession.created_at;
   const formattedSessionDate = formatDate(sessionDate);
 
   const queryClient = useQueryClient();
@@ -326,17 +327,30 @@ function NoteItem({
 }
 
 const groupSessions = (sessions: SessionWithEvent[]): [string, SessionWithEvent[]][] => {
-  const grouped = sessions.reduce<Record<string, SessionWithEvent[]>>((acc, session) => {
-    const key = formatRelative(session.created_at);
+  const getSessionDate = (s: SessionWithEvent): string => {
+    if (s.event?.start_date) {
+      return s.event.start_date;
+    }
+    if (s.record_start) {
+      return s.record_start;
+    }
+    return s.created_at;
+  };
 
-    return {
-      ...acc,
-      [key]: [...(acc[key] ?? []), session],
-    };
+  const grouped = sessions.reduce<Record<string, SessionWithEvent[]>>((acc, session) => {
+    const key = formatRelative(getSessionDate(session));
+
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(session);
+    return acc;
   }, {});
 
-  const groupedAndSorted = Object.entries(grouped).map(([key, sessions]) => {
-    const sorted = sessions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const groupedAndSorted = Object.entries(grouped).map(([key, group]) => {
+    const sorted = group.sort(
+      (a, b) => new Date(getSessionDate(b)).getTime() - new Date(getSessionDate(a)).getTime(),
+    );
     return [key, sorted] as [string, SessionWithEvent[]];
   });
 
@@ -345,8 +359,8 @@ const groupSessions = (sessions: SessionWithEvent[]): [string, SessionWithEvent[
       return 0;
     }
 
-    const newestA = new Date(sessionsA[0].created_at).getTime();
-    const newestB = new Date(sessionsB[0].created_at).getTime();
+    const newestA = new Date(getSessionDate(sessionsA[0])).getTime();
+    const newestB = new Date(getSessionDate(sessionsB[0])).getTime();
     return newestB - newestA;
   });
 };

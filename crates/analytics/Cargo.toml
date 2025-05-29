@@ -6,12 +6,14 @@ edition = "2021"
 [dependencies]
 posthog = { git = "https://github.com/shuttle-hq/posthog-rs", package = "async-posthog", rev = "160e609" }
 posthog-core = { git = "https://github.com/shuttle-hq/posthog-rs", package = "posthog-core", rev = "160e609" }
+omniqueue = { version = "0.2.0", default-features = true }
+chrono = { version = "0.4", features = ["serde"] }
 
 reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 specta = { workspace = true, features = ["derive", "serde_json"] }
 thiserror = { workspace = true }
+tokio = { workspace = true, features = ["rt", "sync", "time", "macros"] }
 
 [dev-dependencies]
-tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

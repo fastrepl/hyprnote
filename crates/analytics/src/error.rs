@@ -6,6 +6,10 @@ pub enum Error {
     PosthogError(#[from] posthog::Error),
     #[error(transparent)]
     ReqwestError(#[from] reqwest::Error),
+    #[error("Event was queued for later delivery")]
+    EventQueued,
+    #[error("Queue error: {0}")]
+    QueueError(String),
 }
 
 impl Serialize for Error {

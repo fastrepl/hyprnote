@@ -20,6 +20,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::event::<tauri::Wry>,
             commands::set_disabled::<tauri::Wry>,
             commands::is_disabled::<tauri::Wry>,
+            commands::get_queue_size::<tauri::Wry>,
+            commands::flush_queue::<tauri::Wry>,
+            commands::clear_queue::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

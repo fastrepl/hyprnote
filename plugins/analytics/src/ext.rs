@@ -10,6 +10,9 @@ pub trait AnalyticsPluginExt<R: tauri::Runtime> {
         &self,
         payload: hypr_analytics::AnalyticsPayload,
     ) -> impl Future<Output = Result<(), crate::Error>>;
+    fn get_queue_size(&self) -> Result<usize, crate::Error>;
+    fn flush_queue(&self) -> impl Future<Output = Result<(), crate::Error>>;
+    fn clear_queue(&self) -> Result<(), crate::Error>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T {
@@ -70,5 +73,20 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
         let store = self.scoped_store(crate::PLUGIN_NAME)?;
         let v = store.get(crate::StoreKey::Disabled)?.unwrap_or(false);
         Ok(v)
+    }
+
+    fn get_queue_size(&self) -> Result<usize, crate::Error> {
+        let client = self.state::<hypr_analytics::AnalyticsClient>();
+        Ok(client.get_queue_size())
+    }
+
+    async fn flush_queue(&self) -> Result<(), crate::Error> {
+        let client = self.state::<hypr_analytics::AnalyticsClient>();
+        client.flush_queue().await.map_err(crate::Error::HyprAnalytics)
+    }
+
+    fn clear_queue(&self) -> Result<(), crate::Error> {
+        let client = self.state::<hypr_analytics::AnalyticsClient>();
+        client.clear_queue().map_err(crate::Error::HyprAnalytics)
     }
 }

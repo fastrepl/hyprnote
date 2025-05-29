@@ -25,8 +25,8 @@ trait Observer: Send + Sync {
 
 #[derive(Default)]
 pub struct Detector {
-    app_detector: AppDetector,
-    browser_detector: BrowserDetector,
+    // app_detector: AppDetector,
+    // browser_detector: BrowserDetector,
     mic_detector: MicDetector,
 }
 
@@ -63,13 +63,15 @@ impl Detector {
     // }
 
     pub fn start(&mut self, f: DetectCallback) {
-        self.app_detector.start(f.clone());
-        self.browser_detector.start(f);
+        // self.app_detector.start(f.clone());
+        // self.browser_detector.start(f.clone());
+        self.mic_detector.start(f);
     }
 
     pub fn stop(&mut self) {
-        self.app_detector.stop();
-        self.browser_detector.stop();
+        // self.app_detector.stop();
+        // self.browser_detector.stop();
+        self.mic_detector.stop();
     }
 }
 

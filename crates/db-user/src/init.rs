@@ -72,6 +72,8 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         enhanced_memo_html: None,
         conversations: vec![],
         words: vec![],
+        record_start: None,
+        record_end: None,
     };
 
     let onboarding_session = Session {
@@ -85,6 +87,8 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         enhanced_memo_html: None,
         conversations: vec![],
         words: vec![],
+        record_start: None,
+        record_end: None,
     };
 
     let _ = db.upsert_calendar(default_calendar).await?;
@@ -446,5 +450,7 @@ fn new_default_session(user_id: impl Into<String>) -> Session {
         enhanced_memo_html: None,
         conversations: vec![],
         words: vec![],
+        record_start: None,
+        record_end: None,
     }
 }

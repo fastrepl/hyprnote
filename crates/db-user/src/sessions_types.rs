@@ -15,7 +15,9 @@ user_common_derives! {
         #[specta(skip)]
         #[serde(skip)]
         pub conversations: Vec<()>,
-        pub words: Vec<hypr_listener_interface::Word>
+        pub words: Vec<hypr_listener_interface::Word>,
+        pub record_start: Option<DateTime<Utc>>,
+        pub record_end: Option<DateTime<Utc>>,
     }
 }
 
@@ -45,6 +47,16 @@ impl Session {
                 .get_str(9)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap(),
+            record_start: row.get_str(10).ok().map(|str| {
+                DateTime::parse_from_rfc3339(str)
+                    .unwrap()
+                    .with_timezone(&Utc)
+            }),
+            record_end: row.get_str(11).ok().map(|str| {
+                DateTime::parse_from_rfc3339(str)
+                    .unwrap()
+                    .with_timezone(&Utc)
+            }),
         })
     }
 

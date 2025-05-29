@@ -26,7 +26,7 @@ export const Route = createFileRoute("/video")({
 
 function Component() {
   const { id } = Route.useLoaderData();
-  
+
   const player = useRef<MuxPlayerElement>(null);
   const { userId } = useHypr();
 

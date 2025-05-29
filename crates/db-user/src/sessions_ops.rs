@@ -375,6 +375,8 @@ mod tests {
                 speaker: None,
                 confidence: None,
             }],
+            record_start: None,
+            record_end: None,
         };
 
         let mut session = db.upsert_session(session).await.unwrap();

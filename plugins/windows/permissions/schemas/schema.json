@@ -295,6 +295,18 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the window_close command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-window-close",
+          "markdownDescription": "Enables the window_close command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the window_close command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-window-close",
+          "markdownDescription": "Denies the window_close command without any pre-configured scope."
+        },
+        {
           "description": "Enables the window_destroy command without any pre-configured scope.",
           "type": "string",
           "const": "allow-window-destroy",
@@ -379,6 +391,18 @@
           "markdownDescription": "Denies the window_position command without any pre-configured scope."
         },
         {
+          "description": "Enables the window_remove_overlay_bounds command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-window-remove-overlay-bounds",
+          "markdownDescription": "Enables the window_remove_overlay_bounds command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the window_remove_overlay_bounds command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-window-remove-overlay-bounds",
+          "markdownDescription": "Denies the window_remove_overlay_bounds command without any pre-configured scope."
+        },
+        {
           "description": "Enables the window_resize_default command without any pre-configured scope.",
           "type": "string",
           "const": "allow-window-resize-default",
@@ -401,6 +425,18 @@
           "type": "string",
           "const": "deny-window-set-floating",
           "markdownDescription": "Denies the window_set_floating command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the window_set_overlay_bounds command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-window-set-overlay-bounds",
+          "markdownDescription": "Enables the window_set_overlay_bounds command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the window_set_overlay_bounds command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-window-set-overlay-bounds",
+          "markdownDescription": "Denies the window_set_overlay_bounds command without any pre-configured scope."
         },
         {
           "description": "Enables the window_show command without any pre-configured scope.",

@@ -28,4 +28,5 @@ tauri-plugin-analytics = { workspace = true }
 tauri-plugin-auth = { workspace = true }
 
 thiserror = { workspace = true }
+tokio = { workspace = true, features = ["time"] }
 tracing = { workspace = true }

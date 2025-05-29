@@ -12,6 +12,16 @@ pub async fn window_show(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn window_close(
+    app: tauri::AppHandle<tauri::Wry>,
+    window: HyprWindow,
+) -> Result<(), String> {
+    app.window_close(window).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn window_hide(
     app: tauri::AppHandle<tauri::Wry>,
     window: HyprWindow,
@@ -106,5 +116,41 @@ pub async fn window_emit_navigate(
 ) -> Result<(), String> {
     app.window_emit_navigate(window, path)
         .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn window_set_overlay_bounds(
+    window: tauri::Window,
+    state: tauri::State<'_, crate::OverlayState>,
+    name: String,
+    bounds: crate::OverlayBound,
+) -> Result<(), String> {
+    let mut state = state.bounds.write().await;
+    let map = state.entry(window.label().to_string()).or_default();
+    map.insert(name, bounds);
+
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn window_remove_overlay_bounds(
+    window: tauri::Window,
+    state: tauri::State<'_, crate::OverlayState>,
+    name: String,
+) -> Result<(), String> {
+    let mut state = state.bounds.write().await;
+    let Some(map) = state.get_mut(window.label()) else {
+        return Ok(());
+    };
+
+    map.remove(&name);
+
+    if map.is_empty() {
+        state.remove(window.label());
+    }
+
     Ok(())
 }

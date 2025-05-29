@@ -2,10 +2,12 @@ mod commands;
 mod errors;
 mod events;
 mod ext;
+mod overlay;
 
 pub use errors::*;
 pub use events::*;
 pub use ext::*;
+use overlay::*;
 
 const PLUGIN_NAME: &str = "windows";
 
@@ -33,6 +35,7 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
         ])
         .commands(tauri_specta::collect_commands![
             commands::window_show,
+            commands::window_close,
             commands::window_hide,
             commands::window_destroy,
             commands::window_position,
@@ -42,6 +45,8 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::window_navigate,
             commands::window_emit_navigate,
             commands::window_is_visible,
+            commands::window_set_overlay_bounds,
+            commands::window_remove_overlay_bounds,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
@@ -53,8 +58,17 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
-            let state = ManagedState::default();
-            app.manage(state);
+
+            {
+                let state = ManagedState::default();
+                app.manage(state);
+            }
+
+            {
+                let state = OverlayState::default();
+                app.manage(state);
+            }
+
             Ok(())
         })
         .build()

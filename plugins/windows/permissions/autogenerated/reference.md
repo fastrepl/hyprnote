@@ -27,6 +27,32 @@ Default permissions for the plugin
 <tr>
 <td>
 
+`windows:allow-window-close`
+
+</td>
+<td>
+
+Enables the window_close command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:deny-window-close`
+
+</td>
+<td>
+
+Denies the window_close command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `windows:allow-window-destroy`
 
 </td>
@@ -209,6 +235,32 @@ Denies the window_position command without any pre-configured scope.
 <tr>
 <td>
 
+`windows:allow-window-remove-overlay-bounds`
+
+</td>
+<td>
+
+Enables the window_remove_overlay_bounds command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:deny-window-remove-overlay-bounds`
+
+</td>
+<td>
+
+Denies the window_remove_overlay_bounds command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `windows:allow-window-resize-default`
 
 </td>
@@ -254,6 +306,32 @@ Enables the window_set_floating command without any pre-configured scope.
 <td>
 
 Denies the window_set_floating command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:allow-window-set-overlay-bounds`
+
+</td>
+<td>
+
+Enables the window_set_overlay_bounds command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:deny-window-set-overlay-bounds`
+
+</td>
+<td>
+
+Denies the window_set_overlay_bounds command without any pre-configured scope.
 
 </td>
 </tr>

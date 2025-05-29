@@ -1,6 +1,6 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { Trans } from "@lingui/react/macro";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { format, isSameDay, subDays } from "date-fns";
 import { CalendarIcon, SearchIcon, SpeechIcon, VideoIcon, XIcon } from "lucide-react";
@@ -28,9 +28,16 @@ export function EventChip({ sessionId }: EventChipProps) {
   const { userId, onboardingSessionId } = useHypr();
   const [isEventSelectorOpen, setIsEventSelectorOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const queryClient = useQueryClient();
 
-  const { sessionCreatedAt } = useSession(sessionId, (s) => ({
+  const {
+    sessionCreatedAt,
+    updateTitle,
+    session: currentSessionDetails,
+  } = useSession(sessionId, (s) => ({
     sessionCreatedAt: s.session.created_at,
+    updateTitle: s.updateTitle,
+    session: s.session,
   }));
 
   const event = useQuery({
@@ -84,10 +91,27 @@ export function EventChip({ sessionId }: EventChipProps) {
   const assignEvent = useMutation({
     mutationFn: async (eventId: string) => {
       await dbCommands.setSessionEvent(sessionId, eventId);
+      return eventId;
     },
-    onSuccess: () => {
+    onSuccess: async (assignedEventId) => {
       event.refetch();
       eventsInPastWithoutAssignedSession.refetch();
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+
+      if (assignedEventId && updateTitle && currentSessionDetails) {
+        try {
+          const eventDetails = await dbCommands.getEvent(assignedEventId);
+
+          if (eventDetails?.name) {
+            if (!currentSessionDetails.title?.trim()) {
+              updateTitle(eventDetails.name);
+              queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
+            }
+          }
+        } catch (error) {
+          console.error("Failed to update session title after event assignment:", error);
+        }
+      }
     },
   });
 
@@ -98,6 +122,7 @@ export function EventChip({ sessionId }: EventChipProps) {
     onSuccess: () => {
       event.refetch();
       eventsInPastWithoutAssignedSession.refetch();
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
       setIsEventSelectorOpen(false);
     },
     onError: (error) => {
@@ -118,6 +143,7 @@ export function EventChip({ sessionId }: EventChipProps) {
       onSuccess: () => {
         event.refetch();
         eventsInPastWithoutAssignedSession.refetch();
+        queryClient.invalidateQueries({ queryKey: ["sessions"] });
         setIsEventSelectorOpen(false);
       },
       onError: (error) => {
@@ -253,9 +279,22 @@ export function EventChip({ sessionId }: EventChipProps) {
               );
             }
 
-            const filteredEvents = (eventsInPastWithoutAssignedSession.data || []).filter((ev: Event) =>
-              ev.name.toLowerCase().includes(searchQuery.toLowerCase())
-            );
+            const filteredEvents = (eventsInPastWithoutAssignedSession.data || [])
+              .filter((ev: Event) => ev.name.toLowerCase().includes(searchQuery.toLowerCase()))
+              .sort((a, b) => {
+                const dateA = new Date(a.start_date);
+                const dateB = new Date(b.start_date);
+                if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) {
+                  return 0;
+                }
+                if (isNaN(dateA.getTime())) {
+                  return 1;
+                }
+                if (isNaN(dateB.getTime())) {
+                  return -1;
+                }
+                return dateB.getTime() - dateA.getTime();
+              });
 
             if (filteredEvents.length === 0) {
               return (

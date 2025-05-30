@@ -14,6 +14,7 @@ lazy_static! {
 
 #[derive(Default)]
 pub struct WhisperBuilder {
+    model_type: Option<crate::ModelType>,
     model_path: Option<String>,
     language: Option<crate::Language>,
     static_prompt: Option<String>,
@@ -21,6 +22,11 @@ pub struct WhisperBuilder {
 }
 
 impl WhisperBuilder {
+    pub fn model_type(mut self, model_type: crate::ModelType) -> Self {
+        self.model_type = Some(model_type);
+        self
+    }
+
     pub fn model_path(mut self, model_path: impl Into<String>) -> Self {
         self.model_path = Some(model_path.into());
         self
@@ -46,7 +52,27 @@ impl WhisperBuilder {
 
         let context_param = {
             let mut p = WhisperContextParameters::default();
-            p.dtw_parameters.mode = whisper_rs::DtwMode::None;
+            p.flash_attn = false;
+            p.dtw_parameters.mode = self
+                .model_type
+                .map(|model_type| whisper_rs::DtwMode::ModelPreset {
+                    model_preset: match model_type {
+                        crate::ModelType::Tiny => whisper_rs::DtwModelPreset::Tiny,
+                        crate::ModelType::TinyEn => whisper_rs::DtwModelPreset::TinyEn,
+                        crate::ModelType::Base => whisper_rs::DtwModelPreset::Base,
+                        crate::ModelType::BaseEn => whisper_rs::DtwModelPreset::BaseEn,
+                        crate::ModelType::Small => whisper_rs::DtwModelPreset::Small,
+                        crate::ModelType::SmallEn => whisper_rs::DtwModelPreset::SmallEn,
+                        crate::ModelType::Medium => whisper_rs::DtwModelPreset::Medium,
+                        crate::ModelType::MediumEn => whisper_rs::DtwModelPreset::MediumEn,
+                        crate::ModelType::LargeV1 => whisper_rs::DtwModelPreset::LargeV1,
+                        crate::ModelType::LargeV2 => whisper_rs::DtwModelPreset::LargeV2,
+                        crate::ModelType::LargeV3 => whisper_rs::DtwModelPreset::LargeV3,
+                        crate::ModelType::LargeV3Turbo => whisper_rs::DtwModelPreset::LargeV3Turbo,
+                    },
+                })
+                .unwrap_or(whisper_rs::DtwMode::None);
+
             p
         };
 
@@ -107,7 +133,7 @@ impl Whisper {
 
             p.set_n_threads(1);
             p.set_detect_language(false);
-            p.set_token_timestamps(false);
+            p.set_token_timestamps(true);
             p.set_single_segment(true);
             p.set_suppress_blank(true);
             p.set_suppress_nst(true);

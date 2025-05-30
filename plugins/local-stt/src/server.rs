@@ -121,16 +121,26 @@ async fn websocket_with_model(
     state: ServerState,
     guard: ConnectionGuard,
 ) {
-    let model_type = state.model_type;
-    let model_cache_dir = state.model_cache_dir.clone();
+    let model_type = match state.model_type {
+        crate::SupportedModel::QuantizedTiny => hypr_whisper::ModelType::Tiny,
+        crate::SupportedModel::QuantizedTinyEn => hypr_whisper::ModelType::TinyEn,
+        crate::SupportedModel::QuantizedBase => hypr_whisper::ModelType::Base,
+        crate::SupportedModel::QuantizedBaseEn => hypr_whisper::ModelType::BaseEn,
+        crate::SupportedModel::QuantizedSmall => hypr_whisper::ModelType::Small,
+        crate::SupportedModel::QuantizedSmallEn => hypr_whisper::ModelType::SmallEn,
+        crate::SupportedModel::QuantizedLargeTurbo => hypr_whisper::ModelType::LargeV3Turbo,
+    };
 
-    let model_path = model_type.model_path(&model_cache_dir);
+    let model_cache_dir = state.model_cache_dir.clone();
+    let model_path = state.model_type.model_path(&model_cache_dir);
+
     let language = params.language.try_into().unwrap_or_else(|e| {
         tracing::error!("convert_to_whisper_language: {e:?}");
         hypr_whisper::Language::En
     });
 
     let model = hypr_whisper::local::Whisper::builder()
+        .model_type(model_type)
         .model_path(model_path.to_str().unwrap())
         .language(language)
         .static_prompt(&params.static_prompt)

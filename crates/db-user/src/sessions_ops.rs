@@ -197,7 +197,9 @@ impl UserDatabase {
                     raw_memo_html,
                     enhanced_memo_html,
                     conversations,
-                    words
+                    words,
+                    record_start,
+                    record_end
                 ) VALUES (
                     :id,
                     :created_at,
@@ -208,7 +210,9 @@ impl UserDatabase {
                     :raw_memo_html,
                     :enhanced_memo_html,
                     :conversations,
-                    :words
+                    :words,
+                    :record_start,
+                    :record_end
                 )
                 ON CONFLICT(id) DO UPDATE SET
                     created_at = :created_at,
@@ -219,7 +223,9 @@ impl UserDatabase {
                     raw_memo_html = :raw_memo_html,
                     enhanced_memo_html = :enhanced_memo_html,
                     conversations = :conversations,
-                    words = :words
+                    words = :words,
+                    record_start = :record_start,
+                    record_end = :record_end
                 RETURNING *",
                 libsql::named_params! {
                     ":id": session.id.clone(),
@@ -232,6 +238,8 @@ impl UserDatabase {
                     ":enhanced_memo_html": session.enhanced_memo_html.clone(),
                     ":conversations": "[]",
                     ":words": serde_json::to_string(&session.words).unwrap(),
+                    ":record_start": session.record_start.map(|dt| dt.to_rfc3339()),
+                    ":record_end": session.record_end.map(|dt| dt.to_rfc3339()),
                 },
             )
             .await?;

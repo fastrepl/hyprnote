@@ -71,10 +71,14 @@ export const createSessionStore = (session: Session) => {
     persistSession: async (session?: Session, force?: boolean) => {
       const { session: { id } } = get();
       const sessionFromDB = await dbCommands.getSession({ id });
+      const { record_start, record_end, ...rest } = session ?? get().session;
 
-      // TODO: this is temp solution.
+      // TODO: This is still a bit hacky - the purpose is to not overwrite the record_start/end part.
       const item: Session = {
-        ...(session ?? get().session),
+        record_start: null,
+        record_end: null,
+        ...(sessionFromDB || {}),
+        ...rest,
         words: sessionFromDB?.words ?? [],
       };
 

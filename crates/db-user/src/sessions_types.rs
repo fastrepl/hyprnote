@@ -47,15 +47,15 @@ impl Session {
                 .get_str(9)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap(),
-            record_start: row.get_str(10).ok().map(|str| {
+            record_start: row.get_str(10).ok().and_then(|str| {
                 DateTime::parse_from_rfc3339(str)
-                    .unwrap()
-                    .with_timezone(&Utc)
+                    .map(|dt| dt.with_timezone(&Utc))
+                    .ok()
             }),
-            record_end: row.get_str(11).ok().map(|str| {
+            record_end: row.get_str(11).ok().and_then(|str| {
                 DateTime::parse_from_rfc3339(str)
-                    .unwrap()
-                    .with_timezone(&Utc)
+                    .map(|dt| dt.with_timezone(&Utc))
+                    .ok()
             }),
         })
     }

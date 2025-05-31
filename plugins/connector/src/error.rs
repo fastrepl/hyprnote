@@ -16,6 +16,8 @@ pub enum Error {
     UrlParseError(#[from] url::ParseError),
     #[error("no models found")]
     NoModelsFound,
+    #[error("custom error: {0}")]
+    UnknownError(String),
 }
 
 impl Serialize for Error {

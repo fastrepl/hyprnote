@@ -3,84 +3,93 @@ import { describe, expect, it } from "vitest";
 import { markdownTransform } from "./ai";
 
 describe("markdownTransform", () => {
-  it("should strip ```md prefix", async () => {
-    const results = await runTransform(["```md", "# Hello"]);
-    expect(results).toEqual(["# Hello"]);
+  it("should unwrap single code block with md language", async () => {
+    const results = await runTransform(["```md\n# Hello\n```"]);
+    expect(results.join("")).toEqual("# Hello\n");
   });
 
-  it("should strip ```markdown prefix", async () => {
-    const results = await runTransform(["```markdown", "# Hello"]);
-    expect(results).toEqual(["# Hello"]);
+  it("should unwrap single code block with markdown language", async () => {
+    const results = await runTransform(["```markdown\n# Hello\n```"]);
+    expect(results.join("")).toEqual("# Hello\n");
   });
 
-  it("should NOT strip # prefix (markdown heading)", async () => {
-    const results = await runTransform(["# Hello"]);
-    expect(results).toEqual(["# Hello"]);
+  it("should unwrap multiple code blocks", async () => {
+    const input = [
+      "this is text\n\n",
+      "```md\n",
+      "123\n",
+      "```\n\n",
+      "```py\n",
+      "a = 1\n",
+      "```\n\n",
+      "Done",
+    ];
+    const results = await runTransform(input);
+    expect(results.join("")).toEqual("this is text\n\n123\n\na = 1\n\nDone");
   });
 
-  it("should handle content with no special prefix", async () => {
-    const results = await runTransform(["Hello, world!"]);
-    expect(results).toEqual(["Hello, world!"]);
-  });
-
-  it("should handle prefixes split across chunks", async () => {
-    const results = await runTransform(["``", "`md", "# Hello"]);
-    expect(results).toEqual(["# Hello"]);
-  });
-
-  it("should handle content after the prefix in the same chunk", async () => {
-    const results = await runTransform(["```md# Hello"]);
-    expect(results).toEqual(["# Hello"]);
-  });
-
-  it("should handle empty input", async () => {
-    const results = await runTransform([]);
-    expect(results).toEqual([]);
-  });
-
-  it("should handle partial prefix that never completes", async () => {
-    const results = await runTransform(["```"]);
-    expect(results).toEqual(["```"]);
-  });
-
-  it("should handle multiple chunks with mixed content", async () => {
-    const results = await runTransform(["First chunk", " with more ", "content"]);
-    expect(results).toEqual(["First chunk", " with more ", "content"]);
-  });
-
-  it("should handle complex markdown content after prefix", async () => {
+  it("should handle code blocks split across chunks", async () => {
     const results = await runTransform([
-      "```markdown",
-      "# Title",
-      "",
-      "- List item 1",
-      "- List item 2",
-      "",
-      "```js",
-      "const code = true;",
-      "```",
+      "text\n",
+      "``",
+      "`md\n",
+      "content\n",
+      "``",
+      "`",
     ]);
-    expect(results).toEqual([
-      "# Title",
-      "",
-      "- List item 1",
-      "- List item 2",
-      "",
-      "```js",
-      "const code = true;",
-      "```",
-    ]);
+    expect(results.join("")).toEqual("text\ncontent\n");
   });
 
-  it("should handle markdown prefix with newline", async () => {
-    const results = await runTransform(["```md\n# Hello"]);
-    expect(results).toEqual(["\n# Hello"]);
+  it("should preserve content outside code blocks", async () => {
+    const results = await runTransform(["Hello\n```js\ncode\n```\nWorld"]);
+    expect(results.join("")).toEqual("Hello\ncode\nWorld");
   });
-});
 
-const createTextPart = (text: string): TextStreamPart<{}> => ({
-  type: "text-delta",
-  textDelta: text,
+  it("should handle empty code blocks", async () => {
+    const results = await runTransform(["```\n```"]);
+    expect(results.join("")).toEqual("");
+  });
+
+  it("should handle code blocks with no closing fence", async () => {
+    const results = await runTransform(["```md\ncontent"]);
+    expect(results.join("")).toEqual("content");
+  });
+
+  it("should handle nested backticks inside code blocks", async () => {
+    const results = await runTransform([
+      "```md\n",
+      "Here's some `inline code`\n",
+      "```",
+    ]);
+    expect(results.join("")).toEqual("Here's some `inline code`\n");
+  });
+
+  it("should handle code fence with extra content on same line", async () => {
+    const results = await runTransform(["```javascript const x = 1\nmore code\n```"]);
+    expect(results.join("")).toEqual("more code\n");
+  });
+
+  it("should handle multiple code blocks in single chunk", async () => {
+    const results = await runTransform([
+      "start\n```py\ncode1\n```\nmiddle\n```js\ncode2\n```\nend",
+    ]);
+    expect(results.join("")).toEqual("start\ncode1\nmiddle\ncode2\nend");
+  });
+
+  it("should handle code blocks without language specifier", async () => {
+    const results = await runTransform(["```\nplain code\n```"]);
+    expect(results.join("")).toEqual("plain code\n");
+  });
+
+  it("should preserve indentation inside code blocks", async () => {
+    const results = await runTransform([
+      "```py\n",
+      "def hello():\n",
+      "    print('world')\n",
+      "```",
+    ]);
+    expect(results.join("")).toEqual("def hello():\n    print('world')\n");
+  });
 });
 
 const runTransform = async (inputs: string[]) => {
@@ -103,7 +112,12 @@ const runTransform = async (inputs: string[]) => {
   })();
 
   for (const input of inputs) {
-    await writer.write(createTextPart(input));
+    await writer.write(
+      {
+        type: "text-delta",
+        textDelta: input,
+      } satisfies TextStreamPart<{}>,
+    );
   }
   await writer.close();
 

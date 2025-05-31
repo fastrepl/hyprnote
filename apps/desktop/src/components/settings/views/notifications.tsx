@@ -39,27 +39,6 @@ export default function NotificationsComponent() {
     mutationFn: async (v: Schema) => {
       if (v.event) {
         notificationCommands.requestNotificationPermission().then(() => {
-          notificationCommands.setDetectNotification(true);
-        });
-      } else {
-        notificationCommands.setDetectNotification(false);
-      }
-      return v.detect;
-    },
-    onSuccess: (active) => {
-      detectNotification.refetch();
-      if (active) {
-        notificationCommands.startDetectNotification();
-      } else {
-        notificationCommands.stopDetectNotification();
-      }
-    },
-  });
-
-  const detectMutation = useMutation({
-    mutationFn: async (v: Schema) => {
-      if (v.detect) {
-        notificationCommands.requestNotificationPermission().then(() => {
           notificationCommands.setEventNotification(true);
         });
       } else {
@@ -73,6 +52,27 @@ export default function NotificationsComponent() {
         notificationCommands.startEventNotification();
       } else {
         notificationCommands.stopEventNotification();
+      }
+    },
+  });
+
+  const detectMutation = useMutation({
+    mutationFn: async (v: Schema) => {
+      if (v.detect) {
+        notificationCommands.requestNotificationPermission().then(() => {
+          notificationCommands.setDetectNotification(true);
+        });
+      } else {
+        notificationCommands.setDetectNotification(false);
+      }
+      return v.detect;
+    },
+    onSuccess: (active) => {
+      detectNotification.refetch();
+      if (active) {
+        notificationCommands.startDetectNotification();
+      } else {
+        notificationCommands.stopDetectNotification();
       }
     },
   });

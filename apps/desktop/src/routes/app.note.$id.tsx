@@ -34,9 +34,8 @@ export const Route = createFileRoute("/app/note/$id")({
           return redirect({ to: "/app/new" });
         }
 
-        const { insert, setCurrentSessionId } = sessionsStore.getState();
+        const { insert } = sessionsStore.getState();
         insert(session);
-        setCurrentSessionId(session.id);
 
         return session;
       },
@@ -143,10 +142,7 @@ function OnboardingSupport({ session }: { session: Session }) {
     }
 
     if (ongoingSessionStatus === "running_active") {
-      windowsCommands.windowShow({ type: "video", value: video }).then(() => {
-        windowsCommands.windowResizeDefault({ type: "video", value: video });
-        windowsCommands.windowResizeDefault({ type: "main" });
-      });
+      windowsCommands.windowShow({ type: "video", value: video });
     }
   }, [onboardingSessionId, session.id, isEnhancePending, ongoingSessionStatus]);
 

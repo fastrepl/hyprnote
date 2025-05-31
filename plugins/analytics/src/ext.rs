@@ -22,14 +22,20 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
             store.get(crate::StoreKey::Disabled)?.unwrap_or(false)
         };
 
+        let app_version = self.config().version.clone();
+        let app_identifier = self.config().identifier.clone();
         let git_hash = self.get_git_hash();
         let bundle_id = self.config().identifier.clone();
-        let version = self.config().version.clone();
 
         payload
             .props
-            .entry("version".into())
-            .or_insert(version.into());
+            .entry("app_version".into())
+            .or_insert(app_version.into());
+
+        payload
+            .props
+            .entry("app_identifier".into())
+            .or_insert(app_identifier.into());
 
         payload
             .props

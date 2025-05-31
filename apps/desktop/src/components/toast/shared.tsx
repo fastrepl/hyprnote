@@ -128,5 +128,6 @@ export function enhanceFailedToast() {
       </div>
     ),
     dismissible: true,
+    duration: 3000,
   });
 }

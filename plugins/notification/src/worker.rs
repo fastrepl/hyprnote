@@ -39,10 +39,9 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
 
     if let Some(event) = latest_event.first() {
         hypr_notification2::show(hypr_notification2::Notification {
-            title: "Scheduled meeting in 5 minutes".to_string(),
+            title: "Meeting starting in 5 minutes".to_string(),
             message: event.name.clone(),
-            // TODO: This doesn't matter because we're hardcoding the destination in the deeplink handler
-            url: Some("hypr://todo".to_string()),
+            url: Some(format!("hypr://notification?event_id={}", event.id)),
             timeout: Some(std::time::Duration::from_secs(10)),
         });
     }

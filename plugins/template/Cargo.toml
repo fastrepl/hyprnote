@@ -11,6 +11,7 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
+insta = { workspace = true }
 specta-typescript = { workspace = true }
 
 [dependencies]

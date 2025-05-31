@@ -77,22 +77,34 @@ async fn chat_completions(
     AxumState(model_manager): AxumState<crate::ModelManager>,
     Json(request): Json<CreateChatCompletionRequest>,
 ) -> Result<Response, (StatusCode, String)> {
-    let model = model_manager
-        .get_model()
-        .await
-        .map_err(|e| (StatusCode::SERVICE_UNAVAILABLE, e.to_string()))?;
+    let inference_result = if request.model == "mock-onboarding" {
+        inference_with_mock(&request).await
+    } else {
+        let model = model_manager
+            .get_model()
+            .await
+            .map_err(|e| (StatusCode::SERVICE_UNAVAILABLE, e.to_string()))?;
 
-    let res = inference_with_hypr(&model, &request)
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        inference_without_mock(&model, &request).await
+    };
 
-    Ok(res.into_response())
+    inference_result.map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
 }
 
-async fn inference_with_hypr(
-    model: &hypr_llama::Llama,
+async fn build_and_send_response(
     request: &CreateChatCompletionRequest,
-) -> Result<impl IntoResponse, crate::Error> {
+    response_stream_fn: impl FnOnce() -> Result<
+        Pin<Box<dyn futures_util::Stream<Item = String> + Send>>,
+        crate::Error,
+    >,
+) -> Result<Response, crate::Error> {
+    let id = uuid::Uuid::new_v4().to_string();
+    let created = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as u32;
+    let model_name = request.model.clone();
+
     #[allow(deprecated)]
     let empty_message = ChatCompletionResponseMessage {
         content: None,
@@ -110,25 +122,22 @@ async fn inference_with_hypr(
         logprobs: None,
     };
 
-    let empty_response = CreateChatCompletionResponse {
-        id: uuid::Uuid::new_v4().to_string(),
+    let base_response_template = CreateChatCompletionResponse {
+        id: id.clone(),
         choices: vec![],
-        created: std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as u32,
-        model: request.model.clone(),
+        created,
+        model: model_name.clone(),
         service_tier: None,
         system_fingerprint: None,
         object: "chat.completion".to_string(),
         usage: None,
     };
 
-    let empty_stream_response = CreateChatCompletionStreamResponse {
-        id: empty_response.id.clone(),
+    let base_stream_response_template = CreateChatCompletionStreamResponse {
+        id,
         choices: vec![],
-        created: empty_response.created,
-        model: empty_response.model.clone(),
+        created,
+        model: model_name,
         service_tier: None,
         system_fingerprint: None,
         object: "chat.completion.chunk".to_string(),
@@ -147,8 +156,8 @@ async fn inference_with_hypr(
     let is_stream = request.stream.unwrap_or(false);
 
     if !is_stream {
-        let completion =
-            futures_util::StreamExt::collect::<String>(build_response(model, request)?).await;
+        let stream = response_stream_fn()?;
+        let completion = futures_util::StreamExt::collect::<String>(stream).await;
 
         let res = CreateChatCompletionResponse {
             choices: vec![ChatChoice {
@@ -158,38 +167,48 @@ async fn inference_with_hypr(
                 },
                 ..empty_choice
             }],
-            ..empty_response
+            ..base_response_template
         };
-
-        return Ok(Json(res).into_response());
-    }
-
-    let res = if request.model == "mock-onboarding" {
-        build_mock_response()
+        Ok(Json(res).into_response())
     } else {
-        build_response(model, request)?
-    };
+        let source_stream = response_stream_fn()?;
+        let stream = source_stream
+            .map(move |chunk| {
+                let delta_template = empty_stream_response_delta.clone();
+                let response_template = base_stream_response_template.clone();
+                CreateChatCompletionStreamResponse {
+                    choices: vec![ChatChoiceStream {
+                        index: 0,
+                        delta: ChatCompletionStreamResponseDelta {
+                            content: Some(chunk),
+                            ..delta_template
+                        },
+                        finish_reason: None,
+                        logprobs: None,
+                    }],
+                    ..response_template
+                }
+            })
+            .map(|chunk| {
+                Ok::<_, std::convert::Infallible>(
+                    sse::Event::default().data(serde_json::to_string(&chunk).unwrap()),
+                )
+            });
+        Ok(sse::Sse::new(stream).into_response())
+    }
+}
 
-    let stream = res
-        .map(move |chunk| CreateChatCompletionStreamResponse {
-            choices: vec![ChatChoiceStream {
-                index: 0,
-                delta: ChatCompletionStreamResponseDelta {
-                    content: Some(chunk),
-                    ..empty_stream_response_delta.clone()
-                },
-                finish_reason: None,
-                logprobs: None,
-            }],
-            ..empty_stream_response.clone()
-        })
-        .map(|chunk| {
-            Ok::<_, std::convert::Infallible>(
-                sse::Event::default().data(serde_json::to_string(&chunk).unwrap()),
-            )
-        });
+async fn inference_with_mock(
+    request: &CreateChatCompletionRequest,
+) -> Result<Response, crate::Error> {
+    build_and_send_response(request, || Ok(build_mock_response())).await
+}
 
-    Ok(sse::Sse::new(stream).into_response())
+async fn inference_without_mock(
+    model: &hypr_llama::Llama,
+    request: &CreateChatCompletionRequest,
+) -> Result<Response, crate::Error> {
+    build_and_send_response(request, || build_response(model, request)).await
 }
 
 fn build_response(

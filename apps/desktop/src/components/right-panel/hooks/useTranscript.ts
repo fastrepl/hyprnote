@@ -49,7 +49,7 @@ export function useTranscript(sessionId: string | null) {
 
     listenerEvents.sessionEvent.listen(({ payload }) => {
       if (payload.type === "words") {
-        setWords((words) => [...words, ...payload.words] as Word[]);
+        setWords(payload.words as Word[]);
       }
     }).then((fn) => {
       unlisten = fn;

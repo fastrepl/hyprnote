@@ -5,7 +5,7 @@ edition = "2021"
 
 [features]
 default = []
-local = ["dep:whisper-rs"]
+local = ["whisper-rs", "lazy_static", "regex"]
 cloud = []
 
 [dev-dependencies]
@@ -17,8 +17,8 @@ futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [dependencies]
-hypr-audio-utils = { path = "../audio-utils", package = "audio-utils" }
-hypr-ws = { path = "../ws", package = "ws" }
+hypr-audio-utils = { workspace = true }
+hypr-ws = { workspace = true }
 
 bytes = { workspace = true }
 cpal = { workspace = true }
@@ -32,11 +32,14 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 url = { workspace = true }
 
+lazy_static = { workspace = true, optional = true }
+regex = { workspace = true, optional = true }
+
 [target.'cfg(not(target_os = "macos"))'.dependencies]
-whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "f5ee632", features = ["raw-api", "tracing_backend"], optional = true }
+whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "de30f9c", features = ["raw-api", "tracing_backend"], optional = true }
 
 [target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
-whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "f5ee632", features = ["raw-api", "metal", "tracing_backend"], optional = true }
+whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "de30f9c", features = ["raw-api", "metal", "tracing_backend"], optional = true }
 
 [target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies]
-whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "f5ee632", features = ["raw-api", "tracing_backend"], optional = true }
+whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "de30f9c", features = ["raw-api", "tracing_backend"], optional = true }

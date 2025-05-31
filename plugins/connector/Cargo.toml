@@ -30,5 +30,3 @@ thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 url = { workspace = true }
-
-pinger = { git = "https://github.com/orf/gping", package = "pinger" }

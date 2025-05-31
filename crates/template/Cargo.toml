@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 hypr-listener-interface = { workspace = true }
+tauri-plugin-connector = { workspace = true }
 
 codes-iso-639 = { workspace = true }
 itertools = { workspace = true }

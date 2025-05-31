@@ -6,6 +6,8 @@ import { zodValidator } from "@tanstack/zod-adapter";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
+import { useHypr } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { events as listenerEvents } from "@hypr/plugin-listener";
 import { commands as windowsCommands, events as windowsEvents } from "@hypr/plugin-windows";
 
@@ -24,7 +26,9 @@ export const Route = createFileRoute("/video")({
 
 function Component() {
   const { id } = Route.useLoaderData();
+
   const player = useRef<MuxPlayerElement>(null);
+  const { userId } = useHypr();
 
   useEffect(() => {
     let unlisten: () => void;
@@ -36,6 +40,11 @@ function Component() {
 
       if (payload.type === "running_active") {
         player.current?.play();
+
+        analyticsCommands.event({
+          event: "onboarding_video_started",
+          distinct_id: userId,
+        });
       }
 
       if (payload.type === "inactive") {

@@ -1,6 +1,6 @@
 [package]
 name = "desktop"
-version = "0.0.40"
+version = "0.0.42"
 authors = ["you"]
 edition = "2021"
 description = "Hyprnote Desktop App"
@@ -19,6 +19,7 @@ tauri-build = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 tauri-plugin-apple-calendar = { workspace = true }
+tauri-nspanel = { workspace = true }
 
 [dependencies]
 hypr-data = { workspace = true, optional = true }
@@ -50,7 +51,6 @@ tauri-plugin-windows = { workspace = true }
 tauri = { workspace = true, features = ["specta", "macos-private-api"] }
 tauri-plugin-autostart = "2"
 tauri-plugin-clipboard-manager = "2"
-tauri-plugin-decorum = { workspace = true }
 tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-fs = "2"

@@ -10,11 +10,13 @@ import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 interface FloatingButtonProps {
   session: Session;
   handleEnhance: () => void;
+  isError: boolean;
 }
 
 export function FloatingButton({
   session,
   handleEnhance,
+  isError,
 }: FloatingButtonProps) {
   const [showRaw, setShowRaw] = useSession(session.id, (s) => [
     s.showRaw,
@@ -48,6 +50,26 @@ export function FloatingButton({
       handleEnhance();
     }
   };
+
+  if (isError) {
+    const errorRetryButtonClasses = cn(
+      "rounded-xl border",
+      "border-border px-4 py-2.5 transition-all ease-in-out",
+      "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+      "hover:scale-105 transition-transform duration-200",
+    );
+
+    return (
+      <button
+        onClick={handleEnhance}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={errorRetryButtonClasses}
+      >
+        <RunOrRerun showRefresh={isHovered} />
+      </button>
+    );
+  }
 
   if (!session.enhanced_memo_html && !isEnhancePending) {
     return null;

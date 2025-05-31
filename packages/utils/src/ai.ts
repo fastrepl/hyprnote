@@ -49,88 +49,89 @@ export const modelProvider = async () => {
 };
 
 type TransformState = {
-  buffer: string;
-  seenMdPrefix: boolean;
-  finalized: boolean;
+  unprocessedText: string;
+  isCurrentlyInCodeBlock: boolean;
 };
 
 export const markdownTransform = <TOOLS extends ToolSet>() => (_options: { tools: TOOLS; stopStream: () => void }) => {
-  const MARKDOWN_PREFIXES = {
-    md: "```md",
-    markdown: "```markdown",
-  };
+  const CODE_FENCE_MARKER = "```";
 
-  const maxPrefixLength = Math.max(...Object.values(MARKDOWN_PREFIXES).map(p => p.length));
+  const extractAndProcessLines = (
+    state: TransformState,
+    controller: TransformStreamDefaultController<TextStreamPart<TOOLS>>,
+    processRemainingContent: boolean = false,
+  ) => {
+    let textToOutput = "";
+
+    while (true) {
+      const nextLineBreakPosition = state.unprocessedText.indexOf("\n");
+      const hasCompleteLineToProcess = nextLineBreakPosition !== -1;
+
+      if (!hasCompleteLineToProcess) {
+        if (!processRemainingContent) {
+          break;
+        }
+
+        const remainingText = state.unprocessedText;
+        if (remainingText.length > 0) {
+          state.unprocessedText = "";
+
+          const isCodeFence = remainingText.startsWith(CODE_FENCE_MARKER);
+          if (!isCodeFence) {
+            textToOutput += remainingText;
+          }
+        }
+        break;
+      }
+
+      const currentLineContent = state.unprocessedText.substring(0, nextLineBreakPosition);
+      const textAfterCurrentLine = state.unprocessedText.substring(nextLineBreakPosition + 1);
+
+      const isCodeFenceLine = currentLineContent.startsWith(CODE_FENCE_MARKER);
+
+      if (isCodeFenceLine) {
+        state.isCurrentlyInCodeBlock = !state.isCurrentlyInCodeBlock;
+        state.unprocessedText = textAfterCurrentLine;
+        continue;
+      }
+
+      const currentLineWithLineBreak = currentLineContent + "\n";
+      textToOutput += currentLineWithLineBreak;
+      state.unprocessedText = textAfterCurrentLine;
+    }
+
+    if (textToOutput.length > 0) {
+      controller.enqueue({
+        type: "text-delta",
+        textDelta: textToOutput,
+      } as TextStreamPart<TOOLS>);
+    }
+  };
 
   return new TransformStream<TextStreamPart<TOOLS>, TextStreamPart<TOOLS>>({
     start(_controller) {
       const state = this as unknown as TransformState;
-      state.buffer = "";
-      state.seenMdPrefix = false;
-      state.finalized = false;
+      state.unprocessedText = "";
+      state.isCurrentlyInCodeBlock = false;
     },
 
     transform(chunk, controller) {
       const state = this as unknown as TransformState;
 
-      if (chunk.type !== "text-delta") {
+      const isNonTextChunk = chunk.type !== "text-delta";
+      if (isNonTextChunk) {
+        extractAndProcessLines(state, controller, true);
         controller.enqueue(chunk);
         return;
       }
 
-      if (state.finalized) {
-        controller.enqueue(chunk);
-        return;
-      }
-
-      state.buffer += chunk.textDelta;
-
-      let matchedPrefix = "";
-
-      for (const prefix of Object.values(MARKDOWN_PREFIXES)) {
-        if (state.buffer.startsWith(prefix)) {
-          matchedPrefix = prefix;
-          break;
-        }
-      }
-
-      if (matchedPrefix) {
-        state.seenMdPrefix = true;
-        state.finalized = true;
-
-        const newContent = state.buffer.slice(matchedPrefix.length);
-        if (newContent) {
-          controller.enqueue({
-            ...chunk,
-            textDelta: newContent,
-          });
-        }
-
-        state.buffer = "";
-        return;
-      }
-
-      if (state.buffer.length >= maxPrefixLength) {
-        state.finalized = true;
-
-        controller.enqueue({
-          type: "text-delta",
-          textDelta: state.buffer,
-        } as TextStreamPart<TOOLS>);
-
-        state.buffer = "";
-      }
+      state.unprocessedText += chunk.textDelta;
+      extractAndProcessLines(state, controller, false);
     },
 
     flush(controller) {
       const state = this as unknown as TransformState;
-
-      if (state.buffer) {
-        controller.enqueue({
-          type: "text-delta",
-          textDelta: state.buffer,
-        } as TextStreamPart<TOOLS>);
-      }
+      extractAndProcessLines(state, controller, true);
     },
   });
 };

@@ -153,6 +153,7 @@ export default function EditorArea({
               key={`floating-button-${sessionId}`}
               handleEnhance={handleClickEnhance}
               session={sessionStore.session}
+              isError={enhance.status === "error"}
             />
           </div>
         </motion.div>
@@ -288,29 +289,15 @@ export function useAutoEnhance({
   enhanceStatus: string;
   enhanceMutate: () => void;
 }) {
-  const { userId } = useHypr();
-
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
 
   useEffect(() => {
-    analyticsCommands.event({
-      event: "onboarding_session_visited",
-      distinct_id: userId,
-      session_id: sessionId,
-    });
-
     if (
       prevOngoingSessionStatus === "running_active"
       && ongoingSessionStatus === "inactive"
       && enhanceStatus !== "pending"
     ) {
-      analyticsCommands.event({
-        event: "onboarding_auto_enhance_triggered",
-        distinct_id: userId,
-        session_id: sessionId,
-      });
-
       enhanceMutate();
     }
   }, [

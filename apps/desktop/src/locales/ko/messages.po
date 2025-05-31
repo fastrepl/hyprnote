@@ -256,8 +256,8 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:188
-#: src/components/editor-area/note-header/listen-button.tsx:227
+#: src/components/editor-area/note-header/listen-button.tsx:151
+#: src/components/editor-area/note-header/listen-button.tsx:190
 msgid "{0}"
 msgstr ""
 
@@ -363,7 +363,7 @@ msgid "Apple"
 msgstr ""
 
 #: src/components/toolbar/buttons/delete-note-button.tsx:43
-#: src/components/left-sidebar/notes-list.tsx:254
+#: src/components/left-sidebar/notes-list.tsx:255
 msgid "Are you sure you want to delete this note?"
 msgstr ""
 
@@ -469,7 +469,7 @@ msgstr ""
 msgid "Contacts Access"
 msgstr ""
 
-#: src/components/welcome-modal/model-selection-view.tsx:151
+#: src/components/welcome-modal/model-selection-view.tsx:125
 msgid "Continue"
 msgstr ""
 
@@ -504,7 +504,7 @@ msgstr ""
 
 #: src/components/settings/views/template.tsx:86
 #: src/components/settings/views/team.tsx:165
-#: src/components/left-sidebar/notes-list.tsx:321
+#: src/components/left-sidebar/notes-list.tsx:322
 msgid "Delete"
 msgstr ""
 
@@ -518,11 +518,11 @@ msgstr ""
 
 #: src/components/settings/views/template.tsx:109
 msgid "Description"
-msgstr ""
+msgstr "<<<<<<< HEAD"
 
-#: src/components/editor-area/note-header/listen-button.tsx:344
-msgid "Did you get consent from everyone in the meeting?"
-msgstr ""
+#: src/components/editor-area/note-header/listen-button.tsx:349
+#~ msgid "Did you get consent from everyone in the meeting?"
+#~ msgstr ">>>>>>> origin/main"
 
 #. placeholder {0}: metadata?.size && `(${metadata.size})`
 #: src/components/settings/components/ai/stt-view.tsx:273
@@ -614,7 +614,7 @@ msgstr ""
 msgid "General"
 msgstr ""
 
-#: src/components/welcome-modal/welcome-view.tsx:36
+#: src/components/welcome-modal/welcome-view.tsx:94
 msgid "Get Started"
 msgstr ""
 
@@ -659,7 +659,7 @@ msgstr ""
 msgid "Job title"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:203
+#: src/components/editor-area/note-header/chips/event-chip.tsx:229
 msgid "Join meeting"
 msgstr ""
 
@@ -691,7 +691,7 @@ msgstr ""
 msgid "Loading available models..."
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:251
+#: src/components/editor-area/note-header/chips/event-chip.tsx:277
 msgid "Loading events..."
 msgstr ""
 
@@ -753,7 +753,7 @@ msgstr ""
 msgid "New note"
 msgstr ""
 
-#: src/components/left-sidebar/notes-list.tsx:298
+#: src/components/left-sidebar/notes-list.tsx:299
 #: src/components/left-sidebar/events-list.tsx:181
 msgid "New window"
 msgstr ""
@@ -770,7 +770,7 @@ msgstr ""
 msgid "No models available for this endpoint."
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:263
+#: src/components/editor-area/note-header/chips/event-chip.tsx:302
 msgid "No past events found."
 msgstr ""
 
@@ -830,6 +830,10 @@ msgstr ""
 msgid "Optional for participant suggestions"
 msgstr ""
 
+#: src/components/welcome-modal/welcome-view.tsx:101
+msgid "or skip signup & use locally"
+msgstr ""
+
 #: src/components/login-modal.tsx:137
 #~ msgid "or, just use it locally"
 #~ msgstr ""
@@ -837,9 +841,9 @@ msgstr ""
 #: src/components/settings/views/team.tsx:139
 #: src/components/settings/views/team.tsx:226
 msgid "Owner"
-msgstr ""
+msgstr "<<<<<<< HEAD"
 
-#: src/components/editor-area/note-header/listen-button.tsx:389
+#: src/components/editor-area/note-header/listen-button.tsx:269
 msgid "Pause"
 msgstr ""
 
@@ -851,7 +855,7 @@ msgstr ""
 msgid "Performance difference between languages"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:207
+#: src/components/editor-area/note-header/listen-button.tsx:170
 msgid "Play video"
 msgstr ""
 
@@ -873,15 +877,15 @@ msgstr ""
 
 #: src/components/organization-profile/recent-notes.tsx:42
 msgid "Recent Notes"
-msgstr ""
+msgstr "<<<<<<< HEAD"
 
-#: src/components/editor-area/note-header/listen-button.tsx:361
-msgid "Record me only"
-msgstr ""
+#: src/components/editor-area/note-header/listen-button.tsx:366
+#~ msgid "Record me only"
+#~ msgstr ">>>>>>> origin/main<<<<<<< HEAD"
 
-#: src/components/editor-area/note-header/listen-button.tsx:341
-msgid "Recording Started"
-msgstr ""
+#: src/components/editor-area/note-header/listen-button.tsx:346
+#~ msgid "Recording Started"
+#~ msgstr ">>>>>>> origin/main"
 
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:222
 #~ msgid "Remove {0} from list"
@@ -899,7 +903,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:97
+#: src/components/editor-area/note-header/listen-button.tsx:79
 msgid "Resume"
 msgstr ""
 
@@ -933,7 +937,7 @@ msgstr ""
 msgid "Sections"
 msgstr ""
 
-#: src/components/welcome-modal/model-selection-view.tsx:81
+#: src/components/welcome-modal/model-selection-view.tsx:55
 msgid "Select a transcribing model"
 msgstr ""
 
@@ -981,11 +985,11 @@ msgstr ""
 #~ msgid "Start Monthly Plan"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:163
+#: src/components/editor-area/note-header/listen-button.tsx:126
 msgid "Start recording"
-msgstr ""
+msgstr "<<<<<<< HEAD"
 
-#: src/components/editor-area/note-header/listen-button.tsx:397
+#: src/components/editor-area/note-header/listen-button.tsx:277
 msgid "Stop"
 msgstr ""
 
@@ -1021,7 +1025,7 @@ msgstr ""
 msgid "Templates"
 msgstr ""
 
-#: src/components/welcome-modal/welcome-view.tsx:28
+#: src/components/welcome-modal/welcome-view.tsx:85
 msgid "The AI Meeting Notepad"
 msgstr ""
 
@@ -1105,12 +1109,12 @@ msgstr ""
 msgid "username"
 msgstr ""
 
-#: src/components/left-sidebar/notes-list.tsx:309
+#: src/components/left-sidebar/notes-list.tsx:310
 msgid "View calendar"
 msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:193
-#: src/components/editor-area/note-header/chips/event-chip.tsx:208
+#: src/components/editor-area/note-header/chips/event-chip.tsx:234
 msgid "View in calendar"
 msgstr ""
 
@@ -1140,11 +1144,11 @@ msgstr ""
 
 #: src/components/settings/views/billing.tsx:29
 #~ msgid "Works offline"
-#~ msgstr ""
+#~ msgstr "<<<<<<< HEAD"
 
-#: src/components/editor-area/note-header/listen-button.tsx:353
-msgid "Yes, activate speaker"
-msgstr ""
+#: src/components/editor-area/note-header/listen-button.tsx:358
+#~ msgid "Yes, activate speaker"
+#~ msgstr ">>>>>>> origin/main"
 
 #: src/components/settings/views/general.tsx:265
 msgid "You can make Hyprnote takes these words into account when transcribing"

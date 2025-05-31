@@ -4,14 +4,18 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-posthog = { git = "https://github.com/shuttle-hq/posthog-rs", package = "async-posthog", rev = "160e609" }
-posthog-core = { git = "https://github.com/shuttle-hq/posthog-rs", package = "posthog-core", rev = "160e609" }
+hypr-network = { workspace = true }
 
+posthog = { git = "https://github.com/yujonglee/posthog-rs", package = "async-posthog", rev = "1779042" }
+posthog-core = { git = "https://github.com/yujonglee/posthog-rs", package = "posthog-core", rev = "1779042" }
+
+chrono = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 specta = { workspace = true, features = ["derive", "serde_json"] }
 thiserror = { workspace = true }
+tracing = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

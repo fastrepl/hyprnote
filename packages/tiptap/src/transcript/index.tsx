@@ -12,9 +12,9 @@ import { forwardRef, useEffect, useRef } from "react";
 import { SpeakerSplit, WordSplit } from "./extensions";
 import { SpeakerNode, WordNode } from "./nodes";
 import { fromEditorToWords, fromWordsToEditor, type Word } from "./utils";
-import type { SpeakerViewInnerComponent, SpeakerViewInnerProps } from "./views";
+import type { SpeakerChangeRange, SpeakerViewInnerComponent, SpeakerViewInnerProps } from "./views";
 
-export { SpeakerViewInnerProps };
+export { SpeakerChangeRange, SpeakerViewInnerProps };
 
 interface TranscriptEditorProps {
   editable?: boolean;
@@ -52,6 +52,8 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
     const editor = useEditor({
       extensions,
       editable,
+      immediatelyRender: true,
+      shouldRerenderOnTransaction: false,
       onUpdate: ({ editor }) => {
         if (onUpdate) {
           onUpdate(fromEditorToWords(editor.getJSON() as any));
@@ -99,10 +101,10 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
     }, [editor, editable]);
 
     return (
-      <div role="textbox" className="h-full flex flex-col overflow-hidden">
+      <div role="textbox" className="h-full flex-1 flex flex-col overflow-hidden">
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto"
+          className="flex-1 overflow-y-auto px-4 scrollbar-none"
         >
           <EditorContent editor={editor} className="h-full" />
         </div>

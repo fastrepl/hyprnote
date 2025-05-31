@@ -8,6 +8,8 @@ pub enum Error {
     SerdeDeError(#[from] serde::de::value::Error),
     #[error("serde_json error: {0}")]
     SerdeJsonError(#[from] serde_json::Error),
+    #[error("chrono parse error: {0}")]
+    ChronoParseError(String),
     #[error("invalid database config: {0}")]
     InvalidDatabaseConfig(String),
 }

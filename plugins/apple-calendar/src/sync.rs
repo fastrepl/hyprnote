@@ -160,7 +160,12 @@ async fn _sync_events(
 async fn list_system_calendars() -> Vec<hypr_calendar_interface::Calendar> {
     tauri::async_runtime::spawn_blocking(|| {
         let handle = hypr_calendar_apple::Handle::new();
-        tauri::async_runtime::block_on(handle.list_calendars()).unwrap_or_default()
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+
+        rt.block_on(async { handle.list_calendars().await.unwrap_or_default() })
     })
     .await
     .unwrap_or_default()
@@ -176,7 +181,12 @@ async fn list_system_events(calendar_tracking_id: String) -> Vec<hypr_calendar_i
             to: Utc::now() + chrono::Duration::days(28),
         };
 
-        tauri::async_runtime::block_on(handle.list_events(filter)).unwrap_or_default()
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+
+        rt.block_on(async { handle.list_events(filter).await.unwrap_or_default() })
     })
     .await
     .unwrap_or_default()

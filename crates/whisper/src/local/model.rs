@@ -1,9 +1,16 @@
 // https://github.com/tazz4843/whisper-rs/blob/master/examples/audio_transcription.rs
 
+use lazy_static::lazy_static;
+use regex::Regex;
+
 use whisper_rs::{
     FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters, WhisperState,
     WhisperToken,
 };
+
+lazy_static! {
+    static ref TRAILING_DOTS: Regex = Regex::new(r"\.{2,}$").unwrap();
+}
 
 #[derive(Default)]
 pub struct WhisperBuilder {
@@ -124,12 +131,14 @@ impl Whisper {
             );
             let confidence = self.calculate_segment_confidence(i);
 
-            segments.push(Segment {
+            let mut segment = Segment {
                 text,
                 start: start as f32 / 1000.0,
                 end: end as f32 / 1000.0,
                 confidence,
-            });
+            };
+            segment.trim();
+            segments.push(segment);
         }
 
         self.dynamic_prompt = segments
@@ -181,7 +190,7 @@ impl Whisper {
 }
 
 // https://github.com/floneum/floneum/blob/52967ae/models/rwhisper/src/lib.rs#L116
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Segment {
     pub text: String,
     pub start: f32,
@@ -209,12 +218,46 @@ impl Segment {
     pub fn confidence(&self) -> f32 {
         self.confidence
     }
+
+    pub fn trim(&mut self) {
+        self.text = TRAILING_DOTS.replace(&self.text, "").to_string();
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use futures_util::StreamExt;
+
+    #[test]
+    fn test_trim() {
+        {
+            let mut segment = Segment {
+                text: "Hello...".to_string(),
+                ..Default::default()
+            };
+            segment.trim();
+            assert_eq!(segment.text, "Hello");
+        }
+
+        {
+            let mut segment = Segment {
+                text: "Hello".to_string(),
+                ..Default::default()
+            };
+            segment.trim();
+            assert_eq!(segment.text, "Hello");
+        }
+
+        {
+            let mut segment = Segment {
+                text: "Hello.".to_string(),
+                ..Default::default()
+            };
+            segment.trim();
+            assert_eq!(segment.text, "Hello.");
+        }
+    }
 
     #[test]
     fn test_whisper() {

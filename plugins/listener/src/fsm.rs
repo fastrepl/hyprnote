@@ -416,7 +416,7 @@ impl Session {
         }
     }
 
-    #[state(superstate = "common")]
+    #[state(superstate = "common", entry_action = "enter_running_active")]
     async fn running_active(&mut self, event: &StateEvent) -> Response<State> {
         match event {
             StateEvent::Start(incoming_session_id) => match &self.session_id {
@@ -477,6 +477,15 @@ impl Session {
             let _ = self.app.set_start_disabled(false);
         }
 
+        if let Some(session_id) = &self.session_id {
+            use tauri_plugin_db::DatabasePluginExt;
+
+            if let Ok(Some(mut session)) = self.app.db_get_session(session_id).await {
+                session.record_end = Some(chrono::Utc::now());
+                let _ = self.app.db_upsert_session(session).await;
+            }
+        }
+
         self.teardown_resources().await;
     }
 
@@ -484,6 +493,18 @@ impl Session {
     async fn exit_inactive(&mut self) {
         use tauri_plugin_tray::TrayPluginExt;
         let _ = self.app.set_start_disabled(true);
+    }
+
+    #[action]
+    async fn enter_running_active(&mut self) {
+        if let Some(session_id) = &self.session_id {
+            use tauri_plugin_db::DatabasePluginExt;
+
+            if let Ok(Some(mut session)) = self.app.db_get_session(session_id).await {
+                session.record_start = Some(chrono::Utc::now());
+                let _ = self.app.db_upsert_session(session).await;
+            }
+        }
     }
 
     fn on_transition(&mut self, source: &State, target: &State) {

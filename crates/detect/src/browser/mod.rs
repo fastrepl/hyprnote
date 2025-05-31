@@ -24,7 +24,6 @@ impl crate::Observer for BrowserDetector {
 
 lazy_static::lazy_static! {
     pub static ref MEETING_REGEXES: Vec<regex::Regex> = vec![
-        regex::Regex::new(r"meet\.google\.com/[a-z0-9]{3,4}-[a-z0-9]{3,4}-[a-z0-9]{3,4}").unwrap(),
         regex::Regex::new(r"https://meet\.google\.com/[a-z0-9]{3,4}-[a-z0-9]{3,4}-[a-z0-9]{3,4}").unwrap(),
         regex::Regex::new(r"https://[a-z0-9.-]+\.zoom\.us/j/\d+(\?pwd=[a-zA-Z0-9.]+)?").unwrap(),
         regex::Regex::new(r"https://app\.cal\.com/video/[a-zA-Z0-9]+").unwrap(),

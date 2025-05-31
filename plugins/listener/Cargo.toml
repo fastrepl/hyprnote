@@ -19,36 +19,38 @@ specta-typescript = { workspace = true }
 uuid = { workspace = true }
 
 [dependencies]
-hypr-listener-interface = { workspace = true }
-tauri-plugin-auth = { workspace = true }
-tauri-plugin-connector = { workspace = true }
-tauri-plugin-db = { workspace = true }
-tauri-plugin-tray = { workspace = true }
-
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
 hypr-db-core = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-language = { workspace = true }
+hypr-listener-interface = { workspace = true }
 hypr-ws = { workspace = true }
 
+tauri-plugin-auth = { workspace = true }
+tauri-plugin-connector = { workspace = true }
+tauri-plugin-db = { workspace = true }
+tauri-plugin-tray = { workspace = true }
+tauri-plugin-windows = { workspace = true }
+
 tauri = { workspace = true, features = ["specta", "test"] }
-tracing = { workspace = true }
+
+specta = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 bytes = { workspace = true }
 chrono = { workspace = true }
 codes-iso-639 = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
-tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 thiserror = { workspace = true }
 url = { workspace = true }
 
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+tracing = { workspace = true }
 
 hound = { workspace = true }
 statig = { workspace = true, features = ["async"] }

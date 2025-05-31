@@ -1,20 +1,29 @@
 use tauri::Manager;
 use tauri_specta::Event;
 
-use crate::HyprWindow;
+use crate::{HyprWindow, WindowsPluginExt};
 
-pub fn on_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: &tauri::WindowEvent) {
+pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::WindowEvent) {
+    let app = window.app_handle();
+
     match event {
         tauri::WindowEvent::CloseRequested { api, .. } => {
             match window.label().parse::<HyprWindow>() {
                 Err(e) => tracing::warn!("window_parse_error: {:?}", e),
                 Ok(w) => {
-                    if w == HyprWindow::Main && window.hide().is_ok() {
-                        api.prevent_close();
+                    if w == HyprWindow::Main {
+                        if window.hide().is_ok() {
+                            api.prevent_close();
+
+                            if let Err(e) = app.handle_main_window_visibility(false) {
+                                tracing::error!("failed_to_handle_main_window_visibility: {:?}", e);
+                            }
+                        }
                     }
                 }
             }
         }
+
         tauri::WindowEvent::Destroyed => {
             let app = window.app_handle();
             let state = app.state::<crate::ManagedState>();
@@ -29,6 +38,10 @@ pub fn on_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: &tau
 
                     let event = WindowDestroyed { window: w };
                     let _ = event.emit(app);
+
+                    if let Err(e) = app.handle_main_window_visibility(false) {
+                        tracing::error!("failed_to_handle_main_window_visibility: {:?}", e);
+                    }
                 }
             }
         }

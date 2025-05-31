@@ -13,17 +13,20 @@ tauri-plugin = { workspace = true, features = ["build"] }
 [dev-dependencies]
 specta-typescript = { workspace = true }
 
+[target.'cfg(target_os = "macos")'.dependencies]
+tauri-nspanel = { workspace = true }
+
 [dependencies]
 serde = { workspace = true }
 specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
+uuid = { workspace = true, features = ["v4"] }
 
-tauri = { workspace = true, features = ["test"] }
+tauri = { workspace = true, features = ["test", "macos-private-api"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-auth = { workspace = true }
-tauri-plugin-decorum = { workspace = true }
 
 thiserror = { workspace = true }
 tracing = { workspace = true }

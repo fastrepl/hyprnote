@@ -20,7 +20,12 @@ impl AnalyticsClient {
     }
 
     pub async fn event(&self, payload: AnalyticsPayload) -> Result<(), Error> {
+        if !hypr_network::is_online().await {
+            return Ok(());
+        }
+
         let mut e = posthog::Event::new(payload.event, payload.distinct_id);
+        e.set_timestamp(chrono::Utc::now().naive_utc());
 
         for (key, value) in payload.props {
             let _ = e.insert_prop(key, value);
@@ -36,6 +41,11 @@ impl AnalyticsClient {
                 .send()
                 .await?
                 .error_for_status()?;
+        } else {
+            tracing::info!(
+                "analytics: {}",
+                serde_json::to_string(&inner_event).unwrap()
+            );
         }
 
         Ok(())

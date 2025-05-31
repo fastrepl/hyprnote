@@ -51,6 +51,11 @@ pub async fn main() {
         }));
     }
 
+    #[cfg(target_os = "macos")]
+    {
+        builder = builder.plugin(tauri_nspanel::init());
+    }
+
     builder = builder
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_sse::init())
@@ -81,7 +86,6 @@ pub async fn main() {
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_decorum::init())
         .plugin(tauri_plugin_windows::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
@@ -120,15 +124,41 @@ pub async fn main() {
 
                 let app_clone = app.clone();
 
-                // TODO: currently we only use deeplinks for notifications, so we've hardcoded
-                // `/app/new?record=true` here
-                let dest = "/app/new?record=true";
-
                 app.deep_link().on_open_url(move |event| {
-                    if event.urls().first().is_some()
-                        && app_clone.window_show(HyprWindow::Main).is_ok()
-                    {
-                        let _ = app_clone.window_navigate(HyprWindow::Main, dest);
+                    let url = if let Some(url) = event.urls().first() {
+                        url.to_string()
+                    } else {
+                        return;
+                    };
+
+                    tracing::info!("deeplink: {:?}", url::Url::parse(&url));
+
+                    let dest = if let Ok(parsed_url) = url::Url::parse(&url) {
+                        match parsed_url.path() {
+                            "/notification" => {
+                                if let Some(query) = parsed_url.query() {
+                                    let params: std::collections::HashMap<String, String> =
+                                        url::form_urlencoded::parse(query.as_bytes())
+                                            .into_owned()
+                                            .collect();
+
+                                    if let Some(event_id) = params.get("event_id") {
+                                        format!("/app/note/event/{}", event_id)
+                                    } else {
+                                        "/app/new?record=true".to_string()
+                                    }
+                                } else {
+                                    "/app/new?record=false".to_string()
+                                }
+                            }
+                            _ => "/app/new?record=false".to_string(),
+                        }
+                    } else {
+                        "/app/new?record=false".to_string()
+                    };
+
+                    if app_clone.window_show(HyprWindow::Main).is_ok() {
+                        let _ = app_clone.window_navigate(HyprWindow::Main, &dest);
                     }
                 });
             }
@@ -145,30 +175,29 @@ pub async fn main() {
                 let _ = autostart_manager.disable();
             }
 
-            tokio::task::block_in_place(|| {
-                tokio::runtime::Handle::current().block_on(async move {
-                    if let Err(e) = app.setup_db_for_local().await {
-                        tracing::error!("failed_to_setup_db_for_local: {}", e);
+            let app_clone = app.clone();
+            tokio::spawn(async move {
+                if let Err(e) = app_clone.setup_db_for_local().await {
+                    tracing::error!("failed_to_setup_db_for_local: {}", e);
+                }
+
+                {
+                    use tauri_plugin_db::DatabasePluginExt;
+                    let user_id = app_clone.db_user_id().await;
+
+                    if let Ok(Some(ref user_id)) = user_id {
+                        tauri_plugin_sentry::sentry::configure_scope(|scope| {
+                            scope.set_user(Some(tauri_plugin_sentry::sentry::User {
+                                id: Some(user_id.clone()),
+                                ..Default::default()
+                            }));
+                        });
                     }
+                }
 
-                    {
-                        use tauri_plugin_db::DatabasePluginExt;
-                        let user_id = app.db_user_id().await;
-
-                        if let Ok(Some(ref user_id)) = user_id {
-                            tauri_plugin_sentry::sentry::configure_scope(|scope| {
-                                scope.set_user(Some(tauri_plugin_sentry::sentry::User {
-                                    id: Some(user_id.clone()),
-                                    ..Default::default()
-                                }));
-                            });
-                        }
-                    }
-
-                    tokio::spawn(async move {
-                        app.setup_local_ai().await.unwrap();
-                    });
-                })
+                tokio::spawn(async move {
+                    app_clone.setup_local_ai().await.unwrap();
+                });
             });
 
             Ok(())

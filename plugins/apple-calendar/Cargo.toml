@@ -3,7 +3,7 @@ name = "tauri-plugin-apple-calendar"
 version = "0.1.0"
 authors = ["You"]
 edition = "2021"
-exclude = ["./generated"]
+exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-apple-calendar"
 description = ""
 

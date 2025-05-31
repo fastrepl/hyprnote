@@ -121,6 +121,8 @@ mod tests {
                 enhanced_memo_html: None,
                 conversations: vec![],
                 words: vec![],
+                record_start: None,
+                record_end: None,
             })
             .await
             .unwrap();

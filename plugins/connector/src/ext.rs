@@ -230,24 +230,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
     }
 }
 
-#[allow(dead_code)]
-async fn is_online() -> bool {
-    let target = "8.8.8.8".to_string();
-    let interval = std::time::Duration::from_secs(1);
-    let options = pinger::PingOptions::new(target, interval, None);
-
-    if let Ok(stream) = pinger::ping(options) {
-        if let Some(message) = stream.into_iter().next() {
-            match message {
-                pinger::PingResult::Pong(_, _) => return true,
-                _ => return false,
-            }
-        }
-    }
-
-    false
-}
-
 trait OpenaiCompatible {
     fn models(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
 }
@@ -271,28 +253,27 @@ impl OpenaiCompatible for ConnectionLLM {
 
         let res: serde_json::Value = req.send().await?.json().await?;
         let data = res["data"].as_array();
-
-        let ids = match data {
-            None => {
-                tracing::error!("{:?}", res);
-                vec![]
-            }
+        let models = match data {
+            None => return Err(crate::Error::UnknownError(format!("no_models: {:?}", res))),
             Some(models) => models
                 .iter()
-                .map(|v| v["id"].as_str().unwrap().to_string())
+                .filter_map(|v| v["id"].as_str().map(String::from))
+                .filter(|id| {
+                    ![
+                        "audio",
+                        "video",
+                        "image",
+                        "tts",
+                        "dall-e",
+                        "moderation",
+                        "transcribe",
+                        "embedding",
+                    ]
+                    .iter()
+                    .any(|&excluded| id.contains(excluded))
+                })
                 .collect(),
         };
-
-        let models = ids
-            .into_iter()
-            .filter(|id| !id.contains("audio"))
-            .filter(|id| !id.contains("tts"))
-            .filter(|id| !id.contains("image"))
-            .filter(|id| !id.contains("dall-e"))
-            .filter(|id| !id.contains("moderation"))
-            .filter(|id| !id.contains("transcribe"))
-            .filter(|id| !id.contains("embedding"))
-            .collect();
 
         Ok(models)
     }

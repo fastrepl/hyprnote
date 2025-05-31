@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true, features = ["derive"] }
-wezterm = { git = "https://github.com/wezterm/wezterm", rev = "f06d6fc", package = "wezterm-toast-notification" }
+wezterm = { git = "https://github.com/yujonglee/wezterm", rev = "ba9d6a6", package = "wezterm-toast-notification" }
 
 [target."cfg(target_os = \"macos\")".dependencies]
 objc2 = { workspace = true }

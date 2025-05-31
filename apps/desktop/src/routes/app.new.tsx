@@ -34,6 +34,8 @@ export const Route = createFileRoute("/app/new")({
           raw_memo_html: "",
           enhanced_memo_html: null,
           words: [],
+          record_start: null,
+          record_end: null,
         });
         await dbCommands.sessionAddParticipant(sessionId, userId);
 
@@ -50,6 +52,8 @@ export const Route = createFileRoute("/app/new")({
           raw_memo_html: "",
           enhanced_memo_html: null,
           words: [],
+          record_start: null,
+          record_end: null,
         });
         await dbCommands.sessionAddParticipant(sessionId, userId);
 

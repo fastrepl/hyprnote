@@ -2,25 +2,32 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { AudioLinesIcon, CheckIcon, ClipboardIcon, CopyIcon, TextSearchIcon, UploadIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
 import { useHypr } from "@/contexts";
 import { commands as dbCommands, Human, Word } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import TranscriptEditor, { type SpeakerViewInnerProps, type TranscriptEditorRef } from "@hypr/tiptap/transcript";
+import TranscriptEditor, {
+  type SpeakerChangeRange,
+  type SpeakerViewInnerProps,
+  type TranscriptEditorRef,
+} from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { useOngoingSession, useSessions } from "@hypr/utils/contexts";
+import { useOngoingSession } from "@hypr/utils/contexts";
+import { ListeningIndicator } from "../components/listening-indicator";
 import { useTranscript } from "../hooks/useTranscript";
 import { useTranscriptWidget } from "../hooks/useTranscriptWidget";
 
 export function TranscriptView() {
   const queryClient = useQueryClient();
 
-  const sessionId = useSessions((s) => s.currentSessionId);
+  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: true });
+  const sessionId = noteMatch.params.id;
+
   const ongoingSession = useOngoingSession((s) => ({
     start: s.start,
     status: s.status,
@@ -39,13 +46,6 @@ export function TranscriptView() {
     }
   }, [words, isLive]);
 
-  const handleCopyAll = () => {
-    if (words && words.length > 0) {
-      const transcriptText = words.map((word) => word.text).join(" ");
-      writeText(transcriptText);
-    }
-  };
-
   const audioExist = useQuery(
     {
       refetchInterval: 2500,
@@ -56,11 +56,18 @@ export function TranscriptView() {
     queryClient,
   );
 
-  const handleOpenSession = () => {
+  const handleCopyAll = useCallback(() => {
+    if (words && words.length > 0) {
+      const transcriptText = words.map((word) => word.text).join(" ");
+      writeText(transcriptText);
+    }
+  }, [words]);
+
+  const handleOpenSession = useCallback(() => {
     if (sessionId) {
       miscCommands.audioOpen(sessionId);
     }
-  };
+  }, [sessionId]);
 
   const handleUpdate = (words: Word[]) => {
     if (!isLive) {
@@ -76,6 +83,8 @@ export function TranscriptView() {
     return null;
   }
 
+  const showActions = hasTranscript && sessionId && ongoingSession.isInactive;
+
   return (
     <div className="w-full h-full flex flex-col">
       <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b border-neutral-100">
@@ -83,19 +92,15 @@ export function TranscriptView() {
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-semibold text-neutral-900">Transcript</h2>
             {isLive && (
-              <div className="flex items-center gap-1.5">
-                <div className="relative h-1.5 w-1.5">
-                  <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
-                  <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
-                </div>
-                <span className="text-xs font-medium text-red-600">Live</span>
+              <div className="relative h-1.5 w-1.5">
+                <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
+                <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
               </div>
             )}
           </div>
         )}
         <div className="not-draggable flex items-center ">
-          {(hasTranscript && sessionId) && <SearchAndReplace editorRef={editorRef} />}
-          {(audioExist.data && ongoingSession.isInactive && hasTranscript && sessionId) && (
+          {(audioExist.data && showActions) && (
             <Button
               variant="ghost"
               size="sm"
@@ -104,15 +109,16 @@ export function TranscriptView() {
               <AudioLinesIcon size={14} className="text-neutral-600" />
             </Button>
           )}
-          {(hasTranscript && sessionId) && <CopyButton onCopy={handleCopyAll} />}
+          {showActions && <SearchAndReplace editorRef={editorRef} />}
+          {showActions && <CopyButton onCopy={handleCopyAll} />}
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden flex flex-col">
         {showEmptyMessage
           ? <RenderEmpty sessionId={sessionId} />
           : (
-            <div className="px-4 h-full">
+            <>
               <TranscriptEditor
                 ref={editorRef}
                 initialWords={words}
@@ -120,7 +126,8 @@ export function TranscriptView() {
                 onUpdate={handleUpdate}
                 c={SpeakerSelector}
               />
-            </div>
+              {isLive && <ListeningIndicator />}
+            </>
           )}
       </div>
     </div>
@@ -177,7 +184,11 @@ function RenderEmpty({ sessionId }: { sessionId: string }) {
   );
 }
 
-const SpeakerSelector = ({
+const SpeakerSelector = (props: SpeakerViewInnerProps) => {
+  return <MemoizedSpeakerSelector {...props} />;
+};
+
+const MemoizedSpeakerSelector = memo(({
   onSpeakerChange,
   speakerId,
   speakerIndex,
@@ -199,7 +210,7 @@ const SpeakerSelector = ({
 
   useEffect(() => {
     if (human) {
-      onSpeakerChange(human);
+      onSpeakerChange(human, speakerRange);
     }
   }, [human]);
 
@@ -268,9 +279,7 @@ const SpeakerSelector = ({
       </Popover>
     </div>
   );
-};
-
-type SpeakerChangeRange = "current" | "all" | "fromHere";
+});
 
 interface SpeakerRangeSelectorProps {
   value: SpeakerChangeRange;
@@ -289,7 +298,10 @@ function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
       <p className="text-sm font-medium text-neutral-700">Apply speaker change to:</p>
       <div className="flex rounded-md border border-neutral-200 p-0.5 bg-neutral-50">
         {options.map((option) => (
-          <label key={option.value} className="flex-1 cursor-pointer">
+          <label
+            key={option.value}
+            className={`flex-1 ${option.value === "current" ? "cursor-pointer" : "cursor-not-allowed"}`}
+          >
             <input
               type="radio"
               name="speaker-range"
@@ -297,13 +309,14 @@ function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
               className="sr-only"
               checked={value === option.value}
               onChange={() => onChange(option.value)}
+              disabled={option.value !== "current"}
             />
             <div
               className={`px-2 py-1 text-xs font-medium text-center rounded transition-colors ${
                 value === option.value
                   ? "bg-white text-neutral-900 shadow-sm"
                   : "text-neutral-600 hover:text-neutral-900 hover:bg-white/50"
-              }`}
+              } ${option.value !== "current" ? "opacity-50" : ""}`}
             >
               {option.label}
             </div>

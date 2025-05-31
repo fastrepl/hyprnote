@@ -2,7 +2,7 @@ pub fn load() -> ENV {
     #[cfg(debug_assertions)]
     dotenv::from_filename(".env.local").ok();
 
-    envy::from_env::<ENV>().ok()
+    envy::from_env::<ENV>().unwrap()
 }
 
 #[derive(Debug, serde::Deserialize)]

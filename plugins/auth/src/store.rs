@@ -10,6 +10,10 @@ pub enum StoreKey {
     #[serde(rename = "auth-account-id")]
     #[specta(rename = "auth-account-id")]
     AccountId,
+    #[strum(serialize = "auth-plan")]
+    #[serde(rename = "auth-plan")]
+    #[specta(rename = "auth-plan")]
+    Plan,
 }
 
 pub fn get_store<R: tauri::Runtime, T: tauri::Manager<R>>(

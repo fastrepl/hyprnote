@@ -498,9 +498,11 @@ dependencies = [
  "db-core",
  "db-user",
  "dotenv",
+ "envy",
  "futures-core",
  "futures-util",
  "listener-interface",
+ "membership-interface",
  "nango",
  "notion",
  "openai",
@@ -3494,6 +3496,7 @@ dependencies = [
  "db-core",
  "db-script",
  "db-user",
+ "envy",
  "futures-util",
  "hound",
  "reqwest 0.12.15",
@@ -3521,6 +3524,7 @@ dependencies = [
  "tauri-plugin-listener",
  "tauri-plugin-local-llm",
  "tauri-plugin-local-stt",
+ "tauri-plugin-membership",
  "tauri-plugin-misc",
  "tauri-plugin-notification",
  "tauri-plugin-opener",
@@ -3939,6 +3943,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.101",
+]
+
+[[package]]
+name = "envy"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f47e0157f2cb54f5ae1bd371b30a2ae4311e1c028f575cd4e81de7353215965"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -7904,6 +7917,15 @@ source = "git+https://github.com/wooorm/markdown-rs.git?rev=5c9eba146f06b2e0531a
 dependencies = [
  "markdown",
  "regex",
+]
+
+[[package]]
+name = "membership-interface"
+version = "0.1.0"
+dependencies = [
+ "schemars",
+ "serde",
+ "specta",
 ]
 
 [[package]]
@@ -13305,7 +13327,6 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-plugin-auth",
- "tauri-plugin-flags",
  "tauri-plugin-local-llm",
  "tauri-plugin-local-stt",
  "tauri-plugin-store2",
@@ -13560,6 +13581,26 @@ dependencies = [
  "tracing",
  "whisper",
  "ws-utils",
+]
+
+[[package]]
+name = "tauri-plugin-membership"
+version = "0.1.0"
+dependencies = [
+ "membership-interface",
+ "reqwest 0.12.15",
+ "schemars",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-store",
+ "tauri-plugin-store2",
+ "tauri-specta",
+ "thiserror 2.0.12",
 ]
 
 [[package]]

@@ -36,6 +36,7 @@ tauri-plugin-flags = { workspace = true }
 tauri-plugin-listener = { workspace = true }
 tauri-plugin-local-llm = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
+tauri-plugin-membership = { workspace = true }
 tauri-plugin-misc = { workspace = true }
 tauri-plugin-notification = { workspace = true }
 tauri-plugin-opener = { workspace = true }
@@ -82,6 +83,7 @@ serde_json = { workspace = true }
 bytes = { workspace = true }
 chrono = { workspace = true }
 codes-iso-639 = { workspace = true }
+envy = { workspace = true }
 url = { workspace = true }
 uuid = { workspace = true }
 

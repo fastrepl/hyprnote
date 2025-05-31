@@ -1,6 +1,7 @@
-import { cn } from "@hypr/ui/lib/utils";
 import { GlobeIcon } from "lucide-react";
 import React from "react";
+
+import { cn } from "@hypr/ui/lib/utils";
 
 export const RatingDisplay = (
   { label, rating, maxRating = 3, icon: Icon }: {

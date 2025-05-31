@@ -19,35 +19,6 @@ import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { cn } from "@hypr/ui/lib/utils";
 import { sttModelMetadata } from "../settings/components/ai/stt-view";
 
-interface ModelInfo {
-  model: string;
-  is_downloaded: boolean;
-}
-
-const RatingDisplay = (
-  { label, rating, maxRating = 3, icon: Icon }: {
-    label: string;
-    rating: number;
-    maxRating?: number;
-    icon: React.ElementType;
-  },
-) => (
-  <div className="flex flex-col items-center px-2">
-    <span className="text-[10px] text-neutral-500 uppercase font-medium tracking-wider mb-1.5">{label}</span>
-    <div className="flex space-x-1">
-      {[...Array(maxRating)].map((_, i) => (
-        <Icon
-          key={i}
-          className={cn(
-            "w-3.5 h-3.5",
-            i < rating ? "text-blue-500" : "text-neutral-300",
-          )}
-        />
-      ))}
-    </div>
-  </div>
-);
-
 export const ModelSelectionView = ({
   onContinue,
 }: {
@@ -55,7 +26,10 @@ export const ModelSelectionView = ({
 }) => {
   const [selectedModel, setSelectedModel] = useState<SupportedModel>("QuantizedSmall");
 
-  const supportedSTTModels = useQuery<ModelInfo[]>({
+  const supportedSTTModels = useQuery<{
+    model: string;
+    is_downloaded: boolean;
+  }[]>({
     queryKey: ["local-stt", "supported-models"],
     queryFn: async () => {
       const models = await localSttCommands.listSupportedModels();
@@ -153,3 +127,27 @@ export const ModelSelectionView = ({
     </div>
   );
 };
+
+const RatingDisplay = (
+  { label, rating, maxRating = 3, icon: Icon }: {
+    label: string;
+    rating: number;
+    maxRating?: number;
+    icon: React.ElementType;
+  },
+) => (
+  <div className="flex flex-col items-center px-2">
+    <span className="text-[10px] text-neutral-500 uppercase font-medium tracking-wider mb-1.5">{label}</span>
+    <div className="flex space-x-1">
+      {[...Array(maxRating)].map((_, i) => (
+        <Icon
+          key={i}
+          className={cn(
+            "w-3.5 h-3.5",
+            i < rating ? "text-blue-500" : "text-neutral-300",
+          )}
+        />
+      ))}
+    </div>
+  </div>
+);

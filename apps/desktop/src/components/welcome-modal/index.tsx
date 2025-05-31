@@ -1,10 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
-import { message } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 
 import { commands } from "@/types";
-import { commands as authCommands, events } from "@hypr/plugin-auth";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
@@ -19,49 +16,11 @@ interface WelcomeModalProps {
 }
 
 export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
-  const navigate = useNavigate();
-  const [port, setPort] = useState<number | null>(null);
-  const [showModelSelection, setShowModelSelection] = useState(false);
+  const [step, setStep] = useState<"0_login" | "1_model-selection">("0_login");
 
   const selectSTTModel = useMutation({
     mutationFn: (model: SupportedModel) => localSttCommands.setCurrentModel(model),
   });
-
-  useEffect(() => {
-    let cleanup: (() => void) | undefined;
-    let unlisten: (() => void) | undefined;
-
-    if (isOpen) {
-      authCommands.startOauthServer().then((port) => {
-        setPort(port);
-
-        events.authEvent
-          .listen(({ payload }) => {
-            if (payload === "success") {
-              commands.setupDbForCloud().then(() => {
-                onClose();
-              });
-              return;
-            }
-
-            if (payload.error) {
-              message("Error occurred while authenticating!");
-              return;
-            }
-          })
-          .then((fn) => {
-            unlisten = fn;
-          });
-
-        cleanup = () => {
-          unlisten?.();
-          authCommands.stopOauthServer(port);
-        };
-      });
-    }
-
-    return () => cleanup?.();
-  }, [isOpen, onClose, navigate]);
 
   useEffect(() => {
     if (isOpen) {
@@ -71,10 +30,6 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
       sfxCommands.stop("BGM");
     }
   }, [isOpen]);
-
-  const handleStartLocal = () => {
-    setShowModelSelection(true);
-  };
 
   const handleModelSelected = (model: SupportedModel) => {
     selectSTTModel.mutate(model);
@@ -91,13 +46,8 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     >
       <ModalBody className="relative p-0 flex flex-col items-center justify-center overflow-hidden">
         <div className="z-10">
-          {!showModelSelection
-            ? (
-              <WelcomeView
-                portReady={port !== null}
-                onGetStarted={handleStartLocal}
-              />
-            )
+          {step === "0_login"
+            ? <WelcomeView onContinue={() => setStep("1_model-selection")} />
             : (
               <ModelSelectionView
                 onContinue={handleModelSelected}

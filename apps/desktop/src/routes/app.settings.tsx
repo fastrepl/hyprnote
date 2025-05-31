@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { TabIcon } from "@/components/settings/components/tab-icon";
 import { type Tab, TABS } from "@/components/settings/components/types";
-import { Calendar, Feedback, General, Lab, LocalAI, Notifications, Sound } from "@/components/settings/views";
+import { Calendar, Feedback, General, LocalAI, Notifications, Sound } from "@/components/settings/views";
 import { cn } from "@hypr/ui/lib/utils";
 
 const schema = z.object({
@@ -100,9 +100,7 @@ function Component() {
             </div>
           </div>
 
-          {/* Main Content */}
           <div className="flex-1 flex h-full w-full flex-col overflow-hidden">
-            {/* Header */}
             <header data-tauri-drag-region className="h-11 w-full flex items-center justify-between border-b px-2">
               <div className="w-40" data-tauri-drag-region></div>
 
@@ -113,14 +111,12 @@ function Component() {
               <div className="w-40" data-tauri-drag-region></div>
             </header>
 
-            {/* Actual Content */}
             <div className="flex-1 overflow-y-auto p-6 w-full">
               {search.tab === "general" && <General />}
               {search.tab === "calendar" && <Calendar />}
               {search.tab === "notifications" && <Notifications />}
               {search.tab === "sound" && <Sound />}
               {search.tab === "ai" && <LocalAI />}
-              {search.tab === "lab" && <Lab />}
               {search.tab === "feedback" && <Feedback />}
             </div>
           </div>

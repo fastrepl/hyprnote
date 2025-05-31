@@ -62,6 +62,7 @@ hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 
 hypr-auth-interface = { path = "plugins/auth-interface", package = "auth-interface" }
 hypr-listener-interface = { path = "plugins/listener-interface", package = "listener-interface" }
+hypr-membership-interface = { path = "plugins/membership-interface", package = "membership-interface" }
 
 tauri = "2"
 tauri-build = "2"
@@ -83,6 +84,7 @@ tauri-plugin-flags = { path = "plugins/flags" }
 tauri-plugin-listener = { path = "plugins/listener" }
 tauri-plugin-local-llm = { path = "plugins/local-llm" }
 tauri-plugin-local-stt = { path = "plugins/local-stt" }
+tauri-plugin-membership = { path = "plugins/membership" }
 tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-notification = { path = "plugins/notification" }
 tauri-plugin-sfx = { path = "plugins/sfx" }
@@ -112,6 +114,8 @@ codes-iso-639 = "0.1.5"
 derive_more = "2"
 dirs = "6.0.0"
 dotenv = "0.15.0"
+dotenvy = "0.15.7"
+envy = "0.4"
 include_url_macro = "0.1.0"
 indoc = "2"
 insta = "1.42"

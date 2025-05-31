@@ -8,19 +8,18 @@ use axum::{
 };
 use stripe::{CustomerId, Event, EventObject, EventType, Expandable, Object};
 
-use crate::state::AppState;
+use crate::state::WebhookState;
 
 // https://github.com/arlyon/async-stripe/blob/c71a7eb/examples/webhook-axum.rs
 pub struct StripeEvent(Event);
 
-impl<S> FromRequest<S> for StripeEvent
-where
-    String: FromRequest<S>,
-    S: Send + Sync,
-{
+impl FromRequest<WebhookState> for StripeEvent {
     type Rejection = Response;
 
-    async fn from_request(req: Request<Body>, state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request(
+        req: Request<Body>,
+        state: &WebhookState,
+    ) -> Result<Self, Self::Rejection> {
         let signature = if let Some(sig) = req.headers().get("stripe-signature") {
             sig.to_owned()
         } else {
@@ -32,8 +31,12 @@ where
             .map_err(IntoResponse::into_response)?;
 
         Ok(Self(
-            stripe::Webhook::construct_event(&payload, signature.to_str().unwrap(), "whsec_xxxxx")
-                .map_err(|_| StatusCode::BAD_REQUEST.into_response())?,
+            stripe::Webhook::construct_event(
+                &payload,
+                signature.to_str().unwrap(),
+                &state.stripe_webhook_signing_secret,
+            )
+            .map_err(|_| StatusCode::BAD_REQUEST.into_response())?,
         ))
     }
 }
@@ -41,7 +44,7 @@ where
 // https://github.com/t3dotgg/stripe-recommendations
 // https://docs.stripe.com/api/events/types
 pub async fn handler(
-    State(state): State<AppState>,
+    State(state): State<WebhookState>,
     StripeEvent(event): StripeEvent,
 ) -> impl IntoResponse {
     match event.type_ {
@@ -96,12 +99,9 @@ pub async fn handler(
             // TODO: do this with background worker with concurrency limit
             if let Some(stripe_customer_id) = stripe_customer_id {
                 tokio::spawn({
-                    let stripe_client = state.stripe.clone();
-                    let admin_db = state.admin_db.clone();
-
                     async move {
                         let customer = stripe::Customer::retrieve(
-                            &stripe_client,
+                            &state.stripe,
                             CustomerId::from_str(&stripe_customer_id).as_ref().unwrap(),
                             &["subscriptions"],
                         )
@@ -110,14 +110,15 @@ pub async fn handler(
 
                         let customer_id = customer.id().to_string();
 
-                        if let Err(e) = admin_db.update_stripe_customer(&customer).await {
+                        if let Err(e) = state.admin_db.update_stripe_customer(&customer).await {
                             tracing::error!("stripe_customer_update_failed: {:?}", e);
                         }
 
                         let subscriptions = customer.subscriptions.unwrap_or_default();
                         let subscription = subscriptions.data.first();
 
-                        if let Err(e) = admin_db
+                        if let Err(e) = state
+                            .admin_db
                             .update_stripe_subscription(customer_id, subscription)
                             .await
                         {

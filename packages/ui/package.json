@@ -44,7 +44,7 @@
     "react-hotkeys-hook": "^4.6.2",
     "react-resizable-panels": "^2.1.9",
     "sonner": "^1.7.4",
-    "zod": "^3.25.46"
+    "zod": "^3.25.48"
   },
   "devDependencies": {
     "@tanstack/react-query": "^5.79.0",

@@ -17,7 +17,7 @@
     "vite-plugin-posthog": "^2.1.0",
     "vitepress": "2.0.0-alpha.5",
     "vue": "^3.5.16",
-    "zod": "^3.25.46"
+    "zod": "^3.25.48"
   },
   "dependencies": {
     "@tanstack/vue-table": "^8.21.3",

@@ -14,7 +14,7 @@
     "react-dom": "^18.3.1"
   },
   "dependencies": {
-    "@floating-ui/dom": "^1.7.0",
+    "@floating-ui/dom": "^1.7.1",
     "@hypr/plugin-db": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",
@@ -55,7 +55,7 @@
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@types/turndown": "^5.0.5",
-    "vitest": "^3.1.4"
+    "vitest": "^3.2.0"
   },
   "scripts": {
     "test": "vitest run"

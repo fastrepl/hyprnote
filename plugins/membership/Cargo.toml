@@ -1,0 +1,32 @@
+[package]
+name = "tauri-plugin-membership"
+version = "0.1.0"
+authors = ["You"]
+edition = "2021"
+exclude = ["./js"]
+links = "tauri-plugin-membership"
+description = ""
+
+[build-dependencies]
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+specta-typescript = { workspace = true }
+tauri-plugin-store = { workspace = true }
+
+[dependencies]
+hypr-membership-interface = { workspace = true }
+
+tauri = { workspace = true, features = ["test"] }
+tauri-plugin-store2 = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+keygen-rs = { version = "0.4.3", default-features = false, features = ["native-tls"] }
+
+reqwest = { workspace = true, features = ["json"] }
+schemars = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+specta = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }

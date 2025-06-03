@@ -13,9 +13,30 @@ pub use overlay::{FakeWindowBounds, OverlayBound};
 const PLUGIN_NAME: &str = "windows";
 
 use tauri::Manager;
+use std::sync::Mutex;
+use once_cell::sync::Lazy;
 use uuid::Uuid;
 
 pub type ManagedState = std::sync::Mutex<State>;
+
+static OVERLAY_JOIN_HANDLE: Lazy<Mutex<Option<tokio::task::JoinHandle<()>>>> = Lazy::new(|| Mutex::new(None));
+
+pub fn set_overlay_join_handle(handle: tokio::task::JoinHandle<()>) {
+    if let Ok(mut guard) = OVERLAY_JOIN_HANDLE.lock() {
+        if let Some(old_handle) = guard.take() {
+            old_handle.abort();
+        }
+        *guard = Some(handle);
+    }
+}
+
+pub fn abort_overlay_join_handle() {
+    if let Ok(mut guard) = OVERLAY_JOIN_HANDLE.lock() {
+        if let Some(handle) = guard.take() {
+            handle.abort();
+        }
+    }
+}
 
 pub struct WindowState {
     id: String,

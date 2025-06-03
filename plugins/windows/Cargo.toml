@@ -15,6 +15,9 @@ specta-typescript = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 tauri-nspanel = { workspace = true }
+objc2 = { workspace = true }
+objc2-app-kit = { workspace = true }
+objc2-foundation = { workspace = true }
 
 [dependencies]
 serde = { workspace = true }
@@ -31,3 +34,4 @@ tauri-plugin-auth = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["time"] }
 tracing = { workspace = true }
+once_cell = { workspace = true }

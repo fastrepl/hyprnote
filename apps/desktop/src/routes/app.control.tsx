@@ -11,17 +11,55 @@ export const Route = createFileRoute("/app/control")({
 });
 
 function Component() {
-  emit("debug", "Control component mounted");
-
   const [position, setPosition] = useState(() => {
+    // Try to load saved position first
+    const savedPosition = localStorage.getItem('floating-control-position');
+    if (savedPosition) {
+      try {
+        const parsed = JSON.parse(savedPosition);
+        // Validate position is within current screen bounds
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        if (parsed.x >= 0 && parsed.x <= windowWidth - 200 && 
+            parsed.y >= 0 && parsed.y <= windowHeight - 100) {
+          return parsed;
+        }
+      } catch (e) {
+        console.warn('Failed to parse saved position:', e);
+      }
+    }
+    
+    // Fall back to default position
     const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
     const initialX = (windowWidth - 200) / 2;
-    return { x: initialX, y: window.innerHeight - 80 };
+    const initialY = (windowHeight - 200) / 2;
+    
+    return { x: initialX, y: initialY };
   });
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-
+  
+  // Use refs to store current values for event handlers
+  const isDraggingRef = useRef(false);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+  
+  // Interaction tracking (lifted to component scope)
+  const lastInteractionRef = React.useRef(Date.now());
+  const trackInteraction = React.useCallback(() => {
+    lastInteractionRef.current = Date.now();
+  }, []);
+  
+  // Update refs whenever state changes
+  useEffect(() => {
+    isDraggingRef.current = isDragging;
+  }, [isDragging]);
+  
+  useEffect(() => {
+    dragOffsetRef.current = dragOffset;
+  }, [dragOffset]);
+  
   // Recording state from listener plugin
   const [recordingStatus, setRecordingStatus] = useState<"inactive" | "running_active" | "running_paused">("inactive");
   const [recordingLoading, setRecordingLoading] = useState(false);
@@ -102,6 +140,7 @@ function Component() {
   const controlRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const settingsPopupRef = useRef<HTMLDivElement>(null);
+  const boundsUpdateTimeoutRef = useRef<number | null>(null);
 
   const updateOverlayBounds = async () => {
     emit("debug", "updateOverlayBounds called");
@@ -171,19 +210,34 @@ function Component() {
 
       try {
         await windowsCommands.setFakeWindowBounds("control", bounds);
-        emit("debug", "setFakeWindowBounds completed successfully");
       } catch (error) {
-        emit("debug", `setFakeWindowBounds failed: ${error}`);
+        console.error("Failed to set fake window bounds:", error);
       }
-    } else {
-      emit("debug", "toolbarRef.current is null, skipping bounds update");
     }
   };
 
-  // Add click handler to test if the fake window bounds are working
+  // Debounced version to prevent excessive bounds updates
+  const debouncedUpdateBounds = () => {
+    if (boundsUpdateTimeoutRef.current) {
+      clearTimeout(boundsUpdateTimeoutRef.current);
+    }
+    boundsUpdateTimeoutRef.current = window.setTimeout(() => {
+      updateOverlayBounds();
+      boundsUpdateTimeoutRef.current = null;
+    }, 100); // Increased debounce delay to 100ms for better stability
+  };
+
   const handleToolbarClick = (e: React.MouseEvent) => {
-    emit("debug", `Toolbar clicked at: ${JSON.stringify({ x: e.clientX, y: e.clientY })}`);
     // Don't stop propagation to allow drag events to work properly
+  };
+
+  const captureScreenshot = async () => {
+    try {
+      // Add screenshot functionality here
+      console.log("[Control Bar] Screenshot functionality to be implemented");
+    } catch (error) {
+      console.error("[Control Bar] Screenshot error:", error);
+    }
   };
 
   useEffect(() => {
@@ -195,84 +249,144 @@ function Component() {
     document.documentElement.setAttribute("data-transparent-window", "true");
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging) {
-        // Get toolbar dimensions for clamping
-        const toolbarWidth = toolbarRef.current?.getBoundingClientRect().width || 200;
-        const toolbarHeight = toolbarRef.current?.getBoundingClientRect().height || 60;
-
-        // Clamp position to keep toolbar on screen
-        const clampedX = Math.max(0, Math.min(window.innerWidth - toolbarWidth, e.clientX - dragOffset.x));
-        const clampedY = Math.max(0, Math.min(window.innerHeight - toolbarHeight, e.clientY - dragOffset.y));
-
-        const newPosition = {
-          x: clampedX,
-          y: clampedY,
-        };
-        setPosition(newPosition);
-        // Update bounds immediately during drag for smooth interaction
-        setTimeout(updateOverlayBounds, 0);
-      }
+      if (!isDraggingRef.current) return;
+      
+      // Get toolbar dimensions for clamping
+      const toolbarWidth = toolbarRef.current?.getBoundingClientRect().width || 200;
+      const toolbarHeight = toolbarRef.current?.getBoundingClientRect().height || 60;
+      
+      // Clamp position to keep toolbar on screen
+      const clampedX = Math.max(0, Math.min(window.innerWidth - toolbarWidth, e.clientX - dragOffsetRef.current.x));
+      const clampedY = Math.max(0, Math.min(window.innerHeight - toolbarHeight, e.clientY - dragOffsetRef.current.y));
+      
+      const newPosition = {
+        x: clampedX,
+        y: clampedY,
+      };
+      
+      setPosition(newPosition);
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      // Force bounds update after drag completes
+      setTimeout(() => {
+        updateOverlayBounds();
+      }, 50);
+    };
+
+    // Handle desktop switching and window focus changes on Mac  
+    const handleWindowFocus = () => {
+      // Smart recovery on focus - only aggressive if needed
+      smartRecovery();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Smart recovery on visibility change
+        smartRecovery();
+      }
+    };
+
+    const handleWindowResize = () => {
+      // Lightweight resize handling
+      debouncedUpdateBounds();
+    };
+
+    const handleMouseEnter = () => {
+      // Force bounds recalculation when mouse enters the control area
+      // This helps recover from Mission Control coordinate issues
+      updateOverlayBounds();
+    };
+
+    // Only do aggressive reset if it's been a while since last interaction
+    const smartRecovery = () => {
+      const timeSinceInteraction = Date.now() - lastInteractionRef.current;
+      if (timeSinceInteraction > 10000) { // 10 seconds of no interaction
+        windowsCommands.removeFakeWindow("control").then(() => {
+          setTimeout(updateOverlayBounds, 100);
+        }).catch(console.error);
+      } else {
+        // Just do a simple bounds update
+        updateOverlayBounds();
+      }
+      trackInteraction();
     };
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
-
-    updateOverlayBounds();
+    window.addEventListener("focus", handleWindowFocus);
+    window.addEventListener("resize", handleWindowResize);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    // Initial bounds setup - use longer delay to ensure DOM is ready and position is loaded
+    setTimeout(() => {
+      updateOverlayBounds();
+    }, 200);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("focus", handleWindowFocus);
+      window.removeEventListener("resize", handleWindowResize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (boundsUpdateTimeoutRef.current) {
+        clearTimeout(boundsUpdateTimeoutRef.current);
+      }
       windowsCommands.removeFakeWindow("control");
     };
-  }, [isDragging, dragOffset]);
+  }, []); // Remove dependencies to prevent re-creating event listeners
 
   useEffect(() => {
-    // Update bounds whenever position changes
-    updateOverlayBounds();
+    // Update bounds whenever position changes (safety mechanism)
+    debouncedUpdateBounds();
+    
+    // Save position to localStorage for persistence across window recreations
+    localStorage.setItem('floating-control-position', JSON.stringify(position));
   }, [position]);
 
   // Separate effect for settings popup to ensure it's rendered
   useEffect(() => {
-    if (showSettings) {
-      // Wait for popup to be rendered and ref to be available
-      const timer = setTimeout(() => {
-        updateOverlayBounds();
-      }, 50);
-      return () => clearTimeout(timer);
-    } else {
-      // Immediately update when popup closes
-      updateOverlayBounds();
-    }
+    // Wait for popup to be rendered/removed and update bounds
+    debouncedUpdateBounds();
   }, [showSettings]);
 
-  // Also update bounds after initial render
+  // Effect to detect and sync to actual rendered position (handles window recreation)
   useEffect(() => {
-    emit("debug", "Initial useEffect running");
-    emit("debug", `windowsCommands available: ${!!windowsCommands}`);
-    emit("debug", `windowsCommands.setFakeWindowBounds available: ${!!windowsCommands.setFakeWindowBounds}`);
-
-    const timer = setTimeout(() => {
-      emit("debug", "Timer fired, calling updateOverlayBounds");
-      updateOverlayBounds();
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
+    const detectActualPosition = () => {
+      if (controlRef.current) {
+        const rect = controlRef.current.getBoundingClientRect();
+        const actualPosition = { x: rect.left, y: rect.top };
+        
+        // If there's a significant difference, sync React state to actual position
+        const threshold = 10; // pixels
+        if (Math.abs(actualPosition.x - position.x) > threshold || 
+            Math.abs(actualPosition.y - position.y) > threshold) {
+          setPosition(actualPosition);
+        } else {
+          // Positions match, just update bounds
+          updateOverlayBounds();
+        }
+      }
+    };
+    
+    // Multiple attempts to catch the actual position
+    const timers = [100, 200, 500].map(delay => 
+      setTimeout(detectActualPosition, delay)
+    );
+    
+    return () => timers.forEach(clearTimeout);
+  }, []); // Only run once on mount
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     setIsDragging(true);
     setDragOffset({
       x: e.clientX - position.x,
       y: e.clientY - position.y,
     });
-  };
-
-  const captureScreenshot = () => {
-    emit("debug", "Capture screenshot");
-    setTimeout(updateOverlayBounds, 0);
   };
 
   const toggleRecording = async () => {
@@ -282,23 +396,19 @@ function Component() {
       if (isRecording) {
         if (isRecordingActive) {
           await listenerCommands.stopSession();
-          console.log("[Control Bar] Stopped recording");
         } else if (isRecordingPaused) {
           await listenerCommands.resumeSession();
-          console.log("[Control Bar] Resumed recording");
         }
       } else {
         // Create a new session and start recording
         const newSessionId = `control-session-${Date.now()}`;
         await listenerCommands.startSession(newSessionId);
-        console.log(`[Control Bar] Started recording with session: ${newSessionId}`);
       }
     } catch (error) {
       console.error("[Control Bar] Recording error:", error);
     } finally {
       setRecordingLoading(false);
     }
-    setTimeout(updateOverlayBounds, 0);
   };
 
   const pauseRecording = async () => {
@@ -306,14 +416,12 @@ function Component() {
       setRecordingLoading(true);
       if (isRecordingActive) {
         await listenerCommands.pauseSession();
-        console.log("[Control Bar] Paused recording");
       }
     } catch (error) {
       console.error("[Control Bar] Pause error:", error);
     } finally {
       setRecordingLoading(false);
     }
-    setTimeout(updateOverlayBounds, 0);
   };
 
   const toggleMic = async () => {
@@ -321,6 +429,8 @@ function Component() {
       const newMuted = !micMuted;
       await listenerCommands.setMicMuted(newMuted);
       setMicMuted(newMuted);
+      // Emit event to synchronize with other windows
+      await emit("audio-mic-state-changed", { muted: newMuted });
       console.log(`[Control Bar] ${newMuted ? "Muted" : "Unmuted"} microphone`);
     } catch (error) {
       console.error("[Control Bar] Mic toggle error:", error);
@@ -332,6 +442,8 @@ function Component() {
       const newMuted = !speakerMuted;
       await listenerCommands.setSpeakerMuted(newMuted);
       setSpeakerMuted(newMuted);
+      // Emit event to synchronize with other windows
+      await emit("audio-speaker-state-changed", { muted: newMuted });
       console.log(`[Control Bar] ${newMuted ? "Muted" : "Unmuted"} speaker`);
     } catch (error) {
       console.error("[Control Bar] Speaker toggle error:", error);
@@ -340,7 +452,6 @@ function Component() {
 
   const openSettings = () => {
     setShowSettings(!showSettings);
-    console.log(`[Control Bar] ${showSettings ? "Closed" : "Opened"} settings`);
   };
 
   const toggleAutoStart = () => {
@@ -377,95 +488,126 @@ function Component() {
           top: position.y,
           transition: isDragging ? "none" : "all 0.1s ease",
         }}
-        ref={controlRef}
+        ref={(el) => {
+          controlRef.current = el;
+          // Immediate position detection when ref is set
+          if (el) {
+            setTimeout(() => {
+              const rect = el.getBoundingClientRect();
+              const actualPosition = { x: rect.left, y: rect.top };
+              
+              const threshold = 10;
+              if (Math.abs(actualPosition.x - position.x) > threshold || 
+                  Math.abs(actualPosition.y - position.y) > threshold) {
+                setPosition(actualPosition);
+              }
+            }, 50);
+          }
+        }}
       >
         <div
           className="rounded-2xl shadow-2xl flex items-center justify-center transition-all duration-200 p-3"
           ref={toolbarRef}
           onClick={handleToolbarClick}
-          style={{
-            pointerEvents: "auto",
-            background: "rgba(0, 0, 0, 0.85)",
-            boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.6)",
+          onMouseEnter={() => {
+            // Lightweight hover recovery
+            trackInteraction();
+            updateOverlayBounds();
+          }}
+          style={{ 
+            pointerEvents: 'auto',
+            background: 'rgba(0, 0, 0, 0.85)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.6)'
           }}
         >
           <div className="flex gap-2 items-center">
-            <IconButton onClick={captureScreenshot} tooltip="Take Screenshot">
-              <Camera size={16} />
-            </IconButton>
-
-            <IconButton
-              onClick={toggleRecording}
-              tooltip={isRecording ? (isRecordingActive ? "Stop Recording" : "Resume Recording") : "Start Recording"}
-              className={`transition-all duration-200 ${
-                isRecordingActive
-                  ? "bg-red-500/70 hover:bg-red-500/90 shadow-lg shadow-red-500/30"
-                  : isRecordingPaused
-                  ? "bg-yellow-500/70 hover:bg-yellow-500/90 shadow-lg shadow-yellow-500/30"
-                  : "bg-white/20 hover:bg-white/30"
-              }`}
-              disabled={recordingLoading}
-            >
-              {recordingLoading
-                ? <div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
-                : isRecordingActive
-                ? <Square size={16} />
-                : <Circle size={16} />}
-            </IconButton>
-
-            {/* Pause Button - only show when actively recording */}
-            {isRecordingActive && (
+            {/* Section 1: Mic + Speaker */}
+            <div className="flex gap-1 items-center">
               <IconButton
-                onClick={pauseRecording}
-                tooltip="Pause Recording"
-                className="bg-yellow-500/60 hover:bg-yellow-500/80 shadow-lg shadow-yellow-500/30"
-                disabled={recordingLoading}
+                onClick={toggleMic}
+                tooltip={micMuted ? "Unmute Microphone" : "Mute Microphone"}
+                className={micMuted ? "bg-red-500/60 hover:bg-red-500/80" : "bg-gray-700/60 hover:bg-gray-600/80"}
               >
-                {recordingLoading
-                  ? <div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
-                  : (
+                {micMuted ? <MicOff size={16} /> : <Mic size={16} />}
+              </IconButton>
+              
+              <IconButton
+                onClick={toggleSpeaker}
+                tooltip={speakerMuted ? "Unmute Speaker" : "Mute Speaker"}
+                className={speakerMuted ? "bg-red-500/60 hover:bg-red-500/80" : "bg-gray-700/60 hover:bg-gray-600/80"}
+              >
+                {speakerMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              </IconButton>
+            </div>
+            
+            <div className="w-px h-6 bg-white/20 mx-1" />
+            
+            {/* Section 2: Pause + Stop */}
+            <div className="flex gap-1 items-center">
+              {/* Pause/Resume Button */}
+              {isRecording && (
+                <IconButton
+                  onClick={isRecordingActive ? pauseRecording : toggleRecording}
+                  tooltip={isRecordingActive ? "Pause Recording" : "Resume Recording"}
+                  className={isRecordingActive 
+                    ? "bg-amber-600/60 hover:bg-amber-500/80" 
+                    : "bg-green-600/60 hover:bg-green-500/80"
+                  }
+                  disabled={recordingLoading}
+                >
+                  {recordingLoading ? (
+                    <div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
+                  ) : isRecordingActive ? (
                     <div className="flex gap-0.5">
                       <div className="w-1 h-3 bg-white rounded-sm" />
                       <div className="w-1 h-3 bg-white rounded-sm" />
                     </div>
+                  ) : (
+                    <Circle size={16} />
                   )}
+                </IconButton>
+              )}
+              
+              {/* Stop/Start Button */}
+              <IconButton
+                onClick={toggleRecording}
+                tooltip={isRecording ? "Stop Recording" : "Start Recording"}
+                className={isRecording 
+                  ? "bg-red-600/70 hover:bg-red-500/90 shadow-lg shadow-red-500/30" 
+                  : "bg-gray-700/60 hover:bg-gray-600/80"
+                }
+                disabled={recordingLoading}
+              >
+                {recordingLoading ? (
+                  <div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
+                ) : isRecording ? (
+                  <Square size={16} />
+                ) : (
+                  <Circle size={16} />
+                )}
               </IconButton>
-            )}
-
-            {/* Audio Controls - show when recording */}
-            {isRecording && (
-              <>
-                <IconButton
-                  onClick={toggleMic}
-                  tooltip={micMuted ? "Unmute Microphone" : "Mute Microphone"}
-                  className={micMuted ? "bg-red-500/50 hover:bg-red-500/70" : ""}
-                >
-                  {micMuted ? <MicOff size={16} /> : <Mic size={16} />}
-                </IconButton>
-
-                <IconButton
-                  onClick={toggleSpeaker}
-                  tooltip={speakerMuted ? "Unmute Speaker" : "Mute Speaker"}
-                  className={speakerMuted ? "bg-red-500/50 hover:bg-red-500/70" : ""}
-                >
-                  {speakerMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                </IconButton>
-              </>
-            )}
-
+            </div>
+            
             <div className="w-px h-6 bg-white/20 mx-1" />
-
-            <IconButton onClick={openSettings} tooltip="Settings">
-              <Settings size={16} />
-            </IconButton>
-
-            <div
-              className="ml-1 p-1.5 text-white/60 cursor-move hover:text-white/90 hover:bg-white/10 rounded-lg transition-all duration-200"
-              onMouseDown={handleMouseDown}
-              title="Drag to move"
-              style={{ userSelect: "none" }}
-            >
-              <Grip size={16} />
+            
+            {/* Section 3: Screenshot + Settings + Drag Handle */}
+            <div className="flex gap-1 items-center">
+              <IconButton onClick={captureScreenshot} tooltip="Take Screenshot" className="bg-gray-700/60 hover:bg-gray-600/80">
+                <Camera size={16} />
+              </IconButton>
+              
+              <IconButton onClick={openSettings} tooltip="Settings" className="bg-gray-700/60 hover:bg-gray-600/80">
+                <Settings size={16} />
+              </IconButton>
+              
+              <div
+                className="ml-1 p-1.5 text-white/60 cursor-move hover:text-white/90 hover:bg-gray-600/40 rounded-lg transition-all duration-200"
+                onMouseDown={handleMouseDown}
+                title="Drag to move"
+                style={{ userSelect: 'none' }}
+              >
+                <Grip size={16} />
+              </div>
             </div>
           </div>
         </div>
@@ -506,8 +648,9 @@ function IconButton({ onClick, children, className = "", tooltip = "", disabled 
     <button
       onClick={handleClick}
       disabled={disabled}
-      className={`p-2 bg-white/15 backdrop-blur-sm rounded-xl text-white shadow-lg hover:bg-white/25 active:bg-white/35 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed border border-white/10 hover:border-white/20 ${className}`}
+      className={`p-2 bg-gray-800/50 backdrop-blur-sm rounded-xl text-white shadow-lg hover:bg-gray-700/60 active:bg-gray-600/70 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed border border-gray-600/30 hover:border-gray-500/40 ${className}`}
       title={tooltip}
+      aria-label={tooltip}
     >
       {children}
     </button>

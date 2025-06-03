@@ -18,7 +18,7 @@ impl Default for FakeWindowBounds {
     }
 }
 
-pub fn spawn_overlay_listener(app: AppHandle, window: WebviewWindow) {
+pub fn spawn_overlay_listener(app: AppHandle, window: WebviewWindow) -> tokio::task::JoinHandle<()> {
     window.set_ignore_cursor_events(true).ok();
 
     tokio::spawn(async move {
@@ -53,7 +53,9 @@ pub fn spawn_overlay_listener(app: AppHandle, window: WebviewWindow) {
                 window.scale_factor(),
             ) else {
                 if !last_ignore_state {
-                    let _ = window.set_ignore_cursor_events(true);
+                    if let Err(e) = window.set_ignore_cursor_events(true) {
+                        tracing::warn!("Failed to set ignore cursor events: {}", e);
+                    }
                     last_ignore_state = true;
                 }
                 continue;
@@ -78,17 +80,24 @@ pub fn spawn_overlay_listener(app: AppHandle, window: WebviewWindow) {
             }
 
             if ignore != last_ignore_state {
-                window.set_ignore_cursor_events(ignore).ok();
+                if let Err(e) = window.set_ignore_cursor_events(ignore) {
+                    tracing::warn!("Failed to set ignore cursor events: {}", e);
+                }
                 last_ignore_state = ignore;
             }
 
             let focused = window.is_focused().unwrap_or(false);
-            if !ignore && !focused && !last_focus_state {
-                window.set_focus().ok();
-                last_focus_state = true;
-            } else if ignore && last_focus_state {
+            if !ignore && !focused {
+                // Only try to set focus if we haven't already done so for this hover state
+                if !last_focus_state {
+                    if window.set_focus().is_ok() {
+                        last_focus_state = true;
+                    }
+                }
+            } else if ignore || focused {
+                // Reset focus state when cursor leaves or window gains focus naturally
                 last_focus_state = false;
             }
         }
-    });
+    })
 }

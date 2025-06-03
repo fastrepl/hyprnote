@@ -9,7 +9,6 @@ Default permissions for the plugin
 - `allow-window-hide`
 - `allow-window-destroy`
 - `allow-window-position`
-- `allow-window-resize-default`
 - `allow-window-get-floating`
 - `allow-window-set-floating`
 - `allow-window-navigate`

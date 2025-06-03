@@ -1,7 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { MicIcon, MicOffIcon, PauseIcon, PlayIcon, StopCircleIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
@@ -14,7 +14,6 @@ import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
-import { listen, emit } from "@tauri-apps/api/event";
 import ShinyButton from "./shiny-button";
 
 export default function ListenButton({ sessionId }: { sessionId: string }) {
@@ -321,83 +320,4 @@ function AudioControlButton({
       {!disabled && <SoundIndicator input={type} size="long" />}
     </Button>
   );
-}
-
-function useConsentManagement(isOnboarding: boolean) {
-  const ongoingSessionStore = useOngoingSession((s) => ({
-    hasShownConsent: s.hasShownConsent,
-    setHasShownConsent: s.setHasShownConsent,
-  }));
-
-  const effectiveHasShownConsent = isOnboarding ? true : ongoingSessionStore.hasShownConsent;
-  const showConsent = !effectiveHasShownConsent && !isOnboarding;
-
-  return {
-    showConsent,
-    setHasShownConsent: ongoingSessionStore.setHasShownConsent,
-  };
-}
-
-function useAudioControls() {
-  const { data: isMicMuted, refetch: refetchMicMuted } = useQuery({
-    queryKey: ["mic-muted"],
-    queryFn: () => listenerCommands.getMicMuted(),
-  });
-
-  const { data: isSpeakerMuted, refetch: refetchSpeakerMuted } = useQuery({
-    queryKey: ["speaker-muted"],
-    queryFn: () => listenerCommands.getSpeakerMuted(),
-  });
-
-  useEffect(() => {
-    const unsubscribeMicState = listen<{ muted: boolean }>("audio-mic-state-changed", ({ payload }) => {
-      console.log(`[Main Window] Received mic state change:`, payload);
-      refetchMicMuted();
-    });
-    
-    const unsubscribeSpeakerState = listen<{ muted: boolean }>("audio-speaker-state-changed", ({ payload }) => {
-      console.log(`[Main Window] Received speaker state change:`, payload);
-      refetchSpeakerMuted();
-    });
-    
-    return () => {
-      unsubscribeMicState.then(unlisten => unlisten());
-      unsubscribeSpeakerState.then(unlisten => unlisten());
-    };
-  }, [refetchMicMuted, refetchSpeakerMuted]);
-
-  const toggleMicMuted = useMutation({
-    mutationFn: async () => {
-      const newMuted = !isMicMuted;
-      await listenerCommands.setMicMuted(newMuted);
-      await emit("audio-mic-state-changed", { muted: newMuted });
-      return newMuted;
-    },
-    onSuccess: () => refetchMicMuted(),
-    onError: (error) => {
-      console.error('Failed to toggle microphone mute:', error);
-    },
-  });
-
-  const toggleSpeakerMuted = useMutation({
-    mutationFn: async () => {
-      const newMuted = !isSpeakerMuted;
-      await listenerCommands.setSpeakerMuted(newMuted);
-      await emit("audio-speaker-state-changed", { muted: newMuted });
-      return newMuted;
-    },
-    onSuccess: () => refetchSpeakerMuted(),
-    onError: (error) => {
-      console.error('Failed to toggle speaker mute:', error);
-    },
-  });
-
-  return {
-    isMicMuted,
-    isSpeakerMuted,
-    toggleMicMuted,
-    toggleSpeakerMuted,
-    refetchSpeakerMuted,
-    refetchMicMuted,
-  };
 }

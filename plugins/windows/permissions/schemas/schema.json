@@ -475,10 +475,10 @@
           "markdownDescription": "Denies the window_show command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-close`\n- `allow-window-hide`\n- `allow-window-destroy`\n- `allow-window-position`\n- `allow-window-resize-default`\n- `allow-window-get-floating`\n- `allow-window-set-floating`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-window-is-visible`\n- `allow-window-set-overlay-bounds`\n- `allow-window-remove-overlay-bounds`\n- `allow-set-fake-window-bounds`\n- `allow-remove-fake-window`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-close`\n- `allow-window-hide`\n- `allow-window-destroy`\n- `allow-window-position`\n- `allow-window-get-floating`\n- `allow-window-set-floating`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-window-is-visible`\n- `allow-window-set-overlay-bounds`\n- `allow-window-remove-overlay-bounds`\n- `allow-set-fake-window-bounds`\n- `allow-remove-fake-window`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-close`\n- `allow-window-hide`\n- `allow-window-destroy`\n- `allow-window-position`\n- `allow-window-resize-default`\n- `allow-window-get-floating`\n- `allow-window-set-floating`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-window-is-visible`\n- `allow-window-set-overlay-bounds`\n- `allow-window-remove-overlay-bounds`\n- `allow-set-fake-window-bounds`\n- `allow-remove-fake-window`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-close`\n- `allow-window-hide`\n- `allow-window-destroy`\n- `allow-window-position`\n- `allow-window-get-floating`\n- `allow-window-set-floating`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-window-is-visible`\n- `allow-window-set-overlay-bounds`\n- `allow-window-remove-overlay-bounds`\n- `allow-set-fake-window-bounds`\n- `allow-remove-fake-window`"
         }
       ]
     }

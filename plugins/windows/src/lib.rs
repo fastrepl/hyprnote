@@ -12,14 +12,15 @@ pub use overlay::{FakeWindowBounds, OverlayBound};
 
 const PLUGIN_NAME: &str = "windows";
 
-use tauri::Manager;
-use std::sync::Mutex;
 use once_cell::sync::Lazy;
+use std::sync::Mutex;
+use tauri::Manager;
 use uuid::Uuid;
 
 pub type ManagedState = std::sync::Mutex<State>;
 
-static OVERLAY_JOIN_HANDLE: Lazy<Mutex<Option<tokio::task::JoinHandle<()>>>> = Lazy::new(|| Mutex::new(None));
+static OVERLAY_JOIN_HANDLE: Lazy<Mutex<Option<tokio::task::JoinHandle<()>>>> =
+    Lazy::new(|| Mutex::new(None));
 
 pub fn set_overlay_join_handle(handle: tokio::task::JoinHandle<()>) {
     if let Ok(mut guard) = OVERLAY_JOIN_HANDLE.lock() {

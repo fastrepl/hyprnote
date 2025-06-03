@@ -18,7 +18,10 @@ impl Default for FakeWindowBounds {
     }
 }
 
-pub fn spawn_overlay_listener(app: AppHandle, window: WebviewWindow) -> tokio::task::JoinHandle<()> {
+pub fn spawn_overlay_listener(
+    app: AppHandle,
+    window: WebviewWindow,
+) -> tokio::task::JoinHandle<()> {
     window.set_ignore_cursor_events(true).ok();
 
     tokio::spawn(async move {

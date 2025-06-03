@@ -145,7 +145,7 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
           }
         }, 1500);
       }).catch((error) => {
-        console.error('Failed to stop session:', error);
+        console.error("Failed to stop session:", error);
         set((state) =>
           mutate(state, (draft) => {
             draft.loading = false;
@@ -179,7 +179,7 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
           }
         }, 1500);
       }).catch((error) => {
-        console.error('Failed to pause session:', error);
+        console.error("Failed to pause session:", error);
         set((state) =>
           mutate(state, (draft) => {
             draft.loading = false;
@@ -202,7 +202,7 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
           })
         );
       }).catch((error) => {
-        console.error('Failed to resume session:', error);
+        console.error("Failed to resume session:", error);
         set((state) =>
           mutate(state, (draft) => {
             draft.loading = false;

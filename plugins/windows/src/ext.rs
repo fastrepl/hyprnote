@@ -199,7 +199,7 @@ impl HyprWindow {
         match self {
             HyprWindow::Control => {
                 crate::abort_overlay_join_handle();
-                
+
                 #[cfg(target_os = "macos")]
                 {
                     use tauri_nspanel::ManagerExt;
@@ -210,7 +210,11 @@ impl HyprWindow {
                                 panel.set_released_when_closed(true);
                                 panel.close();
                             }
-                        }).map_err(|e| tracing::warn!("Failed to run panel close on main thread: {}", e)).ok();
+                        })
+                        .map_err(|e| {
+                            tracing::warn!("Failed to run panel close on main thread: {}", e)
+                        })
+                        .ok();
                     }
                 }
                 #[cfg(not(target_os = "macos"))]
@@ -279,7 +283,9 @@ impl HyprWindow {
             return Ok(window);
         }
 
-        let monitor = app.primary_monitor()?.ok_or_else(|| crate::Error::MonitorNotFound)?;
+        let monitor = app
+            .primary_monitor()?
+            .ok_or_else(|| crate::Error::MonitorNotFound)?;
 
         let window = match self {
             Self::Main => {
@@ -337,22 +343,26 @@ impl HyprWindow {
             Self::Control => {
                 let window_width = (monitor.size().width as f64) / monitor.scale_factor();
                 let window_height = (monitor.size().height as f64) / monitor.scale_factor();
-                
-                let mut builder = WebviewWindow::builder(app, self.label(), WebviewUrl::App("/app/control".into()))
-                    .title("")
-                    .disable_drag_drop_handler()
-                    .maximized(false)
-                    .resizable(false)
-                    .fullscreen(false)
-                    .shadow(false)
-                    .always_on_top(true)
-                    .visible_on_all_workspaces(true)
-                    .accept_first_mouse(true)
-                    .content_protected(true)
-                    .inner_size(window_width, window_height)
-                    .skip_taskbar(true)
-                    .position(0.0, 0.0)
-                    .transparent(true);
+
+                let mut builder = WebviewWindow::builder(
+                    app,
+                    self.label(),
+                    WebviewUrl::App("/app/control".into()),
+                )
+                .title("")
+                .disable_drag_drop_handler()
+                .maximized(false)
+                .resizable(false)
+                .fullscreen(false)
+                .shadow(false)
+                .always_on_top(true)
+                .visible_on_all_workspaces(true)
+                .accept_first_mouse(true)
+                .content_protected(true)
+                .inner_size(window_width, window_height)
+                .skip_taskbar(true)
+                .position(0.0, 0.0)
+                .transparent(true);
 
                 #[cfg(target_os = "macos")]
                 {
@@ -376,23 +386,23 @@ impl HyprWindow {
                         move || {
                             use objc2::runtime::AnyObject;
                             use objc2::msg_send;
-                            
+
                             // Hide traffic lights using cocoa APIs
                             if let Ok(ns_window) = window.ns_window() {
                                 unsafe {
                                     let ns_window = ns_window as *mut AnyObject;
                                     let ns_window = &*ns_window;
-                                    
+
                                     // NSWindow button type constants
                                     const NS_WINDOW_CLOSE_BUTTON: u64 = 0;
                                     const NS_WINDOW_MINIATURIZE_BUTTON: u64 = 1;
                                     const NS_WINDOW_ZOOM_BUTTON: u64 = 2;
-                                    
+
                                     // Get and hide the standard window buttons
                                     let close_button: *mut AnyObject = msg_send![ns_window, standardWindowButton: NS_WINDOW_CLOSE_BUTTON];
                                     let miniaturize_button: *mut AnyObject = msg_send![ns_window, standardWindowButton: NS_WINDOW_MINIATURIZE_BUTTON];
                                     let zoom_button: *mut AnyObject = msg_send![ns_window, standardWindowButton: NS_WINDOW_ZOOM_BUTTON];
-                                    
+
                                     if !close_button.is_null() {
                                         let _: () = msg_send![close_button, setHidden: true];
                                     }
@@ -402,7 +412,7 @@ impl HyprWindow {
                                     if !zoom_button.is_null() {
                                         let _: () = msg_send![zoom_button, setHidden: true];
                                     }
-                                    
+
                                     // Make title bar transparent instead of changing style mask
                                     let _: () = msg_send![ns_window, setTitlebarAppearsTransparent: true];
                                     let _: () = msg_send![ns_window, setMovableByWindowBackground: true];
@@ -414,14 +424,14 @@ impl HyprWindow {
 
                 let join_handle = crate::spawn_overlay_listener(app.clone(), window.clone());
                 crate::set_overlay_join_handle(join_handle);
-                
+
                 // Cancel the overlay listener when the window is closed
                 window.on_window_event(move |event| {
                     if let tauri::WindowEvent::CloseRequested { .. } = event {
                         crate::abort_overlay_join_handle();
                     }
                 });
-                
+
                 window
             }
         };

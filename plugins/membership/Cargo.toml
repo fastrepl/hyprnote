@@ -1,0 +1,19 @@
+[package]
+name = "tauri-plugin-membership"
+version = "0.1.0"
+authors = ["You"]
+edition = "2021"
+exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules"]
+links = "tauri-plugin-membership"
+rust-version = "1.77.2"
+description = ""
+
+[dependencies]
+serde = { workspace = true }
+tauri = { workspace = true }
+thiserror = { workspace = true }
+
+keygen-rs = { version = "0.4.3", default-features = false, features = ["native-tls"] }
+
+[build-dependencies]
+tauri-plugin = { version = "2.2.0", features = ["build"] }

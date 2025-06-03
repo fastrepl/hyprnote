@@ -273,7 +273,7 @@ function useFloatingPosition(toolbarRef: React.RefObject<HTMLDivElement>) {
         const parsed = JSON.parse(savedPosition);
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
-        
+
         const margin = 50;
 
         if (

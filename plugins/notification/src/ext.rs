@@ -70,7 +70,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         let db_state = self.state::<tauri_plugin_db::ManagedState>();
         let (db, user_id) = {
             let guard = db_state.lock().await;
-            (guard.db.clone().unwrap(), guard.user_id.clone().unwrap())
+            (
+                guard.db.clone().expect("db"),
+                guard.user_id.clone().expect("user_id"),
+            )
         };
 
         let state = self.state::<crate::SharedState>();

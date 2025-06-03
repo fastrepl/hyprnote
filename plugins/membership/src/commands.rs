@@ -1,13 +1,5 @@
-use tauri::{command, AppHandle, Runtime};
-
-use crate::models::*;
-use crate::MembershipExt;
-use crate::Result;
-
-#[command]
-pub(crate) async fn ping<R: Runtime>(
-    app: AppHandle<R>,
-    payload: PingRequest,
-) -> Result<PingResponse> {
-    app.membership().ping(payload)
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn check<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
+    Ok("pong".to_string())
 }

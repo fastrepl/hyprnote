@@ -13785,9 +13785,17 @@ name = "tauri-plugin-membership"
 version = "0.1.0"
 dependencies = [
  "keygen-rs",
+ "schemars",
  "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-store",
+ "tauri-plugin-store2",
+ "tauri-specta",
  "thiserror 2.0.12",
 ]
 

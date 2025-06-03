@@ -1,48 +1,58 @@
-use tauri::{
-    plugin::{Builder, TauriPlugin},
-    Manager, Runtime,
-};
-
-pub use models::*;
-
-#[cfg(desktop)]
-mod desktop;
-#[cfg(mobile)]
-mod mobile;
-
 mod commands;
 mod error;
-mod models;
+mod ext;
+mod store;
 
-pub use error::{Error, Result};
+pub use error::*;
+pub use ext::*;
+pub use store::*;
 
-#[cfg(desktop)]
-use desktop::Membership;
-#[cfg(mobile)]
-use mobile::Membership;
+const PLUGIN_NAME: &str = "membership";
 
-/// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the membership APIs.
-pub trait MembershipExt<R: Runtime> {
-    fn membership(&self) -> &Membership<R>;
+fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
+    tauri_specta::Builder::<R>::new()
+        .plugin_name(PLUGIN_NAME)
+        .commands(tauri_specta::collect_commands![
+            commands::check::<tauri::Wry>,
+        ])
+        .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
-impl<R: Runtime, T: Manager<R>> crate::MembershipExt<R> for T {
-    fn membership(&self) -> &Membership<R> {
-        self.state::<Membership<R>>().inner()
-    }
-}
+pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
+    let specta_builder = make_specta_builder();
 
-/// Initializes the plugin.
-pub fn init<R: Runtime>() -> TauriPlugin<R> {
-    Builder::new("membership")
-        .invoke_handler(tauri::generate_handler![commands::ping])
-        .setup(|app, api| {
-            #[cfg(mobile)]
-            let membership = mobile::init(app, api)?;
-            #[cfg(desktop)]
-            let membership = desktop::init(app, api)?;
-            app.manage(membership);
-            Ok(())
-        })
+    tauri::plugin::Builder::new(PLUGIN_NAME)
+        .invoke_handler(specta_builder.invoke_handler())
         .build()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn export_types() {
+        make_specta_builder::<tauri::Wry>()
+            .export(
+                specta_typescript::Typescript::default()
+                    .header("// @ts-nocheck\n\n")
+                    .formatter(specta_typescript::formatter::prettier)
+                    .bigint(specta_typescript::BigIntExportBehavior::Number),
+                "./js/bindings.gen.ts",
+            )
+            .unwrap()
+    }
+
+    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
+        builder
+            .plugin(init())
+            .plugin(tauri_plugin_store::Builder::default().build())
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap()
+    }
+
+    #[test]
+    fn test_membership() {
+        let _app = create_app(tauri::test::mock_builder());
+    }
 }

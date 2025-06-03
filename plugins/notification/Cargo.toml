@@ -37,3 +37,5 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 apalis = { workspace = true }
 apalis-cron = { workspace = true }
 chrono = { workspace = true }
+
+keygen-rs = { version = "0.4.3", default-features = false, features = ["native-tls"] }

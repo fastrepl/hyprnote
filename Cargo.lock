@@ -13830,6 +13830,7 @@ dependencies = [
  "chrono",
  "db-user",
  "detect",
+ "keygen-rs",
  "notification2",
  "serde",
  "serde_json",

@@ -31,34 +31,6 @@
   text-align: left;
 }
 
-.transcript-word {
-  position: relative;
-  display: inline;
-  border-radius: 3px;
-  background-color: transparent;
-  transition: background-color 0.15s ease, box-shadow 0.15s ease;
-  line-height: 1;
-}
-
-.transcript-word::after {
-  content: " ";
-}
-
-.transcript-speaker > .transcript-word:last-child::after {
-  content: "";
-}
-
-.transcript-word:hover {
-  background-color: rgba(217, 232, 251, 0.7);
-  box-shadow: 0 0 0 1px #b8d5fa;
-}
-
-.ProseMirror[contenteditable="false"] .transcript-word:hover {
-  background-color: transparent;
-  box-shadow: none;
-  cursor: default;
-}
-
 .ProseMirror {
   outline: none;
 }

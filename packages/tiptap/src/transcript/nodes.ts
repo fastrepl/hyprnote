@@ -177,7 +177,7 @@ export const SpeakerNode = (c: SpeakerViewInnerComponent) => {
   return Node.create({
     name: "speaker",
     group: "block",
-    content: "word*",
+    content: "inline*",
     addAttributes() {
       return {
         "speaker-index": {
@@ -228,87 +228,3 @@ export const SpeakerNode = (c: SpeakerViewInnerComponent) => {
     },
   });
 };
-
-const WORD_NODE_NAME = "word";
-
-export const WordNode = Node.create({
-  name: WORD_NODE_NAME,
-  group: "inline",
-  inline: true,
-  atom: false,
-  content: "text*",
-  addAttributes() {
-    return {
-      start_ms: {
-        default: null,
-        parseHTML: element => {
-          const value = element.getAttribute("data-start-ms");
-          return value !== null ? Number(value) : null;
-        },
-        renderHTML: attributes => attributes.start_ms != null ? { "data-start-ms": attributes.start_ms } : {},
-      },
-      end_ms: {
-        default: null,
-        parseHTML: element => {
-          const value = element.getAttribute("data-end-ms");
-          return value !== null ? Number(value) : null;
-        },
-        renderHTML: attributes => attributes.end_ms != null ? { "data-end-ms": attributes.end_ms } : {},
-      },
-      confidence: {
-        default: null,
-        parseHTML: element => {
-          const value = element.getAttribute("data-confidence");
-          return value !== null ? Number(value) : null;
-        },
-        renderHTML: attributes => attributes.confidence != null ? { "data-confidence": attributes.confidence } : {},
-      },
-    };
-  },
-  parseHTML() {
-    return [{ tag: "span.transcript-word" }];
-  },
-  renderHTML({ HTMLAttributes }) {
-    return ["span", mergeAttributes({ class: "transcript-word" }, HTMLAttributes), 0];
-  },
-  addKeyboardShortcuts() {
-    return {
-      Backspace: ({ editor }) => {
-        const { state, view } = editor;
-        const { selection } = state;
-
-        if (selection.empty || selection.$from.pos === selection.$to.pos) {
-          return false;
-        }
-
-        const wordsToDelete = new Set<number>();
-
-        state.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
-          if (node.type.name === WORD_NODE_NAME) {
-            wordsToDelete.add(pos);
-          }
-          return true;
-        });
-
-        if (wordsToDelete.size > 1) {
-          const tr = state.tr;
-          const positions = Array.from(wordsToDelete).sort((a: number, b: number) => b - a);
-
-          for (const pos of positions) {
-            const $resolvedPos = state.doc.resolve(pos);
-            const nodeToDelete = $resolvedPos.nodeAfter;
-
-            if (nodeToDelete && nodeToDelete.type.name === "word") {
-              tr.delete(pos, pos + nodeToDelete.nodeSize);
-            }
-          }
-
-          view.dispatch(tr);
-          return true;
-        }
-
-        return false;
-      },
-    };
-  },
-});

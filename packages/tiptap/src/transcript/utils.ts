@@ -14,7 +14,7 @@ const SPEAKER_LABEL_ATTR = "speaker-label";
 
 type SpeakerContent = {
   type: "speaker";
-  content: WordContent[];
+  content: { type: "text"; text: string }[];
   attrs: {
     [SPEAKER_INDEX_ATTR]: number | null;
     [SPEAKER_ID_ATTR]: string | null;
@@ -22,20 +22,10 @@ type SpeakerContent = {
   };
 };
 
-type WordContent = {
-  type: "word";
-  content: { type: "text"; text: string }[];
-  attrs?: {
-    start_ms?: number | null;
-    end_ms?: number | null;
-    confidence?: number | null;
-  };
-};
-
 export const fromWordsToEditor = (words: Word[]): DocContent => {
   return {
     type: "doc",
-    content: words.reduce<{ cur: SpeakerIdentity | null; acc: SpeakerContent[] }>((state, word) => {
+    content: words.reduce<{ cur: SpeakerIdentity | null; acc: SpeakerContent[] }>((state, word, index) => {
       const isFirst = state.acc.length === 0;
 
       const isSameSpeaker = (!state.cur && !word.speaker)
@@ -58,16 +48,13 @@ export const fromWordsToEditor = (words: Word[]): DocContent => {
         });
       }
 
-      if (state.acc.length > 0) {
-        state.acc[state.acc.length - 1].content.push({
-          type: "word",
-          content: [{ type: "text", text: word.text }],
-          attrs: {
-            confidence: word.confidence ?? null,
-            start_ms: word.start_ms ?? null,
-            end_ms: word.end_ms ?? null,
-          },
-        });
+      const lastSpeaker = state.acc[state.acc.length - 1];
+
+      // If there's already text content, add a space before the new word
+      if (lastSpeaker.content.length > 0 && lastSpeaker.content[0].text) {
+        lastSpeaker.content[0].text += " " + word.text;
+      } else {
+        lastSpeaker.content.push({ type: "text", text: word.text });
       }
 
       return state;
@@ -107,17 +94,20 @@ export const fromEditorToWords = (content: DocContent | JSONContent): Word[] => 
       };
     }
 
-    for (const wordBlock of speakerBlock.content) {
-      if (wordBlock.type !== "word" || !wordBlock.content?.[0]?.text) {
-        continue;
-      }
-      const wordAttrs = wordBlock.attrs || {};
+    const textContent = speakerBlock.content
+      .filter(node => node.type === "text")
+      .map(node => node.text || "")
+      .join("");
+
+    const wordTexts = textContent.split(/\s+/).filter(Boolean);
+
+    for (const wordText of wordTexts) {
       words.push({
-        text: wordBlock.content[0].text,
+        text: wordText,
         speaker,
-        confidence: wordAttrs.confidence ?? null,
-        start_ms: wordAttrs.start_ms ?? null,
-        end_ms: wordAttrs.end_ms ?? null,
+        confidence: null,
+        start_ms: null,
+        end_ms: null,
       });
     }
   }

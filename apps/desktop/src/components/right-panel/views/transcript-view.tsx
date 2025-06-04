@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
 import { AudioLinesIcon, CheckIcon, ClipboardIcon, CopyIcon, TextSearchIcon, UploadIcon } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
@@ -332,14 +333,22 @@ function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any> }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [replaceTerm, setReplaceTerm] = useState("");
 
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.editor.commands.setSearchTerm(searchTerm);
+  const debouncedSetSearchTerm = useDebouncedCallback(
+    (value: string) => {
+      if (editorRef.current) {
+        editorRef.current.editor.commands.setSearchTerm(value);
 
-      if (searchTerm.substring(0, searchTerm.length - 1) === replaceTerm) {
-        setReplaceTerm(searchTerm);
+        if (value.substring(0, value.length - 1) === replaceTerm) {
+          setReplaceTerm(value);
+        }
       }
-    }
+    },
+    [editorRef, replaceTerm],
+    300,
+  );
+
+  useEffect(() => {
+    debouncedSetSearchTerm(searchTerm);
   }, [searchTerm]);
 
   useEffect(() => {

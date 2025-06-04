@@ -9,8 +9,8 @@ import Text from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect, useRef } from "react";
 
-import { SpeakerSplit, WordSplit } from "./extensions";
-import { SpeakerNode, WordNode } from "./nodes";
+import { SpeakerSplit } from "./extensions";
+import { SpeakerNode } from "./nodes";
 import { fromEditorToWords, fromWordsToEditor, type Word } from "./utils";
 import type { SpeakerChangeRange, SpeakerViewInnerComponent, SpeakerViewInnerProps } from "./views";
 
@@ -28,6 +28,7 @@ export interface TranscriptEditorRef {
   getWords: () => Word[] | null;
   setWords: (words: Word[]) => void;
   scrollToBottom: () => void;
+  appendWords: (newWords: Word[]) => void;
 }
 
 const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
@@ -38,9 +39,7 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
       Document.configure({ content: "speaker+" }),
       History,
       Text,
-      WordNode,
       SpeakerNode(c),
-      WordSplit,
       SpeakerSplit,
       SearchAndReplace.configure({
         searchResultClass: "search-result",
@@ -89,6 +88,24 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
             if (scrollContainerRef.current) {
               scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
             }
+          },
+          appendWords: (newWords: Word[]) => {
+            if (!editor || !newWords.length) {
+              return;
+            }
+
+            const jsonFragment = fromWordsToEditor(newWords).content;
+
+            if (!jsonFragment?.length) {
+              return;
+            }
+
+            const endPos = editor.state.doc.content.size;
+
+            editor
+              .chain()
+              .insertContentAt(endPos, jsonFragment)
+              .run();
           },
         };
       }

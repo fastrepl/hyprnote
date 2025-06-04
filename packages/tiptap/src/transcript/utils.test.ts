@@ -16,6 +16,18 @@ test("conversion", () => {
       start_ms: 0,
       end_ms: 1000,
     },
+    {
+      text: "world",
+      speaker: {
+        type: "unassigned",
+        value: {
+          index: 0,
+        },
+      },
+      confidence: 0.8,
+      start_ms: 1000,
+      end_ms: 2000,
+    },
   ];
 
   const editor = fromWordsToEditor(words);
@@ -26,18 +38,8 @@ test("conversion", () => {
         "type": "speaker",
         "content": [
           {
-            "attrs": {
-              "confidence": 0.5,
-              "end_ms": 1000,
-              "start_ms": 0,
-            },
-            "content": [
-              {
-                "text": "Hello",
-                "type": "text",
-              },
-            ],
-            "type": "word",
+            "text": "Hello world",
+            "type": "text",
           },
         ],
         "attrs": {
@@ -50,5 +52,30 @@ test("conversion", () => {
   });
 
   const words2 = fromEditorToWords(editor);
-  expect(words2).toEqual(words);
+  expect(words2).toEqual([
+    {
+      text: "Hello",
+      speaker: {
+        type: "unassigned",
+        value: {
+          index: 0,
+        },
+      },
+      confidence: null,
+      start_ms: null,
+      end_ms: null,
+    },
+    {
+      text: "world",
+      speaker: {
+        type: "unassigned",
+        value: {
+          index: 0,
+        },
+      },
+      confidence: null,
+      start_ms: null,
+      end_ms: null,
+    },
+  ]);
 });

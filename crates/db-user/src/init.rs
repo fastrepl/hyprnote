@@ -324,8 +324,8 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
                     &hypr_data::english_4::WORDS_JSON,
                 )
                 .unwrap();
-                let mut repeated = Vec::with_capacity(words.len() * 10);
-                for _ in 0..10 {
+                let mut repeated = Vec::with_capacity(words.len() * 100);
+                for _ in 0..100 {
                     repeated.extend(words.clone());
                 }
                 repeated

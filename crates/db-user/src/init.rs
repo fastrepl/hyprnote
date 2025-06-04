@@ -342,6 +342,10 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
                 "Just some random notes from last week.",
             )
             .unwrap(),
+            words: serde_json::from_str::<Vec<hypr_listener_interface::Word>>(
+                &hypr_data::english_4::WORDS_JSON,
+            )
+            .unwrap(),
             ..new_default_session(&user.id)
         },
         // Last month, linked to past Project Kickoff event

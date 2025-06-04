@@ -4,6 +4,7 @@ use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_store2::StorePluginExt;
 
 use hypr_file::{download_file_with_callback, DownloadProgress};
+use hypr_listener_interface::Word;
 
 pub trait LocalSttPluginExt<R: Runtime> {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
@@ -13,6 +14,12 @@ pub trait LocalSttPluginExt<R: Runtime> {
     fn stop_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
     fn get_current_model(&self) -> Result<crate::SupportedModel, crate::Error>;
     fn set_current_model(&self, model: crate::SupportedModel) -> Result<(), crate::Error>;
+
+    fn process_wav(
+        &self,
+        model_path: impl AsRef<std::path::Path>,
+        audio_path: impl AsRef<std::path::Path>,
+    ) -> impl Future<Output = Result<Vec<Word>, crate::Error>>;
 
     fn download_model(
         &self,
@@ -151,6 +158,51 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         }
 
         Ok(())
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn process_wav(
+        &self,
+        model_path: impl AsRef<std::path::Path>,
+        audio_path: impl AsRef<std::path::Path>,
+    ) -> Result<Vec<Word>, crate::Error> {
+        let mut wav = hound::WavReader::open(audio_path.as_ref()).unwrap();
+        let samples = wav.samples::<i16>().collect::<Result<Vec<_>, _>>().unwrap();
+
+        let mut model = hypr_whisper::local::Whisper::builder()
+            .model_path(model_path.as_ref().to_str().unwrap())
+            .language(hypr_whisper::Language::En)
+            .static_prompt("")
+            .dynamic_prompt("")
+            .build();
+
+        let mut segmenter = hypr_pyannote::local::segmentation::Segmenter::new(16000).unwrap();
+        let segments = segmenter.process(&samples, 16000).unwrap();
+
+        let mut words = Vec::new();
+
+        for segment in segments {
+            let audio_f32 = hypr_audio_utils::i16_to_f32_samples(&segment.samples);
+
+            let whisper_segments = model.transcribe(&audio_f32).unwrap();
+
+            for whisper_segment in whisper_segments {
+                let start_sec: f64 = segment.start + (whisper_segment.start() as f64);
+                let end_sec: f64 = segment.start + (whisper_segment.end() as f64);
+                let start_ms = (start_sec * 1000.0) as u64;
+                let end_ms = (end_sec * 1000.0) as u64;
+
+                words.push(Word {
+                    text: whisper_segment.text().to_string(),
+                    speaker: None,
+                    confidence: Some(whisper_segment.confidence()),
+                    start_ms: Some(start_ms),
+                    end_ms: Some(end_ms),
+                });
+            }
+        }
+
+        Ok(words)
     }
 
     #[tracing::instrument(skip_all)]

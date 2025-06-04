@@ -13746,17 +13746,21 @@ dependencies = [
 name = "tauri-plugin-local-stt"
 version = "0.1.0"
 dependencies = [
+ "audio-utils",
  "axum 0.8.4",
  "bytes",
  "chunker",
  "data",
  "db-user",
+ "dirs 6.0.0",
  "file",
  "futures-util",
+ "hound",
  "kalosm-common",
  "kalosm-sound",
  "language",
  "listener-interface",
+ "pyannote",
  "reqwest 0.12.15",
  "rodio",
  "serde",

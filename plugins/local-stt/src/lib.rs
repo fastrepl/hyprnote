@@ -118,4 +118,23 @@ mod test {
 
         app.stop_server().await.unwrap();
     }
+
+    #[tokio::test]
+    #[ignore]
+    // cargo test test_local_stt2 -p tauri-plugin-local-stt -- --ignored --nocapture
+    async fn test_local_stt2() {
+        let app = create_app(tauri::test::mock_builder());
+
+        let model_path = dirs::data_dir()
+            .unwrap()
+            .join("com.hyprnote.dev")
+            .join("ggml-tiny.en-q8_0.bin");
+
+        let words = app
+            .process_wav(model_path, hypr_data::english_1::AUDIO_PATH)
+            .await
+            .unwrap();
+
+        println!("{:?}", words);
+    }
 }

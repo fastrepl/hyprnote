@@ -113,9 +113,6 @@ async fn _sync_events(
 ) -> Result<EventSyncState, crate::Error> {
     let mut state = EventSyncState::default();
 
-    // Process existing events:
-    // 1. Delete events from unselected calendars that have no sessions
-    // 2. Delete events that no longer exist in the system calendar
     for (db_event, session) in db_events_with_session {
         let is_selected_cal = db_selected_calendars
             .iter()

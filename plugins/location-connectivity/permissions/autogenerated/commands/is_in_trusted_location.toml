@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-is-in-trusted-location"
+description = "Enables the is_in_trusted_location command without any pre-configured scope."
+commands.allow = ["is_in_trusted_location"]
+
+[[permission]]
+identifier = "deny-is-in-trusted-location"
+description = "Denies the is_in_trusted_location command without any pre-configured scope."
+commands.deny = ["is_in_trusted_location"]

@@ -270,11 +270,11 @@ msgstr ""
 msgid "{category}"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:77
+#: src/components/settings/views/lab.tsx:252
 msgid "{description}"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:74
+#: src/components/settings/views/lab.tsx:249
 msgid "{title}"
 msgstr ""
 
@@ -369,6 +369,10 @@ msgstr ""
 
 #: src/components/right-panel/components/chat/chat-message.tsx:18
 msgid "Assistant:"
+msgstr ""
+
+#: src/components/settings/views/lab.tsx:129
+msgid "Automatically switch to cloud AI when in trusted locations"
 msgstr ""
 
 #: src/routes/app.settings.tsx:49
@@ -696,6 +700,10 @@ msgstr ""
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:68
 msgid "Local mode"
+msgstr ""
+
+#: src/components/settings/views/lab.tsx:126
+msgid "Location-Based Connectivity"
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:39

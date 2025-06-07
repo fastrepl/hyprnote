@@ -3616,6 +3616,7 @@ dependencies = [
  "tauri-plugin-listener",
  "tauri-plugin-local-llm",
  "tauri-plugin-local-stt",
+ "tauri-plugin-location-connectivity",
  "tauri-plugin-machine-uid",
  "tauri-plugin-membership",
  "tauri-plugin-misc",
@@ -13537,6 +13538,7 @@ dependencies = [
  "tauri-plugin-flags",
  "tauri-plugin-local-llm",
  "tauri-plugin-local-stt",
+ "tauri-plugin-location-connectivity",
  "tauri-plugin-store2",
  "tauri-specta",
  "thiserror 2.0.12",
@@ -13789,6 +13791,27 @@ dependencies = [
  "tracing",
  "whisper",
  "ws-utils",
+]
+
+[[package]]
+name = "tauri-plugin-location-connectivity"
+version = "0.1.0"
+dependencies = [
+ "core-foundation 0.9.4",
+ "core-foundation-sys",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "system-configuration 0.6.1",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-store2",
+ "tauri-specta",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

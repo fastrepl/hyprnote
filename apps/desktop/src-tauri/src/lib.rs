@@ -75,6 +75,7 @@ pub async fn main() {
         .plugin(tauri_plugin_local_llm::init())
         .plugin(tauri_plugin_local_stt::init())
         .plugin(tauri_plugin_connector::init())
+        .plugin(tauri_plugin_location_connectivity::init())
         .plugin(tauri_plugin_flags::init())
         .plugin(tauri_plugin_sentry::init(&client))
         .plugin(tauri_plugin_os::init())

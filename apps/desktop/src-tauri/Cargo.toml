@@ -36,6 +36,7 @@ tauri-plugin-flags = { workspace = true }
 tauri-plugin-listener = { workspace = true }
 tauri-plugin-local-llm = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
+tauri-plugin-location-connectivity = { workspace = true }
 tauri-plugin-machine-uid = { workspace = true }
 tauri-plugin-membership = { workspace = true }
 tauri-plugin-misc = { workspace = true }

@@ -17,6 +17,7 @@ specta-typescript = { workspace = true }
 tauri-plugin-auth = { workspace = true }
 tauri-plugin-local-llm = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
+tauri-plugin-location-connectivity = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-plugin-flags = { workspace = true }

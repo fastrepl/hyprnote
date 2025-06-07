@@ -1,0 +1,12 @@
+[default]
+description = "Default permissions for the location-connectivity plugin"
+permissions = [
+    "allow-get-current-ssid",
+    "allow-get-trusted-ssids",
+    "allow-add-trusted-ssid",
+    "allow-remove-trusted-ssid",
+    "allow-is-location-based-enabled",
+    "allow-set-location-based-enabled",
+    "allow-is-in-trusted-location",
+    "allow-get-location-status",
+]

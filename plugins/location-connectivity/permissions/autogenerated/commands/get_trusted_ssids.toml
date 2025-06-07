@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-trusted-ssids"
+description = "Enables the get_trusted_ssids command without any pre-configured scope."
+commands.allow = ["get_trusted_ssids"]
+
+[[permission]]
+identifier = "deny-get-trusted-ssids"
+description = "Denies the get_trusted_ssids command without any pre-configured scope."
+commands.deny = ["get_trusted_ssids"]

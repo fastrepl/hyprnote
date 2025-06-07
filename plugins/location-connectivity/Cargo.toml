@@ -1,0 +1,32 @@
+[package]
+name = "tauri-plugin-location-connectivity"
+version = "0.1.0"
+authors = ["Hyprnote Team <hello@hyprnote.com>"]
+edition = "2021"
+exclude = ["/js", "/node_modules"]
+links = "tauri-plugin-location-connectivity"
+description = "Location-based connectivity plugin for automatic model switching"
+
+[build-dependencies]
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+
+[dependencies]
+tauri = { workspace = true, features = ["test"] }
+tauri-plugin-store2 = { workspace = true }
+tauri-specta = { workspace = true }
+specta = "2.0.0-rc.22"
+specta-typescript = "0.0.9"
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-foundation = "0.9"
+core-foundation-sys = "0.8"
+system-configuration = "0.6"

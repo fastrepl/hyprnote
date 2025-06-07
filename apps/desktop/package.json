@@ -26,6 +26,7 @@
     "@hypr/plugin-db": "workspace:^",
     "@hypr/plugin-flags": "workspace:^",
     "@hypr/plugin-listener": "workspace:^",
+    "@hypr/plugin-location-connectivity": "workspace:^",
     "@hypr/plugin-local-llm": "workspace:^",
     "@hypr/plugin-local-stt": "workspace:^",
     "@hypr/plugin-membership": "workspace:^",

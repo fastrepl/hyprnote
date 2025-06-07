@@ -136,8 +136,7 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       listenerCommands.stopSession().then(() => {
         set(initialState);
 
-        // We need refresh since session in store is now stale.
-        // setTimeout is needed because of debounce.
+        // Refresh stale session data after debounce delay
         setTimeout(() => {
           if (sessionId) {
             const sessionStore = sessionsStore.getState().sessions[sessionId];
@@ -170,8 +169,7 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
           })
         );
 
-        // We need refresh since session in store is now stale.
-        // setTimeout is needed because of debounce.
+        // Refresh stale session data after debounce delay
         setTimeout(() => {
           if (sessionId) {
             const sessionStore = sessionsStore.getState().sessions[sessionId];

@@ -22,6 +22,8 @@ pub trait ConnectorPluginExt<R: tauri::Runtime> {
 
     fn get_llm_connection(&self) -> impl Future<Output = Result<ConnectionLLM, crate::Error>>;
     fn get_stt_connection(&self) -> impl Future<Output = Result<ConnectionSTT, crate::Error>>;
+
+    fn should_use_cloud_for_location(&self) -> impl Future<Output = bool>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
@@ -129,20 +131,25 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
             use tauri_plugin_auth::{AuthPluginExt, StoreKey, VaultKey};
 
             if let Ok(Some(_)) = self.get_from_store(StoreKey::AccountId) {
-                let api_base = if cfg!(debug_assertions) {
-                    "http://127.0.0.1:1234".to_string()
-                } else {
-                    "https://app.hyprnote.com".to_string()
-                };
+                let should_use_cloud = self.should_use_cloud_for_location().await;
+                
+                if should_use_cloud {
+                    let api_base = if cfg!(debug_assertions) {
+                        "http://127.0.0.1:1234".to_string()
+                    } else {
+                        "https://app.hyprnote.com".to_string()
+                    };
 
-                let api_key = if cfg!(debug_assertions) {
-                    None
-                } else {
-                    self.get_from_vault(VaultKey::RemoteServer)?
-                };
+                    let api_key = if cfg!(debug_assertions) {
+                        None
+                    } else {
+                        self.get_from_vault(VaultKey::RemoteServer)?
+                    };
 
-                let conn = ConnectionLLM::HyprCloud(Connection { api_base, api_key });
-                return Ok(conn);
+                    let conn = ConnectionLLM::HyprCloud(Connection { api_base, api_key });
+                    return Ok(conn);
+                } else {
+                }
             }
         }
 
@@ -191,20 +198,25 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
             use tauri_plugin_auth::{AuthPluginExt, StoreKey, VaultKey};
 
             if let Ok(Some(_)) = self.get_from_store(StoreKey::AccountId) {
-                let api_base = if cfg!(debug_assertions) {
-                    "http://127.0.0.1:1234".to_string()
-                } else {
-                    "https://app.hyprnote.com".to_string()
-                };
+                let should_use_cloud = self.should_use_cloud_for_location().await;
+                
+                if should_use_cloud {
+                    let api_base = if cfg!(debug_assertions) {
+                        "http://127.0.0.1:1234".to_string()
+                    } else {
+                        "https://app.hyprnote.com".to_string()
+                    };
 
-                let api_key = if cfg!(debug_assertions) {
-                    None
-                } else {
-                    self.get_from_vault(VaultKey::RemoteServer)?
-                };
+                    let api_key = if cfg!(debug_assertions) {
+                        None
+                    } else {
+                        self.get_from_vault(VaultKey::RemoteServer)?
+                    };
 
-                let conn = ConnectionSTT::HyprCloud(Connection { api_base, api_key });
-                return Ok(conn);
+                    let conn = ConnectionSTT::HyprCloud(Connection { api_base, api_key });
+                    return Ok(conn);
+                } else {
+                }
             }
         }
 
@@ -225,6 +237,19 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
             });
             Ok(conn)
         }
+    }
+
+    async fn should_use_cloud_for_location(&self) -> bool {
+        // Try to check location-connectivity status
+        // If plugin is not available or location-based connectivity is disabled, default to cloud
+        if let Some(location_state) = self.try_state::<tauri_plugin_location_connectivity::LocationConnectivityState<tauri::Wry>>() {
+            if let Ok(status) = location_state.get_location_status().await {
+                return status.should_use_cloud;
+            }
+        }
+        
+        // Default to cloud if location-connectivity is not available
+        true
     }
 }
 

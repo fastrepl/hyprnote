@@ -262,7 +262,7 @@ msgid "{0}"
 msgstr ""
 
 #. placeholder {0}: calendarsQuery.data?.selectedCount ?? 0
-#: src/components/settings/components/calendar/calendar-selector.tsx:91
+#: src/components/settings/components/calendar/calendar-selector.tsx:86
 msgid "{0} calendars selected"
 msgstr ""
 
@@ -346,11 +346,11 @@ msgstr ""
 msgid "Anyone with the link can view this page"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:197
+#: src/components/settings/components/ai/llm-view.tsx:199
 msgid "API Base URL"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:223
+#: src/components/settings/components/ai/llm-view.tsx:225
 msgid "API Key"
 msgstr ""
 
@@ -442,7 +442,7 @@ msgstr ""
 msgid "Connect"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:177
+#: src/components/settings/components/ai/llm-view.tsx:179
 msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 msgstr ""
 
@@ -488,13 +488,13 @@ msgstr ""
 msgid "Current Plan"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:174
+#: src/components/settings/components/ai/llm-view.tsx:176
 msgid "Custom Endpoint"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:149
-msgid "Default (llama-3.2-3b-q4)"
-msgstr ""
+#~ msgid "Default (llama-3.2-3b-q4)"
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:86
 #: src/components/settings/views/team.tsx:165
@@ -551,11 +551,11 @@ msgstr ""
 msgid "Enter a section title"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:226
+#: src/components/settings/components/ai/llm-view.tsx:228
 msgid "Enter the API key for your custom LLM endpoint"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:200
+#: src/components/settings/components/ai/llm-view.tsx:202
 msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)"
 msgstr ""
 
@@ -681,7 +681,7 @@ msgstr ""
 msgid "Live summary of the meeting"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:259
+#: src/components/settings/components/ai/llm-view.tsx:261
 msgid "Loading available models..."
 msgstr ""
 
@@ -690,7 +690,7 @@ msgid "Loading events..."
 msgstr ""
 
 #: src/components/workspace-calendar/event-card.tsx:163
-#: src/components/settings/components/calendar/calendar-selector.tsx:100
+#: src/components/settings/components/calendar/calendar-selector.tsx:95
 msgid "Loading..."
 msgstr ""
 
@@ -723,7 +723,7 @@ msgstr ""
 msgid "Microphone Access"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:248
+#: src/components/settings/components/ai/llm-view.tsx:250
 msgid "Model Name"
 msgstr ""
 
@@ -752,7 +752,7 @@ msgstr ""
 msgid "New window"
 msgstr ""
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:106
+#: src/components/settings/components/calendar/calendar-selector.tsx:101
 msgid "No calendars found"
 msgstr ""
 
@@ -760,7 +760,7 @@ msgstr ""
 msgid "No members found"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:286
+#: src/components/settings/components/ai/llm-view.tsx:288
 msgid "No models available for this endpoint."
 msgstr ""
 
@@ -829,7 +829,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:269
+#: src/components/editor-area/note-header/listen-button.tsx:277
 msgid "Pause"
 msgstr ""
 
@@ -923,11 +923,11 @@ msgstr ""
 msgid "Select a transcribing model"
 msgstr ""
 
-#: src/components/settings/components/calendar/calendar-selector.tsx:74
+#: src/components/settings/components/calendar/calendar-selector.tsx:69
 msgid "Select Calendars"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:251
+#: src/components/settings/components/ai/llm-view.tsx:253
 msgid "Select or enter the model name required by your endpoint."
 msgstr ""
 
@@ -971,7 +971,7 @@ msgstr ""
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:277
+#: src/components/editor-area/note-header/listen-button.tsx:285
 msgid "Stop"
 msgstr ""
 
@@ -1076,7 +1076,7 @@ msgstr ""
 msgid "Upgrade"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:152
+#: src/components/settings/components/ai/llm-view.tsx:154
 msgid "Use the local Llama 3.2 model for enhanced privacy and offline capability."
 msgstr ""
 

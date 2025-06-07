@@ -232,11 +232,11 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             name: "Project Kickoff (Past)".to_string(),
             note: "Initial meeting for Project Phoenix.".to_string(),
             calendar_id: Some(calendars[0].id.clone()),
-            start_date: now - chrono::Duration::days(35),
-            end_date: now - chrono::Duration::days(35) + chrono::Duration::hours(1),
+            start_date: now - chrono::Duration::days(7),
+            end_date: now - chrono::Duration::days(7) + chrono::Duration::hours(1),
             google_event_url: None,
         },
-        // Two Months Ago
+        // Ten Days Ago
         Event {
             id: uuid::Uuid::new_v4().to_string(),
             user_id: user.id.clone(),
@@ -244,8 +244,8 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             name: "Q3 Strategy Meeting (Past)".to_string(),
             note: "Quarterly planning session.".to_string(),
             calendar_id: Some(calendars[0].id.clone()),
-            start_date: now - chrono::Duration::days(65),
-            end_date: now - chrono::Duration::days(65) + chrono::Duration::hours(2),
+            start_date: now - chrono::Duration::days(10),
+            end_date: now - chrono::Duration::days(10) + chrono::Duration::hours(2),
             google_event_url: None,
         },
         // Event without Session attached
@@ -258,6 +258,30 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             calendar_id: Some(calendars[0].id.clone()),
             start_date: now - chrono::Duration::days(14),
             end_date: now - chrono::Duration::days(14) + chrono::Duration::hours(1),
+            google_event_url: None,
+        },
+        // Event without Session attached
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Quick Brainstorm".to_string(),
+            note: "Ideas for the new feature".to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now - chrono::Duration::days(10),
+            end_date: now - chrono::Duration::days(10) + chrono::Duration::hours(1),
+            google_event_url: None,
+        },
+        // Event without Session attached
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Follow-up Thoughts".to_string(),
+            note: "Further reflections on yesterday's meeting".to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now - chrono::Duration::days(1),
+            end_date: now - chrono::Duration::days(1) + chrono::Duration::minutes(30),
             google_event_url: None,
         },
     ];

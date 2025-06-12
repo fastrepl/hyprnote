@@ -4,6 +4,12 @@
   padding: 1px 0;
 }
 
+.search-result-active {
+  background-color: #8c00ff !important;
+  border-radius: 2px;
+  padding: 1px 0;
+}
+
 .transcript-speaker {
   margin-bottom: 14px;
   line-height: 1.6;

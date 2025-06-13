@@ -50,6 +50,7 @@ hypr-notification2 = { path = "crates/notification2", package = "notification2" 
 hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
+hypr-pyannote = { path = "crates/pyannote", package = "pyannote" }
 hypr-s3 = { path = "crates/s3", package = "s3" }
 hypr-slack = { path = "crates/slack", package = "slack" }
 hypr-stt = { path = "crates/stt", package = "stt", features = ["realtime", "recorded"] }

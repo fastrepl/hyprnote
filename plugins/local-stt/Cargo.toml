@@ -24,10 +24,12 @@ specta-typescript = { workspace = true }
 tracing = { workspace = true }
 
 [dependencies]
+hypr-audio-utils = { workspace = true }
 hypr-chunker = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-file = { workspace = true }
 hypr-listener-interface = { workspace = true }
+hypr-pyannote = { workspace = true, features = ["local"] }
 hypr-whisper = { workspace = true, features = ["local"] }
 hypr-ws-utils = { workspace = true }
 
@@ -36,6 +38,8 @@ tauri-plugin-store = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
+dirs = { workspace = true }
+hound = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }

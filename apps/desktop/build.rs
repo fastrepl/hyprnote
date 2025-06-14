@@ -20,4 +20,4 @@ fn main() {
 
         println!("cargo:warning=Setting Apple Silicon build flags");
     }
-} 
+}

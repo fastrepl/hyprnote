@@ -15,4 +15,4 @@ CMAKE_HOST_SYSTEM_PROCESSOR = "aarch64"
 rustflags = ["-C", "target-cpu=apple-m1"]
 
 [build]
-target = "aarch64-apple-darwin" 
+target = "aarch64-apple-darwin"

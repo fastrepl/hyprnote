@@ -21,6 +21,8 @@ use hypr_chunker::ChunkerExt;
 use hypr_listener_interface::{ListenOutputChunk, ListenParams, Word};
 use hypr_ws_utils::WebSocketAudioSource;
 
+use voice_activity_detector::VoiceActivityDetector;
+
 use crate::manager::{ConnectionGuard, ConnectionManager};
 
 #[derive(Default)]
@@ -144,9 +146,14 @@ async fn websocket_with_model(
 async fn websocket(socket: WebSocket, model: hypr_whisper::local::Whisper, guard: ConnectionGuard) {
     let (mut ws_sender, ws_receiver) = socket.split();
     let mut stream = {
-        let audio_source = WebSocketAudioSource::new(ws_receiver, 16 * 1000);
-        let chunked =
-            audio_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(15));
+        let sample_rate = 16_000;
+        let audio_source = WebSocketAudioSource::new(ws_receiver, sample_rate);
+        let vad = VoiceActivityDetector::builder()
+            .sample_rate(sample_rate)
+            .chunk_size(512usize)
+            .build()
+            .expect("vad config is valid");
+        let chunked = audio_source.chunks(vad, std::time::Duration::from_secs(15));
         hypr_whisper::local::TranscribeChunkedAudioStreamExt::transcribe(chunked, model)
     };
 

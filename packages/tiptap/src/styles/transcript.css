@@ -4,8 +4,8 @@
   padding: 1px 0;
 }
 
-.search-result-active {
-  background-color: #8c00ff !important;
+.search-result-current {
+  background-color: #31e054 !important;
   border-radius: 2px;
   padding: 1px 0;
 }

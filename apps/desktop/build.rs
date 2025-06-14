@@ -8,7 +8,7 @@ fn main() {
         println!("cargo:rustc-env=CXX=clang++");
         println!("cargo:rustc-env=CFLAGS=-mcpu=apple-m1");
         println!("cargo:rustc-env=CXXFLAGS=-mcpu=apple-m1");
-        
+
         // Also set them as actual environment variables
         std::env::set_var("GGML_NATIVE", "OFF");
         std::env::set_var("CMAKE_C_FLAGS", "-mcpu=apple-m1");
@@ -17,7 +17,7 @@ fn main() {
         std::env::set_var("CXX", "clang++");
         std::env::set_var("CFLAGS", "-mcpu=apple-m1");
         std::env::set_var("CXXFLAGS", "-mcpu=apple-m1");
-        
+
         println!("cargo:warning=Setting Apple Silicon build flags");
     }
 } 

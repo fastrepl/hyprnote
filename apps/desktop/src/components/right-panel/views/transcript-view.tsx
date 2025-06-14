@@ -2,7 +2,7 @@ import { commands as tauriCommands } from "@/types/tauri.gen";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
-import { AudioLinesIcon, CheckIcon, ClipboardIcon, CopyIcon, TextSearchIcon, UploadIcon, XIcon, ChevronUpIcon, ChevronDownIcon } from "lucide-react";
+import { AudioLinesIcon, CheckIcon, ClipboardIcon, CopyIcon, TextSearchIcon, UploadIcon, XIcon, ChevronUpIcon, ChevronDownIcon, ReplaceIcon, ArrowRightLeftIcon, RefreshCwIcon } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
@@ -101,6 +101,7 @@ export function TranscriptView() {
           </div>
         )}
         <div className="not-draggable flex items-center ">
+          {showActions && <SearchAndReplace editorRef={editorRef} />}
           {(audioExist.data && showActions) && (
             <Button
               variant="ghost"
@@ -110,7 +111,6 @@ export function TranscriptView() {
               <AudioLinesIcon size={14} className="text-neutral-600" />
             </Button>
           )}
-          {showActions && <SearchAndReplace editorRef={editorRef} />}
           {showActions && <CopyButton onCopy={handleCopyAll} />}
         </div>
       </header>
@@ -328,41 +328,31 @@ function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
   );
 }
 
-function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any> }) {
+export function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any> }) {
   const [isActive, setIsActive] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [replaceTerm, setReplaceTerm] = useState("");
   const [resultCount, setResultCount] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
+  
+  // Add ref for the search container
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
+  // Debounced search term update
   const debouncedSetSearchTerm = useDebouncedCallback(
     (value: string) => {
       if (editorRef.current) {
         editorRef.current.editor.commands.setSearchTerm(value);
-
-        if (value.substring(0, value.length - 1) === replaceTerm) {
-          setReplaceTerm(value);
-        }
-
-        // Get search results count from the extension's storage
+        editorRef.current.editor.commands.resetIndex();
         setTimeout(() => {
-          if (editorRef.current?.editor?.storage?.searchAndReplace) {
-            const storage = editorRef.current.editor.storage.searchAndReplace;
-            
-            // Debug: Log the storage structure to understand what's available
-            console.log('SearchAndReplace storage:', storage);
-            
-            // Try different possible result storage formats
-            const results = storage.results || storage.searchResults || [];
-            const count = results.length || storage.resultCount || 0;
-            
-            setResultCount(count);
-            setCurrentIndex(count > 0 ? 1 : 0);
-          }
+          const storage = editorRef.current.editor.storage.searchAndReplace;
+          const results = storage.results || [];
+          setResultCount(results.length);
+          setCurrentIndex((storage.resultIndex ?? 0) + 1);
         }, 100);
       }
     },
-    [editorRef, replaceTerm],
+    [editorRef],
     300,
   );
 
@@ -376,112 +366,103 @@ function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any> }) {
     }
   }, [replaceTerm]);
 
-  // Keyboard shortcut handler - only when transcript editor is focused
+  // Click outside handler
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Check for Ctrl+F (Windows/Linux) or Cmd+F (Mac)
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-        // Only activate if the transcript editor is focused
-        const isTranscriptFocused = editorRef.current?.editor?.isFocused;
-        
-        if (isTranscriptFocused) {
-          e.preventDefault(); // Prevent browser's default find
-          setIsActive(true);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        if (isActive) {
+          setIsActive(false);
+          setSearchTerm("");
+          setReplaceTerm("");
+          setResultCount(0);
+          setCurrentIndex(0);
+          if (editorRef.current) {
+            editorRef.current.editor.commands.setSearchTerm("");
+          }
         }
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    if (isActive) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
+  }, [isActive, editorRef]);
+
+  // Keyboard shortcut handler - only when transcript editor is focused
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        const isTranscriptFocused = editorRef.current?.editor?.isFocused;
+        if (isTranscriptFocused) {
+          e.preventDefault();
+          setIsActive(true);
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [editorRef]);
 
-  // Improved navigation using DOM-based approach since extension storage might not have positions
-  const navigateToResult = (direction: 'next' | 'previous') => {
-    if (!editorRef.current?.editor || resultCount === 0) return;
-
-    const editor = editorRef.current.editor;
-    const editorElement = editor.view.dom;
-    
-    // Find all highlighted search results in the DOM
-    const searchResults = editorElement.querySelectorAll('.search-result') as NodeListOf<HTMLElement>;
-    
-    if (searchResults.length === 0) return;
-
-    let targetIndex: number;
-    
-    if (direction === 'next') {
-      targetIndex = currentIndex >= searchResults.length ? 0 : currentIndex;
-    } else {
-      targetIndex = currentIndex <= 1 ? searchResults.length - 1 : currentIndex - 2;
-    }
-
-    const targetElement = searchResults[targetIndex];
-    if (targetElement) {
-      // Remove previous active highlighting
-      searchResults.forEach((el: HTMLElement) => el.classList.remove('search-result-active'));
-      
-      console.log("hitting the target element", targetElement);
-      console.log("target index", targetIndex);
-      console.log("target element class list", targetElement.classList);
-      // Add active highlighting to current result
-      targetElement.classList.remove('search-result');
-      targetElement.classList.add('search-result-active');
-      
-      // Scroll the element into view
-      targetElement.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'center',
-        inline: 'nearest'
-      });
-
-      // Update the current index (1-based for display)
-      setCurrentIndex(targetIndex + 1);
-    }
-  };
-
+  // Use extension's navigation commands
   const handleNext = () => {
-    navigateToResult('next');
+    if (editorRef.current?.editor) {
+      editorRef.current.editor.commands.nextSearchResult();
+      setTimeout(() => {
+        const storage = editorRef.current.editor.storage.searchAndReplace;
+        setCurrentIndex((storage.resultIndex ?? 0) + 1);
+        scrollCurrentResultIntoView(editorRef);
+      }, 100);
+    }
   };
 
   const handlePrevious = () => {
-    navigateToResult('previous');
+    if (editorRef.current?.editor) {
+      editorRef.current.editor.commands.previousSearchResult();
+      setTimeout(() => {
+        const storage = editorRef.current.editor.storage.searchAndReplace;
+        setCurrentIndex((storage.resultIndex ?? 0) + 1);
+        scrollCurrentResultIntoView(editorRef);
+      }, 100);
+    }
   };
+
+  function scrollCurrentResultIntoView(editorRef: React.RefObject<any>) {
+    if (!editorRef.current) return;
+    const editorElement = editorRef.current.editor.view.dom;
+    const current = editorElement.querySelector('.search-result-current') as HTMLElement | null;
+    if (current) {
+      current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest',
+      });
+    }
+  }
 
   const handleReplaceAll = () => {
     if (editorRef.current && searchTerm) {
       editorRef.current.editor.commands.replaceAll();
-      // Update count after replacement
       setTimeout(() => {
-        if (editorRef.current?.editor?.storage?.searchAndReplace) {
-          const storage = editorRef.current.editor.storage.searchAndReplace;
-          const results = storage.results || storage.searchResults || [];
-          const count = results.length || storage.resultCount || 0;
-          setResultCount(count);
-          setCurrentIndex(count > 0 ? 1 : 0);
-        }
+        const storage = editorRef.current.editor.storage.searchAndReplace;
+        const results = storage.results || [];
+        setResultCount(results.length);
+        setCurrentIndex(results.length > 0 ? 1 : 0);
       }, 100);
     }
   };
 
   const handleToggle = () => {
     setIsActive(!isActive);
-    if (isActive) {
-      // Clear search when closing
+    if (isActive && editorRef.current) {
       setSearchTerm("");
       setReplaceTerm("");
       setResultCount(0);
       setCurrentIndex(0);
-      // Clear search highlighting
-      if (editorRef.current) {
-        editorRef.current.editor.commands.setSearchTerm("");
-        
-        // Remove any active highlighting
-        const editorElement = editorRef.current.editor.view.dom;
-        const searchResults = editorElement.querySelectorAll('.search-result-active') as NodeListOf<HTMLElement>;
-        searchResults.forEach((el: HTMLElement) => el.classList.remove('search-result-active'));
-      }
+      editorRef.current.editor.commands.setSearchTerm("");
     }
   };
 
@@ -489,21 +470,13 @@ function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any> }) {
     if (e.key === 'Escape') {
       handleToggle();
     } else if (e.key === 'Enter') {
+      e.preventDefault();
       if (e.shiftKey) {
-        // Shift+Enter for previous result
-        e.preventDefault();
         handlePrevious();
       } else {
-        // Enter for next result (or replace all if no results to navigate)
-        e.preventDefault();
-        if (resultCount > 0) {
-          handleNext();
-        } else {
-          handleReplaceAll();
-        }
+        handleNext();
       }
     } else if (e.key === 'F3') {
-      // F3 for next, Shift+F3 for previous (common browser behavior)
       e.preventDefault();
       if (e.shiftKey) {
         handlePrevious();
@@ -514,7 +487,7 @@ function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any> }) {
   };
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center hidden min-[1370px]:flex" ref={searchContainerRef}>
       {!isActive ? (
         <Button
           className="w-8 h-8"
@@ -544,15 +517,11 @@ function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any> }) {
               placeholder="Replace..."
             />
           </div>
-          
-          {/* Result count and navigation */}
           {searchTerm && (
             <div className="flex items-center gap-1 text-xs text-neutral-500">
               <span className="whitespace-nowrap">
                 {resultCount > 0 ? `${currentIndex}/${resultCount}` : "0/0"}
               </span>
-              
-              {/* Navigation buttons */}
               <div className="flex items-center">
                 <Button
                   variant="ghost"
@@ -577,19 +546,17 @@ function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any> }) {
               </div>
             </div>
           )}
-
-          {/* Replace button */}
           <Button
             variant="ghost"
-            size="sm"
-            className="h-6 px-3 text-xs"
+            size="icon"
+            className="h-6 w-6 flex-shrink-0"
             onClick={handleReplaceAll}
             disabled={!searchTerm}
+            title="Replace All"
+            style={{ pointerEvents: 'auto' }}
           >
-            Replace All
+            <ReplaceIcon size={12} />
           </Button>
-
-          {/* Close button */}
           <Button
             variant="ghost"
             size="icon"

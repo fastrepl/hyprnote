@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@hypr/ui/lib/utils";
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -44,6 +44,7 @@ const endpointSchema = z.object({
 export type FormValues = z.infer<typeof endpointSchema>;
 
 export function LLMView() {
+  const { t } = useLingui();
   const customLLMConnection = useQuery({
     queryKey: ["custom-llm-connection"],
     queryFn: () => connectorCommands.getCustomLlmConnection(),
@@ -200,13 +201,13 @@ export function LLMView() {
                     </FormLabel>
                     <FormDescription className="text-xs">
                       <Trans>
-                        Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)
+                        Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434)
                       </Trans>
                     </FormDescription>
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder="http://localhost:8080/v1"
+                        placeholder="http://localhost:11434"
                         disabled={!customLLMEnabled.data}
                       />
                     </FormControl>
@@ -251,7 +252,8 @@ export function LLMView() {
                     </FormLabel>
                     <FormDescription className="text-xs">
                       <Trans>
-                        Select or enter the model name required by your endpoint.
+                        Select a model from the dropdown (if available) or manually enter the model name required by
+                        your endpoint.
                       </Trans>
                     </FormDescription>
                     <FormControl>
@@ -284,9 +286,11 @@ export function LLMView() {
                           </Select>
                         )
                         : (
-                          <div className="py-1 text-sm text-neutral-500">
-                            <Trans>No models available for this endpoint.</Trans>
-                          </div>
+                          <Input
+                            {...field}
+                            placeholder={t`Enter model name (e.g., gpt-4, llama3.2:3b)`}
+                            disabled={!customLLMEnabled.data}
+                          />
                         )}
                     </FormControl>
                     <FormMessage />

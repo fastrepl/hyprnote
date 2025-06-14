@@ -1,6 +1,6 @@
-import { commands as tauriCommands } from "@/types/tauri.gen";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
+import { writeText as writeTextToClipboard } from "@tauri-apps/plugin-clipboard-manager";
 import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
 import {
   AudioLinesIcon,
@@ -69,11 +69,11 @@ export function TranscriptView() {
   );
 
   const handleCopyAll = useCallback(async () => {
-    if (words && words.length > 0) {
-      const transcriptText = words.map((word) => word.text).join(" ");
-      await tauriCommands.clipboardWriteText(transcriptText);
+    if (editorRef.current?.editor) {
+      const text = editorRef.current.toText();
+      await writeTextToClipboard(text);
     }
-  }, [words]);
+  }, [editorRef]);
 
   const handleOpenSession = useCallback(() => {
     if (sessionId) {

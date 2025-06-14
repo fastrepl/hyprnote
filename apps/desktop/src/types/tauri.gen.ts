@@ -21,9 +21,6 @@ async setupDbForCloud() : Promise<null> {
 },
 async setAutostart(autostart: boolean) : Promise<null> {
     return await TAURI_INVOKE("set_autostart", { autostart });
-},
-async clipboardWriteText(text: string) : Promise<null> {
-    return await TAURI_INVOKE("clipboard_write_text", { text });
 }
 }
 

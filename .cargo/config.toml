@@ -1,9 +1,6 @@
-[target.x86_64-pc-windows-msvc]
+[target.'cfg(all(windows, target_env = "msvc"))']
 rustflags = ["-Ctarget-feature=+crt-static"]
-env.CFLAGS = "/MT"
-env.CXXFLAGS = "/MT"
 
-[target.aarch64-pc-windows-msvc]
-rustflags = ["-Ctarget-feature=+crt-static"]
-env.CFLAGS = "/MT"
-env.CXXFLAGS = "/MT"
+[target.'cfg(all(windows, target_env = "msvc"))'.env]
+CFLAGS = "/MT"
+CXXFLAGS = "/MT"

@@ -3,23 +3,27 @@ import { JSONContent } from "@tiptap/react";
 
 export type { Word };
 
+export const SPEAKER_ID_ATTR = "speaker-id" as const;
+export const SPEAKER_INDEX_ATTR = "speaker-index" as const;
+export const SPEAKER_LABEL_ATTR = "speaker-label" as const;
+
+export interface SpeakerAttributes {
+  [SPEAKER_INDEX_ATTR]: number | null;
+  [SPEAKER_ID_ATTR]: string | null;
+  [SPEAKER_LABEL_ATTR]: string | null;
+}
+
+export type SpeakerAttrKey = keyof SpeakerAttributes;
+
 export type DocContent = {
   type: string;
   content: SpeakerContent[];
 };
 
-const SPEAKER_ID_ATTR = "speaker-id";
-const SPEAKER_INDEX_ATTR = "speaker-index";
-const SPEAKER_LABEL_ATTR = "speaker-label";
-
 type SpeakerContent = {
   type: "speaker";
   content: { type: "text"; text: string }[];
-  attrs: {
-    [SPEAKER_INDEX_ATTR]: number | null;
-    [SPEAKER_ID_ATTR]: string | null;
-    [SPEAKER_LABEL_ATTR]: string | null;
-  };
+  attrs: SpeakerAttributes;
 };
 
 export const fromWordsToEditor = (words: Word[]): DocContent => {
@@ -113,4 +117,16 @@ export const fromEditorToWords = (content: DocContent | JSONContent): Word[] => 
   }
 
   return words;
+};
+
+export const getSpeakerLabel = (attrs: Partial<SpeakerAttributes>): string => {
+  if (attrs[SPEAKER_LABEL_ATTR]) {
+    return attrs[SPEAKER_LABEL_ATTR];
+  } else if (attrs[SPEAKER_ID_ATTR]) {
+    return attrs[SPEAKER_ID_ATTR];
+  } else if (typeof attrs[SPEAKER_INDEX_ATTR] === "number") {
+    return `Speaker ${attrs[SPEAKER_INDEX_ATTR]}`;
+  } else {
+    return "Unknown Speaker";
+  }
 };

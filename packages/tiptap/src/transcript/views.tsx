@@ -3,17 +3,18 @@ import { NodeViewContent, type NodeViewProps, NodeViewWrapper } from "@tiptap/re
 import { type ComponentType, memo, useCallback } from "react";
 
 import type { Human } from "@hypr/plugin-db";
+import { SPEAKER_ID_ATTR, SPEAKER_INDEX_ATTR, SPEAKER_LABEL_ATTR } from "./utils";
 
 export const createSpeakerView = (Comp: SpeakerViewInnerComponent): ComponentType<NodeViewProps> => {
   return memo(({ node, editor, updateAttributes }: NodeViewProps) => {
-    const speakerId = node.attrs?.["speaker-id"] ?? undefined;
-    const speakerIndex = node.attrs?.["speaker-index"] ?? undefined;
-    const speakerLabel = node.attrs?.["speaker-label"] ?? undefined;
+    const speakerId = node.attrs?.[SPEAKER_ID_ATTR] ?? undefined;
+    const speakerIndex = node.attrs?.[SPEAKER_INDEX_ATTR] ?? undefined;
+    const speakerLabel = node.attrs?.[SPEAKER_LABEL_ATTR] ?? undefined;
 
     const onSpeakerChange = useCallback((speaker: Human, range: SpeakerChangeRange) => {
       if (range === "current") {
-        updateAttributes({ "speaker-id": speaker.id });
-        updateAttributes({ "speaker-label": speaker.full_name });
+        updateAttributes({ [SPEAKER_ID_ATTR]: speaker.id });
+        updateAttributes({ [SPEAKER_LABEL_ATTR]: speaker.full_name });
       }
     }, [updateAttributes]);
 

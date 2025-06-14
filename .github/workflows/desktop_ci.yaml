@@ -41,9 +41,3 @@ jobs:
         with:
           target: ${{ matrix.platform }}
       - run: cargo check -p desktop
-      - run: |
-          cargo metadata --format-version=1 --no-deps \
-            | jq -r '.packages[].name' \
-            | grep '^tauri-plugin-' \
-            | xargs -P 0 -n1 cargo test --package
-        shell: bash

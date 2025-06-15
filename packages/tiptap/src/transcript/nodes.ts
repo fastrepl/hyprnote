@@ -2,15 +2,11 @@ import { type CommandProps, mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { Node as ProseNode } from "prosemirror-model";
 
+import { SPEAKER_ID_ATTR, SPEAKER_INDEX_ATTR, SPEAKER_LABEL_ATTR } from "./utils";
 import { createSpeakerView, SpeakerViewInnerComponent } from "./views";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
-    searchAndReplace: {
-      setSearchTerm: (s: string) => ReturnType;
-      setReplaceTerm: (s: string) => ReturnType;
-      replaceAll: () => ReturnType;
-    };
     speaker: {
       updateSpeakerIndexToId: (
         speakerIndex: number,
@@ -55,12 +51,12 @@ const implementCommands = {
       }
       let updated = false;
       tr.doc.descendants((node: ProseNode, pos: number) => {
-        if (node.type.name === "speaker" && node.attrs["speaker-index"] === speakerIndex) {
+        if (node.type.name === "speaker" && node.attrs[SPEAKER_INDEX_ATTR] === speakerIndex) {
           tr.setNodeMarkup(pos, undefined, {
             ...node.attrs,
-            "speaker-index": null,
-            "speaker-id": speakerId,
-            "speaker-label": speakerLabel,
+            [SPEAKER_INDEX_ATTR]: null,
+            [SPEAKER_ID_ATTR]: speakerId,
+            [SPEAKER_LABEL_ATTR]: speakerLabel,
           });
           updated = true;
         }
@@ -85,8 +81,8 @@ const implementCommands = {
       }
       tr.setNodeMarkup(position, undefined, {
         ...node.attrs,
-        "speaker-id": newSpeakerId,
-        "speaker-label": newSpeakerLabel,
+        [SPEAKER_ID_ATTR]: newSpeakerId,
+        [SPEAKER_LABEL_ATTR]: newSpeakerLabel,
       });
       dispatch(tr);
       return true;
@@ -99,11 +95,11 @@ const implementCommands = {
       }
       let updated = false;
       tr.doc.descendants((node: ProseNode, pos: number) => {
-        if (node.type.name === "speaker" && node.attrs["speaker-id"] === oldSpeakerId) {
+        if (node.type.name === "speaker" && node.attrs[SPEAKER_ID_ATTR] === oldSpeakerId) {
           tr.setNodeMarkup(pos, undefined, {
             ...node.attrs,
-            "speaker-id": newSpeakerId,
-            "speaker-label": newSpeakerLabel,
+            [SPEAKER_ID_ATTR]: newSpeakerId,
+            [SPEAKER_LABEL_ATTR]: newSpeakerLabel,
           });
           updated = true;
         }
@@ -127,11 +123,11 @@ const implementCommands = {
         if (pos >= position) {
           return false;
         }
-        if (node.type.name === "speaker" && node.attrs["speaker-id"] === oldSpeakerId) {
+        if (node.type.name === "speaker" && node.attrs[SPEAKER_ID_ATTR] === oldSpeakerId) {
           tr.setNodeMarkup(pos, undefined, {
             ...node.attrs,
-            "speaker-id": newSpeakerId,
-            "speaker-label": newSpeakerLabel,
+            [SPEAKER_ID_ATTR]: newSpeakerId,
+            [SPEAKER_LABEL_ATTR]: newSpeakerLabel,
           });
           updated = true;
         }
@@ -155,11 +151,11 @@ const implementCommands = {
         if (pos < position) {
           return true;
         }
-        if (node.type.name === "speaker" && node.attrs["speaker-id"] === oldSpeakerId) {
+        if (node.type.name === "speaker" && node.attrs[SPEAKER_ID_ATTR] === oldSpeakerId) {
           tr.setNodeMarkup(pos, undefined, {
             ...node.attrs,
-            "speaker-id": newSpeakerId,
-            "speaker-label": newSpeakerLabel,
+            [SPEAKER_ID_ATTR]: newSpeakerId,
+            [SPEAKER_LABEL_ATTR]: newSpeakerLabel,
           });
           updated = true;
         }
@@ -180,30 +176,34 @@ export const SpeakerNode = (c: SpeakerViewInnerComponent) => {
     content: "inline*",
     addAttributes() {
       return {
-        "speaker-index": {
+        [SPEAKER_INDEX_ATTR]: {
           default: null,
           parseHTML: element => {
-            const v = element.getAttribute("data-speaker-index");
+            const v = element.getAttribute(`data-${SPEAKER_INDEX_ATTR}`);
             return v !== null ? Number(v) : null;
           },
-          renderHTML: attributes => ({ "data-speaker-index": attributes["speaker-index"] }),
+          renderHTML: attributes => ({ [`data-${SPEAKER_INDEX_ATTR}`]: attributes[SPEAKER_INDEX_ATTR] }),
         },
-        "speaker-id": {
+        [SPEAKER_ID_ATTR]: {
           default: null,
-          parseHTML: element => element.getAttribute("data-speaker-id"),
-          renderHTML: attributes => ({ "data-speaker-id": attributes["speaker-id"] }),
+          parseHTML: element => element.getAttribute(`data-${SPEAKER_ID_ATTR}`),
+          renderHTML: attributes => ({ [`data-${SPEAKER_ID_ATTR}`]: attributes[SPEAKER_ID_ATTR] }),
         },
-        "speaker-label": {
+        [SPEAKER_LABEL_ATTR]: {
           default: null,
-          parseHTML: element => element.getAttribute("data-speaker-label"),
-          renderHTML: attributes => ({ "data-speaker-label": attributes["speaker-label"] }),
+          parseHTML: element => element.getAttribute(`data-${SPEAKER_LABEL_ATTR}`),
+          renderHTML: attributes => ({ [`data-${SPEAKER_LABEL_ATTR}`]: attributes[SPEAKER_LABEL_ATTR] }),
         },
       };
     },
     parseHTML() {
       return [{
         tag: "div.transcript-speaker",
-        attrs: { "data-speaker-index": 0, "data-speaker-id": "", "data-speaker-label": "" },
+        attrs: {
+          [`data-${SPEAKER_INDEX_ATTR}`]: 0,
+          [`data-${SPEAKER_ID_ATTR}`]: "",
+          [`data-${SPEAKER_LABEL_ATTR}`]: "",
+        },
       }];
     },
     renderHTML({ HTMLAttributes, node }) {
@@ -212,9 +212,9 @@ export const SpeakerNode = (c: SpeakerViewInnerComponent) => {
         mergeAttributes(
           {
             class: "transcript-speaker",
-            "data-speaker-index": node.attrs["speaker-index"],
-            "data-speaker-id": node.attrs["speaker-id"],
-            "data-speaker-label": node.attrs["speaker-label"],
+            [`data-${SPEAKER_INDEX_ATTR}`]: node.attrs[SPEAKER_INDEX_ATTR],
+            [`data-${SPEAKER_ID_ATTR}`]: node.attrs[SPEAKER_ID_ATTR],
+            [`data-${SPEAKER_LABEL_ATTR}`]: node.attrs[SPEAKER_LABEL_ATTR],
           },
           HTMLAttributes,
         ),

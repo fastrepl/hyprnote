@@ -34,6 +34,10 @@ pub enum PredefinedTemplate {
     EnhanceSystem,
     #[strum(serialize = "enhance.user")]
     EnhanceUser,
+    #[strum(serialize = "create_title.system")]
+    CreateTitleSystem,
+    #[strum(serialize = "create_title.user")]
+    CreateTitleUser,
 }
 
 impl From<PredefinedTemplate> for Template {
@@ -43,12 +47,20 @@ impl From<PredefinedTemplate> for Template {
                 Template::Static(PredefinedTemplate::EnhanceSystem)
             }
             PredefinedTemplate::EnhanceUser => Template::Static(PredefinedTemplate::EnhanceUser),
+            PredefinedTemplate::CreateTitleSystem => {
+                Template::Static(PredefinedTemplate::CreateTitleSystem)
+            }
+            PredefinedTemplate::CreateTitleUser => {
+                Template::Static(PredefinedTemplate::CreateTitleUser)
+            }
         }
     }
 }
 
 pub const ENHANCE_SYSTEM_TPL: &str = include_str!("../assets/enhance.system.jinja");
 pub const ENHANCE_USER_TPL: &str = include_str!("../assets/enhance.user.jinja");
+pub const CREATE_TITLE_SYSTEM_TPL: &str = include_str!("../assets/create_title.system.jinja");
+pub const CREATE_TITLE_USER_TPL: &str = include_str!("../assets/create_title.user.jinja");
 
 pub fn init(env: &mut minijinja::Environment) {
     env.set_unknown_method_callback(minijinja_contrib::pycompat::unknown_method_callback);
@@ -60,6 +72,16 @@ pub fn init(env: &mut minijinja::Environment) {
     .unwrap();
     env.add_template(PredefinedTemplate::EnhanceUser.as_ref(), ENHANCE_USER_TPL)
         .unwrap();
+    env.add_template(
+        PredefinedTemplate::CreateTitleSystem.as_ref(),
+        CREATE_TITLE_SYSTEM_TPL,
+    )
+    .unwrap();
+    env.add_template(
+        PredefinedTemplate::CreateTitleUser.as_ref(),
+        CREATE_TITLE_USER_TPL,
+    )
+    .unwrap();
 
     env.add_filter("timeline", filters::timeline);
     env.add_filter("language", filters::language);

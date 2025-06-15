@@ -15,7 +15,7 @@ import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { cn } from "@hypr/ui/lib/utils";
-import { markdownTransform, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
+import { generateText, markdownTransform, modelProvider, providerName, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import { enhanceFailedToast } from "../toast/shared";
 import { FloatingButton } from "./floating-button";
@@ -52,9 +52,14 @@ export default function EditorArea({
     [sessionId, showRaw],
   );
 
+  const generateTitle = useGenerateTitleMutation({ sessionId });
   const enhance = useEnhanceMutation({
     sessionId,
     rawContent,
+    onSuccess: (content) => {
+      console.log("useEnhanceMutation onSuccess", content);
+      generateTitle.mutate({ enhancedContent: content });
+    },
   });
 
   useAutoEnhance({
@@ -165,9 +170,11 @@ export default function EditorArea({
 export function useEnhanceMutation({
   sessionId,
   rawContent,
+  onSuccess,
 }: {
   sessionId: string;
   rawContent: string;
+  onSuccess: (enhancedContent: string) => void;
 }) {
   const { userId, onboardingSessionId } = useHypr();
 
@@ -246,6 +253,13 @@ export function useEnhanceMutation({
           markdownTransform(),
           smoothStream({ delayInMs: 80, chunking: "line" }),
         ],
+        providerOptions: {
+          [providerName]: {
+            metadata: {
+              grammar: "enhance",
+            },
+          },
+        },
       });
 
       let acc = "";
@@ -257,7 +271,9 @@ export function useEnhanceMutation({
 
       return text.then(miscCommands.opinionatedMdToHtml);
     },
-    onSuccess: () => {
+    onSuccess: (enhancedContent) => {
+      onSuccess(enhancedContent ?? "");
+
       analyticsCommands.event({
         event: sessionId === onboardingSessionId
           ? "onboarding_enhance_done"
@@ -280,7 +296,63 @@ export function useEnhanceMutation({
   return enhance;
 }
 
-export function useAutoEnhance({
+function useGenerateTitleMutation({ sessionId }: { sessionId: string }) {
+  const { title, updateTitle } = useSession(sessionId, (s) => ({
+    title: s.session.title,
+    updateTitle: s.updateTitle,
+  }));
+
+  const generateTitle = useMutation({
+    mutationKey: ["generateTitle", sessionId],
+    mutationFn: async ({ enhancedContent }: { enhancedContent: string }) => {
+      const config = await dbCommands.getConfig();
+      const { type } = await connectorCommands.getLlmConnection();
+
+      const systemMessage = await templateCommands.render(
+        "create_title.system",
+        { config, type },
+      );
+
+      const userMessage = await templateCommands.render(
+        "create_title.user",
+        {
+          type,
+          enhanced_note: enhancedContent,
+        },
+      );
+
+      const abortController = new AbortController();
+      const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(30 * 1000)]);
+
+      const provider = await modelProvider();
+      const model = provider.languageModel("defaultModel");
+
+      const newTitle = await generateText({
+        abortSignal,
+        model,
+        messages: [
+          { role: "system", content: systemMessage },
+          { role: "user", content: userMessage },
+        ],
+        providerOptions: {
+          [providerName]: {
+            metadata: {
+              grammar: "title",
+            },
+          },
+        },
+      });
+
+      if (!title) {
+        updateTitle(newTitle.text);
+      }
+    },
+  });
+
+  return generateTitle;
+}
+
+function useAutoEnhance({
   sessionId,
   enhanceStatus,
   enhanceMutate,

@@ -1,9 +1,7 @@
 import { Extension, getTextBetween, getTextSerializersFromSchema } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 
-import TurndownService from "turndown";
-
-const turndown = new TurndownService({ headingStyle: "atx" });
+import { html2md } from "./utils";
 
 export const ClipboardTextSerializer = Extension.create({
   name: "clipboardTextSerializer",
@@ -23,13 +21,15 @@ export const ClipboardTextSerializer = Extension.create({
 
             if (from === 0 && to === doc.content.size) {
               const html = editor.getHTML();
-              return turndown.turndown(html);
+              const md = html2md(html);
+              return md;
             }
 
             const textSerializers = getTextSerializersFromSchema(schema);
             const range = { from, to };
 
-            return getTextBetween(doc, range, { textSerializers });
+            const text = getTextBetween(doc, range, { textSerializers });
+            return text;
           },
         },
       }),

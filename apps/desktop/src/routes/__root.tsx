@@ -1,7 +1,6 @@
 // react-scan must be imported before React
 import { scan } from "react-scan";
 
-import { commands as tauriCommands } from "@/types/tauri.gen";
 import { useQuery } from "@tanstack/react-query";
 import { CatchNotFound, createRootRouteWithContext, Outlet, useNavigate } from "@tanstack/react-router";
 import { listen } from "@tauri-apps/api/event";
@@ -83,7 +82,6 @@ function Component() {
 
   return (
     <HyprProvider>
-      <ClipboardHandler />
       <CatchNotFound fallback={(e) => <CatchNotFoundFallback error={e} />}>
         <Outlet />
       </CatchNotFound>
@@ -120,19 +118,3 @@ const TanStackQueryDevtools = process.env.NODE_ENV === "production"
       ) => <res.ReactQueryDevtools {...props} />,
     }))
   );
-
-function ClipboardHandler() {
-  useEffect(() => {
-    const handleCopy = async (e: ClipboardEvent) => {
-      const text = e.clipboardData?.getData("text/plain") || "";
-      await tauriCommands.clipboardWriteText(text);
-    };
-
-    document.addEventListener("copy", handleCopy);
-    return () => {
-      document.removeEventListener("copy", handleCopy);
-    };
-  }, []);
-
-  return null;
-}

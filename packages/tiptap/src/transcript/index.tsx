@@ -11,7 +11,7 @@ import { forwardRef, useEffect, useRef } from "react";
 
 import { SpeakerSplit } from "./extensions";
 import { SpeakerNode } from "./nodes";
-import { fromEditorToWords, fromWordsToEditor, type Word } from "./utils";
+import { fromEditorToWords, fromWordsToEditor, getSpeakerLabel, type SpeakerAttributes, type Word } from "./utils";
 import type { SpeakerChangeRange, SpeakerViewInnerComponent, SpeakerViewInnerProps } from "./views";
 
 export { SpeakerChangeRange, SpeakerViewInnerProps };
@@ -29,6 +29,17 @@ export interface TranscriptEditorRef {
   setWords: (words: Word[]) => void;
   scrollToBottom: () => void;
   appendWords: (newWords: Word[]) => void;
+  toText: () => string;
+}
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    searchAndReplace: {
+      setSearchTerm: (s: string) => ReturnType;
+      setReplaceTerm: (s: string) => ReturnType;
+      replaceAll: () => ReturnType;
+    };
+  }
 }
 
 const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
@@ -106,6 +117,39 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
               .chain()
               .insertContentAt(endPos, jsonFragment)
               .run();
+          },
+          toText: () => {
+            if (!editor) {
+              return "";
+            }
+
+            const doc = editor.getJSON();
+            if (!doc?.content) {
+              return "";
+            }
+
+            const lines: string[] = [];
+
+            for (const speakerBlock of doc.content) {
+              if (speakerBlock.type !== "speaker" || !speakerBlock.content) {
+                continue;
+              }
+
+              const attrs = speakerBlock.attrs as SpeakerAttributes || {};
+              const speakerLabel = getSpeakerLabel(attrs);
+
+              const textContent = speakerBlock.content
+                .filter((node: any) => node.type === "text")
+                .map((node: any) => node.text || "")
+                .join("")
+                .trim();
+
+              if (textContent) {
+                lines.push(`[${speakerLabel}]\n${textContent}`);
+              }
+            }
+
+            return lines.join("\n\n");
           },
         };
       }

@@ -1,6 +1,14 @@
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    transcriptCommands: {
+      serialize: () => ReturnType;
+    };
+  }
+}
+
 export const SpeakerSplit = Extension.create({
   name: "speakerSplit",
 

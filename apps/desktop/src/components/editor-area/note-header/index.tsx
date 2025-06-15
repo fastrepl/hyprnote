@@ -14,7 +14,9 @@ interface NoteHeaderProps {
   hashtags?: string[];
 }
 
-export function NoteHeader({ onNavigateToEditor, editable, sessionId, hashtags = [] }: NoteHeaderProps) {
+export function NoteHeader(
+  { onNavigateToEditor, editable, sessionId, hashtags = [] }: NoteHeaderProps,
+) {
   const updateTitle = useSession(sessionId, (s) => s.updateTitle);
   const sessionTitle = useSession(sessionId, (s) => s.session.title);
 

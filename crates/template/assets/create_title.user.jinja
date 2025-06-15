@@ -1,23 +1,5 @@
-# Meeting Information:
+<note>
+{{ enhanced_note }}
+</note>
 
-<meeting_info>
-{% if event %}Event: {{ event.name }}{% endif %}
-{% if participants | length > 0 %}Participants:{% endif %}
-{%- for participant in participants %}
-
-- {{ participant.name }}{% if participant.name == config_profile.full_name %} (this is me){% endif %}
-  {%- endfor %}
-  </meeting_info>
-
-# Raw Note:
-
-<raw_note>
-{{ pre_meeting_editor }}
-{{ in_meeting_editor }}
-</raw_note>
-
-# Meeting Transcript:
-
-<transcript>
-{{ render_timeline_view(timeline_view=timeline_view) }}
-</transcript>
+Now, give me SUPER CONCISE title for above note. Only about the topic of the meeting.

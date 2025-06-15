@@ -39,7 +39,9 @@ function useContainerWidth(ref: React.RefObject<HTMLElement>) {
 
   useEffect(() => {
     const element = ref.current;
-    if (!element) return;
+    if (!element) {
+      return;
+    }
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -61,7 +63,7 @@ function useContainerWidth(ref: React.RefObject<HTMLElement>) {
 
 export function TranscriptView() {
   const queryClient = useQueryClient();
-  
+
   // Add container ref to track the panel width
   const containerRef = useRef<HTMLDivElement>(null);
   const panelWidth = useContainerWidth(containerRef);
@@ -192,21 +194,25 @@ function RenderEmpty({ sessionId }: { sessionId: string }) {
     }
   };
 
-  // Determine layout based on actual panel width
+  // Determine layout based on actual panel width (empty screen)
   const isUltraCompact = panelWidth < 150; // Just icons
-  const isVeryNarrow = panelWidth < 200;   // Short text
-  const isNarrow = panelWidth < 400;       // No helper text
-  const showFullText = panelWidth >= 400;  // Full text
+  const isVeryNarrow = panelWidth < 200; // Short text
+  const isNarrow = panelWidth < 400; // No helper text
+  const showFullText = panelWidth >= 400; // Full text
 
   return (
     <div className="h-full flex items-center justify-center" ref={containerRef}>
       <div className="text-neutral-500 font-medium text-center">
-        <div className={`mb-6 text-neutral-600 flex ${isNarrow ? 'flex-col' : 'flex-row'} items-center ${isNarrow ? 'gap-2' : 'gap-1.5'}`}>
-          <Button 
-            size="sm" 
-            onClick={handleStartRecording} 
+        <div
+          className={`mb-6 text-neutral-600 flex ${isNarrow ? "flex-col" : "flex-row"} items-center ${
+            isNarrow ? "gap-2" : "gap-1.5"
+          }`}
+        >
+          <Button
+            size="sm"
+            onClick={handleStartRecording}
             disabled={ongoingSession.loading}
-            className={isUltraCompact ? 'px-3' : ''}
+            className={isUltraCompact ? "px-3" : ""}
             title={isUltraCompact ? (ongoingSession.loading ? "Starting..." : "Start recording") : undefined}
           >
             {ongoingSession.loading ? <Spinner color="black" /> : (
@@ -221,53 +227,53 @@ function RenderEmpty({ sessionId }: { sessionId: string }) {
               </span>
             )}
           </Button>
-          {showFullText && (
-            <span className="text-sm">to see live transcript</span>
-          )}
+          {showFullText && <span className="text-sm">to see live transcript</span>}
         </div>
 
-        <div className={`flex items-center justify-center mb-4 ${isUltraCompact ? 'w-full' : 'w-full max-w-[240px]'}`}>
+        <div className={`flex items-center justify-center mb-4 ${isUltraCompact ? "w-full" : "w-full max-w-[240px]"}`}>
           <div className="h-px bg-neutral-200 flex-grow"></div>
           <span className="px-3 text-xs text-neutral-400 font-medium">or</span>
           <div className="h-px bg-neutral-200 flex-grow"></div>
         </div>
 
         <div className="flex flex-col gap-2">
-          {isUltraCompact ? (
-            <>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="hover:bg-neutral-100" 
-                disabled
-                title="Upload recording"
-              >
-                <UploadIcon size={14} />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="hover:bg-neutral-100" 
-                disabled
-                title="Paste transcript"
-              >
-                <ClipboardIcon size={14} />
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
-                <UploadIcon size={14} />
-                {isVeryNarrow ? "Upload" : "Upload recording"}
-                {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
-              </Button>
-              <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
-                <ClipboardIcon size={14} />
-                {isVeryNarrow ? "Paste" : "Paste transcript"}
-                {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
-              </Button>
-            </>
-          )}
+          {isUltraCompact
+            ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-neutral-100"
+                  disabled
+                  title="Upload recording"
+                >
+                  <UploadIcon size={14} />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-neutral-100"
+                  disabled
+                  title="Paste transcript"
+                >
+                  <ClipboardIcon size={14} />
+                </Button>
+              </>
+            )
+            : (
+              <>
+                <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
+                  <UploadIcon size={14} />
+                  {isVeryNarrow ? "Upload" : "Upload recording"}
+                  {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
+                </Button>
+                <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
+                  <ClipboardIcon size={14} />
+                  {isVeryNarrow ? "Paste" : "Paste transcript"}
+                  {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
+                </Button>
+              </>
+            )}
         </div>
       </div>
     </div>
@@ -417,7 +423,7 @@ function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
   );
 }
 
-export function SearchAndReplace({ editorRef, panelWidth }: { 
+export function SearchAndReplace({ editorRef, panelWidth }: {
   editorRef: React.RefObject<any>;
   panelWidth: number;
 }) {

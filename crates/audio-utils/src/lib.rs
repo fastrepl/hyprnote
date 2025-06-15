@@ -26,3 +26,21 @@ pub trait AudioFormatExt: AsyncSource {
         })
     }
 }
+
+pub fn i16_to_f32_samples(samples: &[i16]) -> Vec<f32> {
+    samples
+        .iter()
+        .map(|&sample| sample as f32 / std::i16::MAX as f32)
+        .collect()
+}
+
+pub fn f32_to_i16_samples(samples: &[f32]) -> Vec<i16> {
+    samples
+        .iter()
+        .map(|&sample| {
+            let scaled =
+                (sample * std::i16::MAX as f32).clamp(std::i16::MIN as f32, std::i16::MAX as f32);
+            scaled as i16
+        })
+        .collect()
+}

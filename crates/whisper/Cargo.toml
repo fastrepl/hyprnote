@@ -39,7 +39,6 @@ regex = { workspace = true, optional = true }
 whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "e3d67d5", features = ["raw-api", "tracing_backend"], optional = true }
 
 [target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
-
 whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "e3d67d5", features = ["raw-api", "tracing_backend"], optional = true }
 
 [target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies]

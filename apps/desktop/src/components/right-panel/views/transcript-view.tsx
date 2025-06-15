@@ -34,8 +34,39 @@ import { ListeningIndicator } from "../components/listening-indicator";
 import { useTranscript } from "../hooks/useTranscript";
 import { useTranscriptWidget } from "../hooks/useTranscriptWidget";
 
+function useContainerWidth(ref: React.RefObject<HTMLElement>) {
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setWidth(entry.contentRect.width);
+      }
+    });
+
+    resizeObserver.observe(element);
+    // Set initial width
+    setWidth(element.getBoundingClientRect().width);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [ref]);
+
+  return width;
+}
+
 export function TranscriptView() {
   const queryClient = useQueryClient();
+
+  // Add container ref to track the panel width
+  const containerRef = useRef<HTMLDivElement>(null);
+  const panelWidth = useContainerWidth(containerRef);
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: true });
   const sessionId = noteMatch.params.id;
@@ -98,7 +129,7 @@ export function TranscriptView() {
   const showActions = hasTranscript && sessionId && ongoingSession.isInactive;
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col" ref={containerRef}>
       <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b border-neutral-100">
         {!showEmptyMessage && (
           <div className="flex items-center gap-2">
@@ -112,7 +143,7 @@ export function TranscriptView() {
           </div>
         )}
         <div className="not-draggable flex items-center ">
-          {showActions && <SearchAndReplace editorRef={editorRef} />}
+          {showActions && panelWidth >= 530 && <SearchAndReplace editorRef={editorRef} panelWidth={panelWidth} />}
           {(audioExist.data && showActions) && (
             <Button
               variant="ghost"
@@ -153,43 +184,96 @@ function RenderEmpty({ sessionId }: { sessionId: string }) {
     loading: s.loading,
   }));
 
+  // Add container ref to track the panel width
+  const containerRef = useRef<HTMLDivElement>(null);
+  const panelWidth = useContainerWidth(containerRef);
+
   const handleStartRecording = () => {
     if (ongoingSession.status === "inactive") {
       ongoingSession.start(sessionId);
     }
   };
 
+  // Determine layout based on actual panel width (empty screen)
+  const isUltraCompact = panelWidth < 150; // Just icons
+  const isVeryNarrow = panelWidth < 200; // Short text
+  const isNarrow = panelWidth < 400; // No helper text
+  const showFullText = panelWidth >= 400; // Full text
+
   return (
-    <div className="h-full flex items-center justify-center">
+    <div className="h-full flex items-center justify-center" ref={containerRef}>
       <div className="text-neutral-500 font-medium text-center">
-        <div className="mb-6 text-neutral-600 flex items-center gap-1.5">
-          <Button size="sm" onClick={handleStartRecording} disabled={ongoingSession.loading}>
+        <div
+          className={`mb-6 text-neutral-600 flex ${isNarrow ? "flex-col" : "flex-row"} items-center ${
+            isNarrow ? "gap-2" : "gap-1.5"
+          }`}
+        >
+          <Button
+            size="sm"
+            onClick={handleStartRecording}
+            disabled={ongoingSession.loading}
+            className={isUltraCompact ? "px-3" : ""}
+            title={isUltraCompact ? (ongoingSession.loading ? "Starting..." : "Start recording") : undefined}
+          >
             {ongoingSession.loading ? <Spinner color="black" /> : (
               <div className="relative h-2 w-2">
                 <div className="absolute inset-0 rounded-full bg-red-500"></div>
                 <div className="absolute inset-0 rounded-full bg-red-400 animate-ping"></div>
               </div>
             )}
-            {ongoingSession.loading ? "Starting..." : "Start recording"}
+            {!isUltraCompact && (
+              <span className="ml-2">
+                {ongoingSession.loading ? "Starting..." : "Start recording"}
+              </span>
+            )}
           </Button>
-          <span className="text-sm">to see live transcript</span>
+          {showFullText && <span className="text-sm">to see live transcript</span>}
         </div>
 
-        <div className="flex items-center justify-center w-full max-w-[240px] mb-4">
+        <div className={`flex items-center justify-center mb-4 ${isUltraCompact ? "w-full" : "w-full max-w-[240px]"}`}>
           <div className="h-px bg-neutral-200 flex-grow"></div>
           <span className="px-3 text-xs text-neutral-400 font-medium">or</span>
           <div className="h-px bg-neutral-200 flex-grow"></div>
         </div>
 
         <div className="flex flex-col gap-2">
-          <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
-            <UploadIcon size={14} />Upload recording{" "}
-            <span className="text-xs text-neutral-400 italic">coming soon</span>
-          </Button>
-          <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
-            <ClipboardIcon size={14} />Paste transcript{" "}
-            <span className="text-xs text-neutral-400 italic">coming soon</span>
-          </Button>
+          {isUltraCompact
+            ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-neutral-100"
+                  disabled
+                  title="Upload recording"
+                >
+                  <UploadIcon size={14} />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-neutral-100"
+                  disabled
+                  title="Paste transcript"
+                >
+                  <ClipboardIcon size={14} />
+                </Button>
+              </>
+            )
+            : (
+              <>
+                <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
+                  <UploadIcon size={14} />
+                  {isVeryNarrow ? "Upload" : "Upload recording"}
+                  {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
+                </Button>
+                <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
+                  <ClipboardIcon size={14} />
+                  {isVeryNarrow ? "Paste" : "Paste transcript"}
+                  {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
+                </Button>
+              </>
+            )}
         </div>
       </div>
     </div>
@@ -339,7 +423,10 @@ function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
   );
 }
 
-export function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any> }) {
+export function SearchAndReplace({ editorRef, panelWidth }: {
+  editorRef: React.RefObject<any>;
+  panelWidth: number;
+}) {
   const [isActive, setIsActive] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [replaceTerm, setReplaceTerm] = useState("");
@@ -500,7 +587,7 @@ export function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any
   };
 
   return (
-    <div className="flex items-center hidden min-[1370px]:flex" ref={searchContainerRef}>
+    <div className="flex items-center" ref={searchContainerRef}>
       {!isActive
         ? (
           <Button
@@ -516,7 +603,7 @@ export function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any
           <div className="flex items-center gap-2 bg-neutral-50 border border-neutral-200 rounded-md p-1.5 h-8">
             <div className="flex items-center gap-1">
               <Input
-                className="h-6 w-24 text-xs border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 bg-transparent"
+                className="h-6 w-20 text-xs border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 bg-transparent"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -525,7 +612,7 @@ export function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any
               />
               <div className="h-4 w-px bg-neutral-300" />
               <Input
-                className="h-6 w-24 text-xs border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 bg-transparent"
+                className="h-6 w-20 text-xs border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 bg-transparent"
                 value={replaceTerm}
                 onChange={(e) => setReplaceTerm(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -534,7 +621,7 @@ export function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any
             </div>
             {searchTerm && (
               <div className="flex items-center gap-1 text-xs text-neutral-500">
-                <span className="whitespace-nowrap">
+                <span className="whitespace-nowrap text-[10px] font-mono min-w-[32px] text-center">
                   {resultCount > 0 ? `${currentIndex}/${resultCount}` : "0/0"}
                 </span>
                 <div className="flex items-center">
@@ -568,7 +655,6 @@ export function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any
               onClick={handleReplaceAll}
               disabled={!searchTerm}
               title="Replace All"
-              style={{ pointerEvents: "auto" }}
             >
               <ReplaceIcon size={12} />
             </Button>

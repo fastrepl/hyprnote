@@ -26,4 +26,4 @@
 {% for tag in historical_tags %}{{ tag }}{% if not loop.last %}, {% endif %}{% endfor %}
 {% endif %}
 
-Based on this note content and the user's tagging patterns, suggest 3-5 relevant tags that would help organize and categorize this note effectively.
+Based on this note content and the user's tagging patterns, suggest 3-5 relevant tags that would help organize and categorize this note effectively. Respond only with a JSON array of strings, e.g. ["tag1", "tag2"].

@@ -12,6 +12,8 @@ pub enum Error {
     ChronoParseError(String),
     #[error("invalid database config: {0}")]
     InvalidDatabaseConfig(String),
+    #[error("invalid input: {0}")]
+    InvalidInput(String),
 }
 
 impl Serialize for Error {

@@ -2,6 +2,7 @@ use super::{
     Event, GetSessionFilter, Human, ListSessionFilter, ListSessionFilterCommon,
     ListSessionFilterSpecific, Session, UserDatabase,
 };
+use uuid;
 
 impl UserDatabase {
     pub fn onboarding_session_id(&self) -> String {
@@ -169,6 +170,17 @@ impl UserDatabase {
                 common: ListSessionFilterCommon { user_id, limit },
                 specific: ListSessionFilterSpecific::TagFilter { tag_ids },
             }) => {
+                if tag_ids.is_empty() {
+                    return Ok(vec![]);
+                }
+
+                // Validate that all tag_ids are valid UUIDs
+                for tag_id in &tag_ids {
+                    if uuid::Uuid::parse_str(tag_id).is_err() {
+                        return Err(crate::Error::InvalidInput(format!("Invalid UUID: {}", tag_id)));
+                    }
+                }
+
                 let placeholders = tag_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
                 let query = format!(
                     "SELECT DISTINCT s.* FROM sessions s

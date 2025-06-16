@@ -11,20 +11,62 @@ interface TagChipProps {
 }
 
 export function TagChip({ sessionId }: TagChipProps) {
-  const [open, setOpen] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const queryClient = useQueryClient();
-
   const { data: tags = [] } = useQuery({
     queryKey: ["session-tags", sessionId],
     queryFn: () => dbCommands.listSessionTags(sessionId),
   });
 
-  const { data: suggestions = [], isLoading: isLoadingSuggestions, refetch: fetchSuggestions } = useQuery({
-    queryKey: ["tag-suggestions", sessionId],
-    queryFn: () => dbCommands.suggestTagsForSession(sessionId),
-    enabled: false, // Only fetch when requested
+  const totalTags = tags.length;
+  const firstTag = tags[0]?.name;
+  const additionalTags = totalTags - 1;
+
+  return (
+    <Popover>
+      <PopoverTrigger>
+        <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 flex-shrink-0 text-xs">
+          <TagsIcon size={14} className="flex-shrink-0" />
+          {totalTags > 0
+            ? (
+              <span className="truncate">
+                {additionalTags > 0
+                  ? `${firstTag} +${additionalTags}`
+                  : firstTag}
+              </span>
+            )
+            : <span className="text-neutral-500">Add tags</span>}
+        </div>
+      </PopoverTrigger>
+
+      <PopoverContent className="shadow-lg w-80" align="start">
+        <TagChipInner sessionId={sessionId} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function TagChipInner({ sessionId }: { sessionId: string }) {
+  const { data: tags = [] } = useQuery({
+    queryKey: ["session-tags", sessionId],
+    queryFn: () => dbCommands.listSessionTags(sessionId),
   });
+
+  return (
+    !tags.length
+      ? <TagAddControl sessionId={sessionId} />
+      : (
+        <div className="flex flex-col gap-3">
+          <div className="text-sm font-medium text-neutral-700">Tags</div>
+          <div className="flex flex-col gap-1 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
+            {tags.map((tag) => <TagItem key={tag.id} tag={tag} sessionId={sessionId} />)}
+          </div>
+          <TagAddControl sessionId={sessionId} />
+        </div>
+      )
+  );
+}
+
+function TagItem({ tag, sessionId }: { tag: { id: string; name: string }; sessionId: string }) {
+  const queryClient = useQueryClient();
 
   const removeMutation = useMutation({
     mutationFn: ({ tagId, sessionId }: { tagId: string; sessionId: string }) =>
@@ -34,14 +76,102 @@ export function TagChip({ sessionId }: TagChipProps) {
     },
   });
 
+  return (
+    <div className="flex w-full items-center justify-between gap-2 rounded-sm px-3 py-1.5 hover:bg-neutral-50">
+      <div className="rounded px-2 py-0.5 text-sm bg-neutral-100">{tag.name}</div>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-6 px-2 text-xs text-neutral-500 hover:text-red-600"
+        onClick={() => removeMutation.mutate({ tagId: tag.id, sessionId })}
+      >
+        Remove
+      </Button>
+    </div>
+  );
+}
+
+function TagAddControl({ sessionId }: { sessionId: string }) {
+  const queryClient = useQueryClient();
+  const [newTagName, setNewTagName] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const { data: suggestions = [], isLoading: isLoadingSuggestions, refetch: fetchSuggestions } = useQuery({
+    queryKey: ["tag-suggestions", sessionId],
+    queryFn: () => dbCommands.suggestTagsForSession(sessionId),
+    enabled: false,
+  });
+
+  const parseAndSanitizeTags = (input: string): string[] => {
+    const tags = input
+      .split(",")
+      .map(tag => tag.trim())
+      .map(tag => tag.replace(/[^\w\s\-\.]/g, ""))
+      .map(tag => tag.replace(/\s+/g, " "))
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0 && tag.length <= 50);
+
+    // Remove duplicates within the input (case-insensitive)
+    const uniqueTags = [];
+    const seenTags = new Set();
+
+    for (const tag of tags) {
+      const lowerTag = tag.toLowerCase();
+      if (!seenTags.has(lowerTag)) {
+        seenTags.add(lowerTag);
+        uniqueTags.push(tag);
+      }
+    }
+
+    return uniqueTags.slice(0, 10);
+  };
+
+  const createTagsMutation = useMutation({
+    mutationFn: async (tagNames: string[]) => {
+      // Get existing tags for this session to avoid duplicates
+      const existingTags = await dbCommands.listSessionTags(sessionId);
+      const existingTagNames = new Set(
+        existingTags.map(tag => tag.name.toLowerCase()),
+      );
+
+      // Filter out duplicates (case-insensitive)
+      const newTagNames = tagNames.filter(
+        tagName => !existingTagNames.has(tagName.toLowerCase()),
+      );
+
+      const results = [];
+      for (const tagName of newTagNames) {
+        const tag = await dbCommands.upsertTag({
+          id: crypto.randomUUID(),
+          name: tagName,
+        });
+        await dbCommands.assignTagToSession(tag.id, sessionId);
+        results.push(tag);
+      }
+      return results;
+    },
+    onSuccess: () => {
+      setNewTagName("");
+      queryClient.invalidateQueries({ queryKey: ["session-tags", sessionId] });
+    },
+  });
+
   const acceptSuggestionMutation = useMutation({
     mutationFn: async (tagName: string) => {
-      // Create the tag first
+      // Check if tag already exists for this session
+      const existingTags = await dbCommands.listSessionTags(sessionId);
+      const tagExists = existingTags.some(
+        tag => tag.name.toLowerCase() === tagName.toLowerCase(),
+      );
+
+      if (tagExists) {
+        return null; // Skip if already exists
+      }
+
       const tag = await dbCommands.upsertTag({
         id: crypto.randomUUID(),
         name: tagName,
       });
-      // Then assign it to the session
       await dbCommands.assignTagToSession(tag.id, sessionId);
       return tag;
     },
@@ -51,127 +181,99 @@ export function TagChip({ sessionId }: TagChipProps) {
     },
   });
 
+  const handleCreateTags = () => {
+    const tagNames = parseAndSanitizeTags(newTagName);
+    if (tagNames.length > 0) {
+      createTagsMutation.mutate(tagNames);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleCreateTags();
+    }
+  };
+
   const handleGetSuggestions = () => {
     setShowSuggestions(true);
     fetchSuggestions();
   };
 
-  const totalTags = tags.length;
-  const firstTag = tags[0]?.name;
-  const additionalTags = totalTags - 1;
-
   return (
-    <div>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger>
-          <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 flex-shrink-0 text-xs">
-            <TagsIcon size={14} className="flex-shrink-0" />
-            {totalTags > 0
-              ? (
-                <span className="truncate">
-                  {additionalTags > 0
-                    ? `${firstTag} +${additionalTags}`
-                    : firstTag}
-                </span>
-              )
-              : <span className="text-neutral-500">Add tags</span>}
-          </div>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-80 overflow-clip p-0 py-2 shadow-lg"
-          align="start"
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200">
+        <span className="text-neutral-500 flex-shrink-0">
+          <TagsIcon className="size-4" />
+        </span>
+        <input
+          type="text"
+          value={newTagName}
+          onChange={(e) => setNewTagName(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Add tag..."
+          className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+          autoFocus
+        />
+        {newTagName.trim() && (
+          <button
+            type="button"
+            onClick={handleCreateTags}
+            className="text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0"
+            aria-label="Add tag"
+            disabled={createTagsMutation.isPending}
+          >
+            <PlusIcon className="size-4" />
+          </button>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-xs text-neutral-600 hover:text-neutral-900"
+          onClick={() => {
+            if (!showSuggestions) {
+              handleGetSuggestions();
+            } else {
+              setShowSuggestions(false);
+            }
+          }}
+          disabled={isLoadingSuggestions}
         >
+          <SparklesIcon size={12} className="mr-1" />
+          {showSuggestions ? "Hide suggestions" : "Get AI suggestions"}
+        </Button>
+
+        {showSuggestions && (
           <div className="space-y-1">
-            {tags.length > 0
+            {isLoadingSuggestions
+              ? <div className="text-sm text-neutral-500 p-3 text-center">Loading suggestions...</div>
+              : suggestions.length > 0
               ? (
-                tags.map((tag) => (
+                suggestions.map((suggestion, index) => (
                   <div
-                    key={tag.id}
-                    className="flex w-full items-center justify-between gap-2 rounded-sm px-3 py-1.5 hover:bg-neutral-50"
+                    key={index}
+                    className="flex items-center justify-between gap-2 p-2 hover:bg-neutral-50 rounded border"
                   >
-                    <div className="rounded px-2 py-0.5 text-sm bg-neutral-100">{tag.name}</div>
+                    <span className="text-sm">{suggestion}</span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 px-2 text-xs text-neutral-500 hover:text-red-600"
-                      onClick={() => removeMutation.mutate({ tagId: tag.id, sessionId })}
+                      className="h-7 px-2 text-xs text-blue-600 hover:text-blue-800"
+                      onClick={() => acceptSuggestionMutation.mutate(suggestion)}
+                      disabled={acceptSuggestionMutation.isPending}
                     >
-                      Remove
+                      Add
                     </Button>
                   </div>
                 ))
               )
-              : <div className="px-3 py-2 text-sm text-neutral-500">No tags assigned</div>}
-
-            {/* AI Suggestions Section */}
-            {showSuggestions && (
-              <div className="border-t mx-2 pt-2">
-                <div className="flex items-center gap-1 px-1 py-1 text-xs text-neutral-600">
-                  <SparklesIcon size={12} />
-                  <span>AI Suggestions</span>
-                  {isLoadingSuggestions && <span className="text-neutral-400">...</span>}
-                </div>
-                <div className="space-y-1 mt-1">
-                  {suggestions.length > 0
-                    ? (
-                      suggestions.map((suggestion, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between gap-2 px-2 py-1 hover:bg-neutral-50 rounded"
-                        >
-                          <span className="text-xs text-neutral-700">{suggestion}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-5 px-1 text-xs text-blue-600 hover:text-blue-800"
-                            onClick={() => acceptSuggestionMutation.mutate(suggestion)}
-                            disabled={acceptSuggestionMutation.isPending}
-                          >
-                            Add
-                          </Button>
-                        </div>
-                      ))
-                    )
-                    : !isLoadingSuggestions
-                    ? <div className="px-2 py-1 text-xs text-neutral-400">No suggestions available</div>
-                    : null}
-                </div>
-              </div>
-            )}
-
-            <div className="border-t mx-2 pt-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-xs text-neutral-600 hover:text-neutral-900"
-                onClick={() => {
-                  if (!showSuggestions) {
-                    handleGetSuggestions();
-                  } else {
-                    setShowSuggestions(false);
-                  }
-                }}
-                disabled={isLoadingSuggestions}
-              >
-                <SparklesIcon size={12} className="mr-1" />
-                {showSuggestions ? "Hide suggestions" : "Get AI suggestions"}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-xs text-neutral-600 hover:text-neutral-900 mt-1"
-                onClick={() => {
-                  setOpen(false);
-                  // TODO: Open tag management modal
-                }}
-              >
-                <PlusIcon size={12} className="mr-1" />
-                Manage tags
-              </Button>
-            </div>
+              : <div className="text-sm text-neutral-500 p-3 text-center">No suggestions available</div>}
           </div>
-        </PopoverContent>
-      </Popover>
+        )}
+      </div>
     </div>
   );
 }

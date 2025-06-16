@@ -62,6 +62,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::tags::list_session_tags,
             commands::tags::assign_tag_to_session,
             commands::tags::unassign_tag_from_session,
+            commands::tags::upsert_tag,
+            commands::tags::delete_tag,
+            commands::tags::suggest_tags_for_session,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

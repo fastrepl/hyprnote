@@ -165,6 +165,25 @@ impl UserDatabase {
                 )
                 .await?
             }
+            Some(ListSessionFilter {
+                common: ListSessionFilterCommon { user_id, limit },
+                specific: ListSessionFilterSpecific::TagFilter { tag_ids },
+            }) => {
+                let placeholders = tag_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+                let query = format!(
+                    "SELECT DISTINCT s.* FROM sessions s
+                     JOIN tags_sessions ts ON s.id = ts.session_id
+                     WHERE s.user_id = ? AND ts.tag_id IN ({})
+                     ORDER BY s.created_at DESC LIMIT ?",
+                    placeholders
+                );
+
+                let mut params = vec![user_id];
+                params.extend(tag_ids);
+                params.push(limit.unwrap_or(100).to_string());
+
+                conn.query(&query, params).await?
+            }
             None => {
                 conn.query(
                     "SELECT * FROM sessions ORDER BY created_at DESC LIMIT 100",

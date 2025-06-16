@@ -105,5 +105,7 @@ user_common_derives! {
         RecentlyVisited {},
         #[serde(rename = "dateRange")]
         DateRange { start: DateTime<Utc>, end: DateTime<Utc> },
+        #[serde(rename = "tagFilter")]
+        TagFilter { tag_ids: Vec<String> },
     }
 }

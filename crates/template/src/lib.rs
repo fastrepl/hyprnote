@@ -38,6 +38,10 @@ pub enum PredefinedTemplate {
     CreateTitleSystem,
     #[strum(serialize = "create_title.user")]
     CreateTitleUser,
+    #[strum(serialize = "suggest_tags.system")]
+    SuggestTagsSystem,
+    #[strum(serialize = "suggest_tags.user")]
+    SuggestTagsUser,
 }
 
 impl From<PredefinedTemplate> for Template {
@@ -53,6 +57,12 @@ impl From<PredefinedTemplate> for Template {
             PredefinedTemplate::CreateTitleUser => {
                 Template::Static(PredefinedTemplate::CreateTitleUser)
             }
+            PredefinedTemplate::SuggestTagsSystem => {
+                Template::Static(PredefinedTemplate::SuggestTagsSystem)
+            }
+            PredefinedTemplate::SuggestTagsUser => {
+                Template::Static(PredefinedTemplate::SuggestTagsUser)
+            }
         }
     }
 }
@@ -61,6 +71,8 @@ pub const ENHANCE_SYSTEM_TPL: &str = include_str!("../assets/enhance.system.jinj
 pub const ENHANCE_USER_TPL: &str = include_str!("../assets/enhance.user.jinja");
 pub const CREATE_TITLE_SYSTEM_TPL: &str = include_str!("../assets/create_title.system.jinja");
 pub const CREATE_TITLE_USER_TPL: &str = include_str!("../assets/create_title.user.jinja");
+pub const SUGGEST_TAGS_SYSTEM_TPL: &str = include_str!("../assets/suggest_tags.system.jinja");
+pub const SUGGEST_TAGS_USER_TPL: &str = include_str!("../assets/suggest_tags.user.jinja");
 
 pub fn init(env: &mut minijinja::Environment) {
     env.set_unknown_method_callback(minijinja_contrib::pycompat::unknown_method_callback);
@@ -80,6 +92,16 @@ pub fn init(env: &mut minijinja::Environment) {
     env.add_template(
         PredefinedTemplate::CreateTitleUser.as_ref(),
         CREATE_TITLE_USER_TPL,
+    )
+    .unwrap();
+    env.add_template(
+        PredefinedTemplate::SuggestTagsSystem.as_ref(),
+        SUGGEST_TAGS_SYSTEM_TPL,
+    )
+    .unwrap();
+    env.add_template(
+        PredefinedTemplate::SuggestTagsUser.as_ref(),
+        SUGGEST_TAGS_USER_TPL,
     )
     .unwrap();
 

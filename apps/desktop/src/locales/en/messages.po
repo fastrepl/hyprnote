@@ -822,8 +822,8 @@ msgid "Open calendar view"
 msgstr "Open calendar view"
 
 #: src/components/toolbar/buttons/new-window-button.tsx:35
-#: src/components/left-sidebar/search-list.tsx:319
-#: src/components/left-sidebar/search-list.tsx:395
+#: src/components/left-sidebar/search-list.tsx:316
+#: src/components/left-sidebar/search-list.tsx:392
 msgid "Open in new window"
 msgstr "Open in new window"
 
@@ -923,7 +923,7 @@ msgstr "Search names or emails"
 msgid "Search templates..."
 msgstr "Search templates..."
 
-#: src/components/search-bar.tsx:96
+#: src/components/search-bar.tsx:144
 msgid "Search..."
 msgstr "Search..."
 

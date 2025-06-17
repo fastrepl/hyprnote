@@ -121,7 +121,7 @@ impl<T: AsRef<Path>> GgufExt for T {
                     Ok(Some(ChatTemplate::TemplateKey(LlamaCppRegistry::ChatML)))
                 }
                 "llama3" => Ok(Some(ChatTemplate::TemplateKey(LlamaCppRegistry::Llama3))),
-                "gemma" => Ok(Some(ChatTemplate::TemplateKey(LlamaCppRegistry::Gemma))),
+                "gemma" | "gemma3" => Ok(Some(ChatTemplate::TemplateKey(LlamaCppRegistry::Gemma))),
                 "phi3" => Ok(Some(ChatTemplate::TemplateKey(LlamaCppRegistry::Phi3))),
                 "phi4" => Ok(Some(ChatTemplate::TemplateKey(LlamaCppRegistry::Phi4))),
                 _ => Ok(None),
@@ -140,10 +140,10 @@ mod tests {
     fn test_gguf_chat_format() {
         let test_path = dirs::data_dir()
             .unwrap()
-            .join("com.hyprnote.nightly")
+            .join("com.hyprnote.stable")
             .join("llm.gguf");
 
         assert!(test_path.exists());
-        assert!(test_path.gguf_chat_format().is_ok());
+        test_path.gguf_chat_format().unwrap().unwrap();
     }
 }

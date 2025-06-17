@@ -71,6 +71,10 @@ export function TranscriptView() {
   const containerRef = useRef<HTMLDivElement>(null);
   const panelWidth = useContainerWidth(containerRef);
 
+  // Add container ref to track the panel width
+  const containerRef = useRef<HTMLDivElement>(null);
+  const panelWidth = useContainerWidth(containerRef);
+
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: true });
   const sessionId = noteMatch.params.id;
 

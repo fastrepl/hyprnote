@@ -62,6 +62,51 @@ export function SearchProvider({
     },
   );
 
+  useHotkeys(
+    "down",
+    (event) => {
+      const store = storeRef.current!;
+      const state = store.getState();
+      if (document.activeElement === state.searchInputRef?.current && state.matches.length > 0) {
+        event.preventDefault();
+        state.navigateResults("down");
+      }
+    },
+    {
+      enableOnFormTags: true,
+    },
+  );
+
+  useHotkeys(
+    "up",
+    (event) => {
+      const store = storeRef.current!;
+      const state = store.getState();
+      if (document.activeElement === state.searchInputRef?.current && state.matches.length > 0) {
+        event.preventDefault();
+        state.navigateResults("up");
+      }
+    },
+    {
+      enableOnFormTags: true,
+    },
+  );
+
+  useHotkeys(
+    "enter",
+    (event) => {
+      const store = storeRef.current!;
+      const state = store.getState();
+      if (document.activeElement === state.searchInputRef?.current && state.selectedIndex >= 0) {
+        event.preventDefault();
+        state.selectResult();
+      }
+    },
+    {
+      enableOnFormTags: true,
+    },
+  );
+
   return (
     <SearchContext.Provider value={storeRef.current}>
       {children}

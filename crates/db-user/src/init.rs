@@ -62,33 +62,17 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
     let onboarding_session_id = db.onboarding_session_id();
 
     let thank_you_session = Session {
-        id: uuid::Uuid::new_v4().to_string(),
-        user_id: user_id.clone(),
         title: "Thank you".to_string(),
-        created_at: chrono::Utc::now(),
-        visited_at: chrono::Utc::now(),
-        calendar_event_id: None,
         raw_memo_html: hypr_buffer::opinionated_md_to_html(THANK_YOU_MD).unwrap(),
-        enhanced_memo_html: None,
-        conversations: vec![],
-        words: vec![],
-        record_start: None,
-        record_end: None,
+        ..new_default_session(&user_id)
     };
 
     let onboarding_session = Session {
         id: onboarding_session_id,
-        user_id: user_id.clone(),
         title: "Welcome to Hyprnote".to_string(),
-        created_at: chrono::Utc::now(),
-        visited_at: chrono::Utc::now(),
         calendar_event_id: Some(onboarding_event.id.clone()),
         raw_memo_html: ONBOARDING_RAW_HTML.to_string(),
-        enhanced_memo_html: None,
-        conversations: vec![],
-        words: vec![],
-        record_start: None,
-        record_end: None,
+        ..new_default_session(&user_id)
     };
 
     let _ = db.upsert_calendar(default_calendar).await?;
@@ -487,5 +471,6 @@ fn new_default_session(user_id: impl Into<String>) -> Session {
         words: vec![],
         record_start: None,
         record_end: None,
+        pre_meeting_memo_html: None,
     }
 }

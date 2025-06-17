@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useMatch, useNavigate } from "@tanstack/react-router";
 import { BuildingIcon, CalendarIcon, FileTextIcon, UserIcon } from "lucide-react";
 import { AppWindowMacIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { useHyprSearch } from "@/contexts/search";
 import { type SearchMatch } from "@/stores/search";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -17,7 +18,34 @@ import {
 import { cn } from "@hypr/ui/lib/utils";
 import { formatRemainingTime } from "@hypr/utils/datetime";
 
+const highlightText = (text: string, query: string) => {
+  if (!query.trim()) {
+    return text;
+  }
+
+  const index = text.toLowerCase().indexOf(query.toLowerCase());
+
+  if (index === -1) {
+    return text;
+  }
+
+  return (
+    <>
+      {text.substring(0, index)}
+      <mark className="bg-yellow-100 rounded-sm">
+        {text.substring(index, index + query.length)}
+      </mark>
+      {text.substring(index + query.length)}
+    </>
+  );
+};
+
 export default function SearchList({ matches }: { matches: SearchMatch[] }) {
+  const { selectedIndex, query } = useHyprSearch((s) => ({
+    selectedIndex: s.selectedIndex,
+    query: s.query,
+  }));
+
   if (matches.length === 0) {
     return (
       <div className="py-4 text-center text-neutral-500 text-sm">
@@ -31,6 +59,20 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
   const humanMatches = matches.filter(match => match.type === "human");
   const organizationMatches = matches.filter(match => match.type === "organization");
 
+  const getGlobalIndex = (sectionIndex: number, localIndex: number) => {
+    let globalIndex = 0;
+    if (sectionIndex >= 1) {
+      globalIndex += sessionMatches.length;
+    }
+    if (sectionIndex >= 2) {
+      globalIndex += eventMatches.length;
+    }
+    if (sectionIndex >= 3) {
+      globalIndex += humanMatches.length;
+    }
+    return globalIndex + localIndex;
+  };
+
   return (
     <div className="h-full space-y-4 px-3 pb-4">
       {sessionMatches.length > 0 && (
@@ -41,7 +83,12 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
           </h2>
           <div>
             {sessionMatches.map((match, i) => (
-              <SessionMatch key={`session-${i}`} match={match as SearchMatch & { type: "session" }} />
+              <SessionMatch
+                key={`session-${match.item.id}`}
+                match={match as SearchMatch & { type: "session" }}
+                isSelected={selectedIndex === getGlobalIndex(0, i)}
+                query={query}
+              />
             ))}
           </div>
         </section>
@@ -55,7 +102,12 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
           </h2>
           <div>
             {eventMatches.map((match, i) => (
-              <EventMatch key={`event-${i}`} match={match as SearchMatch & { type: "event" }} />
+              <EventMatch
+                key={`event-${match.item.id}`}
+                match={match as SearchMatch & { type: "event" }}
+                isSelected={selectedIndex === getGlobalIndex(1, i)}
+                query={query}
+              />
             ))}
           </div>
         </section>
@@ -69,7 +121,12 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
           </h2>
           <div>
             {humanMatches.map((match, i) => (
-              <HumanMatch key={`human-${i}`} match={match as SearchMatch & { type: "human" }} />
+              <HumanMatch
+                key={`human-${match.item.id}`}
+                match={match as SearchMatch & { type: "human" }}
+                isSelected={selectedIndex === getGlobalIndex(2, i)}
+                query={query}
+              />
             ))}
           </div>
         </section>
@@ -83,7 +140,12 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
           </h2>
           <div>
             {organizationMatches.map((match, i) => (
-              <OrganizationMatch key={`org-${i}`} match={match as SearchMatch & { type: "organization" }} />
+              <OrganizationMatch
+                key={`org-${match.item.id}`}
+                match={match as SearchMatch & { type: "organization" }}
+                isSelected={selectedIndex === getGlobalIndex(3, i)}
+                query={query}
+              />
             ))}
           </div>
         </section>
@@ -92,11 +154,22 @@ export default function SearchList({ matches }: { matches: SearchMatch[] }) {
   );
 }
 
-export function SessionMatch({ match: { item: session } }: { match: SearchMatch & { type: "session" } }) {
+export function SessionMatch({ match: { item: session }, isSelected, query }: {
+  match: SearchMatch & { type: "session" };
+  isSelected: boolean;
+  query: string;
+}) {
   const navigate = useNavigate();
+  const elementRef = useRef<HTMLButtonElement>(null);
 
-  const match = useMatch({ from: "/app/note/$id", shouldThrow: false });
-  const isActive = match?.params.id === session.id;
+  const routeMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
+  const isActive = routeMatch?.params.id === session.id;
+
+  useEffect(() => {
+    if (isSelected && elementRef.current) {
+      elementRef.current.scrollIntoView({ block: "nearest" });
+    }
+  }, [isSelected]);
 
   const handleClick = () => {
     navigate({
@@ -107,14 +180,17 @@ export function SessionMatch({ match: { item: session } }: { match: SearchMatch 
 
   return (
     <button
+      ref={elementRef}
       onClick={handleClick}
       className={cn([
         "w-full text-left group flex items-start py-2 rounded-lg px-2",
-        isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
+        isActive ? "bg-neutral-200" : isSelected ? "bg-blue-100" : "hover:bg-neutral-100",
       ])}
     >
       <div className="flex flex-col items-start gap-1">
-        <div className="font-medium text-sm line-clamp-1">{session.title || "Untitled Note"}</div>
+        <div className="font-medium text-sm line-clamp-1">
+          {highlightText(session.title || "Untitled Note", query)}
+        </div>
         <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
           {new Date(session.created_at).toLocaleDateString()}
         </div>
@@ -123,9 +199,20 @@ export function SessionMatch({ match: { item: session } }: { match: SearchMatch 
   );
 }
 
-function EventMatch({ match }: { match: SearchMatch & { type: "event" } }) {
+function EventMatch({ match, isSelected, query }: {
+  match: SearchMatch & { type: "event" };
+  isSelected: boolean;
+  query: string;
+}) {
   const navigate = useNavigate();
   const event = match.item;
+  const elementRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (isSelected && elementRef.current) {
+      elementRef.current.scrollIntoView({ block: "nearest" });
+    }
+  }, [isSelected]);
 
   const handleClick = () => {
     navigate({ to: "/app/new", search: { calendarEventId: event.id } });
@@ -133,11 +220,17 @@ function EventMatch({ match }: { match: SearchMatch & { type: "event" } }) {
 
   return (
     <button
+      ref={elementRef}
       onClick={handleClick}
-      className="w-full text-left group flex items-start py-2 hover:bg-neutral-100 rounded-lg px-2"
+      className={cn([
+        "w-full text-left group flex items-start py-2 rounded-lg px-2",
+        isSelected ? "bg-blue-100" : "hover:bg-neutral-100",
+      ])}
     >
       <div className="flex flex-col items-start gap-1">
-        <div className="font-medium text-sm line-clamp-1">{event.name}</div>
+        <div className="font-medium text-sm line-clamp-1">
+          {highlightText(event.name, query)}
+        </div>
         <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
           {formatRemainingTime(new Date(event.start_date))}
         </div>
@@ -146,10 +239,15 @@ function EventMatch({ match }: { match: SearchMatch & { type: "event" } }) {
   );
 }
 
-function HumanMatch({ match: { item } }: { match: SearchMatch & { type: "human" } }) {
+function HumanMatch({ match: { item }, isSelected, query }: {
+  match: SearchMatch & { type: "human" };
+  isSelected: boolean;
+  query: string;
+}) {
   const navigate = useNavigate();
-  const match = useMatch({ from: "/app/human/$id", shouldThrow: false });
+  const routeMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
   const [isOpen, setIsOpen] = useState(false);
+  const elementRef = useRef<HTMLButtonElement>(null);
 
   const human = useQuery({
     initialData: item,
@@ -157,7 +255,13 @@ function HumanMatch({ match: { item } }: { match: SearchMatch & { type: "human" 
     queryFn: () => dbCommands.getHuman(item.id),
   });
 
-  const isActive = match?.params.id === item.id;
+  const isActive = routeMatch?.params.id === item.id;
+
+  useEffect(() => {
+    if (isSelected && elementRef.current) {
+      elementRef.current.scrollIntoView({ block: "nearest" });
+    }
+  }, [isSelected]);
 
   const handleClick = () => {
     navigate({
@@ -178,23 +282,26 @@ function HumanMatch({ match: { item } }: { match: SearchMatch & { type: "human" 
     <ContextMenu onOpenChange={handleOpenChange}>
       <ContextMenuTrigger disabled={isActive}>
         <button
+          ref={elementRef}
           onClick={handleClick}
           disabled={isActive}
           className={cn([
             "w-full text-left group flex items-start py-2 rounded-lg px-2",
-            isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
+            isActive ? "bg-neutral-200" : isSelected ? "bg-blue-100" : "hover:bg-neutral-100",
             isOpen && "bg-neutral-100",
           ])}
         >
           <div className="flex flex-col items-start gap-1">
             <div className="font-medium text-sm line-clamp-1 flex items-center gap-2 w-full">
-              <span className="truncate">{human.data?.full_name || "Unnamed Person"}</span>
+              <span className="truncate">
+                {highlightText(human.data?.full_name || "Unnamed Person", query)}
+              </span>
               <span className="text-neutral-500 text-xs font-normal ml-auto truncate max-w-[120px]">
-                {human.data?.job_title}
+                {highlightText(human.data?.job_title || "", query)}
               </span>
             </div>
             <div className="flex items-center gap-2 text-xs text-neutral-500 line-clamp-1">
-              {human.data?.email}
+              {highlightText(human.data?.email || "", query)}
             </div>
           </div>
         </button>
@@ -213,9 +320,11 @@ function HumanMatch({ match: { item } }: { match: SearchMatch & { type: "human" 
   );
 }
 
-function OrganizationMatch(
-  { match: { item: organization } }: { match: SearchMatch & { type: "organization" } },
-) {
+function OrganizationMatch({ match: { item: organization }, isSelected, query }: {
+  match: SearchMatch & { type: "organization" };
+  isSelected: boolean;
+  query: string;
+}) {
   const org = useQuery({
     initialData: organization,
     queryKey: ["org", organization.id],
@@ -223,10 +332,17 @@ function OrganizationMatch(
   });
 
   const navigate = useNavigate();
-  const match = useMatch({ from: "/app/organization/$id", shouldThrow: false });
+  const routeMatch = useMatch({ from: "/app/organization/$id", shouldThrow: false });
   const [isOpen, setIsOpen] = useState(false);
+  const elementRef = useRef<HTMLButtonElement>(null);
 
-  const isActive = match?.params.id === organization.id;
+  const isActive = routeMatch?.params.id === organization.id;
+
+  useEffect(() => {
+    if (isSelected && elementRef.current) {
+      elementRef.current.scrollIntoView({ block: "nearest" });
+    }
+  }, [isSelected]);
 
   const handleClick = () => {
     navigate({
@@ -247,18 +363,21 @@ function OrganizationMatch(
     <ContextMenu onOpenChange={handleOpenChange}>
       <ContextMenuTrigger disabled={isActive}>
         <button
+          ref={elementRef}
           onClick={handleClick}
           disabled={isActive}
           className={cn([
             "w-full text-left group flex items-start py-2 rounded-lg px-2",
-            isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
+            isActive ? "bg-neutral-200" : isSelected ? "bg-blue-100" : "hover:bg-neutral-100",
             isOpen && "bg-neutral-100",
           ])}
         >
           <div className="flex flex-col items-start gap-1 w-full overflow-hidden">
-            <div className="font-medium text-sm line-clamp-1 w-full">{org.data?.name}</div>
+            <div className="font-medium text-sm line-clamp-1 w-full">
+              {highlightText(org.data?.name || "", query)}
+            </div>
             <div className="text-xs text-neutral-500 truncate w-full overflow-hidden text-ellipsis whitespace-nowrap">
-              {org.data?.description}
+              {highlightText(org.data?.description || "", query)}
             </div>
           </div>
         </button>

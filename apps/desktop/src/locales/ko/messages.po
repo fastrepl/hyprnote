@@ -822,8 +822,8 @@ msgid "Open calendar view"
 msgstr ""
 
 #: src/components/toolbar/buttons/new-window-button.tsx:35
-#: src/components/left-sidebar/search-list.tsx:209
-#: src/components/left-sidebar/search-list.tsx:273
+#: src/components/left-sidebar/search-list.tsx:319
+#: src/components/left-sidebar/search-list.tsx:395
 msgid "Open in new window"
 msgstr ""
 
@@ -923,9 +923,13 @@ msgstr ""
 msgid "Search templates..."
 msgstr ""
 
-#: src/components/search-bar.tsx:51
+#: src/components/search-bar.tsx:96
 msgid "Search..."
 msgstr ""
+
+#: src/components/search-bar.tsx:92
+#~ msgid "Searching..."
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:121
 msgid "Sections"
@@ -1072,7 +1076,7 @@ msgstr ""
 msgid "Ugh! Can't use it!"
 msgstr ""
 
-#: src/components/editor-area/note-header/title-input.tsx:39
+#: src/components/editor-area/note-header/title-input.tsx:33
 msgid "Untitled"
 msgstr ""
 

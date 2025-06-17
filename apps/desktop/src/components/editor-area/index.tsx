@@ -57,7 +57,6 @@ export default function EditorArea({
     sessionId,
     rawContent,
     onSuccess: (content) => {
-      console.log("useEnhanceMutation onSuccess", content);
       generateTitle.mutate({ enhancedContent: content });
     },
   });

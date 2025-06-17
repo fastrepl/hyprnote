@@ -3579,7 +3579,7 @@ dependencies = [
 
 [[package]]
 name = "desktop"
-version = "0.0.43"
+version = "0.0.44"
 dependencies = [
  "anyhow",
  "bytes",
@@ -7835,12 +7835,13 @@ dependencies = [
  "thiserror 2.0.12",
  "tokio",
  "tokio-stream",
+ "tracing",
 ]
 
 [[package]]
 name = "llama-cpp-2"
 version = "0.1.108"
-source = "git+https://github.com/utilityai/llama-cpp-rs?branch=update-llama-cpp-2025-06-04#73707a44ce892578ad94d630b356c0ec417c7476"
+source = "git+https://github.com/utilityai/llama-cpp-rs?branch=update-llama-cpp-2025-05-28#c007d3654a093a37ee1580cf66f54ce75e8efaef"
 dependencies = [
  "enumflags2",
  "llama-cpp-sys-2",
@@ -7852,7 +7853,7 @@ dependencies = [
 [[package]]
 name = "llama-cpp-sys-2"
 version = "0.1.108"
-source = "git+https://github.com/utilityai/llama-cpp-rs?branch=update-llama-cpp-2025-06-04#73707a44ce892578ad94d630b356c0ec417c7476"
+source = "git+https://github.com/utilityai/llama-cpp-rs?branch=update-llama-cpp-2025-05-28#c007d3654a093a37ee1580cf66f54ce75e8efaef"
 dependencies = [
  "bindgen 0.69.5",
  "cc",
@@ -14046,6 +14047,7 @@ dependencies = [
  "tauri-specta",
  "thiserror 2.0.12",
  "tokio",
+ "tracing",
 ]
 
 [[package]]

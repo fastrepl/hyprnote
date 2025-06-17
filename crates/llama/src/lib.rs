@@ -13,11 +13,9 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use hypr_gguf::GgufExt;
 
 mod error;
-mod stream;
 mod types;
 
 pub use error::*;
-pub use stream::filter_tag;
 pub use types::*;
 
 const DEFAULT_MAX_INPUT_TOKENS: u32 = 1024 * 8;
@@ -113,8 +111,15 @@ impl Llama {
                                     LlamaSampler::mirostat_v2(1234, 3.0, 0.2),
                                 ]),
                             };
+
+                            let mut got_first_token = false;
                             while n_cur <= last_index + DEFAULT_MAX_OUTPUT_TOKENS as i32 {
                                 let token = sampler.sample(&ctx, batch.n_tokens() - 1);
+
+                                if !got_first_token {
+                                    got_first_token = true;
+                                    tracing::info!("llm_got_first_token");
+                                }
 
                                 if model.is_eog_token(token) {
                                     break;
@@ -162,10 +167,11 @@ impl Llama {
         };
 
         self.task_sender.send(task)?;
+        tracing::info!("llm_task_sent");
 
         let stream = UnboundedReceiverStream::new(response_receiver);
 
-        Ok(stream::filter_tag(Box::pin(stream), "headers"))
+        Ok(stream)
     }
 }
 
@@ -219,7 +225,7 @@ mod tests {
         let llama = get_model();
         let request = LlamaRequest {
             messages: vec![],
-            grammar: Some(hypr_gbnf::GBNF::Enhance(Some(vec!["header".to_string()])).build()),
+            grammar: Some(hypr_gbnf::GBNF::Enhance.build()),
         };
 
         run(&llama, request, true).await;

@@ -1,5 +1,5 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { customProvider, type TextStreamPart, type ToolSet } from "ai";
+import { customProvider, extractReasoningMiddleware, type TextStreamPart, type ToolSet, wrapLanguageModel } from "ai";
 
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { fetch as customFetch } from "@hypr/utils";
@@ -17,6 +17,12 @@ export const useChat = (options: Parameters<typeof useChat$1>[0]) => {
 
 export const providerName = "hypr-llm";
 
+const reasoningMiddleware = extractReasoningMiddleware({
+  tagName: "thinking",
+  separator: "\n",
+  startWithReasoning: false,
+});
+
 const getModel = async ({ onboarding }: { onboarding: boolean }) => {
   const getter = onboarding ? connectorCommands.getLocalLlmConnection : connectorCommands.getLlmConnection;
   const { type, connection: { api_base, api_key } } = await getter();
@@ -32,13 +38,14 @@ const getModel = async ({ onboarding }: { onboarding: boolean }) => {
   });
 
   const customModel = await connectorCommands.getCustomLlmModel();
-  const model = onboarding
+  const id = onboarding
     ? "mock-onboarding"
     : (type === "Custom" && customModel)
     ? customModel
     : "gpt-4";
 
-  return openai(model);
+  const model = openai(id);
+  return wrapLanguageModel({ model, middleware: [reasoningMiddleware] });
 };
 
 export const modelProvider = async () => {

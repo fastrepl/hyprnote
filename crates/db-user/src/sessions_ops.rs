@@ -17,6 +17,7 @@ impl UserDatabase {
             title = '' AND
             raw_memo_html = '' AND 
             (enhanced_memo_html IS NULL OR enhanced_memo_html = '') AND 
+            (pre_meeting_memo_html IS NULL OR pre_meeting_memo_html = '') AND
             conversations = '[]'",
             (),
         )
@@ -230,7 +231,8 @@ impl UserDatabase {
                     conversations,
                     words,
                     record_start,
-                    record_end
+                    record_end,
+                    pre_meeting_memo_html
                 ) VALUES (
                     :id,
                     :created_at,
@@ -243,7 +245,8 @@ impl UserDatabase {
                     :conversations,
                     :words,
                     :record_start,
-                    :record_end
+                    :record_end,
+                    :pre_meeting_memo_html
                 )
                 ON CONFLICT(id) DO UPDATE SET
                     created_at = :created_at,
@@ -256,7 +259,8 @@ impl UserDatabase {
                     conversations = :conversations,
                     words = :words,
                     record_start = :record_start,
-                    record_end = :record_end
+                    record_end = :record_end,
+                    pre_meeting_memo_html = :pre_meeting_memo_html
                 RETURNING *",
                 libsql::named_params! {
                     ":id": session.id.clone(),
@@ -271,6 +275,7 @@ impl UserDatabase {
                     ":words": serde_json::to_string(&session.words).unwrap(),
                     ":record_start": session.record_start.map(|dt| dt.to_rfc3339()),
                     ":record_end": session.record_end.map(|dt| dt.to_rfc3339()),
+                    ":pre_meeting_memo_html": session.pre_meeting_memo_html.clone(),
                 },
             )
             .await?;
@@ -416,6 +421,7 @@ mod tests {
             }],
             record_start: None,
             record_end: None,
+            pre_meeting_memo_html: Some("pre_meeting_memo_html_1".to_string()),
         };
 
         let mut session = db.upsert_session(session).await.unwrap();
@@ -423,6 +429,10 @@ mod tests {
         assert_eq!(session.enhanced_memo_html, None);
         assert_eq!(session.title, "test");
         assert_eq!(session.words.len(), 1);
+        assert_eq!(
+            session.pre_meeting_memo_html,
+            Some("pre_meeting_memo_html_1".to_string())
+        );
 
         let sessions = db.list_sessions(None).await.unwrap();
         assert_eq!(sessions.len(), 1);

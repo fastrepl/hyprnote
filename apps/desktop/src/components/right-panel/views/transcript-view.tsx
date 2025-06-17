@@ -2,7 +2,18 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { writeText as writeTextToClipboard } from "@tauri-apps/plugin-clipboard-manager";
 import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
-import { AudioLinesIcon, CheckIcon, ClipboardIcon, CopyIcon, TextSearchIcon, UploadIcon } from "lucide-react";
+import {
+  AudioLinesIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ClipboardIcon,
+  CopyIcon,
+  ReplaceIcon,
+  TextSearchIcon,
+  UploadIcon,
+  XIcon,
+} from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
@@ -23,8 +34,39 @@ import { ListeningIndicator } from "../components/listening-indicator";
 import { useTranscript } from "../hooks/useTranscript";
 import { useTranscriptWidget } from "../hooks/useTranscriptWidget";
 
+function useContainerWidth(ref: React.RefObject<HTMLElement>) {
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setWidth(entry.contentRect.width);
+      }
+    });
+
+    resizeObserver.observe(element);
+    // Set initial width
+    setWidth(element.getBoundingClientRect().width);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [ref]);
+
+  return width;
+}
+
 export function TranscriptView() {
   const queryClient = useQueryClient();
+
+  // Add container ref to track the panel width
+  const containerRef = useRef<HTMLDivElement>(null);
+  const panelWidth = useContainerWidth(containerRef);
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: true });
   const sessionId = noteMatch.params.id;
@@ -87,7 +129,7 @@ export function TranscriptView() {
   const showActions = hasTranscript && sessionId && ongoingSession.isInactive;
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col" ref={containerRef}>
       <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b border-neutral-100">
         {!showEmptyMessage && (
           <div className="flex items-center gap-2">
@@ -101,6 +143,7 @@ export function TranscriptView() {
           </div>
         )}
         <div className="not-draggable flex items-center ">
+          {showActions && panelWidth >= 530 && <SearchAndReplace editorRef={editorRef} panelWidth={panelWidth} />}
           {(audioExist.data && showActions) && (
             <Button
               variant="ghost"
@@ -110,7 +153,6 @@ export function TranscriptView() {
               <AudioLinesIcon size={14} className="text-neutral-600" />
             </Button>
           )}
-          {showActions && <SearchAndReplace editorRef={editorRef} />}
           {showActions && <CopyButton onCopy={handleCopyAll} />}
         </div>
       </header>
@@ -142,43 +184,96 @@ function RenderEmpty({ sessionId }: { sessionId: string }) {
     loading: s.loading,
   }));
 
+  // Add container ref to track the panel width
+  const containerRef = useRef<HTMLDivElement>(null);
+  const panelWidth = useContainerWidth(containerRef);
+
   const handleStartRecording = () => {
     if (ongoingSession.status === "inactive") {
       ongoingSession.start(sessionId);
     }
   };
 
+  // Determine layout based on actual panel width (empty screen)
+  const isUltraCompact = panelWidth < 150; // Just icons
+  const isVeryNarrow = panelWidth < 200; // Short text
+  const isNarrow = panelWidth < 400; // No helper text
+  const showFullText = panelWidth >= 400; // Full text
+
   return (
-    <div className="h-full flex items-center justify-center">
+    <div className="h-full flex items-center justify-center" ref={containerRef}>
       <div className="text-neutral-500 font-medium text-center">
-        <div className="mb-6 text-neutral-600 flex items-center gap-1.5">
-          <Button size="sm" onClick={handleStartRecording} disabled={ongoingSession.loading}>
+        <div
+          className={`mb-6 text-neutral-600 flex ${isNarrow ? "flex-col" : "flex-row"} items-center ${
+            isNarrow ? "gap-2" : "gap-1.5"
+          }`}
+        >
+          <Button
+            size="sm"
+            onClick={handleStartRecording}
+            disabled={ongoingSession.loading}
+            className={isUltraCompact ? "px-3" : ""}
+            title={isUltraCompact ? (ongoingSession.loading ? "Starting..." : "Start recording") : undefined}
+          >
             {ongoingSession.loading ? <Spinner color="black" /> : (
               <div className="relative h-2 w-2">
                 <div className="absolute inset-0 rounded-full bg-red-500"></div>
                 <div className="absolute inset-0 rounded-full bg-red-400 animate-ping"></div>
               </div>
             )}
-            {ongoingSession.loading ? "Starting..." : "Start recording"}
+            {!isUltraCompact && (
+              <span className="ml-2">
+                {ongoingSession.loading ? "Starting..." : "Start recording"}
+              </span>
+            )}
           </Button>
-          <span className="text-sm">to see live transcript</span>
+          {showFullText && <span className="text-sm">to see live transcript</span>}
         </div>
 
-        <div className="flex items-center justify-center w-full max-w-[240px] mb-4">
+        <div className={`flex items-center justify-center mb-4 ${isUltraCompact ? "w-full" : "w-full max-w-[240px]"}`}>
           <div className="h-px bg-neutral-200 flex-grow"></div>
           <span className="px-3 text-xs text-neutral-400 font-medium">or</span>
           <div className="h-px bg-neutral-200 flex-grow"></div>
         </div>
 
         <div className="flex flex-col gap-2">
-          <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
-            <UploadIcon size={14} />Upload recording{" "}
-            <span className="text-xs text-neutral-400 italic">coming soon</span>
-          </Button>
-          <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
-            <ClipboardIcon size={14} />Paste transcript{" "}
-            <span className="text-xs text-neutral-400 italic">coming soon</span>
-          </Button>
+          {isUltraCompact
+            ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-neutral-100"
+                  disabled
+                  title="Upload recording"
+                >
+                  <UploadIcon size={14} />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-neutral-100"
+                  disabled
+                  title="Paste transcript"
+                >
+                  <ClipboardIcon size={14} />
+                </Button>
+              </>
+            )
+            : (
+              <>
+                <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
+                  <UploadIcon size={14} />
+                  {isVeryNarrow ? "Upload" : "Upload recording"}
+                  {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
+                </Button>
+                <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
+                  <ClipboardIcon size={14} />
+                  {isVeryNarrow ? "Paste" : "Paste transcript"}
+                  {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
+                </Button>
+              </>
+            )}
         </div>
       </div>
     </div>
@@ -328,22 +423,34 @@ function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
   );
 }
 
-function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any> }) {
-  const [expanded, setExpanded] = useState(false);
+export function SearchAndReplace({ editorRef, panelWidth }: {
+  editorRef: React.RefObject<any>;
+  panelWidth: number;
+}) {
+  const [isActive, setIsActive] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [replaceTerm, setReplaceTerm] = useState("");
+  const [resultCount, setResultCount] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Add ref for the search container
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Debounced search term update
   const debouncedSetSearchTerm = useDebouncedCallback(
     (value: string) => {
       if (editorRef.current) {
         editorRef.current.editor.commands.setSearchTerm(value);
-
-        if (value.substring(0, value.length - 1) === replaceTerm) {
-          setReplaceTerm(value);
-        }
+        editorRef.current.editor.commands.resetIndex();
+        setTimeout(() => {
+          const storage = editorRef.current.editor.storage.searchAndReplace;
+          const results = storage.results || [];
+          setResultCount(results.length);
+          setCurrentIndex((storage.resultIndex ?? 0) + 1);
+        }, 100);
       }
     },
-    [editorRef, replaceTerm],
+    [editorRef],
     300,
   );
 
@@ -357,55 +464,211 @@ function SearchAndReplace({ editorRef }: { editorRef: React.RefObject<any> }) {
     }
   }, [replaceTerm]);
 
-  const handleReplaceAll = () => {
-    if (editorRef.current && searchTerm) {
-      editorRef.current.editor.commands.replaceAll(replaceTerm);
-      setExpanded(false);
+  // Click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        if (isActive) {
+          setIsActive(false);
+          setSearchTerm("");
+          setReplaceTerm("");
+          setResultCount(0);
+          setCurrentIndex(0);
+          if (editorRef.current) {
+            editorRef.current.editor.commands.setSearchTerm("");
+          }
+        }
+      }
+    };
+
+    if (isActive) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isActive, editorRef]);
+
+  // Keyboard shortcut handler - only when transcript editor is focused
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+        const isTranscriptFocused = editorRef.current?.editor?.isFocused;
+        if (isTranscriptFocused) {
+          e.preventDefault();
+          setIsActive(true);
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [editorRef]);
+
+  // Use extension's navigation commands
+  const handleNext = () => {
+    if (editorRef.current?.editor) {
+      editorRef.current.editor.commands.nextSearchResult();
+      setTimeout(() => {
+        const storage = editorRef.current.editor.storage.searchAndReplace;
+        setCurrentIndex((storage.resultIndex ?? 0) + 1);
+        scrollCurrentResultIntoView(editorRef);
+      }, 100);
     }
   };
 
-  useEffect(() => {
-    if (!expanded) {
+  const handlePrevious = () => {
+    if (editorRef.current?.editor) {
+      editorRef.current.editor.commands.previousSearchResult();
+      setTimeout(() => {
+        const storage = editorRef.current.editor.storage.searchAndReplace;
+        setCurrentIndex((storage.resultIndex ?? 0) + 1);
+        scrollCurrentResultIntoView(editorRef);
+      }, 100);
+    }
+  };
+
+  function scrollCurrentResultIntoView(editorRef: React.RefObject<any>) {
+    if (!editorRef.current) {
+      return;
+    }
+    const editorElement = editorRef.current.editor.view.dom;
+    const current = editorElement.querySelector(".search-result-current") as HTMLElement | null;
+    if (current) {
+      current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "nearest",
+      });
+    }
+  }
+
+  const handleReplaceAll = () => {
+    if (editorRef.current && searchTerm) {
+      editorRef.current.editor.commands.replaceAll();
+      setTimeout(() => {
+        const storage = editorRef.current.editor.storage.searchAndReplace;
+        const results = storage.results || [];
+        setResultCount(results.length);
+        setCurrentIndex(results.length > 0 ? 1 : 0);
+      }, 100);
+    }
+  };
+
+  const handleToggle = () => {
+    setIsActive(!isActive);
+    if (isActive && editorRef.current) {
       setSearchTerm("");
       setReplaceTerm("");
+      setResultCount(0);
+      setCurrentIndex(0);
+      editorRef.current.editor.commands.setSearchTerm("");
     }
-  }, [expanded]);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      handleToggle();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (e.shiftKey) {
+        handlePrevious();
+      } else {
+        handleNext();
+      }
+    } else if (e.key === "F3") {
+      e.preventDefault();
+      if (e.shiftKey) {
+        handlePrevious();
+      } else {
+        handleNext();
+      }
+    }
+  };
 
   return (
-    <Popover open={expanded} onOpenChange={setExpanded}>
-      <PopoverTrigger asChild>
-        <Button
-          className="w-8"
-          variant="ghost"
-          size="icon"
-        >
-          <TextSearchIcon size={14} className="text-neutral-600" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-2" align="start" side="left">
-        <div className="flex flex-row gap-2">
-          <Input
-            className="h-5 w-32"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search"
-          />
-          <Input
-            className="h-5 w-32"
-            value={replaceTerm}
-            onChange={(e) => setReplaceTerm(e.target.value)}
-            placeholder="Replace"
-          />
+    <div className="flex items-center" ref={searchContainerRef}>
+      {!isActive
+        ? (
           <Button
-            className="h-5"
-            variant="default"
-            onClick={handleReplaceAll}
+            className="w-8 h-8"
+            variant="ghost"
+            size="icon"
+            onClick={handleToggle}
           >
-            Replace
+            <TextSearchIcon size={14} className="text-neutral-600" />
           </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
+        )
+        : (
+          <div className="flex items-center gap-2 bg-neutral-50 border border-neutral-200 rounded-md p-1.5 h-8">
+            <div className="flex items-center gap-1">
+              <Input
+                className="h-6 w-20 text-xs border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 bg-transparent"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Search..."
+                autoFocus
+              />
+              <div className="h-4 w-px bg-neutral-300" />
+              <Input
+                className="h-6 w-20 text-xs border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 bg-transparent"
+                value={replaceTerm}
+                onChange={(e) => setReplaceTerm(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Replace..."
+              />
+            </div>
+            {searchTerm && (
+              <div className="flex items-center gap-1 text-xs text-neutral-500">
+                <span className="whitespace-nowrap text-[10px] font-mono min-w-[32px] text-center">
+                  {resultCount > 0 ? `${currentIndex}/${resultCount}` : "0/0"}
+                </span>
+                <div className="flex items-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={handlePrevious}
+                    disabled={resultCount === 0}
+                    title="Previous result (Shift+Enter, Shift+F3)"
+                  >
+                    <ChevronUpIcon size={12} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={handleNext}
+                    disabled={resultCount === 0}
+                    title="Next result (Enter, F3)"
+                  >
+                    <ChevronDownIcon size={12} />
+                  </Button>
+                </div>
+              </div>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 flex-shrink-0"
+              onClick={handleReplaceAll}
+              disabled={!searchTerm}
+              title="Replace All"
+            >
+              <ReplaceIcon size={12} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={handleToggle}
+            >
+              <XIcon size={12} />
+            </Button>
+          </div>
+        )}
+    </div>
   );
 }
 

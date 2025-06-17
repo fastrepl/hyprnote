@@ -18,6 +18,7 @@ user_common_derives! {
         pub words: Vec<hypr_listener_interface::Word>,
         pub record_start: Option<DateTime<Utc>>,
         pub record_end: Option<DateTime<Utc>>,
+        pub pre_meeting_memo_html: Option<String>,
     }
 }
 
@@ -57,6 +58,7 @@ impl Session {
                     .map(|dt| dt.with_timezone(&Utc))
                     .ok()
             }),
+            pre_meeting_memo_html: row.get(12).expect("pre_meeting_memo_html"),
         })
     }
 

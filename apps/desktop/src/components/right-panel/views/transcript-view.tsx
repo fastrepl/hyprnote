@@ -96,12 +96,11 @@ export function TranscriptView() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "f") {
-        const isTranscriptFocused = editorRef.current?.editor?.isFocused;
         const currentShowActions = hasTranscript && sessionId && ongoingSession.isInactive;
-        if (isTranscriptFocused && currentShowActions) {
-          e.preventDefault();
-          setIsSearchActive(true);
+        if (currentShowActions) {
+            setIsSearchActive(true);
         }
+        
       }
     };
     document.addEventListener("keydown", handleKeyDown);
@@ -604,10 +603,9 @@ function SearchHeader({ editorRef, onClose }: {
     >
       <div className="flex items-center gap-2 flex-1">
         {/* Search Input */}
-        <div className="flex items-center gap-1 bg-white border border-neutral-200 rounded px-2 py-1 flex-1 max-w-xs">
+        <div className="flex items-center gap-1 bg-transparent border border-neutral-200 rounded px-2 py-0.5 flex-1 max-w-xs">
           <Input
-            className="h-5 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-1 bg-transparent flex-1"
-            style={{ fontSize: '15px' }}
+            className="h-5 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-1 bg-transparent flex-1 text-xs"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -617,10 +615,9 @@ function SearchHeader({ editorRef, onClose }: {
         </div>
 
         {/* Replace Input */}
-        <div className="flex items-center gap-1 bg-white border border-neutral-200 rounded px-2 py-1 flex-1 max-w-xs">
+        <div className="flex items-center gap-1 bg-transparent border border-neutral-200 rounded px-2 py-0.5 flex-1 max-w-xs">
           <Input
-            className="h-5 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-1 bg-transparent flex-1"
-            style={{ fontSize: '15px' }}
+            className="h-5 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-1 bg-transparent flex-1 text-xs"
             value={replaceTerm}
             onChange={(e) => setReplaceTerm(e.target.value)}
             onKeyDown={handleKeyDown}

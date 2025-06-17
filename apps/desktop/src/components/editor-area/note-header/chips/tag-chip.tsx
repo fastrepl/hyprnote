@@ -50,10 +50,39 @@ export function TagChip({ sessionId, hashtags = [] }: TagChipProps) {
 }
 
 function TagChipInner({ sessionId, hashtags = [] }: { sessionId: string; hashtags?: string[] }) {
+  const queryClient = useQueryClient();
   const { data: tags = [] } = useQuery({
     queryKey: ["session-tags", sessionId],
     queryFn: () => dbCommands.listSessionTags(sessionId),
   });
+
+  const addHashtagAsTagMutation = useMutation({
+    mutationFn: async (tagName: string) => {
+      // Check if tag already exists for this session
+      const existingTags = await dbCommands.listSessionTags(sessionId);
+      const tagExists = existingTags.some(
+        tag => tag.name.toLowerCase() === tagName.toLowerCase(),
+      );
+
+      if (tagExists) {
+        return null; // Skip if already exists
+      }
+
+      const tag = await dbCommands.upsertTag({
+        id: crypto.randomUUID(),
+        name: tagName,
+      });
+      await dbCommands.assignTagToSession(tag.id, sessionId);
+      return tag;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["session-tags", sessionId] });
+    },
+  });
+
+  // Filter out hashtags that are already database tags (case-insensitive)
+  const existingTagNames = new Set(tags.map(tag => tag.name.toLowerCase()));
+  const availableHashtags = hashtags.filter(hashtag => !existingTagNames.has(hashtag.toLowerCase()));
 
   const hasAnyTags = tags.length > 0 || hashtags.length > 0;
 
@@ -68,15 +97,20 @@ function TagChipInner({ sessionId, hashtags = [] }: { sessionId: string; hashtag
             {tags.map((tag) => <TagItem key={tag.id} tag={tag} sessionId={sessionId} />)}
 
             {/* Content hashtags */}
-            {hashtags.map((hashtag) => (
+            {availableHashtags.map((hashtag) => (
               <div
                 key={hashtag}
                 className="flex w-full items-center justify-between gap-2 rounded-sm px-3 py-1.5 hover:bg-neutral-50"
               >
-                <div className="rounded px-2 py-0.5 text-sm bg-blue-50 text-blue-700 border border-blue-200">
+                <button
+                  className="rounded px-2 py-0.5 text-sm bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors cursor-pointer"
+                  onClick={() => addHashtagAsTagMutation.mutate(hashtag)}
+                  title="Click to add as tag"
+                  disabled={addHashtagAsTagMutation.isPending}
+                >
                   #{hashtag}
-                </div>
-                <span className="text-xs text-neutral-400">From content</span>
+                </button>
+                <span className="text-xs text-neutral-400">Click to add</span>
               </div>
             ))}
           </div>
@@ -99,15 +133,14 @@ function TagItem({ tag, sessionId }: { tag: { id: string; name: string }; sessio
 
   return (
     <div className="flex w-full items-center justify-between gap-2 rounded-sm px-3 py-1.5 hover:bg-neutral-50">
-      <div className="rounded px-2 py-0.5 text-sm bg-neutral-100">{tag.name}</div>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-6 px-2 text-xs text-neutral-500 hover:text-red-600"
+      <button
+        className="rounded px-2 py-0.5 text-sm bg-neutral-100 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer"
         onClick={() => removeMutation.mutate({ tagId: tag.id, sessionId })}
+        title="Click to remove tag"
       >
-        Remove
-      </Button>
+        {tag.name}
+      </button>
+      <span className="text-xs text-neutral-400">Click to remove</span>
     </div>
   );
 }

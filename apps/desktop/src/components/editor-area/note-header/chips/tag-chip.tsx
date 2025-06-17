@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon, SparklesIcon, TagsIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { useSession } from "@hypr/utils/contexts";
 
 interface TagChipProps {
   sessionId: string;
@@ -150,8 +151,32 @@ function TagAddControl({ sessionId }: { sessionId: string }) {
   const [newTagName, setNewTagName] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  // Create a unique instance ID for this component to prevent state sharing
+  const instanceId = useMemo(() => crypto.randomUUID(), []);
+
+  // Get session content
+  const sessionContent = useSession(sessionId, (s) => s.session.raw_memo_html);
+
+  // Get transcript words
+  const { data: transcriptWords = [] } = useQuery({
+    queryKey: ["session", "words", sessionId],
+    queryFn: () => dbCommands.getWords(sessionId),
+    enabled: !!sessionId,
+  });
+
+  // Check if content is too short and no transcript
+  const contentLength = sessionContent?.replace(/<[^>]*>/g, "").trim().length || 0; // Strip HTML tags
+  const hasTranscript = transcriptWords.length > 0;
+  const isContentTooShort = contentLength < 50;
+  const shouldBlockSuggestions = isContentTooShort && !hasTranscript;
+
+  // Reset suggestions state when sessionId changes
+  useEffect(() => {
+    setShowSuggestions(false);
+  }, [sessionId]);
+
   const { data: suggestions = [], isLoading: isLoadingSuggestions, refetch: fetchSuggestions } = useQuery({
-    queryKey: ["tag-suggestions", sessionId],
+    queryKey: ["tag-suggestions", sessionId, instanceId],
     queryFn: () => dbCommands.suggestTagsForSession(sessionId),
     enabled: false,
   });
@@ -231,7 +256,7 @@ function TagAddControl({ sessionId }: { sessionId: string }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session-tags", sessionId] });
-      queryClient.invalidateQueries({ queryKey: ["tag-suggestions", sessionId] });
+      queryClient.invalidateQueries({ queryKey: ["tag-suggestions", sessionId, instanceId] });
     },
   });
 
@@ -286,7 +311,7 @@ function TagAddControl({ sessionId }: { sessionId: string }) {
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start text-xs text-neutral-600 hover:text-neutral-900"
+          className="w-full justify-start text-xs text-neutral-600 hover:text-neutral-900 disabled:text-neutral-400"
           onClick={() => {
             if (!showSuggestions) {
               handleGetSuggestions();
@@ -294,11 +319,22 @@ function TagAddControl({ sessionId }: { sessionId: string }) {
               setShowSuggestions(false);
             }
           }}
-          disabled={isLoadingSuggestions}
+          disabled={isLoadingSuggestions || shouldBlockSuggestions}
+          title={shouldBlockSuggestions ? "Add more content or record audio to get AI suggestions" : undefined}
         >
           <SparklesIcon size={12} className="mr-1" />
-          {showSuggestions ? "Hide suggestions" : "Get AI suggestions"}
+          {shouldBlockSuggestions
+            ? "Need more content for AI suggestions"
+            : showSuggestions
+            ? "Hide suggestions"
+            : "Get AI suggestions"}
         </Button>
+
+        {shouldBlockSuggestions && (
+          <div className="text-xs text-neutral-500 p-2 text-center bg-neutral-50 rounded border">
+            Add more content ({contentLength}/50 characters) or record audio to get AI tag suggestions
+          </div>
+        )}
 
         {showSuggestions && (
           <div className="space-y-1">

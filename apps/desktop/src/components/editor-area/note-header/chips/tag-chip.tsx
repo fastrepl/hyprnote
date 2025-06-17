@@ -77,9 +77,8 @@ function TagChipInner({ sessionId, hashtags = [] }: { sessionId: string; hashtag
 
   const addHashtagAsTagMutation = useMutation({
     mutationFn: async (tagName: string) => {
-      // Check if tag already exists for this session
-      const existingTags = await dbCommands.listSessionTags(sessionId);
-      const tagExists = existingTags.some(
+      // Check if tag already exists for this session using cached data
+      const tagExists = tags.some(
         tag => tag.name.toLowerCase() === tagName.toLowerCase(),
       );
 
@@ -250,10 +249,9 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
 
   const createTagsMutation = useMutation({
     mutationFn: async (tagNames: string[]) => {
-      // Get existing tags for this session to avoid duplicates
-      const existingTags = await dbCommands.listSessionTags(sessionId);
+      // Use cached session tags to avoid duplicates
       const existingTagNames = new Set(
-        existingTags.map(tag => tag.name.toLowerCase()),
+        sessionTags.map(tag => tag.name.toLowerCase()),
       );
 
       // Filter out duplicates (case-insensitive)
@@ -280,9 +278,8 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
 
   const acceptSuggestionMutation = useMutation({
     mutationFn: async (tagName: string) => {
-      // Check if tag already exists for this session
-      const existingTags = await dbCommands.listSessionTags(sessionId);
-      const tagExists = existingTags.some(
+      // Check if tag already exists for this session using cached data
+      const tagExists = sessionTags.some(
         tag => tag.name.toLowerCase() === tagName.toLowerCase(),
       );
 

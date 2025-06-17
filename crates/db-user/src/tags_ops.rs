@@ -123,6 +123,7 @@ mod tests {
                 words: vec![],
                 record_start: None,
                 record_end: None,
+                pre_meeting_memo_html: None,
             })
             .await
             .unwrap();

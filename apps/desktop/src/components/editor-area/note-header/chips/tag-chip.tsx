@@ -8,16 +8,21 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 
 interface TagChipProps {
   sessionId: string;
+  hashtags?: string[];
 }
 
-export function TagChip({ sessionId }: TagChipProps) {
+export function TagChip({ sessionId, hashtags = [] }: TagChipProps) {
   const { data: tags = [] } = useQuery({
     queryKey: ["session-tags", sessionId],
     queryFn: () => dbCommands.listSessionTags(sessionId),
   });
 
-  const totalTags = tags.length;
-  const firstTag = tags[0]?.name;
+  // Combine database tags and content hashtags for display
+  const allTags = [...tags.map(tag => tag.name), ...hashtags];
+  const uniqueTags = [...new Set(allTags)]; // Remove duplicates
+
+  const totalTags = uniqueTags.length;
+  const firstTag = uniqueTags[0];
   const additionalTags = totalTags - 1;
 
   return (
@@ -38,26 +43,42 @@ export function TagChip({ sessionId }: TagChipProps) {
       </PopoverTrigger>
 
       <PopoverContent className="shadow-lg w-80" align="start">
-        <TagChipInner sessionId={sessionId} />
+        <TagChipInner sessionId={sessionId} hashtags={hashtags} />
       </PopoverContent>
     </Popover>
   );
 }
 
-function TagChipInner({ sessionId }: { sessionId: string }) {
+function TagChipInner({ sessionId, hashtags = [] }: { sessionId: string; hashtags?: string[] }) {
   const { data: tags = [] } = useQuery({
     queryKey: ["session-tags", sessionId],
     queryFn: () => dbCommands.listSessionTags(sessionId),
   });
 
+  const hasAnyTags = tags.length > 0 || hashtags.length > 0;
+
   return (
-    !tags.length
+    !hasAnyTags
       ? <TagAddControl sessionId={sessionId} />
       : (
         <div className="flex flex-col gap-3">
           <div className="text-sm font-medium text-neutral-700">Tags</div>
           <div className="flex flex-col gap-1 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
+            {/* Database tags */}
             {tags.map((tag) => <TagItem key={tag.id} tag={tag} sessionId={sessionId} />)}
+
+            {/* Content hashtags */}
+            {hashtags.map((hashtag) => (
+              <div
+                key={hashtag}
+                className="flex w-full items-center justify-between gap-2 rounded-sm px-3 py-1.5 hover:bg-neutral-50"
+              >
+                <div className="rounded px-2 py-0.5 text-sm bg-blue-50 text-blue-700 border border-blue-200">
+                  #{hashtag}
+                </div>
+                <span className="text-xs text-neutral-400">From content</span>
+              </div>
+            ))}
           </div>
           <TagAddControl sessionId={sessionId} />
         </div>

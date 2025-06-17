@@ -37,7 +37,7 @@ export function NoteHeader(
           onChange={handleTitleChange}
           onNavigateToEditor={onNavigateToEditor}
         />
-        <Chips sessionId={sessionId} />
+        <Chips sessionId={sessionId} hashtags={hashtags} />
       </div>
 
       {isInNoteMain && <ListenButton sessionId={sessionId} />}

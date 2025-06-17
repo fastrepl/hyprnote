@@ -86,8 +86,13 @@ function TagChipInner({ sessionId, hashtags = [] }: { sessionId: string; hashtag
         return null; // Skip if already exists
       }
 
+      // Check if tag already exists globally
+      const existingGlobalTag = allTags.find(
+        tag => tag.name.toLowerCase() === tagName.toLowerCase(),
+      );
+
       const tag = await dbCommands.upsertTag({
-        id: crypto.randomUUID(),
+        id: existingGlobalTag?.id || crypto.randomUUID(),
         name: tagName,
       });
       await dbCommands.assignTagToSession(tag.id, sessionId);
@@ -259,10 +264,19 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
         tagName => !existingTagNames.has(tagName.toLowerCase()),
       );
 
+      // Query database for existing tags matching the input names
+      const allExistingTags = await dbCommands.listAllTags();
+      const existingTagsMap = new Map(
+        allExistingTags.map(tag => [tag.name.toLowerCase(), tag])
+      );
+
       const results = [];
       for (const tagName of newTagNames) {
+        // Check if tag already exists in database
+        const existingTag = existingTagsMap.get(tagName.toLowerCase());
+
         const tag = await dbCommands.upsertTag({
-          id: crypto.randomUUID(),
+          id: existingTag?.id || crypto.randomUUID(),
           name: tagName,
         });
         await dbCommands.assignTagToSession(tag.id, sessionId);
@@ -287,8 +301,13 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
         return null; // Skip if already exists
       }
 
+      // Check if tag already exists globally
+      const existingGlobalTag = allTags.find(
+        tag => tag.name.toLowerCase() === tagName.toLowerCase(),
+      );
+
       const tag = await dbCommands.upsertTag({
-        id: crypto.randomUUID(),
+        id: existingGlobalTag?.id || crypto.randomUUID(),
         name: tagName,
       });
       await dbCommands.assignTagToSession(tag.id, sessionId);

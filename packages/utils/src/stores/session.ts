@@ -14,6 +14,7 @@ type Actions = {
   refresh: () => Promise<void>;
   setShowRaw: (showRaw: boolean) => void;
   updateTitle: (title: string) => void;
+  updatePreMeetingNote: (note: string) => void;
   updateRawNote: (note: string) => void;
   updateEnhancedNote: (note: string) => void;
   persistSession: (session?: Session, force?: boolean) => Promise<void>;
@@ -44,6 +45,15 @@ export const createSessionStore = (session: Session) => {
       set((state) => {
         const next = mutate(state, (draft) => {
           draft.session.title = title;
+        });
+        get().persistSession(next.session);
+        return next;
+      });
+    },
+    updatePreMeetingNote: (note: string) => {
+      set((state) => {
+        const next = mutate(state, (draft) => {
+          draft.session.pre_meeting_memo_html = note;
         });
         get().persistSession(next.session);
         return next;

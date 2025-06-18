@@ -267,7 +267,7 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
       // Query database for existing tags matching the input names
       const allExistingTags = await dbCommands.listAllTags();
       const existingTagsMap = new Map(
-        allExistingTags.map(tag => [tag.name.toLowerCase(), tag])
+        allExistingTags.map(tag => [tag.name.toLowerCase(), tag]),
       );
 
       const results = [];

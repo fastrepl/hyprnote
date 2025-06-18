@@ -67,7 +67,7 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       const currentSession = sessionStore.getState().session;
 
       sessionStore.getState().persistSession(undefined, true);
-      
+
       if (currentSession.raw_memo_html && currentSession.raw_memo_html != "<p></p>") {
         const preMeetingNote = currentSession.raw_memo_html;
         sessionStore.getState().updatePreMeetingNote(preMeetingNote);

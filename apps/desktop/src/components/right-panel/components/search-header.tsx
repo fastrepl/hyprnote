@@ -1,13 +1,8 @@
-import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ReplaceIcon,
-  XIcon,
-} from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
+import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
+import { ChevronDownIcon, ChevronUpIcon, ReplaceIcon, XIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 interface SearchHeaderProps {
   editorRef: React.RefObject<any>;
   onClose: () => void;
@@ -148,7 +143,7 @@ export function SearchHeader({ editorRef, onClose }: SearchHeaderProps) {
   };
 
   return (
-    <header 
+    <header
       ref={searchHeaderRef}
       className="flex items-center w-full px-4 py-1 my-1 border-b border-neutral-100 bg-neutral-50"
     >

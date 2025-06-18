@@ -53,7 +53,7 @@ export default function EditorArea({
   );
 
   const generateTitle = useGenerateTitleMutation({ sessionId });
-  const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? ""
+  const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
   const enhance = useEnhanceMutation({
     sessionId,
     preMeetingNote,
@@ -181,7 +181,7 @@ export function useEnhanceMutation({
   onSuccess: (enhancedContent: string) => void;
 }) {
   const { userId, onboardingSessionId } = useHypr();
-  
+
   const setEnhanceController = useOngoingSession((s) => s.setEnhanceController);
   const { persistSession, setEnhancedContent } = useSession(sessionId, (s) => ({
     persistSession: s.persistSession,
@@ -223,7 +223,7 @@ export function useEnhanceMutation({
         "enhance.user",
         {
           type,
-          preEditor:preMeetingNote,
+          preEditor: preMeetingNote,
           editor: rawContent,
           words: JSON.stringify(words),
           participants,

@@ -1,14 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { writeText as writeTextToClipboard } from "@tauri-apps/plugin-clipboard-manager";
-import {
-  AudioLinesIcon,
-  CheckIcon,
-  ClipboardIcon,
-  CopyIcon,
-  TextSearchIcon,
-  UploadIcon
-} from "lucide-react";
+import { AudioLinesIcon, CheckIcon, ClipboardIcon, CopyIcon, TextSearchIcon, UploadIcon } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
@@ -25,9 +18,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { useOngoingSession } from "@hypr/utils/contexts";
 import { ListeningIndicator } from "../components/listening-indicator";
+import { SearchHeader } from "../components/search-header";
 import { useTranscript } from "../hooks/useTranscript";
 import { useTranscriptWidget } from "../hooks/useTranscriptWidget";
-import { SearchHeader } from "../components/search-header";
 
 function useContainerWidth(ref: React.RefObject<HTMLElement>) {
   const [width, setWidth] = useState(0);
@@ -58,7 +51,7 @@ function useContainerWidth(ref: React.RefObject<HTMLElement>) {
 
 export function TranscriptView() {
   const queryClient = useQueryClient();
-  
+
   // Search state
   const [isSearchActive, setIsSearchActive] = useState(false);
 
@@ -93,9 +86,8 @@ export function TranscriptView() {
       if ((e.ctrlKey || e.metaKey) && e.key === "f") {
         const currentShowActions = hasTranscript && sessionId && ongoingSession.isInactive;
         if (currentShowActions) {
-            setIsSearchActive(true);
+          setIsSearchActive(true);
         }
-        
       }
     };
     document.addEventListener("keydown", handleKeyDown);
@@ -144,49 +136,51 @@ export function TranscriptView() {
   return (
     <div className="w-full h-full flex flex-col" ref={containerRef}>
       {/* Conditional Header Rendering */}
-      {isSearchActive ? (
-        <SearchHeader 
-          editorRef={editorRef} 
-          onClose={() => setIsSearchActive(false)} 
-        />
-      ) : (
-        <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b border-neutral-100">
-          {!showEmptyMessage && (
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-neutral-900">Transcript</h2>
-              {isLive && (
-                <div className="relative h-1.5 w-1.5">
-                  <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
-                  <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
-                </div>
+      {isSearchActive
+        ? (
+          <SearchHeader
+            editorRef={editorRef}
+            onClose={() => setIsSearchActive(false)}
+          />
+        )
+        : (
+          <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b border-neutral-100">
+            {!showEmptyMessage && (
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-neutral-900">Transcript</h2>
+                {isLive && (
+                  <div className="relative h-1.5 w-1.5">
+                    <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
+                    <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="not-draggable flex items-center ">
+              {/* Search Icon Button */}
+              {showActions && (
+                <Button
+                  className="w-8 h-8"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsSearchActive(true)}
+                >
+                  <TextSearchIcon size={14} className="text-neutral-600" />
+                </Button>
               )}
+              {(audioExist.data && showActions) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleOpenSession}
+                >
+                  <AudioLinesIcon size={14} className="text-neutral-600" />
+                </Button>
+              )}
+              {showActions && <CopyButton onCopy={handleCopyAll} />}
             </div>
-          )}
-          <div className="not-draggable flex items-center ">
-            {/* Search Icon Button */}
-            {showActions && (
-              <Button
-                className="w-8 h-8"
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsSearchActive(true)}
-              >
-                <TextSearchIcon size={14} className="text-neutral-600" />
-              </Button>
-            )}
-            {(audioExist.data && showActions) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleOpenSession}
-              >
-                <AudioLinesIcon size={14} className="text-neutral-600" />
-              </Button>
-            )}
-            {showActions && <CopyButton onCopy={handleCopyAll} />}
-          </div>
-        </header>
-      )}
+          </header>
+        )}
 
       <div className="flex-1 overflow-hidden flex flex-col">
         {showEmptyMessage
@@ -208,9 +202,9 @@ export function TranscriptView() {
   );
 }
 
-function RenderEmpty({ sessionId, panelWidth }: { 
-  sessionId: string; 
-  panelWidth: number; 
+function RenderEmpty({ sessionId, panelWidth }: {
+  sessionId: string;
+  panelWidth: number;
 }) {
   const ongoingSession = useOngoingSession((s) => ({
     start: s.start,

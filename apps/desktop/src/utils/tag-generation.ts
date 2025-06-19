@@ -6,7 +6,7 @@ export async function generateTagsForSession(sessionId: string): Promise<string[
     // Get LLM connection details
     const connection = await connectorCommands.getLlmConnection();
     const connectionData = connection.connection || connection;
-    
+
     // Get session data
     const session = await dbCommands.getSession({ id: sessionId });
     if (!session) {

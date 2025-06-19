@@ -150,7 +150,14 @@ async fn _sync_events(
                 calendar_id: Some(db_calendar.id.clone()),
                 name: e.name.clone(),
                 note: e.note.clone(),
-                participants: e.participants.clone(),
+                participants: e
+                    .participants
+                    .iter()
+                    .map(|p| hypr_db_user::Participant {
+                        name: p.name.clone(),
+                        email: p.email.clone(),
+                    })
+                    .collect(),
                 start_date: e.start_date,
                 end_date: e.end_date,
                 google_event_url: None,

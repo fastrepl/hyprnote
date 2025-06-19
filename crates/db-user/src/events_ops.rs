@@ -151,9 +151,8 @@ impl UserDatabase {
     fn deserialize_event_from_row(&self, row: &libsql::Row) -> Result<Event, crate::Error> {
         let mut event: Event = libsql::de::from_row(row)?;
 
-        // Parse participants JSON
-        let participants_json: String =
-            row.get("participants").unwrap_or_else(|_| "[]".to_string());
+        // Parse participants JSON (column index 9)
+        let participants_json: String = row.get_str(9).unwrap_or("[]").to_string();
         event.participants =
             serde_json::from_str(&participants_json).map_err(crate::Error::SerdeJsonError)?;
 

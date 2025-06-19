@@ -1,7 +1,13 @@
 use chrono::{DateTime, Utc};
-use hypr_calendar_interface::Participant;
 
 use crate::user_common_derives;
+
+user_common_derives! {
+    pub struct Participant {
+        pub name: String,
+        pub email: Option<String>,
+    }
+}
 
 user_common_derives! {
     pub struct Event {

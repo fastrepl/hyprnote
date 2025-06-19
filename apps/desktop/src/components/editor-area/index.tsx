@@ -182,6 +182,9 @@ export function useEnhanceMutation({
 }) {
   const { userId, onboardingSessionId } = useHypr();
 
+  console.log("this is the preMeetingNote", preMeetingNote);
+  console.log("this is the rawContent", rawContent);
+
   const setEnhanceController = useOngoingSession((s) => s.setEnhanceController);
   const { persistSession, setEnhancedContent } = useSession(sessionId, (s) => ({
     persistSession: s.persistSession,
@@ -277,6 +280,8 @@ export function useEnhanceMutation({
       return text.then(miscCommands.opinionatedMdToHtml);
     },
     onSuccess: (enhancedContent) => {
+      console.log("enhancing done", enhancedContent);
+
       onSuccess(enhancedContent ?? "");
 
       analyticsCommands.event({

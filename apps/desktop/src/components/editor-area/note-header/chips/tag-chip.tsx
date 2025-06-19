@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon, SearchIcon, SparklesIcon, TagsIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { generateTagsForSession } from "@/utils/tag-generation";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
@@ -200,7 +201,7 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
 
   const { data: suggestions = [], isLoading: isLoadingSuggestions, refetch: fetchSuggestions } = useQuery({
     queryKey: ["tag-suggestions", sessionId, instanceId],
-    queryFn: () => dbCommands.suggestTagsForSession(sessionId),
+    queryFn: () => generateTagsForSession(sessionId),
     enabled: false,
   });
 

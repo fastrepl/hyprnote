@@ -1,0 +1,4 @@
+root ::= "[" ws string ("," ws string) ("," ws string)? ("," ws string)? ("," ws string)? "]" ws
+
+string ::= "\"" [a-zA-Z0-9 ]+ "\""
+ws ::= [ \t\n]*

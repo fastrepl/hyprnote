@@ -86,7 +86,9 @@
     "tauri-plugin-sentry-api": "^0.4.1",
     "tippy.js": "^6.3.7",
     "zod": "^3.25.46",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.5",
+    "ai": "^4.2.12",
+    "@ai-sdk/openai": "^1.0.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",

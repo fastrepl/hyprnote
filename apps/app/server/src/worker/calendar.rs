@@ -97,6 +97,14 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
                         calendar_id: Some("TODO".to_string()),
                         name: e.name.clone(),
                         note: e.note.clone(),
+                        participants: e
+                            .participants
+                            .iter()
+                            .map(|p| hypr_db_user::Participant {
+                                name: p.name.clone(),
+                                email: p.email.clone(),
+                            })
+                            .collect(),
                         start_date: e.start_date,
                         end_date: e.end_date,
                         google_event_url: None,

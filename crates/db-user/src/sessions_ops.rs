@@ -104,15 +104,37 @@ impl UserDatabase {
         // Check if session has linked event and upsert participants
         if let Some(event) = self.session_get_event(&session_id).await? {
             for participant in &event.participants {
-                // Upsert participant as human
-                let human = self
-                    .upsert_human(Human {
+                // Check if human already exists by email
+                let human = if let Some(email) = &participant.email {
+                    if let Some(existing_human) = self.get_human_by_email(email).await? {
+                        // Update existing human with latest info
+                        self.upsert_human(Human {
+                            id: existing_human.id,
+                            full_name: Some(participant.name.clone()),
+                            email: participant.email.clone(),
+                            ..existing_human
+                        })
+                        .await?
+                    } else {
+                        // Create new human
+                        self.upsert_human(Human {
+                            id: uuid::Uuid::new_v4().to_string(),
+                            full_name: Some(participant.name.clone()),
+                            email: participant.email.clone(),
+                            ..Human::default()
+                        })
+                        .await?
+                    }
+                } else {
+                    // No email, create new human
+                    self.upsert_human(Human {
                         id: uuid::Uuid::new_v4().to_string(),
                         full_name: Some(participant.name.clone()),
                         email: participant.email.clone(),
                         ..Human::default()
                     })
-                    .await?;
+                    .await?
+                };
 
                 // Add human as session participant
                 self.session_add_participant(&session_id, &human.id).await?;

@@ -13,6 +13,19 @@ impl UserDatabase {
         Ok(row.map(|row| libsql::de::from_row(&row)).transpose()?)
     }
 
+    pub async fn get_human_by_email(
+        &self,
+        email: impl Into<String>,
+    ) -> Result<Option<Human>, crate::Error> {
+        let conn = self.conn()?;
+
+        let sql = format!("SELECT * FROM {} WHERE email = ?", Human::sql_table());
+        let mut rows = conn.query(&sql, vec![email.into()]).await?;
+
+        let row = rows.next().await?;
+        Ok(row.map(|row| libsql::de::from_row(&row)).transpose()?)
+    }
+
     pub async fn delete_human(&self, id: impl Into<String>) -> Result<(), crate::Error> {
         let conn = self.conn()?;
 

@@ -92,12 +92,33 @@ impl UserDatabase {
 
     pub async fn visit_session(&self, id: impl Into<String>) -> Result<(), crate::Error> {
         let conn = self.conn()?;
+        let session_id = id.into();
 
+        // Update visited_at timestamp
         conn.execute(
             "UPDATE sessions SET visited_at = ? WHERE id = ?",
-            (chrono::Utc::now().to_rfc3339(), id.into()),
+            (chrono::Utc::now().to_rfc3339(), session_id.clone()),
         )
         .await?;
+
+        // Check if session has linked event and upsert participants
+        if let Some(event) = self.session_get_event(&session_id).await? {
+            for participant in &event.participants {
+                // Upsert participant as human
+                let human = self
+                    .upsert_human(Human {
+                        id: uuid::Uuid::new_v4().to_string(),
+                        full_name: Some(participant.name.clone()),
+                        email: participant.email.clone(),
+                        ..Human::default()
+                    })
+                    .await?;
+
+                // Add human as session participant
+                self.session_add_participant(&session_id, &human.id).await?;
+            }
+        }
+
         Ok(())
     }
 
@@ -345,10 +366,22 @@ impl UserDatabase {
         match rows.next().await? {
             None => Ok(None),
             Some(row) => {
-                let event: Event = libsql::de::from_row(&row)?;
+                let event: Event = self.deserialize_event_from_row(&row)?;
                 Ok(Some(event))
             }
         }
+    }
+
+    fn deserialize_event_from_row(&self, row: &libsql::Row) -> Result<Event, crate::Error> {
+        let mut event: Event = libsql::de::from_row(row)?;
+
+        // Parse participants JSON
+        let participants_json: String =
+            row.get("participants").unwrap_or_else(|_| "[]".to_string());
+        event.participants =
+            serde_json::from_str(&participants_json).map_err(crate::Error::SerdeJsonError)?;
+
+        Ok(event)
     }
 }
 

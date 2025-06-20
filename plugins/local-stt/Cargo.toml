@@ -29,7 +29,7 @@ hypr-chunker = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-file = { workspace = true }
 hypr-listener-interface = { workspace = true }
-hypr-pyannote = { workspace = true, features = ["local"] }
+hypr-pyannote = { workspace = true, features = [] }
 hypr-whisper = { workspace = true, features = ["local"] }
 hypr-ws-utils = { workspace = true }
 

@@ -176,31 +176,34 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             .dynamic_prompt("")
             .build();
 
-        let mut segmenter = hypr_pyannote::local::segmentation::Segmenter::new(16000).unwrap();
+        // TODO
+        // https://github.com/thewh1teagle/pyannote-rs/issues/13
+
+        // let mut segmenter = hypr_pyannote::local::segmentation::Segmenter::new(16000).unwrap();
         let segments = segmenter.process(&samples, 16000).unwrap();
 
         let mut words = Vec::new();
 
-        for segment in segments {
-            let audio_f32 = hypr_audio_utils::i16_to_f32_samples(&segment.samples);
+        // for segment in segments {
+        //     let audio_f32 = hypr_audio_utils::i16_to_f32_samples(&segment.samples);
 
-            let whisper_segments = model.transcribe(&audio_f32).unwrap();
+        //     let whisper_segments = model.transcribe(&audio_f32).unwrap();
 
-            for whisper_segment in whisper_segments {
-                let start_sec: f64 = segment.start + (whisper_segment.start() as f64);
-                let end_sec: f64 = segment.start + (whisper_segment.end() as f64);
-                let start_ms = (start_sec * 1000.0) as u64;
-                let end_ms = (end_sec * 1000.0) as u64;
+        //     for whisper_segment in whisper_segments {
+        //         let start_sec: f64 = segment.start + (whisper_segment.start() as f64);
+        //         let end_sec: f64 = segment.start + (whisper_segment.end() as f64);
+        //         let start_ms = (start_sec * 1000.0) as u64;
+        //         let end_ms = (end_sec * 1000.0) as u64;
 
-                words.push(Word {
-                    text: whisper_segment.text().to_string(),
-                    speaker: None,
-                    confidence: Some(whisper_segment.confidence()),
-                    start_ms: Some(start_ms),
-                    end_ms: Some(end_ms),
-                });
-            }
-        }
+        //         words.push(Word {
+        //             text: whisper_segment.text().to_string(),
+        //             speaker: None,
+        //             confidence: Some(whisper_segment.confidence()),
+        //             start_ms: Some(start_ms),
+        //             end_ms: Some(end_ms),
+        //         });
+        //     }
+        // }
 
         Ok(words)
     }

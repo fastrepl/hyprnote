@@ -12,18 +12,12 @@ You will be given multiple inputs from the user. Below are useful information th
 # Inputs Provided by the user
 
 - Meeting Information (txt)
-- Pre Meeting Note (markdown)
-- Raw Note (markdown)
+- Raw Note (txt)
 - Meeting Transcript (txt)
-
-# About Pre Meeting Notes
-
-- Pre Meeting Notes is what user wrote before the meeting started. Therefore, it is liekly to contain information that user wants to learn from the meeting (interview questions, decisiont to be made, etc.)
-- May sometimes be empty.
 
 # About Raw Notes
 
-- Raw Notes is what user wrote during the meeting.
+- Raw Notes is what user purely wrote during the meeting.
 - The beginning of a raw note may include agenda items, discussion topics, and preliminary questions.
 - Primarily consist of key phrases or sentences the user wants to remember, though they may also contain random or extraneous words.
 - May sometimes be empty.
@@ -47,7 +41,6 @@ You will be given multiple inputs from the user. Below are useful information th
 - Do not include meeting note title, attendee lists nor explanatory notes about the output structure. Just print a markdown document.
 - It is super important to acknowledge what the user found to be important, and raw notes show a glimpse of the important information as well as moments during the meeting. Naturally integrate raw note entries into relevant sections instead of forcefully converting them into headers.
 - Preserve essential details; avoid excessive abstraction. Ensure content remains concrete and specific.
-- When creating the final report, compare pre meeting note and raw note to focus on what user mainly cares about (especially when the content of two notes are drastically different). However, the main focus should alwyas be the raw note as that was written during the actual meeting.
 - Pay close attention to emphasized text in raw notes. Users highlight information using four styles: bold(**text**), italic(_text_), underline(<u>text</u>), strikethrough(~~text~~).
 - Recognize H3 headers (### Header) in raw notes—these indicate highly important topics that the user wants to retain no matter what.
   {% if config.general.display_language is not english %}

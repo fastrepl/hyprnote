@@ -4,6 +4,7 @@ import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { diffLines, diffWords, diffChars } from 'diff';
 
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -20,6 +21,7 @@ import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import { enhanceFailedToast } from "../toast/shared";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
+import { extractTextFromHtml } from "@/utils/parse";
 
 export default function EditorArea({
   editable,
@@ -54,6 +56,8 @@ export default function EditorArea({
 
   const generateTitle = useGenerateTitleMutation({ sessionId });
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
+  
+
   const enhance = useEnhanceMutation({
     sessionId,
     preMeetingNote,
@@ -182,8 +186,21 @@ export function useEnhanceMutation({
 }) {
   const { userId, onboardingSessionId } = useHypr();
 
-  console.log("this is the preMeetingNote", preMeetingNote);
-  console.log("this is the rawContent", rawContent);
+  const preMeetingText = extractTextFromHtml(preMeetingNote);
+  const rawText = extractTextFromHtml(rawContent);
+
+
+  //finalInput is the text that will be used to enhance the note
+  var finalInput = "";
+  const wordDiff = diffWords(preMeetingText, rawText);
+  if (wordDiff && wordDiff.length > 0) {
+    for (const diff of wordDiff) {
+      if (diff.added && diff.removed == false) {
+        finalInput += " " + diff.value;
+      }
+    }
+  }
+
 
   const setEnhanceController = useOngoingSession((s) => s.setEnhanceController);
   const { persistSession, setEnhancedContent } = useSession(sessionId, (s) => ({
@@ -217,6 +234,7 @@ export function useEnhanceMutation({
       const config = await dbCommands.getConfig();
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
+      console.log("type", type);
       const systemMessage = await templateCommands.render(
         "enhance.system",
         { config, type },
@@ -226,12 +244,15 @@ export function useEnhanceMutation({
         "enhance.user",
         {
           type,
-          preEditor: preMeetingNote,
-          editor: rawContent,
+          editor: finalInput,
           words: JSON.stringify(words),
           participants,
         },
       );
+
+      console.log("systemMessage", systemMessage);
+      console.log("userMessage", userMessage);
+
 
       const abortController = new AbortController();
       const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(60 * 1000)]);
@@ -280,7 +301,6 @@ export function useEnhanceMutation({
       return text.then(miscCommands.opinionatedMdToHtml);
     },
     onSuccess: (enhancedContent) => {
-      console.log("enhancing done", enhancedContent);
 
       onSuccess(enhancedContent ?? "");
 

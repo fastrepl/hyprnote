@@ -29,9 +29,6 @@ impl UserDatabase {
     pub async fn upsert_event(&self, event: Event) -> Result<Event, crate::Error> {
         let conn = self.conn()?;
 
-        let participants_json =
-            serde_json::to_string(&event.participants).map_err(crate::Error::SerdeJsonError)?;
-
         let mut rows = conn
             .query(
                 "INSERT INTO events (
@@ -41,7 +38,6 @@ impl UserDatabase {
                     calendar_id,
                     name,
                     note,
-                    participants,
                     start_date,
                     end_date,
                     google_event_url
@@ -52,14 +48,12 @@ impl UserDatabase {
                     :calendar_id,
                     :name,
                     :note,
-                    :participants,
                     :start_date,
                     :end_date,
                     :google_event_url
                 ) ON CONFLICT(tracking_id) DO UPDATE SET
                     name = :name,
                     note = :note,
-                    participants = :participants,
                     start_date = :start_date,
                     end_date = :end_date,
                     google_event_url = :google_event_url
@@ -71,7 +65,6 @@ impl UserDatabase {
                     ":calendar_id": event.calendar_id,
                     ":name": event.name,
                     ":note": event.note,
-                    ":participants": participants_json,
                     ":start_date": event.start_date.to_rfc3339(),
                     ":end_date": event.end_date.to_rfc3339(),
                     ":google_event_url": event.google_event_url,
@@ -149,13 +142,7 @@ impl UserDatabase {
     }
 
     fn deserialize_event_from_row(&self, row: &libsql::Row) -> Result<Event, crate::Error> {
-        let mut event: Event = libsql::de::from_row(row)?;
-
-        // Parse participants JSON (column index 9)
-        let participants_json: String = row.get_str(9).unwrap_or("[]").to_string();
-        event.participants =
-            serde_json::from_str(&participants_json).map_err(crate::Error::SerdeJsonError)?;
-
+        let event: Event = libsql::de::from_row(row)?;
         Ok(event)
     }
 }
@@ -208,7 +195,6 @@ mod tests {
             calendar_id: Some(calendar.id.clone()),
             name: "test".to_string(),
             note: "test".to_string(),
-            participants: vec![],
             start_date: chrono::Utc::now(),
             end_date: chrono::Utc::now(),
             google_event_url: None,

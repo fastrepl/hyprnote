@@ -132,6 +132,52 @@ impl Handle {
         events
     }
 
+    fn fetch_event_by_id(&self, event_tracking_id: &str) -> Option<Retained<EKEvent>> {
+        let all_calendars: Retained<NSArray<EKCalendar>> = unsafe { self.event_store.calendars() };
+
+        // Search through all calendars for the event
+        for calendar in all_calendars.iter() {
+            let calendar_id = unsafe { calendar.calendarIdentifier() }.to_string();
+
+            // Create a wide date range to search for the event
+            let past_date = unsafe {
+                NSDate::initWithTimeIntervalSince1970(
+                    NSDate::alloc(),
+                    (chrono::Utc::now() - chrono::Duration::days(365)).timestamp() as f64,
+                )
+            };
+            let future_date = unsafe {
+                NSDate::initWithTimeIntervalSince1970(
+                    NSDate::alloc(),
+                    (chrono::Utc::now() + chrono::Duration::days(365)).timestamp() as f64,
+                )
+            };
+
+            let calendars_array = NSArray::from_vec(vec![calendar.clone()]);
+            let predicate = unsafe {
+                self.event_store
+                    .predicateForEventsWithStartDate_endDate_calendars(
+                        &past_date,
+                        &future_date,
+                        Some(&calendars_array),
+                    )
+            };
+
+            let events = unsafe { self.event_store.eventsMatchingPredicate(&predicate) };
+
+            // Look for the event with matching tracking_id
+            for event in events.iter() {
+                if let Some(event_id) = unsafe { event.eventIdentifier() } {
+                    if event_id.to_string() == event_tracking_id {
+                        return Some(event.clone());
+                    }
+                }
+            }
+        }
+
+        None
+    }
+
     fn transform_participant(&self, participant: &EKParticipant) -> Participant {
         let name = unsafe { participant.name() }
             .unwrap_or_default()
@@ -251,6 +297,26 @@ impl CalendarSource for Handle {
             .collect();
 
         Ok(events)
+    }
+
+    async fn get_event_participants(
+        &self,
+        event_tracking_id: String,
+    ) -> Result<Vec<Participant>, Error> {
+        if !self.calendar_access_granted {
+            return Err(anyhow::anyhow!("calendar_access_denied"));
+        }
+
+        if let Some(event) = self.fetch_event_by_id(&event_tracking_id) {
+            let participants = unsafe { event.attendees().unwrap_or_default() };
+            let participants = participants
+                .iter()
+                .map(|p| self.transform_participant(p))
+                .collect();
+            Ok(participants)
+        } else {
+            Ok(vec![])
+        }
     }
 }
 

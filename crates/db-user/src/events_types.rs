@@ -17,7 +17,6 @@ user_common_derives! {
         pub calendar_id: Option<String>,
         pub name: String,
         pub note: String,
-        pub participants: Vec<Participant>,
         pub start_date: DateTime<Utc>,
         pub end_date: DateTime<Utc>,
         pub google_event_url: Option<String>,

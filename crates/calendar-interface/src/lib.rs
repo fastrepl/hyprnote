@@ -7,6 +7,10 @@ pub use anyhow::Error;
 pub trait CalendarSource {
     fn list_calendars(&self) -> impl Future<Output = Result<Vec<Calendar>, Error>>;
     fn list_events(&self, filter: EventFilter) -> impl Future<Output = Result<Vec<Event>, Error>>;
+    fn get_event_participants(
+        &self,
+        event_tracking_id: String,
+    ) -> impl Future<Output = Result<Vec<Participant>, Error>>;
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

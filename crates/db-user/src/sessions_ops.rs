@@ -101,45 +101,8 @@ impl UserDatabase {
         )
         .await?;
 
-        // Check if session has linked event and upsert participants
-        if let Some(event) = self.session_get_event(&session_id).await? {
-            for participant in &event.participants {
-                // Check if human already exists by email
-                let human = if let Some(email) = &participant.email {
-                    if let Some(existing_human) = self.get_human_by_email(email).await? {
-                        // Update existing human with latest info
-                        self.upsert_human(Human {
-                            id: existing_human.id,
-                            full_name: Some(participant.name.clone()),
-                            email: participant.email.clone(),
-                            ..existing_human
-                        })
-                        .await?
-                    } else {
-                        // Create new human
-                        self.upsert_human(Human {
-                            id: uuid::Uuid::new_v4().to_string(),
-                            full_name: Some(participant.name.clone()),
-                            email: participant.email.clone(),
-                            ..Human::default()
-                        })
-                        .await?
-                    }
-                } else {
-                    // No email, create new human
-                    self.upsert_human(Human {
-                        id: uuid::Uuid::new_v4().to_string(),
-                        full_name: Some(participant.name.clone()),
-                        email: participant.email.clone(),
-                        ..Human::default()
-                    })
-                    .await?
-                };
-
-                // Add human as session participant
-                self.session_add_participant(&session_id, &human.id).await?;
-            }
-        }
+        // Note: Calendar event participants are now handled separately
+        // via the sync_session_participants function in the apple-calendar plugin
 
         Ok(())
     }
@@ -388,13 +351,7 @@ impl UserDatabase {
         match rows.next().await? {
             None => Ok(None),
             Some(row) => {
-                let mut event: Event = libsql::de::from_row(&row)?;
-
-                // Parse participants JSON (column index 9)
-                let participants_json: String = row.get_str(9).unwrap_or("[]").to_string();
-                event.participants = serde_json::from_str(&participants_json)
-                    .map_err(crate::Error::SerdeJsonError)?;
-
+                let event: Event = libsql::de::from_row(&row)?;
                 Ok(Some(event))
             }
         }

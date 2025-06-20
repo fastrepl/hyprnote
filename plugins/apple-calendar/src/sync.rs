@@ -1,6 +1,6 @@
 use chrono::Utc;
 
-use hypr_calendar_interface::{CalendarSource, EventFilter};
+use hypr_calendar_interface::{CalendarSource, EventFilter, Participant};
 use hypr_db_user::{
     GetSessionFilter, ListEventFilter, ListEventFilterCommon, ListEventFilterSpecific,
 };
@@ -150,14 +150,6 @@ async fn _sync_events(
                 calendar_id: Some(db_calendar.id.clone()),
                 name: e.name.clone(),
                 note: e.note.clone(),
-                participants: e
-                    .participants
-                    .iter()
-                    .map(|p| hypr_db_user::Participant {
-                        name: p.name.clone(),
-                        email: p.email.clone(),
-                    })
-                    .collect(),
                 start_date: e.start_date,
                 end_date: e.end_date,
                 google_event_url: None,
@@ -273,6 +265,104 @@ async fn list_db_events_with_session(
     }
 
     Ok(events_with_session)
+}
+
+pub async fn get_event_participants(
+    event_tracking_id: String,
+) -> Result<Vec<Participant>, crate::Error> {
+    check_calendar_access().await?;
+
+    let participants = tauri::async_runtime::spawn_blocking(move || {
+        let handle = hypr_calendar_apple::Handle::new();
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+
+        rt.block_on(async {
+            handle
+                .get_event_participants(event_tracking_id)
+                .await
+                .unwrap_or_default()
+        })
+    })
+    .await
+    .unwrap_or_default();
+
+    Ok(participants)
+}
+
+pub async fn sync_session_participants(
+    db: hypr_db_user::UserDatabase,
+    session_id: String,
+) -> Result<(), crate::Error> {
+    // Get the session's linked event
+    if let Some(event) = db
+        .session_get_event(&session_id)
+        .await
+        .map_err(|e| crate::Error::DatabaseError(e))?
+    {
+        // Query participants dynamically from Apple Calendar using tracking_id
+        match get_event_participants(event.tracking_id).await {
+            Ok(participants) => {
+                for participant in &participants {
+                    // Check if human already exists by email
+                    let human = if let Some(email) = &participant.email {
+                        if let Some(existing_human) = db
+                            .get_human_by_email(email)
+                            .await
+                            .map_err(|e| crate::Error::DatabaseError(e))?
+                        {
+                            // Update existing human with latest info
+                            db.upsert_human(hypr_db_user::Human {
+                                id: existing_human.id,
+                                full_name: Some(participant.name.clone()),
+                                email: participant.email.clone(),
+                                ..existing_human
+                            })
+                            .await
+                            .map_err(|e| crate::Error::DatabaseError(e))?
+                        } else {
+                            // Create new human
+                            db.upsert_human(hypr_db_user::Human {
+                                id: uuid::Uuid::new_v4().to_string(),
+                                full_name: Some(participant.name.clone()),
+                                email: participant.email.clone(),
+                                ..hypr_db_user::Human::default()
+                            })
+                            .await
+                            .map_err(|e| crate::Error::DatabaseError(e))?
+                        }
+                    } else {
+                        // No email, create new human
+                        db.upsert_human(hypr_db_user::Human {
+                            id: uuid::Uuid::new_v4().to_string(),
+                            full_name: Some(participant.name.clone()),
+                            email: participant.email.clone(),
+                            ..hypr_db_user::Human::default()
+                        })
+                        .await
+                        .map_err(|e| crate::Error::DatabaseError(e))?
+                    };
+
+                    // Add human as session participant
+                    db.session_add_participant(&session_id, &human.id)
+                        .await
+                        .map_err(|e| crate::Error::DatabaseError(e))?;
+                }
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "Failed to get calendar event participants for tracking_id {}: {}",
+                    event.tracking_id,
+                    e
+                );
+                return Err(e);
+            }
+        }
+    }
+
+    Ok(())
 }
 
 async fn check_calendar_access() -> Result<(), crate::Error> {

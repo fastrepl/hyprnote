@@ -71,12 +71,14 @@ function ShareButtonInNote() {
   const session = useSession(param.id, (s) => s.session);
   const hasEnhancedNote = !!session?.enhanced_memo_html;
 
-  {/*
+  {
+    /*
   const handleShareToSlack = () => {
     setOpen(false); // Close the popover
     setSlackModalOpen(true); // Open the modal
   };
-  */}
+  */
+  }
 
   const handleCloseSlackModal = () => {
     setSlackModalOpen(false);

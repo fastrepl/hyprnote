@@ -1,19 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { writeText as writeTextToClipboard } from "@tauri-apps/plugin-clipboard-manager";
-import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
-import {
-  AudioLinesIcon,
-  CheckIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ClipboardIcon,
-  CopyIcon,
-  ReplaceIcon,
-  TextSearchIcon,
-  UploadIcon,
-  XIcon,
-} from "lucide-react";
+import { AudioLinesIcon, CheckIcon, ClipboardIcon, CopyIcon, TextSearchIcon, UploadIcon } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
@@ -26,11 +14,11 @@ import TranscriptEditor, {
   type TranscriptEditorRef,
 } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { useOngoingSession } from "@hypr/utils/contexts";
 import { ListeningIndicator } from "../components/listening-indicator";
+import { SearchHeader } from "../components/search-header";
 import { useTranscript } from "../hooks/useTranscript";
 import { useTranscriptWidget } from "../hooks/useTranscriptWidget";
 
@@ -64,7 +52,10 @@ function useContainerWidth(ref: React.RefObject<HTMLElement>) {
 export function TranscriptView() {
   const queryClient = useQueryClient();
 
-  // Add container ref to track the panel width
+  // Search state
+  const [isSearchActive, setIsSearchActive] = useState(false);
+
+  // Single container ref and panel width for the entire component
   const containerRef = useRef<HTMLDivElement>(null);
   const panelWidth = useContainerWidth(containerRef);
 
@@ -88,6 +79,20 @@ export function TranscriptView() {
       editorRef.current?.scrollToBottom();
     }
   }, [words, isLive]);
+
+  // Add Ctrl+F keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+        const currentShowActions = hasTranscript && sessionId && ongoingSession.isInactive;
+        if (currentShowActions) {
+          setIsSearchActive(true);
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [hasTranscript, sessionId, ongoingSession.isInactive]);
 
   const audioExist = useQuery(
     {
@@ -130,36 +135,56 @@ export function TranscriptView() {
 
   return (
     <div className="w-full h-full flex flex-col" ref={containerRef}>
-      <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b border-neutral-100">
-        {!showEmptyMessage && (
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-neutral-900">Transcript</h2>
-            {isLive && (
-              <div className="relative h-1.5 w-1.5">
-                <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
-                <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
+      {/* Conditional Header Rendering */}
+      {isSearchActive
+        ? (
+          <SearchHeader
+            editorRef={editorRef}
+            onClose={() => setIsSearchActive(false)}
+          />
+        )
+        : (
+          <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b border-neutral-100">
+            {!showEmptyMessage && (
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-neutral-900">Transcript</h2>
+                {isLive && (
+                  <div className="relative h-1.5 w-1.5">
+                    <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
+                    <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
+                  </div>
+                )}
               </div>
             )}
-          </div>
+            <div className="not-draggable flex items-center ">
+              {/* Search Icon Button */}
+              {showActions && (
+                <Button
+                  className="w-8 h-8"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsSearchActive(true)}
+                >
+                  <TextSearchIcon size={14} className="text-neutral-600" />
+                </Button>
+              )}
+              {(audioExist.data && showActions) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleOpenSession}
+                >
+                  <AudioLinesIcon size={14} className="text-neutral-600" />
+                </Button>
+              )}
+              {showActions && <CopyButton onCopy={handleCopyAll} />}
+            </div>
+          </header>
         )}
-        <div className="not-draggable flex items-center ">
-          {showActions && panelWidth >= 530 && <SearchAndReplace editorRef={editorRef} panelWidth={panelWidth} />}
-          {(audioExist.data && showActions) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleOpenSession}
-            >
-              <AudioLinesIcon size={14} className="text-neutral-600" />
-            </Button>
-          )}
-          {showActions && <CopyButton onCopy={handleCopyAll} />}
-        </div>
-      </header>
 
       <div className="flex-1 overflow-hidden flex flex-col">
         {showEmptyMessage
-          ? <RenderEmpty sessionId={sessionId} />
+          ? <RenderEmpty sessionId={sessionId} panelWidth={panelWidth} />
           : (
             <>
               <TranscriptEditor
@@ -177,16 +202,15 @@ export function TranscriptView() {
   );
 }
 
-function RenderEmpty({ sessionId }: { sessionId: string }) {
+function RenderEmpty({ sessionId, panelWidth }: {
+  sessionId: string;
+  panelWidth: number;
+}) {
   const ongoingSession = useOngoingSession((s) => ({
     start: s.start,
     status: s.status,
     loading: s.loading,
   }));
-
-  // Add container ref to track the panel width
-  const containerRef = useRef<HTMLDivElement>(null);
-  const panelWidth = useContainerWidth(containerRef);
 
   const handleStartRecording = () => {
     if (ongoingSession.status === "inactive") {
@@ -194,14 +218,14 @@ function RenderEmpty({ sessionId }: { sessionId: string }) {
     }
   };
 
-  // Determine layout based on actual panel width (empty screen)
+  // Determine layout based on panel width passed from parent
   const isUltraCompact = panelWidth < 150; // Just icons
   const isVeryNarrow = panelWidth < 200; // Short text
   const isNarrow = panelWidth < 400; // No helper text
   const showFullText = panelWidth >= 400; // Full text
 
   return (
-    <div className="h-full flex items-center justify-center" ref={containerRef}>
+    <div className="h-full flex items-center justify-center">
       <div className="text-neutral-500 font-medium text-center">
         <div
           className={`mb-6 text-neutral-600 flex ${isNarrow ? "flex-col" : "flex-row"} items-center ${
@@ -419,255 +443,6 @@ function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
           </label>
         ))}
       </div>
-    </div>
-  );
-}
-
-export function SearchAndReplace({ editorRef, panelWidth }: {
-  editorRef: React.RefObject<any>;
-  panelWidth: number;
-}) {
-  const [isActive, setIsActive] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [replaceTerm, setReplaceTerm] = useState("");
-  const [resultCount, setResultCount] = useState(0);
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  // Add ref for the search container
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-
-  // Debounced search term update
-  const debouncedSetSearchTerm = useDebouncedCallback(
-    (value: string) => {
-      if (editorRef.current) {
-        editorRef.current.editor.commands.setSearchTerm(value);
-        editorRef.current.editor.commands.resetIndex();
-        setTimeout(() => {
-          const storage = editorRef.current.editor.storage.searchAndReplace;
-          const results = storage.results || [];
-          setResultCount(results.length);
-          setCurrentIndex((storage.resultIndex ?? 0) + 1);
-        }, 100);
-      }
-    },
-    [editorRef],
-    300,
-  );
-
-  useEffect(() => {
-    debouncedSetSearchTerm(searchTerm);
-  }, [searchTerm]);
-
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.editor.commands.setReplaceTerm(replaceTerm);
-    }
-  }, [replaceTerm]);
-
-  // Click outside handler
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
-        if (isActive) {
-          setIsActive(false);
-          setSearchTerm("");
-          setReplaceTerm("");
-          setResultCount(0);
-          setCurrentIndex(0);
-          if (editorRef.current) {
-            editorRef.current.editor.commands.setSearchTerm("");
-          }
-        }
-      }
-    };
-
-    if (isActive) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isActive, editorRef]);
-
-  // Keyboard shortcut handler - only when transcript editor is focused
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
-        const isTranscriptFocused = editorRef.current?.editor?.isFocused;
-        if (isTranscriptFocused) {
-          e.preventDefault();
-          setIsActive(true);
-        }
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [editorRef]);
-
-  // Use extension's navigation commands
-  const handleNext = () => {
-    if (editorRef.current?.editor) {
-      editorRef.current.editor.commands.nextSearchResult();
-      setTimeout(() => {
-        const storage = editorRef.current.editor.storage.searchAndReplace;
-        setCurrentIndex((storage.resultIndex ?? 0) + 1);
-        scrollCurrentResultIntoView(editorRef);
-      }, 100);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (editorRef.current?.editor) {
-      editorRef.current.editor.commands.previousSearchResult();
-      setTimeout(() => {
-        const storage = editorRef.current.editor.storage.searchAndReplace;
-        setCurrentIndex((storage.resultIndex ?? 0) + 1);
-        scrollCurrentResultIntoView(editorRef);
-      }, 100);
-    }
-  };
-
-  function scrollCurrentResultIntoView(editorRef: React.RefObject<any>) {
-    if (!editorRef.current) {
-      return;
-    }
-    const editorElement = editorRef.current.editor.view.dom;
-    const current = editorElement.querySelector(".search-result-current") as HTMLElement | null;
-    if (current) {
-      current.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "nearest",
-      });
-    }
-  }
-
-  const handleReplaceAll = () => {
-    if (editorRef.current && searchTerm) {
-      editorRef.current.editor.commands.replaceAll();
-      setTimeout(() => {
-        const storage = editorRef.current.editor.storage.searchAndReplace;
-        const results = storage.results || [];
-        setResultCount(results.length);
-        setCurrentIndex(results.length > 0 ? 1 : 0);
-      }, 100);
-    }
-  };
-
-  const handleToggle = () => {
-    setIsActive(!isActive);
-    if (isActive && editorRef.current) {
-      setSearchTerm("");
-      setReplaceTerm("");
-      setResultCount(0);
-      setCurrentIndex(0);
-      editorRef.current.editor.commands.setSearchTerm("");
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      handleToggle();
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      if (e.shiftKey) {
-        handlePrevious();
-      } else {
-        handleNext();
-      }
-    } else if (e.key === "F3") {
-      e.preventDefault();
-      if (e.shiftKey) {
-        handlePrevious();
-      } else {
-        handleNext();
-      }
-    }
-  };
-
-  return (
-    <div className="flex items-center" ref={searchContainerRef}>
-      {!isActive
-        ? (
-          <Button
-            className="w-8 h-8"
-            variant="ghost"
-            size="icon"
-            onClick={handleToggle}
-          >
-            <TextSearchIcon size={14} className="text-neutral-600" />
-          </Button>
-        )
-        : (
-          <div className="flex items-center gap-2 bg-neutral-50 border border-neutral-200 rounded-md p-1.5 h-8">
-            <div className="flex items-center gap-1">
-              <Input
-                className="h-6 w-20 text-xs border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 bg-transparent"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Search..."
-                autoFocus
-              />
-              <div className="h-4 w-px bg-neutral-300" />
-              <Input
-                className="h-6 w-20 text-xs border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 bg-transparent"
-                value={replaceTerm}
-                onChange={(e) => setReplaceTerm(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Replace..."
-              />
-            </div>
-            {searchTerm && (
-              <div className="flex items-center gap-1 text-xs text-neutral-500">
-                <span className="whitespace-nowrap text-[10px] font-mono min-w-[32px] text-center">
-                  {resultCount > 0 ? `${currentIndex}/${resultCount}` : "0/0"}
-                </span>
-                <div className="flex items-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={handlePrevious}
-                    disabled={resultCount === 0}
-                    title="Previous result (Shift+Enter, Shift+F3)"
-                  >
-                    <ChevronUpIcon size={12} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={handleNext}
-                    disabled={resultCount === 0}
-                    title="Next result (Enter, F3)"
-                  >
-                    <ChevronDownIcon size={12} />
-                  </Button>
-                </div>
-              </div>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 flex-shrink-0"
-              onClick={handleReplaceAll}
-              disabled={!searchTerm}
-              title="Replace All"
-            >
-              <ReplaceIcon size={12} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={handleToggle}
-            >
-              <XIcon size={12} />
-            </Button>
-          </div>
-        )}
     </div>
   );
 }

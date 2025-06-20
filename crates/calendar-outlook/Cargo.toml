@@ -7,3 +7,4 @@ edition = "2021"
 hypr-calendar-interface = { path = "../calendar-interface", package = "calendar-interface" }
 
 graph-rs-sdk = { workspace = true }
+serde_json = { workspace = true }

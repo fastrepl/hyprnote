@@ -1,6 +1,9 @@
 # https://docs.crabnebula.dev/cloud/ci/tauri-v2-workflow/
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - support_windows
 env:
   CN_APPLICATION: "fastrepl/hyprnote"
   RELEASE_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && 'stable' || 'nightly' }}

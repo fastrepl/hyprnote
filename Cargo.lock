@@ -4105,8 +4105,7 @@ checksum = "dea2df4cf52843e0452895c455a1a2cfbb842a1e7329671acf418fdc53ed4c59"
 [[package]]
 name = "esaxx-rs"
 version = "0.1.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d817e038c30374a4bcb22f94d0a8a0e216958d4c3dcde369b1439fec4bdda6e6"
+source = "git+https://github.com/thewh1teagle/esaxx-rs.git?branch=feat%2Fdynamic-msvc-link#3c8ac57d245ab328f7c71953b7c116a8d1d5498f"
 dependencies = [
  "cc",
 ]

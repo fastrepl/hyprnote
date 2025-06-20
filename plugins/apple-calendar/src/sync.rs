@@ -280,16 +280,46 @@ pub async fn get_event_participants(
             .unwrap();
 
         rt.block_on(async {
-            handle
-                .get_event_participants(event_tracking_id)
+            match handle
+                .get_event_participants(event_tracking_id.clone())
                 .await
-                .unwrap_or_default()
+            {
+                Ok(participants) => participants,
+                Err(e) => {
+                    tracing::error!(
+                        "Failed to get event participants for tracking_id {}: {}",
+                        event_tracking_id,
+                        e
+                    );
+                    vec![]
+                }
+            }
         })
     })
     .await
-    .unwrap_or_default();
+    .unwrap_or_else(|e| {
+        tracing::error!(
+            "Failed to spawn blocking task for get_event_participants: {}",
+            e
+        );
+        vec![]
+    });
 
     Ok(participants)
+}
+
+async fn create_new_human_from_participant(
+    db: &hypr_db_user::UserDatabase,
+    participant: &Participant,
+) -> Result<hypr_db_user::Human, crate::Error> {
+    db.upsert_human(hypr_db_user::Human {
+        id: uuid::Uuid::new_v4().to_string(),
+        full_name: Some(participant.name.clone()),
+        email: participant.email.clone(),
+        ..hypr_db_user::Human::default()
+    })
+    .await
+    .map_err(|e| crate::Error::DatabaseError(e))
 }
 
 pub async fn sync_session_participants(
@@ -303,7 +333,7 @@ pub async fn sync_session_participants(
         .map_err(|e| crate::Error::DatabaseError(e))?
     {
         // Query participants dynamically from Apple Calendar using tracking_id
-        match get_event_participants(event.tracking_id).await {
+        match get_event_participants(event.tracking_id.clone()).await {
             Ok(participants) => {
                 for participant in &participants {
                     // Check if human already exists by email
@@ -324,25 +354,11 @@ pub async fn sync_session_participants(
                             .map_err(|e| crate::Error::DatabaseError(e))?
                         } else {
                             // Create new human
-                            db.upsert_human(hypr_db_user::Human {
-                                id: uuid::Uuid::new_v4().to_string(),
-                                full_name: Some(participant.name.clone()),
-                                email: participant.email.clone(),
-                                ..hypr_db_user::Human::default()
-                            })
-                            .await
-                            .map_err(|e| crate::Error::DatabaseError(e))?
+                            create_new_human_from_participant(&db, participant).await?
                         }
                     } else {
                         // No email, create new human
-                        db.upsert_human(hypr_db_user::Human {
-                            id: uuid::Uuid::new_v4().to_string(),
-                            full_name: Some(participant.name.clone()),
-                            email: participant.email.clone(),
-                            ..hypr_db_user::Human::default()
-                        })
-                        .await
-                        .map_err(|e| crate::Error::DatabaseError(e))?
+                        create_new_human_from_participant(&db, participant).await?
                     };
 
                     // Add human as session participant

@@ -153,7 +153,7 @@ impl Handle {
                 )
             };
 
-            let calendars_array = NSArray::from_vec(vec![calendar.clone()]);
+            let calendars_array = NSArray::from_vec(vec![calendar.retain()]);
             let predicate = unsafe {
                 self.event_store
                     .predicateForEventsWithStartDate_endDate_calendars(
@@ -169,7 +169,7 @@ impl Handle {
             for event in events.iter() {
                 if let Some(event_id) = unsafe { event.eventIdentifier() } {
                     if event_id.to_string() == event_tracking_id {
-                        return Some(event.clone());
+                        return Some(event.retain());
                     }
                 }
             }

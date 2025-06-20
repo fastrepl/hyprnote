@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - support_windows
+      - support-windows
 env:
   CN_APPLICATION: "fastrepl/hyprnote"
   RELEASE_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && 'stable' || 'nightly' }}

@@ -1,5 +1,6 @@
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as templateCommands } from "@hypr/plugin-template";
 import { generateObject } from "ai";
 import { z } from "zod";
 
@@ -11,9 +12,10 @@ export async function generateTagsForSession(sessionId: string): Promise<string[
   try {
     // Get LLM connection details
     const connection = await connectorCommands.getLlmConnection();
-    const connectionData = connection.connection || connection;
+    const connectionData = connection.connection;
 
-    // Get session data
+    // Get configuration and session data
+    const config = await dbCommands.getConfig();
     const session = await dbCommands.getSession({ id: sessionId });
     if (!session) {
       throw new Error("Session not found");
@@ -23,7 +25,7 @@ export async function generateTagsForSession(sessionId: string): Promise<string[
     const historicalTags = await dbCommands.listAllTags();
     const currentTags = await dbCommands.listSessionTags(sessionId);
 
-    // Extract hashtags from content (simple regex approach)
+    // Extract hashtags from content
     const hashtagRegex = /#(\w+)/g;
     const existingHashtags: string[] = [];
     let match;
@@ -31,31 +33,25 @@ export async function generateTagsForSession(sessionId: string): Promise<string[
       existingHashtags.push(match[1]);
     }
 
-    // Prepare context for prompts (simplified version of the backend logic)
-    const systemPrompt =
-      `You are an AI assistant that generates relevant tags for notes and transcripts. Your task is to suggest 1-5 concise, descriptive tags that best categorize the content.
+    // Determine connection type
+    const type = connection.type;
 
-Guidelines:
-- Generate between 1-5 tags
-- Tags should be concise (1-3 words)
-- Focus on main topics, themes, and key concepts
-- Consider the context and purpose of the content
-- Avoid overly generic tags
-- Make tags useful for searching and organizing`;
+    // Render templates
+    const systemPrompt = await templateCommands.render(
+      "suggest_tags.system",
+      { config, type },
+    );
 
-    const userPrompt = `Please suggest relevant tags for the following content:
-
-Title: ${session.title}
-
-Content: ${session.raw_memo_html}
-
-Existing hashtags in content: ${existingHashtags.join(", ") || "None"}
-
-Current formal tags: ${currentTags.map(t => t.name).join(", ") || "None"}
-
-Historical tags (for reference): ${historicalTags.slice(0, 20).map(t => t.name).join(", ") || "None"}
-
-Generate relevant tags as a JSON array.`;
+    const userPrompt = await templateCommands.render(
+      "suggest_tags.user",
+      {
+        title: session.title,
+        content: session.raw_memo_html,
+        existing_hashtags: existingHashtags,
+        formal_tags: currentTags.map(t => t.name),
+        historical_tags: historicalTags.slice(0, 20).map(t => t.name),
+      },
+    );
 
     // Create a custom language model for the local LLM server
     const customModel = {

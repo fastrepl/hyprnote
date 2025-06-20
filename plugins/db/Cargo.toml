@@ -17,16 +17,12 @@ specta-typescript = { workspace = true }
 hypr-db-core = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-listener-interface = { workspace = true }
-hypr-template = { workspace = true }
 hypr-turso = { workspace = true }
 
 specta = { workspace = true }
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
-minijinja = { workspace = true }
-regex = { workspace = true }
-reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 strum = { workspace = true, features = ["derive"] }

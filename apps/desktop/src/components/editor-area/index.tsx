@@ -231,7 +231,6 @@ export function useEnhanceMutation({
       const config = await dbCommands.getConfig();
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
-      console.log("type", type);
       const systemMessage = await templateCommands.render(
         "enhance.system",
         { config, type },
@@ -247,8 +246,8 @@ export function useEnhanceMutation({
         },
       );
 
-      console.log("systemMessage", systemMessage);
-      console.log("userMessage", userMessage);
+      //console.log("systemMessage", systemMessage);
+      //console.log("userMessage", userMessage);
 
       const abortController = new AbortController();
       const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(60 * 1000)]);

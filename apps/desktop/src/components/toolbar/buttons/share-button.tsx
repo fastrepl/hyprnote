@@ -128,7 +128,7 @@ function ShareButtonInNote() {
     setOpen(false); // Close popover
 
     try {
-      const filename = await exportToPDF(session as any);
+      const filename = await exportToPDF(session);
       alert(`PDF saved to Downloads folder: ${filename}`);
     } catch (error) {
       console.error("Failed to export PDF:", error);

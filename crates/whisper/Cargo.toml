@@ -36,10 +36,10 @@ lazy_static = { workspace = true, optional = true }
 regex = { workspace = true, optional = true }
 
 [target.'cfg(not(target_os = "macos"))'.dependencies]
-whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "de30f9c", features = ["raw-api", "tracing_backend"], optional = true }
+whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "e3d67d5", features = ["raw-api", "tracing_backend"], optional = true }
 
 [target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
-whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "de30f9c", features = ["raw-api", "metal", "tracing_backend"], optional = true }
+whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "e3d67d5", features = ["raw-api", "tracing_backend"], optional = true }
 
 [target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies]
-whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "de30f9c", features = ["raw-api", "tracing_backend"], optional = true }
+whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "e3d67d5", features = ["raw-api", "tracing_backend"], optional = true }

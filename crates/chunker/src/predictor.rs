@@ -2,6 +2,13 @@ pub trait Predictor: Send + Sync {
     fn predict(&self, samples: &[f32]) -> Result<bool, crate::Error>;
 }
 
+// Allow Box<dyn Predictor> to be used as a Predictor
+impl<P: Predictor + ?Sized> Predictor for Box<P> {
+    fn predict(&self, samples: &[f32]) -> Result<bool, crate::Error> {
+        (**self).predict(samples)
+    }
+}
+
 #[derive(Debug)]
 pub struct RMS {}
 

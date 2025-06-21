@@ -97,7 +97,7 @@ mod tests {
                 writer.write_sample(sample).unwrap();
             }
             i += 1;
-            
+
             if i >= max_chunks {
                 println!("Reached max chunks limit, stopping test");
                 break;
@@ -125,17 +125,19 @@ mod tests {
 
         // Test with known speech (using test data)
         let audio_samples = to_f32(hypr_data::english_1::AUDIO);
-        
+
         // Test multiple chunks to find speech (audio might start with silence)
         let mut found_speech = false;
         let chunk_size = 480; // 30ms at 16kHz
         let max_chunks = (audio_samples.len() / chunk_size).min(20); // Test up to 20 chunks
-        
+
         for i in 0..max_chunks {
             let start = i * chunk_size;
             let end = ((i + 1) * chunk_size).min(audio_samples.len());
-            if start >= audio_samples.len() { break; }
-            
+            if start >= audio_samples.len() {
+                break;
+            }
+
             let chunk = &audio_samples[start..end];
             if silero.predict(chunk).unwrap() {
                 found_speech = true;
@@ -143,8 +145,11 @@ mod tests {
                 break;
             }
         }
-        
-        assert!(found_speech, "Should detect speech within the first 600ms of audio");
+
+        assert!(
+            found_speech,
+            "Should detect speech within the first 600ms of audio"
+        );
     }
 
     #[test]

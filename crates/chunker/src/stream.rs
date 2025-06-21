@@ -29,7 +29,7 @@ impl Default for ChunkConfig {
             max_duration: Duration::from_secs(30), // Increased from 15s to 30s for Whisper
             min_buffer_duration: Duration::from_secs(6),
             silence_window_duration: Duration::from_millis(500),
-            trim_window_size: 100,
+            trim_window_size: 480, // 30ms at 16kHz, minimum for Silero VAD
         }
     }
 }
@@ -171,8 +171,8 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
         if !chunk.is_empty() {
             Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, chunk)))
         } else {
-            // Continue polling for more data
-            cx.waker().wake_by_ref();
+            // Buffer was full but trimmed to empty - this means we had a long silence
+            // Don't wake immediately to avoid busy loop; let more data accumulate
             Poll::Pending
         }
     }

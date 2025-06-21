@@ -51,7 +51,7 @@ let silero = Silero::with_config(config)?;
 - `max_duration`: Maximum chunk duration (default: 30s)
 - `min_buffer_duration`: Minimum buffer before considering splits (default: 6s)
 - `silence_window_duration`: Silence duration to trigger split (default: 500ms)
-- `trim_window_size`: Window size for silence trimming (default: 100 samples)
+- `trim_window_size`: Window size for silence trimming (default: 480 samples)
 
 ### SileroConfig
 

@@ -1,6 +1,8 @@
 //! Audio analysis utilities for energy-based silence detection and hallucination prevention
 
+use rustfft::{num_complex::Complex, FftPlanner};
 use std::f32::consts::PI;
+use std::sync::Arc;
 
 /// Calculate Root Mean Square (RMS) energy of audio samples
 #[inline]
@@ -31,7 +33,9 @@ pub fn calculate_peak_rms(samples: &[f32], window_size: usize) -> f32 {
 /// Analyze energy decay profile to detect gradual fade-outs
 pub struct EnergyDecayProfile {
     pub is_gradual: bool,
+    #[allow(dead_code)]
     pub decay_rate: f32,
+    #[allow(dead_code)]
     pub final_energy_ratio: f32,
 }
 
@@ -105,17 +109,38 @@ pub fn detect_repetitive_patterns(samples: &[f32], pattern_window: usize) -> f32
 }
 
 /// Calculate correlation between signal and its delayed version
+/// Uses SIMD-friendly operations for better performance
+#[inline]
 fn calculate_correlation(samples: &[f32], offset: usize, window_size: usize) -> f32 {
     let end = (samples.len() - offset).min(window_size);
     if end == 0 {
         return 0.0;
     }
 
+    // Process in chunks for better CPU cache usage
+    const CHUNK_SIZE: usize = 8;
     let mut sum_xy = 0.0;
     let mut sum_x2 = 0.0;
     let mut sum_y2 = 0.0;
 
-    for i in 0..end {
+    // Main loop - process in chunks
+    let chunks = end / CHUNK_SIZE;
+    for chunk in 0..chunks {
+        let base = chunk * CHUNK_SIZE;
+
+        // Unrolled loop for SIMD optimization
+        for i in 0..CHUNK_SIZE {
+            let idx = base + i;
+            let x = samples[idx];
+            let y = samples[idx + offset];
+            sum_xy += x * y;
+            sum_x2 += x * x;
+            sum_y2 += y * y;
+        }
+    }
+
+    // Handle remaining samples
+    for i in (chunks * CHUNK_SIZE)..end {
         let x = samples[i];
         let y = samples[i + offset];
         sum_xy += x * y;
@@ -200,17 +225,8 @@ pub fn apply_fade_out(samples: &mut [f32], fade_samples: usize) {
     }
 }
 
-/// Apply fade-in to audio samples
-pub fn apply_fade_in(samples: &mut [f32], fade_samples: usize) {
-    let fade_end = fade_samples.min(samples.len());
-
-    for (i, sample) in samples[..fade_end].iter_mut().enumerate() {
-        let fade_factor = i as f32 / fade_samples as f32;
-        *sample *= fade_factor;
-    }
-}
-
 /// Spectral analysis features for enhanced speech detection
+#[derive(Debug, Clone)]
 pub struct SpectralFeatures {
     pub spectral_centroid: f32,
     pub spectral_spread: f32,
@@ -220,9 +236,49 @@ pub struct SpectralFeatures {
     pub harmonicity: f32,
 }
 
-/// Calculate spectral features using DFT (Discrete Fourier Transform)
-/// Note: For production, consider using rustfft for better performance
-pub fn calculate_spectral_features(samples: &[f32], sample_rate: u32) -> SpectralFeatures {
+/// Feature extraction configuration for performance tuning
+#[derive(Debug, Clone, Copy)]
+pub struct FeatureExtractionConfig {
+    pub compute_spectral: bool,
+    pub compute_pitch: bool,
+    pub compute_harmonicity: bool,
+    pub fft_size: Option<usize>, // None = use input size
+}
+
+impl Default for FeatureExtractionConfig {
+    fn default() -> Self {
+        Self {
+            compute_spectral: true,
+            compute_pitch: true,
+            compute_harmonicity: true,
+            fft_size: None,
+        }
+    }
+}
+
+impl FeatureExtractionConfig {
+    /// Minimal config for real-time applications
+    pub fn minimal() -> Self {
+        Self {
+            compute_spectral: true,
+            compute_pitch: false,
+            compute_harmonicity: false,
+            fft_size: Some(512), // Fixed small FFT
+        }
+    }
+
+    /// Full config for offline analysis
+    pub fn full() -> Self {
+        Self::default()
+    }
+}
+
+/// Calculate spectral features with configurable extraction
+pub fn calculate_spectral_features_selective(
+    samples: &[f32],
+    sample_rate: u32,
+    config: FeatureExtractionConfig,
+) -> SpectralFeatures {
     if samples.is_empty() {
         return SpectralFeatures {
             spectral_centroid: 0.0,
@@ -234,63 +290,136 @@ pub fn calculate_spectral_features(samples: &[f32], sample_rate: u32) -> Spectra
         };
     }
 
-    // Simple DFT implementation (replace with FFT for production)
-    let magnitude_spectrum = compute_magnitude_spectrum(samples);
-    let freq_bins = compute_frequency_bins(samples.len(), sample_rate);
+    let (spectral_centroid, spectral_spread, spectral_rolloff, magnitude_spectrum, freq_bins) =
+        if config.compute_spectral {
+            // Resample to fixed FFT size if requested
+            let working_samples = if let Some(fft_size) = config.fft_size {
+                if samples.len() > fft_size {
+                    // Simple downsampling
+                    let step = samples.len() / fft_size;
+                    samples
+                        .iter()
+                        .step_by(step)
+                        .take(fft_size)
+                        .copied()
+                        .collect::<Vec<_>>()
+                } else {
+                    samples.to_vec()
+                }
+            } else {
+                samples.to_vec()
+            };
 
-    // Spectral centroid - center of mass of spectrum
-    let spectral_centroid = calculate_spectral_centroid(&magnitude_spectrum, &freq_bins);
+            let magnitude_spectrum = compute_magnitude_spectrum(&working_samples);
+            let freq_bins = compute_frequency_bins(working_samples.len(), sample_rate);
 
-    // Spectral spread - standard deviation around centroid
-    let spectral_spread =
-        calculate_spectral_spread(&magnitude_spectrum, &freq_bins, spectral_centroid);
+            let spectral_centroid = calculate_spectral_centroid(&magnitude_spectrum, &freq_bins);
+            let spectral_spread =
+                calculate_spectral_spread(&magnitude_spectrum, &freq_bins, spectral_centroid);
+            let spectral_rolloff =
+                calculate_spectral_rolloff(&magnitude_spectrum, &freq_bins, 0.85);
 
-    // Spectral flux - measure of spectral change
-    let spectral_flux = 0.0; // Requires previous frame
+            (
+                spectral_centroid,
+                spectral_spread,
+                spectral_rolloff,
+                Some(magnitude_spectrum),
+                Some(freq_bins),
+            )
+        } else {
+            (0.0, 0.0, 0.0, None, None)
+        };
 
-    // Spectral rolloff - frequency below which 85% of energy is contained
-    let spectral_rolloff = calculate_spectral_rolloff(&magnitude_spectrum, &freq_bins, 0.85);
+    let pitch_frequency = if config.compute_pitch {
+        detect_pitch_autocorrelation(samples, sample_rate)
+    } else {
+        None
+    };
 
-    // Pitch detection using autocorrelation
-    let pitch_frequency = detect_pitch_autocorrelation(samples, sample_rate);
-
-    // Harmonicity - ratio of harmonic to total energy
-    let harmonicity = calculate_harmonicity(&magnitude_spectrum, pitch_frequency, &freq_bins);
+    let harmonicity = if config.compute_harmonicity {
+        if let (Some(ref spectrum), Some(ref bins)) = (magnitude_spectrum, freq_bins) {
+            calculate_harmonicity(spectrum, pitch_frequency, bins)
+        } else {
+            0.0
+        }
+    } else {
+        0.0
+    };
 
     SpectralFeatures {
         spectral_centroid,
         spectral_spread,
-        spectral_flux,
+        spectral_flux: 0.0, // Still requires previous frame
         spectral_rolloff,
         pitch_frequency,
         harmonicity,
     }
 }
 
-/// Compute magnitude spectrum using DFT
-fn compute_magnitude_spectrum(samples: &[f32]) -> Vec<f32> {
-    let n = samples.len();
-    let mut spectrum = vec![0.0f32; n / 2 + 1];
+/// FFT-based spectrum analyzer with caching
+pub struct SpectrumAnalyzer {
+    planner: FftPlanner<f32>,
+    fft_cache: Option<(usize, Arc<dyn rustfft::Fft<f32>>)>,
+}
 
-    // Simple DFT (O(n²) - use FFT for production)
-    for k in 0..spectrum.len() {
-        let mut real = 0.0;
-        let mut imag = 0.0;
-
-        for (i, &sample) in samples.iter().enumerate() {
-            let angle = -2.0 * PI * k as f32 * i as f32 / n as f32;
-            real += sample * angle.cos();
-            imag += sample * angle.sin();
+impl SpectrumAnalyzer {
+    pub fn new() -> Self {
+        Self {
+            planner: FftPlanner::new(),
+            fft_cache: None,
         }
-
-        spectrum[k] = (real * real + imag * imag).sqrt();
     }
 
-    spectrum
+    pub fn compute_magnitude_spectrum(&mut self, samples: &[f32]) -> Vec<f32> {
+        let n = samples.len();
+
+        // Get or create FFT instance
+        let fft = match &self.fft_cache {
+            Some((cached_size, cached_fft)) if *cached_size == n => cached_fft.clone(),
+            _ => {
+                let fft = self.planner.plan_fft_forward(n);
+                self.fft_cache = Some((n, fft.clone()));
+                fft
+            }
+        };
+
+        // Prepare complex buffer
+        let mut buffer: Vec<Complex<f32>> = samples
+            .iter()
+            .map(|&s| Complex { re: s, im: 0.0 })
+            .collect();
+
+        // Apply window function (Hann window) to reduce spectral leakage
+        for (i, sample) in buffer.iter_mut().enumerate() {
+            let window = 0.5 * (1.0 - (2.0 * PI * i as f32 / (n - 1) as f32).cos());
+            sample.re *= window;
+        }
+
+        // Perform FFT
+        fft.process(&mut buffer);
+
+        // Convert to magnitude spectrum
+        buffer[..n / 2 + 1]
+            .iter()
+            .map(|c| (c.re * c.re + c.im * c.im).sqrt() / (n as f32).sqrt())
+            .collect()
+    }
+}
+
+impl Default for SpectrumAnalyzer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Compute magnitude spectrum using FFT (thread-safe version)
+fn compute_magnitude_spectrum(samples: &[f32]) -> Vec<f32> {
+    let mut analyzer = SpectrumAnalyzer::new();
+    analyzer.compute_magnitude_spectrum(samples)
 }
 
 /// Compute frequency bins for spectrum
-fn compute_frequency_bins(n_samples: usize, sample_rate: u32) -> Vec<f32> {
+pub fn compute_frequency_bins(n_samples: usize, sample_rate: u32) -> Vec<f32> {
     let n_bins = n_samples / 2 + 1;
     (0..n_bins)
         .map(|i| i as f32 * sample_rate as f32 / n_samples as f32)
@@ -298,7 +427,7 @@ fn compute_frequency_bins(n_samples: usize, sample_rate: u32) -> Vec<f32> {
 }
 
 /// Calculate spectral centroid (brightness indicator)
-fn calculate_spectral_centroid(spectrum: &[f32], freq_bins: &[f32]) -> f32 {
+pub fn calculate_spectral_centroid(spectrum: &[f32], freq_bins: &[f32]) -> f32 {
     let total_energy: f32 = spectrum.iter().sum();
     if total_energy == 0.0 {
         return 0.0;
@@ -314,7 +443,7 @@ fn calculate_spectral_centroid(spectrum: &[f32], freq_bins: &[f32]) -> f32 {
 }
 
 /// Calculate spectral spread (timbral width)
-fn calculate_spectral_spread(spectrum: &[f32], freq_bins: &[f32], centroid: f32) -> f32 {
+pub fn calculate_spectral_spread(spectrum: &[f32], freq_bins: &[f32], centroid: f32) -> f32 {
     let total_energy: f32 = spectrum.iter().sum();
     if total_energy == 0.0 {
         return 0.0;
@@ -467,40 +596,6 @@ impl OnsetDetector {
     pub fn adapt_threshold(&mut self, noise_floor: f32) {
         self.threshold = 0.3 + noise_floor * 0.5;
     }
-}
-
-/// Multi-resolution spectral analysis
-pub fn analyze_speech_quality(samples: &[f32], sample_rate: u32) -> f32 {
-    if samples.len() < 512 {
-        return 0.0;
-    }
-
-    let features = calculate_spectral_features(samples, sample_rate);
-
-    // Speech quality heuristics
-    let mut quality = 0.0;
-
-    // Speech typically has centroid between 300-3000 Hz
-    if features.spectral_centroid > 300.0 && features.spectral_centroid < 3000.0 {
-        quality += 0.3;
-    }
-
-    // Good speech has moderate spread
-    if features.spectral_spread > 200.0 && features.spectral_spread < 2000.0 {
-        quality += 0.2;
-    }
-
-    // Pitched speech has harmonicity
-    if features.harmonicity > 0.3 {
-        quality += 0.3;
-    }
-
-    // Speech rolloff typically around 4-8 kHz
-    if features.spectral_rolloff > 4000.0 && features.spectral_rolloff < 8000.0 {
-        quality += 0.2;
-    }
-
-    quality
 }
 
 #[cfg(test)]
@@ -679,14 +774,25 @@ mod tests {
                 + (rand::random::<f32>() - 0.5) * 0.05; // Add some noise
         }
 
-        let quality = analyze_speech_quality(&speech, sample_rate);
+        let features = calculate_spectral_features_selective(
+            &speech,
+            sample_rate,
+            FeatureExtractionConfig::default(),
+        );
+        let quality = crate::SmartPredictor::calculate_speech_quality_from_features(&features);
         assert!(quality > 0.5, "Speech-like signal should have good quality");
 
         // Pure noise should have low quality
         let noise: Vec<f32> = (0..2048)
             .map(|_| (rand::random::<f32>() - 0.5) * 0.3)
             .collect();
-        let noise_quality = analyze_speech_quality(&noise, sample_rate);
+        let noise_features = calculate_spectral_features_selective(
+            &noise,
+            sample_rate,
+            FeatureExtractionConfig::default(),
+        );
+        let noise_quality =
+            crate::SmartPredictor::calculate_speech_quality_from_features(&noise_features);
         assert!(noise_quality < 0.3, "Noise should have low speech quality");
     }
 }

@@ -8,7 +8,7 @@ use std::{
 use kalosm_sound::AsyncSource;
 use rodio::buffer::SamplesBuffer;
 
-use crate::{audio_analysis::*, Predictor};
+use crate::{audio_analysis::*, Predictor, SmartPredictor};
 use std::collections::VecDeque;
 
 /// Level of aggressiveness for hallucination prevention
@@ -183,10 +183,12 @@ pub struct ChunkStream<S: AsyncSource + Unpin, P: Predictor + Unpin> {
     predictor: P,
     buffer: Vec<f32>,
     config: ChunkConfig,
-    /// Look-ahead buffer for better boundary decisions
-    lookahead_buffer: Vec<f32>,
     /// Context tracking across chunks
     context: ChunkContext,
+    /// Cached spectrum analyzer for performance
+    spectrum_analyzer: crate::audio_analysis::SpectrumAnalyzer,
+    /// Feature extraction config
+    feature_config: crate::audio_analysis::FeatureExtractionConfig,
 }
 
 impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
@@ -202,13 +204,17 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
     }
 
     pub fn with_config(source: S, predictor: P, config: ChunkConfig) -> Self {
+        // Use minimal features for real-time chunking
+        let feature_config = crate::audio_analysis::FeatureExtractionConfig::minimal();
+
         Self {
             source,
             predictor,
             buffer: Vec::new(),
             config,
-            lookahead_buffer: Vec::new(),
             context: ChunkContext::default(),
+            spectrum_analyzer: crate::audio_analysis::SpectrumAnalyzer::new(),
+            feature_config,
         }
     }
 
@@ -398,6 +404,7 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
         data: &mut Vec<f32>,
         sample_rate: u32,
         context: &ChunkContext,
+        spectrum_analyzer: &mut crate::audio_analysis::SpectrumAnalyzer,
     ) {
         if data.is_empty() || data.len() < 1024 {
             return;
@@ -439,8 +446,33 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
             // If we're cutting during high speech quality, extend
             if !found_onset && trim_end > 2048 {
                 let quality_check_start = trim_end.saturating_sub(2048);
-                let quality =
-                    analyze_speech_quality(&data[quality_check_start..trim_end], sample_rate);
+                let check_data = &data[quality_check_start..trim_end];
+
+                // Use cached spectrum analyzer for better performance
+                let spectrum = spectrum_analyzer.compute_magnitude_spectrum(check_data);
+                let freq_bins =
+                    crate::audio_analysis::compute_frequency_bins(check_data.len(), sample_rate);
+
+                // Calculate only essential features for quality check
+                let spectral_centroid =
+                    crate::audio_analysis::calculate_spectral_centroid(&spectrum, &freq_bins);
+                let spectral_spread = crate::audio_analysis::calculate_spectral_spread(
+                    &spectrum,
+                    &freq_bins,
+                    spectral_centroid,
+                );
+
+                // Quick quality heuristic
+                let quality = if spectral_centroid > 300.0 && spectral_centroid < 3000.0 {
+                    0.5
+                } else {
+                    0.0
+                } + if spectral_spread > 200.0 && spectral_spread < 2000.0 {
+                    0.3
+                } else {
+                    0.0
+                };
+
                 if quality > 0.7 {
                     // High quality speech, extend by 30ms
                     trim_end = (trim_end + 480).min(data.len());
@@ -519,6 +551,7 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
                                     &mut data,
                                     sample_rate,
                                     &this.context,
+                                    &mut this.spectrum_analyzer,
                                 );
                             } else {
                                 Self::trim_silence(&this.predictor, &this.config, &mut data);
@@ -530,8 +563,17 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
                                 let duration =
                                     Duration::from_secs_f32(data.len() as f32 / sample_rate as f32);
                                 let energy = calculate_peak_rms(&data, 480);
-                                let quality = analyze_speech_quality(&data, sample_rate);
-                                let pitch = detect_pitch_autocorrelation(&data, sample_rate);
+                                let features =
+                                    crate::audio_analysis::calculate_spectral_features_selective(
+                                        &data,
+                                        sample_rate,
+                                        this.feature_config,
+                                    );
+                                let quality =
+                                    SmartPredictor::calculate_speech_quality_from_features(
+                                        &features,
+                                    );
+                                let pitch = features.pitch_frequency;
 
                                 this.context.update(duration, energy, quality, pitch);
 
@@ -554,6 +596,7 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
                             &mut data,
                             sample_rate,
                             &this.context,
+                            &mut this.spectrum_analyzer,
                         );
                     } else {
                         Self::trim_silence(&this.predictor, &this.config, &mut data);
@@ -565,8 +608,14 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
                         let duration =
                             Duration::from_secs_f32(data.len() as f32 / sample_rate as f32);
                         let energy = calculate_peak_rms(&data, 480);
-                        let quality = analyze_speech_quality(&data, sample_rate);
-                        let pitch = detect_pitch_autocorrelation(&data, sample_rate);
+                        let features = crate::audio_analysis::calculate_spectral_features_selective(
+                            &data,
+                            sample_rate,
+                            this.feature_config,
+                        );
+                        let quality =
+                            SmartPredictor::calculate_speech_quality_from_features(&features);
+                        let pitch = features.pitch_frequency;
                         this.context.update(duration, energy, quality, pitch);
 
                         return Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, data)));
@@ -589,6 +638,7 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
                 &mut chunk,
                 sample_rate,
                 &this.context,
+                &mut this.spectrum_analyzer,
             );
         } else {
             Self::trim_silence(&this.predictor, &this.config, &mut chunk);
@@ -599,8 +649,13 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
             // Update context
             let duration = Duration::from_secs_f32(chunk.len() as f32 / sample_rate as f32);
             let energy = calculate_peak_rms(&chunk, 480);
-            let quality = analyze_speech_quality(&chunk, sample_rate);
-            let pitch = detect_pitch_autocorrelation(&chunk, sample_rate);
+            let features = crate::audio_analysis::calculate_spectral_features_selective(
+                &chunk,
+                sample_rate,
+                this.feature_config,
+            );
+            let quality = SmartPredictor::calculate_speech_quality_from_features(&features);
+            let pitch = features.pitch_frequency;
             this.context.update(duration, energy, quality, pitch);
 
             Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, chunk)))

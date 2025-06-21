@@ -255,23 +255,59 @@ pub struct SmartPredictor {
     onset_detector: Mutex<crate::audio_analysis::OnsetDetector>,
     /// Track sample rate for spectral analysis
     sample_rate: u32,
+    /// Cached spectrum analyzer for performance
+    spectrum_analyzer: Mutex<crate::audio_analysis::SpectrumAnalyzer>,
+    /// Feature extraction config
+    feature_config: crate::audio_analysis::FeatureExtractionConfig,
 }
 
 impl SmartPredictor {
     pub fn new(sample_rate: u32) -> Result<Self, crate::Error> {
+        Self::with_config(
+            sample_rate,
+            crate::audio_analysis::FeatureExtractionConfig::default(),
+        )
+    }
+
+    pub fn new_realtime(sample_rate: u32) -> Result<Self, crate::Error> {
+        Self::with_config(
+            sample_rate,
+            crate::audio_analysis::FeatureExtractionConfig::minimal(),
+        )
+    }
+
+    pub fn with_config(
+        sample_rate: u32,
+        feature_config: crate::audio_analysis::FeatureExtractionConfig,
+    ) -> Result<Self, crate::Error> {
         Ok(Self {
             silero: Silero::new()?,
             noise_floor: Mutex::new(0.01),
             noise_profile: Mutex::new(vec![0.0; 257]), // 512 FFT -> 257 bins
             onset_detector: Mutex::new(crate::audio_analysis::OnsetDetector::new(257)),
             sample_rate,
+            spectrum_analyzer: Mutex::new(crate::audio_analysis::SpectrumAnalyzer::new()),
+            feature_config,
         })
     }
 
     /// Update noise profile during silence
     fn update_noise_profile(&self, samples: &[f32]) {
-        let _features =
-            crate::audio_analysis::calculate_spectral_features(samples, self.sample_rate);
+        // Use cached spectrum analyzer
+        let mut analyzer = handle_mutex_lock(self.spectrum_analyzer.lock(), "spectrum_analyzer");
+        let spectrum = analyzer.compute_magnitude_spectrum(samples);
+
+        // Update noise profile with exponential moving average
+        let mut noise_profile = handle_mutex_lock(self.noise_profile.lock(), "noise_profile");
+        if noise_profile.len() == spectrum.len() {
+            for (profile, &spec) in noise_profile.iter_mut().zip(spectrum.iter()) {
+                *profile = *profile * 0.95 + spec * 0.05;
+            }
+        } else {
+            // Resize if needed
+            *noise_profile = spectrum;
+        }
+
         let rms = crate::audio_analysis::calculate_rms(samples);
 
         // Update noise floor with exponential moving average
@@ -296,9 +332,15 @@ impl SmartPredictor {
             0.5
         };
 
-        // Get spectral features
-        let speech_quality =
-            crate::audio_analysis::analyze_speech_quality(samples, self.sample_rate);
+        // Get spectral features using selective extraction
+        let features = crate::audio_analysis::calculate_spectral_features_selective(
+            samples,
+            self.sample_rate,
+            self.feature_config,
+        );
+
+        // Calculate speech quality from features
+        let speech_quality = Self::calculate_speech_quality_from_features(&features);
 
         // Check for onset
         let is_onset =
@@ -339,6 +381,35 @@ impl SmartPredictor {
             };
 
         (confidence > threshold, confidence)
+    }
+
+    /// Calculate speech quality from spectral features
+    pub fn calculate_speech_quality_from_features(
+        features: &crate::audio_analysis::SpectralFeatures,
+    ) -> f32 {
+        let mut quality = 0.0;
+
+        // Speech typically has centroid between 300-3000 Hz
+        if features.spectral_centroid > 300.0 && features.spectral_centroid < 3000.0 {
+            quality += 0.3;
+        }
+
+        // Good speech has moderate spread
+        if features.spectral_spread > 200.0 && features.spectral_spread < 2000.0 {
+            quality += 0.2;
+        }
+
+        // Pitched speech has harmonicity
+        if features.harmonicity > 0.3 {
+            quality += 0.3;
+        }
+
+        // Speech rolloff typically around 4-8 kHz
+        if features.spectral_rolloff > 4000.0 && features.spectral_rolloff < 8000.0 {
+            quality += 0.2;
+        }
+
+        quality
     }
 }
 

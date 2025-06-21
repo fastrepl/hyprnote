@@ -47,6 +47,8 @@ permissions = [
     "allow-create-chat-group",
     "allow-upsert-chat-message",
     # tag
+    "allow-upsert-tag",
+    "allow-delete-tag",
     "allow-list-all-tags",
     "allow-list-session-tags",
     "allow-assign-tag-to-session",

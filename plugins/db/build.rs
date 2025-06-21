@@ -45,6 +45,8 @@ const COMMANDS: &[&str] = &[
     "create_chat_group",
     "upsert_chat_message",
     // tag
+    "upsert_tag",
+    "delete_tag",
     "list_all_tags",
     "list_session_tags",
     "assign_tag_to_session",

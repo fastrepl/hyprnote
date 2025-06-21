@@ -1,4 +1,6 @@
-root ::= "[" ws string ("," ws string) ("," ws string)? ("," ws string)? ("," ws string)? "]" ws
+root ::= "[" ws tag_list? "]" ws
 
-string ::= "\"" [a-zA-Z0-9 ]+ "\""
+tag_list ::= tag (ws "," ws tag)*
+char ::= [a-zA-Z0-9 _-]
+tag ::= "\"" char+ "\""
 ws ::= [ \t\n]*

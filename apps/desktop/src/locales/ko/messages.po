@@ -693,7 +693,7 @@ msgstr ""
 msgid "Live summary of the meeting"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:195
+#: src/components/settings/views/sound.tsx:192
 msgid "Loading available devices..."
 msgstr ""
 
@@ -735,11 +735,11 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:139
+#: src/components/settings/views/sound.tsx:136
 msgid "Microphone Access"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:164
+#: src/components/settings/views/sound.tsx:161
 msgid "Microphone Device"
 msgstr ""
 
@@ -897,11 +897,11 @@ msgstr ""
 msgid "Requesting..."
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:149
+#: src/components/settings/views/sound.tsx:146
 msgid "Required to transcribe other people's voice during meetings"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:140
+#: src/components/settings/views/sound.tsx:137
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
@@ -955,7 +955,7 @@ msgstr ""
 msgid "Select Calendars"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:179
+#: src/components/settings/views/sound.tsx:176
 msgid "Select microphone device"
 msgstr ""
 
@@ -963,7 +963,7 @@ msgstr ""
 #~ msgid "Select or enter the model name required by your endpoint."
 #~ msgstr ""
 
-#: src/components/settings/views/sound.tsx:167
+#: src/components/settings/views/sound.tsx:164
 msgid "Select which microphone to use for recording"
 msgstr ""
 
@@ -1023,11 +1023,11 @@ msgstr ""
 msgid "Synchronization across multiple devices"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:148
+#: src/components/settings/views/sound.tsx:145
 msgid "System Audio Access"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:183
+#: src/components/settings/views/sound.tsx:180
 msgid "System Default"
 msgstr ""
 

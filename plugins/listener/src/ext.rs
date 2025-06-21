@@ -67,9 +67,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         use tauri_plugin_db::DatabasePluginExt;
 
         let user_id = self.db_user_id().await?.ok_or(crate::Error::NoneUser)?;
-        let mut config = self.db_get_config(&user_id).await?;
-
-        let mut config = match config {
+        let mut config = match self.db_get_config(&user_id).await? {
             Some(mut config) => {
                 config.general.selected_microphone_device = device_name;
                 config

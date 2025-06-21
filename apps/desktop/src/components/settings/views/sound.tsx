@@ -96,19 +96,16 @@ export default function Sound() {
       micPermissionStatus.refetch();
       microphoneDevices.refetch();
     },
-    onError: console.error,
   });
 
   const capturePermission = useMutation({
     mutationFn: () => listenerCommands.requestSystemAudioAccess(),
     onSuccess: () => systemAudioPermissionStatus.refetch(),
-    onError: console.error,
   });
 
   const updateSelectedDevice = useMutation({
     mutationFn: (deviceName: string | null) => listenerCommands.setSelectedMicrophoneDevice(deviceName),
     onSuccess: () => selectedDevice.refetch(),
-    onError: console.error,
   });
 
   const handleMicrophoneDeviceChange = (deviceName: string) => {
@@ -140,7 +137,7 @@ export default function Sound() {
             description={t`Required to transcribe your voice during meetings`}
             done={micPermissionStatus.data}
             isPending={micPermission.isPending}
-            onRequest={() => micPermission.mutate({})}
+            onRequest={() => micPermission.mutate()}
           />
 
           <PermissionItem
@@ -149,7 +146,7 @@ export default function Sound() {
             description={t`Required to transcribe other people's voice during meetings`}
             done={systemAudioPermissionStatus.data}
             isPending={capturePermission.isPending}
-            onRequest={() => capturePermission.mutate({})}
+            onRequest={() => capturePermission.mutate()}
           />
         </div>
 

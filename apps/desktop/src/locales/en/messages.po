@@ -693,7 +693,7 @@ msgstr "LinkedIn username"
 msgid "Live summary of the meeting"
 msgstr "Live summary of the meeting"
 
-#: src/components/settings/views/sound.tsx:195
+#: src/components/settings/views/sound.tsx:192
 msgid "Loading available devices..."
 msgstr "Loading available devices..."
 
@@ -735,11 +735,11 @@ msgstr "Member"
 msgid "Members"
 msgstr "Members"
 
-#: src/components/settings/views/sound.tsx:139
+#: src/components/settings/views/sound.tsx:136
 msgid "Microphone Access"
 msgstr "Microphone Access"
 
-#: src/components/settings/views/sound.tsx:164
+#: src/components/settings/views/sound.tsx:161
 msgid "Microphone Device"
 msgstr "Microphone Device"
 
@@ -897,11 +897,11 @@ msgstr "Recent Notes"
 msgid "Requesting..."
 msgstr "Requesting..."
 
-#: src/components/settings/views/sound.tsx:149
+#: src/components/settings/views/sound.tsx:146
 msgid "Required to transcribe other people's voice during meetings"
 msgstr "Required to transcribe other people's voice during meetings"
 
-#: src/components/settings/views/sound.tsx:140
+#: src/components/settings/views/sound.tsx:137
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
@@ -955,7 +955,7 @@ msgstr "Select a transcribing model"
 msgid "Select Calendars"
 msgstr "Select Calendars"
 
-#: src/components/settings/views/sound.tsx:179
+#: src/components/settings/views/sound.tsx:176
 msgid "Select microphone device"
 msgstr "Select microphone device"
 
@@ -963,7 +963,7 @@ msgstr "Select microphone device"
 #~ msgid "Select or enter the model name required by your endpoint."
 #~ msgstr "Select or enter the model name required by your endpoint."
 
-#: src/components/settings/views/sound.tsx:167
+#: src/components/settings/views/sound.tsx:164
 msgid "Select which microphone to use for recording"
 msgstr "Select which microphone to use for recording"
 
@@ -1023,11 +1023,11 @@ msgstr "Summarize meeting"
 msgid "Synchronization across multiple devices"
 msgstr "Synchronization across multiple devices"
 
-#: src/components/settings/views/sound.tsx:148
+#: src/components/settings/views/sound.tsx:145
 msgid "System Audio Access"
 msgstr "System Audio Access"
 
-#: src/components/settings/views/sound.tsx:183
+#: src/components/settings/views/sound.tsx:180
 msgid "System Default"
 msgstr "System Default"
 

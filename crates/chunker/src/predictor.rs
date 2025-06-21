@@ -360,27 +360,27 @@ impl SmartPredictor {
 
         // Weighted feature fusion
         let mut confidence = 0.0;
-        confidence += vad_confidence * 0.4; // VAD is primary
-        confidence += speech_quality * 0.3; // Spectral quality
-        confidence += (snr.min(10.0) / 10.0) * 0.2; // SNR contribution
+        confidence += vad_confidence * VAD_WEIGHT; // VAD is primary
+        confidence += speech_quality * SPEECH_QUALITY_WEIGHT; // Spectral quality
+        confidence += (snr.min(10.0) / 10.0) * SNR_WEIGHT; // SNR contribution
 
         // Boost confidence if onset detected
         if is_onset {
-            confidence = (confidence + 0.2).min(1.0);
+            confidence = (confidence + ONSET_BOOST).min(1.0);
         }
 
         // Hysteresis for temporal stability
         let prev_confidence = self.silero.get_recent_confidence_avg(3).unwrap_or(0.5);
-        confidence = confidence * 0.7 + prev_confidence * 0.3;
+        confidence = confidence * HYSTERESIS_CURRENT_WEIGHT + prev_confidence * HYSTERESIS_PREVIOUS_WEIGHT;
 
         // Dynamic threshold based on context
         let threshold =
             if self.silero.analyze_confidence_decay() == crate::ConfidenceProfile::Active {
-                0.4 // Lower threshold during active speech
+                ACTIVE_THRESHOLD // Lower threshold during active speech
             } else if snr < 2.0 {
-                0.6 // Higher threshold in noisy conditions
+                NOISY_THRESHOLD // Higher threshold in noisy conditions
             } else {
-                0.5
+                DEFAULT_THRESHOLD
             };
 
         (confidence > threshold, confidence)

@@ -145,8 +145,10 @@ async fn websocket(socket: WebSocket, model: hypr_whisper::local::Whisper, guard
     let (mut ws_sender, ws_receiver) = socket.split();
 
     // Use Silero VAD if available, otherwise fallback to RMS
-    let use_silero =
-        std::env::var("USE_SILERO_VAD").unwrap_or_else(|_| "true".to_string()) == "true";
+    let use_silero = std::env::var("USE_SILERO_VAD")
+        .unwrap_or_else(|_| "true".to_string())
+        .parse::<bool>()
+        .unwrap_or(true);
 
     let (predictor, max_duration): (
         Box<dyn hypr_chunker::Predictor + Send + Sync + Unpin>,

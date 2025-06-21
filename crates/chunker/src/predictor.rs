@@ -85,18 +85,33 @@ impl Silero {
 
     /// Reset VAD state after extended silence
     fn maybe_reset_state(&self) {
-        let frames = *self.frames_since_speech.lock().unwrap();
+        let frames = *self.frames_since_speech.lock().unwrap_or_else(|e| {
+            tracing::error!("Frames since speech mutex poisoned, attempting recovery: {}", e);
+            e.into_inner()
+        });
         // Reset after ~3 seconds of no speech (assuming 30ms chunks)
         if frames > 100 {
-            self.inner.lock().unwrap().reset();
-            self.confidence_history.lock().unwrap().clear();
-            *self.frames_since_speech.lock().unwrap() = 0;
+            self.inner.lock().unwrap_or_else(|e| {
+                tracing::error!("VAD mutex poisoned, attempting recovery: {}", e);
+                e.into_inner()
+            }).reset();
+            self.confidence_history.lock().unwrap_or_else(|e| {
+                tracing::error!("Confidence history mutex poisoned, attempting recovery: {}", e);
+                e.into_inner()
+            }).clear();
+            *self.frames_since_speech.lock().unwrap_or_else(|e| {
+                tracing::error!("Frames since speech mutex poisoned, attempting recovery: {}", e);
+                e.into_inner()
+            }) = 0;
         }
     }
 
     /// Calculate adaptive threshold based on recent confidence history
     fn calculate_adaptive_threshold(&self) -> f32 {
-        let history = self.confidence_history.lock().unwrap();
+        let history = self.confidence_history.lock().unwrap_or_else(|e| {
+            tracing::error!("Confidence history mutex poisoned, attempting recovery: {}", e);
+            e.into_inner()
+        });
         if history.is_empty() {
             return self.config.base_threshold;
         }
@@ -132,13 +147,20 @@ impl Predictor for Silero {
         self.maybe_reset_state();
 
         // Run VAD prediction
-        let mut inner = self.inner.lock().unwrap();
-        let probability = inner.run(samples)?;
-        drop(inner); // Explicitly drop the lock early
+        let probability = {
+            let mut inner = self.inner.lock().unwrap_or_else(|e| {
+                tracing::error!("VAD mutex poisoned, attempting recovery: {}", e);
+                e.into_inner()
+            });
+            inner.run(samples)?
+        }; // Lock is automatically dropped here
 
         // Update confidence history
         {
-            let mut history = self.confidence_history.lock().unwrap();
+            let mut history = self.confidence_history.lock().unwrap_or_else(|e| {
+                tracing::error!("Confidence history mutex poisoned, attempting recovery: {}", e);
+                e.into_inner()
+            });
             history.push_back(probability);
             if history.len() > self.config.confidence_window_size {
                 history.pop_front();
@@ -153,9 +175,15 @@ impl Predictor for Silero {
 
         // Update speech tracking
         if is_speech {
-            *self.frames_since_speech.lock().unwrap() = 0;
+            *self.frames_since_speech.lock().unwrap_or_else(|e| {
+                tracing::error!("Frames since speech mutex poisoned, attempting recovery: {}", e);
+                e.into_inner()
+            }) = 0;
         } else {
-            *self.frames_since_speech.lock().unwrap() += 1;
+            *self.frames_since_speech.lock().unwrap_or_else(|e| {
+                tracing::error!("Frames since speech mutex poisoned, attempting recovery: {}", e);
+                e.into_inner()
+            }) += 1;
         }
 
         Ok(is_speech)

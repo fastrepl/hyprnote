@@ -167,11 +167,14 @@ impl Silero {
         }
 
         // Check if all recent values are low
-        let all_low = recent.iter().all(|&p| p < 0.3);
+        const LOW_CONFIDENCE_THRESHOLD: f32 = 0.3;
+        let all_low = recent.iter().all(|&p| p < LOW_CONFIDENCE_THRESHOLD);
         let avg_recent = recent.iter().sum::<f32>() / recent.len() as f32;
 
         // Determine profile
-        if decay_count >= 7 && total_drop > 0.3 {
+        const RAPID_DECAY_COUNT_THRESHOLD: usize = 7;
+        const RAPID_DECAY_DROP_THRESHOLD: f32 = 0.3;
+        if decay_count >= RAPID_DECAY_COUNT_THRESHOLD && total_drop > RAPID_DECAY_DROP_THRESHOLD {
             ConfidenceProfile::RapidDecay
         } else if all_low && avg_recent < 0.2 {
             ConfidenceProfile::SustainedLow

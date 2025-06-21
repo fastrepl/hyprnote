@@ -8,7 +8,7 @@ This crate provides intelligent audio chunking for real-time speech processing, 
 - **RMS-based chunking**: Simple fallback option for lightweight processing
 - **Adaptive thresholding**: Dynamically adjusts sensitivity based on audio conditions
 - **Configurable durations**: Support for up to 30-second chunks (Whisper's optimal size)
-- **Silence trimming**: Removes leading and trailing silence to prevent hallucinations
+- **Aggressive silence trimming**: Removes leading and trailing silence to prevent Whisper hallucinations (e.g., "Thank you")
 - **Thread-safe**: All predictors implement Send + Sync for concurrent use
 
 ## Usage
@@ -68,3 +68,11 @@ The Silero VAD implementation:
 - Maintains LSTM state for temporal consistency
 - Automatically resets state after extended silence
 - Adapts thresholds based on recent confidence history
+
+### Silence Trimming
+
+The chunker implements aggressive silence trimming to prevent Whisper hallucinations:
+- Scans backwards from the end to find the last speech segment
+- Adds a 60ms safety margin after the last detected speech
+- Removes any audio after 300ms of consecutive silence
+- This prevents Whisper from generating phantom phrases like "Thank you" from trailing silence

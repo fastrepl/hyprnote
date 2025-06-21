@@ -55,8 +55,8 @@ impl Default for SileroConfig {
             base_threshold: 0.5,
             confidence_window_size: 10,
             high_confidence_threshold: 0.7,
-            high_confidence_speech_threshold: 0.4,
-            low_confidence_speech_threshold: 0.6,
+            high_confidence_speech_threshold: 0.35,  // Lower to catch soft speech
+            low_confidence_speech_threshold: 0.55,  // Slightly lower for better detection
         }
     }
 }
@@ -106,6 +106,9 @@ impl Silero {
         if avg_confidence > self.config.high_confidence_threshold {
             // In clear speech, lower threshold to catch soft speech
             self.config.high_confidence_speech_threshold
+        } else if avg_confidence < 0.1 {
+            // In very low confidence (likely silence), use base threshold
+            self.config.base_threshold
         } else {
             // In noisy conditions, raise threshold to avoid false positives
             self.config.low_confidence_speech_threshold

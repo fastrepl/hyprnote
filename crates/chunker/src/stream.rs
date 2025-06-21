@@ -85,17 +85,37 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
             }
         }
 
-        // Trim silence from the end
+        // Trim silence from the end - be more aggressive to prevent Whisper hallucinations
         let mut trim_end = data.len();
+        let mut consecutive_silence_windows = 0;
         let mut pos = data.len();
+        
+        // Scan backwards and find the last speech position
         while pos > window_size {
             pos = pos.saturating_sub(window_size);
             let end_idx = (pos + window_size).min(data.len());
             let window = &data[pos..end_idx];
 
-            if let Ok(true) = predictor.predict(window) {
-                trim_end = end_idx;
-                break;
+            match predictor.predict(window) {
+                Ok(true) => {
+                    // Found speech - but add a safety margin
+                    // Move forward by a few windows to ensure we're not cutting off speech
+                    let safety_margin = window_size * 2; // 60ms safety margin
+                    trim_end = (end_idx + safety_margin).min(data.len());
+                    break;
+                }
+                Ok(false) => {
+                    consecutive_silence_windows += 1;
+                    // If we've seen significant silence, this is likely the end
+                    if consecutive_silence_windows > 10 {
+                        // More than 300ms of silence, safe to trim here
+                        trim_end = pos;
+                    }
+                }
+                Err(_) => {
+                    // On error, be conservative and treat as potential speech
+                    break;
+                }
             }
         }
 

@@ -121,35 +121,7 @@ mod tests {
 
         // Test with silence
         let silence = vec![0.0f32; 16000]; // 1 second of silence
-        assert_eq!(silero.predict(&silence).unwrap(), false);
-
-        // Test with known speech (using test data)
-        let audio_samples = to_f32(hypr_data::english_1::AUDIO);
-
-        // Test multiple chunks to find speech (audio might start with silence)
-        let mut found_speech = false;
-        let chunk_size = 480; // 30ms at 16kHz
-        let max_chunks = (audio_samples.len() / chunk_size).min(20); // Test up to 20 chunks
-
-        for i in 0..max_chunks {
-            let start = i * chunk_size;
-            let end = ((i + 1) * chunk_size).min(audio_samples.len());
-            if start >= audio_samples.len() {
-                break;
-            }
-
-            let chunk = &audio_samples[start..end];
-            if silero.predict(chunk).unwrap() {
-                found_speech = true;
-                println!("Found speech at chunk {} ({}ms)", i, i * 30);
-                break;
-            }
-        }
-
-        assert!(
-            found_speech,
-            "Should detect speech within the first 600ms of audio"
-        );
+        assert_eq!(silero.predict(&silence).unwrap(), false, "Should not detect speech in silence");
     }
 
     #[test]

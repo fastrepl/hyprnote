@@ -2420,6 +2420,7 @@ dependencies = [
  "futures-util",
  "hound",
  "kalosm-sound",
+ "rand 0.8.5",
  "rodio",
  "serde",
  "thiserror 2.0.12",

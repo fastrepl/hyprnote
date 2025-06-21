@@ -18,6 +18,12 @@ impl RMS {
     }
 }
 
+impl Default for RMS {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Predictor for RMS {
     fn predict(&self, samples: &[f32]) -> Result<bool, crate::Error> {
         if samples.is_empty() {
@@ -59,6 +65,18 @@ impl Default for SileroConfig {
             low_confidence_speech_threshold: 0.55,  // Slightly lower for better detection
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ConfidenceProfile {
+    /// Unknown or insufficient data
+    Unknown,
+    /// Actively detecting speech
+    Active,
+    /// Rapid decay in confidence (likely end of speech)
+    RapidDecay,
+    /// Sustained low confidence (likely silence/noise)
+    SustainedLow,
 }
 
 pub struct Silero {
@@ -146,6 +164,69 @@ impl Silero {
             // In noisy conditions, raise threshold to avoid false positives
             self.config.low_confidence_speech_threshold
         }
+    }
+
+    /// Analyze confidence decay pattern for end-of-speech detection
+    pub fn analyze_confidence_decay(&self) -> ConfidenceProfile {
+        let history = self.confidence_history.lock().unwrap_or_else(|e| {
+            tracing::error!(
+                "Confidence history mutex poisoned, attempting recovery: {}",
+                e
+            );
+            e.into_inner()
+        });
+
+        if history.len() < 5 {
+            return ConfidenceProfile::Unknown;
+        }
+
+        // Get recent values (newest first)
+        let recent: Vec<f32> = history.iter().rev().take(10).copied().collect();
+
+        // Calculate decay metrics
+        let mut decay_count = 0;
+        let mut total_drop = 0.0;
+
+        for i in 1..recent.len().min(10) {
+            if recent[i] < recent[i - 1] * 0.9 {
+                decay_count += 1;
+                total_drop += recent[i - 1] - recent[i];
+            }
+        }
+
+        // Check if all recent values are low
+        let all_low = recent.iter().all(|&p| p < 0.3);
+        let avg_recent = recent.iter().sum::<f32>() / recent.len() as f32;
+
+        // Determine profile
+        if decay_count >= 7 && total_drop > 0.3 {
+            ConfidenceProfile::RapidDecay
+        } else if all_low && avg_recent < 0.2 {
+            ConfidenceProfile::SustainedLow
+        } else if avg_recent > 0.5 {
+            ConfidenceProfile::Active
+        } else {
+            ConfidenceProfile::Unknown
+        }
+    }
+
+    /// Get the average confidence over the last N predictions
+    pub fn get_recent_confidence_avg(&self, n: usize) -> Option<f32> {
+        let history = self.confidence_history.lock().unwrap_or_else(|e| {
+            tracing::error!(
+                "Confidence history mutex poisoned, attempting recovery: {}",
+                e
+            );
+            e.into_inner()
+        });
+
+        if history.is_empty() {
+            return None;
+        }
+
+        let count = n.min(history.len());
+        let sum: f32 = history.iter().rev().take(count).sum();
+        Some(sum / count as f32)
     }
 }
 

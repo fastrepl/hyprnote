@@ -1,3 +1,4 @@
+mod audio_analysis;
 mod error;
 mod predictor;
 mod stream;
@@ -133,8 +134,108 @@ mod tests {
         let config = ChunkConfig::default();
         assert_eq!(config.max_duration, Duration::from_secs(30));
         assert_eq!(config.min_buffer_duration, Duration::from_secs(6));
-        assert_eq!(config.silence_window_duration, Duration::from_millis(500));
-        assert_eq!(config.trim_window_size, 480);
+        assert_eq!(config.silence_window_duration, Duration::from_millis(200)); // Aggressive default
+        assert_eq!(config.trim_window_size, 240); // Aggressive default
+        assert_eq!(
+            config.hallucination_prevention,
+            HallucinationPreventionLevel::Aggressive // Default to Aggressive
+        );
+        assert_eq!(config.end_speech_threshold, 0.65);
+        assert_eq!(config.min_energy_ratio, 0.15);
+    }
+
+    #[test]
+    fn test_aggressive_config() {
+        let config = ChunkConfig::default()
+            .with_hallucination_prevention(HallucinationPreventionLevel::Aggressive);
+
+        assert_eq!(config.trim_window_size, 240);
+        assert_eq!(config.silence_window_duration, Duration::from_millis(200));
+        assert_eq!(config.end_speech_threshold, 0.65);
+        assert_eq!(config.min_energy_ratio, 0.15);
+    }
+
+    #[test]
+    fn test_paranoid_config() {
+        let config = ChunkConfig::default()
+            .with_hallucination_prevention(HallucinationPreventionLevel::Paranoid);
+
+        assert_eq!(config.trim_window_size, 160);
+        assert_eq!(config.silence_window_duration, Duration::from_millis(100));
+        assert_eq!(config.end_speech_threshold, 0.7);
+        assert_eq!(config.min_energy_ratio, 0.2);
+        assert_eq!(config.energy_cliff_threshold, 0.15);
+    }
+
+    #[tokio::test]
+    async fn test_aggressive_trimming() {
+        // Create audio with trailing silence that might trigger hallucinations
+        let mut audio_with_silence = Vec::new();
+
+        // Add 1 second of speech-like signal
+        for i in 0..16000 {
+            let t = i as f32 / 16000.0;
+            audio_with_silence.push((t * 440.0 * 2.0 * std::f32::consts::PI).sin() * 0.3);
+        }
+
+        // Add 2 seconds of very low noise (hallucination trigger)
+        for _ in 0..32000 {
+            audio_with_silence.push(rand::random::<f32>() * 0.001 - 0.0005);
+        }
+
+        // Test with different prevention levels
+        let configs = vec![
+            (ChunkConfig::default(), "normal"),
+            (
+                ChunkConfig::default()
+                    .with_hallucination_prevention(HallucinationPreventionLevel::Aggressive),
+                "aggressive",
+            ),
+            (
+                ChunkConfig::default()
+                    .with_hallucination_prevention(HallucinationPreventionLevel::Paranoid),
+                "paranoid",
+            ),
+        ];
+
+        for (config, level) in configs {
+            let mut data = audio_with_silence.clone();
+            let original_len = data.len();
+
+            // We need a mock predictor for testing
+            let predictor = Silero::new().unwrap_or_else(|_| {
+                // Fallback to RMS if Silero fails
+                panic!("Silero initialization failed in test");
+            });
+
+            ChunkStream::<_, _>::trim_silence(&predictor, &config, &mut data);
+
+            println!(
+                "{} mode: trimmed from {} to {} samples",
+                level,
+                original_len,
+                data.len()
+            );
+
+            // Verify more aggressive modes trim more
+            match config.hallucination_prevention {
+                HallucinationPreventionLevel::Normal => {
+                    assert!(data.len() < original_len, "Should trim some silence");
+                }
+                HallucinationPreventionLevel::Aggressive => {
+                    assert!(
+                        data.len() < original_len * 0.6,
+                        "Aggressive should trim most silence"
+                    );
+                }
+                HallucinationPreventionLevel::Paranoid => {
+                    assert!(
+                        data.len() < original_len * 0.4,
+                        "Paranoid should trim even more"
+                    );
+                }
+            }
+        }
     }
 
     fn to_f32(bytes: &[u8]) -> Vec<f32> {

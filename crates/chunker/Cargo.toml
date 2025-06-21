@@ -6,6 +6,7 @@ edition = "2021"
 [dev-dependencies]
 hound = { workspace = true }
 hypr-data = { workspace = true }
+rand = "0.8"
 
 [dependencies]
 hypr-vad = { workspace = true }

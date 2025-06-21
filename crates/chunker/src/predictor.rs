@@ -55,7 +55,7 @@ impl Default for SileroConfig {
             base_threshold: 0.5,
             confidence_window_size: 10,
             high_confidence_threshold: 0.7,
-            high_confidence_speech_threshold: 0.35,  // Lower to catch soft speech
+            high_confidence_speech_threshold: 0.35, // Lower to catch soft speech
             low_confidence_speech_threshold: 0.55,  // Slightly lower for better detection
         }
     }

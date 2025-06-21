@@ -121,7 +121,11 @@ mod tests {
 
         // Test with silence
         let silence = vec![0.0f32; 16000]; // 1 second of silence
-        assert_eq!(silero.predict(&silence).unwrap(), false, "Should not detect speech in silence");
+        assert_eq!(
+            silero.predict(&silence).unwrap(),
+            false,
+            "Should not detect speech in silence"
+        );
     }
 
     #[test]

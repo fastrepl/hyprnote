@@ -89,7 +89,7 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
         let mut trim_end = data.len();
         let mut consecutive_silence_windows = 0;
         let mut pos = data.len();
-        
+
         // Scan backwards and find the last speech position
         while pos > window_size {
             pos = pos.saturating_sub(window_size);

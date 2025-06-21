@@ -617,7 +617,7 @@ mod tests {
         // Create gradually decaying signal
         let mut samples = vec![1.0f32; 1000];
         for i in 0..1000 {
-            samples[i] *= (1.0 - i as f32 / 1000.0);
+            samples[i] *= 1.0 - i as f32 / 1000.0;
         }
 
         let profile = analyze_energy_decay(&samples, 100);
@@ -695,7 +695,11 @@ mod tests {
             .map(|i| (2.0 * PI * frequency * i as f32 / sample_rate as f32).sin())
             .collect();
 
-        let features = calculate_spectral_features(&samples, sample_rate);
+        let features = calculate_spectral_features_selective(
+            &samples,
+            sample_rate,
+            FeatureExtractionConfig::default(),
+        );
 
         // Centroid should be near the fundamental frequency
         assert!(

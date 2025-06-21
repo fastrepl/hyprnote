@@ -226,7 +226,12 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
         (self.source.sample_rate() as f64 * duration.as_secs_f64()) as usize
     }
 
-    fn trim_silence(predictor: &P, config: &ChunkConfig, data: &mut Vec<f32>) {
+    #[cfg(test)]
+    pub(crate) fn trim_silence(predictor: &P, config: &ChunkConfig, data: &mut Vec<f32>) {
+        Self::trim_silence_internal(predictor, config, data);
+    }
+
+    fn trim_silence_internal(predictor: &P, config: &ChunkConfig, data: &mut Vec<f32>) {
         // Stage 1: Standard VAD trimming
         let (trim_start, trim_end) = Self::standard_vad_trim(predictor, config, data);
 
@@ -554,7 +559,11 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
                                     &mut this.spectrum_analyzer,
                                 );
                             } else {
-                                Self::trim_silence(&this.predictor, &this.config, &mut data);
+                                Self::trim_silence_internal(
+                                    &this.predictor,
+                                    &this.config,
+                                    &mut data,
+                                );
                             }
 
                             // Skip empty chunks to prevent Whisper hallucinations
@@ -599,7 +608,7 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
                             &mut this.spectrum_analyzer,
                         );
                     } else {
-                        Self::trim_silence(&this.predictor, &this.config, &mut data);
+                        Self::trim_silence_internal(&this.predictor, &this.config, &mut data);
                     }
 
                     // Skip empty chunks to prevent Whisper hallucinations
@@ -641,7 +650,7 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
                 &mut this.spectrum_analyzer,
             );
         } else {
-            Self::trim_silence(&this.predictor, &this.config, &mut chunk);
+            Self::trim_silence_internal(&this.predictor, &this.config, &mut chunk);
         }
 
         // Skip empty chunks to prevent Whisper hallucinations

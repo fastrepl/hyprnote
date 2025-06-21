@@ -17,7 +17,7 @@ use axum::{
 use futures_util::{SinkExt, StreamExt};
 use tower_http::cors::{self, CorsLayer};
 
-use hypr_chunker::ChunkerExt;
+use hypr_chunker::{ChunkConfig, ChunkerExt, HallucinationPreventionLevel, SmartPredictor};
 use hypr_listener_interface::{ListenOutputChunk, ListenParams, Word};
 use hypr_ws_utils::WebSocketAudioSource;
 
@@ -140,47 +140,103 @@ async fn websocket_with_model(
     websocket(socket, model, guard).await;
 }
 
+/// WebSocket handler for audio streaming and real-time transcription
+///
+/// Environment variables:
+/// - `USE_SMART_PREDICTOR`: "true" (default) or "false" - Use SmartPredictor with multi-feature fusion
+/// - `HALLUCINATION_PREVENTION`: "normal", "aggressive" (default), or "paranoid" - Whisper hallucination prevention level
 #[tracing::instrument(skip_all)]
 async fn websocket(socket: WebSocket, model: hypr_whisper::local::Whisper, guard: ConnectionGuard) {
     let (mut ws_sender, ws_receiver) = socket.split();
 
-    // Use Silero VAD if available, otherwise fallback to RMS
-    let use_silero = std::env::var("USE_SILERO_VAD")
+    // Configuration from environment variables
+    let use_smart_predictor = std::env::var("USE_SMART_PREDICTOR")
         .unwrap_or_else(|_| "true".to_string())
         .parse::<bool>()
         .unwrap_or(true);
 
-    let (predictor, max_duration): (
+    let hallucination_prevention = std::env::var("HALLUCINATION_PREVENTION")
+        .unwrap_or_else(|_| "aggressive".to_string())
+        .to_lowercase();
+
+    let prevention_level = match hallucination_prevention.as_str() {
+        "normal" => HallucinationPreventionLevel::Normal,
+        "paranoid" => HallucinationPreventionLevel::Paranoid,
+        _ => HallucinationPreventionLevel::Aggressive, // default
+    };
+
+    // Create predictor based on configuration
+    let (predictor, chunk_config): (
         Box<dyn hypr_chunker::Predictor + Send + Sync + Unpin>,
-        std::time::Duration,
-    ) = if use_silero {
+        ChunkConfig,
+    ) = if use_smart_predictor {
+        match SmartPredictor::new_realtime(16000) {
+            Ok(smart) => {
+                tracing::info!("Using SmartPredictor with real-time optimizations");
+                let config = ChunkConfig::default().with_hallucination_prevention(prevention_level);
+                (Box::new(smart), config)
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "Failed to initialize SmartPredictor: {}, falling back to Silero",
+                    e
+                );
+                // Fallback to Silero
+                match hypr_chunker::Silero::new() {
+                    Ok(silero) => {
+                        tracing::info!("Using Silero VAD for audio chunking");
+                        let config =
+                            ChunkConfig::default().with_hallucination_prevention(prevention_level);
+                        (Box::new(silero), config)
+                    }
+                    Err(e) => {
+                        tracing::warn!(
+                            "Failed to initialize Silero VAD: {}, falling back to RMS",
+                            e
+                        );
+                        let config = ChunkConfig {
+                            max_duration: std::time::Duration::from_secs(15),
+                            ..Default::default()
+                        }
+                        .with_hallucination_prevention(prevention_level);
+                        (Box::new(hypr_chunker::RMS::new()), config)
+                    }
+                }
+            }
+        }
+    } else {
+        // Use Silero directly if smart predictor is disabled
         match hypr_chunker::Silero::new() {
             Ok(silero) => {
-                tracing::info!("Using Silero VAD for audio chunking with 30s max duration");
-                (Box::new(silero), std::time::Duration::from_secs(30))
+                tracing::info!("Using Silero VAD for audio chunking");
+                let config = ChunkConfig::default().with_hallucination_prevention(prevention_level);
+                (Box::new(silero), config)
             }
             Err(e) => {
                 tracing::warn!(
                     "Failed to initialize Silero VAD: {}, falling back to RMS",
                     e
                 );
-                (
-                    Box::new(hypr_chunker::RMS::new()),
-                    std::time::Duration::from_secs(15),
-                )
+                let config = ChunkConfig {
+                    max_duration: std::time::Duration::from_secs(15),
+                    ..Default::default()
+                }
+                .with_hallucination_prevention(prevention_level);
+                (Box::new(hypr_chunker::RMS::new()), config)
             }
         }
-    } else {
-        tracing::info!("Using RMS-based audio chunking with 15s max duration");
-        (
-            Box::new(hypr_chunker::RMS::new()),
-            std::time::Duration::from_secs(15),
-        )
     };
 
+    tracing::info!(
+        "Chunking config: max_duration={:?}, hallucination_prevention={:?}, silence_window={:?}",
+        chunk_config.max_duration,
+        chunk_config.hallucination_prevention,
+        chunk_config.silence_window_duration
+    );
+
     let mut stream = {
-        let audio_source = WebSocketAudioSource::new(ws_receiver, 16 * 1000);
-        let chunked = audio_source.chunks(predictor, max_duration);
+        let audio_source = WebSocketAudioSource::new(ws_receiver, 16000);
+        let chunked = audio_source.chunks_with_config(predictor, chunk_config);
         hypr_whisper::local::TranscribeChunkedAudioStreamExt::transcribe(chunked, model)
     };
 
@@ -197,6 +253,8 @@ async fn websocket(socket: WebSocket, model: hypr_whisper::local::Whisper, guard
                 let duration = chunk.duration() as u64;
                 let confidence = chunk.confidence();
 
+                // Note: With SmartPredictor, we could potentially use lower confidence thresholds
+                // since it provides better speech/noise discrimination through multi-feature fusion
                 if confidence < 0.4 {
                     tracing::warn!(confidence, "skipping_transcript: {}", text);
                     continue;

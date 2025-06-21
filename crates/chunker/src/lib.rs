@@ -219,7 +219,8 @@ mod tests {
                 panic!("Silero initialization failed in test");
             });
 
-            ChunkStream::<_, _>::trim_silence(&predictor, &config, &mut data);
+            // Use dummy type for testing - we only care about the trim_silence logic
+            ChunkStream::<kalosm_sound::MicStream, _>::trim_silence(&predictor, &config, &mut data);
 
             println!(
                 "{} mode: trimmed from {} to {} samples",
@@ -235,13 +236,13 @@ mod tests {
                 }
                 HallucinationPreventionLevel::Aggressive => {
                     assert!(
-                        data.len() < original_len * 0.6,
+                        data.len() < (original_len as f32 * 0.6) as usize,
                         "Aggressive should trim most silence"
                     );
                 }
                 HallucinationPreventionLevel::Paranoid => {
                     assert!(
-                        data.len() < original_len * 0.4,
+                        data.len() < (original_len as f32 * 0.4) as usize,
                         "Paranoid should trim even more"
                     );
                 }

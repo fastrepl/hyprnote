@@ -115,6 +115,16 @@ impl Silero {
 
 impl Predictor for Silero {
     fn predict(&self, samples: &[f32]) -> Result<bool, crate::Error> {
+        // Silero VAD requires at least 30ms of audio (480 samples at 16kHz)
+        const MIN_SAMPLES: usize = 480;
+        
+        // If we have too few samples, pad with zeros or return false
+        if samples.len() < MIN_SAMPLES {
+            // For very small chunks, assume it's not speech
+            // This typically happens during silence trimming
+            return Ok(false);
+        }
+        
         // Check for state reset conditions
         self.maybe_reset_state();
 

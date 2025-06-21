@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:274
+#: src/components/settings/views/general.tsx:275
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -299,7 +299,7 @@ msgstr ""
 msgid "Access granted"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:39
+#: src/components/settings/views/sound.tsx:40
 msgid "Access Granted"
 msgstr ""
 
@@ -408,11 +408,11 @@ msgstr ""
 #~ msgid "Choose the language you want to use for the speech-to-text model and language model"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:176
+#: src/components/settings/views/general.tsx:177
 msgid "Choose whether to save your recordings locally."
 msgstr ""
 
-#: src/components/settings/views/general.tsx:229
+#: src/components/settings/views/general.tsx:230
 msgid "Choose your preferred language of use"
 msgstr ""
 
@@ -539,7 +539,7 @@ msgstr ""
 msgid "Email separated by commas"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:59
+#: src/components/settings/views/sound.tsx:60
 msgid "Enable"
 msgstr ""
 
@@ -629,7 +629,7 @@ msgstr ""
 msgid "Grant Access"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:202
+#: src/components/settings/views/general.tsx:203
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr ""
 
@@ -657,7 +657,7 @@ msgstr ""
 msgid "Invite members"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:262
+#: src/components/settings/views/general.tsx:263
 msgid "Jargons"
 msgstr ""
 
@@ -677,7 +677,7 @@ msgstr ""
 msgid "Lab"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:226
+#: src/components/settings/views/general.tsx:227
 msgid "Language"
 msgstr ""
 
@@ -691,6 +691,10 @@ msgstr ""
 
 #: src/components/settings/views/billing.tsx:28
 msgid "Live summary of the meeting"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:195
+msgid "Loading available devices..."
 msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:263
@@ -731,8 +735,12 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:97
+#: src/components/settings/views/sound.tsx:139
 msgid "Microphone Access"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:164
+msgid "Microphone Device"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:251
@@ -885,15 +893,15 @@ msgstr ""
 #~ msgid "Remove {0} from list"
 #~ msgstr ""
 
-#: src/components/settings/views/sound.tsx:56
+#: src/components/settings/views/sound.tsx:57
 msgid "Requesting..."
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:107
+#: src/components/settings/views/sound.tsx:149
 msgid "Required to transcribe other people's voice during meetings"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:98
+#: src/components/settings/views/sound.tsx:140
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
@@ -906,7 +914,7 @@ msgstr ""
 msgid "Role"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:173
+#: src/components/settings/views/general.tsx:174
 msgid "Save recordings"
 msgstr ""
 
@@ -947,9 +955,17 @@ msgstr ""
 msgid "Select Calendars"
 msgstr ""
 
+#: src/components/settings/views/sound.tsx:179
+msgid "Select microphone device"
+msgstr ""
+
 #: src/components/settings/components/ai/llm-view.tsx:253
 #~ msgid "Select or enter the model name required by your endpoint."
 #~ msgstr ""
+
+#: src/components/settings/views/sound.tsx:167
+msgid "Select which microphone to use for recording"
+msgstr ""
 
 #: src/components/settings/views/team.tsx:240
 msgid "Send invite"
@@ -959,7 +975,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:199
+#: src/components/settings/views/general.tsx:200
 msgid "Share usage data"
 msgstr ""
 
@@ -1007,8 +1023,12 @@ msgstr ""
 msgid "Synchronization across multiple devices"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:106
+#: src/components/settings/views/sound.tsx:148
 msgid "System Audio Access"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:183
+msgid "System Default"
 msgstr ""
 
 #: src/routes/app.settings.tsx:47
@@ -1153,7 +1173,7 @@ msgstr ""
 #~ msgid "Yes, activate speaker"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:265
+#: src/components/settings/views/general.tsx:266
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr ""
 

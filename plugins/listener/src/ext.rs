@@ -11,6 +11,13 @@ use {
 
 pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn list_microphone_devices(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
+    fn get_selected_microphone_device(
+        &self,
+    ) -> impl Future<Output = Result<Option<String>, crate::Error>>;
+    fn set_selected_microphone_device(
+        &self,
+        device_name: Option<String>,
+    ) -> impl Future<Output = Result<(), crate::Error>>;
 
     fn check_microphone_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
     fn check_system_audio_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
@@ -40,6 +47,61 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
+    async fn get_selected_microphone_device(&self) -> Result<Option<String>, crate::Error> {
+        use tauri_plugin_db::DatabasePluginExt;
+
+        let user_id = self.db_user_id().await?.ok_or(crate::Error::NoneUser)?;
+        let config = self.db_get_config(&user_id).await?;
+
+        match config {
+            Some(config) => Ok(config.general.selected_microphone_device),
+            None => Ok(None),
+        }
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn set_selected_microphone_device(
+        &self,
+        device_name: Option<String>,
+    ) -> Result<(), crate::Error> {
+        use tauri_plugin_db::DatabasePluginExt;
+
+        let user_id = self.db_user_id().await?.ok_or(crate::Error::NoneUser)?;
+        let mut config = self.db_get_config(&user_id).await?;
+
+        let mut config = match config {
+            Some(mut config) => {
+                config.general.selected_microphone_device = device_name;
+                config
+            }
+            None => {
+                // Create default config with the selected device
+                hypr_db_user::Config {
+                    id: uuid::Uuid::new_v4().to_string(),
+                    user_id: user_id.clone(),
+                    general: hypr_db_user::ConfigGeneral {
+                        selected_microphone_device: device_name,
+                        ..Default::default()
+                    },
+                    notification: hypr_db_user::ConfigNotification::default(),
+                    ai: hypr_db_user::ConfigAI::default(),
+                }
+            }
+        };
+
+        // Use the database directly since commands module is private
+        let state = self.state::<tauri_plugin_db::ManagedState>();
+        let guard = state.lock().await;
+        let db = guard.db.as_ref().ok_or(crate::Error::DatabaseError(
+            tauri_plugin_db::Error::NoneDatabase,
+        ))?;
+        db.set_config(config).await.map_err(|e| {
+            crate::Error::DatabaseError(tauri_plugin_db::Error::DatabaseCoreError(e))
+        })?;
+        Ok(())
+    }
+
+    #[tracing::instrument(skip_all)]
     async fn check_microphone_access(&self) -> Result<bool, crate::Error> {
         #[cfg(target_os = "macos")]
         // https://github.com/ayangweb/tauri-plugin-macos-permissions/blob/c025ab4/src/commands.rs#L157
@@ -57,6 +119,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         #[cfg(not(target_os = "macos"))]
         {
+            // Use default device for permission check
             let mut mic_sample_stream = hypr_audio::AudioInput::from_mic().stream();
             let sample = mic_sample_stream.next().await;
             Ok(sample.is_some())
@@ -87,6 +150,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         #[cfg(not(target_os = "macos"))]
         {
+            // Use default device for permission request
             let mut mic_sample_stream = hypr_audio::AudioInput::from_mic().stream();
             mic_sample_stream.next().await;
         }

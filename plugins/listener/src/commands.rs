@@ -12,6 +12,27 @@ pub async fn list_microphone_devices<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn get_selected_microphone_device<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Option<String>, String> {
+    app.get_selected_microphone_device()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_selected_microphone_device<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    device_name: Option<String>,
+) -> Result<(), String> {
+    app.set_selected_microphone_device(device_name)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn check_microphone_access<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {

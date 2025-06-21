@@ -90,7 +90,14 @@ impl Session {
         let listen_client = setup_listen_client(&self.app, language, jargons).await?;
 
         let mic_sample_stream = {
-            let mut input = hypr_audio::AudioInput::from_mic();
+            // Get the selected microphone device from config
+            let config = self.app.db_get_config(&user_id).await?;
+            let selected_device = config
+                .as_ref()
+                .and_then(|c| c.general.selected_microphone_device.clone());
+
+            let mut input = hypr_audio::AudioInput::from_mic_device(selected_device)
+                .unwrap_or_else(|_| hypr_audio::AudioInput::from_mic());
             input.stream()
         };
         let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);

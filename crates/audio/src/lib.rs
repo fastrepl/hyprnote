@@ -4,7 +4,7 @@ mod norm;
 mod speaker;
 mod stream;
 
-pub use errors::*;
+pub use errors::{AudioError, Error};
 pub use mic::*;
 pub use norm::*;
 pub use speaker::*;
@@ -77,6 +77,21 @@ impl AudioInput {
             speaker: None,
             data: None,
         }
+    }
+
+    pub fn from_mic_device(device_name: Option<String>) -> Result<Self, crate::AudioError> {
+        let mic_input = if let Some(name) = device_name {
+            MicInput::with_device(&name)?
+        } else {
+            MicInput::default()
+        };
+
+        Ok(Self {
+            source: AudioSource::RealtimeMic,
+            mic: Some(mic_input),
+            speaker: None,
+            data: None,
+        })
     }
 
     pub fn from_speaker(sample_rate_override: Option<u32>) -> Self {

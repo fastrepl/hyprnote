@@ -39,9 +39,9 @@ jobs:
           - platform: "macos"
             target: "x86_64-apple-darwin"
             runner: "macos-latest"
-          # - platform: "windows"
-          #   runner: "warp-windows-latest-x64-8x"
-          #   target: "x86_64-pc-windows-msvc"
+          - platform: "windows"
+            runner: "warp-windows-latest-x64-8x"
+            target: "x86_64-pc-windows-msvc"
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4

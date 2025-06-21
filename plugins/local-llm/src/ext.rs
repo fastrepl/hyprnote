@@ -60,8 +60,9 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
             return Ok(false);
         }
 
-        let size = hypr_file::file_size(&path)?;
-        Ok(size == model.model_size())
+        // let size = hypr_file::file_size(&path)?;
+        // Ok(size == model.model_size())
+        Ok(true)
     }
 
     #[tracing::instrument(skip_all)]

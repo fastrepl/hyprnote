@@ -11,8 +11,9 @@ gbnf-validator = { workspace = true }
 
 async-openai = { workspace = true }
 futures-util = { workspace = true }
-tokio = { workspace = true, features = ["rt", "sync"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "sync"] }
 tokio-stream = { workspace = true }
+tracing = { workspace = true }
 
 serde = { workspace = true }
 thiserror = { workspace = true }

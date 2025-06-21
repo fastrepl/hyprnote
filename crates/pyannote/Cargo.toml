@@ -14,7 +14,7 @@ reqwest = { workspace = true, features = ["json"], optional = true }
 url = { workspace = true, optional = true }
 
 hypr-onnx = { workspace = true, optional = true }
-knf-rs = { git = "https://github.com/thewh1teagle/pyannote-rs", rev = "e3abad6", package = "knf-rs", optional = true }
+knf-rs = { version = "0.2.9", optional = true }
 
 anyhow = { workspace = true }
 thiserror = { workspace = true }

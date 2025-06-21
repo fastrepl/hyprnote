@@ -257,7 +257,7 @@ export function LLMView() {
                       </Trans>
                     </FormDescription>
                     <FormControl>
-                      {availableLLMModels.isLoading
+                      {availableLLMModels.isLoading && !field.value
                         ? (
                           <div className="py-1 text-sm text-neutral-500">
                             <Trans>Loading available models...</Trans>

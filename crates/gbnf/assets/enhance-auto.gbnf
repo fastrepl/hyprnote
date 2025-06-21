@@ -9,6 +9,6 @@ bline ::= "- **" [^*\n:]+ "**: " ([^*;,[.\n] | link)+ ".\n"
 
 hsf ::= "- Objective\n"
 hd ::= "- " [A-Z] [^[(*\n]+ "\n"
-thinking ::= "<headers>\n" hsf hd hd? hd? hd? "</headers>"
+thinking ::= "<thinking>\n" hsf hd hd? hd? hd? "</thinking>"
 
 link ::= "[" [^\]]+ "]" "(" [^)]+ ")"

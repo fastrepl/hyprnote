@@ -102,7 +102,8 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
 
         // Apply trimming
         if trim_end > trim_start {
-            *data = data[trim_start..trim_end].to_vec();
+            data.drain(..trim_start);
+            data.truncate(trim_end - trim_start);
         } else {
             data.clear();
         }

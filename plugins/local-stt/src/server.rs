@@ -143,10 +143,33 @@ async fn websocket_with_model(
 #[tracing::instrument(skip_all)]
 async fn websocket(socket: WebSocket, model: hypr_whisper::local::Whisper, guard: ConnectionGuard) {
     let (mut ws_sender, ws_receiver) = socket.split();
+    
+    // Use Silero VAD if available, otherwise fallback to RMS
+    let use_silero =
+        std::env::var("USE_SILERO_VAD").unwrap_or_else(|_| "true".to_string()) == "true";
+    
+    let (predictor, max_duration): (Box<dyn hypr_chunker::Predictor + Send + Sync + Unpin>, std::time::Duration) = if use_silero {
+        match hypr_chunker::Silero::new() {
+            Ok(silero) => {
+                tracing::info!("Using Silero VAD for audio chunking with 30s max duration");
+                (Box::new(silero), std::time::Duration::from_secs(30))
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "Failed to initialize Silero VAD: {}, falling back to RMS",
+                    e
+                );
+                (Box::new(hypr_chunker::RMS::new()), std::time::Duration::from_secs(15))
+            }
+        }
+    } else {
+        tracing::info!("Using RMS-based audio chunking with 15s max duration");
+        (Box::new(hypr_chunker::RMS::new()), std::time::Duration::from_secs(15))
+    };
+    
     let mut stream = {
         let audio_source = WebSocketAudioSource::new(ws_receiver, 16 * 1000);
-        let chunked =
-            audio_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(15));
+        let chunked = audio_source.chunks(predictor, max_duration);
         hypr_whisper::local::TranscribeChunkedAudioStreamExt::transcribe(chunked, model)
     };
 

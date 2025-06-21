@@ -87,12 +87,11 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
 
         // Trim silence from the end
         let mut trim_end = data.len();
-        for start_idx in (0..data.len()).rev().step_by(window_size) {
-            let end_idx = (start_idx + window_size).min(data.len());
-            if start_idx >= end_idx {
-                continue;
-            }
-            let window = &data[start_idx..end_idx];
+        let mut pos = data.len();
+        while pos > window_size {
+            pos = pos.saturating_sub(window_size);
+            let end_idx = (pos + window_size).min(data.len());
+            let window = &data[pos..end_idx];
 
             if let Ok(true) = predictor.predict(window) {
                 trim_end = end_idx;

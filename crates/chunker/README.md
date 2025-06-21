@@ -25,6 +25,8 @@ let chunked = audio_source.chunks(RMS::new(), Duration::from_secs(15));
 
 ### Advanced Usage with Silero VAD
 
+> **Note:** Silero VAD expects input chunks ≥ 480 samples (~30 ms @16 kHz). Ensure your source buffer or `trim_window_size` meets this minimum.
+
 ```rust
 use chunker::{ChunkerExt, Silero, SileroConfig};
 use std::time::Duration;
@@ -38,8 +40,8 @@ let config = SileroConfig {
     base_threshold: 0.5,
     confidence_window_size: 10,
     high_confidence_threshold: 0.7,
-    high_confidence_speech_threshold: 0.4,
-    low_confidence_speech_threshold: 0.6,
+    high_confidence_speech_threshold: 0.35,
+    low_confidence_speech_threshold: 0.55,
 };
 let silero = Silero::with_config(config)?;
 ```

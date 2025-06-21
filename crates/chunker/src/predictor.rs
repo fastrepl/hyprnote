@@ -132,7 +132,9 @@ impl Predictor for Silero {
         self.maybe_reset_state();
 
         // Run VAD prediction
-        let probability = self.inner.lock().unwrap().run(samples)?;
+        let mut inner = self.inner.lock().unwrap();
+        let probability = inner.run(samples)?;
+        drop(inner); // Explicitly drop the lock early
 
         // Update confidence history
         {

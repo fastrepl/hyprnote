@@ -26,7 +26,7 @@ turbo clean
 ```
 
 ### Rust Development
-```
+```bash
 # Check compilation
 cargo check --tests
 

@@ -96,8 +96,11 @@ impl Session {
                 .as_ref()
                 .and_then(|c| c.general.selected_microphone_device.clone());
 
-            let mut input = hypr_audio::AudioInput::from_mic_device(selected_device)
-                .unwrap_or_else(|_| hypr_audio::AudioInput::from_mic());
+            let mut input = if selected_device.is_some() {
+                hypr_audio::AudioInput::from_mic_device(selected_device)
+            } else {
+                hypr_audio::AudioInput::from_mic()
+            };
             input.stream()
         };
         let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);

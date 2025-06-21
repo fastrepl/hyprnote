@@ -79,19 +79,19 @@ impl AudioInput {
         }
     }
 
-    pub fn from_mic_device(device_name: Option<String>) -> Result<Self, crate::AudioError> {
+    pub fn from_mic_device(device_name: Option<String>) -> Self {
         let mic_input = if let Some(name) = device_name {
-            MicInput::with_device(&name)?
+            MicInput::with_device(&name)
         } else {
             MicInput::default()
         };
 
-        Ok(Self {
+        Self {
             source: AudioSource::RealtimeMic,
             mic: Some(mic_input),
             speaker: None,
             data: None,
-        })
+        }
     }
 
     pub fn from_speaker(sample_rate_override: Option<u32>) -> Self {

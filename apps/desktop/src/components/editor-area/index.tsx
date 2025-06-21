@@ -56,7 +56,6 @@ export default function EditorArea({
 
   const generateTitle = useGenerateTitleMutation({ sessionId });
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
-
   const enhance = useEnhanceMutation({
     sessionId,
     preMeetingNote,

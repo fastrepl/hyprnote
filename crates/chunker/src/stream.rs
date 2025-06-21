@@ -9,6 +9,7 @@ use kalosm_sound::AsyncSource;
 use rodio::buffer::SamplesBuffer;
 
 use crate::{audio_analysis::*, Predictor};
+use std::collections::VecDeque;
 
 /// Level of aggressiveness for hallucination prevention
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -90,11 +91,102 @@ impl ChunkConfig {
     }
 }
 
+/// Default consecutive silence windows threshold for end trimming
+const DEFAULT_SILENCE_WINDOW_THRESHOLD: usize = 10;
+
+/// Context for cross-chunk state tracking
+#[derive(Debug)]
+struct ChunkContext {
+    /// Recent chunk durations for adaptation
+    recent_durations: VecDeque<Duration>,
+    /// Average speech energy across chunks
+    avg_speech_energy: f32,
+    /// Quality metrics from previous chunks
+    quality_history: VecDeque<f32>,
+    /// Track if we're in a conversation
+    conversation_mode: bool,
+    /// Last detected pitch for continuity
+    last_pitch: Option<f32>,
+}
+
+impl Default for ChunkContext {
+    fn default() -> Self {
+        Self {
+            recent_durations: VecDeque::with_capacity(10),
+            avg_speech_energy: 0.0,
+            quality_history: VecDeque::with_capacity(10),
+            conversation_mode: false,
+            last_pitch: None,
+        }
+    }
+}
+
+impl ChunkContext {
+    fn update(&mut self, duration: Duration, energy: f32, quality: f32, pitch: Option<f32>) {
+        // Update duration history
+        self.recent_durations.push_back(duration);
+        if self.recent_durations.len() > 10 {
+            self.recent_durations.pop_front();
+        }
+
+        // Update average energy with EMA
+        self.avg_speech_energy = self.avg_speech_energy * 0.9 + energy * 0.1;
+
+        // Update quality history
+        self.quality_history.push_back(quality);
+        if self.quality_history.len() > 10 {
+            self.quality_history.pop_front();
+        }
+
+        // Detect conversation mode (rapid exchanges)
+        if self.recent_durations.len() >= 3 {
+            let recent_avg = self
+                .recent_durations
+                .iter()
+                .rev()
+                .take(3)
+                .map(|d| d.as_secs_f32())
+                .sum::<f32>()
+                / 3.0;
+            self.conversation_mode = recent_avg < 5.0; // Short utterances
+        }
+
+        // Track pitch continuity
+        self.last_pitch = pitch;
+    }
+
+    fn suggest_config_adjustment(&self, current_config: &ChunkConfig) -> ChunkConfig {
+        let mut config = current_config.clone();
+
+        // In conversation mode, be more aggressive to reduce latency
+        if self.conversation_mode {
+            config.silence_window_duration = Duration::from_millis(150);
+            config.min_buffer_duration = Duration::from_secs(3);
+        }
+
+        // If quality has been consistently low, relax thresholds
+        if self.quality_history.len() >= 5 {
+            let avg_quality =
+                self.quality_history.iter().sum::<f32>() / self.quality_history.len() as f32;
+            if avg_quality < 0.3 {
+                config.min_energy_ratio *= 0.8;
+                config.end_speech_threshold *= 0.9;
+            }
+        }
+
+        config
+    }
+}
+
 pub struct ChunkStream<S: AsyncSource + Unpin, P: Predictor + Unpin> {
     source: S,
     predictor: P,
     buffer: Vec<f32>,
     config: ChunkConfig,
+    /// Look-ahead buffer for better boundary decisions
+    lookahead_buffer: Vec<f32>,
+    /// Context tracking across chunks
+    context: ChunkContext,
 }
 
 impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
@@ -115,6 +207,8 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
             predictor,
             buffer: Vec::new(),
             config,
+            lookahead_buffer: Vec::new(),
+            context: ChunkContext::default(),
         }
     }
 
@@ -208,7 +302,7 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
                     } else if pos >= danger_zone_start {
                         5 // ~150ms in danger zone
                     } else {
-                        10 // ~300ms normally
+                        DEFAULT_SILENCE_WINDOW_THRESHOLD // ~300ms normally
                     };
 
                     if consecutive_silence_windows > silence_threshold {
@@ -296,6 +390,98 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> ChunkStream<S, P> {
             data.truncate(trim_to);
         }
     }
+
+    /// Enhanced trimming using spectral features and pitch tracking
+    fn smart_trim_with_spectral_features(
+        predictor: &P,
+        config: &ChunkConfig,
+        data: &mut Vec<f32>,
+        sample_rate: u32,
+        context: &ChunkContext,
+    ) {
+        if data.is_empty() || data.len() < 1024 {
+            return;
+        }
+
+        // Stage 1: Standard trimming
+        let (trim_start, mut trim_end) = Self::standard_vad_trim(predictor, config, data);
+
+        // Stage 2: Spectral-based boundary refinement
+        if trim_end > trim_start + 1024 {
+            // Analyze the boundary region
+            let boundary_start = trim_end.saturating_sub(1600); // 100ms before end
+            let boundary_data = &data[boundary_start..trim_end];
+
+            // Look for pitch discontinuity
+            if let Some(last_pitch) = context.last_pitch {
+                let current_pitch = detect_pitch_autocorrelation(boundary_data, sample_rate);
+                if let Some(pitch) = current_pitch {
+                    // If pitch changes dramatically, might be cutting mid-word
+                    if (pitch - last_pitch).abs() / last_pitch > 0.3 {
+                        // Extend boundary by 50ms
+                        trim_end = (trim_end + 800).min(data.len());
+                    }
+                }
+            }
+
+            // Check for speech onset in the boundary
+            let mut onset_detector = OnsetDetector::new(257);
+            let mut found_onset = false;
+            for i in (boundary_start..trim_end).step_by(160) {
+                let end = (i + 512).min(data.len());
+                if onset_detector.detect_onset(&data[i..end]) {
+                    found_onset = true;
+                    trim_end = end + 160; // Keep 10ms after onset
+                    break;
+                }
+            }
+
+            // If we're cutting during high speech quality, extend
+            if !found_onset && trim_end > 2048 {
+                let quality_check_start = trim_end.saturating_sub(2048);
+                let quality =
+                    analyze_speech_quality(&data[quality_check_start..trim_end], sample_rate);
+                if quality > 0.7 {
+                    // High quality speech, extend by 30ms
+                    trim_end = (trim_end + 480).min(data.len());
+                }
+            }
+        }
+
+        // Apply trimming
+        if trim_end > trim_start {
+            data.drain(..trim_start);
+            data.truncate(trim_end - trim_start);
+        } else {
+            data.clear();
+            return;
+        }
+
+        // Continue with energy-based and hallucination prevention stages
+        if config.hallucination_prevention != HallucinationPreventionLevel::Normal {
+            Self::energy_based_trim(config, data);
+        }
+
+        if config.hallucination_prevention == HallucinationPreventionLevel::Paranoid {
+            Self::remove_hallucination_triggers(config, data);
+        }
+
+        // Apply fade with spectral awareness
+        if !data.is_empty() {
+            // Check if we're ending on a voiced segment
+            let last_segment = &data[data.len().saturating_sub(512)..];
+            let pitch = detect_pitch_autocorrelation(last_segment, sample_rate);
+
+            // Longer fade for voiced segments
+            let fade_samples = if pitch.is_some() {
+                240.min(data.len()) // 15ms for voiced
+            } else {
+                160.min(data.len()) // 10ms for unvoiced
+            };
+
+            apply_fade_out(data, fade_samples);
+        }
+    }
 }
 
 impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> {
@@ -324,10 +510,34 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
 
                         if let Ok(false) = this.predictor.predict(last_samples) {
                             let mut data = std::mem::take(&mut this.buffer);
-                            Self::trim_silence(&this.predictor, &this.config, &mut data);
+
+                            // Use smart trimming if we have enough data
+                            if data.len() > 2048 {
+                                Self::smart_trim_with_spectral_features(
+                                    &this.predictor,
+                                    &this.config,
+                                    &mut data,
+                                    sample_rate,
+                                    &this.context,
+                                );
+                            } else {
+                                Self::trim_silence(&this.predictor, &this.config, &mut data);
+                            }
 
                             // Skip empty chunks to prevent Whisper hallucinations
                             if !data.is_empty() {
+                                // Update context with chunk metrics
+                                let duration =
+                                    Duration::from_secs_f32(data.len() as f32 / sample_rate as f32);
+                                let energy = calculate_peak_rms(&data, 480);
+                                let quality = analyze_speech_quality(&data, sample_rate);
+                                let pitch = detect_pitch_autocorrelation(&data, sample_rate);
+
+                                this.context.update(duration, energy, quality, pitch);
+
+                                // Adapt config based on context
+                                this.config = this.context.suggest_config_adjustment(&this.config);
+
                                 return Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, data)));
                             }
                         }
@@ -335,10 +545,30 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
                 }
                 Poll::Ready(None) if !this.buffer.is_empty() => {
                     let mut data = std::mem::take(&mut this.buffer);
-                    Self::trim_silence(&this.predictor, &this.config, &mut data);
+
+                    // Use smart trimming for final chunk
+                    if data.len() > 2048 {
+                        Self::smart_trim_with_spectral_features(
+                            &this.predictor,
+                            &this.config,
+                            &mut data,
+                            sample_rate,
+                            &this.context,
+                        );
+                    } else {
+                        Self::trim_silence(&this.predictor, &this.config, &mut data);
+                    }
 
                     // Skip empty chunks to prevent Whisper hallucinations
                     if !data.is_empty() {
+                        // Update context
+                        let duration =
+                            Duration::from_secs_f32(data.len() as f32 / sample_rate as f32);
+                        let energy = calculate_peak_rms(&data, 480);
+                        let quality = analyze_speech_quality(&data, sample_rate);
+                        let pitch = detect_pitch_autocorrelation(&data, sample_rate);
+                        this.context.update(duration, energy, quality, pitch);
+
                         return Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, data)));
                     } else {
                         return Poll::Ready(None);
@@ -350,10 +580,29 @@ impl<S: AsyncSource + Unpin, P: Predictor + Unpin> Stream for ChunkStream<S, P> 
         }
 
         let mut chunk: Vec<_> = this.buffer.drain(0..max_samples).collect();
-        Self::trim_silence(&this.predictor, &this.config, &mut chunk);
+
+        // Use smart trimming for max-duration chunks
+        if chunk.len() > 2048 {
+            Self::smart_trim_with_spectral_features(
+                &this.predictor,
+                &this.config,
+                &mut chunk,
+                sample_rate,
+                &this.context,
+            );
+        } else {
+            Self::trim_silence(&this.predictor, &this.config, &mut chunk);
+        }
 
         // Skip empty chunks to prevent Whisper hallucinations
         if !chunk.is_empty() {
+            // Update context
+            let duration = Duration::from_secs_f32(chunk.len() as f32 / sample_rate as f32);
+            let energy = calculate_peak_rms(&chunk, 480);
+            let quality = analyze_speech_quality(&chunk, sample_rate);
+            let pitch = detect_pitch_autocorrelation(&chunk, sample_rate);
+            this.context.update(duration, energy, quality, pitch);
+
             Poll::Ready(Some(SamplesBuffer::new(1, sample_rate, chunk)))
         } else {
             // Buffer was full but trimmed to empty - this means we had a long silence

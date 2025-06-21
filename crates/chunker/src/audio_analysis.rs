@@ -1,5 +1,7 @@
 //! Audio analysis utilities for energy-based silence detection and hallucination prevention
 
+use std::f32::consts::PI;
+
 /// Calculate Root Mean Square (RMS) energy of audio samples
 #[inline]
 pub fn calculate_rms(samples: &[f32]) -> f32 {
@@ -208,6 +210,299 @@ pub fn apply_fade_in(samples: &mut [f32], fade_samples: usize) {
     }
 }
 
+/// Spectral analysis features for enhanced speech detection
+pub struct SpectralFeatures {
+    pub spectral_centroid: f32,
+    pub spectral_spread: f32,
+    pub spectral_flux: f32,
+    pub spectral_rolloff: f32,
+    pub pitch_frequency: Option<f32>,
+    pub harmonicity: f32,
+}
+
+/// Calculate spectral features using DFT (Discrete Fourier Transform)
+/// Note: For production, consider using rustfft for better performance
+pub fn calculate_spectral_features(samples: &[f32], sample_rate: u32) -> SpectralFeatures {
+    if samples.is_empty() {
+        return SpectralFeatures {
+            spectral_centroid: 0.0,
+            spectral_spread: 0.0,
+            spectral_flux: 0.0,
+            spectral_rolloff: 0.0,
+            pitch_frequency: None,
+            harmonicity: 0.0,
+        };
+    }
+
+    // Simple DFT implementation (replace with FFT for production)
+    let magnitude_spectrum = compute_magnitude_spectrum(samples);
+    let freq_bins = compute_frequency_bins(samples.len(), sample_rate);
+
+    // Spectral centroid - center of mass of spectrum
+    let spectral_centroid = calculate_spectral_centroid(&magnitude_spectrum, &freq_bins);
+
+    // Spectral spread - standard deviation around centroid
+    let spectral_spread =
+        calculate_spectral_spread(&magnitude_spectrum, &freq_bins, spectral_centroid);
+
+    // Spectral flux - measure of spectral change
+    let spectral_flux = 0.0; // Requires previous frame
+
+    // Spectral rolloff - frequency below which 85% of energy is contained
+    let spectral_rolloff = calculate_spectral_rolloff(&magnitude_spectrum, &freq_bins, 0.85);
+
+    // Pitch detection using autocorrelation
+    let pitch_frequency = detect_pitch_autocorrelation(samples, sample_rate);
+
+    // Harmonicity - ratio of harmonic to total energy
+    let harmonicity = calculate_harmonicity(&magnitude_spectrum, pitch_frequency, &freq_bins);
+
+    SpectralFeatures {
+        spectral_centroid,
+        spectral_spread,
+        spectral_flux,
+        spectral_rolloff,
+        pitch_frequency,
+        harmonicity,
+    }
+}
+
+/// Compute magnitude spectrum using DFT
+fn compute_magnitude_spectrum(samples: &[f32]) -> Vec<f32> {
+    let n = samples.len();
+    let mut spectrum = vec![0.0f32; n / 2 + 1];
+
+    // Simple DFT (O(n²) - use FFT for production)
+    for k in 0..spectrum.len() {
+        let mut real = 0.0;
+        let mut imag = 0.0;
+
+        for (i, &sample) in samples.iter().enumerate() {
+            let angle = -2.0 * PI * k as f32 * i as f32 / n as f32;
+            real += sample * angle.cos();
+            imag += sample * angle.sin();
+        }
+
+        spectrum[k] = (real * real + imag * imag).sqrt();
+    }
+
+    spectrum
+}
+
+/// Compute frequency bins for spectrum
+fn compute_frequency_bins(n_samples: usize, sample_rate: u32) -> Vec<f32> {
+    let n_bins = n_samples / 2 + 1;
+    (0..n_bins)
+        .map(|i| i as f32 * sample_rate as f32 / n_samples as f32)
+        .collect()
+}
+
+/// Calculate spectral centroid (brightness indicator)
+fn calculate_spectral_centroid(spectrum: &[f32], freq_bins: &[f32]) -> f32 {
+    let total_energy: f32 = spectrum.iter().sum();
+    if total_energy == 0.0 {
+        return 0.0;
+    }
+
+    let weighted_sum: f32 = spectrum
+        .iter()
+        .zip(freq_bins.iter())
+        .map(|(&mag, &freq)| mag * freq)
+        .sum();
+
+    weighted_sum / total_energy
+}
+
+/// Calculate spectral spread (timbral width)
+fn calculate_spectral_spread(spectrum: &[f32], freq_bins: &[f32], centroid: f32) -> f32 {
+    let total_energy: f32 = spectrum.iter().sum();
+    if total_energy == 0.0 {
+        return 0.0;
+    }
+
+    let variance: f32 = spectrum
+        .iter()
+        .zip(freq_bins.iter())
+        .map(|(&mag, &freq)| mag * (freq - centroid).powi(2))
+        .sum::<f32>()
+        / total_energy;
+
+    variance.sqrt()
+}
+
+/// Calculate spectral rolloff point
+fn calculate_spectral_rolloff(spectrum: &[f32], freq_bins: &[f32], threshold: f32) -> f32 {
+    let total_energy: f32 = spectrum.iter().sum();
+    let target_energy = total_energy * threshold;
+
+    let mut cumulative_energy = 0.0;
+    for (i, &mag) in spectrum.iter().enumerate() {
+        cumulative_energy += mag;
+        if cumulative_energy >= target_energy {
+            return freq_bins.get(i).copied().unwrap_or(0.0);
+        }
+    }
+
+    freq_bins.last().copied().unwrap_or(0.0)
+}
+
+/// Detect pitch using autocorrelation method
+pub fn detect_pitch_autocorrelation(samples: &[f32], sample_rate: u32) -> Option<f32> {
+    if samples.len() < 512 {
+        return None;
+    }
+
+    // Typical human pitch range: 80-400 Hz
+    let min_period = (sample_rate / 400) as usize; // ~40 samples at 16kHz
+    let max_period = (sample_rate / 80) as usize; // ~200 samples at 16kHz
+
+    let mut best_correlation = 0.0;
+    let mut best_period = 0;
+
+    // Normalize samples
+    let rms = calculate_rms(samples);
+    if rms < 0.01 {
+        return None; // Too quiet
+    }
+
+    // Autocorrelation
+    for period in min_period..=max_period.min(samples.len() / 2) {
+        let mut correlation = 0.0;
+        let mut norm_a = 0.0;
+        let mut norm_b = 0.0;
+
+        for i in 0..samples.len() - period {
+            correlation += samples[i] * samples[i + period];
+            norm_a += samples[i] * samples[i];
+            norm_b += samples[i + period] * samples[i + period];
+        }
+
+        if norm_a > 0.0 && norm_b > 0.0 {
+            correlation /= (norm_a * norm_b).sqrt();
+
+            if correlation > best_correlation {
+                best_correlation = correlation;
+                best_period = period;
+            }
+        }
+    }
+
+    // Require minimum correlation for valid pitch
+    if best_correlation > 0.3 && best_period > 0 {
+        Some(sample_rate as f32 / best_period as f32)
+    } else {
+        None
+    }
+}
+
+/// Calculate harmonicity (voiced vs unvoiced)
+fn calculate_harmonicity(spectrum: &[f32], pitch: Option<f32>, freq_bins: &[f32]) -> f32 {
+    let Some(fundamental) = pitch else {
+        return 0.0;
+    };
+
+    let mut harmonic_energy = 0.0;
+    let total_energy: f32 = spectrum.iter().sum();
+
+    if total_energy == 0.0 {
+        return 0.0;
+    }
+
+    // Sum energy at harmonic frequencies
+    for harmonic in 1..=5 {
+        let target_freq = fundamental * harmonic as f32;
+        let tolerance = 20.0; // Hz
+
+        for (i, &freq) in freq_bins.iter().enumerate() {
+            if (freq - target_freq).abs() < tolerance {
+                if let Some(&mag) = spectrum.get(i) {
+                    harmonic_energy += mag;
+                }
+            }
+        }
+    }
+
+    harmonic_energy / total_energy
+}
+
+/// Onset detection for speech boundaries
+pub struct OnsetDetector {
+    prev_spectrum: Vec<f32>,
+    threshold: f32,
+}
+
+impl OnsetDetector {
+    pub fn new(spectrum_size: usize) -> Self {
+        Self {
+            prev_spectrum: vec![0.0; spectrum_size],
+            threshold: 0.3,
+        }
+    }
+
+    /// Detect onset using spectral flux
+    pub fn detect_onset(&mut self, samples: &[f32]) -> bool {
+        let spectrum = compute_magnitude_spectrum(samples);
+
+        // Calculate spectral flux (positive differences only)
+        let mut flux = 0.0;
+        for (i, &mag) in spectrum.iter().enumerate() {
+            if let Some(&prev_mag) = self.prev_spectrum.get(i) {
+                let diff = mag - prev_mag;
+                if diff > 0.0 {
+                    flux += diff;
+                }
+            }
+        }
+
+        // Update previous spectrum
+        self.prev_spectrum = spectrum;
+
+        // Normalize by spectrum size
+        flux /= self.prev_spectrum.len() as f32;
+
+        flux > self.threshold
+    }
+
+    /// Adapt threshold based on noise floor
+    pub fn adapt_threshold(&mut self, noise_floor: f32) {
+        self.threshold = 0.3 + noise_floor * 0.5;
+    }
+}
+
+/// Multi-resolution spectral analysis
+pub fn analyze_speech_quality(samples: &[f32], sample_rate: u32) -> f32 {
+    if samples.len() < 512 {
+        return 0.0;
+    }
+
+    let features = calculate_spectral_features(samples, sample_rate);
+
+    // Speech quality heuristics
+    let mut quality = 0.0;
+
+    // Speech typically has centroid between 300-3000 Hz
+    if features.spectral_centroid > 300.0 && features.spectral_centroid < 3000.0 {
+        quality += 0.3;
+    }
+
+    // Good speech has moderate spread
+    if features.spectral_spread > 200.0 && features.spectral_spread < 2000.0 {
+        quality += 0.2;
+    }
+
+    // Pitched speech has harmonicity
+    if features.harmonicity > 0.3 {
+        quality += 0.3;
+    }
+
+    // Speech rolloff typically around 4-8 kHz
+    if features.spectral_rolloff > 4000.0 && features.spectral_rolloff < 8000.0 {
+        quality += 0.2;
+    }
+
+    quality
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -294,5 +589,104 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn test_spectral_features() {
+        // Test with simple sine wave
+        let sample_rate = 16000;
+        let frequency = 440.0; // A4
+        let samples: Vec<f32> = (0..1024)
+            .map(|i| (2.0 * PI * frequency * i as f32 / sample_rate as f32).sin())
+            .collect();
+
+        let features = calculate_spectral_features(&samples, sample_rate);
+
+        // Centroid should be near the fundamental frequency
+        assert!(
+            (features.spectral_centroid - frequency).abs() < 100.0,
+            "Centroid {} should be near {}",
+            features.spectral_centroid,
+            frequency
+        );
+
+        // Should detect pitch
+        assert!(features.pitch_frequency.is_some());
+        if let Some(pitch) = features.pitch_frequency {
+            assert!(
+                (pitch - frequency).abs() < 50.0,
+                "Detected pitch {} should be near {}",
+                pitch,
+                frequency
+            );
+        }
+
+        // Pure sine wave should have high harmonicity
+        assert!(features.harmonicity > 0.5);
+    }
+
+    #[test]
+    fn test_pitch_detection() {
+        let sample_rate = 16000;
+
+        // Test with known frequencies
+        for &freq in &[100.0, 200.0, 300.0, 400.0] {
+            let samples: Vec<f32> = (0..2048)
+                .map(|i| (2.0 * PI * freq * i as f32 / sample_rate as f32).sin() * 0.5)
+                .collect();
+
+            if let Some(detected) = detect_pitch_autocorrelation(&samples, sample_rate) {
+                let error = (detected - freq).abs();
+                assert!(
+                    error < 20.0,
+                    "Pitch detection error too large: {} Hz (expected {}, got {})",
+                    error,
+                    freq,
+                    detected
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_onset_detection() {
+        let mut detector = OnsetDetector::new(513); // FFT size / 2 + 1
+
+        // Silence should not trigger onset
+        let silence = vec![0.0f32; 1024];
+        assert!(!detector.detect_onset(&silence));
+
+        // Sudden loud signal should trigger onset
+        let loud: Vec<f32> = (0..1024).map(|i| (i as f32 * 0.01).sin() * 0.8).collect();
+        assert!(detector.detect_onset(&loud));
+
+        // Same signal again should not trigger onset
+        assert!(!detector.detect_onset(&loud));
+    }
+
+    #[test]
+    fn test_speech_quality_analysis() {
+        let sample_rate = 16000;
+
+        // Simulate speech-like signal (multiple harmonics)
+        let mut speech = vec![0.0f32; 2048];
+        for i in 0..2048 {
+            let t = i as f32 / sample_rate as f32;
+            // Fundamental + harmonics
+            speech[i] = (2.0 * PI * 200.0 * t).sin() * 0.3
+                + (2.0 * PI * 400.0 * t).sin() * 0.2
+                + (2.0 * PI * 600.0 * t).sin() * 0.1
+                + (rand::random::<f32>() - 0.5) * 0.05; // Add some noise
+        }
+
+        let quality = analyze_speech_quality(&speech, sample_rate);
+        assert!(quality > 0.5, "Speech-like signal should have good quality");
+
+        // Pure noise should have low quality
+        let noise: Vec<f32> = (0..2048)
+            .map(|_| (rand::random::<f32>() - 0.5) * 0.3)
+            .collect();
+        let noise_quality = analyze_speech_quality(&noise, sample_rate);
+        assert!(noise_quality < 0.3, "Noise should have low speech quality");
     }
 }

@@ -163,3 +163,90 @@ let config = ChunkConfig {
     energy_cliff_threshold: 0.25,
 };
 ```
+
+## Smart Features (Advanced)
+
+The chunker now includes advanced smart features for even better speech detection and boundary precision:
+
+### SmartPredictor
+
+An enhanced predictor that combines multiple analysis techniques:
+
+```rust
+use chunker::SmartPredictor;
+
+// Create a smart predictor with sample rate
+let predictor = SmartPredictor::new(16000)?;
+let chunked = audio_source.chunks(predictor, Duration::from_secs(30));
+```
+
+Features:
+- **Multi-feature fusion**: Combines VAD, spectral analysis, and energy metrics
+- **Adaptive noise floor**: Tracks and adapts to background noise
+- **Onset detection**: Identifies speech boundaries using spectral flux
+- **Dynamic thresholds**: Adjusts sensitivity based on SNR and context
+- **Temporal smoothing**: Reduces false positives with hysteresis
+
+### Spectral Analysis
+
+The chunker can now analyze spectral features for better speech/noise discrimination:
+
+- **Spectral centroid**: Brightness indicator (300-3000 Hz for speech)
+- **Spectral spread**: Timbral width measurement
+- **Pitch detection**: Autocorrelation-based fundamental frequency tracking
+- **Harmonicity**: Ratio of harmonic to total energy
+- **Speech quality scoring**: Combined metric for speech likelihood
+
+### Context-Aware Processing
+
+The stream processor now tracks context across chunks:
+
+- **Conversation detection**: Identifies rapid exchanges for lower latency
+- **Quality adaptation**: Adjusts thresholds based on audio quality
+- **Pitch continuity**: Avoids cutting mid-word using pitch tracking
+- **Dynamic configuration**: Auto-adjusts parameters based on context
+
+### Enhanced Boundary Detection
+
+Smart trimming features for natural speech boundaries:
+
+1. **Pitch discontinuity detection**: Extends boundaries if pitch changes dramatically
+2. **Onset preservation**: Ensures speech onsets aren't cut
+3. **Quality-aware extension**: Extends high-quality speech segments
+4. **Voiced/unvoiced fade**: Different fade durations based on segment type
+
+### Usage Example with Smart Features
+
+```rust
+use chunker::{ChunkerExt, SmartPredictor, ChunkConfig};
+use std::time::Duration;
+
+// Create smart predictor
+let predictor = SmartPredictor::new(16000)?;
+
+// Use with custom config
+let config = ChunkConfig::default()
+    .with_hallucination_prevention(HallucinationPreventionLevel::Aggressive);
+
+let chunked = audio_source.chunks_with_config(predictor, config);
+
+// The chunker will now:
+// - Adapt to background noise levels
+// - Detect conversation patterns
+// - Preserve natural speech boundaries
+// - Minimize Whisper hallucinations
+// - Provide consistent quality across varying conditions
+```
+
+### Performance Considerations
+
+The smart features add computational overhead:
+- DFT calculation for spectral features (O(n²) - consider FFT for production)
+- Autocorrelation for pitch detection
+- Multiple feature extractions per chunk
+
+For real-time applications with strict latency requirements, you may want to:
+- Use the standard Silero predictor for lower overhead
+- Implement FFT-based spectral analysis
+- Cache spectral computations across frames
+- Use SIMD optimizations for correlation calculations

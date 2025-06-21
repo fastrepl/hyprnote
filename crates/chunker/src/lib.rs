@@ -21,6 +21,17 @@ pub trait ChunkerExt: AsyncSource + Sized {
     {
         ChunkStream::new(self, predictor, chunk_duration)
     }
+
+    fn chunks_with_config<P: Predictor + Unpin>(
+        self,
+        predictor: P,
+        config: ChunkConfig,
+    ) -> ChunkStream<Self, P>
+    where
+        Self: Unpin,
+    {
+        ChunkStream::with_config(self, predictor, config)
+    }
 }
 
 impl<T: AsyncSource> ChunkerExt for T {}

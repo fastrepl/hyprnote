@@ -38,7 +38,7 @@ impl Predictor for RMS {
 }
 
 use std::collections::VecDeque;
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard, PoisonError};
 
 /// Configuration for Silero VAD predictor
 #[derive(Debug, Clone)]
@@ -87,6 +87,17 @@ pub struct Silero {
     frames_since_speech: Mutex<usize>,
 }
 
+/// Helper function to handle mutex lock errors with logging
+fn handle_mutex_lock<'a, T>(
+    result: Result<MutexGuard<'a, T>, PoisonError<MutexGuard<'a, T>>>,
+    context: &str,
+) -> MutexGuard<'a, T> {
+    result.unwrap_or_else(|e| {
+        tracing::error!("{} mutex poisoned, attempting recovery: {}", context, e);
+        e.into_inner()
+    })
+}
+
 impl Silero {
     pub fn new() -> Result<Self, crate::Error> {
         Self::with_config(SileroConfig::default())
@@ -103,51 +114,18 @@ impl Silero {
 
     /// Reset VAD state after extended silence
     fn maybe_reset_state(&self) {
-        let frames = *self.frames_since_speech.lock().unwrap_or_else(|e| {
-            tracing::error!(
-                "Frames since speech mutex poisoned, attempting recovery: {}",
-                e
-            );
-            e.into_inner()
-        });
+        let frames = *handle_mutex_lock(self.frames_since_speech.lock(), "frames_since_speech");
         // Reset after ~3 seconds of no speech (assuming 30ms chunks)
         if frames > 100 {
-            self.inner
-                .lock()
-                .unwrap_or_else(|e| {
-                    tracing::error!("VAD mutex poisoned, attempting recovery: {}", e);
-                    e.into_inner()
-                })
-                .reset();
-            self.confidence_history
-                .lock()
-                .unwrap_or_else(|e| {
-                    tracing::error!(
-                        "Confidence history mutex poisoned, attempting recovery: {}",
-                        e
-                    );
-                    e.into_inner()
-                })
-                .clear();
-            *self.frames_since_speech.lock().unwrap_or_else(|e| {
-                tracing::error!(
-                    "Frames since speech mutex poisoned, attempting recovery: {}",
-                    e
-                );
-                e.into_inner()
-            }) = 0;
+            handle_mutex_lock(self.inner.lock(), "VAD").reset();
+            handle_mutex_lock(self.confidence_history.lock(), "confidence_history").clear();
+            *handle_mutex_lock(self.frames_since_speech.lock(), "frames_since_speech") = 0;
         }
     }
 
     /// Calculate adaptive threshold based on recent confidence history
     fn calculate_adaptive_threshold(&self) -> f32 {
-        let history = self.confidence_history.lock().unwrap_or_else(|e| {
-            tracing::error!(
-                "Confidence history mutex poisoned, attempting recovery: {}",
-                e
-            );
-            e.into_inner()
-        });
+        let history = handle_mutex_lock(self.confidence_history.lock(), "confidence_history");
         if history.is_empty() {
             return self.config.base_threshold;
         }
@@ -168,13 +146,7 @@ impl Silero {
 
     /// Analyze confidence decay pattern for end-of-speech detection
     pub fn analyze_confidence_decay(&self) -> ConfidenceProfile {
-        let history = self.confidence_history.lock().unwrap_or_else(|e| {
-            tracing::error!(
-                "Confidence history mutex poisoned, attempting recovery: {}",
-                e
-            );
-            e.into_inner()
-        });
+        let history = handle_mutex_lock(self.confidence_history.lock(), "confidence_history");
 
         if history.len() < 5 {
             return ConfidenceProfile::Unknown;
@@ -212,13 +184,7 @@ impl Silero {
 
     /// Get the average confidence over the last N predictions
     pub fn get_recent_confidence_avg(&self, n: usize) -> Option<f32> {
-        let history = self.confidence_history.lock().unwrap_or_else(|e| {
-            tracing::error!(
-                "Confidence history mutex poisoned, attempting recovery: {}",
-                e
-            );
-            e.into_inner()
-        });
+        let history = handle_mutex_lock(self.confidence_history.lock(), "confidence_history");
 
         if history.is_empty() {
             return None;
@@ -247,22 +213,14 @@ impl Predictor for Silero {
 
         // Run VAD prediction
         let probability = {
-            let mut inner = self.inner.lock().unwrap_or_else(|e| {
-                tracing::error!("VAD mutex poisoned, attempting recovery: {}", e);
-                e.into_inner()
-            });
+            let mut inner = handle_mutex_lock(self.inner.lock(), "VAD");
             inner.run(samples)?
         }; // Lock is automatically dropped here
 
         // Update confidence history
         {
-            let mut history = self.confidence_history.lock().unwrap_or_else(|e| {
-                tracing::error!(
-                    "Confidence history mutex poisoned, attempting recovery: {}",
-                    e
-                );
-                e.into_inner()
-            });
+            let mut history =
+                handle_mutex_lock(self.confidence_history.lock(), "confidence_history");
             history.push_back(probability);
             if history.len() > self.config.confidence_window_size {
                 history.pop_front();
@@ -277,21 +235,120 @@ impl Predictor for Silero {
 
         // Update speech tracking
         if is_speech {
-            *self.frames_since_speech.lock().unwrap_or_else(|e| {
-                tracing::error!(
-                    "Frames since speech mutex poisoned, attempting recovery: {}",
-                    e
-                );
-                e.into_inner()
-            }) = 0;
+            *handle_mutex_lock(self.frames_since_speech.lock(), "frames_since_speech") = 0;
         } else {
-            *self.frames_since_speech.lock().unwrap_or_else(|e| {
-                tracing::error!(
-                    "Frames since speech mutex poisoned, attempting recovery: {}",
-                    e
-                );
-                e.into_inner()
-            }) += 1;
+            *handle_mutex_lock(self.frames_since_speech.lock(), "frames_since_speech") += 1;
+        }
+
+        Ok(is_speech)
+    }
+}
+
+/// Enhanced predictor that combines multiple features for smarter decisions
+pub struct SmartPredictor {
+    silero: Silero,
+    /// Noise floor estimation
+    noise_floor: Mutex<f32>,
+    /// Background noise profile (frequency bins)
+    noise_profile: Mutex<Vec<f32>>,
+    /// Onset detector for speech boundaries
+    onset_detector: Mutex<crate::audio_analysis::OnsetDetector>,
+    /// Track sample rate for spectral analysis
+    sample_rate: u32,
+}
+
+impl SmartPredictor {
+    pub fn new(sample_rate: u32) -> Result<Self, crate::Error> {
+        Ok(Self {
+            silero: Silero::new()?,
+            noise_floor: Mutex::new(0.01),
+            noise_profile: Mutex::new(vec![0.0; 257]), // 512 FFT -> 257 bins
+            onset_detector: Mutex::new(crate::audio_analysis::OnsetDetector::new(257)),
+            sample_rate,
+        })
+    }
+
+    /// Update noise profile during silence
+    fn update_noise_profile(&self, samples: &[f32]) {
+        let _features =
+            crate::audio_analysis::calculate_spectral_features(samples, self.sample_rate);
+        let rms = crate::audio_analysis::calculate_rms(samples);
+
+        // Update noise floor with exponential moving average
+        let mut noise_floor = handle_mutex_lock(self.noise_floor.lock(), "noise_floor");
+        *noise_floor = *noise_floor * 0.95 + rms * 0.05;
+
+        // Adapt onset detector threshold
+        let mut onset_detector = handle_mutex_lock(self.onset_detector.lock(), "onset_detector");
+        onset_detector.adapt_threshold(*noise_floor);
+    }
+
+    /// Multi-feature fusion for speech detection
+    fn fuse_features(&self, samples: &[f32]) -> (bool, f32) {
+        // Get VAD confidence
+        let vad_confidence = if let Ok(is_speech) = self.silero.predict(samples) {
+            if is_speech {
+                self.silero.get_recent_confidence_avg(1).unwrap_or(0.5)
+            } else {
+                1.0 - self.silero.get_recent_confidence_avg(1).unwrap_or(0.5)
+            }
+        } else {
+            0.5
+        };
+
+        // Get spectral features
+        let speech_quality =
+            crate::audio_analysis::analyze_speech_quality(samples, self.sample_rate);
+
+        // Check for onset
+        let is_onset =
+            handle_mutex_lock(self.onset_detector.lock(), "onset_detector").detect_onset(samples);
+
+        // Energy analysis
+        let rms = crate::audio_analysis::calculate_rms(samples);
+        let noise_floor = *handle_mutex_lock(self.noise_floor.lock(), "noise_floor");
+        let snr = if noise_floor > 0.0 {
+            rms / noise_floor
+        } else {
+            10.0
+        };
+
+        // Weighted feature fusion
+        let mut confidence = 0.0;
+        confidence += vad_confidence * 0.4; // VAD is primary
+        confidence += speech_quality * 0.3; // Spectral quality
+        confidence += (snr.min(10.0) / 10.0) * 0.2; // SNR contribution
+
+        // Boost confidence if onset detected
+        if is_onset {
+            confidence = (confidence + 0.2).min(1.0);
+        }
+
+        // Hysteresis for temporal stability
+        let prev_confidence = self.silero.get_recent_confidence_avg(3).unwrap_or(0.5);
+        confidence = confidence * 0.7 + prev_confidence * 0.3;
+
+        // Dynamic threshold based on context
+        let threshold =
+            if self.silero.analyze_confidence_decay() == crate::ConfidenceProfile::Active {
+                0.4 // Lower threshold during active speech
+            } else if snr < 2.0 {
+                0.6 // Higher threshold in noisy conditions
+            } else {
+                0.5
+            };
+
+        (confidence > threshold, confidence)
+    }
+}
+
+impl Predictor for SmartPredictor {
+    fn predict(&self, samples: &[f32]) -> Result<bool, crate::Error> {
+        let (is_speech, confidence) = self.fuse_features(samples);
+
+        // Update noise profile during silence
+        if !is_speech && confidence < 0.3 {
+            self.update_noise_profile(samples);
         }
 
         Ok(is_speech)

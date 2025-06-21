@@ -17,7 +17,14 @@ import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { cn } from "@hypr/ui/lib/utils";
-import { generateText, markdownTransform, modelProvider, providerName, smoothStream, streamText } from "@hypr/utils/ai";
+import {
+  generateText,
+  localProviderName,
+  markdownTransform,
+  modelProvider,
+  smoothStream,
+  streamText,
+} from "@hypr/utils/ai";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import { enhanceFailedToast } from "../toast/shared";
 import { FloatingButton } from "./floating-button";
@@ -62,7 +69,6 @@ export default function EditorArea({
     preMeetingNote,
     rawContent,
     onSuccess: (content) => {
-      console.log("useEnhanceMutation onSuccess", content);
       generateTitle.mutate({ enhancedContent: content });
     },
   });
@@ -278,7 +284,7 @@ export function useEnhanceMutation({
           smoothStream({ delayInMs: 80, chunking: "line" }),
         ],
         providerOptions: {
-          [providerName]: {
+          [localProviderName]: {
             metadata: {
               grammar: "enhance",
             },
@@ -359,7 +365,7 @@ function useGenerateTitleMutation({ sessionId }: { sessionId: string }) {
           { role: "user", content: userMessage },
         ],
         providerOptions: {
-          [providerName]: {
+          [localProviderName]: {
             metadata: {
               grammar: "title",
             },

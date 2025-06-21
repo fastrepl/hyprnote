@@ -42,9 +42,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ServerSentEventPluginExt<R> for T 
             request = request.body(body);
         }
 
+        tracing::info!("plugin_sse_request_sent");
         let response_future = request.send();
 
         let res = response_future.await;
+        tracing::info!("plugin_sse_response_received");
 
         match res {
             Ok(res) => {

@@ -233,7 +233,7 @@ fn build_response(
     {
         Some(hypr_gbnf::GBNF::Title.build())
     } else {
-        Some(hypr_gbnf::GBNF::Enhance(Some(vec!["".to_string()])).build())
+        Some(hypr_gbnf::GBNF::Enhance.build())
     };
 
     let request = hypr_llama::LlamaRequest { messages, grammar };

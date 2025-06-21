@@ -1,5 +1,5 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { customProvider, type TextStreamPart, type ToolSet } from "ai";
+import { customProvider, extractReasoningMiddleware, type TextStreamPart, type ToolSet, wrapLanguageModel } from "ai";
 
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { fetch as customFetch } from "@hypr/utils";
@@ -15,14 +15,27 @@ export const useChat = (options: Parameters<typeof useChat$1>[0]) => {
   });
 };
 
-export const providerName = "hypr-llm";
+export const localProviderName = "hypr-llm-local";
+export const remoteProviderName = "hypr-llm-remote";
+
+const thinkingMiddleware = extractReasoningMiddleware({
+  tagName: "thinking",
+  separator: "\n",
+  startWithReasoning: false,
+});
+
+const thinkMiddleware = extractReasoningMiddleware({
+  tagName: "think",
+  separator: "\n",
+  startWithReasoning: false,
+});
 
 const getModel = async ({ onboarding }: { onboarding: boolean }) => {
   const getter = onboarding ? connectorCommands.getLocalLlmConnection : connectorCommands.getLlmConnection;
   const { type, connection: { api_base, api_key } } = await getter();
 
   const openai = createOpenAICompatible({
-    name: providerName,
+    name: type === "HyprLocal" ? localProviderName : remoteProviderName,
     baseURL: api_base,
     apiKey: api_key ?? "SOMETHING_NON_EMPTY",
     fetch: customFetch,
@@ -32,13 +45,16 @@ const getModel = async ({ onboarding }: { onboarding: boolean }) => {
   });
 
   const customModel = await connectorCommands.getCustomLlmModel();
-  const model = onboarding
+  const id = onboarding
     ? "mock-onboarding"
     : (type === "Custom" && customModel)
     ? customModel
     : "gpt-4";
 
-  return openai(model);
+  return wrapLanguageModel({
+    model: openai(id),
+    middleware: [thinkingMiddleware, thinkMiddleware],
+  });
 };
 
 export const modelProvider = async () => {

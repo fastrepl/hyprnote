@@ -1,17 +1,15 @@
 pub const ENHANCE_AUTO: &str = include_str!("../assets/enhance-auto.gbnf");
-pub const ENHANCE_TEMPLATE: &str = include_str!("../assets/enhance-template.gbnf");
 pub const TITLE: &str = include_str!("../assets/title.gbnf");
 
 pub enum GBNF {
-    Enhance(Option<Vec<String>>),
+    Enhance,
     Title,
 }
 
 impl GBNF {
     pub fn build(&self) -> String {
         match self {
-            GBNF::Enhance(Some(_)) => ENHANCE_TEMPLATE.to_string(),
-            GBNF::Enhance(None) => ENHANCE_AUTO.to_string(),
+            GBNF::Enhance => ENHANCE_AUTO.to_string(),
             GBNF::Title => TITLE.to_string(),
         }
     }

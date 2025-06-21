@@ -86,21 +86,36 @@ impl Silero {
     /// Reset VAD state after extended silence
     fn maybe_reset_state(&self) {
         let frames = *self.frames_since_speech.lock().unwrap_or_else(|e| {
-            tracing::error!("Frames since speech mutex poisoned, attempting recovery: {}", e);
+            tracing::error!(
+                "Frames since speech mutex poisoned, attempting recovery: {}",
+                e
+            );
             e.into_inner()
         });
         // Reset after ~3 seconds of no speech (assuming 30ms chunks)
         if frames > 100 {
-            self.inner.lock().unwrap_or_else(|e| {
-                tracing::error!("VAD mutex poisoned, attempting recovery: {}", e);
-                e.into_inner()
-            }).reset();
-            self.confidence_history.lock().unwrap_or_else(|e| {
-                tracing::error!("Confidence history mutex poisoned, attempting recovery: {}", e);
-                e.into_inner()
-            }).clear();
+            self.inner
+                .lock()
+                .unwrap_or_else(|e| {
+                    tracing::error!("VAD mutex poisoned, attempting recovery: {}", e);
+                    e.into_inner()
+                })
+                .reset();
+            self.confidence_history
+                .lock()
+                .unwrap_or_else(|e| {
+                    tracing::error!(
+                        "Confidence history mutex poisoned, attempting recovery: {}",
+                        e
+                    );
+                    e.into_inner()
+                })
+                .clear();
             *self.frames_since_speech.lock().unwrap_or_else(|e| {
-                tracing::error!("Frames since speech mutex poisoned, attempting recovery: {}", e);
+                tracing::error!(
+                    "Frames since speech mutex poisoned, attempting recovery: {}",
+                    e
+                );
                 e.into_inner()
             }) = 0;
         }
@@ -109,7 +124,10 @@ impl Silero {
     /// Calculate adaptive threshold based on recent confidence history
     fn calculate_adaptive_threshold(&self) -> f32 {
         let history = self.confidence_history.lock().unwrap_or_else(|e| {
-            tracing::error!("Confidence history mutex poisoned, attempting recovery: {}", e);
+            tracing::error!(
+                "Confidence history mutex poisoned, attempting recovery: {}",
+                e
+            );
             e.into_inner()
         });
         if history.is_empty() {
@@ -158,7 +176,10 @@ impl Predictor for Silero {
         // Update confidence history
         {
             let mut history = self.confidence_history.lock().unwrap_or_else(|e| {
-                tracing::error!("Confidence history mutex poisoned, attempting recovery: {}", e);
+                tracing::error!(
+                    "Confidence history mutex poisoned, attempting recovery: {}",
+                    e
+                );
                 e.into_inner()
             });
             history.push_back(probability);
@@ -176,12 +197,18 @@ impl Predictor for Silero {
         // Update speech tracking
         if is_speech {
             *self.frames_since_speech.lock().unwrap_or_else(|e| {
-                tracing::error!("Frames since speech mutex poisoned, attempting recovery: {}", e);
+                tracing::error!(
+                    "Frames since speech mutex poisoned, attempting recovery: {}",
+                    e
+                );
                 e.into_inner()
             }) = 0;
         } else {
             *self.frames_since_speech.lock().unwrap_or_else(|e| {
-                tracing::error!("Frames since speech mutex poisoned, attempting recovery: {}", e);
+                tracing::error!(
+                    "Frames since speech mutex poisoned, attempting recovery: {}",
+                    e
+                );
                 e.into_inner()
             }) += 1;
         }

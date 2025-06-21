@@ -1,7 +1,7 @@
+import { commands as dbCommands, type Event, type Human, type Session } from "@hypr/plugin-db";
 import { downloadDir } from "@tauri-apps/api/path";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { jsPDF } from "jspdf";
-import { commands as dbCommands, type Human, type Event, type Session } from "@hypr/plugin-db";
 
 // Use the actual Session type from the database directly
 export type SessionData = Session & {
@@ -138,11 +138,11 @@ const splitTextToLines = (text: string, pdf: jsPDF, maxWidth: number): string[] 
 };
 
 // Fetch additional session data (participants and event info)
-const fetchSessionMetadata = async (sessionId: string): Promise<{ participants: Human[], event: Event | null }> => {
+const fetchSessionMetadata = async (sessionId: string): Promise<{ participants: Human[]; event: Event | null }> => {
   try {
     const [participants, event] = await Promise.all([
       dbCommands.sessionListParticipants(sessionId),
-      dbCommands.sessionGetEvent(sessionId)
+      dbCommands.sessionGetEvent(sessionId),
     ]);
     return { participants, event };
   } catch (error) {
@@ -155,7 +155,7 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
   try {
     // Fetch additional session data
     const { participants, event } = await fetchSessionMetadata(session.id);
-    
+
     // Generate filename
     const filename = session?.title
       ? `${session.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`
@@ -200,30 +200,32 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "normal");
       pdf.setTextColor(100, 100, 100); // Gray
-      
+
       // Event name
       if (event.name) {
         pdf.text(`Event: ${event.name}`, margin, yPosition);
         yPosition += lineHeight;
       }
-      
+
       // Event date/time
       if (event.start_date) {
         const startDate = new Date(event.start_date);
         const endDate = event.end_date ? new Date(event.end_date) : null;
-        
+
         let dateText = `Date: ${startDate.toLocaleDateString()}`;
         if (endDate && startDate.toDateString() !== endDate.toDateString()) {
           dateText += ` - ${endDate.toLocaleDateString()}`;
         }
-        
+
         pdf.text(dateText, margin, yPosition);
         yPosition += lineHeight;
-        
+
         // Time
-        const timeText = endDate 
-          ? `Time: ${startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-          : `Time: ${startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        const timeText = endDate
+          ? `Time: ${startDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${
+            endDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          }`
+          : `Time: ${startDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
         pdf.text(timeText, margin, yPosition);
         yPosition += lineHeight;
       }
@@ -234,16 +236,16 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "normal");
       pdf.setTextColor(100, 100, 100); // Gray
-      
+
       const participantNames = participants
         .filter(p => p.full_name)
         .map(p => p.full_name)
         .join(", ");
-      
+
       if (participantNames) {
         const participantText = `Participants: ${participantNames}`;
         const participantLines = splitTextToLines(participantText, pdf, maxWidth);
-        
+
         for (const line of participantLines) {
           pdf.text(line, margin, yPosition);
           yPosition += lineHeight;
@@ -260,7 +262,7 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
     // Calculate width of "Summarized by " to position "Hyprnote"
     const madeByWidth = pdf.getTextWidth("Summarized by ");
     pdf.setTextColor(37, 99, 235); // Blue color for Hyprnote
-    
+
     // Create clickable link for Hyprnote
     const hyprnoteText = "Hyprnote";
     pdf.textWithLink(hyprnoteText, margin + madeByWidth, yPosition, { url: "https://www.hyprnote.com" });

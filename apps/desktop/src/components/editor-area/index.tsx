@@ -251,8 +251,8 @@ export function useEnhanceMutation({
         },
       );
 
-      //console.log("systemMessage", systemMessage);
-      //console.log("userMessage", userMessage);
+      // console.log("systemMessage", systemMessage);
+      // console.log("userMessage", userMessage);
 
       const abortController = new AbortController();
       const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(60 * 1000)]);

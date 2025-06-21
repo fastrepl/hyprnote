@@ -63,7 +63,7 @@ function ShareButtonInNote() {
   const [isExportingPDF, setIsExportingPDF] = useState(false);
 
   // Slack form state
-  
+
   const [selectedWorkspace, setSelectedWorkspace] = useState("Atlassian");
   const [selectedChannel, setSelectedChannel] = useState("");
   const [message, setMessage] = useState("");

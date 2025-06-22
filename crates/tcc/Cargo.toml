@@ -3,8 +3,8 @@ name = "tcc"
 version = "0.1.0"
 edition = "2021"
 
-[build-dependencies]
+[target.'cfg(target_os = "macos")'.build-dependencies]
 swift-rs = { git = "https://github.com/guillemcordoba/swift-rs", rev = "01980f981bc642a6da382cc0788f18fdd4cde6df", features = ["build"] }
 
-[dependencies]
+[target.'cfg(target_os = "macos")'.dependencies]
 swift-rs = { git = "https://github.com/guillemcordoba/swift-rs", rev = "01980f981bc642a6da382cc0788f18fdd4cde6df" }

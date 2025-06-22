@@ -1,0 +1,94 @@
+# Hyprnote Codebase Structure
+
+## Root Directory
+- `Cargo.toml` - Workspace configuration for Rust crates
+- `package.json` - Root package.json for pnpm workspace
+- `turbo.json` - Turbo build system configuration
+- `dprint.json` - Code formatting configuration
+- `Taskfile.yaml` - Task runner configuration
+- `CLAUDE.md` - AI assistant guidelines
+
+## Main Application Directories
+
+### `/apps`
+- **`/desktop`** - Main Tauri desktop application
+  - `/src` - React frontend code
+  - `/src-tauri` - Rust backend for Tauri
+  - `/src-swift` - macOS-specific Swift code
+- **`/app`** - Web application version
+  - `/client` - React frontend
+  - `/server` - Backend server with API
+  - `/server/db` - Database migrations and schema
+- **`/docs`** - Documentation site
+- **`/restate`** - Restate service
+
+### `/crates` - Rust Libraries (47 specialized crates)
+
+#### Audio Processing
+- `audio` - Platform-specific audio I/O
+- `audio-utils` - Audio utility functions
+- `chunker` - VAD-based audio chunking
+- `vad` - Voice Activity Detection (Silero)
+- `aec`, `aec2` - Acoustic Echo Cancellation
+- `denoise` - Audio denoising
+
+#### AI/ML
+- `whisper` - Local Whisper STT integration
+- `llama` - Local LLaMA LLM integration
+- `onnx` - ONNX runtime wrapper
+- `gbnf` - Grammar-based LLM output
+- `template` - Jinja templating for prompts
+
+#### Speech-to-Text
+- `stt` - Unified STT interface
+- `deepgram`, `clova`, `rtzr` - Cloud STT providers
+- `pyannote` - Speaker diarization
+
+#### Database
+- `db-core` - Core database abstractions
+- `db-admin`, `db-user` - Domain-specific DB operations
+- `db-script` - Database scripts
+
+#### Other Core Functionality
+- `calendar-*` - Calendar integrations (Apple, Google, Outlook)
+- `notification`, `notification2` - System notifications
+- `network`, `ws`, `ws-utils` - Networking utilities
+- `turso` - Turso/libSQL integration
+
+### `/plugins` - Tauri Plugins
+Each plugin has:
+- `/src` - Rust implementation
+- `/guest-js` - Auto-generated TypeScript bindings
+
+Key plugins:
+- `analytics` - Analytics tracking
+- `auth` - Authentication
+- `listener` - Audio recording interface
+- `local-llm` - Local LLM integration
+- `local-stt` - Local STT integration
+- `db` - Database access
+- `notification` - System notifications
+- `windows` - Window management
+
+### `/packages` - Shared TypeScript Packages
+- `stores` - Zustand state stores
+- `utils` - Shared utilities
+- `ui` - Shared UI components
+- Other shared TypeScript code
+
+## Configuration Files
+- `.cargo/config.toml` - Cargo configuration
+- `.github/` - GitHub Actions workflows
+- `.vscode/` - VS Code settings
+- `pnpm-workspace.yaml` - pnpm workspace config
+
+## Build & Scripts
+- `/scripts` - Build and utility scripts
+- Platform-specific build configurations in app directories
+
+## Key Architectural Notes
+1. Monorepo using Turbo + pnpm for JavaScript, Cargo workspace for Rust
+2. Plugin architecture with TypeScript bindings auto-generated from Rust
+3. Real-time audio pipeline: capture → VAD → processing → STT
+4. Local-first design with optional cloud features
+5. Platform-specific code isolated in dedicated modules/crates

@@ -10,6 +10,8 @@ pub enum Error {
     ContactsAccessDenied,
     #[error("database error: {0}")]
     DatabaseError(#[from] hypr_db_user::Error),
+    #[error("Apple Calendar is only supported on macOS")]
+    NotSupported,
 }
 
 impl Serialize for Error {

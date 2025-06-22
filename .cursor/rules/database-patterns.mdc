@@ -1,0 +1,60 @@
+---
+description: Database patterns using libsql/Turso and Drizzle ORM
+globs:
+  - "crates/db*/**/*.rs"
+  - "apps/app/server/db/**/*.ts"
+  - "**/migrations/*.sql"
+alwaysApply: false
+---
+
+# Database Patterns
+
+## Architecture
+- Local SQLite database via Turso/libsql
+- Rust abstraction in `crates/db-core/`
+- Domain-specific operations in `crates/db-admin/`, `crates/db-user/`
+- TypeScript schema using Drizzle ORM
+
+## Rust Database Layer
+
+### Connection Management
+```rust
+use db_core::DatabaseBuilder;
+
+let db = DatabaseBuilder::new()
+    .with_path("local.db")
+    .with_migrations(include_str!("../migrations"))
+    .build()
+    .await?;
+```
+
+### Error Handling
+```rust
+#[derive(thiserror::Error, Debug)]
+pub enum DbError {
+    #[error("Connection failed: {0}")]
+    Connection(#[from] libsql::Error),
+    
+    #[error("Migration failed: {0}")]
+    Migration(String),
+}
+```
+
+## TypeScript/Drizzle Layer
+
+### Schema Definition
+Located in `apps/app/server/db/schema/`
+- Use Drizzle's type-safe schema builders
+- Export types for frontend use
+
+### Migrations
+Located in `apps/app/server/db/migrations/`
+- SQL migration files with timestamps
+- Dual-mode tracking system
+
+## Best Practices
+- Use prepared statements for queries
+- Handle transactions properly
+- Index frequently queried columns
+- Keep migrations idempotent
+- Test migrations in development first

@@ -10,8 +10,8 @@ private let apiHandle: UnsafeMutableRawPointer? = {
 
 private typealias PreflightFuncType = @convention(c) (CFString, CFDictionary?) -> Int
 
-@_cdecl("_audio_capture_permission_granted")
-public func _audio_capture_permission_granted() -> Bool {
+@_cdecl("_macos_audio_capture_permission")
+public func _macos_audio_capture_permission() -> Bool {
   guard let apiHandle,
     let funcSym = dlsym(apiHandle, "TCCAccessPreflight"),
     let preflight = unsafeBitCast(funcSym, to: PreflightFuncType.self) as PreflightFuncType?

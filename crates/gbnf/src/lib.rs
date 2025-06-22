@@ -47,8 +47,8 @@ mod tests {
         let gbnf = gbnf_validator::Validator::new().unwrap();
 
         for (input, expected) in vec![
-            ("['meeting', 'summary']", true),
-            ("['meeting', 'summary', '']", false),
+            ("[\"meeting\", \"summary\"]", true),
+            ("[\"meeting\", \"summary\", \"\"]", false),
         ] {
             let result = gbnf.validate(TAGS, input).unwrap();
             assert_eq!(result, expected, "failed: {}", input);

@@ -41,9 +41,8 @@ Real-time audio capture → VAD → Echo cancellation → Chunking → STT
 
 ### Speech-to-Text (`crates/stt*`)
 - Unified interface in `crates/stt/`
-- Multiple backends:
+- Multiple backends (Local-first for privacy):
   - Local: Whisper (with Metal/CUDA acceleration)
-  - Cloud: Deepgram, Clova, Rtzr
 - Stream-based transcription
 
 ## Performance Guidelines

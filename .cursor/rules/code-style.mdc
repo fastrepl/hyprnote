@@ -34,36 +34,232 @@ alwaysApply: false
 
 ## Rust Conventions
 
-### Code Organization
-- Module organization with clear public interfaces
-- Error types using `thiserror` derive macro
-- Async-first design with Tokio runtime
-- Platform-specific code behind feature flags
-- Use `tracing` for logging, not `println!`
+The project follows the [official Rust Style Guide](https://doc.rust-lang.org/stable/style-guide/) enforced by `rustfmt`.
 
-### Error Handling
+### Core Style Principles
+- **Readability first**: Code should be scannable and accessible
+- **Consistency**: Uniform formatting across the codebase
+- **Expression-oriented**: Prefer expressions over statements
+- **Explicit over implicit**: Clear intent in code structure
+
+### Formatting Rules (via rustfmt)
+- **Indentation**: 4 spaces (no tabs)
+- **Line width**: Maximum 100 characters
+- **Trailing commas**: Required in multi-line constructs
+- **Blank lines**: One between top-level items, zero within items
+
+### Naming Conventions
+| Item | Convention | Example |
+|------|------------|---------|
+| Types, Traits | `UpperCamelCase` | `AudioProcessor`, `StreamHandler` |
+| Enum variants | `UpperCamelCase` | `ProcessingState::Active` |
+| Functions, Methods | `snake_case` | `process_audio()`, `get_buffer()` |
+| Variables, Fields | `snake_case` | `audio_buffer`, `sample_rate` |
+| Constants, Statics | `SCREAMING_SNAKE_CASE` | `MAX_BUFFER_SIZE` |
+| Lifetimes | Short lowercase | `'a`, `'buf` |
+| Type parameters | Concise uppercase | `T`, `K`, `V` |
+| Crate names | `snake_case` | `hypr_audio` |
+
+### Import Organization
 ```rust
-// Use thiserror for error types
-#[derive(thiserror::Error, Debug)]
-pub enum AudioError {
-    #[error("Failed to initialize audio device: {0}")]
-    InitializationError(String),
-    
-    #[error("Buffer overflow")]
-    BufferOverflow,
+// Group order: std → external → internal → self/super
+use std::collections::HashMap;
+use std::sync::Arc;
+
+use tokio::sync::Mutex;
+use tracing::{debug, info};
+
+use crate::audio::AudioBuffer;
+use crate::processor::Processor;
+
+use super::config::Config;
+```
+
+### Function Formatting
+```rust
+// Single-line for simple signatures
+fn simple_function(x: i32, y: i32) -> i32 {
+    x + y
+}
+
+// Multi-line for complex signatures
+fn process_audio_buffer<T>(
+    buffer: &mut [T],
+    config: &ProcessingConfig,
+    callback: impl Fn(&T) -> T,
+) -> Result<(), ProcessingError>
+where
+    T: Sample + Send + Sync,
+{
+    // implementation
 }
 ```
 
-### Performance Patterns
-- Zero-copy operations where possible
-- Stream-based processing for real-time data
-- Use builders for complex configurations
-- Platform abstractions with clean interfaces
+### Struct and Enum Formatting
+```rust
+// Simple struct
+struct Point {
+    x: f64,
+    y: f64,
+}
 
-### Testing
-- Unit tests in `#[cfg(test)]` modules within source files
-- Integration tests in `tests/` directories
-- Use `serial_test` for tests that need exclusive access
+// Complex struct with derives
+#[derive(Debug, Clone, PartialEq)]
+pub struct AudioConfig {
+    pub sample_rate: u32,
+    pub channels: u16,
+    pub buffer_size: usize,
+}
+
+// Enum with variants
+pub enum ProcessingState {
+    Idle,
+    Active { start_time: Instant },
+    Error(String),
+}
+```
+
+### Error Handling Patterns
+```rust
+// Using thiserror for error types
+#[derive(thiserror::Error, Debug)]
+pub enum AudioError {
+    #[error("Device initialization failed: {0}")]
+    InitFailed(String),
+    
+    #[error("Buffer overflow at position {position}")]
+    BufferOverflow { position: usize },
+    
+    #[error("Invalid sample rate: {0}")]
+    InvalidSampleRate(u32),
+}
+
+// Result type alias for cleaner signatures
+pub type AudioResult<T> = Result<T, AudioError>;
+```
+
+### Expression-Oriented Style
+```rust
+// Prefer expressions
+let status = if buffer.is_empty() {
+    ProcessingStatus::Idle
+} else {
+    ProcessingStatus::Active
+};
+
+// Use match as expression
+let message = match result {
+    Ok(data) => format!("Success: {} items", data.len()),
+    Err(e) => format!("Error: {}", e),
+};
+```
+
+### Documentation Standards
+```rust
+/// Processes audio buffer with given configuration.
+///
+/// # Arguments
+/// * `buffer` - Audio samples to process
+/// * `config` - Processing configuration
+///
+/// # Returns
+/// Processed audio buffer or error
+///
+/// # Example
+/// ```
+/// let processed = process_audio(&buffer, &config)?;
+/// ```
+pub fn process_audio(
+    buffer: &[f32],
+    config: &Config,
+) -> Result<Vec<f32>, AudioError> {
+    // implementation
+}
+```
+
+### Module Organization
+```rust
+//! Audio processing module
+//!
+//! This module provides real-time audio processing capabilities.
+
+mod buffer;
+mod processor;
+mod utils;
+
+pub use buffer::AudioBuffer;
+pub use processor::{Processor, ProcessorConfig};
+
+// Re-export commonly used items
+pub use self::utils::{db_to_linear, linear_to_db};
+```
+
+### Async Patterns
+```rust
+// Async function with proper error handling
+pub async fn stream_audio(
+    source: AudioSource,
+) -> Result<AudioStream, StreamError> {
+    let connection = source.connect().await?;
+    let stream = connection.start_stream().await?;
+    Ok(stream)
+}
+
+// Using tokio for concurrent operations
+use tokio::sync::mpsc;
+use tokio::task;
+
+let (tx, rx) = mpsc::channel(100);
+let handle = task::spawn(async move {
+    process_stream(rx).await
+});
+```
+
+### Testing Patterns
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_audio_processing() {
+        let buffer = vec![0.0; 1024];
+        let result = process_audio(&buffer, &Config::default());
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_async_streaming() {
+        let source = AudioSource::mock();
+        let stream = stream_audio(source).await;
+        assert!(stream.is_ok());
+    }
+}
+```
+
+### Performance Best Practices
+- Use `&str` instead of `&String` in function parameters
+- Prefer `&[T]` over `&Vec<T>` for slice parameters
+- Use `Box<dyn Error>` sparingly, prefer concrete error types
+- Leverage zero-copy operations with `Cow<'_, T>`
+- Use `const fn` for compile-time computations
+
+### Platform-Specific Code
+```rust
+#[cfg(target_os = "macos")]
+mod macos {
+    pub fn init_audio() -> Result<(), Error> {
+        // macOS-specific implementation
+    }
+}
+
+#[cfg(target_os = "windows")]
+mod windows {
+    pub fn init_audio() -> Result<(), Error> {
+        // Windows-specific implementation
+    }
+}
+```
 
 ## Formatting Rules
 
@@ -76,7 +272,37 @@ pub enum AudioError {
 ### Rust
 - Handled by rustfmt
 - Edition 2021
-- Standard Rust formatting conventions
+- Follows official Rust Style Guide
+
+### Cargo.toml Formatting
+```toml
+# [package] section at top
+[package]
+name = "hypr-audio"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hyprnote Team"]
+description = "Audio processing library for Hyprnote"
+
+# Dependencies section with version-sorted keys
+[dependencies]
+anyhow = "1.0"
+tokio = { version = "1.35", features = ["full"] }
+tracing = "0.1"
+
+# Dev dependencies
+[dev-dependencies]
+criterion = "0.5"
+proptest = "1.4"
+
+# Features with arrays on multiple lines for clarity
+[features]
+default = ["native"]
+native = [
+    "dep:cpal",
+    "dep:dasp",
+]
+```
 
 ### Markdown
 - Formatted by dprint

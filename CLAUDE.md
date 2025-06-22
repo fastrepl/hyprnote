@@ -160,11 +160,78 @@ The `crates/` directory contains 47 specialized crates organized by functionalit
 - File naming: kebab-case for files, PascalCase for components
 
 ### Rust
+- Follow the official Rust Style Guide (enforced by `rustfmt`)
 - Module organization with clear public interfaces
 - Error types using `thiserror`
 - Async-first with Tokio runtime
 - Platform-specific code behind feature flags
 - Consistent use of `tracing` for logging
+
+#### Rust Style Guide Compliance
+The project follows the [official Rust Style Guide](https://doc.rust-lang.org/stable/style-guide/). Key conventions:
+
+**Formatting (enforced by `rustfmt`):**
+- 4 spaces for indentation
+- Maximum line width: 100 characters
+- Use trailing commas in multi-line lists
+- Prefer block indentation over visual indentation
+
+**Naming Conventions:**
+- Types, traits, enum variants: `UpperCamelCase`
+- Functions, methods, variables, struct fields: `snake_case`
+- Constants, statics: `SCREAMING_SNAKE_CASE`
+- Lifetimes: short lowercase letters like `'a`
+- Type parameters: concise uppercase letters like `T`
+
+**Code Organization:**
+- Group imports: std → external crates → internal → self/super
+- Use nested imports for multiple items from same module
+- Prefer `use` statements at module level
+- One blank line between top-level items
+
+**Function and Type Formatting:**
+```rust
+// Single-line when possible
+fn process_audio(buffer: &[f32], rate: u32) -> Result<Vec<f32>, AudioError> {
+    // implementation
+}
+
+// Multi-line for complex signatures
+fn complex_function<T, U>(
+    first_param: &T,
+    second_param: U,
+    config: ProcessingConfig,
+) -> Result<ProcessedData<T, U>, ProcessingError>
+where
+    T: AudioBuffer + Send,
+    U: Processor + Clone,
+{
+    // implementation
+}
+```
+
+**Error Handling Patterns:**
+```rust
+#[derive(thiserror::Error, Debug)]
+pub enum AudioError {
+    #[error("Device initialization failed: {0}")]
+    InitFailed(String),
+    
+    #[error("Buffer overflow at position {position}")]
+    BufferOverflow { position: usize },
+}
+```
+
+**Expression vs Statement Style:**
+- Prefer expression-oriented code
+- Use `if`/`match` as expressions where appropriate
+- Avoid unnecessary temporary variables
+
+**Documentation:**
+- Use `///` for public API documentation
+- Use `//!` for module-level documentation
+- Include examples in doc comments for complex APIs
+- Document safety invariants for `unsafe` code
 
 ### Testing Strategy
 - Unit tests alongside code (`#[cfg(test)]` modules)

@@ -2,7 +2,7 @@ use bytes::Bytes;
 use futures_util::{Stream, StreamExt};
 use std::error::Error;
 
-use hypr_whisper::cloud::WhisperClient;
+use hypr_whisper_cloud::WhisperClient;
 
 use super::RealtimeSpeechToText;
 use hypr_listener_interface::{ListenOutputChunk, Word};

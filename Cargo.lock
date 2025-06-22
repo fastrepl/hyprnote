@@ -12965,7 +12965,7 @@ dependencies = [
  "specta",
  "thiserror 2.0.12",
  "tokio",
- "whisper",
+ "whisper-cloud",
 ]
 
 [[package]]
@@ -13803,6 +13803,7 @@ dependencies = [
  "tower-http 0.6.4",
  "tracing",
  "whisper",
+ "whisper-local",
  "ws-utils",
 ]
 
@@ -16134,9 +16135,39 @@ dependencies = [
 name = "whisper"
 version = "0.1.0"
 dependencies = [
+ "strum 0.26.3",
+]
+
+[[package]]
+name = "whisper-cloud"
+version = "0.1.0"
+dependencies = [
  "audio-utils",
  "bytes",
  "cpal",
+ "data",
+ "dirs 6.0.0",
+ "futures-util",
+ "kalosm-sound",
+ "llama",
+ "rodio",
+ "serde",
+ "serde_json",
+ "strum 0.26.3",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "url",
+ "whisper",
+ "ws",
+]
+
+[[package]]
+name = "whisper-local"
+version = "0.1.0"
+dependencies = [
+ "audio-utils",
+ "dasp",
  "data",
  "dirs 6.0.0",
  "futures-util",
@@ -16147,13 +16178,10 @@ dependencies = [
  "rodio",
  "serde",
  "serde_json",
- "strum 0.26.3",
  "thiserror 2.0.12",
- "tokio",
  "tracing",
- "url",
+ "whisper",
  "whisper-rs",
- "ws",
 ]
 
 [[package]]

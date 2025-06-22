@@ -30,6 +30,7 @@ hypr-calendar-google = { path = "crates/calendar-google", package = "calendar-go
 hypr-calendar-interface = { path = "crates/calendar-interface", package = "calendar-interface" }
 hypr-calendar-outlook = { path = "crates/calendar-outlook", package = "calendar-outlook" }
 hypr-chunker = { path = "crates/chunker", package = "chunker" }
+hypr-clova = { path = "crates/clova", package = "clova" }
 hypr-data = { path = "crates/data", package = "data" }
 hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }
@@ -51,6 +52,7 @@ hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
 hypr-pyannote = { path = "crates/pyannote", package = "pyannote" }
+hypr-rtzr = { path = "crates/rtzr", package = "rtzr" }
 hypr-s3 = { path = "crates/s3", package = "s3" }
 hypr-slack = { path = "crates/slack", package = "slack" }
 hypr-stt = { path = "crates/stt", package = "stt", features = ["realtime", "recorded"] }
@@ -58,6 +60,8 @@ hypr-template = { path = "crates/template", package = "template" }
 hypr-turso = { path = "crates/turso", package = "turso" }
 hypr-vad = { path = "crates/vad", package = "vad" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }
+hypr-whisper-cloud = { path = "crates/whisper-cloud", package = "whisper-cloud" }
+hypr-whisper-local = { path = "crates/whisper-local", package = "whisper-local" }
 hypr-ws = { path = "crates/ws", package = "ws" }
 hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 

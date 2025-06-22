@@ -30,7 +30,8 @@ hypr-db-user = { workspace = true }
 hypr-file = { workspace = true }
 hypr-listener-interface = { workspace = true }
 hypr-pyannote = { workspace = true, features = ["local"] }
-hypr-whisper = { workspace = true, features = ["local"] }
+hypr-whisper = { workspace = true }
+hypr-whisper-local = { workspace = true }
 hypr-ws-utils = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }

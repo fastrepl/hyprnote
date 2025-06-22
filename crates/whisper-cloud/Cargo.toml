@@ -1,0 +1,29 @@
+[package]
+name = "whisper-cloud"
+version = "0.1.0"
+edition = "2021"
+
+[dev-dependencies]
+hypr-data = { workspace = true }
+hypr-llama = { workspace = true }
+
+dirs = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+
+[dependencies]
+hypr-audio-utils = { workspace = true }
+hypr-whisper = { workspace = true }
+hypr-ws = { workspace = true }
+
+bytes = { workspace = true }
+cpal = { workspace = true }
+futures-util = { workspace = true }
+kalosm-sound = { workspace = true, default-features = false }
+rodio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }

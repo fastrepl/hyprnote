@@ -9,7 +9,9 @@
   "markup": {
     "associations": [
       "!**/*.html",
-      "!**/*.jinja"
+      "!**/*.jinja",
+      "**/*.wxs",
+      "**/*.wxl"
     ]
   },
   "typescript": {

@@ -223,17 +223,16 @@ fn build_response(
         .map(hypr_llama::FromOpenAI::from_openai)
         .collect();
 
-    let grammar = if request
+    let grammar = match request
         .metadata
         .as_ref()
         .unwrap_or(&serde_json::Value::Object(Default::default()))
         .get("grammar")
         .and_then(|v| v.as_str())
-        == Some("title")
     {
-        Some(hypr_gbnf::GBNF::Title.build())
-    } else {
-        Some(hypr_gbnf::GBNF::Enhance.build())
+        Some("title") => Some(hypr_gbnf::GBNF::Title.build()),
+        Some("tags") => Some(hypr_gbnf::GBNF::Tags.build()),
+        _ => Some(hypr_gbnf::GBNF::Enhance.build()),
     };
 
     let request = hypr_llama::LlamaRequest { messages, grammar };

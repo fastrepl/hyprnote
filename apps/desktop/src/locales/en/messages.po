@@ -923,7 +923,7 @@ msgstr "Search names or emails"
 msgid "Search templates..."
 msgstr "Search templates..."
 
-#: src/components/search-bar.tsx:96
+#: src/components/search-bar.tsx:144
 msgid "Search..."
 msgstr "Search..."
 

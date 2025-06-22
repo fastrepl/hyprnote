@@ -1,0 +1,6 @@
+root ::= "[" ws tag_list? "]" ws
+
+tag_list ::= tag (ws "," ws tag)*
+char ::= [a-zA-Z0-9 _-]
+tag ::= "\"" char+ "\""
+ws ::= [ \t\n]*

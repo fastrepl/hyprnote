@@ -1,0 +1,22 @@
+[project]
+name = "hyprnote"
+version = "0.1.0"
+description = ""
+package-mode = false
+authors = [
+  { name = "Yujong Lee", email = "yujonglee.dev@gmail.com" },
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["gguf (>=0.17.1,<0.18.0)"]
+
+[tool.poetry]
+name = "hyprnote"
+version = "0.1.0"
+description = ""
+authors = ["Yujong Lee <yujonglee.dev@gmail.com>"]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

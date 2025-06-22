@@ -1,4 +1,11 @@
-import { commands as dbCommands, type Event, type Human, type Organization, type Session } from "@hypr/plugin-db";
+import {
+  commands as dbCommands,
+  type Event,
+  type Human,
+  type Organization,
+  type Session,
+  type Tag,
+} from "@hypr/plugin-db";
 import { debounce } from "lodash-es";
 import type React from "react";
 import { createStore } from "zustand";
@@ -20,6 +27,7 @@ export type SearchMatch = {
 type State = {
   previous?: URL;
   query: string;
+  selectedTags: Tag[];
   matches: SearchMatch[];
   searchInputRef: React.RefObject<HTMLInputElement> | null;
   isSearching: boolean;
@@ -36,6 +44,9 @@ type Actions = {
   selectResult: () => void;
   addToSearchHistory: (query: string) => void;
   clearSearchHistory: () => void;
+  addTagFilter: (tag: Tag) => void;
+  removeTagFilter: (tagId: string) => void;
+  clearTagFilters: () => void;
 };
 
 export type SearchStore = ReturnType<typeof createSearchStore>;
@@ -68,9 +79,21 @@ export const createSearchStore = (userId: string) => {
         return;
       }
 
+      // Determine search strategy based on selected tags
+      const { selectedTags } = getState();
+      const hasTagFilter = selectedTags.length > 0;
+
       // Fast, simple API calls
       const [sessions, events, humans, organizations] = await Promise.all([
-        dbCommands.listSessions({ type: "search", query, limit: 10, user_id: userId }),
+        // Use tag filter if tags selected, otherwise text search
+        hasTagFilter
+          ? dbCommands.listSessions({
+            type: "tagFilter",
+            tag_ids: selectedTags.map((t: Tag) => t.id),
+            limit: 10,
+            user_id: userId,
+          })
+          : dbCommands.listSessions({ type: "search", query, limit: 10, user_id: userId }),
         dbCommands.listEvents({ type: "search", query, limit: 5, user_id: userId }),
         dbCommands.listHumans({ search: [3, query] }),
         dbCommands.listOrganizations({ search: [3, query] }),
@@ -115,6 +138,7 @@ export const createSearchStore = (userId: string) => {
 
   return createStore<State & Actions>((set, get) => ({
     query: "",
+    selectedTags: [],
     matches: [],
     searchInputRef: null,
     isSearching: false,
@@ -132,7 +156,7 @@ export const createSearchStore = (userId: string) => {
       searchInputRef?.current?.blur();
 
       handleEmpty(get);
-      set({ query: "", matches: [], selectedIndex: -1 });
+      set({ query: "", matches: [], selectedIndex: -1, selectedTags: [] });
     },
     focusSearch: () => {
       setTimeout(() => {
@@ -178,6 +202,27 @@ export const createSearchStore = (userId: string) => {
     clearSearchHistory: () => {
       set({ searchHistory: [] });
       saveSearchHistory(userId, []);
+    },
+    addTagFilter: (tag: Tag) => {
+      const { selectedTags } = get();
+      if (!selectedTags.find((t) => t.id === tag.id)) {
+        const newTags = [...selectedTags, tag];
+        set({ selectedTags: newTags, selectedIndex: -1 });
+        // Trigger search with new tag filter
+        performSearch(get().query, set, get);
+      }
+    },
+    removeTagFilter: (tagId: string) => {
+      const { selectedTags } = get();
+      const newTags = selectedTags.filter((t) => t.id !== tagId);
+      set({ selectedTags: newTags, selectedIndex: -1 });
+      // Trigger search with updated tag filter
+      performSearch(get().query, set, get);
+    },
+    clearTagFilters: () => {
+      set({ selectedTags: [], selectedIndex: -1 });
+      // Trigger search without tag filter
+      performSearch(get().query, set, get);
     },
   }));
 };

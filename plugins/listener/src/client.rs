@@ -113,7 +113,7 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn test_listen_client() {
-        let audio = rodio::Decoder::new_wav(std::io::BufReader::new(
+        let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
         ))
         .unwrap();

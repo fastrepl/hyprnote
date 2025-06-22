@@ -134,6 +134,8 @@ impl Llama {
                             let mut sampler = Self::get_sampler(&model, request.grammar.as_deref());
 
                             let mut got_first_token = false;
+                            let mut acc = String::new();
+
                             while n_cur <= last_index + DEFAULT_MAX_OUTPUT_TOKENS as i32 {
                                 let token = sampler.sample(&ctx, batch.n_tokens() - 1);
 
@@ -155,6 +157,7 @@ impl Llama {
                                     false,
                                 );
 
+                                acc += &output_string;
                                 if response_sender.send(output_string).is_err() {
                                     break;
                                 }
@@ -167,6 +170,7 @@ impl Llama {
                             }
 
                             drop(response_sender);
+                            tracing::info!("llm_acc: {}", acc);
                         }
                     }
                 }

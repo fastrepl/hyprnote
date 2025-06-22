@@ -1,9 +1,11 @@
 pub const ENHANCE_AUTO: &str = include_str!("../assets/enhance-auto.gbnf");
 pub const TITLE: &str = include_str!("../assets/title.gbnf");
+pub const TAGS: &str = include_str!("../assets/tags.gbnf");
 
 pub enum GBNF {
     Enhance,
     Title,
+    Tags,
 }
 
 impl GBNF {
@@ -11,6 +13,7 @@ impl GBNF {
         match self {
             GBNF::Enhance => ENHANCE_AUTO.to_string(),
             GBNF::Title => TITLE.to_string(),
+            GBNF::Tags => TAGS.to_string(),
         }
     }
 }

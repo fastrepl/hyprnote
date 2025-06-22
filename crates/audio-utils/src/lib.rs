@@ -18,8 +18,7 @@ pub trait AudioFormatExt: AsyncSource {
 
             let mut buf = BytesMut::with_capacity(n);
             for sample in chunk {
-                let scaled = (sample * std::i16::MAX as f32)
-                    .clamp(std::i16::MIN as f32, std::i16::MAX as f32);
+                let scaled = (sample * 32768.0).clamp(-32768.0, 32768.0);
                 buf.put_i16_le(scaled as i16);
             }
             buf.freeze()

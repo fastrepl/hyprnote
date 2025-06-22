@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "version": "0.0.46",
+  "version": "0.0.47",
   "productName": "Hyprnote Dev",
   "mainBinaryName": "Hyprnote Dev",
   "identifier": "com.hyprnote.dev",
@@ -17,6 +17,7 @@
     }
   },
   "bundle": {
+    "publisher": "Fastrepl",
     "active": true,
     "createUpdaterArtifacts": true,
     "targets": "all",
@@ -47,8 +48,17 @@
       }
     },
     "windows": {
+      "webviewInstallMode": {
+        "type": "offlineInstaller"
+      },
       "wix": {
-        "language": "en-US"
+        "language": {
+          "en-US": {
+            "localePath": "./windows/locales/en-US.wxl"
+          }
+        },
+        "fragmentPaths": ["./windows/fragments/registry.wxs"],
+        "componentRefs": ["HyprnoteRegistryEntries"]
       }
     }
   },

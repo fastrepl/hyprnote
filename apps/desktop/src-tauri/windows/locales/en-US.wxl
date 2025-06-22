@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization
+  Culture="en-US"
+  xmlns="http://schemas.microsoft.com/wix/2006/localization"
+>
+  <String Id="LaunchApp">Launch Hyprnote</String>
+  <String Id="DowngradeErrorMessage">
+    A newer version of Hyprnote is already installed. Setup will now exit.
+  </String>
+  <String Id="PathEnvVarFeature">
+    Add the install location of the Hyprnote executable to the PATH system environment variable. 
+    This allows the Hyprnote executable to be called from any location.
+  </String>
+  <String Id="InstallAppFeature">
+    Installs Hyprnote application files and components.
+  </String>
+  <String Id="WelcomeMessage">
+    Welcome to the Hyprnote Setup Wizard. This will install Hyprnote on your computer.
+  </String>
+  <String Id="FinishMessage">
+    Hyprnote has been successfully installed on your computer.
+  </String>
+</WixLocalization> 

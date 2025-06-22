@@ -126,6 +126,12 @@ async assignTagToSession(tagId: string, sessionId: string) : Promise<null> {
 },
 async unassignTagFromSession(tagId: string, sessionId: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:db|unassign_tag_from_session", { tagId, sessionId });
+},
+async upsertTag(tag: Tag) : Promise<Tag> {
+    return await TAURI_INVOKE("plugin:db|upsert_tag", { tag });
+},
+async deleteTag(tagId: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:db|delete_tag", { tagId });
 }
 }
 
@@ -153,7 +159,7 @@ export type Human = { id: string; organization_id: string | null; is_user: boole
 export type ListEventFilter = ({ user_id: string; limit: number | null }) & ({ type: "simple" } | { type: "search"; query: string } | { type: "dateRange"; start: string; end: string } | { type: "not-assigned-past" })
 export type ListHumanFilter = { search: [number, string] }
 export type ListOrganizationFilter = { search: [number, string] }
-export type ListSessionFilter = ({ user_id: string; limit: number | null }) & ({ type: "search"; query: string } | { type: "recentlyVisited" } | { type: "dateRange"; start: string; end: string })
+export type ListSessionFilter = ({ user_id: string; limit: number | null }) & ({ type: "search"; query: string } | { type: "recentlyVisited" } | { type: "dateRange"; start: string; end: string } | { type: "tagFilter"; tag_ids: string[] })
 export type Organization = { id: string; name: string; description: string | null }
 export type Platform = "Apple" | "Google" | "Outlook"
 export type Session = { id: string; created_at: string; visited_at: string; user_id: string; calendar_event_id: string | null; title: string; raw_memo_html: string; enhanced_memo_html: string | null; words: Word[]; record_start: string | null; record_end: string | null; pre_meeting_memo_html: string | null }

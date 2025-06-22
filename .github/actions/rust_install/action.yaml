@@ -18,7 +18,10 @@ runs:
       run: rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
       shell: bash
     - if: inputs.target == 'windows'
-      run: rustup target add x86_64-pc-windows-msvc
+      run: |
+        rustup target add x86_64-pc-windows-msvc
+        # https://tauri.app/distribute/sign/windows/#install-trusted-signing-cli
+        cargo install trusted-signing-cli
       shell: bash
     - uses: Swatinem/rust-cache@v2
       with:

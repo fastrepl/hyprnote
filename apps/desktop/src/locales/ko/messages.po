@@ -923,7 +923,7 @@ msgstr ""
 msgid "Search templates..."
 msgstr ""
 
-#: src/components/search-bar.tsx:96
+#: src/components/search-bar.tsx:144
 msgid "Search..."
 msgstr ""
 

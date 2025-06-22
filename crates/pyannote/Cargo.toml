@@ -5,16 +5,17 @@ edition = "2021"
 
 [features]
 default = []
-cloud = ["reqwest", "url"]
-local = ["hypr-onnx", "knf-rs"]
-knf-rs = ["dep:knf-rs"]
+cloud = ["dep:reqwest", "dep:url"]
+local = ["dep:hypr-onnx", "dep:knf-rs", "dep:simsimd", "dep:dasp"]
 
 [dependencies]
 reqwest = { workspace = true, features = ["json"], optional = true }
 url = { workspace = true, optional = true }
 
+dasp = { workspace = true, optional = true }
 hypr-onnx = { workspace = true, optional = true }
-knf-rs = { version = "0.2.9", optional = true }
+knf-rs = { git = "https://github.com/thewh1teagle/pyannote-rs", rev = "d97bd3b", package = "knf-rs", optional = true }
+simsimd = { version = "6", optional = true }
 
 anyhow = { workspace = true }
 thiserror = { workspace = true }
@@ -26,6 +27,6 @@ specta = { workspace = true, features = ["derive"] }
 hypr-data = { workspace = true }
 
 approx = { workspace = true }
-hound = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
+rodio = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }

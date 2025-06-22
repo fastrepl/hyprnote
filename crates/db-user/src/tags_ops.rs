@@ -79,7 +79,9 @@ impl UserDatabase {
 
         let mut rows = conn
             .query(
-                "SELECT * FROM tags WHERE session_id = ?",
+                "SELECT t.* FROM tags t 
+                 JOIN tags_sessions ts ON t.id = ts.tag_id 
+                 WHERE ts.session_id = ?",
                 vec![session_id.into()],
             )
             .await?;

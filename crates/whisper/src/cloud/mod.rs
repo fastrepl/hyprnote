@@ -17,7 +17,7 @@ mod tests {
             .language(crate::Language::En)
             .build();
 
-        let audio = rodio::Decoder::new_wav(std::io::BufReader::new(
+        let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::korean_2::AUDIO_PATH).unwrap(),
         ))
         .unwrap();

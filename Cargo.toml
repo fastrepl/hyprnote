@@ -176,7 +176,7 @@ cpal = "0.15.3"
 dasp = "0.11.0"
 hound = "3.5.1"
 realfft = "3.4.0"
-rodio = "0.20.1"
+rodio = { version = "0.20.1", features = ["symphonia"] }
 
 kalosm-common = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 kalosm-llama = { git = "https://github.com/floneum/floneum", rev = "52967ae" }

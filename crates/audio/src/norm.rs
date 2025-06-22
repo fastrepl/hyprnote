@@ -132,7 +132,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_normalize() {
-        let audio = rodio::Decoder::new_wav(std::io::BufReader::new(
+        let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
         ))
         .unwrap();

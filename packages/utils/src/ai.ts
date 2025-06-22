@@ -4,7 +4,7 @@ import { customProvider, extractReasoningMiddleware, type TextStreamPart, type T
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { fetch as customFetch } from "@hypr/utils";
 
-export { generateText, type Provider, smoothStream, streamText } from "ai";
+export { generateObject, generateText, type Provider, smoothStream, streamText } from "ai";
 
 import { useChat as useChat$1 } from "@ai-sdk/react";
 

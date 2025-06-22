@@ -54,7 +54,8 @@ impl WhisperBuilder {
 
         let ctx = WhisperContext::new_with_params(&model_path, context_param).unwrap();
         let state = ctx.create_state().unwrap();
-        let eot = ctx.token_eot();
+        let token_eot = ctx.token_eot();
+        let token_beg = ctx.token_beg();
 
         let language = self.language.unwrap_or(crate::Language::En);
 
@@ -63,7 +64,8 @@ impl WhisperBuilder {
             static_prompt: self.static_prompt.unwrap_or_default(),
             dynamic_prompt: self.dynamic_prompt.unwrap_or_default(),
             state,
-            eot,
+            token_eot,
+            token_beg,
         }
     }
 
@@ -83,7 +85,8 @@ pub struct Whisper {
     static_prompt: String,
     dynamic_prompt: String,
     state: WhisperState,
-    eot: WhisperToken,
+    token_eot: WhisperToken,
+    token_beg: WhisperToken,
 }
 
 impl Whisper {
@@ -104,6 +107,10 @@ impl Whisper {
             p.set_translate(false);
             p.set_language(Some(self.language.as_ref()));
             p.set_initial_prompt(&initial_prompt);
+
+            unsafe {
+                Self::suppress_beg(&mut p, self.token_beg);
+            }
 
             p.set_no_timestamps(true);
             p.set_token_timestamps(false);
@@ -171,7 +178,7 @@ impl Whisper {
                 Err(_) => continue,
             };
 
-            if token_id >= self.eot {
+            if token_id >= self.token_eot {
                 continue;
             }
 
@@ -191,6 +198,29 @@ impl Whisper {
         }
 
         total_confidence / valid_tokens as f32
+    }
+
+    unsafe fn suppress_beg(params: &mut FullParams, token_beg: WhisperToken) {
+        unsafe extern "C" fn logits_filter_callback(
+            _ctx: *mut whisper_rs::whisper_rs_sys::whisper_context,
+            _state: *mut whisper_rs::whisper_rs_sys::whisper_state,
+            _tokens: *const whisper_rs::whisper_rs_sys::whisper_token_data,
+            _n_tokens: std::os::raw::c_int,
+            logits: *mut f32,
+            user_data: *mut std::os::raw::c_void,
+        ) {
+            if logits.is_null() || user_data.is_null() {
+                return;
+            }
+
+            let token_beg = *(user_data as *const WhisperToken);
+            *logits.offset(token_beg as isize) = f32::NEG_INFINITY;
+        }
+
+        params.set_filter_logits_callback(Some(logits_filter_callback));
+        params.set_filter_logits_callback_user_data(
+            &token_beg as *const WhisperToken as *mut std::ffi::c_void,
+        );
     }
 }
 

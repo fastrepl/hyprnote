@@ -42,6 +42,8 @@ Default permissions for the plugin
 - `allow-list-chat-messages`
 - `allow-create-chat-group`
 - `allow-upsert-chat-message`
+- `allow-upsert-tag`
+- `allow-delete-tag`
 - `allow-list-all-tags`
 - `allow-list-session-tags`
 - `allow-assign-tag-to-session`
@@ -182,6 +184,32 @@ Enables the delete_session command without any pre-configured scope.
 <td>
 
 Denies the delete_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-delete-tag`
+
+</td>
+<td>
+
+Enables the delete_tag command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-delete-tag`
+
+</td>
+<td>
+
+Denies the delete_tag command without any pre-configured scope.
 
 </td>
 </tr>
@@ -1092,6 +1120,32 @@ Enables the upsert_session command without any pre-configured scope.
 <td>
 
 Denies the upsert_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-upsert-tag`
+
+</td>
+<td>
+
+Enables the upsert_tag command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-upsert-tag`
+
+</td>
+<td>
+
+Denies the upsert_tag command without any pre-configured scope.
 
 </td>
 </tr>

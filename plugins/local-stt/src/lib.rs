@@ -104,7 +104,7 @@ mod test {
             })
             .build();
 
-        let audio_source = rodio::Decoder::new_wav(std::io::BufReader::new(
+        let audio_source = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
         ))
         .unwrap();
@@ -131,7 +131,7 @@ mod test {
             .join("ggml-tiny.en-q8_0.bin");
 
         let words = app
-            .process_wav(model_path, hypr_data::english_1::AUDIO_PATH)
+            .process_recorded(model_path, hypr_data::english_1::AUDIO_PATH)
             .await
             .unwrap();
 

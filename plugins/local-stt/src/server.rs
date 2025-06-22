@@ -165,47 +165,13 @@ async fn websocket(socket: WebSocket, model: hypr_whisper::local::Whisper, guard
         _ => HallucinationPreventionLevel::Aggressive, // default
     };
 
-    // Create predictor based on configuration
-    let (predictor, chunk_config): (
+    // Helper function to create predictor with fallback logic
+    fn create_predictor_with_fallback(
+        prevention_level: HallucinationPreventionLevel,
+    ) -> (
         Box<dyn hypr_chunker::Predictor + Send + Sync + Unpin>,
         ChunkConfig,
-    ) = if use_smart_predictor {
-        match SmartPredictor::new_realtime(16000) {
-            Ok(smart) => {
-                tracing::info!("Using SmartPredictor with real-time optimizations");
-                let config = ChunkConfig::default().with_hallucination_prevention(prevention_level);
-                (Box::new(smart), config)
-            }
-            Err(e) => {
-                tracing::warn!(
-                    "Failed to initialize SmartPredictor: {}, falling back to Silero",
-                    e
-                );
-                // Fallback to Silero
-                match hypr_chunker::Silero::new() {
-                    Ok(silero) => {
-                        tracing::info!("Using Silero VAD for audio chunking");
-                        let config =
-                            ChunkConfig::default().with_hallucination_prevention(prevention_level);
-                        (Box::new(silero), config)
-                    }
-                    Err(e) => {
-                        tracing::warn!(
-                            "Failed to initialize Silero VAD: {}, falling back to RMS",
-                            e
-                        );
-                        let config = ChunkConfig {
-                            max_duration: std::time::Duration::from_secs(15),
-                            ..Default::default()
-                        }
-                        .with_hallucination_prevention(prevention_level);
-                        (Box::new(hypr_chunker::RMS::new()), config)
-                    }
-                }
-            }
-        }
-    } else {
-        // Use Silero directly if smart predictor is disabled
+    ) {
         match hypr_chunker::Silero::new() {
             Ok(silero) => {
                 tracing::info!("Using Silero VAD for audio chunking");
@@ -225,6 +191,31 @@ async fn websocket(socket: WebSocket, model: hypr_whisper::local::Whisper, guard
                 (Box::new(hypr_chunker::RMS::new()), config)
             }
         }
+    }
+
+    // Create predictor based on configuration
+    let (predictor, chunk_config): (
+        Box<dyn hypr_chunker::Predictor + Send + Sync + Unpin>,
+        ChunkConfig,
+    ) = if use_smart_predictor {
+        match SmartPredictor::new_realtime(16000) {
+            Ok(smart) => {
+                tracing::info!("Using SmartPredictor with real-time optimizations");
+                let config = ChunkConfig::default().with_hallucination_prevention(prevention_level);
+                (Box::new(smart), config)
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "Failed to initialize SmartPredictor: {}, falling back to Silero",
+                    e
+                );
+                // Fallback to Silero/RMS
+                create_predictor_with_fallback(prevention_level)
+            }
+        }
+    } else {
+        // Use Silero directly if smart predictor is disabled
+        create_predictor_with_fallback(prevention_level)
     };
 
     tracing::info!(

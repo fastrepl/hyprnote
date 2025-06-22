@@ -1,16 +1,12 @@
 // https://github.com/tazz4843/whisper-rs/blob/master/examples/audio_transcription.rs
 
-use lazy_static::lazy_static;
-use regex::Regex;
+use super::Segment;
+use super::WhisperReporter;
 
 use whisper_rs::{
     FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters, WhisperState,
     WhisperToken,
 };
-
-lazy_static! {
-    static ref TRAILING_DOTS: Regex = Regex::new(r"\.{2,}$").unwrap();
-}
 
 #[derive(Default)]
 pub struct WhisperBuilder {
@@ -57,8 +53,14 @@ impl WhisperBuilder {
         let eot = ctx.token_eot();
 
         let language = self.language.unwrap_or(crate::Language::En);
+        let reporter = if cfg!(debug_assertions) {
+            Some(WhisperReporter::default())
+        } else {
+            None
+        };
 
         Whisper {
+            reporter,
             language,
             static_prompt: self.static_prompt.unwrap_or_default(),
             dynamic_prompt: self.dynamic_prompt.unwrap_or_default(),
@@ -79,6 +81,10 @@ impl WhisperBuilder {
 }
 
 pub struct Whisper {
+    #[cfg(debug_assertions)]
+    reporter: Option<WhisperReporter>,
+    #[cfg(not(debug_assertions))]
+    reporter: Option<()>,
     language: crate::Language,
     static_prompt: String,
     dynamic_prompt: String,
@@ -152,6 +158,10 @@ impl Whisper {
             .collect::<Vec<&str>>()
             .join(" ");
 
+        if let Some(reporter) = &mut self.reporter {
+            reporter.save(audio, &segments);
+        }
+
         Ok(segments)
     }
 
@@ -191,41 +201,6 @@ impl Whisper {
         }
 
         total_confidence / valid_tokens as f32
-    }
-}
-
-// https://github.com/floneum/floneum/blob/52967ae/models/rwhisper/src/lib.rs#L116
-#[derive(Debug, Default)]
-pub struct Segment {
-    pub text: String,
-    pub start: f32,
-    pub end: f32,
-    pub confidence: f32,
-}
-
-impl Segment {
-    pub fn text(&self) -> &str {
-        &self.text
-    }
-
-    pub fn start(&self) -> f32 {
-        self.start
-    }
-
-    pub fn end(&self) -> f32 {
-        self.end
-    }
-
-    pub fn duration(&self) -> f32 {
-        self.end - self.start
-    }
-
-    pub fn confidence(&self) -> f32 {
-        self.confidence
-    }
-
-    pub fn trim(&mut self) {
-        self.text = TRAILING_DOTS.replace(&self.text, "").to_string();
     }
 }
 

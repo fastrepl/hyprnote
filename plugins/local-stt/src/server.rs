@@ -244,9 +244,8 @@ async fn websocket(socket: WebSocket, model: hypr_whisper::local::Whisper, guard
                 let duration = chunk.duration() as u64;
                 let confidence = chunk.confidence();
 
-                // Note: With SmartPredictor, we could potentially use lower confidence thresholds
-                // since it provides better speech/noise discrimination through multi-feature fusion
-                if confidence < 0.4 {
+                // We previously used 0.4, but with the new chunking logic, we now use 0.1
+                if confidence < 0.1 {
                     tracing::warn!(confidence, "skipping_transcript: {}", text);
                     continue;
                 }

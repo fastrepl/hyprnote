@@ -20,17 +20,20 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 hypr-audio-utils = { workspace = true }
 hypr-ws = { workspace = true }
 
-bytes = { workspace = true }
 cpal = { workspace = true }
-futures-util = { workspace = true }
+hound = { workspace = true }
 kalosm-sound = { workspace = true, default-features = false }
 rodio = { workspace = true }
+
+bytes = { workspace = true }
+futures-util = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 url = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }
 
 lazy_static = { workspace = true, optional = true }
 regex = { workspace = true, optional = true }

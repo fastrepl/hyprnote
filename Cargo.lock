@@ -16142,6 +16142,7 @@ dependencies = [
  "data",
  "dirs 6.0.0",
  "futures-util",
+ "hound",
  "kalosm-sound",
  "lazy_static",
  "llama",
@@ -16154,6 +16155,7 @@ dependencies = [
  "tokio",
  "tracing",
  "url",
+ "uuid",
  "whisper-rs",
  "ws",
 ]

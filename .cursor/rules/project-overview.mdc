@@ -1,0 +1,46 @@
+---
+description: High-level overview of the Hyprnote project
+globs: []
+alwaysApply: true
+---
+
+# Hyprnote Project Overview
+
+Hyprnote is an AI-powered meeting notepad that runs **offline and locally**. It's a Tauri-based desktop application designed for privacy-first meeting recording, transcription, and AI-powered summarization.
+
+## Key Features
+- Records and transcribes meetings locally
+- Generates powerful summaries from raw meeting notes
+- Works completely offline using open-source models (Whisper & Llama)
+- Local-first architecture for privacy
+- Extensible plugin system
+
+## Tech Stack
+- **Frontend**: TypeScript, React, Tauri
+- **Backend**: Rust (for core functionality and native plugins)
+- **Monorepo Management**: Turbo with pnpm
+- **Code Formatting**: dprint (TypeScript/Markdown) + rustfmt (Rust)
+- **Database**: SQLite via libsql/Turso
+- **Audio Processing**: Custom Rust crates with platform-specific implementations
+- **AI/ML**: ONNX runtime, Whisper (local STT), Llama (local LLM)
+- **State Management**: Zustand (client) + React Query (server)
+
+## Project Structure
+- `apps/desktop/`: Main Tauri desktop application
+- `apps/app/`: Web application version (shares code with desktop)
+- `crates/`: 47 specialized Rust libraries for core functionality
+- `plugins/`: Tauri plugins with TypeScript bindings
+- `packages/`: Shared TypeScript packages
+
+## Notable Features
+- Real-time audio processing pipeline (capture → VAD → echo cancellation → chunking → STT)
+- Multiple STT backends: Whisper (local), Deepgram/Clova (cloud)
+- Speaker diarization via Pyannote
+- Platform-specific integrations (macOS NSPanel, Apple Calendar, etc.)
+- Grammar-based structured LLM output (GBNF)
+- Extensible plugin architecture with IPC bridge
+
+## Platform Support
+- macOS (public beta)
+- Windows (coming soon)
+- Linux (planned)

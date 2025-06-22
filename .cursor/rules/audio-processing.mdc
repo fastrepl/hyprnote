@@ -1,0 +1,71 @@
+---
+description: Audio processing pipeline patterns and best practices
+globs:
+  - "crates/audio/**/*.rs"
+  - "crates/chunker/**/*.rs"
+  - "crates/vad/**/*.rs"
+  - "crates/aec/**/*.rs"
+  - "crates/denoise/**/*.rs"
+  - "crates/stt*/**/*.rs"
+alwaysApply: false
+---
+
+# Audio Processing Pipeline
+
+## Architecture Overview
+Real-time audio capture → VAD → Echo cancellation → Chunking → STT
+
+## Key Components
+
+### Audio Capture (`crates/audio/`)
+- Platform-specific implementations:
+  - macOS: CoreAudio
+  - Windows: WASAPI
+  - Linux: ALSA
+- Zero-copy operations for performance
+- Stream-based processing
+
+### Voice Activity Detection (`crates/vad/`)
+- Silero VAD with ONNX runtime
+- Minimum 480 samples (30ms at 16kHz) requirement
+- Confidence thresholds based on speech physics
+
+### Audio Chunking (`crates/chunker/`)
+- SmartPredictor for advanced feature analysis
+- Multi-feature fusion: VAD + Speech Quality + SNR
+- Fallback chain: SmartPredictor → Silero → RMS
+
+### Echo Cancellation (`crates/aec/`, `crates/aec2/`)
+- Multiple AEC implementations
+- Real-time processing requirements
+
+### Speech-to-Text (`crates/stt*`)
+- Unified interface in `crates/stt/`
+- Multiple backends:
+  - Local: Whisper (with Metal/CUDA acceleration)
+  - Cloud: Deepgram, Clova, Rtzr
+- Stream-based transcription
+
+## Performance Guidelines
+- Use stream processing for real-time data
+- Avoid memory allocations in hot paths
+- Platform-specific SIMD optimizations
+- ONNX GraphOptimizationLevel::Level3
+- Chunk-based processing for long sessions
+
+## Error Handling Patterns
+```rust
+#[derive(thiserror::Error, Debug)]
+pub enum AudioError {
+    #[error("Buffer underrun")]
+    BufferUnderrun,
+    
+    #[error("Device not available: {0}")]
+    DeviceError(String),
+}
+```
+
+## Testing Considerations
+- Use `serial_test` for audio device tests
+- Mock audio streams for unit tests
+- Integration tests with sample audio files

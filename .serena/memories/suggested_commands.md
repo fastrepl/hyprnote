@@ -1,0 +1,102 @@
+# Suggested Commands for Hyprnote Development
+
+## TypeScript/React Development
+
+### Essential Commands
+```bash
+# Install dependencies (ALWAYS use pnpm)
+pnpm install
+
+# Run desktop app in development mode
+turbo -F @hypr/desktop tauri:dev
+
+# Build desktop app for production
+turbo -F @hypr/desktop tauri:build
+
+# Run type checking across all packages
+turbo typecheck
+
+# Format code (uses dprint for TypeScript/JSON/Markdown)
+dprint fmt
+
+# Clean build artifacts
+turbo clean
+```
+
+## Rust Development
+
+### Essential Commands
+```bash
+# Check Rust compilation
+cargo check --tests
+
+# Run Clippy lints
+cargo clippy --tests
+
+# Format Rust code
+cargo fmt --all
+
+# Generate TypeScript bindings from Rust plugins (CRITICAL after modifying plugin commands)
+cargo test export_types
+# Alternative: task bindgen
+
+# Run all Rust tests
+cargo test
+
+# Clean Rust build artifacts
+cargo clean
+
+# Run bacon for continuous compilation checking
+bacon
+```
+
+## System & Utility Commands
+
+### Git Commands
+```bash
+# Standard git operations
+git status
+git add .
+git commit -m "message"
+git push
+git pull
+```
+
+### Task Runner Commands
+```bash
+# Bump version (increments patch version)
+task bump
+
+# Extract i18n strings
+task i18n
+
+# Forward Stripe webhooks for local development
+task stripe
+
+# Set production environment variables in Fly.io
+task app:env
+```
+
+### Common Utilities (Linux)
+```bash
+ls -la        # List files with details
+find . -name "*.rs"  # Find files by pattern
+rg "pattern"  # Use ripgrep for fast text search
+tree -L 2     # Show directory tree
+```
+
+## When Task is Completed
+
+After making changes, always run:
+1. `cargo fmt --all` - Format Rust code
+2. `dprint fmt` - Format TypeScript/JSON/Markdown
+3. `cargo clippy --tests` - Check Rust lints
+4. `turbo typecheck` - Check TypeScript types
+5. `cargo test export_types` - If you modified Rust plugin commands
+6. `cargo test` - Run Rust tests
+
+## Notes
+- Always use `pnpm` for JavaScript dependencies, never npm or yarn
+- Use `turbo` for running tasks in the monorepo
+- After modifying Rust plugin commands, MUST run `cargo test export_types`
+- The project uses dprint for formatting, not prettier

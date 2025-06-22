@@ -1,0 +1,116 @@
+---
+description: Code style conventions and best practices for Hyprnote development
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.rs"
+  - "**/*.js"
+  - "**/*.jsx"
+alwaysApply: false
+---
+
+# Code Style and Conventions
+
+## TypeScript/React Conventions
+
+### Naming Conventions
+- **Files**: kebab-case (e.g., `session-store.ts`, `audio-utils.tsx`)
+- **Components**: PascalCase (e.g., `SessionManager`, `AudioRecorder`)
+- **Hooks**: Prefix with `use` (e.g., `useSession`, `useAudioState`)
+- **Constants**: UPPER_SNAKE_CASE for true constants
+
+### Code Style
+- Functional components with TypeScript strict mode
+- Use React hooks and avoid class components
+- Custom hooks for reusable logic
+- Zustand for global state management
+- TanStack Query (React Query) for server state
+- Avoid `any` types - use proper TypeScript types
+
+### File Organization
+- Place tests next to source files with `.test.ts` or `.spec.ts` suffix
+- Group related components in feature folders
+- Shared utilities in `packages/utils/`
+
+## Rust Conventions
+
+### Code Organization
+- Module organization with clear public interfaces
+- Error types using `thiserror` derive macro
+- Async-first design with Tokio runtime
+- Platform-specific code behind feature flags
+- Use `tracing` for logging, not `println!`
+
+### Error Handling
+```rust
+// Use thiserror for error types
+#[derive(thiserror::Error, Debug)]
+pub enum AudioError {
+    #[error("Failed to initialize audio device: {0}")]
+    InitializationError(String),
+    
+    #[error("Buffer overflow")]
+    BufferOverflow,
+}
+```
+
+### Performance Patterns
+- Zero-copy operations where possible
+- Stream-based processing for real-time data
+- Use builders for complex configurations
+- Platform abstractions with clean interfaces
+
+### Testing
+- Unit tests in `#[cfg(test)]` modules within source files
+- Integration tests in `tests/` directories
+- Use `serial_test` for tests that need exclusive access
+
+## Formatting Rules
+
+### TypeScript/JavaScript
+- Handled by dprint
+- Single body position: nextLine for functions
+- 2 spaces indentation
+- Single quotes for strings
+
+### Rust
+- Handled by rustfmt
+- Edition 2021
+- Standard Rust formatting conventions
+
+### Markdown
+- Formatted by dprint
+- Includes `.jinja` templates and documentation
+
+## Comments and Documentation
+
+### TypeScript
+- JSDoc comments for public APIs
+- Inline comments for complex logic
+- Avoid obvious comments
+
+### Rust
+- Doc comments (`///`) for public items
+- Module-level documentation with `//!`
+- Examples in doc comments where helpful
+- SAFETY comments for unsafe blocks
+
+## Import Organization
+
+### TypeScript
+1. External imports (npm packages)
+2. Internal package imports (@hypr/*)
+3. Relative imports (./...)
+4. Type imports last
+
+### Rust
+1. Standard library imports
+2. External crate imports
+3. Internal crate imports
+4. Module imports (use super::*, use crate::*)
+
+## Platform-Specific Code
+- Use feature flags for platform-specific Rust code
+- Target-specific dependencies in Cargo.toml
+- Platform modules (e.g., `audio::macos`, `audio::windows`)
+- Clear abstractions over platform differences

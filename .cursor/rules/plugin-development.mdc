@@ -1,0 +1,67 @@
+---
+description: Tauri plugin development patterns and TypeScript binding generation
+globs:
+  - "plugins/**/*.rs"
+  - "plugins/**/*.ts"
+  - "plugins/**/Cargo.toml"
+  - "plugins/**/package.json"
+alwaysApply: false
+---
+
+# Tauri Plugin Development
+
+## Plugin Structure
+Each plugin in `plugins/[name]/` contains:
+- `src/` - Rust implementation
+- `guest-js/` - Auto-generated TypeScript bindings
+- `Cargo.toml` - Rust dependencies
+- `package.json` - TypeScript package config
+
+## Creating a New Plugin
+1. Create plugin directory structure
+2. Implement Rust commands in `src/commands.rs`
+3. Expose commands via Tauri's IPC bridge
+4. Run `cargo test export_types` to generate TypeScript bindings
+5. Import and use in React components
+
+## Command Pattern
+```rust
+#[tauri::command]
+pub async fn my_command(param: String) -> Result<Response, Error> {
+    // Implementation
+}
+```
+
+## TypeScript Binding Generation
+**CRITICAL**: After modifying any plugin commands:
+```bash
+cargo test export_types
+```
+
+This generates TypeScript types in `guest-js/` that match your Rust API.
+
+## Plugin Registration
+In `src/lib.rs`:
+```rust
+pub fn init<R: Runtime>() -> TauriPlugin<R> {
+    Builder::new("plugin-name")
+        .invoke_handler(tauri::generate_handler![
+            commands::my_command,
+        ])
+        .build()
+}
+```
+
+## Using Plugins in Frontend
+```typescript
+import { myCommand } from "@hypr/plugin-name";
+
+const result = await myCommand("parameter");
+```
+
+## Best Practices
+- Keep plugin APIs focused and minimal
+- Use async commands for I/O operations
+- Handle errors with proper Result types
+- Document public command APIs
+- Test TypeScript binding generation

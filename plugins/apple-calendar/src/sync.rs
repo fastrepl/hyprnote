@@ -1,7 +1,7 @@
 use chrono::Utc;
 
 #[cfg(target_os = "macos")]
-use hypr_calendar_interface::EventFilter;
+use hypr_calendar_interface::{CalendarSource, EventFilter};
 use hypr_db_user::{
     GetSessionFilter, ListEventFilter, ListEventFilterCommon, ListEventFilterSpecific,
 };
@@ -185,7 +185,9 @@ async fn list_system_calendars() -> Vec<hypr_calendar_interface::Calendar> {
     }
 }
 
-async fn list_system_events(#[cfg_attr(not(target_os = "macos"), allow(unused_variables))] calendar_tracking_id: String) -> Vec<hypr_calendar_interface::Event> {
+async fn list_system_events(
+    #[cfg_attr(not(target_os = "macos"), allow(unused_variables))] calendar_tracking_id: String,
+) -> Vec<hypr_calendar_interface::Event> {
     #[cfg(target_os = "macos")]
     {
         tauri::async_runtime::spawn_blocking(move || {

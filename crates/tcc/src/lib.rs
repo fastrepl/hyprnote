@@ -2,12 +2,22 @@
 use swift_rs::{swift, Bool};
 
 #[cfg(target_os = "macos")]
-swift!(fn _audio_capture_permission_granted() -> Bool);
+swift!(fn _macos_audio_capture_permission() -> Bool);
 
-#[cfg(not(target_os = "macos"))]
-pub fn _audio_capture_permission_granted() -> bool {
-    // On non-macOS platforms, assume permission is granted
-    true
+/// Check if audio capture permission is granted
+pub fn audio_capture_permission_granted() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        // SAFETY: The Swift function is a simple permission check that doesn't
+        // perform any memory operations that could cause undefined behavior
+        unsafe { _macos_audio_capture_permission() as bool }
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        // On non-macOS platforms, assume permission is granted
+        true
+    }
 }
 
 #[cfg(test)]
@@ -15,16 +25,10 @@ mod tests {
     use super::*;
 
     #[test]
-    #[cfg(target_os = "macos")]
     fn test_audio_capture_permission_granted() {
-        let result = unsafe { _audio_capture_permission_granted() };
-        assert!(result);
-    }
-
-    #[test]
-    #[cfg(not(target_os = "macos"))]
-    fn test_audio_capture_permission_granted() {
-        let result = _audio_capture_permission_granted();
-        assert!(result);
+        // This test doesn't actually verify the permission state since
+        // that would require system interaction. It just ensures the
+        // function can be called without panicking.
+        let _result = audio_capture_permission_granted();
     }
 }

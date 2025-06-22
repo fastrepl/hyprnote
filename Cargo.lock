@@ -16186,8 +16186,8 @@ dependencies = [
 
 [[package]]
 name = "whisper-rs"
-version = "0.14.2"
-source = "git+https://github.com/tazz4843/whisper-rs?rev=de30f9c#de30f9c23da52c81b06fa78bab005ab353d74637"
+version = "0.14.3"
+source = "git+https://github.com/tazz4843/whisper-rs?rev=e3d67d5#e3d67d513b86c6360f62e1f563bc4601c87946d6"
 dependencies = [
  "tracing",
  "whisper-rs-sys",
@@ -16195,8 +16195,8 @@ dependencies = [
 
 [[package]]
 name = "whisper-rs-sys"
-version = "0.12.1"
-source = "git+https://github.com/tazz4843/whisper-rs?rev=de30f9c#de30f9c23da52c81b06fa78bab005ab353d74637"
+version = "0.13.0"
+source = "git+https://github.com/tazz4843/whisper-rs?rev=e3d67d5#e3d67d513b86c6360f62e1f563bc4601c87946d6"
 dependencies = [
  "bindgen 0.71.1",
  "cfg-if",

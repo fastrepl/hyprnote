@@ -7,6 +7,16 @@ exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-local-stt"
 description = ""
 
+[features]
+default = []
+coreml = ["hypr-whisper-local/coreml"]
+cuda = ["hypr-whisper-local/cuda"]
+hipblas = ["hypr-whisper-local/hipblas"]
+openblas = ["hypr-whisper-local/openblas"]
+metal = ["hypr-whisper-local/metal"]
+vulkan = ["hypr-whisper-local/vulkan"]
+openmp = ["hypr-whisper-local/openmp"]
+
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
 

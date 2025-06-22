@@ -10,6 +10,7 @@ metal = ["llama-cpp-2/metal"]
 cuda = ["llama-cpp-2/cuda"]
 vulkan = ["llama-cpp-2/vulkan"]
 native = ["llama-cpp-2/native"]
+openmp = ["llama-cpp-2/openmp"]
 
 [dependencies]
 hypr-gguf = { workspace = true }

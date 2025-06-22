@@ -93,3 +93,22 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-stream = { workspace = true }
 
 hound = { workspace = true }
+
+[features]
+default = []
+llm-metal = ["tauri-plugin-local-llm/metal"]
+llm-cuda = ["tauri-plugin-local-llm/cuda"]
+llm-vulkan = ["tauri-plugin-local-llm/vulkan"]
+llm-native = ["tauri-plugin-local-llm/native"]
+
+stt-coreml = ["tauri-plugin-local-stt/coreml"]
+stt-cuda = ["tauri-plugin-local-stt/cuda"]
+stt-hipblas = ["tauri-plugin-local-stt/hipblas"]
+stt-openblas = ["tauri-plugin-local-stt/openblas"]
+stt-metal = ["tauri-plugin-local-stt/metal"]
+stt-vulkan = ["tauri-plugin-local-stt/vulkan"]
+stt-openmp = ["tauri-plugin-local-stt/openmp"]
+
+metal = ["llm-metal", "stt-metal"]
+cuda = ["llm-cuda", "stt-cuda"]
+vulkan = ["llm-vulkan", "stt-vulkan"]

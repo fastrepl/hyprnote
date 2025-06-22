@@ -20,6 +20,7 @@ hypr-llama = { workspace = true }
 
 dirs = { workspace = true }
 futures-util = { workspace = true }
+tokio = { workspace = true }
 
 [dependencies]
 hypr-audio-utils = { workspace = true }

@@ -95,7 +95,9 @@ tokio-stream = { workspace = true }
 hound = { workspace = true }
 
 [features]
-default = []
+macos-default = ["llm-metal", "stt-metal", "stt-coreml"]
+windows-default = ["llm-vulkan", "llm-native", "stt-vulkan", "stt-openblas"]
+
 llm-metal = ["tauri-plugin-local-llm/metal"]
 llm-cuda = ["tauri-plugin-local-llm/cuda"]
 llm-vulkan = ["tauri-plugin-local-llm/vulkan"]

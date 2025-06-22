@@ -44,13 +44,15 @@ impl WhisperBuilder {
     }
 
     pub fn build(self) -> Whisper {
-        unsafe { Self::suppress_log() };
+        if cfg!(debug_assertions) {
+            unsafe { Self::suppress_log() };
+        }
 
         let context_param = {
             let mut p = WhisperContextParameters::default();
             p.gpu_device = 0;
             p.use_gpu = true;
-            p.flash_attn = true;
+            p.flash_attn = false; // crash on macos
             p.dtw_parameters.mode = whisper_rs::DtwMode::None;
             p
         };

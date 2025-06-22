@@ -51,7 +51,8 @@ hypr-notification2 = { path = "crates/notification2", package = "notification2" 
 hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
-hypr-pyannote = { path = "crates/pyannote", package = "pyannote" }
+hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
+hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
 hypr-rtzr = { path = "crates/rtzr", package = "rtzr" }
 hypr-s3 = { path = "crates/s3", package = "s3" }
 hypr-slack = { path = "crates/slack", package = "slack" }

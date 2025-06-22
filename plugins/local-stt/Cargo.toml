@@ -9,7 +9,8 @@ description = ""
 
 [features]
 default = []
-coreml = ["hypr-whisper-local/coreml"]
+coreml = ["hypr-whisper-local/coreml", "hypr-pyannote-local/coreml"]
+directml = ["hypr-pyannote-local/directml"]
 cuda = ["hypr-whisper-local/cuda"]
 hipblas = ["hypr-whisper-local/hipblas"]
 openblas = ["hypr-whisper-local/openblas"]
@@ -39,7 +40,7 @@ hypr-chunker = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-file = { workspace = true }
 hypr-listener-interface = { workspace = true }
-hypr-pyannote = { workspace = true, features = ["local"] }
+hypr-pyannote-local = { workspace = true }
 hypr-whisper = { workspace = true }
 hypr-whisper-local = { workspace = true }
 hypr-ws-utils = { workspace = true }

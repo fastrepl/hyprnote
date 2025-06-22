@@ -186,7 +186,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             .dynamic_prompt("")
             .build();
 
-        let mut segmenter = hypr_pyannote::local::segmentation::Segmenter::new(16000).unwrap();
+        let mut segmenter = hypr_pyannote_local::segmentation::Segmenter::new(16000).unwrap();
         let segments = segmenter.process(&samples_i16, 16000).unwrap();
 
         let mut words = Vec::new();

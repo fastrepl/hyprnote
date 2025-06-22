@@ -10366,7 +10366,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "pyannote"
+name = "pyannote-cloud"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "data",
+ "reqwest 0.12.15",
+ "rodio",
+ "serde",
+ "specta",
+ "thiserror 2.0.12",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "pyannote-local"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -10382,7 +10397,6 @@ dependencies = [
  "specta",
  "thiserror 2.0.12",
  "tokio",
- "url",
 ]
 
 [[package]]
@@ -13782,7 +13796,7 @@ dependencies = [
  "kalosm-sound",
  "language",
  "listener-interface",
- "pyannote",
+ "pyannote-local",
  "reqwest 0.12.15",
  "rodio",
  "serde",

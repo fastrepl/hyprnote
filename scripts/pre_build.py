@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # https://github.com/thewh1teagle/vibe/blob/9ffde8a/scripts/pre_build.js
 
 import os
@@ -184,4 +186,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    print(tauri_dir)

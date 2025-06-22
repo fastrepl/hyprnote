@@ -1,5 +1,4 @@
-use dasp::sample::{FromSample, Sample, ToSample};
-use simsimd::SpatialSimilarity;
+use dasp::sample::ToSample;
 
 use hypr_onnx::{
     ndarray::{self, Array2},
@@ -40,7 +39,7 @@ impl EmbeddingExtractor {
         Ok(embeddings)
     }
 
-    pub fn cluster(&self, n_clusters: usize, embeddings: &[f32]) -> Vec<usize> {
+    pub fn cluster(&self, _n_clusters: usize, embeddings: &[f32]) -> Vec<usize> {
         let assignments = vec![0; embeddings.len()];
         assignments
     }
@@ -49,6 +48,8 @@ impl EmbeddingExtractor {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use dasp::sample::{FromSample, Sample};
 
     fn get_audio<T: FromSample<i16>>(path: &str) -> Vec<T> {
         let base = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));

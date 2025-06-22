@@ -1,0 +1,21 @@
+[package]
+name = "pyannote-cloud"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = { workspace = true, features = ["json"] }
+url = { workspace = true }
+
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+serde = { workspace = true, features = ["derive"] }
+specta = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
+hypr-data = { workspace = true }
+
+reqwest = { workspace = true, features = ["json"] }
+rodio = { workspace = true }
+tokio = { workspace = true, features = ["rt", "macros"] }

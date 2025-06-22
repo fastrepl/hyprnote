@@ -96,7 +96,7 @@ hound = { workspace = true }
 
 [features]
 macos-default = ["llm-metal", "stt-metal", "stt-coreml"]
-windows-default = ["llm-vulkan", "llm-native", "stt-vulkan", "stt-openblas"]
+windows-default = ["llm-vulkan", "llm-native", "stt-vulkan", "stt-openblas", "stt-directml"]
 
 llm-metal = ["tauri-plugin-local-llm/metal"]
 llm-cuda = ["tauri-plugin-local-llm/cuda"]
@@ -104,6 +104,7 @@ llm-vulkan = ["tauri-plugin-local-llm/vulkan"]
 llm-native = ["tauri-plugin-local-llm/native"]
 
 stt-coreml = ["tauri-plugin-local-stt/coreml"]
+stt-directml = ["tauri-plugin-local-stt/directml"]
 stt-cuda = ["tauri-plugin-local-stt/cuda"]
 stt-hipblas = ["tauri-plugin-local-stt/hipblas"]
 stt-openblas = ["tauri-plugin-local-stt/openblas"]

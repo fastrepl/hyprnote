@@ -16,6 +16,8 @@ pub enum Error {
     ConnectorError(#[from] tauri_plugin_connector::Error),
     #[error("no session")]
     NoneSession,
+    #[error("no user")]
+    NoneUser,
     #[error("start session failed")]
     StartSessionFailed,
     #[error("stop session failed")]

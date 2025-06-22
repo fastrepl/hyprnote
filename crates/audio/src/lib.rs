@@ -4,7 +4,7 @@ mod norm;
 mod speaker;
 mod stream;
 
-pub use errors::*;
+pub use errors::{AudioError, Error};
 pub use mic::*;
 pub use norm::*;
 pub use speaker::*;
@@ -74,6 +74,21 @@ impl AudioInput {
         Self {
             source: AudioSource::RealtimeMic,
             mic: Some(MicInput::default()),
+            speaker: None,
+            data: None,
+        }
+    }
+
+    pub fn from_mic_device(device_name: Option<String>) -> Self {
+        let mic_input = if let Some(name) = device_name {
+            MicInput::with_device(&name)
+        } else {
+            MicInput::default()
+        };
+
+        Self {
+            source: AudioSource::RealtimeMic,
+            mic: Some(mic_input),
             speaker: None,
             data: None,
         }

@@ -51,6 +51,7 @@ url = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tracing = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }
 
 hound = { workspace = true }
 statig = { workspace = true, features = ["async"] }

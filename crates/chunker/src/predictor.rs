@@ -211,8 +211,11 @@ impl Predictor for Silero {
 
         // If we have too few samples, pad with zeros or return false
         if samples.len() < MIN_SAMPLES {
-            // For very small chunks, assume it's not speech
-            // This typically happens during silence trimming
+            // Return false for small chunks - this is intentional and correct:
+            // 1. The ONNX model was trained on 30ms windows, not zero-padded data
+            // 2. Padding would introduce artifacts and potentially false positives
+            // 3. During trimming, small chunks at boundaries are likely silence anyway
+            // 4. The trimming logic has safety margins to prevent cutting speech
             return Ok(false);
         }
 
@@ -343,16 +346,13 @@ impl SmartPredictor {
 
     /// Multi-feature fusion for speech detection
     fn fuse_features(&self, samples: &[f32]) -> (bool, f32) {
+        // First ensure VAD has made a prediction for these samples
+        // This updates the confidence history that we'll use below
+        let _ = self.silero.predict(samples);
+
         // Get VAD speech likelihood (probability that audio contains speech)
         // This is the raw probability from the VAD, not affected by the threshold decision
-        let speech_likelihood = self.silero.get_recent_confidence_avg(1).unwrap_or_else(|| {
-            // Fallback: try to get fresh prediction if no history
-            if let Ok(_) = self.silero.predict(samples) {
-                self.silero.get_recent_confidence_avg(1).unwrap_or(0.5)
-            } else {
-                0.5 // Neutral if VAD fails
-            }
-        });
+        let speech_likelihood = self.silero.get_recent_confidence_avg(1).unwrap_or(0.5);
 
         // Get spectral features using selective extraction
         let features = crate::audio_analysis::calculate_spectral_features_selective(

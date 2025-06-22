@@ -39,6 +39,7 @@ cargo clippy --tests
 
 # Format Rust code
 cargo fmt --all
+dprint fmt
 
 # Generate TypeScript bindings from Rust plugins
 cargo test export_types

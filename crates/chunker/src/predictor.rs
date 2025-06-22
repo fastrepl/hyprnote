@@ -98,6 +98,14 @@ fn handle_mutex_lock<'a, T>(
     })
 }
 
+// Constants for confidence analysis
+const CONFIDENCE_DECAY_WINDOW: usize = 5;
+const LOW_CONFIDENCE_THRESHOLD: f32 = 0.3;
+const RAPID_DECAY_COUNT_THRESHOLD: usize = 7;
+const RAPID_DECAY_DROP_THRESHOLD: f32 = 0.3;
+const SUSTAINED_LOW_THRESHOLD: f32 = 0.2;
+const ACTIVE_CONFIDENCE_THRESHOLD: f32 = 0.5;
+
 impl Silero {
     pub fn new() -> Result<Self, crate::Error> {
         Self::with_config(SileroConfig::default())
@@ -148,7 +156,7 @@ impl Silero {
     pub fn analyze_confidence_decay(&self) -> ConfidenceProfile {
         let history = handle_mutex_lock(self.confidence_history.lock(), "confidence_history");
 
-        if history.len() < 5 {
+        if history.len() < CONFIDENCE_DECAY_WINDOW {
             return ConfidenceProfile::Unknown;
         }
 
@@ -167,15 +175,15 @@ impl Silero {
         }
 
         // Check if all recent values are low
-        let all_low = recent.iter().all(|&p| p < 0.3);
+        let all_low = recent.iter().all(|&p| p < LOW_CONFIDENCE_THRESHOLD);
         let avg_recent = recent.iter().sum::<f32>() / recent.len() as f32;
 
         // Determine profile
-        if decay_count >= 7 && total_drop > 0.3 {
+        if decay_count >= RAPID_DECAY_COUNT_THRESHOLD && total_drop > RAPID_DECAY_DROP_THRESHOLD {
             ConfidenceProfile::RapidDecay
-        } else if all_low && avg_recent < 0.2 {
+        } else if all_low && avg_recent < SUSTAINED_LOW_THRESHOLD {
             ConfidenceProfile::SustainedLow
-        } else if avg_recent > 0.5 {
+        } else if avg_recent > ACTIVE_CONFIDENCE_THRESHOLD {
             ConfidenceProfile::Active
         } else {
             ConfidenceProfile::Unknown
@@ -243,6 +251,20 @@ impl Predictor for Silero {
         Ok(is_speech)
     }
 }
+
+// Constants for multi-feature fusion
+const VAD_WEIGHT: f32 = 0.4;
+const SPEECH_QUALITY_WEIGHT: f32 = 0.3;
+const SNR_WEIGHT: f32 = 0.2;
+const ONSET_BOOST: f32 = 0.2;
+const HYSTERESIS_CURRENT_WEIGHT: f32 = 0.7;
+const HYSTERESIS_PREVIOUS_WEIGHT: f32 = 0.3;
+
+// Thresholds for different contexts
+const ACTIVE_THRESHOLD: f32 = 0.4;
+const NOISY_THRESHOLD: f32 = 0.6;
+const DEFAULT_THRESHOLD: f32 = 0.5;
+const NOISY_CONDITION_SNR_THRESHOLD: f32 = 2.0;
 
 /// Enhanced predictor that combines multiple features for smarter decisions
 pub struct SmartPredictor {
@@ -357,27 +379,28 @@ impl SmartPredictor {
 
         // Weighted feature fusion
         let mut confidence = 0.0;
-        confidence += vad_confidence * 0.4; // VAD is primary
-        confidence += speech_quality * 0.3; // Spectral quality
-        confidence += (snr.min(10.0) / 10.0) * 0.2; // SNR contribution
+        confidence += vad_confidence * VAD_WEIGHT; // VAD is primary
+        confidence += speech_quality * SPEECH_QUALITY_WEIGHT; // Spectral quality
+        confidence += (snr.min(10.0) / 10.0) * SNR_WEIGHT; // SNR contribution
 
         // Boost confidence if onset detected
         if is_onset {
-            confidence = (confidence + 0.2).min(1.0);
+            confidence = (confidence + ONSET_BOOST).min(1.0);
         }
 
         // Hysteresis for temporal stability
         let prev_confidence = self.silero.get_recent_confidence_avg(3).unwrap_or(0.5);
-        confidence = confidence * 0.7 + prev_confidence * 0.3;
+        confidence =
+            confidence * HYSTERESIS_CURRENT_WEIGHT + prev_confidence * HYSTERESIS_PREVIOUS_WEIGHT;
 
         // Dynamic threshold based on context
         let threshold =
             if self.silero.analyze_confidence_decay() == crate::ConfidenceProfile::Active {
-                0.4 // Lower threshold during active speech
-            } else if snr < 2.0 {
-                0.6 // Higher threshold in noisy conditions
+                ACTIVE_THRESHOLD // Lower threshold during active speech
+            } else if snr < NOISY_CONDITION_SNR_THRESHOLD {
+                NOISY_THRESHOLD // Higher threshold in noisy conditions
             } else {
-                0.5
+                DEFAULT_THRESHOLD
             };
 
         (confidence > threshold, confidence)

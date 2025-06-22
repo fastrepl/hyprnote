@@ -6,10 +6,53 @@ reviews:
   high_level_summary: false
   collapse_walkthrough: true
   path_instructions:
-    - path: "**/*.{js,ts,tsx,rs}"
+    - path: "**/*.{js,ts,tsx}"
       instructions: |
-        1. No error handling.
-        2. No unused imports, variables, or functions.
-        3. For comments, keep it minimal. It should be about "Why", not "What".
+        TypeScript/React Review Guidelines:
+        1. Ensure proper error handling with try-catch blocks or error boundaries
+        2. Check for unused imports, variables, or functions
+        3. Verify TypeScript strict mode compliance
+        4. Validate proper use of React hooks (dependencies, cleanup)
+        5. Check for performance issues (unnecessary re-renders, missing memoization)
+        6. Ensure consistent use of functional components
+        7. Verify proper async/await usage and promise handling
+        8. Check for accessibility concerns in UI components
+        9. Comments should explain "why" not "what" - remove obvious comments
+        10. Ensure consistent naming: kebab-case files, PascalCase components
+
+    - path: "**/*.rs"
+      instructions: |
+        Rust Review Guidelines:
+        1. Ensure proper error handling with Result/Option types
+        2. Check for clippy warnings and suggest fixes
+        3. Verify memory safety and absence of unnecessary unsafe blocks
+        4. Check for proper use of lifetimes and borrowing
+        5. Ensure efficient use of iterators over manual loops
+        6. Verify proper async/await usage with Tokio
+        7. Check for appropriate use of Arc/Mutex in concurrent code
+        8. Ensure consistent error types using thiserror
+        9. Verify proper use of tracing for logging
+        10. Comments should explain "why" not "what"
+        11. Check adherence to Rust Style Guide (enforced by rustfmt)
+        12. Verify performance-critical paths use appropriate optimizations
+
+    - path: "**/crates/audio/**/*.rs"
+      instructions: |
+        Audio Processing Specific:
+        1. Verify real-time constraints are met (no blocking operations)
+        2. Check for proper buffer management and zero-copy where possible
+        3. Ensure platform-specific code is properly feature-gated
+        4. Verify sample rate conversions are handled correctly
+        5. Check for potential audio artifacts or discontinuities
+
+    - path: "**/plugins/**/*.rs"
+      instructions: |
+        Tauri Plugin Specific:
+        1. Ensure commands are properly exposed with #[tauri::command]
+        2. Verify error types are serializable for IPC
+        3. Check for proper permission handling
+        4. Ensure TypeScript bindings will generate correctly
+        5. Verify async commands use proper runtime handling
+
 chat:
   auto_reply: false

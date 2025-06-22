@@ -14,25 +14,25 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
-tauri-plugin-db = { workspace = true }
-
-[target.'cfg(target_os = "macos")'.dependencies]
-hypr-calendar-apple = { workspace = true }
-hypr-calendar-interface = { workspace = true }
-hypr-db-user = { workspace = true }
-
 tauri = { workspace = true, features = ["test"] }
+tauri-plugin-db = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }
 
-chrono = { workspace = true }
 thiserror = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread"] }
 tracing = { workspace = true }
+
+# Dependencies needed for both platforms
+apalis = { workspace = true }
+chrono = { workspace = true }
+hypr-calendar-interface = { workspace = true }
+hypr-db-user = { workspace = true }
 uuid = { workspace = true }
 
-apalis = { workspace = true }
+[target.'cfg(target_os = "macos")'.dependencies]
+hypr-calendar-apple = { workspace = true }
 apalis-cron = { workspace = true }
-tokio = { workspace = true, features = ["rt-multi-thread"] }

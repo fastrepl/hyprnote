@@ -35,6 +35,7 @@ cargo clippy --tests
 
 # Format Rust code
 cargo fmt --all
+dprint fmt
 
 # Generate TypeScript bindings from Rust plugins
 cargo test export_types
@@ -58,24 +59,24 @@ cargo clean
 ### Key Architectural Patterns
 
 1. **Plugin System**: Each feature is implemented as a Tauri plugin with:
-    - Rust implementation in `plugins/[name]/src/`
-    - Auto-generated TypeScript bindings in `plugins/[name]/guest-js/`
-    - Commands and events exposed via Tauri's IPC bridge
+   - Rust implementation in `plugins/[name]/src/`
+   - Auto-generated TypeScript bindings in `plugins/[name]/guest-js/`
+   - Commands and events exposed via Tauri's IPC bridge
 
 2. **Audio Processing Pipeline**:
-    - Real-time audio capture → VAD → Echo cancellation → Chunking → STT
-    - Multiple STT backends: Whisper (local), Deepgram (cloud), Clova
-    - Audio state managed in `crates/audio/`
+   - Real-time audio capture → VAD → Echo cancellation → Chunking → STT
+   - Multiple STT backends: Whisper (local), Deepgram (cloud), Clova
+   - Audio state managed in `crates/audio/`
 
 3. **State Management**:
-    - Client state: Zustand stores in `packages/stores/`
-    - Server state: React Query with generated OpenAPI client
-    - Session management: Custom SessionStore handles recording state
+   - Client state: Zustand stores in `packages/stores/`
+   - Server state: React Query with generated OpenAPI client
+   - Session management: Custom SessionStore handles recording state
 
 4. **Native Platform Integration**:
-    - macOS: NSPanel, Apple Calendar integration, custom Swift code
-    - Windows: Registry entries for protocol handling
-    - Platform-specific code in `apps/desktop/src-swift/` and build scripts
+   - macOS: NSPanel, Apple Calendar integration, custom Swift code
+   - Windows: Registry entries for protocol handling
+   - Platform-specific code in `apps/desktop/src-swift/` and build scripts
 
 ## Development Workflow
 
@@ -155,11 +156,78 @@ The `crates/` directory contains 47 specialized crates organized by functionalit
 - File naming: kebab-case for files, PascalCase for components
 
 ### Rust
+- Follow the official Rust Style Guide (enforced by `rustfmt`)
 - Module organization with clear public interfaces
 - Error types using `thiserror`
 - Async-first with Tokio runtime
 - Platform-specific code behind feature flags
 - Consistent use of `tracing` for logging
+
+#### Rust Style Guide Compliance
+The project follows the [official Rust Style Guide](https://doc.rust-lang.org/stable/style-guide/). Key conventions:
+
+**Formatting (enforced by `rustfmt`):**
+- 4 spaces for indentation
+- Maximum line width: 100 characters
+- Use trailing commas in multi-line lists
+- Prefer block indentation over visual indentation
+
+**Naming Conventions:**
+- Types, traits, enum variants: `UpperCamelCase`
+- Functions, methods, variables, struct fields: `snake_case`
+- Constants, statics: `SCREAMING_SNAKE_CASE`
+- Lifetimes: short lowercase letters like `'a`
+- Type parameters: concise uppercase letters like `T`
+
+**Code Organization:**
+- Group imports: std → external crates → internal → self/super
+- Use nested imports for multiple items from same module
+- Prefer `use` statements at module level
+- One blank line between top-level items
+
+**Function and Type Formatting:**
+```rust
+// Single-line when possible
+fn process_audio(buffer: &[f32], rate: u32) -> Result<Vec<f32>, AudioError> {
+    // implementation
+}
+
+// Multi-line for complex signatures
+fn complex_function<T, U>(
+    first_param: &T,
+    second_param: U,
+    config: ProcessingConfig,
+) -> Result<ProcessedData<T, U>, ProcessingError>
+where
+    T: AudioBuffer + Send,
+    U: Processor + Clone,
+{
+    // implementation
+}
+```
+
+**Error Handling Patterns:**
+```rust
+#[derive(thiserror::Error, Debug)]
+pub enum AudioError {
+    #[error("Device initialization failed: {0}")]
+    InitFailed(String),
+    
+    #[error("Buffer overflow at position {position}")]
+    BufferOverflow { position: usize },
+}
+```
+
+**Expression vs Statement Style:**
+- Prefer expression-oriented code
+- Use `if`/`match` as expressions where appropriate
+- Avoid unnecessary temporary variables
+
+**Documentation:**
+- Use `///` for public API documentation
+- Use `//!` for module-level documentation
+- Include examples in doc comments for complex APIs
+- Document safety invariants for `unsafe` code
 
 ### Testing Strategy
 - Unit tests alongside code (`#[cfg(test)]` modules)
@@ -169,29 +237,29 @@ The `crates/` directory contains 47 specialized crates organized by functionalit
 ## Important Considerations
 
 1. **Platform-Specific Builds**:
-    - Always specify architecture for Apple Silicon builds
-    - Different macOS minimum versions affect available features
-    - Platform features: `[target.'cfg(target_os = "macos")'.dependencies]`
+   - Always specify architecture for Apple Silicon builds
+   - Different macOS minimum versions affect available features
+   - Platform features: `[target.'cfg(target_os = "macos")'.dependencies]`
 
 2. **Code Generation**:
-    - TypeScript types from Rust: Run after modifying plugin commands
-    - OpenAPI client: Generated from backend API
-    - Routes: TanStack Router with file-based routing
+   - TypeScript types from Rust: Run after modifying plugin commands
+   - OpenAPI client: Generated from backend API
+   - Routes: TanStack Router with file-based routing
 
 3. **Performance**:
-    - Audio processing is performance-critical
-    - Use native Rust implementations for heavy computation
-    - React components should be optimized for real-time updates
-    - Stream processing for real-time audio handling
+   - Audio processing is performance-critical
+   - Use native Rust implementations for heavy computation
+   - React components should be optimized for real-time updates
+   - Stream processing for real-time audio handling
 
 4. **Security**:
-    - Plugin permission system enforces access control
-    - Local-first design means sensitive data stays on device
-    - Cloud features require explicit user opt-in
-    - Platform security integration (macOS accessibility, etc.)
+   - Plugin permission system enforces access control
+   - Local-first design means sensitive data stays on device
+   - Cloud features require explicit user opt-in
+   - Platform security integration (macOS accessibility, etc.)
 
 5. **Dependencies**:
-    - Requires libomp for Llama on macOS
-    - cmake needed for Whisper compilation
-    - Xcode Command Line Tools on macOS
-    - ONNX runtime for neural network models
+   - Requires libomp for Llama on macOS
+   - cmake needed for Whisper compilation
+   - Xcode Command Line Tools on macOS
+   - ONNX runtime for neural network models

@@ -1,4 +1,6 @@
-use apalis::prelude::{Data, Error, WorkerBuilder, WorkerFactoryFn};
+use apalis::prelude::{Data, Error};
+#[cfg(target_os = "macos")]
+use apalis::prelude::{WorkerBuilder, WorkerFactoryFn};
 use chrono::{DateTime, Utc};
 
 use crate::sync::{sync_calendars, sync_events};
@@ -38,7 +40,7 @@ pub async fn perform_events_sync(_job: Job, ctx: Data<WorkerState>) -> Result<()
     Ok(())
 }
 
-pub async fn monitor(state: WorkerState) -> Result<(), std::io::Error> {
+pub async fn monitor(#[cfg_attr(not(target_os = "macos"), allow(unused_variables))] state: WorkerState) -> Result<(), std::io::Error> {
     #[cfg(target_os = "macos")]
     {
         use std::str::FromStr;

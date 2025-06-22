@@ -1,6 +1,7 @@
 use chrono::Utc;
 
-use hypr_calendar_interface::{CalendarSource, EventFilter};
+#[cfg(target_os = "macos")]
+use hypr_calendar_interface::EventFilter;
 use hypr_db_user::{
     GetSessionFilter, ListEventFilter, ListEventFilterCommon, ListEventFilterSpecific,
 };
@@ -163,38 +164,54 @@ async fn _sync_events(
 }
 
 async fn list_system_calendars() -> Vec<hypr_calendar_interface::Calendar> {
-    tauri::async_runtime::spawn_blocking(|| {
-        let handle = hypr_calendar_apple::Handle::new();
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
+    #[cfg(target_os = "macos")]
+    {
+        tauri::async_runtime::spawn_blocking(|| {
+            let handle = hypr_calendar_apple::Handle::new();
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap();
 
-        rt.block_on(async { handle.list_calendars().await.unwrap_or_default() })
-    })
-    .await
-    .unwrap_or_default()
+            rt.block_on(async { handle.list_calendars().await.unwrap_or_default() })
+        })
+        .await
+        .unwrap_or_default()
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        vec![]
+    }
 }
 
-async fn list_system_events(calendar_tracking_id: String) -> Vec<hypr_calendar_interface::Event> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let handle = hypr_calendar_apple::Handle::new();
+async fn list_system_events(#[cfg_attr(not(target_os = "macos"), allow(unused_variables))] calendar_tracking_id: String) -> Vec<hypr_calendar_interface::Event> {
+    #[cfg(target_os = "macos")]
+    {
+        tauri::async_runtime::spawn_blocking(move || {
+            let handle = hypr_calendar_apple::Handle::new();
 
-        let filter = EventFilter {
-            calendar_tracking_id,
-            from: Utc::now(),
-            to: Utc::now() + chrono::Duration::days(28),
-        };
+            let filter = EventFilter {
+                calendar_tracking_id,
+                from: Utc::now(),
+                to: Utc::now() + chrono::Duration::days(28),
+            };
 
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap();
 
-        rt.block_on(async { handle.list_events(filter).await.unwrap_or_default() })
-    })
-    .await
-    .unwrap_or_default()
+            rt.block_on(async { handle.list_events(filter).await.unwrap_or_default() })
+        })
+        .await
+        .unwrap_or_default()
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        vec![]
+    }
 }
 
 async fn list_db_calendars(
@@ -268,18 +285,26 @@ async fn list_db_events_with_session(
 }
 
 async fn check_calendar_access() -> Result<(), crate::Error> {
-    let calendar_access = tauri::async_runtime::spawn_blocking(|| {
-        let handle = hypr_calendar_apple::Handle::new();
-        handle.calendar_access_status()
-    })
-    .await
-    .unwrap_or(false);
+    #[cfg(target_os = "macos")]
+    {
+        let calendar_access = tauri::async_runtime::spawn_blocking(|| {
+            let handle = hypr_calendar_apple::Handle::new();
+            handle.calendar_access_status()
+        })
+        .await
+        .unwrap_or(false);
 
-    if !calendar_access {
-        return Err(crate::Error::CalendarAccessDenied);
+        if !calendar_access {
+            return Err(crate::Error::CalendarAccessDenied);
+        }
+
+        Ok(())
     }
 
-    Ok(())
+    #[cfg(not(target_os = "macos"))]
+    {
+        Err(crate::Error::NotSupported)
+    }
 }
 
 #[derive(Debug, Default)]

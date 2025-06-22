@@ -166,8 +166,14 @@ async fn _sync_events(
 async fn list_system_calendars() -> Vec<hypr_calendar_interface::Calendar> {
     #[cfg(target_os = "macos")]
     {
-        let handle = hypr_calendar_apple::Handle::new();
-        handle.list_calendars().await.unwrap_or_default()
+        tauri::async_runtime::spawn_blocking(|| {
+            let handle = hypr_calendar_apple::Handle::new();
+            tauri::async_runtime::block_on(async move {
+                handle.list_calendars().await.unwrap_or_default()
+            })
+        })
+        .await
+        .unwrap_or_default()
     }
 
     #[cfg(not(target_os = "macos"))]
@@ -181,15 +187,21 @@ async fn list_system_events(
 ) -> Vec<hypr_calendar_interface::Event> {
     #[cfg(target_os = "macos")]
     {
-        let handle = hypr_calendar_apple::Handle::new();
+        tauri::async_runtime::spawn_blocking(move || {
+            let handle = hypr_calendar_apple::Handle::new();
 
-        let filter = EventFilter {
-            calendar_tracking_id,
-            from: Utc::now(),
-            to: Utc::now() + chrono::Duration::days(28),
-        };
+            let filter = EventFilter {
+                calendar_tracking_id,
+                from: Utc::now(),
+                to: Utc::now() + chrono::Duration::days(28),
+            };
 
-        handle.list_events(filter).await.unwrap_or_default()
+            tauri::async_runtime::block_on(async move {
+                handle.list_events(filter).await.unwrap_or_default()
+            })
+        })
+        .await
+        .unwrap_or_default()
     }
 
     #[cfg(not(target_os = "macos"))]

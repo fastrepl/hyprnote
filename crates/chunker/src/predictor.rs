@@ -343,16 +343,16 @@ impl SmartPredictor {
 
     /// Multi-feature fusion for speech detection
     fn fuse_features(&self, samples: &[f32]) -> (bool, f32) {
-        // Get VAD confidence
-        let vad_confidence = if let Ok(is_speech) = self.silero.predict(samples) {
-            if is_speech {
+        // Get VAD speech likelihood (probability that audio contains speech)
+        // This is the raw probability from the VAD, not affected by the threshold decision
+        let speech_likelihood = self.silero.get_recent_confidence_avg(1).unwrap_or_else(|| {
+            // Fallback: try to get fresh prediction if no history
+            if let Ok(_) = self.silero.predict(samples) {
                 self.silero.get_recent_confidence_avg(1).unwrap_or(0.5)
             } else {
-                1.0 - self.silero.get_recent_confidence_avg(1).unwrap_or(0.5)
+                0.5 // Neutral if VAD fails
             }
-        } else {
-            0.5
-        };
+        });
 
         // Get spectral features using selective extraction
         let features = crate::audio_analysis::calculate_spectral_features_selective(
@@ -379,7 +379,7 @@ impl SmartPredictor {
 
         // Weighted feature fusion
         let mut confidence = 0.0;
-        confidence += vad_confidence * VAD_WEIGHT; // VAD is primary
+        confidence += speech_likelihood * VAD_WEIGHT; // VAD is primary
         confidence += speech_quality * SPEECH_QUALITY_WEIGHT; // Spectral quality
         confidence += (snr.min(10.0) / 10.0) * SNR_WEIGHT; // SNR contribution
 
@@ -407,27 +407,43 @@ impl SmartPredictor {
     }
 
     /// Calculate speech quality from spectral features
+    ///
+    /// These thresholds are based on fundamental properties of human speech that remain
+    /// consistent across languages, speakers, and recording conditions:
+    /// - Human vocal tract physics constrains formant frequencies
+    /// - Speech production mechanisms are anatomically limited
+    /// - These ranges are well-established in speech processing literature
+    ///
+    /// Making these configurable would add complexity without benefit, as deviating from
+    /// these ranges would likely indicate non-speech audio rather than edge cases.
     pub fn calculate_speech_quality_from_features(
         features: &crate::audio_analysis::SpectralFeatures,
     ) -> f32 {
         let mut quality = 0.0;
 
         // Speech typically has centroid between 300-3000 Hz
+        // Below 300 Hz: likely environmental noise or rumble
+        // Above 3000 Hz: likely high-frequency noise or non-speech
         if features.spectral_centroid > 300.0 && features.spectral_centroid < 3000.0 {
             quality += 0.3;
         }
 
-        // Good speech has moderate spread
+        // Good speech has moderate spread (200-2000 Hz)
+        // Low spread: tonal sounds (not speech)
+        // High spread: white noise or broadband noise
         if features.spectral_spread > 200.0 && features.spectral_spread < 2000.0 {
             quality += 0.2;
         }
 
-        // Pitched speech has harmonicity
+        // Pitched speech has harmonicity > 0.3
+        // This indicates periodic vocal fold vibration characteristic of voiced speech
         if features.harmonicity > 0.3 {
             quality += 0.3;
         }
 
         // Speech rolloff typically around 4-8 kHz
+        // Most speech energy is below 4 kHz, with natural rolloff
+        // Rolloff > 8 kHz suggests high-frequency noise
         if features.spectral_rolloff > 4000.0 && features.spectral_rolloff < 8000.0 {
             quality += 0.2;
         }
@@ -441,6 +457,11 @@ impl Predictor for SmartPredictor {
         let (is_speech, confidence) = self.fuse_features(samples);
 
         // Update noise profile during silence
+        // The 0.3 threshold is intentionally conservative: we only update noise profile
+        // when we're >70% confident it's NOT speech. This prevents contaminating the
+        // noise profile with speech, which would degrade future detection accuracy.
+        // A more permissive threshold risks learning speech as noise, while a stricter
+        // threshold might never update in moderately noisy environments.
         if !is_speech && confidence < 0.3 {
             self.update_noise_profile(samples);
         }

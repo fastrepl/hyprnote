@@ -29,13 +29,13 @@ pub struct SpeakerInput {
 }
 
 impl SpeakerInput {
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub fn new(sample_rate_override: Option<u32>) -> Result<Self> {
         let inner = PlatformSpeakerInput::new(sample_rate_override)?;
         Ok(Self { inner })
     }
 
-    #[cfg(not(any(target_os = "macos")))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     pub fn new(sample_rate_override: Option<u32>) -> Result<Self> {
         Err(anyhow::anyhow!(
             "'SpeakerInput::new' is not supported on this platform"
@@ -44,7 +44,7 @@ impl SpeakerInput {
 
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub fn stream(self) -> Result<SpeakerStream> {
-        let inner = self.inner.stream();
+        let inner = self.inner.stream()?;
         Ok(SpeakerStream { inner })
     }
 
@@ -151,9 +151,44 @@ mod tests {
     }
 
     #[cfg(target_os = "windows")]
-    #[test]
+    #[tokio::test]
     #[serial]
-    fn test_windows() {
-        assert!(true);
+    async fn test_windows() {
+        use futures_util::StreamExt;
+        
+        // Test that we can create a SpeakerInput
+        let input = match SpeakerInput::new(None) {
+            Ok(input) => input,
+            Err(e) => {
+                println!("Failed to create SpeakerInput: {}", e);
+                return; // Skip test if WASAPI is not available
+            }
+        };
+        
+        // Test that we can create a stream
+        let mut stream = match input.stream() {
+            Ok(stream) => stream,
+            Err(e) => {
+                println!("Failed to create speaker stream: {}", e);
+                return;
+            }
+        };
+        
+        // Check that we get a reasonable sample rate
+        let sample_rate = stream.sample_rate();
+        assert!(sample_rate > 0);
+        println!("Windows speaker sample rate: {}", sample_rate);
+        
+        // Try to get some samples
+        let mut sample_count = 0;
+        while let Some(_sample) = stream.next().await {
+            sample_count += 1;
+            if sample_count > 100 {
+                break;
+            }
+        }
+        
+        assert!(sample_count > 0, "Should receive some audio samples");
+        println!("Received {} samples from Windows speaker", sample_count);
     }
 }

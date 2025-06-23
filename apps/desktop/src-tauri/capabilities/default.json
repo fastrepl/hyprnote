@@ -54,14 +54,21 @@
       "allow": [{ "url": "https://**" }]
     },
     {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        { "path": "$APPDATA/*" },
+        { "path": "$APPDATA/**" }
+      ]
+    },
+    {
       "identifier": "fs:allow-exists",
       "allow": [{ "path": "/Applications/*" }]
     },
     {
       "identifier": "fs:allow-write-file",
       "allow": [
-        { "path": "$DOWNLOAD/*" },
-        { "path": "$DOWNLOAD/**" }
+        { "path": "$APPDATA/*" },
+        { "path": "$APPDATA/**" }
       ]
     },
     {

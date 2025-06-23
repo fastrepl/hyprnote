@@ -7,9 +7,6 @@ edition = "2021"
 reqwest = { workspace = true, features = ["json"] }
 url = { workspace = true }
 
-anyhow = { workspace = true }
-thiserror = { workspace = true }
-
 serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true, features = ["derive"] }
 

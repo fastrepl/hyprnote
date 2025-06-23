@@ -16,7 +16,6 @@ openmp = ["llama-cpp-2/openmp"]
 hypr-gguf = { workspace = true }
 
 encoding_rs = "0.8.35"
-gbnf-validator = { workspace = true }
 llama-cpp-2 = { git = "https://github.com/utilityai/llama-cpp-rs", default-features = false, branch = "update-llama-cpp-2025-05-28" }
 
 async-openai = { workspace = true }

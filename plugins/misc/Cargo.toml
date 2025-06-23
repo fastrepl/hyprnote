@@ -24,10 +24,5 @@ tauri = { workspace = true, features = ["test"] }
 tauri-plugin-opener = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
-tracing = { workspace = true }
-
 regex = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
 specta = { workspace = true }
-strum = { workspace = true, features = ["derive"] }

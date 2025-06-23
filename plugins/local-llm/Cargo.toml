@@ -47,5 +47,3 @@ futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["stream"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }
-
-ollama-rs = "0.2.6"

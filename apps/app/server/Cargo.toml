@@ -10,26 +10,19 @@ dotenv = { workspace = true }
 hypr-auth-interface = { workspace = true }
 hypr-listener-interface = { workspace = true }
 
+futures-util = { workspace = true }
 hypr-analytics = { workspace = true }
-hypr-buffer = { workspace = true }
 hypr-calendar-google = { workspace = true }
 hypr-calendar-interface = { workspace = true }
-hypr-calendar-outlook = { workspace = true }
 hypr-db-admin = { workspace = true }
 hypr-db-core = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-nango = { workspace = true }
-hypr-notion = { workspace = true }
 hypr-openai = { workspace = true }
 hypr-s3 = { workspace = true }
 hypr-slack = { workspace = true }
 hypr-stt = { workspace = true, features = ["realtime", "recorded"] }
 hypr-turso = { workspace = true }
-hypr-ws-utils = { workspace = true }
-
-async-stream = { workspace = true }
-futures-core = { workspace = true }
-futures-util = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 axum = { workspace = true, features = ["ws"] }
@@ -47,10 +40,8 @@ tracing-subscriber = { workspace = true, features = ["env-filter"] }
 anyhow = { workspace = true }
 bytes = { workspace = true }
 chrono = { workspace = true }
-codes-iso-639 = { workspace = true }
 dotenv = { workspace = true }
 thiserror = { workspace = true }
-url = { workspace = true }
 uuid = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }
@@ -62,6 +53,4 @@ specta-typescript = { workspace = true }
 
 apalis = { workspace = true, features = ["sentry", "limit"] }
 apalis-cron = { workspace = true }
-
-async-stripe = { workspace = true, default-features = false, features = ["runtime-tokio-hyper", "webhook-events", "checkout", "connect"] }
 clerk-rs = { git = "https://github.com/DarrenBaldwin07/clerk-rs", rev = "6f1d312", features = ["axum"] }

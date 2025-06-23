@@ -37,7 +37,6 @@ tracing = { workspace = true }
 [dependencies]
 hypr-audio-utils = { workspace = true }
 hypr-chunker = { workspace = true }
-hypr-db-user = { workspace = true }
 hypr-file = { workspace = true }
 hypr-listener-interface = { workspace = true }
 hypr-pyannote-local = { workspace = true }

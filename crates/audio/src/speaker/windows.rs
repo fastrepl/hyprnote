@@ -7,7 +7,8 @@ use anyhow::Result;
 use futures_util::Stream;
 use ringbuf::traits::{Producer, Split};
 use ringbuf::{HeapCons, HeapRb, traits::Consumer};
-use wasapi::{self, Direction, SampleType, WaveFormat, ShareMode};
+use tracing::debug;
+use wasapi::{self, get_default_device, Direction, SampleType, ShareMode, WaveFormat };
 
 pub struct SpeakerInput {
     sample_rate_override: Option<u32>,
@@ -44,13 +45,7 @@ impl SpeakerInput {
             }
 
             // Get the default render device for loopback capture
-            let device = match wasapi::get_default_device(&Direction::Render) {
-                Ok(d) => d,
-                Err(e) => {
-                    eprintln!("WASAPI device error: {e}");
-                    return;
-                }
-            };
+            let device = get_default_device(&Direction::Capture).unwrap();
             
             let mut audio_client = match device.get_iaudioclient() {
                 Ok(client) => client,
@@ -61,15 +56,20 @@ impl SpeakerInput {
             };
             
             // Get the device's mix format for loopback
-            let wave_format = match audio_client.get_mixformat() {
-                Ok(fmt) => fmt,
-                Err(e) => {
-                    eprintln!("Failed to get mix format: {e}");
-                    return;
-                }
-            };
+            let desired_format = WaveFormat::new(32, 32, &SampleType::Float, 44100, 2, None);
+
             
-            // Initialize client for loopback capture in shared mode
+            // why not get_device_period?
+            let (def_time, min_time) = audio_client.get_periods().unwrap();
+            debug!("default period {}, min period {}", def_time, min_time);
+        
+            let mode = StreamMode::EventsShared {
+                autoconvert: true,
+                buffer_duration_hns: min_time,
+            };
+            audio_client.initialize_client(&desired_format, &Direction::Capture, &mode)?;
+
+
             if let Err(e) = audio_client.initialize_client(
                 &wave_format,
                 &Direction::Capture,

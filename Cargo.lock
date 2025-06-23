@@ -517,6 +517,7 @@ dependencies = [
  "anyhow",
  "apalis",
  "apalis-cron",
+ "async-stripe",
  "auth-interface",
  "axum 0.8.4",
  "bytes",

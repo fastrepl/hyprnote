@@ -53,4 +53,6 @@ specta-typescript = { workspace = true }
 
 apalis = { workspace = true, features = ["sentry", "limit"] }
 apalis-cron = { workspace = true }
+
+async-stripe = { workspace = true, default-features = false, features = ["runtime-tokio-hyper", "webhook-events", "checkout", "connect"] }
 clerk-rs = { git = "https://github.com/DarrenBaldwin07/clerk-rs", rev = "6f1d312", features = ["axum"] }

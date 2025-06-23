@@ -4,10 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["realtime", "recorded", "local"]
+default = ["realtime", "recorded"]
 realtime = []
 recorded = []
-local = []
 
 [dependencies]
 hypr-audio-utils = { workspace = true }
@@ -28,8 +27,8 @@ futures-util = { workspace = true }
 tokio = { workspace = true }
 
 [dev-dependencies]
-hypr-audio = { path = "../audio", package = "audio" }
-hypr-data = { path = "../data", package = "data" }
+hypr-audio = { workspace = true }
+hypr-data = { workspace = true }
 
 async-stream = { workspace = true }
 hound = { workspace = true }

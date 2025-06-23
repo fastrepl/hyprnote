@@ -7,6 +7,17 @@ exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-local-stt"
 description = ""
 
+[features]
+default = []
+coreml = ["hypr-whisper-local/coreml", "hypr-pyannote-local/coreml"]
+directml = ["hypr-pyannote-local/directml"]
+cuda = ["hypr-whisper-local/cuda"]
+hipblas = ["hypr-whisper-local/hipblas"]
+openblas = ["hypr-whisper-local/openblas"]
+metal = ["hypr-whisper-local/metal"]
+vulkan = ["hypr-whisper-local/vulkan"]
+openmp = ["hypr-whisper-local/openmp"]
+
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
 
@@ -26,11 +37,11 @@ tracing = { workspace = true }
 [dependencies]
 hypr-audio-utils = { workspace = true }
 hypr-chunker = { workspace = true }
-hypr-db-user = { workspace = true }
 hypr-file = { workspace = true }
 hypr-listener-interface = { workspace = true }
-hypr-pyannote = { workspace = true, features = ["local"] }
-hypr-whisper = { workspace = true, features = ["local"] }
+hypr-pyannote-local = { workspace = true }
+hypr-whisper = { workspace = true }
+hypr-whisper-local = { workspace = true }
 hypr-ws-utils = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }

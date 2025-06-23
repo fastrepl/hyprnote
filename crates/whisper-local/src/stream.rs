@@ -3,7 +3,7 @@ use std::{
     task::{Context, Poll},
 };
 
-use cpal::FromSample;
+use dasp::sample::FromSample;
 use futures_util::{Stream, StreamExt};
 use rodio::Source;
 

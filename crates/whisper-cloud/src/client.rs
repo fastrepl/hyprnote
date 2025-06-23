@@ -2,6 +2,7 @@ use futures_util::Stream;
 use kalosm_sound::AsyncSource;
 
 use hypr_audio_utils::AudioFormatExt;
+use hypr_whisper::Language;
 use hypr_ws::client::{ClientRequestBuilder, Message, WebSocketClient, WebSocketIO};
 
 use super::WhisperOutput;
@@ -10,7 +11,7 @@ use super::WhisperOutput;
 pub struct WhisperClientBuilder {
     api_base: Option<String>,
     api_key: Option<String>,
-    language: Option<crate::Language>,
+    language: Option<Language>,
 }
 
 #[derive(Debug, Clone)]
@@ -29,7 +30,7 @@ impl WhisperClientBuilder {
         self
     }
 
-    pub fn language(mut self, language: crate::Language) -> Self {
+    pub fn language(mut self, language: Language) -> Self {
         self.language = Some(language);
         self
     }

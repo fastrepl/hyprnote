@@ -31,6 +31,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::list_ggml_backends::<Wry>,
             commands::is_server_running::<Wry>,
             commands::is_model_downloaded::<Wry>,
             commands::is_model_downloading::<Wry>,
@@ -50,6 +51,9 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
+            let backends = app.list_ggml_backends();
+            tracing::info!(backends = ?backends, "ggml");
+
             app.manage(SharedState::default());
             Ok(())
         })

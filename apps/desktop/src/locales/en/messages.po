@@ -620,6 +620,10 @@ msgstr "Full name"
 msgid "General"
 msgstr "General"
 
+#: src/components/editor-area/note-header/title-input.tsx:30
+msgid "Generating title..."
+msgstr "Generating title..."
+
 #: src/components/welcome-modal/welcome-view.tsx:36
 msgid "Get Started"
 msgstr "Get Started"
@@ -1076,7 +1080,7 @@ msgstr "Type to search..."
 msgid "Ugh! Can't use it!"
 msgstr "Ugh! Can't use it!"
 
-#: src/components/editor-area/note-header/title-input.tsx:33
+#: src/components/editor-area/note-header/title-input.tsx:32
 msgid "Untitled"
 msgstr "Untitled"
 

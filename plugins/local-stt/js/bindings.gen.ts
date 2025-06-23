@@ -7,6 +7,9 @@
 
 
 export const commands = {
+async listGgmlBackends() : Promise<GgmlBackend[]> {
+    return await TAURI_INVOKE("plugin:local-stt|list_ggml_backends");
+},
 async isServerRunning() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-stt|is_server_running");
 },
@@ -46,6 +49,7 @@ async listSupportedModels() : Promise<SupportedModel[]> {
 
 /** user-defined types **/
 
+export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
 export type SupportedModel = "QuantizedTiny" | "QuantizedTinyEn" | "QuantizedBase" | "QuantizedBaseEn" | "QuantizedSmall" | "QuantizedSmallEn" | "QuantizedLargeTurbo"
 export type TAURI_CHANNEL<TSend> = null
 

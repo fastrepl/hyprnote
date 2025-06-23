@@ -8,6 +8,8 @@ use whisper_rs::{
     WhisperToken,
 };
 
+use hypr_whisper::Language;
+
 lazy_static! {
     static ref TRAILING_DOTS: Regex = Regex::new(r"\.{2,}$").unwrap();
 }
@@ -15,7 +17,7 @@ lazy_static! {
 #[derive(Default)]
 pub struct WhisperBuilder {
     model_path: Option<String>,
-    language: Option<crate::Language>,
+    language: Option<Language>,
     static_prompt: Option<String>,
     dynamic_prompt: Option<String>,
 }
@@ -26,7 +28,7 @@ impl WhisperBuilder {
         self
     }
 
-    pub fn language(mut self, language: crate::Language) -> Self {
+    pub fn language(mut self, language: Language) -> Self {
         self.language = Some(language);
         self
     }
@@ -42,10 +44,15 @@ impl WhisperBuilder {
     }
 
     pub fn build(self) -> Whisper {
-        unsafe { Self::suppress_log() };
+        if !cfg!(debug_assertions) {
+            unsafe { Self::suppress_log() };
+        }
 
         let context_param = {
             let mut p = WhisperContextParameters::default();
+            p.gpu_device = 0;
+            p.use_gpu = true;
+            p.flash_attn = false; // crash on macos
             p.dtw_parameters.mode = whisper_rs::DtwMode::None;
             p
         };
@@ -57,7 +64,7 @@ impl WhisperBuilder {
         let token_eot = ctx.token_eot();
         let token_beg = ctx.token_beg();
 
-        let language = self.language.unwrap_or(crate::Language::En);
+        let language = self.language.unwrap_or(Language::En);
 
         Whisper {
             language,
@@ -81,7 +88,7 @@ impl WhisperBuilder {
 }
 
 pub struct Whisper {
-    language: crate::Language,
+    language: Language,
     static_prompt: String,
     dynamic_prompt: String,
     state: WhisperState,

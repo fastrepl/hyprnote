@@ -77,7 +77,8 @@ impl Llama {
     }
 
     pub fn new(model_path: impl AsRef<std::path::Path>) -> Result<Self, crate::Error> {
-        send_logs_to_tracing(LogOptions::default().with_logs_enabled(false));
+        let show_logs = if cfg!(debug_assertions) { true } else { false };
+        send_logs_to_tracing(LogOptions::default().with_logs_enabled(show_logs));
 
         let fmt = model_path.gguf_chat_format()?.unwrap();
         let tpl = LlamaChatTemplate::new(fmt.as_ref()).unwrap();

@@ -1,0 +1,43 @@
+[package]
+name = "whisper-local"
+version = "0.1.0"
+edition = "2021"
+
+# https://github.com/tazz4843/whisper-rs/blob/e3d67d5/Cargo.toml
+[features]
+default = []
+coreml = ["whisper-rs/coreml"]
+cuda = ["whisper-rs/cuda"]
+hipblas = ["whisper-rs/hipblas"]
+openblas = ["whisper-rs/openblas"]
+metal = ["whisper-rs/metal"]
+vulkan = ["whisper-rs/vulkan"]
+openmp = ["whisper-rs/openmp"]
+
+[dev-dependencies]
+hypr-data = { workspace = true }
+hypr-llama = { workspace = true }
+
+dirs = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true }
+
+[dependencies]
+hypr-audio-utils = { workspace = true }
+hypr-whisper = { workspace = true }
+
+dasp = { workspace = true }
+kalosm-sound = { workspace = true, default-features = false }
+rodio = { workspace = true }
+whisper-rs = { git = "https://github.com/tazz4843/whisper-rs", rev = "e3d67d5", features = ["raw-api", "tracing_backend"] }
+
+futures-util = { workspace = true }
+tracing = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+specta = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+
+lazy_static = { workspace = true }
+regex = { workspace = true }

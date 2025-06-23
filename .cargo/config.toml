@@ -1,2 +1,7 @@
 [target.'cfg(all(windows, target_env = "msvc"))']
-rustflags = ["-Ctarget-feature=+crt-static"]
+rustflags = [
+  "-C",
+  "target-feature=-crt-static",
+  "-C",
+  "link-arg=/FORCE:MULTIPLE",
+]

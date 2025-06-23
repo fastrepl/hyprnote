@@ -18,7 +18,6 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
 futures-util = { workspace = true }
-tokio = { workspace = true }
 
 prost = { workspace = true }
 tonic = { workspace = true, features = ["channel", "tls-native-roots"] }

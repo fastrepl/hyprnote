@@ -54,7 +54,7 @@ impl ClientBuilder {
 pub enum MultiClient {
     Clova(hypr_clova::realtime::Client),
     Deepgram(DeepgramClient),
-    Whisper(hypr_whisper::cloud::WhisperClient),
+    Whisper(hypr_whisper_cloud::WhisperClient),
 }
 
 #[derive(Debug, Clone)]
@@ -80,7 +80,7 @@ impl Client {
                 MultiClient::Clova(clova)
             }
             hypr_language::ISO639::De => {
-                let whisper = hypr_whisper::cloud::WhisperClient::builder()
+                let whisper = hypr_whisper_cloud::WhisperClient::builder()
                     .api_base(std::env::var("WHISPER_API_BASE").unwrap())
                     .api_key(std::env::var("WHISPER_API_KEY").unwrap())
                     .language(language.try_into().unwrap())

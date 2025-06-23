@@ -367,6 +367,18 @@
           "markdownDescription": "Denies the is_server_running command without any pre-configured scope."
         },
         {
+          "description": "Enables the list_ggml_backends command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-ggml-backends",
+          "markdownDescription": "Enables the list_ggml_backends command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_ggml_backends command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-ggml-backends",
+          "markdownDescription": "Denies the list_ggml_backends command without any pre-configured scope."
+        },
+        {
           "description": "Enables the list_supported_models command without any pre-configured scope.",
           "type": "string",
           "const": "allow-list-supported-models",

@@ -45,7 +45,7 @@ impl SpeakerInput {
             }
 
             // Get the default render device for loopback capture
-            let device = get_default_device(&Direction::Capture).unwrap();
+            let device = get_default_device(&Direction::Capture).expect("no device!!");
             
             let mut audio_client = match device.get_iaudioclient() {
                 Ok(client) => client,

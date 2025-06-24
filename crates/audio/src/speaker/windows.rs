@@ -8,7 +8,7 @@ use futures_util::Stream;
 use ringbuf::traits::{Producer, Split};
 use ringbuf::{HeapCons, HeapRb, traits::Consumer};
 use tracing::debug;
-use wasapi::{self, get_default_device, Direction, SampleType, ShareMode, WaveFormat };
+use wasapi::{self, get_default_device, Direction, SampleType, ShareMode, WaveFormat, StreamMode };
 
 pub struct SpeakerInput {
     sample_rate_override: Option<u32>,
@@ -60,25 +60,15 @@ impl SpeakerInput {
 
             
             // why not get_device_period?
-            let (def_time, min_time) = audio_client.get_periods().unwrap();
+            let (def_time, min_time) = audio_client.get_device_period().unwrap();
             debug!("default period {}, min period {}", def_time, min_time);
         
             let mode = StreamMode::EventsShared {
                 autoconvert: true,
                 buffer_duration_hns: min_time,
             };
-            audio_client.initialize_client(&desired_format, &Direction::Capture, &mode)?;
+            audio_client.initialize_client(&desired_format, &Direction::Capture, &mode).unwrap();
 
-
-            if let Err(e) = audio_client.initialize_client(
-                &wave_format,
-                &Direction::Capture,
-                &ShareMode::Shared,
-            ) {
-                eprintln!("Failed to initialize audio client: {e}");
-                return;
-            }
-            
             let capture_client = match audio_client.get_audiocaptureclient() {
                 Ok(client) => client,
                 Err(e) => {
@@ -93,7 +83,7 @@ impl SpeakerInput {
             }
             
             let mut sample_queue: VecDeque<u8> = VecDeque::new();
-            let blockalign = wave_format.get_blockalign();
+            let blockalign = desired_format.get_blockalign();
             let chunksize = 1024; // frames per chunk
             
             loop {

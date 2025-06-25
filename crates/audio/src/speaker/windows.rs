@@ -28,10 +28,12 @@ pub struct SpeakerStream {
 
 impl SpeakerInput {
     pub fn new(sample_rate_override: Option<u32>) -> Result<Self> {
+        tracing::info!("SpeakerInput::new");
         Ok(Self { sample_rate_override })
     }
 
     pub fn stream(self) -> Result<SpeakerStream> {
+        tracing::info!("SpeakerInput::stream");
         let sample_rate = self.sample_rate_override.unwrap_or(48000);
         let rb = HeapRb::<f32>::new(8192);
         let (mut producer, consumer) = rb.split();
@@ -68,6 +70,7 @@ impl SpeakerInput {
                 buffer_duration_hns: min_time,
             };
             audio_client.initialize_client(&desired_format, &Direction::Capture, &mode).unwrap();
+            debug!("initialized capture");
 
             let capture_client = match audio_client.get_audiocaptureclient() {
                 Ok(client) => client,
@@ -158,6 +161,7 @@ impl Stream for SpeakerStream {
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
+        tracing::info!("SpeakerStream::poll_next");
         if let Some(sample) = self.consumer.try_pop() {
             return Poll::Ready(Some(sample));
         }

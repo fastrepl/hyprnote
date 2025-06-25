@@ -67,7 +67,12 @@ def main():
     print(f"chdir: '{tauri_dir}'")
 
     with JsonMidifier("./tauri.conf.json") as tauri:
-        tauri.content["a"] = {"b": 1}
+        if "bundle" not in tauri.content:
+            tauri.content["bundle"] = {}
+        if "resources" not in tauri.content["bundle"]:
+            tauri.content["bundle"]["resources"] = {}
+
+        tauri.content["bundle"]["resources"]["vulkan_runtime\\x64\\*.dll"] = "./"
 
     if has_feature("vulkan"):
         setup_vulkan()

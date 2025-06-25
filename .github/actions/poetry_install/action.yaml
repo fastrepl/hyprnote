@@ -4,8 +4,12 @@ runs:
     - uses: actions/setup-python@v5
       with:
         python-version: "3.12"
+
     - uses: snok/install-poetry@v1
-    - run: source .venv/Scripts/activate
-      shell: bash
-    - run: poetry run scripts/pre_build.py
+      with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+        installer-parallel: true
+
+    - run: poetry install --no-interaction
       shell: bash

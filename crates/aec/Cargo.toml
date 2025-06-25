@@ -7,7 +7,7 @@ edition = "2021"
 hypr-onnx = { workspace = true }
 
 anyhow = { workspace = true }
-ndrustfft = "0.5.0"
+realfft = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 
 [dev-dependencies]

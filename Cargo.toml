@@ -180,8 +180,10 @@ tauri-specta = "2.0.0-rc.21"
 cidre = { git = "https://github.com/yury/cidre", rev = "c5b0022" }
 cpal = "0.15.3"
 dasp = "0.11.0"
+flume = "0.11.1"
 hound = "3.5.1"
 realfft = "3.5.0"
+ringbuf = "0.4.8"
 rodio = { version = "0.20.1", features = ["symphonia"] }
 
 kalosm-common = { git = "https://github.com/floneum/floneum", rev = "52967ae" }

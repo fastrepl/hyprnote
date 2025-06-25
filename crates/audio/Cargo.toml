@@ -15,14 +15,13 @@ serde_json = { workspace = true }
 futures-channel = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
-tokio-stream = { workspace = true }
 
 cpal = { workspace = true }
 rodio = { workspace = true, features = ["vorbis"] }
 
 ebur128 = "0.1.10"
 kalosm-sound = { workspace = true, default-features = false }
-ringbuf = "0.4.8"
+ringbuf = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cidre = { workspace = true, features = ["av"] }

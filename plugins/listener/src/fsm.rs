@@ -90,13 +90,59 @@ impl Session {
         let listen_client = setup_listen_client(&self.app, language, jargons).await?;
 
         let mic_sample_stream = {
-            let mut input = hypr_audio::AudioInput::from_mic();
-            input.stream()
+            // Retry mic initialization up to 3 times with delays
+            let mut attempts = 0;
+            loop {
+                attempts += 1;
+                tracing::info!("Initializing microphone (attempt {})", attempts);
+                
+                match std::panic::catch_unwind(|| {
+                    let mut input = hypr_audio::AudioInput::from_mic();
+                    input.stream()
+                }) {
+                    Ok(stream) => {
+                        tracing::info!("Successfully initialized microphone");
+                        break stream;
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to initialize microphone (attempt {}): {:?}", attempts, e);
+                        if attempts >= 3 {
+                            return Err(crate::Error::StartSessionFailed);
+                        }
+                        tokio::time::sleep(Duration::from_millis(1000)).await;
+                    }
+                }
+            }
         };
         let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);
-        tokio::time::sleep(Duration::from_millis(100)).await;
+        
+        // Wait longer for audio system to stabilize
+        tokio::time::sleep(Duration::from_millis(500)).await;
 
-        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
+        let speaker_sample_stream = {
+            // Retry speaker initialization up to 3 times with delays
+            let mut attempts = 0;
+            loop {
+                attempts += 1;
+                tracing::info!("Initializing speaker (attempt {})", attempts);
+                
+                match std::panic::catch_unwind(|| {
+                    hypr_audio::AudioInput::from_speaker(None).stream()
+                }) {
+                    Ok(stream) => {
+                        tracing::info!("Successfully initialized speaker");
+                        break stream;
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to initialize speaker (attempt {}): {:?}", attempts, e);
+                        if attempts >= 3 {
+                            return Err(crate::Error::StartSessionFailed);
+                        }
+                        tokio::time::sleep(Duration::from_millis(1000)).await;
+                    }
+                }
+            }
+        };
         let mut speaker_stream = speaker_sample_stream.resample(SAMPLE_RATE).chunks(1024);
 
         let chunk_buffer_size: usize = 1024;
@@ -228,28 +274,36 @@ impl Session {
                 };
 
                 let mut wav = if path.exists() {
-                    match hound::WavWriter::append(&path) {
-                        Ok(writer) => {
-                            tracing::warn!(":+:+:+:+:appending to wav file");
-                            writer
-                        }
-                        Err(e) => {
-                            tracing::warn!(":+:+:+:+:failed to append to wav file");
-                            tracing::error!("Failed to append to WAV file: {:?}, creating new file", e);
-                            let backup_path = path.with_extension("wav.bak");
-                            let _ = std::fs::rename(&path, backup_path);
-                            hound::WavWriter::create(&path, wav_spec).unwrap()
+                    let file_size = std::fs::metadata(&path).map_err(|e| {
+                        tracing::error!("Failed to get file metadata: {:?}", e);
+                        e
+                    }).unwrap().len();
+                    
+                    if file_size < 44 { // WAV 헤더 최소 크기
+                        tracing::warn!("WAV file too small ({} bytes), recreating", file_size);
+                        std::fs::remove_file(&path).unwrap();
+                        hound::WavWriter::create(&path, wav_spec).unwrap()
+                    } else {
+                        tracing::info!("Appending to existing WAV file ({} bytes)", file_size);
+                        match hound::WavWriter::append(&path) {
+                            Ok(writer) => writer,
+                            Err(e) => {
+                                tracing::error!("Failed to append to WAV file: {:?}, creating new file", e);
+                                std::fs::remove_file(&path).unwrap();
+                                hound::WavWriter::create(&path, wav_spec).unwrap()
+                            }
                         }
                     }
                 } else {
-                    tracing::warn!(":+:+:+:+:failed to append to wav file");
-                    hound::WavWriter::create(&path, wav_spec).unwrap()
+                    tracing::info!("Creating new WAV file");
+                    let x = hound::WavWriter::create(&path, wav_spec).unwrap();
+                    tracing::info!("after creation");
+
+                    x
                 };
 
-                panic!("reached here");
-
                 while let Some(sample) = save_rx.recv().await {
-                    wav.write_sample(sample).unwrap();
+                    tracing::info!("writing sample");
                     wav.write_sample(sample).unwrap();
                 }
 

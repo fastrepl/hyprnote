@@ -1,8 +1,23 @@
 use anyhow::Result;
 use hypr_onnx::ort::session::Session;
 
-const MODEL_1_BYTES: &[u8] = include_bytes!("../data/model_1.onnx");
-const MODEL_2_BYTES: &[u8] = include_bytes!("../data/model_2.onnx");
+#[cfg(feature = "128")]
+mod model {
+    pub const BYTES_1: &[u8] = include_bytes!("../data/model_128_1.onnx");
+    pub const BYTES_2: &[u8] = include_bytes!("../data/model_128_2.onnx");
+}
+
+#[cfg(feature = "256")]
+mod model {
+    pub const BYTES_1: &[u8] = include_bytes!("../data/model_256_1.onnx");
+    pub const BYTES_2: &[u8] = include_bytes!("../data/model_256_2.onnx");
+}
+
+#[cfg(feature = "512")]
+mod model {
+    pub const BYTES_1: &[u8] = include_bytes!("../data/model_512_1.onnx");
+    pub const BYTES_2: &[u8] = include_bytes!("../data/model_512_2.onnx");
+}
 
 pub struct AEC {
     session_1: Session,
@@ -12,8 +27,8 @@ pub struct AEC {
 impl AEC {
     pub fn new() -> Result<Self> {
         Ok(AEC {
-            session_1: hypr_onnx::load_model(MODEL_1_BYTES)?,
-            session_2: hypr_onnx::load_model(MODEL_2_BYTES)?,
+            session_1: hypr_onnx::load_model(model::BYTES_1)?,
+            session_2: hypr_onnx::load_model(model::BYTES_2)?,
         })
     }
 

@@ -9,4 +9,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/poetry_install
-      - run: poetry run scripts/pre_build.py
+      - run: poetry run python scripts/pre_build.py

@@ -11,16 +11,16 @@ import shutil
 import platform
 from pathlib import Path
 
-# BLAS
-# https://github.com/utilityai/llama-cpp-rs/blob/2f433cd/llama-cpp-sys-2/build.rs#L279-L281
 
-# OPENMP
-# Can cause `the code execution cannot proceed because VCOMP140.DLL was not found` error on Windows
-
-
-exports = {
-    "windows_libclang": r"C:\Program Files\LLVM\bin",
-    "windows_cmake": r"C:\Program Files\Cmake\bin",
+config = {
+    "vulkan_runtime_real_name": "vulkan_runtime",
+    "vulkan_sdk_real_name": "vulkan_sdk",
+    "windows": {
+        "vulkan_runtime_name": "VulkanRT-1.3.290.0-Components",
+        "vulkan_runtime_url": "https://sdk.lunarg.com/sdk/download/1.3.290.0/windows/VulkanRT-1.3.290.0-Components.zip",
+        "vulkan_sdk_name": "VulkanSDK-1.3.290.0-Installer",
+        "vulkan_sdk_url": "https://sdk.lunarg.com/sdk/download/1.3.290.0/windows/VulkanSDK-1.3.290.0-Installer.exe",
+    },
 }
 
 
@@ -51,9 +51,49 @@ def has_feature(name: str) -> bool:
     return f"--{name}" in sys.argv or name in sys.argv
 
 
+def download_file(url, path):
+    print(f"Downloading {url} to {path}")
+    urllib.request.urlretrieve(url, path)
+
+
 def setup_vulkan():
-    if not is_windows():
-        return
+    if is_windows():
+        vulkan_sdk_path = Path(config["vulkan_sdk_real_name"])
+        if not vulkan_sdk_path.exists():
+            vulkan_sdk_installer = f"{config['windows']['vulkan_sdk_name']}.exe"
+            download_file(config["windows"]["vulkan_sdk_url"], vulkan_sdk_installer)
+
+            vulkan_sdk_root = Path.cwd() / config["vulkan_sdk_real_name"]
+            run_cmd(
+                [
+                    vulkan_sdk_installer,
+                    "--root",
+                    str(vulkan_sdk_root),
+                    "--accept-licenses",
+                    "--default-answer",
+                    "--confirm-command",
+                    "install",
+                    "copy_only=1",
+                ]
+            )
+
+            vulkan_runtime_zip = f"{config['windows']['vulkan_runtime_name']}.zip"
+            download_file(config["windows"]["vulkan_runtime_url"], vulkan_runtime_zip)
+            run_cmd([r"C:\Program Files\7-Zip\7z.exe", "x", vulkan_runtime_zip])
+            shutil.move(
+                config["windows"]["vulkan_runtime_name"],
+                config["vulkan_runtime_real_name"],
+            )
+            os.remove(vulkan_sdk_installer)
+            os.remove(vulkan_runtime_zip)
+
+        with JsonMidifier("./tauri.windows.conf.json") as tauri:
+            if "bundle" not in tauri.content:
+                tauri.content["bundle"] = {}
+            if "resources" not in tauri.content["bundle"]:
+                tauri.content["bundle"]["resources"] = {}
+
+            tauri.content["bundle"]["resources"]["vulkan_runtime\\x64\\*.dll"] = "./"
 
 
 def run_cmd(args):

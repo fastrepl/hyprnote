@@ -3,6 +3,7 @@ on:
 jobs:
   deploy:
     runs-on: windows-latest
+    shell: bash
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/poetry_install

@@ -5,5 +5,5 @@ runs:
       with:
         python-version: "3.12"
     - uses: snok/install-poetry@v1
-    - run: poetry install --no-interaction
-      shell: bash
+    - run: source .venv/Scripts/activate
+    - run: poetry run scripts/pre_build.py

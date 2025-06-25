@@ -6,3 +6,4 @@ runs:
         python-version: "3.12"
     - uses: snok/install-poetry@v1
     - run: poetry install --no-interaction
+      shell: bash

@@ -228,10 +228,25 @@ impl Session {
                 };
 
                 let mut wav = if path.exists() {
-                    hound::WavWriter::append(path).unwrap()
+                    match hound::WavWriter::append(&path) {
+                        Ok(writer) => {
+                            tracing::warn!(":+:+:+:+:appending to wav file");
+                            writer
+                        }
+                        Err(e) => {
+                            tracing::warn!(":+:+:+:+:failed to append to wav file");
+                            tracing::error!("Failed to append to WAV file: {:?}, creating new file", e);
+                            let backup_path = path.with_extension("wav.bak");
+                            let _ = std::fs::rename(&path, backup_path);
+                            hound::WavWriter::create(&path, wav_spec).unwrap()
+                        }
+                    }
                 } else {
-                    hound::WavWriter::create(path, wav_spec).unwrap()
+                    tracing::warn!(":+:+:+:+:failed to append to wav file");
+                    hound::WavWriter::create(&path, wav_spec).unwrap()
                 };
+
+                panic!("reached here");
 
                 while let Some(sample) = save_rx.recv().await {
                     wav.write_sample(sample).unwrap();

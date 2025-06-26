@@ -109,27 +109,26 @@ impl Session {
             .resample(SAMPLE_RATE)
             .chunks(hypr_aec::BLOCK_SIZE * 2);
 
-        let chunk_buffer_size: usize = 1024;
-        let sample_buffer_size = (SAMPLE_RATE as usize) * 60 * 10;
+        let chunk_buffer_size: usize = 256;
 
         let (mic_tx, mic_rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
         let (speaker_tx, speaker_rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
 
-        let (save_mixed_tx, save_mixed_rx) = flume::bounded::<f32>(sample_buffer_size);
+        let (save_mixed_tx, save_mixed_rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
         let (save_mic_raw_tx, save_mic_raw_rx) = if cfg!(debug_assertions) && record {
-            let (tx, rx) = flume::bounded::<f32>(sample_buffer_size);
+            let (tx, rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
             (Some(tx), Some(rx))
         } else {
             (None, None)
         };
         let (save_speaker_raw_tx, save_speaker_raw_rx) = if cfg!(debug_assertions) && record {
-            let (tx, rx) = flume::bounded::<f32>(sample_buffer_size);
+            let (tx, rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
             (Some(tx), Some(rx))
         } else {
             (None, None)
         };
 
-        let (process_tx, process_rx) = flume::bounded::<f32>(sample_buffer_size);
+        let (process_tx, process_rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
 
         {
             let silence_stream_tx = hypr_audio::AudioOutput::silence();
@@ -223,14 +222,10 @@ impl Session {
                     }
 
                     if let Some(ref tx) = save_mic_raw_tx {
-                        for &sample in &mic_chunk {
-                            let _ = tx.send_async(sample).await;
-                        }
+                        let _ = tx.send_async(mic_chunk_raw.clone()).await;
                     }
                     if let Some(ref tx) = save_speaker_raw_tx {
-                        for &sample in &speaker_chunk {
-                            let _ = tx.send_async(sample).await;
-                        }
+                        let _ = tx.send_async(speaker_chunk.clone()).await;
                     }
 
                     let mixed: Vec<f32> = mic_chunk
@@ -239,16 +234,14 @@ impl Session {
                         .map(|(a, b)| (a + b).clamp(-1.0, 1.0))
                         .collect();
 
-                    for &sample in &mixed {
-                        if process_tx.send_async(sample).await.is_err() {
-                            tracing::error!("process_tx_send_error");
-                            return;
-                        }
+                    if process_tx.send_async(mixed.clone()).await.is_err() {
+                        tracing::error!("process_tx_send_error");
+                        return;
+                    }
 
-                        if record {
-                            if save_mixed_tx.send_async(sample).await.is_err() {
-                                tracing::error!("save_mixed_tx_send_error");
-                            }
+                    if record {
+                        if save_mixed_tx.send_async(mixed).await.is_err() {
+                            tracing::error!("save_mixed_tx_send_error");
                         }
                     }
                 }
@@ -271,9 +264,10 @@ impl Session {
                         hound::WavWriter::create(path, WAV_SPEC).unwrap()
                     };
 
-                    while let Ok(sample) = save_mixed_rx.recv_async().await {
-                        wav.write_sample(sample).unwrap();
-                        wav.write_sample(sample).unwrap();
+                    while let Ok(chunk) = save_mixed_rx.recv_async().await {
+                        for sample in chunk {
+                            wav.write_sample(sample).unwrap();
+                        }
                     }
 
                     wav.finalize().unwrap();
@@ -293,8 +287,10 @@ impl Session {
 
                     let mut wav = hound::WavWriter::create(path, WAV_SPEC).unwrap();
 
-                    while let Ok(sample) = save_mic_raw_rx.recv_async().await {
-                        wav.write_sample(sample).unwrap();
+                    while let Ok(chunk) = save_mic_raw_rx.recv_async().await {
+                        for sample in chunk {
+                            wav.write_sample(sample).unwrap();
+                        }
                     }
 
                     wav.finalize().unwrap();
@@ -314,8 +310,10 @@ impl Session {
 
                     let mut wav = hound::WavWriter::create(path, WAV_SPEC).unwrap();
 
-                    while let Ok(sample) = save_speaker_raw_rx.recv_async().await {
-                        wav.write_sample(sample).unwrap();
+                    while let Ok(chunk) = save_speaker_raw_rx.recv_async().await {
+                        for sample in chunk {
+                            wav.write_sample(sample).unwrap();
+                        }
                     }
 
                     wav.finalize().unwrap();
@@ -323,7 +321,13 @@ impl Session {
             });
         }
 
-        let audio_stream = hypr_audio::StreamSource::new(process_rx.into_stream(), SAMPLE_RATE);
+        let audio_stream = hypr_audio::StreamSource::new(
+            process_rx
+                .into_stream()
+                .map(|chunk| futures_util::stream::iter(chunk))
+                .flatten(),
+            SAMPLE_RATE,
+        );
 
         let listen_stream = listen_client.from_audio(audio_stream).await?;
 

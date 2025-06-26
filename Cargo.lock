@@ -198,12 +198,12 @@ dependencies = [
 name = "aec"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "approx",
  "hound",
  "onnx",
  "realfft",
- "tokio",
+ "serde",
+ "thiserror 2.0.12",
 ]
 
 [[package]]

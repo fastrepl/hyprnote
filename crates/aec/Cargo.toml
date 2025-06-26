@@ -12,9 +12,10 @@ default = ["128"]
 [dependencies]
 hypr-onnx = { workspace = true }
 
-anyhow = { workspace = true }
 realfft = { workspace = true }
-tokio = { workspace = true, features = ["rt", "macros"] }
+
+serde = { workspace = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
 approx = { workspace = true }

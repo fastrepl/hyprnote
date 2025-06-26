@@ -1,4 +1,3 @@
-use anyhow::Result;
 use realfft::{num_complex::Complex, ComplexToReal, RealFftPlanner, RealToComplex};
 use std::sync::Arc;
 
@@ -6,6 +5,9 @@ use hypr_onnx::{
     ndarray::{Array3, Array4},
     ort::session::Session,
 };
+
+mod error;
+pub use error::*;
 
 #[cfg(feature = "128")]
 mod model {
@@ -35,7 +37,7 @@ pub struct AEC {
 }
 
 impl AEC {
-    pub fn new() -> Result<Self> {
+    pub fn new() -> Result<Self, crate::Error> {
         let (block_len, block_shift) = (512, 128);
 
         let mut fft_planner = RealFftPlanner::<f32>::new();
@@ -56,8 +58,7 @@ impl AEC {
     }
 
     // https://github.com/breizhn/DTLN-aec/blob/9d24e128b4f409db18227b8babb343016625921f/run_aec.py
-    pub fn process(&self, mic_input: &[f32], lpb_input: &[f32]) -> Result<Vec<f32>> {
-        // Check input lengths match
+    pub fn process(&self, mic_input: &[f32], lpb_input: &[f32]) -> Result<Vec<f32>, crate::Error> {
         let len_audio = mic_input.len().min(lpb_input.len());
         let mic_input = &mic_input[..len_audio];
         let lpb_input = &lpb_input[..len_audio];
@@ -125,17 +126,15 @@ impl AEC {
             let lpb_mag: Vec<f32> = lpb_block_fft.iter().map(|c| c.norm()).collect();
             let lpb_mag = Array3::from_shape_vec((1, 1, lpb_mag.len()), lpb_mag)?;
 
-            // Run first model
             let mut outputs_1 = self.session_1.run(hypr_onnx::ort::inputs![
                 in_mag.view(),
                 states_1.view(),
                 lpb_mag.view()
             ]?)?;
 
-            // Get output mask and states
             let out_mask = outputs_1
                 .remove("Identity")
-                .ok_or_else(|| anyhow::anyhow!("No output tensor found"))?
+                .ok_or_else(|| Error::MissingOutput("Identity".to_string()))?
                 .try_extract_tensor::<f32>()?
                 .view()
                 .to_owned();
@@ -143,7 +142,7 @@ impl AEC {
 
             states_1 = outputs_1
                 .remove("Identity_1")
-                .ok_or_else(|| anyhow::anyhow!("No states tensor found"))?
+                .ok_or_else(|| Error::MissingOutput("Identity_1".to_string()))?
                 .try_extract_tensor::<f32>()?
                 .view()
                 .to_owned()
@@ -170,17 +169,15 @@ impl AEC {
             let estimated_block = Array3::from_shape_vec((1, 1, self.block_len), estimated_block)?;
             let in_lpb = Array3::from_shape_vec((1, 1, self.block_len), in_buffer_lpb.clone())?;
 
-            // Run second model
             let mut outputs_2 = self.session_2.run(hypr_onnx::ort::inputs![
                 estimated_block.view(),
                 states_2.view(),
                 in_lpb.view()
             ]?)?;
 
-            // Get output block and states
             let out_block = outputs_2
                 .remove("Identity")
-                .ok_or_else(|| anyhow::anyhow!("No output tensor found"))?
+                .ok_or_else(|| Error::MissingOutput("Identity".into()))?
                 .try_extract_tensor::<f32>()?
                 .view()
                 .to_owned();
@@ -188,7 +185,7 @@ impl AEC {
 
             states_2 = outputs_2
                 .remove("Identity_1")
-                .ok_or_else(|| anyhow::anyhow!("No states tensor found"))?
+                .ok_or_else(|| Error::MissingOutput("Identity_1".into()))?
                 .try_extract_tensor::<f32>()?
                 .view()
                 .to_owned()

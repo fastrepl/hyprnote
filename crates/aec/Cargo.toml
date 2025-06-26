@@ -19,4 +19,9 @@ thiserror = { workspace = true }
 
 [dev-dependencies]
 approx = { workspace = true }
+criterion = { workspace = true }
 hound = { workspace = true }
+
+[[bench]]
+name = "aec_bench"
+harness = false

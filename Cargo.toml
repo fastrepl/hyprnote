@@ -134,14 +134,16 @@ serde = "1"
 serde_bytes = "0.11.15"
 serde_json = "1"
 serde_qs = "0.14.0"
-serial_test = "3"
 statig = { version = "0.3.0" }
 strum = "0.26"
 tempfile = "3"
-testcontainers-modules = "0.11.5"
 thiserror = "2"
 url = "2"
 uuid = "1"
+
+criterion = "0.6"
+serial_test = "3"
+testcontainers-modules = "0.11.5"
 
 axum = "0.8.1"
 tower = "0.5.2"

@@ -164,12 +164,7 @@ impl Session {
 
         let mut tasks = JoinSet::new();
 
-        // 임시로 모든 백그라운드 태스크를 비활성화하여 문제 지점 확인
-        tracing::warn!("All background tasks temporarily disabled for debugging");
-        
-        // TODO: Re-enable background tasks after identifying the issue
-        /*
-        tracing::info!("About to spawn mic processing task");
+                tracing::info!("About to spawn mic processing task");
         tasks.spawn({
             let mic_muted_rx = mic_muted_rx_main.clone();
             async move {
@@ -178,7 +173,7 @@ impl Session {
                 let watch_rx = mic_muted_rx.clone();
                 let mut chunk_count = 0u64;
 
-                                tracing::info!("About to start mic stream processing loop");
+                tracing::info!("About to start mic stream processing loop");
                 
                 loop {
                     tracing::debug!("Waiting for next mic stream sample...");
@@ -195,6 +190,7 @@ impl Session {
                                 tracing::debug!("Processed {} mic chunks", chunk_count);
                             }
 
+                            // 안전한 mute 상태 확인
                             if watch_rx.has_changed().unwrap_or(false) {
                                 is_muted = *watch_rx.borrow();
                             }
@@ -205,8 +201,9 @@ impl Session {
                                 actual
                             };
 
-                            if let Err(e) = mic_tx.send(maybe_muted).await {
-                                tracing::error!("mic_tx_send_error: {:?}", e);
+                            // 안전한 채널 전송 (SendError 무시)
+                            if let Err(_) = mic_tx.send(maybe_muted).await {
+                                tracing::warn!("Mic channel receiver disconnected, ending mic processing task");
                                 break;
                             }
                         },
@@ -220,7 +217,6 @@ impl Session {
                 tracing::info!("Mic processing task ended after {} chunks", chunk_count);
             }
         });
-        */
 
         // 스피커 처리 태스크도 비활성화
         /*

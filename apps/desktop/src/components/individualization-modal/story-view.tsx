@@ -1,23 +1,16 @@
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 import { Trans, useLingui } from "@lingui/react/macro";
-import { useEffect } from "react";
 import { motion } from "motion/react";
+import PushableButton from "@hypr/ui/components/ui/pushable-button";
+import { Button } from "@hypr/ui/components/ui/button";
 
 interface StoryViewProps {
   onComplete: () => void;
+  onSkip: () => void;
 }
 
-export const StoryView: React.FC<StoryViewProps> = ({ onComplete }) => {
+export const StoryView: React.FC<StoryViewProps> = ({ onComplete, onSkip }) => {
   const { t } = useLingui();
-
-  // Auto-advance after animation completes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onComplete();
-    }, 4500); // 4.5 seconds total
-
-    return () => clearTimeout(timer);
-  }, [onComplete]);
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full min-h-[400px]">
@@ -31,61 +24,70 @@ export const StoryView: React.FC<StoryViewProps> = ({ onComplete }) => {
         transition={{ duration: 0.6, ease: "easeOut" }}
       />
 
-      {/* Main story text with staggered animation */}
-      <div className="max-w-md text-center space-y-6">
+      {/* Story text with different styling per line */}
+      <div className="max-w-lg text-center space-y-4">
+        {/* First line - larger and bold */}
         <TextAnimate
-          animation="slideUp"
-          by="word"
+          animation="fadeIn"
+          by="line"
           once
           className="text-lg font-medium text-neutral-700"
-          delay={0.8}
         >
-          {t`We believe every meeting matters`}
+          {t`Hope you're enjoying Hyprnote.`}
         </TextAnimate>
 
+        {/* Second line - regular */}
         <TextAnimate
-          animation="slideUp"
-          by="word"
+          animation="fadeIn"
+          by="line"
           once
           className="text-base text-neutral-600"
-          delay={1.8}
         >
-          {t`Your workflow is unique, and so should be your AI companion`}
+          {t`We care about your privacy — no emails, no personal info collected.`}
         </TextAnimate>
 
+        {/* Third line - regular */}
         <TextAnimate
-          animation="slideUp"
-          by="word"
+          animation="fadeIn"
+          by="line"
           once
-          className="text-sm text-neutral-500"
-          delay={2.8}
+          className="text-base text-neutral-600"
         >
-          {t`Let us personalize Hyprnote just for you`}
+          {t`But we do want to know how we can make it better for you.`}
+        </TextAnimate>
+
+        {/* Last line - larger and bold */}
+        <TextAnimate
+          animation="fadeIn"
+          by="line"
+          once
+          className="text-lg font-medium text-neutral-700"
+        >
+          {t`Mind telling us what you're using Hyprnote for?`}
         </TextAnimate>
       </div>
 
-      {/* Subtle loading indicator */}
+      {/* Action buttons - appear after text animation */}
       <motion.div
-        className="mt-12 flex space-x-1"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 3.5 }}
+        className="mt-12 flex gap-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.5 }}
       >
-        {[0, 1, 2].map((i) => (
-          <motion.div
-            key={i}
-            className="w-2 h-2 bg-neutral-400 rounded-full"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.5, 1, 0.5],
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-              delay: i * 0.2,
-            }}
-          />
-        ))}
+        <Button
+          onClick={onSkip}
+          variant="ghost"
+          className="px-6 py-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
+        >
+          {t`No thanks`}
+        </Button>
+        
+        <PushableButton
+          onClick={onComplete}
+          className="px-8 py-3 bg-black text-white hover:bg-neutral-800 transition-colors rounded-lg font-medium"
+        >
+          {t`Yes, sure`}
+        </PushableButton>
       </motion.div>
     </div>
   );

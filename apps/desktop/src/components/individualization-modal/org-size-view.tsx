@@ -2,21 +2,21 @@ import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Crown, Users, TrendingUp, GraduationCap } from "lucide-react";
+import { Users, Building, Factory, Building2 } from "lucide-react";
 
-interface RoleViewProps {
-  onSelect: (role: string) => void;
+interface OrgSizeViewProps {
+  onSelect: (orgSize: string) => void;
   onSkip: () => void;
 }
 
-const ROLE_OPTIONS = [
-  { value: 'executive-founder', label: 'Executive/Founder', icon: Crown },
-  { value: 'manager-team-lead', label: 'Manager/Team Lead', icon: Users },
-  { value: 'junior', label: 'Junior', icon: TrendingUp },
-  { value: 'intern', label: 'Intern', icon: GraduationCap },
+const ORG_SIZE_OPTIONS = [
+  { value: '0-10', label: '0-10', icon: Users },
+  { value: '10-100', label: '10-100', icon: Building },
+  { value: '100-1000', label: '100-1000', icon: Factory },
+  { value: '1000+', label: '1000+', icon: Building2 },
 ];
 
-export const RoleView: React.FC<RoleViewProps> = ({ onSelect, onSkip }) => {
+export const OrgSizeView: React.FC<OrgSizeViewProps> = ({ onSelect, onSkip }) => {
   const { t } = useLingui();
 
   return (
@@ -28,11 +28,11 @@ export const RoleView: React.FC<RoleViewProps> = ({ onSelect, onSkip }) => {
 
       {/* Specific Question */}
       <h2 className="mb-8 text-center text-base font-medium text-neutral-600">
-        <Trans>What's your role?</Trans>
+        <Trans>What's your organization size?</Trans>
       </h2>
 
       <div className="grid grid-cols-2 gap-3 w-full max-w-sm mb-6">
-        {ROLE_OPTIONS.map((option) => {
+        {ORG_SIZE_OPTIONS.map((option) => {
           const IconComponent = option.icon;
           return (
             <Button
@@ -42,12 +42,11 @@ export const RoleView: React.FC<RoleViewProps> = ({ onSelect, onSkip }) => {
               className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all"
             >
               <IconComponent className="h-6 w-6" />
-              <span className="text-xs font-medium text-center leading-tight">{option.label}</span>
+              <span className="text-sm font-medium text-center">{option.label}</span>
             </Button>
           );
         })}
       </div>
-
 
     </div>
   );

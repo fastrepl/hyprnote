@@ -303,7 +303,7 @@ impl Session {
                 };
 
                 while let Some(sample) = save_rx.recv().await {
-                    tracing::info!("writing sample");
+                    // tracing::info!("writing sample");
                     wav.write_sample(sample).unwrap();
                 }
 

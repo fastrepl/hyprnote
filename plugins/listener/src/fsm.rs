@@ -89,6 +89,13 @@ impl Session {
 
         let listen_client = setup_listen_client(&self.app, language, jargons).await?;
 
+        // 임시로 마이크를 더미 스트림으로 대체하여 문제 지점 확인
+        tracing::warn!("Using dummy mic stream for debugging");
+        let mic_sample_stream = futures_util::stream::repeat(0.0f32);
+        let mut mic_stream = mic_sample_stream.chunks(1024);
+        
+        // TODO: Re-enable real mic stream after identifying the issue
+        /*
         let mic_sample_stream = {
             // Retry mic initialization up to 3 times with delays
             let mut attempts = 0;
@@ -115,6 +122,7 @@ impl Session {
             }
         };
         let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);
+        */
         
         // Wait longer for audio system to stabilize
         tokio::time::sleep(Duration::from_millis(500)).await;
@@ -161,38 +169,86 @@ impl Session {
 
         let mut tasks = JoinSet::new();
 
+        // 임시로 모든 백그라운드 태스크를 비활성화하여 문제 지점 확인
+        tracing::warn!("All background tasks temporarily disabled for debugging");
+        
+        // TODO: Re-enable background tasks after identifying the issue
+        /*
+        tracing::info!("About to spawn mic processing task");
         tasks.spawn({
             let mic_muted_rx = mic_muted_rx_main.clone();
             async move {
+                tracing::info!("Mic processing task started - inside async block");
                 let mut is_muted = *mic_muted_rx.borrow();
                 let watch_rx = mic_muted_rx.clone();
+                let mut chunk_count = 0u64;
 
-                while let Some(actual) = mic_stream.next().await {
-                    if watch_rx.has_changed().unwrap_or(false) {
-                        is_muted = *watch_rx.borrow();
-                    }
+                                tracing::info!("About to start mic stream processing loop");
+                
+                loop {
+                    tracing::debug!("Waiting for next mic stream sample...");
+                    
+                    match mic_stream.next().await {
+                        Some(actual) => {
+                            chunk_count += 1;
+                            
+                            if chunk_count == 1 {
+                                tracing::info!("Received first mic chunk with {} samples", actual.len());
+                            }
+                            
+                            if chunk_count % 100 == 0 {
+                                tracing::debug!("Processed {} mic chunks", chunk_count);
+                            }
 
-                    let maybe_muted = if is_muted {
-                        vec![0.0; actual.len()]
-                    } else {
-                        actual
-                    };
+                            if watch_rx.has_changed().unwrap_or(false) {
+                                is_muted = *watch_rx.borrow();
+                            }
 
-                    if let Err(e) = mic_tx.send(maybe_muted).await {
-                        tracing::error!("mic_tx_send_error: {:?}", e);
-                        break;
+                            let maybe_muted = if is_muted {
+                                vec![0.0; actual.len()]
+                            } else {
+                                actual
+                            };
+
+                            if let Err(e) = mic_tx.send(maybe_muted).await {
+                                tracing::error!("mic_tx_send_error: {:?}", e);
+                                break;
+                            }
+                        },
+                        None => {
+                            tracing::warn!("Mic stream ended (returned None)");
+                            break;
+                        }
                     }
                 }
+                
+                tracing::info!("Mic processing task ended after {} chunks", chunk_count);
             }
         });
+        */
 
+        // 스피커 처리 태스크도 비활성화
+        /*
         tasks.spawn({
             let speaker_muted_rx = speaker_muted_rx_main.clone();
             async move {
+                tracing::info!("Speaker processing task started");
                 let mut is_muted = *speaker_muted_rx.borrow();
                 let watch_rx = speaker_muted_rx.clone();
+                let mut chunk_count = 0u64;
 
+                tracing::info!("About to start speaker stream processing loop");
                 while let Some(actual) = speaker_stream.next().await {
+                    chunk_count += 1;
+                    
+                    if chunk_count == 1 {
+                        tracing::info!("Received first speaker chunk with {} samples", actual.len());
+                    }
+                    
+                    if chunk_count % 100 == 0 {
+                        tracing::debug!("Processed {} speaker chunks", chunk_count);
+                    }
+
                     if watch_rx.has_changed().unwrap_or(false) {
                         is_muted = *watch_rx.borrow();
                     }
@@ -208,59 +264,96 @@ impl Session {
                         break;
                     }
                 }
+                
+                tracing::info!("Speaker processing task ended after {} chunks", chunk_count);
             }
         });
+        */
 
         let app_dir = self.app.path().app_data_dir().unwrap();
 
+        // 오디오 믹싱 태스크도 비활성화
+        /*
         tasks.spawn({
             let app = self.app.clone();
             let save_tx = save_tx.clone();
 
             async move {
                 let mut last_broadcast = Instant::now();
+                let mut chunk_count = 0u64;
 
-                while let (Some(mic_chunk), Some(speaker_chunk)) =
-                    (mic_rx.recv().await, speaker_rx.recv().await)
-                {
+                tracing::info!("Starting audio processing loop");
+
+                // 임시로 스피커 없이 마이크만 처리하여 문제 격리
+                tracing::warn!("Processing mic-only audio stream for debugging");
+                
+                while let Some(mic_chunk) = mic_rx.recv().await {
+                    chunk_count += 1;
+                    
+                    // 첫 번째 청크 처리 로그
+                    if chunk_count == 1 {
+                        tracing::info!("Processing first mic-only chunk with {} samples", mic_chunk.len());
+                    }
+
                     if matches!(*session_state_rx.borrow(), State::RunningPaused {}) {
                         let mut rx = session_state_rx.clone();
                         let _ = rx.changed().await;
                         continue;
                     }
 
-                    let now = Instant::now();
-                    if now.duration_since(last_broadcast) >= AUDIO_AMPLITUDE_THROTTLE {
-                        if let Err(e) = SessionEvent::from((&mic_chunk, &speaker_chunk)).emit(&app)
-                        {
-                            tracing::error!("broadcast_error: {:?}", e);
-                        }
-                        last_broadcast = now;
+                    // 오디오 데이터 유효성 검사
+                    let mic_has_invalid = mic_chunk.iter().any(|&s| !s.is_finite());
+                    
+                    if mic_has_invalid {
+                        tracing::warn!("Mic chunk contains invalid samples");
                     }
 
-                    let mixed: Vec<f32> = mic_chunk
+                    tracing::debug!("Processing mic-only chunk {} with {} samples", chunk_count, mic_chunk.len());
+                    
+                    // 스피커 믹싱 없이 마이크 데이터만 사용
+                    let mic_only: Vec<f32> = mic_chunk
                         .into_iter()
-                        .zip(speaker_chunk.into_iter())
-                        .map(|(a, b)| (a + b).clamp(-1.0, 1.0))
+                        .map(|sample| {
+                            if !sample.is_finite() {
+                                tracing::warn!("Invalid mic sample: {}", sample);
+                                0.0
+                            } else {
+                                sample
+                            }
+                        })
                         .collect();
 
-                    for &sample in &mixed {
-                        if process_tx.send(sample).await.is_err() {
-                            tracing::error!("process_tx_send_error");
-                            return;
-                        }
+                    tracing::debug!("Successfully processed {} mic samples for chunk {}", mic_only.len(), chunk_count);
 
-                        if record {
-                            if save_tx.send(sample).await.is_err() {
-                                tracing::error!("save_tx_send_error");
-                            }
-                        }
+                    // 주기적으로 처리 상태 로그
+                    if chunk_count % 100 == 0 {
+                        tracing::debug!("Processed {} mic-only chunks", chunk_count);
                     }
+                    
+                    // 순수 마이크 데이터 처리 결과 로그
+                    // tracing::info!("Successfully processed mic-only chunk {} with {} samples (first sample: {})", 
+                                //  chunk_count, mic_only.len(), mic_only.get(0).unwrap_or(&0.0));
                 }
+                
+                // TODO: Re-enable speaker mixing after identifying the issue
+                /*
+                while let (Some(mic_chunk), Some(speaker_chunk)) =
+                    (mic_rx.recv().await, speaker_rx.recv().await)
+                {
+                    // ... 기존 로직
+                }
+                */
+                
+                tracing::info!("Audio processing loop ended after {} chunks", chunk_count);
             }
         });
+        */
 
-        if record {
+        // 임시로 WAV 파일 쓰기를 비활성화하여 문제 지점 확인
+        tracing::warn!("WAV file recording temporarily disabled for debugging");
+        
+        // TODO: Re-enable WAV recording after identifying the issue
+        if false { // record {
             tasks.spawn(async move {
                 let dir = app_dir.join(session_id);
                 
@@ -363,12 +456,27 @@ impl Session {
                 let mut error_count = 0u32;
                 const MAX_ERRORS: u32 = 10;
 
+                tracing::info!("Starting WAV sample write loop");
+
                 while let Some(sample) = save_rx.recv().await {
+                    // 첫 번째 샘플 수신 로그
+                    if sample_count == 0 {
+                        tracing::info!("Received first audio sample for WAV recording");
+                    }
+
+                    // Windows에서 무한대나 NaN 값 체크
+                    if !sample.is_finite() {
+                        tracing::warn!("Received invalid sample value: {}, skipping", sample);
+                        continue;
+                    }
+
                     match wav.write_sample(sample) {
                         Ok(_) => {
                             sample_count += 1;
-                            if sample_count % 16000 == 0 { // 1초마다 로그 (16kHz)
-                                tracing::debug!("Written {} samples to WAV file", sample_count);
+                            
+                            // 더 자주 로그 출력 (100ms마다)
+                            if sample_count % 1600 == 0 { // 100ms마다 로그 (16kHz)
+                                tracing::info!("Written {} samples to WAV file", sample_count);
                             }
                         },
                         Err(e) => {
@@ -380,6 +488,12 @@ impl Session {
                                 break;
                             }
                         }
+                    }
+
+                    // 매우 많은 샘플이 처리되면 중간 flush
+                    if sample_count % 16000 == 0 {
+                        tracing::debug!("Attempting to flush WAV file at {} samples", sample_count);
+                        // hound에는 명시적 flush가 없지만, 주기적으로 상태 체크
                     }
                 }
 
@@ -395,51 +509,98 @@ impl Session {
 
         // TODO
         // let timeline = Arc::new(Mutex::new(initialize_timeline(&session).await));
+        
+        // STT 클라이언트 초기화도 임시로 비활성화
+        tracing::warn!("STT client initialization temporarily disabled for debugging");
+        
+        // TODO: Re-enable STT client after identifying the issue
+        /*
+        tracing::info!("Creating audio stream for STT");
         let audio_stream = hypr_audio::ReceiverStreamSource::new(process_rx, SAMPLE_RATE);
 
-        let listen_stream = listen_client.from_audio(audio_stream).await?;
+        tracing::info!("Initializing STT listen stream");
+        let listen_stream = match listen_client.from_audio(audio_stream).await {
+            Ok(stream) => {
+                tracing::info!("Successfully initialized STT listen stream");
+                stream
+            },
+            Err(e) => {
+                tracing::error!("Failed to initialize STT listen stream: {:?}", e);
+                return Err(e.into());
+            }
+        };
+        */
 
+        // STT 결과 처리 태스크도 비활성화
+        /*
+        tracing::info!("Spawning STT result processing task");
         tasks.spawn({
             let app = self.app.clone();
             let stop_tx = stop_tx.clone();
 
             async move {
+                tracing::info!("STT result processing task started");
                 futures_util::pin_mut!(listen_stream);
 
                 while let Some(result) = listen_stream.next().await {
-                    // We don't have to do this, and inefficient. But this is what works at the moment.
-                    {
-                        let updated_words = update_session(&app, &session.id, result.words)
-                            .await
-                            .unwrap();
-
-                        SessionEvent::Words {
-                            words: updated_words,
-                        }
-                        .emit(&app)
+                    tracing::debug!("Received STT result with {} words", result.words.len());
+                    
+                    // 임시로 DB 접근을 비활성화하여 문제 지점 확인
+                    tracing::warn!("STT result DB update temporarily disabled for debugging");
+                    
+                    // TODO: Re-enable DB access after identifying the issue
+                    if let Err(e) = (SessionEvent::Words {
+                        words: result.words, // 직접 STT 결과 사용
+                    }).emit(&app) {
+                        tracing::error!("Failed to emit words event: {:?}", e);
                     }
-                    .unwrap();
+                    
+                    // We don't have to do this, and inefficient. But this is what works at the moment.
+                    match update_session(&app, &session.id, result.words).await {
+                        Ok(updated_words) => {
+                            if let Err(e) = (SessionEvent::Words {
+                                words: updated_words,
+                            }).emit(&app) {
+                                tracing::error!("Failed to emit words event: {:?}", e);
+                            }
+                        },
+                        Err(e) => {
+                            tracing::error!("Failed to update session with STT result: {:?}", e);
+                        }
+                    }
                 }
 
-                tracing::info!("listen_stream_ended");
+                tracing::info!("STT result processing task ended");
                 if stop_tx.send(()).await.is_err() {
                     tracing::warn!("failed_to_send_stop_signal");
                 }
             }
         });
+        */
 
+        // Stop signal handler 태스크도 비활성화
+        /*
+        tracing::info!("Spawning stop signal handler task");
         let app_handle = self.app.clone();
         tasks.spawn(async move {
+            tracing::debug!("Stop signal handler task started");
             if stop_rx.recv().await.is_some() {
+                tracing::info!("Received stop signal");
                 if let Some(state) = app_handle.try_state::<crate::SharedState>() {
                     let mut guard = state.lock().await;
                     guard.fsm.handle(&crate::fsm::StateEvent::Stop).await;
+                } else {
+                    tracing::warn!("Failed to get shared state for stop signal");
                 }
             }
+            tracing::debug!("Stop signal handler task ended");
         });
+        */
 
+        tracing::info!("Storing task set in session");
         self.tasks = Some(tasks);
 
+        tracing::info!("Successfully completed setup_resources");
         Ok(())
     }
 
@@ -520,17 +681,38 @@ async fn update_session<R: tauri::Runtime>(
 ) -> Result<Vec<hypr_listener_interface::Word>, crate::Error> {
     use tauri_plugin_db::DatabasePluginExt;
 
+    let session_id = session_id.into();
+    tracing::debug!("Updating session {} with {} new words", session_id, words.len());
+
     // TODO: not ideal. We might want to only do "update" everywhere instead of upserts.
     // We do this because it is highly likely that the session fetched in the listener is stale (session can be updated on the React side).
-    let mut session = app
-        .db_get_session(session_id)
-        .await?
-        .ok_or(crate::Error::NoneSession)?;
+    let mut session = match app.db_get_session(&session_id).await {
+        Ok(Some(session)) => {
+            tracing::debug!("Successfully retrieved session from DB for update");
+            session
+        },
+        Ok(None) => {
+            tracing::error!("Session not found for update: {}", session_id);
+            return Err(crate::Error::NoneSession);
+        },
+        Err(e) => {
+            tracing::error!("Failed to retrieve session for update: {:?}", e);
+            return Err(e.into());
+        }
+    };
 
     session.words.extend(words);
-    app.db_upsert_session(session.clone()).await.unwrap();
-
-    Ok(session.words)
+    
+    match app.db_upsert_session(session.clone()).await {
+        Ok(_) => {
+            tracing::debug!("Successfully updated session with new words (total: {})", session.words.len());
+            Ok(session.words)
+        },
+        Err(e) => {
+            tracing::error!("Failed to upsert session: {:?}", e);
+            Err(e.into())
+        }
+    }
 }
 
 pub enum StateEvent {
@@ -655,34 +837,107 @@ impl Session {
 
     #[action]
     async fn enter_running_active(&mut self) {
+        tracing::info!("Entering RunningActive state");
+        
         // {
         //     use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
         //     let _ = self.app.window_show(HyprWindow::Control);
         // }
 
         if let Some(session_id) = &self.session_id {
+            tracing::info!("Updating session record_start time for session: {}", session_id);
+            
+            // 임시로 DB 접근을 비활성화하여 문제 지점 확인
+            tracing::warn!("DB access temporarily disabled for debugging");
+            
+            // TODO: Re-enable DB access after identifying the issue
+            /*
             use tauri_plugin_db::DatabasePluginExt;
 
-            if let Ok(Some(mut session)) = self.app.db_get_session(session_id).await {
-                session.record_start = Some(chrono::Utc::now());
-                let _ = self.app.db_upsert_session(session).await;
+            match self.app.db_get_session(session_id).await {
+                Ok(Some(mut session)) => {
+                    tracing::debug!("Successfully retrieved session from DB");
+                    session.record_start = Some(chrono::Utc::now());
+                    match self.app.db_upsert_session(session).await {
+                        Ok(_) => {
+                            tracing::debug!("Successfully updated session record_start time");
+                        },
+                        Err(e) => {
+                            tracing::error!("Failed to update session record_start time: {:?}", e);
+                        }
+                    }
+                },
+                Ok(None) => {
+                    tracing::warn!("Session not found in DB: {}", session_id);
+                },
+                Err(e) => {
+                    tracing::error!("Failed to get session from DB: {:?}", e);
+                }
             }
+            */
         }
+        
+        tracing::info!("Completed enter_running_active");
     }
 
     fn on_transition(&mut self, source: &State, target: &State) {
         #[cfg(debug_assertions)]
         tracing::info!("transitioned from `{:?}` to `{:?}`", source, target);
 
-        match target {
-            State::RunningActive {} => SessionEvent::RunningActive {}.emit(&self.app).unwrap(),
-            State::RunningPaused {} => SessionEvent::RunningPaused {}.emit(&self.app).unwrap(),
-            State::Inactive {} => SessionEvent::Inactive {}.emit(&self.app).unwrap(),
-        }
+        tracing::info!("on_transition function entered - about to process state: {:?}", target);
 
-        if let Some(tx) = &self.session_state_tx {
-            let _ = tx.send(target.clone());
+        // 임시로 이벤트 전송을 완전히 비활성화하여 문제 지점 확인
+        tracing::warn!("Session event emission temporarily disabled for debugging");
+        
+        // TODO: Re-enable event emission after identifying the issue
+        /*
+        // 안전한 이벤트 전송 - .unwrap() 대신 에러 처리
+        tracing::debug!("Emitting session event for state: {:?}", target);
+        let emit_result = match target {
+            State::RunningActive {} => {
+                tracing::debug!("Emitting RunningActive event");
+                SessionEvent::RunningActive {}.emit(&self.app)
+            },
+            State::RunningPaused {} => {
+                tracing::debug!("Emitting RunningPaused event");
+                SessionEvent::RunningPaused {}.emit(&self.app)
+            },
+            State::Inactive {} => {
+                tracing::debug!("Emitting Inactive event");
+                SessionEvent::Inactive {}.emit(&self.app)
+            },
+        };
+
+        match emit_result {
+            Ok(_) => {
+                tracing::debug!("Successfully emitted session event for state: {:?}", target);
+            },
+            Err(e) => {
+                tracing::error!("Failed to emit session event for state {:?}: {:?}", target, e);
+                // 에러가 발생해도 계속 진행 (panic 방지)
+            }
         }
+        */
+
+        // 백그라운드 태스크가 비활성화되어 있으므로 내부 상태 채널 사용 안함
+        tracing::warn!("Internal session state channel update disabled (no receivers active)");
+        
+        // TODO: Re-enable after background tasks are restored
+        /*
+        // 내부 상태 채널 업데이트
+        tracing::info!("Updating internal session state channel for: {:?}", target);
+        if let Some(tx) = &self.session_state_tx {
+            if let Err(e) = tx.send(target.clone()) {
+                tracing::error!("Failed to send state to internal channel: {:?}", e);
+            } else {
+                tracing::info!("Successfully updated internal session state channel");
+            }
+        } else {
+            tracing::warn!("Session state channel not available");
+        }
+        */
+        
+        tracing::info!("Completed on_transition function for: {:?}", target);
     }
 }
 

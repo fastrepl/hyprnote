@@ -89,13 +89,6 @@ impl Session {
 
         let listen_client = setup_listen_client(&self.app, language, jargons).await?;
 
-        // 임시로 마이크를 더미 스트림으로 대체하여 문제 지점 확인
-        tracing::warn!("Using dummy mic stream for debugging");
-        let mic_sample_stream = futures_util::stream::repeat(0.0f32);
-        let mut mic_stream = mic_sample_stream.chunks(1024);
-        
-        // TODO: Re-enable real mic stream after identifying the issue
-        /*
         let mic_sample_stream = {
             // Retry mic initialization up to 3 times with delays
             let mut attempts = 0;
@@ -103,26 +96,28 @@ impl Session {
                 attempts += 1;
                 tracing::info!("Initializing microphone (attempt {})", attempts);
                 
-                match std::panic::catch_unwind(|| {
+                // 안전한 마이크 초기화 (panic 대신 에러 처리)
+                match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     let mut input = hypr_audio::AudioInput::from_mic();
                     input.stream()
-                }) {
+                })) {
                     Ok(stream) => {
                         tracing::info!("Successfully initialized microphone");
                         break stream;
                     }
-                    Err(e) => {
-                        tracing::error!("Failed to initialize microphone (attempt {}): {:?}", attempts, e);
+                    Err(panic_info) => {
+                        tracing::error!("Microphone initialization panicked (attempt {}): {:?}", attempts, panic_info);
                         if attempts >= 3 {
+                            tracing::error!("Failed to initialize microphone after {} attempts", attempts);
                             return Err(crate::Error::StartSessionFailed);
                         }
+                        tracing::info!("Retrying microphone initialization in 1 second...");
                         tokio::time::sleep(Duration::from_millis(1000)).await;
                     }
                 }
             }
         };
         let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);
-        */
         
         // Wait longer for audio system to stabilize
         tokio::time::sleep(Duration::from_millis(500)).await;

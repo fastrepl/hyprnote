@@ -19,7 +19,7 @@ pub struct AEC {
     block_shift: usize,
     fft: Arc<dyn RealToComplex<f32>>,
     ifft: Arc<dyn ComplexToReal<f32>>,
-    // Streaming state
+    // streaming state
     states_1: Array4<f32>,
     states_2: Array4<f32>,
     in_buffer: Vec<f32>,
@@ -58,7 +58,6 @@ impl AEC {
         })
     }
 
-    /// Reset the internal state for a new session
     pub fn reset(&mut self) {
         let state_size = model::STATE_SIZE;
         self.states_1 = Array4::<f32>::zeros((1, 2, state_size, 2));
@@ -69,7 +68,6 @@ impl AEC {
         self.is_first_chunk = true;
     }
 
-    /// Process audio in streaming mode (maintains state between calls)
     pub fn process_streaming(
         &mut self,
         mic_input: &[f32],
@@ -88,13 +86,11 @@ impl AEC {
         self._process_internal(mic_input, lpb_input, false)
     }
 
-    /// Process audio in non-streaming mode (resets state, adds padding)
     pub fn process(
         &mut self,
         mic_input: &[f32],
         lpb_input: &[f32],
     ) -> Result<Vec<f32>, crate::Error> {
-        // Reset state for non-streaming processing
         self.reset();
 
         let len_audio = mic_input.len().min(lpb_input.len());
@@ -384,7 +380,6 @@ mod tests {
                     let mut aec = AEC::new().unwrap();
                     let mut streaming_result = Vec::new();
 
-                    // Ensure both samples have the same length (like in the original process method)
                     let len_audio = mic_samples.len().min(lpb_samples.len());
                     let mic_samples = &mic_samples[..len_audio];
                     let lpb_samples = &lpb_samples[..len_audio];

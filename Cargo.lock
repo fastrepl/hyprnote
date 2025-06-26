@@ -13656,6 +13656,7 @@ dependencies = [
 name = "tauri-plugin-listener"
 version = "0.1.0"
 dependencies = [
+ "aec",
  "audio 0.1.0",
  "audio-utils",
  "bytes",

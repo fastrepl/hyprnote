@@ -19,6 +19,7 @@ specta-typescript = { workspace = true }
 uuid = { workspace = true }
 
 [dependencies]
+hypr-aec = { workspace = true }
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }

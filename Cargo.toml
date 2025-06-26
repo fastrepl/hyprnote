@@ -21,6 +21,7 @@ members = [
 rust-version = "1.86.0"
 
 [workspace.dependencies]
+hypr-aec = { path = "crates/aec", package = "aec" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
 hypr-audio = { path = "crates/audio", package = "audio" }
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }

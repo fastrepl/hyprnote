@@ -99,11 +99,15 @@ impl Session {
             let mut input = hypr_audio::AudioInput::from_mic();
             input.stream()
         };
-        let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);
+        let mut mic_stream = mic_sample_stream
+            .resample(SAMPLE_RATE)
+            .chunks(hypr_aec::BLOCK_SIZE * 2);
         tokio::time::sleep(Duration::from_millis(100)).await;
 
         let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
-        let mut speaker_stream = speaker_sample_stream.resample(SAMPLE_RATE).chunks(1024);
+        let mut speaker_stream = speaker_sample_stream
+            .resample(SAMPLE_RATE)
+            .chunks(hypr_aec::BLOCK_SIZE * 2);
 
         let chunk_buffer_size: usize = 1024;
         let sample_buffer_size = (SAMPLE_RATE as usize) * 60 * 10;
@@ -191,14 +195,17 @@ impl Session {
             let save_mixed_tx = save_mixed_tx.clone();
 
             async move {
+                let aec = hypr_aec::AEC::new().unwrap();
                 let mut last_broadcast = Instant::now();
 
                 loop {
-                    let (mic_chunk, speaker_chunk) =
+                    let (mic_chunk_raw, speaker_chunk) =
                         match tokio::join!(mic_rx.recv_async(), speaker_rx.recv_async()) {
                             (Ok(mic), Ok(speaker)) => (mic, speaker),
                             _ => break,
                         };
+
+                    let mic_chunk = aec.process(&mic_chunk_raw, &speaker_chunk).unwrap();
 
                     if matches!(*session_state_rx.borrow(), State::RunningPaused {}) {
                         let mut rx = session_state_rx.clone();

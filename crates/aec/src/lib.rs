@@ -36,9 +36,13 @@ pub struct AEC {
     ifft: Arc<dyn ComplexToReal<f32>>,
 }
 
+// model already trained with these numbers.
+pub const BLOCK_SIZE: usize = 512;
+pub const BLOCK_SHIFT: usize = 128;
+
 impl AEC {
     pub fn new() -> Result<Self, crate::Error> {
-        let (block_len, block_shift) = (512, 128);
+        let (block_len, block_shift) = (BLOCK_SIZE, BLOCK_SHIFT);
 
         let mut fft_planner = RealFftPlanner::<f32>::new();
         let fft = fft_planner.plan_fft_forward(block_len);

@@ -32,7 +32,7 @@ fn bench_aec_initialization(c: &mut Criterion) {
 
 fn bench_aec_process(c: &mut Criterion) {
     let (mic_samples, lpb_samples) = load_test_data();
-    let aec = AEC::new().unwrap();
+    let mut aec = AEC::new().unwrap();
 
     c.bench_function("aec_process_full", |b| {
         b.iter(|| {
@@ -46,7 +46,7 @@ fn bench_aec_process(c: &mut Criterion) {
 
 fn bench_aec_process_chunks(c: &mut Criterion) {
     let (mic_samples, lpb_samples) = load_test_data();
-    let aec = AEC::new().unwrap();
+    let mut aec = AEC::new().unwrap();
 
     let chunk_sizes = [1024, 4096, 16384];
 
@@ -67,7 +67,7 @@ fn bench_aec_process_chunks(c: &mut Criterion) {
 
 fn bench_aec_throughput(c: &mut Criterion) {
     let (mic_samples, lpb_samples) = load_test_data();
-    let aec = AEC::new().unwrap();
+    let mut aec = AEC::new().unwrap();
 
     let mut group = c.benchmark_group("aec_throughput");
     group.throughput(criterion::Throughput::Elements(mic_samples.len() as u64));

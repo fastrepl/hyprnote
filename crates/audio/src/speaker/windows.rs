@@ -1,17 +1,19 @@
-use std::sync::{Arc, Mutex};
-use std::task::{Poll, Waker};
-use std::thread;
-use std::sync::mpsc;
-use std::collections::VecDeque;
-use ringbuf::traits::Observer;
 use anyhow::Result;
 use futures_util::Stream;
+use ringbuf::traits::Observer;
 use ringbuf::{
     traits::{Consumer, Producer, Split},
     HeapCons, HeapProd, HeapRb,
 };
-
+use std::collections::VecDeque;
+use std::sync::mpsc;
+use std::sync::{Arc, Mutex};
+use std::task::{Poll, Waker};
+use std::thread;
 use wasapi::*;
+use tracing::debug;
+use tracing::error;
+use tracing::trace;
 
 struct WakerState {
     waker: Option<Waker>,
@@ -23,225 +25,153 @@ pub struct SpeakerInput {
 }
 
 pub struct SpeakerStream {
-    consumer: HeapCons<f32>,
+    receiver: std::sync::mpsc::Receiver<Vec<f32>>,
+    current_chunk: Vec<f32>,
+    chunk_index: usize,
     sample_rate: u32,
     sample_rate_override: Option<u32>,
-    waker_state: Arc<Mutex<WakerState>>,
     _capture_handle: thread::JoinHandle<()>,
 }
 
 impl SpeakerInput {
     pub fn new(sample_rate_override: Option<u32>) -> Result<Self> {
-        // Initialize WASAPI MTA (Multi-Threaded Apartment)
-        initialize_mta().ok()?;
-        
+        // COM 초기화를 시도하되, 이미 초기화된 경우 무시
+        match initialize_mta().ok() {
+            Ok(_) => tracing::debug!("COM MTA initialized successfully"),
+            Err(e) => {
+                // COM 초기화 에러를 문자열로 확인
+                let error_str = format!("{:?}", e);
+                if error_str.contains("0x80010106") || 
+                   error_str.contains("Cannot change thread mode") ||
+                   error_str.contains("RPC_E_CHANGED_MODE") {
+                    tracing::debug!("COM already initialized in different mode, continuing...");
+                } else {
+                    tracing::warn!("COM initialization failed: {:?}", e);
+                    // COM 초기화 실패는 치명적이지 않을 수 있으므로 계속 진행
+                    tracing::info!("Continuing without COM initialization...");
+                }
+            }
+        }
+
         Ok(Self {
             sample_rate_override,
         })
     }
 
     pub fn stream(self) -> Result<SpeakerStream> {
-        let rb = HeapRb::<f32>::new(16384); // Larger buffer for Windows
-        let (producer, consumer) = rb.split();
-
-        let waker_state = Arc::new(Mutex::new(WakerState {
-            waker: None,
-            has_data: false,
-        }));
-
-        let waker_state_clone = waker_state.clone();
-        let sample_rate_override = self.sample_rate_override;
+        let (tx, rx) = std::sync::mpsc::sync_channel(8); // 작은 버퍼
 
         let capture_handle = thread::Builder::new()
             .name("WASAPI Capture".to_string())
             .spawn(move || {
-                if let Err(e) = Self::capture_loop(producer, waker_state_clone, sample_rate_override) {
-                    tracing::error!("WASAPI capture loop failed: {}", e);
+                if let Err(e) = Self::capture_loop_simple(tx) {
+                    tracing::error!("WASAPI capture failed: {}", e);
                 }
             })?;
 
-        // Get the actual sample rate from a temporary device connection
-        let sample_rate = Self::get_device_sample_rate()?;
-
         Ok(SpeakerStream {
-            consumer,
-            sample_rate,
-            sample_rate_override,
-            waker_state,
+            receiver: rx,
+            current_chunk: Vec::new(),
+            chunk_index: 0,
+            sample_rate: 44100, // 기본값
+            sample_rate_override: self.sample_rate_override,
             _capture_handle: capture_handle,
         })
     }
 
-    fn get_device_sample_rate() -> Result<u32> {
-        // Use loopback mode (Direction::Render) to capture from speakers
-        let device = get_default_device(&Direction::Render)
-            .map_err(|e| anyhow::anyhow!("Failed to get default render device: {:?}", e))?;
-        
-        let mut audio_client = device.get_iaudioclient()
-            .map_err(|e| anyhow::anyhow!("Failed to get audio client: {:?}", e))?;
+    fn capture_loop_simple(tx_capt: std::sync::mpsc::SyncSender<Vec<f32>>) -> Result<()> {
+        let device = get_default_device(&Direction::Render)?;
 
-        // Try to get the mix format from the device
-        let mix_format = audio_client.get_mixformat()
-            .map_err(|e| anyhow::anyhow!("Failed to get mix format: {:?}", e))?;
-        
-        Ok(mix_format.get_samplespersec())
-    }
+        let mut audio_client = device.get_iaudioclient()?;
 
-    fn capture_loop(
-        mut producer: HeapProd<f32>,
-        waker_state: Arc<Mutex<WakerState>>,
-        sample_rate_override: Option<u32>,
-    ) -> Result<()> {
-        // Use loopback mode (Direction::Render) to capture from speakers
-        let device = get_default_device(&Direction::Render)
-            .map_err(|e| anyhow::anyhow!("Failed to get default render device: {:?}", e))?;
-
-        let mut audio_client = device.get_iaudioclient()
-            .map_err(|e| anyhow::anyhow!("Failed to get audio client: {:?}", e))?;
-
-        // Get the default format or use a common format
-        let desired_format = if let Ok(mix_format) = audio_client.get_mixformat() {
-            tracing::info!(
-                "Using mix format - channels: {}, sample_rate: {}, bits_per_sample: {}",
-                mix_format.get_nchannels(),
-                mix_format.get_samplespersec(),
-                mix_format.get_bitspersample()
-            );
-            mix_format
-        } else {
-            // Fallback to a common format
-            WaveFormat::new(32, 32, &SampleType::Float, 44100, 2, None)
-        };
+        let desired_format = WaveFormat::new(32, 32, &SampleType::Float, 44100, 2, None);
 
         let blockalign = desired_format.get_blockalign();
-        let sample_rate = desired_format.get_samplespersec();
-        let channels = desired_format.get_nchannels();
+        let channels = desired_format.get_nchannels() as usize;
+        debug!("Desired capture format: {:?}", desired_format);
+        debug!("Channels: {}, Block align: {}", channels, blockalign);
 
-        tracing::info!(
-            "WASAPI capture format - sample_rate: {}, channels: {}, blockalign: {}",
-            sample_rate, channels, blockalign
-        );
-
-        let (def_time, min_time) = audio_client.get_device_period()
-            .map_err(|e| anyhow::anyhow!("Failed to get device period: {:?}", e))?;
-
-        tracing::debug!("Device periods - default: {}, minimum: {}", def_time, min_time);
+        let (def_time, min_time) = audio_client.get_device_period()?;
+        debug!("default period {}, min period {}", def_time, min_time);
 
         let mode = StreamMode::EventsShared {
             autoconvert: true,
             buffer_duration_hns: min_time,
         };
+        audio_client.initialize_client(&desired_format, &Direction::Render, &mode)?;
+        debug!("initialized capture");
 
-        audio_client.initialize_client(&desired_format, &Direction::Render, &mode)
-            .map_err(|e| anyhow::anyhow!("Failed to initialize audio client: {:?}", e))?;
+        let h_event = audio_client.set_get_eventhandle()?;
 
-        let h_event = audio_client.set_get_eventhandle()
-            .map_err(|e| anyhow::anyhow!("Failed to set event handle: {:?}", e))?;
+        let buffer_frame_count = audio_client.get_buffer_size()?;
 
-        let buffer_frame_count = audio_client.get_buffer_size()
-            .map_err(|e| anyhow::anyhow!("Failed to get buffer size: {:?}", e))?;
-
-        let render_client = audio_client.get_audiocaptureclient()
-            .map_err(|e| anyhow::anyhow!("Failed to get capture client: {:?}", e))?;
-
+        let render_client = audio_client.get_audiocaptureclient()?;
         let mut sample_queue: VecDeque<u8> = VecDeque::with_capacity(
             100 * blockalign as usize * (1024 + 2 * buffer_frame_count as usize),
         );
+        let session_control = audio_client.get_audiosessioncontrol()?;
 
-        // Start the stream
-        audio_client.start_stream()
-            .map_err(|e| anyhow::anyhow!("Failed to start stream: {:?}", e))?;
+        debug!("state before start: {:?}", session_control.get_state());
+        audio_client.start_stream()?;
+        debug!("state after start: {:?}", session_control.get_state());
 
-        tracing::info!("WASAPI loopback capture started");
-
+        let chunksize = 1024; // frames
         loop {
-            // Convert bytes to f32 samples and push to ringbuf
-            while sample_queue.len() >= (blockalign as usize) {
-                let mut frame_bytes = vec![0u8; blockalign as usize];
-                for i in 0..blockalign as usize {
-                    if let Some(byte) = sample_queue.pop_front() {
-                        frame_bytes[i] = byte;
-                    } else {
+            while sample_queue.len() >= (blockalign as usize * chunksize) {
+                debug!("pushing samples");
+                
+                // 바이트 데이터를 f32 조합으로 변환
+                let mut f32_chunk = Vec::with_capacity(chunksize);
+                
+                for _ in 0..chunksize {
+                    // 한 프레임 (모든 채널) 처리
+                    let mut frame_samples = Vec::with_capacity(channels);
+                    
+                    for _ in 0..channels {
+                        // 4바이트씩 f32로 변환
+                        if sample_queue.len() >= 4 {
+                            let bytes = [
+                                sample_queue.pop_front().unwrap(),
+                                sample_queue.pop_front().unwrap(),
+                                sample_queue.pop_front().unwrap(),
+                                sample_queue.pop_front().unwrap(),
+                            ];
+                            let sample = f32::from_le_bytes(bytes);
+                            frame_samples.push(sample);
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    // 스테레오를 모노로 믹스다운 (2채널 -> 1채널)
+                    if frame_samples.len() == 2 {
+                        let mono_sample = (frame_samples[0] + frame_samples[1]) * 0.5;
+                        f32_chunk.push(mono_sample);
+                    } else if frame_samples.len() == 1 {
+                        f32_chunk.push(frame_samples[0]);
+                    }
+                    
+                    if frame_samples.is_empty() {
                         break;
                     }
                 }
-
-                // Convert bytes to f32 samples based on format
-                if desired_format.get_bitspersample() == 32 && 
-                   desired_format.get_subformat()? == SampleType::Float {
-                    // 32-bit float format
-                    let samples_per_frame = channels as usize;
-                    for i in 0..samples_per_frame {
-                        let byte_offset = i * 4;
-                        if byte_offset + 4 <= frame_bytes.len() {
-                            let sample_bytes = [
-                                frame_bytes[byte_offset],
-                                frame_bytes[byte_offset + 1],
-                                frame_bytes[byte_offset + 2],
-                                frame_bytes[byte_offset + 3],
-                            ];
-                            let sample = f32::from_le_bytes(sample_bytes);
-                            
-                            // For stereo, mix down to mono by averaging channels
-                            let mono_sample = if channels == 2 && i == 0 {
-                                // Get the next channel sample for mixing
-                                if byte_offset + 8 <= frame_bytes.len() {
-                                    let next_sample_bytes = [
-                                        frame_bytes[byte_offset + 4],
-                                        frame_bytes[byte_offset + 5],
-                                        frame_bytes[byte_offset + 6],
-                                        frame_bytes[byte_offset + 7],
-                                    ];
-                                    let next_sample = f32::from_le_bytes(next_sample_bytes);
-                                    (sample + next_sample) * 0.5
-                                } else {
-                                    sample
-                                }
-                            } else if channels == 2 && i == 1 {
-                                // Skip the second channel as we already mixed it
-                                continue;
-                            } else {
-                                sample
-                            };
-
-                            let pushed = producer.try_push(mono_sample);
-                            if pushed.is_err() {
-                                tracing::warn!("Audio buffer full, dropping sample");
-                            }
-                        }
-                    }
-                } else {
-                    // For other formats, we might need more conversion logic
-                    tracing::warn!("Unsupported audio format for conversion");
-                }
-            }
-
-            // Wake up the stream if we have new data
-            {
-                let mut state = waker_state.lock().unwrap();
-                if !state.has_data && producer.occupied_len() > 0 {
-                    state.has_data = true;
-                    if let Some(waker) = state.waker.take() {
-                        drop(state);
-                        waker.wake();
+                
+                if !f32_chunk.is_empty() {
+                    if let Err(_) = tx_capt.try_send(f32_chunk) {
+                        debug!("Audio buffer full, dropping chunk");
                     }
                 }
             }
-
-            // Read new data from the device
-            match render_client.read_from_device_to_deque(&mut sample_queue) {
-                Ok(_) => {},
-                Err(e) => {
-                    tracing::warn!("Failed to read from device: {:?}", e);
-                }
-            }
-
-            // Wait for new data with timeout
-            if h_event.wait_for_event(1000).is_err() {
-                tracing::debug!("WASAPI event timeout, continuing...");
-                // Don't break on timeout, just continue the loop
+            
+            trace!("capturing");
+            render_client.read_from_device_to_deque(&mut sample_queue)?;
+            if h_event.wait_for_event(3000).is_err() {
+                error!("timeout error, stopping capture");
+                audio_client.stop_stream()?;
+                break;
             }
         }
+        Ok(())
     }
 }
 
@@ -264,21 +194,32 @@ impl Stream for SpeakerStream {
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Option<Self::Item>> {
-        if let Some(sample) = self.consumer.try_pop() {
+        // 현재 청크에서 샘플 반환
+        if self.chunk_index < self.current_chunk.len() {
+            let sample = self.current_chunk[self.chunk_index];
+            self.chunk_index += 1;
             return Poll::Ready(Some(sample));
         }
 
-        {
-            let mut state = self.waker_state.lock().unwrap();
-            state.has_data = false;
-            state.waker = Some(cx.waker().clone());
-            drop(state);
-        }
+        // 새 청크 받기 (논블로킹)
+        match self.receiver.try_recv() {
+            Ok(chunk) => {
+                self.current_chunk = chunk;
+                self.chunk_index = 0;
 
-        // Try once more after setting the waker
-        match self.consumer.try_pop() {
-            Some(sample) => Poll::Ready(Some(sample)),
-            None => Poll::Pending,
+                if !self.current_chunk.is_empty() {
+                    let sample = self.current_chunk[0];
+                    self.chunk_index = 1;
+                    Poll::Ready(Some(sample))
+                } else {
+                    Poll::Pending
+                }
+            }
+            Err(std::sync::mpsc::TryRecvError::Empty) => {
+                cx.waker().wake_by_ref();
+                Poll::Pending
+            }
+            Err(std::sync::mpsc::TryRecvError::Disconnected) => Poll::Ready(None),
         }
     }
 }

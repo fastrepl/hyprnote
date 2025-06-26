@@ -199,10 +199,19 @@ impl Session {
                 let mut aec = hypr_aec::AEC::new().unwrap();
                 let mut last_broadcast = Instant::now();
 
+                // TODO: AGC might be needed.
+                const PRE_MIC_GAIN: f32 = 1.0;
+                const PRE_SPEAKER_GAIN: f32 = 0.8;
+                const POST_MIC_GAIN: f32 = 1.5;
+                const POST_SPEAKER_GAIN: f32 = 1.0;
+
                 loop {
-                    let (mic_chunk_raw, speaker_chunk) =
+                    let (mic_chunk_raw, speaker_chunk): (Vec<f32>, Vec<f32>) =
                         match tokio::join!(mic_rx.recv_async(), speaker_rx.recv_async()) {
-                            (Ok(mic), Ok(speaker)) => (mic, speaker),
+                            (Ok(mic), Ok(speaker)) => (
+                                mic.iter().map(|x| *x * PRE_MIC_GAIN).collect(),
+                                speaker.iter().map(|x| *x * PRE_SPEAKER_GAIN).collect(),
+                            ),
                             _ => break,
                         };
 
@@ -219,7 +228,9 @@ impl Session {
                     let mixed: Vec<f32> = mic_chunk
                         .iter()
                         .zip(speaker_chunk.iter())
-                        .map(|(mic, speaker)| (mic + speaker).clamp(-1.0, 1.0))
+                        .map(|(mic, speaker)| {
+                            (mic * POST_MIC_GAIN + speaker * POST_SPEAKER_GAIN).clamp(-1.0, 1.0)
+                        })
                         .collect();
 
                     let now = Instant::now();
@@ -232,7 +243,7 @@ impl Session {
                     }
 
                     if let Some(ref tx) = save_mic_raw_tx {
-                        let _ = tx.send_async(mic_chunk_raw.clone()).await;
+                        let _ = tx.send_async(mic_chunk.clone()).await;
                     }
                     if let Some(ref tx) = save_speaker_raw_tx {
                         let _ = tx.send_async(speaker_chunk.clone()).await;

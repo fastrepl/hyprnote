@@ -12,7 +12,6 @@ pub use error::*;
 mod model;
 pub use model::{BLOCK_SHIFT, BLOCK_SIZE};
 
-/// Helper struct to manage circular buffer operations
 struct CircularBuffer {
     buffer: Vec<f32>,
     block_len: usize,
@@ -35,18 +34,15 @@ impl CircularBuffer {
             [self.block_len - self.block_shift..self.block_len - self.block_shift + copy_len]
             .copy_from_slice(&chunk[..copy_len]);
 
-        // Zero-pad if chunk is smaller than block_shift
         if copy_len < self.block_shift {
             self.buffer[self.block_len - self.block_shift + copy_len..].fill(0.0);
         }
     }
 
-    /// Shift buffer and accumulate new data
     fn shift_and_accumulate(&mut self, data: &[f32]) {
         self.buffer.rotate_left(self.block_shift);
         self.buffer[self.block_len - self.block_shift..].fill(0.0);
 
-        // Add the new data to the buffer
         for (i, &val) in data.iter().enumerate() {
             self.buffer[i] += val;
         }
@@ -61,7 +57,6 @@ impl CircularBuffer {
     }
 }
 
-/// Holds all temporary buffers needed for processing
 struct ProcessingContext {
     scratch: Vec<Complex<f32>>,
     ifft_scratch: Vec<Complex<f32>>,
@@ -98,14 +93,6 @@ impl ProcessingContext {
     }
 }
 
-/// Acoustic Echo Cancellation (AEC) processor
-///
-/// This struct implements a deep learning-based AEC system that processes
-/// audio in blocks, using two ONNX models:
-/// 1. First model: Generates a frequency domain mask
-/// 2. Second model: Performs time-domain enhancement
-///
-/// Supports both streaming and non-streaming modes.
 pub struct AEC {
     session_1: Session,
     session_2: Session,
@@ -123,7 +110,6 @@ pub struct AEC {
 }
 
 impl AEC {
-    /// Create a new AEC processor with default model configuration
     pub fn new() -> Result<Self, crate::Error> {
         let (block_len, block_shift) = (model::BLOCK_SIZE, model::BLOCK_SHIFT);
 
@@ -143,7 +129,6 @@ impl AEC {
             block_shift,
             fft,
             ifft,
-            // Initialize persistent state
             states_1: Array4::<f32>::zeros((1, 2, state_size, 2)),
             states_2: Array4::<f32>::zeros((1, 2, state_size, 2)),
             in_buffer: CircularBuffer::new(block_len, block_shift),
@@ -153,7 +138,6 @@ impl AEC {
         })
     }
 
-    /// Reset the processor state for a new stream
     pub fn reset(&mut self) {
         let state_size = model::STATE_SIZE;
         self.states_1 = Array4::<f32>::zeros((1, 2, state_size, 2));
@@ -164,7 +148,6 @@ impl AEC {
         self.is_first_chunk = true;
     }
 
-    /// Calculate FFT and return magnitude array
     fn calculate_fft_magnitude(
         &self,
         input: &[f32],
@@ -177,7 +160,6 @@ impl AEC {
         self.fft
             .process_with_scratch(fft_buffer, fft_result, scratch)?;
 
-        // Calculate magnitude directly into the array
         for (i, &c) in fft_result.iter().enumerate() {
             magnitude[[0, 0, i]] = c.norm();
         }
@@ -185,7 +167,6 @@ impl AEC {
         Ok(())
     }
 
-    /// Run the first model to get the frequency mask
     fn run_model_1(
         &mut self,
         in_mag: &Array3<f32>,
@@ -216,7 +197,6 @@ impl AEC {
         Ok(out_mask_1d)
     }
 
-    /// Run the second model to get the enhanced output
     fn run_model_2(
         &mut self,
         estimated_block: &Array3<f32>,
@@ -301,7 +281,6 @@ impl AEC {
         lpb: &[f32],
         with_padding: bool,
     ) -> Result<Vec<f32>, crate::Error> {
-        // Preallocate output
         let mut out_file = vec![0.0f32; audio.len()];
 
         // Calculate number of frames

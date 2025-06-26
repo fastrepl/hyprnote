@@ -100,17 +100,35 @@ impl ListenClient {
         audio_stream: impl AsyncSource + Send + Unpin + 'static,
     ) -> Result<impl Stream<Item = ListenOutputChunk>, hypr_ws::Error> {
         tracing::info!("fire audio_stream.to_i16_le_chunks");
-        let _input_stream = audio_stream.to_i16_le_chunks(16 * 1000, 1024);
+        let input_stream = audio_stream.to_i16_le_chunks(16 * 1000, 1024);
         tracing::info!("fire WebSocketClient::new");
-        let _ws = WebSocketClient::new(self.request.clone());
+        let ws = WebSocketClient::new(self.request.clone());
         tracing::info!("after WebSocketClient::new");
 
-        // WebSocket 연결을 방지하고 더미 스트림 반환
-        tracing::warn!(":+:+:+: BLOCKING WebSocket connection - returning dummy stream");
+        // Windows C runtime 에러 방지를 위한 안전한 WebSocket 연결
+        tracing::info!(
+            ":+:+:+: Attempting SAFE WebSocket connection with timeout and error handling"
+        );
 
-        // 빈 스트림 반환 (WebSocket 연결 없이)
-        use futures_util::stream;
-        Ok(stream::empty())
+        use std::time::Duration;
+
+        // 30초 타임아웃과 함께 WebSocket 연결 시도
+        match tokio::time::timeout(Duration::from_secs(30), ws.from_audio::<Self>(input_stream))
+            .await
+        {
+            Ok(Ok(stream)) => {
+                tracing::info!(":+:+:+: WebSocket connection successful");
+                Ok(stream)
+            }
+            Ok(Err(e)) => {
+                tracing::error!(":+:+:+: WebSocket connection failed: {:?}", e);
+                Err(e)
+            }
+            Err(_timeout) => {
+                tracing::error!(":+:+:+: WebSocket connection timed out after 30 seconds");
+                Err(hypr_ws::Error::Timeout.into())
+            }
+        }
     }
 }
 

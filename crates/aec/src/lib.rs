@@ -93,11 +93,21 @@ impl AEC {
         // Calculate number of frames
         let num_blocks = (audio.len() - (self.block_len - self.block_shift)) / self.block_shift;
 
-        // Create FFT scratch buffer
+        // Preallocate all buffers to avoid repeated allocations
         let mut scratch = vec![Complex::new(0.0f32, 0.0f32); self.fft.get_scratch_len()];
         let mut ifft_scratch = vec![Complex::new(0.0f32, 0.0f32); self.ifft.get_scratch_len()];
+        let mut in_buffer_fft = vec![0.0f32; self.block_len];
+        let mut in_block_fft = vec![Complex::new(0.0f32, 0.0f32); self.block_len / 2 + 1];
+        let mut lpb_buffer_fft = vec![0.0f32; self.block_len];
+        let mut lpb_block_fft = vec![Complex::new(0.0f32, 0.0f32); self.block_len / 2 + 1];
+        let mut in_mag_vec = vec![0.0f32; self.block_len / 2 + 1];
+        let mut lpb_mag_vec = vec![0.0f32; self.block_len / 2 + 1];
+        let mut estimated_block_vec = vec![0.0f32; self.block_len];
+        let mut in_mag = Array3::<f32>::zeros((1, 1, self.block_len / 2 + 1));
+        let mut lpb_mag = Array3::<f32>::zeros((1, 1, self.block_len / 2 + 1));
+        let mut estimated_block = Array3::<f32>::zeros((1, 1, self.block_len));
+        let mut in_lpb = Array3::<f32>::zeros((1, 1, self.block_len));
 
-        // Process each block
         for idx in 0..num_blocks {
             // Shift values and write to buffer of the input audio
             in_buffer.rotate_left(self.block_shift);
@@ -111,24 +121,30 @@ impl AEC {
                 .copy_from_slice(&lpb[start..start + self.block_shift]);
 
             // Calculate FFT of input block
-            let mut in_buffer_fft = in_buffer.clone();
-            let mut in_block_fft = vec![Complex::new(0.0f32, 0.0f32); self.block_len / 2 + 1];
+            in_buffer_fft.copy_from_slice(&in_buffer);
             self.fft
                 .process_with_scratch(&mut in_buffer_fft, &mut in_block_fft, &mut scratch)?;
 
-            // Create magnitude
-            let in_mag: Vec<f32> = in_block_fft.iter().map(|c| c.norm()).collect();
-            let in_mag = Array3::from_shape_vec((1, 1, in_mag.len()), in_mag)?;
+            // Calculate magnitude
+            for (i, &c) in in_block_fft.iter().enumerate() {
+                in_mag_vec[i] = c.norm();
+            }
+            for (i, &mag) in in_mag_vec.iter().enumerate() {
+                in_mag[[0, 0, i]] = mag;
+            }
 
             // Calculate FFT of lpb block
-            let mut lpb_buffer_fft = in_buffer_lpb.clone();
-            let mut lpb_block_fft = vec![Complex::new(0.0f32, 0.0f32); self.block_len / 2 + 1];
+            lpb_buffer_fft.copy_from_slice(&in_buffer_lpb);
             self.fft
                 .process_with_scratch(&mut lpb_buffer_fft, &mut lpb_block_fft, &mut scratch)?;
 
-            // Create lpb magnitude
-            let lpb_mag: Vec<f32> = lpb_block_fft.iter().map(|c| c.norm()).collect();
-            let lpb_mag = Array3::from_shape_vec((1, 1, lpb_mag.len()), lpb_mag)?;
+            // Calculate lpb magnitude
+            for (i, &c) in lpb_block_fft.iter().enumerate() {
+                lpb_mag_vec[i] = c.norm();
+            }
+            for (i, &mag) in lpb_mag_vec.iter().enumerate() {
+                lpb_mag[[0, 0, i]] = mag;
+            }
 
             let mut outputs_1 = self.session_1.run(hypr_onnx::ort::inputs![
                 in_mag.view(),
@@ -158,20 +174,25 @@ impl AEC {
             }
 
             // IFFT
-            let mut estimated_block = vec![0.0f32; self.block_len];
             self.ifft.process_with_scratch(
                 &mut in_block_fft,
-                &mut estimated_block,
+                &mut estimated_block_vec,
                 &mut ifft_scratch,
             )?;
 
             // Normalize IFFT result
             let norm_factor = 1.0 / self.block_len as f32;
-            estimated_block.iter_mut().for_each(|x| *x *= norm_factor);
+            estimated_block_vec
+                .iter_mut()
+                .for_each(|x| *x *= norm_factor);
 
-            // Reshape for second model
-            let estimated_block = Array3::from_shape_vec((1, 1, self.block_len), estimated_block)?;
-            let in_lpb = Array3::from_shape_vec((1, 1, self.block_len), in_buffer_lpb.clone())?;
+            // Copy to Array3 for second model
+            for (i, &val) in estimated_block_vec.iter().enumerate() {
+                estimated_block[[0, 0, i]] = val;
+            }
+            for (i, &val) in in_buffer_lpb.iter().enumerate() {
+                in_lpb[[0, 0, i]] = val;
+            }
 
             let mut outputs_2 = self.session_2.run(hypr_onnx::ort::inputs![
                 estimated_block.view(),

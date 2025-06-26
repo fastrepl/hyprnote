@@ -18,9 +18,10 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
-approx = { workspace = true }
 criterion = { workspace = true }
+dasp = { workspace = true }
 hound = { workspace = true }
+rodio = { workspace = true }
 
 [[bench]]
 name = "aec_bench"

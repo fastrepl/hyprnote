@@ -198,11 +198,12 @@ dependencies = [
 name = "aec"
 version = "0.1.0"
 dependencies = [
- "approx",
  "criterion",
+ "dasp",
  "hound",
  "onnx",
  "realfft",
+ "rodio",
  "serde",
  "thiserror 2.0.12",
 ]

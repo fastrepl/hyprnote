@@ -919,23 +919,15 @@ impl Session {
         }
         */
 
-        // 백그라운드 태스크가 비활성화되어 있으므로 내부 상태 채널 사용 안함
-        tracing::warn!("Internal session state channel update disabled (no receivers active)");
-        
-        // TODO: Re-enable after background tasks are restored
-        /*
-        // 내부 상태 채널 업데이트
-        tracing::info!("Updating internal session state channel for: {:?}", target);
+        // 안전한 내부 상태 채널 업데이트 (SendError 무시)
+        tracing::debug!("Updating internal session state channel for: {:?}", target);
         if let Some(tx) = &self.session_state_tx {
-            if let Err(e) = tx.send(target.clone()) {
-                tracing::error!("Failed to send state to internal channel: {:?}", e);
-            } else {
-                tracing::info!("Successfully updated internal session state channel");
-            }
+            // SendError가 발생해도 panic하지 않도록 안전하게 처리
+            let _ = tx.send(target.clone());
+            tracing::debug!("Internal session state channel update attempted");
         } else {
-            tracing::warn!("Session state channel not available");
+            tracing::debug!("Session state channel not available");
         }
-        */
         
         tracing::info!("Completed on_transition function for: {:?}", target);
     }

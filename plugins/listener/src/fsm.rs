@@ -102,6 +102,8 @@ impl Session {
         let mut mic_stream = mic_sample_stream
             .resample(SAMPLE_RATE)
             .chunks(hypr_aec::BLOCK_SIZE * 2);
+
+        // https://github.com/fastrepl/hyprnote/commit/7c8cf1c
         tokio::time::sleep(Duration::from_millis(100)).await;
 
         let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();

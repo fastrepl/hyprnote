@@ -13,18 +13,21 @@ pub use error::*;
 mod model {
     pub const BYTES_1: &[u8] = include_bytes!("../data/model_128_1.onnx");
     pub const BYTES_2: &[u8] = include_bytes!("../data/model_128_2.onnx");
+    pub const STATE_SIZE: usize = 128;
 }
 
 #[cfg(feature = "256")]
 mod model {
     pub const BYTES_1: &[u8] = include_bytes!("../data/model_256_1.onnx");
     pub const BYTES_2: &[u8] = include_bytes!("../data/model_256_2.onnx");
+    pub const STATE_SIZE: usize = 256;
 }
 
 #[cfg(feature = "512")]
 mod model {
     pub const BYTES_1: &[u8] = include_bytes!("../data/model_512_1.onnx");
     pub const BYTES_2: &[u8] = include_bytes!("../data/model_512_2.onnx");
+    pub const STATE_SIZE: usize = 512;
 }
 
 pub struct AEC {
@@ -78,7 +81,7 @@ impl AEC {
         lpb.extend(lpb_input);
         lpb.extend(&padding);
 
-        let state_size = 128;
+        let state_size = model::STATE_SIZE;
         let mut states_1 = Array4::<f32>::zeros((1, 2, state_size, 2));
         let mut states_2 = Array4::<f32>::zeros((1, 2, state_size, 2));
 
@@ -254,7 +257,20 @@ mod tests {
     use hound::WavReader;
 
     #[test]
+    // cargo test -p aec --no-default-features --features 128
+    // cargo test -p aec --no-default-features --features 256
+    // cargo test -p aec --no-default-features --features 512
     fn test_aec() {
+        let feature = if cfg!(feature = "128") {
+            "128"
+        } else if cfg!(feature = "256") {
+            "256"
+        } else if cfg!(feature = "512") {
+            "512"
+        } else {
+            unreachable!()
+        };
+
         let data_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("data");
 
         // all pcm_s16le, 16k, 1chan.
@@ -285,7 +301,7 @@ mod tests {
 
         if true {
             let mut file = hound::WavWriter::create(
-                "./out.wav",
+                format!("./out_{}.wav", feature),
                 hound::WavSpec {
                     channels: 1,
                     sample_rate: 16000,

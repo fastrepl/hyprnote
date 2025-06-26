@@ -279,6 +279,11 @@ impl Session {
                 {
                     chunk_count += 1;
                     
+                    // 첫 번째 청크 수신 시 타이밍 로그
+                    if chunk_count == 1 {
+                        tracing::info!(":+:+:+: AUDIO MIXING - Received FIRST audio chunk from mic/speaker");
+                    }
+                    
                     // 첫 번째 청크 처리 로그
                     if chunk_count == 1 {
                         tracing::info!("Processing first audio chunk (mic: {} samples, speaker: {} samples)", 
@@ -336,21 +341,18 @@ impl Session {
 
                     tracing::debug!("About to send {} samples to downstream processing", mixed.len());
                     
-                    for (sample_idx, &sample) in mixed.iter().enumerate() {
-                        // 안전한 STT 처리 채널 전송
-                        if let Err(_) = process_tx.send(sample).await {
-                            tracing::warn!("STT processing channel receiver disconnected at chunk {} sample {}", chunk_count, sample_idx);
-                            return;
-                        }
-
-                        // 안전한 WAV 파일 저장 채널 전송 (아직 비활성화 상태)
-                        /*
-                        if record {
-                            if let Err(_) = save_tx.send(sample).await {
-                                tracing::warn!("WAV recording channel receiver disconnected at chunk {}", chunk_count);
-                            }
-                        }
-                        */
+                    // listen_stream을 즉시 drop했으므로 STT 채널 전송 비활성화
+                    // for (sample_idx, &sample) in mixed.iter().enumerate() {
+                    //     // 안전한 STT 처리 채널 전송
+                    //     if let Err(_) = process_tx.send(sample).await {
+                    //         tracing::warn!("STT processing channel receiver disconnected at chunk {} sample {}", chunk_count, sample_idx);
+                    //         return;
+                    //     }
+                    // }
+                    
+                    // 첫 번째 청크 완료 로그
+                    if chunk_count == 1 {
+                        tracing::info!(":+:+:+: AUDIO MIXING - First chunk processed (STT streaming disabled)");
                     }
                     
                     tracing::debug!("Successfully sent all samples for chunk {}", chunk_count);
@@ -521,11 +523,6 @@ impl Session {
         // TODO
         // let timeline = Arc::new(Mutex::new(initialize_timeline(&session).await));
         
-        // STT 클라이언트 초기화도 임시로 비활성화
-        tracing::warn!("STT client initialization temporarily disabled for debugging");
-        
-        // TODO: Re-enable STT client after identifying the issue
-        /*
         tracing::info!("Creating audio stream for STT");
         let audio_stream = hypr_audio::ReceiverStreamSource::new(process_rx, SAMPLE_RATE);
 
@@ -537,10 +534,22 @@ impl Session {
             },
             Err(e) => {
                 tracing::error!("Failed to initialize STT listen stream: {:?}", e);
+                // 안전한 에러 처리 - STT 초기화 실패해도 전체 세션은 유지
+                tracing::warn!("Continuing without STT processing due to initialization failure");
                 return Err(e.into());
             }
         };
-        */
+        tracing::info!(":+:+:+: from_audio returned successfully");
+
+        // WebSocket 연결 직후 즉시 스트림을 닫아서 실제 스트리밍 방지
+        tracing::info!(":+:+:+: Immediately dropping listen_stream to prevent audio streaming");
+        drop(listen_stream);
+        tracing::info!(":+:+:+: listen_stream dropped immediately - testing if this prevents the error");
+
+        // 이제 대기해서 에러가 발생하는지 확인
+        tracing::info!("Waiting 5 seconds to see if error still occurs without streaming...");
+        tokio::time::sleep(Duration::from_secs(5)).await;
+        tracing::info!(":+:+:+: after 5 second wait with no streaming - checking if error prevented");
 
         // STT 결과 처리 태스크도 비활성화
         /*

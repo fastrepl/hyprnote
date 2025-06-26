@@ -99,9 +99,18 @@ impl ListenClient {
         &self,
         audio_stream: impl AsyncSource + Send + Unpin + 'static,
     ) -> Result<impl Stream<Item = ListenOutputChunk>, hypr_ws::Error> {
-        let input_stream = audio_stream.to_i16_le_chunks(16 * 1000, 1024);
-        let ws = WebSocketClient::new(self.request.clone());
-        ws.from_audio::<Self>(input_stream).await
+        tracing::info!("fire audio_stream.to_i16_le_chunks");
+        let _input_stream = audio_stream.to_i16_le_chunks(16 * 1000, 1024);
+        tracing::info!("fire WebSocketClient::new");
+        let _ws = WebSocketClient::new(self.request.clone());
+        tracing::info!("after WebSocketClient::new");
+
+        // WebSocket 연결을 방지하고 더미 스트림 반환
+        tracing::warn!(":+:+:+: BLOCKING WebSocket connection - returning dummy stream");
+
+        // 빈 스트림 반환 (WebSocket 연결 없이)
+        use futures_util::stream;
+        Ok(stream::empty())
     }
 }
 

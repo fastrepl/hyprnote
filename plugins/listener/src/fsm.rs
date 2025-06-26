@@ -263,8 +263,7 @@ impl Session {
 
         let app_dir = self.app.path().app_data_dir().unwrap();
 
-        // 오디오 믹싱 태스크도 비활성화
-        /*
+        tracing::info!("About to spawn audio mixing task");
         tasks.spawn({
             let app = self.app.clone();
             let save_tx = save_tx.clone();
@@ -275,15 +274,15 @@ impl Session {
 
                 tracing::info!("Starting audio processing loop");
 
-                // 임시로 스피커 없이 마이크만 처리하여 문제 격리
-                tracing::warn!("Processing mic-only audio stream for debugging");
-                
-                while let Some(mic_chunk) = mic_rx.recv().await {
+                while let (Some(mic_chunk), Some(speaker_chunk)) =
+                    (mic_rx.recv().await, speaker_rx.recv().await)
+                {
                     chunk_count += 1;
                     
                     // 첫 번째 청크 처리 로그
                     if chunk_count == 1 {
-                        tracing::info!("Processing first mic-only chunk with {} samples", mic_chunk.len());
+                        tracing::info!("Processing first audio chunk (mic: {} samples, speaker: {} samples)", 
+                                     mic_chunk.len(), speaker_chunk.len());
                     }
 
                     if matches!(*session_state_rx.borrow(), State::RunningPaused {}) {
@@ -292,53 +291,74 @@ impl Session {
                         continue;
                     }
 
+                    let now = Instant::now();
+                    if now.duration_since(last_broadcast) >= AUDIO_AMPLITUDE_THROTTLE {
+                        if let Err(e) = SessionEvent::from((&mic_chunk, &speaker_chunk)).emit(&app)
+                        {
+                            tracing::error!("broadcast_error: {:?}", e);
+                        }
+                        last_broadcast = now;
+                    }
+
                     // 오디오 데이터 유효성 검사
                     let mic_has_invalid = mic_chunk.iter().any(|&s| !s.is_finite());
+                    let speaker_has_invalid = speaker_chunk.iter().any(|&s| !s.is_finite());
                     
                     if mic_has_invalid {
                         tracing::warn!("Mic chunk contains invalid samples");
                     }
+                    if speaker_has_invalid {
+                        tracing::warn!("Speaker chunk contains invalid samples");
+                    }
 
-                    tracing::debug!("Processing mic-only chunk {} with {} samples", chunk_count, mic_chunk.len());
+                    tracing::debug!("About to mix audio data for chunk {}", chunk_count);
                     
-                    // 스피커 믹싱 없이 마이크 데이터만 사용
-                    let mic_only: Vec<f32> = mic_chunk
+                    let mixed: Vec<f32> = mic_chunk
                         .into_iter()
-                        .map(|sample| {
-                            if !sample.is_finite() {
-                                tracing::warn!("Invalid mic sample: {}", sample);
+                        .zip(speaker_chunk.into_iter())
+                        .map(|(a, b)| {
+                            let result = (a + b).clamp(-1.0, 1.0);
+                            if !result.is_finite() {
+                                tracing::warn!("Mixed sample is not finite: {} + {} = {}", a, b, result);
                                 0.0
                             } else {
-                                sample
+                                result
                             }
                         })
                         .collect();
 
-                    tracing::debug!("Successfully processed {} mic samples for chunk {}", mic_only.len(), chunk_count);
+                    tracing::debug!("Successfully mixed {} samples for chunk {}", mixed.len(), chunk_count);
 
                     // 주기적으로 처리 상태 로그
                     if chunk_count % 100 == 0 {
-                        tracing::debug!("Processed {} mic-only chunks", chunk_count);
+                        tracing::debug!("Processed {} audio chunks", chunk_count);
+                    }
+
+                    tracing::debug!("About to send {} samples to downstream processing", mixed.len());
+                    
+                    for (sample_idx, &sample) in mixed.iter().enumerate() {
+                        // 안전한 STT 처리 채널 전송
+                        if let Err(_) = process_tx.send(sample).await {
+                            tracing::warn!("STT processing channel receiver disconnected at chunk {} sample {}", chunk_count, sample_idx);
+                            return;
+                        }
+
+                        // 안전한 WAV 파일 저장 채널 전송 (아직 비활성화 상태)
+                        /*
+                        if record {
+                            if let Err(_) = save_tx.send(sample).await {
+                                tracing::warn!("WAV recording channel receiver disconnected at chunk {}", chunk_count);
+                            }
+                        }
+                        */
                     }
                     
-                    // 순수 마이크 데이터 처리 결과 로그
-                    // tracing::info!("Successfully processed mic-only chunk {} with {} samples (first sample: {})", 
-                                //  chunk_count, mic_only.len(), mic_only.get(0).unwrap_or(&0.0));
+                    tracing::debug!("Successfully sent all samples for chunk {}", chunk_count);
                 }
-                
-                // TODO: Re-enable speaker mixing after identifying the issue
-                /*
-                while let (Some(mic_chunk), Some(speaker_chunk)) =
-                    (mic_rx.recv().await, speaker_rx.recv().await)
-                {
-                    // ... 기존 로직
-                }
-                */
                 
                 tracing::info!("Audio processing loop ended after {} chunks", chunk_count);
             }
         });
-        */
 
         // 임시로 WAV 파일 쓰기를 비활성화하여 문제 지점 확인
         tracing::warn!("WAV file recording temporarily disabled for debugging");

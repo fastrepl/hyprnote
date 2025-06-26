@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import LeftSidebar from "@/components/left-sidebar";
 import RightPanel from "@/components/right-panel";
@@ -22,6 +22,7 @@ import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { events as windowsEvents, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
 import { OngoingSessionProvider, SessionsProvider } from "@hypr/utils/contexts";
+import { IndividualizationModal } from "@/components/individualization-modal";
 
 export const Route = createFileRoute("/app")({
   component: Component,
@@ -34,9 +35,15 @@ export const Route = createFileRoute("/app")({
 function Component() {
   const router = useRouter();
   const { sessionsStore, ongoingSessionStore, isOnboardingNeeded } = Route.useLoaderData();
+  
+  // 🔥 Add state for individualization modal
+  const [isIndividualizationNeeded, setIsIndividualizationNeeded] = useState(true);
 
   const windowLabel = getCurrentWebviewWindowLabel();
   const showNotifications = windowLabel === "main" && !isOnboardingNeeded;
+
+  // Show individualization modal only after onboarding is done AND individualization is needed
+  const showIndividualization = !isOnboardingNeeded && isIndividualizationNeeded;
 
   return (
     <>
@@ -73,6 +80,15 @@ function Component() {
                         onClose={() => {
                           commands.setOnboardingNeeded(false);
                           router.invalidate();
+                        }}
+                      />
+                      
+                      {/* 🔥 Updated Individualization Modal with proper state management */}
+                      <IndividualizationModal
+                        isOpen={showIndividualization}
+                        onClose={() => {
+                          console.log("Individualization modal closed");
+                          setIsIndividualizationNeeded(false); // 🔥 Actually update the state
                         }}
                       />
                     </EditModeProvider>

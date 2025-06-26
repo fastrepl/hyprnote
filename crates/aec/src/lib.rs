@@ -9,26 +9,8 @@ use hypr_onnx::{
 mod error;
 pub use error::*;
 
-#[cfg(feature = "128")]
-mod model {
-    pub const BYTES_1: &[u8] = include_bytes!("../data/model_128_1.onnx");
-    pub const BYTES_2: &[u8] = include_bytes!("../data/model_128_2.onnx");
-    pub const STATE_SIZE: usize = 128;
-}
-
-#[cfg(feature = "256")]
-mod model {
-    pub const BYTES_1: &[u8] = include_bytes!("../data/model_256_1.onnx");
-    pub const BYTES_2: &[u8] = include_bytes!("../data/model_256_2.onnx");
-    pub const STATE_SIZE: usize = 256;
-}
-
-#[cfg(feature = "512")]
-mod model {
-    pub const BYTES_1: &[u8] = include_bytes!("../data/model_512_1.onnx");
-    pub const BYTES_2: &[u8] = include_bytes!("../data/model_512_2.onnx");
-    pub const STATE_SIZE: usize = 512;
-}
+mod model;
+pub use model::{BLOCK_SHIFT, BLOCK_SIZE};
 
 pub struct AEC {
     session_1: Session,
@@ -37,15 +19,18 @@ pub struct AEC {
     block_shift: usize,
     fft: Arc<dyn RealToComplex<f32>>,
     ifft: Arc<dyn ComplexToReal<f32>>,
+    // Streaming state
+    states_1: Array4<f32>,
+    states_2: Array4<f32>,
+    in_buffer: Vec<f32>,
+    in_buffer_lpb: Vec<f32>,
+    out_buffer: Vec<f32>,
+    is_first_chunk: bool,
 }
-
-// model already trained with these numbers.
-pub const BLOCK_SIZE: usize = 512;
-pub const BLOCK_SHIFT: usize = 128;
 
 impl AEC {
     pub fn new() -> Result<Self, crate::Error> {
-        let (block_len, block_shift) = (BLOCK_SIZE, BLOCK_SHIFT);
+        let (block_len, block_shift) = (model::BLOCK_SIZE, model::BLOCK_SHIFT);
 
         let mut fft_planner = RealFftPlanner::<f32>::new();
         let fft = fft_planner.plan_fft_forward(block_len);
@@ -54,6 +39,8 @@ impl AEC {
         let session_1 = hypr_onnx::load_model(model::BYTES_1)?;
         let session_2 = hypr_onnx::load_model(model::BYTES_2)?;
 
+        let state_size = model::STATE_SIZE;
+
         Ok(AEC {
             session_1,
             session_2,
@@ -61,15 +48,60 @@ impl AEC {
             block_shift,
             fft,
             ifft,
+            // Initialize persistent state
+            states_1: Array4::<f32>::zeros((1, 2, state_size, 2)),
+            states_2: Array4::<f32>::zeros((1, 2, state_size, 2)),
+            in_buffer: vec![0.0f32; block_len],
+            in_buffer_lpb: vec![0.0f32; block_len],
+            out_buffer: vec![0.0f32; block_len],
+            is_first_chunk: true,
         })
     }
 
-    // https://github.com/breizhn/DTLN-aec/blob/9d24e128b4f409db18227b8babb343016625921f/run_aec.py
-    pub fn process(&self, mic_input: &[f32], lpb_input: &[f32]) -> Result<Vec<f32>, crate::Error> {
+    /// Reset the internal state for a new session
+    pub fn reset(&mut self) {
+        let state_size = model::STATE_SIZE;
+        self.states_1 = Array4::<f32>::zeros((1, 2, state_size, 2));
+        self.states_2 = Array4::<f32>::zeros((1, 2, state_size, 2));
+        self.in_buffer.fill(0.0);
+        self.in_buffer_lpb.fill(0.0);
+        self.out_buffer.fill(0.0);
+        self.is_first_chunk = true;
+    }
+
+    /// Process audio in streaming mode (maintains state between calls)
+    pub fn process_streaming(
+        &mut self,
+        mic_input: &[f32],
+        lpb_input: &[f32],
+    ) -> Result<Vec<f32>, crate::Error> {
         let len_audio = mic_input.len().min(lpb_input.len());
         let mic_input = &mic_input[..len_audio];
         let lpb_input = &lpb_input[..len_audio];
 
+        // For streaming, we don't add padding to each chunk
+        // Only process if we have enough samples
+        if len_audio == 0 {
+            return Ok(vec![]);
+        }
+
+        self._process_internal(mic_input, lpb_input, false)
+    }
+
+    /// Process audio in non-streaming mode (resets state, adds padding)
+    pub fn process(
+        &mut self,
+        mic_input: &[f32],
+        lpb_input: &[f32],
+    ) -> Result<Vec<f32>, crate::Error> {
+        // Reset state for non-streaming processing
+        self.reset();
+
+        let len_audio = mic_input.len().min(lpb_input.len());
+        let mic_input = &mic_input[..len_audio];
+        let lpb_input = &lpb_input[..len_audio];
+
+        // Add padding for non-streaming mode
         let padding = vec![0.0f32; self.block_len - self.block_shift];
         let mut audio = Vec::with_capacity(padding.len() * 2 + len_audio);
         audio.extend(&padding);
@@ -81,20 +113,30 @@ impl AEC {
         lpb.extend(lpb_input);
         lpb.extend(&padding);
 
-        let state_size = model::STATE_SIZE;
-        let mut states_1 = Array4::<f32>::zeros((1, 2, state_size, 2));
-        let mut states_2 = Array4::<f32>::zeros((1, 2, state_size, 2));
+        let result = self._process_internal(&audio, &lpb, true)?;
 
+        // Cut audio to original length
+        let start_idx = self.block_len - self.block_shift;
+        Ok(result[start_idx..start_idx + len_audio].to_vec())
+    }
+
+    fn _process_internal(
+        &mut self,
+        audio: &[f32],
+        lpb: &[f32],
+        with_padding: bool,
+    ) -> Result<Vec<f32>, crate::Error> {
         // Preallocate output
         let mut out_file = vec![0.0f32; audio.len()];
 
-        // Create buffers
-        let mut in_buffer = vec![0.0f32; self.block_len];
-        let mut in_buffer_lpb = vec![0.0f32; self.block_len];
-        let mut out_buffer = vec![0.0f32; self.block_len];
-
         // Calculate number of frames
-        let num_blocks = (audio.len() - (self.block_len - self.block_shift)) / self.block_shift;
+        let effective_len = if with_padding {
+            audio.len() - (self.block_len - self.block_shift)
+        } else {
+            // For streaming, we might not have a full final block
+            audio.len()
+        };
+        let num_blocks = effective_len / self.block_shift;
 
         // Preallocate all buffers to avoid repeated allocations
         let mut scratch = vec![Complex::new(0.0f32, 0.0f32); self.fft.get_scratch_len()];
@@ -113,18 +155,35 @@ impl AEC {
 
         for idx in 0..num_blocks {
             // Shift values and write to buffer of the input audio
-            in_buffer.rotate_left(self.block_shift);
+            self.in_buffer.rotate_left(self.block_shift);
             let start = idx * self.block_shift;
-            in_buffer[self.block_len - self.block_shift..]
-                .copy_from_slice(&audio[start..start + self.block_shift]);
+            let end = (start + self.block_shift).min(audio.len());
+            let chunk_len = end - start;
+
+            if chunk_len > 0 {
+                self.in_buffer[self.block_len - self.block_shift
+                    ..self.block_len - self.block_shift + chunk_len]
+                    .copy_from_slice(&audio[start..end]);
+                // Zero-pad if chunk is smaller than block_shift
+                if chunk_len < self.block_shift {
+                    self.in_buffer[self.block_len - self.block_shift + chunk_len..].fill(0.0);
+                }
+            }
 
             // Shift values and write to buffer of the loopback audio
-            in_buffer_lpb.rotate_left(self.block_shift);
-            in_buffer_lpb[self.block_len - self.block_shift..]
-                .copy_from_slice(&lpb[start..start + self.block_shift]);
+            self.in_buffer_lpb.rotate_left(self.block_shift);
+            if chunk_len > 0 {
+                self.in_buffer_lpb[self.block_len - self.block_shift
+                    ..self.block_len - self.block_shift + chunk_len]
+                    .copy_from_slice(&lpb[start..end]);
+                // Zero-pad if chunk is smaller than block_shift
+                if chunk_len < self.block_shift {
+                    self.in_buffer_lpb[self.block_len - self.block_shift + chunk_len..].fill(0.0);
+                }
+            }
 
             // Calculate FFT of input block
-            in_buffer_fft.copy_from_slice(&in_buffer);
+            in_buffer_fft.copy_from_slice(&self.in_buffer);
             self.fft
                 .process_with_scratch(&mut in_buffer_fft, &mut in_block_fft, &mut scratch)?;
 
@@ -137,7 +196,7 @@ impl AEC {
             }
 
             // Calculate FFT of lpb block
-            lpb_buffer_fft.copy_from_slice(&in_buffer_lpb);
+            lpb_buffer_fft.copy_from_slice(&self.in_buffer_lpb);
             self.fft
                 .process_with_scratch(&mut lpb_buffer_fft, &mut lpb_block_fft, &mut scratch)?;
 
@@ -151,7 +210,7 @@ impl AEC {
 
             let mut outputs_1 = self.session_1.run(hypr_onnx::ort::inputs![
                 in_mag.view(),
-                states_1.view(),
+                self.states_1.view(),
                 lpb_mag.view()
             ]?)?;
 
@@ -163,13 +222,13 @@ impl AEC {
                 .to_owned();
             let out_mask_1d = out_mask.into_shape_with_order((self.block_len / 2 + 1,))?;
 
-            states_1 = outputs_1
+            self.states_1 = outputs_1
                 .remove("Identity_1")
                 .ok_or_else(|| Error::MissingOutput("Identity_1".to_string()))?
                 .try_extract_tensor::<f32>()?
                 .view()
                 .to_owned()
-                .into_shape_with_order((1, 2, state_size, 2))?;
+                .into_shape_with_order((1, 2, model::STATE_SIZE, 2))?;
 
             // Apply mask and calculate IFFT
             for (i, c) in in_block_fft.iter_mut().enumerate() {
@@ -193,13 +252,13 @@ impl AEC {
             for (i, &val) in estimated_block_vec.iter().enumerate() {
                 estimated_block[[0, 0, i]] = val;
             }
-            for (i, &val) in in_buffer_lpb.iter().enumerate() {
+            for (i, &val) in self.in_buffer_lpb.iter().enumerate() {
                 in_lpb[[0, 0, i]] = val;
             }
 
             let mut outputs_2 = self.session_2.run(hypr_onnx::ort::inputs![
                 estimated_block.view(),
-                states_2.view(),
+                self.states_2.view(),
                 in_lpb.view()
             ]?)?;
 
@@ -211,43 +270,40 @@ impl AEC {
                 .to_owned();
             let out_block_1d = out_block.into_shape_with_order((self.block_len,))?;
 
-            states_2 = outputs_2
+            self.states_2 = outputs_2
                 .remove("Identity_1")
                 .ok_or_else(|| Error::MissingOutput("Identity_1".into()))?
                 .try_extract_tensor::<f32>()?
                 .view()
                 .to_owned()
-                .into_shape_with_order((1, 2, state_size, 2))?;
+                .into_shape_with_order((1, 2, model::STATE_SIZE, 2))?;
 
             // Shift output buffer
-            out_buffer.rotate_left(self.block_shift);
-            out_buffer[self.block_len - self.block_shift..].fill(0.0);
+            self.out_buffer.rotate_left(self.block_shift);
+            self.out_buffer[self.block_len - self.block_shift..].fill(0.0);
 
             // Add output block to buffer
             for (i, &val) in out_block_1d.iter().enumerate() {
-                out_buffer[i] += val;
+                self.out_buffer[i] += val;
             }
 
             // Write to output file
             let out_start = idx * self.block_shift;
-            out_file[out_start..out_start + self.block_shift]
-                .copy_from_slice(&out_buffer[..self.block_shift]);
+            let out_end = (out_start + self.block_shift).min(out_file.len());
+            let out_chunk_len = out_end - out_start;
+            if out_chunk_len > 0 {
+                out_file[out_start..out_end].copy_from_slice(&self.out_buffer[..out_chunk_len]);
+            }
         }
-
-        // Cut audio to original length
-        let start_idx = self.block_len - self.block_shift;
-        let mut predicted_speech = out_file[start_idx..start_idx + len_audio].to_vec();
 
         // Check for clipping and normalize if needed
-        let max_val = predicted_speech
-            .iter()
-            .fold(0.0f32, |max, &x| max.max(x.abs()));
+        let max_val = out_file.iter().fold(0.0f32, |max, &x| max.max(x.abs()));
         if max_val > 1.0 {
             let scale = 0.99 / max_val;
-            predicted_speech.iter_mut().for_each(|x| *x *= scale);
+            out_file.iter_mut().for_each(|x| *x *= scale);
         }
 
-        Ok(predicted_speech)
+        Ok(out_file)
     }
 }
 
@@ -289,7 +345,6 @@ mod tests {
             fn $test_name() {
                 let feature = get_feature();
 
-                // all pcm_s16le, 16k, 1chan.
                 let lpb_sample =
                     rodio::Decoder::new(std::io::BufReader::new(std::io::Cursor::new($lpb_data)))
                         .unwrap()
@@ -303,14 +358,13 @@ mod tests {
                 let lpb_samples: Vec<f32> = lpb_sample.into_iter().map(|s| s.to_sample()).collect();
                 let mic_samples: Vec<f32> = mic_sample.into_iter().map(|s| s.to_sample()).collect();
 
-                let aec = AEC::new().unwrap();
-                let result = aec.process(&mic_samples, &lpb_samples).unwrap();
-
-                assert!(result.iter().all(|&x| x.is_finite()));
-
                 {
+                    let mut aec = AEC::new().unwrap();
+                    let result = aec.process(&mic_samples, &lpb_samples).unwrap();
+                    assert!(result.iter().all(|&x| x.is_finite()));
+
                     let mut file = hound::WavWriter::create(
-                        format!("./{}_{}.wav", $output_prefix, feature),
+                        format!("./{}_{}_batch.wav", $output_prefix, feature),
                         hound::WavSpec {
                             channels: 1,
                             sample_rate: 16000,
@@ -321,6 +375,48 @@ mod tests {
                     .unwrap();
 
                     for sample in result {
+                        file.write_sample(sample).unwrap();
+                    }
+                    file.finalize().unwrap();
+                }
+
+                {
+                    let mut aec = AEC::new().unwrap();
+                    let mut streaming_result = Vec::new();
+
+                    // Ensure both samples have the same length (like in the original process method)
+                    let len_audio = mic_samples.len().min(lpb_samples.len());
+                    let mic_samples = &mic_samples[..len_audio];
+                    let lpb_samples = &lpb_samples[..len_audio];
+
+                    let chunk_size = model::BLOCK_SIZE * 2;
+                    let mut processed = 0;
+
+                    while processed < len_audio {
+                        let end = (processed + chunk_size).min(len_audio);
+                        let mic_chunk = &mic_samples[processed..end];
+                        let lpb_chunk = &lpb_samples[processed..end];
+
+                        let chunk_result = aec.process_streaming(mic_chunk, lpb_chunk).unwrap();
+                        streaming_result.extend(chunk_result);
+
+                        processed = end;
+                    }
+
+                    assert!(streaming_result.iter().all(|&x| x.is_finite()));
+
+                    let mut file = hound::WavWriter::create(
+                        format!("./{}_{}_streaming.wav", $output_prefix, feature),
+                        hound::WavSpec {
+                            channels: 1,
+                            sample_rate: 16000,
+                            bits_per_sample: 32,
+                            sample_format: hound::SampleFormat::Float,
+                        },
+                    )
+                    .unwrap();
+
+                    for sample in streaming_result {
                         file.write_sample(sample).unwrap();
                     }
                     file.finalize().unwrap();

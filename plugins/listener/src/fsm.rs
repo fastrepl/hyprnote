@@ -196,7 +196,7 @@ impl Session {
             let save_mixed_tx = save_mixed_tx.clone();
 
             async move {
-                let aec = hypr_aec::AEC::new().unwrap();
+                let mut aec = hypr_aec::AEC::new().unwrap();
                 let mut last_broadcast = Instant::now();
 
                 loop {
@@ -206,7 +206,9 @@ impl Session {
                             _ => break,
                         };
 
-                    let mic_chunk = aec.process(&mic_chunk_raw, &speaker_chunk).unwrap();
+                    let mic_chunk = aec
+                        .process_streaming(&mic_chunk_raw, &speaker_chunk)
+                        .unwrap();
 
                     if matches!(*session_state_rx.borrow(), State::RunningPaused {}) {
                         let mut rx = session_state_rx.clone();
@@ -214,16 +216,10 @@ impl Session {
                         continue;
                     }
 
-                    const MIC_GAIN: f32 = 1.6;
-                    const SPEAKER_GAIN: f32 = 0.8;
-
                     let mixed: Vec<f32> = mic_chunk
                         .iter()
-                        .map(|x| (x * MIC_GAIN).clamp(-1.0, 1.0))
                         .zip(speaker_chunk.iter())
-                        .map(|(mic, speaker)| {
-                            (mic * MIC_GAIN + speaker * SPEAKER_GAIN).clamp(-1.0, 1.0)
-                        })
+                        .map(|(mic, speaker)| (mic + speaker).clamp(-1.0, 1.0))
                         .collect();
 
                     let now = Instant::now();

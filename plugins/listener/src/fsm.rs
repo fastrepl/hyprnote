@@ -263,8 +263,24 @@ impl Session {
         if record {
             tasks.spawn(async move {
                 let dir = app_dir.join(session_id);
-                std::fs::create_dir_all(&dir).unwrap();
+                
+                // 1. 디렉토리 생성 및 권한 확인
+                if let Err(e) = std::fs::create_dir_all(&dir) {
+                    tracing::error!("Failed to create directory {:?}: {:?}", dir, e);
+                    return;
+                }
+                
+                // Windows에서 디렉토리 쓰기 권한 확인
+                let test_file = dir.join(".write_test");
+                if let Err(e) = std::fs::write(&test_file, b"test") {
+                    tracing::error!("No write permission to directory {:?}: {:?}", dir, e);
+                    return;
+                } else {
+                    let _ = std::fs::remove_file(test_file);
+                }
+                
                 let path = dir.join("audio.wav");
+                tracing::info!("WAV file path: {:?}", path);
 
                 let wav_spec = hound::WavSpec {
                     channels: 2,
@@ -273,41 +289,107 @@ impl Session {
                     sample_format: hound::SampleFormat::Float,
                 };
 
+                // 2. 파일 핸들 안전성 확인 및 생성
                 let mut wav = if path.exists() {
-                    let file_size = std::fs::metadata(&path).map_err(|e| {
-                        tracing::error!("Failed to get file metadata: {:?}", e);
-                        e
-                    }).unwrap().len();
-                    
-                    if file_size < 44 { // WAV 헤더 최소 크기
-                        tracing::warn!("WAV file too small ({} bytes), recreating", file_size);
-                        std::fs::remove_file(&path).unwrap();
-                        hound::WavWriter::create(&path, wav_spec).unwrap()
-                    } else {
-                        tracing::info!("Appending to existing WAV file ({} bytes)", file_size);
-                        match hound::WavWriter::append(&path) {
-                            Ok(writer) => writer,
-                            Err(e) => {
-                                tracing::error!("Failed to append to WAV file: {:?}, creating new file", e);
-                                std::fs::remove_file(&path).unwrap();
-                                hound::WavWriter::create(&path, wav_spec).unwrap()
+                    match std::fs::metadata(&path) {
+                        Ok(metadata) => {
+                            let file_size = metadata.len();
+                            tracing::info!("Existing WAV file size: {} bytes", file_size);
+                            
+                            if file_size < 44 { // WAV 헤더 최소 크기
+                                tracing::warn!("WAV file too small ({} bytes), recreating", file_size);
+                                if let Err(e) = std::fs::remove_file(&path) {
+                                    tracing::error!("Failed to remove corrupted WAV file: {:?}", e);
+                                    return;
+                                }
+                                match hound::WavWriter::create(&path, wav_spec) {
+                                    Ok(writer) => {
+                                        tracing::info!("Successfully created new WAV file");
+                                        writer
+                                    },
+                                    Err(e) => {
+                                        tracing::error!("Failed to create new WAV file: {:?}", e);
+                                        return;
+                                    }
+                                }
+                            } else {
+                                tracing::info!("Attempting to append to existing WAV file");
+                                match hound::WavWriter::append(&path) {
+                                    Ok(writer) => {
+                                        tracing::info!("Successfully opened WAV file for appending");
+                                        writer
+                                    },
+                                    Err(e) => {
+                                        tracing::error!("Failed to append to WAV file: {:?}, creating new file", e);
+                                        if let Err(e) = std::fs::remove_file(&path) {
+                                            tracing::error!("Failed to remove WAV file for recreation: {:?}", e);
+                                            return;
+                                        }
+                                        match hound::WavWriter::create(&path, wav_spec) {
+                                            Ok(writer) => {
+                                                tracing::info!("Successfully created new WAV file after failed append");
+                                                writer
+                                            },
+                                            Err(e) => {
+                                                tracing::error!("Failed to create WAV file after failed append: {:?}", e);
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
                             }
+                        },
+                        Err(e) => {
+                            tracing::error!("Failed to get file metadata: {:?}", e);
+                            return;
                         }
                     }
                 } else {
-                    tracing::info!("Creating new WAV file");
-                    let x = hound::WavWriter::create(&path, wav_spec).unwrap();
-                    tracing::info!("after creation");
-
-                    x
+                    tracing::info!("Creating new WAV file at {:?}", path);
+                    match hound::WavWriter::create(&path, wav_spec) {
+                        Ok(writer) => {
+                            tracing::info!("Successfully created new WAV file");
+                            writer
+                        },
+                        Err(e) => {
+                            tracing::error!("Failed to create new WAV file: {:?}", e);
+                            return;
+                        }
+                    }
                 };
 
+                // 3. 안전한 샘플 쓰기 처리
+                let mut sample_count = 0u64;
+                let mut error_count = 0u32;
+                const MAX_ERRORS: u32 = 10;
+
                 while let Some(sample) = save_rx.recv().await {
-                    // tracing::info!("writing sample");
-                    wav.write_sample(sample).unwrap();
+                    match wav.write_sample(sample) {
+                        Ok(_) => {
+                            sample_count += 1;
+                            if sample_count % 16000 == 0 { // 1초마다 로그 (16kHz)
+                                tracing::debug!("Written {} samples to WAV file", sample_count);
+                            }
+                        },
+                        Err(e) => {
+                            error_count += 1;
+                            tracing::error!("Failed to write sample {} (error {}): {:?}", sample_count, error_count, e);
+                            
+                            if error_count >= MAX_ERRORS {
+                                tracing::error!("Too many write errors ({}), stopping WAV recording", error_count);
+                                break;
+                            }
+                        }
+                    }
                 }
 
-                wav.finalize().unwrap();
+                // 4. 안전한 파일 마무리
+                tracing::info!("Finalizing WAV file with {} samples written", sample_count);
+                if let Err(e) = wav.finalize() {
+                    tracing::error!("Failed to finalize WAV file: {:?}", e);
+                } else {
+                    tracing::info!("Successfully finalized WAV file");
+                }
             });
         }
 

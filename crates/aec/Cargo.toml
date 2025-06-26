@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["128"]
+default = ["256"]
 128 = []
 256 = []
 512 = []

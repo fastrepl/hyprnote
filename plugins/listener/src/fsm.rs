@@ -214,6 +214,18 @@ impl Session {
                         continue;
                     }
 
+                    const MIC_GAIN: f32 = 1.6;
+                    const SPEAKER_GAIN: f32 = 0.8;
+
+                    let mixed: Vec<f32> = mic_chunk
+                        .iter()
+                        .map(|x| (x * MIC_GAIN).clamp(-1.0, 1.0))
+                        .zip(speaker_chunk.iter())
+                        .map(|(mic, speaker)| {
+                            (mic * MIC_GAIN + speaker * SPEAKER_GAIN).clamp(-1.0, 1.0)
+                        })
+                        .collect();
+
                     let now = Instant::now();
                     if now.duration_since(last_broadcast) >= AUDIO_AMPLITUDE_THROTTLE {
                         if let Err(e) = SessionEvent::from((&mic_chunk, &speaker_chunk)).emit(&app)
@@ -229,12 +241,6 @@ impl Session {
                     if let Some(ref tx) = save_speaker_raw_tx {
                         let _ = tx.send_async(speaker_chunk.clone()).await;
                     }
-
-                    let mixed: Vec<f32> = mic_chunk
-                        .into_iter()
-                        .zip(speaker_chunk.into_iter())
-                        .map(|(a, b)| (a + b).clamp(-1.0, 1.0))
-                        .collect();
 
                     if process_tx.send_async(mixed.clone()).await.is_err() {
                         tracing::error!("process_tx_send_error");

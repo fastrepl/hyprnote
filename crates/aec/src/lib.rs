@@ -254,6 +254,7 @@ impl AEC {
 // cargo test -p aec --no-default-features --features 128
 // cargo test -p aec --no-default-features --features 256
 // cargo test -p aec --no-default-features --features 512
+// cargo bench -p aec --no-default-features --features 128
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -265,6 +266,9 @@ mod tests {
 
         pub const HYPRNOTE_LPB: &[u8] = include_bytes!("../data/hyprnote_lpb.wav");
         pub const HYPRNOTE_MIC: &[u8] = include_bytes!("../data/hyprnote_mic.wav");
+
+        pub const THEO_LPB: &[u8] = include_bytes!("../data/theo_lpb.wav");
+        pub const THEO_MIC: &[u8] = include_bytes!("../data/theo_mic.wav");
     }
 
     fn get_feature() -> &'static str {
@@ -279,91 +283,65 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_aec_doubletalk() {
-        let feature = get_feature();
+    macro_rules! aec_test {
+        ($test_name:ident, $lpb_data:expr, $mic_data:expr, $output_prefix:literal) => {
+            #[test]
+            fn $test_name() {
+                let feature = get_feature();
 
-        // all pcm_s16le, 16k, 1chan.
-        let lpb_sample = rodio::Decoder::new(std::io::BufReader::new(std::io::Cursor::new(
-            data::DOUBLETALK_LPB,
-        )))
-        .unwrap()
-        .collect::<Vec<_>>();
+                // all pcm_s16le, 16k, 1chan.
+                let lpb_sample =
+                    rodio::Decoder::new(std::io::BufReader::new(std::io::Cursor::new($lpb_data)))
+                        .unwrap()
+                        .collect::<Vec<_>>();
 
-        let mic_sample = rodio::Decoder::new(std::io::BufReader::new(std::io::Cursor::new(
-            data::DOUBLETALK_MIC,
-        )))
-        .unwrap()
-        .collect::<Vec<_>>();
+                let mic_sample =
+                    rodio::Decoder::new(std::io::BufReader::new(std::io::Cursor::new($mic_data)))
+                        .unwrap()
+                        .collect::<Vec<_>>();
 
-        let lpb_samples: Vec<f32> = lpb_sample.into_iter().map(|s| s.to_sample()).collect();
-        let mic_samples: Vec<f32> = mic_sample.into_iter().map(|s| s.to_sample()).collect();
+                let lpb_samples: Vec<f32> = lpb_sample.into_iter().map(|s| s.to_sample()).collect();
+                let mic_samples: Vec<f32> = mic_sample.into_iter().map(|s| s.to_sample()).collect();
 
-        let aec = AEC::new().unwrap();
-        let result = aec.process(&mic_samples, &lpb_samples).unwrap();
+                let aec = AEC::new().unwrap();
+                let result = aec.process(&mic_samples, &lpb_samples).unwrap();
 
-        assert!(result.iter().all(|&x| x.is_finite()));
+                assert!(result.iter().all(|&x| x.is_finite()));
 
-        {
-            let mut file = hound::WavWriter::create(
-                format!("./doubletalk_{}.wav", feature),
-                hound::WavSpec {
-                    channels: 1,
-                    sample_rate: 16000,
-                    bits_per_sample: 32,
-                    sample_format: hound::SampleFormat::Float,
-                },
-            )
-            .unwrap();
+                {
+                    let mut file = hound::WavWriter::create(
+                        format!("./{}_{}.wav", $output_prefix, feature),
+                        hound::WavSpec {
+                            channels: 1,
+                            sample_rate: 16000,
+                            bits_per_sample: 32,
+                            sample_format: hound::SampleFormat::Float,
+                        },
+                    )
+                    .unwrap();
 
-            for sample in result {
-                file.write_sample(sample).unwrap();
+                    for sample in result {
+                        file.write_sample(sample).unwrap();
+                    }
+                    file.finalize().unwrap();
+                }
             }
-            file.finalize().unwrap();
-        }
+        };
     }
 
-    #[test]
-    fn test_aec_hyprnote() {
-        let feature = get_feature();
+    aec_test!(
+        test_aec_doubletalk,
+        data::DOUBLETALK_LPB,
+        data::DOUBLETALK_MIC,
+        "doubletalk"
+    );
 
-        // all pcm_s16le, 16k, 1chan.
-        let lpb_sample = rodio::Decoder::new(std::io::BufReader::new(std::io::Cursor::new(
-            data::HYPRNOTE_LPB,
-        )))
-        .unwrap()
-        .collect::<Vec<_>>();
+    aec_test!(
+        test_aec_hyprnote,
+        data::HYPRNOTE_LPB,
+        data::HYPRNOTE_MIC,
+        "hyprnote"
+    );
 
-        let mic_sample = rodio::Decoder::new(std::io::BufReader::new(std::io::Cursor::new(
-            data::HYPRNOTE_MIC,
-        )))
-        .unwrap()
-        .collect::<Vec<_>>();
-
-        let lpb_samples: Vec<f32> = lpb_sample.into_iter().map(|s| s.to_sample()).collect();
-        let mic_samples: Vec<f32> = mic_sample.into_iter().map(|s| s.to_sample()).collect();
-
-        let aec = AEC::new().unwrap();
-        let result = aec.process(&mic_samples, &lpb_samples).unwrap();
-
-        assert!(result.iter().all(|&x| x.is_finite()));
-
-        {
-            let mut file = hound::WavWriter::create(
-                format!("./hyprnote_{}.wav", feature),
-                hound::WavSpec {
-                    channels: 1,
-                    sample_rate: 16000,
-                    bits_per_sample: 32,
-                    sample_format: hound::SampleFormat::Float,
-                },
-            )
-            .unwrap();
-
-            for sample in result {
-                file.write_sample(sample).unwrap();
-            }
-            file.finalize().unwrap();
-        }
-    }
+    aec_test!(test_aec_theo, data::THEO_LPB, data::THEO_MIC, "theo");
 }

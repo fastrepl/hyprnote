@@ -218,8 +218,7 @@ impl Session {
             }
         });
 
-        // 스피커 처리 태스크도 비활성화
-        /*
+        tracing::info!("About to spawn speaker processing task");
         tasks.spawn({
             let speaker_muted_rx = speaker_muted_rx_main.clone();
             async move {
@@ -240,6 +239,7 @@ impl Session {
                         tracing::debug!("Processed {} speaker chunks", chunk_count);
                     }
 
+                    // 안전한 mute 상태 확인
                     if watch_rx.has_changed().unwrap_or(false) {
                         is_muted = *watch_rx.borrow();
                     }
@@ -250,8 +250,9 @@ impl Session {
                         actual
                     };
 
-                    if let Err(e) = speaker_tx.send(maybe_muted).await {
-                        tracing::error!("speaker_tx_send_error: {:?}", e);
+                    // 안전한 채널 전송 (SendError 무시)
+                    if let Err(_) = speaker_tx.send(maybe_muted).await {
+                        tracing::warn!("Speaker channel receiver disconnected, ending speaker processing task");
                         break;
                     }
                 }
@@ -259,7 +260,6 @@ impl Session {
                 tracing::info!("Speaker processing task ended after {} chunks", chunk_count);
             }
         });
-        */
 
         let app_dir = self.app.path().app_data_dir().unwrap();
 

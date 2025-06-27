@@ -28,22 +28,23 @@ export const Route = createFileRoute("/app")({
   component: Component,
   loader: async ({ context: { sessionsStore, ongoingSessionStore } }) => {
     const isOnboardingNeeded = await commands.isOnboardingNeeded();
-    return { sessionsStore, ongoingSessionStore, isOnboardingNeeded };
+    const isIndividualizationNeeded = await commands.isIndividualizationNeeded();
+    return { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded };
   },
 });
 
 function Component() {
   const router = useRouter();
-  const { sessionsStore, ongoingSessionStore, isOnboardingNeeded } = Route.useLoaderData();
+  const { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded } = Route.useLoaderData();
   
-  // 🔥 Add state for individualization modal
-  const [isIndividualizationNeeded, setIsIndividualizationNeeded] = useState(true);
-
+  const [onboardingCompletedThisSession, setOnboardingCompletedThisSession] = useState(false);
+  
   const windowLabel = getCurrentWebviewWindowLabel();
   const showNotifications = windowLabel === "main" && !isOnboardingNeeded;
 
-  // Show individualization modal only after onboarding is done AND individualization is needed
-  const showIndividualization = !isOnboardingNeeded && isIndividualizationNeeded;
+  const shouldShowIndividualization = isIndividualizationNeeded && 
+                                      !isOnboardingNeeded && 
+                                      !onboardingCompletedThisSession;
 
   return (
     <>
@@ -79,16 +80,16 @@ function Component() {
                         isOpen={isOnboardingNeeded}
                         onClose={() => {
                           commands.setOnboardingNeeded(false);
+                          setOnboardingCompletedThisSession(true);
                           router.invalidate();
                         }}
                       />
                       
-                      {/* 🔥 Updated Individualization Modal with proper state management */}
                       <IndividualizationModal
-                        isOpen={showIndividualization}
+                        isOpen={shouldShowIndividualization}
                         onClose={() => {
-                          console.log("Individualization modal closed");
-                          setIsIndividualizationNeeded(false); // 🔥 Actually update the state
+                          commands.setIndividualizationNeeded(false);
+                          router.invalidate();
                         }}
                       />
                     </EditModeProvider>

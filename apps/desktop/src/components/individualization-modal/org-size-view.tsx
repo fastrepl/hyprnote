@@ -1,12 +1,12 @@
-import PushableButton from "@hypr/ui/components/ui/pushable-button";
-import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
-import { Trans, useLingui } from "@lingui/react/macro";
+import { Trans } from "@lingui/react/macro";
 import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/ui/lib/utils";
 import { Users, Building, Factory, Building2 } from "lucide-react";
 
 interface OrgSizeViewProps {
   onSelect: (orgSize: string) => void;
   onSkip: () => void;
+  selectedOrgSize?: string;
 }
 
 const ORG_SIZE_OPTIONS = [
@@ -16,8 +16,7 @@ const ORG_SIZE_OPTIONS = [
   { value: '1000+', label: '1000+', icon: Building2 },
 ];
 
-export const OrgSizeView: React.FC<OrgSizeViewProps> = ({ onSelect, onSkip }) => {
-  const { t } = useLingui();
+export const OrgSizeView: React.FC<OrgSizeViewProps> = ({ onSelect, onSkip, selectedOrgSize }) => {
 
   return (
     <div className="flex flex-col items-center w-full">
@@ -34,12 +33,17 @@ export const OrgSizeView: React.FC<OrgSizeViewProps> = ({ onSelect, onSkip }) =>
       <div className="grid grid-cols-2 gap-3 w-full max-w-sm mb-6">
         {ORG_SIZE_OPTIONS.map((option) => {
           const IconComponent = option.icon;
+          const isSelected = selectedOrgSize === option.value;
+          
           return (
             <Button
               key={option.value}
               onClick={() => onSelect(option.value)}
               variant="outline"
-              className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all"
+              className={cn(
+                "h-20 flex flex-col items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all",
+                isSelected && "bg-black text-white hover:bg-black hover:text-white"
+              )}
             >
               <IconComponent className="h-6 w-6" />
               <span className="text-sm font-medium text-center">{option.label}</span>

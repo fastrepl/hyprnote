@@ -1,15 +1,14 @@
-import PushableButton from "@hypr/ui/components/ui/pushable-button";
-import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
-import { Trans, useLingui } from "@lingui/react/macro";
+import { Trans } from "@lingui/react/macro";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/ui/lib/utils";
-import { Scale, Briefcase, Users, Hospital, Landmark, Rocket, GraduationCap, EyeOff, Edit3, Check } from "lucide-react";
-import { useState } from "react";
+import { Briefcase, Users, Hospital, Landmark, Rocket, GraduationCap, EyeOff, Edit3, Check } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface IndustryViewProps {
   onSelect: (industry: string) => void;
   onSkip: () => void;
+  selectedIndustry?: string;
 }
 
 const INDUSTRY_OPTIONS = [
@@ -23,10 +22,18 @@ const INDUSTRY_OPTIONS = [
   { value: 'prefer-not-to-say', label: 'Prefer not to say', icon: EyeOff },
 ];
 
-export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip }) => {
-  const { t } = useLingui();
+export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip, selectedIndustry }) => {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customIndustry, setCustomIndustry] = useState('');
+
+  const isOtherSelected = selectedIndustry?.startsWith('other:');
+
+  useEffect(() => {
+    if (isOtherSelected) {
+      setShowCustomInput(true);
+      setCustomIndustry(selectedIndustry?.replace('other: ', '') || '');
+    }
+  }, [selectedIndustry, isOtherSelected]);
 
   const handleOptionClick = (value: string) => {
     if (value === 'other') {
@@ -65,6 +72,7 @@ export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip }) 
         {INDUSTRY_OPTIONS.map((option) => {
           const IconComponent = option.icon;
           const isOther = option.value === 'other';
+          const isSelected = selectedIndustry === option.value || (isOther && isOtherSelected);
           
           return (
             <Button
@@ -73,6 +81,7 @@ export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip }) 
               variant="outline"
               className={cn(
                 "h-20 flex flex-col items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all",
+                isSelected && "bg-black text-white hover:bg-black hover:text-white",
                 showCustomInput && isOther && "ring-2 ring-blue-500 bg-blue-50"
               )}
               disabled={showCustomInput && !isOther}

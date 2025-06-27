@@ -1,6 +1,5 @@
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
-import { Trans, useLingui } from "@lingui/react/macro";
 import { motion } from "motion/react";
 
 interface ThankYouViewProps {
@@ -8,7 +7,6 @@ interface ThankYouViewProps {
 }
 
 export const ThankYouView: React.FC<ThankYouViewProps> = ({ onContinue }) => {
-  const { t } = useLingui();
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full min-h-[400px]">
@@ -31,7 +29,7 @@ export const ThankYouView: React.FC<ThankYouViewProps> = ({ onContinue }) => {
           className="text-2xl font-semibold text-neutral-800"
           delay={0.3}
         >
-          {t`Thank you! We really mean it.`}
+          Thank you! We really mean it.
         </TextAnimate>
 
         <TextAnimate
@@ -41,7 +39,7 @@ export const ThankYouView: React.FC<ThankYouViewProps> = ({ onContinue }) => {
           className="text-base text-neutral-600"
           delay={0.8}
         >
-          {t`Your feedback helps us make Hyprnote better for everyone.`}
+          We will always be here to make your experience better. 
         </TextAnimate>
 
         <TextAnimate
@@ -51,7 +49,7 @@ export const ThankYouView: React.FC<ThankYouViewProps> = ({ onContinue }) => {
           className="text-sm text-neutral-500"
           delay={1.3}
         >
-          {t`Now let's get back to taking amazing notes!`}
+          Now let's get back to taking amazing notes!
         </TextAnimate>
       </div>
 
@@ -66,7 +64,7 @@ export const ThankYouView: React.FC<ThankYouViewProps> = ({ onContinue }) => {
           onClick={onContinue}
           className="px-8 py-3 bg-black text-white hover:bg-neutral-800 transition-colors rounded-lg font-medium"
         >
-          {t`Continue`}
+          Continue
         </PushableButton>
       </motion.div>
     </div>

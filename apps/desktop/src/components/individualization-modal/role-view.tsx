@@ -1,12 +1,12 @@
-import PushableButton from "@hypr/ui/components/ui/pushable-button";
-import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
-import { Trans, useLingui } from "@lingui/react/macro";
+import { Trans } from "@lingui/react/macro";
 import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/ui/lib/utils";
 import { Crown, Users, TrendingUp, GraduationCap } from "lucide-react";
 
 interface RoleViewProps {
   onSelect: (role: string) => void;
   onSkip: () => void;
+  selectedRole?: string;
 }
 
 const ROLE_OPTIONS = [
@@ -16,8 +16,7 @@ const ROLE_OPTIONS = [
   { value: 'intern', label: 'Intern', icon: GraduationCap },
 ];
 
-export const RoleView: React.FC<RoleViewProps> = ({ onSelect, onSkip }) => {
-  const { t } = useLingui();
+export const RoleView: React.FC<RoleViewProps> = ({ onSelect, onSkip, selectedRole }) => {
 
   return (
     <div className="flex flex-col items-center w-full">
@@ -34,12 +33,17 @@ export const RoleView: React.FC<RoleViewProps> = ({ onSelect, onSkip }) => {
       <div className="grid grid-cols-2 gap-3 w-full max-w-sm mb-6">
         {ROLE_OPTIONS.map((option) => {
           const IconComponent = option.icon;
+          const isSelected = selectedRole === option.value;
+          
           return (
             <Button
               key={option.value}
               onClick={() => onSelect(option.value)}
               variant="outline"
-              className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all"
+              className={cn(
+                "h-20 flex flex-col items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all",
+                isSelected && "bg-black text-white hover:bg-black hover:text-white"
+              )}
             >
               <IconComponent className="h-6 w-6" />
               <span className="text-xs font-medium text-center leading-tight">{option.label}</span>

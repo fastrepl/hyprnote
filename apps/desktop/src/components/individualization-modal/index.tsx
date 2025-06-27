@@ -72,40 +72,29 @@ export function IndividualizationModal({ isOpen, onClose }: IndividualizationMod
       console.error("Failed to get user ID:", error);
     }
     
-    console.log("=== INDIVIDUALIZATION SURVEY COMPLETED ===");
-    console.log("User ID (PostHog):", userId);
-    console.log("Industry:", finalProfile.industry || "Not selected");
-    console.log("Role:", finalProfile.role || "Not selected (student or skipped)");
-    console.log("Organization Size:", finalProfile.orgSize || "Not selected (student or skipped)");
-    console.log("How they heard about us:", finalProfile.howDidYouHear);
-    console.log("Complete Profile Object:", finalProfile);
-    console.log("=== END SURVEY DATA ===");
-    
     try {
       const analyticsPayload = {
-        event: "individualization_survey_completed",
+        event: "survey_completed",
         distinct_id: userId,
         industry: finalProfile.industry || null,
         role: finalProfile.role || null,
         organization_size: finalProfile.orgSize || null,
         how_heard: finalProfile.howDidYouHear,
-        is_student: finalProfile.industry === 'student',
         survey_version: "v1",
         completed_at: new Date().toISOString(),
       };
 
       await analyticsCommands.event(analyticsPayload);
-      console.log("✅ Survey data sent to PostHog successfully");
+      console.log("Survey data sent to PostHog successfully");
       
     } catch (error) {
-      console.error("❌ Failed to send survey data to PostHog:", error);
+      console.error("Failed to send survey data to PostHog:", error);
     }
     
     setCurrentPage('thankYou');
   };
 
   const handleSkip = async () => {
-    console.log("Individualization skipped");
     
     try {
       let userId = "UNKNOWN";
@@ -123,10 +112,10 @@ export function IndividualizationModal({ isOpen, onClose }: IndividualizationMod
       };
 
       await analyticsCommands.event(analyticsPayload);
-      console.log("✅ Survey skip event sent to PostHog");
+      console.log("Survey skip event sent to PostHog");
       
     } catch (error) {
-      console.error("❌ Failed to send skip event to PostHog:", error);
+      console.error("Failed to send skip event to PostHog:", error);
     }
     
     onClose();
@@ -208,24 +197,28 @@ export function IndividualizationModal({ isOpen, onClose }: IndividualizationMod
             <IndustryView
               onSelect={handleIndustrySelect}
               onSkip={handleSkip}
+              selectedIndustry={userProfile.industry}
             />
           )}
           {currentPage === 'role' && (
             <RoleView
               onSelect={handleRoleSelect}
               onSkip={handleSkip}
+              selectedRole={userProfile.role}
             />
           )}
           {currentPage === 'orgSize' && (
             <OrgSizeView
               onSelect={handleOrgSizeSelect}
               onSkip={handleSkip}
+              selectedOrgSize={userProfile.orgSize}
             />
           )}
           {currentPage === 'howHeard' && (
             <HowHeardView
               onSelect={handleHowHeardSelect}
               onSkip={handleSkip}
+              selectedHowHeard={userProfile.howDidYouHear}
             />
           )}
           {currentPage === 'thankYou' && (

@@ -1,5 +1,4 @@
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
-import { Trans, useLingui } from "@lingui/react/macro";
 import { motion } from "motion/react";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -10,7 +9,6 @@ interface StoryViewProps {
 }
 
 export const StoryView: React.FC<StoryViewProps> = ({ onComplete, onSkip }) => {
-  const { t } = useLingui();
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full min-h-[400px]">
@@ -33,7 +31,7 @@ export const StoryView: React.FC<StoryViewProps> = ({ onComplete, onSkip }) => {
           once
           className="text-lg font-medium text-neutral-700"
         >
-          {t`Hope you're enjoying Hyprnote.`}
+          Hope you're enjoying Hyprnote.
         </TextAnimate>
 
         {/* Second line - regular */}
@@ -43,7 +41,7 @@ export const StoryView: React.FC<StoryViewProps> = ({ onComplete, onSkip }) => {
           once
           className="text-base text-neutral-600"
         >
-          {t`We care about your privacy — no emails, no personal info collected.`}
+          We care about your privacy. No emails, no personal info collected.
         </TextAnimate>
 
         {/* Third line - regular */}
@@ -53,7 +51,7 @@ export const StoryView: React.FC<StoryViewProps> = ({ onComplete, onSkip }) => {
           once
           className="text-base text-neutral-600"
         >
-          {t`But we do want to know how we can make it better for you.`}
+          But we do want to know how we can make it better for you.
         </TextAnimate>
 
         {/* Last line - larger and bold */}
@@ -63,7 +61,7 @@ export const StoryView: React.FC<StoryViewProps> = ({ onComplete, onSkip }) => {
           once
           className="text-lg font-medium text-neutral-700"
         >
-          {t`Mind telling us what you're using Hyprnote for?`}
+          Mind telling us what you're using Hyprnote for?
         </TextAnimate>
       </div>
 
@@ -79,14 +77,14 @@ export const StoryView: React.FC<StoryViewProps> = ({ onComplete, onSkip }) => {
           variant="ghost"
           className="px-6 py-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
         >
-          {t`No thanks`}
+          No thanks
         </Button>
         
         <PushableButton
           onClick={onComplete}
           className="px-8 py-3 bg-black text-white hover:bg-neutral-800 transition-colors rounded-lg font-medium"
         >
-          {t`Yes, sure`}
+          Yes, sure
         </PushableButton>
       </motion.div>
     </div>

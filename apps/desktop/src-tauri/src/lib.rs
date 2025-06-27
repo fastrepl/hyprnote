@@ -206,6 +206,7 @@ pub async fn main() {
                 tokio::spawn(async move {
                     app_clone.setup_local_ai().await.unwrap();
                 });
+
             });
 
             Ok(())
@@ -232,6 +233,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_onboarding_needed::<tauri::Wry>,
             commands::setup_db_for_cloud::<tauri::Wry>,
             commands::set_autostart::<tauri::Wry>,
+            commands::is_individualization_needed::<tauri::Wry>,
+            commands::set_individualization_needed::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

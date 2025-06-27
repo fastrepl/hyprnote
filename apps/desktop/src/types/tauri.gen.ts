@@ -21,6 +21,12 @@ async setupDbForCloud() : Promise<null> {
 },
 async setAutostart(autostart: boolean) : Promise<null> {
     return await TAURI_INVOKE("set_autostart", { autostart });
+},
+async isIndividualizationNeeded() : Promise<boolean> {
+    return await TAURI_INVOKE("is_individualization_needed");
+},
+async setIndividualizationNeeded(v: boolean) : Promise<null> {
+    return await TAURI_INVOKE("set_individualization_needed", { v });
 }
 }
 

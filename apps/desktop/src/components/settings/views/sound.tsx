@@ -160,24 +160,11 @@ export default function Sound() {
     return currentDevice;
   };
 
-  const testCommand = async () => {
-    console.log("=== MANUAL TEST: Calling getSelectedMicrophoneDevice ===");
-    try {
-      const result = await commands.getSelectedMicrophoneDevice();
-      console.log("=== MANUAL TEST RESULT ===", result);
-    } catch (error) {
-      console.error("=== MANUAL TEST ERROR ===", error);
-    }
-  };
 
   return (
     <div>
       <div className="space-y-4">
         <div className="space-y-2">
-          <Button onClick={testCommand} variant="outline" size="sm">
-            TEST COMMAND
-          </Button>
-          
           <PermissionItem
             icon={<MicIcon className="h-4 w-4" />}
             title={t`Microphone Access`}

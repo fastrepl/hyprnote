@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as authCommands } from "@hypr/plugin-auth";
+import { Button } from "@hypr/ui/components/ui/button";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
 import { Particles } from "@hypr/ui/components/ui/particles";
-import { Button } from "@hypr/ui/components/ui/button";
-import { X, ArrowLeft } from "lucide-react";
-import { commands as authCommands } from "@hypr/plugin-auth";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { StoryView } from "./story-view";
-import { IndustryView } from "./industry-view";
-import { RoleView } from "./role-view";
-import { OrgSizeView } from "./org-size-view";
+import { ArrowLeft, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { HowHeardView } from "./how-heard-view";
+import { IndustryView } from "./industry-view";
+import { OrgSizeView } from "./org-size-view";
+import { RoleView } from "./role-view";
+import { StoryView } from "./story-view";
 import { ThankYouView } from "./thank-you-view";
 
 interface IndividualizationModalProps {
@@ -25,53 +25,55 @@ export type UserProfile = {
 };
 
 export function IndividualizationModal({ isOpen, onClose }: IndividualizationModalProps) {
-  const [currentPage, setCurrentPage] = useState<'story' | 'industry' | 'role' | 'orgSize' | 'howHeard' | 'thankYou'>('story');
+  const [currentPage, setCurrentPage] = useState<"story" | "industry" | "role" | "orgSize" | "howHeard" | "thankYou">(
+    "story",
+  );
   const [userProfile, setUserProfile] = useState<UserProfile>({});
 
   useEffect(() => {
     if (isOpen) {
-      setCurrentPage('story');
+      setCurrentPage("story");
       setUserProfile({});
     }
   }, [isOpen]);
 
   const handleStoryComplete = () => {
-    setCurrentPage('industry');
+    setCurrentPage("industry");
   };
 
   const handleIndustrySelect = (industry: string) => {
     setUserProfile(prev => ({ ...prev, industry }));
-    
-    if (industry === 'student') {
-      setCurrentPage('howHeard');
+
+    if (industry === "student") {
+      setCurrentPage("howHeard");
     } else {
-      setCurrentPage('role');
+      setCurrentPage("role");
     }
   };
 
   const handleRoleSelect = (role: string) => {
     setUserProfile(prev => ({ ...prev, role }));
-    setCurrentPage('orgSize');
+    setCurrentPage("orgSize");
   };
 
   const handleOrgSizeSelect = (orgSize: string) => {
     setUserProfile(prev => ({ ...prev, orgSize }));
-    setCurrentPage('howHeard');
+    setCurrentPage("howHeard");
   };
 
   const handleHowHeardSelect = async (howDidYouHear: string) => {
     const finalProfile = {
       ...userProfile,
-      howDidYouHear
+      howDidYouHear,
     };
-    
+
     let userId = "UNKNOWN";
     try {
       userId = await authCommands.getFromStore("auth-user-id") || "UNKNOWN";
     } catch (error) {
       console.error("Failed to get user ID:", error);
     }
-    
+
     try {
       const analyticsPayload = {
         event: "survey_completed",
@@ -86,16 +88,14 @@ export function IndividualizationModal({ isOpen, onClose }: IndividualizationMod
 
       await analyticsCommands.event(analyticsPayload);
       console.log("Survey data sent to PostHog successfully");
-      
     } catch (error) {
       console.error("Failed to send survey data to PostHog:", error);
     }
-    
-    setCurrentPage('thankYou');
+
+    setCurrentPage("thankYou");
   };
 
   const handleSkip = async () => {
-    
     try {
       let userId = "UNKNOWN";
       try {
@@ -113,11 +113,10 @@ export function IndividualizationModal({ isOpen, onClose }: IndividualizationMod
 
       await analyticsCommands.event(analyticsPayload);
       console.log("Survey skip event sent to PostHog");
-      
     } catch (error) {
       console.error("Failed to send skip event to PostHog:", error);
     }
-    
+
     onClose();
   };
 
@@ -133,27 +132,27 @@ export function IndividualizationModal({ isOpen, onClose }: IndividualizationMod
 
   const handleBack = () => {
     switch (currentPage) {
-      case 'industry':
-        setCurrentPage('story');
+      case "industry":
+        setCurrentPage("story");
         break;
-      case 'role':
-        setCurrentPage('industry');
+      case "role":
+        setCurrentPage("industry");
         break;
-      case 'orgSize':
-        setCurrentPage('role');
+      case "orgSize":
+        setCurrentPage("role");
         break;
-      case 'howHeard':
-        if (userProfile.industry === 'student') {
-          setCurrentPage('industry');
+      case "howHeard":
+        if (userProfile.industry === "student") {
+          setCurrentPage("industry");
         } else {
-          setCurrentPage('orgSize');
+          setCurrentPage("orgSize");
         }
         break;
     }
   };
 
-  const showCloseButton = currentPage !== 'story' && currentPage !== 'thankYou';
-  const showBackButton = currentPage !== 'story' && currentPage !== 'thankYou';
+  const showCloseButton = currentPage !== "story" && currentPage !== "thankYou";
+  const showBackButton = currentPage !== "story" && currentPage !== "thankYou";
 
   return (
     <Modal
@@ -161,7 +160,7 @@ export function IndividualizationModal({ isOpen, onClose }: IndividualizationMod
       onClose={handleClose}
       size="full"
       className="bg-background"
-      preventClose={currentPage === 'story' || currentPage === 'thankYou'}
+      preventClose={currentPage === "story" || currentPage === "thankYou"}
     >
       <ModalBody className="relative p-0 flex flex-col items-center justify-center overflow-hidden">
         {showBackButton && (
@@ -187,41 +186,41 @@ export function IndividualizationModal({ isOpen, onClose }: IndividualizationMod
         )}
 
         <div className="z-10">
-          {currentPage === 'story' && (
-            <StoryView 
-              onComplete={handleStoryComplete} 
+          {currentPage === "story" && (
+            <StoryView
+              onComplete={handleStoryComplete}
               onSkip={handleSkip}
             />
           )}
-          {currentPage === 'industry' && (
+          {currentPage === "industry" && (
             <IndustryView
               onSelect={handleIndustrySelect}
               onSkip={handleSkip}
               selectedIndustry={userProfile.industry}
             />
           )}
-          {currentPage === 'role' && (
+          {currentPage === "role" && (
             <RoleView
               onSelect={handleRoleSelect}
               onSkip={handleSkip}
               selectedRole={userProfile.role}
             />
           )}
-          {currentPage === 'orgSize' && (
+          {currentPage === "orgSize" && (
             <OrgSizeView
               onSelect={handleOrgSizeSelect}
               onSkip={handleSkip}
               selectedOrgSize={userProfile.orgSize}
             />
           )}
-          {currentPage === 'howHeard' && (
+          {currentPage === "howHeard" && (
             <HowHeardView
               onSelect={handleHowHeardSelect}
               onSkip={handleSkip}
               selectedHowHeard={userProfile.howDidYouHear}
             />
           )}
-          {currentPage === 'thankYou' && (
+          {currentPage === "thankYou" && (
             <ThankYouView
               onContinue={handleThankYouContinue}
             />
@@ -230,7 +229,7 @@ export function IndividualizationModal({ isOpen, onClose }: IndividualizationMod
 
         <Particles
           className="absolute inset-0 z-0"
-          quantity={currentPage === 'story' || currentPage === 'thankYou' ? 40 : 150}
+          quantity={currentPage === "story" || currentPage === "thankYou" ? 40 : 150}
           ease={80}
           color={"#000000"}
           refresh

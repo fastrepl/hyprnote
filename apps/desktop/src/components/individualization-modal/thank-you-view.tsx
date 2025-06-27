@@ -7,7 +7,6 @@ interface ThankYouViewProps {
 }
 
 export const ThankYouView: React.FC<ThankYouViewProps> = ({ onContinue }) => {
-
   return (
     <div className="flex flex-col items-center justify-center w-full h-full min-h-[400px]">
       {/* Logo with entrance animation */}
@@ -39,7 +38,7 @@ export const ThankYouView: React.FC<ThankYouViewProps> = ({ onContinue }) => {
           className="text-base text-neutral-600"
           delay={0.8}
         >
-          We will always be here to make your experience better. 
+          We will always be here to make your experience better.
         </TextAnimate>
 
         <TextAnimate

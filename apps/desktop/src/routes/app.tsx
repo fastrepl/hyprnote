@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect, useState } from "react";
 
+import { IndividualizationModal } from "@/components/individualization-modal";
 import LeftSidebar from "@/components/left-sidebar";
 import RightPanel from "@/components/right-panel";
 import Notifications from "@/components/toast";
@@ -22,7 +23,6 @@ import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { events as windowsEvents, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
 import { OngoingSessionProvider, SessionsProvider } from "@hypr/utils/contexts";
-import { IndividualizationModal } from "@/components/individualization-modal";
 
 export const Route = createFileRoute("/app")({
   component: Component,
@@ -36,15 +36,15 @@ export const Route = createFileRoute("/app")({
 function Component() {
   const router = useRouter();
   const { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded } = Route.useLoaderData();
-  
+
   const [onboardingCompletedThisSession, setOnboardingCompletedThisSession] = useState(false);
-  
+
   const windowLabel = getCurrentWebviewWindowLabel();
   const showNotifications = windowLabel === "main" && !isOnboardingNeeded;
 
-  const shouldShowIndividualization = isIndividualizationNeeded && 
-                                      !isOnboardingNeeded && 
-                                      !onboardingCompletedThisSession;
+  const shouldShowIndividualization = isIndividualizationNeeded
+    && !isOnboardingNeeded
+    && !onboardingCompletedThisSession;
 
   return (
     <>
@@ -84,7 +84,7 @@ function Component() {
                           router.invalidate();
                         }}
                       />
-                      
+
                       <IndividualizationModal
                         isOpen={shouldShowIndividualization}
                         onClose={() => {

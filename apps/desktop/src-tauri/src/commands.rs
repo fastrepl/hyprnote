@@ -54,15 +54,17 @@ pub async fn set_autostart<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub fn is_individualization_needed<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<bool, String> {
+pub fn is_individualization_needed<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<bool, String> {
     let store = app.desktop_store()?;
-    
+
     // Simple: just check if individualization was completed
     let individualization_needed: bool = store
         .get(StoreKey::IndividualizationNeeded)
         .map_err(|e| e.to_string())?
         .unwrap_or(true);
-    
+
     Ok(individualization_needed)
 }
 

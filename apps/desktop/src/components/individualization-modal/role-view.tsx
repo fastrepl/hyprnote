@@ -1,7 +1,7 @@
-import { Trans } from "@lingui/react/macro";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
-import { Crown, Users, TrendingUp, GraduationCap } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
+import { Crown, GraduationCap, TrendingUp, Users } from "lucide-react";
 
 interface RoleViewProps {
   onSelect: (role: string) => void;
@@ -10,14 +10,13 @@ interface RoleViewProps {
 }
 
 const ROLE_OPTIONS = [
-  { value: 'executive-founder', label: 'Executive/Founder', icon: Crown },
-  { value: 'manager-team-lead', label: 'Manager/Team Lead', icon: Users },
-  { value: 'junior', label: 'Junior', icon: TrendingUp },
-  { value: 'intern', label: 'Intern', icon: GraduationCap },
+  { value: "executive-founder", label: "Executive/Founder", icon: Crown },
+  { value: "manager-team-lead", label: "Manager/Team Lead", icon: Users },
+  { value: "junior", label: "Junior", icon: TrendingUp },
+  { value: "intern", label: "Intern", icon: GraduationCap },
 ];
 
 export const RoleView: React.FC<RoleViewProps> = ({ onSelect, onSkip, selectedRole }) => {
-
   return (
     <div className="flex flex-col items-center w-full">
       {/* Main Title */}
@@ -34,7 +33,7 @@ export const RoleView: React.FC<RoleViewProps> = ({ onSelect, onSkip, selectedRo
         {ROLE_OPTIONS.map((option) => {
           const IconComponent = option.icon;
           const isSelected = selectedRole === option.value;
-          
+
           return (
             <Button
               key={option.value}
@@ -42,7 +41,7 @@ export const RoleView: React.FC<RoleViewProps> = ({ onSelect, onSkip, selectedRo
               variant="outline"
               className={cn(
                 "h-20 flex flex-col items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all",
-                isSelected && "bg-black text-white hover:bg-black hover:text-white"
+                isSelected && "bg-black text-white hover:bg-black hover:text-white",
               )}
             >
               <IconComponent className="h-6 w-6" />
@@ -51,8 +50,6 @@ export const RoleView: React.FC<RoleViewProps> = ({ onSelect, onSkip, selectedRo
           );
         })}
       </div>
-
-
     </div>
   );
 };

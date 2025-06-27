@@ -1,7 +1,7 @@
+import { Button } from "@hypr/ui/components/ui/button";
+import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 import { motion } from "motion/react";
-import PushableButton from "@hypr/ui/components/ui/pushable-button";
-import { Button } from "@hypr/ui/components/ui/button";
 
 interface StoryViewProps {
   onComplete: () => void;
@@ -9,7 +9,6 @@ interface StoryViewProps {
 }
 
 export const StoryView: React.FC<StoryViewProps> = ({ onComplete, onSkip }) => {
-
   return (
     <div className="flex flex-col items-center justify-center w-full h-full min-h-[400px]">
       {/* Logo with entrance animation */}
@@ -79,7 +78,7 @@ export const StoryView: React.FC<StoryViewProps> = ({ onComplete, onSkip }) => {
         >
           No thanks
         </Button>
-        
+
         <PushableButton
           onClick={onComplete}
           className="px-8 py-3 bg-black text-white hover:bg-neutral-800 transition-colors rounded-lg font-medium"

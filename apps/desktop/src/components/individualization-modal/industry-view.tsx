@@ -1,9 +1,9 @@
-import { Trans } from "@lingui/react/macro";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/ui/lib/utils";
-import { Briefcase, Users, Hospital, Landmark, Rocket, GraduationCap, EyeOff, Edit3, Check } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Trans } from "@lingui/react/macro";
+import { Briefcase, Check, Edit3, EyeOff, GraduationCap, Hospital, Landmark, Rocket, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface IndustryViewProps {
   onSelect: (industry: string) => void;
@@ -12,31 +12,31 @@ interface IndustryViewProps {
 }
 
 const INDUSTRY_OPTIONS = [
-  { value: 'finance', label: 'Finance', icon: Briefcase },
-  { value: 'consulting', label: 'Consulting', icon: Users },
-  { value: 'startup-tech', label: 'Startup/Tech', icon: Rocket },
-  { value: 'healthcare', label: 'Healthcare', icon: Hospital },
-  { value: 'government', label: 'Government', icon: Landmark },
-  { value: 'student', label: 'Student', icon: GraduationCap },
-  { value: 'other', label: 'Other', icon: Edit3 },
-  { value: 'prefer-not-to-say', label: 'Prefer not to say', icon: EyeOff },
+  { value: "finance", label: "Finance", icon: Briefcase },
+  { value: "consulting", label: "Consulting", icon: Users },
+  { value: "startup-tech", label: "Startup/Tech", icon: Rocket },
+  { value: "healthcare", label: "Healthcare", icon: Hospital },
+  { value: "government", label: "Government", icon: Landmark },
+  { value: "student", label: "Student", icon: GraduationCap },
+  { value: "other", label: "Other", icon: Edit3 },
+  { value: "prefer-not-to-say", label: "Prefer not to say", icon: EyeOff },
 ];
 
 export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip, selectedIndustry }) => {
   const [showCustomInput, setShowCustomInput] = useState(false);
-  const [customIndustry, setCustomIndustry] = useState('');
+  const [customIndustry, setCustomIndustry] = useState("");
 
-  const isOtherSelected = selectedIndustry?.startsWith('other:');
+  const isOtherSelected = selectedIndustry?.startsWith("other:");
 
   useEffect(() => {
     if (isOtherSelected) {
       setShowCustomInput(true);
-      setCustomIndustry(selectedIndustry?.replace('other: ', '') || '');
+      setCustomIndustry(selectedIndustry?.replace("other: ", "") || "");
     }
   }, [selectedIndustry, isOtherSelected]);
 
   const handleOptionClick = (value: string) => {
-    if (value === 'other') {
+    if (value === "other") {
       setShowCustomInput(true);
     } else {
       onSelect(value);
@@ -50,7 +50,7 @@ export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip, se
   };
 
   const handleCustomInputKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleCustomSubmit();
     }
   };
@@ -71,9 +71,9 @@ export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip, se
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full mb-6">
         {INDUSTRY_OPTIONS.map((option) => {
           const IconComponent = option.icon;
-          const isOther = option.value === 'other';
+          const isOther = option.value === "other";
           const isSelected = selectedIndustry === option.value || (isOther && isOtherSelected);
-          
+
           return (
             <Button
               key={option.value}
@@ -82,7 +82,7 @@ export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip, se
               className={cn(
                 "h-20 flex flex-col items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all",
                 isSelected && "bg-black text-white hover:bg-black hover:text-white",
-                showCustomInput && isOther && "ring-2 ring-blue-500 bg-blue-50"
+                showCustomInput && isOther && "ring-2 ring-blue-500 bg-blue-50",
               )}
               disabled={showCustomInput && !isOther}
             >
@@ -118,7 +118,7 @@ export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip, se
             <Button
               onClick={() => {
                 setShowCustomInput(false);
-                setCustomIndustry('');
+                setCustomIndustry("");
               }}
               variant="ghost"
               size="sm"
@@ -129,7 +129,6 @@ export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip, se
           </div>
         </div>
       )}
-
     </div>
   );
 };

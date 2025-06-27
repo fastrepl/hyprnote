@@ -1,7 +1,7 @@
-import { Trans } from "@lingui/react/macro";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
-import { Users, Building, Factory, Building2 } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
+import { Building, Building2, Factory, Users } from "lucide-react";
 
 interface OrgSizeViewProps {
   onSelect: (orgSize: string) => void;
@@ -10,14 +10,13 @@ interface OrgSizeViewProps {
 }
 
 const ORG_SIZE_OPTIONS = [
-  { value: '0-10', label: '0-10', icon: Users },
-  { value: '10-100', label: '10-100', icon: Building },
-  { value: '100-1000', label: '100-1000', icon: Factory },
-  { value: '1000+', label: '1000+', icon: Building2 },
+  { value: "0-10", label: "0-10", icon: Users },
+  { value: "10-100", label: "10-100", icon: Building },
+  { value: "100-1000", label: "100-1000", icon: Factory },
+  { value: "1000+", label: "1000+", icon: Building2 },
 ];
 
 export const OrgSizeView: React.FC<OrgSizeViewProps> = ({ onSelect, onSkip, selectedOrgSize }) => {
-
   return (
     <div className="flex flex-col items-center w-full">
       {/* Main Title */}
@@ -34,7 +33,7 @@ export const OrgSizeView: React.FC<OrgSizeViewProps> = ({ onSelect, onSkip, sele
         {ORG_SIZE_OPTIONS.map((option) => {
           const IconComponent = option.icon;
           const isSelected = selectedOrgSize === option.value;
-          
+
           return (
             <Button
               key={option.value}
@@ -42,7 +41,7 @@ export const OrgSizeView: React.FC<OrgSizeViewProps> = ({ onSelect, onSkip, sele
               variant="outline"
               className={cn(
                 "h-20 flex flex-col items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all",
-                isSelected && "bg-black text-white hover:bg-black hover:text-white"
+                isSelected && "bg-black text-white hover:bg-black hover:text-white",
               )}
             >
               <IconComponent className="h-6 w-6" />
@@ -51,7 +50,6 @@ export const OrgSizeView: React.FC<OrgSizeViewProps> = ({ onSelect, onSkip, sele
           );
         })}
       </div>
-
     </div>
   );
 };

@@ -323,6 +323,14 @@ impl ListenClient {
         
         tracing::info!("Starting safe WebSocket connection...");
         
+        // C runtime 에러 추적을 위한 상세 디버깅
+        #[cfg(target_os = "windows")]
+        {
+            tracing::info!("🔍 [safe_websocket_connect] Windows - Pre-connection diagnostics");
+            tracing::info!("🔍 [safe_websocket_connect] Current thread: {:?}", std::thread::current().id());
+            tracing::info!("🔍 [safe_websocket_connect] Available parallelism: {:?}", std::thread::available_parallelism());
+        }
+        
         // WebSocket 연결을 더 조심스럽게 처리 - 별도 스레드에서 실행
         let connection_handle = tokio::spawn(async move {
             tracing::info!("Inside connection task - about to call ws.from_audio");
@@ -330,15 +338,23 @@ impl ListenClient {
             // Windows에서 추가 안정성을 위한 지연
             #[cfg(target_os = "windows")]
             {
+                tracing::info!("🔍 [connection_task] Windows - Pre-connection delay");
                 tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                tracing::info!("🔍 [connection_task] Connection task thread: {:?}", std::thread::current().id());
             }
             
-            let result = ws.from_audio::<Self>(input_stream).await;
+            tracing::info!("🔍 [connection_task] About to call ws.from_audio - THIS IS WHERE C RUNTIME ERROR MIGHT OCCUR");
             
-            tracing::info!("Connection task completed, result: {:?}", 
-                         if result.is_ok() { "Success" } else { "Error" });
+            // 에러가 발생할 가능성이 높은 부분을 try-catch로 더 세밀하게 추적
+            // catch_unwind가 async 함수에서 제대로 작동하지 않을 수 있으므로 직접 호출
+            tracing::info!("🔍 [connection_task] Calling ws.from_audio directly");
             
-            result
+            let stream_result = ws.from_audio::<Self>(input_stream).await;
+            
+            tracing::info!("🔍 [connection_task] ws.from_audio completed, result: {:?}", 
+                        if stream_result.is_ok() { "Success" } else { "Error" });
+            
+            stream_result
         });
 
         // 연결 작업 완료 대기

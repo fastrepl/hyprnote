@@ -231,23 +231,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_onboarding_needed::<tauri::Wry>,
             commands::setup_db_for_cloud::<tauri::Wry>,
             commands::set_autostart::<tauri::Wry>,
-            tauri_plugin_listener::commands::get_selected_microphone_device::<tauri::Wry>,
-            tauri_plugin_listener::commands::set_selected_microphone_device::<tauri::Wry>,
-            tauri_plugin_listener::commands::check_microphone_access::<tauri::Wry>,
-            tauri_plugin_listener::commands::check_system_audio_access::<tauri::Wry>,
-            tauri_plugin_listener::commands::request_microphone_access::<tauri::Wry>,
-            tauri_plugin_listener::commands::request_system_audio_access::<tauri::Wry>,
-            tauri_plugin_listener::commands::open_microphone_access_settings::<tauri::Wry>,
-            tauri_plugin_listener::commands::open_system_audio_access_settings::<tauri::Wry>,
-            tauri_plugin_listener::commands::get_mic_muted::<tauri::Wry>,
-            tauri_plugin_listener::commands::set_mic_muted::<tauri::Wry>,
-            tauri_plugin_listener::commands::get_speaker_muted::<tauri::Wry>,
-            tauri_plugin_listener::commands::set_speaker_muted::<tauri::Wry>,
-            tauri_plugin_listener::commands::start_session::<tauri::Wry>,
-            tauri_plugin_listener::commands::stop_session::<tauri::Wry>,
-            tauri_plugin_listener::commands::pause_session::<tauri::Wry>,
-            tauri_plugin_listener::commands::resume_session::<tauri::Wry>,
-            tauri_plugin_listener::commands::get_state::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

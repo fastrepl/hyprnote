@@ -12,7 +12,7 @@ pub async fn get_selected_microphone_device<R: tauri::Runtime>(
         let devices_json = serde_json::to_string(&devices).unwrap_or_default();
         return Ok(Some(format!("DEVICES:{}", devices_json)));
     }
-    
+
     // Fallback to original behavior
     app.get_selected_microphone_device()
         .await

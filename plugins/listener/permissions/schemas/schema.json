@@ -331,6 +331,18 @@
           "markdownDescription": "Denies the get_mic_muted command without any pre-configured scope."
         },
         {
+          "description": "Enables the get_selected_microphone_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-selected-microphone-device",
+          "markdownDescription": "Enables the get_selected_microphone_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_selected_microphone_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-selected-microphone-device",
+          "markdownDescription": "Denies the get_selected_microphone_device command without any pre-configured scope."
+        },
+        {
           "description": "Enables the get_speaker_muted command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-speaker-muted",
@@ -451,6 +463,18 @@
           "markdownDescription": "Denies the set_mic_muted command without any pre-configured scope."
         },
         {
+          "description": "Enables the set_selected_microphone_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-selected-microphone-device",
+          "markdownDescription": "Enables the set_selected_microphone_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_selected_microphone_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-selected-microphone-device",
+          "markdownDescription": "Denies the set_selected_microphone_device command without any pre-configured scope."
+        },
+        {
           "description": "Enables the set_speaker_muted command without any pre-configured scope.",
           "type": "string",
           "const": "allow-set-speaker-muted",
@@ -487,10 +511,10 @@
           "markdownDescription": "Denies the stop_session command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-pause-session`\n- `allow-resume-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-selected-microphone-device`\n- `allow-set-selected-microphone-device`\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-pause-session`\n- `allow-resume-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-pause-session`\n- `allow-resume-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-selected-microphone-device`\n- `allow-set-selected-microphone-device`\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-pause-session`\n- `allow-resume-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`"
         }
       ]
     }

@@ -2,7 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { MicIcon, Volume2Icon } from "lucide-react";
 
-import { commands } from "../../../types/tauri.gen";
+import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
@@ -70,12 +70,12 @@ export default function Sound() {
 
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
-    queryFn: () => commands.checkMicrophoneAccess(),
+    queryFn: () => listenerCommands.checkMicrophoneAccess(),
   });
 
   const systemAudioPermissionStatus = useQuery({
     queryKey: ["systemAudioPermission"],
-    queryFn: () => commands.checkSystemAudioAccess(),
+    queryFn: () => listenerCommands.checkSystemAudioAccess(),
   });
 
   const deviceQuery = useQuery({
@@ -83,7 +83,7 @@ export default function Sound() {
     queryFn: async () => {
       console.log("Attempting to call getSelectedMicrophoneDevice...");
       try {
-        const result = await commands.getSelectedMicrophoneDevice();
+        const result = await listenerCommands.getSelectedMicrophoneDevice();
         console.log("Device query result:", result);
         return result;
       } catch (error) {
@@ -124,7 +124,7 @@ export default function Sound() {
   });
 
   const micPermission = useMutation({
-    mutationFn: () => commands.requestMicrophoneAccess(),
+    mutationFn: () => listenerCommands.requestMicrophoneAccess(),
     onSuccess: () => {
       micPermissionStatus.refetch();
       deviceQuery.refetch();
@@ -132,12 +132,12 @@ export default function Sound() {
   });
 
   const capturePermission = useMutation({
-    mutationFn: () => commands.requestSystemAudioAccess(),
+    mutationFn: () => listenerCommands.requestSystemAudioAccess(),
     onSuccess: () => systemAudioPermissionStatus.refetch(),
   });
 
   const updateSelectedDevice = useMutation({
-    mutationFn: (deviceName: string | null) => commands.setSelectedMicrophoneDevice(deviceName),
+    mutationFn: (deviceName: string | null) => listenerCommands.setSelectedMicrophoneDevice(deviceName),
     onSuccess: () => deviceQuery.refetch(),
   });
 
@@ -159,7 +159,6 @@ export default function Sound() {
 
     return currentDevice;
   };
-
 
   return (
     <div>

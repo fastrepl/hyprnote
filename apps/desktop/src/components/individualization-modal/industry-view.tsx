@@ -1,9 +1,10 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { Input } from "@hypr/ui/components/ui/input";
-import { cn } from "@hypr/ui/lib/utils";
 import { Trans } from "@lingui/react/macro";
 import { Briefcase, Check, Edit3, EyeOff, GraduationCap, Hospital, Landmark, Rocket, Users } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { Button } from "@hypr/ui/components/ui/button";
+import { Input } from "@hypr/ui/components/ui/input";
+import { cn } from "@hypr/ui/lib/utils";
 
 interface IndustryViewProps {
   onSelect: (industry: string) => void;

@@ -40,10 +40,11 @@ function Component() {
   const [onboardingCompletedThisSession, setOnboardingCompletedThisSession] = useState(false);
 
   const windowLabel = getCurrentWebviewWindowLabel();
-  const showNotifications = windowLabel === "main" && !isOnboardingNeeded;
+  const isMain = windowLabel === "main";
+  const showNotifications = isMain && !isOnboardingNeeded;
 
-  const shouldShowIndividualization = isIndividualizationNeeded
-    && !isOnboardingNeeded
+  const shouldShowWelcomeModal = isMain && isOnboardingNeeded;
+  const shouldShowIndividualization = isMain && isIndividualizationNeeded && !isOnboardingNeeded
     && !onboardingCompletedThisSession;
 
   return (
@@ -77,14 +78,13 @@ function Component() {
                         </div>
                       </div>
                       <WelcomeModal
-                        isOpen={isOnboardingNeeded}
+                        isOpen={shouldShowWelcomeModal}
                         onClose={() => {
                           commands.setOnboardingNeeded(false);
                           setOnboardingCompletedThisSession(true);
                           router.invalidate();
                         }}
                       />
-
                       <IndividualizationModal
                         isOpen={shouldShowIndividualization}
                         onClose={() => {

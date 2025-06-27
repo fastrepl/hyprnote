@@ -1,10 +1,13 @@
+import { ArrowLeft, X } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { commands as authCommands } from "@hypr/plugin-auth";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
 import { Particles } from "@hypr/ui/components/ui/particles";
-import { ArrowLeft, X } from "lucide-react";
-import { useEffect, useState } from "react";
+
+import { useHypr } from "@/contexts";
+import { useMutation } from "@tanstack/react-query";
 import { HowHeardView } from "./how-heard-view";
 import { IndustryView } from "./industry-view";
 import { OrgSizeView } from "./org-size-view";
@@ -17,7 +20,7 @@ interface IndividualizationModalProps {
   onClose: () => void;
 }
 
-export type UserProfile = {
+type UserProfile = {
   industry?: string;
   role?: string;
   orgSize?: string;
@@ -25,6 +28,8 @@ export type UserProfile = {
 };
 
 export function IndividualizationModal({ isOpen, onClose }: IndividualizationModalProps) {
+  const { userId } = useHypr();
+
   const [currentPage, setCurrentPage] = useState<"story" | "industry" | "role" | "orgSize" | "howHeard" | "thankYou">(
     "story",
   );
@@ -67,26 +72,19 @@ export function IndividualizationModal({ isOpen, onClose }: IndividualizationMod
       howDidYouHear,
     };
 
-    let userId = "UNKNOWN";
     try {
-      userId = await authCommands.getFromStore("auth-user-id") || "UNKNOWN";
-    } catch (error) {
-      console.error("Failed to get user ID:", error);
-    }
-
-    try {
-      const analyticsPayload = {
+      await analyticsCommands.event({
         event: "survey_completed",
         distinct_id: userId,
-        industry: finalProfile.industry || null,
-        role: finalProfile.role || null,
-        organization_size: finalProfile.orgSize || null,
-        how_heard: finalProfile.howDidYouHear,
         survey_version: "v1",
         completed_at: new Date().toISOString(),
-      };
-
-      await analyticsCommands.event(analyticsPayload);
+        $set: {
+          industry: finalProfile.industry,
+          role: finalProfile.role,
+          organization_size: finalProfile.orgSize,
+          how_heard: finalProfile.howDidYouHear,
+        },
+      });
       console.log("Survey data sent to PostHog successfully");
     } catch (error) {
       console.error("Failed to send survey data to PostHog:", error);
@@ -95,30 +93,17 @@ export function IndividualizationModal({ isOpen, onClose }: IndividualizationMod
     setCurrentPage("thankYou");
   };
 
-  const handleSkip = async () => {
-    try {
-      let userId = "UNKNOWN";
-      try {
-        userId = await authCommands.getFromStore("auth-user-id") || "UNKNOWN";
-      } catch (error) {
-        console.error("Failed to get user ID:", error);
-      }
-
-      const analyticsPayload = {
+  const handleSurveySkip = useMutation({
+    mutationFn: () =>
+      analyticsCommands.event({
         event: "individualization_survey_skipped",
         distinct_id: userId,
         skipped_at_page: currentPage,
         skipped_at: new Date().toISOString(),
-      };
-
-      await analyticsCommands.event(analyticsPayload);
-      console.log("Survey skip event sent to PostHog");
-    } catch (error) {
-      console.error("Failed to send skip event to PostHog:", error);
-    }
-
-    onClose();
-  };
+      }),
+    onError: (e) => console.error(e),
+    onSettled: () => onClose(),
+  });
 
   const handleThankYouContinue = () => {
     console.log("Thank you completed, closing modal");
@@ -189,34 +174,34 @@ export function IndividualizationModal({ isOpen, onClose }: IndividualizationMod
           {currentPage === "story" && (
             <StoryView
               onComplete={handleStoryComplete}
-              onSkip={handleSkip}
+              onSkip={handleSurveySkip.mutate}
             />
           )}
           {currentPage === "industry" && (
             <IndustryView
               onSelect={handleIndustrySelect}
-              onSkip={handleSkip}
+              onSkip={handleSurveySkip.mutate}
               selectedIndustry={userProfile.industry}
             />
           )}
           {currentPage === "role" && (
             <RoleView
               onSelect={handleRoleSelect}
-              onSkip={handleSkip}
+              onSkip={handleSurveySkip.mutate}
               selectedRole={userProfile.role}
             />
           )}
           {currentPage === "orgSize" && (
             <OrgSizeView
               onSelect={handleOrgSizeSelect}
-              onSkip={handleSkip}
+              onSkip={handleSurveySkip.mutate}
               selectedOrgSize={userProfile.orgSize}
             />
           )}
           {currentPage === "howHeard" && (
             <HowHeardView
               onSelect={handleHowHeardSelect}
-              onSkip={handleSkip}
+              onSkip={handleSurveySkip.mutate}
               selectedHowHeard={userProfile.howDidYouHear}
             />
           )}

@@ -1,7 +1,8 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/ui/lib/utils";
 import { Trans } from "@lingui/react/macro";
 import { Globe, Linkedin, Search, Twitter, UserPlus } from "lucide-react";
+
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/ui/lib/utils";
 
 interface HowHeardViewProps {
   onSelect: (howHeard: string) => void;

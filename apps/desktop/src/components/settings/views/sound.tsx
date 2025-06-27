@@ -2,7 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { MicIcon, Volume2Icon } from "lucide-react";
 
-import { commands as listenerCommands } from "@hypr/plugin-listener";
+import { commands } from "../../../types/tauri.gen";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
@@ -70,42 +70,75 @@ export default function Sound() {
 
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
-    queryFn: () => listenerCommands.checkMicrophoneAccess(),
+    queryFn: () => commands.checkMicrophoneAccess(),
   });
 
   const systemAudioPermissionStatus = useQuery({
     queryKey: ["systemAudioPermission"],
-    queryFn: () => listenerCommands.checkSystemAudioAccess(),
+    queryFn: () => commands.checkSystemAudioAccess(),
+  });
+
+  const deviceQuery = useQuery({
+    queryKey: ["microphoneDeviceInfo"],
+    queryFn: async () => {
+      console.log("Attempting to call getSelectedMicrophoneDevice...");
+      try {
+        const result = await commands.getSelectedMicrophoneDevice();
+        console.log("Device query result:", result);
+        return result;
+      } catch (error) {
+        console.error("Device query failed:", error);
+        throw error;
+      }
+    },
+    enabled: micPermissionStatus.data === true,
   });
 
   const microphoneDevices = useQuery({
     queryKey: ["microphoneDevices"],
-    queryFn: () => listenerCommands.listMicrophoneDevices(),
-    enabled: micPermissionStatus.data === true,
+    queryFn: async () => {
+      const result = deviceQuery.data;
+      console.log("Processing device query result:", result);
+      if (result && result.startsWith("DEVICES:")) {
+        const devicesJson = result.substring(8);
+        console.log("Devices JSON:", devicesJson);
+        const devices = JSON.parse(devicesJson) as string[];
+        console.log("Parsed devices:", devices);
+        return devices;
+      }
+      return [];
+    },
+    enabled: micPermissionStatus.data === true && deviceQuery.data !== undefined,
   });
 
   const selectedDevice = useQuery({
     queryKey: ["selectedMicrophoneDevice"],
-    queryFn: () => listenerCommands.getSelectedMicrophoneDevice(),
-    enabled: micPermissionStatus.data === true,
+    queryFn: async () => {
+      const result = deviceQuery.data;
+      if (result && result.startsWith("DEVICES:")) {
+        return null;
+      }
+      return result;
+    },
+    enabled: micPermissionStatus.data === true && deviceQuery.data !== undefined,
   });
 
   const micPermission = useMutation({
-    mutationFn: () => listenerCommands.requestMicrophoneAccess(),
+    mutationFn: () => commands.requestMicrophoneAccess(),
     onSuccess: () => {
       micPermissionStatus.refetch();
-      microphoneDevices.refetch();
+      deviceQuery.refetch();
     },
   });
 
   const capturePermission = useMutation({
-    mutationFn: () => listenerCommands.requestSystemAudioAccess(),
+    mutationFn: () => commands.requestSystemAudioAccess(),
     onSuccess: () => systemAudioPermissionStatus.refetch(),
   });
 
   const updateSelectedDevice = useMutation({
-    mutationFn: (deviceName: string | null) => listenerCommands.setSelectedMicrophoneDevice(deviceName),
-    onSuccess: () => selectedDevice.refetch(),
+    mutationFn: (deviceName: string | null) => commands.setSelectedMicrophoneDevice(deviceName),
+    onSuccess: () => deviceQuery.refetch(),
   });
 
   const handleMicrophoneDeviceChange = (deviceName: string) => {
@@ -127,10 +160,24 @@ export default function Sound() {
     return currentDevice;
   };
 
+  const testCommand = async () => {
+    console.log("=== MANUAL TEST: Calling getSelectedMicrophoneDevice ===");
+    try {
+      const result = await commands.getSelectedMicrophoneDevice();
+      console.log("=== MANUAL TEST RESULT ===", result);
+    } catch (error) {
+      console.error("=== MANUAL TEST ERROR ===", error);
+    }
+  };
+
   return (
     <div>
       <div className="space-y-4">
         <div className="space-y-2">
+          <Button onClick={testCommand} variant="outline" size="sm">
+            TEST COMMAND
+          </Button>
+          
           <PermissionItem
             icon={<MicIcon className="h-4 w-4" />}
             title={t`Microphone Access`}

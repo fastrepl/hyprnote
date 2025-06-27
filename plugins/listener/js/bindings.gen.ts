@@ -5,9 +5,6 @@
 /** user-defined commands **/
 
 export const commands = {
-  async listMicrophoneDevices(): Promise<string[]> {
-    return await TAURI_INVOKE("plugin:listener|list_microphone_devices");
-  },
   async getSelectedMicrophoneDevice(): Promise<string | null> {
     return await TAURI_INVOKE("plugin:listener|get_selected_microphone_device");
   },

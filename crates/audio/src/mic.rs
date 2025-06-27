@@ -26,14 +26,26 @@ impl MicInput {
 
     pub fn with_device(device_name: &str) -> Self {
         let host = cpal::default_host();
-        let mut devices = host.input_devices().expect("Failed to get input devices");
 
-        let device = devices
-            .find(|d| d.name().map(|n| n == device_name).unwrap_or(false))
-            .expect(&format!("Device '{}' not found", device_name));
-
-        Self {
-            device: Some(device),
+        match host.input_devices() {
+            Ok(mut devices) => {
+                if let Some(device) =
+                    devices.find(|d| d.name().map(|n| n == device_name).unwrap_or(false))
+                {
+                    Self {
+                        device: Some(device),
+                    }
+                } else {
+                    // Device not found, fall back to default
+                    eprintln!("Device '{}' not found, using default", device_name);
+                    Self::default()
+                }
+            }
+            Err(e) => {
+                // Failed to enumerate devices, fall back to default
+                eprintln!("Failed to get input devices: {}, using default", e);
+                Self::default()
+            }
         }
     }
 

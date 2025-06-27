@@ -41,9 +41,75 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn list_microphone_devices(&self) -> Result<Vec<String>, crate::Error> {
+        tracing::info!("Starting microphone device enumeration");
+
         let host = hypr_audio::cpal::default_host();
-        let devices = host.input_devices()?;
-        Ok(devices.filter_map(|d| d.name().ok()).collect())
+        tracing::debug!("Got audio host: {:?}", std::any::type_name_of_val(&host));
+
+        // Try to get input devices, but handle errors gracefully
+        match host.input_devices() {
+            Ok(devices) => {
+                let mut device_names = Vec::new();
+                let mut device_count = 0;
+
+                for device in devices {
+                    device_count += 1;
+                    match device.name() {
+                        Ok(name) => {
+                            tracing::info!("Found input device: '{}'", name);
+                            device_names.push(name);
+                        }
+                        Err(e) => {
+                            tracing::warn!("Device {} has no accessible name: {}", device_count, e);
+                        }
+                    }
+                }
+
+                tracing::info!(
+                    "Successfully enumerated {} microphone devices out of {} total devices",
+                    device_names.len(),
+                    device_count
+                );
+
+                // Also log the default device for comparison
+                if let Some(default_device) = host.default_input_device() {
+                    if let Ok(default_name) = default_device.name() {
+                        tracing::info!("Default input device: '{}'", default_name);
+                    }
+                }
+
+                Ok(device_names)
+            }
+            Err(e) => {
+                // Log the error but don't fail completely
+                tracing::error!(
+                    "Failed to enumerate input devices: {} ({})",
+                    e,
+                    std::any::type_name_of_val(&e)
+                );
+
+                // Try to get at least the default device
+                match host.default_input_device() {
+                    Some(default_device) => {
+                        if let Ok(name) = default_device.name() {
+                            tracing::info!("Fallback: Using default input device: '{}'", name);
+                            Ok(vec![name])
+                        } else {
+                            tracing::warn!(
+                                "Default input device exists but has no accessible name"
+                            );
+                            Ok(vec![])
+                        }
+                    }
+                    None => {
+                        tracing::error!(
+                            "No default input device available - no microphones detected"
+                        );
+                        Ok(vec![])
+                    }
+                }
+            }
+        }
     }
 
     #[tracing::instrument(skip_all)]

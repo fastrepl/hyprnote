@@ -1,21 +1,30 @@
 use crate::ListenerPluginExt;
-
-#[tauri::command]
-#[specta::specta]
-pub async fn list_microphone_devices<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<Vec<String>, String> {
-    app.list_microphone_devices()
-        .await
-        .map_err(|e| e.to_string())
-}
+use serde_json;
 
 #[tauri::command]
 #[specta::specta]
 pub async fn get_selected_microphone_device<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Option<String>, String> {
+    // Always return device list for debugging
+    if let Ok(devices) = app.list_microphone_devices().await {
+        tracing::info!("Returning device list: {:?}", devices);
+        let devices_json = serde_json::to_string(&devices).unwrap_or_default();
+        return Ok(Some(format!("DEVICES:{}", devices_json)));
+    }
+    
+    // Fallback to original behavior
     app.get_selected_microphone_device()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn check_microphone_access<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<bool, String> {
+    app.check_microphone_access()
         .await
         .map_err(|e| e.to_string())
 }
@@ -27,16 +36,6 @@ pub async fn set_selected_microphone_device<R: tauri::Runtime>(
     device_name: Option<String>,
 ) -> Result<(), String> {
     app.set_selected_microphone_device(device_name)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn check_microphone_access<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<bool, String> {
-    app.check_microphone_access()
         .await
         .map_err(|e| e.to_string())
 }

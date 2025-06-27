@@ -348,11 +348,17 @@ impl ListenClient {
             // 에러가 발생할 가능성이 높은 부분을 try-catch로 더 세밀하게 추적
             // catch_unwind가 async 함수에서 제대로 작동하지 않을 수 있으므로 직접 호출
             tracing::info!("🔍 [connection_task] Calling ws.from_audio directly");
+            tracing::info!("🔍 [connection_task] WebSocketClient type: {:?}", std::any::type_name_of_val(&ws));
+            tracing::info!("🔍 [connection_task] Stream type: {:?}", std::any::type_name_of_val(&input_stream));
             
             let stream_result = ws.from_audio::<Self>(input_stream).await;
             
             tracing::info!("🔍 [connection_task] ws.from_audio completed, result: {:?}", 
                         if stream_result.is_ok() { "Success" } else { "Error" });
+            
+            if let Ok(ref stream) = stream_result {
+                tracing::info!("🔍 [connection_task] Stream created, type: {:?}", std::any::type_name_of_val(stream));
+            }
             
             stream_result
         });

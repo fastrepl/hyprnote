@@ -1,27 +1,76 @@
 use serde::de::DeserializeOwned;
 
 use backon::{ConstantBuilder, Retryable};
-use futures_util::{SinkExt, Stream, StreamExt};
-use tokio_tungstenite::{connect_async, tungstenite::client::IntoClientRequest};
+use futures_util::{future, Sink, SinkExt, Stream, StreamExt, stream::unfold};
+use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+use tokio_tungstenite::{
+    connect_async, connect_async_with_config, tungstenite::protocol::WebSocketConfig, MaybeTlsStream,
+    WebSocketStream,
+};
+use std::future::Future;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 
 pub use tokio_tungstenite::tungstenite::{protocol::Message, ClientRequestBuilder};
+
+use std::sync::{Arc, Mutex};
 
 // Windows에서 스트림 drop 시 안전한 정리를 위한 wrapper
 #[cfg(target_os = "windows")]
 struct WindowsSafeStream<S> {
     inner: std::pin::Pin<Box<S>>,
-    _cleanup_guard: WindowsCleanupGuard,
+    send_task: Option<tokio::task::JoinHandle<()>>,
+    shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
 }
 
 #[cfg(target_os = "windows")]
-struct WindowsCleanupGuard;
-
-#[cfg(target_os = "windows")]
-impl Drop for WindowsCleanupGuard {
+impl<S> Drop for WindowsSafeStream<S> {
     fn drop(&mut self) {
-        tracing::info!("📍 [WindowsCleanupGuard] Dropping - ensuring safe cleanup");
-        // 동기적으로 약간의 지연을 추가하여 리소스 정리
+        tracing::info!("📍 [WindowsSafeStream] Dropping - starting graceful shutdown");
+        tracing::info!("📍❓ [CHECK-DROP-1] Beginning of drop");
+        
+        // 1. shutdown 신호 전송
+        if let Some(tx) = self.shutdown_tx.take() {
+            tracing::info!("📍 [WindowsSafeStream] Sending shutdown signal");
+            let _ = tx.send(());
+            tracing::info!("📍❓ [CHECK-DROP-2] After shutdown signal");
+            std::thread::sleep(std::time::Duration::from_millis(50));
+            tracing::info!("📍✅ [CHECK-DROP-2] No error after wait");
+        }
+        
+        // 2. send_task 종료 대기
+        if let Some(task) = self.send_task.take() {
+            tracing::info!("📍 [WindowsSafeStream] Waiting for send task");
+            
+            // block_on을 사용하지 않고 동기적으로 대기
+            let start = std::time::Instant::now();
+            while !task.is_finished() && start.elapsed() < std::time::Duration::from_millis(300) {
+                std::thread::sleep(std::time::Duration::from_millis(10));
+            }
+            
+            if !task.is_finished() {
+                tracing::warn!("📍 [WindowsSafeStream] Force aborting send task");
+                task.abort();
+            }
+            
+            tracing::info!("📍❓ [CHECK-DROP-3] After task handling");
+            std::thread::sleep(std::time::Duration::from_millis(50));
+            tracing::info!("📍✅ [CHECK-DROP-3] No error after wait");
+        }
+        
+        // 3. inner stream을 명시적으로 drop
+        tracing::info!("📍❓ [CHECK-DROP-4] About to drop inner stream");
+        // inner는 이미 Pin<Box<S>>이므로 직접 처리할 수 없음
+        // 대신 전체 struct가 drop될 때 자동으로 drop됨
+        tracing::info!("📍❓ [CHECK-DROP-5] Inner stream will be dropped automatically");
         std::thread::sleep(std::time::Duration::from_millis(50));
+        tracing::info!("📍✅ [CHECK-DROP-5] No error after wait");
+        
+        // 4. 모든 비동기 작업이 정리될 시간 제공
+        std::thread::sleep(std::time::Duration::from_millis(200));
+        
+        tracing::info!("📍 [WindowsSafeStream] Graceful shutdown completed");
+        tracing::info!("📍❓ [CHECK-DROP-6] End of drop function");
     }
 }
 
@@ -59,7 +108,10 @@ impl WebSocketClient {
         &self,
         mut audio_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
     ) -> Result<impl Stream<Item = T::Output>, crate::Error> {
+        println!("===== WS::CLIENT::FROM_AUDIO CALLED =====");
         tracing::info!("📍 [from_audio] Starting WebSocket connection process");
+        tracing::info!("📍 Module path: {}", module_path!());
+        tracing::info!("📍 Current log target: {}", std::any::type_name::<Self>());
         
         // Windows에서 C runtime 에러 추적을 위한 추가 로깅
         #[cfg(target_os = "windows")]
@@ -108,31 +160,87 @@ impl WebSocketClient {
             .await?;
 
         tracing::info!("📍 [from_audio] WebSocket connection established successfully");
+        
+        // Windows에서 각 단계별로 체크
+        #[cfg(target_os = "windows")]
+        {
+            tracing::info!("📍❓ [CHECK-1] Before split - checking if read.cpp error occurs here");
+            std::thread::sleep(std::time::Duration::from_millis(100));
+            tracing::info!("📍✅ [CHECK-1] No error after wait");
+        }
+        
         tracing::info!("📍 [from_audio] About to split WebSocket stream");
         
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
         
+        #[cfg(target_os = "windows")]
+        {
+            tracing::info!("📍❓ [CHECK-2] After split - checking if read.cpp error occurs here");
+            std::thread::sleep(std::time::Duration::from_millis(100));
+            tracing::info!("📍✅ [CHECK-2] No error after wait");
+        }
+        
         tracing::info!("📍 [from_audio] WebSocket stream split completed");
         tracing::info!("📍 [from_audio] Spawning send task");
 
-        let _send_task = tokio::spawn(async move {
+        // Windows에서 graceful shutdown을 위한 채널
+        #[cfg(target_os = "windows")]
+        let (shutdown_tx, mut shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+        
+        #[cfg(not(target_os = "windows"))]
+        let mut shutdown_rx = futures_util::future::pending::<()>();
+
+        let send_task = tokio::spawn(async move {
             tracing::info!("📍 [send_task] Starting audio send loop");
             let mut chunk_count = 0;
+            let mut idle_count = 0;
             
-            while let Some(data) = audio_stream.next().await {
-                chunk_count += 1;
-                tracing::debug!("📍 [send_task] Processing audio chunk #{}, size: {} bytes", chunk_count, data.len());
-                
-                let input = T::to_input(data);
-                let msg = T::to_message(input);
-
-                if let Err(e) = ws_sender.send(msg).await {
-                    tracing::error!("📍 [send_task] ws_send_failed at chunk #{}: {:?}", chunk_count, e);
-                    break;
+            loop {
+                // Windows에서 shutdown 체크
+                #[cfg(target_os = "windows")]
+                {
+                    if let Ok(_) = shutdown_rx.try_recv() {
+                        tracing::info!("📍 [send_task] Received shutdown signal");
+                        break;
+                    }
                 }
                 
-                if chunk_count % 10 == 0 {
-                    tracing::info!("📍 [send_task] Successfully sent {} audio chunks", chunk_count);
+                // 100ms 타임아웃으로 audio stream 대기
+                match tokio::time::timeout(
+                    std::time::Duration::from_millis(100),
+                    audio_stream.next()
+                ).await {
+                    Ok(Some(data)) => {
+                        idle_count = 0; // 데이터를 받았으므로 idle count 리셋
+                        chunk_count += 1;
+                        tracing::debug!("📍 [send_task] Processing audio chunk #{}, size: {} bytes", chunk_count, data.len());
+                        
+                        let input = T::to_input(data);
+                        let msg = T::to_message(input);
+
+                        if let Err(e) = ws_sender.send(msg).await {
+                            tracing::error!("📍 [send_task] ws_send_failed at chunk #{}: {:?}", chunk_count, e);
+                            break;
+                        }
+                        
+                        if chunk_count % 10 == 0 {
+                            tracing::info!("📍 [send_task] Successfully sent {} audio chunks", chunk_count);
+                        }
+                    }
+                    Ok(None) => {
+                        tracing::info!("📍 [send_task] Audio stream ended normally");
+                        break;
+                    }
+                    Err(_) => {
+                        idle_count += 1;
+                        tracing::debug!("📍 [send_task] Timeout waiting for audio (idle count: {})", idle_count);
+                        
+                        // 5번 연속 타임아웃(500ms)이면 스트림이 drop된 것으로 간주
+                        if idle_count >= 5 {
+                            tracing::info!("📍 [send_task] Audio stream appears to be dropped, exiting");
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -159,127 +267,47 @@ impl WebSocketClient {
             tracing::info!("📍 [send_task] Send task completed");
         });
 
+        // Create output stream using unfold
         tracing::info!("📍 [from_audio] Creating output stream");
         
-        // Windows에서 async_stream! 매크로 대신 더 안전한 방식 사용
+        // Windows-specific stream handling
         #[cfg(target_os = "windows")]
         {
-            use futures_util::stream;
-            
-            tracing::info!("📍 [from_audio] Using Windows-safe stream implementation");
-            
-            // 스트림을 필터링하고 변환하는 더 안전한 방법
-            let output_stream = stream::unfold(ws_receiver, |mut ws_receiver| async move {
-                loop {
-                    match ws_receiver.next().await {
-                        Some(Ok(msg)) => {
-                            match msg {
-                                Message::Text(_) | Message::Binary(_) => {
-                                    if let Some(output) = T::from_message(msg) {
-                                        return Some((output, ws_receiver));
-                                    }
-                                    // 파싱 실패시 다음 메시지로 계속
-                                    continue;
-                                }
-                                Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => {
-                                    // 컨트롤 메시지는 무시하고 계속
-                                    continue;
-                                }
-                                Message::Close(_) => {
-                                    tracing::info!("📍 [output_stream] Close message received");
-                                    return None;
-                                }
-                            }
-                        }
-                        Some(Err(e)) => {
-                            if !matches!(
-                                e,
-                                tokio_tungstenite::tungstenite::Error::Protocol(
-                                    tokio_tungstenite::tungstenite::error::ProtocolError::ResetWithoutClosingHandshake
-                                )
-                            ) {
-                                tracing::error!("📍 [output_stream] WebSocket error: {:?}", e);
-                            }
-                            return None;
-                        }
-                        None => {
-                            tracing::info!("📍 [output_stream] Stream ended");
-                            return None;
-                        }
-                    }
-                }
-            });
-            
-            tracing::info!("📍 [from_audio] Returning output stream (Windows safe mode)");
-            
-            // Windows에서 안전한 drop을 위해 wrapper로 감싸기
-            let safe_stream = WindowsSafeStream {
-                inner: Box::pin(output_stream),
-                _cleanup_guard: WindowsCleanupGuard,
-            };
-            
-            Ok(safe_stream)
+            tracing::info!("📍 [from_audio] Creating Windows-safe WebSocket stream");
+            let stream = WindowsSafeWebSocketStream::<T>::new(ws_receiver, send_task, shutdown_tx);
+            return Ok(stream);
         }
-        
-        // 다른 플랫폼에서는 기존 async_stream! 사용
+
+        // Non-Windows implementation
         #[cfg(not(target_os = "windows"))]
         {
-            let output_stream = async_stream::stream! {
-                tracing::info!("📍 [output_stream] Starting receive loop");
-                let mut msg_count = 0;
-                
-                while let Some(msg_result) = ws_receiver.next().await {
-                    msg_count += 1;
-                    tracing::debug!("📍 [output_stream] Received message #{}", msg_count);
-                    
-                    match msg_result {
-                        Ok(msg) => {
-                            match msg {
-                                Message::Text(ref text) => {
-                                    tracing::debug!("📍 [output_stream] Received text message, length: {}", text.len());
-                                    if let Some(output) = T::from_message(msg) {
-                                        yield output;
-                                    }
-                                },
-                                Message::Binary(ref data) => {
-                                    tracing::debug!("📍 [output_stream] Received binary message, length: {}", data.len());
-                                    if let Some(output) = T::from_message(msg) {
-                                        yield output;
-                                    }
-                                },
-                                Message::Ping(_) => {
-                                    tracing::debug!("📍 [output_stream] Received ping");
-                                    continue;
-                                },
-                                Message::Pong(_) => {
-                                    tracing::debug!("📍 [output_stream] Received pong");
-                                    continue;
-                                },
-                                Message::Frame(_) => {
-                                    tracing::debug!("📍 [output_stream] Received frame");
-                                    continue;
-                                },
-                                Message::Close(_) => {
-                                    tracing::info!("📍 [output_stream] Received close message");
-                                    break;
-                                },
+            // 기존 unfold 구현
+            let _send_task = send_task; // send task는 백그라운드에서 계속 실행
+            
+            let stream = unfold(
+                Some(ws_receiver),
+                move |mut receiver| async move {
+                    if let Some(ref mut recv) = receiver {
+                        match recv.next().await {
+                            Some(msg) => {
+                                if let Some(output) = T::from_message(msg) {
+                                    Some((output, receiver))
+                                } else {
+                                    // Skip non-matching messages - 재귀적으로 다음 메시지 확인
+                                    recv.next().await
+                                        .and_then(|msg| T::from_message(msg))
+                                        .map(|output| (output, receiver))
+                                }
                             }
+                            None => None,
                         }
-                        Err(e) => {
-                            if let tokio_tungstenite::tungstenite::Error::Protocol(tokio_tungstenite::tungstenite::error::ProtocolError::ResetWithoutClosingHandshake) = e {
-                                tracing::debug!("📍 [output_stream] ws_receiver_failed (reset): {:?}", e);
-                            } else {
-                                tracing::error!("📍 [output_stream] ws_receiver_failed: {:?}", e);
-                            }
-                            break;
-                        }
+                    } else {
+                        None
                     }
-                }
-                tracing::info!("📍 [output_stream] Receive loop ended after {} messages", msg_count);
-            };
+                },
+            );
 
-            tracing::info!("📍 [from_audio] Returning output stream");
-            Ok(output_stream)
+            Ok(stream)
         }
     }
 
@@ -369,3 +397,183 @@ impl WebSocketClient {
         }
     }
 }
+
+// Windows에서 WebSocket 전체를 관리하는 wrapper
+#[cfg(target_os = "windows")]
+struct WindowsManagedWebSocket {
+    ws_stream: Option<tokio_tungstenite::WebSocketStream<
+        tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>
+    >>,
+    send_task: Option<tokio::task::JoinHandle<()>>,
+    shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
+}
+
+#[cfg(target_os = "windows")]
+impl WindowsManagedWebSocket {
+    async fn close(&mut self) {
+        tracing::info!("📍 [WindowsManagedWebSocket] Closing WebSocket connection");
+        
+        // 1. shutdown signal 전송
+        if let Some(tx) = self.shutdown_tx.take() {
+            let _ = tx.send(());
+        }
+        
+        // 2. send task 종료 대기
+        if let Some(task) = self.send_task.take() {
+            let _ = tokio::time::timeout(
+                std::time::Duration::from_millis(500),
+                task
+            ).await;
+        }
+        
+        // 3. WebSocket 명시적으로 닫기
+        if let Some(mut ws) = self.ws_stream.take() {
+            tracing::info!("📍 [WindowsManagedWebSocket] Explicitly closing WebSocket");
+            let _ = ws.close(None).await;
+        }
+    }
+}
+
+// Windows용 특별한 처리
+#[cfg(target_os = "windows")]
+pub async fn windows_safe_from_audio<T: WebSocketIO>(
+    client: &WebSocketClient,
+    audio_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
+) -> Result<impl Stream<Item = T::Output>, crate::Error> {
+    tracing::info!("📍 [windows_safe_from_audio] Using Windows-specific implementation");
+    
+    // 별도의 runtime에서 실행
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .map_err(|_| crate::Error::Unknown)?;
+    
+    let result = rt.block_on(async {
+        client.from_audio::<T>(audio_stream).await
+    });
+    
+    // runtime을 명시적으로 종료
+    rt.shutdown_timeout(std::time::Duration::from_millis(100));
+    
+    result
+}
+
+// Windows에서 안전한 WebSocket 스트림 구현
+#[cfg(target_os = "windows")]
+pub struct WindowsSafeWebSocketStream<T> {
+    ws_receiver: Arc<Mutex<Option<SplitStream<WSStream>>>>,
+    send_task_handle: Arc<Mutex<Option<tokio::task::JoinHandle<()>>>>,
+    shutdown_tx: Arc<Mutex<Option<tokio::sync::oneshot::Sender<()>>>>,
+    _phantom: std::marker::PhantomData<T>,
+}
+
+#[cfg(target_os = "windows")]
+impl<T: WebSocketIO> WindowsSafeWebSocketStream<T> {
+    fn new(
+        ws_receiver: SplitStream<WSStream>,
+        send_task: tokio::task::JoinHandle<()>,
+        shutdown_tx: tokio::sync::oneshot::Sender<()>,
+    ) -> Self {
+        Self {
+            ws_receiver: Arc::new(Mutex::new(Some(ws_receiver))),
+            send_task_handle: Arc::new(Mutex::new(Some(send_task))),
+            shutdown_tx: Arc::new(Mutex::new(Some(shutdown_tx))),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+#[cfg(target_os = "windows")]
+impl<T: WebSocketIO> Stream for WindowsSafeWebSocketStream<T> {
+    type Item = T::Output;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        // receiver가 있는지 확인
+        match self.ws_receiver.try_lock() {
+            Ok(mut guard) => {
+                if let Some(ref mut receiver) = *guard {
+                    match Pin::new(receiver).poll_next(cx) {
+                        Poll::Ready(Some(msg)) => {
+                            if let Some(output) = T::from_message(msg.unwrap()) {
+                                Poll::Ready(Some(output))
+                            } else {
+                                cx.waker().wake_by_ref();
+                                Poll::Pending
+                            }
+                        }
+                        Poll::Ready(None) => Poll::Ready(None),
+                        Poll::Pending => Poll::Pending,
+                    }
+                } else {
+                    // receiver가 이미 drop됨
+                    Poll::Ready(None)
+                }
+            }
+            Err(_) => {
+                // lock 실패 시 재시도
+                cx.waker().wake_by_ref();
+                Poll::Pending
+            }
+        }
+    }
+}
+
+#[cfg(target_os = "windows")]
+impl<T> Drop for WindowsSafeWebSocketStream<T> {
+    fn drop(&mut self) {
+        tracing::info!("📍 [WindowsSafeWebSocketStream] Drop starting");
+        
+        // 1. Shutdown signal 전송 (동기)
+        if let Ok(mut tx_guard) = self.shutdown_tx.lock() {
+            if let Some(tx) = tx_guard.take() {
+                let _ = tx.send(());
+                tracing::info!("📍 [WindowsSafeWebSocketStream] Shutdown signal sent");
+            }
+        }
+        
+        // 2. Send task 종료 대기를 더 길게 (동기)
+        if let Ok(mut task_guard) = self.send_task_handle.lock() {
+            if let Some(task) = task_guard.take() {
+                tracing::info!("📍 [WindowsSafeWebSocketStream] Waiting for send task to finish gracefully");
+                
+                // 더 긴 대기 시간 (500ms)
+                let start = std::time::Instant::now();
+                while !task.is_finished() && start.elapsed() < std::time::Duration::from_millis(500) {
+                    std::thread::sleep(std::time::Duration::from_millis(10));
+                }
+                
+                if !task.is_finished() {
+                    tracing::info!("📍 [WindowsSafeWebSocketStream] Send task still running, aborting");
+                    task.abort();
+                    // Abort 후 추가 대기
+                    std::thread::sleep(std::time::Duration::from_millis(50));
+                    tracing::info!("📍 [WindowsSafeWebSocketStream] Send task aborted");
+                } else {
+                    tracing::info!("📍 [WindowsSafeWebSocketStream] Send task completed naturally");
+                }
+            }
+        }
+        
+        // 3. Receiver drop (동기)
+        if let Ok(mut receiver_guard) = self.ws_receiver.lock() {
+            if let Some(_receiver) = receiver_guard.take() {
+                tracing::info!("📍 [WindowsSafeWebSocketStream] Receiver dropped");
+                // Receiver drop 후 추가 대기
+                std::thread::sleep(std::time::Duration::from_millis(50));
+            }
+        }
+        
+        // 4. Windows에서 모든 리소스 정리를 위한 더 긴 대기 시간
+        tracing::info!("📍 [WindowsSafeWebSocketStream] Final cleanup delay for Windows");
+        std::thread::sleep(std::time::Duration::from_millis(200));
+        
+        // 5. 강제 GC 시도 (Windows에서 메모리 압박 상황 해결)
+        tracing::info!("📍 [WindowsSafeWebSocketStream] Forcing cleanup");
+        
+        tracing::info!("📍 [WindowsSafeWebSocketStream] Drop completed");
+    }
+}
+
+// Type aliases
+type WSStream = WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>;
+type SplitStream<S> = futures_util::stream::SplitStream<S>;

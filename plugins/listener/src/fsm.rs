@@ -541,10 +541,52 @@ impl Session {
         };
         tracing::info!(":+:+:+: from_audio returned successfully");
 
-        // WebSocket 연결 직후 즉시 스트림을 닫아서 실제 스트리밍 방지
-        tracing::info!(":+:+:+: Immediately dropping listen_stream to prevent audio streaming");
-        drop(listen_stream);
-        tracing::info!(":+:+:+: listen_stream dropped immediately - testing if this prevents the error");
+        // Windows에서는 WebSocket read.cpp 에러 방지를 위해 다른 전략 사용
+        #[cfg(target_os = "windows")]
+        {
+            tracing::info!("🔄 Windows: Using keep-alive strategy instead of immediate drop");
+            
+            // 스트림을 즉시 drop하지 않고 백그라운드 태스크에서 관리
+            let mut tasks = self.tasks.take().unwrap_or_else(|| JoinSet::new());
+            tasks.spawn(async move {
+                tracing::info!("🔄 Keep-alive task started - maintaining WebSocket connection");
+                
+                // 스트림을 유지하되 실제 데이터는 처리하지 않음
+                futures_util::pin_mut!(listen_stream);
+                
+                // 5초 후 graceful shutdown
+                let timeout = tokio::time::sleep(Duration::from_secs(5));
+                tokio::pin!(timeout);
+                
+                tokio::select! {
+                    _ = &mut timeout => {
+                        tracing::info!("🔄 Keep-alive timeout reached, gracefully closing stream");
+                    }
+                    _ = async {
+                        // 스트림에서 데이터가 오면 무시 (실제 처리하지 않음)
+                        while let Some(_result) = listen_stream.next().await {
+                            // 데이터는 무시하고 연결만 유지
+                        }
+                    } => {
+                        tracing::info!("🔄 Stream ended naturally");
+                    }
+                }
+                
+                tracing::info!("🔄 Keep-alive task completed - WebSocket should close gracefully");
+            });
+            self.tasks = Some(tasks);
+            
+            tracing::info!("🔄 Windows keep-alive strategy activated");
+        }
+        
+        // 다른 플랫폼에서는 기존 방식 사용
+        #[cfg(not(target_os = "windows"))]
+        {
+            // WebSocket 연결 직후 즉시 스트림을 닫아서 실제 스트리밍 방지
+            tracing::info!(":+:+:+: Immediately dropping listen_stream to prevent audio streaming");
+            drop(listen_stream);
+            tracing::info!(":+:+:+: listen_stream dropped immediately - testing if this prevents the error");
+        }
 
         // 이제 대기해서 에러가 발생하는지 확인
         tracing::info!("Waiting 5 seconds to see if error still occurs without streaming...");

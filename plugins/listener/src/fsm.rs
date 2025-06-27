@@ -6,7 +6,6 @@ use tauri::Manager;
 use tauri_specta::Event;
 
 use futures_util::StreamExt;
-use tokio::sync::mpsc;
 use tokio::task::JoinSet;
 
 use hypr_audio::AsyncSource;
@@ -15,6 +14,13 @@ use crate::SessionEvent;
 
 const SAMPLE_RATE: u32 = 16000;
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
+
+const WAV_SPEC: hound::WavSpec = hound::WavSpec {
+    channels: 1,
+    sample_rate: SAMPLE_RATE,
+    bits_per_sample: 32,
+    sample_format: hound::SampleFormat::Float,
+};
 
 pub struct Session {
     app: tauri::AppHandle,
@@ -93,20 +99,38 @@ impl Session {
             let mut input = hypr_audio::AudioInput::from_mic();
             input.stream()
         };
-        let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);
-        tokio::time::sleep(Duration::from_millis(100)).await;
+        let mut mic_stream = mic_sample_stream
+            .resample(SAMPLE_RATE)
+            .chunks(hypr_aec::BLOCK_SIZE);
+
+        // https://github.com/fastrepl/hyprnote/commit/7c8cf1c
+        tokio::time::sleep(Duration::from_millis(200)).await;
 
         let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
-        let mut speaker_stream = speaker_sample_stream.resample(SAMPLE_RATE).chunks(1024);
+        let mut speaker_stream = speaker_sample_stream
+            .resample(SAMPLE_RATE)
+            .chunks(hypr_aec::BLOCK_SIZE);
 
-        let chunk_buffer_size: usize = 1024;
-        let sample_buffer_size = (SAMPLE_RATE as usize) * 60 * 10;
+        let chunk_buffer_size: usize = 256;
 
-        let (mic_tx, mut mic_rx) = mpsc::channel::<Vec<f32>>(chunk_buffer_size);
-        let (speaker_tx, mut speaker_rx) = mpsc::channel::<Vec<f32>>(chunk_buffer_size);
+        let (mic_tx, mic_rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
+        let (speaker_tx, speaker_rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
 
-        let (save_tx, mut save_rx) = mpsc::channel::<f32>(sample_buffer_size);
-        let (process_tx, process_rx) = mpsc::channel::<f32>(sample_buffer_size);
+        let (save_mixed_tx, save_mixed_rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
+        let (save_mic_raw_tx, save_mic_raw_rx) = if cfg!(debug_assertions) && record {
+            let (tx, rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
+            (Some(tx), Some(rx))
+        } else {
+            (None, None)
+        };
+        let (save_speaker_raw_tx, save_speaker_raw_rx) = if cfg!(debug_assertions) && record {
+            let (tx, rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
+            (Some(tx), Some(rx))
+        } else {
+            (None, None)
+        };
+
+        let (process_tx, process_rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
 
         {
             let silence_stream_tx = hypr_audio::AudioOutput::silence();
@@ -132,7 +156,7 @@ impl Session {
                         actual
                     };
 
-                    if let Err(e) = mic_tx.send(maybe_muted).await {
+                    if let Err(e) = mic_tx.send_async(maybe_muted).await {
                         tracing::error!("mic_tx_send_error: {:?}", e);
                         break;
                     }
@@ -157,7 +181,7 @@ impl Session {
                         actual
                     };
 
-                    if let Err(e) = speaker_tx.send(maybe_muted).await {
+                    if let Err(e) = speaker_tx.send_async(maybe_muted).await {
                         tracing::error!("speaker_tx_send_error: {:?}", e);
                         break;
                     }
@@ -169,19 +193,45 @@ impl Session {
 
         tasks.spawn({
             let app = self.app.clone();
-            let save_tx = save_tx.clone();
+            let save_mixed_tx = save_mixed_tx.clone();
 
             async move {
+                let mut aec = hypr_aec::AEC::new().unwrap();
                 let mut last_broadcast = Instant::now();
 
-                while let (Some(mic_chunk), Some(speaker_chunk)) =
-                    (mic_rx.recv().await, speaker_rx.recv().await)
-                {
+                // TODO: AGC might be needed.
+                const PRE_MIC_GAIN: f32 = 1.0;
+                const PRE_SPEAKER_GAIN: f32 = 0.8;
+                const POST_MIC_GAIN: f32 = 1.5;
+                const POST_SPEAKER_GAIN: f32 = 1.0;
+
+                loop {
+                    let (mic_chunk_raw, speaker_chunk): (Vec<f32>, Vec<f32>) =
+                        match tokio::join!(mic_rx.recv_async(), speaker_rx.recv_async()) {
+                            (Ok(mic), Ok(speaker)) => (
+                                mic.iter().map(|x| *x * PRE_MIC_GAIN).collect(),
+                                speaker.iter().map(|x| *x * PRE_SPEAKER_GAIN).collect(),
+                            ),
+                            _ => break,
+                        };
+
+                    let mic_chunk = aec
+                        .process_streaming(&mic_chunk_raw, &speaker_chunk)
+                        .unwrap();
+
                     if matches!(*session_state_rx.borrow(), State::RunningPaused {}) {
                         let mut rx = session_state_rx.clone();
                         let _ = rx.changed().await;
                         continue;
                     }
+
+                    let mixed: Vec<f32> = mic_chunk
+                        .iter()
+                        .zip(speaker_chunk.iter())
+                        .map(|(mic, speaker)| {
+                            (mic * POST_MIC_GAIN + speaker * POST_SPEAKER_GAIN).clamp(-1.0, 1.0)
+                        })
+                        .collect();
 
                     let now = Instant::now();
                     if now.duration_since(last_broadcast) >= AUDIO_AMPLITUDE_THROTTLE {
@@ -192,22 +242,21 @@ impl Session {
                         last_broadcast = now;
                     }
 
-                    let mixed: Vec<f32> = mic_chunk
-                        .into_iter()
-                        .zip(speaker_chunk.into_iter())
-                        .map(|(a, b)| (a + b).clamp(-1.0, 1.0))
-                        .collect();
+                    if let Some(ref tx) = save_mic_raw_tx {
+                        let _ = tx.send_async(mic_chunk.clone()).await;
+                    }
+                    if let Some(ref tx) = save_speaker_raw_tx {
+                        let _ = tx.send_async(speaker_chunk.clone()).await;
+                    }
 
-                    for &sample in &mixed {
-                        if process_tx.send(sample).await.is_err() {
-                            tracing::error!("process_tx_send_error");
-                            return;
-                        }
+                    if process_tx.send_async(mixed.clone()).await.is_err() {
+                        tracing::error!("process_tx_send_error");
+                        return;
+                    }
 
-                        if record {
-                            if save_tx.send(sample).await.is_err() {
-                                tracing::error!("save_tx_send_error");
-                            }
+                    if record {
+                        if save_mixed_tx.send_async(mixed).await.is_err() {
+                            tracing::error!("save_mixed_tx_send_error");
                         }
                     }
                 }
@@ -215,36 +264,85 @@ impl Session {
         });
 
         if record {
-            tasks.spawn(async move {
-                let dir = app_dir.join(session_id);
-                std::fs::create_dir_all(&dir).unwrap();
-                let path = dir.join("audio.wav");
+            tasks.spawn({
+                let app_dir = app_dir.clone();
+                let session_id = session_id.clone();
 
-                let wav_spec = hound::WavSpec {
-                    channels: 2,
-                    sample_rate: SAMPLE_RATE,
-                    bits_per_sample: 32,
-                    sample_format: hound::SampleFormat::Float,
-                };
+                async move {
+                    let dir = app_dir.join(&session_id);
+                    std::fs::create_dir_all(&dir).unwrap();
+                    let path = dir.join("audio.wav");
 
-                let mut wav = if path.exists() {
-                    hound::WavWriter::append(path).unwrap()
-                } else {
-                    hound::WavWriter::create(path, wav_spec).unwrap()
-                };
+                    let mut wav = if path.exists() {
+                        hound::WavWriter::append(path).unwrap()
+                    } else {
+                        hound::WavWriter::create(path, WAV_SPEC).unwrap()
+                    };
 
-                while let Some(sample) = save_rx.recv().await {
-                    wav.write_sample(sample).unwrap();
-                    wav.write_sample(sample).unwrap();
+                    while let Ok(chunk) = save_mixed_rx.recv_async().await {
+                        for sample in chunk {
+                            wav.write_sample(sample).unwrap();
+                        }
+                    }
+
+                    wav.finalize().unwrap();
                 }
-
-                wav.finalize().unwrap();
             });
         }
 
-        // TODO
-        // let timeline = Arc::new(Mutex::new(initialize_timeline(&session).await));
-        let audio_stream = hypr_audio::ReceiverStreamSource::new(process_rx, SAMPLE_RATE);
+        if let Some(save_mic_raw_rx) = save_mic_raw_rx {
+            tasks.spawn({
+                let session_id = session_id.clone();
+                let app_dir = app_dir.clone();
+
+                async move {
+                    let dir = app_dir.join(&session_id);
+                    std::fs::create_dir_all(&dir).unwrap();
+                    let path = dir.join("audio_mic.wav");
+
+                    let mut wav = hound::WavWriter::create(path, WAV_SPEC).unwrap();
+
+                    while let Ok(chunk) = save_mic_raw_rx.recv_async().await {
+                        for sample in chunk {
+                            wav.write_sample(sample).unwrap();
+                        }
+                    }
+
+                    wav.finalize().unwrap();
+                }
+            });
+        }
+
+        if let Some(save_speaker_raw_rx) = save_speaker_raw_rx {
+            tasks.spawn({
+                let session_id = session_id.clone();
+                let app_dir = app_dir.clone();
+
+                async move {
+                    let dir = app_dir.join(&session_id);
+                    std::fs::create_dir_all(&dir).unwrap();
+                    let path = dir.join("audio_speaker.wav");
+
+                    let mut wav = hound::WavWriter::create(path, WAV_SPEC).unwrap();
+
+                    while let Ok(chunk) = save_speaker_raw_rx.recv_async().await {
+                        for sample in chunk {
+                            wav.write_sample(sample).unwrap();
+                        }
+                    }
+
+                    wav.finalize().unwrap();
+                }
+            });
+        }
+
+        let audio_stream = hypr_audio::StreamSource::new(
+            process_rx
+                .into_stream()
+                .map(|chunk| futures_util::stream::iter(chunk))
+                .flatten(),
+            SAMPLE_RATE,
+        );
 
         let listen_stream = listen_client.from_audio(audio_stream).await?;
 

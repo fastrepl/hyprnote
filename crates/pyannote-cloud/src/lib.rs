@@ -61,7 +61,7 @@ mod tests {
         let client = get_client();
 
         match client.test().await.unwrap() {
-            test_key::Response::Ok { status, message } => assert_eq!(status, "OK"),
+            test_key::Response::Ok { status, .. } => assert_eq!(status, "OK"),
             test_key::Response::Error { message } => panic!("{}", message),
         }
     }

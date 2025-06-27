@@ -27,6 +27,9 @@ jobs:
   build:
     if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'desktop_') }}
     needs: draft
+    defaults:
+      run:
+        shell: bash
     permissions:
       contents: write
     strategy:

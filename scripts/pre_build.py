@@ -66,8 +66,8 @@ def main():
     os.chdir(tauri_dir)
     print(f"chdir: '{tauri_dir}'")
 
-    with JsonMidifier("./tauri.conf.json") as tauri:
-        tauri.content["a"] = {"b": 1}
+    # with JsonMidifier("./tauri.conf.json") as tauri:
+    #     tauri.content["a"] = {"b": 1}
 
     if has_feature("vulkan"):
         setup_vulkan()

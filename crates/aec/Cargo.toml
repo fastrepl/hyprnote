@@ -3,13 +3,26 @@ name = "aec"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["256"]
+128 = []
+256 = []
+512 = []
+
 [dependencies]
 hypr-onnx = { workspace = true }
 
-anyhow = { workspace = true }
-ndrustfft = "0.5.0"
-tokio = { workspace = true, features = ["rt", "macros"] }
+realfft = { workspace = true }
+
+serde = { workspace = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
-approx = { workspace = true }
+criterion = { workspace = true }
+dasp = { workspace = true }
 hound = { workspace = true }
+rodio = { workspace = true }
+
+[[bench]]
+name = "aec_bench"
+harness = false

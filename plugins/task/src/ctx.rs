@@ -48,7 +48,7 @@ impl<R: Runtime> TaskCtx<R> {
         self.cancelled.load(Ordering::Relaxed)
     }
 
-    pub fn advance(&mut self, data: impl serde::Serialize) -> Result<(), crate::Error> {
+    pub fn advance(&mut self, _data: impl serde::Serialize) -> Result<(), crate::Error> {
         if self.is_cancelled() {
             return Ok(());
         }

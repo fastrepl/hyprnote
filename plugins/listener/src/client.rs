@@ -67,7 +67,7 @@ impl ListenClientBuilder {
         ListenClient { request }
     }
 
-    pub fn build_dual_channel(self) -> ListenClientDual {
+    pub fn build_dual(self) -> ListenClientDual {
         let uri = {
             let mut url: url::Url = self.api_base.unwrap().parse().unwrap();
 

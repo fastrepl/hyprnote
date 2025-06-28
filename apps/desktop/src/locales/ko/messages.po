@@ -373,11 +373,11 @@ msgstr ""
 
 #: src/components/settings/views/general.tsx:203
 msgid "Auto-start recording"
-msgstr ""
+msgstr "자동 녹음 시작"
 
 #: src/components/settings/views/general.tsx:206
 msgid "Automatically start recording when an event-attached note's meeting begins."
-msgstr ""
+msgstr "일정이 연결된 노트의 미팅이 시작될 때 자동으로 녹음을 시작합니다."
 
 #: src/routes/app.settings.tsx:49
 msgid "Billing"

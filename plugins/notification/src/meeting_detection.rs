@@ -52,6 +52,13 @@ impl Default for MeetingDetector {
 }
 
 impl MeetingDetector {
+    /// Check if a URL is a recognized meeting URL
+    pub fn is_meeting_url(&self, url: &str) -> bool {
+        url.contains("meet.google.com")
+            || url.contains("zoom.us/j/")
+            || url.contains("teams.microsoft.com")
+    }
+
     /// Start monitoring for meeting signals
     pub fn start_monitoring(&mut self) {
         // Note: For now, we'll rely on the existing notification detector

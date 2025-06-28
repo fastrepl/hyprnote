@@ -87,10 +87,11 @@ impl WhisperClient {
 }
 
 impl WebSocketIO for WhisperClient {
+    type Data = bytes::Bytes;
     type Input = bytes::Bytes;
     type Output = WhisperOutput;
 
-    fn to_input(data: bytes::Bytes) -> Self::Input {
+    fn to_input(data: Self::Data) -> Self::Input {
         data
     }
 

@@ -19,13 +19,13 @@ pub struct TranscriptionTask<S, T> {
 
 pub trait AudioChunk: Send + 'static {
     fn samples(&self) -> &[f32];
-    fn metadata(&self) -> Option<&serde_json::Value>;
+    fn meta(&self) -> Option<serde_json::Value>;
 }
 
 #[derive(Default)]
 pub struct SimpleAudioChunk {
     pub samples: Vec<f32>,
-    pub metadata: Option<serde_json::Value>,
+    pub meta: Option<serde_json::Value>,
 }
 
 impl AudioChunk for SimpleAudioChunk {
@@ -33,8 +33,8 @@ impl AudioChunk for SimpleAudioChunk {
         &self.samples
     }
 
-    fn metadata(&self) -> Option<&serde_json::Value> {
-        self.metadata.as_ref()
+    fn meta(&self) -> Option<serde_json::Value> {
+        self.meta.clone()
     }
 }
 
@@ -153,13 +153,14 @@ where
 
             match this.stream.poll_next_unpin(cx) {
                 Poll::Ready(Some(chunk)) => {
+                    let meta = chunk.meta();
                     let samples = chunk.samples();
-                    let metadata = chunk.metadata();
+
                     match process_transcription(
                         &mut this.whisper,
                         samples,
                         &mut this.current_segment_task,
-                        metadata,
+                        meta,
                     ) {
                         Poll::Ready(result) => return Poll::Ready(result),
                         Poll::Pending => continue,
@@ -176,7 +177,7 @@ fn process_transcription<'a>(
     whisper: &'a mut Whisper,
     samples: &'a [f32],
     current_segment_task: &'a mut Option<Pin<Box<dyn Stream<Item = Segment> + Send>>>,
-    metadata: Option<&serde_json::Value>,
+    meta: Option<serde_json::Value>,
 ) -> Poll<Option<Segment>> {
     if !samples.is_empty() {
         match whisper.transcribe(samples) {
@@ -187,11 +188,10 @@ fn process_transcription<'a>(
                 Poll::Ready(None)
             }
             Ok(mut segments) => {
-                if let Some(meta) = metadata {
-                    for segment in &mut segments {
-                        segment.metadata = Some(meta.clone());
-                    }
+                for segment in &mut segments {
+                    segment.meta = meta.clone();
                 }
+
                 *current_segment_task = Some(Box::pin(futures_util::stream::iter(segments)));
                 Poll::Pending
             }

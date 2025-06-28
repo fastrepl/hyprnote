@@ -7,10 +7,11 @@ use tokio_tungstenite::{connect_async, tungstenite::client::IntoClientRequest};
 pub use tokio_tungstenite::tungstenite::{protocol::Message, ClientRequestBuilder};
 
 pub trait WebSocketIO: Send + 'static {
+    type Data: Send;
     type Input: Send + Default;
     type Output: DeserializeOwned;
 
-    fn to_input(data: bytes::Bytes) -> Self::Input;
+    fn to_input(data: Self::Data) -> Self::Input;
     fn to_message(input: Self::Input) -> Message;
     fn from_message(msg: Message) -> Option<Self::Output>;
 }
@@ -26,7 +27,7 @@ impl WebSocketClient {
 
     pub async fn from_audio<T: WebSocketIO>(
         &self,
-        mut audio_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
+        mut audio_stream: impl Stream<Item = T::Data> + Send + Unpin + 'static,
     ) -> Result<impl Stream<Item = T::Output>, crate::Error> {
         let ws_stream = (|| self.try_connect(self.request.clone()))
             .retry(

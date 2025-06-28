@@ -36,6 +36,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for hypr_clova::realtime::Client {
                             end_ms: Some(r.transcription.end_timestamp * 1000),
                             confidence: Some(r.transcription.confidence as f32),
                         }],
+                        ..Default::default()
                     })),
                     clova::StreamResponse::Config(_) => None,
                 },

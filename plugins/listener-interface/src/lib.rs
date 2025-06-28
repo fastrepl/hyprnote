@@ -16,6 +16,7 @@ macro_rules! common_derives {
 }
 
 common_derives! {
+    #[derive(Default)]
     pub struct Word {
         pub text: String,
         pub speaker: Option<SpeakerIdentity>,
@@ -36,7 +37,9 @@ common_derives! {
 }
 
 common_derives! {
+    #[derive(Default)]
     pub struct ListenOutputChunk {
+        pub meta: Option<serde_json::Value>,
         pub words: Vec<Word>,
     }
 }
@@ -48,6 +51,13 @@ common_derives! {
         Audio {
             #[serde(serialize_with = "serde_bytes::serialize")]
             data: Vec<u8>,
+        },
+        #[serde(rename = "dual_audio")]
+        DualAudio {
+            #[serde(serialize_with = "serde_bytes::serialize")]
+            mic: Vec<u8>,
+            #[serde(serialize_with = "serde_bytes::serialize")]
+            speaker: Vec<u8>,
         },
         #[serde(rename = "end")]
         End,
@@ -61,8 +71,27 @@ impl Default for ListenInputChunk {
 }
 
 common_derives! {
+    #[derive(strum::AsRefStr)]
+    pub enum AudioMode {
+        #[serde(rename = "single")]
+        #[strum(serialize = "single")]
+        Single,
+        #[serde(rename = "dual")]
+        #[strum(serialize = "dual")]
+        Dual,
+    }
+}
+
+impl Default for AudioMode {
+    fn default() -> Self {
+        AudioMode::Single
+    }
+}
+
+common_derives! {
     #[derive(Default)]
     pub struct ListenParams {
+        pub audio_mode: AudioMode,
         #[specta(type = String)]
         #[schemars(with = "String")]
         #[serde(serialize_with = "serialize_language", deserialize_with = "deserialize_language")]

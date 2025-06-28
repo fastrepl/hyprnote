@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+hypr-audio-utils = { workspace = true }
 hypr-listener-interface = { workspace = true }
 
 axum = { workspace = true, features = ["ws"] }

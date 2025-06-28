@@ -20,3 +20,5 @@ futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "time", "sync", "macros"] }
 tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"] }
 tracing = { workspace = true }
+
+once_cell = { workspace = true }

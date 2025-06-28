@@ -82,7 +82,10 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
                                 })
                                 .collect();
 
-                            Some(Ok(ListenOutputChunk { words }))
+                            Some(Ok(ListenOutputChunk {
+                                words,
+                                ..Default::default()
+                            }))
                         }
                     }
                     _ => None,

@@ -239,7 +239,7 @@ pub struct Segment {
     pub start: f32,
     pub end: f32,
     pub confidence: f32,
-    pub metadata: Option<serde_json::Value>,
+    pub meta: Option<serde_json::Value>,
 }
 
 impl Segment {
@@ -263,8 +263,8 @@ impl Segment {
         self.confidence
     }
 
-    pub fn metadata(&self) -> Option<&serde_json::Value> {
-        self.metadata.as_ref()
+    pub fn meta(&self) -> Option<serde_json::Value> {
+        self.meta.clone()
     }
 
     pub fn trim(&mut self) {

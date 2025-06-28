@@ -354,6 +354,8 @@ impl Session {
                 futures_util::pin_mut!(listen_stream);
 
                 while let Some(result) = listen_stream.next().await {
+                    let _meta = result.meta.clone();
+
                     // We don't have to do this, and inefficient. But this is what works at the moment.
                     {
                         let updated_words = update_session(&app, &session.id, result.words)

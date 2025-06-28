@@ -188,6 +188,7 @@ hound = "3.5.1"
 realfft = "3.5.0"
 ringbuf = "0.4.8"
 rodio = { version = "0.20.1", features = ["symphonia"] }
+voice_activity_detector = "0.2.0"
 
 kalosm-common = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 kalosm-llama = { git = "https://github.com/floneum/floneum", rev = "52967ae" }

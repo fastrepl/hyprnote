@@ -152,7 +152,7 @@ async fn websocket(socket: WebSocket, model: hypr_whisper_local::Whisper, guard:
         let chunked = hypr_whisper_local::AudioChunkStream(chunked.map(|chunk| {
             hypr_whisper_local::SimpleAudioChunk {
                 samples: chunk.convert_samples().collect(),
-                metadata: None,
+                ..Default::default()
             }
         }));
         hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(chunked, model)
@@ -166,6 +166,8 @@ async fn websocket(socket: WebSocket, model: hypr_whisper_local::Whisper, guard:
             }
             chunk_opt = stream.next() => {
                 let Some(chunk) = chunk_opt else { break };
+
+                let meta = chunk.meta();
                 let text = chunk.text().to_string();
                 let start = chunk.start() as u64;
                 let duration = chunk.duration() as u64;
@@ -177,6 +179,7 @@ async fn websocket(socket: WebSocket, model: hypr_whisper_local::Whisper, guard:
                 }
 
                 let data = ListenOutputChunk {
+                    meta,
                     words: text
                         .split_whitespace()
                         .filter(|w| !w.is_empty())

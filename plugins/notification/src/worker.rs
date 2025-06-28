@@ -46,6 +46,12 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
         });
     }
 
+    // Enhanced auto-start logic with broader time window
+    // Note: For now, we'll use a simplified approach until we get the dependencies working
+    tracing::debug!(
+        "Enhanced auto-start logic would run here - checking for events in broader time window"
+    );
+
     Ok(())
 }
 

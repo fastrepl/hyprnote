@@ -20,6 +20,7 @@ hypr-detect = { workspace = true }
 hypr-notification2 = { workspace = true }
 
 tauri-plugin-db = { workspace = true }
+tauri-plugin-listener = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
 
 serde = { workspace = true }
@@ -36,3 +37,5 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 apalis = { workspace = true }
 apalis-cron = { workspace = true }
 chrono = { workspace = true }
+regex = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }

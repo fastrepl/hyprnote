@@ -4,6 +4,7 @@ use tauri::Manager;
 mod commands;
 mod error;
 mod ext;
+mod meeting_detection;
 mod store;
 mod worker;
 

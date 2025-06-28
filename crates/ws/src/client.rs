@@ -2,7 +2,10 @@ use serde::de::DeserializeOwned;
 
 use backon::{ConstantBuilder, Retryable};
 use futures_util::{SinkExt, Stream, StreamExt};
-use tokio_tungstenite::{connect_async, tungstenite::client::IntoClientRequest};
+use tokio::net::TcpStream;
+use tokio_tungstenite::{
+    connect_async, tungstenite::client::IntoClientRequest, MaybeTlsStream, WebSocketStream,
+};
 
 pub use tokio_tungstenite::tungstenite::{protocol::Message, ClientRequestBuilder};
 
@@ -33,7 +36,7 @@ impl WebSocketClient {
             #[cfg(target_os = "windows")]
             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
 
-            self.try_connect(self.request.clone()).await
+            self.try_connect_with_cleanup(self.request.clone()).await
         })
         .retry(
             ConstantBuilder::default()
@@ -121,8 +124,61 @@ impl WebSocketClient {
 
         tracing::info!("connect_async: {:?}", req.uri());
 
-        let (ws_stream, _) =
+        #[cfg(target_os = "windows")]
+        let ws_stream = {
+            let mut last_error = None;
+
+            for attempt in 0..3 {
+                if attempt > 0 {
+                    // 이전 시도 정리를 위한 충분한 시간
+                    tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+                }
+
+                match tokio::time::timeout(
+                    std::time::Duration::from_secs(8),
+                    connect_async(req.clone()),
+                )
+                .await
+                {
+                    Ok(Ok((stream, _))) => return Ok(stream),
+                    Ok(Err(e)) => {
+                        tracing::error!("Connection attempt {} failed: {:?}", attempt + 1, e);
+                        last_error = Some(e);
+                    }
+                    Err(_) => {
+                        return Err(crate::Error::Connection(
+                            tokio_tungstenite::tungstenite::Error::Io(std::io::Error::new(
+                                std::io::ErrorKind::TimedOut,
+                                "Connection attempt timed out",
+                            )),
+                        ))
+                    }
+                }
+            }
+
+            return Err(crate::Error::Connection(last_error.unwrap()));
+        };
+
+        #[cfg(not(target_os = "windows"))]
+        let ws_stream =
             tokio::time::timeout(std::time::Duration::from_secs(8), connect_async(req)).await??;
+
+        Ok(ws_stream)
+    }
+
+    async fn try_connect_with_cleanup(
+        &self,
+        req: ClientRequestBuilder,
+    ) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, crate::Error> {
+        // Windows에서 명시적 리소스 정리
+        #[cfg(target_os = "windows")]
+        {
+            // 이전 연결 흔적 정리
+            tokio::task::yield_now().await;
+            std::thread::sleep(std::time::Duration::from_millis(50));
+        }
+
+        let (ws_stream, _) = connect_async(req.into_client_request()?).await?;
 
         Ok(ws_stream)
     }

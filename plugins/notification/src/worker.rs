@@ -46,11 +46,47 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
         });
     }
 
-    // Enhanced auto-start logic with broader time window
-    // Note: For now, we'll use a simplified approach until we get the dependencies working
-    tracing::debug!(
-        "Enhanced auto-start logic would run here - checking for events in broader time window"
-    );
+    // Enhanced auto-start logic with meeting detection integration
+    let all_events = ctx
+        .db
+        .list_events(Some(ListEventFilter {
+            common: ListEventFilterCommon {
+                user_id: ctx.user_id.clone(),
+                limit: Some(10),
+            },
+            specific: ListEventFilterSpecific::DateRange {
+                start: Utc::now() - Duration::minutes(15),
+                end: Utc::now() + Duration::minutes(5),
+            },
+        }))
+        .await
+        .map_err(|e| crate::Error::Db(e).as_worker_error())?;
+
+    // Use meeting detector to calculate scores for upcoming events
+    let meeting_detector = crate::meeting_detection::MeetingDetector::default();
+    let meeting_scores = meeting_detector
+        .calculate_meeting_scores(&all_events, 20)
+        .await;
+
+    // Process high-confidence upcoming meetings for auto-recording
+    for score in meeting_scores {
+        if score.confidence >= 0.7 {
+            // Process calendar event signal through meeting detector
+            if let Some(event_id) = &score.event_id {
+                let _signal =
+                    crate::meeting_detection::MeetingSignal::CalendarEvent(event_id.clone());
+                tracing::debug!(
+                    "processing_calendar_signal: event_id={}, confidence={}, type={:?}",
+                    event_id,
+                    score.confidence,
+                    score.meeting_type
+                );
+
+                // This would integrate with the main app's meeting detector if we had access to it
+                // For now, we log the enhanced detection logic
+            }
+        }
+    }
 
     Ok(())
 }

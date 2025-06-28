@@ -1,8 +1,8 @@
-use chrono::{DateTime, Duration, Utc};
-use hypr_db_user::{Event, ListEventFilter, ListEventFilterCommon, ListEventFilterSpecific};
-use regex::Regex;
+use chrono::{Duration, Utc};
+use hypr_db_user::Event;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use tauri::Manager;
 use tokio::sync::mpsc;
 
 /// Represents different types of meeting activity signals
@@ -38,6 +38,11 @@ pub struct MeetingDetector {
     // Note: hypr_detect::Detector doesn't implement Clone, so we'll manage it differently
     signal_tx: mpsc::UnboundedSender<MeetingSignal>,
     signal_rx: Arc<Mutex<mpsc::UnboundedReceiver<MeetingSignal>>>,
+    // Auto-recording configuration
+    auto_record_enabled: Arc<Mutex<bool>>,
+    auto_record_threshold: Arc<Mutex<f64>>,
+    // App handle for triggering recording
+    app_handle: Arc<Mutex<Option<tauri::AppHandle<tauri::Wry>>>>,
 }
 
 impl Default for MeetingDetector {
@@ -47,6 +52,9 @@ impl Default for MeetingDetector {
             signals: Arc::new(Mutex::new(HashMap::new())),
             signal_tx,
             signal_rx: Arc::new(Mutex::new(signal_rx)),
+            auto_record_enabled: Arc::new(Mutex::new(false)),
+            auto_record_threshold: Arc::new(Mutex::new(0.7)),
+            app_handle: Arc::new(Mutex::new(None)),
         }
     }
 }
@@ -69,6 +77,239 @@ impl MeetingDetector {
     /// Stop monitoring
     pub fn stop_monitoring(&mut self) {
         tracing::debug!("Meeting detector monitoring stopped");
+    }
+
+    /// Configure the app handle for auto-recording
+    pub fn set_app_handle(&self, app_handle: tauri::AppHandle<tauri::Wry>) {
+        if let Ok(mut handle) = self.app_handle.lock() {
+            *handle = Some(app_handle);
+        }
+    }
+
+    /// Set auto-recording configuration
+    pub fn set_auto_record_config(&self, enabled: bool, threshold: f64) {
+        if let Ok(mut auto_enabled) = self.auto_record_enabled.lock() {
+            *auto_enabled = enabled;
+        }
+        if let Ok(mut auto_threshold) = self.auto_record_threshold.lock() {
+            *auto_threshold = threshold;
+        }
+    }
+
+    /// Process a meeting signal and potentially trigger auto-recording
+    pub fn process_signal(&self, signal: MeetingSignal) -> Option<MeetingScore> {
+        let auto_enabled = *self.auto_record_enabled.lock().ok()?;
+        let threshold = *self.auto_record_threshold.lock().ok()?;
+
+        // Store the signal for correlation analysis
+        self.store_signal(signal.clone());
+
+        // Calculate enhanced confidence score based on signal correlation
+        let score = self.calculate_enhanced_score(&signal);
+
+        // Always return the score for notification purposes, but only trigger auto-recording if enabled and above threshold
+        if auto_enabled && score.confidence >= threshold {
+            if let Ok(app_handle_guard) = self.app_handle.lock() {
+                if let Some(app_handle) = app_handle_guard.as_ref() {
+                    self.trigger_auto_recording(app_handle.clone(), &score);
+                }
+            }
+        }
+
+        Some(score)
+    }
+
+    /// Store signal for correlation analysis
+    fn store_signal(&self, signal: MeetingSignal) {
+        if let Ok(mut signals) = self.signals.lock() {
+            let now = chrono::Utc::now();
+            let time_key = now.timestamp().to_string();
+
+            // Store recent signals (last 10 minutes) for correlation
+            let cutoff = now - Duration::minutes(10);
+            signals.retain(|k, _| {
+                k.parse::<i64>()
+                    .map_or(false, |ts| ts >= cutoff.timestamp())
+            });
+
+            signals
+                .entry(time_key)
+                .or_insert_with(Vec::new)
+                .push(signal);
+        }
+    }
+
+    /// Calculate enhanced confidence score with signal correlation
+    fn calculate_enhanced_score(&self, current_signal: &MeetingSignal) -> MeetingScore {
+        let base_confidence = self.get_base_confidence(current_signal);
+
+        // Get recent signals for correlation analysis
+        let recent_signals = self.get_recent_signals(Duration::minutes(5));
+
+        // Calculate correlation bonuses
+        let mut correlation_bonus = 0.0;
+        let mut total_signals = vec![current_signal.clone()];
+
+        // Check for signal correlation patterns
+        for signals_group in recent_signals.values() {
+            for signal in signals_group {
+                total_signals.push(signal.clone());
+
+                // Correlation bonuses for complementary signals
+                match (current_signal, signal) {
+                    // Mic + Calendar = Strong meeting indication
+                    (MeetingSignal::MicrophoneActive, MeetingSignal::CalendarEvent(_))
+                    | (MeetingSignal::CalendarEvent(_), MeetingSignal::MicrophoneActive) => {
+                        correlation_bonus += 0.2;
+                    }
+                    // Browser + Mic = Active meeting
+                    (MeetingSignal::MicrophoneActive, MeetingSignal::BrowserMeeting(_))
+                    | (MeetingSignal::BrowserMeeting(_), MeetingSignal::MicrophoneActive) => {
+                        correlation_bonus += 0.25;
+                    }
+                    // App + Mic = Active meeting
+                    (MeetingSignal::MicrophoneActive, MeetingSignal::AppLaunched(_))
+                    | (MeetingSignal::AppLaunched(_), MeetingSignal::MicrophoneActive) => {
+                        correlation_bonus += 0.2;
+                    }
+                    // Calendar + Browser/App = Scheduled meeting starting
+                    (MeetingSignal::CalendarEvent(_), MeetingSignal::BrowserMeeting(_))
+                    | (MeetingSignal::BrowserMeeting(_), MeetingSignal::CalendarEvent(_))
+                    | (MeetingSignal::CalendarEvent(_), MeetingSignal::AppLaunched(_))
+                    | (MeetingSignal::AppLaunched(_), MeetingSignal::CalendarEvent(_)) => {
+                        correlation_bonus += 0.15;
+                    }
+                    // Multiple mic signals = sustained activity
+                    (MeetingSignal::MicrophoneActive, MeetingSignal::MicrophoneActive) => {
+                        correlation_bonus += 0.1;
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        // Apply temporal proximity bonus for calendar events
+        let temporal_bonus = match current_signal {
+            MeetingSignal::CalendarEvent(_) => {
+                // This would need calendar integration to calculate actual time proximity
+                0.1 // Placeholder bonus
+            }
+            _ => 0.0,
+        };
+
+        // Calculate final confidence (capped at 1.0)
+        let final_confidence = (base_confidence + correlation_bonus + temporal_bonus).min(1.0);
+
+        // Determine meeting type based on signal composition
+        let meeting_type = self.determine_meeting_type(&total_signals);
+
+        MeetingScore {
+            confidence: final_confidence,
+            signals: total_signals,
+            event_id: self.extract_event_id(current_signal),
+            meeting_type,
+        }
+    }
+
+    /// Get base confidence for a single signal
+    fn get_base_confidence(&self, signal: &MeetingSignal) -> f64 {
+        match signal {
+            MeetingSignal::MicrophoneActive => 0.5, // Moderate - could be anything
+            MeetingSignal::AppLaunched(app) => {
+                // Higher confidence for dedicated meeting apps
+                if app.contains("zoom") || app.contains("teams") || app.contains("meet") {
+                    0.8
+                } else {
+                    0.6
+                }
+            }
+            MeetingSignal::BrowserMeeting(url) => {
+                // Very high confidence for meeting URLs
+                if self.is_meeting_url(url) {
+                    0.9
+                } else {
+                    0.5
+                }
+            }
+            MeetingSignal::CalendarEvent(_) => 0.7, // High - scheduled meeting
+        }
+    }
+
+    /// Get recent signals within the specified duration
+    fn get_recent_signals(&self, duration: Duration) -> HashMap<String, Vec<MeetingSignal>> {
+        if let Ok(signals) = self.signals.lock() {
+            let cutoff = chrono::Utc::now() - duration;
+            signals
+                .iter()
+                .filter(|(k, _)| {
+                    k.parse::<i64>()
+                        .map_or(false, |ts| ts >= cutoff.timestamp())
+                })
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect()
+        } else {
+            HashMap::new()
+        }
+    }
+
+    /// Determine meeting type based on signal composition
+    fn determine_meeting_type(&self, signals: &[MeetingSignal]) -> MeetingType {
+        let has_calendar = signals
+            .iter()
+            .any(|s| matches!(s, MeetingSignal::CalendarEvent(_)));
+        let has_browser = signals
+            .iter()
+            .any(|s| matches!(s, MeetingSignal::BrowserMeeting(_)));
+        let has_app = signals
+            .iter()
+            .any(|s| matches!(s, MeetingSignal::AppLaunched(_)));
+        let has_mic = signals
+            .iter()
+            .any(|s| matches!(s, MeetingSignal::MicrophoneActive));
+
+        if has_calendar && (has_browser || has_app) {
+            MeetingType::ScheduledEvent
+        } else if has_browser || has_app {
+            MeetingType::DetectedMeeting
+        } else if has_mic {
+            MeetingType::AudioActivity
+        } else {
+            MeetingType::Unknown
+        }
+    }
+
+    /// Extract event ID from signal if available
+    fn extract_event_id(&self, signal: &MeetingSignal) -> Option<String> {
+        match signal {
+            MeetingSignal::CalendarEvent(id) => Some(id.clone()),
+            _ => None,
+        }
+    }
+
+    /// Trigger auto-recording for a meeting
+    fn trigger_auto_recording(&self, app_handle: tauri::AppHandle<tauri::Wry>, score: &MeetingScore) {
+        tracing::info!(
+            "triggering_auto_recording: confidence={}, type={:?}",
+            score.confidence,
+            score.meeting_type
+        );
+
+        // Generate a new session ID and trigger recording
+        let session_id = format!("meeting-{}", chrono::Utc::now().timestamp_millis());
+
+        let app_handle_clone = app_handle.clone();
+        tauri::async_runtime::spawn(async move {
+            if let Some(listener_state) = app_handle_clone.try_state::<tauri_plugin_listener::SharedState>() {
+                let mut guard = listener_state.lock().await;
+                guard
+                    .fsm
+                    .handle(&tauri_plugin_listener::StateEvent::Start(session_id))
+                    .await;
+                tracing::info!("auto_recording_started_successfully");
+            } else {
+                tracing::error!("failed_to_get_listener_state_for_auto_recording");
+            }
+        });
     }
 
     /// Process signals and calculate meeting probability for events

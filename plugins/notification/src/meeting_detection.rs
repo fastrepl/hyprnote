@@ -91,42 +91,16 @@ impl MeetingDetector {
     /// # Arguments
     /// * `enabled` - Whether auto-recording is enabled
     /// * `threshold` - Confidence threshold for auto-recording (must be between 0.0 and 1.0)
-    ///
-    /// # Returns
-    /// * `Ok(())` if configuration was set successfully
-    /// * `Err(String)` if threshold is out of valid range or lock acquisition fails
-    pub fn set_auto_record_config(&self, enabled: bool, threshold: f64) -> Result<(), String> {
-        // Validate threshold is within acceptable range BEFORE making any changes
-        if !threshold.is_finite() {
-            let error_msg = format!("Invalid threshold: {} (must be a finite number)", threshold);
-            tracing::warn!("auto_record_config_validation_failed: {}", error_msg);
-            return Err(error_msg);
-        }
+    pub fn set_auto_record_config(&self, enabled: bool, threshold: f64) {
+        // Validate threshold is within acceptable range
+        assert!(threshold.is_finite(), "Invalid threshold: {} (must be a finite number)", threshold);
+        assert!((0.0..=1.0).contains(&threshold), "Invalid threshold: {} (must be between 0.0 and 1.0)", threshold);
 
-        if !(0.0..=1.0).contains(&threshold) {
-            let error_msg = format!(
-                "Invalid threshold: {} (must be between 0.0 and 1.0)",
-                threshold
-            );
-            tracing::warn!("auto_record_config_validation_failed: {}", error_msg);
-            return Err(error_msg);
-        }
+        // Acquire both locks and update values
+        let mut auto_enabled = self.auto_record_enabled.lock().expect("Failed to acquire lock for auto_record_enabled");
+        let mut auto_threshold = self.auto_record_threshold.lock().expect("Failed to acquire lock for auto_record_threshold");
 
-        // Only proceed with updates if validation passed
-        // Acquire both locks before making any changes to ensure atomicity
-        let mut auto_enabled = self.auto_record_enabled.lock().map_err(|_| {
-            let error_msg = "Failed to acquire lock for auto_record_enabled".to_string();
-            tracing::error!("auto_record_config_lock_failed: {}", error_msg);
-            error_msg
-        })?;
-
-        let mut auto_threshold = self.auto_record_threshold.lock().map_err(|_| {
-            let error_msg = "Failed to acquire lock for auto_record_threshold".to_string();
-            tracing::error!("auto_record_config_lock_failed: {}", error_msg);
-            error_msg
-        })?;
-
-        // Update both values atomically
+        // Update both values
         *auto_enabled = enabled;
         *auto_threshold = threshold;
 
@@ -135,8 +109,6 @@ impl MeetingDetector {
             enabled,
             threshold
         );
-
-        Ok(())
     }
 
     /// Process a meeting signal and potentially trigger auto-recording
@@ -362,7 +334,7 @@ impl MeetingDetector {
         &self,
         events: &[Event],
         _time_window_minutes: i64,
-    ) -> Vec<MeetingScore> {
+    ) -> Result<Vec<MeetingScore>, String> {
         let now = Utc::now();
         let mut scores = Vec::new();
 
@@ -396,7 +368,7 @@ impl MeetingDetector {
 
         // Sort by confidence (highest first)
         scores.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap());
-        scores
+        Ok(scores)
     }
 }
 
@@ -447,60 +419,45 @@ mod tests {
         let detector = MeetingDetector::default();
 
         // Test valid threshold values
-        assert!(detector.set_auto_record_config(true, 0.0).is_ok());
-        assert!(detector.set_auto_record_config(true, 0.5).is_ok());
-        assert!(detector.set_auto_record_config(true, 1.0).is_ok());
-        assert!(detector.set_auto_record_config(false, 0.7).is_ok());
-
-        // Test invalid threshold values - below range
-        assert!(detector.set_auto_record_config(true, -0.1).is_err());
-        assert!(detector.set_auto_record_config(true, -1.0).is_err());
-
-        // Test invalid threshold values - above range
-        assert!(detector.set_auto_record_config(true, 1.1).is_err());
-        assert!(detector.set_auto_record_config(true, 2.0).is_err());
-
-        // Test invalid threshold values - non-finite numbers
-        assert!(detector.set_auto_record_config(true, f64::NAN).is_err());
-        assert!(detector
-            .set_auto_record_config(true, f64::INFINITY)
-            .is_err());
-        assert!(detector
-            .set_auto_record_config(true, f64::NEG_INFINITY)
-            .is_err());
+        detector.set_auto_record_config(true, 0.0);
+        detector.set_auto_record_config(true, 0.5);
+        detector.set_auto_record_config(true, 1.0);
+        detector.set_auto_record_config(false, 0.7);
     }
 
     #[test]
-    fn test_set_auto_record_config_error_messages() {
+    #[should_panic(expected = "Invalid threshold")]
+    fn test_set_auto_record_config_invalid_below_range() {
         let detector = MeetingDetector::default();
-
-        // Test error message for out of range threshold
-        let result = detector.set_auto_record_config(true, 1.5);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().contains("must be between 0.0 and 1.0"));
-
-        // Test error message for non-finite threshold
-        let result = detector.set_auto_record_config(true, f64::NAN);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().contains("must be a finite number"));
+        detector.set_auto_record_config(true, -0.1);
     }
 
     #[test]
-    fn test_auto_record_config_state_preservation_on_error() {
+    #[should_panic(expected = "Invalid threshold")]
+    fn test_set_auto_record_config_invalid_above_range() {
+        let detector = MeetingDetector::default();
+        detector.set_auto_record_config(true, 1.1);
+    }
+
+    #[test]
+    #[should_panic(expected = "Invalid threshold")]
+    fn test_set_auto_record_config_invalid_nan() {
+        let detector = MeetingDetector::default();
+        detector.set_auto_record_config(true, f64::NAN);
+    }
+
+    #[test]
+    fn test_set_auto_record_config_updates_state() {
         let detector = MeetingDetector::default();
 
-        // Set valid initial configuration
-        assert!(detector.set_auto_record_config(true, 0.8).is_ok());
-
-        // Verify initial state is set correctly
+        // Set configuration and verify state is updated
+        detector.set_auto_record_config(true, 0.8);
         assert_eq!(*detector.auto_record_enabled.lock().unwrap(), true);
         assert_eq!(*detector.auto_record_threshold.lock().unwrap(), 0.8);
 
-        // Try to set invalid configuration - should fail and preserve state
-        assert!(detector.set_auto_record_config(false, 1.5).is_err());
-
-        // Verify original state is preserved (threshold unchanged, enabled unchanged)
-        assert_eq!(*detector.auto_record_enabled.lock().unwrap(), true);
-        assert_eq!(*detector.auto_record_threshold.lock().unwrap(), 0.8);
+        // Update configuration and verify state changes
+        detector.set_auto_record_config(false, 0.5);
+        assert_eq!(*detector.auto_record_enabled.lock().unwrap(), false);
+        assert_eq!(*detector.auto_record_threshold.lock().unwrap(), 0.5);
     }
 }

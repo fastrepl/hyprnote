@@ -1,4 +1,4 @@
-use std::{future::Future, sync::mpsc};
+use std::{future::Future, sync::mpsc, sync::Arc};
 use tokio::time::{timeout, Duration};
 
 use crate::error::Error;
@@ -86,7 +86,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         let mut s = state.lock().unwrap();
 
         s.worker_handle = Some(tokio::runtime::Handle::current().spawn(async move {
-            let _ = crate::worker::monitor(crate::worker::WorkerState { db, user_id }).await;
+            let config = Arc::new(crate::worker::NotificationConfig::default());
+            let _ = crate::worker::monitor(crate::worker::WorkerState { db, user_id, config }).await;
         }));
 
         Ok(())
@@ -114,12 +115,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         // Update meeting detector configuration
         {
             let state_guard = state.lock().unwrap();
-            if let Err(e) = state_guard
+            state_guard
                 .meeting_detector
-                .set_auto_record_config(auto_record_enabled, auto_record_threshold)
-            {
-                tracing::error!("failed_to_set_auto_record_config: {}", e);
-            }
+                .set_auto_record_config(auto_record_enabled, auto_record_threshold);
         }
 
         // Create callback that integrates with meeting detector

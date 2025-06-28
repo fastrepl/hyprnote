@@ -1,6 +1,33 @@
 use apalis::prelude::{Data, Error, WorkerBuilder, WorkerFactoryFn};
 use chrono::{DateTime, Duration, Utc};
 use hypr_db_user::{ListEventFilter, ListEventFilterCommon, ListEventFilterSpecific};
+use std::sync::Arc;
+
+#[derive(Debug, Clone)]
+pub struct NotificationConfig {
+    pub event_limit: i32,
+    pub meeting_score_threshold: i64,
+    pub confidence_threshold: f64,
+}
+
+impl Default for NotificationConfig {
+    fn default() -> Self {
+        Self {
+            event_limit: std::env::var("NOTIFICATION_EVENT_LIMIT")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(10),
+            meeting_score_threshold: std::env::var("NOTIFICATION_MEETING_SCORE_THRESHOLD")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(20),
+            confidence_threshold: std::env::var("NOTIFICATION_CONFIDENCE_THRESHOLD")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(0.7),
+        }
+    }
+}
 
 #[allow(unused)]
 #[derive(Default, Debug, Clone)]
@@ -10,6 +37,7 @@ pub struct Job(DateTime<Utc>);
 pub struct WorkerState {
     pub db: hypr_db_user::UserDatabase,
     pub user_id: String,
+    pub config: Arc<NotificationConfig>,
 }
 
 impl From<DateTime<Utc>> for Job {
@@ -52,7 +80,7 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
         .list_events(Some(ListEventFilter {
             common: ListEventFilterCommon {
                 user_id: ctx.user_id.clone(),
-                limit: Some(10),
+                limit: Some(ctx.config.event_limit),
             },
             specific: ListEventFilterSpecific::DateRange {
                 start: Utc::now() - Duration::minutes(15),
@@ -65,25 +93,47 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
     // Use meeting detector to calculate scores for upcoming events
     let meeting_detector = crate::meeting_detection::MeetingDetector::default();
     let meeting_scores = meeting_detector
-        .calculate_meeting_scores(&all_events, 20)
-        .await;
+        .calculate_meeting_scores(&all_events, ctx.config.meeting_score_threshold)
+        .await
+        .unwrap_or_else(|e| {
+            tracing::error!("calculate_meeting_scores_failed: {:?}", e);
+            Vec::new()
+        });
 
     // Process high-confidence upcoming meetings for auto-recording
     for score in meeting_scores {
-        if score.confidence >= 0.7 {
+        if score.confidence >= ctx.config.confidence_threshold {
             // Process calendar event signal through meeting detector
             if let Some(event_id) = &score.event_id {
-                let _signal =
+                let signal =
                     crate::meeting_detection::MeetingSignal::CalendarEvent(event_id.clone());
-                tracing::debug!(
-                    "processing_calendar_signal: event_id={}, confidence={}, type={:?}",
-                    event_id,
-                    score.confidence,
-                    score.meeting_type
-                );
-
-                // This would integrate with the main app's meeting detector if we had access to it
-                // For now, we log the enhanced detection logic
+                
+                // Process the signal through the meeting detector for enhanced correlation analysis
+                if let Some(enhanced_score) = meeting_detector.process_signal(signal) {
+                    tracing::info!(
+                        "meeting_signal_processed: event_id={}, original_confidence={:.2}, enhanced_confidence={:.2}, type={:?}",
+                        event_id,
+                        score.confidence,
+                        enhanced_score.confidence,
+                        enhanced_score.meeting_type
+                    );
+                    
+                    // The meeting detector may have triggered auto-recording based on enhanced signals
+                    if enhanced_score.confidence > score.confidence {
+                        tracing::info!(
+                            "meeting_confidence_enhanced: event_id={}, boost={:.2}",
+                            event_id,
+                            enhanced_score.confidence - score.confidence
+                        );
+                    }
+                } else {
+                    tracing::debug!(
+                        "meeting_signal_not_processed: event_id={}, confidence={}, type={:?}",
+                        event_id,
+                        score.confidence,
+                        score.meeting_type
+                    );
+                }
             }
         }
     }

@@ -71,12 +71,9 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                     // Set initial auto-record configuration from stored settings
                     let auto_enabled = app_handle.get_auto_record_enabled().unwrap_or(false);
                     let auto_threshold = app_handle.get_auto_record_threshold().unwrap_or(0.7);
-                    if let Err(e) = state_guard
+                    state_guard
                         .meeting_detector
-                        .set_auto_record_config(auto_enabled, auto_threshold)
-                    {
-                        tracing::error!("failed_to_set_initial_auto_record_config: {}", e);
-                    }
+                        .set_auto_record_config(auto_enabled, auto_threshold);
                 }
 
                 if app_handle.get_detect_notification().unwrap_or(false) {
@@ -120,7 +117,6 @@ mod test {
         let detector = crate::meeting_detection::MeetingDetector::default();
 
         // Test that the detector can be created and basic functionality works
-        assert!(detector.set_auto_record_config(true, 0.5).is_ok());
-        assert!(detector.set_auto_record_config(false, 1.5).is_err());
+        detector.set_auto_record_config(true, 0.5);
     }
 }

@@ -87,11 +87,11 @@ impl MeetingDetector {
     }
 
     /// Set auto-recording configuration
-    /// 
+    ///
     /// # Arguments
     /// * `enabled` - Whether auto-recording is enabled
     /// * `threshold` - Confidence threshold for auto-recording (must be between 0.0 and 1.0)
-    /// 
+    ///
     /// # Returns
     /// * `Ok(())` if configuration was set successfully
     /// * `Err(String)` if threshold is out of valid range or lock acquisition fails
@@ -102,9 +102,12 @@ impl MeetingDetector {
             tracing::warn!("auto_record_config_validation_failed: {}", error_msg);
             return Err(error_msg);
         }
-        
+
         if !(0.0..=1.0).contains(&threshold) {
-            let error_msg = format!("Invalid threshold: {} (must be between 0.0 and 1.0)", threshold);
+            let error_msg = format!(
+                "Invalid threshold: {} (must be between 0.0 and 1.0)",
+                threshold
+            );
             tracing::warn!("auto_record_config_validation_failed: {}", error_msg);
             return Err(error_msg);
         }
@@ -327,11 +330,15 @@ impl MeetingDetector {
     }
 
     /// Trigger auto-recording for a meeting
-    /// 
+    ///
     /// Uses the listener plugin's extension trait to maintain proper separation of concerns.
     /// This avoids direct access to the listener plugin's internal state and allows it to
     /// handle the recording start independently.
-    fn trigger_auto_recording(&self, app_handle: tauri::AppHandle<tauri::Wry>, score: &MeetingScore) {
+    fn trigger_auto_recording(
+        &self,
+        app_handle: tauri::AppHandle<tauri::Wry>,
+        score: &MeetingScore,
+    ) {
         tracing::info!(
             "triggering_auto_recording: confidence={}, type={:?}",
             score.confidence,
@@ -455,8 +462,12 @@ mod tests {
 
         // Test invalid threshold values - non-finite numbers
         assert!(detector.set_auto_record_config(true, f64::NAN).is_err());
-        assert!(detector.set_auto_record_config(true, f64::INFINITY).is_err());
-        assert!(detector.set_auto_record_config(true, f64::NEG_INFINITY).is_err());
+        assert!(detector
+            .set_auto_record_config(true, f64::INFINITY)
+            .is_err());
+        assert!(detector
+            .set_auto_record_config(true, f64::NEG_INFINITY)
+            .is_err());
     }
 
     #[test]

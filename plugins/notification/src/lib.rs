@@ -118,7 +118,7 @@ mod test {
     async fn test_notification() {
         // Simple test for the notification plugin that doesn't depend on the init function
         let detector = crate::meeting_detection::MeetingDetector::default();
-        
+
         // Test that the detector can be created and basic functionality works
         assert!(detector.set_auto_record_config(true, 0.5).is_ok());
         assert!(detector.set_auto_record_config(false, 1.5).is_err());

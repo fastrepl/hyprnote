@@ -1,6 +1,6 @@
 use serde::de::DeserializeOwned;
 
-use backon::{ConstantBuilder, Retryable};
+use backon::{ConstantBuilder, ExponentialBuilder, Retryable};
 use futures_util::{SinkExt, Stream, StreamExt};
 use tokio::net::TcpStream;
 use tokio_tungstenite::{
@@ -31,36 +31,20 @@ impl WebSocketClient {
         &self,
         mut audio_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
     ) -> Result<impl Stream<Item = T::Output>, crate::Error> {
-        let ws_stream = (|| async {
-            // Windows에서 이전 연결 정리를 위한 지연
-            #[cfg(target_os = "windows")]
-            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-
-            self.try_connect_with_cleanup(self.request.clone()).await
-        })
-        .retry(
-            ConstantBuilder::default()
-                .with_max_times(5) // 20 → 5회로 감소
-                .with_delay(std::time::Duration::from_secs(2)), // 500ms → 2초로 증가
-        )
-        .when(|e| {
-            tracing::error!("ws_connect_failed: {:?}", e);
-
-            // Windows에서 특정 에러는 재시도하지 않음
-            #[cfg(target_os = "windows")]
-            {
-                if let crate::Error::Connection(ref err) = e {
-                    // I/O 에러는 재시도 안함
-                    if matches!(err, tokio_tungstenite::tungstenite::Error::Io(_)) {
-                        return false;
-                    }
-                }
-            }
-
-            true
-        })
-        .sleep(tokio::time::sleep)
-        .await?;
+        let ws_stream = (|| self.try_connect(self.request.clone()))
+            .retry(
+                ExponentialBuilder::default()
+                    .with_min_delay(std::time::Duration::from_secs(1))
+                    .with_max_delay(std::time::Duration::from_secs(30))
+                    .with_max_times(5)
+                    .with_factor(2.0), // 지수적 증가
+            )
+            .when(|e| {
+                tracing::error!("ws_connect_failed: {:?}", e);
+                !matches!(e, crate::Error::Connection(_)) // 연결 에러는 재시도 안함
+            })
+            .sleep(tokio::time::sleep)
+            .await?;
 
         // let (mut ws_sender, mut ws_receiver) = ws_stream.split();
 

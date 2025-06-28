@@ -20,7 +20,6 @@ use tower_http::cors::{self, CorsLayer};
 
 use hypr_chunker::ChunkerExt;
 use hypr_listener_interface::{ListenOutputChunk, ListenParams, Word};
-use hypr_ws_utils::WebSocketAudioSource;
 
 use crate::manager::{ConnectionGuard, ConnectionManager};
 
@@ -138,14 +137,26 @@ async fn websocket_with_model(
         .dynamic_prompt(&params.dynamic_prompt)
         .build();
 
-    websocket(socket, model, guard).await;
+    let (ws_sender, ws_receiver) = socket.split();
+
+    match params.audio_mode {
+        hypr_listener_interface::AudioMode::Single => {
+            websocket_single_channel(ws_sender, ws_receiver, model, guard).await;
+        }
+        hypr_listener_interface::AudioMode::Dual => {
+            websocket_dual_channel(ws_sender, ws_receiver, model, guard).await;
+        }
+    }
 }
 
-#[tracing::instrument(skip_all)]
-async fn websocket(socket: WebSocket, model: hypr_whisper_local::Whisper, guard: ConnectionGuard) {
-    let (mut ws_sender, ws_receiver) = socket.split();
+async fn websocket_single_channel(
+    mut ws_sender: futures_util::stream::SplitSink<WebSocket, Message>,
+    ws_receiver: futures_util::stream::SplitStream<WebSocket>,
+    model: hypr_whisper_local::Whisper,
+    guard: ConnectionGuard,
+) {
     let mut stream = {
-        let audio_source = WebSocketAudioSource::new(ws_receiver, 16 * 1000);
+        let audio_source = hypr_ws_utils::WebSocketAudioSource::new(ws_receiver, 16 * 1000);
         let chunked =
             audio_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
 
@@ -202,5 +213,14 @@ async fn websocket(socket: WebSocket, model: hypr_whisper_local::Whisper, guard:
         }
     }
 
+    let _ = ws_sender.close().await;
+}
+
+async fn websocket_dual_channel(
+    mut ws_sender: futures_util::stream::SplitSink<WebSocket, Message>,
+    _ws_receiver: futures_util::stream::SplitStream<WebSocket>,
+    _model: hypr_whisper_local::Whisper,
+    _guard: ConnectionGuard,
+) {
     let _ = ws_sender.close().await;
 }

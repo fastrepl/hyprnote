@@ -42,3 +42,12 @@ pub fn f32_to_i16_samples(samples: &[f32]) -> Vec<i16> {
         })
         .collect()
 }
+
+pub fn bytes_to_f32_samples(data: &[u8]) -> Vec<f32> {
+    data.chunks_exact(2)
+        .map(|chunk| {
+            let sample = i16::from_le_bytes([chunk[0], chunk[1]]);
+            sample as f32 / 32767.0
+        })
+        .collect()
+}

@@ -460,7 +460,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
             static_prompt,
             ..Default::default()
         })
-        .build())
+        .build_single())
 }
 
 async fn update_session<R: tauri::Runtime>(

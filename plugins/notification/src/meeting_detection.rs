@@ -2,7 +2,7 @@ use chrono::{Duration, Utc};
 use hypr_db_user::Event;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use tauri::Manager;
+use tauri_plugin_listener::ListenerPluginExt;
 use tokio::sync::mpsc;
 
 /// Represents different types of meeting activity signals
@@ -87,13 +87,53 @@ impl MeetingDetector {
     }
 
     /// Set auto-recording configuration
-    pub fn set_auto_record_config(&self, enabled: bool, threshold: f64) {
-        if let Ok(mut auto_enabled) = self.auto_record_enabled.lock() {
-            *auto_enabled = enabled;
+    /// 
+    /// # Arguments
+    /// * `enabled` - Whether auto-recording is enabled
+    /// * `threshold` - Confidence threshold for auto-recording (must be between 0.0 and 1.0)
+    /// 
+    /// # Returns
+    /// * `Ok(())` if configuration was set successfully
+    /// * `Err(String)` if threshold is out of valid range or lock acquisition fails
+    pub fn set_auto_record_config(&self, enabled: bool, threshold: f64) -> Result<(), String> {
+        // Validate threshold is within acceptable range BEFORE making any changes
+        if !threshold.is_finite() {
+            let error_msg = format!("Invalid threshold: {} (must be a finite number)", threshold);
+            tracing::warn!("auto_record_config_validation_failed: {}", error_msg);
+            return Err(error_msg);
         }
-        if let Ok(mut auto_threshold) = self.auto_record_threshold.lock() {
-            *auto_threshold = threshold;
+        
+        if !(0.0..=1.0).contains(&threshold) {
+            let error_msg = format!("Invalid threshold: {} (must be between 0.0 and 1.0)", threshold);
+            tracing::warn!("auto_record_config_validation_failed: {}", error_msg);
+            return Err(error_msg);
         }
+
+        // Only proceed with updates if validation passed
+        // Acquire both locks before making any changes to ensure atomicity
+        let mut auto_enabled = self.auto_record_enabled.lock().map_err(|_| {
+            let error_msg = "Failed to acquire lock for auto_record_enabled".to_string();
+            tracing::error!("auto_record_config_lock_failed: {}", error_msg);
+            error_msg
+        })?;
+
+        let mut auto_threshold = self.auto_record_threshold.lock().map_err(|_| {
+            let error_msg = "Failed to acquire lock for auto_record_threshold".to_string();
+            tracing::error!("auto_record_config_lock_failed: {}", error_msg);
+            error_msg
+        })?;
+
+        // Update both values atomically
+        *auto_enabled = enabled;
+        *auto_threshold = threshold;
+
+        tracing::debug!(
+            "auto_record_config_updated: enabled={}, threshold={:.2}",
+            enabled,
+            threshold
+        );
+
+        Ok(())
     }
 
     /// Process a meeting signal and potentially trigger auto-recording
@@ -287,6 +327,10 @@ impl MeetingDetector {
     }
 
     /// Trigger auto-recording for a meeting
+    /// 
+    /// Uses the listener plugin's extension trait to maintain proper separation of concerns.
+    /// This avoids direct access to the listener plugin's internal state and allows it to
+    /// handle the recording start independently.
     fn trigger_auto_recording(&self, app_handle: tauri::AppHandle<tauri::Wry>, score: &MeetingScore) {
         tracing::info!(
             "triggering_auto_recording: confidence={}, type={:?}",
@@ -297,18 +341,12 @@ impl MeetingDetector {
         // Generate a new session ID and trigger recording
         let session_id = format!("meeting-{}", chrono::Utc::now().timestamp_millis());
 
+        // Use the listener plugin's extension method instead of direct state access
+        // This maintains proper plugin separation and encapsulation
         let app_handle_clone = app_handle.clone();
         tauri::async_runtime::spawn(async move {
-            if let Some(listener_state) = app_handle_clone.try_state::<tauri_plugin_listener::SharedState>() {
-                let mut guard = listener_state.lock().await;
-                guard
-                    .fsm
-                    .handle(&tauri_plugin_listener::StateEvent::Start(session_id))
-                    .await;
-                tracing::info!("auto_recording_started_successfully");
-            } else {
-                tracing::error!("failed_to_get_listener_state_for_auto_recording");
-            }
+            app_handle_clone.start_session(session_id).await;
+            tracing::info!("auto_recording_started_successfully");
         });
     }
 
@@ -395,5 +433,63 @@ mod tests {
             Some("123456789".to_string())
         );
         assert_eq!(extract_meeting_id("https://google.com"), None);
+    }
+
+    #[test]
+    fn test_set_auto_record_config_validation() {
+        let detector = MeetingDetector::default();
+
+        // Test valid threshold values
+        assert!(detector.set_auto_record_config(true, 0.0).is_ok());
+        assert!(detector.set_auto_record_config(true, 0.5).is_ok());
+        assert!(detector.set_auto_record_config(true, 1.0).is_ok());
+        assert!(detector.set_auto_record_config(false, 0.7).is_ok());
+
+        // Test invalid threshold values - below range
+        assert!(detector.set_auto_record_config(true, -0.1).is_err());
+        assert!(detector.set_auto_record_config(true, -1.0).is_err());
+
+        // Test invalid threshold values - above range
+        assert!(detector.set_auto_record_config(true, 1.1).is_err());
+        assert!(detector.set_auto_record_config(true, 2.0).is_err());
+
+        // Test invalid threshold values - non-finite numbers
+        assert!(detector.set_auto_record_config(true, f64::NAN).is_err());
+        assert!(detector.set_auto_record_config(true, f64::INFINITY).is_err());
+        assert!(detector.set_auto_record_config(true, f64::NEG_INFINITY).is_err());
+    }
+
+    #[test]
+    fn test_set_auto_record_config_error_messages() {
+        let detector = MeetingDetector::default();
+
+        // Test error message for out of range threshold
+        let result = detector.set_auto_record_config(true, 1.5);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("must be between 0.0 and 1.0"));
+
+        // Test error message for non-finite threshold
+        let result = detector.set_auto_record_config(true, f64::NAN);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("must be a finite number"));
+    }
+
+    #[test]
+    fn test_auto_record_config_state_preservation_on_error() {
+        let detector = MeetingDetector::default();
+
+        // Set valid initial configuration
+        assert!(detector.set_auto_record_config(true, 0.8).is_ok());
+
+        // Verify initial state is set correctly
+        assert_eq!(*detector.auto_record_enabled.lock().unwrap(), true);
+        assert_eq!(*detector.auto_record_threshold.lock().unwrap(), 0.8);
+
+        // Try to set invalid configuration - should fail and preserve state
+        assert!(detector.set_auto_record_config(false, 1.5).is_err());
+
+        // Verify original state is preserved (threshold unchanged, enabled unchanged)
+        assert_eq!(*detector.auto_record_enabled.lock().unwrap(), true);
+        assert_eq!(*detector.auto_record_threshold.lock().unwrap(), 0.8);
     }
 }

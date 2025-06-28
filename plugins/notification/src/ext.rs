@@ -114,9 +114,12 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         // Update meeting detector configuration
         {
             let state_guard = state.lock().unwrap();
-            state_guard
+            if let Err(e) = state_guard
                 .meeting_detector
-                .set_auto_record_config(auto_record_enabled, auto_record_threshold);
+                .set_auto_record_config(auto_record_enabled, auto_record_threshold)
+            {
+                tracing::error!("failed_to_set_auto_record_config: {}", e);
+            }
         }
 
         // Create callback that integrates with meeting detector

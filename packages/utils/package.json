@@ -22,7 +22,7 @@
     "@hypr/plugin-sse": "workspace:^",
     "@hypr/plugin-windows": "workspace:^",
     "@lingui/core": "^5.3.2",
-    "@tauri-apps/api": "^2.5.0",
+    "@tauri-apps/api": "^2.6.0",
     "@tauri-apps/plugin-http": "^2.4.4",
     "ai": "^4.3.16",
     "date-fns": "^4.1.0",

@@ -89,17 +89,14 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
             },
         }))
         .await
-        .map_err(|e| crate::Error::Db(e).as_worker_error())?;
+        .unwrap();
 
     // Use shared meeting detector to calculate scores for upcoming events
     let meeting_scores = ctx
         .meeting_detector
         .calculate_meeting_scores(&all_events, ctx.config.meeting_score_threshold)
         .await
-        .unwrap_or_else(|e| {
-            tracing::error!("calculate_meeting_scores_failed: {:?}", e);
-            Vec::new()
-        });
+        .unwrap();
 
     // Process high-confidence upcoming meetings for auto-recording
     for score in meeting_scores {

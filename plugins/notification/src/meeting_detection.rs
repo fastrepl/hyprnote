@@ -127,8 +127,8 @@ impl MeetingDetector {
 
     /// Process a meeting signal and potentially trigger auto-recording
     pub fn process_signal(&self, signal: MeetingSignal) -> Option<MeetingScore> {
-        let auto_enabled = *self.auto_record_enabled.lock().ok()?;
-        let threshold = *self.auto_record_threshold.lock().ok()?;
+        let auto_enabled = *self.auto_record_enabled.lock().unwrap();
+        let threshold = *self.auto_record_threshold.lock().unwrap();
 
         // Store the signal for correlation analysis
         self.store_signal(signal.clone());

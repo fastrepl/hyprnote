@@ -81,7 +81,7 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
         .list_events(Some(ListEventFilter {
             common: ListEventFilterCommon {
                 user_id: ctx.user_id.clone(),
-                limit: Some(ctx.config.event_limit),
+                limit: Some(ctx.config.event_limit.try_into().unwrap()),
             },
             specific: ListEventFilterSpecific::DateRange {
                 start: Utc::now() - Duration::minutes(15),
@@ -95,8 +95,7 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
     let meeting_scores = ctx
         .meeting_detector
         .calculate_meeting_scores(&all_events, ctx.config.meeting_score_threshold)
-        .await
-        .unwrap();
+        .await;
 
     // Process high-confidence upcoming meetings for auto-recording
     for score in meeting_scores {

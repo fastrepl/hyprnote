@@ -1,6 +1,5 @@
-use chrono::{Duration, Utc};
+use chrono::{DateTime, Duration, Utc};
 use hypr_db_user::Event;
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tauri_plugin_listener::ListenerPluginExt;
 use tokio::sync::mpsc;
@@ -31,10 +30,98 @@ pub enum MeetingType {
     Unknown,
 }
 
+/// Timestamped signal entry for the circular buffer
+#[derive(Debug, Clone)]
+struct TimestampedSignal {
+    signal: MeetingSignal,
+    timestamp: DateTime<Utc>,
+}
+
+/// Circular buffer for storing recent meeting signals
+#[derive(Debug, Clone)]
+struct SignalBuffer {
+    buffer: Vec<Option<TimestampedSignal>>,
+    head: usize,
+    size: usize,
+    capacity: usize,
+}
+
+impl SignalBuffer {
+    fn new(capacity: usize) -> Self {
+        Self {
+            buffer: vec![None; capacity],
+            head: 0,
+            size: 0,
+            capacity,
+        }
+    }
+
+    fn push(&mut self, signal: MeetingSignal) {
+        let entry = TimestampedSignal {
+            signal,
+            timestamp: Utc::now(),
+        };
+
+        self.buffer[self.head] = Some(entry);
+        self.head = (self.head + 1) % self.capacity;
+        if self.size < self.capacity {
+            self.size += 1;
+        }
+    }
+
+    fn get_recent_signals(&self, duration: Duration) -> Vec<MeetingSignal> {
+        let cutoff = Utc::now() - duration;
+        let mut signals = Vec::new();
+
+        // Iterate through the buffer starting from the oldest entry
+        let start_idx = if self.size == self.capacity {
+            self.head
+        } else {
+            0
+        };
+
+        for i in 0..self.size {
+            let idx = (start_idx + i) % self.capacity;
+            if let Some(ref entry) = self.buffer[idx] {
+                if entry.timestamp >= cutoff {
+                    signals.push(entry.signal.clone());
+                }
+            }
+        }
+
+        signals
+    }
+
+    fn cleanup_old_signals(&mut self, max_age: Duration) {
+        let cutoff = Utc::now() - max_age;
+        let mut new_size = 0;
+
+        // Count valid signals (more recent than cutoff)
+        for i in 0..self.size {
+            let idx = if self.size == self.capacity {
+                (self.head + i) % self.capacity
+            } else {
+                i
+            };
+
+            if let Some(ref entry) = self.buffer[idx] {
+                if entry.timestamp >= cutoff {
+                    new_size += 1;
+                } else {
+                    // Clear old entries
+                    self.buffer[idx] = None;
+                }
+            }
+        }
+
+        self.size = new_size;
+    }
+}
+
 /// Intelligent meeting detector that combines multiple signals
 #[derive(Clone)]
 pub struct MeetingDetector {
-    signals: Arc<Mutex<HashMap<String, Vec<MeetingSignal>>>>,
+    signal_buffer: Arc<Mutex<SignalBuffer>>,
     // Note: hypr_detect::Detector doesn't implement Clone, so we'll manage it differently
     signal_tx: mpsc::UnboundedSender<MeetingSignal>,
     signal_rx: Arc<Mutex<mpsc::UnboundedReceiver<MeetingSignal>>>,
@@ -43,18 +130,21 @@ pub struct MeetingDetector {
     auto_record_threshold: Arc<Mutex<f64>>,
     // App handle for triggering recording
     app_handle: Arc<Mutex<Option<tauri::AppHandle<tauri::Wry>>>>,
+    // Event data for temporal calculations
+    current_events: Arc<Mutex<Vec<Event>>>,
 }
 
 impl Default for MeetingDetector {
     fn default() -> Self {
         let (signal_tx, signal_rx) = mpsc::unbounded_channel();
         Self {
-            signals: Arc::new(Mutex::new(HashMap::new())),
+            signal_buffer: Arc::new(Mutex::new(SignalBuffer::new(1000))), // Buffer for 1000 signals
             signal_tx,
             signal_rx: Arc::new(Mutex::new(signal_rx)),
             auto_record_enabled: Arc::new(Mutex::new(false)),
             auto_record_threshold: Arc::new(Mutex::new(0.7)),
             app_handle: Arc::new(Mutex::new(None)),
+            current_events: Arc::new(Mutex::new(Vec::new())),
         }
     }
 }
@@ -83,6 +173,13 @@ impl MeetingDetector {
     pub fn set_app_handle(&self, app_handle: tauri::AppHandle<tauri::Wry>) {
         if let Ok(mut handle) = self.app_handle.lock() {
             *handle = Some(app_handle);
+        }
+    }
+
+    /// Update the current events for temporal calculations
+    pub fn update_events(&self, events: Vec<Event>) {
+        if let Ok(mut current_events) = self.current_events.lock() {
+            *current_events = events;
         }
     }
 
@@ -150,21 +247,16 @@ impl MeetingDetector {
 
     /// Store signal for correlation analysis
     fn store_signal(&self, signal: MeetingSignal) {
-        let mut signals = self.signals.lock().expect("Failed to acquire signals lock");
-        let now = chrono::Utc::now();
-        let time_key = now.timestamp().to_string();
+        let mut buffer = self
+            .signal_buffer
+            .lock()
+            .expect("Failed to acquire signal buffer lock");
 
-        // Store recent signals (last 10 minutes) for correlation
-        let cutoff = now - Duration::minutes(10);
-        signals.retain(|k, _| {
-            k.parse::<i64>()
-                .map_or(false, |ts| ts >= cutoff.timestamp())
-        });
+        // Add the signal to the circular buffer
+        buffer.push(signal);
 
-        signals
-            .entry(time_key)
-            .or_insert_with(Vec::new)
-            .push(signal);
+        // Cleanup old signals (older than 10 minutes)
+        buffer.cleanup_old_signals(Duration::minutes(10));
     }
 
     /// Calculate enhanced confidence score with signal correlation
@@ -179,48 +271,63 @@ impl MeetingDetector {
         let mut total_signals = vec![current_signal.clone()];
 
         // Check for signal correlation patterns
-        for signals_group in recent_signals.values() {
-            for signal in signals_group {
-                total_signals.push(signal.clone());
+        for signal in &recent_signals {
+            total_signals.push(signal.clone());
 
-                // Correlation bonuses for complementary signals
-                match (current_signal, signal) {
-                    // Mic + Calendar = Strong meeting indication
-                    (MeetingSignal::MicrophoneActive, MeetingSignal::CalendarEvent(_))
-                    | (MeetingSignal::CalendarEvent(_), MeetingSignal::MicrophoneActive) => {
-                        correlation_bonus += 0.2;
-                    }
-                    // Browser + Mic = Active meeting
-                    (MeetingSignal::MicrophoneActive, MeetingSignal::BrowserMeeting(_))
-                    | (MeetingSignal::BrowserMeeting(_), MeetingSignal::MicrophoneActive) => {
-                        correlation_bonus += 0.25;
-                    }
-                    // App + Mic = Active meeting
-                    (MeetingSignal::MicrophoneActive, MeetingSignal::AppLaunched(_))
-                    | (MeetingSignal::AppLaunched(_), MeetingSignal::MicrophoneActive) => {
-                        correlation_bonus += 0.2;
-                    }
-                    // Calendar + Browser/App = Scheduled meeting starting
-                    (MeetingSignal::CalendarEvent(_), MeetingSignal::BrowserMeeting(_))
-                    | (MeetingSignal::BrowserMeeting(_), MeetingSignal::CalendarEvent(_))
-                    | (MeetingSignal::CalendarEvent(_), MeetingSignal::AppLaunched(_))
-                    | (MeetingSignal::AppLaunched(_), MeetingSignal::CalendarEvent(_)) => {
-                        correlation_bonus += 0.15;
-                    }
-                    // Multiple mic signals = sustained activity
-                    (MeetingSignal::MicrophoneActive, MeetingSignal::MicrophoneActive) => {
-                        correlation_bonus += 0.1;
-                    }
-                    _ => {}
+            // Correlation bonuses for complementary signals
+            match (current_signal, signal) {
+                // Mic + Calendar = Strong meeting indication
+                (MeetingSignal::MicrophoneActive, MeetingSignal::CalendarEvent(_))
+                | (MeetingSignal::CalendarEvent(_), MeetingSignal::MicrophoneActive) => {
+                    correlation_bonus += 0.2;
                 }
+                // Browser + Mic = Active meeting
+                (MeetingSignal::MicrophoneActive, MeetingSignal::BrowserMeeting(_))
+                | (MeetingSignal::BrowserMeeting(_), MeetingSignal::MicrophoneActive) => {
+                    correlation_bonus += 0.25;
+                }
+                // App + Mic = Active meeting
+                (MeetingSignal::MicrophoneActive, MeetingSignal::AppLaunched(_))
+                | (MeetingSignal::AppLaunched(_), MeetingSignal::MicrophoneActive) => {
+                    correlation_bonus += 0.2;
+                }
+                // Calendar + Browser/App = Scheduled meeting starting
+                (MeetingSignal::CalendarEvent(_), MeetingSignal::BrowserMeeting(_))
+                | (MeetingSignal::BrowserMeeting(_), MeetingSignal::CalendarEvent(_))
+                | (MeetingSignal::CalendarEvent(_), MeetingSignal::AppLaunched(_))
+                | (MeetingSignal::AppLaunched(_), MeetingSignal::CalendarEvent(_)) => {
+                    correlation_bonus += 0.15;
+                }
+                // Multiple mic signals = sustained activity
+                (MeetingSignal::MicrophoneActive, MeetingSignal::MicrophoneActive) => {
+                    correlation_bonus += 0.1;
+                }
+                _ => {}
             }
         }
 
         // Apply temporal proximity bonus for calendar events
         let temporal_bonus = match current_signal {
-            MeetingSignal::CalendarEvent(_) => {
-                // This would need calendar integration to calculate actual time proximity
-                0.1 // Placeholder bonus
+            MeetingSignal::CalendarEvent(event_id) => {
+                // Calculate actual time proximity to event start
+                if let Ok(events) = self.current_events.lock() {
+                    if let Some(event) = events.iter().find(|e| &e.id == event_id) {
+                        let now = Utc::now();
+                        let time_diff = (now - event.start_date).num_minutes().abs();
+
+                        match time_diff {
+                            0..=2 => 0.25,  // Very close to start time - highest bonus
+                            3..=5 => 0.2,   // Close to start time
+                            6..=10 => 0.15, // Nearby start time
+                            11..=15 => 0.1, // Within reasonable window
+                            _ => 0.05,      // Default small bonus for calendar events
+                        }
+                    } else {
+                        0.05 // Small bonus if event not found but still calendar signal
+                    }
+                } else {
+                    0.05 // Small bonus if can't access events
+                }
             }
             _ => 0.0,
         };
@@ -264,17 +371,12 @@ impl MeetingDetector {
     }
 
     /// Get recent signals within the specified duration
-    fn get_recent_signals(&self, duration: Duration) -> HashMap<String, Vec<MeetingSignal>> {
-        let signals = self.signals.lock().expect("Failed to acquire signals lock");
-        let cutoff = chrono::Utc::now() - duration;
-        signals
-            .iter()
-            .filter(|(k, _)| {
-                k.parse::<i64>()
-                    .map_or(false, |ts| ts >= cutoff.timestamp())
-            })
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect()
+    fn get_recent_signals(&self, duration: Duration) -> Vec<MeetingSignal> {
+        let buffer = self
+            .signal_buffer
+            .lock()
+            .expect("Failed to acquire signal buffer lock");
+        buffer.get_recent_signals(duration)
     }
 
     /// Determine meeting type based on signal composition

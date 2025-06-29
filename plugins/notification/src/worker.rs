@@ -76,12 +76,21 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
     }
 
     // Enhanced auto-start logic with meeting detection integration
+    let event_limit = ctx.config.event_limit.try_into().unwrap_or_else(|e| {
+        tracing::warn!(
+            "invalid_event_limit: value={}, error={:?}, using_default=10",
+            ctx.config.event_limit,
+            e
+        );
+        10 // Safe default fallback
+    });
+
     let all_events = ctx
         .db
         .list_events(Some(ListEventFilter {
             common: ListEventFilterCommon {
                 user_id: ctx.user_id.clone(),
-                limit: Some(ctx.config.event_limit.try_into().unwrap()),
+                limit: Some(event_limit),
             },
             specific: ListEventFilterSpecific::DateRange {
                 start: Utc::now() - Duration::minutes(15),
@@ -89,7 +98,10 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
             },
         }))
         .await
-        .unwrap();
+        .map_err(|e| crate::Error::Db(e).as_worker_error())?;
+
+    // Update meeting detector with current events for temporal calculations
+    ctx.meeting_detector.update_events(all_events.clone());
 
     // Use shared meeting detector to calculate scores for upcoming events
     let meeting_scores = ctx

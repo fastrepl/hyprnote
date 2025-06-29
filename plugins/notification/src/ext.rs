@@ -114,6 +114,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn start_detect_notification(&self) -> Result<(), Error> {
+        // Get initial settings to configure meeting detector
         let auto_record_enabled = self.get_auto_record_enabled().unwrap_or(false);
         let auto_record_threshold = self.get_auto_record_threshold().unwrap_or(0.7);
 
@@ -133,7 +134,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
             state_guard.meeting_detector.clone()
         };
 
+        // Capture app handle to access current settings inside callback
+        let app_handle = self.app_handle().clone();
+
         let cb = hypr_detect::new_callback(move |bundle_id| {
+            // Fetch current auto-record settings each time (no stale state)
+            let auto_record_enabled = app_handle.get_auto_record_enabled().unwrap_or(false);
+
             // Process mic detection signal
             let signal = crate::meeting_detection::MeetingSignal::MicrophoneActive;
 

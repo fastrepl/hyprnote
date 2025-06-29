@@ -48,8 +48,8 @@ impl Session {
         use tauri_plugin_db::DatabasePluginExt;
 
         let user_id = self.app.db_user_id().await?.unwrap();
-        // let session_id = id.into();
-        // self.session_id = Some(session_id.clone());
+        let session_id = id.into();
+        self.session_id = Some(session_id.clone());
 
         let (record, language, jargons) = {
             let config = self.app.db_get_config(&user_id).await?;
@@ -68,183 +68,179 @@ impl Session {
             (record, language, jargons)
         };
 
-        // let session = self
-        //     .app
-        //     .db_get_session(&session_id)
-        //     .await?
-        //     .ok_or(crate::Error::NoneSession)?;
+        let session = self
+            .app
+            .db_get_session(&session_id)
+            .await?
+            .ok_or(crate::Error::NoneSession)?;
 
-        // let (mic_muted_tx, mic_muted_rx_main) = tokio::sync::watch::channel(false);
-        // let (speaker_muted_tx, speaker_muted_rx_main) = tokio::sync::watch::channel(false);
-        // let (session_state_tx, session_state_rx) =
-        //     tokio::sync::watch::channel(State::RunningActive {});
+        let (mic_muted_tx, mic_muted_rx_main) = tokio::sync::watch::channel(false);
+        let (speaker_muted_tx, speaker_muted_rx_main) = tokio::sync::watch::channel(false);
+        let (session_state_tx, session_state_rx) =
+            tokio::sync::watch::channel(State::RunningActive {});
 
-        // let (stop_tx, mut stop_rx) = tokio::sync::mpsc::channel::<()>(1);
+        let (stop_tx, mut stop_rx) = tokio::sync::mpsc::channel::<()>(1);
 
-        // self.mic_muted_tx = Some(mic_muted_tx);
-        // self.mic_muted_rx = Some(mic_muted_rx_main.clone());
-        // self.speaker_muted_tx = Some(speaker_muted_tx);
-        // self.speaker_muted_rx = Some(speaker_muted_rx_main.clone());
-        // self.session_state_tx = Some(session_state_tx);
+        self.mic_muted_tx = Some(mic_muted_tx);
+        self.mic_muted_rx = Some(mic_muted_rx_main.clone());
+        self.speaker_muted_tx = Some(speaker_muted_tx);
+        self.speaker_muted_rx = Some(speaker_muted_rx_main.clone());
+        self.session_state_tx = Some(session_state_tx);
 
         let listen_client = setup_listen_client(&self.app, language, jargons).await?;
 
-        // let mic_sample_stream = {
-        //     let mut input = hypr_audio::AudioInput::from_mic();
-        //     input.stream()
-        // };
-        // let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);
-        // tokio::time::sleep(Duration::from_millis(100)).await;
+        let mic_sample_stream = {
+            let mut input = hypr_audio::AudioInput::from_mic();
+            input.stream()
+        };
+        let mut mic_stream = mic_sample_stream.resample(SAMPLE_RATE).chunks(1024);
+        tokio::time::sleep(Duration::from_millis(100)).await;
 
-        // let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
-        // let mut speaker_stream = speaker_sample_stream.resample(SAMPLE_RATE).chunks(1024);
+        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
+        let mut speaker_stream = speaker_sample_stream.resample(SAMPLE_RATE).chunks(1024);
 
-        // let chunk_buffer_size: usize = 1024;
+        let chunk_buffer_size: usize = 1024;
         let sample_buffer_size = (SAMPLE_RATE as usize) * 60 * 10;
 
-        // let (mic_tx, mut mic_rx) = mpsc::channel::<Vec<f32>>(chunk_buffer_size);
-        // let (speaker_tx, mut speaker_rx) = mpsc::channel::<Vec<f32>>(chunk_buffer_size);
+        let (mic_tx, mut mic_rx) = mpsc::channel::<Vec<f32>>(chunk_buffer_size);
+        let (speaker_tx, mut speaker_rx) = mpsc::channel::<Vec<f32>>(chunk_buffer_size);
+
+        let (save_tx, mut save_rx) = mpsc::channel::<f32>(sample_buffer_size);
         let (process_tx, process_rx) = mpsc::channel::<f32>(sample_buffer_size);
 
-        // {
-        //     let silence_stream_tx = hypr_audio::AudioOutput::silence();
-        //     self.silence_stream_tx = Some(silence_stream_tx);
-        // }
+        {
+            let silence_stream_tx = hypr_audio::AudioOutput::silence();
+            self.silence_stream_tx = Some(silence_stream_tx);
+        }
 
-        // let mut tasks = JoinSet::new();
+        let mut tasks = JoinSet::new();
 
-        // tasks.spawn({
-        //     let mic_muted_rx = mic_muted_rx_main.clone();
-        //     async move {
-        //         let mut is_muted = *mic_muted_rx.borrow();
-        //         let watch_rx = mic_muted_rx.clone();
+        tasks.spawn({
+            let mic_muted_rx = mic_muted_rx_main.clone();
+            async move {
+                let mut is_muted = *mic_muted_rx.borrow();
+                let watch_rx = mic_muted_rx.clone();
 
-        //         while let Some(actual) = mic_stream.next().await {
-        //             if watch_rx.has_changed().unwrap_or(false) {
-        //                 is_muted = *watch_rx.borrow();
-        //             }
+                while let Some(actual) = mic_stream.next().await {
+                    if watch_rx.has_changed().unwrap_or(false) {
+                        is_muted = *watch_rx.borrow();
+                    }
 
-        //             let maybe_muted = if is_muted {
-        //                 vec![0.0; actual.len()]
-        //             } else {
-        //                 actual
-        //             };
+                    let maybe_muted = if is_muted {
+                        vec![0.0; actual.len()]
+                    } else {
+                        actual
+                    };
 
-        //             if let Err(e) = mic_tx.send(maybe_muted).await {
-        //                 tracing::error!("mic_tx_send_error: {:?}", e);
-        //                 break;
-        //             }
-        //         }
-        //     }
-        // });
+                    if let Err(e) = mic_tx.send(maybe_muted).await {
+                        tracing::error!("mic_tx_send_error: {:?}", e);
+                        break;
+                    }
+                }
+            }
+        });
 
-        // tasks.spawn({
-        //     let speaker_muted_rx = speaker_muted_rx_main.clone();
-        //     async move {
-        //         let mut is_muted = *speaker_muted_rx.borrow();
-        //         let watch_rx = speaker_muted_rx.clone();
+        tasks.spawn({
+            let speaker_muted_rx = speaker_muted_rx_main.clone();
+            async move {
+                let mut is_muted = *speaker_muted_rx.borrow();
+                let watch_rx = speaker_muted_rx.clone();
 
-        //         // while let Some(actual) = speaker_stream.next().await {
-        //         //     if watch_rx.has_changed().unwrap_or(false) {
-        //         //         is_muted = *watch_rx.borrow();
-        //         //     }
+                while let Some(actual) = speaker_stream.next().await {
+                    if watch_rx.has_changed().unwrap_or(false) {
+                        is_muted = *watch_rx.borrow();
+                    }
 
-        //         //     let maybe_muted = if is_muted {
-        //         //         vec![0.0; actual.len()]
-        //         //     } else {
-        //         //         actual
-        //         //     };
+                    let maybe_muted = if is_muted {
+                        vec![0.0; actual.len()]
+                    } else {
+                        actual
+                    };
 
-        //         //     if let Err(e) = speaker_tx.send(maybe_muted).await {
-        //         //         // tracing::error!("speaker_tx_send_error: {:#?}", e);
-        //         //         tracing::error!(
-        //         //             error = ?e,
-        //         //             error_display = %e,
-        //         //             channel_info = "speaker channel",
-        //         //             "Failed to send audio chunk"
-        //         //         );
-        //         //         break;
-        //         //     }
-        //         // }
-        //     }
-        // });
+                    if let Err(e) = speaker_tx.send(maybe_muted).await {
+                        tracing::error!("speaker_tx_send_error: {:?}", e);
+                        break;
+                    }
+                }
+            }
+        });
 
         let app_dir = self.app.path().app_data_dir().unwrap();
 
-        // tasks.spawn({
-        //     let app = self.app.clone();
-        //     let save_tx = save_tx.clone();
+        tasks.spawn({
+            let app = self.app.clone();
+            let save_tx = save_tx.clone();
 
-        //     async move {
-        //         let mut last_broadcast = Instant::now();
+            async move {
+                let mut last_broadcast = Instant::now();
 
-        //         // while let (Some(mic_chunk), Some(speaker_chunk)) =
-        //         //     (mic_rx.recv().await, speaker_rx.recv().await)
-        //         // {
-        //         //     if matches!(*session_state_rx.borrow(), State::RunningPaused {}) {
-        //         //         let mut rx = session_state_rx.clone();
-        //         //         let _ = rx.changed().await;
-        //         //         continue;
-        //         //     }
+                while let (Some(mic_chunk), Some(speaker_chunk)) =
+                    (mic_rx.recv().await, speaker_rx.recv().await)
+                {
+                    if matches!(*session_state_rx.borrow(), State::RunningPaused {}) {
+                        let mut rx = session_state_rx.clone();
+                        let _ = rx.changed().await;
+                        continue;
+                    }
 
-        //         //     let now = Instant::now();
-        //         //     if now.duration_since(last_broadcast) >= AUDIO_AMPLITUDE_THROTTLE {
-        //         //         if let Err(e) = SessionEvent::from((&mic_chunk, &speaker_chunk)).emit(&app)
-        //         //         {
-        //         //             tracing::error!("broadcast_error: {:?}", e);
-        //         //         }
-        //         //         last_broadcast = now;
-        //         //     }
+                    let now = Instant::now();
+                    if now.duration_since(last_broadcast) >= AUDIO_AMPLITUDE_THROTTLE {
+                        if let Err(e) = SessionEvent::from((&mic_chunk, &speaker_chunk)).emit(&app)
+                        {
+                            tracing::error!("broadcast_error: {:?}", e);
+                        }
+                        last_broadcast = now;
+                    }
 
-        //         //     let mixed: Vec<f32> = mic_chunk
-        //         //         .into_iter()
-        //         //         .zip(speaker_chunk.into_iter())
-        //         //         .map(|(a, b)| (a + b).clamp(-1.0, 1.0))
-        //         //         .collect();
+                    let mixed: Vec<f32> = mic_chunk
+                        .into_iter()
+                        .zip(speaker_chunk.into_iter())
+                        .map(|(a, b)| (a + b).clamp(-1.0, 1.0))
+                        .collect();
 
-        //         //     for &sample in &mixed {
-        //         //         if process_tx.send(sample).await.is_err() {
-        //         //             tracing::error!("process_tx_send_error");
-        //         //             return;
-        //         //         }
+                    for &sample in &mixed {
+                        if process_tx.send(sample).await.is_err() {
+                            tracing::error!("process_tx_send_error");
+                            return;
+                        }
 
-        //         //         if record {
-        //         //             if save_tx.send(sample).await.is_err() {
-        //         //                 tracing::error!("save_tx_send_error");
-        //         //             }
-        //         //         }
-        //         //     }
-        //         // }
-        //     }
-        // });
+                        if record {
+                            if save_tx.send(sample).await.is_err() {
+                                tracing::error!("save_tx_send_error");
+                            }
+                        }
+                    }
+                }
+            }
+        });
 
-        // if record {
-        //     tasks.spawn(async move {
-        //         let dir = app_dir.join(session_id);
-        //         std::fs::create_dir_all(&dir).unwrap();
-        //         let path = dir.join("audio.wav");
+        if record {
+            tasks.spawn(async move {
+                let dir = app_dir.join(session_id);
+                std::fs::create_dir_all(&dir).unwrap();
+                let path = dir.join("audio.wav");
 
-        //         let wav_spec = hound::WavSpec {
-        //             channels: 2,
-        //             sample_rate: SAMPLE_RATE,
-        //             bits_per_sample: 32,
-        //             sample_format: hound::SampleFormat::Float,
-        //         };
+                let wav_spec = hound::WavSpec {
+                    channels: 2,
+                    sample_rate: SAMPLE_RATE,
+                    bits_per_sample: 32,
+                    sample_format: hound::SampleFormat::Float,
+                };
 
-        //         let mut wav = if path.exists() {
-        //             hound::WavWriter::append(path).unwrap()
-        //         } else {
-        //             hound::WavWriter::create(path, wav_spec).unwrap()
-        //         };
+                let mut wav = if path.exists() {
+                    hound::WavWriter::append(path).unwrap()
+                } else {
+                    hound::WavWriter::create(path, wav_spec).unwrap()
+                };
 
-        //         while let Some(sample) = save_rx.recv().await {
-        //             wav.write_sample(sample).unwrap();
-        //             wav.write_sample(sample).unwrap();
-        //         }
+                while let Some(sample) = save_rx.recv().await {
+                    wav.write_sample(sample).unwrap();
+                    wav.write_sample(sample).unwrap();
+                }
 
-        //         wav.finalize().unwrap();
-        //     });
-        // }
+                wav.finalize().unwrap();
+            });
+        }
 
         // TODO
         // let timeline = Arc::new(Mutex::new(initialize_timeline(&session).await));
@@ -252,46 +248,46 @@ impl Session {
 
         let listen_stream = listen_client.from_audio(audio_stream).await?;
 
-        // tasks.spawn({
-        //     let app = self.app.clone();
-        //     let stop_tx = stop_tx.clone();
+        tasks.spawn({
+            let app = self.app.clone();
+            let stop_tx = stop_tx.clone();
 
-        //     async move {
-        //         futures_util::pin_mut!(listen_stream);
+            async move {
+                futures_util::pin_mut!(listen_stream);
 
-        //         while let Some(result) = listen_stream.next().await {
-        //             // We don't have to do this, and inefficient. But this is what works at the moment.
-        //             {
-        //                 let updated_words = update_session(&app, &session.id, result.words)
-        //                     .await
-        //                     .unwrap();
+                while let Some(result) = listen_stream.next().await {
+                    // We don't have to do this, and inefficient. But this is what works at the moment.
+                    {
+                        let updated_words = update_session(&app, &session.id, result.words)
+                            .await
+                            .unwrap();
 
-        //                 SessionEvent::Words {
-        //                     words: updated_words,
-        //                 }
-        //                 .emit(&app)
-        //             }
-        //             .unwrap();
-        //         }
+                        SessionEvent::Words {
+                            words: updated_words,
+                        }
+                        .emit(&app)
+                    }
+                    .unwrap();
+                }
 
-        //         tracing::info!("listen_stream_ended");
-        //         if stop_tx.send(()).await.is_err() {
-        //             tracing::warn!("failed_to_send_stop_signal");
-        //         }
-        //     }
-        // });
+                tracing::info!("listen_stream_ended");
+                if stop_tx.send(()).await.is_err() {
+                    tracing::warn!("failed_to_send_stop_signal");
+                }
+            }
+        });
 
-        // let app_handle = self.app.clone();
-        // tasks.spawn(async move {
-        //     if stop_rx.recv().await.is_some() {
-        //         if let Some(state) = app_handle.try_state::<crate::SharedState>() {
-        //             let mut guard = state.lock().await;
-        //             guard.fsm.handle(&crate::fsm::StateEvent::Stop).await;
-        //         }
-        //     }
-        // });
+        let app_handle = self.app.clone();
+        tasks.spawn(async move {
+            if stop_rx.recv().await.is_some() {
+                if let Some(state) = app_handle.try_state::<crate::SharedState>() {
+                    let mut guard = state.lock().await;
+                    guard.fsm.handle(&crate::fsm::StateEvent::Stop).await;
+                }
+            }
+        });
 
-        // self.tasks = Some(tasks);
+        self.tasks = Some(tasks);
 
         Ok(())
     }

@@ -101,7 +101,6 @@ impl ListenClient {
     ) -> Result<impl Stream<Item = ListenOutputChunk>, hypr_ws::Error> {
         let input_stream = audio_stream.to_i16_le_chunks(16 * 1000, 1024);
         let ws = WebSocketClient::new(self.request.clone());
-
         ws.from_audio::<Self>(input_stream).await
     }
 }

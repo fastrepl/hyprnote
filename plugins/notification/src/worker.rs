@@ -38,6 +38,7 @@ pub struct WorkerState {
     pub db: hypr_db_user::UserDatabase,
     pub user_id: String,
     pub config: Arc<NotificationConfig>,
+    pub meeting_detector: crate::meeting_detection::MeetingDetector,
 }
 
 impl From<DateTime<Utc>> for Job {
@@ -90,9 +91,9 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
         .await
         .map_err(|e| crate::Error::Db(e).as_worker_error())?;
 
-    // Use meeting detector to calculate scores for upcoming events
-    let meeting_detector = crate::meeting_detection::MeetingDetector::default();
-    let meeting_scores = meeting_detector
+    // Use shared meeting detector to calculate scores for upcoming events
+    let meeting_scores = ctx
+        .meeting_detector
         .calculate_meeting_scores(&all_events, ctx.config.meeting_score_threshold)
         .await
         .unwrap_or_else(|e| {
@@ -107,9 +108,9 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
             if let Some(event_id) = &score.event_id {
                 let signal =
                     crate::meeting_detection::MeetingSignal::CalendarEvent(event_id.clone());
-                
-                // Process the signal through the meeting detector for enhanced correlation analysis
-                if let Some(enhanced_score) = meeting_detector.process_signal(signal) {
+
+                // Process the signal through the shared meeting detector for enhanced correlation analysis
+                if let Some(enhanced_score) = ctx.meeting_detector.process_signal(signal) {
                     tracing::info!(
                         "meeting_signal_processed: event_id={}, original_confidence={:.2}, enhanced_confidence={:.2}, type={:?}",
                         event_id,
@@ -117,7 +118,7 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
                         enhanced_score.confidence,
                         enhanced_score.meeting_type
                     );
-                    
+
                     // The meeting detector may have triggered auto-recording based on enhanced signals
                     if enhanced_score.confidence > score.confidence {
                         tracing::info!(

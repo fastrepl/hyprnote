@@ -93,12 +93,26 @@ impl MeetingDetector {
     /// * `threshold` - Confidence threshold for auto-recording (must be between 0.0 and 1.0)
     pub fn set_auto_record_config(&self, enabled: bool, threshold: f64) {
         // Validate threshold is within acceptable range
-        assert!(threshold.is_finite(), "Invalid threshold: {} (must be a finite number)", threshold);
-        assert!((0.0..=1.0).contains(&threshold), "Invalid threshold: {} (must be between 0.0 and 1.0)", threshold);
+        assert!(
+            threshold.is_finite(),
+            "Invalid threshold: {} (must be a finite number)",
+            threshold
+        );
+        assert!(
+            (0.0..=1.0).contains(&threshold),
+            "Invalid threshold: {} (must be between 0.0 and 1.0)",
+            threshold
+        );
 
         // Acquire both locks and update values
-        let mut auto_enabled = self.auto_record_enabled.lock().expect("Failed to acquire lock for auto_record_enabled");
-        let mut auto_threshold = self.auto_record_threshold.lock().expect("Failed to acquire lock for auto_record_threshold");
+        let mut auto_enabled = self
+            .auto_record_enabled
+            .lock()
+            .expect("Failed to acquire lock for auto_record_enabled");
+        let mut auto_threshold = self
+            .auto_record_threshold
+            .lock()
+            .expect("Failed to acquire lock for auto_record_threshold");
 
         // Update both values
         *auto_enabled = enabled;
@@ -136,22 +150,21 @@ impl MeetingDetector {
 
     /// Store signal for correlation analysis
     fn store_signal(&self, signal: MeetingSignal) {
-        if let Ok(mut signals) = self.signals.lock() {
-            let now = chrono::Utc::now();
-            let time_key = now.timestamp().to_string();
+        let mut signals = self.signals.lock().expect("Failed to acquire signals lock");
+        let now = chrono::Utc::now();
+        let time_key = now.timestamp().to_string();
 
-            // Store recent signals (last 10 minutes) for correlation
-            let cutoff = now - Duration::minutes(10);
-            signals.retain(|k, _| {
-                k.parse::<i64>()
-                    .map_or(false, |ts| ts >= cutoff.timestamp())
-            });
+        // Store recent signals (last 10 minutes) for correlation
+        let cutoff = now - Duration::minutes(10);
+        signals.retain(|k, _| {
+            k.parse::<i64>()
+                .map_or(false, |ts| ts >= cutoff.timestamp())
+        });
 
-            signals
-                .entry(time_key)
-                .or_insert_with(Vec::new)
-                .push(signal);
-        }
+        signals
+            .entry(time_key)
+            .or_insert_with(Vec::new)
+            .push(signal);
     }
 
     /// Calculate enhanced confidence score with signal correlation
@@ -252,19 +265,16 @@ impl MeetingDetector {
 
     /// Get recent signals within the specified duration
     fn get_recent_signals(&self, duration: Duration) -> HashMap<String, Vec<MeetingSignal>> {
-        if let Ok(signals) = self.signals.lock() {
-            let cutoff = chrono::Utc::now() - duration;
-            signals
-                .iter()
-                .filter(|(k, _)| {
-                    k.parse::<i64>()
-                        .map_or(false, |ts| ts >= cutoff.timestamp())
-                })
-                .map(|(k, v)| (k.clone(), v.clone()))
-                .collect()
-        } else {
-            HashMap::new()
-        }
+        let signals = self.signals.lock().expect("Failed to acquire signals lock");
+        let cutoff = chrono::Utc::now() - duration;
+        signals
+            .iter()
+            .filter(|(k, _)| {
+                k.parse::<i64>()
+                    .map_or(false, |ts| ts >= cutoff.timestamp())
+            })
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect()
     }
 
     /// Determine meeting type based on signal composition
@@ -334,7 +344,7 @@ impl MeetingDetector {
         &self,
         events: &[Event],
         _time_window_minutes: i64,
-    ) -> Result<Vec<MeetingScore>, String> {
+    ) -> Vec<MeetingScore> {
         let now = Utc::now();
         let mut scores = Vec::new();
 
@@ -368,7 +378,7 @@ impl MeetingDetector {
 
         // Sort by confidence (highest first)
         scores.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap());
-        Ok(scores)
+        scores
     }
 }
 

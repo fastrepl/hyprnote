@@ -84,10 +84,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
 
         let state = self.state::<crate::SharedState>();
         let mut s = state.lock().unwrap();
+        let meeting_detector = s.meeting_detector.clone();
 
         s.worker_handle = Some(tokio::runtime::Handle::current().spawn(async move {
             let config = Arc::new(crate::worker::NotificationConfig::default());
-            let _ = crate::worker::monitor(crate::worker::WorkerState { db, user_id, config }).await;
+            let _ = crate::worker::monitor(crate::worker::WorkerState {
+                db,
+                user_id,
+                config,
+                meeting_detector,
+            })
+            .await;
         }));
 
         Ok(())

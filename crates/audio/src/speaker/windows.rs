@@ -1,207 +1,186 @@
 use anyhow::Result;
 use futures_util::Stream;
-use std::sync::{Arc, Mutex};
-use std::task::{Poll, Waker};
-use std::thread;
-use std::time::Duration;
-
+use ringbuf::traits::Observer;
 use ringbuf::{
     traits::{Consumer, Producer, Split},
     HeapCons, HeapProd, HeapRb,
 };
+use std::collections::VecDeque;
+use std::sync::mpsc;
+use std::sync::{Arc, Mutex};
+use std::task::{Poll, Waker};
+use std::thread;
 use wasapi::*;
-
-pub struct SpeakerInput {
-    sample_rate_override: Option<u32>,
-}
+use tracing::debug;
+use tracing::error;
+use tracing::trace;
 
 struct WakerState {
     waker: Option<Waker>,
     has_data: bool,
 }
 
+pub struct SpeakerInput {
+    sample_rate_override: Option<u32>,
+}
+
 pub struct SpeakerStream {
-    consumer: HeapCons<f32>,
+    receiver: std::sync::mpsc::Receiver<Vec<f32>>,
+    current_chunk: Vec<f32>,
+    chunk_index: usize,
     sample_rate: u32,
     sample_rate_override: Option<u32>,
-    _audio_thread: thread::JoinHandle<()>,
-    waker_state: Arc<Mutex<WakerState>>,
+    _capture_handle: thread::JoinHandle<()>,
 }
 
 impl SpeakerInput {
     pub fn new(sample_rate_override: Option<u32>) -> Result<Self> {
-        tracing::info!(
-            "Windows SpeakerInput initialized with sample rate override: {:?}",
-            sample_rate_override
-        );
-        Ok(Self { sample_rate_override })
+        // COM 초기화를 시도하되, 이미 초기화된 경우 무시
+        match initialize_mta().ok() {
+            Ok(_) => tracing::debug!("COM MTA initialized successfully"),
+            Err(e) => {
+                // COM 초기화 에러를 문자열로 확인
+                let error_str = format!("{:?}", e);
+                if error_str.contains("0x80010106") || 
+                   error_str.contains("Cannot change thread mode") ||
+                   error_str.contains("RPC_E_CHANGED_MODE") {
+                    tracing::debug!("COM already initialized in different mode, continuing...");
+                } else {
+                    tracing::warn!("COM initialization failed: {:?}", e);
+                    // COM 초기화 실패는 치명적이지 않을 수 있으므로 계속 진행
+                    tracing::info!("Continuing without COM initialization...");
+                }
+            }
+        }
+
+        Ok(Self {
+            sample_rate_override,
+        })
     }
 
     pub fn stream(self) -> SpeakerStream {
-        // COM 초기화 (MTA 모드)
-        initialize_mta().expect("Failed to initialize COM MTA");
+        let (tx, rx) = std::sync::mpsc::sync_channel(8); // 작은 버퍼
 
-        // 기본 출력 장치 가져오기
-        let device = get_default_device(&Direction::Render)
-            .expect("Failed to get default render device");
-
-        // 이벤트 핸들 생성
-        let h_event = Handle::create_event_for_wasapi()
-            .expect("Failed to create event handle");
-
-        // Audio Client 초기화
-        let mut audio_client = device.get_iaudioclient()
-            .expect("Failed to get audio client");
-
-        // Mix format 가져오기 (시스템의 기본 포맷)
-        let desired_format = audio_client.get_mixformat()
-            .expect("Failed to get mix format");
-
-        tracing::info!(
-            "Windows audio format - sample rate: {}, channels: {}, bits: {}",
-            desired_format.get_samplespersec(),
-            desired_format.get_nchannels(),
-            desired_format.get_bitspersample()
-        );
-
-        let blockalign = desired_format.get_blockalign();
-        let sample_rate = desired_format.get_samplespersec();
-
-        // loopback 모드로 초기화
-        let (def_time, min_time) = audio_client
-            .get_periods()
-            .expect("Failed to get periods");
-
-        audio_client
-            .initialize_client(
-                &desired_format,
-                def_time,
-                &Direction::Capture,
-                &ShareMode::Shared,
-                true, // loopback 모드 활성화
-            )
-            .expect("Failed to initialize audio client");
-
-        audio_client.set_handle(&h_event)
-            .expect("Failed to set event handle");
-
-        let capture_client = audio_client.get_audiocaptureclient()
-            .expect("Failed to get capture client");
-
-        // Ring buffer 생성 (충분한 크기로)
-        let rb = HeapRb::<f32>::new(16384);
-        let (producer, consumer) = rb.split();
-
-        let waker_state = Arc::new(Mutex::new(WakerState {
-            waker: None,
-            has_data: false,
-        }));
-
-        let waker_state_clone = waker_state.clone();
-        let sample_rate_override = self.sample_rate_override;
-
-        // 오디오 캡처 스레드 생성
-        let audio_thread = thread::spawn(move || {
-            // 스레드에서도 COM 초기화 필요
-            initialize_mta().expect("Thread: Failed to initialize COM MTA");
-
-            audio_client.start_stream()
-                .expect("Failed to start stream");
-
-            tracing::info!("Windows audio capture thread started");
-
-            loop {
-                // 이벤트 대기 (타임아웃 100ms)
-                if !h_event.wait_for_event(100) {
-                    continue;
+        let capture_handle = thread::Builder::new()
+            .name("WASAPI Capture".to_string())
+            .spawn(move || {
+                if let Err(e) = Self::capture_loop_simple(tx) {
+                    tracing::error!("WASAPI capture failed: {}", e);
                 }
-
-                // 사용 가능한 프레임 가져오기
-                let num_frames_available = match capture_client.get_next_framesize() {
-                    Ok(frames) => frames,
-                    Err(e) => {
-                        tracing::error!("Failed to get next frame size: {:?}", e);
-                        break;
-                    }
-                };
-
-                if num_frames_available == 0 {
-                    continue;
-                }
-
-                // 버퍼 가져오기
-                match capture_client.read_from_device(
-                    desired_format.get_blockalign() as usize,
-                    num_frames_available as usize,
-                ) {
-                    Ok(AudioCaptureClient::F32(data)) => {
-                        // 스테레오를 모노로 변환 (두 채널의 평균)
-                        let channels = desired_format.get_nchannels() as usize;
-                        let mono_samples: Vec<f32> = data
-                            .chunks(channels)
-                            .map(|chunk| {
-                                chunk.iter().sum::<f32>() / channels as f32
-                            })
-                            .collect();
-
-                        // Ring buffer에 데이터 추가
-                        let pushed = producer.push_slice(&mono_samples);
-                        if pushed < mono_samples.len() {
-                            tracing::warn!(
-                                "Windows speaker dropped {} samples",
-                                mono_samples.len() - pushed
-                            );
-                        }
-
-                        // Waker 알림
-                        let mut waker_state = waker_state_clone.lock().unwrap();
-                        if pushed > 0 && !waker_state.has_data {
-                            waker_state.has_data = true;
-                            if let Some(waker) = waker_state.waker.take() {
-                                drop(waker_state);
-                                waker.wake();
-                            }
-                        }
-                    }
-                    Ok(_) => {
-                        tracing::warn!("Unexpected audio format from capture");
-                    }
-                    Err(e) => {
-                        tracing::error!("Failed to read from device: {:?}", e);
-                        break;
-                    }
-                }
-
-                // 버퍼 해제
-                if let Err(e) = capture_client.release_buffer() {
-                    tracing::error!("Failed to release buffer: {:?}", e);
-                    break;
-                }
-            }
-
-            if let Err(e) = audio_client.stop_stream() {
-                tracing::error!("Failed to stop stream: {:?}", e);
-            }
-
-            tracing::info!("Windows audio capture thread stopped");
-        });
+            }).unwrap();
 
         SpeakerStream {
-            consumer,
-            sample_rate,
-            sample_rate_override,
-            _audio_thread: audio_thread,
-            waker_state,
+            receiver: rx,
+            current_chunk: Vec::new(),
+            chunk_index: 0,
+            sample_rate: 44100, // 기본값
+            sample_rate_override: self.sample_rate_override,
+            _capture_handle: capture_handle,
         }
+    }
+
+    fn capture_loop_simple(tx_capt: std::sync::mpsc::SyncSender<Vec<f32>>) -> Result<()> {
+        let device = get_default_device(&Direction::Render)?;
+
+        let mut audio_client = device.get_iaudioclient()?;
+
+        let desired_format = WaveFormat::new(32, 32, &SampleType::Float, 44100, 2, None);
+
+        let blockalign = desired_format.get_blockalign();
+        let channels = desired_format.get_nchannels() as usize;
+        debug!("Desired capture format: {:?}", desired_format);
+        debug!("Channels: {}, Block align: {}", channels, blockalign);
+
+        let (def_time, min_time) = audio_client.get_device_period()?;
+        debug!("default period {}, min period {}", def_time, min_time);
+
+        let mode = StreamMode::EventsShared {
+            autoconvert: true,
+            buffer_duration_hns: min_time,
+        };
+        audio_client.initialize_client(&desired_format, &Direction::Render, &mode)?;
+        debug!("initialized capture");
+
+        let h_event = audio_client.set_get_eventhandle()?;
+
+        let buffer_frame_count = audio_client.get_buffer_size()?;
+
+        let render_client = audio_client.get_audiocaptureclient()?;
+        let mut sample_queue: VecDeque<u8> = VecDeque::with_capacity(
+            100 * blockalign as usize * (1024 + 2 * buffer_frame_count as usize),
+        );
+        let session_control = audio_client.get_audiosessioncontrol()?;
+
+        debug!("state before start: {:?}", session_control.get_state());
+        audio_client.start_stream()?;
+        debug!("state after start: {:?}", session_control.get_state());
+
+        let chunksize = 1024; // frames
+        loop {
+            while sample_queue.len() >= (blockalign as usize * chunksize) {
+                debug!("pushing samples");
+                
+                // 바이트 데이터를 f32 조합으로 변환
+                let mut f32_chunk = Vec::with_capacity(chunksize);
+                
+                for _ in 0..chunksize {
+                    // 한 프레임 (모든 채널) 처리
+                    let mut frame_samples = Vec::with_capacity(channels);
+                    
+                    for _ in 0..channels {
+                        // 4바이트씩 f32로 변환
+                        if sample_queue.len() >= 4 {
+                            let bytes = [
+                                sample_queue.pop_front().unwrap(),
+                                sample_queue.pop_front().unwrap(),
+                                sample_queue.pop_front().unwrap(),
+                                sample_queue.pop_front().unwrap(),
+                            ];
+                            let sample = f32::from_le_bytes(bytes);
+                            frame_samples.push(sample);
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    // 스테레오를 모노로 믹스다운 (2채널 -> 1채널)
+                    if frame_samples.len() == 2 {
+                        let mono_sample = (frame_samples[0] + frame_samples[1]) * 0.5;
+                        f32_chunk.push(mono_sample);
+                    } else if frame_samples.len() == 1 {
+                        f32_chunk.push(frame_samples[0]);
+                    }
+                    
+                    if frame_samples.is_empty() {
+                        break;
+                    }
+                }
+                
+                if !f32_chunk.is_empty() {
+                    if let Err(_) = tx_capt.try_send(f32_chunk) {
+                        debug!("Audio buffer full, dropping chunk");
+                    }
+                }
+            }
+            
+            trace!("capturing");
+            render_client.read_from_device_to_deque(&mut sample_queue)?;
+            if h_event.wait_for_event(3000).is_err() {
+                error!("timeout error, stopping capture");
+                audio_client.stop_stream()?;
+                break;
+            }
+        }
+        Ok(())
     }
 }
 
 impl SpeakerStream {
     pub fn sample_rate(&self) -> u32 {
         tracing::info!(
-            tap_sample_rate = self.sample_rate,
+            device_sample_rate = self.sample_rate,
             override_sample_rate = self.sample_rate_override,
-            "speaker_stream"
+            "windows_speaker_stream"
         );
 
         self.sample_rate_override.unwrap_or(self.sample_rate)
@@ -215,23 +194,32 @@ impl Stream for SpeakerStream {
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Option<Self::Item>> {
-        // Ring buffer에서 샘플 가져오기
-        if let Some(sample) = self.consumer.try_pop() {
+        // 현재 청크에서 샘플 반환
+        if self.chunk_index < self.current_chunk.len() {
+            let sample = self.current_chunk[self.chunk_index];
+            self.chunk_index += 1;
             return Poll::Ready(Some(sample));
         }
 
-        // 데이터가 없으면 waker 등록
-        {
-            let mut state = self.waker_state.lock().unwrap();
-            state.has_data = false;
-            state.waker = Some(cx.waker().clone());
-            drop(state);
-        }
+        // 새 청크 받기 (논블로킹)
+        match self.receiver.try_recv() {
+            Ok(chunk) => {
+                self.current_chunk = chunk;
+                self.chunk_index = 0;
 
-        // 다시 한번 시도
-        match self.consumer.try_pop() {
-            Some(sample) => Poll::Ready(Some(sample)),
-            None => Poll::Pending,
+                if !self.current_chunk.is_empty() {
+                    let sample = self.current_chunk[0];
+                    self.chunk_index = 1;
+                    Poll::Ready(Some(sample))
+                } else {
+                    Poll::Pending
+                }
+            }
+            Err(std::sync::mpsc::TryRecvError::Empty) => {
+                cx.waker().wake_by_ref();
+                Poll::Pending
+            }
+            Err(std::sync::mpsc::TryRecvError::Disconnected) => Poll::Ready(None),
         }
     }
 }

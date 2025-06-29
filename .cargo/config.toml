@@ -1,5 +1,8 @@
 [target.'cfg(all(windows, target_env = "msvc"))']
 rustflags = [
-  "-C",
-  "target-feature=+crt-static",
+  "-C", "target-feature=-crt-static",
+  "-C", "link-arg=/NODEFAULTLIB:libcmt"
 ]
+
+[env]
+RUSTFLAGS = "-C target-feature=-crt-static"

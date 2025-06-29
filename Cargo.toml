@@ -2,6 +2,7 @@
 incremental = true
 opt-level = 0
 debug = true
+panic = "unwind"
 
 [profile.dev.package."*"]
 opt-level = 1

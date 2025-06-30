@@ -3,7 +3,7 @@ use tauri::Manager;
 use tokio::sync::Mutex;
 
 mod client;
-pub mod commands;
+mod commands;
 mod error;
 mod events;
 mod ext;

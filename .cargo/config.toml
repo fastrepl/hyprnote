@@ -4,8 +4,21 @@ rustflags = [
   "target-feature=-crt-static",
   "-C",
   "link-arg=/FORCE:MULTIPLE",
+  "-C",
+  "link-arg=/nodefaultlib:msvcrt",
+  "-C", 
+  "link-arg=/defaultlib:msvcrtd",
 ]
 
 [env]
-CFLAGS = "/MD"
-CXXFLAGS = "/MD"
+CFLAGS = "/MDd"
+CXXFLAGS = "/MDd"
+# Force CMake to use debug runtime
+CMAKE_CXX_FLAGS = "/MDd"
+CMAKE_C_FLAGS = "/MDd"
+# Additional flags for various build systems
+CC_x86_64-pc-windows-msvc_CFLAGS = "/MDd"
+CXX_x86_64-pc-windows-msvc_CXXFLAGS = "/MDd"
+# For build scripts that check these
+MSVC_RUNTIME = "dynamic"
+MSVC_DEBUG = "1"

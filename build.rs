@@ -16,7 +16,29 @@ fn main() {
             println!("cargo::rustc-env=CFLAGS=/MDd");
             println!("cargo::rustc-env=CXXFLAGS=/MDd");
 
-            // Add additional debug runtime link arguments
+            // Force CMake to use debug runtime
+            println!("cargo::rustc-env=CMAKE_CXX_FLAGS=/MDd");
+            println!("cargo::rustc-env=CMAKE_C_FLAGS=/MDd");
+            println!("cargo::rustc-env=CMAKE_CXX_FLAGS_DEBUG=/MDd /Od /Zi");
+            println!("cargo::rustc-env=CMAKE_C_FLAGS_DEBUG=/MDd /Od /Zi");
+            println!("cargo::rustc-env=CMAKE_CXX_FLAGS_RELEASE=/MDd /O2");
+            println!("cargo::rustc-env=CMAKE_C_FLAGS_RELEASE=/MDd /O2");
+            println!("cargo::rustc-env=CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebugDLL");
+            println!("cargo::rustc-env=CMAKE_BUILD_TYPE=Debug");
+
+            // For whisper.cpp specifically
+            println!("cargo::rustc-env=WHISPER_CFLAGS=/MDd");
+            println!("cargo::rustc-env=WHISPER_CXXFLAGS=/MDd");
+
+            // For ONNX Runtime
+            println!("cargo::rustc-env=ORT_USE_CUDA=OFF");
+            println!("cargo::rustc-env=ORT_BUILD_SHARED_LIB=OFF");
+
+            // Pass to dependencies
+            println!("cargo::rerun-if-env-changed=CFLAGS");
+            println!("cargo::rerun-if-env-changed=CXXFLAGS");
+
+            // Additional debug runtime link arguments
             println!("cargo::rustc-link-arg-bins=/defaultlib:msvcrtd");
         }
     }

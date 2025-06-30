@@ -16,9 +16,27 @@ CXXFLAGS = "/MDd"
 # Force CMake to use debug runtime
 CMAKE_CXX_FLAGS = "/MDd"
 CMAKE_C_FLAGS = "/MDd"
+CMAKE_CXX_FLAGS_DEBUG = "/MDd /Od /Zi"
+CMAKE_C_FLAGS_DEBUG = "/MDd /Od /Zi"
+CMAKE_CXX_FLAGS_RELEASE = "/MDd /O2"
+CMAKE_C_FLAGS_RELEASE = "/MDd /O2"
+CMAKE_MSVC_RUNTIME_LIBRARY = "MultiThreadedDebugDLL"
 # Additional flags for various build systems
 CC_x86_64-pc-windows-msvc_CFLAGS = "/MDd"
 CXX_x86_64-pc-windows-msvc_CXXFLAGS = "/MDd"
 # For build scripts that check these
 MSVC_RUNTIME = "dynamic"
 MSVC_DEBUG = "1"
+# Force debug configuration
+CMAKE_BUILD_TYPE = "Debug"
+# For ORT (ONNX Runtime)
+ORT_USE_CUDA = "OFF"
+ORT_BUILD_SHARED_LIB = "OFF"
+# For whisper.cpp
+WHISPER_CFLAGS = "/MDd"
+WHISPER_CXXFLAGS = "/MDd"
+# General CC/CXX override
+CC_x86_64_pc_windows_msvc = "cl.exe"
+CXX_x86_64_pc_windows_msvc = "cl.exe"
+TARGET_CC = "cl.exe"
+TARGET_CXX = "cl.exe"

@@ -4,8 +4,10 @@ import { LinkProps, useNavigate } from "@tanstack/react-router";
 import { clsx } from "clsx";
 import { format } from "date-fns";
 import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, RefreshCwIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
+import { useUpcomingEvents } from "@/hooks/use-upcoming-events";
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
 import { type Event, type Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -16,6 +18,7 @@ import {
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
 import { SplashLoader } from "@hypr/ui/components/ui/splash";
+import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
 import { useSession } from "@hypr/utils/contexts";
 import { formatUpcomingTime } from "@hypr/utils/datetime";
@@ -33,6 +36,39 @@ export default function EventsList({
   activeSessionId,
 }: EventsListProps) {
   const queryClient = useQueryClient();
+  const upcomingEventIds = useUpcomingEvents(events);
+  const notifiedEvents = useRef<Set<string>>(new Set());
+
+  // Show toast notifications for newly upcoming events
+  useEffect(() => {
+    if (!events?.length || upcomingEventIds.size === 0) {
+      return;
+    }
+
+    for (const eventId of upcomingEventIds) {
+      if (!notifiedEvents.current.has(eventId)) {
+        const event = events.find(e => e.id === eventId);
+        if (event) {
+          toast({
+            id: `upcoming-event-${eventId}`,
+            title: "Event Starting Soon",
+            content: `${event.name} is about to begin`,
+            dismissible: true,
+            duration: 5000,
+          });
+          notifiedEvents.current.add(eventId);
+        }
+      }
+    }
+
+    // Clean up notified events that are no longer upcoming
+    const currentNotified = Array.from(notifiedEvents.current);
+    for (const eventId of currentNotified) {
+      if (!upcomingEventIds.has(eventId)) {
+        notifiedEvents.current.delete(eventId);
+      }
+    }
+  }, [upcomingEventIds, events]);
 
   const syncEventsMutation = useMutation({
     mutationFn: async () => {
@@ -85,6 +121,7 @@ export default function EventsList({
                   key={event.id}
                   event={event}
                   activeSessionId={activeSessionId}
+                  isUpcoming={upcomingEventIds.has(event.id)}
                 />
               ))}
           </div>
@@ -103,9 +140,11 @@ export default function EventsList({
 function EventItem({
   event,
   activeSessionId,
+  isUpcoming,
 }: {
   event: EventWithSession;
   activeSessionId?: string;
+  isUpcoming: boolean;
 }) {
   const navigate = useNavigate();
 
@@ -152,8 +191,9 @@ function EventItem({
         <button
           onClick={handleClick}
           className={clsx([
-            "w-full text-left group flex items-start gap-3 py-2 rounded-lg px-2",
+            "w-full text-left group flex items-start gap-3 py-2 rounded-lg px-2 transition-all duration-200",
             isActive ? "bg-neutral-200" : "hover:bg-neutral-100",
+            isUpcoming && "animate-pulse ring-2 ring-orange-300 ring-opacity-75 bg-orange-50",
           ])}
         >
           <div className="flex items-center gap-1 w-full">

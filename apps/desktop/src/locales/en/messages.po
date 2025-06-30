@@ -779,7 +779,7 @@ msgid "New note"
 msgstr "New note"
 
 #: src/components/left-sidebar/notes-list.tsx:299
-#: src/components/left-sidebar/events-list.tsx:181
+#: src/components/left-sidebar/events-list.tsx:221
 msgid "New window"
 msgstr "New window"
 
@@ -811,7 +811,7 @@ msgstr "No recent notes for this organization"
 msgid "No speech-to-text models available or failed to load."
 msgstr "No speech-to-text models available or failed to load."
 
-#: src/components/left-sidebar/events-list.tsx:95
+#: src/components/left-sidebar/events-list.tsx:132
 msgid "No upcoming events"
 msgstr "No upcoming events"
 
@@ -1103,7 +1103,7 @@ msgstr "Untitled"
 msgid "Untitled Template"
 msgstr "Untitled Template"
 
-#: src/components/left-sidebar/events-list.tsx:62
+#: src/components/left-sidebar/events-list.tsx:98
 msgid "Upcoming"
 msgstr "Upcoming"
 
@@ -1135,7 +1135,7 @@ msgstr "username"
 msgid "View calendar"
 msgstr "View calendar"
 
-#: src/components/left-sidebar/events-list.tsx:193
+#: src/components/left-sidebar/events-list.tsx:233
 #: src/components/editor-area/note-header/chips/event-chip.tsx:234
 msgid "View in calendar"
 msgstr "View in calendar"

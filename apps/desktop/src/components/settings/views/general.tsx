@@ -74,6 +74,7 @@ const schema = z.object({
   telemetryConsent: z.boolean().optional(),
   jargons: z.string(),
   saveRecordings: z.boolean().optional(),
+  autoStartRecording: z.boolean().optional(),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -98,6 +99,7 @@ export default function General() {
       telemetryConsent: true,
       jargons: "",
       saveRecordings: true,
+      autoStartRecording: false,
     },
   });
 
@@ -109,6 +111,7 @@ export default function General() {
         telemetryConsent: config.data.general.telemetry_consent ?? true,
         jargons: (config.data.general.jargons ?? []).join(", "),
         saveRecordings: config.data.general.save_recordings ?? true,
+        autoStartRecording: config.data.general.auto_start_recording ?? false,
       });
     }
   }, [config.data, form]);
@@ -126,6 +129,7 @@ export default function General() {
         telemetry_consent: v.telemetryConsent ?? true,
         jargons: v.jargons.split(",").map((jargon) => jargon.trim()).filter(Boolean),
         save_recordings: v.saveRecordings ?? true,
+        auto_start_recording: v.autoStartRecording ?? false,
       };
 
       await dbCommands.setConfig({
@@ -175,6 +179,32 @@ export default function General() {
                   <FormDescription>
                     <Trans>
                       Choose whether to save your recordings locally.
+                    </Trans>
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    color="gray"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="autoStartRecording"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div>
+                  <FormLabel>
+                    <Trans>Auto-start recording</Trans>
+                  </FormLabel>
+                  <FormDescription>
+                    <Trans>
+                      Automatically start recording when an event-attached note's meeting begins.
                     </Trans>
                   </FormDescription>
                 </div>

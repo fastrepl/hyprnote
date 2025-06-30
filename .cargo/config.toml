@@ -5,3 +5,7 @@ rustflags = [
   "-C",
   "link-arg=/FORCE:MULTIPLE",
 ]
+
+[env]
+CFLAGS = "/MD"
+CXXFLAGS = "/MD"

@@ -143,8 +143,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
 
             // Process mic detection signal
             let signal = crate::meeting_detection::MeetingSignal::MicrophoneActive;
+            let score = meeting_detector.process_signal(signal);
 
-            if let Some(score) = meeting_detector.process_signal(signal) {
+            handle_meeting_notification(score, auto_record_enabled, &bundle_id);
+        });
+
+        fn handle_meeting_notification(
+            score: Option<crate::meeting_detection::MeetingScore>,
+            auto_record_enabled: bool,
+            bundle_id: &str,
+        ) {
+            if let Some(score) = score {
                 // Auto-recording was triggered
                 let notif = hypr_notification2::Notification {
                     title: "Meeting detected".to_string(),
@@ -181,7 +190,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
                 bundle_id,
                 auto_record_enabled
             );
-        });
+        }
 
         {
             let mut guard = state.lock().unwrap();

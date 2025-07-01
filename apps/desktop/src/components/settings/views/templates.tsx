@@ -220,11 +220,11 @@ export default function TemplatesView() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <div className="text-sm font-medium">
+          <div className="space-y-0.5">
+            <div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               <Trans>Your Templates</Trans>
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-sm text-muted-foreground">
               <Trans>Select a template to enhance your meeting notes</Trans>
             </div>
           </div>

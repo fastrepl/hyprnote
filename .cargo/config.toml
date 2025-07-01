@@ -1,4 +1,5 @@
-[target.'cfg(all(windows, target_env = "msvc"))']
+# Debug build configuration - only when debug_assertions are enabled
+[target.'cfg(all(windows, target_env = "msvc", debug_assertions))']
 rustflags = [
   "-C",
   "target-feature=-crt-static",
@@ -10,40 +11,88 @@ rustflags = [
   "link-arg=/defaultlib:msvcrtd",
 ]
 
-[env]
-# Force all C/C++ compilation to use debug runtime
-CFLAGS = "/MDd /D_DEBUG /Od"
-CXXFLAGS = "/MDd /D_DEBUG /Od"
+# Release build configuration - only when debug_assertions are disabled
+[target.'cfg(all(windows, target_env = "msvc", not(debug_assertions)))']
+rustflags = [
+  "-C",
+  "target-feature=-crt-static",
+  "-C",
+  "link-arg=/FORCE:MULTIPLE",
+  # No debug runtime linking for release
+]
 
-# Force cc crate to use debug runtime for all targets
+# Debug-specific environment variables
+[target.'cfg(debug_assertions)'.env]
+# Common compiler settings
 CC_x86_64-pc-windows-msvc = "cl"
 CXX_x86_64-pc-windows-msvc = "cl"
+
+# Debug C/C++ compiler flags
+CFLAGS = "/MDd /D_DEBUG /Od"
+CXXFLAGS = "/MDd /D_DEBUG /Od"
 CFLAGS_x86_64-pc-windows-msvc = "/MDd /D_DEBUG /Od"
 CXXFLAGS_x86_64-pc-windows-msvc = "/MDd /D_DEBUG /Od"
 CFLAGS_x86_64_pc_windows_msvc = "/MDd /D_DEBUG /Od"
 CXXFLAGS_x86_64_pc_windows_msvc = "/MDd /D_DEBUG /Od"
 
-# Target-specific compiler flags
 TARGET_CFLAGS = "/MDd /D_DEBUG /Od"
 TARGET_CXXFLAGS = "/MDd /D_DEBUG /Od"
 
-# Force CMake to use debug runtime
+# CMake debug settings
 CMAKE_CXX_FLAGS = "/MDd /D_DEBUG"
 CMAKE_C_FLAGS = "/MDd /D_DEBUG"
 CMAKE_CXX_FLAGS_DEBUG = "/MDd /D_DEBUG /Od /Zi"
 CMAKE_C_FLAGS_DEBUG = "/MDd /D_DEBUG /Od /Zi"
-CMAKE_CXX_FLAGS_RELEASE = "/MDd /D_DEBUG /O2"
-CMAKE_C_FLAGS_RELEASE = "/MDd /D_DEBUG /O2"
+CMAKE_CXX_FLAGS_RELEASE = "/MD /DNDEBUG /O2"
+CMAKE_C_FLAGS_RELEASE = "/MD /DNDEBUG /O2"
 CMAKE_MSVC_RUNTIME_LIBRARY = "MultiThreadedDebugDLL"
 CMAKE_BUILD_TYPE = "Debug"
 
-# Force debug configuration globally
+# Debug configuration flags
 DEBUG = "1"
 NDEBUG = ""
 _DEBUG = "1"
 MSVC_RUNTIME = "dynamic-debug"
 MSVC_DEBUG = "1"
 
-# For whisper.cpp
+# Whisper.cpp debug settings
 WHISPER_CFLAGS = "/MDd /D_DEBUG"
 WHISPER_CXXFLAGS = "/MDd /D_DEBUG"
+
+# Release-specific environment variables
+[target.'cfg(not(debug_assertions))'.env]
+# Common compiler settings
+CC_x86_64-pc-windows-msvc = "cl"
+CXX_x86_64-pc-windows-msvc = "cl"
+
+# Release C/C++ compiler flags
+CFLAGS = "/MD /DNDEBUG /O2"
+CXXFLAGS = "/MD /DNDEBUG /O2"
+CFLAGS_x86_64-pc-windows-msvc = "/MD /DNDEBUG /O2"
+CXXFLAGS_x86_64-pc-windows-msvc = "/MD /DNDEBUG /O2"
+CFLAGS_x86_64_pc_windows_msvc = "/MD /DNDEBUG /O2"
+CXXFLAGS_x86_64_pc_windows_msvc = "/MD /DNDEBUG /O2"
+
+TARGET_CFLAGS = "/MD /DNDEBUG /O2"
+TARGET_CXXFLAGS = "/MD /DNDEBUG /O2"
+
+# CMake release settings
+CMAKE_CXX_FLAGS = "/MD /DNDEBUG"
+CMAKE_C_FLAGS = "/MD /DNDEBUG"
+CMAKE_CXX_FLAGS_DEBUG = "/MDd /D_DEBUG /Od /Zi"
+CMAKE_C_FLAGS_DEBUG = "/MDd /D_DEBUG /Od /Zi"
+CMAKE_CXX_FLAGS_RELEASE = "/MD /DNDEBUG /O2"
+CMAKE_C_FLAGS_RELEASE = "/MD /DNDEBUG /O2"
+CMAKE_MSVC_RUNTIME_LIBRARY = "MultiThreadedDLL"
+CMAKE_BUILD_TYPE = "Release"
+
+# Release configuration flags
+DEBUG = "0"
+NDEBUG = "1"
+_DEBUG = ""
+MSVC_RUNTIME = "dynamic"
+MSVC_DEBUG = "0"
+
+# Whisper.cpp release settings
+WHISPER_CFLAGS = "/MD /DNDEBUG"
+WHISPER_CXXFLAGS = "/MD /DNDEBUG"

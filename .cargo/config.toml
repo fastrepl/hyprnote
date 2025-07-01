@@ -29,9 +29,16 @@ MSVC_RUNTIME = "dynamic"
 MSVC_DEBUG = "1"
 # Force debug configuration
 CMAKE_BUILD_TYPE = "Debug"
-# For ORT (ONNX Runtime)
+# For ORT (ONNX Runtime) - more specific settings
 ORT_USE_CUDA = "OFF"
 ORT_BUILD_SHARED_LIB = "OFF"
+ORT_STRATEGY = "compile"
+ORT_DEBUG = "1"
+ORT_PREFER_DYNAMIC_LINK = "ON"
+ORT_CMAKE_EXTRA_ARGS = "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebugDLL -DCMAKE_CXX_FLAGS=/MDd -DCMAKE_C_FLAGS=/MDd"
+# Force ort-sys to compile from source with debug
+ORT_LIB_LOCATION = ""
+ORT_INCLUDE_DIR = ""
 # For whisper.cpp
 WHISPER_CFLAGS = "/MDd"
 WHISPER_CXXFLAGS = "/MDd"

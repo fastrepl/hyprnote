@@ -15,6 +15,7 @@ use axum::{
 };
 
 use futures_util::{SinkExt, StreamExt};
+use rodio::Source;
 use tower_http::cors::{self, CorsLayer};
 
 use hypr_chunker::ChunkerExt;
@@ -146,8 +147,15 @@ async fn websocket(socket: WebSocket, model: hypr_whisper_local::Whisper, guard:
     let mut stream = {
         let audio_source = WebSocketAudioSource::new(ws_receiver, 16 * 1000);
         let chunked =
-            audio_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(15));
-        hypr_whisper_local::TranscribeChunkedAudioStreamExt::transcribe(chunked, model)
+            audio_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
+
+        let chunked = hypr_whisper_local::AudioChunkStream(chunked.map(|chunk| {
+            hypr_whisper_local::SimpleAudioChunk {
+                samples: chunk.convert_samples().collect(),
+                metadata: None,
+            }
+        }));
+        hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(chunked, model)
     };
 
     loop {

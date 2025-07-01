@@ -132,7 +132,8 @@ export default function EditorArea({
           enhancedContent && "pb-10",
         ])}
         onClick={(e) => {
-          if (!(e.target instanceof HTMLAnchorElement)) {
+          const target = e.target as HTMLElement;
+          if (!target.closest("a[href]")) {
             e.stopPropagation();
             safelyFocusEditor();
           }

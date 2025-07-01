@@ -13,6 +13,7 @@
   "editor.inlayHints.enabled": "offUnlessPressed",
   "editor.defaultFormatter": "dprint.dprint",
   "editor.formatOnSave": true,
+  "rust-analyzer.diagnostics.disabled": ["macro-error"],
   "rust-analyzer.check.command": "check",
   "rust-analyzer.check.workspace": false,
   "rust-analyzer.checkOnSave": true,

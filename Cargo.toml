@@ -17,10 +17,6 @@ opt-level = 0
 debug = true
 opt-level = 0
 
-[profile.dev.package.ort-sys]
-debug = true
-opt-level = 0
-
 [profile.dev.package.esaxx-rs]
 debug = true
 opt-level = 0

@@ -232,6 +232,16 @@ fn build_response(
     {
         Some("title") => Some(hypr_gbnf::GBNF::Title.build()),
         Some("tags") => Some(hypr_gbnf::GBNF::Tags.build()),
+        Some("custom") => {
+            request
+                .metadata
+                .as_ref()
+                .unwrap_or(&serde_json::Value::Object(Default::default()))
+                .get("customGrammar")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string())
+        },
+        Some("none") => None,
         _ => Some(hypr_gbnf::GBNF::Enhance.build()),
     };
 

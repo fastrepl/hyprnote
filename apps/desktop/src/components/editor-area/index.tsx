@@ -205,6 +205,8 @@ export function useEnhanceMutation({
     }
   }
 
+
+
   const setEnhanceController = useOngoingSession((s) => s.setEnhanceController);
   const { persistSession, setEnhancedContent } = useSession(sessionId, (s) => ({
     persistSession: s.persistSession,
@@ -235,11 +237,38 @@ export function useEnhanceMutation({
       const { type } = await connectorCommands.getLlmConnection();
 
       const config = await dbCommands.getConfig();
+
+      let templateInfo = "";
+      const selectedTemplateId = config.general.selected_template_id;
+      if (selectedTemplateId) {
+        const templates = await dbCommands.listTemplates();
+        const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
+        
+        if (selectedTemplate) {
+          // Format template as a readable string
+          templateInfo = `
+SELECTED TEMPLATE:
+Template Title: ${selectedTemplate.title || 'Untitled'}
+Template Description: ${selectedTemplate.description || 'No description'}
+
+Sections:`;
+
+          selectedTemplate.sections?.forEach((section, index) => {
+            templateInfo += `
+  ${index + 1}. ${section.title || 'Untitled Section'}
+     └─ ${section.description || 'No description'}`;
+          });
+
+          console.log(templateInfo);
+        }
+      }
+
+      
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
       const systemMessage = await templateCommands.render(
         "enhance.system",
-        { config, type },
+        { config, type, templateInfo},
       );
 
       const userMessage = await templateCommands.render(
@@ -252,7 +281,7 @@ export function useEnhanceMutation({
         },
       );
 
-      // console.log("systemMessage", systemMessage);
+      console.log("systemMessage", systemMessage);
       // console.log("userMessage", userMessage);
 
       const abortController = new AbortController();

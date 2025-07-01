@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { TabIcon } from "@/components/settings/components/tab-icon";
 import { type Tab, TABS } from "@/components/settings/components/types";
-import { Calendar, Feedback, General, LocalAI, Notifications, Sound } from "@/components/settings/views";
+import { Calendar, Feedback, General, LocalAI, Notifications, Sound, TemplatesView } from "@/components/settings/views";
 import { cn } from "@hypr/ui/lib/utils";
 
 const schema = z.object({
@@ -22,6 +22,7 @@ function Component() {
   const navigate = useNavigate();
   const search = useSearch({ from: PATH });
   const { t } = useLingui();
+
 
   const handleClickTab = (tab: Tab) => {
     navigate({ to: PATH, search: { ...search, tab } });
@@ -91,6 +92,8 @@ function Component() {
                           ? <Trans>Lab</Trans>
                           : tab.name === "feedback"
                           ? <Trans>Feedback</Trans>
+                          : tab.name === "templates"
+                          ? <Trans>Templates</Trans>
                           : null}
                       </span>
                     </button>
@@ -122,6 +125,7 @@ function Component() {
               {search.tab === "ai" && <LocalAI />}
               {/* {search.tab === "lab" && <Lab />} */}
               {search.tab === "feedback" && <Feedback />}
+              {search.tab === "templates" && <TemplatesView />}
             </div>
           </div>
         </div>

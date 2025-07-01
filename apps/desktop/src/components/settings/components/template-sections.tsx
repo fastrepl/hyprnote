@@ -50,24 +50,17 @@ export function SectionsList({
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col space-y-3">
       <Reorder.Group values={items} onReorder={handleReorder}>
-        <div className="flex flex-col">
+        <div className="flex flex-col space-y-2">
           {items.map((item) => (
-            <Reorder.Item key={item.id} value={item} className="mb-4">
-              <div className="relative cursor-move bg-neutral-50">
-                <button
-                  className="absolute left-2 top-1/2 -translate-y-1/2 cursor-move opacity-50 hover:opacity-100"
-                  onPointerDown={(e) => controls.start(e)}
-                >
-                  <HandleIcon className="h-4 w-4" />
-                </button>
-                <SectionItem
-                  disabled={disabled}
-                  item={item}
-                  onChange={handleChange}
-                />
-              </div>
+            <Reorder.Item key={item.id} value={item}>
+              <SectionItem
+                disabled={disabled}
+                item={item}
+                onChange={handleChange}
+                dragControls={controls}
+              />
             </Reorder.Item>
           ))}
         </div>
@@ -76,7 +69,7 @@ export function SectionsList({
       <Button
         variant="outline"
         size="sm"
-        className="mt-2"
+        className="mt-2 text-sm"
         onClick={handleAddSection}
         disabled={disabled}
       >
@@ -91,9 +84,10 @@ interface SectionItemProps {
   disabled: boolean;
   item: ReorderItem & { id: string };
   onChange: (item: ReorderItem & { id: string }) => void;
+  dragControls: any;
 }
 
-export function SectionItem({ disabled, item, onChange }: SectionItemProps) {
+export function SectionItem({ disabled, item, onChange, dragControls }: SectionItemProps) {
   const { t } = useLingui();
 
   const handleChangeTitle = useCallback(
@@ -111,19 +105,36 @@ export function SectionItem({ disabled, item, onChange }: SectionItemProps) {
   );
 
   return (
-    <div className="ml-8 flex flex-col gap-2 rounded-lg border p-4">
-      <Input
+    <div className="group relative rounded-xl border border-border bg-card p-2 transition-all">
+      <button
+        className="absolute left-2 top-2 cursor-move opacity-30 hover:opacity-60 transition-opacity"
+        onPointerDown={(e) => dragControls.start(e)}
         disabled={disabled}
-        value={item.title}
-        onChange={handleChangeTitle}
-        placeholder={t`Enter a section title`}
-      />
-      <Textarea
-        disabled={disabled}
-        value={item.description}
-        onChange={handleChangeDescription}
-        placeholder={t`Describe the content and purpose of this section`}
-      />
+      >
+        <HandleIcon className="h-4 w-4 text-muted-foreground" />
+      </button>
+      
+      <div className="ml-5 space-y-1">
+        <div>
+          <Input
+            disabled={disabled}
+            value={item.title}
+            onChange={handleChangeTitle}
+            placeholder={t`Enter a section title`}
+            className="border-0 bg-transparent p-0 text-base font-medium focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
+          />
+        </div>
+        
+        <div>
+          <Textarea
+            disabled={disabled}
+            value={item.description}
+            onChange={handleChangeDescription}
+            placeholder={t`Describe the content and purpose of this section`}
+            className="min-h-[30px] resize-none border-0 bg-transparent p-0 text-sm text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
+          />
+        </div>
+      </div>
     </div>
   );
 }

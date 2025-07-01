@@ -2,6 +2,7 @@ import {
   AudioLinesIcon,
   BellIcon,
   CalendarIcon,
+  FileTextIcon,
   FlaskConicalIcon,
   MessageSquareIcon,
   SettingsIcon,
@@ -19,13 +20,15 @@ export function TabIcon({ tab }: { tab: Tab }) {
     case "sound":
       return <AudioLinesIcon className="h-4 w-4" />;
     case "lab":
-      return <FlaskConicalIcon size={16} />;
+      return <FlaskConicalIcon className="h-4 w-4" />;
     case "feedback":
-      return <MessageSquareIcon size={16} />;
+      return <MessageSquareIcon className="h-4 w-4" />;
     case "ai":
       return <SparklesIcon className="h-4 w-4" />;
     case "calendar":
       return <CalendarIcon className="h-4 w-4" />;
+    case "templates":
+      return <FileTextIcon className="h-4 w-4" />;
     default:
       return null;
   }

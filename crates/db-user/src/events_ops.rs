@@ -28,6 +28,7 @@ impl UserDatabase {
 
     pub async fn update_event(&self, event: Event) -> Result<Event, crate::Error> {
         let conn = self.conn()?;
+        let event_id = event.id.clone();
 
         let mut rows = conn
             .query(
@@ -54,9 +55,16 @@ impl UserDatabase {
             )
             .await?;
 
-        let row = rows.next().await?.unwrap();
-        let event: Event = libsql::de::from_row(&row)?;
-        Ok(event)
+        match rows.next().await? {
+            Some(row) => {
+                let event: Event = libsql::de::from_row(&row)?;
+                Ok(event)
+            }
+            None => Err(crate::Error::InvalidInput(format!(
+                "Event with id '{}' not found",
+                event_id
+            ))),
+        }
     }
 
     pub async fn upsert_event(&self, event: Event) -> Result<Event, crate::Error> {

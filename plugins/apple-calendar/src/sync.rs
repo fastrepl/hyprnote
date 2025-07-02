@@ -155,9 +155,11 @@ async fn _sync_events(
                 }
 
                 // Check if this might be a rescheduled event (same name, calendar, but different tracking_id)
-                if let Some(rescheduled_event) =
-                    find_potentially_rescheduled_event(&db_event, &all_system_events)
-                {
+                if let Some(rescheduled_event) = find_potentially_rescheduled_event(
+                    &db_event,
+                    &all_system_events,
+                    &db_selected_calendars,
+                ) {
                     tracing::info!(
                         "Detected rescheduled event: {} -> {}, event: '{}'",
                         db_event.tracking_id,
@@ -238,16 +240,27 @@ async fn _sync_events(
 fn find_potentially_rescheduled_event<'a>(
     db_event: &hypr_db_user::Event,
     system_events: &'a [&hypr_calendar_interface::Event],
+    db_calendars: &[hypr_db_user::Calendar],
 ) -> Option<&'a hypr_calendar_interface::Event> {
+    // Find the tracking_id of the database calendar to match against system events
+    let db_calendar_tracking_id = db_event.calendar_id.as_ref().and_then(|db_cal_id| {
+        db_calendars
+            .iter()
+            .find(|cal| cal.id == *db_cal_id)
+            .map(|cal| &cal.tracking_id)
+    });
+
     system_events
         .iter()
         .find(|sys_event| {
-            // Must have the same name and calendar
+            // Must have the same name
             sys_event.name == db_event.name &&
-        // Allow for reasonable time difference (within 30 days for rescheduling)
-        (sys_event.start_date - db_event.start_date).num_days().abs() <= 30 &&
-        // Must not have the same tracking_id (otherwise it's not rescheduled)
-        sys_event.id != db_event.tracking_id
+            // Must belong to the same calendar (compare tracking IDs)
+            db_calendar_tracking_id == Some(&sys_event.calendar_id) &&
+            // Allow for reasonable time difference (within 30 days for rescheduling)
+            (sys_event.start_date - db_event.start_date).num_days().abs() <= 30 &&
+            // Must not have the same tracking_id (otherwise it's not rescheduled)
+            sys_event.id != db_event.tracking_id
         })
         .copied()
 }

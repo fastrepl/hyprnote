@@ -3,8 +3,6 @@ rustflags = [
   "-C",
   "target-feature=-crt-static",
   "-C",
-  "link-arg=/FORCE:MULTIPLE",
-  "-C",
   "link-arg=/nodefaultlib:msvcrt",
   "-C", 
   "link-arg=/defaultlib:msvcrtd",

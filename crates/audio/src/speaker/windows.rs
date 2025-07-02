@@ -77,7 +77,7 @@ impl SpeakerStream {
         let device = get_default_device(&Direction::Render)?;
         let mut audio_client = device.get_iaudioclient()?;
 
-        let desired_format = WaveFormat::new(32, 32, &SampleType::Float, 44100, 2, None);
+        let desired_format = WaveFormat::new(32, 32, &SampleType::Float, 44100, 1, None);
 
         let (def_time, min_time) = audio_client.get_device_period()?;
         debug!("default period {}, min period {}", def_time, min_time);
@@ -198,7 +198,7 @@ fn capture_loop(tx_capt: std::sync::mpsc::SyncSender<Vec<u8>>, chunksize: usize)
 
     let mut audio_client = device.get_iaudioclient()?;
 
-    let desired_format = WaveFormat::new(32, 32, &SampleType::Float, 44100, 2, None);
+    let desired_format = WaveFormat::new(32, 32, &SampleType::Float, 44100, 1, None);
 
     let blockalign = desired_format.get_blockalign();
     debug!("Desired capture format: {:?}", desired_format);

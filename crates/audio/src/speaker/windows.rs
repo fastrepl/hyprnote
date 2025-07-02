@@ -3,6 +3,7 @@ use futures_util::Stream;
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 use std::task::{Poll, Waker};
+use std::thread;
 use tracing::{debug, error, trace};
 use wasapi::{get_default_device, Direction, SampleType, StreamMode, WaveFormat};
 
@@ -28,12 +29,9 @@ struct WakerState {
 }
 
 pub struct SpeakerStream {
-    audio_client: Option<wasapi::AudioClient>,
-    render_client: Option<wasapi::AudioCaptureClient>,
-    h_event: Option<wasapi::Handle>,
-    sample_queue: VecDeque<f32>,
+    sample_queue: Arc<Mutex<VecDeque<f32>>>,
     waker_state: Arc<Mutex<WakerState>>,
-    initialized: bool,
+    _capture_thread: thread::JoinHandle<()>,
 }
 
 unsafe impl Send for SpeakerStream {}
@@ -41,36 +39,40 @@ unsafe impl Send for SpeakerStream {}
 impl SpeakerStream {
     pub fn new() -> Self {
         debug!("Creating new SpeakerStream");
-        let mut stream = Self {
-            audio_client: None,
-            render_client: None,
-            h_event: None,
-            sample_queue: VecDeque::new(),
-            waker_state: Arc::new(Mutex::new(WakerState {
-                waker: None,
-                has_data: false,
-            })),
-            initialized: false,
-        };
 
-        // macOS처럼 생성자에서 바로 초기화
-        if let Err(e) = stream.initialize() {
-            error!("Failed to initialize speaker stream: {}", e);
-            // 초기화 실패해도 스트림은 생성 (재시도 가능)
+        let sample_queue = Arc::new(Mutex::new(VecDeque::new()));
+        let waker_state = Arc::new(Mutex::new(WakerState {
+            waker: None,
+            has_data: false,
+        }));
+
+        // macOS처럼 생성자에서 즉시 백그라운드 캡처 시작
+        let queue_clone = sample_queue.clone();
+        let waker_clone = waker_state.clone();
+
+        let capture_thread = thread::spawn(move || {
+            if let Err(e) = Self::capture_audio_loop(queue_clone, waker_clone) {
+                error!("Audio capture loop failed: {}", e);
+            }
+        });
+
+        Self {
+            sample_queue,
+            waker_state,
+            _capture_thread: capture_thread,
         }
-
-        stream
     }
 
     pub fn sample_rate(&self) -> u32 {
         44100
     }
 
-    fn initialize(&mut self) -> Result<()> {
-        debug!("Initializing SpeakerStream");
-        if self.initialized {
-            return Ok(());
-        }
+    // macOS의 Core Audio 콜백처럼 백그라운드에서 계속 실행
+    fn capture_audio_loop(
+        sample_queue: Arc<Mutex<VecDeque<f32>>>,
+        waker_state: Arc<Mutex<WakerState>>,
+    ) -> Result<()> {
+        debug!("Starting audio capture loop");
 
         let device = get_default_device(&Direction::Render)?;
         let mut audio_client = device.get_iaudioclient()?;
@@ -94,34 +96,25 @@ impl SpeakerStream {
         audio_client.start_stream()?;
         debug!("started audio stream");
 
-        self.audio_client = Some(audio_client);
-        self.render_client = Some(render_client);
-        self.h_event = Some(h_event);
-        self.initialized = true;
+        // macOS 콜백처럼 계속 실행되는 루프
+        loop {
+            if h_event.wait_for_event(3000).is_err() {
+                error!("timeout error, stopping capture");
+                break;
+            }
 
-        Ok(())
-    }
-
-    fn try_read_samples(&mut self) -> Result<()> {
-        if !self.initialized {
-            self.initialize()?;
-        }
-
-        let render_client = self.render_client.as_ref().unwrap();
-        let h_event = self.h_event.as_ref().unwrap();
-
-        // 논블로킹으로 이벤트 확인
-        if h_event.wait_for_event(3000).is_ok() {
             let mut temp_queue = VecDeque::new();
-            render_client.read_from_device_to_deque(&mut temp_queue)?;
+            if let Err(e) = render_client.read_from_device_to_deque(&mut temp_queue) {
+                error!("Failed to read audio data: {}", e);
+                continue;
+            }
 
-            // 바이트를 f32로 변환
-            // for chunk in temp_queue.chunks_exact(4) {
-            //     if let Ok(bytes) = chunk.try_into() {
-            //         let sample = f32::from_le_bytes(bytes);
-            //         self.sample_queue.push_back(sample);
-            //     }
-            // }
+            if temp_queue.is_empty() {
+                continue;
+            }
+
+            // 바이트를 f32로 변환하고 큐에 푸시
+            let mut samples = Vec::new();
             while temp_queue.len() >= 4 {
                 let bytes = [
                     temp_queue.pop_front().unwrap(),
@@ -130,16 +123,31 @@ impl SpeakerStream {
                     temp_queue.pop_front().unwrap(),
                 ];
                 let sample = f32::from_le_bytes(bytes);
-                self.sample_queue.push_back(sample);
+                samples.push(sample);
             }
 
-            if !self.sample_queue.is_empty() {
-                let mut state = self.waker_state.lock().unwrap();
-                if !state.has_data {
-                    state.has_data = true;
-                    if let Some(waker) = state.waker.take() {
-                        drop(state);
-                        waker.wake();
+            if !samples.is_empty() {
+                // macOS처럼 큐에 푸시하고 waker 깨우기
+                {
+                    let mut queue = sample_queue.lock().unwrap();
+                    queue.extend(samples);
+
+                    // 큐가 너무 커지지 않도록 제한
+                    let len = queue.len();
+                    if len > 8192 {
+                        queue.drain(0..(len - 8192));
+                    }
+                }
+
+                // waker 깨우기 (macOS 콜백과 동일한 패턴)
+                {
+                    let mut state = waker_state.lock().unwrap();
+                    if !state.has_data {
+                        state.has_data = true;
+                        if let Some(waker) = state.waker.take() {
+                            drop(state);
+                            waker.wake();
+                        }
                     }
                 }
             }
@@ -156,31 +164,29 @@ impl Stream for SpeakerStream {
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Option<Self::Item>> {
-        // 기존 버퍼에서 샘플 확인
-        trace!("poll_next");
-        if let Some(sample) = self.sample_queue.pop_front() {
-            return Poll::Ready(Some(sample));
+        // macOS처럼 단순히 큐에서 꺼내기만
+        {
+            let mut queue = self.sample_queue.lock().unwrap();
+            if let Some(sample) = queue.pop_front() {
+                return Poll::Ready(Some(sample));
+            }
         }
 
-        // 새로운 데이터 읽기 시도
-        if let Err(e) = self.try_read_samples() {
-            error!("Failed to read audio samples: {}", e);
-            return Poll::Ready(None);
-        }
-
-        // 다시 버퍼에서 샘플 확인
-        if let Some(sample) = self.sample_queue.pop_front() {
-            return Poll::Ready(Some(sample));
-        }
-
-        // 데이터가 없으면 waker 등록
+        // 데이터가 없으면 waker 등록하고 대기 (macOS와 동일)
         {
             let mut state = self.waker_state.lock().unwrap();
             state.has_data = false;
             state.waker = Some(cx.waker().clone());
         }
 
-        Poll::Pending
+        // 한 번 더 확인 (race condition 방지)
+        {
+            let mut queue = self.sample_queue.lock().unwrap();
+            match queue.pop_front() {
+                Some(sample) => Poll::Ready(Some(sample)),
+                None => Poll::Pending,
+            }
+        }
     }
 }
 

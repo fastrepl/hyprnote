@@ -7,12 +7,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@hypr/ui/components/ui/popover";
 import { Input } from "@hypr/ui/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { CopyIcon, EditIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
@@ -28,11 +24,46 @@ interface TemplateEditorProps {
 }
 
 const EMOJI_OPTIONS = [
-  "📄", "📝", "💼", "🤝", "👔", "🌃", "📋", "💡",
-  "🎯", "📊", "🔍", "💭", "📈", "🚀", "⭐", "🎨", 
-  "🔧", "📱", "💻", "📞", "✅", "❓", "💰", "🎪",
-  "🌟", "🎓", "🎉", "🔔", "📌", "🎁", "🌈", "🎭",
-  "🏆", "💎", "🔮", "⚡", "🌍", "🎵", "🎬", "🎮"
+  "📄",
+  "📝",
+  "💼",
+  "🤝",
+  "👔",
+  "🌃",
+  "📋",
+  "💡",
+  "🎯",
+  "📊",
+  "🔍",
+  "💭",
+  "📈",
+  "🚀",
+  "⭐",
+  "🎨",
+  "🔧",
+  "📱",
+  "💻",
+  "📞",
+  "✅",
+  "❓",
+  "💰",
+  "🎪",
+  "🌟",
+  "🎓",
+  "🎉",
+  "🔔",
+  "📌",
+  "🎁",
+  "🌈",
+  "🎭",
+  "🏆",
+  "💎",
+  "🔮",
+  "⚡",
+  "🌍",
+  "🎵",
+  "🎬",
+  "🎮",
 ];
 
 export default function TemplateEditor({
@@ -44,23 +75,20 @@ export default function TemplateEditor({
 }: TemplateEditorProps) {
   const { t } = useLingui();
 
-  console.log("now in template editor")
+  console.log("now in template editor");
   console.log("template: ", template);
-  
-  
+
   // Extract emoji from title or use default
   const extractEmojiFromTitle = (title: string) => {
     const emojiMatch = title.match(/^(\p{Emoji})\s*/u);
     return emojiMatch ? emojiMatch[1] : "📄";
   };
-  
+
   const getTitleWithoutEmoji = (title: string) => {
-    return title.replace(/^(\p{Emoji})\s*/u, '');
+    return title.replace(/^(\p{Emoji})\s*/u, "");
   };
-  
-  const [selectedEmoji, setSelectedEmoji] = useState(() => 
-    extractEmojiFromTitle(template.title || "")
-  );
+
+  const [selectedEmoji, setSelectedEmoji] = useState(() => extractEmojiFromTitle(template.title || ""));
 
   const [emojiPopoverOpen, setEmojiPopoverOpen] = useState(false);
 
@@ -170,8 +198,8 @@ export default function TemplateEditor({
                     <Trans>Duplicate</Trans>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={handleDelete} 
+                  <DropdownMenuItem
+                    onClick={handleDelete}
                     className="text-destructive hover:bg-red-100 hover:text-red-600 cursor-pointer"
                   >
                     <TrashIcon className="mr-2 h-4 w-4" />

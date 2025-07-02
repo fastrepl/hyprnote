@@ -147,7 +147,7 @@ const MIGRATIONS: [&str; 18] = [
     include_str!("./sessions_migration_1.sql"),
     include_str!("./sessions_migration_2.sql"),
     include_str!("./sessions_migration_3.sql"),
-    include_str!("./sessions_migration_4.sql")
+    include_str!("./sessions_migration_4.sql"),
 ];
 
 pub async fn migrate(db: &UserDatabase) -> Result<(), crate::Error> {

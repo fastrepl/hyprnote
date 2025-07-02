@@ -126,7 +126,7 @@ export function SectionItem({ disabled, item, onChange, onDelete, dragControls }
       >
         <HandleIcon className="h-4 w-4 text-muted-foreground" />
       </button>
-      
+
       <button
         className="absolute right-2 top-2 opacity-30 hover:opacity-100 hover:text-red-500 transition-all"
         onClick={handleDelete}
@@ -134,7 +134,7 @@ export function SectionItem({ disabled, item, onChange, onDelete, dragControls }
       >
         <XIcon className="h-3 w-3" />
       </button>
-      
+
       <div className="ml-5 mr-5 space-y-1">
         <div>
           <Input
@@ -145,7 +145,7 @@ export function SectionItem({ disabled, item, onChange, onDelete, dragControls }
             className="border-0 bg-transparent p-0 text-base font-medium focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
           />
         </div>
-        
+
         <div>
           <Textarea
             disabled={disabled}

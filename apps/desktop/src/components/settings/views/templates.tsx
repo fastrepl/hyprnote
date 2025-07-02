@@ -1,20 +1,19 @@
-import { useState, useEffect } from "react";
-import { Trans, useLingui } from "@lingui/react/macro";
-import { Button } from "@hypr/ui/components/ui/button";
-import { PlusIcon, ArrowLeftIcon, Loader2Icon, EditIcon } from "lucide-react";
+import { useHypr } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { type Template } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import TemplateEditor from "./template";
+import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
-import { useHypr } from "@/contexts";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Trans } from "@lingui/react/macro";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeftIcon, EditIcon, Loader2Icon, PlusIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import TemplateEditor from "./template";
 
 type ViewState = "list" | "editor" | "new";
 
 export default function TemplatesView() {
-  console.log("templatesview mounted@!")
-  const { t } = useLingui();
+  console.log("templatesview mounted@!");
   const [viewState, setViewState] = useState<ViewState>("list");
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [customTemplates, setCustomTemplates] = useState<Template[]>([]);
@@ -39,7 +38,7 @@ export default function TemplatesView() {
         console.error("Cannot save selected template because config is not loaded");
         return;
       }
-      
+
       await dbCommands.setConfig({
         ...config.data,
         general: {
@@ -66,12 +65,12 @@ export default function TemplatesView() {
       setLoading(true);
       const templates = await dbCommands.listTemplates();
       console.log("loaded templates: ", templates);
-      console.log(templates) 
-      
+      console.log(templates);
+
       // Separate custom and builtin templates
       const custom = templates.filter(t => !t.tags?.includes("builtin"));
       const builtin = templates.filter(t => t.tags?.includes("builtin"));
-      
+
       setCustomTemplates(custom);
       setBuiltinTemplates(builtin);
     } catch (error) {
@@ -93,7 +92,7 @@ export default function TemplatesView() {
         event: "template_selected",
         distinct_id: userId,
       });
-      
+
       selectTemplateMutation.mutate(template.id);
     }
   };
@@ -126,7 +125,7 @@ export default function TemplatesView() {
     try {
       await dbCommands.upsertTemplate(updatedTemplate);
       setSelectedTemplate(updatedTemplate);
-      
+
       // Refresh the list
       await loadTemplates();
     } catch (error) {
@@ -145,7 +144,7 @@ export default function TemplatesView() {
         ...template,
         id: crypto.randomUUID(),
         title: `${template.title} Copy`,
-        user_id: userId, 
+        user_id: userId,
       };
       await dbCommands.upsertTemplate(clonedTemplate);
       await loadTemplates();
@@ -185,7 +184,7 @@ export default function TemplatesView() {
       <div>
         <div className="mb-4">
           <Button
-            variant="ghost" 
+            variant="ghost"
             size="sm"
             onClick={handleBackToList}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
@@ -234,10 +233,10 @@ export default function TemplatesView() {
               <Trans>Select a template to enhance your meeting notes</Trans>
             </div>
           </div>
-          
-          <Button 
-            onClick={handleNewTemplate} 
-            variant="outline" 
+
+          <Button
+            onClick={handleNewTemplate}
+            variant="outline"
             size="sm"
           >
             <PlusIcon className="h-4 w-4" />
@@ -246,28 +245,30 @@ export default function TemplatesView() {
 
         {/* Templates */}
         <div className="space-y-2">
-          {customTemplates.length > 0 ? (
-            customTemplates.map((template) => (
-              <TemplateCard
-                key={template.id}
-                template={template}
-                onSelect={() => handleTemplateSelect(template)}
-                onEdit={() => handleTemplateEdit(template)}
-                onClone={() => handleCloneTemplate(template)}
-                onDelete={() => handleDeleteTemplate(template)}
-                isSelected={template.id === selectedTemplateId}
-              />
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center py-8 px-6 text-center bg-neutral-50 border border-neutral-200 rounded-lg">
-              <div className="text-sm font-medium text-neutral-600 mb-1">
-                <Trans>No templates yet</Trans>
+          {customTemplates.length > 0
+            ? (
+              customTemplates.map((template) => (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  onSelect={() => handleTemplateSelect(template)}
+                  onEdit={() => handleTemplateEdit(template)}
+                  onClone={() => handleCloneTemplate(template)}
+                  onDelete={() => handleDeleteTemplate(template)}
+                  isSelected={template.id === selectedTemplateId}
+                />
+              ))
+            )
+            : (
+              <div className="flex flex-col items-center justify-center py-8 px-6 text-center bg-neutral-50 border border-neutral-200 rounded-lg">
+                <div className="text-sm font-medium text-neutral-600 mb-1">
+                  <Trans>No templates yet</Trans>
+                </div>
+                <div className="text-xs text-neutral-500">
+                  <Trans>Create your first template to get started</Trans>
+                </div>
               </div>
-              <div className="text-xs text-neutral-500">
-                <Trans>Create your first template to get started</Trans>
-              </div>
-            </div>
-          )}
+            )}
         </div>
 
         {/* Built-in Templates */}
@@ -310,28 +311,44 @@ interface TemplateCardProps {
 function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, isSelected }: TemplateCardProps) {
   // Function to get emoji based on template title
   const getTemplateEmoji = (title: string) => {
-    if (emoji) return emoji;
-    
+    if (emoji) {
+      return emoji;
+    }
+
     const emojiMatch = title.match(/^(\p{Emoji})/u);
     if (emojiMatch) {
       return emojiMatch[1];
     }
-    
+
     // Fall back to keyword matching if no emoji in title
     const lowercaseTitle = title.toLowerCase();
-    if (lowercaseTitle.includes("meeting") || lowercaseTitle.includes("vc")) return "💼";
-    if (lowercaseTitle.includes("interview") || lowercaseTitle.includes("job")) return "👔";
-    if (lowercaseTitle.includes("all hands") || lowercaseTitle.includes("team")) return "🤝";
-    if (lowercaseTitle.includes("standup") || lowercaseTitle.includes("daily")) return "☀️";
-    if (lowercaseTitle.includes("project") || lowercaseTitle.includes("planning")) return "📋";
-    if (lowercaseTitle.includes("review") || lowercaseTitle.includes("feedback")) return "📝";
-    if (lowercaseTitle.includes("brainstorm") || lowercaseTitle.includes("ideas")) return "💡";
+    if (lowercaseTitle.includes("meeting") || lowercaseTitle.includes("vc")) {
+      return "💼";
+    }
+    if (lowercaseTitle.includes("interview") || lowercaseTitle.includes("job")) {
+      return "👔";
+    }
+    if (lowercaseTitle.includes("all hands") || lowercaseTitle.includes("team")) {
+      return "🤝";
+    }
+    if (lowercaseTitle.includes("standup") || lowercaseTitle.includes("daily")) {
+      return "☀️";
+    }
+    if (lowercaseTitle.includes("project") || lowercaseTitle.includes("planning")) {
+      return "📋";
+    }
+    if (lowercaseTitle.includes("review") || lowercaseTitle.includes("feedback")) {
+      return "📝";
+    }
+    if (lowercaseTitle.includes("brainstorm") || lowercaseTitle.includes("ideas")) {
+      return "💡";
+    }
     return "📄"; // Default emoji
   };
 
   // Also update the title display to remove emoji since it's shown separately
   const getTitleWithoutEmoji = (title: string) => {
-    return title.replace(/^(\p{Emoji})\s*/u, '');
+    return title.replace(/^(\p{Emoji})\s*/u, "");
   };
 
   const handleCardClick = () => {
@@ -345,18 +362,21 @@ function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, is
 
   // Function to truncate text
   const truncateText = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text;
+    if (text.length <= maxLength) {
+      return text;
+    }
     return text.substring(0, maxLength).trim() + "...";
   };
 
   return (
-    <div className={cn(
-      "p-4 rounded-lg shadow-sm transition-all duration-150 ease-in-out cursor-pointer flex flex-col gap-2",
-      isSelected 
-        ? "border border-blue-500 ring-2 ring-blue-500 bg-blue-50" 
-        : "border border-neutral-200 bg-white hover:border-neutral-300"
-    )}
-    onClick={handleCardClick}
+    <div
+      className={cn(
+        "p-4 rounded-lg shadow-sm transition-all duration-150 ease-in-out cursor-pointer flex flex-col gap-2",
+        isSelected
+          ? "border border-blue-500 ring-2 ring-blue-500 bg-blue-50"
+          : "border border-neutral-200 bg-white hover:border-neutral-300",
+      )}
+      onClick={handleCardClick}
     >
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-3">
@@ -370,17 +390,16 @@ function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, is
               </div>
             </div>
             <p className="text-xs font-normal text-neutral-500 mt-1 truncate">
-              {template.description 
+              {template.description
                 ? truncateText(template.description, 50)
-                : "Create and customize your meeting notes"
-              }
+                : "Create and customize your meeting notes"}
             </p>
           </div>
         </div>
-        
+
         {onEdit && (
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={handleEditClick}
             className="ml-2 rounded-lg border-neutral-300 hover:border-neutral-400"

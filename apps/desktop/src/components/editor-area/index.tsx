@@ -244,7 +244,7 @@ export function useEnhanceMutation({
       if (selectedTemplateId) {
         const templates = await dbCommands.listTemplates();
         const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
-        
+
         if (selectedTemplate) {
           // Generate custom GBNF grammar
           if (selectedTemplate.sections && selectedTemplate.sections.length > 0) {
@@ -254,17 +254,16 @@ export function useEnhanceMutation({
           // Format template as a readable string for system prompt
           templateInfo = `
 SELECTED TEMPLATE:
-Template Title: ${selectedTemplate.title || 'Untitled'}
-Template Description: ${selectedTemplate.description || 'No description'}
+Template Title: ${selectedTemplate.title || "Untitled"}
+Template Description: ${selectedTemplate.description || "No description"}
 
 Sections:`;
 
           selectedTemplate.sections?.forEach((section, index) => {
             templateInfo += `
-  ${index + 1}. ${section.title || 'Untitled Section'}
-     └─ ${section.description || 'No description'}`;
+  ${index + 1}. ${section.title || "Untitled Section"}
+     └─ ${section.description || "No description"}`;
           });
-
         }
       }
 
@@ -272,7 +271,7 @@ Sections:`;
 
       const systemMessage = await templateCommands.render(
         "enhance.system",
-        { config, type, templateInfo},
+        { config, type, templateInfo },
       );
 
       const userMessage = await templateCommands.render(
@@ -284,7 +283,6 @@ Sections:`;
           participants,
         },
       );
-
 
       const abortController = new AbortController();
       const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(60 * 1000)]);
@@ -316,12 +314,14 @@ Sections:`;
         ],
         providerOptions: {
           [localProviderName]: {
-            metadata: customGrammar ? {
-              grammar: "custom",
-              customGrammar: customGrammar,
-            } : {
-              grammar: "enhance",
-            },
+            metadata: customGrammar
+              ? {
+                grammar: "custom",
+                customGrammar: customGrammar,
+              }
+              : {
+                grammar: "enhance",
+              },
           },
         },
       });
@@ -446,32 +446,31 @@ function useAutoEnhance({
 
 function generateCustomGBNF(templateSections: any[]): string {
   if (!templateSections || templateSections.length === 0) {
-    return ""; 
+    return "";
   }
 
   // Function to safely escape header text for GBNF string literals
   function escapeForGBNF(text: string): string {
     return text
-      .replace(/\\/g, '\\\\')
-      .replace(/"/g, '\\"')
-      .replace(/\n/g, '\\n')
-      .replace(/\r/g, '\\r')
-      .replace(/\t/g, '\\t');
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, "\\\"")
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "\\r")
+      .replace(/\t/g, "\\t");
   }
 
   // Validate section titles and provide fallbacks
   const validatedSections = templateSections.map((section, index) => {
     let title = section.title || `Section ${index + 1}`;
-    
-   
+
     title = title
       .trim()
-      .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
+      .replace(/[\x00-\x1F\x7F]/g, "") // Remove control characters
       .substring(0, 100); // Limit length to prevent issues
-    
+
     return {
       ...section,
-      safeTitle: title || `Section ${index + 1}` 
+      safeTitle: title || `Section ${index + 1}`,
     };
   });
 
@@ -480,11 +479,11 @@ function generateCustomGBNF(templateSections: any[]): string {
     const sectionName = `section${index + 1}`;
     const escapedHeader = escapeForGBNF(section.safeTitle);
     return `${sectionName} ::= "# ${escapedHeader}\\n\\n" bline bline bline? bline? bline? "\\n"`;
-  }).join('\n');
+  }).join("\n");
 
   // Generate root rule with all sections
-  const sectionNames = validatedSections.map((_, index) => `section${index + 1}`).join(' ');
-  
+  const sectionNames = validatedSections.map((_, index) => `section${index + 1}`).join(" ");
+
   const grammar = `root ::= thinking ${sectionNames}
 
 ${sectionRules}
@@ -496,6 +495,6 @@ hd ::= "- " [A-Z] [^[(*\\n]+ "\\n"
 thinking ::= "<thinking>\\n" hsf hd hd? hd? hd? "</thinking>"
 
 link ::= "[" [^\\]]+ "]" "(" [^)]+ ")"`;
-  
+
   return grammar;
 }

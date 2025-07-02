@@ -23,7 +23,6 @@ function Component() {
   const search = useSearch({ from: PATH });
   const { t } = useLingui();
 
-
   const handleClickTab = (tab: Tab) => {
     navigate({ to: PATH, search: { ...search, tab } });
   };

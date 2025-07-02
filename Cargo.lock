@@ -15760,7 +15760,8 @@ dependencies = [
 [[package]]
 name = "wasapi"
 version = "0.19.0"
-source = "git+https://github.com/HEnquist/wasapi-rs#091e0da655a9a33eaeab035f3e373fdd34d5f6f3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a44f8b836526917dd6b4ca0ca163394df7cadae249ee6a8b10d36ee4265298c9"
 dependencies = [
  "log",
  "num-integer",

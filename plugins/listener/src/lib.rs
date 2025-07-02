@@ -13,6 +13,7 @@ pub use client::*;
 pub use error::*;
 pub use events::*;
 pub use ext::ListenerPluginExt;
+pub use fsm::StateEvent;
 
 pub use hypr_listener_interface::*;
 
@@ -21,7 +22,7 @@ const PLUGIN_NAME: &str = "listener";
 pub type SharedState = Mutex<State>;
 
 pub struct State {
-    fsm: statig::awaitable::StateMachine<fsm::Session>,
+    pub fsm: statig::awaitable::StateMachine<fsm::Session>,
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {

@@ -141,17 +141,12 @@ impl Session {
         });
 
         tasks.spawn({
-            tracing::info!("spawned speaker_stream");
             let speaker_muted_rx = speaker_muted_rx_main.clone();
             async move {
-                tracing::info!("entered speaker_stream");
                 let mut is_muted = *speaker_muted_rx.borrow();
-                tracing::info!("is_muted: {:?}", is_muted);
                 let watch_rx = speaker_muted_rx.clone();
-                tracing::info!("watch_rx: {:?}", watch_rx);
 
                 while let Some(actual) = speaker_stream.next().await {
-                    tracing::info!("speaker_stream.next()");
                     if watch_rx.has_changed().unwrap_or(false) {
                         is_muted = *watch_rx.borrow();
                     }

@@ -15,7 +15,7 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { Trans, useLingui } from "@lingui/react/macro";
-import { CopyIcon, EditIcon, MoreHorizontalIcon, TrashIcon, SmileIcon } from "lucide-react";
+import { CopyIcon, EditIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { SectionsList } from "../components/template-sections";
 

@@ -1,15 +1,10 @@
 import { useState, useEffect } from "react";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@hypr/ui/components/ui/dropdown-menu";
-import { PlusIcon, ArrowLeftIcon, Loader2Icon, MoreHorizontalIcon, CopyIcon, TrashIcon, EditIcon } from "lucide-react";
+import { PlusIcon, ArrowLeftIcon, Loader2Icon, EditIcon } from "lucide-react";
 import { type Template } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import TemplateEditor from "./template";
 import { cn } from "@hypr/ui/lib/utils";
 import { useHypr } from "@/contexts";
@@ -94,6 +89,11 @@ export default function TemplatesView() {
       selectTemplateMutation.mutate("");
     } else {
       // Select this template
+      analyticsCommands.event({
+        event: "template_selected",
+        distinct_id: userId,
+      });
+      
       selectTemplateMutation.mutate(template.id);
     }
   };
@@ -105,6 +105,11 @@ export default function TemplatesView() {
   };
 
   const handleNewTemplate = () => {
+    analyticsCommands.event({
+      event: "template_created",
+      distinct_id: userId,
+    });
+
     const newTemplate: Template = {
       id: crypto.randomUUID(),
       user_id: userId,
@@ -140,7 +145,7 @@ export default function TemplatesView() {
         ...template,
         id: crypto.randomUUID(),
         title: `${template.title} Copy`,
-        user_id: userId, // FIXED: Use userId from context
+        user_id: userId, 
       };
       await dbCommands.upsertTemplate(clonedTemplate);
       await loadTemplates();
@@ -186,6 +191,7 @@ export default function TemplatesView() {
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeftIcon className="h-4 w-4" />
+            <Trans>Save and close</Trans>
           </Button>
         </div>
 
@@ -253,11 +259,11 @@ export default function TemplatesView() {
               />
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="text-sm text-muted-foreground">
+            <div className="flex flex-col items-center justify-center py-8 px-6 text-center bg-neutral-50 border border-neutral-200 rounded-lg">
+              <div className="text-sm font-medium text-neutral-600 mb-1">
                 <Trans>No templates yet</Trans>
               </div>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="text-xs text-neutral-500">
                 <Trans>Create your first template to get started</Trans>
               </div>
             </div>
@@ -306,7 +312,6 @@ function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, is
   const getTemplateEmoji = (title: string) => {
     if (emoji) return emoji;
     
-    // ✅ First try to extract emoji from title
     const emojiMatch = title.match(/^(\p{Emoji})/u);
     if (emojiMatch) {
       return emojiMatch[1];

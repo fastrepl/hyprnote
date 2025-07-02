@@ -1,5 +1,5 @@
 import { useLingui } from "@lingui/react/macro";
-import { GripVertical as HandleIcon, PlusIcon } from "lucide-react";
+import { GripVertical as HandleIcon, PlusIcon, XIcon } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import { useCallback, useState } from "react";
 
@@ -32,11 +32,18 @@ export function SectionsList({
     onChange(items);
   };
 
+  const handleDelete = (itemId: string) => {
+    const newItems = items.filter((item) => item.id !== itemId);
+    setItems(newItems);
+    onChange(newItems);
+  };
+
   const handleReorder = (v: typeof items) => {
     if (disabled) {
       return;
     }
     setItems(v);
+    onChange(v);
   };
 
   const handleAddSection = () => {
@@ -59,6 +66,7 @@ export function SectionsList({
                 disabled={disabled}
                 item={item}
                 onChange={handleChange}
+                onDelete={handleDelete}
                 dragControls={controls}
               />
             </Reorder.Item>
@@ -84,10 +92,11 @@ interface SectionItemProps {
   disabled: boolean;
   item: ReorderItem & { id: string };
   onChange: (item: ReorderItem & { id: string }) => void;
+  onDelete: (itemId: string) => void;
   dragControls: any;
 }
 
-export function SectionItem({ disabled, item, onChange, dragControls }: SectionItemProps) {
+export function SectionItem({ disabled, item, onChange, onDelete, dragControls }: SectionItemProps) {
   const { t } = useLingui();
 
   const handleChangeTitle = useCallback(
@@ -104,8 +113,12 @@ export function SectionItem({ disabled, item, onChange, dragControls }: SectionI
     [item, onChange],
   );
 
+  const handleDelete = useCallback(() => {
+    onDelete(item.id);
+  }, [item.id, onDelete]);
+
   return (
-    <div className="group relative rounded-xl border border-border bg-card p-2 transition-all">
+    <div className="group relative rounded-md border border-border bg-card p-2 transition-all">
       <button
         className="absolute left-2 top-2 cursor-move opacity-30 hover:opacity-60 transition-opacity"
         onPointerDown={(e) => dragControls.start(e)}
@@ -114,7 +127,15 @@ export function SectionItem({ disabled, item, onChange, dragControls }: SectionI
         <HandleIcon className="h-4 w-4 text-muted-foreground" />
       </button>
       
-      <div className="ml-5 space-y-1">
+      <button
+        className="absolute right-2 top-2 opacity-30 hover:opacity-100 hover:text-red-500 transition-all"
+        onClick={handleDelete}
+        disabled={disabled}
+      >
+        <XIcon className="h-3 w-3" />
+      </button>
+      
+      <div className="ml-5 mr-5 space-y-1">
         <div>
           <Input
             disabled={disabled}

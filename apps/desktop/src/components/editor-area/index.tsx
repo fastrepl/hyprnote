@@ -249,7 +249,6 @@ export function useEnhanceMutation({
           // Generate custom GBNF grammar
           if (selectedTemplate.sections && selectedTemplate.sections.length > 0) {
             customGrammar = generateCustomGBNF(selectedTemplate.sections);
-            console.log("Generated custom grammar:", customGrammar);
           }
 
           // Format template as a readable string for system prompt
@@ -266,7 +265,6 @@ Sections:`;
      └─ ${section.description || 'No description'}`;
           });
 
-          console.log(templateInfo);
         }
       }
 
@@ -287,8 +285,6 @@ Sections:`;
         },
       );
 
-      console.log("systemMessage", systemMessage);
-      // console.log("userMessage", userMessage);
 
       const abortController = new AbortController();
       const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(60 * 1000)]);
@@ -450,17 +446,14 @@ function useAutoEnhance({
 
 function generateCustomGBNF(templateSections: any[]): string {
   if (!templateSections || templateSections.length === 0) {
-    return ""; // Return empty string if no sections
+    return ""; 
   }
 
   // Function to safely escape header text for GBNF string literals
   function escapeForGBNF(text: string): string {
     return text
-      // First escape backslashes (must be first!)
       .replace(/\\/g, '\\\\')
-      // Then escape quotes (critical for string literals)
       .replace(/"/g, '\\"')
-      // Escape other GBNF special characters that could break parsing
       .replace(/\n/g, '\\n')
       .replace(/\r/g, '\\r')
       .replace(/\t/g, '\\t');
@@ -470,8 +463,7 @@ function generateCustomGBNF(templateSections: any[]): string {
   const validatedSections = templateSections.map((section, index) => {
     let title = section.title || `Section ${index + 1}`;
     
-    // Additional safety: Remove or replace problematic characters
-    // that even escaping might not handle well in GBNF
+   
     title = title
       .trim()
       .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
@@ -479,7 +471,7 @@ function generateCustomGBNF(templateSections: any[]): string {
     
     return {
       ...section,
-      safeTitle: title || `Section ${index + 1}` // Fallback if title becomes empty
+      safeTitle: title || `Section ${index + 1}` 
     };
   });
 
@@ -504,9 +496,6 @@ hd ::= "- " [A-Z] [^[(*\\n]+ "\\n"
 thinking ::= "<thinking>\\n" hsf hd hd? hd? hd? "</thinking>"
 
 link ::= "[" [^\\]]+ "]" "(" [^)]+ ")"`;
-
-  // Optional: Add grammar validation logging
-  console.log("Generated GBNF grammar:", grammar);
   
   return grammar;
 }

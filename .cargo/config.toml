@@ -3,3 +3,41 @@ rustflags = [
   "-C",
   "target-feature=-crt-static",
 ]
+
+[env]
+# Force all C/C++ compilation to use release runtime
+CFLAGS = "/MD /O2"
+CXXFLAGS = "/MD /O2"
+
+# Force cc crate to use release runtime for all targets
+CC_x86_64-pc-windows-msvc = "cl"
+CXX_x86_64-pc-windows-msvc = "cl"
+CFLAGS_x86_64-pc-windows-msvc = "/MD /O2"
+CXXFLAGS_x86_64-pc-windows-msvc = "/MD /O2"
+CFLAGS_x86_64_pc_windows_msvc = "/MD /O2"
+CXXFLAGS_x86_64_pc_windows_msvc = "/MD /O2"
+
+# Target-specific compiler flags
+TARGET_CFLAGS = "/MD /O2"
+TARGET_CXXFLAGS = "/MD /O2"
+
+# Force CMake to use release runtime
+CMAKE_CXX_FLAGS = "/MD"
+CMAKE_C_FLAGS = "/MD"
+CMAKE_CXX_FLAGS_DEBUG = "/MD /Od /Zi"
+CMAKE_C_FLAGS_DEBUG = "/MD /Od /Zi"
+CMAKE_CXX_FLAGS_RELEASE = "/MD /O2"
+CMAKE_C_FLAGS_RELEASE = "/MD /O2"
+CMAKE_MSVC_RUNTIME_LIBRARY = "MultiThreadedDLL"
+CMAKE_BUILD_TYPE = "Release"
+
+# Force release configuration globally
+DEBUG = "0"
+NDEBUG = "1"
+_DEBUG = ""
+MSVC_RUNTIME = "dynamic"
+MSVC_DEBUG = "0"
+
+# For whisper.cpp
+WHISPER_CFLAGS = "/MD"
+WHISPER_CXXFLAGS = "/MD"

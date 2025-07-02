@@ -94,19 +94,26 @@ export function EventChip({ sessionId }: EventChipProps) {
       return eventId;
     },
     onSuccess: async (assignedEventId) => {
-      event.refetch();
-      eventsInPastWithoutAssignedSession.refetch();
+      // Optimistically update the event query cache to prevent race conditions
+      const eventDetails = await dbCommands.getEvent(assignedEventId);
+      if (eventDetails) {
+        queryClient.setQueryData(["event", sessionId], { ...eventDetails, meetingLink: null });
+      }
+
+      // Wait for critical queries to complete before invalidating sessions
+      await Promise.all([
+        event.refetch(),
+        eventsInPastWithoutAssignedSession.refetch(),
+      ]);
+
+      // Only invalidate sessions cache after individual queries are settled
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
 
-      if (assignedEventId && updateTitle && currentSessionDetails) {
+      if (assignedEventId && updateTitle && currentSessionDetails && eventDetails?.name) {
         try {
-          const eventDetails = await dbCommands.getEvent(assignedEventId);
-
-          if (eventDetails?.name) {
-            if (!currentSessionDetails.title?.trim()) {
-              updateTitle(eventDetails.name);
-              queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
-            }
+          if (!currentSessionDetails.title?.trim()) {
+            updateTitle(eventDetails.name);
+            queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
           }
         } catch (error) {
           console.error("Failed to update session title after event assignment:", error);
@@ -119,9 +126,17 @@ export function EventChip({ sessionId }: EventChipProps) {
     mutationFn: async () => {
       await dbCommands.setSessionEvent(sessionId, null);
     },
-    onSuccess: () => {
-      event.refetch();
-      eventsInPastWithoutAssignedSession.refetch();
+    onSuccess: async () => {
+      // Optimistically clear the event query cache
+      queryClient.setQueryData(["event", sessionId], null);
+
+      // Wait for critical queries to complete before invalidating sessions
+      await Promise.all([
+        event.refetch(),
+        eventsInPastWithoutAssignedSession.refetch(),
+      ]);
+
+      // Only invalidate sessions cache after individual queries are settled
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       setIsEventSelectorOpen(false);
     },
@@ -141,9 +156,6 @@ export function EventChip({ sessionId }: EventChipProps) {
   const handleSelectEvent = async (eventIdToLink: string) => {
     assignEvent.mutate(eventIdToLink, {
       onSuccess: () => {
-        event.refetch();
-        eventsInPastWithoutAssignedSession.refetch();
-        queryClient.invalidateQueries({ queryKey: ["sessions"] });
         setIsEventSelectorOpen(false);
       },
       onError: (error) => {

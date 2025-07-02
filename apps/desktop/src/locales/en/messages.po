@@ -564,12 +564,12 @@ msgid "Enter the API key for your custom LLM endpoint"
 msgstr "Enter the API key for your custom LLM endpoint"
 
 #: src/components/settings/components/ai/llm-view.tsx:203
-msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434)"
-msgstr "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434)"
+#~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434)"
+#~ msgstr "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434)"
 
 #: src/components/settings/components/ai/llm-view.tsx:203
-#~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434/v1)"
-#~ msgstr "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434/v1)"
+msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434/v1)"
+msgstr "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434/v1)"
 
 #: src/components/settings/components/ai/llm-view.tsx:203
 #~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)"

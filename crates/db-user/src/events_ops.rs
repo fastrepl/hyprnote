@@ -26,6 +26,39 @@ impl UserDatabase {
         Ok(())
     }
 
+    pub async fn update_event(&self, event: Event) -> Result<Event, crate::Error> {
+        let conn = self.conn()?;
+
+        let mut rows = conn
+            .query(
+                "UPDATE events SET
+                    tracking_id = :tracking_id,
+                    calendar_id = :calendar_id,
+                    name = :name,
+                    note = :note,
+                    start_date = :start_date,
+                    end_date = :end_date,
+                    google_event_url = :google_event_url
+                WHERE id = :id
+                RETURNING *",
+                libsql::named_params! {
+                    ":id": event.id,
+                    ":tracking_id": event.tracking_id,
+                    ":calendar_id": event.calendar_id,
+                    ":name": event.name,
+                    ":note": event.note,
+                    ":start_date": event.start_date.to_rfc3339(),
+                    ":end_date": event.end_date.to_rfc3339(),
+                    ":google_event_url": event.google_event_url,
+                },
+            )
+            .await?;
+
+        let row = rows.next().await?.unwrap();
+        let event: Event = libsql::de::from_row(&row)?;
+        Ok(event)
+    }
+
     pub async fn upsert_event(&self, event: Event) -> Result<Event, crate::Error> {
         let conn = self.conn()?;
 

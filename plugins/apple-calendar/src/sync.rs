@@ -113,53 +113,143 @@ async fn _sync_events(
 ) -> Result<EventSyncState, crate::Error> {
     let mut state = EventSyncState::default();
 
+    // Collect all system events for rescheduled event detection
+    let all_system_events: Vec<&hypr_calendar_interface::Event> =
+        system_events_per_selected_calendar
+            .values()
+            .flatten()
+            .collect();
+
     // Process existing events:
     // 1. Delete events from unselected calendars that have no sessions
-    // 2. Delete events that no longer exist in the system calendar
-    for (db_event, session) in db_events_with_session {
+    // 2. Handle rescheduled events (update instead of delete + create)
+    // 3. Delete events that no longer exist in the system calendar
+    for (db_event, session) in &db_events_with_session {
         let is_selected_cal = db_selected_calendars
             .iter()
             .any(|c| c.tracking_id == db_event.calendar_id.clone().unwrap_or_default());
 
-        if !is_selected_cal && session.map_or(true, |s| s.is_empty()) {
+        if !is_selected_cal && session.as_ref().map_or(true, |s| s.is_empty()) {
             state.to_delete.push(db_event.clone());
             continue;
         }
 
         if let Some(ref calendar_id) = db_event.calendar_id {
             if let Some(events) = system_events_per_selected_calendar.get(calendar_id) {
-                if !events.iter().any(|e| e.id == db_event.tracking_id) {
-                    state.to_delete.push(db_event.clone());
+                // Check if event exists with same tracking_id
+                if let Some(matching_event) = events.iter().find(|e| e.id == db_event.tracking_id) {
+                    // Event exists with same tracking_id - it may have been updated
+                    let updated_event = hypr_db_user::Event {
+                        id: db_event.id.clone(), // Preserve the original database ID
+                        tracking_id: matching_event.id.clone(),
+                        user_id: user_id.clone(),
+                        calendar_id: Some(calendar_id.clone()),
+                        name: matching_event.name.clone(),
+                        note: matching_event.note.clone(),
+                        start_date: matching_event.start_date,
+                        end_date: matching_event.end_date,
+                        google_event_url: db_event.google_event_url.clone(), // Preserve any existing URL
+                    };
+                    state.to_update.push(updated_event);
                     continue;
                 }
+
+                // Check if this might be a rescheduled event (same name, calendar, but different tracking_id)
+                if let Some(rescheduled_event) =
+                    find_potentially_rescheduled_event(&db_event, &all_system_events)
+                {
+                    tracing::info!(
+                        "Detected rescheduled event: {} -> {}, event: '{}'",
+                        db_event.tracking_id,
+                        rescheduled_event.id,
+                        db_event.name
+                    );
+
+                    // Update the existing database event with new tracking_id and details
+                    let updated_event = hypr_db_user::Event {
+                        id: db_event.id.clone(), // Preserve the original database ID to keep user notes/sessions
+                        tracking_id: rescheduled_event.id.clone(),
+                        user_id: user_id.clone(),
+                        calendar_id: db_event.calendar_id.clone(),
+                        name: rescheduled_event.name.clone(),
+                        note: rescheduled_event.note.clone(),
+                        start_date: rescheduled_event.start_date,
+                        end_date: rescheduled_event.end_date,
+                        google_event_url: db_event.google_event_url.clone(),
+                    };
+                    state.to_update.push(updated_event);
+                    continue;
+                }
+
+                // Event not found - mark for deletion
+                tracing::info!(
+                    "Event not found in system calendar, marking for deletion: {} '{}'",
+                    db_event.tracking_id,
+                    db_event.name
+                );
+                state.to_delete.push(db_event.clone());
             }
         }
     }
 
+    // Add new events (that haven't been handled as updates)
     for db_calendar in db_selected_calendars {
         let fresh_events = system_events_per_selected_calendar
             .get(&db_calendar.id)
             .unwrap();
 
-        let events_to_upsert = fresh_events
-            .iter()
-            .map(|e| hypr_db_user::Event {
+        for system_event in fresh_events {
+            // Skip if this event was already handled as an update
+            let already_handled = state
+                .to_update
+                .iter()
+                .any(|e| e.tracking_id == system_event.id);
+            if already_handled {
+                continue;
+            }
+
+            // Skip if this event already exists in the database with the same tracking_id
+            let already_exists = db_events_with_session
+                .iter()
+                .any(|(db_event, _)| db_event.tracking_id == system_event.id);
+            if already_exists {
+                continue;
+            }
+
+            // This is a genuinely new event
+            let new_event = hypr_db_user::Event {
                 id: uuid::Uuid::new_v4().to_string(),
-                tracking_id: e.id.clone(),
+                tracking_id: system_event.id.clone(),
                 user_id: user_id.clone(),
                 calendar_id: Some(db_calendar.id.clone()),
-                name: e.name.clone(),
-                note: e.note.clone(),
-                start_date: e.start_date,
-                end_date: e.end_date,
+                name: system_event.name.clone(),
+                note: system_event.note.clone(),
+                start_date: system_event.start_date,
+                end_date: system_event.end_date,
                 google_event_url: None,
-            })
-            .collect::<Vec<hypr_db_user::Event>>();
-
-        state.to_upsert.extend(events_to_upsert);
+            };
+            state.to_upsert.push(new_event);
+        }
     }
 
     Ok(state)
+}
+
+fn find_potentially_rescheduled_event<'a>(
+    db_event: &hypr_db_user::Event,
+    system_events: &'a [&hypr_calendar_interface::Event],
+) -> Option<&'a hypr_calendar_interface::Event> {
+    system_events
+        .iter()
+        .find(|sys_event| {
+            // Must have the same name and calendar
+            sys_event.name == db_event.name &&
+        // Allow for reasonable time difference (within 30 days for rescheduling)
+        (sys_event.start_date - db_event.start_date).num_days().abs() <= 30 &&
+        // Must not have the same tracking_id (otherwise it's not rescheduled)
+        sys_event.id != db_event.tracking_id
+        })
+        .copied()
 }
 
 async fn list_system_calendars() -> Vec<hypr_calendar_interface::Calendar> {
@@ -292,6 +382,7 @@ struct CalendarSyncState {
 struct EventSyncState {
     to_delete: Vec<hypr_db_user::Event>,
     to_upsert: Vec<hypr_db_user::Event>,
+    to_update: Vec<hypr_db_user::Event>,
 }
 
 impl CalendarSyncState {
@@ -315,6 +406,12 @@ impl EventSyncState {
         for event in self.to_delete {
             if let Err(e) = db.delete_event(&event.id).await {
                 tracing::error!("delete_event_error: {}", e);
+            }
+        }
+
+        for event in self.to_update {
+            if let Err(e) = db.update_event(event).await {
+                tracing::error!("update_event_error: {}", e);
             }
         }
 
@@ -353,5 +450,6 @@ mod tests {
 
         assert!(state.to_delete.is_empty());
         assert!(state.to_upsert.is_empty());
+        assert!(state.to_update.is_empty());
     }
 }

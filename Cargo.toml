@@ -3,23 +3,9 @@ incremental = true
 opt-level = 0
 debug = true
 
-# Comment out or remove this section to ensure all dependencies use debug runtime
-# [profile.dev.package."*"]
-# opt-level = 1
-# debug = false
-
-# Force debug symbols and runtime for specific packages that cause issues
-[profile.dev.package.llama-cpp-sys-2]
-debug = true
-opt-level = 0
-
-[profile.dev.package.whisper-rs-sys]
-debug = true
-opt-level = 0
-
-[profile.dev.package.esaxx-rs]
-debug = true
-opt-level = 0
+[profile.dev.package."*"]
+opt-level = 1
+debug = false
 
 [workspace]
 resolver = "2"

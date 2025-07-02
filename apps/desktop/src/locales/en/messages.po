@@ -256,8 +256,8 @@ msgstr "(Beta) Upcoming meeting notifications"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:151
-#: src/components/editor-area/note-header/listen-button.tsx:190
+#: src/components/editor-area/note-header/listen-button.tsx:191
+#: src/components/editor-area/note-header/listen-button.tsx:230
 msgid "{0}"
 msgstr "{0}"
 
@@ -860,7 +860,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:277
+#: src/components/editor-area/note-header/listen-button.tsx:317
 msgid "Pause"
 msgstr "Pause"
 
@@ -872,7 +872,7 @@ msgstr "people"
 msgid "Performance difference between languages"
 msgstr "Performance difference between languages"
 
-#: src/components/editor-area/note-header/listen-button.tsx:170
+#: src/components/editor-area/note-header/listen-button.tsx:210
 msgid "Play video"
 msgstr "Play video"
 
@@ -916,7 +916,7 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/editor-area/note-header/listen-button.tsx:79
+#: src/components/editor-area/note-header/listen-button.tsx:119
 msgid "Resume"
 msgstr "Resume"
 
@@ -1006,11 +1006,11 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:126
+#: src/components/editor-area/note-header/listen-button.tsx:166
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:285
+#: src/components/editor-area/note-header/listen-button.tsx:325
 msgid "Stop"
 msgstr "Stop"
 

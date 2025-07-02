@@ -11,7 +11,7 @@ import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { toast } from "@hypr/ui/components/ui/toast";
+import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
@@ -28,7 +28,7 @@ const showConsentNotification = () => {
       {
         label: "I've notified everyone",
         onClick: () => {
-          toast.dismiss("recording-consent-reminder");
+          sonnerToast.dismiss("recording-consent-reminder");
         },
         primary: true,
       },

@@ -40,7 +40,8 @@ unsafe impl Send for SpeakerStream {}
 
 impl SpeakerStream {
     pub fn new() -> Self {
-        Self {
+        debug!("Creating new SpeakerStream");
+        let mut stream = Self {
             audio_client: None,
             render_client: None,
             h_event: None,
@@ -50,7 +51,15 @@ impl SpeakerStream {
                 has_data: false,
             })),
             initialized: false,
+        };
+
+        // macOS처럼 생성자에서 바로 초기화
+        if let Err(e) = stream.initialize() {
+            error!("Failed to initialize speaker stream: {}", e);
+            // 초기화 실패해도 스트림은 생성 (재시도 가능)
         }
+
+        stream
     }
 
     pub fn sample_rate(&self) -> u32 {
@@ -58,6 +67,7 @@ impl SpeakerStream {
     }
 
     fn initialize(&mut self) -> Result<()> {
+        debug!("Initializing SpeakerStream");
         if self.initialized {
             return Ok(());
         }
@@ -101,7 +111,7 @@ impl SpeakerStream {
         let h_event = self.h_event.as_ref().unwrap();
 
         // 논블로킹으로 이벤트 확인
-        if h_event.wait_for_event(0).is_ok() {
+        if h_event.wait_for_event(3000).is_ok() {
             let mut temp_queue = VecDeque::new();
             render_client.read_from_device_to_deque(&mut temp_queue)?;
 

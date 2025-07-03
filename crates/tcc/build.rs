@@ -5,7 +5,7 @@ fn main() {
             .with_package("swift-lib", "./swift-lib/")
             .link();
     }
-    
+
     #[cfg(not(target_os = "macos"))]
     {
         println!("cargo:warning=Swift linking is only available on macOS");

@@ -110,4 +110,42 @@ impl CalendarSource for Handle {
 
         Ok(events)
     }
+
+    async fn get_event_participants(
+        &self,
+        event_tracking_id: String,
+    ) -> Result<Vec<Participant>, Error> {
+        // Get all calendars to search for the event
+        let calendars = self.list_calendars().await?;
+
+        // Search for the event across all calendars
+        for calendar in calendars {
+            match self
+                .client
+                .events()
+                .get(&calendar.id, &event_tracking_id, 0, "")
+                .await
+            {
+                Ok(response) => {
+                    let event = response.body;
+                    let participants = event
+                        .attendees
+                        .iter()
+                        .map(|a| Participant {
+                            name: a.display_name.clone(),
+                            email: Some(a.email.clone()),
+                        })
+                        .collect::<Vec<Participant>>();
+                    return Ok(participants);
+                }
+                Err(_) => {
+                    // Event not found in this calendar, continue searching
+                    continue;
+                }
+            }
+        }
+
+        // Event not found in any calendar
+        Ok(vec![])
+    }
 }

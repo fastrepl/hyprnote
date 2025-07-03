@@ -12,6 +12,10 @@ pub trait AppleCalendarPluginExt<R: tauri::Runtime> {
     fn stop_worker(&self);
     fn sync_calendars(&self) -> impl Future<Output = Result<(), crate::Error>>;
     fn sync_events(&self) -> impl Future<Output = Result<(), crate::Error>>;
+    fn sync_session_participants(
+        &self,
+        session_id: String,
+    ) -> impl Future<Output = Result<(), crate::Error>>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> for T {
@@ -136,5 +140,16 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
         };
 
         crate::sync::sync_events(db, user_id).await
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn sync_session_participants(&self, session_id: String) -> Result<(), crate::Error> {
+        let db_state = self.state::<tauri_plugin_db::ManagedState>();
+        let db = {
+            let guard = db_state.lock().await;
+            guard.db.clone().unwrap()
+        };
+
+        crate::sync::sync_session_participants(db, session_id).await
     }
 }

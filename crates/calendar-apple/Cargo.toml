@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-hypr-calendar-interface = { path = "../calendar-interface", package = "calendar-interface" }
 anyhow = { workspace = true }
 chrono = { workspace = true }
+hypr-calendar-interface = { path = "../calendar-interface", package = "calendar-interface" }
 itertools = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]

@@ -17,6 +17,10 @@ pub trait DatabasePluginExt<R: tauri::Runtime> {
         &self,
         user_id: impl Into<String>,
     ) -> impl Future<Output = Result<Option<hypr_db_user::Config>, crate::Error>>;
+    fn db_set_config(
+        &self,
+        config: hypr_db_user::Config,
+    ) -> impl Future<Output = Result<(), crate::Error>>;
     fn db_get_session(
         &self,
         session_id: impl Into<String>,
@@ -130,5 +134,14 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
         let db = guard.db.as_ref().ok_or(crate::Error::NoneDatabase)?;
         let config = db.get_config(user_id.into()).await?;
         Ok(config)
+    }
+
+    async fn db_set_config(&self, config: hypr_db_user::Config) -> Result<(), crate::Error> {
+        let state = self.state::<crate::ManagedState>();
+        let guard = state.lock().await;
+
+        let db = guard.db.as_ref().ok_or(crate::Error::NoneDatabase)?;
+        db.set_config(config).await?;
+        Ok(())
     }
 }

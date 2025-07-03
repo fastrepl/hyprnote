@@ -165,16 +165,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                     }
                 };
 
-                // Use the database directly since commands module is private
-                let state = self.state::<tauri_plugin_db::ManagedState>();
-                let guard = state.lock().await;
-                let db = guard.db.as_ref().ok_or(crate::Error::DatabaseError(
-                    tauri_plugin_db::Error::NoneDatabase,
-                ))?;
-                db.set_config(config).await.map_err(|e| {
-                    crate::Error::DatabaseError(tauri_plugin_db::Error::DatabaseCoreError(e))
-                })?;
-                drop(guard);
+                // Use the database plugin abstraction
+                self.db_set_config(config)
+                    .await
+                    .map_err(|e| crate::Error::DatabaseError(e))?;
 
                 tracing::info!("Updated microphone device config for inactive session");
                 Ok(())

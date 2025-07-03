@@ -3,11 +3,13 @@ pub use kalosm_sound::{MicInput as KalosmMicInput, MicStream as KalosmMicStream}
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, SampleFormat, SampleRate, StreamConfig};
 use futures_util::Stream as FuturesStream;
+use futures_util::StreamExt;
 use std::pin::Pin;
 use std::sync::mpsc as std_mpsc;
 use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll};
 use tokio::sync::mpsc;
+use tokio::time::{timeout, Duration};
 
 pub struct MicInput {
     device: Option<Device>,
@@ -24,8 +26,8 @@ impl MicInput {
         Self::default()
     }
 
-    /// Test if a device actually works by attempting to create a stream
-    pub fn validate_device(device_name: Option<String>) -> Result<bool, crate::AudioError> {
+    /// Test if a device actually works by attempting to create a stream and receive audio samples
+    pub async fn validate_device(device_name: Option<String>) -> Result<bool, crate::AudioError> {
         let test_input = if let Some(name) = device_name {
             Self::with_device(&name)
         } else {
@@ -33,13 +35,25 @@ impl MicInput {
         };
 
         // Try to create a stream - if this fails, the device doesn't work
-        let _test_stream = test_input.stream();
+        let mut test_stream = test_input.stream()?;
 
-        // TODO: In future, we could test that the stream actually produces audio samples
-        // For now, if stream creation succeeds, we assume the device works
+        // Test that the stream actually produces audio samples within 500ms
+        let timeout_duration = Duration::from_millis(500);
 
-        // If we got here, the device is valid
-        Ok(true)
+        match timeout(timeout_duration, test_stream.next()).await {
+            Ok(Some(_sample)) => {
+                // Stream produced a sample within the timeout, device is working
+                Ok(true)
+            }
+            Ok(None) => {
+                // Stream ended unexpectedly, device is not working
+                Ok(false)
+            }
+            Err(_) => {
+                // Timeout occurred, no samples received within 500ms
+                Ok(false)
+            }
+        }
     }
 
     pub fn with_device(device_name: &str) -> Self {
@@ -64,9 +78,14 @@ impl MicInput {
                             found_device = Some(device);
                             break;
                         }
-                        // Try partial match for similar names (e.g., "MacBook Pro Microphone" contains "MacBook")
-                        if name.to_lowercase().contains(&device_name.to_lowercase())
-                            || device_name.to_lowercase().contains(&name.to_lowercase())
+                        // Try word-boundary partial match for similar names (e.g., "MacBook Pro Microphone" contains "MacBook" as a word)
+                        let name_lower = name.to_lowercase();
+                        let device_name_lower = device_name.to_lowercase();
+
+                        // Only match if the search term appears as a complete word in the device name
+                        if name_lower
+                            .split_whitespace()
+                            .any(|word| word == device_name_lower)
                         {
                             found_device = Some(device);
                             break;
@@ -75,32 +94,32 @@ impl MicInput {
                 }
 
                 if let Some(device) = found_device {
-                    eprintln!(
-                        "✅ Found audio device: '{}'",
-                        device.name().unwrap_or_default()
+                    tracing::info!(
+                        device_name = device.name().unwrap_or_default(),
+                        "Found audio device"
                     );
                     Self {
                         device: Some(device),
                     }
                 } else {
                     // Device not found, fall back to default
-                    eprintln!(
-                        "❌ Device '{}' not found in available devices: {:?}",
-                        device_name, device_names
+                    tracing::warn!(
+                        device_name = device_name,
+                        available_devices = ?device_names,
+                        "Device not found in available devices, using default device instead"
                     );
-                    eprintln!("🔄 Using default device instead");
                     Self::default()
                 }
             }
             Err(e) => {
                 // Failed to enumerate devices, fall back to default
-                eprintln!("Failed to get input devices: {}, using default", e);
+                tracing::error!(error = %e, "Failed to get input devices, using default");
                 Self::default()
             }
         }
     }
 
-    pub fn stream(&self) -> MicStream {
+    pub fn stream(&self) -> Result<MicStream, crate::AudioError> {
         MicStream::new(self.device.clone())
     }
 
@@ -113,6 +132,7 @@ pub struct MicStream {
     receiver: mpsc::UnboundedReceiver<f32>,
     _stream_handle: tokio::task::JoinHandle<()>,
     shutdown_sender: std_mpsc::Sender<()>,
+    thread_handle: Option<std::thread::JoinHandle<()>>,
 }
 
 fn build_f32_stream(
@@ -140,7 +160,7 @@ fn build_f32_stream(
                 &resample_counter,
             );
         },
-        |err| eprintln!("Audio stream error: {}", err),
+        |err| tracing::error!(error = %err, "Audio stream error"),
         None,
     )?;
 
@@ -172,7 +192,7 @@ fn build_i16_stream(
                 &resample_counter,
             );
         },
-        |err| eprintln!("Audio stream error: {}", err),
+        |err| tracing::error!(error = %err, "Audio stream error"),
         None,
     )?;
 
@@ -204,7 +224,7 @@ fn build_u16_stream(
                 &resample_counter,
             );
         },
-        |err| eprintln!("Audio stream error: {}", err),
+        |err| tracing::error!(error = %err, "Audio stream error"),
         None,
     )?;
 
@@ -325,60 +345,59 @@ fn build_stream_for_sample_format(
 }
 
 impl MicStream {
-    fn new(device: Option<Device>) -> Self {
+    fn new(device: Option<Device>) -> Result<Self, crate::AudioError> {
         let (sender, receiver) = mpsc::unbounded_channel();
         let (shutdown_sender, shutdown_receiver) = std_mpsc::channel();
 
+        // Do all the setup that can fail synchronously before spawning the thread
+        let device = match device {
+            Some(device) => device,
+            None => {
+                let host = cpal::default_host();
+                host.default_input_device().ok_or_else(|| {
+                    crate::AudioError::DeviceNotFound("No input device available".to_string())
+                })?
+            }
+        };
+
+        let config = device.default_input_config()?;
+
+        let sample_rate = config.sample_rate().0;
+        let channels = config.channels();
+
+        // Convert to our target format (mono 16kHz f32)
+        let target_sample_rate = 16000u32;
+        let resample_ratio = sample_rate as f64 / target_sample_rate as f64;
+
+        let sender = Arc::new(Mutex::new(sender));
+
+        let stream = build_stream_for_sample_format(
+            &device,
+            &config,
+            channels,
+            sample_rate,
+            resample_ratio,
+            sender,
+        )?;
+
+        stream.play()?;
+
         // Spawn the stream in a dedicated thread to avoid Send issues
         let stream_handle = std::thread::spawn(move || {
-            let device = match device {
-                Some(device) => device,
-                None => {
-                    let host = cpal::default_host();
-                    host.default_input_device()
-                        .expect("No input device available")
-                }
-            };
-
-            let config = device
-                .default_input_config()
-                .expect("Failed to get default input config");
-
-            let sample_rate = config.sample_rate().0;
-            let channels = config.channels();
-
-            // Convert to our target format (mono 16kHz f32)
-            let target_sample_rate = 16000u32;
-            let resample_ratio = sample_rate as f64 / target_sample_rate as f64;
-
-            let sender = Arc::new(Mutex::new(sender));
-
-            let stream = build_stream_for_sample_format(
-                &device,
-                &config,
-                channels,
-                sample_rate,
-                resample_ratio,
-                sender,
-            )
-            .expect("Failed to build audio stream");
-
-            stream.play().expect("Failed to start audio stream");
-
             // Wait for shutdown signal instead of parking indefinitely
             let _ = shutdown_receiver.recv();
+            // Stream is automatically dropped when thread ends
         });
 
-        // Convert thread handle to tokio handle
-        let stream_handle = tokio::task::spawn_blocking(move || {
-            let _ = stream_handle.join();
-        });
-
-        Self {
+        // We need to store the thread handle separately for proper cleanup
+        // but we can't move it into the tokio task and also store it
+        // Let's just store it and remove the tokio wrapper for now
+        Ok(Self {
             receiver,
-            _stream_handle: stream_handle,
+            _stream_handle: tokio::task::spawn(async {}), // dummy handle
             shutdown_sender,
-        }
+            thread_handle: Some(stream_handle),
+        })
     }
 
     pub fn sample_rate(&self) -> u32 {
@@ -388,7 +407,23 @@ impl MicStream {
 
 impl Drop for MicStream {
     fn drop(&mut self) {
+        // Send shutdown signal
         let _ = self.shutdown_sender.send(());
+
+        // Wait for the thread to finish with a timeout to prevent blocking indefinitely
+        if let Some(handle) = self.thread_handle.take() {
+            // Use a separate thread for the join to avoid blocking for too long
+            let (tx, rx) = std::sync::mpsc::channel();
+            let _join_thread = std::thread::spawn(move || {
+                let result = handle.join();
+                let _ = tx.send(result);
+            });
+
+            // Give the thread 1 second to complete
+            if rx.recv_timeout(Duration::from_secs(1)).is_err() {
+                tracing::warn!("Audio thread did not shut down within timeout");
+            }
+        }
     }
 }
 
@@ -412,7 +447,7 @@ mod tests {
     #[tokio::test]
     async fn test_mic() {
         let mic = MicInput::default();
-        let mut stream = mic.stream();
+        let mut stream = mic.stream().expect("Failed to create mic stream");
 
         let mut buffer = Vec::new();
         while let Some(sample) = stream.next().await {

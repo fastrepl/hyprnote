@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:275
+#: src/components/settings/views/general.tsx:276
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -256,8 +256,8 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:161
-#: src/components/editor-area/note-header/listen-button.tsx:200
+#: src/components/editor-area/note-header/listen-button.tsx:162
+#: src/components/editor-area/note-header/listen-button.tsx:201
 msgid "{0}"
 msgstr ""
 
@@ -303,7 +303,7 @@ msgstr ""
 msgid "Access Granted"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:115
+#: src/components/settings/views/template.tsx:230
 msgid "Add a description..."
 msgstr ""
 
@@ -359,7 +359,7 @@ msgid "Apple"
 msgstr ""
 
 #: src/components/toolbar/buttons/delete-note-button.tsx:43
-#: src/components/left-sidebar/notes-list.tsx:262
+#: src/components/left-sidebar/notes-list.tsx:267
 msgid "Are you sure you want to delete this note?"
 msgstr ""
 
@@ -379,6 +379,7 @@ msgstr ""
 msgid "Billing features are currently under development and will be available in a future update."
 msgstr ""
 
+#: src/components/settings/views/templates.tsx:278
 #: src/components/settings/components/templates-sidebar.tsx:68
 msgid "Built-in Templates"
 msgstr ""
@@ -412,11 +413,11 @@ msgstr ""
 #~ msgid "Choose the language you want to use for the speech-to-text model and language model"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:177
+#: src/components/settings/views/general.tsx:178
 msgid "Choose whether to save your recordings locally."
 msgstr ""
 
-#: src/components/settings/views/general.tsx:230
+#: src/components/settings/views/general.tsx:231
 msgid "Choose your preferred language of use"
 msgstr ""
 
@@ -488,6 +489,10 @@ msgstr ""
 msgid "Create Note"
 msgstr ""
 
+#: src/components/settings/views/templates.tsx:268
+msgid "Create your first template to get started"
+msgstr ""
+
 #: src/components/settings/views/billing.tsx:66
 msgid "Current Plan"
 msgstr ""
@@ -500,13 +505,13 @@ msgstr ""
 #~ msgid "Default (llama-3.2-3b-q4)"
 #~ msgstr ""
 
-#: src/components/settings/views/template.tsx:86
+#: src/components/settings/views/template.tsx:206
 #: src/components/settings/views/team.tsx:165
-#: src/components/left-sidebar/notes-list.tsx:329
+#: src/components/left-sidebar/notes-list.tsx:334
 msgid "Delete"
 msgstr ""
 
-#: src/components/settings/components/template-sections.tsx:125
+#: src/components/settings/components/template-sections.tsx:154
 msgid "Describe the content and purpose of this section"
 msgstr ""
 
@@ -514,7 +519,7 @@ msgstr ""
 msgid "Describe the issue"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:109
+#: src/components/settings/views/template.tsx:224
 msgid "Description"
 msgstr ""
 
@@ -527,7 +532,7 @@ msgstr ""
 msgid "Download {0}"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:82
+#: src/components/settings/views/template.tsx:198
 msgid "Duplicate"
 msgstr ""
 
@@ -543,6 +548,10 @@ msgstr ""
 msgid "Email separated by commas"
 msgstr ""
 
+#: src/components/settings/views/template.tsx:157
+msgid "Emoji"
+msgstr ""
+
 #: src/components/settings/views/sound.tsx:60
 msgid "Enable"
 msgstr ""
@@ -551,7 +560,7 @@ msgstr ""
 msgid "Enhancing"
 msgstr ""
 
-#: src/components/settings/components/template-sections.tsx:119
+#: src/components/settings/components/template-sections.tsx:144
 msgid "Enter a section title"
 msgstr ""
 
@@ -585,6 +594,14 @@ msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:43
 msgid "Extract action items"
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:511
+msgid "Failed to load microphone devices. Please check permissions."
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:435
+msgid "Failed to switch to {displayName}"
 msgstr ""
 
 #: src/routes/app.settings.tsx:93
@@ -637,7 +654,7 @@ msgstr ""
 msgid "Grant Access"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:203
+#: src/components/settings/views/general.tsx:204
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr ""
 
@@ -676,7 +693,7 @@ msgstr ""
 msgid "Invite members"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:263
+#: src/components/settings/views/general.tsx:264
 msgid "Jargons"
 msgstr ""
 
@@ -696,7 +713,7 @@ msgstr ""
 msgid "Lab"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:227
+#: src/components/settings/views/general.tsx:228
 msgid "Language"
 msgstr ""
 
@@ -720,12 +737,16 @@ msgstr ""
 msgid "Loading available models..."
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:460
+#: src/components/editor-area/note-header/listen-button.tsx:505
 msgid "Loading devices..."
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:277
+#: src/components/editor-area/note-header/chips/event-chip.tsx:289
 msgid "Loading events..."
+msgstr ""
+
+#: src/components/settings/views/templates.tsx:216
+msgid "Loading templates..."
 msgstr ""
 
 #: src/components/workspace-calendar/event-card.tsx:163
@@ -758,7 +779,7 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:453
+#: src/components/editor-area/note-header/listen-button.tsx:498
 msgid "Microphone"
 msgstr ""
 
@@ -768,6 +789,10 @@ msgstr ""
 
 #: src/components/settings/views/sound.tsx:194
 msgid "Microphone Device"
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:423
+msgid "Microphone switched to {displayName}"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:251
@@ -794,7 +819,7 @@ msgstr ""
 msgid "New note"
 msgstr ""
 
-#: src/components/left-sidebar/notes-list.tsx:306
+#: src/components/left-sidebar/notes-list.tsx:311
 #: src/components/left-sidebar/events-list.tsx:181
 msgid "New window"
 msgstr ""
@@ -825,6 +850,10 @@ msgstr ""
 
 #: src/components/settings/components/ai/stt-view.tsx:284
 msgid "No speech-to-text models available or failed to load."
+msgstr ""
+
+#: src/components/settings/views/templates.tsx:265
+msgid "No templates yet"
 msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:95
@@ -876,7 +905,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:287
+#: src/components/editor-area/note-header/listen-button.tsx:288
 msgid "Pause"
 msgstr ""
 
@@ -888,8 +917,12 @@ msgstr ""
 msgid "Performance difference between languages"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:180
+#: src/components/editor-area/note-header/listen-button.tsx:181
 msgid "Play video"
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:436
+msgid "Please try again or check your microphone permissions."
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:33
@@ -932,7 +965,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:89
+#: src/components/editor-area/note-header/listen-button.tsx:90
 msgid "Resume"
 msgstr ""
 
@@ -941,7 +974,11 @@ msgstr ""
 msgid "Role"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:174
+#: src/components/settings/views/templates.tsx:193
+msgid "Save and close"
+msgstr ""
+
+#: src/components/settings/views/general.tsx:175
 msgid "Save recordings"
 msgstr ""
 
@@ -966,12 +1003,16 @@ msgstr ""
 #~ msgid "Searching..."
 #~ msgstr ""
 
-#: src/components/settings/views/template.tsx:121
+#: src/components/settings/views/template.tsx:237
 msgid "Sections"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:254
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
+msgstr ""
+
+#: src/components/settings/views/templates.tsx:233
+msgid "Select a template to enhance your meeting notes"
 msgstr ""
 
 #: src/components/welcome-modal/model-selection-view.tsx:81
@@ -1002,7 +1043,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:200
+#: src/components/settings/views/general.tsx:201
 msgid "Share usage data"
 msgstr ""
 
@@ -1030,11 +1071,11 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:136
+#: src/components/editor-area/note-header/listen-button.tsx:137
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:295
+#: src/components/editor-area/note-header/listen-button.tsx:296
 msgid "Stop"
 msgstr ""
 
@@ -1055,7 +1096,9 @@ msgid "System Audio Access"
 msgstr ""
 
 #: src/components/settings/views/sound.tsx:213
-#: src/components/editor-area/note-header/listen-button.tsx:420
+#: src/components/editor-area/note-header/listen-button.tsx:421
+#: src/components/editor-area/note-header/listen-button.tsx:433
+#: src/components/editor-area/note-header/listen-button.tsx:465
 msgid "System Default"
 msgstr ""
 
@@ -1073,6 +1116,7 @@ msgid "Teamspace"
 msgstr ""
 
 #: src/routes/app.settings.tsx:43
+#: src/routes/app.settings.tsx:95
 msgid "Templates"
 msgstr ""
 
@@ -1128,7 +1172,7 @@ msgstr ""
 msgid "Untitled"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:68
+#: src/components/settings/views/template.tsx:182
 msgid "Untitled Template"
 msgstr ""
 
@@ -1160,7 +1204,7 @@ msgstr ""
 msgid "username"
 msgstr ""
 
-#: src/components/left-sidebar/notes-list.tsx:317
+#: src/components/left-sidebar/notes-list.tsx:322
 msgid "View calendar"
 msgstr ""
 
@@ -1213,7 +1257,7 @@ msgstr ""
 #~ msgid "Yes, activate speaker"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:266
+#: src/components/settings/views/general.tsx:267
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr ""
 
@@ -1225,6 +1269,7 @@ msgstr ""
 msgid "Your Name"
 msgstr ""
 
+#: src/components/settings/views/templates.tsx:230
 #: src/components/settings/components/templates-sidebar.tsx:45
 msgid "Your Templates"
 msgstr ""

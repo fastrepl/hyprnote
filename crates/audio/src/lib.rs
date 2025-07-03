@@ -112,18 +112,18 @@ impl AudioInput {
         }
     }
 
-    pub fn stream(&mut self) -> AudioStream {
+    pub fn stream(&mut self) -> Result<AudioStream, AudioError> {
         match &self.source {
-            AudioSource::RealtimeMic => AudioStream::RealtimeMic {
-                mic: self.mic.as_ref().unwrap().stream(),
-            },
-            AudioSource::RealtimeSpeaker => AudioStream::RealtimeSpeaker {
+            AudioSource::RealtimeMic => Ok(AudioStream::RealtimeMic {
+                mic: self.mic.as_ref().unwrap().stream()?,
+            }),
+            AudioSource::RealtimeSpeaker => Ok(AudioStream::RealtimeSpeaker {
                 speaker: self.speaker.take().unwrap().stream().unwrap(),
-            },
-            AudioSource::Recorded => AudioStream::Recorded {
+            }),
+            AudioSource::Recorded => Ok(AudioStream::Recorded {
                 data: self.data.as_ref().unwrap().clone(),
                 position: 0,
-            },
+            }),
         }
     }
 }

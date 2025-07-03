@@ -21,6 +21,7 @@ import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { sonnerToast } from "@hypr/ui/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
@@ -336,6 +337,32 @@ function AudioControlButton({
   );
 }
 
+function parseDeviceData(result: string | null | undefined): { devices: string[]; selected?: string[] } | null {
+  if (!result || !result.startsWith("DEVICES:")) {
+    return null;
+  }
+
+  const devicesJson = result.substring(8);
+  try {
+    const parsedData = JSON.parse(devicesJson);
+
+    // Check if it's the new format with devices and selected
+    if (parsedData && typeof parsedData === "object" && parsedData.devices) {
+      return parsedData;
+    }
+
+    // Fallback to old format (array of devices)
+    if (Array.isArray(parsedData)) {
+      return { devices: parsedData };
+    }
+
+    return null;
+  } catch (e) {
+    console.error("Failed to parse device data:", e);
+    return null;
+  }
+}
+
 function MicControlWithDropdown({
   isMuted,
   onMuteClick,
@@ -357,13 +384,8 @@ function MicControlWithDropdown({
   const deviceQuery = useQuery({
     queryKey: ["microphoneDeviceInfo"],
     queryFn: async () => {
-      try {
-        const result = await listenerCommands.getSelectedMicrophoneDevice();
-        return result;
-      } catch (error) {
-        console.error("Device query failed:", error);
-        return null; // Return fallback value instead of rethrowing to prevent unhandled promise rejection
-      }
+      const result = await listenerCommands.getSelectedMicrophoneDevice();
+      return result;
     },
     enabled: micPermissionStatus.data === true,
   });
@@ -372,24 +394,7 @@ function MicControlWithDropdown({
     queryKey: ["microphoneDevices", deviceQuery.data],
     queryFn: async () => {
       const result = deviceQuery.data;
-      // Protocol: If string starts with "DEVICES:", it contains a JSON-encoded device info
-      // If no "DEVICES:" prefix, the string is a single device identifier
-      if (result && result.startsWith("DEVICES:")) {
-        const devicesJson = result.substring(8);
-        try {
-          const parsedData = JSON.parse(devicesJson);
-          // Check if it's the new format with devices and selected
-          if (parsedData && typeof parsedData === "object" && parsedData.devices) {
-            return parsedData.devices as string[];
-          }
-          // Fallback to old format (array of devices)
-          return parsedData as string[];
-        } catch (e) {
-          console.error("Failed to parse device data:", e);
-          return [];
-        }
-      }
-      return [];
+      return parseDeviceData(result)?.devices || [];
     },
     enabled: micPermissionStatus.data === true && deviceQuery.data !== undefined,
   });
@@ -398,41 +403,39 @@ function MicControlWithDropdown({
     queryKey: ["selectedMicrophoneDevice", deviceQuery.data],
     queryFn: async () => {
       const result = deviceQuery.data;
-      // Protocol: If string starts with "DEVICES:", it contains a JSON-encoded device info
-      // If no "DEVICES:" prefix, the string is a single device identifier
-      if (result && result.startsWith("DEVICES:")) {
-        const devicesJson = result.substring(8);
-        try {
-          const parsedData = JSON.parse(devicesJson);
-          // Check if it's the new format with devices and selected
-          if (parsedData && typeof parsedData === "object" && parsedData.selected) {
-            const selected = parsedData.selected[0]; // Get first (and only) selected device
-            return selected || null;
-          }
-          // Old format - no selected device info
-          return null;
-        } catch (e) {
-          console.error("Failed to parse selected device data:", e);
-          return null;
-        }
+      const parsedData = parseDeviceData(result);
+
+      if (parsedData?.selected) {
+        return parsedData.selected[0] || null; // Get first (and only) selected device
       }
-      return result; // Return the single device identifier
+
+      // If no parsed data or no selected field, return the original result
+      return result || null;
     },
     enabled: micPermissionStatus.data === true && deviceQuery.data !== undefined,
   });
 
   const updateSelectedDevice = useMutation({
     mutationFn: (deviceName: string | null) => listenerCommands.setSelectedMicrophoneDevice(deviceName),
-    onSuccess: () => {
-      console.log("✅ Microphone device switched successfully");
+    onSuccess: (_, deviceName) => {
+      const displayName = deviceName === null ? t`System Default` : deviceName;
+
+      sonnerToast.success(t`Microphone switched to ${displayName}`, {
+        duration: 2000,
+      });
 
       // Force immediate refetch to ensure UI updates instantly
       deviceQuery.refetch();
       microphoneDevices.refetch();
       selectedDevice.refetch();
     },
-    onError: (error) => {
-      console.error("❌ Failed to switch microphone device:", error);
+    onError: (error, deviceName) => {
+      const displayName = deviceName === null ? t`System Default` : deviceName;
+
+      sonnerToast.error(t`Failed to switch to ${displayName}`, {
+        description: t`Please try again or check your microphone permissions.`,
+        duration: 4000,
+      });
 
       // Even on error, refresh to show correct state
       deviceQuery.refetch();
@@ -500,6 +503,12 @@ function MicControlWithDropdown({
                   <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
                     <Spinner size={14} />
                     <Trans>Loading devices...</Trans>
+                  </div>
+                )
+                : microphoneDevices.error
+                ? (
+                  <div className="px-2 py-1.5 text-sm text-red-600">
+                    <Trans>Failed to load microphone devices. Please check permissions.</Trans>
                   </div>
                 )
                 : (

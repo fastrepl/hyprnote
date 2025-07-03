@@ -2,4 +2,26 @@
 rustflags = [
   "-C",
   "target-feature=-crt-static",
+  "-C",
+  "link-arg=/nodefaultlib:msvcrtd",
+  "-C",
+  "link-arg=/defaultlib:msvcrt",
+   "-C", "link-arg=/nodefaultlib:libcmtd", 
 ]
+
+[env]
+# Force all C/C++ compilation to use release runtime
+CFLAGS = "/MD /DNDEBUG /O2"
+CXXFLAGS = "/MD /DNDEBUG /O2"
+
+# CMake configuration for release runtime
+CMAKE_CXX_FLAGS = "/MD /DNDEBUG /O2"
+CMAKE_C_FLAGS = "/MD /DNDEBUG /O2"
+CMAKE_MSVC_RUNTIME_LIBRARY = "MultiThreadedDLL"
+CMAKE_BUILD_TYPE = "Release"
+
+# Release flags
+NDEBUG = "1"
+
+# ORG
+ORT_DYLIB_PATH = "D:/Sw/Rust/hyprnote/dlls/onnxruntime.dll"

@@ -3,7 +3,16 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LinkProps, useNavigate } from "@tanstack/react-router";
 import { clsx } from "clsx";
 import { format } from "date-fns";
-import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, RefreshCwIcon } from "lucide-react";
+import {
+  AppWindowMacIcon,
+  ArrowUpRight,
+  CalendarDaysIcon,
+  EyeIcon,
+  EyeOffIcon,
+  FoldVerticalIcon,
+  RefreshCwIcon,
+} from "lucide-react";
+import { useState } from "react";
 
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
@@ -16,6 +25,7 @@ import {
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
 import { SplashLoader } from "@hypr/ui/components/ui/splash";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { useSession } from "@hypr/utils/contexts";
 import { formatUpcomingTime } from "@hypr/utils/datetime";
@@ -33,6 +43,8 @@ export default function EventsList({
   activeSessionId,
 }: EventsListProps) {
   const queryClient = useQueryClient();
+  const [hiddenEventIds, setHiddenEventIds] = useState<Set<string>>(new Set());
+  const [showAllHidden, setShowAllHidden] = useState(false);
 
   const syncEventsMutation = useMutation({
     mutationFn: async () => {
@@ -55,57 +67,146 @@ export default function EventsList({
     },
   });
 
-  return (
-    <section className="border-b mb-4 border-border">
-      <div className="flex items-center gap-2">
-        <h2 className="font-bold text-neutral-600 mb-1">
-          <Trans>Upcoming</Trans>
-        </h2>
-        <button
-          disabled={syncEventsMutation.isPending}
-          onClick={() => syncEventsMutation.mutate()}
-        >
-          <RefreshCwIcon
-            size={12}
-            className={cn(
-              syncEventsMutation.isPending && "animate-spin",
-              "text-gray-500 hover:text-gray-700",
-            )}
-          />
-        </button>
-      </div>
+  const hideEvent = (eventId: string) => {
+    setHiddenEventIds(prev => new Set([...prev, eventId]));
+  };
 
-      {events?.length
-        ? (
-          <div>
-            {events
-              .sort((a, b) => a.start_date.localeCompare(b.start_date))
-              .map((event) => (
-                <EventItem
-                  key={event.id}
-                  event={event}
-                  activeSessionId={activeSessionId}
-                />
-              ))}
+  const showEvent = (eventId: string) => {
+    setHiddenEventIds(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(eventId);
+      return newSet;
+    });
+  };
+
+  const toggleShowAllHidden = () => {
+    if (showAllHidden) {
+      setShowAllHidden(false);
+    } else {
+      setShowAllHidden(true);
+    }
+  };
+
+  const hasHiddenEvents = hiddenEventIds.size > 0;
+
+  return (
+    <TooltipProvider>
+      <section className="border-b mb-4 border-border">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h2 className="font-bold text-neutral-600 mb-1">
+              <Trans>Upcoming</Trans>
+            </h2>
+            <button
+              disabled={syncEventsMutation.isPending}
+              onClick={() => syncEventsMutation.mutate()}
+            >
+              <RefreshCwIcon
+                size={12}
+                className={cn(
+                  syncEventsMutation.isPending && "animate-spin",
+                  "text-gray-500 hover:text-gray-700",
+                )}
+              />
+            </button>
           </div>
-        )
-        : (
-          <div className="pb-2 pl-1">
-            <p className="text-xs text-neutral-400">
-              <Trans>No upcoming events</Trans>
-            </p>
+
+          {hasHiddenEvents && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleShowAllHidden}
+                  className="text-xs text-neutral-500 hover:text-neutral-700 flex items-center gap-1"
+                >
+                  {showAllHidden ? <EyeOffIcon size={12} /> : <EyeIcon size={12} />}
+                  {showAllHidden ? "Fold All" : "Unfold All"}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{showAllHidden ? "Fold all hidden events" : "Unfold all hidden events"}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+
+        {events?.length
+          ? (
+            <div>
+              {events
+                .sort((a, b) => a.start_date.localeCompare(b.start_date))
+                .map((event) => {
+                  const isHidden = hiddenEventIds.has(event.id) && !showAllHidden;
+
+                  if (isHidden) {
+                    return (
+                      <HiddenEventItem
+                        key={event.id}
+                        event={event}
+                        onShow={() => showEvent(event.id)}
+                      />
+                    );
+                  }
+
+                  return (
+                    <EventItem
+                      key={event.id}
+                      event={event}
+                      activeSessionId={activeSessionId}
+                      onHide={() => hideEvent(event.id)}
+                    />
+                  );
+                })}
+            </div>
+          )
+          : (
+            <div className="pb-2 pl-1">
+              <p className="text-xs text-neutral-400">
+                <Trans>No upcoming events</Trans>
+              </p>
+            </div>
+          )}
+      </section>
+    </TooltipProvider>
+  );
+}
+
+function HiddenEventItem({
+  event,
+  onShow,
+}: {
+  event: EventWithSession;
+  onShow: () => void;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          onClick={onShow}
+          className="w-full py-1 group hover:bg-neutral-100 rounded px-2"
+        >
+          <div className="h-1 bg-neutral-400 rounded-full group-hover:bg-neutral-500 transition-colors" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="right">
+        <div className="text-sm">
+          <div className="font-medium">{event.name}</div>
+          <div className="text-xs text-neutral-500">
+            {formatUpcomingTime(new Date(event.start_date))}
           </div>
-        )}
-    </section>
+        </div>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
 function EventItem({
   event,
   activeSessionId,
+  onHide,
 }: {
   event: EventWithSession;
   activeSessionId?: string;
+  onHide?: () => void;
 }) {
   const navigate = useNavigate();
 
@@ -194,6 +295,16 @@ function EventItem({
           </div>
           <ArrowUpRight size={16} className="ml-1 text-zinc-500" />
         </ContextMenuItem>
+
+        {onHide && (
+          <ContextMenuItem
+            className="cursor-pointer flex items-center gap-2"
+            onClick={onHide}
+          >
+            <FoldVerticalIcon size={16} />
+            <Trans>Hide Event</Trans>
+          </ContextMenuItem>
+        )}
       </ContextMenuContent>
     </ContextMenu>
   );

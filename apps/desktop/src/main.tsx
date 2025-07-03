@@ -8,6 +8,7 @@ import { CatchBoundary, createRouter, ErrorComponent, RouterProvider } from "@ta
 import { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 
+import { recordingStartFailedToast } from "@/components/toast/shared";
 import type { Context } from "@/types";
 import { commands } from "@/types";
 import { commands as authCommands } from "@hypr/plugin-auth";
@@ -44,7 +45,11 @@ const queryClient = new QueryClient({
 });
 
 const sessionsStore = createSessionsStore();
-const ongoingSessionStore = createOngoingSessionStore(sessionsStore);
+const ongoingSessionStore = createOngoingSessionStore(sessionsStore, {
+  onRecordingStartFailed: (error) => {
+    recordingStartFailedToast();
+  },
+});
 
 const context: Context = {
   queryClient,

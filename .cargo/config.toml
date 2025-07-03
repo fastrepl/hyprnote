@@ -3,17 +3,3 @@ rustflags = [
   "-C",
   "target-feature=-crt-static",
 ]
-
-[env]
-# Force all C/C++ compilation to use release runtime
-CFLAGS = "/MD /O2"
-CXXFLAGS = "/MD /O2"
-
-# CMake configuration for release runtime
-CMAKE_CXX_FLAGS = "/MD /O2"
-CMAKE_C_FLAGS = "/MD /O2"
-CMAKE_MSVC_RUNTIME_LIBRARY = "MultiThreadedDLL"
-CMAKE_BUILD_TYPE = "Release"
-
-# Global release flags
-NDEBUG = "1"

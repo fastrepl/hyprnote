@@ -1,6 +1,16 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { MicIcon, MicOffIcon, PauseIcon, PlayIcon, StopCircleIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  MicIcon,
+  MicOffIcon,
+  PauseIcon,
+  PlayIcon,
+  StopCircleIcon,
+  Volume2Icon,
+  VolumeOffIcon,
+} from "lucide-react";
 import { useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
@@ -308,6 +318,10 @@ function AudioControlButton({
     ? VolumeOffIcon
     : Volume2Icon;
 
+  if (type === "mic") {
+    return <MicControlWithDropdown isMuted={isMuted} onMuteClick={onClick} disabled={disabled} />;
+  }
+
   return (
     <Button
       variant="ghost"
@@ -319,5 +333,163 @@ function AudioControlButton({
       <Icon className={cn(isMuted ? "text-neutral-500" : "", disabled && "text-neutral-300")} size={20} />
       {!disabled && <SoundIndicator input={type} size="long" />}
     </Button>
+  );
+}
+
+function MicControlWithDropdown({
+  isMuted,
+  onMuteClick,
+  disabled,
+}: {
+  isMuted?: boolean;
+  onMuteClick: () => void;
+  disabled?: boolean;
+}) {
+  const { t } = useLingui();
+
+  const Icon = isMuted ? MicOffIcon : MicIcon;
+
+  const micPermissionStatus = useQuery({
+    queryKey: ["micPermission"],
+    queryFn: () => listenerCommands.checkMicrophoneAccess(),
+  });
+
+  const deviceQuery = useQuery({
+    queryKey: ["microphoneDeviceInfo"],
+    queryFn: async () => {
+      try {
+        const result = await listenerCommands.getSelectedMicrophoneDevice();
+        return result;
+      } catch (error) {
+        console.error("Device query failed:", error);
+        throw error;
+      }
+    },
+    enabled: micPermissionStatus.data === true,
+  });
+
+  const microphoneDevices = useQuery({
+    queryKey: ["microphoneDevices"],
+    queryFn: async () => {
+      const result = deviceQuery.data;
+      if (result && result.startsWith("DEVICES:")) {
+        const devicesJson = result.substring(8);
+        const devices = JSON.parse(devicesJson) as string[];
+        return devices;
+      }
+      return [];
+    },
+    enabled: micPermissionStatus.data === true && deviceQuery.data !== undefined,
+  });
+
+  const selectedDevice = useQuery({
+    queryKey: ["selectedMicrophoneDevice"],
+    queryFn: async () => {
+      const result = deviceQuery.data;
+      if (result && result.startsWith("DEVICES:")) {
+        return null;
+      }
+      return result;
+    },
+    enabled: micPermissionStatus.data === true && deviceQuery.data !== undefined,
+  });
+
+  const updateSelectedDevice = useMutation({
+    mutationFn: (deviceName: string | null) => listenerCommands.setSelectedMicrophoneDevice(deviceName),
+    onSuccess: () => deviceQuery.refetch(),
+  });
+
+  const handleMicrophoneDeviceChange = (deviceName: string) => {
+    const deviceToSet = deviceName === "default" ? null : deviceName;
+    updateSelectedDevice.mutate(deviceToSet);
+  };
+
+  const getSelectedDevice = () => {
+    const currentDevice = selectedDevice.data;
+    if (!currentDevice) {
+      return "default";
+    }
+    if (microphoneDevices.data && !microphoneDevices.data.includes(currentDevice)) {
+      return "default";
+    }
+    return currentDevice;
+  };
+
+  const getDisplayName = (deviceName: string) => {
+    if (deviceName === "default") {
+      return t`System Default`;
+    }
+    return deviceName;
+  };
+
+  return (
+    <div className="flex w-full">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onMuteClick}
+        className="flex-1"
+        disabled={disabled}
+      >
+        <Icon className={cn(isMuted ? "text-neutral-500" : "", disabled && "text-neutral-300")} size={20} />
+        {!disabled && <SoundIndicator input="mic" size="long" />}
+      </Button>
+
+      {micPermissionStatus.data && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-6 px-1"
+              disabled={microphoneDevices.isLoading || updateSelectedDevice.isPending}
+            >
+              <ChevronDownIcon size={12} />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56" align="start">
+            <div className="space-y-1">
+              <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">
+                <Trans>Microphone</Trans>
+              </div>
+
+              {microphoneDevices.isLoading
+                ? (
+                  <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
+                    <Spinner size={14} />
+                    <Trans>Loading devices...</Trans>
+                  </div>
+                )
+                : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-between h-8"
+                      onClick={() => handleMicrophoneDeviceChange("default")}
+                    >
+                      <span className="truncate">{getDisplayName("default")}</span>
+                      {getSelectedDevice() === "default" && <CheckIcon size={16} className="text-green-600" />}
+                    </Button>
+
+                    {microphoneDevices.data?.map((device) => (
+                      <Button
+                        key={device}
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-between h-8"
+                        onClick={() => handleMicrophoneDeviceChange(device)}
+                      >
+                        <span className="truncate">{device}</span>
+                        {getSelectedDevice() === device && <CheckIcon size={16} className="text-green-600" />}
+                      </Button>
+                    ))}
+                  </>
+                )}
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
+    </div>
   );
 }

@@ -256,8 +256,8 @@ msgstr "(Beta) Upcoming meeting notifications"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:151
-#: src/components/editor-area/note-header/listen-button.tsx:190
+#: src/components/editor-area/note-header/listen-button.tsx:161
+#: src/components/editor-area/note-header/listen-button.tsx:200
 msgid "{0}"
 msgstr "{0}"
 
@@ -693,13 +693,17 @@ msgstr "LinkedIn username"
 msgid "Live summary of the meeting"
 msgstr "Live summary of the meeting"
 
-#: src/components/settings/views/sound.tsx:192
+#: src/components/settings/views/sound.tsx:225
 msgid "Loading available devices..."
 msgstr "Loading available devices..."
 
 #: src/components/settings/components/ai/llm-view.tsx:263
 msgid "Loading available models..."
 msgstr "Loading available models..."
+
+#: src/components/editor-area/note-header/listen-button.tsx:460
+msgid "Loading devices..."
+msgstr "Loading devices..."
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:277
 msgid "Loading events..."
@@ -735,11 +739,15 @@ msgstr "Member"
 msgid "Members"
 msgstr "Members"
 
-#: src/components/settings/views/sound.tsx:136
+#: src/components/editor-area/note-header/listen-button.tsx:453
+msgid "Microphone"
+msgstr "Microphone"
+
+#: src/components/settings/views/sound.tsx:169
 msgid "Microphone Access"
 msgstr "Microphone Access"
 
-#: src/components/settings/views/sound.tsx:161
+#: src/components/settings/views/sound.tsx:194
 msgid "Microphone Device"
 msgstr "Microphone Device"
 
@@ -849,7 +857,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:277
+#: src/components/editor-area/note-header/listen-button.tsx:287
 msgid "Pause"
 msgstr "Pause"
 
@@ -861,7 +869,7 @@ msgstr "people"
 msgid "Performance difference between languages"
 msgstr "Performance difference between languages"
 
-#: src/components/editor-area/note-header/listen-button.tsx:170
+#: src/components/editor-area/note-header/listen-button.tsx:180
 msgid "Play video"
 msgstr "Play video"
 
@@ -897,15 +905,15 @@ msgstr "Recent Notes"
 msgid "Requesting..."
 msgstr "Requesting..."
 
-#: src/components/settings/views/sound.tsx:146
+#: src/components/settings/views/sound.tsx:179
 msgid "Required to transcribe other people's voice during meetings"
 msgstr "Required to transcribe other people's voice during meetings"
 
-#: src/components/settings/views/sound.tsx:137
+#: src/components/settings/views/sound.tsx:170
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/editor-area/note-header/listen-button.tsx:79
+#: src/components/editor-area/note-header/listen-button.tsx:89
 msgid "Resume"
 msgstr "Resume"
 
@@ -955,7 +963,7 @@ msgstr "Select a transcribing model"
 msgid "Select Calendars"
 msgstr "Select Calendars"
 
-#: src/components/settings/views/sound.tsx:176
+#: src/components/settings/views/sound.tsx:209
 msgid "Select microphone device"
 msgstr "Select microphone device"
 
@@ -963,7 +971,7 @@ msgstr "Select microphone device"
 #~ msgid "Select or enter the model name required by your endpoint."
 #~ msgstr "Select or enter the model name required by your endpoint."
 
-#: src/components/settings/views/sound.tsx:164
+#: src/components/settings/views/sound.tsx:197
 msgid "Select which microphone to use for recording"
 msgstr "Select which microphone to use for recording"
 
@@ -1003,11 +1011,11 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:126
+#: src/components/editor-area/note-header/listen-button.tsx:136
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:285
+#: src/components/editor-area/note-header/listen-button.tsx:295
 msgid "Stop"
 msgstr "Stop"
 
@@ -1023,11 +1031,12 @@ msgstr "Summarize meeting"
 msgid "Synchronization across multiple devices"
 msgstr "Synchronization across multiple devices"
 
-#: src/components/settings/views/sound.tsx:145
+#: src/components/settings/views/sound.tsx:178
 msgid "System Audio Access"
 msgstr "System Audio Access"
 
-#: src/components/settings/views/sound.tsx:180
+#: src/components/settings/views/sound.tsx:213
+#: src/components/editor-area/note-header/listen-button.tsx:420
 msgid "System Default"
 msgstr "System Default"
 

@@ -27,6 +27,9 @@ async startServer() : Promise<string> {
 },
 async stopServer() : Promise<null> {
     return await TAURI_INVOKE("plugin:local-llm|stop_server");
+},
+async restartServer() : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-llm|restart_server");
 }
 }
 

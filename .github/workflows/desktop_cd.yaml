@@ -39,10 +39,13 @@ jobs:
           - platform: "macos"
             target: "x86_64-apple-darwin"
             runner: "macos-latest"
-          # - platform: "windows"
-          #   runner: "warp-windows-latest-x64-8x"
-          #   target: "x86_64-pc-windows-msvc"
+          - platform: "windows"
+            runner: "warp-windows-latest-x64-8x"
+            target: "x86_64-pc-windows-msvc"
     runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
       - run: |
@@ -61,11 +64,13 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/install_desktop_deps
         with:
-          target: "macos"
+          target: ${{ matrix.platform }}
       - uses: ./.github/actions/rust_install
         with:
-          target: "macos"
+          target: ${{ matrix.platform }}
       - uses: ./.github/actions/pnpm_install
+      - uses: ./.github/actions/poetry_install
+      - run: poetry run python scripts/pre_build.py
       - run: pnpm -F desktop lingui:compile
       - run: pnpm -F ui build
       - uses: ./.github/actions/apple_cert
@@ -92,7 +97,12 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
       - run: |
           mkdir -p target/release/
-          find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            find target/${{ matrix.target }}/release -type f ! -name ".*" -exec cp {} target/release/ \;
+          else
+            find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
+          fi
+        shell: bash
         working-directory: ./apps/desktop/src-tauri
       - uses: ./.github/actions/cn_release
         with:

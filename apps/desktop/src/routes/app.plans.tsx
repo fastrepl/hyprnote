@@ -14,37 +14,36 @@ function Component() {
       <main className="container mx-auto pb-16 px-4 max-w-5xl overflow-hidden">
         <div className="grid grid-cols-2 gap-4">
           <PricingCard
-            title="Local"
-            description="For local AI enthusiasts"
+            title="Free"
+            description="Core experience"
             buttonText="Current Plan"
             buttonVariant="outline"
             features={[
-              "100% private, local data",
-              "Distraction-free editor",
-              "Full AI model control",
-              "Realtime conversation to notes",
-              "Customizable with extensions",
-              "Chat with your note",
-              "Meeting reminders",
-              "No cloud required",
+              "100% local",
+              "Speaker identification",
+              "Transcript editing",
+              "Basic summarization",
+              "Showing upcoming events",
+              "Adding tags to notes",
+              "Search with your note",
+              "Push notifications",
             ]}
             className="relative border border-primary/10 shadow-sm hover:shadow-md transition-all duration-300 text-white"
           />
 
           <PricingCard
             title="Pro"
-            description="For professional use and teams"
+            description="For individual professionals"
             buttonText="Join Waitlist"
             buttonVariant="default"
             features={[
-              "All Local features",
-              "Premium cloud AI models",
-              "Speaker detection",
-              "Chat across your workspace",
-              "Team sharing & collaboration",
-              "Custom storage options",
-              "Advanced team features",
-              "Priority support",
+              "All Free features",
+              "Bespoke on-device models",
+              "Custom API endpoints for AI models",
+              "Customizable summary formats",
+              "Automatic recording control",
+              "Toggle between local & cloud AI",
+              "Chat with multiple notes",
             ]}
             className="relative text-white border border-primary/30 shadow-lg hover:shadow-xl transition-all duration-300"
           />
@@ -76,7 +75,7 @@ function PricingCard({
   className,
   secondaryAction,
 }: PricingCardProps) {
-  const isLocalPlan = title === "Local";
+  const isLocalPlan = title === "Free";
   const bgImage = isLocalPlan ? "/assets/bg-local-card.jpg" : "/assets/bg-pro-card.jpg";
 
   return (

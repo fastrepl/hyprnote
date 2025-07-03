@@ -54,8 +54,29 @@
       "allow": [{ "url": "https://**" }]
     },
     {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        { "path": "$APPDATA/*" },
+        { "path": "$APPDATA/**" }
+      ]
+    },
+    {
       "identifier": "fs:allow-exists",
       "allow": [{ "path": "/Applications/*" }]
+    },
+    {
+      "identifier": "fs:allow-watch",
+      "allow": [
+        { "path": "$APPDATA/*" },
+        { "path": "$APPDATA/**" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-file",
+      "allow": [
+        { "path": "$APPDATA/*" },
+        { "path": "$APPDATA/**" }
+      ]
     },
     {
       "identifier": "http:default",
@@ -64,6 +85,7 @@
         { "url": "http://127.0.0.1:*" },
         { "url": "https://**" }
       ]
-    }
+    },
+    "dialog:allow-save"
   ]
 }

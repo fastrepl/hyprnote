@@ -60,7 +60,19 @@ export default function NotesList({ ongoingSessionId, filter }: NotesListProps) 
         end: to,
         limit: 100,
       });
-      sessions.forEach(insertSession);
+      // Defensively insert sessions - don't overwrite existing data that might be more recent
+      sessions.forEach((session) => {
+        const existingStore = sessionsStore[session.id];
+        // Only insert if session doesn't exist or existing data is older
+        if (!existingStore) {
+          insertSession(session);
+        } else {
+          const existingSession = existingStore.getState().session;
+          if (new Date(existingSession.visited_at) <= new Date(session.visited_at)) {
+            insertSession(session);
+          }
+        }
+      });
 
       const sessionWithEvents = await Promise.all(sessions.map(async (session) => {
         const event = await dbCommands.sessionGetEvent(session.id);

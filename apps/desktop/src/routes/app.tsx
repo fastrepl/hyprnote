@@ -1,7 +1,11 @@
+import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
+import { appDataDir, join } from "@tauri-apps/api/path";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { useEffect } from "react";
+import { watch } from "@tauri-apps/plugin-fs";
+import { useEffect, useState } from "react";
 
+import { IndividualizationModal } from "@/components/individualization-modal";
 import LeftSidebar from "@/components/left-sidebar";
 import RightPanel from "@/components/right-panel";
 import Notifications from "@/components/toast";
@@ -27,16 +31,24 @@ export const Route = createFileRoute("/app")({
   component: Component,
   loader: async ({ context: { sessionsStore, ongoingSessionStore } }) => {
     const isOnboardingNeeded = await commands.isOnboardingNeeded();
-    return { sessionsStore, ongoingSessionStore, isOnboardingNeeded };
+    const isIndividualizationNeeded = await commands.isIndividualizationNeeded();
+    return { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded };
   },
 });
 
 function Component() {
   const router = useRouter();
-  const { sessionsStore, ongoingSessionStore, isOnboardingNeeded } = Route.useLoaderData();
+  const { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded } = Route.useLoaderData();
+
+  const [onboardingCompletedThisSession, setOnboardingCompletedThisSession] = useState(false);
 
   const windowLabel = getCurrentWebviewWindowLabel();
-  const showNotifications = windowLabel === "main" && !isOnboardingNeeded;
+  const isMain = windowLabel === "main";
+  const showNotifications = isMain && !isOnboardingNeeded;
+
+  const shouldShowWelcomeModal = isMain && isOnboardingNeeded;
+  const shouldShowIndividualization = isMain && isIndividualizationNeeded && !isOnboardingNeeded
+    && !onboardingCompletedThisSession;
 
   return (
     <>
@@ -45,6 +57,7 @@ function Component() {
           <LeftSidebarProvider>
             <RightPanelProvider>
               <AudioPermissions />
+              <RestartLlmServer />
               <MainWindowStateEventSupport />
               <SettingsProvider>
                 <NewNoteProvider>
@@ -69,9 +82,17 @@ function Component() {
                         </div>
                       </div>
                       <WelcomeModal
-                        isOpen={isOnboardingNeeded}
+                        isOpen={shouldShowWelcomeModal}
                         onClose={() => {
                           commands.setOnboardingNeeded(false);
+                          setOnboardingCompletedThisSession(true);
+                          router.invalidate();
+                        }}
+                      />
+                      <IndividualizationModal
+                        isOpen={shouldShowIndividualization}
+                        onClose={() => {
+                          commands.setIndividualizationNeeded(false);
                           router.invalidate();
                         }}
                       />
@@ -86,6 +107,31 @@ function Component() {
       {showNotifications && <Notifications />}
     </>
   );
+}
+
+function RestartLlmServer() {
+  const watchLlm = async () => {
+    const path = await appDataDir();
+    const llmPath = await join(path, "llm.gguf");
+
+    return watch(llmPath, (_event) => {
+      localLlmCommands.restartServer();
+    }, { delayMs: 1000 });
+  };
+
+  useEffect(() => {
+    let unwatch: () => void;
+
+    watchLlm().then((f) => {
+      unwatch = f;
+    });
+
+    return () => {
+      unwatch?.();
+    };
+  }, []);
+
+  return null;
 }
 
 function AudioPermissions() {

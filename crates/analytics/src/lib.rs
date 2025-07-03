@@ -36,7 +36,7 @@ impl AnalyticsClient {
         if !cfg!(debug_assertions) {
             let _ = self
                 .client
-                .post("https://us.i.posthog.com/capture/")
+                .post("https://us.i.posthog.com/i/v0/e/")
                 .json(&inner_event)
                 .send()
                 .await?

@@ -182,6 +182,32 @@ Denies the is_server_running command without any pre-configured scope.
 <tr>
 <td>
 
+`local-stt:allow-list-ggml-backends`
+
+</td>
+<td>
+
+Enables the list_ggml_backends command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-list-ggml-backends`
+
+</td>
+<td>
+
+Denies the list_ggml_backends command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `local-stt:allow-list-supported-models`
 
 </td>

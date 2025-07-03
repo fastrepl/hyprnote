@@ -1,60 +1,44 @@
-# https://docs.crabnebula.dev/cloud/ci/tauri-v2-workflow/
 on:
   workflow_dispatch:
+  release:
+    types:
+      - published
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
 env:
-  CN_APPLICATION: "fastrepl/hyprnote"
-  RELEASE_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && 'stable' || 'nightly' }}
-  TAURI_CONF_PATH: ${{ github.event_name == 'workflow_dispatch' && './src-tauri/tauri.conf.stable.json' || './src-tauri/tauri.conf.nightly.json' }}
+  TAURI_CONF_PATH: "./src-tauri/tauri.conf.nightly.json"
 jobs:
   build:
-    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'desktop_') }}
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos"
-            target: "aarch64-apple-darwin"
-            runner: "macos-latest"
-          - platform: "macos"
-            target: "x86_64-apple-darwin"
-            runner: "macos-latest"
           - platform: "windows"
-            runner: "warp-windows-latest-x64-8x"
+            runner: "warp-windows-latest-x64-32x"
             target: "x86_64-pc-windows-msvc"
     runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          VERSION=$(jq -r '.version' ./apps/desktop/src-tauri/tauri.conf.json)
-
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            TAG_NAME="${{ github.event.release.tag_name }}"
-            echo "Version: $VERSION, Tag name: $TAG_NAME"
-            if [[ ! "$TAG_NAME" == *"$VERSION"* ]]; then
-              exit 1
-            fi
-          fi
-        shell: bash
       - uses: ./.github/actions/setup_protoc
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/install_desktop_deps
         with:
-          target: "macos"
+          target: ${{ matrix.platform }}
       - uses: ./.github/actions/rust_install
         with:
-          target: "macos"
+          target: ${{ matrix.platform }}
       - uses: ./.github/actions/pnpm_install
+      - uses: ./.github/actions/poetry_install
+      - run: poetry run python scripts/pre_build.py
       - run: pnpm -F desktop lingui:compile
       - run: pnpm -F ui build
-      - uses: ./.github/actions/apple_cert
-        if: ${{ matrix.platform == 'macos' }}
-        with:
-          apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
-          apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
       - run: pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose
         env:
           # https://github.com/tauri-apps/tauri-action/issues/740
@@ -62,12 +46,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      - run: |
+          mkdir -p target/release/
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            find target/${{ matrix.target }}/release -type f ! -name ".*" -exec cp {} target/release/ \;
+          else
+            find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
+          fi
+        shell: bash
+        working-directory: ./apps/desktop/src-tauri
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-build-${{ matrix.platform }}-${{ github.run_number }}
+          path: |
+            apps/desktop/src-tauri/target/release/*.msi
+            apps/desktop/src-tauri/target/release/*.exe
+          retention-days: 30

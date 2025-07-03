@@ -9,3 +9,4 @@ export { default as Profile } from "./profile";
 export { default as Sound } from "./sound";
 export { default as Team } from "./team";
 export { default as TemplateEditor } from "./template";
+export { default as TemplatesView } from "./templates";

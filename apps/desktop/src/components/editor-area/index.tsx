@@ -1,11 +1,13 @@
 import { toast } from "@hypr/ui/components/ui/toast";
 import { useMutation } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
+import { diffWords } from "diff";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useHypr } from "@/contexts";
+import { extractTextFromHtml } from "@/utils/parse";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -60,8 +62,11 @@ export default function EditorArea({
   );
 
   const generateTitle = useGenerateTitleMutation({ sessionId });
+  const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
+
   const enhance = useEnhanceMutation({
     sessionId,
+    preMeetingNote,
     rawContent,
     onSuccess: (content) => {
       generateTitle.mutate({ enhancedContent: content });
@@ -127,7 +132,8 @@ export default function EditorArea({
           enhancedContent && "pb-10",
         ])}
         onClick={(e) => {
-          if (!(e.target instanceof HTMLAnchorElement)) {
+          const target = e.target as HTMLElement;
+          if (!target.closest("a[href]")) {
             e.stopPropagation();
             safelyFocusEditor();
           }
@@ -175,14 +181,30 @@ export default function EditorArea({
 
 export function useEnhanceMutation({
   sessionId,
+  preMeetingNote,
   rawContent,
   onSuccess,
 }: {
   sessionId: string;
+  preMeetingNote: string;
   rawContent: string;
   onSuccess: (enhancedContent: string) => void;
 }) {
   const { userId, onboardingSessionId } = useHypr();
+
+  const preMeetingText = extractTextFromHtml(preMeetingNote);
+  const rawText = extractTextFromHtml(rawContent);
+
+  // finalInput is the text that will be used to enhance the note
+  var finalInput = "";
+  const wordDiff = diffWords(preMeetingText, rawText);
+  if (wordDiff && wordDiff.length > 0) {
+    for (const diff of wordDiff) {
+      if (diff.added && diff.removed == false) {
+        finalInput += " " + diff.value;
+      }
+    }
+  }
 
   const setEnhanceController = useOngoingSession((s) => s.setEnhanceController);
   const { persistSession, setEnhancedContent } = useSession(sessionId, (s) => ({
@@ -214,18 +236,49 @@ export function useEnhanceMutation({
       const { type } = await connectorCommands.getLlmConnection();
 
       const config = await dbCommands.getConfig();
+
+      let templateInfo = "";
+      let customGrammar: string | null = null;
+      const selectedTemplateId = config.general.selected_template_id;
+
+      if (selectedTemplateId) {
+        const templates = await dbCommands.listTemplates();
+        const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
+
+        if (selectedTemplate) {
+          // Generate custom GBNF grammar
+          if (selectedTemplate.sections && selectedTemplate.sections.length > 0) {
+            customGrammar = generateCustomGBNF(selectedTemplate.sections);
+          }
+
+          // Format template as a readable string for system prompt
+          templateInfo = `
+SELECTED TEMPLATE:
+Template Title: ${selectedTemplate.title || "Untitled"}
+Template Description: ${selectedTemplate.description || "No description"}
+
+Sections:`;
+
+          selectedTemplate.sections?.forEach((section, index) => {
+            templateInfo += `
+  ${index + 1}. ${section.title || "Untitled Section"}
+     └─ ${section.description || "No description"}`;
+          });
+        }
+      }
+
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
       const systemMessage = await templateCommands.render(
         "enhance.system",
-        { config, type },
+        { config, type, templateInfo },
       );
 
       const userMessage = await templateCommands.render(
         "enhance.user",
         {
           type,
-          editor: rawContent,
+          editor: finalInput,
           words: JSON.stringify(words),
           participants,
         },
@@ -241,10 +294,13 @@ export function useEnhanceMutation({
         : provider.languageModel("defaultModel");
 
       if (sessionId !== onboardingSessionId) {
+        const { type } = await connectorCommands.getLlmConnection();
+
         analyticsCommands.event({
           event: "normal_enhance_start",
           distinct_id: userId,
           session_id: sessionId,
+          connection_type: type,
         });
       }
 
@@ -261,9 +317,14 @@ export function useEnhanceMutation({
         ],
         providerOptions: {
           [localProviderName]: {
-            metadata: {
-              grammar: "enhance",
-            },
+            metadata: customGrammar
+              ? {
+                grammar: "custom",
+                customGrammar: customGrammar,
+              }
+              : {
+                grammar: "enhance",
+              },
           },
         },
       });
@@ -384,4 +445,59 @@ function useAutoEnhance({
     sessionId,
     enhanceMutate,
   ]);
+}
+
+function generateCustomGBNF(templateSections: any[]): string {
+  if (!templateSections || templateSections.length === 0) {
+    return "";
+  }
+
+  // Function to safely escape header text for GBNF string literals
+  function escapeForGBNF(text: string): string {
+    return text
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, "\\\"")
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "\\r")
+      .replace(/\t/g, "\\t");
+  }
+
+  // Validate section titles and provide fallbacks
+  const validatedSections = templateSections.map((section, index) => {
+    let title = section.title || `Section ${index + 1}`;
+
+    title = title
+      .trim()
+      .replace(/[\x00-\x1F\x7F]/g, "") // Remove control characters
+      .substring(0, 100); // Limit length to prevent issues
+
+    return {
+      ...section,
+      safeTitle: title || `Section ${index + 1}`,
+    };
+  });
+
+  // Generate section rules with proper escaping
+  const sectionRules = validatedSections.map((section, index) => {
+    const sectionName = `section${index + 1}`;
+    const escapedHeader = escapeForGBNF(section.safeTitle);
+    return `${sectionName} ::= "# ${escapedHeader}\\n\\n" bline bline bline? bline? bline? "\\n"`;
+  }).join("\n");
+
+  // Generate root rule with all sections
+  const sectionNames = validatedSections.map((_, index) => `section${index + 1}`).join(" ");
+
+  const grammar = `root ::= thinking ${sectionNames}
+
+${sectionRules}
+
+bline ::= "- **" [^*\\n:]+ "**: " ([^*;,[.\\n] | link)+ ".\\n"
+
+hsf ::= "- Objective\\n"
+hd ::= "- " [A-Z] [^[(*\\n]+ "\\n"
+thinking ::= "<thinking>\\n" hsf hd hd? hd? hd? "</thinking>"
+
+link ::= "[" [^\\]]+ "]" "(" [^)]+ ")"`;
+
+  return grammar;
 }

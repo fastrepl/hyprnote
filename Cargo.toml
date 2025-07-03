@@ -21,6 +21,7 @@ members = [
 rust-version = "1.86.0"
 
 [workspace.dependencies]
+hypr-aec = { path = "crates/aec", package = "aec" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
 hypr-audio = { path = "crates/audio", package = "audio" }
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
@@ -30,6 +31,7 @@ hypr-calendar-google = { path = "crates/calendar-google", package = "calendar-go
 hypr-calendar-interface = { path = "crates/calendar-interface", package = "calendar-interface" }
 hypr-calendar-outlook = { path = "crates/calendar-outlook", package = "calendar-outlook" }
 hypr-chunker = { path = "crates/chunker", package = "chunker" }
+hypr-clova = { path = "crates/clova", package = "clova" }
 hypr-data = { path = "crates/data", package = "data" }
 hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }
@@ -50,7 +52,9 @@ hypr-notification2 = { path = "crates/notification2", package = "notification2" 
 hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
-hypr-pyannote = { path = "crates/pyannote", package = "pyannote" }
+hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
+hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
+hypr-rtzr = { path = "crates/rtzr", package = "rtzr" }
 hypr-s3 = { path = "crates/s3", package = "s3" }
 hypr-slack = { path = "crates/slack", package = "slack" }
 hypr-stt = { path = "crates/stt", package = "stt", features = ["realtime", "recorded"] }
@@ -58,23 +62,26 @@ hypr-template = { path = "crates/template", package = "template" }
 hypr-turso = { path = "crates/turso", package = "turso" }
 hypr-vad = { path = "crates/vad", package = "vad" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }
+hypr-whisper-cloud = { path = "crates/whisper-cloud", package = "whisper-cloud" }
+hypr-whisper-local = { path = "crates/whisper-local", package = "whisper-local" }
 hypr-ws = { path = "crates/ws", package = "ws" }
 hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 
 hypr-auth-interface = { path = "plugins/auth-interface", package = "auth-interface" }
 hypr-listener-interface = { path = "plugins/listener-interface", package = "listener-interface" }
 
-tauri = "2"
-tauri-build = "2"
+tauri = "2.6"
+tauri-build = "2.3"
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
-tauri-plugin = "2"
-tauri-plugin-deep-link = "2"
-tauri-plugin-dialog = "2"
-tauri-plugin-fs = "2"
-tauri-plugin-http = { version = "2", features = ["unsafe-headers"] }
+tauri-plugin = "2.3"
+tauri-plugin-clipboard-manager = "2.3"
+tauri-plugin-deep-link = "2.4"
+tauri-plugin-dialog = "2.3"
+tauri-plugin-fs = "2.4"
+tauri-plugin-http = { version = "2.5", features = ["unsafe-headers"] }
 tauri-plugin-machine-uid = "0.1.1"
-tauri-plugin-opener = "2"
-tauri-plugin-store = "2"
+tauri-plugin-opener = "2.4"
+tauri-plugin-store = "2.3"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }
@@ -127,14 +134,16 @@ serde = "1"
 serde_bytes = "0.11.15"
 serde_json = "1"
 serde_qs = "0.14.0"
-serial_test = "3"
 statig = { version = "0.3.0" }
 strum = "0.26"
 tempfile = "3"
-testcontainers-modules = "0.11.5"
 thiserror = "2"
 url = "2"
 uuid = "1"
+
+criterion = "0.6"
+serial_test = "3"
+testcontainers-modules = "0.11.5"
 
 axum = "0.8.1"
 tower = "0.5.2"
@@ -174,8 +183,10 @@ tauri-specta = "2.0.0-rc.21"
 cidre = { git = "https://github.com/yury/cidre", rev = "c5b0022" }
 cpal = "0.15.3"
 dasp = "0.11.0"
+flume = "0.11.1"
 hound = "3.5.1"
-realfft = "3.4.0"
+realfft = "3.5.0"
+ringbuf = "0.4.8"
 rodio = { version = "0.20.1", features = ["symphonia"] }
 
 kalosm-common = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
@@ -197,3 +208,4 @@ objc2-user-notifications = "0.3"
 
 [patch.crates-io]
 cpal = { git = "https://github.com/RustAudio/cpal", rev = "51c3b43" }
+esaxx-rs = { git = "https://github.com/thewh1teagle/esaxx-rs.git", branch = "feat/dynamic-msvc-link" }

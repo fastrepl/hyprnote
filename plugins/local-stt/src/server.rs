@@ -15,6 +15,7 @@ use axum::{
 };
 
 use futures_util::{SinkExt, StreamExt};
+use rodio::Source;
 use tower_http::cors::{self, CorsLayer};
 
 use hypr_chunker::ChunkerExt;
@@ -130,7 +131,7 @@ async fn websocket_with_model(
         hypr_whisper::Language::En
     });
 
-    let model = hypr_whisper::local::Whisper::builder()
+    let model = hypr_whisper_local::Whisper::builder()
         .model_path(model_path.to_str().unwrap())
         .language(language)
         .static_prompt(&params.static_prompt)
@@ -141,13 +142,20 @@ async fn websocket_with_model(
 }
 
 #[tracing::instrument(skip_all)]
-async fn websocket(socket: WebSocket, model: hypr_whisper::local::Whisper, guard: ConnectionGuard) {
+async fn websocket(socket: WebSocket, model: hypr_whisper_local::Whisper, guard: ConnectionGuard) {
     let (mut ws_sender, ws_receiver) = socket.split();
     let mut stream = {
         let audio_source = WebSocketAudioSource::new(ws_receiver, 16 * 1000);
         let chunked =
-            audio_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(15));
-        hypr_whisper::local::TranscribeChunkedAudioStreamExt::transcribe(chunked, model)
+            audio_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
+
+        let chunked = hypr_whisper_local::AudioChunkStream(chunked.map(|chunk| {
+            hypr_whisper_local::SimpleAudioChunk {
+                samples: chunk.convert_samples().collect(),
+                metadata: None,
+            }
+        }));
+        hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(chunked, model)
     };
 
     loop {
@@ -163,7 +171,7 @@ async fn websocket(socket: WebSocket, model: hypr_whisper::local::Whisper, guard
                 let duration = chunk.duration() as u64;
                 let confidence = chunk.confidence();
 
-                if confidence < 0.4 {
+                if confidence < 0.2 {
                     tracing::warn!(confidence, "skipping_transcript: {}", text);
                     continue;
                 }

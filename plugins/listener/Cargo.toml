@@ -19,6 +19,7 @@ specta-typescript = { workspace = true }
 uuid = { workspace = true }
 
 [dependencies]
+hypr-aec = { workspace = true }
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
@@ -53,6 +54,7 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tracing = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 
+flume = { workspace = true }
 hound = { workspace = true }
 statig = { workspace = true, features = ["async"] }
 

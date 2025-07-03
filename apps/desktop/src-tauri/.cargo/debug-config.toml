@@ -22,3 +22,6 @@ CMAKE_BUILD_TYPE = "Debug"
 # Global debug flags
 DEBUG = "1"
 _DEBUG = "1"
+
+# ORG
+ORT_DYLIB_PATH = "D:/Sw/Rust/hyprnote/dlls/onnxruntime.dll"

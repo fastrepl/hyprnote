@@ -20,7 +20,6 @@ pub enum AudioError {
     PlayStreamError(#[from] cpal::PlayStreamError),
     #[error("Device not found: {0}")]
     DeviceNotFound(String),
+    #[error("Speaker error: {0}")]
+    SpeakerError(#[from] anyhow::Error),
 }
-
-#[derive(thiserror::Error, Debug)]
-pub enum Error {}

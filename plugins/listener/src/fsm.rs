@@ -118,7 +118,7 @@ impl Session {
                 tracing::info!("Creating audio input for default device");
                 hypr_audio::AudioInput::from_mic()
             };
-            input.stream()
+            input.stream()?
         };
         let mut mic_stream = mic_sample_stream
             .resample(SAMPLE_RATE)
@@ -129,7 +129,7 @@ impl Session {
         // https://github.com/fastrepl/hyprnote/commit/7c8cf1c
         // tokio::time::sleep(Duration::from_millis(50)).await;
 
-        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
+        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None)?.stream()?;
         let mut speaker_stream = speaker_sample_stream
             .resample(SAMPLE_RATE)
             .chunks(hypr_aec::BLOCK_SIZE);
@@ -436,7 +436,7 @@ impl Session {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn switch_microphone_device_lightweight(
+    async fn update_microphone_device_config(
         &mut self,
         device_name: Option<String>,
     ) -> Result<(), crate::Error> {
@@ -604,7 +604,7 @@ impl Session {
 
                     // Step 1: Update config atomically
                     if let Err(e) = self
-                        .switch_microphone_device_lightweight(device_name.clone())
+                        .update_microphone_device_config(device_name.clone())
                         .await
                     {
                         tracing::error!("❌ Config update failed: {:?}", e);
@@ -614,21 +614,7 @@ impl Session {
                     // Step 2: Atomic restart - no delays, fast cleanup
                     tracing::info!("⚡ Atomic audio restart");
 
-                    // Quick cleanup - abort all tasks immediately
-                    if let Some(tx) = self.silence_stream_tx.take() {
-                        let _ = tx.send(());
-                    }
-                    if let Some(mut tasks) = self.tasks.take() {
-                        tasks.abort_all();
-                        // Don't wait for tasks to finish - abort and move on
-                    }
-
-                    // Reset channels but keep session_id
-                    self.mic_muted_tx = None;
-                    self.mic_muted_rx = None;
-                    self.speaker_muted_tx = None;
-                    self.speaker_muted_rx = None;
-                    self.session_state_tx = None;
+                    self.cleanup_resources().await;
 
                     // Step 3: Immediate restart with new device (no delays)
                     match self.setup_resources(&session_id).await {

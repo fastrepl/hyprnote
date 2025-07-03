@@ -1,5 +1,5 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -16,6 +16,7 @@ import { useState } from "react";
 import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
+import { MicrophoneDeviceInfo } from "@/utils/microphone-devices";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -337,32 +338,6 @@ function AudioControlButton({
   );
 }
 
-function parseDeviceData(result: string | null | undefined): { devices: string[]; selected?: string[] } | null {
-  if (!result || !result.startsWith("DEVICES:")) {
-    return null;
-  }
-
-  const devicesJson = result.substring(8);
-  try {
-    const parsedData = JSON.parse(devicesJson);
-
-    // Check if it's the new format with devices and selected
-    if (parsedData && typeof parsedData === "object" && parsedData.devices) {
-      return parsedData;
-    }
-
-    // Fallback to old format (array of devices)
-    if (Array.isArray(parsedData)) {
-      return { devices: parsedData };
-    }
-
-    return null;
-  } catch (e) {
-    console.error("Failed to parse device data:", e);
-    return null;
-  }
-}
-
 function MicControlWithDropdown({
   isMuted,
   onMuteClick,
@@ -373,6 +348,7 @@ function MicControlWithDropdown({
   disabled?: boolean;
 }) {
   const { t } = useLingui();
+  const queryClient = useQueryClient();
 
   const Icon = isMuted ? MicOffIcon : MicIcon;
 
@@ -381,38 +357,13 @@ function MicControlWithDropdown({
     queryFn: () => listenerCommands.checkMicrophoneAccess(),
   });
 
-  const deviceQuery = useQuery({
+  const deviceQuery = useQuery<MicrophoneDeviceInfo>({
     queryKey: ["microphoneDeviceInfo"],
     queryFn: async () => {
       const result = await listenerCommands.getSelectedMicrophoneDevice();
       return result;
     },
     enabled: micPermissionStatus.data === true,
-  });
-
-  const microphoneDevices = useQuery({
-    queryKey: ["microphoneDevices", deviceQuery.data],
-    queryFn: async () => {
-      const result = deviceQuery.data;
-      return parseDeviceData(result)?.devices || [];
-    },
-    enabled: micPermissionStatus.data === true && deviceQuery.data !== undefined,
-  });
-
-  const selectedDevice = useQuery({
-    queryKey: ["selectedMicrophoneDevice", deviceQuery.data],
-    queryFn: async () => {
-      const result = deviceQuery.data;
-      const parsedData = parseDeviceData(result);
-
-      if (parsedData?.selected) {
-        return parsedData.selected[0] || null; // Get first (and only) selected device
-      }
-
-      // If no parsed data or no selected field, return the original result
-      return result || null;
-    },
-    enabled: micPermissionStatus.data === true && deviceQuery.data !== undefined,
   });
 
   const updateSelectedDevice = useMutation({
@@ -424,10 +375,10 @@ function MicControlWithDropdown({
         duration: 2000,
       });
 
-      // Force immediate refetch to ensure UI updates instantly
-      deviceQuery.refetch();
-      microphoneDevices.refetch();
-      selectedDevice.refetch();
+      // Invalidate all microphone-related queries
+      queryClient.invalidateQueries({ queryKey: ["microphoneDeviceInfo"] });
+      queryClient.invalidateQueries({ queryKey: ["microphoneDevices"] });
+      queryClient.invalidateQueries({ queryKey: ["selectedMicrophoneDevice"] });
     },
     onError: (error, deviceName) => {
       const displayName = deviceName === null ? t`System Default` : deviceName;
@@ -437,10 +388,10 @@ function MicControlWithDropdown({
         duration: 4000,
       });
 
-      // Even on error, refresh to show correct state
-      deviceQuery.refetch();
-      microphoneDevices.refetch();
-      selectedDevice.refetch();
+      // Refresh state even on error
+      queryClient.invalidateQueries({ queryKey: ["microphoneDeviceInfo"] });
+      queryClient.invalidateQueries({ queryKey: ["microphoneDevices"] });
+      queryClient.invalidateQueries({ queryKey: ["selectedMicrophoneDevice"] });
     },
   });
 
@@ -450,11 +401,11 @@ function MicControlWithDropdown({
   };
 
   const getSelectedDevice = () => {
-    const currentDevice = selectedDevice.data;
+    const currentDevice = deviceQuery.data?.selected;
     if (!currentDevice) {
       return "default";
     }
-    if (microphoneDevices.data && !microphoneDevices.data.includes(currentDevice)) {
+    if (deviceQuery.data?.devices && !deviceQuery.data.devices.includes(currentDevice)) {
       return "default";
     }
     return currentDevice;
@@ -487,7 +438,7 @@ function MicControlWithDropdown({
               variant="ghost"
               size="icon"
               className="w-6 px-1"
-              disabled={microphoneDevices.isLoading || updateSelectedDevice.isPending}
+              disabled={deviceQuery.isLoading || updateSelectedDevice.isPending}
             >
               <ChevronDownIcon size={12} />
             </Button>
@@ -498,14 +449,14 @@ function MicControlWithDropdown({
                 <Trans>Microphone</Trans>
               </div>
 
-              {microphoneDevices.isLoading
+              {deviceQuery.isLoading
                 ? (
                   <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
                     <Spinner size={14} />
                     <Trans>Loading devices...</Trans>
                   </div>
                 )
-                : microphoneDevices.error
+                : deviceQuery.error
                 ? (
                   <div className="px-2 py-1.5 text-sm text-red-600">
                     <Trans>Failed to load microphone devices. Please check permissions.</Trans>
@@ -523,7 +474,7 @@ function MicControlWithDropdown({
                       {getSelectedDevice() === "default" && <CheckIcon size={16} className="text-green-600" />}
                     </Button>
 
-                    {microphoneDevices.data?.map((device) => (
+                    {deviceQuery.data?.devices?.map((device) => (
                       <Button
                         key={device}
                         variant="ghost"

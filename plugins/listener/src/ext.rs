@@ -194,8 +194,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         #[cfg(not(target_os = "macos"))]
         {
-            // Use default device for permission check
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic().stream();
+            // Use selected device for permission check
+            let selected_device = self.get_selected_microphone_device().await.ok().flatten();
+            let mut mic_sample_stream =
+                hypr_audio::AudioInput::from_mic_device(selected_device).stream()?;
             let sample = mic_sample_stream.next().await;
             Ok(sample.is_some())
         }
@@ -225,8 +227,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         #[cfg(not(target_os = "macos"))]
         {
-            // Use default device for permission request
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic().stream();
+            // Use selected device for permission request
+            let selected_device = self.get_selected_microphone_device().await.ok().flatten();
+            let mut mic_sample_stream =
+                hypr_audio::AudioInput::from_mic_device(selected_device).stream()?;
             mic_sample_stream.next().await;
         }
 
@@ -237,7 +241,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     async fn request_system_audio_access(&self) -> Result<(), crate::Error> {
         let stop = hypr_audio::AudioOutput::silence();
 
-        let mut speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
+        let mut speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None)?.stream()?;
         speaker_sample_stream.next().await;
 
         let _ = stop.send(());

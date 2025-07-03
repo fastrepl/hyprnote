@@ -1,5 +1,3 @@
-pub use kalosm_sound::{MicInput as KalosmMicInput, MicStream as KalosmMicStream};
-
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, SampleFormat, SampleRate, StreamConfig};
 use futures_util::Stream as FuturesStream;
@@ -130,7 +128,6 @@ impl MicInput {
 
 pub struct MicStream {
     receiver: mpsc::UnboundedReceiver<f32>,
-    _stream_handle: tokio::task::JoinHandle<()>,
     shutdown_sender: std_mpsc::Sender<()>,
     thread_handle: Option<std::thread::JoinHandle<()>>,
 }
@@ -251,7 +248,9 @@ fn process_f32_data(
         *counter += 1.0;
         if *counter >= resample_ratio {
             *counter -= resample_ratio;
-            let _ = sender.send(sample);
+            if let Err(e) = sender.send(sample) {
+                tracing::error!("Failed to send audio sample: {}", e);
+            }
         }
     }
 }
@@ -276,7 +275,9 @@ fn process_i16_data(
         *counter += 1.0;
         if *counter >= resample_ratio {
             *counter -= resample_ratio;
-            let _ = sender.send(sample);
+            if let Err(e) = sender.send(sample) {
+                tracing::error!("Failed to send audio sample: {}", e);
+            }
         }
     }
 }
@@ -301,7 +302,9 @@ fn process_u16_data(
         *counter += 1.0;
         if *counter >= resample_ratio {
             *counter -= resample_ratio;
-            let _ = sender.send(sample);
+            if let Err(e) = sender.send(sample) {
+                tracing::error!("Failed to send audio sample: {}", e);
+            }
         }
     }
 }
@@ -394,7 +397,6 @@ impl MicStream {
         // Let's just store it and remove the tokio wrapper for now
         Ok(Self {
             receiver,
-            _stream_handle: tokio::task::spawn(async {}), // dummy handle
             shutdown_sender,
             thread_handle: Some(stream_handle),
         })

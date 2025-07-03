@@ -16,7 +16,6 @@ tauri-plugin-local-stt = { path = "../local-stt" }
 rodio = { workspace = true, features = ["wav"] }
 serde_json = { workspace = true }
 specta-typescript = { workspace = true }
-uuid = { workspace = true }
 
 [dependencies]
 hypr-aec = { workspace = true }

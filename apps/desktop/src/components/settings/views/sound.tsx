@@ -7,6 +7,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/ui/lib/utils";
+import { MicrophoneDeviceInfo } from "../../../utils/microphone-devices";
 
 interface PermissionItemProps {
   icon: React.ReactNode;
@@ -78,49 +79,17 @@ export default function Sound() {
     queryFn: () => listenerCommands.checkSystemAudioAccess(),
   });
 
-  const deviceQuery = useQuery({
+  const deviceQuery = useQuery<MicrophoneDeviceInfo>({
     queryKey: ["microphoneDeviceInfo"],
     queryFn: async () => {
-      console.log("Attempting to call getSelectedMicrophoneDevice...");
       try {
         const result = await listenerCommands.getSelectedMicrophoneDevice();
-        console.log("Device query result:", result);
         return result;
       } catch (error) {
-        console.error("Device query failed:", error);
         throw error;
       }
     },
     enabled: micPermissionStatus.data === true,
-  });
-
-  const microphoneDevices = useQuery({
-    queryKey: ["microphoneDevices"],
-    queryFn: async () => {
-      const result = deviceQuery.data;
-      console.log("Processing device query result:", result);
-      if (result && result.startsWith("DEVICES:")) {
-        const devicesJson = result.substring(8);
-        console.log("Devices JSON:", devicesJson);
-        const devices = JSON.parse(devicesJson) as string[];
-        console.log("Parsed devices:", devices);
-        return devices;
-      }
-      return [];
-    },
-    enabled: micPermissionStatus.data === true && deviceQuery.data !== undefined,
-  });
-
-  const selectedDevice = useQuery({
-    queryKey: ["selectedMicrophoneDevice"],
-    queryFn: async () => {
-      const result = deviceQuery.data;
-      if (result && result.startsWith("DEVICES:")) {
-        return null;
-      }
-      return result;
-    },
-    enabled: micPermissionStatus.data === true && deviceQuery.data !== undefined,
   });
 
   const micPermission = useMutation({
@@ -147,13 +116,13 @@ export default function Sound() {
   };
 
   const getSelectedDevice = () => {
-    const currentDevice = selectedDevice.data;
+    const currentDevice = deviceQuery.data?.selected;
     if (!currentDevice) {
       return "default";
     }
 
     // Check if the selected device is still available
-    if (microphoneDevices.data && !microphoneDevices.data.includes(currentDevice)) {
+    if (deviceQuery.data?.devices && !deviceQuery.data.devices.includes(currentDevice)) {
       return "default";
     }
 
@@ -203,7 +172,7 @@ export default function Sound() {
               <Select
                 value={getSelectedDevice()}
                 onValueChange={handleMicrophoneDeviceChange}
-                disabled={microphoneDevices.isLoading || updateSelectedDevice.isPending}
+                disabled={deviceQuery.isLoading || updateSelectedDevice.isPending}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder={t`Select microphone device`} />
@@ -212,7 +181,7 @@ export default function Sound() {
                   <SelectItem value="default">
                     <Trans>System Default</Trans>
                   </SelectItem>
-                  {microphoneDevices.data?.map((device) => (
+                  {deviceQuery.data?.devices?.map((device) => (
                     <SelectItem key={device} value={device}>
                       {device}
                     </SelectItem>
@@ -220,7 +189,7 @@ export default function Sound() {
                 </SelectContent>
               </Select>
 
-              {microphoneDevices.isLoading && (
+              {deviceQuery.isLoading && (
                 <div className="text-xs text-muted-foreground mt-2">
                   <Trans>Loading available devices...</Trans>
                 </div>

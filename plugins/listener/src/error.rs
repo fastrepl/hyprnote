@@ -14,6 +14,8 @@ pub enum Error {
     DatabaseError(#[from] tauri_plugin_db::Error),
     #[error(transparent)]
     ConnectorError(#[from] tauri_plugin_connector::Error),
+    #[error(transparent)]
+    AudioError(#[from] hypr_audio::AudioError),
     #[error("no session")]
     NoneSession,
     #[error("no user")]

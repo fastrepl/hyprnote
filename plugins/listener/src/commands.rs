@@ -1,39 +1,35 @@
 use crate::ListenerPluginExt;
-use serde_json;
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug, Clone, specta::Type)]
+pub struct MicrophoneDeviceInfo {
+    pub devices: Vec<String>,
+    pub selected: Option<String>,
+}
 
 #[tauri::command]
 #[specta::specta]
 pub async fn get_selected_microphone_device<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<Option<String>, String> {
+) -> Result<MicrophoneDeviceInfo, String> {
     // Get the currently selected device from config
     let selected_device = app
         .get_selected_microphone_device()
         .await
         .map_err(|e| e.to_string())?;
 
-    // Always return device list with selected device info
-    if let Ok(devices) = app.list_microphone_devices().await {
-        tracing::info!(
-            "Available devices: {:?}, Selected: {:?}",
-            devices,
-            selected_device
-        );
+    let devices = app.list_microphone_devices().await.unwrap_or_default();
 
-        // Create a combined response that includes both device list and selected device
-        let mut response = std::collections::HashMap::new();
-        response.insert("devices".to_string(), devices);
-        response.insert(
-            "selected".to_string(),
-            vec![selected_device.unwrap_or_default()],
-        );
+    tracing::info!(
+        "Available devices: {:?}, Selected: {:?}",
+        devices,
+        selected_device
+    );
 
-        let response_json = serde_json::to_string(&response).unwrap_or_default();
-        return Ok(Some(format!("DEVICES:{}", response_json)));
-    }
-
-    // Fallback to just selected device
-    Ok(selected_device)
+    Ok(MicrophoneDeviceInfo {
+        devices,
+        selected: selected_device,
+    })
 }
 
 #[tauri::command]
@@ -54,7 +50,7 @@ pub async fn set_selected_microphone_device<R: tauri::Runtime>(
 ) -> Result<(), String> {
     // First validate that the device actually works
     if let Some(ref device) = device_name {
-        match hypr_audio::MicInput::validate_device(Some(device.clone())) {
+        match hypr_audio::MicInput::validate_device(Some(device.clone())).await {
             Ok(true) => tracing::info!("✅ Device '{}' validated successfully", device),
             Ok(false) => {
                 let error = format!(

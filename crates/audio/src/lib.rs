@@ -4,7 +4,7 @@ mod norm;
 mod speaker;
 mod stream;
 
-pub use errors::{AudioError, Error};
+pub use errors::AudioError;
 pub use mic::*;
 pub use norm::*;
 pub use speaker::*;
@@ -94,13 +94,13 @@ impl AudioInput {
         }
     }
 
-    pub fn from_speaker(sample_rate_override: Option<u32>) -> Self {
-        Self {
+    pub fn from_speaker(sample_rate_override: Option<u32>) -> Result<Self, AudioError> {
+        Ok(Self {
             source: AudioSource::RealtimeSpeaker,
             mic: None,
-            speaker: Some(SpeakerInput::new(sample_rate_override).unwrap()),
+            speaker: Some(SpeakerInput::new(sample_rate_override)?),
             data: None,
-        }
+        })
     }
 
     pub fn from_recording(data: Vec<u8>) -> Self {
@@ -118,7 +118,7 @@ impl AudioInput {
                 mic: self.mic.as_ref().unwrap().stream()?,
             }),
             AudioSource::RealtimeSpeaker => Ok(AudioStream::RealtimeSpeaker {
-                speaker: self.speaker.take().unwrap().stream().unwrap(),
+                speaker: self.speaker.take().unwrap().stream()?,
             }),
             AudioSource::Recorded => Ok(AudioStream::Recorded {
                 data: self.data.as_ref().unwrap().clone(),

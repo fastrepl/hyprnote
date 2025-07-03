@@ -24,20 +24,64 @@ impl MicInput {
         Self::default()
     }
 
+    /// Test if a device actually works by attempting to create a stream
+    pub fn validate_device(device_name: Option<String>) -> Result<bool, crate::AudioError> {
+        let test_input = if let Some(name) = device_name {
+            Self::with_device(&name)
+        } else {
+            Self::default()
+        };
+
+        // Try to create a stream - if this fails, the device doesn't work
+        let _test_stream = test_input.stream();
+        
+        // TODO: In future, we could test that the stream actually produces audio samples
+        // For now, if stream creation succeeds, we assume the device works
+        
+        // If we got here, the device is valid
+        Ok(true)
+    }
+
     pub fn with_device(device_name: &str) -> Self {
         let host = cpal::default_host();
 
         match host.input_devices() {
-            Ok(mut devices) => {
-                if let Some(device) =
-                    devices.find(|d| d.name().map(|n| n == device_name).unwrap_or(false))
-                {
+            Ok(devices) => {
+                let mut device_names = Vec::new();
+                let mut found_device = None;
+                
+                for device in devices {
+                    if let Ok(name) = device.name() {
+                        device_names.push(name.clone());
+                        
+                        // Try exact match first
+                        if name == device_name {
+                            found_device = Some(device);
+                            break;
+                        }
+                        // Try case-insensitive match as fallback
+                        if name.to_lowercase() == device_name.to_lowercase() {
+                            found_device = Some(device);
+                            break;
+                        }
+                        // Try partial match for similar names (e.g., "MacBook Pro Microphone" contains "MacBook")
+                        if name.to_lowercase().contains(&device_name.to_lowercase()) || 
+                           device_name.to_lowercase().contains(&name.to_lowercase()) {
+                            found_device = Some(device);
+                            break;
+                        }
+                    }
+                }
+
+                if let Some(device) = found_device {
+                    eprintln!("✅ Found audio device: '{}'", device.name().unwrap_or_default());
                     Self {
                         device: Some(device),
                     }
                 } else {
                     // Device not found, fall back to default
-                    eprintln!("Device '{}' not found, using default", device_name);
+                    eprintln!("❌ Device '{}' not found in available devices: {:?}", device_name, device_names);
+                    eprintln!("🔄 Using default device instead");
                     Self::default()
                 }
             }

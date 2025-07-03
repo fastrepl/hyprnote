@@ -127,6 +127,7 @@ export default function General() {
         jargons: v.jargons.split(",").map((jargon) => jargon.trim()).filter(Boolean),
         save_recordings: v.saveRecordings ?? true,
         selected_microphone_device: config.data?.general?.selected_microphone_device ?? null,
+        selected_template_id: config.data?.general?.selected_template_id ?? null,
       };
 
       await dbCommands.setConfig({

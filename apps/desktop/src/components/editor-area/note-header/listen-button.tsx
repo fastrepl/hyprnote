@@ -362,7 +362,7 @@ function MicControlWithDropdown({
         return result;
       } catch (error) {
         console.error("Device query failed:", error);
-        throw error;
+        return null; // Return fallback value instead of rethrowing to prevent unhandled promise rejection
       }
     },
     enabled: micPermissionStatus.data === true,
@@ -372,10 +372,22 @@ function MicControlWithDropdown({
     queryKey: ["microphoneDevices"],
     queryFn: async () => {
       const result = deviceQuery.data;
+      // Protocol: If string starts with "DEVICES:", it contains a JSON-encoded device info
+      // If no "DEVICES:" prefix, the string is a single device identifier
       if (result && result.startsWith("DEVICES:")) {
         const devicesJson = result.substring(8);
-        const devices = JSON.parse(devicesJson) as string[];
-        return devices;
+        try {
+          const parsedData = JSON.parse(devicesJson);
+          // Check if it's the new format with devices and selected
+          if (parsedData && typeof parsedData === 'object' && parsedData.devices) {
+            return parsedData.devices as string[];
+          }
+          // Fallback to old format (array of devices)
+          return parsedData as string[];
+        } catch (e) {
+          console.error("Failed to parse device data:", e);
+          return [];
+        }
       }
       return [];
     },
@@ -386,17 +398,45 @@ function MicControlWithDropdown({
     queryKey: ["selectedMicrophoneDevice"],
     queryFn: async () => {
       const result = deviceQuery.data;
+      // Protocol: If string starts with "DEVICES:", it contains a JSON-encoded device info
+      // If no "DEVICES:" prefix, the string is a single device identifier
       if (result && result.startsWith("DEVICES:")) {
-        return null;
+        const devicesJson = result.substring(8);
+        try {
+          const parsedData = JSON.parse(devicesJson);
+          // Check if it's the new format with devices and selected
+          if (parsedData && typeof parsedData === 'object' && parsedData.selected) {
+            const selected = parsedData.selected[0]; // Get first (and only) selected device
+            return selected || null;
+          }
+          // Old format - no selected device info
+          return null;
+        } catch (e) {
+          console.error("Failed to parse selected device data:", e);
+          return null;
+        }
       }
-      return result;
+      return result; // Return the single device identifier
     },
     enabled: micPermissionStatus.data === true && deviceQuery.data !== undefined,
   });
 
   const updateSelectedDevice = useMutation({
     mutationFn: (deviceName: string | null) => listenerCommands.setSelectedMicrophoneDevice(deviceName),
-    onSuccess: () => deviceQuery.refetch(),
+    onSuccess: () => {
+      // Invalidate and refetch all related queries to ensure UI updates
+      deviceQuery.refetch();
+      microphoneDevices.refetch();
+      selectedDevice.refetch();
+      console.log("✅ Microphone device switched successfully");
+    },
+    onError: (error) => {
+      console.error("❌ Failed to switch microphone device:", error);
+      // Refetch to ensure UI shows correct state even after error
+      deviceQuery.refetch();
+      microphoneDevices.refetch();
+      selectedDevice.refetch();
+    },
   });
 
   const handleMicrophoneDeviceChange = (deviceName: string) => {

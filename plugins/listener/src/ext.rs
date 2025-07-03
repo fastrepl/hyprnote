@@ -18,6 +18,10 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
         &self,
         device_name: Option<String>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
+    fn change_microphone_device(
+        &self,
+        device_name: Option<String>,
+    ) -> impl Future<Output = ()>;
 
     fn check_microphone_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
     fn check_system_audio_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
@@ -132,37 +136,53 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     ) -> Result<(), crate::Error> {
         use tauri_plugin_db::DatabasePluginExt;
 
-        let user_id = self.db_user_id().await?.ok_or(crate::Error::NoneUser)?;
-        let config = match self.db_get_config(&user_id).await? {
-            Some(mut config) => {
-                config.general.selected_microphone_device = device_name;
-                config
+        // Check if a session is currently running
+        let current_state = self.get_state().await;
+        match current_state {
+            crate::fsm::State::RunningActive { .. } | crate::fsm::State::RunningPaused { .. } => {
+                // For active sessions, use the seamless device switching
+                tracing::info!("Switching microphone device during active session");
+                self.change_microphone_device(device_name).await;
+                Ok(())
             }
-            None => {
-                // Create default config with the selected device
-                hypr_db_user::Config {
-                    id: uuid::Uuid::new_v4().to_string(),
-                    user_id: user_id.clone(),
-                    general: hypr_db_user::ConfigGeneral {
-                        selected_microphone_device: device_name,
-                        ..Default::default()
-                    },
-                    notification: hypr_db_user::ConfigNotification::default(),
-                    ai: hypr_db_user::ConfigAI::default(),
-                }
-            }
-        };
+            _ => {
+                // For inactive sessions, just update the config
+                let user_id = self.db_user_id().await?.ok_or(crate::Error::NoneUser)?;
+                let config = match self.db_get_config(&user_id).await? {
+                    Some(mut config) => {
+                        config.general.selected_microphone_device = device_name;
+                        config
+                    }
+                    None => {
+                        // Create default config with the selected device
+                        hypr_db_user::Config {
+                            id: uuid::Uuid::new_v4().to_string(),
+                            user_id: user_id.clone(),
+                            general: hypr_db_user::ConfigGeneral {
+                                selected_microphone_device: device_name,
+                                ..Default::default()
+                            },
+                            notification: hypr_db_user::ConfigNotification::default(),
+                            ai: hypr_db_user::ConfigAI::default(),
+                        }
+                    }
+                };
 
-        // Use the database directly since commands module is private
-        let state = self.state::<tauri_plugin_db::ManagedState>();
-        let guard = state.lock().await;
-        let db = guard.db.as_ref().ok_or(crate::Error::DatabaseError(
-            tauri_plugin_db::Error::NoneDatabase,
-        ))?;
-        db.set_config(config).await.map_err(|e| {
-            crate::Error::DatabaseError(tauri_plugin_db::Error::DatabaseCoreError(e))
-        })?;
-        Ok(())
+                // Use the database directly since commands module is private
+                let state = self.state::<tauri_plugin_db::ManagedState>();
+                let guard = state.lock().await;
+                let db = guard.db.as_ref().ok_or(crate::Error::DatabaseError(
+                    tauri_plugin_db::Error::NoneDatabase,
+                ))?;
+                db.set_config(config).await.map_err(|e| {
+                    crate::Error::DatabaseError(tauri_plugin_db::Error::DatabaseCoreError(e))
+                })?;
+                drop(guard);
+                
+                tracing::info!("Updated microphone device config for inactive session");
+                Ok(())
+            }
+        }
     }
 
     #[tracing::instrument(skip_all)]
@@ -340,6 +360,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         {
             let mut guard = state.lock().await;
             let event = crate::fsm::StateEvent::Resume;
+            guard.fsm.handle(&event).await;
+        }
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn change_microphone_device(&self, device_name: Option<String>) {
+        let state = self.state::<crate::SharedState>();
+
+        {
+            let mut guard = state.lock().await;
+            let event = crate::fsm::StateEvent::MicrophoneDeviceChanged(device_name);
             guard.fsm.handle(&event).await;
         }
     }

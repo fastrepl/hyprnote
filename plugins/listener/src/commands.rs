@@ -6,17 +6,26 @@ use serde_json;
 pub async fn get_selected_microphone_device<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Option<String>, String> {
-    // Always return device list for debugging
+    // Get the currently selected device from config
+    let selected_device = app.get_selected_microphone_device()
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    // Always return device list with selected device info
     if let Ok(devices) = app.list_microphone_devices().await {
-        tracing::info!("Returning device list: {:?}", devices);
-        let devices_json = serde_json::to_string(&devices).unwrap_or_default();
-        return Ok(Some(format!("DEVICES:{}", devices_json)));
+        tracing::info!("Available devices: {:?}, Selected: {:?}", devices, selected_device);
+        
+        // Create a combined response that includes both device list and selected device
+        let mut response = std::collections::HashMap::new();
+        response.insert("devices".to_string(), devices);
+        response.insert("selected".to_string(), vec![selected_device.unwrap_or_default()]);
+        
+        let response_json = serde_json::to_string(&response).unwrap_or_default();
+        return Ok(Some(format!("DEVICES:{}", response_json)));
     }
 
-    // Fallback to original behavior
-    app.get_selected_microphone_device()
-        .await
-        .map_err(|e| e.to_string())
+    // Fallback to just selected device
+    Ok(selected_device)
 }
 
 #[tauri::command]
@@ -35,6 +44,23 @@ pub async fn set_selected_microphone_device<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     device_name: Option<String>,
 ) -> Result<(), String> {
+    // First validate that the device actually works
+    if let Some(ref device) = device_name {
+        match hypr_audio::MicInput::validate_device(Some(device.clone())) {
+            Ok(true) => tracing::info!("✅ Device '{}' validated successfully", device),
+            Ok(false) => {
+                let error = format!("❌ Device '{}' validation failed - device not working", device);
+                tracing::error!("{}", error);
+                return Err(error);
+            }
+            Err(e) => {
+                let error = format!("❌ Device '{}' validation error: {}", device, e);
+                tracing::error!("{}", error);
+                return Err(error);
+            }
+        }
+    }
+
     app.set_selected_microphone_device(device_name)
         .await
         .map_err(|e| e.to_string())

@@ -81,14 +81,7 @@ export default function Sound() {
 
   const deviceQuery = useQuery<MicrophoneDeviceInfo>({
     queryKey: ["microphoneDeviceInfo"],
-    queryFn: async () => {
-      try {
-        const result = await listenerCommands.getSelectedMicrophoneDevice();
-        return result;
-      } catch (error) {
-        throw error;
-      }
-    },
+    queryFn: () => listenerCommands.getSelectedMicrophoneDevice(),
     enabled: micPermissionStatus.data === true,
   });
 

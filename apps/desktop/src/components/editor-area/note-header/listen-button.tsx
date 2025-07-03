@@ -369,7 +369,7 @@ function MicControlWithDropdown({
   });
 
   const microphoneDevices = useQuery({
-    queryKey: ["microphoneDevices"],
+    queryKey: ["microphoneDevices", deviceQuery.data],
     queryFn: async () => {
       const result = deviceQuery.data;
       // Protocol: If string starts with "DEVICES:", it contains a JSON-encoded device info
@@ -379,7 +379,7 @@ function MicControlWithDropdown({
         try {
           const parsedData = JSON.parse(devicesJson);
           // Check if it's the new format with devices and selected
-          if (parsedData && typeof parsedData === 'object' && parsedData.devices) {
+          if (parsedData && typeof parsedData === "object" && parsedData.devices) {
             return parsedData.devices as string[];
           }
           // Fallback to old format (array of devices)
@@ -395,7 +395,7 @@ function MicControlWithDropdown({
   });
 
   const selectedDevice = useQuery({
-    queryKey: ["selectedMicrophoneDevice"],
+    queryKey: ["selectedMicrophoneDevice", deviceQuery.data],
     queryFn: async () => {
       const result = deviceQuery.data;
       // Protocol: If string starts with "DEVICES:", it contains a JSON-encoded device info
@@ -405,7 +405,7 @@ function MicControlWithDropdown({
         try {
           const parsedData = JSON.parse(devicesJson);
           // Check if it's the new format with devices and selected
-          if (parsedData && typeof parsedData === 'object' && parsedData.selected) {
+          if (parsedData && typeof parsedData === "object" && parsedData.selected) {
             const selected = parsedData.selected[0]; // Get first (and only) selected device
             return selected || null;
           }
@@ -424,15 +424,17 @@ function MicControlWithDropdown({
   const updateSelectedDevice = useMutation({
     mutationFn: (deviceName: string | null) => listenerCommands.setSelectedMicrophoneDevice(deviceName),
     onSuccess: () => {
-      // Invalidate and refetch all related queries to ensure UI updates
+      console.log("✅ Microphone device switched successfully");
+
+      // Force immediate refetch to ensure UI updates instantly
       deviceQuery.refetch();
       microphoneDevices.refetch();
       selectedDevice.refetch();
-      console.log("✅ Microphone device switched successfully");
     },
     onError: (error) => {
       console.error("❌ Failed to switch microphone device:", error);
-      // Refetch to ensure UI shows correct state even after error
+
+      // Even on error, refresh to show correct state
       deviceQuery.refetch();
       microphoneDevices.refetch();
       selectedDevice.refetch();

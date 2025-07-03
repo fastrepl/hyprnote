@@ -18,10 +18,7 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
         &self,
         device_name: Option<String>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
-    fn change_microphone_device(
-        &self,
-        device_name: Option<String>,
-    ) -> impl Future<Output = ()>;
+    fn change_microphone_device(&self, device_name: Option<String>) -> impl Future<Output = ()>;
 
     fn check_microphone_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
     fn check_system_audio_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
@@ -178,7 +175,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                     crate::Error::DatabaseError(tauri_plugin_db::Error::DatabaseCoreError(e))
                 })?;
                 drop(guard);
-                
+
                 tracing::info!("Updated microphone device config for inactive session");
                 Ok(())
             }

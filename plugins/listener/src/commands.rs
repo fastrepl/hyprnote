@@ -7,19 +7,27 @@ pub async fn get_selected_microphone_device<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Option<String>, String> {
     // Get the currently selected device from config
-    let selected_device = app.get_selected_microphone_device()
+    let selected_device = app
+        .get_selected_microphone_device()
         .await
         .map_err(|e| e.to_string())?;
-    
+
     // Always return device list with selected device info
     if let Ok(devices) = app.list_microphone_devices().await {
-        tracing::info!("Available devices: {:?}, Selected: {:?}", devices, selected_device);
-        
+        tracing::info!(
+            "Available devices: {:?}, Selected: {:?}",
+            devices,
+            selected_device
+        );
+
         // Create a combined response that includes both device list and selected device
         let mut response = std::collections::HashMap::new();
         response.insert("devices".to_string(), devices);
-        response.insert("selected".to_string(), vec![selected_device.unwrap_or_default()]);
-        
+        response.insert(
+            "selected".to_string(),
+            vec![selected_device.unwrap_or_default()],
+        );
+
         let response_json = serde_json::to_string(&response).unwrap_or_default();
         return Ok(Some(format!("DEVICES:{}", response_json)));
     }
@@ -49,7 +57,10 @@ pub async fn set_selected_microphone_device<R: tauri::Runtime>(
         match hypr_audio::MicInput::validate_device(Some(device.clone())) {
             Ok(true) => tracing::info!("✅ Device '{}' validated successfully", device),
             Ok(false) => {
-                let error = format!("❌ Device '{}' validation failed - device not working", device);
+                let error = format!(
+                    "❌ Device '{}' validation failed - device not working",
+                    device
+                );
                 tracing::error!("{}", error);
                 return Err(error);
             }

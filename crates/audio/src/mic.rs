@@ -34,10 +34,10 @@ impl MicInput {
 
         // Try to create a stream - if this fails, the device doesn't work
         let _test_stream = test_input.stream();
-        
+
         // TODO: In future, we could test that the stream actually produces audio samples
         // For now, if stream creation succeeds, we assume the device works
-        
+
         // If we got here, the device is valid
         Ok(true)
     }
@@ -49,11 +49,11 @@ impl MicInput {
             Ok(devices) => {
                 let mut device_names = Vec::new();
                 let mut found_device = None;
-                
+
                 for device in devices {
                     if let Ok(name) = device.name() {
                         device_names.push(name.clone());
-                        
+
                         // Try exact match first
                         if name == device_name {
                             found_device = Some(device);
@@ -65,8 +65,9 @@ impl MicInput {
                             break;
                         }
                         // Try partial match for similar names (e.g., "MacBook Pro Microphone" contains "MacBook")
-                        if name.to_lowercase().contains(&device_name.to_lowercase()) || 
-                           device_name.to_lowercase().contains(&name.to_lowercase()) {
+                        if name.to_lowercase().contains(&device_name.to_lowercase())
+                            || device_name.to_lowercase().contains(&name.to_lowercase())
+                        {
                             found_device = Some(device);
                             break;
                         }
@@ -74,13 +75,19 @@ impl MicInput {
                 }
 
                 if let Some(device) = found_device {
-                    eprintln!("✅ Found audio device: '{}'", device.name().unwrap_or_default());
+                    eprintln!(
+                        "✅ Found audio device: '{}'",
+                        device.name().unwrap_or_default()
+                    );
                     Self {
                         device: Some(device),
                     }
                 } else {
                     // Device not found, fall back to default
-                    eprintln!("❌ Device '{}' not found in available devices: {:?}", device_name, device_names);
+                    eprintln!(
+                        "❌ Device '{}' not found in available devices: {:?}",
+                        device_name, device_names
+                    );
                     eprintln!("🔄 Using default device instead");
                     Self::default()
                 }

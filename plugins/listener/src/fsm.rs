@@ -109,7 +109,10 @@ impl Session {
             tracing::info!("Setting up audio input with device: {:?}", selected_device);
 
             let mut input = if let Some(ref device_name) = selected_device {
-                tracing::info!("Creating audio input for specific device: '{}'", device_name);
+                tracing::info!(
+                    "Creating audio input for specific device: '{}'",
+                    device_name
+                );
                 hypr_audio::AudioInput::from_mic_device(selected_device)
             } else {
                 tracing::info!("Creating audio input for default device");
@@ -423,7 +426,7 @@ impl Session {
                 let _ = res;
             }
         }
-        
+
         // Reset audio-related state but keep session context
         self.mic_muted_tx = None;
         self.mic_muted_rx = None;
@@ -433,21 +436,27 @@ impl Session {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn switch_microphone_device_lightweight(&mut self, device_name: Option<String>) -> Result<(), crate::Error> {
+    async fn switch_microphone_device_lightweight(
+        &mut self,
+        device_name: Option<String>,
+    ) -> Result<(), crate::Error> {
         use tauri_plugin_db::DatabasePluginExt;
-        
+
         if self.session_id.is_none() {
             return Err(crate::Error::NoneSession);
         }
 
-        tracing::info!("🎤 Lightweight microphone device switch to: {:?}", device_name);
-        
+        tracing::info!(
+            "🎤 Lightweight microphone device switch to: {:?}",
+            device_name
+        );
+
         // Update config first
         let user_id = self.app.db_user_id().await?.unwrap();
         if let Ok(config) = self.app.db_get_config(&user_id).await {
             if let Some(mut config) = config {
                 config.general.selected_microphone_device = device_name.clone();
-                
+
                 let state = self.app.state::<tauri_plugin_db::ManagedState>();
                 let guard = state.lock().await;
                 if let Some(db) = guard.db.as_ref() {
@@ -459,7 +468,7 @@ impl Session {
 
         // For now, just update the config - the heavy restart will happen but we've optimized the audio matching
         // TODO: In the future, implement true hot-swapping of just the mic stream
-        
+
         tracing::info!("✅ Microphone device config updated");
         Ok(())
     }
@@ -592,16 +601,19 @@ impl Session {
                 // Handle device change during active session with atomic restart
                 if let Some(session_id) = self.session_id.clone() {
                     tracing::info!("🎤 ATOMIC microphone device switch to: {:?}", device_name);
-                    
+
                     // Step 1: Update config atomically
-                    if let Err(e) = self.switch_microphone_device_lightweight(device_name.clone()).await {
+                    if let Err(e) = self
+                        .switch_microphone_device_lightweight(device_name.clone())
+                        .await
+                    {
                         tracing::error!("❌ Config update failed: {:?}", e);
                         return Handled;
                     }
-                    
+
                     // Step 2: Atomic restart - no delays, fast cleanup
                     tracing::info!("⚡ Atomic audio restart");
-                    
+
                     // Quick cleanup - abort all tasks immediately
                     if let Some(tx) = self.silence_stream_tx.take() {
                         let _ = tx.send(());
@@ -610,14 +622,14 @@ impl Session {
                         tasks.abort_all();
                         // Don't wait for tasks to finish - abort and move on
                     }
-                    
+
                     // Reset channels but keep session_id
                     self.mic_muted_tx = None;
                     self.mic_muted_rx = None;
                     self.speaker_muted_tx = None;
                     self.speaker_muted_rx = None;
                     self.session_state_tx = None;
-                    
+
                     // Step 3: Immediate restart with new device (no delays)
                     match self.setup_resources(&session_id).await {
                         Ok(_) => {

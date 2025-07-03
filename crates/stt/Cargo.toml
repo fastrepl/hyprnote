@@ -4,19 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["realtime", "recorded", "local"]
+default = ["realtime", "recorded"]
 realtime = []
 recorded = []
-local = []
 
 [dependencies]
 hypr-audio-utils = { workspace = true }
-hypr-clova = { path = "../clova", package = "clova" }
-hypr-db-user = { workspace = true }
+hypr-clova = { workspace = true }
 hypr-language = { workspace = true, features = ["deepgram", "whisper"] }
 hypr-listener-interface = { workspace = true }
-hypr-rtzr = { path = "../rtzr", package = "rtzr" }
-hypr-whisper = { workspace = true, features = ["cloud"] }
+hypr-whisper-cloud = { workspace = true }
 
 deepgram = { workspace = true, default-features = false, features = ["listen"] }
 
@@ -24,18 +21,14 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 
 bytes = { workspace = true }
-codes-iso-639 = { workspace = true }
-
-serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-specta = { workspace = true, features = ["derive"] }
 
 futures-util = { workspace = true }
 tokio = { workspace = true }
 
 [dev-dependencies]
-hypr-audio = { path = "../audio", package = "audio" }
-hypr-data = { path = "../data", package = "data" }
+hypr-audio = { workspace = true }
+hypr-data = { workspace = true }
 
 async-stream = { workspace = true }
 hound = { workspace = true }

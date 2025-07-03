@@ -3,6 +3,11 @@ name = "onnx"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = []
+coreml = ["ort/coreml"]
+directml = ["ort/directml"]
+
 [dependencies]
 ndarray = "0.16"
 ort = { version = "=2.0.0-rc.9", features = ["load-dynamic"] }

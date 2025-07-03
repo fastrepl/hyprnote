@@ -48,6 +48,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::download_model::<Wry>,
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
+            commands::restart_server::<Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
@@ -58,9 +59,12 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let model_path = app.path().app_data_dir().unwrap().join("llm.gguf");
-            let state: SharedState = Arc::new(Mutex::new(State::new(model_path)));
-            app.manage(state);
+            {
+                let model_path = app.path().app_data_dir().unwrap().join("llm.gguf");
+                let state: SharedState = Arc::new(Mutex::new(State::new(model_path)));
+                app.manage(state);
+            }
+
             Ok(())
         })
         .build()

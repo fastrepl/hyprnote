@@ -1,11 +1,13 @@
 import { toast } from "@hypr/ui/components/ui/toast";
 import { useMutation } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
+import { diffWords } from "diff";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useHypr } from "@/contexts";
+import { extractTextFromHtml } from "@/utils/parse";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -60,8 +62,11 @@ export default function EditorArea({
   );
 
   const generateTitle = useGenerateTitleMutation({ sessionId });
+  const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
+
   const enhance = useEnhanceMutation({
     sessionId,
+    preMeetingNote,
     rawContent,
     onSuccess: (content) => {
       generateTitle.mutate({ enhancedContent: content });
@@ -127,7 +132,8 @@ export default function EditorArea({
           enhancedContent && "pb-10",
         ])}
         onClick={(e) => {
-          if (!(e.target instanceof HTMLAnchorElement)) {
+          const target = e.target as HTMLElement;
+          if (!target.closest("a[href]")) {
             e.stopPropagation();
             safelyFocusEditor();
           }
@@ -175,14 +181,30 @@ export default function EditorArea({
 
 export function useEnhanceMutation({
   sessionId,
+  preMeetingNote,
   rawContent,
   onSuccess,
 }: {
   sessionId: string;
+  preMeetingNote: string;
   rawContent: string;
   onSuccess: (enhancedContent: string) => void;
 }) {
   const { userId, onboardingSessionId } = useHypr();
+
+  const preMeetingText = extractTextFromHtml(preMeetingNote);
+  const rawText = extractTextFromHtml(rawContent);
+
+  // finalInput is the text that will be used to enhance the note
+  var finalInput = "";
+  const wordDiff = diffWords(preMeetingText, rawText);
+  if (wordDiff && wordDiff.length > 0) {
+    for (const diff of wordDiff) {
+      if (diff.added && diff.removed == false) {
+        finalInput += " " + diff.value;
+      }
+    }
+  }
 
   const setEnhanceController = useOngoingSession((s) => s.setEnhanceController);
   const { persistSession, setEnhancedContent } = useSession(sessionId, (s) => ({
@@ -225,7 +247,7 @@ export function useEnhanceMutation({
         "enhance.user",
         {
           type,
-          editor: rawContent,
+          editor: finalInput,
           words: JSON.stringify(words),
           participants,
         },
@@ -241,10 +263,13 @@ export function useEnhanceMutation({
         : provider.languageModel("defaultModel");
 
       if (sessionId !== onboardingSessionId) {
+        const { type } = await connectorCommands.getLlmConnection();
+
         analyticsCommands.event({
           event: "normal_enhance_start",
           distinct_id: userId,
           session_id: sessionId,
+          connection_type: type,
         });
       }
 

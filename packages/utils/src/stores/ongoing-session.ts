@@ -55,6 +55,7 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       );
     },
     start: (sessionId: string) => {
+      console.log("start", sessionId);
       set((state) =>
         mutate(state, (draft) => {
           draft.sessionId = sessionId;
@@ -63,7 +64,14 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       );
 
       const sessionStore = sessionsStore.getState().sessions[sessionId];
+      const currentSession = sessionStore.getState().session;
+
       sessionStore.getState().persistSession(undefined, true);
+
+      if (currentSession.raw_memo_html && currentSession.raw_memo_html != "<p></p>") {
+        const preMeetingNote = currentSession.raw_memo_html;
+        sessionStore.getState().updatePreMeetingNote(preMeetingNote);
+      }
 
       listenerEvents.sessionEvent.listen(({ payload }) => {
         if (payload.type === "audioAmplitude") {

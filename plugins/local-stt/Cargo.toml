@@ -7,35 +7,47 @@ exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-local-stt"
 description = ""
 
+[features]
+default = []
+coreml = ["hypr-whisper-local/coreml", "hypr-pyannote-local/coreml"]
+directml = ["hypr-pyannote-local/directml"]
+cuda = ["hypr-whisper-local/cuda"]
+hipblas = ["hypr-whisper-local/hipblas"]
+openblas = ["hypr-whisper-local/openblas"]
+metal = ["hypr-whisper-local/metal"]
+vulkan = ["hypr-whisper-local/vulkan"]
+openmp = ["hypr-whisper-local/openmp"]
+
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 hypr-data = { workspace = true }
 hypr-language = { workspace = true }
-kalosm-common = { workspace = true }
+
 tauri-plugin-listener = { workspace = true }
+
+kalosm-common = { workspace = true }
 tokio-tungstenite = { workspace = true }
 
 bytes = { workspace = true }
 reqwest = { workspace = true }
-rodio = { workspace = true, features = ["wav"] }
 specta-typescript = { workspace = true }
-tracing = { workspace = true }
 
 [dependencies]
 hypr-audio-utils = { workspace = true }
 hypr-chunker = { workspace = true }
-hypr-db-user = { workspace = true }
 hypr-file = { workspace = true }
 hypr-listener-interface = { workspace = true }
-hypr-pyannote = { workspace = true, features = ["local"] }
-hypr-whisper = { workspace = true, features = ["local"] }
+hypr-pyannote-local = { workspace = true }
+hypr-whisper = { workspace = true }
+hypr-whisper-local = { workspace = true }
 hypr-ws-utils = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-plugin-store = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
+tauri-plugin-task = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 dirs = { workspace = true }
@@ -45,7 +57,6 @@ serde_json = { workspace = true }
 specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
-tracing = { workspace = true }
 
 axum = { workspace = true, features = ["ws"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }
@@ -53,6 +64,7 @@ tower-http = { workspace = true, features = ["cors", "trace"] }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 tokio-util = { workspace = true }
+tracing = { workspace = true }
 
 [target.'cfg(not(target_os = "macos"))'.dependencies]
 kalosm-sound = { workspace = true, default-features = false }

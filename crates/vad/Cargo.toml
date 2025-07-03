@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 serde = { workspace = true }
 thiserror = { workspace = true }
-tracing = { workspace = true }
 
 ndarray = "0.16"
 ort = { version = "=2.0.0-rc.9", features = ["load-dynamic"] }

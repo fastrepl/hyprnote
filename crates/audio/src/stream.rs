@@ -1,22 +1,26 @@
 use futures_util::Stream;
-use tokio::sync::mpsc::Receiver;
-use tokio_stream::wrappers::ReceiverStream;
 
-pub struct ReceiverStreamSource {
-    stream: ReceiverStream<f32>,
+pub struct StreamSource<S> {
+    stream: S,
     sample_rate: u32,
 }
 
-impl ReceiverStreamSource {
-    pub fn new(rx: Receiver<f32>, sample_rate: u32) -> Self {
+impl<S> StreamSource<S>
+where
+    S: Stream<Item = f32> + Unpin,
+{
+    pub fn new(stream: S, sample_rate: u32) -> Self {
         Self {
-            stream: ReceiverStream::new(rx),
+            stream,
             sample_rate,
         }
     }
 }
 
-impl kalosm_sound::AsyncSource for ReceiverStreamSource {
+impl<S> kalosm_sound::AsyncSource for StreamSource<S>
+where
+    S: Stream<Item = f32> + Unpin,
+{
     fn as_stream(&mut self) -> impl Stream<Item = f32> + '_ {
         &mut self.stream
     }

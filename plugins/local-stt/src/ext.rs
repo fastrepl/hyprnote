@@ -11,6 +11,7 @@ use hypr_listener_interface::Word;
 
 pub trait LocalSttPluginExt<R: Runtime> {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
+    fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend>;
     fn api_base(&self) -> impl Future<Output = Option<String>>;
     fn is_server_running(&self) -> impl Future<Output = bool>;
     fn start_server(&self) -> impl Future<Output = Result<String, crate::Error>>;
@@ -40,6 +41,10 @@ pub trait LocalSttPluginExt<R: Runtime> {
 impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey> {
         self.scoped_store(crate::PLUGIN_NAME).unwrap()
+    }
+
+    fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend> {
+        hypr_whisper_local::list_ggml_backends()
     }
 
     #[tracing::instrument(skip_all)]
@@ -179,14 +184,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
         let samples_i16 = hypr_audio_utils::f32_to_i16_samples(&samples_f32);
 
-        let mut model = hypr_whisper::local::Whisper::builder()
+        let mut model = hypr_whisper_local::Whisper::builder()
             .model_path(model_path.as_ref().to_str().unwrap())
             .language(hypr_whisper::Language::En)
             .static_prompt("")
             .dynamic_prompt("")
             .build();
 
-        let mut segmenter = hypr_pyannote::local::segmentation::Segmenter::new(16000).unwrap();
+        let mut segmenter = hypr_pyannote_local::segmentation::Segmenter::new(16000).unwrap();
         let segments = segmenter.process(&samples_i16, 16000).unwrap();
 
         let mut words = Vec::new();

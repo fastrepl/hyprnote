@@ -76,7 +76,7 @@ pub async fn main() {
         .plugin(tauri_plugin_local_stt::init())
         .plugin(tauri_plugin_connector::init())
         .plugin(tauri_plugin_flags::init())
-        .plugin(tauri_plugin_sentry::init(&client))
+        .plugin(tauri_plugin_sentry::init_with_no_injection(&client))
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
@@ -87,6 +87,7 @@ pub async fn main() {
         .plugin(tauri_plugin_auth::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_task::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_machine_uid::init())
         .plugin(tauri_plugin_analytics::init())
@@ -231,6 +232,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_onboarding_needed::<tauri::Wry>,
             commands::setup_db_for_cloud::<tauri::Wry>,
             commands::set_autostart::<tauri::Wry>,
+            commands::is_individualization_needed::<tauri::Wry>,
+            commands::set_individualization_needed::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

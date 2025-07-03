@@ -62,22 +62,24 @@ impl Llama {
     }
 
     fn get_sampler(model: &LlamaModel, grammar: Option<&str>) -> LlamaSampler {
-        let items = [
-            if let Some(grammar) = grammar {
-                Some(LlamaSampler::grammar(&model, grammar, "root"))
-            } else {
-                None
-            },
-            Some(LlamaSampler::temp(0.8)),
-            Some(LlamaSampler::penalties(0, 1.4, 0.1, 0.0)),
-            Some(LlamaSampler::mirostat_v2(1234, 3.0, 0.2)),
-        ];
+        let mut samplers = Vec::new();
 
-        LlamaSampler::chain_simple(items.into_iter().flatten().collect::<Vec<_>>())
+        if let Some(grammar) = grammar {
+            if let Some(grammar_sampler) = LlamaSampler::grammar(&model, grammar, "root") {
+                samplers.push(grammar_sampler);
+            }
+        }
+
+        samplers.push(LlamaSampler::temp(0.8));
+        samplers.push(LlamaSampler::penalties(0, 1.4, 0.1, 0.0));
+        samplers.push(LlamaSampler::mirostat_v2(1234, 3.0, 0.2));
+
+        LlamaSampler::chain_simple(samplers)
     }
 
     pub fn new(model_path: impl AsRef<std::path::Path>) -> Result<Self, crate::Error> {
-        send_logs_to_tracing(LogOptions::default().with_logs_enabled(false));
+        let show_logs = if cfg!(debug_assertions) { true } else { false };
+        send_logs_to_tracing(LogOptions::default().with_logs_enabled(show_logs));
 
         let fmt = model_path.gguf_chat_format()?.unwrap();
         let tpl = LlamaChatTemplate::new(fmt.as_ref()).unwrap();

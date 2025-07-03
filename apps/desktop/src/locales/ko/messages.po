@@ -396,6 +396,10 @@ msgstr ""
 msgid "Calendar connected"
 msgstr ""
 
+#: src/components/individualization-modal/industry-view.tsx:128
+msgid "Cancel"
+msgstr ""
+
 #: src/components/welcome-modal/welcome-view.tsx:28
 #~ msgid "Capture every moment"
 #~ msgstr ""
@@ -560,12 +564,12 @@ msgid "Enter the API key for your custom LLM endpoint"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:203
-msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434)"
-msgstr ""
+#~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434)"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:203
-#~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434/v1)"
-#~ msgstr ""
+msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434/v1)"
+msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:203
 #~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)"
@@ -620,6 +624,10 @@ msgstr ""
 msgid "General"
 msgstr ""
 
+#: src/components/editor-area/note-header/title-input.tsx:30
+msgid "Generating title..."
+msgstr ""
+
 #: src/components/welcome-modal/welcome-view.tsx:36
 msgid "Get Started"
 msgstr ""
@@ -637,12 +645,23 @@ msgstr ""
 msgid "Help us improve the Hyprnote experience by providing feedback."
 msgstr ""
 
+#: src/components/individualization-modal/role-view.tsx:24
+#: src/components/individualization-modal/org-size-view.tsx:24
+#: src/components/individualization-modal/industry-view.tsx:63
+#: src/components/individualization-modal/how-heard-view.tsx:33
+msgid "Help us tailor your Hyprnote experience"
+msgstr ""
+
 #: src/components/settings/views/feedback.tsx:19
 msgid "Hmm... this is off..."
 msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:24
 msgid "How can I help you today?"
+msgstr ""
+
+#: src/components/individualization-modal/how-heard-view.tsx:38
+msgid "How did you hear about Hyprnote?"
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:38
@@ -1076,7 +1095,7 @@ msgstr ""
 msgid "Ugh! Can't use it!"
 msgstr ""
 
-#: src/components/editor-area/note-header/title-input.tsx:33
+#: src/components/editor-area/note-header/title-input.tsx:32
 msgid "Untitled"
 msgstr ""
 
@@ -1131,6 +1150,18 @@ msgstr ""
 
 #: src/components/settings/views/feedback.tsx:102
 msgid "We'll only use this to follow up if needed."
+msgstr ""
+
+#: src/components/individualization-modal/industry-view.tsx:68
+msgid "What industry are you in?"
+msgstr ""
+
+#: src/components/individualization-modal/org-size-view.tsx:29
+msgid "What's your organization size?"
+msgstr ""
+
+#: src/components/individualization-modal/role-view.tsx:29
+msgid "What's your role?"
 msgstr ""
 
 #: src/components/settings/components/ai/wer-modal.tsx:69

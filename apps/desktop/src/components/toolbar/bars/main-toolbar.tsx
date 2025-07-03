@@ -4,6 +4,7 @@ import { useMatch } from "@tanstack/react-router";
 import { DeleteNoteButton } from "@/components/toolbar/buttons/delete-note-button";
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
 import { NewWindowButton } from "@/components/toolbar/buttons/new-window-button";
+import { ShareButton } from "@/components/toolbar/buttons/share-button";
 import { useLeftSidebar } from "@/contexts";
 import { commands as flagsCommands } from "@hypr/plugin-flags";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
@@ -50,6 +51,7 @@ export function MainToolbar() {
             <LeftSidebarButton type="toolbar" />
             <NewNoteButton />
             <DeleteNoteButton />
+            <ShareButton />
           </>
         )}
       </div>
@@ -62,7 +64,6 @@ export function MainToolbar() {
       >
         {isMain && (
           <>
-            {/* {isNote && <ShareButton />} */}
             {(organizationMatch || humanMatch) && <NewWindowButton />}
             {noteChatQuery.data && <ChatPanelButton />}
             <TranscriptPanelButton />

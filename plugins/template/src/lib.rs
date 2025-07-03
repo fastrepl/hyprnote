@@ -139,11 +139,12 @@ mod test {
         # Inputs Provided by the user
 
         - Meeting Information (txt)
-        - Raw Note (markdown)
+        - Raw Note (txt)
         - Meeting Transcript (txt)
 
         # About Raw Notes
 
+        - Raw Notes is what user purely wrote during the meeting.
         - The beginning of a raw note may include agenda items, discussion topics, and preliminary questions.
         - Primarily consist of key phrases or sentences the user wants to remember, though they may also contain random or extraneous words.
         - May sometimes be empty.
@@ -236,7 +237,7 @@ mod test {
             render_enhance_user_template(&app, "HyprCloud"),
         );
 
-        insta::assert_snapshot!(render_enhance_user_template(&app, "HyprLocal"), @r###"
+        insta::assert_snapshot!(render_enhance_user_template(&app, "HyprLocal"), @r"
         <participants>
 
         </participants>
@@ -253,10 +254,10 @@ mod test {
         Note that above given informations like participants, transcript, etc. are already displayed in the UI, so you don't need to repeat them.
 
 
-        Also, before writing enhanced note, write multiple top-level headers inside <headers></headers> tags, and then write the note based on the headers.
+        Also, before writing enhanced note, write multiple top-level headers inside <thinking></thinking> tags, and then write the note based on the headers.
 
-        Each items in <headers></headers> tags MUST be used as markdown headers('#') in the final note. No other headers are allowed.
-        "###);
+        Each items in <thinking></thinking> tags MUST be used as markdown headers('#') in the final note. No other headers are allowed.
+        ");
 
         insta::assert_snapshot!(render_enhance_user_template(&app, "HyprCloud"), @r###"
         <participants>

@@ -23,7 +23,5 @@ schemars = { workspace = true, features = ["chrono"] }
 specta = { workspace = true, features = ["derive", "chrono", "serde_json"] }
 
 chrono = { workspace = true, features = ["serde"] }
-codes-iso-639 = { workspace = true }
 indoc = { workspace = true }
-thiserror = { workspace = true }
 uuid = { workspace = true, features = ["v4", "serde"] }

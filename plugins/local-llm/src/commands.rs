@@ -50,3 +50,10 @@ pub async fn start_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result
 pub async fn stop_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
     app.stop_server().await.map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn restart_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
+    app.stop_server().await.map_err(|e| e.to_string())?;
+    app.start_server().await.map_err(|e| e.to_string())
+}

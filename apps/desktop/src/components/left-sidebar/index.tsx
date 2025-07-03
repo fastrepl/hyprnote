@@ -56,7 +56,7 @@ export default function LeftSidebar() {
       });
 
       const ongoingOrUpcomingEvents = rawEvents.filter(
-        (event) => event.end_date > now.toISOString(),
+        (event) => new Date(event.end_date) > now,
       );
 
       if (ongoingOrUpcomingEvents.length === 0) {

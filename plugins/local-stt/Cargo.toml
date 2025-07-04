@@ -17,6 +17,7 @@ openblas = ["hypr-whisper-local/openblas"]
 metal = ["hypr-whisper-local/metal"]
 vulkan = ["hypr-whisper-local/vulkan"]
 openmp = ["hypr-whisper-local/openmp"]
+load-dynamic = ["hypr-pyannote-local/load-dynamic", "hypr-chunker/load-dynamic"]
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }

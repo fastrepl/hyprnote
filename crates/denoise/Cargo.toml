@@ -3,6 +3,10 @@ name = "denoise"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = []
+load-dynamic = ["hypr-onnx/load-dynamic"]
+
 [dependencies]
 hypr-onnx = { workspace = true }
 

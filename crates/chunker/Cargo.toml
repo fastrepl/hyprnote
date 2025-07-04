@@ -16,3 +16,7 @@ futures-util = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+
+[features]
+default = []
+load-dynamic = ["hypr-vad/load-dynamic"]

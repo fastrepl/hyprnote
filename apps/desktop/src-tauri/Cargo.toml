@@ -49,7 +49,7 @@ tauri-plugin-template = { workspace = true }
 tauri-plugin-tray = { workspace = true }
 tauri-plugin-windows = { workspace = true }
 
-tauri = { workspace = true, features = ["specta", "macos-private-api", "devtools"] }
+tauri = { workspace = true, features = ["specta", "macos-private-api"] }
 tauri-plugin-autostart = "2"
 tauri-plugin-clipboard-manager = { workspace = true }
 tauri-plugin-deep-link = { workspace = true }

@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import Shortcut from "@/components/shortcut";
 import { useHypr } from "@/contexts";
+import { openURL } from "@/utils/shell";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -15,7 +16,6 @@ import {
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { openURL } from "@/utils/shell";
 
 export function SettingsButton() {
   const [open, setOpen] = useState(false);

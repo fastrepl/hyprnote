@@ -5079,6 +5079,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gguf-patch"
+version = "0.1.0"
+dependencies = [
+ "gguf",
+ "prost 0.13.5",
+ "prost-build",
+]
+
+[[package]]
 name = "ghash"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -4,6 +4,7 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
+- `allow-list-microphone-devices`
 - `allow-check-microphone-access`
 - `allow-check-system-audio-access`
 - `allow-request-microphone-access`
@@ -181,6 +182,32 @@ Enables the get_timeline command without any pre-configured scope.
 <td>
 
 Denies the get_timeline command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-list-microphone-devices`
+
+</td>
+<td>
+
+Enables the list_microphone_devices command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-list-microphone-devices`
+
+</td>
+<td>
+
+Denies the list_microphone_devices command without any pre-configured scope.
 
 </td>
 </tr>

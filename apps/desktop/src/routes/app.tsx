@@ -1,6 +1,5 @@
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
-import { appDataDir, join } from "@tauri-apps/api/path";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { watch } from "@tauri-apps/plugin-fs";
 import { useEffect, useState } from "react";
@@ -111,8 +110,7 @@ function Component() {
 
 function RestartLlmServer() {
   const watchLlm = async () => {
-    const path = await appDataDir();
-    const llmPath = await join(path, "llm.gguf");
+    const llmPath = await localLlmCommands.modelsDir();
 
     return watch(llmPath, (_event) => {
       localLlmCommands.restartServer();

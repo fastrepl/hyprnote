@@ -4,6 +4,7 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
+- `allow-models-dir`
 - `allow-is-server-running`
 - `allow-is-model-downloaded`
 - `allow-is-model-downloading`
@@ -227,6 +228,32 @@ Enables the list_supported_models command without any pre-configured scope.
 <td>
 
 Denies the list_supported_models command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-models-dir`
+
+</td>
+<td>
+
+Enables the models_dir command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-models-dir`
+
+</td>
+<td>
+
+Denies the models_dir command without any pre-configured scope.
 
 </td>
 </tr>

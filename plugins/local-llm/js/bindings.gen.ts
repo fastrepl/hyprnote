@@ -7,6 +7,9 @@
 
 
 export const commands = {
+async modelsDir() : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-llm|models_dir");
+},
 async listSupportedModels() : Promise<SupportedModel[]> {
     return await TAURI_INVOKE("plugin:local-llm|list_supported_models");
 },

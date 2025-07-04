@@ -7,6 +7,9 @@
 
 
 export const commands = {
+async modelsDir() : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-stt|models_dir");
+},
 async listGgmlBackends() : Promise<GgmlBackend[]> {
     return await TAURI_INVOKE("plugin:local-stt|list_ggml_backends");
 },

@@ -36,7 +36,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     async fn list_microphone_devices(&self) -> Result<Vec<String>, crate::Error> {
         let host = hypr_audio::cpal::default_host();
         let devices = host.input_devices()?;
-        Ok(devices.filter_map(|d| d.name().ok()).collect())
+
+        Ok(devices
+            .filter_map(|d| d.name().ok())
+            .filter(|d| d != "hypr-audio-tap")
+            .collect())
     }
 
     #[tracing::instrument(skip_all)]

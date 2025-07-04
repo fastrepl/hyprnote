@@ -182,11 +182,11 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   };
 
   const handleSurveySkip = useMutation({
-    mutationFn: () =>
+    mutationFn: (step: OnboardingStep) =>
       analyticsCommands.event({
         event: "individualization_survey_skipped",
         distinct_id: userId,
-        skipped_at_page: currentStep,
+        skipped_at_page: step,
         skipped_at: new Date().toISOString(),
       }),
     onError: (e) => console.error(e),
@@ -230,7 +230,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     if (currentStep === "setup-complete") {
       handleSetupComplete();
     } else {
-      handleSurveySkip.mutate();
+      handleSurveySkip.mutate(currentStep);
     }
   };
 
@@ -286,34 +286,34 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           {currentStep === "survey-story" && (
             <StoryView
               onComplete={handleSurveyStoryComplete}
-              onSkip={handleSurveySkip.mutate}
+              onSkip={() => handleSurveySkip.mutate(currentStep)}
             />
           )}
           {currentStep === "survey-industry" && (
             <IndustryView
               onSelect={handleSurveyIndustrySelect}
-              onSkip={handleSurveySkip.mutate}
+              onSkip={() => handleSurveySkip.mutate(currentStep)}
               selectedIndustry={userProfile.industry}
             />
           )}
           {currentStep === "survey-role" && (
             <RoleView
               onSelect={handleSurveyRoleSelect}
-              onSkip={handleSurveySkip.mutate}
+              onSkip={() => handleSurveySkip.mutate(currentStep)}
               selectedRole={userProfile.role}
             />
           )}
           {currentStep === "survey-orgsize" && (
             <OrgSizeView
               onSelect={handleSurveyOrgSizeSelect}
-              onSkip={handleSurveySkip.mutate}
+              onSkip={() => handleSurveySkip.mutate(currentStep)}
               selectedOrgSize={userProfile.orgSize}
             />
           )}
           {currentStep === "survey-howheard" && (
             <HowHeardView
               onSelect={handleSurveyHowHeardSelect}
-              onSkip={handleSurveySkip.mutate}
+              onSkip={() => handleSurveySkip.mutate(currentStep)}
               selectedHowHeard={userProfile.howDidYouHear}
             />
           )}

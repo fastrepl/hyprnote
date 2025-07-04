@@ -51,7 +51,7 @@ export default function EventsList({
 
   const sortedEvents = useMemo(
     () => events?.sort((a, b) => a.start_date.localeCompare(b.start_date)) || [],
-    [events]
+    [events],
   );
 
   const syncEventsMutation = useMutation({
@@ -74,7 +74,7 @@ export default function EventsList({
       });
     },
     onError: (error) => {
-      console.error('Failed to sync events:', error);
+      console.error("Failed to sync events:", error);
       toast.error("Failed to sync events", {
         description: "There was an error syncing your calendar events. Please try again.",
       });

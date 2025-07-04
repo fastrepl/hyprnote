@@ -661,7 +661,7 @@ msgstr ""
 msgid "Help us tailor your Hyprnote experience"
 msgstr ""
 
-#: src/components/left-sidebar/events-list.tsx:305
+#: src/components/left-sidebar/events-list.tsx:319
 msgid "Hide Event"
 msgstr ""
 
@@ -796,7 +796,7 @@ msgid "New note"
 msgstr ""
 
 #: src/components/left-sidebar/notes-list.tsx:311
-#: src/components/left-sidebar/events-list.tsx:282
+#: src/components/left-sidebar/events-list.tsx:296
 msgid "New window"
 msgstr ""
 
@@ -832,7 +832,7 @@ msgstr ""
 msgid "No templates yet"
 msgstr ""
 
-#: src/components/left-sidebar/events-list.tsx:164
+#: src/components/left-sidebar/events-list.tsx:178
 msgid "No upcoming events"
 msgstr ""
 
@@ -1133,7 +1133,7 @@ msgstr ""
 msgid "Untitled Template"
 msgstr ""
 
-#: src/components/left-sidebar/events-list.tsx:98
+#: src/components/left-sidebar/events-list.tsx:112
 msgid "Upcoming"
 msgstr ""
 
@@ -1165,7 +1165,7 @@ msgstr ""
 msgid "View calendar"
 msgstr ""
 
-#: src/components/left-sidebar/events-list.tsx:294
+#: src/components/left-sidebar/events-list.tsx:308
 #: src/components/editor-area/note-header/chips/event-chip.tsx:246
 msgid "View in calendar"
 msgstr ""

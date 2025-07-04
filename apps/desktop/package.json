@@ -69,6 +69,7 @@
     "@types/lodash-es": "^4.17.12",
     "beautiful-react-hooks": "^5.0.3",
     "clsx": "^2.1.1",
+    "cmdk": "1.1.1",
     "date-fns": "^4.1.0",
     "diff": "^8.0.2",
     "html-pdf": "^3.0.1",

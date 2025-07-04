@@ -1,10 +1,11 @@
-import { createContext, useContext, useRef } from "react";
+import { createContext, useContext, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
 import { createSearchStore, SearchStore } from "@/stores/search";
 import { useHypr } from "./hypr";
+import { CommandPalette } from "@/components/command-palette";
 
 const SearchContext = createContext<ReturnType<typeof createSearchStore> | null>(null);
 
@@ -28,17 +29,13 @@ export function SearchProvider({
     storeRef.current.getState().setSearchInputRef(searchInputRef);
   }
 
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+
   useHotkeys(
     "mod+k",
     (event) => {
       event.preventDefault();
-      const store = storeRef.current!;
-      const state = store.getState();
-      if (document.activeElement === state.searchInputRef?.current) {
-        state.clearSearch();
-      } else {
-        state.focusSearch();
-      }
+      setShowCommandPalette(true);
     },
     {
       enableOnFormTags: true,
@@ -110,6 +107,7 @@ export function SearchProvider({
   return (
     <SearchContext.Provider value={storeRef.current}>
       {children}
+      <CommandPalette open={showCommandPalette} onOpenChange={setShowCommandPalette} />
     </SearchContext.Provider>
   );
 }

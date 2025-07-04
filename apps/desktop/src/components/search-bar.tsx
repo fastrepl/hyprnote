@@ -8,6 +8,7 @@ import { useHyprSearch } from "@/contexts/search";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import Shortcut from "./shortcut";
+import { CommandPalette } from "@/components/command-palette";
 
 export function SearchBar() {
   const {
@@ -45,6 +46,7 @@ export function SearchBar() {
   const [isFocused, setIsFocused] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showTagSelector, setShowTagSelector] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
 
   // Get all available tags for filtering
   const { data: allTags = [] } = useQuery({
@@ -120,7 +122,7 @@ export function SearchBar() {
           isFocused && "bg-white",
           "transition-colors duration-200",
         ])}
-        onClick={() => focusSearch()}
+        onClick={() => setShowCommandPalette(true)}
       >
         {isSearching
           ? <LoaderIcon className="h-4 w-4 text-neutral-500 animate-spin" />
@@ -224,6 +226,11 @@ export function SearchBar() {
           </div>
         </div>
       )}
+
+      <CommandPalette 
+        open={showCommandPalette} 
+        onOpenChange={setShowCommandPalette}
+      />
     </div>
   );
 }

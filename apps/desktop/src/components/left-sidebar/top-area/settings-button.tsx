@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { getName, getVersion } from "@tauri-apps/api/app";
-import { CogIcon, CpuIcon } from "lucide-react";
+import { CogIcon, CpuIcon, ExternalLinkIcon } from "lucide-react";
 import { useState } from "react";
 
 import Shortcut from "@/components/shortcut";
@@ -15,6 +15,7 @@ import {
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import { openURL } from "@/utils/shell";
 
 export function SettingsButton() {
   const [open, setOpen] = useState(false);
@@ -41,6 +42,24 @@ export function SettingsButton() {
   const handleClickPlans = () => {
     setOpen(false);
     windowsCommands.windowShow({ type: "plans" });
+  };
+
+  const handleClickChangelog = async () => {
+    setOpen(false);
+    try {
+      await openURL("https://hyprnote.canny.io/changelog");
+    } catch (error) {
+      console.error("Failed to open changelog:", error);
+    }
+  };
+
+  const handleClickTalkToFounders = async () => {
+    setOpen(false);
+    try {
+      await openURL("https://hyprnote.canny.io/others-general-feedback/p/talk-to-founders");
+    } catch (error) {
+      console.error("Failed to open talk to founders:", error);
+    }
   };
 
   return (
@@ -88,8 +107,20 @@ export function SettingsButton() {
           >
             <Trans>My Profile</Trans>
           </DropdownMenuItem>
-          <DropdownMenuItem disabled className="text-xs text-muted-foreground">
-            {versionQuery.data ?? "..."}
+          <DropdownMenuItem
+            onClick={handleClickTalkToFounders}
+            className="cursor-pointer"
+          >
+            <Trans>Talk to Founders</Trans>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={handleClickChangelog}
+            className="cursor-pointer text-xs text-muted-foreground hover:text-foreground"
+          >
+            <div className="flex items-center gap-1">
+              <span>{versionQuery.data ?? "..."}</span>
+              <ExternalLinkIcon className="h-2.5 w-2.5 scale-75" style={{ strokeWidth: 2 }} />
+            </div>
           </DropdownMenuItem>
         </div>
       </DropdownMenuContent>

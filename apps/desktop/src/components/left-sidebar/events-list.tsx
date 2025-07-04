@@ -12,7 +12,8 @@ import {
   FoldVerticalIcon,
   RefreshCwIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
@@ -33,6 +34,8 @@ import { safeNavigate } from "@hypr/utils/navigation";
 
 type EventWithSession = Event & { session: Session | null };
 
+const MINIMUM_SYNC_DURATION = 500;
+
 interface EventsListProps {
   events?: EventWithSession[] | null;
   activeSessionId?: string;
@@ -46,14 +49,19 @@ export default function EventsList({
   const [hiddenEventIds, setHiddenEventIds] = useState<Set<string>>(new Set());
   const [showAllHidden, setShowAllHidden] = useState(false);
 
+  const sortedEvents = useMemo(
+    () => events?.sort((a, b) => a.start_date.localeCompare(b.start_date)) || [],
+    [events]
+  );
+
   const syncEventsMutation = useMutation({
     mutationFn: async () => {
       const startTime = Date.now();
       const result = await appleCalendarCommands.syncEvents();
       const elapsedTime = Date.now() - startTime;
 
-      if (elapsedTime < 500) {
-        await new Promise(resolve => setTimeout(resolve, 500 - elapsedTime));
+      if (elapsedTime < MINIMUM_SYNC_DURATION) {
+        await new Promise(resolve => setTimeout(resolve, MINIMUM_SYNC_DURATION - elapsedTime));
       }
 
       return result;
@@ -63,6 +71,12 @@ export default function EventsList({
         predicate(query) {
           return query.queryKey?.[0] === "events";
         },
+      });
+    },
+    onError: (error) => {
+      console.error('Failed to sync events:', error);
+      toast.error("Failed to sync events", {
+        description: "There was an error syncing your calendar events. Please try again.",
       });
     },
   });
@@ -100,6 +114,7 @@ export default function EventsList({
             <button
               disabled={syncEventsMutation.isPending}
               onClick={() => syncEventsMutation.mutate()}
+              aria-label="Sync events"
             >
               <RefreshCwIcon
                 size={12}
@@ -117,8 +132,9 @@ export default function EventsList({
                 <button
                   onClick={toggleShowAllHidden}
                   className="text-xs text-neutral-500 hover:text-neutral-700 flex items-center gap-1"
+                  aria-label={showAllHidden ? "Fold all hidden events" : "Unfold all hidden events"}
                 >
-                  {showAllHidden ? <EyeOffIcon size={12} /> : <EyeIcon size={12} />}
+                  {showAllHidden ? <EyeIcon size={12} /> : <EyeOffIcon size={12} />}
                   {showAllHidden ? "Fold All" : "Unfold All"}
                 </button>
               </TooltipTrigger>
@@ -129,33 +145,31 @@ export default function EventsList({
           )}
         </div>
 
-        {events?.length
+        {sortedEvents.length
           ? (
             <div>
-              {events
-                .sort((a, b) => a.start_date.localeCompare(b.start_date))
-                .map((event) => {
-                  const isHidden = hiddenEventIds.has(event.id) && !showAllHidden;
+              {sortedEvents.map((event) => {
+                const isHidden = hiddenEventIds.has(event.id) && !showAllHidden;
 
-                  if (isHidden) {
-                    return (
-                      <HiddenEventItem
-                        key={event.id}
-                        event={event}
-                        onShow={() => showEvent(event.id)}
-                      />
-                    );
-                  }
-
+                if (isHidden) {
                   return (
-                    <EventItem
+                    <HiddenEventItem
                       key={event.id}
                       event={event}
-                      activeSessionId={activeSessionId}
-                      onHide={() => hideEvent(event.id)}
+                      onShow={() => showEvent(event.id)}
                     />
                   );
-                })}
+                }
+
+                return (
+                  <EventItem
+                    key={event.id}
+                    event={event}
+                    activeSessionId={activeSessionId}
+                    onHide={() => hideEvent(event.id)}
+                  />
+                );
+              })}
             </div>
           )
           : (

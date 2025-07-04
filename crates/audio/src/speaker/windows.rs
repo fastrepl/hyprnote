@@ -193,6 +193,13 @@ impl Stream for SpeakerStream {
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Option<Self::Item>> {
         {
+            let state = self.waker_state.lock().unwrap();
+            if state.shutdown {
+                return Poll::Ready(None);
+            }
+        }
+
+        {
             let mut queue = self.sample_queue.lock().unwrap();
             if let Some(sample) = queue.pop_front() {
                 return Poll::Ready(Some(sample));
@@ -201,6 +208,9 @@ impl Stream for SpeakerStream {
 
         {
             let mut state = self.waker_state.lock().unwrap();
+            if state.shutdown {
+                return Poll::Ready(None);
+            }
             state.has_data = false;
             state.waker = Some(cx.waker().clone());
             drop(state);

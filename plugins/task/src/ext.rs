@@ -8,7 +8,7 @@ use crate::{StoreKey, TaskCtx, TaskRecord, TaskState, TaskStatus};
 pub trait TaskPluginExt<R: Runtime>: Manager<R> {
     fn task_store(&self) -> ScopedStore<R, StoreKey>;
 
-    fn spawn_task<F, Fut>(&self, total_steps: u32, exec: F) -> String
+    fn spawn_task_blocking<F, Fut>(&self, total_steps: u32, exec: F) -> String
     where
         F: Fn(TaskCtx<R>) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::Error>> + Send + 'static;
@@ -22,7 +22,7 @@ impl<R: Runtime, T: Manager<R>> TaskPluginExt<R> for T {
         self.scoped_store(crate::PLUGIN_NAME).unwrap()
     }
 
-    fn spawn_task<F, Fut>(&self, total_steps: u32, exec: F) -> String
+    fn spawn_task_blocking<F, Fut>(&self, total_steps: u32, exec: F) -> String
     where
         F: Fn(TaskCtx<R>) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::Error>> + Send + 'static,
@@ -51,11 +51,8 @@ impl<R: Runtime, T: Manager<R>> TaskPluginExt<R> for T {
 
         let task_id = id.clone();
         tauri::async_runtime::spawn(async move {
-            // Execute the task - the implementation is responsible for calling
-            // ctx.complete() or ctx.fail() to update the final status
             let _ = exec(ctx).await;
 
-            // Remove from active tasks
             if let Some(state) = app_handle.try_state::<TaskState>() {
                 state.remove_task(&task_id);
             }
@@ -71,9 +68,7 @@ impl<R: Runtime, T: Manager<R>> TaskPluginExt<R> for T {
     fn cancel_task(&self, id: String) -> Result<(), crate::Error> {
         let task_state: tauri::State<TaskState> = self.state();
 
-        // Set the cancellation flag
         if task_state.cancel_task(&id) {
-            // Update the task status in store
             if let Some(mut record) = self.get_task(id.clone()) {
                 record.status = TaskStatus::Cancelled;
                 self.task_store()
@@ -82,7 +77,6 @@ impl<R: Runtime, T: Manager<R>> TaskPluginExt<R> for T {
             }
             Ok(())
         } else {
-            // Task not found or already completed
             Ok(())
         }
     }

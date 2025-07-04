@@ -60,6 +60,14 @@ impl<R: Runtime> TaskCtx<R> {
         })
     }
 
+    pub fn complete(&self) -> Result<(), crate::Error> {
+        self.update_status(TaskStatus::Completed)
+    }
+
+    pub fn fail(&self, error: String) -> Result<(), crate::Error> {
+        self.update_status(TaskStatus::Failed { error })
+    }
+
     fn update_status(&self, status: TaskStatus) -> Result<(), crate::Error> {
         let id = self.id.clone();
 

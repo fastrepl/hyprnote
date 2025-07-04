@@ -17,8 +17,6 @@ import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import ShinyButton from "./shiny-button";
 
-let consentReminderTimeoutId: NodeJS.Timeout | null = null;
-
 const showConsentNotification = () => {
   toast({
     id: "recording-consent-reminder",
@@ -32,21 +30,8 @@ const showConsentNotification = () => {
         },
         primary: true,
       },
-      {
-        label: "Remind me in 30s",
-        onClick: () => {
-          if (consentReminderTimeoutId) {
-            clearTimeout(consentReminderTimeoutId);
-          }
-          consentReminderTimeoutId = setTimeout(() => {
-            showConsentNotification();
-            consentReminderTimeoutId = null;
-          }, 30000);
-        },
-      },
     ],
-    dismissible: true,
-    duration: 15000,
+    dismissible: false,
   });
 };
 

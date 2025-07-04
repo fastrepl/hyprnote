@@ -1,15 +1,25 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CloudLightningIcon } from "lucide-react";
+import { CloudLightningIcon, RotateCcwIcon } from "lucide-react";
 
+import { commands } from "@/types";
 import { commands as flagsCommands } from "@hypr/plugin-flags";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { Button } from "@hypr/ui/components/ui/button";
 import { Switch } from "@hypr/ui/components/ui/switch";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 export default function Lab() {
   return (
     <div>
       <div className="space-y-4">
         <CloudPreview />
+        <div className="border-t pt-4">
+          <h3 className="text-sm font-medium mb-4 text-muted-foreground">
+            <Trans>Debug</Trans>
+          </h3>
+          <ResetOnboarding />
+        </div>
       </div>
     </div>
   );
@@ -46,6 +56,66 @@ function CloudPreview() {
       enabled={flagQuery.data ?? false}
       onToggle={handleToggle}
     />
+  );
+}
+
+function ResetOnboarding() {
+  const resetMutation = useMutation({
+    mutationFn: async () => {
+      await commands.setOnboardingNeeded(true);
+      await commands.setIndividualizationNeeded(true);
+    },
+    onSuccess: async () => {
+      try {
+        // Close the settings window
+        const currentWindow = getCurrentWebviewWindow();
+        await currentWindow.close();
+
+        // Show the main window which should trigger onboarding
+        windowsCommands.windowShow({ type: "main" });
+      } catch (error) {
+        console.error("Failed to reload main window:", error);
+        // Fallback: just reload current window
+        window.location.reload();
+      }
+    },
+    onError: (error) => {
+      console.error("Failed to reset onboarding:", error);
+    },
+  });
+
+  const handleReset = () => {
+    resetMutation.mutate();
+  };
+
+  return (
+    <div className="flex flex-col rounded-lg border p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex size-6 items-center justify-center">
+            <RotateCcwIcon className="h-4 w-4" />
+          </div>
+          <div>
+            <div className="text-sm font-medium">
+              <Trans>Reset Onboarding</Trans>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              <Trans>Show the welcome flow and setup validator again</Trans>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleReset}
+            disabled={resetMutation.isPending}
+          >
+            {resetMutation.isPending ? <Trans>Resetting...</Trans> : <Trans>Reset</Trans>}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 

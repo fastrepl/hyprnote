@@ -270,11 +270,11 @@ msgstr "{0} calendars selected"
 msgid "{category}"
 msgstr "{category}"
 
-#: src/components/settings/views/lab.tsx:77
+#: src/components/settings/views/lab.tsx:147
 msgid "{description}"
 msgstr "{description}"
 
-#: src/components/settings/views/lab.tsx:74
+#: src/components/settings/views/lab.tsx:144
 msgid "{title}"
 msgstr "{title}"
 
@@ -320,10 +320,14 @@ msgstr "Add participant"
 msgid "Admin"
 msgstr "Admin"
 
-#: src/routes/app.settings.tsx:37
-#: src/routes/app.settings.tsx:89
+#: src/routes/app.settings.tsx:46
+#: src/routes/app.settings.tsx:100
 msgid "AI"
 msgstr "AI"
+
+#: src/components/welcome-modal/model-selection-view.tsx:159
+msgid "AI models are already installed and ready to use."
+msgstr "AI models are already installed and ready to use."
 
 #: src/components/login-modal.tsx:97
 #~ msgid "AI notepad for meetings"
@@ -332,6 +336,10 @@ msgstr "AI"
 #: src/components/share-and-permission/participants-selector.tsx:31
 msgid "All Participants"
 msgstr "All Participants"
+
+#: src/components/setup-validator/setup-complete-view.tsx:33
+#~ msgid "All Set!"
+#~ msgstr "All Set!"
 
 #. placeholder {0}: members.length - 5
 #: src/components/organization-profile/members-list.tsx:102
@@ -371,7 +379,7 @@ msgstr "Ask questions about past meetings"
 msgid "Assistant:"
 msgstr "Assistant:"
 
-#: src/routes/app.settings.tsx:49
+#: src/routes/app.settings.tsx:58
 msgid "Billing"
 msgstr "Billing"
 
@@ -384,8 +392,8 @@ msgstr "Billing features are currently under development and will be available i
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
-#: src/routes/app.settings.tsx:39
-#: src/routes/app.settings.tsx:83
+#: src/routes/app.settings.tsx:48
+#: src/routes/app.settings.tsx:94
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -468,7 +476,8 @@ msgstr "Connect your calendar and track events"
 msgid "Contacts Access"
 msgstr "Contacts Access"
 
-#: src/components/welcome-modal/model-selection-view.tsx:151
+#: src/components/welcome-modal/model-selection-view.tsx:287
+#: src/components/setup-validator/permissions-validation-view.tsx:219
 msgid "Continue"
 msgstr "Continue"
 
@@ -501,6 +510,10 @@ msgstr "Current Plan"
 msgid "Custom Endpoint"
 msgstr "Custom Endpoint"
 
+#: src/components/settings/views/lab.tsx:19
+msgid "Debug"
+msgstr "Debug"
+
 #: src/components/settings/components/ai/llm-view.tsx:149
 #~ msgid "Default (llama-3.2-3b-q4)"
 #~ msgstr "Default (llama-3.2-3b-q4)"
@@ -527,10 +540,26 @@ msgstr "Description"
 #~ msgid "Did you get consent from everyone in the meeting?"
 #~ msgstr "Did you get consent from everyone in the meeting?"
 
+#: src/components/setup-validator/models-validation-view.tsx:85
+#~ msgid "Download"
+#~ msgstr "Download"
+
 #. placeholder {0}: metadata?.size && `(${metadata.size})`
 #: src/components/settings/components/ai/stt-view.tsx:273
 msgid "Download {0}"
 msgstr "Download {0}"
+
+#: src/components/setup-validator/models-validation-view.tsx:165
+#~ msgid "Download Models"
+#~ msgstr "Download Models"
+
+#: src/components/welcome-modal/model-selection-view.tsx:155
+msgid "Downloading Models"
+msgstr "Downloading Models"
+
+#: src/components/setup-validator/models-validation-view.tsx:79
+#~ msgid "Downloading..."
+#~ msgstr "Downloading..."
 
 #: src/components/settings/views/template.tsx:198
 msgid "Duplicate"
@@ -552,6 +581,7 @@ msgstr "Email separated by commas"
 msgid "Emoji"
 msgstr "Emoji"
 
+#: src/components/setup-validator/permissions-validation-view.tsx:68
 #: src/components/settings/views/sound.tsx:59
 msgid "Enable"
 msgstr "Enable"
@@ -588,7 +618,7 @@ msgstr "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:
 #~ msgid "Enter the exact model name required by your endpoint (if applicable)."
 #~ msgstr "Enter the exact model name required by your endpoint (if applicable)."
 
-#: src/routes/app.settings.tsx:45
+#: src/routes/app.settings.tsx:54
 msgid "Extensions"
 msgstr "Extensions"
 
@@ -596,7 +626,7 @@ msgstr "Extensions"
 msgid "Extract action items"
 msgstr "Extract action items"
 
-#: src/routes/app.settings.tsx:93
+#: src/routes/app.settings.tsx:104
 msgid "Feedback"
 msgstr "Feedback"
 
@@ -628,8 +658,8 @@ msgstr "Free Trial"
 msgid "Full name"
 msgstr "Full name"
 
-#: src/routes/app.settings.tsx:33
-#: src/routes/app.settings.tsx:81
+#: src/routes/app.settings.tsx:42
+#: src/routes/app.settings.tsx:92
 msgid "General"
 msgstr "General"
 
@@ -641,10 +671,18 @@ msgstr "Generating title..."
 msgid "Get Started"
 msgstr "Get Started"
 
+#: src/components/setup-validator/permissions-validation-view.tsx:192
+msgid "Grant a few permissions to get the best experience"
+msgstr "Grant a few permissions to get the best experience"
+
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:83
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:125
 msgid "Grant Access"
 msgstr "Grant Access"
+
+#: src/components/setup-validator/permissions-validation-view.tsx:175
+#~ msgid "Grant Permissions"
+#~ msgstr "Grant Permissions"
 
 #: src/components/settings/views/general.tsx:203
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
@@ -662,8 +700,8 @@ msgid "Help us tailor your Hyprnote experience"
 msgstr "Help us tailor your Hyprnote experience"
 
 #: src/components/left-sidebar/events-list.tsx:305
-msgid "Hide Event"
-msgstr "Hide Event"
+#~ msgid "Hide Event"
+#~ msgstr "Hide Event"
 
 #: src/components/settings/views/feedback.tsx:19
 msgid "Hmm... this is off..."
@@ -676,6 +714,18 @@ msgstr "How can I help you today?"
 #: src/components/individualization-modal/how-heard-view.tsx:38
 msgid "How did you hear about Hyprnote?"
 msgstr "How did you hear about Hyprnote?"
+
+#: src/components/setup-validator/setup-complete-view.tsx:42
+#~ msgid "Hyprnote is ready to use. You can now start recording and transcribing your meetings."
+#~ msgstr "Hyprnote is ready to use. You can now start recording and transcribing your meetings."
+
+#: src/components/setup-validator/models-validation-view.tsx:168
+#~ msgid "Hyprnote needs AI models to work locally. You need at least one speech-to-text model to get started."
+#~ msgstr "Hyprnote needs AI models to work locally. You need at least one speech-to-text model to get started."
+
+#: src/components/setup-validator/permissions-validation-view.tsx:178
+#~ msgid "Hyprnote needs some permissions to work properly. Required permissions are needed for core functionality."
+#~ msgstr "Hyprnote needs some permissions to work properly. Required permissions are needed for core functionality."
 
 #: src/components/settings/views/billing.tsx:38
 msgid "Integration with other apps like Notion and Google Calendar"
@@ -705,7 +755,8 @@ msgstr "Join meeting"
 msgid "Key decisions"
 msgstr "Key decisions"
 
-#: src/routes/app.settings.tsx:91
+#: src/routes/app.settings.tsx:60
+#: src/routes/app.settings.tsx:102
 msgid "Lab"
 msgstr "Lab"
 
@@ -725,6 +776,10 @@ msgstr "LinkedIn username"
 msgid "Live summary of the meeting"
 msgstr "Live summary of the meeting"
 
+#: src/components/setup-validator/models-validation-view.tsx:216
+#~ msgid "Llama 3.2 3B model (1.9 GB) - Powers AI features locally"
+#~ msgstr "Llama 3.2 3B model (1.9 GB) - Powers AI features locally"
+
 #: src/components/settings/components/ai/llm-view.tsx:263
 msgid "Loading available models..."
 msgstr "Loading available models..."
@@ -742,7 +797,7 @@ msgstr "Loading templates..."
 msgid "Loading..."
 msgstr "Loading..."
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:68
+#: src/components/left-sidebar/top-area/settings-button.tsx:87
 msgid "Local mode"
 msgstr "Local mode"
 
@@ -775,6 +830,10 @@ msgstr "Microphone Access"
 msgid "Model Name"
 msgstr "Model Name"
 
+#: src/components/welcome-modal/model-selection-view.tsx:155
+msgid "Models Ready"
+msgstr "Models Ready"
+
 #: src/components/settings/views/billing.tsx:125
 msgid "Monthly"
 msgstr "Monthly"
@@ -783,7 +842,7 @@ msgstr "Monthly"
 msgid "Much better AI performance"
 msgstr "Much better AI performance"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:89
+#: src/components/left-sidebar/top-area/settings-button.tsx:108
 msgid "My Profile"
 msgstr "My Profile"
 
@@ -796,7 +855,7 @@ msgid "New note"
 msgstr "New note"
 
 #: src/components/left-sidebar/notes-list.tsx:311
-#: src/components/left-sidebar/events-list.tsx:282
+#: src/components/left-sidebar/events-list.tsx:181
 msgid "New window"
 msgstr "New window"
 
@@ -832,7 +891,7 @@ msgstr "No speech-to-text models available or failed to load."
 msgid "No templates yet"
 msgstr "No templates yet"
 
-#: src/components/left-sidebar/events-list.tsx:164
+#: src/components/left-sidebar/events-list.tsx:95
 msgid "No upcoming events"
 msgstr "No upcoming events"
 
@@ -844,8 +903,8 @@ msgstr "No upcoming events for this organization"
 msgid "No upcoming events with this contact"
 msgstr "No upcoming events with this contact"
 
-#: src/routes/app.settings.tsx:41
-#: src/routes/app.settings.tsx:85
+#: src/routes/app.settings.tsx:50
+#: src/routes/app.settings.tsx:96
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -901,13 +960,17 @@ msgstr "Play video"
 msgid "Pro"
 msgstr "Pro"
 
-#: src/routes/app.settings.tsx:35
+#: src/routes/app.settings.tsx:44
 msgid "Profile"
 msgstr "Profile"
 
 #: src/components/share-and-permission/publish.tsx:15
 msgid "Publish your note"
 msgstr "Publish your note"
+
+#: src/components/setup-validator/permissions-validation-view.tsx:189
+msgid "Quick Setup"
+msgstr "Quick Setup"
 
 #: src/components/organization-profile/recent-notes.tsx:42
 msgid "Recent Notes"
@@ -936,6 +999,18 @@ msgstr "Required to transcribe other people's voice during meetings"
 #: src/components/settings/views/sound.tsx:98
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
+
+#: src/components/settings/views/lab.tsx:114
+msgid "Reset"
+msgstr "Reset"
+
+#: src/components/settings/views/lab.tsx:100
+msgid "Reset Onboarding"
+msgstr "Reset Onboarding"
+
+#: src/components/settings/views/lab.tsx:114
+msgid "Resetting..."
+msgstr "Resetting..."
 
 #: src/components/editor-area/note-header/listen-button.tsx:79
 msgid "Resume"
@@ -987,7 +1062,7 @@ msgstr "Select a model from the dropdown (if available) or manually enter the mo
 msgid "Select a template to enhance your meeting notes"
 msgstr "Select a template to enhance your meeting notes"
 
-#: src/components/welcome-modal/model-selection-view.tsx:81
+#: src/components/welcome-modal/model-selection-view.tsx:217
 msgid "Select a transcribing model"
 msgstr "Select a transcribing model"
 
@@ -1003,7 +1078,11 @@ msgstr "Select Calendars"
 msgid "Send invite"
 msgstr "Send invite"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:82
+#: src/components/welcome-modal/model-selection-view.tsx:160
+msgid "Setting up AI models for local transcription. This may take a few minutes."
+msgstr "Setting up AI models for local transcription. This may take a few minutes."
+
+#: src/components/left-sidebar/top-area/settings-button.tsx:101
 msgid "Settings"
 msgstr "Settings"
 
@@ -1019,11 +1098,24 @@ msgstr "Show notifications when you have meetings starting soon in your calendar
 msgid "Show notifications when you join a meeting."
 msgstr "Show notifications when you join a meeting."
 
+#: src/components/settings/views/lab.tsx:103
+msgid "Show the welcome flow and setup validator again"
+msgstr "Show the welcome flow and setup validator again"
+
 #: src/components/settings/views/billing.tsx:53
 msgid "Single sign-on for all users"
 msgstr "Single sign-on for all users"
 
-#: src/routes/app.settings.tsx:87
+#: src/components/setup-validator/permissions-validation-view.tsx:211
+msgid "Skip"
+msgstr "Skip"
+
+#: src/components/setup-validator/permissions-validation-view.tsx:199
+#: src/components/setup-validator/models-validation-view.tsx:227
+#~ msgid "Skip for now"
+#~ msgstr "Skip for now"
+
+#: src/routes/app.settings.tsx:98
 msgid "Sound"
 msgstr "Sound"
 
@@ -1038,6 +1130,10 @@ msgstr "Start Monthly Plan"
 #: src/components/editor-area/note-header/listen-button.tsx:126
 msgid "Start recording"
 msgstr "Start recording"
+
+#: src/components/setup-validator/setup-complete-view.tsx:56
+msgid "Start Using Hyprnote"
+msgstr "Start Using Hyprnote"
 
 #: src/components/editor-area/note-header/listen-button.tsx:285
 msgid "Stop"
@@ -1059,7 +1155,11 @@ msgstr "Synchronization across multiple devices"
 msgid "System Audio Access"
 msgstr "System Audio Access"
 
-#: src/routes/app.settings.tsx:47
+#: src/components/left-sidebar/top-area/settings-button.tsx:114
+msgid "Talk to Founders"
+msgstr "Talk to Founders"
+
+#: src/routes/app.settings.tsx:56
 #: src/components/settings/views/billing.tsx:46
 msgid "Team"
 msgstr "Team"
@@ -1072,8 +1172,8 @@ msgstr "Team management features are currently under development and will be ava
 msgid "Teamspace"
 msgstr "Teamspace"
 
-#: src/routes/app.settings.tsx:43
-#: src/routes/app.settings.tsx:95
+#: src/routes/app.settings.tsx:52
+#: src/routes/app.settings.tsx:106
 msgid "Templates"
 msgstr "Templates"
 
@@ -1133,7 +1233,7 @@ msgstr "Untitled"
 msgid "Untitled Template"
 msgstr "Untitled Template"
 
-#: src/components/left-sidebar/events-list.tsx:98
+#: src/components/left-sidebar/events-list.tsx:62
 msgid "Upcoming"
 msgstr "Upcoming"
 
@@ -1165,7 +1265,7 @@ msgstr "username"
 msgid "View calendar"
 msgstr "View calendar"
 
-#: src/components/left-sidebar/events-list.tsx:294
+#: src/components/left-sidebar/events-list.tsx:193
 #: src/components/editor-area/note-header/chips/event-chip.tsx:246
 msgid "View in calendar"
 msgstr "View in calendar"
@@ -1213,6 +1313,10 @@ msgstr "Works offline"
 #: src/components/editor-area/note-header/listen-button.tsx:358
 #~ msgid "Yes, activate speaker"
 #~ msgstr "Yes, activate speaker"
+
+#: src/components/setup-validator/setup-complete-view.tsx:51
+#~ msgid "You can always change permissions and models later in Settings."
+#~ msgstr "You can always change permissions and models later in Settings."
 
 #: src/components/settings/views/general.tsx:266
 msgid "You can make Hyprnote takes these words into account when transcribing"

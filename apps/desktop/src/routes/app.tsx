@@ -2,9 +2,8 @@ import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { watch } from "@tauri-apps/plugin-fs";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-import { IndividualizationModal } from "@/components/individualization-modal";
 import LeftSidebar from "@/components/left-sidebar";
 import RightPanel from "@/components/right-panel";
 import Notifications from "@/components/toast";
@@ -39,15 +38,11 @@ function Component() {
   const router = useRouter();
   const { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded } = Route.useLoaderData();
 
-  const [onboardingCompletedThisSession, setOnboardingCompletedThisSession] = useState(false);
-
   const windowLabel = getCurrentWebviewWindowLabel();
   const isMain = windowLabel === "main";
   const showNotifications = isMain && !isOnboardingNeeded;
 
-  const shouldShowWelcomeModal = isMain && isOnboardingNeeded;
-  const shouldShowIndividualization = isMain && isIndividualizationNeeded && !isOnboardingNeeded
-    && !onboardingCompletedThisSession;
+  const shouldShowWelcomeModal = isMain && (isOnboardingNeeded || isIndividualizationNeeded);
 
   return (
     <>
@@ -83,15 +78,6 @@ function Component() {
                       <WelcomeModal
                         isOpen={shouldShowWelcomeModal}
                         onClose={() => {
-                          commands.setOnboardingNeeded(false);
-                          setOnboardingCompletedThisSession(true);
-                          router.invalidate();
-                        }}
-                      />
-                      <IndividualizationModal
-                        isOpen={shouldShowIndividualization}
-                        onClose={() => {
-                          commands.setIndividualizationNeeded(false);
                           router.invalidate();
                         }}
                       />

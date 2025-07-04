@@ -63,8 +63,6 @@ pub struct SpeakerStream {
     sample_rate_override: Option<u32>,
 }
 
-unsafe impl Send for SpeakerStream {}
-
 impl SpeakerStream {
     pub fn sample_rate(&self) -> u32 {
         self.sample_rate_override.unwrap_or(44100)

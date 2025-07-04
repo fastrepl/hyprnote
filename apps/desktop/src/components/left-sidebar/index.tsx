@@ -56,20 +56,31 @@ export default function LeftSidebar() {
       const upcomingEvents = rawEvents
         .filter((event) => new Date(event.start_date) > now)
         .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+
       let eventsToShow = upcomingEvents.slice(0, 3);
+      let sessions: (any | null)[] = [];
 
-      const allSessions = await Promise.all(
-        upcomingEvents.map((event) => dbCommands.getSession({ calendarEventId: event.id })),
-      );
-      if (activeSessionId) {
-        const activeEventIndex = allSessions.findIndex(
-          (session) => session?.id === activeSessionId,
+      if (eventsToShow.length > 0) {
+        const firstThreeSessions = await Promise.all(
+          eventsToShow.map((event) => dbCommands.getSession({ calendarEventId: event.id })),
         );
+        sessions = [...firstThreeSessions];
 
-        if (activeEventIndex !== -1) {
-          const activeSessionEvent = upcomingEvents[activeEventIndex];
-          if (!eventsToShow.find(e => e.id === activeSessionEvent.id)) {
-            eventsToShow.push(activeSessionEvent);
+        if (activeSessionId) {
+          const hasActiveSession = firstThreeSessions.some(
+            (session) => session?.id === activeSessionId,
+          );
+
+          if (!hasActiveSession) {
+            const remainingEvents = upcomingEvents.slice(3);
+            for (const event of remainingEvents) {
+              const session = await dbCommands.getSession({ calendarEventId: event.id });
+              if (session?.id === activeSessionId) {
+                eventsToShow.push(event);
+                sessions.push(session);
+                break;
+              }
+            }
           }
         }
       }
@@ -77,15 +88,6 @@ export default function LeftSidebar() {
       if (eventsToShow.length === 0) {
         return [];
       }
-
-      const sessions = await Promise.all(
-        eventsToShow.map((event) => {
-          const existingIndex = upcomingEvents.findIndex(e => e.id === event.id);
-          return existingIndex !== -1 && existingIndex < allSessions.length
-            ? Promise.resolve(allSessions[existingIndex])
-            : dbCommands.getSession({ calendarEventId: event.id });
-        }),
-      );
       sessions
         .filter((s) => s !== null)
         .forEach((s) => insertSession(s!));

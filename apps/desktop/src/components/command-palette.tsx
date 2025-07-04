@@ -1,27 +1,28 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "@tanstack/react-router";
-import { FileTextIcon, CalendarIcon, UserIcon, BuildingIcon, Settings2Icon, ChevronDownIcon, ArrowUpDownIcon, Search } from "lucide-react";
-import { 
+import {
   CommandDialog,
-  CommandInput,
-  CommandList,
   CommandEmpty,
   CommandGroup,
   CommandItem,
+  CommandList,
   CommandSeparator,
 } from "@hypr/ui/components/ui/command";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@hypr/ui/components/ui/select";
+import { useNavigate } from "@tanstack/react-router";
 import { Command as CommandPrimitive } from "cmdk";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@hypr/ui/components/ui/select";
+  ArrowUpDownIcon,
+  BuildingIcon,
+  CalendarIcon,
+  FileTextIcon,
+  Search,
+  Settings2Icon,
+  UserIcon,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
-import { commands as dbCommands } from "@hypr/plugin-db";
 import { useHypr } from "@/contexts/hypr";
 import { type SearchMatch } from "@/stores/search";
+import { commands as dbCommands } from "@hypr/plugin-db";
 
 interface CommandPaletteProps {
   open: boolean;
@@ -29,49 +30,57 @@ interface CommandPaletteProps {
 }
 
 const highlightText = (text: string, query: string) => {
-  if (!query.trim()) return text;
-  
-  const parts = text.split(new RegExp(`(${query})`, 'gi'));
-  return parts.map((part, index) => 
-    part.toLowerCase() === query.toLowerCase() ? (
-      <span key={index} className="font-bold text-neutral-900">{part}</span>
-    ) : (
-      part
-    )
+  if (!query.trim()) {
+    return text;
+  }
+
+  const parts = text.split(new RegExp(`(${query})`, "gi"));
+  return parts.map((part, index) =>
+    part.toLowerCase() === query.toLowerCase()
+      ? <span key={index} className="font-bold text-neutral-900">{part}</span>
+      : part
   );
 };
 
 const extractContentSnippet = (htmlContent: string, query: string) => {
-  if (!htmlContent || !query.trim()) return null;
-  
+  if (!htmlContent || !query.trim()) {
+    return null;
+  }
+
   const plainText = htmlContent
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
-    
+
   const lowerText = plainText.toLowerCase();
   const lowerQuery = query.toLowerCase();
   const matchIndex = lowerText.indexOf(lowerQuery);
-  
-  if (matchIndex === -1) return null;
-  
+
+  if (matchIndex === -1) {
+    return null;
+  }
+
   const start = Math.max(0, matchIndex - 60);
   const end = Math.min(plainText.length, start + 120);
-  
+
   let snippet = plainText.slice(start, end);
-  
-  if (start > 0) snippet = '...' + snippet;
-  if (end < plainText.length) snippet = snippet + '...';
-  
+
+  if (start > 0) {
+    snippet = "..." + snippet;
+  }
+  if (end < plainText.length) {
+    snippet = snippet + "...";
+  }
+
   return snippet;
 };
 
-const sortSessionMatches = (matches: SearchMatch[], sortBy: "latest" | "oldest") => {
+const sortSessionMatches = (matches: (SearchMatch & { type: "session" })[], sortBy: "latest" | "oldest") => {
   return [...matches].sort((a, b) => {
     const dateA = new Date(a.item.created_at).getTime();
     const dateB = new Date(b.item.created_at).getTime();
-    
+
     if (sortBy === "latest") {
       return dateB - dateA; // newest first
     } else {
@@ -84,7 +93,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { userId } = useHypr();
   const navigate = useNavigate();
-  
+
   // Local state for command palette only
   const [query, setQuery] = useState("");
   const [matches, setMatches] = useState<SearchMatch[]>([]);
@@ -100,7 +109,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     }
 
     setIsSearching(true);
-    
+
     try {
       const [sessions, events, humans, organizations] = await Promise.all([
         dbCommands.listSessions({ type: "search", query: searchQuery, limit: 10, user_id: userId }),
@@ -183,7 +192,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   useEffect(() => {
     if (open) {
       // Override the hardcoded max-width
-      const style = document.createElement('style');
+      const style = document.createElement("style");
       style.textContent = `
         [role="dialog"][aria-modal="true"] {
           width: 800px !important;
@@ -191,7 +200,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         }
       `;
       document.head.appendChild(style);
-      
+
       return () => {
         document.head.removeChild(style);
       };
@@ -199,13 +208,13 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   }, [open]);
 
   return (
-    <CommandDialog 
-      open={open} 
+    <CommandDialog
+      open={open}
       onOpenChange={onOpenChange}
       shouldFilter={false}
     >
       {/* Custom Input with Filter Icon */}
-      <div className={`flex items-center px-3 ${!showConfig ? 'border-b' : ''}`} cmdk-input-wrapper="">
+      <div className={`flex items-center px-3 ${!showConfig ? "border-b" : ""}`} cmdk-input-wrapper="">
         <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
         <CommandPrimitive.Input
           ref={inputRef}
@@ -222,7 +231,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           <Settings2Icon className="h-4 w-4 text-neutral-500" />
         </button>
       </div>
-      
+
       {/* Configuration Bar - Only show when toggled AND there are results */}
       {showConfig && (
         <div className="flex items-center justify-between px-3 py-2 border-b">
@@ -240,7 +249,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               </SelectContent>
             </Select>
           </div>
-        
         </div>
       )}
 
@@ -256,13 +264,15 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <CommandGroup heading="Notes">
               {sortSessionMatches(sessionMatches, sortBy).map((match) => {
                 const titleMatches = (match.item.title || "").toLowerCase().includes(query.toLowerCase());
-                const snippet = !titleMatches ? extractContentSnippet(
-                  match.item.enhanced_memo_html || match.item.raw_memo_html || '', 
-                  query
-                ) : null;
-                
+                const snippet = !titleMatches
+                  ? extractContentSnippet(
+                    match.item.enhanced_memo_html || match.item.raw_memo_html || "",
+                    query,
+                  )
+                  : null;
+
                 return (
-                  <CommandItem 
+                  <CommandItem
                     key={`session-${match.item.id}`}
                     value={`session-${match.item.id}`}
                     className="flex items-start gap-3 py-3"
@@ -296,7 +306,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               {sessionMatches.length > 0 && <CommandSeparator />}
               <CommandGroup heading="Events">
                 {eventMatches.map((match) => (
-                  <CommandItem 
+                  <CommandItem
                     key={`event-${match.item.id}`}
                     value={`event-${match.item.id}`}
                     className="flex items-center gap-3"
@@ -323,7 +333,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               {(sessionMatches.length > 0 || eventMatches.length > 0) && <CommandSeparator />}
               <CommandGroup heading="People">
                 {humanMatches.map((match) => (
-                  <CommandItem 
+                  <CommandItem
                     key={`human-${match.item.id}`}
                     value={`human-${match.item.id}`}
                     className="flex items-center gap-3"
@@ -349,10 +359,12 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           {/* Organizations Section with highlighting */}
           {organizationMatches.length > 0 && (
             <>
-              {(sessionMatches.length > 0 || eventMatches.length > 0 || humanMatches.length > 0) && <CommandSeparator />}
+              {(sessionMatches.length > 0 || eventMatches.length > 0 || humanMatches.length > 0) && (
+                <CommandSeparator />
+              )}
               <CommandGroup heading="Organizations">
                 {organizationMatches.map((match) => (
-                  <CommandItem 
+                  <CommandItem
                     key={`org-${match.item.id}`}
                     value={`org-${match.item.id}`}
                     className="flex items-center gap-3"

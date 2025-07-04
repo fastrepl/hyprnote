@@ -3,9 +3,9 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
+import { CommandPalette } from "@/components/command-palette";
 import { createSearchStore, SearchStore } from "@/stores/search";
 import { useHypr } from "./hypr";
-import { CommandPalette } from "@/components/command-palette";
 
 const SearchContext = createContext<ReturnType<typeof createSearchStore> | null>(null);
 

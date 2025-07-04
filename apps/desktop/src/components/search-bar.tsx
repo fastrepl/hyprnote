@@ -4,18 +4,17 @@ import clsx from "clsx";
 import { LoaderIcon, SearchIcon, TagIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
+import { CommandPalette } from "@/components/command-palette";
 import { useHyprSearch } from "@/contexts/search";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import Shortcut from "./shortcut";
-import { CommandPalette } from "@/components/command-palette";
 
 export function SearchBar() {
   const {
     searchQuery,
     selectedTags,
     searchInputRef,
-    focusSearch,
     clearSearch,
     setSearchQuery,
     isSearching,
@@ -227,8 +226,8 @@ export function SearchBar() {
         </div>
       )}
 
-      <CommandPalette 
-        open={showCommandPalette} 
+      <CommandPalette
+        open={showCommandPalette}
         onOpenChange={setShowCommandPalette}
       />
     </div>

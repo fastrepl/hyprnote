@@ -8,6 +8,11 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 
 ndarray = "0.16"
+
+[target.'cfg(debug_assertions)'.dependencies]
+ort = { version = "=2.0.0-rc.10", features = ["ndarray", "load-dynamic"] }
+
+[target.'cfg(not(debug_assertions))'.dependencies]
 ort = { version = "=2.0.0-rc.10", features = ["ndarray"] }
 
 [dev-dependencies]

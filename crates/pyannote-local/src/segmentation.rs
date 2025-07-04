@@ -1,6 +1,6 @@
 use hypr_onnx::{
     ndarray::{self, ArrayBase, Axis, IxDyn, ViewRepr},
-    ort::{self, session::Session, value::Tensor},
+    ort::{self, session::Session, value::TensorRef},
 };
 
 const SEGMENTATION_ONNX: &[u8] = include_bytes!("./data/segmentation.onnx");
@@ -47,7 +47,7 @@ impl Segmenter {
                 .insert_axis(Axis(1))
                 .into_dyn();
 
-            let inputs = ort::inputs![Tensor::from_array(array)?];
+            let inputs = ort::inputs![TensorRef::from_array_view(array.view())?];
             let run_output = self.session.run(inputs)?;
             let output_tensor = run_output.values().next().unwrap();
             let outputs = output_tensor.try_extract_array::<f32>()?;

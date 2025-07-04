@@ -4,7 +4,7 @@ pub use error::*;
 use ndarray::{Array1, Array2, Array3, ArrayBase, Ix1, Ix3, OwnedRepr};
 use ort::{
     session::{builder::GraphOptimizationLevel, Session},
-    value::Tensor,
+    value::TensorRef,
 };
 
 const MODEL_BYTES: &[u8] =
@@ -47,13 +47,12 @@ impl Vad {
     fn forward(&mut self, audio_chunk: &[f32]) -> Result<f32, crate::Error> {
         let samples = audio_chunk.len();
         let audio_tensor = Array2::from_shape_vec((1, samples), audio_chunk.to_vec())?;
-        // let audio_tensor = Tensor::from_array(([1, samples], audio_chunk.to_vec()))?;
 
         let mut result = self.session.run(ort::inputs![
-            Tensor::from_array(audio_tensor)?,
-            Tensor::from_array(self.sample_rate_tensor.clone())?,
-            Tensor::from_array(self.h_tensor.clone())?,
-            Tensor::from_array(self.c_tensor.clone())?,
+            TensorRef::from_array_view(audio_tensor.view())?,
+            TensorRef::from_array_view(self.sample_rate_tensor.view())?,
+            TensorRef::from_array_view(self.h_tensor.view())?,
+            TensorRef::from_array_view(self.c_tensor.view())?,
         ])?;
 
         // Update internal state tensors

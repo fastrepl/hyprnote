@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use hypr_onnx::{
     ndarray::{Array3, Array4},
-    ort::{session::Session, value::Tensor},
+    ort::{session::Session, value::TensorRef},
 };
 
 mod error;
@@ -173,9 +173,9 @@ impl AEC {
         lpb_mag: &Array3<f32>,
     ) -> Result<hypr_onnx::ndarray::Array1<f32>, crate::Error> {
         let mut outputs = self.session_1.run(hypr_onnx::ort::inputs![
-            Tensor::from_array(in_mag.clone())?,
-            Tensor::from_array(self.states_1.clone())?,
-            Tensor::from_array(lpb_mag.clone())?
+            TensorRef::from_array_view(in_mag.view())?,
+            TensorRef::from_array_view(self.states_1.view())?,
+            TensorRef::from_array_view(lpb_mag.view())?
         ])?;
 
         let out_mask = outputs
@@ -203,9 +203,9 @@ impl AEC {
         in_lpb: &Array3<f32>,
     ) -> Result<hypr_onnx::ndarray::Array1<f32>, crate::Error> {
         let mut outputs = self.session_2.run(hypr_onnx::ort::inputs![
-            Tensor::from_array(estimated_block.clone())?,
-            Tensor::from_array(self.states_2.clone())?,
-            Tensor::from_array(in_lpb.clone())?
+            TensorRef::from_array_view(estimated_block.view())?,
+            TensorRef::from_array_view(self.states_2.view())?,
+            TensorRef::from_array_view(in_lpb.view())?
         ])?;
 
         let out_block = outputs

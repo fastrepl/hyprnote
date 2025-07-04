@@ -157,7 +157,6 @@ export function TranscriptView() {
               </div>
             )}
             <div className="not-draggable flex items-center ">
-              {/* Search Icon Button */}
               {showActions && (
                 <Button
                   className="w-8 h-8"
@@ -218,11 +217,10 @@ function RenderEmpty({ sessionId, panelWidth }: {
     }
   };
 
-  // Determine layout based on panel width passed from parent
-  const isUltraCompact = panelWidth < 150; // Just icons
-  const isVeryNarrow = panelWidth < 200; // Short text
-  const isNarrow = panelWidth < 400; // No helper text
-  const showFullText = panelWidth >= 400; // Full text
+  const isUltraCompact = panelWidth < 150;
+  const isVeryNarrow = panelWidth < 200;
+  const isNarrow = panelWidth < 400;
+  const showFullText = panelWidth >= 400;
 
   return (
     <div className="h-full flex items-center justify-center">
@@ -374,7 +372,6 @@ const MemoizedSpeakerSelector = memo(({
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger
           onMouseDown={(e) => {
-            // prevent cursor from moving to the end of the editor
             e.preventDefault();
           }}
         >

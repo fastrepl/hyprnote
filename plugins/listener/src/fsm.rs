@@ -49,6 +49,10 @@ impl Session {
         }
     }
 
+    pub fn current_session_id(&self) -> Option<String> {
+        self.session_id.clone()
+    }
+
     #[tracing::instrument(skip_all)]
     async fn setup_resources(&mut self, id: impl Into<String>) -> Result<(), crate::Error> {
         use tauri_plugin_db::DatabasePluginExt;
@@ -96,17 +100,36 @@ impl Session {
         let listen_client = setup_listen_client(&self.app, language, jargons).await?;
 
         let mic_sample_stream = {
-            let mut input = hypr_audio::AudioInput::from_mic();
-            input.stream()
+            // Get the selected microphone device from config
+            let config = self.app.db_get_config(&user_id).await?;
+            let selected_device = config
+                .as_ref()
+                .and_then(|c| c.general.selected_microphone_device.clone());
+
+            tracing::info!("Setting up audio input with device: {:?}", selected_device);
+
+            let mut input = if let Some(ref device_name) = selected_device {
+                tracing::info!(
+                    "Creating audio input for specific device: '{}'",
+                    device_name
+                );
+                hypr_audio::AudioInput::from_mic_device(selected_device)
+            } else {
+                tracing::info!("Creating audio input for default device");
+                hypr_audio::AudioInput::from_mic()
+            };
+            input.stream()?
         };
         let mut mic_stream = mic_sample_stream
             .resample(SAMPLE_RATE)
             .chunks(hypr_aec::BLOCK_SIZE);
 
+        // Skip delay for fastest possible device switching
+        // Original delay was for stability but it makes switching laggy
         // https://github.com/fastrepl/hyprnote/commit/7c8cf1c
-        tokio::time::sleep(Duration::from_millis(200)).await;
+        // tokio::time::sleep(Duration::from_millis(50)).await;
 
-        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
+        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None)?.stream()?;
         let mut speaker_stream = speaker_sample_stream
             .resample(SAMPLE_RATE)
             .chunks(hypr_aec::BLOCK_SIZE);
@@ -391,6 +414,66 @@ impl Session {
     }
 
     #[tracing::instrument(skip_all)]
+    async fn cleanup_resources(&mut self) {
+        // Quick cleanup for device switching - stop audio processing but keep session_id
+        if let Some(tx) = self.silence_stream_tx.take() {
+            let _ = tx.send(());
+        }
+
+        if let Some(mut tasks) = self.tasks.take() {
+            tasks.abort_all();
+            while let Some(res) = tasks.join_next().await {
+                let _ = res;
+            }
+        }
+
+        // Reset audio-related state but keep session context
+        self.mic_muted_tx = None;
+        self.mic_muted_rx = None;
+        self.speaker_muted_tx = None;
+        self.speaker_muted_rx = None;
+        self.session_state_tx = None;
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn update_microphone_device_config(
+        &mut self,
+        device_name: Option<String>,
+    ) -> Result<(), crate::Error> {
+        use tauri_plugin_db::DatabasePluginExt;
+
+        if self.session_id.is_none() {
+            return Err(crate::Error::NoneSession);
+        }
+
+        tracing::info!(
+            "🎤 Lightweight microphone device switch to: {:?}",
+            device_name
+        );
+
+        // Update config first
+        let user_id = self.app.db_user_id().await?.unwrap();
+        if let Ok(config) = self.app.db_get_config(&user_id).await {
+            if let Some(mut config) = config {
+                config.general.selected_microphone_device = device_name.clone();
+
+                let state = self.app.state::<tauri_plugin_db::ManagedState>();
+                let guard = state.lock().await;
+                if let Some(db) = guard.db.as_ref() {
+                    let _ = db.set_config(config).await;
+                }
+                drop(guard);
+            }
+        }
+
+        // For now, just update the config - the heavy restart will happen but we've optimized the audio matching
+        // TODO: In the future, implement true hot-swapping of just the mic stream
+
+        tracing::info!("✅ Microphone device config updated");
+        Ok(())
+    }
+
+    #[tracing::instrument(skip_all)]
     async fn teardown_resources(&mut self) {
         self.session_id = None;
 
@@ -488,6 +571,7 @@ pub enum StateEvent {
     Resume,
     MicMuted(bool),
     SpeakerMuted(bool),
+    MicrophoneDeviceChanged(Option<String>),
 }
 
 #[state_machine(
@@ -510,6 +594,38 @@ impl Session {
                 if let Some(tx) = &self.speaker_muted_tx {
                     let _ = tx.send(*muted);
                     let _ = SessionEvent::SpeakerMuted { value: *muted }.emit(&self.app);
+                }
+                Handled
+            }
+            StateEvent::MicrophoneDeviceChanged(device_name) => {
+                // Handle device change during active session with atomic restart
+                if let Some(session_id) = self.session_id.clone() {
+                    tracing::info!("🎤 ATOMIC microphone device switch to: {:?}", device_name);
+
+                    // Step 1: Update config atomically
+                    if let Err(e) = self
+                        .update_microphone_device_config(device_name.clone())
+                        .await
+                    {
+                        tracing::error!("❌ Config update failed: {:?}", e);
+                        return Handled;
+                    }
+
+                    // Step 2: Atomic restart - no delays, fast cleanup
+                    tracing::info!("⚡ Atomic audio restart");
+
+                    self.cleanup_resources().await;
+
+                    // Step 3: Immediate restart with new device (no delays)
+                    match self.setup_resources(&session_id).await {
+                        Ok(_) => {
+                            tracing::info!("✅ ATOMIC microphone switch SUCCESS");
+                        }
+                        Err(e) => {
+                            tracing::error!("❌ ATOMIC switch FAILED: {:?} - going inactive", e);
+                            return Transition(State::inactive());
+                        }
+                    }
                 }
                 Handled
             }

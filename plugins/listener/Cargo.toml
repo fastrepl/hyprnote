@@ -16,7 +16,6 @@ tauri-plugin-local-stt = { path = "../local-stt" }
 rodio = { workspace = true, features = ["wav"] }
 serde_json = { workspace = true }
 specta-typescript = { workspace = true }
-uuid = { workspace = true }
 
 [dependencies]
 hypr-aec = { workspace = true }
@@ -52,6 +51,7 @@ url = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tracing = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }
 
 flume = { workspace = true }
 hound = { workspace = true }

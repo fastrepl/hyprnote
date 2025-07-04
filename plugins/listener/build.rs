@@ -1,4 +1,6 @@
 const COMMANDS: &[&str] = &[
+    "get_selected_microphone_device",
+    "set_selected_microphone_device",
     "check_microphone_access",
     "check_system_audio_access",
     "request_microphone_access",

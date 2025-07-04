@@ -45,6 +45,7 @@ user_common_derives! {
         pub telemetry_consent: bool,
         pub save_recordings: Option<bool>,
         pub selected_template_id: Option<String>,
+        pub selected_microphone_device: Option<String>,
     }
 }
 
@@ -57,6 +58,7 @@ impl Default for ConfigGeneral {
             telemetry_consent: true,
             save_recordings: Some(true),
             selected_template_id: None,
+            selected_microphone_device: None,
         }
     }
 }

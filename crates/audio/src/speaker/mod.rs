@@ -154,7 +154,6 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_windows() {
-        use futures_util::StreamExt;
         use kalosm_sound::AsyncSource;
 
         // Test that we can create a SpeakerInput

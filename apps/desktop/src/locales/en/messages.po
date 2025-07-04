@@ -1160,6 +1160,7 @@ msgid "Talk to Founders"
 msgstr "Talk to Founders"
 
 #: src/routes/app.settings.tsx:56
+
 #: src/components/settings/views/billing.tsx:46
 msgid "Team"
 msgstr "Team"

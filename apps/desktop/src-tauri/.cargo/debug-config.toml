@@ -24,4 +24,4 @@ DEBUG = "1"
 _DEBUG = "1"
 
 # ORG
-ORT_DYLIB_PATH = "D:/Sw/Rust/hyprnote/dlls/onnxruntime.dll"
+ORT_DYLIB_PATH = "./dlls/onnxruntime.dll"

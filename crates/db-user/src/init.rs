@@ -37,6 +37,26 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         linkedin_username: Some("yujong1ee".to_string()),
     };
 
+    let fastrepl_sung = Human {
+        id: uuid::Uuid::new_v4().to_string(),
+        full_name: Some("Sung Cho".to_string()),
+        email: Some("sung@fastrepl.com".to_string()),
+        organization_id: Some(fastrepl_org.id.clone()),
+        is_user: false,
+        job_title: None,
+        linkedin_username: None,
+    };
+
+    let fastrepl_duck = Human {
+        id: uuid::Uuid::new_v4().to_string(),
+        full_name: Some("Duck Lee".to_string()),
+        email: Some("duck@fastrepl.com".to_string()),
+        organization_id: Some(fastrepl_org.id.clone()),
+        is_user: false,
+        job_title: None,
+        linkedin_username: None,
+    };
+
     let default_calendar = Calendar {
         id: uuid::Uuid::new_v4().to_string(),
         user_id: user_id.clone(),
@@ -86,11 +106,21 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         let _ = db.upsert_organization(org).await?;
     }
 
-    for member in [&fastrepl_john, &fastrepl_yujong] {
+    for member in [
+        &fastrepl_john,
+        &fastrepl_yujong,
+        &fastrepl_sung,
+        &fastrepl_duck,
+    ] {
         let _ = db.upsert_human(member.clone()).await?;
     }
 
-    for participant in [&fastrepl_john, &fastrepl_yujong] {
+    for participant in [
+        &fastrepl_john,
+        &fastrepl_yujong,
+        &fastrepl_sung,
+        &fastrepl_duck,
+    ] {
         db.session_add_participant(&thank_you_session.id, &participant.id)
             .await?;
     }

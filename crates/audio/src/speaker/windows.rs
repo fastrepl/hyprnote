@@ -8,13 +8,13 @@ use tracing::error;
 use wasapi::{get_default_device, Direction, SampleType, StreamMode, WaveFormat};
 
 pub struct SpeakerInput {
-    _sample_rate_override: Option<u32>,
+    sample_rate_override: Option<u32>,
 }
 
 impl SpeakerInput {
-    pub fn new(_sample_rate_override: Option<u32>) -> Result<Self> {
+    pub fn new(sample_rate_override: Option<u32>) -> Result<Self> {
         Ok(Self {
-            _sample_rate_override,
+            sample_rate_override,
         })
     }
 
@@ -38,6 +38,7 @@ impl SpeakerInput {
             sample_queue,
             waker_state,
             _capture_thread: capture_thread,
+            sample_rate_override: self.sample_rate_override,
         }
     }
 }
@@ -51,13 +52,14 @@ pub struct SpeakerStream {
     sample_queue: Arc<Mutex<VecDeque<f32>>>,
     waker_state: Arc<Mutex<WakerState>>,
     _capture_thread: thread::JoinHandle<()>,
+    sample_rate_override: Option<u32>,
 }
 
 unsafe impl Send for SpeakerStream {}
 
 impl SpeakerStream {
     pub fn sample_rate(&self) -> u32 {
-        44100
+        self.sample_rate_override.unwrap_or(44100)
     }
 
     fn capture_audio_loop(

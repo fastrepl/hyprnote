@@ -95,3 +95,19 @@ pub async fn restart_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Resu
     app.stop_server().await.map_err(|e| e.to_string())?;
     app.start_server().await.map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub fn process_recorded<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    audio_path: String,
+) -> Result<(), String> {
+    let current_model = app.get_current_model().map_err(|e| e.to_string())?;
+    let model_path = app.models_dir().join(current_model.file_name());
+
+    std::thread::spawn(move || {
+        app.process_recorded(model_path, audio_path)
+            .map_err(|e| e.to_string())
+    });
+    Ok(())
+}

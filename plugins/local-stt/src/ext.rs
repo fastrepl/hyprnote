@@ -1,8 +1,5 @@
 use std::{future::Future, path::PathBuf};
 
-use futures_util::StreamExt;
-use kalosm_sound::AsyncSource;
-
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_store2::StorePluginExt;
 
@@ -24,7 +21,7 @@ pub trait LocalSttPluginExt<R: Runtime> {
         &self,
         model_path: impl AsRef<std::path::Path>,
         audio_path: impl AsRef<std::path::Path>,
-    ) -> impl Future<Output = Result<Vec<Word>, crate::Error>>;
+    ) -> Result<Vec<Word>, crate::Error>;
 
     fn download_model(
         &self,
@@ -172,20 +169,29 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn process_recorded(
+    fn process_recorded(
         &self,
         model_path: impl AsRef<std::path::Path>,
         audio_path: impl AsRef<std::path::Path>,
     ) -> Result<Vec<Word>, crate::Error> {
-        let samples_f32: Vec<f32> = rodio::Decoder::new(std::io::BufReader::new(
+        use rodio::Source;
+
+        let decoder = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(audio_path.as_ref()).unwrap(),
         ))
-        .unwrap()
-        .resample(16000)
-        .collect::<Vec<f32>>()
-        .await;
+        .unwrap();
 
-        let samples_i16 = hypr_audio_utils::f32_to_i16_samples(&samples_f32);
+        let original_sample_rate = decoder.sample_rate();
+        let channels = decoder.channels() as usize;
+        let samples_f32: Vec<f32> = decoder.convert_samples().collect();
+
+        let resampled_samples = if original_sample_rate != 16000 {
+            resample_audio(&samples_f32, original_sample_rate as f64, 16000.0, channels)?
+        } else {
+            samples_f32
+        };
+
+        let samples_i16 = hypr_audio_utils::f32_to_i16_samples(&resampled_samples);
 
         let mut model = hypr_whisper_local::Whisper::builder()
             .model_path(model_path.as_ref().to_str().unwrap())
@@ -245,4 +251,50 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         store.set(crate::StoreKey::DefaultModel, model)?;
         Ok(())
     }
+}
+
+fn resample_audio(
+    samples: &[f32],
+    from_rate: f64,
+    to_rate: f64,
+    channels: usize,
+) -> Result<Vec<f32>, crate::Error> {
+    if (from_rate - to_rate).abs() < 1.0 {
+        return Ok(samples.to_vec());
+    }
+
+    use rubato::{
+        Resampler, SincFixedIn, SincInterpolationParameters, SincInterpolationType, WindowFunction,
+    };
+
+    let params = SincInterpolationParameters {
+        sinc_len: 256,
+        f_cutoff: 0.95,
+        interpolation: SincInterpolationType::Linear,
+        oversampling_factor: 256,
+        window: WindowFunction::BlackmanHarris2,
+    };
+
+    let mut resampler =
+        SincFixedIn::<f32>::new(to_rate / from_rate, 2.0, params, 1024, channels).unwrap();
+
+    let frames_per_channel = samples.len() / channels;
+    let mut input_channels: Vec<Vec<f32>> = vec![Vec::with_capacity(frames_per_channel); channels];
+
+    for (i, &sample) in samples.iter().enumerate() {
+        input_channels[i % channels].push(sample);
+    }
+
+    let output_channels = resampler.process(&input_channels, None).unwrap();
+
+    let mut output = Vec::new();
+    let output_frames = output_channels[0].len();
+
+    for frame in 0..output_frames {
+        for ch in 0..channels {
+            output.push(output_channels[ch][frame]);
+        }
+    }
+
+    Ok(output)
 }

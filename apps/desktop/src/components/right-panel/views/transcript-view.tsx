@@ -1,12 +1,14 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { writeText as writeTextToClipboard } from "@tauri-apps/plugin-clipboard-manager";
+import { open as openFile } from "@tauri-apps/plugin-dialog";
 import { AudioLinesIcon, CheckIcon, ClipboardIcon, CopyIcon, TextSearchIcon, UploadIcon } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
 import { useHypr } from "@/contexts";
 import { commands as dbCommands, Human, Word } from "@hypr/plugin-db";
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import TranscriptEditor, {
   type SpeakerChangeRange,
@@ -217,6 +219,24 @@ function RenderEmpty({ sessionId, panelWidth }: {
     }
   };
 
+  const handleUploadRecording = () => {
+    openFile({
+      multiple: false,
+      directory: false,
+      filters: [
+        {
+          name: "supported_audio",
+          extensions: ["mp3", "wav", "m4a", "mp4", "webm", "flac"],
+        },
+      ],
+    }).then((file) => {
+      console.log(file);
+      if (file) {
+        localSttCommands.processRecorded(file);
+      }
+    });
+  };
+
   const isUltraCompact = panelWidth < 150;
   const isVeryNarrow = panelWidth < 200;
   const isNarrow = panelWidth < 400;
@@ -284,10 +304,10 @@ function RenderEmpty({ sessionId, panelWidth }: {
             )
             : (
               <>
-                <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
+                <Button variant="outline" size="sm" className="hover:bg-neutral-100" onClick={handleUploadRecording}>
                   <UploadIcon size={14} />
                   {isVeryNarrow ? "Upload" : "Upload recording"}
-                  {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
+                  {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">beta</span>}
                 </Button>
                 <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
                   <ClipboardIcon size={14} />

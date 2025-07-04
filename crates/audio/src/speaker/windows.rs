@@ -23,6 +23,7 @@ impl SpeakerInput {
         let waker_state = Arc::new(Mutex::new(WakerState {
             waker: None,
             has_data: false,
+            shutdown: false,
         }));
 
         let queue_clone = sample_queue.clone();
@@ -37,7 +38,7 @@ impl SpeakerInput {
         SpeakerStream {
             sample_queue,
             waker_state,
-            _capture_thread: capture_thread,
+            capture_thread: Some(capture_thread),
             sample_rate_override: self.sample_rate_override,
         }
     }
@@ -46,12 +47,13 @@ impl SpeakerInput {
 struct WakerState {
     waker: Option<Waker>,
     has_data: bool,
+    shutdown: bool,
 }
 
 pub struct SpeakerStream {
     sample_queue: Arc<Mutex<VecDeque<f32>>>,
     waker_state: Arc<Mutex<WakerState>>,
-    _capture_thread: thread::JoinHandle<()>,
+    capture_thread: Option<thread::JoinHandle<()>>,
     sample_rate_override: Option<u32>,
 }
 
@@ -86,6 +88,13 @@ impl SpeakerStream {
         audio_client.start_stream()?;
 
         loop {
+            {
+                let state = waker_state.lock().unwrap();
+                if state.shutdown {
+                    break;
+                }
+            }
+
             if h_event.wait_for_event(3000).is_err() {
                 error!("timeout error, stopping capture");
                 break;
@@ -141,6 +150,21 @@ impl SpeakerStream {
     }
 }
 
+impl Drop for SpeakerStream {
+    fn drop(&mut self) {
+        {
+            let mut state = self.waker_state.lock().unwrap();
+            state.shutdown = true;
+        }
+
+        if let Some(thread) = self.capture_thread.take() {
+            if let Err(e) = thread.join() {
+                error!("Failed to join capture thread: {:?}", e);
+            }
+        }
+    }
+}
+
 impl Stream for SpeakerStream {
     type Item = f32;
     fn poll_next(
@@ -158,6 +182,7 @@ impl Stream for SpeakerStream {
             let mut state = self.waker_state.lock().unwrap();
             state.has_data = false;
             state.waker = Some(cx.waker().clone());
+            drop(state);
         }
 
         {

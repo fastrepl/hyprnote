@@ -126,6 +126,7 @@ export default function General() {
         telemetry_consent: v.telemetryConsent ?? true,
         jargons: v.jargons.split(",").map((jargon) => jargon.trim()).filter(Boolean),
         save_recordings: v.saveRecordings ?? true,
+        selected_template_id: config.data.general.selected_template_id,
       };
 
       await dbCommands.setConfig({

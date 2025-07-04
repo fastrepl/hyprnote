@@ -1,4 +1,4 @@
-use std::future::Future;
+use std::{future::Future, path::PathBuf};
 
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_store2::StorePluginExt;
@@ -8,6 +8,7 @@ use hypr_file::{download_file_with_callback, DownloadProgress};
 
 pub trait LocalLlmPluginExt<R: Runtime> {
     fn local_llm_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
+    fn models_dir(&self) -> PathBuf;
     fn current_model(&self) -> impl Future<Output = Result<SupportedModel, crate::Error>>;
     fn api_base(&self) -> impl Future<Output = Option<String>>;
     fn is_model_downloading(&self) -> impl Future<Output = bool>;
@@ -24,6 +25,10 @@ pub trait LocalLlmPluginExt<R: Runtime> {
 impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     fn local_llm_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey> {
         self.scoped_store(crate::PLUGIN_NAME).unwrap()
+    }
+
+    fn models_dir(&self) -> PathBuf {
+        self.path().app_data_dir().unwrap().join("ttt")
     }
 
     async fn current_model(&self) -> Result<SupportedModel, crate::Error> {
@@ -52,9 +57,7 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn is_model_downloaded(&self) -> Result<bool, crate::Error> {
         let model = self.current_model().await?;
-
-        let data_dir = self.path().app_data_dir().unwrap();
-        let path = model.model_path(data_dir);
+        let path = self.models_dir().join(model.file_name());
 
         if !path.exists() {
             return Ok(false);
@@ -75,9 +78,7 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn download_model(&self, channel: Channel<i8>) -> Result<(), crate::Error> {
         let model = self.current_model().await?;
-        let data_dir = self.path().app_data_dir().unwrap();
-
-        let path = model.model_path(data_dir);
+        let path = self.models_dir().join(model.file_name());
         let url = model.model_url().to_string();
 
         let task = tokio::spawn(async move {

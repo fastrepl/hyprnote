@@ -59,8 +59,29 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
 
-            let backends = app.list_ggml_backends();
-            tracing::info!(backends = ?backends, "ggml");
+            let data_dir = app.path().app_data_dir().unwrap();
+            let models_dir = app.models_dir();
+
+            // for backward compatibility
+            {
+                let _ = std::fs::create_dir_all(&models_dir);
+
+                if let Ok(entries) = std::fs::read_dir(&data_dir) {
+                    for entry in entries.flatten() {
+                        let path = entry.path();
+                        if path.extension().and_then(|ext| ext.to_str()) == Some("bin")
+                            && path
+                                .file_name()
+                                .and_then(|name| name.to_str())
+                                .map(|name| name.contains("ggml"))
+                                .unwrap_or(false)
+                        {
+                            let new_path = models_dir.join(path.file_name().unwrap());
+                            let _ = std::fs::rename(path, new_path);
+                        }
+                    }
+                }
+            }
 
             app.manage(SharedState::default());
             Ok(())

@@ -1,4 +1,4 @@
-use std::future::Future;
+use std::{future::Future, path::PathBuf};
 
 use futures_util::StreamExt;
 use kalosm_sound::AsyncSource;
@@ -11,6 +11,7 @@ use hypr_listener_interface::Word;
 
 pub trait LocalSttPluginExt<R: Runtime> {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
+    fn models_dir(&self) -> PathBuf;
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend>;
     fn api_base(&self) -> impl Future<Output = Option<String>>;
     fn is_server_running(&self) -> impl Future<Output = bool>;
@@ -43,6 +44,10 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         self.scoped_store(crate::PLUGIN_NAME).unwrap()
     }
 
+    fn models_dir(&self) -> PathBuf {
+        self.path().app_data_dir().unwrap().join("stt")
+    }
+
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend> {
         hypr_whisper_local::list_ggml_backends()
     }
@@ -60,9 +65,9 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         &self,
         model: &crate::SupportedModel,
     ) -> Result<bool, crate::Error> {
-        let data_dir = self.path().app_data_dir()?;
+        let model_path = self.models_dir().join(model.file_name());
 
-        for (path, expected) in [(model.model_path(&data_dir), model.model_size())] {
+        for (path, expected) in [(model_path, model.model_size())] {
             if !path.exists() {
                 return Ok(false);
             }
@@ -86,7 +91,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn start_server(&self) -> Result<String, crate::Error> {
-        let cache_dir = self.path().app_data_dir()?;
+        let cache_dir = self.models_dir();
         let model = self.get_current_model()?;
 
         if !self.is_model_downloaded(&model).await? {
@@ -130,9 +135,9 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         model: crate::SupportedModel,
         channel: Channel<i8>,
     ) -> Result<(), crate::Error> {
-        let data_dir = self.path().app_data_dir()?;
-
         let m = model.clone();
+        let model_path = self.models_dir().join(m.file_name());
+
         let task = tokio::spawn(async move {
             let callback = |progress: DownloadProgress| match progress {
                 DownloadProgress::Started => {
@@ -147,9 +152,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 }
             };
 
-            if let Err(e) =
-                download_file_with_callback(m.model_url(), m.model_path(&data_dir), callback).await
-            {
+            if let Err(e) = download_file_with_callback(m.model_url(), model_path, callback).await {
                 tracing::error!("model_download_error: {}", e);
                 let _ = channel.send(-1);
             }

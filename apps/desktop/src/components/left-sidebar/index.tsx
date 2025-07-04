@@ -104,21 +104,35 @@ export default function LeftSidebar() {
                 <div className="h-full space-y-4 px-3 pb-4">
                   <EventsList
                     events={events.data?.filter(
-                      (event) =>
-                        !(
+                      (event) => {
+                        const eventDate = new Date(event.start_date);
+                        const now = new Date();
+                        const isFutureEvent = eventDate > now;
+                        const isNotOngoingOrIsActive = !(
                           event.session?.id
                           && ongoingSessionId
                           && event.session.id === ongoingSessionId
                           && event.session.id !== activeSessionId
-                        ),
+                        );
+
+                        return isFutureEvent && isNotOngoingOrIsActive;
+                      },
                     )}
                     activeSessionId={activeSessionId}
                   />
                   <NotesList
-                    filter={(session) =>
-                      events.data?.every(
-                        (event) => event.session?.id !== session.id,
-                      ) ?? true}
+                    filter={(session) => {
+                      const hasFutureEvent = events.data?.some((event) => {
+                        if (event.session?.id !== session.id) {
+                          return false;
+                        }
+                        const eventDate = new Date(event.start_date);
+                        const now = new Date();
+                        return eventDate > now;
+                      }) ?? false;
+
+                      return !hasFutureEvent;
+                    }}
                     ongoingSessionId={ongoingSessionId}
                   />
                 </div>

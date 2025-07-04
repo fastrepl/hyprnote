@@ -236,11 +236,42 @@ export function useEnhanceMutation({
       const { type } = await connectorCommands.getLlmConnection();
 
       const config = await dbCommands.getConfig();
+
+      let templateInfo = "";
+      let customGrammar: string | null = null;
+      const selectedTemplateId = config.general.selected_template_id;
+
+      if (selectedTemplateId) {
+        const templates = await dbCommands.listTemplates();
+        const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
+
+        if (selectedTemplate) {
+          // Generate custom GBNF grammar
+          if (selectedTemplate.sections && selectedTemplate.sections.length > 0) {
+            customGrammar = generateCustomGBNF(selectedTemplate.sections);
+          }
+
+          // Format template as a readable string for system prompt
+          templateInfo = `
+SELECTED TEMPLATE:
+Template Title: ${selectedTemplate.title || "Untitled"}
+Template Description: ${selectedTemplate.description || "No description"}
+
+Sections:`;
+
+          selectedTemplate.sections?.forEach((section, index) => {
+            templateInfo += `
+  ${index + 1}. ${section.title || "Untitled Section"}
+     └─ ${section.description || "No description"}`;
+          });
+        }
+      }
+
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
       const systemMessage = await templateCommands.render(
         "enhance.system",
-        { config, type },
+        { config, type, templateInfo },
       );
 
       const userMessage = await templateCommands.render(
@@ -286,9 +317,14 @@ export function useEnhanceMutation({
         ],
         providerOptions: {
           [localProviderName]: {
-            metadata: {
-              grammar: "enhance",
-            },
+            metadata: customGrammar
+              ? {
+                grammar: "custom",
+                customGrammar: customGrammar,
+              }
+              : {
+                grammar: "enhance",
+              },
           },
         },
       });
@@ -409,4 +445,59 @@ function useAutoEnhance({
     sessionId,
     enhanceMutate,
   ]);
+}
+
+function generateCustomGBNF(templateSections: any[]): string {
+  if (!templateSections || templateSections.length === 0) {
+    return "";
+  }
+
+  // Function to safely escape header text for GBNF string literals
+  function escapeForGBNF(text: string): string {
+    return text
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, "\\\"")
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "\\r")
+      .replace(/\t/g, "\\t");
+  }
+
+  // Validate section titles and provide fallbacks
+  const validatedSections = templateSections.map((section, index) => {
+    let title = section.title || `Section ${index + 1}`;
+
+    title = title
+      .trim()
+      .replace(/[\x00-\x1F\x7F]/g, "") // Remove control characters
+      .substring(0, 100); // Limit length to prevent issues
+
+    return {
+      ...section,
+      safeTitle: title || `Section ${index + 1}`,
+    };
+  });
+
+  // Generate section rules with proper escaping
+  const sectionRules = validatedSections.map((section, index) => {
+    const sectionName = `section${index + 1}`;
+    const escapedHeader = escapeForGBNF(section.safeTitle);
+    return `${sectionName} ::= "# ${escapedHeader}\\n\\n" bline bline bline? bline? bline? "\\n"`;
+  }).join("\n");
+
+  // Generate root rule with all sections
+  const sectionNames = validatedSections.map((_, index) => `section${index + 1}`).join(" ");
+
+  const grammar = `root ::= thinking ${sectionNames}
+
+${sectionRules}
+
+bline ::= "- **" [^*\\n:]+ "**: " ([^*;,[.\\n] | link)+ ".\\n"
+
+hsf ::= "- Objective\\n"
+hd ::= "- " [A-Z] [^[(*\\n]+ "\\n"
+thinking ::= "<thinking>\\n" hsf hd hd? hd? hd? "</thinking>"
+
+link ::= "[" [^\\]]+ "]" "(" [^)]+ ")"`;
+
+  return grammar;
 }

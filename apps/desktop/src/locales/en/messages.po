@@ -661,7 +661,7 @@ msgstr "Help us improve the Hyprnote experience by providing feedback."
 msgid "Help us tailor your Hyprnote experience"
 msgstr "Help us tailor your Hyprnote experience"
 
-#: src/components/left-sidebar/events-list.tsx:307
+#: src/components/left-sidebar/events-list.tsx:305
 msgid "Hide Event"
 msgstr "Hide Event"
 
@@ -796,7 +796,7 @@ msgid "New note"
 msgstr "New note"
 
 #: src/components/left-sidebar/notes-list.tsx:311
-#: src/components/left-sidebar/events-list.tsx:284
+#: src/components/left-sidebar/events-list.tsx:282
 msgid "New window"
 msgstr "New window"
 
@@ -832,7 +832,7 @@ msgstr "No speech-to-text models available or failed to load."
 msgid "No templates yet"
 msgstr "No templates yet"
 
-#: src/components/left-sidebar/events-list.tsx:166
+#: src/components/left-sidebar/events-list.tsx:164
 msgid "No upcoming events"
 msgstr "No upcoming events"
 
@@ -1133,7 +1133,7 @@ msgstr "Untitled"
 msgid "Untitled Template"
 msgstr "Untitled Template"
 
-#: src/components/left-sidebar/events-list.tsx:100
+#: src/components/left-sidebar/events-list.tsx:98
 msgid "Upcoming"
 msgstr "Upcoming"
 
@@ -1165,7 +1165,7 @@ msgstr "username"
 msgid "View calendar"
 msgstr "View calendar"
 
-#: src/components/left-sidebar/events-list.tsx:296
+#: src/components/left-sidebar/events-list.tsx:294
 #: src/components/editor-area/note-header/chips/event-chip.tsx:246
 msgid "View in calendar"
 msgstr "View in calendar"

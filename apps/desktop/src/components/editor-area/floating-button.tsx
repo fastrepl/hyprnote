@@ -1,15 +1,15 @@
-import { RefreshCwIcon, TypeOutlineIcon, XIcon, ZapIcon, PlusIcon } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { PlusIcon, RefreshCwIcon, TypeOutlineIcon, XIcon, ZapIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
+import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { Session, Template } from "@hypr/plugin-db";
-import { SplashLoader as EnhanceWIP } from "@hypr/ui/components/ui/splash";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { SplashLoader as EnhanceWIP } from "@hypr/ui/components/ui/splash";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { useHypr } from "@/contexts";
 
 interface FloatingButtonProps {
   session: Session;
@@ -91,7 +91,7 @@ export function FloatingButton({
   // Simple template selection - just call parent function
   const handleTemplateSelect = (templateId: string) => {
     setShowTemplatePopover(false);
-    
+
     // Send analytics event for custom template usage (not for "auto")
     if (templateId !== "auto") {
       analyticsCommands.event({
@@ -99,7 +99,7 @@ export function FloatingButton({
         distinct_id: userId,
       });
     }
-    
+
     handleEnhanceWithTemplate(templateId);
   };
 
@@ -109,21 +109,29 @@ export function FloatingButton({
     if (emojiMatch) {
       return {
         emoji: emojiMatch[1],
-        name: title.replace(/^(\p{Emoji})\s*/u, '').trim()
+        name: title.replace(/^(\p{Emoji})\s*/u, "").trim(),
       };
     }
-    
+
     // Fallback emoji based on keywords if no emoji in title
     const lowercaseTitle = title.toLowerCase();
     let fallbackEmoji = "📄";
-    if (lowercaseTitle.includes("meeting")) fallbackEmoji = "💼";
-    if (lowercaseTitle.includes("interview")) fallbackEmoji = "👔";
-    if (lowercaseTitle.includes("standup")) fallbackEmoji = "☀️";
-    if (lowercaseTitle.includes("review")) fallbackEmoji = "📝";
-    
+    if (lowercaseTitle.includes("meeting")) {
+      fallbackEmoji = "💼";
+    }
+    if (lowercaseTitle.includes("interview")) {
+      fallbackEmoji = "👔";
+    }
+    if (lowercaseTitle.includes("standup")) {
+      fallbackEmoji = "☀️";
+    }
+    if (lowercaseTitle.includes("review")) {
+      fallbackEmoji = "📝";
+    }
+
     return {
       emoji: fallbackEmoji,
-      name: title
+      name: title,
     };
   };
 
@@ -212,11 +220,11 @@ export function FloatingButton({
               : <RunOrRerun showRefresh={showRefresh} />}
           </button>
         </PopoverTrigger>
-        
-        <PopoverContent 
-          side="top" 
-          align="center" 
-          className="w-48 p-0" 
+
+        <PopoverContent
+          side="top"
+          align="center"
+          className="w-48 p-0"
           sideOffset={8}
           onOpenAutoFocus={(e) => e.preventDefault()}
           onMouseEnter={showPopover}
@@ -230,10 +238,10 @@ export function FloatingButton({
               <PlusIcon className="w-3 h-3" />
               <span className="truncate">Add Template</span>
             </div>
-            
+
             {/* Separator */}
             <div className="my-1 border-t border-neutral-200"></div>
-            
+
             {/* Auto option */}
             <div
               className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-neutral-100 cursor-pointer text-sm"
@@ -242,14 +250,14 @@ export function FloatingButton({
               <span className="text-sm">⚡</span>
               <span className="truncate">Hyprnote Default</span>
             </div>
-            
+
             {/* Show separator and custom templates only if custom templates exist */}
             {templates.length > 0 && (
               <>
                 <div className="my-1 border-t border-neutral-200"></div>
                 {templates.map((template) => {
                   const { emoji, name } = extractEmojiAndName(template.title || "");
-                  
+
                   return (
                     <div
                       key={template.id}

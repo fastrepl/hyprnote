@@ -100,7 +100,7 @@ export default function EditorArea({
     rawContent,
     onSuccess: (content) => {
       generateTitle.mutate({ enhancedContent: content });
-      
+
       if (needsRestoration && configQuery.data) {
         const restoreConfig = {
           ...configQuery.data,
@@ -143,9 +143,9 @@ export default function EditorArea({
       const currentTemplateId = configQuery.data.general?.selected_template_id || null;
       setOriginalTemplateId(currentTemplateId);
       setNeedsRestoration(true);
-      
+
       const targetTemplateId = templateId === "auto" ? null : templateId;
-      
+
       const updatedConfig = {
         ...configQuery.data,
         general: {
@@ -153,14 +153,14 @@ export default function EditorArea({
           selected_template_id: targetTemplateId,
         },
       };
-      
+
       try {
         await setConfigMutation.mutateAsync(updatedConfig);
-        
+
         await new Promise(resolve => setTimeout(resolve, 200));
-        
+
         const verifyConfig = await dbCommands.getConfig();
-        
+
         if (verifyConfig.general?.selected_template_id !== targetTemplateId) {
           setOriginalTemplateId(null);
           setNeedsRestoration(false);
@@ -172,7 +172,7 @@ export default function EditorArea({
         return;
       }
     }
-    
+
     enhance.mutate();
   }, [enhance, configQuery.data, setConfigMutation]);
 
@@ -328,7 +328,6 @@ export function useEnhanceMutation({
         const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
 
         if (selectedTemplate) {
-          
           if (selectedTemplate.sections && selectedTemplate.sections.length > 0) {
             customGrammar = generateCustomGBNF(selectedTemplate.sections);
           }

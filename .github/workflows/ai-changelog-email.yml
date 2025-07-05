@@ -6,25 +6,25 @@ on:
   workflow_dispatch:
     inputs:
       output_mode:
-        description: 'Output mode: send email or generate file'
+        description: "Output mode: send email or generate file"
         required: false
-        default: 'email'
+        default: "email"
         type: choice
         options:
           - email
           - file
       email_recipients:
-        description: 'Email recipients (comma-separated)'
+        description: "Email recipients (comma-separated)"
         required: false
-        default: 'plyght@peril.lol'
+        default: "plyght@peril.lol"
       ai_model:
-        description: 'OpenRouter model to use'
+        description: "OpenRouter model to use"
         required: false
-        default: 'anthropic/claude-sonnet-4'
+        default: "anthropic/claude-sonnet-4"
       test_mode:
-        description: 'Test mode (use last 10 commits instead of since last release)'
+        description: "Test mode (use last 10 commits instead of since last release)"
         required: false
-        default: 'false'
+        default: "false"
         type: boolean
 
 permissions:
@@ -34,22 +34,22 @@ jobs:
   generate-changelog:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-      
+          node-version: "20"
+          cache: "npm"
+
       - name: Install dependencies
         run: npm install axios @octokit/rest
-      
+
       - name: Generate changelog
         id: changelog
         env:
@@ -62,15 +62,15 @@ jobs:
           const { Octokit } = require('@octokit/rest');
           const axios = require('axios');
           const fs = require('fs');
-          
+
           const octokit = new Octokit({
             auth: process.env.GITHUB_TOKEN,
           });
-          
+
           const owner = process.env.GITHUB_REPOSITORY.split('/')[0];
           const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
           const testMode = process.env.TEST_MODE === 'true';
-          
+
           async function getCommitsSinceLastRelease() {
             try {
               if (testMode) {
@@ -82,14 +82,14 @@ jobs:
                 });
                 return commits;
               }
-              
+
               // Get the current release
               const { data: releases } = await octokit.rest.repos.listReleases({
                 owner,
                 repo,
                 per_page: 2
               });
-              
+
               if (releases.length < 2) {
                 console.log('Not enough releases found, getting last 50 commits');
                 const { data: commits } = await octokit.rest.repos.listCommits({
@@ -99,12 +99,12 @@ jobs:
                 });
                 return commits;
               }
-              
+
               const currentRelease = releases[0];
               const previousRelease = releases[1];
-              
+
               console.log(`Getting commits between ${previousRelease.tag_name} and ${currentRelease.tag_name}`);
-              
+
               // Get commits between releases
               const { data: comparison } = await octokit.rest.repos.compareCommits({
                 owner,
@@ -112,7 +112,7 @@ jobs:
                 base: previousRelease.tag_name,
                 head: currentRelease.tag_name
               });
-              
+
               return comparison.commits;
             } catch (error) {
               console.error('Error getting commits:', error.message);
@@ -125,7 +125,7 @@ jobs:
               return commits;
             }
           }
-          
+
           async function getCommitDetails(sha) {
             try {
               const { data: commit } = await octokit.rest.repos.getCommit({
@@ -142,7 +142,7 @@ jobs:
               return null;
             }
           }
-          
+
           async function getPullRequestsForCommit(sha) {
             try {
               const { data: prs } = await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
@@ -156,7 +156,7 @@ jobs:
               return [];
             }
           }
-          
+
           async function generateChangelog(commits, commitDetails) {
             const prompt = `You are a senior technical writer for enterprise software documentation. Your task is to analyze code changes and create a professional changelog draft.
 
@@ -241,32 +241,32 @@ jobs:
               throw error;
             }
           }
-          
+
           async function main() {
             try {
               console.log('Starting changelog generation...');
-              
+
               // Get commits
               const commits = await getCommitsSinceLastRelease();
               console.log(`Found ${commits.length} commits to analyze`);
-              
+
               if (commits.length === 0) {
                 console.log('No commits found');
                 return;
               }
-              
+
               // Get detailed information for each commit
               console.log('Fetching detailed commit information...');
               const commitDetails = await Promise.all(
                 commits.slice(0, 20).map(commit => getCommitDetails(commit.sha))
               );
-              
+
               console.log('Generating changelog with AI...');
               const changelog = await generateChangelog(commits, commitDetails);
-              
+
               // Save changelog
               fs.writeFileSync('changelog.md', changelog);
-              
+
               // Create metadata
               const metadata = {
                 generated_at: new Date().toISOString(),
@@ -281,24 +281,24 @@ jobs:
                   date: c.commit.author.date
                 }))
               };
-              
+
               fs.writeFileSync('metadata.json', JSON.stringify(metadata, null, 2));
-              
+
               console.log('Changelog generated successfully');
               console.log('Preview:');
               console.log(changelog.substring(0, 500) + '...');
-              
+
             } catch (error) {
               console.error('Error in main:', error);
               process.exit(1);
             }
           }
-          
+
           main();
           EOF
-          
+
           node changelog-generator.js
-      
+
       - name: Send email
         if: ${{ github.event.inputs.output_mode != 'file' }}
         uses: dawidd6/action-send-mail@v3
@@ -308,7 +308,7 @@ jobs:
           secure: true
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: 'Hyprnote Release Changelog - Review Required'
+          subject: "Hyprnote Release Changelog - Review Required"
           to: ${{ github.event.inputs.email_recipients || 'plyght@peril.lol' }}
           from: ${{ secrets.EMAIL_USERNAME }}
           html_body: |
@@ -390,12 +390,12 @@ jobs:
                         <h1>Hyprnote Release Changelog</h1>
                         <p>AI-generated changelog requiring review and refinement</p>
                     </div>
-                    
+
                     <div class="action-required">
                         <h3>Action Required</h3>
                         <p>This changelog has been automatically generated using AI analysis of code changes. Please review, refine, and approve before publishing.</p>
                     </div>
-                    
+
                     <div class="metadata">
                         <h2>Generation Details</h2>
                         <p><strong>Generated:</strong> ${{ github.event.inputs.test_mode == 'true' && 'Test Mode - ' || '' }}$(date -u)</p>
@@ -404,11 +404,11 @@ jobs:
                         <p><strong>Repository:</strong> ${{ github.repository }}</p>
                         <p><strong>Workflow:</strong> <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Run</a></p>
                     </div>
-                    
+
                     <div class="changelog">
             $(cat changelog.md)
                     </div>
-                    
+
                     <div class="footer">
                         <p>Generated by hyprnote AI Changelog Workflow</p>
                         <p>Metadata and commit details available in workflow artifacts</p>
@@ -419,18 +419,18 @@ jobs:
           attachments: |
             changelog.md
             metadata.json
-      
+
       - name: Generate changelog file
         if: ${{ github.event.inputs.output_mode == 'file' }}
         run: |
           # Create a timestamped changelog file
           TIMESTAMP=$(date -u +"%Y%m%d_%H%M%S")
           FILENAME="CHANGELOG_${TIMESTAMP}.md"
-          
+
           # Add header with metadata
           cat > "$FILENAME" << EOF
           # Changelog Generated $(date -u)
-          
+
           **Generation Details:**
           - Generated: $(date -u)
           - Trigger: ${{ github.event_name == 'release' && 'Release Published' || 'Manual Trigger' }}
@@ -438,50 +438,50 @@ jobs:
           - Test Mode: ${{ github.event.inputs.test_mode || 'false' }}
           - Repository: ${{ github.repository }}
           - Workflow Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          
+
           ---
-          
+
           EOF
-          
+
           # Append the AI-generated changelog
           cat changelog.md >> "$FILENAME"
-          
+
           # Set output for commit step
           echo "changelog_file=$FILENAME" >> $GITHUB_OUTPUT
-          
+
           echo "Generated changelog file: $FILENAME"
           echo "Preview:"
           head -50 "$FILENAME"
         id: generate_file
-      
+
       - name: Commit changelog file
         if: ${{ github.event.inputs.output_mode == 'file' }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
+
           # Add the generated file
           git add "${{ steps.generate_file.outputs.changelog_file }}"
-          
+
           # Only commit if there are changes
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
             git commit -m "Add AI-generated changelog
-            
+
             Generated: $(date -u)
             Model: ${{ github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}
             Test Mode: ${{ github.event.inputs.test_mode || 'false' }}
-            
+
             🤖 Generated with AI Changelog Workflow
-            
+
             Co-Authored-By: GitHub Action <action@github.com>"
-            
+
             git push
-            
+
             echo "Changelog committed as: ${{ steps.generate_file.outputs.changelog_file }}"
           fi
-      
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

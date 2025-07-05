@@ -8,7 +8,7 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
 import { useHypr } from "@/contexts";
 import { commands as dbCommands, Human, Word } from "@hypr/plugin-db";
-import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands, events as localSttEvents } from "@hypr/plugin-local-stt";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import TranscriptEditor, {
   type SpeakerChangeRange,
@@ -219,6 +219,10 @@ function RenderEmpty({ sessionId, panelWidth }: {
     }
   };
 
+  const [_isProcessing, setIsProcessing] = useState(false);
+  const [_progress, setProgress] = useState(0);
+  const [_words, setWords] = useState<Word[]>([]);
+
   const handleUploadRecording = () => {
     openFile({
       multiple: false,
@@ -230,12 +234,23 @@ function RenderEmpty({ sessionId, panelWidth }: {
         },
       ],
     }).then((file) => {
-      console.log(file);
       if (file) {
         localSttCommands.processRecorded(file);
       }
     });
   };
+
+  useEffect(() => {
+    localSttEvents.recordedProcessingEvent.listen(({ payload }) => {
+      setIsProcessing(true);
+      const progress = payload.current / payload.total;
+      setProgress(progress);
+      if (payload.current === payload.total) {
+        setIsProcessing(false);
+      }
+      setWords((prev) => [...prev, payload.word]);
+    });
+  }, []);
 
   const isUltraCompact = panelWidth < 150;
   const isVeryNarrow = panelWidth < 200;

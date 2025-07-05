@@ -169,7 +169,9 @@ mod test {
             .join("ggml-tiny.en-q8_0.bin");
 
         let words = app
-            .process_recorded(model_path, hypr_data::english_1::AUDIO_PATH)
+            .process_recorded(model_path, hypr_data::english_1::AUDIO_PATH, |event| {
+                println!("{:?}", event);
+            })
             .unwrap();
 
         println!("{:?}", words);

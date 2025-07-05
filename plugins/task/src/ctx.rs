@@ -16,11 +16,11 @@ pub struct TaskCtx<R: Runtime> {
 }
 
 impl<R: Runtime> TaskCtx<R> {
-    pub fn new(id: String, total: u32, store: ScopedStore<R, StoreKey>) -> Self {
+    pub fn new(id: String, store: ScopedStore<R, StoreKey>) -> Self {
         Self {
             id,
             current: 0,
-            total,
+            total: 1,
             store,
             cancelled: Arc::new(AtomicBool::new(false)),
         }

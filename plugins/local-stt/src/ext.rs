@@ -6,6 +6,8 @@ use tauri_plugin_store2::StorePluginExt;
 use hypr_file::{download_file_with_callback, DownloadProgress};
 use hypr_listener_interface::Word;
 
+use crate::events::RecordedProcessingEvent;
+
 pub trait LocalSttPluginExt<R: Runtime> {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
     fn models_dir(&self) -> PathBuf;
@@ -21,6 +23,7 @@ pub trait LocalSttPluginExt<R: Runtime> {
         &self,
         model_path: impl AsRef<std::path::Path>,
         audio_path: impl AsRef<std::path::Path>,
+        progress_fn: impl FnMut(RecordedProcessingEvent) + Send + 'static,
     ) -> Result<Vec<Word>, crate::Error>;
 
     fn download_model(
@@ -173,6 +176,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         &self,
         model_path: impl AsRef<std::path::Path>,
         audio_path: impl AsRef<std::path::Path>,
+        mut progress_fn: impl FnMut(RecordedProcessingEvent) + Send + 'static,
     ) -> Result<Vec<Word>, crate::Error> {
         use rodio::Source;
 
@@ -201,6 +205,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
         let mut segmenter = hypr_pyannote_local::segmentation::Segmenter::new(16000).unwrap();
         let segments = segmenter.process(&samples_i16, 16000).unwrap();
+        let num_segments = segments.len();
 
         let mut words = Vec::new();
 
@@ -215,12 +220,18 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 let start_ms = (start_sec * 1000.0) as u64;
                 let end_ms = (end_sec * 1000.0) as u64;
 
-                words.push(Word {
+                let word = Word {
                     text: whisper_segment.text().to_string(),
                     speaker: None,
                     confidence: Some(whisper_segment.confidence()),
                     start_ms: Some(start_ms),
                     end_ms: Some(end_ms),
+                };
+                words.push(word.clone());
+                progress_fn(RecordedProcessingEvent::Progress {
+                    current: words.len(),
+                    total: num_segments,
+                    word,
                 });
             }
         }

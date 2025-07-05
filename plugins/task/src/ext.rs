@@ -1,5 +1,3 @@
-use std::future::Future;
-
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_store2::{ScopedStore, StorePluginExt};
 
@@ -8,10 +6,10 @@ use crate::{StoreKey, TaskCtx, TaskRecord, TaskState, TaskStatus};
 pub trait TaskPluginExt<R: Runtime>: Manager<R> {
     fn task_store(&self) -> ScopedStore<R, StoreKey>;
 
-    fn spawn_task_blocking<F, Fut>(&self, total_steps: u32, exec: F) -> String
+    fn spawn_task_blocking<F, Fut>(&self, exec: F) -> String
     where
-        F: Fn(TaskCtx<R>) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Result<(), crate::Error>> + Send + 'static;
+        F: FnOnce(TaskCtx<R>) -> Fut + Send + 'static,
+        Fut: Send + 'static;
 
     fn get_task(&self, id: String) -> Option<TaskRecord>;
     fn cancel_task(&self, id: String) -> Result<(), crate::Error>;
@@ -22,13 +20,13 @@ impl<R: Runtime, T: Manager<R>> TaskPluginExt<R> for T {
         self.scoped_store(crate::PLUGIN_NAME).unwrap()
     }
 
-    fn spawn_task_blocking<F, Fut>(&self, total_steps: u32, exec: F) -> String
+    fn spawn_task_blocking<F, Fut>(&self, exec: F) -> String
     where
-        F: Fn(TaskCtx<R>) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Result<(), crate::Error>> + Send + 'static,
+        F: FnOnce(TaskCtx<R>) -> Fut + Send + 'static,
+        Fut: Send + 'static,
     {
         let id = uuid::Uuid::new_v4().to_string();
-        let ctx = TaskCtx::new(id.clone(), total_steps, self.task_store());
+        let ctx = TaskCtx::new(id.clone(), self.task_store());
 
         let task_state: tauri::State<TaskState> = self.state();
         let app_handle: AppHandle<R> = self.app_handle().clone();
@@ -40,7 +38,7 @@ impl<R: Runtime, T: Manager<R>> TaskPluginExt<R> for T {
             id: id.clone(),
             status: TaskStatus::Running {
                 current: 0,
-                total: total_steps,
+                total: 1,
             },
             data: std::collections::HashMap::new(),
         };
@@ -50,8 +48,8 @@ impl<R: Runtime, T: Manager<R>> TaskPluginExt<R> for T {
             .set(StoreKey::Tasks(id.clone()), initial_record);
 
         let task_id = id.clone();
-        tauri::async_runtime::spawn(async move {
-            let _ = exec(ctx).await;
+        tauri::async_runtime::spawn_blocking(move || {
+            let _ = exec(ctx);
 
             if let Some(state) = app_handle.try_state::<TaskState>() {
                 state.remove_task(&task_id);

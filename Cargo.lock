@@ -7946,6 +7946,7 @@ dependencies = [
  "gguf",
  "listener-interface",
  "llama-cpp-2",
+ "llama-cpp-sys-2",
  "rand 0.9.1",
  "serde",
  "serde_json",

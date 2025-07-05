@@ -1,4 +1,5 @@
-use std::sync::{Arc, OnceLock};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use llama_cpp_2::{
     context::params::LlamaContextParams,
@@ -32,6 +33,13 @@ pub enum Task {
         response_sender: tokio::sync::mpsc::UnboundedSender<String>,
         callback: Box<dyn FnMut(f64) + Send + 'static>,
     },
+}
+
+struct ProgressData {
+    total: usize,
+    processed: AtomicUsize,
+    enabled: AtomicBool,
+    callback: Mutex<Box<dyn FnMut(f64) + Send + 'static>>,
 }
 
 impl Llama {
@@ -82,7 +90,16 @@ impl Llama {
         backend: &LlamaBackend,
         tpl: &LlamaChatTemplate,
         request: &LlamaRequest,
-    ) -> Result<(llama_cpp_2::context::LlamaContext<'a>, LlamaBatch, i32), crate::Error> {
+        callback: Box<dyn FnMut(f64) + Send + 'static>,
+    ) -> Result<
+        (
+            llama_cpp_2::context::LlamaContext<'a>,
+            LlamaBatch,
+            i32,
+            *mut std::ffi::c_void,
+        ),
+        crate::Error,
+    > {
         let prompt = model
             .apply_chat_template(tpl, &request.messages, true)
             .unwrap();
@@ -90,6 +107,45 @@ impl Llama {
         let mut tokens_list = model.str_to_token(&prompt, AddBos::Always).unwrap();
         tokens_list.truncate(DEFAULT_MAX_INPUT_TOKENS as usize);
         let input_tokens_len = tokens_list.len() as u32;
+
+        let progress_data = Box::new(ProgressData {
+            total: input_tokens_len as usize,
+            processed: AtomicUsize::new(0),
+            enabled: AtomicBool::new(true),
+            callback: Mutex::new(callback),
+        });
+        let progress_data_ptr = Box::into_raw(progress_data) as *mut std::ffi::c_void;
+
+        extern "C" fn cb_eval_fn(
+            _t: *mut llama_cpp_sys_2::ggml_tensor,
+            _ask: bool,
+            user_data: *mut std::ffi::c_void,
+        ) -> bool {
+            if user_data.is_null() {
+                return false;
+            }
+
+            unsafe {
+                let progress_data = &*(user_data as *mut ProgressData);
+
+                if progress_data.enabled.load(Ordering::Relaxed) {
+                    let count = progress_data.processed.fetch_add(1, Ordering::Relaxed) + 1;
+
+                    let mut progress = (count as f64) / ((progress_data.total * 2) as f64);
+                    if progress > 1.0 {
+                        progress = 1.0;
+                    }
+
+                    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        if let Ok(mut cb) = progress_data.callback.lock() {
+                            (cb)(progress);
+                        }
+                    }));
+                }
+            }
+
+            false
+        }
 
         let mut ctx = model
             .new_context(
@@ -100,7 +156,9 @@ impl Llama {
                     ))
                     .with_n_batch(input_tokens_len)
                     .with_embeddings(false)
-                    .with_flash_attention(true),
+                    .with_flash_attention(true)
+                    .with_cb_eval_user_data(progress_data_ptr)
+                    .with_cb_eval(Some(cb_eval_fn)),
             )
             .unwrap();
 
@@ -115,7 +173,18 @@ impl Llama {
 
         ctx.decode(&mut batch).unwrap();
 
-        Ok((ctx, batch, last_index))
+        unsafe {
+            let progress_data = &*(progress_data_ptr as *mut ProgressData);
+            progress_data.enabled.store(false, Ordering::Relaxed);
+
+            let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                if let Ok(mut cb) = progress_data.callback.lock() {
+                    (cb)(1.0);
+                }
+            }));
+        }
+
+        Ok((ctx, batch, last_index, progress_data_ptr))
     }
 
     fn process_generation<'a>(
@@ -125,21 +194,14 @@ impl Llama {
         last_index: i32,
         request: &LlamaRequest,
         response_sender: tokio::sync::mpsc::UnboundedSender<String>,
+        progress_data_ptr: *mut std::ffi::c_void,
     ) {
         let mut n_cur = batch.n_tokens();
         let mut decoder = encoding_rs::UTF_8.new_decoder();
         let mut sampler = Self::get_sampler(model, request.grammar.as_deref());
 
-        let mut got_first_token = false;
-        let mut acc = String::new();
-
         while n_cur <= last_index + DEFAULT_MAX_OUTPUT_TOKENS as i32 {
             let token = sampler.sample(&ctx, batch.n_tokens() - 1);
-
-            if !got_first_token {
-                got_first_token = true;
-                tracing::info!("llm_got_first_token");
-            }
 
             if model.is_eog_token(token) {
                 break;
@@ -149,7 +211,6 @@ impl Llama {
             let mut output_string = String::with_capacity(32);
             let _decode_result = decoder.decode_to_string(&output_bytes, &mut output_string, false);
 
-            acc += &output_string;
             if response_sender.send(output_string).is_err() {
                 break;
             }
@@ -162,7 +223,10 @@ impl Llama {
         }
 
         drop(response_sender);
-        tracing::info!("llm_acc: {}", acc);
+
+        unsafe {
+            let _ = Box::from_raw(progress_data_ptr as *mut ProgressData);
+        }
     }
 
     pub fn new(model_path: impl AsRef<std::path::Path>) -> Result<Self, crate::Error> {
@@ -181,23 +245,27 @@ impl Llama {
                         Task::Generate {
                             request,
                             response_sender,
-                            ..
-                        } => match Self::process_prefill(&model, &backend, &tpl, &request) {
-                            Ok((ctx, batch, last_index)) => {
-                                Self::process_generation(
-                                    &model,
-                                    ctx,
-                                    batch,
-                                    last_index,
-                                    &request,
-                                    response_sender,
-                                );
+                            callback,
+                        } => {
+                            match Self::process_prefill(&model, &backend, &tpl, &request, callback)
+                            {
+                                Ok((ctx, batch, last_index, progress_data_ptr)) => {
+                                    Self::process_generation(
+                                        &model,
+                                        ctx,
+                                        batch,
+                                        last_index,
+                                        &request,
+                                        response_sender,
+                                        progress_data_ptr,
+                                    );
+                                }
+                                Err(e) => {
+                                    tracing::error!("Prefill failed: {:?}", e);
+                                    drop(response_sender);
+                                }
                             }
-                            Err(e) => {
-                                tracing::error!("Prefill failed: {:?}", e);
-                                drop(response_sender);
-                            }
-                        },
+                        }
                     }
                 }
             }
@@ -243,7 +311,12 @@ mod tests {
         use futures_util::pin_mut;
         use std::io::{self, Write};
 
-        let stream = model.generate_stream(request).unwrap();
+        let stream = model
+            .generate_stream_with_callback(
+                request,
+                Box::new(|progress| println!("progress: {}", progress)),
+            )
+            .unwrap();
         pin_mut!(stream);
 
         let mut acc = String::new();

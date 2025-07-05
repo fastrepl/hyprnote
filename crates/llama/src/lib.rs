@@ -30,6 +30,7 @@ pub enum Task {
     Generate {
         request: LlamaRequest,
         response_sender: tokio::sync::mpsc::UnboundedSender<String>,
+        callback: Box<dyn FnMut(f64) + Send + 'static>,
     },
 }
 
@@ -92,6 +93,7 @@ impl Llama {
                         Task::Generate {
                             request,
                             response_sender,
+                            ..
                         } => {
                             let prompt = model
                                 .apply_chat_template(&tpl, &request.messages, true)
@@ -182,16 +184,24 @@ impl Llama {
         &self,
         request: LlamaRequest,
     ) -> Result<impl futures_util::Stream<Item = String>, crate::Error> {
+        let callback = Box::new(|_| {});
+        self.generate_stream_with_callback(request, callback)
+    }
+
+    pub fn generate_stream_with_callback(
+        &self,
+        request: LlamaRequest,
+        callback: Box<dyn FnMut(f64) + Send + 'static>,
+    ) -> Result<impl futures_util::Stream<Item = String>, crate::Error> {
         let (response_sender, response_receiver) = tokio::sync::mpsc::unbounded_channel::<String>();
 
         let task = Task::Generate {
             request,
             response_sender,
+            callback,
         };
 
         self.task_sender.send(task)?;
-        tracing::info!("llm_task_sent");
-
         let stream = UnboundedReceiverStream::new(response_receiver);
 
         Ok(stream)

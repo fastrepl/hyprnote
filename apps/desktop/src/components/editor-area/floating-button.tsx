@@ -8,6 +8,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { useHypr } from "@/contexts";
 
 interface FloatingButtonProps {
   session: Session;
@@ -24,6 +26,7 @@ export function FloatingButton({
   templates,
   isError,
 }: FloatingButtonProps) {
+  const { userId } = useHypr();
   const [showRaw, setShowRaw] = useSession(session.id, (s) => [
     s.showRaw,
     s.setShowRaw,
@@ -88,6 +91,15 @@ export function FloatingButton({
   // Simple template selection - just call parent function
   const handleTemplateSelect = (templateId: string) => {
     setShowTemplatePopover(false);
+    
+    // Send analytics event for custom template usage (not for "auto")
+    if (templateId !== "auto") {
+      analyticsCommands.event({
+        event: "custom_template_enhancement_started",
+        distinct_id: userId,
+      });
+    }
+    
     handleEnhanceWithTemplate(templateId);
   };
 

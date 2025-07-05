@@ -1,0 +1,27 @@
+[target.'cfg(all(windows, target_env = "msvc"))']
+rustflags = [
+  "-C",
+  "target-feature=-crt-static",
+  "-C",
+  "link-arg=/nodefaultlib:msvcrt",
+  "-C",
+  "link-arg=/defaultlib:msvcrtd",
+]
+
+[env]
+# Force all C/C++ compilation to use debug runtime
+CFLAGS = "/MDd /D_DEBUG /Od"
+CXXFLAGS = "/MDd /D_DEBUG /Od"
+
+# CMake configuration for debug runtime
+CMAKE_CXX_FLAGS = "/MDd /D_DEBUG /Od"
+CMAKE_C_FLAGS = "/MDd /D_DEBUG /Od"
+CMAKE_MSVC_RUNTIME_LIBRARY = "MultiThreadedDebugDLL"
+CMAKE_BUILD_TYPE = "Debug"
+
+# Global debug flags
+DEBUG = "1"
+_DEBUG = "1"
+
+# ORG
+ORT_DYLIB_PATH = "./dlls/onnxruntime.dll"

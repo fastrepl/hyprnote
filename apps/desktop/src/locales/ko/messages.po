@@ -256,8 +256,8 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:151
-#: src/components/editor-area/note-header/listen-button.tsx:190
+#: src/components/editor-area/note-header/listen-button.tsx:176
+#: src/components/editor-area/note-header/listen-button.tsx:215
 msgid "{0}"
 msgstr ""
 
@@ -662,8 +662,8 @@ msgid "Help us tailor your Hyprnote experience"
 msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:305
-msgid "Hide Event"
-msgstr ""
+#~ msgid "Hide Event"
+#~ msgstr ""
 
 #: src/components/settings/views/feedback.tsx:19
 msgid "Hmm... this is off..."
@@ -742,7 +742,7 @@ msgstr ""
 msgid "Loading..."
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:68
+#: src/components/left-sidebar/top-area/settings-button.tsx:87
 msgid "Local mode"
 msgstr ""
 
@@ -783,7 +783,7 @@ msgstr ""
 msgid "Much better AI performance"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:89
+#: src/components/left-sidebar/top-area/settings-button.tsx:108
 msgid "My Profile"
 msgstr ""
 
@@ -796,7 +796,7 @@ msgid "New note"
 msgstr ""
 
 #: src/components/left-sidebar/notes-list.tsx:311
-#: src/components/left-sidebar/events-list.tsx:282
+#: src/components/left-sidebar/events-list.tsx:181
 msgid "New window"
 msgstr ""
 
@@ -832,7 +832,7 @@ msgstr ""
 msgid "No templates yet"
 msgstr ""
 
-#: src/components/left-sidebar/events-list.tsx:164
+#: src/components/left-sidebar/events-list.tsx:95
 msgid "No upcoming events"
 msgstr ""
 
@@ -881,7 +881,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:277
+#: src/components/editor-area/note-header/listen-button.tsx:302
 msgid "Pause"
 msgstr ""
 
@@ -893,7 +893,7 @@ msgstr ""
 msgid "Performance difference between languages"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:170
+#: src/components/editor-area/note-header/listen-button.tsx:195
 msgid "Play video"
 msgstr ""
 
@@ -937,7 +937,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:79
+#: src/components/editor-area/note-header/listen-button.tsx:104
 msgid "Resume"
 msgstr ""
 
@@ -1003,7 +1003,7 @@ msgstr ""
 msgid "Send invite"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:82
+#: src/components/left-sidebar/top-area/settings-button.tsx:101
 msgid "Settings"
 msgstr ""
 
@@ -1035,11 +1035,11 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:126
+#: src/components/editor-area/note-header/listen-button.tsx:151
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:285
+#: src/components/editor-area/note-header/listen-button.tsx:310
 msgid "Stop"
 msgstr ""
 
@@ -1057,6 +1057,10 @@ msgstr ""
 
 #: src/components/settings/views/sound.tsx:106
 msgid "System Audio Access"
+msgstr ""
+
+#: src/components/left-sidebar/top-area/settings-button.tsx:114
+msgid "Talk to Founders"
 msgstr ""
 
 #: src/routes/app.settings.tsx:47
@@ -1133,7 +1137,7 @@ msgstr ""
 msgid "Untitled Template"
 msgstr ""
 
-#: src/components/left-sidebar/events-list.tsx:98
+#: src/components/left-sidebar/events-list.tsx:62
 msgid "Upcoming"
 msgstr ""
 
@@ -1165,7 +1169,7 @@ msgstr ""
 msgid "View calendar"
 msgstr ""
 
-#: src/components/left-sidebar/events-list.tsx:294
+#: src/components/left-sidebar/events-list.tsx:193
 #: src/components/editor-area/note-header/chips/event-chip.tsx:246
 msgid "View in calendar"
 msgstr ""

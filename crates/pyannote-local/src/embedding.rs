@@ -2,7 +2,7 @@ use dasp::sample::ToSample;
 
 use hypr_onnx::{
     ndarray::{self, Array2},
-    ort::{self, session::Session},
+    ort::{self, session::Session, value::TensorRef},
 };
 
 const EMBEDDING_ONNX: &[u8] = include_bytes!("./data/embedding.onnx");
@@ -27,10 +27,10 @@ impl EmbeddingExtractor {
             .map_err(|s| crate::Error::KnfError(s.to_string()))?;
 
         let features = features.insert_axis(ndarray::Axis(0));
-        let inputs = ort::inputs! ["feats" => features.view()]?;
+        let inputs = ort::inputs! ["feats" => TensorRef::from_array_view(features.view())?];
 
         let ort_outs = self.session.run(inputs)?;
-        let ort_out = ort_outs.get("embs").unwrap().try_extract_tensor::<f32>()?;
+        let ort_out = ort_outs.get("embs").unwrap().try_extract_array::<f32>()?;
 
         let embeddings = ort_out.iter().copied().collect::<Vec<_>>();
         Ok(embeddings)

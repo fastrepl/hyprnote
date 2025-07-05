@@ -3,12 +3,16 @@ name = "vad"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = []
+load-dynamic = ["ort/load-dynamic"]
+
 [dependencies]
 serde = { workspace = true }
 thiserror = { workspace = true }
 
 ndarray = "0.16"
-ort = "=2.0.0-rc.9"
+ort = { version = "=2.0.0-rc.10", features = ["ndarray"] }
 
 [dev-dependencies]
 hypr-data = { workspace = true }

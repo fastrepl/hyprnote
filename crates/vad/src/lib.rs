@@ -2,7 +2,10 @@ mod error;
 pub use error::*;
 
 use ndarray::{Array1, Array2, Array3, ArrayBase, Ix1, Ix3, OwnedRepr};
-use ort::session::{builder::GraphOptimizationLevel, Session};
+use ort::{
+    session::{builder::GraphOptimizationLevel, Session},
+    value::TensorRef,
+};
 
 const MODEL_BYTES: &[u8] =
     include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/model.onnx"));
@@ -46,30 +49,30 @@ impl Vad {
         let audio_tensor = Array2::from_shape_vec((1, samples), audio_chunk.to_vec())?;
 
         let mut result = self.session.run(ort::inputs![
-            audio_tensor.view(),
-            self.sample_rate_tensor.view(),
-            self.h_tensor.view(),
-            self.c_tensor.view()
-        ]?)?;
+            TensorRef::from_array_view(audio_tensor.view())?,
+            TensorRef::from_array_view(self.sample_rate_tensor.view())?,
+            TensorRef::from_array_view(self.h_tensor.view())?,
+            TensorRef::from_array_view(self.c_tensor.view())?,
+        ])?;
 
         // Update internal state tensors
         self.h_tensor = result
             .get("hn")
             .ok_or(Error::InvalidOutput)?
-            .try_extract_tensor::<f32>()?
+            .try_extract_array::<f32>()?
             .to_owned()
             .into_shape_with_order((2, 1, 64))?;
 
         self.c_tensor = result
             .get("cn")
             .ok_or(Error::InvalidOutput)?
-            .try_extract_tensor::<f32>()?
+            .try_extract_array::<f32>()?
             .to_owned()
             .into_shape_with_order((2, 1, 64))?;
 
         let prob_tensor = result.remove("output").ok_or(Error::InvalidOutput)?;
         let prob = *prob_tensor
-            .try_extract_tensor::<f32>()?
+            .try_extract_array::<f32>()?
             .first()
             .ok_or(Error::InvalidOutput)?;
 

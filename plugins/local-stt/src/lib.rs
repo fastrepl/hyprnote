@@ -143,7 +143,10 @@ mod test {
         ))
         .unwrap();
 
-        let listen_stream = listen_client.from_audio(audio_source).await.unwrap();
+        let listen_stream = listen_client
+            .from_realtime_audio(audio_source)
+            .await
+            .unwrap();
         let mut listen_stream = Box::pin(listen_stream);
 
         while let Some(chunk) = listen_stream.next().await {

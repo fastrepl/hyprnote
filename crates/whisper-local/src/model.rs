@@ -64,10 +64,8 @@ impl WhisperBuilder {
         let token_eot = ctx.token_eot();
         let token_beg = ctx.token_beg();
 
-        let language = self.language.unwrap_or(Language::En);
-
         Whisper {
-            language,
+            language: self.language,
             static_prompt: self.static_prompt.unwrap_or_default(),
             dynamic_prompt: self.dynamic_prompt.unwrap_or_default(),
             state,
@@ -88,7 +86,7 @@ impl WhisperBuilder {
 }
 
 pub struct Whisper {
-    language: Language,
+    language: Option<Language>,
     static_prompt: String,
     dynamic_prompt: String,
     state: WhisperState,
@@ -112,7 +110,7 @@ impl Whisper {
             tracing::info!(initial_prompt = ?initial_prompt, "transcribe");
 
             p.set_translate(false);
-            p.set_language(Some(self.language.as_ref()));
+            p.set_language(self.language.as_ref().map(|l| l.as_ref()));
             p.set_initial_prompt(&initial_prompt);
 
             unsafe {

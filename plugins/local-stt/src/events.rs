@@ -9,7 +9,7 @@ macro_rules! common_event_derives {
 common_event_derives! {
     #[serde(tag = "type")]
     pub enum RecordedProcessingEvent {
-        #[serde(rename = "inactive")]
+        #[serde(rename = "progress")]
         Progress { current: usize, total: usize },
     }
 }

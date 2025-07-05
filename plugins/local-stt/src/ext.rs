@@ -189,7 +189,6 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
         let mut model = hypr_whisper_local::Whisper::builder()
             .model_path(model_path.as_ref().to_str().unwrap())
-            .language(hypr_whisper::Language::En)
             .static_prompt("")
             .dynamic_prompt("")
             .build();

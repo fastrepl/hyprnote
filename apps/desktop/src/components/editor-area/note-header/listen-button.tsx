@@ -218,10 +218,12 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
 }
 
 function WhenActive() {
+  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
   const ongoingSessionStore = useOngoingSession((s) => ({
     pause: s.pause,
     stop: s.stop,
   }));
+  const sessionWords = useSession(ongoingSessionId!, (s) => s.session.words);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const handlePauseSession = () => {
@@ -232,6 +234,10 @@ function WhenActive() {
   const handleStopSession = () => {
     ongoingSessionStore.stop();
     setIsPopoverOpen(false);
+
+    if (sessionWords.length === 0) {
+      sonnerToast.dismiss("recording-consent-reminder");
+    }
   };
 
   return (

@@ -77,6 +77,94 @@ impl Llama {
         LlamaSampler::chain_simple(samplers)
     }
 
+    fn process_prefill<'a>(
+        model: &'a LlamaModel,
+        backend: &LlamaBackend,
+        tpl: &LlamaChatTemplate,
+        request: &LlamaRequest,
+    ) -> Result<(llama_cpp_2::context::LlamaContext<'a>, LlamaBatch, i32), crate::Error> {
+        let prompt = model
+            .apply_chat_template(tpl, &request.messages, true)
+            .unwrap();
+
+        let mut tokens_list = model.str_to_token(&prompt, AddBos::Always).unwrap();
+        tokens_list.truncate(DEFAULT_MAX_INPUT_TOKENS as usize);
+        let input_tokens_len = tokens_list.len() as u32;
+
+        let mut ctx = model
+            .new_context(
+                backend,
+                LlamaContextParams::default()
+                    .with_n_ctx(std::num::NonZeroU32::new(
+                        input_tokens_len + DEFAULT_MAX_OUTPUT_TOKENS,
+                    ))
+                    .with_n_batch(input_tokens_len)
+                    .with_embeddings(false)
+                    .with_flash_attention(true),
+            )
+            .unwrap();
+
+        let batch_size = tokens_list.len().max(512);
+        let mut batch = LlamaBatch::new(batch_size, 1);
+
+        let last_index = (tokens_list.len() - 1) as i32;
+        for (i, token) in (0_i32..).zip(tokens_list.into_iter()) {
+            let is_last = i == last_index;
+            batch.add(token, i, &[0], is_last).unwrap();
+        }
+
+        ctx.decode(&mut batch).unwrap();
+
+        Ok((ctx, batch, last_index))
+    }
+
+    fn process_generation<'a>(
+        model: &LlamaModel,
+        mut ctx: llama_cpp_2::context::LlamaContext<'a>,
+        mut batch: LlamaBatch,
+        last_index: i32,
+        request: &LlamaRequest,
+        response_sender: tokio::sync::mpsc::UnboundedSender<String>,
+    ) {
+        let mut n_cur = batch.n_tokens();
+        let mut decoder = encoding_rs::UTF_8.new_decoder();
+        let mut sampler = Self::get_sampler(model, request.grammar.as_deref());
+
+        let mut got_first_token = false;
+        let mut acc = String::new();
+
+        while n_cur <= last_index + DEFAULT_MAX_OUTPUT_TOKENS as i32 {
+            let token = sampler.sample(&ctx, batch.n_tokens() - 1);
+
+            if !got_first_token {
+                got_first_token = true;
+                tracing::info!("llm_got_first_token");
+            }
+
+            if model.is_eog_token(token) {
+                break;
+            }
+
+            let output_bytes = model.token_to_bytes(token, Special::Tokenize).unwrap();
+            let mut output_string = String::with_capacity(32);
+            let _decode_result = decoder.decode_to_string(&output_bytes, &mut output_string, false);
+
+            acc += &output_string;
+            if response_sender.send(output_string).is_err() {
+                break;
+            }
+
+            batch.clear();
+            batch.add(token, n_cur, &[0], true).unwrap();
+
+            n_cur += 1;
+            ctx.decode(&mut batch).unwrap();
+        }
+
+        drop(response_sender);
+        tracing::info!("llm_acc: {}", acc);
+    }
+
     pub fn new(model_path: impl AsRef<std::path::Path>) -> Result<Self, crate::Error> {
         let fmt = model_path.gguf_chat_format()?.unwrap();
         let tpl = LlamaChatTemplate::new(fmt.as_ref()).unwrap();
@@ -94,84 +182,22 @@ impl Llama {
                             request,
                             response_sender,
                             ..
-                        } => {
-                            let prompt = model
-                                .apply_chat_template(&tpl, &request.messages, true)
-                                .unwrap();
-
-                            let mut tokens_list =
-                                model.str_to_token(&prompt, AddBos::Always).unwrap();
-                            tokens_list.truncate(DEFAULT_MAX_INPUT_TOKENS as usize);
-                            let input_tokens_len = tokens_list.len() as u32;
-
-                            let mut ctx = model
-                                .new_context(
-                                    &backend,
-                                    // https://github.com/ggml-org/llama.cpp/blob/492d7f1/src/llama-context.cpp#L2261
-                                    LlamaContextParams::default()
-                                        .with_n_ctx(std::num::NonZeroU32::new(
-                                            input_tokens_len + DEFAULT_MAX_OUTPUT_TOKENS,
-                                        )) // NoKvCacheSlot
-                                        .with_n_batch(input_tokens_len) // GGML_ASSERT(n_tokens_all <= cparams.n_batch)
-                                        .with_embeddings(false)
-                                        .with_flash_attention(true),
-                                )
-                                .unwrap();
-
-                            let batch_size = tokens_list.len().max(512);
-                            let mut batch = LlamaBatch::new(batch_size, 1);
-
-                            let last_index = (tokens_list.len() - 1) as i32;
-                            for (i, token) in (0_i32..).zip(tokens_list.into_iter()) {
-                                let is_last = i == last_index;
-                                batch.add(token, i, &[0], is_last).unwrap();
-                            }
-
-                            ctx.decode(&mut batch).unwrap();
-
-                            let mut n_cur = batch.n_tokens();
-                            let mut decoder = encoding_rs::UTF_8.new_decoder();
-                            let mut sampler = Self::get_sampler(&model, request.grammar.as_deref());
-
-                            let mut got_first_token = false;
-                            let mut acc = String::new();
-
-                            while n_cur <= last_index + DEFAULT_MAX_OUTPUT_TOKENS as i32 {
-                                let token = sampler.sample(&ctx, batch.n_tokens() - 1);
-
-                                if !got_first_token {
-                                    got_first_token = true;
-                                    tracing::info!("llm_got_first_token");
-                                }
-
-                                if model.is_eog_token(token) {
-                                    break;
-                                }
-
-                                let output_bytes =
-                                    model.token_to_bytes(token, Special::Tokenize).unwrap();
-                                let mut output_string = String::with_capacity(32);
-                                let _decode_result = decoder.decode_to_string(
-                                    &output_bytes,
-                                    &mut output_string,
-                                    false,
+                        } => match Self::process_prefill(&model, &backend, &tpl, &request) {
+                            Ok((ctx, batch, last_index)) => {
+                                Self::process_generation(
+                                    &model,
+                                    ctx,
+                                    batch,
+                                    last_index,
+                                    &request,
+                                    response_sender,
                                 );
-
-                                acc += &output_string;
-                                if response_sender.send(output_string).is_err() {
-                                    break;
-                                }
-
-                                batch.clear();
-                                batch.add(token, n_cur, &[0], true).unwrap();
-
-                                n_cur += 1;
-                                ctx.decode(&mut batch).unwrap();
                             }
-
-                            drop(response_sender);
-                            tracing::info!("llm_acc: {}", acc);
-                        }
+                            Err(e) => {
+                                tracing::error!("Prefill failed: {:?}", e);
+                                drop(response_sender);
+                            }
+                        },
                     }
                 }
             }
@@ -265,7 +291,7 @@ mod tests {
                     "Summarize the text the user gives you.".into(),
                 )
                 .unwrap(),
-                LlamaChatMessage::new("user".into(), hypr_data::english_4::WORDS_JSON.repeat(1))
+                LlamaChatMessage::new("user".into(), hypr_data::english_3::WORDS_JSON.repeat(1))
                     .unwrap(),
             ],
         };

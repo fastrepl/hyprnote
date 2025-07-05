@@ -1,10 +1,10 @@
 import { toast } from "@hypr/ui/components/ui/toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { diffWords } from "diff";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
@@ -61,6 +61,36 @@ export default function EditorArea({
     [sessionId, showRaw],
   );
 
+  const [needsRestoration, setNeedsRestoration] = useState(false);
+  const [originalTemplateId, setOriginalTemplateId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const configQuery = useQuery({
+    queryKey: ["config", "general"],
+    queryFn: async () => {
+      const result = await dbCommands.getConfig();
+      return result;
+    },
+  });
+
+  const setConfigMutation = useMutation({
+    mutationFn: async (configData: any) => {
+      await dbCommands.setConfig(configData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["config", "general"] });
+    },
+    onError: (error) => {
+      console.error("Failed to set template config:", error);
+    },
+  });
+
+  const templatesQuery = useQuery({
+    queryKey: ["templates"],
+    queryFn: () => dbCommands.listTemplates(),
+    refetchOnWindowFocus: true,
+  });
+
   const generateTitle = useGenerateTitleMutation({ sessionId });
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
 
@@ -70,6 +100,19 @@ export default function EditorArea({
     rawContent,
     onSuccess: (content) => {
       generateTitle.mutate({ enhancedContent: content });
+      
+      if (needsRestoration && configQuery.data) {
+        const restoreConfig = {
+          ...configQuery.data,
+          general: {
+            ...configQuery.data.general,
+            selected_template_id: originalTemplateId,
+          },
+        };
+        setConfigMutation.mutate(restoreConfig);
+        setNeedsRestoration(false);
+        setOriginalTemplateId(null);
+      }
     },
   });
 
@@ -94,6 +137,44 @@ export default function EditorArea({
     () => (showRaw ? rawContent : enhancedContent),
     [showRaw, enhancedContent, rawContent],
   );
+
+  const handleEnhanceWithTemplate = useCallback(async (templateId: string) => {
+    if (configQuery.data) {
+      const currentTemplateId = configQuery.data.general?.selected_template_id || null;
+      setOriginalTemplateId(currentTemplateId);
+      setNeedsRestoration(true);
+      
+      const targetTemplateId = templateId === "auto" ? null : templateId;
+      
+      const updatedConfig = {
+        ...configQuery.data,
+        general: {
+          ...configQuery.data.general,
+          selected_template_id: targetTemplateId,
+        },
+      };
+      
+      try {
+        await setConfigMutation.mutateAsync(updatedConfig);
+        
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        const verifyConfig = await dbCommands.getConfig();
+        
+        if (verifyConfig.general?.selected_template_id !== targetTemplateId) {
+          setOriginalTemplateId(null);
+          setNeedsRestoration(false);
+          return;
+        }
+      } catch (error) {
+        setOriginalTemplateId(null);
+        setNeedsRestoration(false);
+        return;
+      }
+    }
+    
+    enhance.mutate();
+  }, [enhance, configQuery.data, setConfigMutation]);
 
   const handleClickEnhance = useCallback(() => {
     enhance.mutate();
@@ -169,6 +250,8 @@ export default function EditorArea({
             <FloatingButton
               key={`floating-button-${sessionId}`}
               handleEnhance={handleClickEnhance}
+              handleEnhanceWithTemplate={handleEnhanceWithTemplate}
+              templates={templatesQuery.data || []}
               session={sessionStore.session}
               isError={enhance.status === "error"}
             />
@@ -195,7 +278,6 @@ export function useEnhanceMutation({
   const preMeetingText = extractTextFromHtml(preMeetingNote);
   const rawText = extractTextFromHtml(rawContent);
 
-  // finalInput is the text that will be used to enhance the note
   var finalInput = "";
   const wordDiff = diffWords(preMeetingText, rawText);
   if (wordDiff && wordDiff.length > 0) {
@@ -246,12 +328,11 @@ export function useEnhanceMutation({
         const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
 
         if (selectedTemplate) {
-          // Generate custom GBNF grammar
+          
           if (selectedTemplate.sections && selectedTemplate.sections.length > 0) {
             customGrammar = generateCustomGBNF(selectedTemplate.sections);
           }
 
-          // Format template as a readable string for system prompt
           templateInfo = `
 SELECTED TEMPLATE:
 Template Title: ${selectedTemplate.title || "Untitled"}
@@ -265,6 +346,8 @@ Sections:`;
      └─ ${section.description || "No description"}`;
           });
         }
+      } else {
+        console.log("Using default template (no custom template selected)");
       }
 
       const participants = await dbCommands.sessionListParticipants(sessionId);
@@ -452,7 +535,6 @@ function generateCustomGBNF(templateSections: any[]): string {
     return "";
   }
 
-  // Function to safely escape header text for GBNF string literals
   function escapeForGBNF(text: string): string {
     return text
       .replace(/\\/g, "\\\\")
@@ -462,14 +544,13 @@ function generateCustomGBNF(templateSections: any[]): string {
       .replace(/\t/g, "\\t");
   }
 
-  // Validate section titles and provide fallbacks
   const validatedSections = templateSections.map((section, index) => {
     let title = section.title || `Section ${index + 1}`;
 
     title = title
       .trim()
-      .replace(/[\x00-\x1F\x7F]/g, "") // Remove control characters
-      .substring(0, 100); // Limit length to prevent issues
+      .replace(/[\x00-\x1F\x7F]/g, "")
+      .substring(0, 100);
 
     return {
       ...section,
@@ -477,14 +558,12 @@ function generateCustomGBNF(templateSections: any[]): string {
     };
   });
 
-  // Generate section rules with proper escaping
   const sectionRules = validatedSections.map((section, index) => {
     const sectionName = `section${index + 1}`;
     const escapedHeader = escapeForGBNF(section.safeTitle);
     return `${sectionName} ::= "# ${escapedHeader}\\n\\n" bline bline bline? bline? bline? "\\n"`;
   }).join("\n");
 
-  // Generate root rule with all sections
   const sectionNames = validatedSections.map((_, index) => `section${index + 1}`).join(" ");
 
   const grammar = `root ::= thinking ${sectionNames}

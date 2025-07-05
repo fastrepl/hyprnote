@@ -22,6 +22,22 @@ The AI Changelog Generator automatically:
 
 This generates a changelog from your last 10 commits and commits it to the repository - no email setup required!
 
+## Local Execution Alternative
+
+**Prefer running locally for testing?** 
+
+Check out the standalone script in `scripts/generate-changelog-local.js` - it runs the same AI analysis locally without GitHub Actions:
+
+```bash
+cd scripts
+npm install
+export GITHUB_TOKEN="your_token"
+export OPENROUTER_API_KEY="your_key"
+npm run changelog:test
+```
+
+See `scripts/README.md` for complete local setup instructions.
+
 ## Required Secrets
 
 Add these secrets to your GitHub repository settings:

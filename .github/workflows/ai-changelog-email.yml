@@ -55,8 +55,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          AI_MODEL: ${{ github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}
-          TEST_MODE: ${{ github.event.inputs.test_mode || 'false' }}
+          AI_MODEL: ${{ github.event.inputs.ai_model != '' && github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}
+          TEST_MODE: ${{ github.event.inputs.test_mode != '' && github.event.inputs.test_mode || 'false' }}
         run: |
           cat > changelog-generator.js << 'EOF'
           const { Octokit } = require('@octokit/rest');
@@ -189,8 +189,7 @@ jobs:
             message: c.commit.message,
             author: c.commit.author.name,
             date: c.commit.author.date,
-            url: c.html_url,
-            changes: c.stats ? \`+\${c.stats.additions} -\${c.stats.deletions}\` : 'unknown'
+            url: c.html_url
           })), null, 2)}
 
           DETAILED CHANGES:
@@ -299,6 +298,29 @@ jobs:
 
           node changelog-generator.js
 
+      - name: Prepare email content
+        if: ${{ github.event.inputs.output_mode != 'file' }}
+        id: email_content
+        run: |
+          # Read changelog content for email
+          echo "Reading changelog content for email..."
+          if [ -f "changelog.md" ]; then
+            # Convert to HTML-safe format
+            CHANGELOG_HTML=$(cat changelog.md | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g')
+            # Save as multiline output
+            echo "changelog_content<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGELOG_HTML" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "✅ Changelog content prepared for email"
+          else
+            echo "❌ changelog.md not found"
+            echo "changelog_content=Error: Changelog file not generated" >> $GITHUB_OUTPUT
+          fi
+
+          # Also prepare timestamp for email
+          CURRENT_TIME=$(date -u)
+          echo "current_time=$CURRENT_TIME" >> $GITHUB_OUTPUT
+
       - name: Send email
         if: ${{ github.event.inputs.output_mode != 'file' }}
         uses: dawidd6/action-send-mail@v3
@@ -309,7 +331,7 @@ jobs:
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "Hyprnote Release Changelog - Review Required"
-          to: ${{ github.event.inputs.email_recipients || 'plyght@peril.lol' }}
+          to: ${{ github.event.inputs.email_recipients != '' && github.event.inputs.email_recipients || 'plyght@peril.lol' }}
           from: ${{ secrets.EMAIL_USERNAME }}
           html_body: |
             <!DOCTYPE html>
@@ -398,15 +420,15 @@ jobs:
 
                     <div class="metadata">
                         <h2>Generation Details</h2>
-                        <p><strong>Generated:</strong> ${{ github.event.inputs.test_mode == 'true' && 'Test Mode - ' || '' }}$(date -u)</p>
+                        <p><strong>Generated:</strong> ${{ github.event.inputs.test_mode != '' && github.event.inputs.test_mode == 'true' && 'Test Mode - ' || '' }}${{ steps.email_content.outputs.current_time }}</p>
                         <p><strong>Trigger:</strong> ${{ github.event_name == 'release' && 'Release Published' || 'Manual Trigger' }}</p>
-                        <p><strong>Model:</strong> ${{ github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}</p>
+                        <p><strong>Model:</strong> ${{ github.event.inputs.ai_model != '' && github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}</p>
                         <p><strong>Repository:</strong> ${{ github.repository }}</p>
                         <p><strong>Workflow:</strong> <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Run</a></p>
                     </div>
 
                     <div class="changelog">
-            $(cat changelog.md)
+                        <pre>${{ steps.email_content.outputs.changelog_content }}</pre>
                     </div>
 
                     <div class="footer">
@@ -434,8 +456,8 @@ jobs:
           **Generation Details:**
           - Generated: $(date -u)
           - Trigger: ${{ github.event_name == 'release' && 'Release Published' || 'Manual Trigger' }}
-          - Model: ${{ github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}
-          - Test Mode: ${{ github.event.inputs.test_mode || 'false' }}
+          - Model: ${{ github.event.inputs.ai_model != '' && github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}
+          - Test Mode: ${{ github.event.inputs.test_mode != '' && github.event.inputs.test_mode || 'false' }}
           - Repository: ${{ github.repository }}
           - Workflow Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
@@ -470,8 +492,8 @@ jobs:
             git commit -m "Add AI-generated changelog
 
             Generated: $(date -u)
-            Model: ${{ github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}
-            Test Mode: ${{ github.event.inputs.test_mode || 'false' }}
+            Model: ${{ github.event.inputs.ai_model != '' && github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}
+            Test Mode: ${{ github.event.inputs.test_mode != '' && github.event.inputs.test_mode || 'false' }}
 
             🤖 Generated with AI Changelog Workflow
 

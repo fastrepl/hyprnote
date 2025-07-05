@@ -63,13 +63,16 @@ export default function EditorArea({
 
   const generateTitle = useGenerateTitleMutation({ sessionId });
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
+  const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > 0);
 
   const enhance = useEnhanceMutation({
     sessionId,
     preMeetingNote,
     rawContent,
     onSuccess: (content) => {
-      generateTitle.mutate({ enhancedContent: content });
+      if (hasTranscriptWords) {
+        generateTitle.mutate({ enhancedContent: content });
+      }
     },
   });
 

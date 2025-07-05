@@ -1,0 +1,492 @@
+name: AI Changelog Generator
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      output_mode:
+        description: 'Output mode: send email or generate file'
+        required: false
+        default: 'email'
+        type: choice
+        options:
+          - email
+          - file
+      email_recipients:
+        description: 'Email recipients (comma-separated)'
+        required: false
+        default: 'plyght@peril.lol'
+      ai_model:
+        description: 'OpenRouter model to use'
+        required: false
+        default: 'anthropic/claude-sonnet-4'
+      test_mode:
+        description: 'Test mode (use last 10 commits instead of since last release)'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  generate-changelog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm install axios @octokit/rest
+      
+      - name: Generate changelog
+        id: changelog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          AI_MODEL: ${{ github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}
+          TEST_MODE: ${{ github.event.inputs.test_mode || 'false' }}
+        run: |
+          cat > changelog-generator.js << 'EOF'
+          const { Octokit } = require('@octokit/rest');
+          const axios = require('axios');
+          const fs = require('fs');
+          
+          const octokit = new Octokit({
+            auth: process.env.GITHUB_TOKEN,
+          });
+          
+          const owner = process.env.GITHUB_REPOSITORY.split('/')[0];
+          const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
+          const testMode = process.env.TEST_MODE === 'true';
+          
+          async function getCommitsSinceLastRelease() {
+            try {
+              if (testMode) {
+                console.log('TEST MODE: Getting last 10 commits');
+                const { data: commits } = await octokit.rest.repos.listCommits({
+                  owner,
+                  repo,
+                  per_page: 10
+                });
+                return commits;
+              }
+              
+              // Get the current release
+              const { data: releases } = await octokit.rest.repos.listReleases({
+                owner,
+                repo,
+                per_page: 2
+              });
+              
+              if (releases.length < 2) {
+                console.log('Not enough releases found, getting last 50 commits');
+                const { data: commits } = await octokit.rest.repos.listCommits({
+                  owner,
+                  repo,
+                  per_page: 50
+                });
+                return commits;
+              }
+              
+              const currentRelease = releases[0];
+              const previousRelease = releases[1];
+              
+              console.log(`Getting commits between ${previousRelease.tag_name} and ${currentRelease.tag_name}`);
+              
+              // Get commits between releases
+              const { data: comparison } = await octokit.rest.repos.compareCommits({
+                owner,
+                repo,
+                base: previousRelease.tag_name,
+                head: currentRelease.tag_name
+              });
+              
+              return comparison.commits;
+            } catch (error) {
+              console.error('Error getting commits:', error.message);
+              // Fallback to last 50 commits
+              const { data: commits } = await octokit.rest.repos.listCommits({
+                owner,
+                repo,
+                per_page: 50
+              });
+              return commits;
+            }
+          }
+          
+          async function getCommitDetails(sha) {
+            try {
+              const { data: commit } = await octokit.rest.repos.getCommit({
+                owner,
+                repo,
+                ref: sha,
+                headers: {
+                  'Accept': 'application/vnd.github.v3.diff'
+                }
+              });
+              return commit;
+            } catch (error) {
+              console.error(`Error getting commit details for ${sha}:`, error.message);
+              return null;
+            }
+          }
+          
+          async function getPullRequestsForCommit(sha) {
+            try {
+              const { data: prs } = await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner,
+                repo,
+                commit_sha: sha
+              });
+              return prs;
+            } catch (error) {
+              console.error(`Error getting PRs for commit ${sha}:`, error.message);
+              return [];
+            }
+          }
+          
+          async function generateChangelog(commits, commitDetails) {
+            const prompt = `You are a senior technical writer for enterprise software documentation. Your task is to analyze code changes and create a professional changelog draft.
+
+          REQUIREMENTS:
+          - Absolutely no emojis, casual language, or marketing speak
+          - Use precise technical language
+          - Focus on functional impact and implementation details
+          - Categorize changes by type: Breaking Changes, Features, Improvements, Bug Fixes, Internal, Dependencies
+          - Include code context analysis, not just commit messages
+          - Identify security implications and performance impacts
+          - Be concise but comprehensive
+          - Use proper markdown formatting
+          - Include relevant technical details
+          - Reference specific components/modules when applicable
+
+          ANALYSIS DEPTH:
+          - Examine actual code changes, not just commit messages
+          - Identify patterns and architectural changes
+          - Note dependency updates and their implications
+          - Assess backward compatibility
+          - Highlight configuration changes
+          - Note testing and infrastructure changes
+
+          REPOSITORY CONTEXT:
+          This is hyprnote - a desktop application for note-taking with AI capabilities, built with Tauri (Rust backend) and React frontend.
+
+          COMMIT DATA:
+          ${JSON.stringify(commits.map(c => ({
+            sha: c.sha.substring(0, 8),
+            message: c.commit.message,
+            author: c.commit.author.name,
+            date: c.commit.author.date,
+            url: c.html_url,
+            changes: c.stats ? \`+\${c.stats.additions} -\${c.stats.deletions}\` : 'unknown'
+          })), null, 2)}
+
+          DETAILED CHANGES:
+          ${commitDetails.map(detail => {
+            if (!detail) return 'Commit details unavailable';
+            return `
+          Commit: ${detail.sha.substring(0, 8)}
+          Message: ${detail.commit.message}
+          Files changed: ${detail.files ? detail.files.length : 0}
+          ${detail.files ? detail.files.map(f => `
+          - ${f.filename} (+${f.additions} -${f.deletions})
+          - Status: ${f.status}
+          - Changes: ${f.changes} lines
+          `).join('') : ''}
+          `;
+          }).join('\n---\n')}
+
+          OUTPUT FORMAT:
+          Generate a professional changelog draft in markdown format suitable for enterprise release notes. Focus on technical accuracy and operational impact.`;
+
+            try {
+              const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+                model: process.env.AI_MODEL,
+                messages: [
+                  {
+                    role: 'system',
+                    content: 'You are a senior technical writer specializing in enterprise software documentation. Generate precise, professional changelog content with zero tolerance for casual language or emojis.'
+                  },
+                  {
+                    role: 'user',
+                    content: prompt
+                  }
+                ],
+                max_tokens: 4000,
+                temperature: 0.1
+              }, {
+                headers: {
+                  'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                  'Content-Type': 'application/json',
+                  'HTTP-Referer': 'https://github.com/hyprnote/hyprnote',
+                  'X-Title': 'hyprnote AI Changelog Generator'
+                }
+              });
+
+              return response.data.choices[0].message.content;
+            } catch (error) {
+              console.error('Error generating changelog:', error.response?.data || error.message);
+              throw error;
+            }
+          }
+          
+          async function main() {
+            try {
+              console.log('Starting changelog generation...');
+              
+              // Get commits
+              const commits = await getCommitsSinceLastRelease();
+              console.log(`Found ${commits.length} commits to analyze`);
+              
+              if (commits.length === 0) {
+                console.log('No commits found');
+                return;
+              }
+              
+              // Get detailed information for each commit
+              console.log('Fetching detailed commit information...');
+              const commitDetails = await Promise.all(
+                commits.slice(0, 20).map(commit => getCommitDetails(commit.sha))
+              );
+              
+              console.log('Generating changelog with AI...');
+              const changelog = await generateChangelog(commits, commitDetails);
+              
+              // Save changelog
+              fs.writeFileSync('changelog.md', changelog);
+              
+              // Create metadata
+              const metadata = {
+                generated_at: new Date().toISOString(),
+                commit_count: commits.length,
+                model_used: process.env.AI_MODEL,
+                test_mode: testMode,
+                repository: `${owner}/${repo}`,
+                commits_analyzed: commits.slice(0, 20).map(c => ({
+                  sha: c.sha.substring(0, 8),
+                  message: c.commit.message.split('\n')[0],
+                  author: c.commit.author.name,
+                  date: c.commit.author.date
+                }))
+              };
+              
+              fs.writeFileSync('metadata.json', JSON.stringify(metadata, null, 2));
+              
+              console.log('Changelog generated successfully');
+              console.log('Preview:');
+              console.log(changelog.substring(0, 500) + '...');
+              
+            } catch (error) {
+              console.error('Error in main:', error);
+              process.exit(1);
+            }
+          }
+          
+          main();
+          EOF
+          
+          node changelog-generator.js
+      
+      - name: Send email
+        if: ${{ github.event.inputs.output_mode != 'file' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: 'Hyprnote Release Changelog - Review Required'
+          to: ${{ github.event.inputs.email_recipients || 'plyght@peril.lol' }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          html_body: |
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Hyprnote Changelog Review</title>
+                <style>
+                    body {
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        line-height: 1.6;
+                        color: #333;
+                        max-width: 800px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        background-color: #f5f5f5;
+                    }
+                    .container {
+                        background-color: white;
+                        padding: 30px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    }
+                    .header {
+                        border-bottom: 2px solid #e0e0e0;
+                        padding-bottom: 20px;
+                        margin-bottom: 30px;
+                    }
+                    .header h1 {
+                        color: #2c3e50;
+                        margin: 0;
+                        font-size: 24px;
+                    }
+                    .metadata {
+                        background-color: #f8f9fa;
+                        padding: 15px;
+                        border-radius: 5px;
+                        margin-bottom: 30px;
+                        border-left: 4px solid #007bff;
+                    }
+                    .metadata h2 {
+                        margin-top: 0;
+                        color: #495057;
+                        font-size: 18px;
+                    }
+                    .changelog {
+                        background-color: #ffffff;
+                        padding: 20px;
+                        border: 1px solid #e0e0e0;
+                        border-radius: 5px;
+                        font-family: 'Courier New', monospace;
+                        white-space: pre-wrap;
+                        overflow-x: auto;
+                    }
+                    .footer {
+                        margin-top: 30px;
+                        padding-top: 20px;
+                        border-top: 1px solid #e0e0e0;
+                        color: #6c757d;
+                        font-size: 14px;
+                    }
+                    .action-required {
+                        background-color: #fff3cd;
+                        border: 1px solid #ffeaa7;
+                        border-radius: 5px;
+                        padding: 15px;
+                        margin-bottom: 20px;
+                    }
+                    .action-required h3 {
+                        color: #856404;
+                        margin-top: 0;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>Hyprnote Release Changelog</h1>
+                        <p>AI-generated changelog requiring review and refinement</p>
+                    </div>
+                    
+                    <div class="action-required">
+                        <h3>Action Required</h3>
+                        <p>This changelog has been automatically generated using AI analysis of code changes. Please review, refine, and approve before publishing.</p>
+                    </div>
+                    
+                    <div class="metadata">
+                        <h2>Generation Details</h2>
+                        <p><strong>Generated:</strong> ${{ github.event.inputs.test_mode == 'true' && 'Test Mode - ' || '' }}$(date -u)</p>
+                        <p><strong>Trigger:</strong> ${{ github.event_name == 'release' && 'Release Published' || 'Manual Trigger' }}</p>
+                        <p><strong>Model:</strong> ${{ github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}</p>
+                        <p><strong>Repository:</strong> ${{ github.repository }}</p>
+                        <p><strong>Workflow:</strong> <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Run</a></p>
+                    </div>
+                    
+                    <div class="changelog">
+            $(cat changelog.md)
+                    </div>
+                    
+                    <div class="footer">
+                        <p>Generated by hyprnote AI Changelog Workflow</p>
+                        <p>Metadata and commit details available in workflow artifacts</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+          attachments: |
+            changelog.md
+            metadata.json
+      
+      - name: Generate changelog file
+        if: ${{ github.event.inputs.output_mode == 'file' }}
+        run: |
+          # Create a timestamped changelog file
+          TIMESTAMP=$(date -u +"%Y%m%d_%H%M%S")
+          FILENAME="CHANGELOG_${TIMESTAMP}.md"
+          
+          # Add header with metadata
+          cat > "$FILENAME" << EOF
+          # Changelog Generated $(date -u)
+          
+          **Generation Details:**
+          - Generated: $(date -u)
+          - Trigger: ${{ github.event_name == 'release' && 'Release Published' || 'Manual Trigger' }}
+          - Model: ${{ github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}
+          - Test Mode: ${{ github.event.inputs.test_mode || 'false' }}
+          - Repository: ${{ github.repository }}
+          - Workflow Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          ---
+          
+          EOF
+          
+          # Append the AI-generated changelog
+          cat changelog.md >> "$FILENAME"
+          
+          # Set output for commit step
+          echo "changelog_file=$FILENAME" >> $GITHUB_OUTPUT
+          
+          echo "Generated changelog file: $FILENAME"
+          echo "Preview:"
+          head -50 "$FILENAME"
+        id: generate_file
+      
+      - name: Commit changelog file
+        if: ${{ github.event.inputs.output_mode == 'file' }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Add the generated file
+          git add "${{ steps.generate_file.outputs.changelog_file }}"
+          
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Add AI-generated changelog
+            
+            Generated: $(date -u)
+            Model: ${{ github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}
+            Test Mode: ${{ github.event.inputs.test_mode || 'false' }}
+            
+            🤖 Generated with AI Changelog Workflow
+            
+            Co-Authored-By: GitHub Action <action@github.com>"
+            
+            git push
+            
+            echo "Changelog committed as: ${{ steps.generate_file.outputs.changelog_file }}"
+          fi
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog-artifacts
+          path: |
+            changelog.md
+            metadata.json
+          retention-days: 30

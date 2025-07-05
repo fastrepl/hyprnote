@@ -58,7 +58,6 @@ strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 
 rodio = { workspace = true, features = ["symphonia", "symphonia-all"] }
-rubato = "0.16.2"
 
 axum = { workspace = true, features = ["ws", "multipart"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }

@@ -186,13 +186,11 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         .unwrap();
 
         let original_sample_rate = decoder.sample_rate();
-        let channels = decoder.channels() as usize;
-        let samples_f32: Vec<f32> = decoder.convert_samples().collect();
 
         let resampled_samples = if original_sample_rate != 16000 {
-            resample_audio(&samples_f32, original_sample_rate as f64, 16000.0, channels)?
+            hypr_audio_utils::resample_audio(decoder, 16000).unwrap()
         } else {
-            samples_f32
+            decoder.convert_samples().collect()
         };
 
         let samples_i16 = hypr_audio_utils::f32_to_i16_samples(&resampled_samples);
@@ -262,50 +260,4 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         store.set(crate::StoreKey::DefaultModel, model)?;
         Ok(())
     }
-}
-
-fn resample_audio(
-    samples: &[f32],
-    from_rate: f64,
-    to_rate: f64,
-    channels: usize,
-) -> Result<Vec<f32>, crate::Error> {
-    if (from_rate - to_rate).abs() < 1.0 {
-        return Ok(samples.to_vec());
-    }
-
-    use rubato::{
-        Resampler, SincFixedIn, SincInterpolationParameters, SincInterpolationType, WindowFunction,
-    };
-
-    let params = SincInterpolationParameters {
-        sinc_len: 256,
-        f_cutoff: 0.95,
-        interpolation: SincInterpolationType::Linear,
-        oversampling_factor: 256,
-        window: WindowFunction::BlackmanHarris2,
-    };
-
-    let mut resampler =
-        SincFixedIn::<f32>::new(to_rate / from_rate, 2.0, params, 1024, channels).unwrap();
-
-    let frames_per_channel = samples.len() / channels;
-    let mut input_channels: Vec<Vec<f32>> = vec![Vec::with_capacity(frames_per_channel); channels];
-
-    for (i, &sample) in samples.iter().enumerate() {
-        input_channels[i % channels].push(sample);
-    }
-
-    let output_channels = resampler.process(&input_channels, None).unwrap();
-
-    let mut output = Vec::new();
-    let output_frames = output_channels[0].len();
-
-    for frame in 0..output_frames {
-        for ch in 0..channels {
-            output.push(output_channels[ch][frame]);
-        }
-    }
-
-    Ok(output)
 }

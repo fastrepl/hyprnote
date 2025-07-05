@@ -1003,6 +1003,9 @@ dependencies = [
  "bytes",
  "futures-util",
  "kalosm-sound",
+ "rodio",
+ "rubato",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -14035,7 +14038,6 @@ dependencies = [
  "pyannote-local",
  "reqwest 0.12.15",
  "rodio",
- "rubato",
  "serde",
  "serde_json",
  "specta",

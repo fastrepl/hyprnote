@@ -6,7 +6,6 @@ use llama_cpp_2::{
     llama_batch::LlamaBatch,
     model::{params::LlamaModelParams, AddBos, LlamaChatTemplate, LlamaModel, Special},
     sampling::LlamaSampler,
-    send_logs_to_tracing, LogOptions,
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
@@ -78,9 +77,6 @@ impl Llama {
     }
 
     pub fn new(model_path: impl AsRef<std::path::Path>) -> Result<Self, crate::Error> {
-        let show_logs = if cfg!(debug_assertions) { true } else { false };
-        send_logs_to_tracing(LogOptions::default().with_logs_enabled(show_logs));
-
         let fmt = model_path.gguf_chat_format()?.unwrap();
         let tpl = LlamaChatTemplate::new(fmt.as_ref()).unwrap();
 
@@ -235,7 +231,7 @@ mod tests {
         let model_path = dirs::data_dir()
             .unwrap()
             .join("com.hyprnote.dev")
-            .join("llm.gguf");
+            .join("ttt/llm.gguf");
 
         Llama::new(model_path).unwrap()
     }

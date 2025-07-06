@@ -561,7 +561,7 @@ function useAutoEnhance({
   ]);
 }
 
-//function to dynamically generate the grammar for the custom template
+// function to dynamically generate the grammar for the custom template
 function generateCustomGBNF(templateSections: any[]): string {
   if (!templateSections || templateSections.length === 0) {
     return "";

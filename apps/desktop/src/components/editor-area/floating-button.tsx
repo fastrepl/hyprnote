@@ -47,6 +47,7 @@ interface FloatingButtonProps {
   templates: Template[];
   isError: boolean;
   progress: number;
+  isLocalLlm: boolean;
 }
 
 export function FloatingButton({
@@ -56,6 +57,7 @@ export function FloatingButton({
   templates,
   isError,
   progress,
+  isLocalLlm,
 }: FloatingButtonProps) {
   const { userId } = useHypr();
   const [showRaw, setShowRaw] = useSession(session.id, (s) => [
@@ -178,6 +180,9 @@ export function FloatingButton({
     }
   };
 
+  // Only show progress for local LLMs
+  const shouldShowProgress = isLocalLlm && progress >= 0 && progress < 1;
+
   if (isError) {
     const errorRetryButtonClasses = cn(
       "rounded-xl border",
@@ -246,8 +251,28 @@ export function FloatingButton({
           >
             {isEnhancePending
               ? isHovered
-                ? <XIcon size={20} />
-                : <EnhanceWIP size={20} strokeWidth={2} />
+                ? (
+                  <div className="flex items-center gap-2">
+                    <XIcon size={20} />
+                    {shouldShowProgress && (
+                      <span className="text-xs font-mono">
+                        {Math.round(progress * 100)}%
+                      </span>
+                    )}
+                  </div>
+                )
+                : (
+                  <div className="flex items-center gap-2">
+                    {shouldShowProgress
+                      ? <AnimatedEnhanceIcon size={20} />
+                      : <EnhanceWIP size={20} strokeWidth={2} />}
+                    {shouldShowProgress && (
+                      <span className="text-xs font-mono">
+                        {Math.round(progress * 100)}%
+                      </span>
+                    )}
+                  </div>
+                )
               : <RunOrRerun showRefresh={showRefresh} />}
           </button>
         </PopoverTrigger>
@@ -305,38 +330,6 @@ export function FloatingButton({
           </div>
         </PopoverContent>
       </Popover>
-      <button
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onClick={handleEnhanceOrReset}
-        className={enhanceButtonClasses}
-      >
-        {isEnhancePending
-          ? isHovered
-            ? (
-              <div className="flex items-center gap-2">
-                <XIcon size={20} />
-                {progress >= 0 && progress < 1 && (
-                  <span className="text-xs font-mono">
-                    {Math.round(progress * 100)}%
-                  </span>
-                )}
-              </div>
-            )
-            : (
-              <div className="flex items-center gap-2">
-                {progress >= 0 && progress < 1
-                  ? <AnimatedEnhanceIcon size={20} />
-                  : <EnhanceWIP size={20} strokeWidth={2} />}
-                {progress >= 0 && progress < 1 && (
-                  <span className="text-xs font-mono">
-                    {Math.round(progress * 100)}%
-                  </span>
-                )}
-              </div>
-            )
-          : <RunOrRerun showRefresh={showRefresh} />}
-      </button>
     </div>
   );
 }

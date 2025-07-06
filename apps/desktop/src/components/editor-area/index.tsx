@@ -205,6 +205,11 @@ export default function EditorArea({
     }));
   };
 
+  const llmConnectionQuery = useQuery({
+    queryKey: ["llm-connection"],
+    queryFn: () => connectorCommands.getLlmConnection(),
+  });
+
   return (
     <div className="relative flex h-full flex-col w-full">
       <NoteHeader
@@ -262,6 +267,7 @@ export default function EditorArea({
               session={sessionStore.session}
               isError={enhance.status === "error"}
               progress={progress}
+              isLocalLlm={llmConnectionQuery.data?.type === "HyprLocal"}
             />
           </div>
         </motion.div>
@@ -535,6 +541,7 @@ function useAutoEnhance({
 }) {
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
+  const setShowRaw = useSession(sessionId, (s) => s.setShowRaw);
 
   useEffect(() => {
     if (
@@ -542,6 +549,7 @@ function useAutoEnhance({
       && ongoingSessionStatus === "inactive"
       && enhanceStatus !== "pending"
     ) {
+      setShowRaw(false);
       enhanceMutate();
     }
   }, [
@@ -549,9 +557,11 @@ function useAutoEnhance({
     enhanceStatus,
     sessionId,
     enhanceMutate,
+    setShowRaw,
   ]);
 }
 
+//function to dynamically generate the grammar for the custom template
 function generateCustomGBNF(templateSections: any[]): string {
   if (!templateSections || templateSections.length === 0) {
     return "";

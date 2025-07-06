@@ -207,7 +207,7 @@ async fn build_and_send_response(
                             index: 0,
                             delta: ChatCompletionStreamResponseDelta {
                                 tool_calls: Some(vec![ChatCompletionMessageToolCallChunk {
-                                    index: index.try_into().unwrap(),
+                                    index: index.try_into().unwrap_or(0),
                                     id: Some("progress_update".to_string()),
                                     r#type: Some(ChatCompletionToolType::Function),
                                     function: Some(FunctionCallStream {

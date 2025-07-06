@@ -97,10 +97,16 @@ export default function EditorArea({
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
   const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > 0);
 
+  const llmConnectionQuery = useQuery({
+    queryKey: ["llm-connection"],
+    queryFn: () => connectorCommands.getLlmConnection(),
+  });
+
   const { enhance, progress } = useEnhanceMutation({
     sessionId,
     preMeetingNote,
     rawContent,
+    isLocalLlm: llmConnectionQuery.data?.type === "HyprLocal",
     onSuccess: (content) => {
       generateTitle.mutate({ enhancedContent: content });
 
@@ -205,11 +211,6 @@ export default function EditorArea({
     }));
   };
 
-  const llmConnectionQuery = useQuery({
-    queryKey: ["llm-connection"],
-    queryFn: () => connectorCommands.getLlmConnection(),
-  });
-
   return (
     <div className="relative flex h-full flex-col w-full">
       <NoteHeader
@@ -280,11 +281,13 @@ export function useEnhanceMutation({
   sessionId,
   preMeetingNote,
   rawContent,
+  isLocalLlm,
   onSuccess,
 }: {
   sessionId: string;
   preMeetingNote: string;
   rawContent: string;
+  isLocalLlm: boolean;
   onSuccess: (enhancedContent: string) => void;
 }) {
   const { userId, onboardingSessionId } = useHypr();
@@ -313,7 +316,10 @@ export function useEnhanceMutation({
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async () => {
-      setProgress(0); // Reset progress when starting
+      if (isLocalLlm) {
+        setProgress(0);
+      }
+      
       const fn = sessionId === onboardingSessionId
         ? dbCommands.getWordsOnboarding
         : dbCommands.getWords;
@@ -406,9 +412,11 @@ Sections:`;
       const { text, fullStream } = streamText({
         abortSignal,
         model,
-        tools: {
-          update_progress: tool({ parameters: z.any() }),
-        },
+        ...(isLocalLlm && {
+          tools: {
+            update_progress: tool({ parameters: z.any() }),
+          },
+        }),
         messages: [
           { role: "system", content: systemMessage },
           { role: "user", content: userMessage },
@@ -417,18 +425,20 @@ Sections:`;
           markdownTransform(),
           smoothStream({ delayInMs: 80, chunking: "line" }),
         ],
-        providerOptions: {
-          [localProviderName]: {
-            metadata: customGrammar
-              ? {
-                grammar: "custom",
-                customGrammar: customGrammar,
-              }
-              : {
-                grammar: "enhance",
-              },
+        ...(isLocalLlm && {
+          providerOptions: {
+            [localProviderName]: {
+              metadata: customGrammar
+                ? {
+                  grammar: "custom",
+                  customGrammar: customGrammar,
+                }
+                : {
+                  grammar: "enhance",
+                },
+            },
           },
-        },
+        }),
       });
 
       let acc = "";
@@ -436,7 +446,7 @@ Sections:`;
         if (chunk.type === "text-delta") {
           acc += chunk.textDelta;
         }
-        if (chunk.type === "tool-call") {
+        if (chunk.type === "tool-call" && isLocalLlm) {
           const chunkProgress = chunk.args?.progress ?? 0;
           setProgress(chunkProgress);
         }
@@ -459,10 +469,14 @@ Sections:`;
       });
 
       persistSession();
-      setProgress(0);
+      if (isLocalLlm) {
+        setProgress(0);
+      }
     },
     onError: (error) => {
-      setProgress(0);
+      if (isLocalLlm) {
+        setProgress(0);
+      }
       console.error(error);
 
       if (!(error as unknown as string).includes("cancel")) {
@@ -471,7 +485,7 @@ Sections:`;
     },
   });
 
-  return { enhance, progress };
+  return { enhance, progress: isLocalLlm ? progress : undefined };
 }
 
 function useGenerateTitleMutation({ sessionId }: { sessionId: string }) {

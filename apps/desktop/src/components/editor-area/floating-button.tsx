@@ -46,7 +46,7 @@ interface FloatingButtonProps {
   handleEnhanceWithTemplate: (templateId: string) => void;
   templates: Template[];
   isError: boolean;
-  progress: number;
+  progress?: number;
   isLocalLlm: boolean;
 }
 
@@ -56,7 +56,7 @@ export function FloatingButton({
   handleEnhanceWithTemplate,
   templates,
   isError,
-  progress,
+  progress = 0,
   isLocalLlm,
 }: FloatingButtonProps) {
   const { userId } = useHypr();
@@ -180,8 +180,8 @@ export function FloatingButton({
     }
   };
 
-  // Only show progress for local LLMs
-  const shouldShowProgress = isLocalLlm && progress >= 0 && progress < 1;
+  // Only show progress for local LLMs AND when progress exists
+  const shouldShowProgress = isLocalLlm && progress !== undefined && progress >= 0 && progress < 1;
 
   if (isError) {
     const errorRetryButtonClasses = cn(

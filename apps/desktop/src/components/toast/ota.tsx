@@ -9,10 +9,13 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
 import { useEffect } from "react";
 
+import { useWindowFocusOTA } from "@/hooks/use-window-focus-ota";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { DownloadProgress } from "./shared";
 
 export default function OtaNotification() {
+  useWindowFocusOTA();
+
   const appInApplicationsFolder = useQuery({
     queryKey: ["app-in-applications-folder"],
     queryFn: async () => {
@@ -32,6 +35,17 @@ export default function OtaNotification() {
       return null;
     },
     refetchInterval: 1000 * 60,
+    refetchIntervalInBackground: true,
+    staleTime: 1000 * 30,
+    gcTime: 1000 * 60 * 5,
+    retry: (failureCount, error) => {
+      if (failureCount < 3) {
+        console.warn(`OTA update check failed (attempt ${failureCount + 1}):`, error);
+        return true;
+      }
+      return false;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   useEffect(() => {

@@ -319,7 +319,7 @@ export function useEnhanceMutation({
       if (isLocalLlm) {
         setProgress(0);
       }
-      
+
       const fn = sessionId === onboardingSessionId
         ? dbCommands.getWordsOnboarding
         : dbCommands.getWords;

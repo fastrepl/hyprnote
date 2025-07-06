@@ -125,13 +125,31 @@ jobs:
           script: |
             const tag = '${{ steps.final-version.outputs.tag }}';
             const version = '${{ steps.final-version.outputs.version }}';
+            const versionParts = version.split('.');
+            const patchVersion = parseInt(versionParts[2]) - 1;
+            const previousVersion = `${versionParts[0]}.${versionParts[1]}.${patchVersion}`;
 
             await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: tag,
-              name: `Desktop v${version} (Nightly)`,
-              body: `Nightly release for desktop version ${version}\n\nThis is an automated nightly release.`,
+              name: `desktop_v${version}`,
+              body: `https://github.com/fastrepl/hyprnote/compare/desktop_v${previousVersion}...desktop_v${version}`,
               draft: false,
               prerelease: true
+            });
+
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = '${{ steps.final-version.outputs.tag }}';
+
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'desktop_cd.yaml',
+              ref: tag,
+              inputs: {
+                channel: 'nightly'
+              }
             });

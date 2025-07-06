@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-process-recorded"
+description = "Enables the process_recorded command without any pre-configured scope."
+commands.allow = ["process_recorded"]
+
+[[permission]]
+identifier = "deny-process-recorded"
+description = "Denies the process_recorded command without any pre-configured scope."
+commands.deny = ["process_recorded"]

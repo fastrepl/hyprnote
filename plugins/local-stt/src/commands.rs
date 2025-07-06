@@ -1,6 +1,8 @@
-use crate::LocalSttPluginExt;
-
 use tauri::ipc::Channel;
+use tauri_specta::Event;
+
+use crate::LocalSttPluginExt;
+use tauri_plugin_task::TaskPluginExt;
 
 #[tauri::command]
 #[specta::specta]
@@ -94,4 +96,25 @@ pub async fn stop_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<
 pub async fn restart_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
     app.stop_server().await.map_err(|e| e.to_string())?;
     app.start_server().await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn process_recorded<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    audio_path: String,
+) -> Result<(), String> {
+    let current_model = app.get_current_model().map_err(|e| e.to_string())?;
+    let model_path = app.models_dir().join(current_model.file_name());
+
+    let app_clone = app.clone();
+    app.spawn_task_blocking(move |_ctx| {
+        let app_clone_inner = app_clone.clone();
+        let _ = app_clone
+            .process_recorded(model_path, audio_path, move |event| {
+                let _ = crate::events::RecordedProcessingEvent::emit(&event, &app_clone_inner);
+            })
+            .map_err(|e| e.to_string());
+    });
+    Ok(())
 }

@@ -116,6 +116,80 @@ mod test {
                 "#},
                 expected: "https://meet.google.com/xhv-ubut-zph",
             },
+            TestCase {
+                name: "zoom meeting with html formatting",
+                input: indoc::indoc! {r#"
+                    <p>──────────<br/>John Jeong is inviting you to a scheduled Zoom meeting.<br/>Join Zoom Meeting<br/>https://hyprnote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1<br/><br/>
+                    View meeting insights with Zoom AI Companion<br/>https://hyprnote.zoom.us/launch/edl?muid=8fff7a40-04e0-4a8e-ae46-026a86793906<br/><br/>
+                    Meeting ID: 867 4631 3244<br/>Passcode: 291681</p>
+                "#},
+                expected:
+                    "https://hyprnote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1",
+            },
+            TestCase {
+                name: "korean google meet link",
+                input: indoc::indoc! {r#"
+                    -::~:~::~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~::~:~::-
+                    Google Meet으로 참석: https://meet.google.com/xkf-xcmo-rwh
+                    또는 다음 전화번호로 전화 걸기: (US) +1 402-732-7278 PIN: 765104423#
+                    전화번호 더보기: https://tel.meet/xkf-xcmo-rwh?pin=5171333427182&hs=7
+
+                    https://support.google.com/a/users/answer/9282720에서 Meet에 대해 자세히 알아보세요.
+
+                    이 섹션을 수정하지 마시기 바랍니다.
+                    -::~:~::~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~::~:~::-
+                "#},
+                expected: "https://meet.google.com/xkf-xcmo-rwh",
+            },
+            TestCase {
+                name: "zoom meeting with dial-in details",
+                input: indoc::indoc! {r#"
+                    Join Zoom Meeting
+                    https://hyprnote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1
+
+                    Meeting ID: 867 4631 3244
+                    Passcode: 291681
+
+                    ---
+
+                    One tap mobile
+                    +16694449171,,86746313244#,,,,*291681# US
+                    +16699006833,,86746313244#,,,,*291681# US (San Jose)
+
+                    ---
+
+                    Dial by your location
+                    • +1 669 444 9171 US
+                    • +1 669 900 6833 US (San Jose)
+                    • +1 253 205 0468 US
+                    • +1 253 215 8782 US (Tacoma)
+                    • +1 346 248 7799 US (Houston)
+                    • +1 719 359 4580 US
+                    • +1 312 626 6799 US (Chicago)
+                    • +1 360 209 5623 US
+                    • +1 386 347 5053 US
+                    • +1 507 473 4847 US
+                    • +1 564 217 2000 US
+                    • +1 646 931 3860 US
+                    • +1 689 278 1000 US
+                    • +1 929 205 6099 US (New York)
+                    • +1 301 715 8592 US (Washington DC)
+                    • +1 305 224 1968 US
+                    • +1 309 205 3325 US
+
+                    Meeting ID: 867 4631 3244
+                    Passcode: 291681
+
+                    Find your local number: https://hyprnote.zoom.us/u/kdoIeyBH9b
+
+                    ---
+
+                    Join by SIP
+                    • 86746313244@zoomcrc.com
+                "#},
+                expected:
+                    "https://hyprnote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1",
+            },
         ];
 
         for test_case in test_cases {

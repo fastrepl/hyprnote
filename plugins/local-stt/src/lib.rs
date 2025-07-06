@@ -45,6 +45,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
             commands::restart_server::<Wry>,
+            commands::process_recorded::<Wry>,
         ])
         .events(tauri_specta::collect_events![
             events::RecordedProcessingEvent
@@ -164,12 +165,13 @@ mod test {
 
         let model_path = dirs::data_dir()
             .unwrap()
-            .join("com.hyprnote.dev")
+            .join("com.hyprnote.dev/stt")
             .join("ggml-tiny.en-q8_0.bin");
 
         let words = app
-            .process_recorded(model_path, hypr_data::english_1::AUDIO_PATH)
-            .await
+            .process_recorded(model_path, hypr_data::english_1::AUDIO_PATH, |event| {
+                println!("{:?}", event);
+            })
             .unwrap();
 
         println!("{:?}", words);

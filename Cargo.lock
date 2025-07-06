@@ -7960,7 +7960,7 @@ dependencies = [
 [[package]]
 name = "llama-cpp-2"
 version = "0.1.109"
-source = "git+https://github.com/utilityai/llama-cpp-rs?branch=update-llama-cpp-2025-06-25#f43f90313a2c83e6c45bd2ca26e1b0eb5ff914ec"
+source = "git+https://github.com/yujonglee/llama-cpp-rs?branch=update-llama-cpp-2025-06-25#24133e7f3aa215f47e241dcc990a9291c58a60a9"
 dependencies = [
  "enumflags2",
  "llama-cpp-sys-2",
@@ -7972,7 +7972,7 @@ dependencies = [
 [[package]]
 name = "llama-cpp-sys-2"
 version = "0.1.109"
-source = "git+https://github.com/utilityai/llama-cpp-rs?branch=update-llama-cpp-2025-06-25#f43f90313a2c83e6c45bd2ca26e1b0eb5ff914ec"
+source = "git+https://github.com/yujonglee/llama-cpp-rs?branch=update-llama-cpp-2025-06-25#24133e7f3aa215f47e241dcc990a9291c58a60a9"
 dependencies = [
  "bindgen 0.69.5",
  "cc",

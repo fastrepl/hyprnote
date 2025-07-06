@@ -167,6 +167,7 @@ impl Llama {
                     ))
                     .with_n_batch(input_tokens_len)
                     .with_embeddings(false)
+                    .with_swa_full(false)
                     .with_flash_attention(true)
                     .with_cb_eval_user_data(progress_data_ptr)
                     .with_cb_eval(Some(cb_eval_fn)),

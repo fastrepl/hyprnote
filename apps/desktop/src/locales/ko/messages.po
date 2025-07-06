@@ -862,8 +862,8 @@ msgid "Open calendar view"
 msgstr ""
 
 #: src/components/toolbar/buttons/new-window-button.tsx:35
-#: src/components/left-sidebar/search-list.tsx:316
-#: src/components/left-sidebar/search-list.tsx:392
+#: src/components/left-sidebar/search-list.tsx:319
+#: src/components/left-sidebar/search-list.tsx:396
 msgid "Open in new window"
 msgstr ""
 

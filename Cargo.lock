@@ -13999,6 +13999,7 @@ name = "tauri-plugin-local-llm"
 version = "0.1.0"
 dependencies = [
  "async-openai",
+ "async-stream",
  "axum 0.8.4",
  "dirs 6.0.0",
  "file",

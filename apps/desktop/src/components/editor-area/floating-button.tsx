@@ -11,12 +11,14 @@ interface FloatingButtonProps {
   session: Session;
   handleEnhance: () => void;
   isError: boolean;
+  progress: number;
 }
 
 export function FloatingButton({
   session,
   handleEnhance,
   isError,
+  progress,
 }: FloatingButtonProps) {
   const [showRaw, setShowRaw] = useSession(session.id, (s) => [
     s.showRaw,
@@ -112,7 +114,16 @@ export function FloatingButton({
         {isEnhancePending
           ? isHovered
             ? <XIcon size={20} />
-            : <EnhanceWIP size={20} strokeWidth={2} />
+            : (
+              <div className="flex items-center gap-2">
+                <EnhanceWIP size={20} strokeWidth={2} />
+                {progress > 0 && (
+                  <span className="text-xs font-mono">
+                    {Math.round(progress * 100)}%
+                  </span>
+                )}
+              </div>
+            )
           : <RunOrRerun showRefresh={showRefresh} />}
       </button>
     </div>

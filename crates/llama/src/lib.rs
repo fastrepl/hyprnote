@@ -40,6 +40,7 @@ struct ProgressData {
     processed: AtomicUsize,
     enabled: AtomicBool,
     callback: Mutex<Box<dyn FnMut(f64) + Send + 'static>>,
+    last_reported: Mutex<i32>,
 }
 
 impl Llama {
@@ -113,6 +114,7 @@ impl Llama {
             processed: AtomicUsize::new(0),
             enabled: AtomicBool::new(true),
             callback: Mutex::new(callback),
+            last_reported: Mutex::new(-1),
         });
         let progress_data_ptr = Box::into_raw(progress_data) as *mut std::ffi::c_void;
 
@@ -136,9 +138,18 @@ impl Llama {
                         progress = 1.0;
                     }
 
+                    let rounded_progress_int = (progress * 100.0).round() as i32;
+
                     let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                        if let Ok(mut cb) = progress_data.callback.lock() {
-                            (cb)(progress);
+                        if let Ok(mut last_reported) = progress_data.last_reported.lock() {
+                            if *last_reported != rounded_progress_int {
+                                *last_reported = rounded_progress_int;
+                                let rounded_progress = rounded_progress_int as f64 / 100.0;
+
+                                if let Ok(mut cb) = progress_data.callback.lock() {
+                                    (cb)(rounded_progress);
+                                }
+                            }
                         }
                     }));
                 }

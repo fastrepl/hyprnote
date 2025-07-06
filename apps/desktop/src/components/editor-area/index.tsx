@@ -1,10 +1,10 @@
-import { toast } from "@hypr/ui/components/ui/toast";
 import { useMutation } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { diffWords } from "diff";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { z } from "zod";
 
 import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
@@ -16,6 +16,7 @@ import { commands as templateCommands } from "@hypr/plugin-template";
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
+import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
 import {
   generateText,
@@ -24,6 +25,7 @@ import {
   modelProvider,
   smoothStream,
   streamText,
+  tool,
 } from "@hypr/utils/ai";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import { enhanceFailedToast } from "../toast/shared";
@@ -65,7 +67,7 @@ export default function EditorArea({
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
   const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > 0);
 
-  const enhance = useEnhanceMutation({
+  const { enhance, progress } = useEnhanceMutation({
     sessionId,
     preMeetingNote,
     rawContent,
@@ -174,6 +176,7 @@ export default function EditorArea({
               handleEnhance={handleClickEnhance}
               session={sessionStore.session}
               isError={enhance.status === "error"}
+              progress={progress}
             />
           </div>
         </motion.div>
@@ -194,12 +197,13 @@ export function useEnhanceMutation({
   onSuccess: (enhancedContent: string) => void;
 }) {
   const { userId, onboardingSessionId } = useHypr();
+  const [progress, setProgress] = useState(0);
 
   const preMeetingText = extractTextFromHtml(preMeetingNote);
   const rawText = extractTextFromHtml(rawContent);
 
   // finalInput is the text that will be used to enhance the note
-  var finalInput = "";
+  let finalInput = "";
   const wordDiff = diffWords(preMeetingText, rawText);
   if (wordDiff && wordDiff.length > 0) {
     for (const diff of wordDiff) {
@@ -218,6 +222,7 @@ export function useEnhanceMutation({
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async () => {
+      setProgress(0); // Reset progress when starting
       const fn = sessionId === onboardingSessionId
         ? dbCommands.getWordsOnboarding
         : dbCommands.getWords;
@@ -307,9 +312,12 @@ Sections:`;
         });
       }
 
-      const { text, textStream } = streamText({
+      const { text, fullStream } = streamText({
         abortSignal,
         model,
+        tools: {
+          update_progress: tool({ parameters: z.any() }),
+        },
         messages: [
           { role: "system", content: systemMessage },
           { role: "user", content: userMessage },
@@ -333,8 +341,15 @@ Sections:`;
       });
 
       let acc = "";
-      for await (const chunk of textStream) {
-        acc += chunk;
+      for await (const chunk of fullStream) {
+        if (chunk.type === "text-delta") {
+          acc += chunk.textDelta;
+        }
+        if (chunk.type === "tool-call") {
+          const chunkProgress = chunk.args?.progress ?? 0;
+          setProgress(chunkProgress);
+        }
+
         const html = await miscCommands.opinionatedMdToHtml(acc);
         setEnhancedContent(html);
       }
@@ -353,8 +368,10 @@ Sections:`;
       });
 
       persistSession();
+      setProgress(0);
     },
     onError: (error) => {
+      setProgress(0);
       console.error(error);
 
       if (!(error as unknown as string).includes("cancel")) {
@@ -363,7 +380,7 @@ Sections:`;
     },
   });
 
-  return enhance;
+  return { enhance, progress };
 }
 
 function useGenerateTitleMutation({ sessionId }: { sessionId: string }) {

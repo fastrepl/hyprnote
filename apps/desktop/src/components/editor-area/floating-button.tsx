@@ -1,6 +1,6 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { PlusIcon, RefreshCwIcon, TypeOutlineIcon, XIcon, ZapIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
@@ -143,18 +143,17 @@ export function FloatingButton({
     setShowTemplatePopover(false);
     try {
       queryClient.invalidateQueries({ queryKey: ["templates"] });
-      
+
       await windowsCommands.windowShow({ type: "settings" });
       await windowsCommands.windowNavigate({ type: "settings" }, "/app/settings?tab=templates");
-      
+
       const handleWindowFocus = () => {
         queryClient.invalidateQueries({ queryKey: ["templates"] });
         queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
         window.removeEventListener("focus", handleWindowFocus);
       };
-      
+
       window.addEventListener("focus", handleWindowFocus);
-      
     } catch (error) {
       console.error("Failed to open settings/templates:", error);
     }

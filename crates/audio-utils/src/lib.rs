@@ -48,6 +48,15 @@ pub fn f32_to_i16_samples(samples: &[f32]) -> Vec<i16> {
         .collect()
 }
 
+pub fn f32_to_i16_bytes(chunk: Vec<f32>) -> bytes::Bytes {
+    let mut bytes = Vec::with_capacity(chunk.len() * 2);
+    for sample in chunk {
+        let i16_sample = (sample * I16_SCALE) as i16;
+        bytes.extend_from_slice(&i16_sample.to_le_bytes());
+    }
+    bytes::Bytes::from(bytes)
+}
+
 pub fn bytes_to_f32_samples(data: &[u8]) -> Vec<f32> {
     data.chunks_exact(2)
         .map(|chunk| {

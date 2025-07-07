@@ -43,10 +43,13 @@ impl kalosm_sound::AsyncSource for WebSocketAudioSource {
                             let mic_samples: Vec<f32> = bytes_to_f32_samples(&mic);
                             let speaker_samples: Vec<f32> = bytes_to_f32_samples(&speaker);
 
-                            let mixed_samples: Vec<f32> = mic_samples
-                                .into_iter()
-                                .zip(speaker_samples.into_iter())
-                                .map(|(mic, speaker)| mic + speaker)
+                            let max_len = mic_samples.len().max(speaker_samples.len());
+                            let mixed_samples: Vec<f32> = (0..max_len)
+                                .map(|i| {
+                                    let mic = mic_samples.get(i).copied().unwrap_or(0.0);
+                                    let speaker = speaker_samples.get(i).copied().unwrap_or(0.0);
+                                    (mic + speaker) * 0.9
+                                })
                                 .collect();
 
                             Some((mixed_samples, receiver))

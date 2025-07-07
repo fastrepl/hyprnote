@@ -29,34 +29,39 @@ impl ListenClientBuilder {
         self
     }
 
-    pub fn build_single(self) -> ListenClient {
-        let uri = {
-            let mut url: url::Url = self.api_base.unwrap().parse().unwrap();
+    fn build_uri(&self, audio_mode: hypr_listener_interface::AudioMode) -> String {
+        let mut url: url::Url = self.api_base.as_ref().unwrap().parse().unwrap();
 
-            let params = hypr_listener_interface::ListenParams {
-                audio_mode: hypr_listener_interface::AudioMode::Single,
-                ..self.params.unwrap_or_default()
-            };
-
-            let language = params.language.code();
-
-            url.set_path("/api/desktop/listen/realtime");
-            url.query_pairs_mut()
-                .append_pair("language", language)
-                .append_pair("static_prompt", &params.static_prompt)
-                .append_pair("dynamic_prompt", &params.dynamic_prompt)
-                .append_pair("audio_mode", params.audio_mode.as_ref());
-
-            let host = url.host_str().unwrap();
-
-            if host.contains("127.0.0.1") || host.contains("localhost") {
-                url.set_scheme("ws").unwrap();
-            } else {
-                url.set_scheme("wss").unwrap();
-            }
-
-            url.to_string().parse().unwrap()
+        let params = hypr_listener_interface::ListenParams {
+            audio_mode,
+            ..self.params.clone().unwrap_or_default()
         };
+
+        let language = params.language.code();
+
+        url.set_path("/api/desktop/listen/realtime");
+        url.query_pairs_mut()
+            .append_pair("language", language)
+            .append_pair("static_prompt", &params.static_prompt)
+            .append_pair("dynamic_prompt", &params.dynamic_prompt)
+            .append_pair("audio_mode", params.audio_mode.as_ref());
+
+        let host = url.host_str().unwrap();
+
+        if host.contains("127.0.0.1") || host.contains("localhost") {
+            url.set_scheme("ws").unwrap();
+        } else {
+            url.set_scheme("wss").unwrap();
+        }
+
+        url.to_string()
+    }
+
+    pub fn build_single(self) -> ListenClient {
+        let uri = self
+            .build_uri(hypr_listener_interface::AudioMode::Single)
+            .parse()
+            .unwrap();
 
         let request = match self.api_key {
             Some(key) => ClientRequestBuilder::new(uri)
@@ -68,33 +73,10 @@ impl ListenClientBuilder {
     }
 
     pub fn build_dual(self) -> ListenClientDual {
-        let uri = {
-            let mut url: url::Url = self.api_base.unwrap().parse().unwrap();
-
-            let params = hypr_listener_interface::ListenParams {
-                audio_mode: hypr_listener_interface::AudioMode::Single,
-                ..self.params.unwrap_or_default()
-            };
-
-            let language = params.language.code();
-
-            url.set_path("/api/desktop/listen/realtime");
-            url.query_pairs_mut()
-                .append_pair("language", language)
-                .append_pair("static_prompt", &params.static_prompt)
-                .append_pair("dynamic_prompt", &params.dynamic_prompt)
-                .append_pair("audio_mode", params.audio_mode.as_ref());
-
-            let host = url.host_str().unwrap();
-
-            if host.contains("127.0.0.1") || host.contains("localhost") {
-                url.set_scheme("ws").unwrap();
-            } else {
-                url.set_scheme("wss").unwrap();
-            }
-
-            url.to_string().parse().unwrap()
-        };
+        let uri = self
+            .build_uri(hypr_listener_interface::AudioMode::Dual)
+            .parse()
+            .unwrap();
 
         let request = match self.api_key {
             Some(key) => ClientRequestBuilder::new(uri)

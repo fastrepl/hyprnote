@@ -54,7 +54,6 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tracing = { workspace = true }
 
 hound = { workspace = true }
-voice_activity_detector = { workspace = true }
 
 flume = { workspace = true }
 statig = { workspace = true, features = ["async"] }

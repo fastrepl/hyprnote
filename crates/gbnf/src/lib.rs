@@ -1,9 +1,11 @@
-pub const ENHANCE_AUTO: &str = include_str!("../assets/enhance-auto.gbnf");
+pub const ENHANCE_OTHER: &str = include_str!("../assets/enhance-other.gbnf");
+pub const ENHANCE_HYPR: &str = include_str!("../assets/enhance-hypr.gbnf");
 pub const TITLE: &str = include_str!("../assets/title.gbnf");
 pub const TAGS: &str = include_str!("../assets/tags.gbnf");
 
 pub enum GBNF {
-    Enhance,
+    EnhanceOther,
+    EnhanceHypr,
     Title,
     Tags,
 }
@@ -11,7 +13,8 @@ pub enum GBNF {
 impl GBNF {
     pub fn build(&self) -> String {
         match self {
-            GBNF::Enhance => ENHANCE_AUTO.to_string(),
+            GBNF::EnhanceOther => ENHANCE_OTHER.to_string(),
+            GBNF::EnhanceHypr => ENHANCE_HYPR.to_string(),
             GBNF::Title => TITLE.to_string(),
             GBNF::Tags => TAGS.to_string(),
         }

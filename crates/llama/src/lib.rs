@@ -23,7 +23,13 @@ const DEFAULT_MAX_OUTPUT_TOKENS: u32 = 1024 * 2;
 
 static LLAMA_BACKEND: OnceLock<Arc<LlamaBackend>> = OnceLock::new();
 
+pub enum ModelName {
+    HyprLLM,
+    Other(Option<String>),
+}
+
 pub struct Llama {
+    pub name: ModelName,
     task_sender: tokio::sync::mpsc::UnboundedSender<Task>,
 }
 
@@ -247,6 +253,11 @@ impl Llama {
 
         let backend = Self::get_backend();
         let model = Self::load_model(model_path)?;
+        let name = match model.meta_val_str("general.name") {
+            Ok(name) if name == "hypr-llm" => ModelName::HyprLLM,
+            Ok(name) => ModelName::Other(Some(name.to_string())),
+            Err(_) => ModelName::Other(None),
+        };
 
         let (task_sender, mut task_receiver) = tokio::sync::mpsc::unbounded_channel::<Task>();
 
@@ -283,7 +294,7 @@ impl Llama {
             }
         });
 
-        Ok(Self { task_sender })
+        Ok(Self { name, task_sender })
     }
 
     pub fn generate_stream(

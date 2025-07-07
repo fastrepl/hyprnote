@@ -144,12 +144,12 @@ async fn websocket_with_model(
 }
 
 async fn websocket_single_channel(
-    mut ws_sender: futures_util::stream::SplitSink<WebSocket, Message>,
+    ws_sender: futures_util::stream::SplitSink<WebSocket, Message>,
     ws_receiver: futures_util::stream::SplitStream<WebSocket>,
     model: hypr_whisper_local::Whisper,
     guard: ConnectionGuard,
 ) {
-    let mut stream = {
+    let stream = {
         let audio_source = hypr_ws_utils::WebSocketAudioSource::new(ws_receiver, 16 * 1000);
         let chunked =
             audio_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
@@ -157,61 +157,17 @@ async fn websocket_single_channel(
         let chunked = hypr_whisper_local::AudioChunkStream(chunked.map(|chunk| {
             hypr_whisper_local::SimpleAudioChunk {
                 samples: chunk.convert_samples().collect(),
-                ..Default::default()
+                meta: Some(serde_json::json!({ "source": "mixed" })),
             }
         }));
         hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(chunked, model)
     };
 
-    loop {
-        tokio::select! {
-            _ = guard.cancelled() => {
-                tracing::info!("websocket_cancelled_by_new_connection");
-                break;
-            }
-            chunk_opt = stream.next() => {
-                let Some(chunk) = chunk_opt else { break };
-
-                let meta = chunk.meta();
-                let text = chunk.text().to_string();
-                let start = chunk.start() as u64;
-                let duration = chunk.duration() as u64;
-                let confidence = chunk.confidence();
-
-                if confidence < 0.2 {
-                    tracing::warn!(confidence, "skipping_transcript: {}", text);
-                    continue;
-                }
-
-                let data = ListenOutputChunk {
-                    meta,
-                    words: text
-                        .split_whitespace()
-                        .filter(|w| !w.is_empty())
-                        .map(|w| Word {
-                            text: w.trim().to_string(),
-                            speaker: None,
-                            start_ms: Some(start),
-                            end_ms: Some(start + duration),
-                            confidence: Some(confidence),
-                        })
-                        .collect(),
-                };
-
-                let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
-                if let Err(e) = ws_sender.send(msg).await {
-                    tracing::warn!("websocket_send_error: {}", e);
-                    break;
-                }
-            }
-        }
-    }
-
-    let _ = ws_sender.close().await;
+    process_transcription_stream(ws_sender, stream, guard).await;
 }
 
 async fn websocket_dual_channel(
-    mut ws_sender: futures_util::stream::SplitSink<WebSocket, Message>,
+    ws_sender: futures_util::stream::SplitSink<WebSocket, Message>,
     ws_receiver: futures_util::stream::SplitStream<WebSocket>,
     model: hypr_whisper_local::Whisper,
     guard: ConnectionGuard,
@@ -224,23 +180,36 @@ async fn websocket_dual_channel(
     let speaker_chunked =
         speaker_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
 
-    let _mic_chunked = hypr_whisper_local::AudioChunkStream(mic_chunked.map(|chunk| {
+    let mic_chunked = hypr_whisper_local::AudioChunkStream(mic_chunked.map(|chunk| {
         hypr_whisper_local::SimpleAudioChunk {
             samples: chunk.convert_samples().collect(),
-            ..Default::default()
+            meta: Some(serde_json::json!({ "source": "mic" })),
         }
     }));
 
     let speaker_chunked = hypr_whisper_local::AudioChunkStream(speaker_chunked.map(|chunk| {
         hypr_whisper_local::SimpleAudioChunk {
             samples: chunk.convert_samples().collect(),
-            ..Default::default()
+            meta: Some(serde_json::json!({ "source": "speaker" })),
         }
     }));
 
-    let mut stream =
-        hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(speaker_chunked, model);
+    let merged_stream = hypr_whisper_local::AudioChunkStream(futures_util::stream::select(
+        mic_chunked.0,
+        speaker_chunked.0,
+    ));
 
+    let stream =
+        hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(merged_stream, model);
+
+    process_transcription_stream(ws_sender, stream, guard).await;
+}
+
+async fn process_transcription_stream(
+    mut ws_sender: futures_util::stream::SplitSink<WebSocket, Message>,
+    mut stream: impl futures_util::Stream<Item = hypr_whisper_local::Segment> + Unpin,
+    guard: ConnectionGuard,
+) {
     loop {
         tokio::select! {
             _ = guard.cancelled() => {
@@ -261,14 +230,25 @@ async fn websocket_dual_channel(
                     continue;
                 }
 
+                let source = meta.and_then(|meta|
+                    meta.get("source")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string())
+                );
+                let speaker = match source {
+                    Some(s) if s == "mic" => Some(hypr_listener_interface::SpeakerIdentity::Unassigned { index: 0 }),
+                    Some(s) if s == "speaker" => Some(hypr_listener_interface::SpeakerIdentity::Unassigned { index: 1 }),
+                    _ => None,
+                };
+
                 let data = ListenOutputChunk {
-                    meta,
+                    meta: None,
                     words: text
                         .split_whitespace()
                         .filter(|w| !w.is_empty())
                         .map(|w| Word {
                             text: w.trim().to_string(),
-                            speaker: None,
+                            speaker: speaker.clone(),
                             start_ms: Some(start),
                             end_ms: Some(start + duration),
                             confidence: Some(confidence),

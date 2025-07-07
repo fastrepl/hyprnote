@@ -137,7 +137,7 @@ mod test {
                 language: hypr_language::ISO639::En.into(),
                 ..Default::default()
             })
-            .build();
+            .build_single();
 
         let audio_source = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),

@@ -48,7 +48,7 @@ impl kalosm_sound::AsyncSource for WebSocketAudioSource {
                                 .map(|i| {
                                     let mic = mic_samples.get(i).copied().unwrap_or(0.0);
                                     let speaker = speaker_samples.get(i).copied().unwrap_or(0.0);
-                                    (mic + speaker) * 0.9
+                                    (mic + speaker).clamp(-1.0, 1.0)
                                 })
                                 .collect();
 

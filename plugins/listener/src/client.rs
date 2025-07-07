@@ -161,7 +161,7 @@ impl ListenClient {
 }
 
 impl ListenClientDual {
-    pub async fn from_audio(
+    pub async fn from_realtime_audio(
         &self,
         mic_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
         speaker_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,

@@ -212,9 +212,67 @@ async fn websocket_single_channel(
 
 async fn websocket_dual_channel(
     mut ws_sender: futures_util::stream::SplitSink<WebSocket, Message>,
-    _ws_receiver: futures_util::stream::SplitStream<WebSocket>,
-    _model: hypr_whisper_local::Whisper,
-    _guard: ConnectionGuard,
+    ws_receiver: futures_util::stream::SplitStream<WebSocket>,
+    model: hypr_whisper_local::Whisper,
+    guard: ConnectionGuard,
 ) {
+    let mut stream = {
+        let audio_source = hypr_ws_utils::WebSocketAudioSource::new(ws_receiver, 16 * 1000);
+        let chunked =
+            audio_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
+
+        let chunked = hypr_whisper_local::AudioChunkStream(chunked.map(|chunk| {
+            hypr_whisper_local::SimpleAudioChunk {
+                samples: chunk.convert_samples().collect(),
+                ..Default::default()
+            }
+        }));
+        hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(chunked, model)
+    };
+
+    loop {
+        tokio::select! {
+            _ = guard.cancelled() => {
+                tracing::info!("websocket_cancelled_by_new_connection");
+                break;
+            }
+            chunk_opt = stream.next() => {
+                let Some(chunk) = chunk_opt else { break };
+
+                let meta = chunk.meta();
+                let text = chunk.text().to_string();
+                let start = chunk.start() as u64;
+                let duration = chunk.duration() as u64;
+                let confidence = chunk.confidence();
+
+                if confidence < 0.2 {
+                    tracing::warn!(confidence, "skipping_transcript: {}", text);
+                    continue;
+                }
+
+                let data = ListenOutputChunk {
+                    meta,
+                    words: text
+                        .split_whitespace()
+                        .filter(|w| !w.is_empty())
+                        .map(|w| Word {
+                            text: w.trim().to_string(),
+                            speaker: None,
+                            start_ms: Some(start),
+                            end_ms: Some(start + duration),
+                            confidence: Some(confidence),
+                        })
+                        .collect(),
+                };
+
+                let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
+                if let Err(e) = ws_sender.send(msg).await {
+                    tracing::warn!("websocket_send_error: {}", e);
+                    break;
+                }
+            }
+        }
+    }
+
     let _ = ws_sender.close().await;
 }

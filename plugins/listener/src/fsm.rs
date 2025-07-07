@@ -130,7 +130,9 @@ impl Session {
             (None, None)
         };
 
-        let (process_tx, process_rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
+        let (process_mic_tx, process_mic_rx) = flume::bounded::<Vec<f32>>(chunk_buffer_size);
+        let (process_speaker_tx, process_speaker_rx) =
+            flume::bounded::<Vec<f32>>(chunk_buffer_size);
 
         {
             let silence_stream_tx = hypr_audio::AudioOutput::silence();
@@ -194,6 +196,8 @@ impl Session {
         tasks.spawn({
             let app = self.app.clone();
             let save_mixed_tx = save_mixed_tx.clone();
+            let process_mic_tx = process_mic_tx.clone();
+            let process_speaker_tx = process_speaker_tx.clone();
 
             async move {
                 let mut aec = hypr_aec::AEC::new().unwrap();
@@ -225,13 +229,14 @@ impl Session {
                         continue;
                     }
 
-                    let mixed: Vec<f32> = mic_chunk
+                    let processed_mic = mic_chunk
                         .iter()
-                        .zip(speaker_chunk.iter())
-                        .map(|(mic, speaker)| {
-                            (mic * POST_MIC_GAIN + speaker * POST_SPEAKER_GAIN).clamp(-1.0, 1.0)
-                        })
-                        .collect();
+                        .map(|x| x * POST_MIC_GAIN)
+                        .collect::<Vec<f32>>();
+                    let processed_speaker = speaker_chunk
+                        .iter()
+                        .map(|x| x * POST_SPEAKER_GAIN)
+                        .collect::<Vec<f32>>();
 
                     let now = Instant::now();
                     if now.duration_since(last_broadcast) >= AUDIO_AMPLITUDE_THROTTLE {
@@ -249,12 +254,30 @@ impl Session {
                         let _ = tx.send_async(speaker_chunk.clone()).await;
                     }
 
-                    if process_tx.send_async(mixed.clone()).await.is_err() {
-                        tracing::error!("process_tx_send_error");
+                    // Send separate streams to listen client
+                    if process_mic_tx
+                        .send_async(processed_mic.clone())
+                        .await
+                        .is_err()
+                    {
+                        tracing::error!("process_mic_tx_send_error");
+                        return;
+                    }
+                    if process_speaker_tx
+                        .send_async(processed_speaker.clone())
+                        .await
+                        .is_err()
+                    {
+                        tracing::error!("process_speaker_tx_send_error");
                         return;
                     }
 
                     if record {
+                        let mixed: Vec<f32> = processed_mic
+                            .iter()
+                            .zip(processed_speaker.iter())
+                            .map(|(mic, speaker)| (mic + speaker).clamp(-1.0, 1.0))
+                            .collect();
                         if save_mixed_tx.send_async(mixed).await.is_err() {
                             tracing::error!("save_mixed_tx_send_error");
                         }
@@ -336,15 +359,27 @@ impl Session {
             });
         }
 
-        let audio_stream = hypr_audio::StreamSource::new(
-            process_rx
-                .into_stream()
-                .map(|chunk| futures_util::stream::iter(chunk))
-                .flatten(),
-            SAMPLE_RATE,
-        );
+        let mic_audio_stream = process_mic_rx.into_stream().map(|chunk| {
+            let bytes: Vec<u8> = chunk
+                .into_iter()
+                .map(|sample| (sample * i16::MAX as f32) as i16)
+                .flat_map(|sample| sample.to_le_bytes())
+                .collect();
+            bytes::Bytes::from(bytes)
+        });
 
-        let listen_stream = listen_client.from_realtime_audio(audio_stream).await?;
+        let speaker_audio_stream = process_speaker_rx.into_stream().map(|chunk| {
+            let bytes: Vec<u8> = chunk
+                .into_iter()
+                .map(|sample| (sample * i16::MAX as f32) as i16)
+                .flat_map(|sample| sample.to_le_bytes())
+                .collect();
+            bytes::Bytes::from(bytes)
+        });
+
+        let listen_stream = listen_client
+            .from_realtime_audio(mic_audio_stream, speaker_audio_stream)
+            .await?;
 
         tasks.spawn({
             let app = self.app.clone();
@@ -427,7 +462,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     language: hypr_language::Language,
     _jargons: Vec<String>,
-) -> Result<crate::client::ListenClient, crate::Error> {
+) -> Result<crate::client::ListenClientDual, crate::Error> {
     let api_base = {
         use tauri_plugin_connector::{Connection, ConnectorPluginExt};
         let conn: Connection = app.get_stt_connection().await?.into();
@@ -460,7 +495,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
             static_prompt,
             ..Default::default()
         })
-        .build_single())
+        .build_dual())
 }
 
 async fn update_session<R: tauri::Runtime>(

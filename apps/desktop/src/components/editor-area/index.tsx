@@ -500,9 +500,11 @@ function useAutoEnhance({
 }: {
   sessionId: string;
   enhanceStatus: string;
-  enhanceMutate: (params: { triggerType: 'auto' }) => void;
+  enhanceMutate: (params: { triggerType: 'auto'; templateId?: string | null }) => void;
 }) {
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
+  const autoEnhanceTemplate = useOngoingSession((s) => s.autoEnhanceTemplate);
+  const setAutoEnhanceTemplate = useOngoingSession((s) => s.setAutoEnhanceTemplate);
   const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
   const setShowRaw = useSession(sessionId, (s) => s.setShowRaw);
 
@@ -513,7 +515,15 @@ function useAutoEnhance({
       && enhanceStatus !== "pending"
     ) {
       setShowRaw(false);
-      enhanceMutate({ triggerType: 'auto' });
+      
+      // Use the selected template and then clear it
+      enhanceMutate({ 
+        triggerType: 'auto',
+        templateId: autoEnhanceTemplate 
+      });
+      
+      // Clear the template after using it (one-time use)
+      setAutoEnhanceTemplate(null);
     }
   }, [
     ongoingSessionStatus,
@@ -521,6 +531,9 @@ function useAutoEnhance({
     sessionId,
     enhanceMutate,
     setShowRaw,
+    autoEnhanceTemplate,
+    setAutoEnhanceTemplate,
+    prevOngoingSessionStatus,
   ]);
 }
 

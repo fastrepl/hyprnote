@@ -1,5 +1,6 @@
 import { PlusIcon, RefreshCwIcon, TypeOutlineIcon, XIcon, ZapIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
@@ -70,6 +71,7 @@ export function FloatingButton({
   const [showRefreshIcon, setShowRefreshIcon] = useState(true);
   const [showTemplatePopover, setShowTemplatePopover] = useState(false);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const queryClient = useQueryClient();
 
   // Clear timeout on cleanup
   useEffect(() => {
@@ -111,6 +113,7 @@ export function FloatingButton({
       hideTimeoutRef.current = null;
     }
     if (!showRaw && !isEnhancePending && showRefreshIcon) {
+      queryClient.invalidateQueries({ queryKey: ["templates"] });
       setShowTemplatePopover(true);
     }
   };
@@ -121,11 +124,11 @@ export function FloatingButton({
     }, 100);
   };
 
-  // Simple template selection - just call parent function
   const handleTemplateSelect = (templateId: string) => {
     setShowTemplatePopover(false);
 
-    // Send analytics event for custom template usage (not for "auto")
+    queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
+
     if (templateId !== "auto") {
       analyticsCommands.event({
         event: "custom_template_enhancement_started",
@@ -136,45 +139,22 @@ export function FloatingButton({
     handleEnhanceWithTemplate(templateId);
   };
 
-  // Helper function to extract emoji and clean name
-  const extractEmojiAndName = (title: string) => {
-    const emojiMatch = title.match(/^(\p{Emoji})\s*/u);
-    if (emojiMatch) {
-      return {
-        emoji: emojiMatch[1],
-        name: title.replace(/^(\p{Emoji})\s*/u, "").trim(),
-      };
-    }
-
-    // Fallback emoji based on keywords if no emoji in title
-    const lowercaseTitle = title.toLowerCase();
-    let fallbackEmoji = "📄";
-    if (lowercaseTitle.includes("meeting")) {
-      fallbackEmoji = "💼";
-    }
-    if (lowercaseTitle.includes("interview")) {
-      fallbackEmoji = "👔";
-    }
-    if (lowercaseTitle.includes("standup")) {
-      fallbackEmoji = "☀️";
-    }
-    if (lowercaseTitle.includes("review")) {
-      fallbackEmoji = "📝";
-    }
-
-    return {
-      emoji: fallbackEmoji,
-      name: title,
-    };
-  };
-
   const handleAddTemplate = async () => {
     setShowTemplatePopover(false);
     try {
-      // Open settings window
+      queryClient.invalidateQueries({ queryKey: ["templates"] });
+      
       await windowsCommands.windowShow({ type: "settings" });
-      // Navigate to templates tab
       await windowsCommands.windowNavigate({ type: "settings" }, "/app/settings?tab=templates");
+      
+      const handleWindowFocus = () => {
+        queryClient.invalidateQueries({ queryKey: ["templates"] });
+        queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
+        window.removeEventListener("focus", handleWindowFocus);
+      };
+      
+      window.addEventListener("focus", handleWindowFocus);
+      
     } catch (error) {
       console.error("Failed to open settings/templates:", error);
     }
@@ -356,3 +336,35 @@ function RunOrRerun({ showRefresh }: { showRefresh: boolean }) {
     </div>
   );
 }
+
+// Helper function to extract emoji and clean name
+const extractEmojiAndName = (title: string) => {
+  const emojiMatch = title.match(/^(\p{Emoji})\s*/u);
+  if (emojiMatch) {
+    return {
+      emoji: emojiMatch[1],
+      name: title.replace(/^(\p{Emoji})\s*/u, "").trim(),
+    };
+  }
+
+  // Fallback emoji based on keywords if no emoji in title
+  const lowercaseTitle = title.toLowerCase();
+  let fallbackEmoji = "📄";
+  if (lowercaseTitle.includes("meeting")) {
+    fallbackEmoji = "💼";
+  }
+  if (lowercaseTitle.includes("interview")) {
+    fallbackEmoji = "👔";
+  }
+  if (lowercaseTitle.includes("standup")) {
+    fallbackEmoji = "☀️";
+  }
+  if (lowercaseTitle.includes("review")) {
+    fallbackEmoji = "📝";
+  }
+
+  return {
+    emoji: fallbackEmoji,
+    name: title,
+  };
+};

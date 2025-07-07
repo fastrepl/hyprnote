@@ -323,7 +323,7 @@ export function useEnhanceMutation({
 
       const { type } = await connectorCommands.getLlmConnection();
       const freshIsLocalLlm = type === "HyprLocal";
-      
+
       setActualIsLocalLlm(freshIsLocalLlm);
 
       if (freshIsLocalLlm) {
@@ -477,7 +477,7 @@ Sections:`;
       });
 
       persistSession();
-      
+
       if (actualIsLocalLlm) {
         setProgress(0);
       }

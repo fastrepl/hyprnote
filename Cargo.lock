@@ -17291,6 +17291,7 @@ dependencies = [
  "kalosm-sound",
  "listener-interface",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]

@@ -216,19 +216,30 @@ async fn websocket_dual_channel(
     model: hypr_whisper_local::Whisper,
     guard: ConnectionGuard,
 ) {
-    let mut stream = {
-        let audio_source = hypr_ws_utils::WebSocketAudioSource::new(ws_receiver, 16 * 1000);
-        let chunked =
-            audio_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
+    let (mic_source, speaker_source) =
+        hypr_ws_utils::split_dual_audio_sources(ws_receiver, 16 * 1000);
 
-        let chunked = hypr_whisper_local::AudioChunkStream(chunked.map(|chunk| {
-            hypr_whisper_local::SimpleAudioChunk {
-                samples: chunk.convert_samples().collect(),
-                ..Default::default()
-            }
-        }));
-        hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(chunked, model)
-    };
+    let mic_chunked =
+        mic_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
+    let speaker_chunked =
+        speaker_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
+
+    let _mic_chunked = hypr_whisper_local::AudioChunkStream(mic_chunked.map(|chunk| {
+        hypr_whisper_local::SimpleAudioChunk {
+            samples: chunk.convert_samples().collect(),
+            ..Default::default()
+        }
+    }));
+
+    let speaker_chunked = hypr_whisper_local::AudioChunkStream(speaker_chunked.map(|chunk| {
+        hypr_whisper_local::SimpleAudioChunk {
+            samples: chunk.convert_samples().collect(),
+            ..Default::default()
+        }
+    }));
+
+    let mut stream =
+        hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(speaker_chunked, model);
 
     loop {
         tokio::select! {

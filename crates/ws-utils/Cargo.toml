@@ -8,6 +8,8 @@ hypr-audio-utils = { workspace = true }
 hypr-listener-interface = { workspace = true }
 
 axum = { workspace = true, features = ["ws"] }
-futures-util = { workspace = true }
 kalosm-sound = { workspace = true, default-features = false }
 serde_json = { workspace = true }
+
+futures-util = { workspace = true }
+tokio = { workspace = true }
